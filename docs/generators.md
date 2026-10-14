@@ -443,7 +443,8 @@ first screen (ADR-040).
 
 `specarch-gen-ui-typescript` writes, for a `ui` target of platform `web`
 and framework `nextjs-carbon` in an implementation file in TypeScript,
-each page as `page.schema.ts` and `page.tsx` under `app/` at the
+each page as `page.schema.ts` (or the name `bindings.ui.schemaFile`
+gives, ADR-115) and `page.tsx` under `app/` at the
 page's route (`{param}` becomes `[param]`), the components that read the
 schemas once under `screens/`, and every text once in `strings.ts`, in the
 language `settings.language` names, which is required. The schema file is

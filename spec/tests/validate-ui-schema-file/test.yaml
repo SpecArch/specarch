@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: an implementation file with three bindings each naming a schema file, _schema.ts, layout.tsx, a file the App Router serves itself, and schemas/page.ts, a path rather than a name beside the page
+when: validate is run on its folder
+then: it takes _schema.ts and reports layout.tsx and schemas/page.ts each as a schema error at its entry, and exits 1
+verifies: [SA-10]

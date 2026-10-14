@@ -110,7 +110,9 @@ repository: the example's override names a fictional library,
 An override carries `description`, which every idiom file must have; the
 request's sample leaves it out and is otherwise valid.
 
-**Per page, two files.** `<route>/page.schema.ts` holds the page as data:
+**Per page, two files.** `<route>/page.schema.ts`, or the name the
+implementation file gives under `bindings.ui.schemaFile`, such as
+`_schema.ts` (ADR-115), holds the page as data:
 columns, fields and sections, each field's type, validation and title
 key, filters, actions with their confirmation and permission, the
 operation each calls, and the string key of every text. It is one object

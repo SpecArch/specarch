@@ -867,7 +867,7 @@ func (g *gen) pageFiles(pageName string, pg map[string]any, part string, schemaM
 	if len(hooks) > 0 {
 		page.WriteString("import { HookedForm } from \"./page.client\";\n")
 	}
-	page.WriteString("import { schema } from \"./page.schema\";\n\n")
+	fmt.Fprintf(&page, "import { schema } from %q;\n\n", g.schemaModule())
 	page.WriteString(metadataOf(pageName))
 	g.writeRoutes(&page, routes)
 	props := "schema={schema} texts={t} routes={routes}"

@@ -117,6 +117,8 @@ type gen struct {
 	strings   map[string]string
 	calls     map[string]map[string]string // the operations the pages call, by path and method
 	server    *server
+
+	schemaFile string // the name of each page's schema file: bindings.ui.schemaFile, or page.schema.ts
 }
 
 func (g *gen) problem(severity, path, format string, args ...any) {
@@ -162,6 +164,10 @@ func Generate(r *Request) genui.Response {
 	if text(g.settings["language"]) == "" {
 		g.problem("error", "/", "the %s target's settings name no language, the language of the strings and the pages (WCAG 2.2, 3.1.1); add language, such as en", r.Target)
 	}
+	g.schemaFile = text(obj0(obj0(obj0(g.impl.Content["bindings"])["ui"]))["schemaFile"])
+	if g.schemaFile == "" {
+		g.schemaFile = "page.schema.ts"
+	}
 	g.names = g.idiomNames()
 	if g.failed() {
 		return g.response(nil)
@@ -189,9 +195,9 @@ func Generate(r *Request) genui.Response {
 				continue
 			}
 			files = append(files,
-				genui.File{Path: folder + "/page.schema.ts", Content: header + schema, Comparison: "object-literal"},
+				genui.File{Path: folder + "/" + g.schemaFile, Content: header + schema, Comparison: "object-literal"},
 				genui.File{Path: folder + "/page.tsx", Content: header + page})
-			pageOf[folder+"/page.schema.ts"], pageOf[folder+"/page.tsx"] = pageName, pageName
+			pageOf[folder+"/"+g.schemaFile], pageOf[folder+"/page.tsx"] = pageName, pageName
 			drawn[pageName] = true
 		case "list":
 			schema, page, test, ok := g.listPage(pageName, pg, sess)
@@ -199,9 +205,9 @@ func Generate(r *Request) genui.Response {
 				continue
 			}
 			files = append(files,
-				genui.File{Path: folder + "/page.schema.ts", Content: header + schema, Comparison: "object-literal"},
+				genui.File{Path: folder + "/" + g.schemaFile, Content: header + schema, Comparison: "object-literal"},
 				genui.File{Path: folder + "/page.tsx", Content: header + page})
-			pageOf[folder+"/page.schema.ts"], pageOf[folder+"/page.tsx"] = pageName, pageName
+			pageOf[folder+"/"+g.schemaFile], pageOf[folder+"/page.tsx"] = pageName, pageName
 			drawn[pageName] = true
 			if test != "" {
 				files = append(files, genui.File{Path: "tests/" + pageName + ".test.ts", Content: header + test})
@@ -219,9 +225,9 @@ func Generate(r *Request) genui.Response {
 				continue
 			}
 			files = append(files,
-				genui.File{Path: folder + "/page.schema.ts", Content: header + out.schema, Comparison: "object-literal"},
+				genui.File{Path: folder + "/" + g.schemaFile, Content: header + out.schema, Comparison: "object-literal"},
 				genui.File{Path: folder + "/page.tsx", Content: header + out.page})
-			pageOf[folder+"/page.schema.ts"], pageOf[folder+"/page.tsx"] = pageName, pageName
+			pageOf[folder+"/"+g.schemaFile], pageOf[folder+"/page.tsx"] = pageName, pageName
 			if out.client != "" {
 				files = append(files, genui.File{Path: folder + "/page.client.tsx", Content: header + out.client})
 				pageOf[folder+"/page.client.tsx"] = pageName
@@ -522,7 +528,7 @@ func (g *gen) taskPage(pageName string, pg map[string]any) (string, string, bool
 	fmt.Fprintf(&schema, "import type { %s } from %q;\n\n", schemaType, components)
 	schema.WriteString(statement("export const schema = ", schemaValue, " satisfies "+schemaType+";"))
 	var page strings.Builder
-	fmt.Fprintf(&page, "import type { Metadata } from \"next\";\nimport { %s } from %q;\nimport { chosenLanguage } from \"@/language\";\nimport { stringOf, texts } from \"@/strings\";\nimport { schema } from \"./page.schema\";\n\n", component, components)
+	fmt.Fprintf(&page, "import type { Metadata } from \"next\";\nimport { %s } from %q;\nimport { chosenLanguage } from \"@/language\";\nimport { stringOf, texts } from \"@/strings\";\nimport { schema } from %q;\n\n", component, components, g.schemaModule())
 	page.WriteString(metadataOf(pageName))
 	page.WriteString("const routes = {\n")
 	for _, target := range sortedKeys(anyMap(routes)) {
@@ -759,4 +765,10 @@ func sortedKeys(m map[string]any) []string {
 	}
 	sort.Strings(out)
 	return out
+}
+
+// schemaModule is the module a page's file imports its schema from: the
+// schema file beside it, named without its extension.
+func (g *gen) schemaModule() string {
+	return "./" + strings.TrimSuffix(g.schemaFile, filepath.Ext(g.schemaFile))
 }

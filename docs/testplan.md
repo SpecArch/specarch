@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.0-dev of the specification: 439 design tests, 196 golden and 243 red, about 14 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.0-dev of the specification: 442 design tests, 197 golden and 245 red, about 14 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.7.0-dev of the specification: 439 design tests, 196 golden and 243 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 435 |
+| system | 438 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -1067,6 +1067,22 @@ Scenario: golden; level: system; verifies SA-44.
 - When: extract pages is run on the pages folder
 - Then: it reads it as the pages of Nuxt, since the folder holds .vue files, writes the page, a must question citing package.json that asks which framework serves the folder, names the commit and the router with why, and exits 0
 
+#### extract-pages-schema-file
+
+Scenario: golden; level: system; verifies SA-44.
+
+- Given: a repository whose app folder holds a members page whose schema is in _schema.ts beside it and a sign-in page with a page.schema.ts, and an implementation file whose bindings.ui.schemaFile is _schema.ts
+- When: extract pages is run on the app folder with the implementation file
+- Then: it names the schema file the binding gives, counts and reads _schema.ts as the members page's schema, with its kind, title, entity, columns and permission, does not read page.schema.ts, so the sign-in page's content is asked for, and exits 0
+
+#### extract-pages-schema-file-asked
+
+Scenario: red; level: system; verifies SA-44.
+
+- Given: a repository whose app folder holds a members page with a page.schema.ts, and an implementation file whose bindings.ui.schemaFile is layout.tsx, a file the router serves itself
+- When: extract pages is run on the app folder with the implementation file
+- Then: it prints a line that the name cannot be taken, reads page.schema.ts meanwhile, asks a must question blocking the pages for the name of the schema file, citing the implementation file, and exits 0
+
 #### extract-pages-task
 
 Scenario: golden; level: system; verifies SA-44.
@@ -1667,9 +1683,9 @@ Scenario: golden; level: system; verifies SA-43.
 
 Scenario: golden; level: system; verifies SA-52, SA-53, SA-54, SA-55, SA-56.
 
-- Given: a specification with two task pages, a list page that filters by an enum and by a date it may filter, searches, sorts two of its columns, keeps one on a compact screen, opens a page from its toolbar, a view from a row and the edit form from a row while it is active, and suspends a row while it is active after a confirmation that asks for the reason, a public list; a form that registers a member in two titled sections, with a text, an enum, a date, an integer, a boolean, a text without a maximum and a PIN typed twice, a branch picked from a list that searches, a field read-only while the status is inactive and one hidden while the newsletter is off, a check across two fields and an idempotency key; a form that loads a member and changes it, with a field always read-only and one read-only by an expression; a view that hides a field by an expression, opens the second form and suspends the member while active after a confirmation that asks for the reason; a form that loads a member answering a view with the rows of their visits and adds visits as rows, locked when loaded, at most five, with a field the rows' items do not take; a form that starts an approval, answered 202; the inbox of that approval's step, approving a request after a confirmation; a list read from an operation that answers every branch whole; two menus; and a theme with a dark mode, a print mode and a dimension; two implementation files in TypeScript in one folder, each with its ui target in nextjs-carbon, its own output and the session's operation in its settings, a hook for the registration's date and its sections as tabs in one and steps in the other, one owning the administration menu and the sign-in operation to another stakeholder, with server routes whose settings page the branches, a translation into en-GB whose file in the output folder keeps an entry no screen uses, and its theme's parts mapped to tokens with a space among them, and the other owning the branches page, calling the service directly and drawing lists through a library of its own by an override; and specarch-gen-ui-typescript built from this repository on PATH
+- Given: a specification with two task pages, a list page that filters by an enum and by a date it may filter, searches, sorts two of its columns, keeps one on a compact screen, opens a page from its toolbar, a view from a row and the edit form from a row while it is active, and suspends a row while it is active after a confirmation that asks for the reason, a public list; a form that registers a member in two titled sections, with a text, an enum, a date, an integer, a boolean, a text without a maximum and a PIN typed twice, a branch picked from a list that searches, a field read-only while the status is inactive and one hidden while the newsletter is off, a check across two fields and an idempotency key; a form that loads a member and changes it, with a field always read-only and one read-only by an expression; a view that hides a field by an expression, opens the second form and suspends the member while active after a confirmation that asks for the reason; a form that loads a member answering a view with the rows of their visits and adds visits as rows, locked when loaded, at most five, with a field the rows' items do not take; a form that starts an approval, answered 202; the inbox of that approval's step, approving a request after a confirmation; a list read from an operation that answers every branch whole; two menus; and a theme with a dark mode, a print mode and a dimension; two implementation files in TypeScript in one folder, each with its ui target in nextjs-carbon, its own output and the session's operation in its settings, a hook for the registration's date and its sections as tabs in one and steps in the other, one owning the administration menu and the sign-in operation to another stakeholder, with server routes whose settings page the branches, a translation into en-GB whose file in the output folder keeps an entry no screen uses, and its theme's parts mapped to tokens with a space among them, and the other owning the branches page, calling the service directly, drawing lists through a library of its own by an override and naming a page's schema file _schema.ts under bindings.ui.schemaFile; and specarch-gen-ui-typescript built from this repository on PATH
 - When: generate ui is run with --unapproved
-- Then: it runs the plug-in once per output folder; each writes the task pages, the list's schema and page behind the guard, the edit form among its row actions with its route filled from the row, with the derived test that it is refused without its permission, the public list with no such test, each form's and the view's schema and page behind the guard with its derived test, the visits' rows with the loaded ones read from the view's property and only the fields the items take sent, the approval's form with its event under 202, the inbox as a list with its row action, the registration's hook handed on by page.client.tsx from page.hooks.ts, application.ts with the session and the menu without the owned one, the menu's derived test, the components under screens, the texts in strings.ts with the en-GB translation in the first, language.ts, theme.scss with Carbon's themes and, in the first, the parts' colours in light and dark, and in the first a route.ts per path a page calls, the branches paged by their route, none for the owned sign-in, the routes' settings and their derived test; the second imports the list's component and schema type from the library and names its columns by the override; each warns that the field with no title is labelled by its name and that the print mode is left out, the first that the translation's unused entry and the space are left out, the second that the theme reaches no Carbon token, and exits 0
+- Then: it runs the plug-in once per output folder; each writes the task pages, the list's schema and page behind the guard, the edit form among its row actions with its route filled from the row, with the derived test that it is refused without its permission, the public list with no such test, each form's and the view's schema and page behind the guard with its derived test, the visits' rows with the loaded ones read from the view's property and only the fields the items take sent, the approval's form with its event under 202, the inbox as a list with its row action, the registration's hook handed on by page.client.tsx from page.hooks.ts, application.ts with the session and the menu without the owned one, the menu's derived test, the components under screens, the texts in strings.ts with the en-GB translation in the first, language.ts, theme.scss with Carbon's themes and, in the first, the parts' colours in light and dark, and in the first a route.ts per path a page calls, the branches paged by their route, none for the owned sign-in, the routes' settings and their derived test; the second imports the list's component and schema type from the library, names its columns by the override, and writes each page's schema as _schema.ts, which its page and derived test import; each warns that the field with no title is labelled by its name and that the print mode is left out, the first that the translation's unused entry and the space are left out, the second that the theme reaches no Carbon token, and exits 0
 
 #### generate-ui-typescript-hand-built
 
@@ -3398,6 +3414,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-10.
 - Given: an implementation file whose ui binding maps three components of its UI library, one binding a field, one a column by its field property, and one binding a row
 - When: validate is run on its folder
 - Then: it takes the first two and reports the binding of a row as a schema error at that entry, and exits 1
+
+#### validate-ui-schema-file
+
+Scenario: red; level: system; covers exit 1; verifies SA-10.
+
+- Given: an implementation file with three bindings each naming a schema file, _schema.ts, layout.tsx, a file the App Router serves itself, and schemas/page.ts, a path rather than a name beside the page
+- When: validate is run on its folder
+- Then: it takes _schema.ts and reports layout.tsx and schemas/page.ts each as a schema error at its entry, and exits 1
 
 #### validate-unique-where
 

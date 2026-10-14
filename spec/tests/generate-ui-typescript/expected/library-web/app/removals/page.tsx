@@ -8,7 +8,7 @@ import { DataPage } from "@acme/screens/data";
 import { Guard } from "@/screens";
 import { chosenLanguage } from "@/language";
 import { stringOf, texts } from "@/strings";
-import { schema } from "./page.schema";
+import { schema } from "./_schema";
 
 export async function generateMetadata(): Promise<Metadata> {
   return { title: stringOf("removals-inbox.title", await chosenLanguage()) };

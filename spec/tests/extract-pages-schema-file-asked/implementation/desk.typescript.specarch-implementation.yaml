@@ -1,0 +1,17 @@
+specarchImplementation: "0.1"
+
+info:
+  title: The desk's admin application in TypeScript
+  version: 0.1.0
+
+implements:
+  file: ../specarch.yaml
+  version: 0.1.0
+
+stack:
+  language: { name: TypeScript, version: "6.0" }
+
+bindings:
+  ui:
+    framework: Next.js
+    schemaFile: layout.tsx

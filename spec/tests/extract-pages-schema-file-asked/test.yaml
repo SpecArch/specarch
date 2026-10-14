@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: extract
+level: system
+scenario: red
+given: "a repository whose app folder holds a members page with a page.schema.ts, and an implementation file whose bindings.ui.schemaFile is layout.tsx, a file the router serves itself"
+when: "extract pages is run on the app folder with the implementation file"
+then: "it prints a line that the name cannot be taken, reads page.schema.ts meanwhile, asks a must question blocking the pages for the name of the schema file, citing the implementation file, and exits 0"
+verifies: [SA-44]

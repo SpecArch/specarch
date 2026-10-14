@@ -268,8 +268,16 @@ commands:
         operations. A second route file for one method and path prints a
         line and is left out. The files read beside the folder are read at the
         same commit, which names them all. A page whose folder holds
-        `page.schema.ts`, the schema its component library
-        renders from, takes its content from it: the file holds imports,
+        its schema file, the schema its component library
+        renders from, takes its content from it. The file is named
+        `page.schema.ts`, or what the implementation file given with
+        `--implementation` names under `bindings.ui.schemaFile`, with or
+        without `--facts` (ADR-115), and a line names it; a name that is
+        not a TypeScript or JavaScript file name, or is one the router
+        serves itself (`page`, `route`, `layout`, `loading`, `error`,
+        `not-found`, `template` or `default`), prints a line, a must
+        question blocking the pages asks for the name, and
+        `page.schema.ts` is read meanwhile: the file holds imports,
         comments and one exported object literal, optionally followed by
         `satisfies` and a type, written in the subset of TypeScript that
         is also JSON5 (keys as names or quoted, strings, numbers, true,
@@ -1158,7 +1166,7 @@ commands:
         schema: { type: string }
         required: true
       implementation:
-        description: For go, swift, javascript and dart, and for pages with --facts, an implementation file whose `bindings.http.permissionChecks` name the project's permission checks, which the reader reads routes' permissions through.
+        description: For go, swift, javascript and dart, and for pages with --facts, an implementation file whose `bindings.http.permissionChecks` name the project's permission checks, which the reader reads routes' permissions through; for pages, with or without --facts, its `bindings.ui.schemaFile` names the file a page's schema is read from.
         schema: { type: string }
       facts:
         description: For pages, a code-facts dump of JavaScript and TypeScript, made by tools/code-facts/dump-javascript.sh of a folder that holds the router's folder, through which the Next.js files' code is read.
@@ -1198,7 +1206,8 @@ commands:
       set of patterns whose names meet, and with --routes one naming the
       route table's commit and one per rule no route reaches; for go, swift, javascript, dart and
       pages with --facts, one line naming the checks the implementation file
-      names; for pages with --facts, one line naming the dump, one per
+      names; for pages given an implementation file that names a page's
+      schema file, one line naming it; for pages with --facts, one line naming the dump, one per
       middleware file saying what it covers and checks, and one counting
       the server actions; one line per file that says it is
       generated from another source; and the derivation's lines: one
@@ -1209,6 +1218,6 @@ commands:
     exitCodes:
       "0": the specification was written
       "1": "the surface could not be read as the source expects: a dump that does not parse or is stale, a dump whose repository is no gitlink of the repository holding it, is not checked out, pins a commit its history does not hold or whose checkout under the path is not the pinned commit's, a code-facts dump another parser version made, whose files are not the tracked files of its folder the reader reads, or, for pages, whose folder does not hold the router's folder, a route table that lists a method and path pair twice, a permission table that lists a grant, a rule or a gate twice, holds a gate with no check, with both a setting and a kind of caller or neither, or skipped for a kind other than client, names a matcher the reader does not know, or holds a rule without one of its four keys, a vocabulary that does not parse, lacks a key, holds one it does not have, gives a number, a duration or a language tag in another form, or lists one word twice in a list or in two lists of one group, a route table given with --routes from another repository or from a commit on another line of history than the permission table's, a router root that gives one route twice or holds no page, a path with changes not committed, untracked files, a shallow clone, a path outside a git repository, a document that is not Markdown, a file that is not an OpenAPI 3.0 or 3.1 document, a file that is not BPMN 2.0 XML or holds no process, or an implementation file that does not parse as YAML"
-      "2": usage error, a source this build does not offer, --implementation given to a source other than go, swift, javascript, dart or pages, or to pages without --facts, --facts given to a source other than pages, --routes given to a source other than permissions, --language, --vocabulary or --given-outside given to a source other than documents, a language that is not a BCP 47 tag, a language SpecArch ships no vocabulary for given without --vocabulary, a --language other than the vocabulary's own, more than one permission table, or a path that could not be read or written
+      "2": usage error, a source this build does not offer, --implementation given to a source other than go, swift, javascript, dart or pages, --facts given to a source other than pages, --routes given to a source other than permissions, --language, --vocabulary or --given-outside given to a source other than documents, a language that is not a BCP 47 tag, a language SpecArch ships no vocabulary for given without --vocabulary, a --language other than the vocabulary's own, more than one permission table, or a path that could not be read or written
     satisfies: [SA-11, SA-44, SA-63, SA-64]
     why: Existing systems enter SpecArch by extraction, so the verb exists from the start; it is built one reader at a time for the first real project that needs it, and every reader keeps the same rules so that the merge can trust their trees.

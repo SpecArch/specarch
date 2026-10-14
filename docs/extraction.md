@@ -316,7 +316,9 @@ Steps, in order:
    parallel or intercepting route, a private folder and another page
    file each print a line, and a route handler's methods are asked for
    (step 16). A page whose folder holds
-   `page.schema.ts`, the schema its component library renders from,
+   `page.schema.ts`, the schema its component library renders from, or
+   the file the implementation file names under `bindings.ui.schemaFile`
+   (ADR-115),
    takes its content from it: the file is read in the subset of
    TypeScript that is also JSON5, the form the TypeScript generator of
    ADR-051 writes, and its keys named as the design's page keywords give

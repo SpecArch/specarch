@@ -1,0 +1,15 @@
+arguments: [extract, pages, --implementation, implementation/desk.typescript.specarch-implementation.yaml, --out, spec, site/app]
+repository:
+  folder: site
+  commits:
+    - [app]
+exitStatus: 0
+standardOutput: |
+  commit 932fbb88106a7ccbdd2d8478523d3479c19e9066: the last change to app
+  schema file: implementation/desk.typescript.specarch-implementation.yaml names a page's schema file _schema.ts under bindings.ui.schemaFile
+  router: the App Router of Next.js, since the folder is named neither pages nor server
+  counted 2 page files, 0 route files and 1 schema file: the tracked files under app named page.tsx, page.ts, page.jsx or page.js, the route files named route.ts, route.js, route.tsx or route.jsx, and the files named _schema.ts beside the pages, each once
+  wrote 2 pages, 0 operations, 1 entity, 1 permission and 6 questions: one page per file or folder the router serves a page from whose route the meta-model holds, 1 schema read, one operation per route file whose name gives a method the meta-model holds, one entity and one permission per name a schema gives, one question per thing the files' places and the schemas do not say, and one per thing the meta-model cannot hold
+  derived 0 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers
+  not derived: 2 draft tests for page members, held up by Q-1; the validator warns for them until the question is answered
+  not derived: 1 draft test for page sign-in, held up by Q-2, Q-3; the validator warns for them until the questions are answered

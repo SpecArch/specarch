@@ -1,0 +1,41 @@
+questions:
+  # specarch-problem: question: open_question: (must, decision) The implementation file implementation/desk.typescript.specarch-implementation.yaml gives "layout.tsx" as bindings.ui.schemaFile, which is not the name of a TypeScript or JavaScript file beside a page's file that the router does not serve itself. What is the name of the file that holds a page's schema? It blocks pages. Decided by system-owner. Answer with a decision record that names Q-1 under answers. [Q-1]
+  Q-1:
+    question: The implementation file implementation/desk.typescript.specarch-implementation.yaml gives "layout.tsx" as bindings.ui.schemaFile, which is not the name of a TypeScript or JavaScript file beside a page's file that the router does not serve itself. What is the name of the file that holds a page's schema?
+    kind: decision
+    priority: must
+    blocks: [pages]
+    decidedBy: system-owner
+    why: A page's content is read from its schema file, so with the name unknown every page whose schema has another name is read with no content.
+  # specarch-problem: question: open_question: (must, decision) For the page at /members, what is the operation it reads? Decided by system-owner. Answer with a decision record that names Q-2 under answers. [Q-2]
+  Q-2:
+    question: For the page at /members, what is the operation it reads?
+    kind: decision
+    priority: must
+    blocks: ['#/pages/members/source']
+    decidedBy: system-owner
+    why: The folders name a page's route, and its schema does not give these.
+  # specarch-problem: question: open_question: (must, decision) What is the primary key of Member, and what does each field the pages show hold: email, name? Decided by system-owner. Answer with a decision record that names Q-3 under answers. [Q-3]
+  Q-3:
+    question: 'What is the primary key of Member, and what does each field the pages show hold: email, name?'
+    kind: decision
+    priority: must
+    blocks: ['#/entities/Member/primaryKey', '#/entities/Member/properties/email', '#/entities/Member/properties/name']
+    decidedBy: system-owner
+    why: The schema of the page at /members names the entity and the fields it shows, not their types or the entity's key.
+  # specarch-problem: question: open_question: (must, decision) What does each permission allow: members.read? Decided by system-owner. Answer with a decision record that names Q-4 under answers. [Q-4]
+  Q-4:
+    question: 'What does each permission allow: members.read?'
+    kind: decision
+    priority: must
+    blocks: ['#/permissions/members.read/description']
+    decidedBy: system-owner
+    why: A page schema names the permission a page checks and not what it is for.
+  # specarch-problem: question: open_question: (must, decision) Which role grants each permission: members.read? Decided by system-owner. Answer with a decision record that names Q-5 under answers. [Q-5]
+  Q-5:
+    question: 'Which role grants each permission: members.read?'
+    kind: decision
+    priority: must
+    blocks: ['#/permissions/members.read']
+    decidedBy: system-owner
+    why: A page schema names the permission a page checks and not who holds it.

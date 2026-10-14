@@ -1,0 +1,19 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v0.6.2/schema/specarch-design-0.2.schema.json
+specarch: "0.2"
+info:
+  title: Pages of app
+  version: 0.1.0
+  description: |
+    The pages and operations the file-system router rooted at app serves, read from the files git tracks there at commit 932fbb88106a7ccbdd2d8478523d3479c19e9066, with the content of each page that has a schema file from that file. Every page and operation cites its file; what the files' places and the schemas do not say is a question, and so is what the meta-model cannot hold.
+  tracksOrigin: true
+stages: [requirements, design]
+sources:
+  code:
+    kind: code
+    title: The code repository
+    edition: 932fbb88106a7ccbdd2d8478523d3479c19e9066
+    url: ../site
+    clauses:
+      - {clause: app/members/_schema.ts, title: The schema of the page at /members}
+      - {clause: app/members/page.tsx, title: The page file of /members}
+      - {clause: app/sign-in/page.tsx, title: The page file of /sign-in}

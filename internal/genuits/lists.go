@@ -321,7 +321,8 @@ func (g *gen) listPage(pageName string, pg map[string]any, sess *session) (strin
 	} else {
 		fmt.Fprintf(&page, "import { %s } from %q;\nimport { Guard } from %q;\n", component, importFrom, components)
 	}
-	page.WriteString("import { chosenLanguage } from \"@/language\";\nimport { stringOf, texts } from \"@/strings\";\nimport { schema } from \"./page.schema\";\n\n")
+	page.WriteString("import { chosenLanguage } from \"@/language\";\nimport { stringOf, texts } from \"@/strings\";\n")
+	fmt.Fprintf(&page, "import { schema } from %q;\n\n", g.schemaModule())
 	page.WriteString(metadataOf(pageName))
 	g.writeRoutes(&page, routes)
 	page.WriteString("export default async function Page() {\n  const t = texts(schema, await chosenLanguage());\n  return (\n")
@@ -492,7 +493,7 @@ func (g *gen) refusalTest(pageName, route, permission, permissionKey string) str
 	}
 	var b strings.Builder
 	b.WriteString("import assert from \"node:assert/strict\";\nimport { test } from \"node:test\";\nimport { decide } from \"../screens/access.ts\";\n")
-	fmt.Fprintf(&b, "import { schema } from \"../app%s/page.schema.ts\";\n\n", routeFolder(route))
+	fmt.Fprintf(&b, "import { schema } from \"../app%s/%s\";\n\n", routeFolder(route), g.schemaFile)
 	fmt.Fprintf(&b, "test(%q, () => {\n  assert.equal(decide(schema.%s, { signedIn: true, permissions: [] }), \"refused\");\n});\n\n", pageName+" is refused to someone signed in without "+permission, permissionKey)
 	fmt.Fprintf(&b, "test(%q, () => {\n  assert.equal(decide(schema.%s, { signedIn: false, permissions: [] }), \"sign-in\");\n});\n\n", pageName+" sends someone signed out to sign in", permissionKey)
 	fmt.Fprintf(&b, "test(%q, () => {\n  assert.equal(decide(schema.%s, { signedIn: true, permissions: [%s] }), \"allowed\");\n});\n", pageName+" opens to someone who holds "+permission, permissionKey, quote(permission))

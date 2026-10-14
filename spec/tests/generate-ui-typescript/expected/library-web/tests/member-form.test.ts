@@ -8,7 +8,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { decide } from "../screens/access.ts";
-import { schema } from "../app/members/new/page.schema.ts";
+import { schema } from "../app/members/new/_schema.ts";
 
 test("member-form is refused to someone signed in without members.write", () => {
   assert.equal(decide(schema.permission, { signedIn: true, permissions: [] }), "refused");

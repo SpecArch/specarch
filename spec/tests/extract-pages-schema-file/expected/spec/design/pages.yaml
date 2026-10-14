@@ -1,0 +1,35 @@
+entities:
+  Member:
+    type: object
+    properties:
+      email: {}
+      name: {}
+    origin: stated
+    cites:
+      - {source: code, clause: app/members/_schema.ts, says: The page at /members shows Member.}
+permissions:
+  members.read:
+    origin: stated
+    cites:
+      - {source: code, clause: app/members/_schema.ts, says: The page at /members checks members.read.}
+pages:
+  # specarch-problem: warning: test_case_missing: page members has no red scenario for "denied without members.read"; add under tests members-denied-without-members-read: { page: members, scenario: red, covers: [denied without members.read], given: "a caller without members.read", when: "the page members is opened", then: "it is refused as not allowed" } [test_case_missing@design/pages.yaml#/pages/members]
+  # specarch-problem: warning: test_golden_missing: page members has no golden scenario; add one under tests, for example members-succeeds: { page: members, scenario: golden, given: "a caller with members.read", when: "the page members is opened", then: "it shows the page" } [test_golden_missing@design/pages.yaml#/pages/members]
+  members:
+    kind: list
+    title: Members
+    route: /members
+    entity: Member
+    permission: members.read
+    columns: [name, email]
+    origin: stated
+    cites:
+      - {source: code, clause: app/members/page.tsx, says: 'The folder members holds page.tsx, so the router serves a page at /members.'}
+      - {source: code, clause: app/members/_schema.ts, says: 'The page''s schema gives its kind, title, entity, permission and columns.'}
+  # specarch-problem: warning: test_golden_missing: page sign-in has no golden scenario; add one under tests, for example sign-in-succeeds: { page: sign-in, scenario: golden, given: "any caller", when: "the page sign-in is opened", then: "it shows the page" } [test_golden_missing@design/pages.yaml#/pages/sign-in]
+  # specarch-problem: warning: test_red_missing: page sign-in has no red scenario; add one under tests, for example sign-in-refused: { page: sign-in, scenario: red, given: "...", when: "...", then: "it is refused" } [test_red_missing@design/pages.yaml#/pages/sign-in]
+  sign-in:
+    route: /sign-in
+    origin: stated
+    cites:
+      - {source: code, clause: app/sign-in/page.tsx, says: 'The folder sign-in holds page.tsx, so the router serves a page at /sign-in.'}

@@ -515,6 +515,7 @@ redefined.
 | `ownedBy` | SpecArch | in implementation files: on a mapping, the stakeholder that owns an element the project describes but does not generate |
 | `permissionChecks`, `package`, `function`, `permissionArgument` | SpecArch | in implementation files: on a binding, the project's own permission checks, which `specarch extract` reads routes' permissions through (ADR-081) |
 | `bypassedFor` | SpecArch | in implementation files: on a permission check, the kind of caller it lets through whatever its roles grant, `client`, which `specarch extract go` asks about at every operation the check guards (ADR-114) |
+| `schemaFile` | SpecArch | in implementation files: on the ui binding, the name of the file beside a page's file that holds its schema, by the project's convention, which `specarch extract pages` reads and `specarch-gen-ui-typescript` writes; `page.schema.ts` when left out (ADR-115) |
 | `components`, `component`, `binds`, `nameProperty` | SpecArch | in implementation files: on the ui binding, the components of the project's UI library that bind a field or name a column, which `specarch extract` reads a screen's fields and columns through (ADR-091) |
 
 ### Traceability links

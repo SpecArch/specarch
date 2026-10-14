@@ -125,11 +125,8 @@ func runExtract(args []string, stdout, stderr io.Writer) int {
 	case facts != "" && source != "pages":
 		fmt.Fprintf(stderr, "specarch extract %s takes no --facts; only pages reads its router's files through a code-facts dump\n", source)
 		return 2
-	case implementation != "" && source == "pages" && facts == "":
-		fmt.Fprintf(stderr, "specarch extract pages takes --implementation only with --facts, since only the code a dump holds calls the checks it names\n")
-		return 2
 	case implementation != "" && source != "go" && source != "swift" && source != "javascript" && source != "dart" && source != "pages":
-		fmt.Fprintf(stderr, "specarch extract %s takes no --implementation; only go, swift, javascript, dart and pages read the permission checks an implementation file names\n", source)
+		fmt.Fprintf(stderr, "specarch extract %s takes no --implementation; only go, swift, javascript, dart and pages read the permission checks an implementation file names, and pages the name of its schema file\n", source)
 		return 2
 	case source == "openapi" && len(paths) != 1:
 		fmt.Fprintf(stderr, "specarch extract openapi reads one OpenAPI document, and was given %d paths; one source is written per document file\n", len(paths))

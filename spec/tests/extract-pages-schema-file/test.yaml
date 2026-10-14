@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: extract
+level: system
+scenario: golden
+given: "a repository whose app folder holds a members page whose schema is in _schema.ts beside it and a sign-in page with a page.schema.ts, and an implementation file whose bindings.ui.schemaFile is _schema.ts"
+when: "extract pages is run on the app folder with the implementation file"
+then: "it names the schema file the binding gives, counts and reads _schema.ts as the members page's schema, with its kind, title, entity, columns and permission, does not read page.schema.ts, so the sign-in page's content is asked for, and exits 0"
+verifies: [SA-44]

@@ -1,0 +1,52 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
+decisions:
+  ADR-115:
+    title: The name of a page's schema file is the ui binding's schemaFile in the implementation file, page.schema.ts when left out, read by extract pages and written by the TypeScript UI generator
+    status: accepted
+    date: "2026-10-14"
+    context: |
+      Point 7 of docs/estate.md, first half of build item 8: an admin
+      application keeps the schema its component library renders a page
+      from in _schema.ts beside page.tsx, a private file by the App
+      Router's rule, where extract pages reads page.schema.ts (ADR-057)
+      and specarch-gen-ui-typescript writes it (ADR-067). The name is the
+      project's convention, so a project with another one got pages with
+      no content from the reader and schemas it does not use from the
+      generator.
+    decision: |
+      The ui binding of an implementation file takes schemaFile, the name
+      of the file beside a page's file that holds its schema. The
+      implementation schema holds it to a TypeScript or JavaScript file
+      name with no folder, and not one the App Router serves itself
+      (page, route, layout, loading, error, not-found, template or
+      default), so both validator builds report another value at its
+      entry. extract pages takes --implementation with or without
+      --facts, prints a line naming the schema file the binding gives,
+      and reads each page's schema from the file of that name; a name the
+      reader cannot take prints a line, is asked for in a must question
+      blocking the pages, and page.schema.ts is read meanwhile.
+      specarch-gen-ui-typescript writes each page's schema under that
+      name and imports it from there in the page and its derived tests.
+      Left out, the name is page.schema.ts, as before.
+    why: |
+      One key in the implementation file, because the name is a fact of
+      the stack and not of the design, and one key read by both the
+      reader and the generator, so a project that has the one convention
+      gets both halves from it and the two cannot disagree. The ui
+      binding, beside components, because both say how the project's
+      component library is used. The router's own file names are refused
+      because a schema file of that name would be served as a page, a
+      route or a layout, and the reader would read the same file twice.
+      A name the reader cannot take is asked for, not refused, by the
+      compiler test: the router's folder is still read, every page is
+      written, and the question stands at the pages until the name is
+      corrected.
+      Acceptance test: the first techspec made from such an application
+      shows each page's content, read from the file the team keeps it
+      in, and the generator's output lands in the files the team
+      already reviews.
+    consequences: |
+      An implementation file without schemaFile reads and generates as
+      before, byte for byte. The Pages Router and Nuxt readers keep no
+      schema file of their own.
+    satisfies: [SA-44, SA-52]

@@ -6,7 +6,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { decide } from "../screens/access.ts";
-import { schema } from "../app/removals/page.schema.ts";
+import { schema } from "../app/removals/_schema.ts";
 
 test("removals-inbox is refused to someone signed in without members.approve", () => {
   assert.equal(decide(schema.permission, { signedIn: true, permissions: [] }), "refused");

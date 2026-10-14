@@ -19,6 +19,8 @@ var (
 	routeFiles     = map[string]bool{"route.tsx": true, "route.ts": true, "route.jsx": true, "route.js": true}
 	otherPageFile  = regexp.MustCompile(`^page\.[A-Za-z0-9]+$`)
 	pageSchemaFile = "page.schema.ts"
+	schemaFileName = regexp.MustCompile(`^[A-Za-z0-9_][A-Za-z0-9_.-]*\.(ts|tsx|mts|cts|js|jsx|mjs|cjs)$`)
+	routerFileName = regexp.MustCompile(`^(page|route|layout|loading|error|not-found|template|default)\.[a-z]+$`)
 )
 
 var (
@@ -74,7 +76,7 @@ func Pages(root, out, key, facts, implementation string) (*Result, error) {
 	if err != nil {
 		return nil, err
 	}
-	rd := &pageReader{r: r, key: key, res: &Result{Tree: newTree()}, base: r.Paths[0]}
+	rd := &pageReader{r: r, key: key, res: &Result{Tree: newTree()}, base: r.Paths[0], schemaFile: pageSchemaFile}
 	beside, err := rd.beside()
 	if err != nil {
 		return nil, err
@@ -90,6 +92,9 @@ func Pages(root, out, key, facts, implementation string) (*Result, error) {
 		rd.r = r
 	}
 	commitLine(rd.res, r)
+	if err := rd.loadSchemaFile(implementation); err != nil {
+		return nil, err
+	}
 	if facts != "" {
 		if err := rd.loadFacts(facts, implementation); err != nil {
 			return nil, err
@@ -206,6 +211,10 @@ type pageReader struct {
 	mw []*nextMiddleware // what each middleware file's code says, when the dump holds it
 
 	opPermissions map[string]string // the permission each operation was written with, by its pointer
+
+	schemaFile    string // the name of a page's schema file: bindings.ui.schemaFile, or page.schema.ts
+	schemaFileAsk string // the name bindings.ui.schemaFile gives when it is not one the reader can take, or ""
+	schemaFileAt  string // the implementation file that gives schemaFile, or ""
 }
 
 // pageNotHeld is a thing not held, about a page whose name is known only
@@ -291,6 +300,10 @@ func (rd *pageReader) read() error {
 	rd.res.say("router: %s, since %s", rd.routerName(), rd.routerWhy)
 	rd.questions = &yaml.Node{Kind: yaml.MappingNode}
 	rd.adopt()
+	if rd.schemaFileAsk != "" {
+		rd.question(fmt.Sprintf("The implementation file %s gives %q as bindings.ui.schemaFile, which is not the name of a TypeScript or JavaScript file beside a page's file that the router does not serve itself. What is the name of the file that holds a page's schema?", rd.schemaFileAt, rd.schemaFileAsk),
+			[]string{"pages"}, "A page's content is read from its schema file, so with the name unknown every page whose schema has another name is read with no content.")
+	}
 	switch rd.router {
 	case routerApp:
 		cands, schemas = rd.collectApp()
@@ -401,7 +414,7 @@ func (rd *pageReader) collectApp() ([]pageCandidate, map[string]string) {
 		switch {
 		case pageFiles[name]:
 			pageList = append(pageList, f)
-		case name == pageSchemaFile:
+		case name == rd.schemaFile:
 			schemas[folder] = f
 		case routeFiles[name]:
 			routeList = append(routeList, f)
@@ -441,7 +454,7 @@ func (rd *pageReader) collectApp() ([]pageCandidate, map[string]string) {
 		}
 		rd.addRouteFile(f, route, "", fmt.Sprintf("The folder %s holds %s, so the router serves %s from it.", folder, path.Base(f), route))
 	}
-	rd.res.say("counted %s, %s and %s: the tracked files under %s named page.tsx, page.ts, page.jsx or page.js, the route files named route.ts, route.js, route.tsx or route.jsx, and the files named %s beside the pages, each once", plural(len(pageList), "page file"), plural(len(routeList), "route file"), plural(len(schemas), "schema file"), rd.base, pageSchemaFile)
+	rd.res.say("counted %s, %s and %s: the tracked files under %s named page.tsx, page.ts, page.jsx or page.js, the route files named route.ts, route.js, route.tsx or route.jsx, and the files named %s beside the pages, each once", plural(len(pageList), "page file"), plural(len(routeList), "route file"), plural(len(schemas), "schema file"), rd.base, rd.schemaFile)
 	return cands, schemas
 }
 
@@ -955,4 +968,34 @@ func isOrAre(n int) string {
 		return "is"
 	}
 	return "are"
+}
+
+// loadSchemaFile reads the name of a page's schema file from the
+// implementation file's bindings.ui.schemaFile (ADR-115). A name the
+// reader cannot take is asked for, and page.schema.ts is read meanwhile.
+func (rd *pageReader) loadSchemaFile(file string) error {
+	if file == "" {
+		return nil
+	}
+	data, err := os.ReadFile(file)
+	if err != nil {
+		return err
+	}
+	var doc yaml.Node
+	if err := yaml.Unmarshal(data, &doc); err != nil || len(doc.Content) == 0 {
+		return refuse("%s does not parse as YAML", file)
+	}
+	n := child(child(child(doc.Content[0], "bindings"), "ui"), "schemaFile")
+	if n == nil {
+		return nil
+	}
+	name := scalar(n)
+	if !schemaFileName.MatchString(name) || routerFileName.MatchString(name) {
+		rd.schemaFileAsk, rd.schemaFileAt = name, file
+		rd.res.say("schema file: %s gives %q as bindings.ui.schemaFile, which is not a file name the reader can take; %s is read and the name is asked for", file, name, pageSchemaFile)
+		return nil
+	}
+	rd.schemaFile, rd.schemaFileAt = name, file
+	rd.res.say("schema file: %s names a page's schema file %s under bindings.ui.schemaFile", file, name)
+	return nil
 }

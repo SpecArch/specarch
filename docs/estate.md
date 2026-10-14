@@ -35,7 +35,7 @@ facts in a format SpecArch defines, never a reader of its own.
 | 4. role names on the wire | built, item 2 (ADR-099): `info.roleNames: upper_snake`, read by both readers of grants |
 | 5. authorisation by path pattern | built, item 3 (ADR-100): `implies` on a permission, counted by every check of a role's grants, and `rules` in the permission table, read with the route table by `extract permissions --routes`; a permission defined by a pattern is declined |
 | 6. a check bypassed for one kind of caller | built, item 7 (ADR-114): `bypassedFor: client` on a gate of the permission table and on a check the implementation file names, one `must` question at every operation the check guards, joined by `merge`; a route that serves people and clients both lists them in `callers` (`docs/caller-context.md`, ADR-110) |
-| 7. the schema file's name; the facts dump from the installed binary | planned, item 8 |
+| 7. the schema file's name; the facts dump from the installed binary | the schema file's name built, item 8 (ADR-115): `bindings.ui.schemaFile`, read by `extract pages` and written by `specarch-gen-ui-typescript`; the facts dump from the installed binary planned, item 8 |
 | 8. workflow definitions that are not BPMN | planned as a printed workflow table, item 9, since the estate's format is custom; a standard format gets a plug-in reader (decision 5) |
 | 9. audience, requirements held elsewhere, material questions, partial answers, row citations | planned, items 10 and 11; a row citation is shipped in 0.6.0 as a clause that carries the row's identifier |
 | 10. `--given-outside`, two routes for one list, generated defaults, indexes, a source key from capitals | `--given-outside` built, item 4 (ADR-105); the rest planned, item 12; an index goes to the implementation file; the source key from capitals is on main already, after 0.6.0 |
@@ -368,10 +368,9 @@ Router's rule, where `extract pages` reads `page.schema.ts` and
 `specarch-gen-ui-typescript` writes it. The name is the project's
 convention, so it goes in the implementation file under the UI
 bindings, `bindings.ui.schemaFile`, beside `bindings.ui.components`;
-`extract pages --implementation` reads that file where it reads
-`page.schema.ts` today, and the generator writes its schemas under that
-name, so a project that has the one convention gets both halves from
-one key.
+`extract pages --implementation` reads a page's schema from the file of
+that name, and the generator writes its schemas under it, so a project
+that has the one convention gets both halves from one key (ADR-115).
 
 The JavaScript facts dump is made by `readers/javascript/`, a Node
 program on the TypeScript compiler pinned in its lock file, which
@@ -637,8 +636,9 @@ step 1. Only item 7's meta-model half touches 0.3.
    Done when the permission-table case with a bypassed check asks at
    every guarded operation. The 0.3 decision is recorded with the
    amendment, if any.
-8. The schema file's name and `specarch facts`. `bindings.ui.schemaFile`
-   read by `extract pages` and written by the UI generator; the readers
+8. The schema file's name and `specarch facts`. Built in part (ADR-115):
+   `bindings.ui.schemaFile`
+   read by `extract pages` and written by the UI generator. Planned: the readers
    and lock files embedded, the per-user cache, the verb for the three
    languages, the scripts calling it. Done when the lending desk's web
    folder is dumped by the installed binary with no checkout and

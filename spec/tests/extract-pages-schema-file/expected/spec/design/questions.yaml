@@ -1,0 +1,49 @@
+questions:
+  # specarch-problem: question: open_question: (must, decision) For the page at /members, what is the operation it reads? Decided by system-owner. Answer with a decision record that names Q-1 under answers. [Q-1]
+  Q-1:
+    question: For the page at /members, what is the operation it reads?
+    kind: decision
+    priority: must
+    blocks: ['#/pages/members/source']
+    decidedBy: system-owner
+    why: The folders name a page's route, and its schema does not give these.
+  # specarch-problem: question: open_question: (must, decision) For the page at /sign-in, what are its kind (list, form, view or task), its title, the entity it shows, the operation it reads, the operation it submits to and the columns it lists? Decided by system-owner. Answer with a decision record that names Q-2 under answers. [Q-2]
+  Q-2:
+    question: For the page at /sign-in, what are its kind (list, form, view or task), its title, the entity it shows, the operation it reads, the operation it submits to and the columns it lists?
+    kind: decision
+    priority: must
+    blocks: ['#/pages/sign-in/kind', '#/pages/sign-in/title', '#/pages/sign-in/entity', '#/pages/sign-in/source', '#/pages/sign-in/submit', '#/pages/sign-in/columns']
+    decidedBy: system-owner
+    why: The folders name a page's route and not what it shows.
+  # specarch-problem: question: open_question: (must, decision) Which permission does the page at /sign-in check, or is it open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-3 under answers. [Q-3]
+  Q-3:
+    question: Which permission does the page at /sign-in check, or is it open to everyone (public)?
+    kind: decision
+    priority: must
+    blocks: ['#/pages/sign-in/permission']
+    decidedBy: system-owner
+    why: The folders name a page's route and not who may open it, and a page open to everyone is how an open screen is usually found, so it is asked, never assumed.
+  # specarch-problem: question: open_question: (must, decision) What is the primary key of Member, and what does each field the pages show hold: email, name? Decided by system-owner. Answer with a decision record that names Q-4 under answers. [Q-4]
+  Q-4:
+    question: 'What is the primary key of Member, and what does each field the pages show hold: email, name?'
+    kind: decision
+    priority: must
+    blocks: ['#/entities/Member/primaryKey', '#/entities/Member/properties/email', '#/entities/Member/properties/name']
+    decidedBy: system-owner
+    why: The schema of the page at /members names the entity and the fields it shows, not their types or the entity's key.
+  # specarch-problem: question: open_question: (must, decision) What does each permission allow: members.read? Decided by system-owner. Answer with a decision record that names Q-5 under answers. [Q-5]
+  Q-5:
+    question: 'What does each permission allow: members.read?'
+    kind: decision
+    priority: must
+    blocks: ['#/permissions/members.read/description']
+    decidedBy: system-owner
+    why: A page schema names the permission a page checks and not what it is for.
+  # specarch-problem: question: open_question: (must, decision) Which role grants each permission: members.read? Decided by system-owner. Answer with a decision record that names Q-6 under answers. [Q-6]
+  Q-6:
+    question: 'Which role grants each permission: members.read?'
+    kind: decision
+    priority: must
+    blocks: ['#/permissions/members.read']
+    decidedBy: system-owner
+    why: A page schema names the permission a page checks and not who holds it.

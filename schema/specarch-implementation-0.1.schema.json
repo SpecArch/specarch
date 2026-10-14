@@ -445,6 +445,14 @@
           },
           "minItems": 1
         },
+        "schemaFile": {
+          "description": "SpecArch keyword. The name of the file beside a page's file that holds the schema the project's component library renders the page from, by the project's convention, such as _schema.ts, a private file by the App Router's rule. specarch extract pages reads a page's content from the file of this name, and specarch-gen-ui-typescript writes each page's schema under it (ADR-115). Read for the ui binding. Left out, the name is page.schema.ts.",
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_][A-Za-z0-9_.-]*\\.(ts|tsx|mts|cts|js|jsx|mjs|cjs)$",
+          "not": {
+            "pattern": "^(page|route|layout|loading|error|not-found|template|default)\\.[a-z]+$"
+          }
+        },
         "permissionChecks": {
           "description": "SpecArch keyword. The project's own permission checks, which specarch extract reads in source: a call of one with a literal permission is the permission of the route it wraps, guards as middleware or is made in (docs/reading-code.md). Read for the http binding.",
           "type": "array",

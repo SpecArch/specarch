@@ -8,7 +8,7 @@ import type { Metadata } from "next";
 import { FormPage, Guard } from "@/screens";
 import { chosenLanguage } from "@/language";
 import { stringOf, texts } from "@/strings";
-import { schema } from "./page.schema";
+import { schema } from "./_schema";
 
 export async function generateMetadata(): Promise<Metadata> {
   return { title: stringOf("visits-form.title", await chosenLanguage()) };

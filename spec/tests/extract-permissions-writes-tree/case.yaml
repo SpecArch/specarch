@@ -7,7 +7,7 @@ repository:
 exitStatus: 0
 standardOutput: |
   commit 91577cff0fdaa5365ab992c1a63461487b4ff941: the last change to access, as the permission table permissions.json names it
-  counted 10 grants and 1 gate: every entry of the permission table's lists, which hold every grant the check reads and every check the printer declares a setting switches off
+  counted 10 grants and 1 gate: every entry of the permission table's lists, which hold every grant the check reads and every check the printer declares a setting switches off or a kind of caller skips
   gate: the check RequireAPIKey runs only when the setting DESK_API_KEY is present, and lets every request through while it is empty
   wrote 3 roles, 3 permissions and 9 questions: one role per name the table grants something the meta-model holds or asks about, one permission per name a role grants, one question per thing the permission table does not say and per gate, and one per thing the meta-model cannot hold
   not held: grant of public to auditor: public is open to everyone and granted by no role; left out; could question Q-8

@@ -133,6 +133,13 @@ commands:
         question and adds a could question that starts "Declared, not
         found:", since the check's code is outside the middlewares the
         parser reads.
+      - Every reader asks about a check skipped for one kind of caller in
+        the same words, "The check <check> is skipped for every
+        <kind>:" (ADR-114). The merge asks it once per check and kind,
+        blocking the permission of every operation any tree says the
+        check guards, with every tree's citation, and never leaves it out
+        as answered: a tree that gives an operation's permission does not
+        say whether that kind of caller is meant to reach it.
       - A parsed tree's must question that blocks one of its own
         operations, entities or roles and nothing else asks whether the
         running system registers it, holds it or grants it. A printed
@@ -215,7 +222,7 @@ commands:
       tree's question on whether the running system registers an
       operation, holds a table or grants a role that a printed tree
       answers or the merge asks again; one line per gate question joined
-      or asked again; one
+      or asked again, and per question on a bypassed check joined; one
       line per
       question whose name is joined to the operation another tree
       declares; one line per

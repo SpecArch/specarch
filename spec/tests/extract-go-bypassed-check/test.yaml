@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: extract
+level: system
+scenario: golden
+given: "a repository holding a Go module on chi whose server wraps two handlers in a check that lets a service's own token through without reading its roles, guards a third with a check used as middleware that holds every caller to its roles, and leaves a fourth unchecked; and an implementation file whose bindings.http.permissionChecks name both checks, the first with bypassedFor: client"
+when: "extract go is run on the module with the implementation file"
+then: "it writes the four operations with the permissions the checks read, one must question on the bypassed check, named by its method's name, blocking the permission of the two operations it guards and of no other, in the words extract permissions uses, citing the first call of it, a line naming the check and counting those operations, and exits 0"
+verifies: [SA-44]

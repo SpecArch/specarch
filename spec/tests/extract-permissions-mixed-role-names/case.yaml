@@ -7,7 +7,7 @@ repository:
 exitStatus: 0
 standardOutput: |
   commit 91577cff0fdaa5365ab992c1a63461487b4ff941: the last change to access, as the permission table permissions.json names it
-  counted 2 grants and 0 gates: every entry of the permission table's lists, which hold every grant the check reads and every check the printer declares a setting switches off
+  counted 2 grants and 0 gates: every entry of the permission table's lists, which hold every grant the check reads and every check the printer declares a setting switches off or a kind of caller skips
   wrote 1 role, 1 permission and 3 questions: one role per name the table grants something the meta-model holds or asks about, one permission per name a role grants, one question per thing the permission table does not say and per gate, and one per thing the meta-model cannot hold
   not held: grant of loans.read to "DESK_SUPERVISOR": the role's name is in upper snake case while other roles of the source are kebab-case, and info.roleNames maps every role or none; left out; could question Q-3
   derived 0 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers

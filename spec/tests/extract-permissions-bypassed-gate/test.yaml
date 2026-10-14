@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: extract
+level: system
+scenario: golden
+given: "a repository whose first commit holds a permission check's folder, whose second holds a router's folder, and whose third holds the permission table printed from the first, with three grants, a gate saying the check is skipped for every client and a gate on a setting, and the route table printed from the second, with three routes that check a permission, one that checks public and one that checks none"
+when: "extract permissions is run on the permission table with the route table given by --routes"
+then: "it writes the roles and the operations, one must question on the bypassed check blocking the permission of each of the three routes that check a permission and of no other, citing the table's gate, the gate on the setting asked as before, a line for each gate and one counting the operations the bypassed check guards, and exits 0"
+verifies: [SA-44]

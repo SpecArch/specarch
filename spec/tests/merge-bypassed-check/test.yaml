@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: merge
+level: system
+scenario: golden
+given: "a tree extract permissions wrote, reading: printed, whose permission table says the check Require is skipped for every client and whose route table gives it three operations with a permission; and a tree extract go wrote, reading: parsed, whose implementation file says the same of Require, which it finds guarding two of those operations"
+when: "merge is run on the two trees"
+then: "it asks the question on the bypassed check once, blocking the permission of every operation either tree says the check guards, with both trees' citations, never leaves it out as answered by a tree that gives those permissions, prints a line for the join, and exits 0"
+verifies: [SA-45]

@@ -34,7 +34,7 @@ facts in a format SpecArch defines, never a reader of its own.
 | 3. documents in another language | built, item 4 (ADR-105): a vocabulary per language, English shipped, `--language` and `--vocabulary` on extract documents and `--vocabulary` on merge, `language` on a source, the row-number column skipped |
 | 4. role names on the wire | built, item 2 (ADR-099): `info.roleNames: upper_snake`, read by both readers of grants |
 | 5. authorisation by path pattern | built, item 3 (ADR-100): `implies` on a permission, counted by every check of a role's grants, and `rules` in the permission table, read with the route table by `extract permissions --routes`; a permission defined by a pattern is declined |
-| 6. a check bypassed for one kind of caller | planned as a gate kind in the permission table, item 7; a route that serves people and clients both lists them in `callers` (`docs/caller-context.md`, ADR-110) |
+| 6. a check bypassed for one kind of caller | built, item 7 (ADR-114): `bypassedFor: client` on a gate of the permission table and on a check the implementation file names, one `must` question at every operation the check guards, joined by `merge`; a route that serves people and clients both lists them in `callers` (`docs/caller-context.md`, ADR-110) |
 | 7. the schema file's name; the facts dump from the installed binary | planned, item 8 |
 | 8. workflow definitions that are not BPMN | planned as a printed workflow table, item 9, since the estate's format is custom; a standard format gets a plug-in reader (decision 5) |
 | 9. audience, requirements held elsewhere, material questions, partial answers, row citations | planned, items 10 and 11; a row citation is shipped in 0.6.0 as a clause that carries the row's identifier |
@@ -332,15 +332,20 @@ for machines alone are guarded by a separate middleware. The permission
 table has `gates` for a check a setting switches off; nothing says a
 check switched off by the kind of caller.
 
-The permission table's gate gains a second form: beside `setting`, a
-gate may name `bypassedFor` with the kind of caller the check skips
-(`client`, in 0.3's word). `extract permissions` writes it as it writes
-a setting gate: a `must` question at every operation the check guards,
-asking whether every client is meant to reach it, with the reason that
-a check skipped for a caller kind fails open for that kind, and a line
-in the output. `extract go` asks the same where the implementation
-file's bindings name the check. That works on a 0.2 tree today and
-needs no keyword.
+The permission table's gate has a second form (ADR-114): beside
+`setting`, a gate may name `bypassedFor` with the kind of caller the
+check skips (`client`, in 0.3's word). `extract permissions` reads it as
+it reads a setting gate, with a line in the output, and asks one `must`
+question blocking the permission of every operation the check guards
+(given the route table, each route that names a permission other than
+`public`, or every route where the check reads rules), asking whether
+every client is meant to reach them, with the reason that a check
+skipped for a caller kind fails open for that kind. `extract go` asks
+the same, in the same words, where the implementation file's
+`permissionChecks` item names the check with `bypassedFor: client`,
+since a test of the caller's token has no shape syntax finds; `merge`
+asks it once with both citations. That works on a 0.2 tree and needs no
+design keyword.
 
 What the meta-model says about it is 0.3's as `docs/caller-context.md`
 amends it: a client holds roles, and `callers` on an operation is the
@@ -626,9 +631,9 @@ step 1. Only item 7's meta-model half touches 0.3.
    validates as an estate, a version that differs and a module not
    found are errors at the module, and the techspec draws the module
    map.
-7. The caller-kind gate. `bypassedFor` in the permission table's gates,
+7. Built (ADR-114). The caller-kind gate. `bypassedFor` in the permission table's gates,
    the question in both readers, and the 0.3 plan's left-out row
-   confirmed (decision 3).
+   answered (decision 3).
    Done when the permission-table case with a bypassed check asks at
    every guarded operation. The 0.3 decision is recorded with the
    amendment, if any.
@@ -683,11 +688,14 @@ Decided on 2026-10-14.
    in `$ref`'s own URI form rather than a new keyword beside `$ref`,
    because the rule for new keywords says to take the standard's, and a
    dependency already is the other system.
-3. **A route both people and clients call stays left out of 0.3, and
-   the bypassed check is the gate's question**, rather than 0.3 gaining
-   `callers: all`; what the owners of such a system answer to the gate's
-   question decides whether it is a design or a defect. The caller's
-   context as a whole is designed on its own, outside this plan.
+3. **The bypassed check is the gate's question, and a route both
+   people and clients call names them in its `callers`**, rather than
+   0.3 gaining `callers: all`; what the owners of such a system answer to
+   the gate's question decides whether it is a design or a defect, and
+   where it is a design the answer is the client in that operation's
+   `callers`, the explicit subset the caller context designs
+   (`docs/caller-context.md`, ADR-110). The caller's context as a whole
+   is designed on its own, outside this plan.
 4. **The readers are inside the binary**: build item 8.
 5. **A standard workflow format gets a reader (a plug-in); a custom
    one gets a workflow table its project's printer writes.** The

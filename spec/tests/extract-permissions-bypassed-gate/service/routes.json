@@ -1,0 +1,12 @@
+{
+    "routeTable": 1,
+    "path": "api",
+    "commit": "2c69862cb0dbbfc698c2b3772d73d773e51b5b80",
+    "routes": [
+        {"method": "GET", "path": "/v1/loans", "permission": "loans.read", "handler": "ListLoans"},
+        {"method": "POST", "path": "/v1/loans", "permission": "loans.write", "handler": "LendBook"},
+        {"method": "GET", "path": "/v1/loans/{id}", "permission": "loans.read", "handler": "GetLoan"},
+        {"method": "GET", "path": "/v1/opening-hours", "permission": "public", "handler": "OpeningHours"},
+        {"method": "GET", "path": "/health", "permission": null, "handler": "Health"}
+    ]
+}

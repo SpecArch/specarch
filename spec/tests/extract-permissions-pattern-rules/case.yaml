@@ -8,7 +8,7 @@ repository:
 exitStatus: 0
 standardOutput: |
   commit b6650a4697ebaa5ec5de39a0d38528beef9146e7: the last change to access, as the permission table permissions.json names it
-  counted 0 grants, 0 gates and 6 rules: every entry of the permission table's lists, which hold every grant the check reads, every check the printer declares a setting switches off and every rule of the policy the check reads
+  counted 0 grants, 0 gates and 6 rules: every entry of the permission table's lists, which hold every grant the check reads, every check the printer declares a setting switches off or a kind of caller skips and every rule of the policy the check reads
   rules: 6 rules give 6 permissions, one per distinct pattern and method, named by the fixed rule, with 4 implications from the patterns each covers
   wrote 3 roles, 6 permissions and 3 questions: one role per name the table grants something the meta-model holds or asks about, one permission per name a role grants, one question per thing the permission table does not say and per gate, and one per thing the meta-model cannot hold
   commit be5537b2da0d3962d1ae03cc51a53c221cada5ce: the last change to api, as the route table routes.json names it; the tree is read at commit be5537b2da0d3962d1ae03cc51a53c221cada5ce

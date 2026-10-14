@@ -5852,6 +5852,11 @@ let implementationSchemaJSON = #"""
                 "description": "The argument that carries the permission, counted from 1.",
                 "type": "integer",
                 "minimum": 1
+              },
+              "bypassedFor": {
+                "description": "SpecArch keyword. The kind of caller the check lets through whatever its roles grant, such as a check that returns early for a machine-to-machine token: client, a caller on its own account rather than a person's. specarch extract go asks at every operation the check guards whether that kind of caller is meant to reach it (ADR-114). Left out, the check skips no caller.",
+                "type": "string",
+                "enum": ["client"]
               }
             },
             "required": ["package", "function", "permissionArgument"],

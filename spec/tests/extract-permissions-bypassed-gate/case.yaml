@@ -1,0 +1,24 @@
+arguments: [extract, permissions, --routes, service/routes.json, --out, spec, service/permissions.json]
+repository:
+  folder: service
+  commits:
+    - [access]
+    - [api]
+    - [permissions.json, routes.json]
+exitStatus: 0
+standardOutput: |
+  commit d314cc28850e82347b136cc5cdf532adb2e64ee6: the last change to access, as the permission table permissions.json names it
+  counted 3 grants and 2 gates: every entry of the permission table's lists, which hold every grant the check reads and every check the printer declares a setting switches off or a kind of caller skips
+  gate: the check Authorise is skipped for every client, and lets every client through whatever its roles grant
+  gate: the check Authorise runs only when the setting AUTHORISATION_URL is present, and lets every request through while it is empty
+  wrote 2 roles, 2 permissions and 4 questions: one role per name the table grants something the meta-model holds or asks about, one permission per name a role grants, one question per thing the permission table does not say and per gate, and one per thing the meta-model cannot hold
+  commit 2c69862cb0dbbfc698c2b3772d73d773e51b5b80: the last change to api, as the route table routes.json names it; the tree is read at commit 2c69862cb0dbbfc698c2b3772d73d773e51b5b80
+  counted 5 routes (1 with no permission): every entry of the route table's list, which holds every route the router registered
+  wrote 5 operations on 4 paths, 3 permissions and 13 questions: one operation per method and path pair the meta-model holds, one permission per name a route checks, one question per thing the route table does not say, and one per thing the meta-model cannot hold
+  gate: the check Authorise guards 3 operations of the route table, and its question blocks the permission of each
+  derived 0 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers
+  not derived: 1 draft test for operation health, held up by Q-5, Q-6; the validator warns for them until the questions are answered
+  not derived: 2 draft tests for operation listLoans, held up by Q-3, Q-7, Q-8; the validator warns for them until the questions are answered
+  not derived: 2 draft tests for operation lendBook, held up by Q-3, Q-7, Q-8; the validator warns for them until the questions are answered
+  not derived: 3 draft tests for operation getLoan, held up by Q-10, Q-3, Q-9; the validator warns for them until the questions are answered
+  not derived: 1 draft test for operation openingHours, held up by Q-11; the validator warns for them until the question is answered

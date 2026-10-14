@@ -17,15 +17,20 @@
 #           {"role": "desk-staff", "permission": "loans.read"}
 #       ],
 #       "gates": [
-#           {"check": "Allowed", "setting": "AUTHORISATION_URL"}
+#           {"check": "Allowed", "setting": "AUTHORISATION_URL"},
+#           {"check": "Allowed", "bypassedFor": "client"}
 #       ]
 #   }
 #
 # - grants: every role and permission it grants, one object per pair.
 # - gates: every permission check that runs only when a setting is
 #   present, and so lets every request through when the setting is
-#   empty: the check's name and the setting's. The project declares
-#   these itself; an empty list says no check has one.
+#   empty: the check's name and the setting's; and every check that lets
+#   one kind of caller through whatever its roles grant, such as one
+#   that returns early for a machine-to-machine token: the check's name
+#   and bypassedFor, the kind, which is client. A gate names a setting
+#   or a kind, never both. The project declares these itself; an empty
+#   list says no check has one.
 # - rules: only for a check that reads a policy of path patterns
 #   rather than named grants, and left out otherwise. Each rule is a
 #   role, a pattern, the methods (a list of methods in capitals, or "*"

@@ -1,0 +1,46 @@
+permissions:
+  loans.read:
+    origin: stated
+    cites:
+      - {source: code, clause: 'desk/server.go:23', says: GET /loans checks loans.read with s.Require.}
+  loans.write:
+    origin: stated
+    cites:
+      - {source: code, clause: 'desk/server.go:24', says: POST /loans checks loans.write with s.Require.}
+  members.read:
+    origin: stated
+    cites:
+      - {source: code, clause: 'desk/server.go:25', says: 'GET /members/{cardNumber} checks members.read with s.Allow.'}
+paths:
+  /loans:
+    get:
+      operationId: listLoans
+      permission: loans.read
+      origin: stated
+      cites:
+        - {source: code, clause: 'desk/server.go:23', says: 'Registers GET /loans on a chi router; its handler is s.listLoans, and it is checked by s.Require("loans.read").'}
+        - {source: code, clause: 'desk/server.go:61', says: The handler of GET /loans reads no path parameter by name.}
+    post:
+      operationId: lendBook
+      permission: loans.write
+      origin: stated
+      cites:
+        - {source: code, clause: 'desk/server.go:24', says: 'Registers POST /loans on a chi router; its handler is s.lendBook, and it is checked by s.Require("loans.write").'}
+        - {source: code, clause: 'desk/server.go:63', says: The handler of POST /loans reads no path parameter by name.}
+  /members/{cardNumber}:
+    parameters:
+      - {name: cardNumber, in: path, required: true}
+    get:
+      operationId: showMember
+      permission: members.read
+      origin: stated
+      cites:
+        - {source: code, clause: 'desk/server.go:25', says: 'Registers GET /members/{cardNumber} on a chi router; its handler is s.showMember, and it is checked by s.Allow("members.read").'}
+        - {source: code, clause: 'desk/server.go:65', says: 'The handler of GET /members/{cardNumber} reads the path parameter cardNumber.'}
+  /status:
+    get:
+      operationId: status
+      origin: stated
+      cites:
+        - {source: code, clause: 'desk/server.go:26', says: Registers GET /status on a chi router; its handler is s.status.}
+        - {source: code, clause: 'desk/server.go:69', says: The handler of GET /status reads no path parameter by name.}

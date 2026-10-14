@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.0-dev of the specification: 434 design tests, 193 golden and 241 red, about 14 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.0-dev of the specification: 439 design tests, 196 golden and 243 red, about 14 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.7.0-dev of the specification: 434 design tests, 193 golden and 241 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 430 |
+| system | 435 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -803,6 +803,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-44.
 - When: extract database is run on it
 - Then: it says the file is not a catalogue dump, writes nothing and exits 1
 
+#### extract-go-bypassed-check
+
+Scenario: golden; level: system; verifies SA-44.
+
+- Given: a repository holding a Go module on chi whose server wraps two handlers in a check that lets a service's own token through without reading its roles, guards a third with a check used as middleware that holds every caller to its roles, and leaves a fourth unchecked; and an implementation file whose bindings.http.permissionChecks name both checks, the first with bypassedFor: client
+- When: extract go is run on the module with the implementation file
+- Then: it writes the four operations with the permissions the checks read, one must question on the bypassed check, named by its method's name, blocking the permission of the two operations it guards and of no other, in the words extract permissions uses, citing the first call of it, a line naming the check and counting those operations, and exits 0
+
 #### extract-go-dxlib-endpoints
 
 Scenario: golden; level: system; verifies SA-44.
@@ -1074,6 +1082,30 @@ Scenario: golden; level: system; verifies SA-44.
 - Given: a repository whose app folder holds a root page, a route group with a list page whose schema file gives its content, keys the reader does not read, a hook and a compact column that is not a column, a page with a dynamic segment whose schema is outside the subset, a page that says it is generated, and a catch-all segment, a parallel route, a private folder, an intercepting route, a route handler and a page.mdx, and middleware.ts beside the app folder
 - When: extract pages is run on the app folder
 - Then: it writes one page per route with its parameter, the list page's content from its schema with the entity, its fields and the permission it names, a question for what neither the folders nor the schemas say, a must question citing the route handler that asks for its methods, a must question citing middleware.ts on every page's permission and the paths, names the commit and the router, counts the page and schema files, reports the generated page, prints a line for every folder, file and key it leaves out, a could question citing the file, or the schema's line, for each but the content the question for the page asks for, and exits 0
+
+#### extract-permissions-bypassed-gate
+
+Scenario: golden; level: system; verifies SA-44.
+
+- Given: a repository whose first commit holds a permission check's folder, whose second holds a router's folder, and whose third holds the permission table printed from the first, with three grants, a gate saying the check is skipped for every client and a gate on a setting, and the route table printed from the second, with three routes that check a permission, one that checks public and one that checks none
+- When: extract permissions is run on the permission table with the route table given by --routes
+- Then: it writes the roles and the operations, one must question on the bypassed check blocking the permission of each of the three routes that check a permission and of no other, citing the table's gate, the gate on the setting asked as before, a line for each gate and one counting the operations the bypassed check guards, and exits 0
+
+#### extract-permissions-gate-both-forms
+
+Scenario: red; level: system; covers exit 1; verifies SA-44.
+
+- Given: a permission table whose one gate names both the setting a check needs and the kind of caller it skips
+- When: extract permissions is run on the permission table
+- Then: it refuses the table, naming the gate and saying a gate is one or the other, writes nothing and exits 1
+
+#### extract-permissions-gate-people
+
+Scenario: red; level: system; covers exit 1; verifies SA-44.
+
+- Given: a permission table whose one gate says a check is skipped for people, which is no kind of caller a check is skipped for
+- When: extract permissions is run on the permission table
+- Then: it refuses the table, naming the gate and client as the one kind of caller a check is skipped for, writes nothing and exits 1
 
 #### extract-permissions-grant-twice
 
@@ -1756,6 +1788,14 @@ Scenario: red; level: system; covers exit 2, usage error; verifies SA-32.
 - Then: it prints the usage and exits 2
 
 ### Command merge
+
+#### merge-bypassed-check
+
+Scenario: golden; level: system; verifies SA-45.
+
+- Given: a tree extract permissions wrote, reading: printed, whose permission table says the check Require is skipped for every client and whose route table gives it three operations with a permission; and a tree extract go wrote, reading: parsed, whose implementation file says the same of Require, which it finds guarding two of those operations
+- When: merge is run on the two trees
+- Then: it asks the question on the bypassed check once, blocking the permission of every operation either tree says the check guards, with both trees' citations, never leaves it out as answered by a tree that gives those permissions, prints a line for the join, and exits 0
 
 #### merge-documents-and-code
 
@@ -2755,9 +2795,9 @@ Scenario: red; level: system; covers exit 1.
 
 Scenario: red; level: system; covers exit 1; verifies SA-10.
 
-- Given: an implementation file whose http binding names two permission checks, one with its permission in the first argument and one with a permission argument of 0
+- Given: an implementation file whose http binding names three permission checks, one with its permission in the first argument skipped for every client, one with a permission argument of 0 and one skipped for people, which is no kind of caller a check is skipped for
 - When: validate is run on its folder
-- Then: it takes the first check and reports the argument of 0 as a schema error at that entry, and exits 1
+- Then: it takes the first check and reports the argument of 0 and the kind people each as a schema error at its entry, and exits 1
 
 #### validate-permission-undeclared
 

@@ -1,0 +1,38 @@
+paths:
+  /loans:
+    # specarch-problem: warning: test_case_missing: operation listLoans has no red scenario for "denied without loans.read"; add under tests list-loans-denied-without-loans-read: { operation: listLoans, scenario: red, covers: [denied without loans.read], given: "a caller without loans.read", when: "listLoans is called", then: "it is refused as not allowed" } [test_case_missing@design/paths.yaml#/paths/~1loans/get]
+    # specarch-problem: warning: test_golden_missing: operation listLoans has no golden scenario; add one under tests, for example list-loans-succeeds: { operation: listLoans, scenario: golden, given: "a caller with loans.read", when: "listLoans is called", then: "it succeeds" } [test_golden_missing@design/paths.yaml#/paths/~1loans/get]
+    get:
+      operationId: listLoans
+      permission: loans.read
+      origin: stated
+      cites:
+        - {source: code, clause: api GET /loans, says: GET /loans checks loans.read; its handler is ListLoans.}
+    # specarch-problem: warning: test_case_missing: operation lendBook has no red scenario for "denied without loans.write"; add under tests lend-book-denied-without-loans-write: { operation: lendBook, scenario: red, covers: [denied without loans.write], given: "a caller without loans.write", when: "lendBook is called", then: "it is refused as not allowed" } [test_case_missing@design/paths.yaml#/paths/~1loans/post]
+    # specarch-problem: warning: test_golden_missing: operation lendBook has no golden scenario; add one under tests, for example lend-book-succeeds: { operation: lendBook, scenario: golden, given: "a caller with loans.write", when: "lendBook is called", then: "it succeeds" } [test_golden_missing@design/paths.yaml#/paths/~1loans/post]
+    post:
+      operationId: lendBook
+      permission: loans.write
+      origin: stated
+      cites:
+        - {source: code, clause: api POST /loans, says: POST /loans checks loans.write; its handler is LendBook.}
+  /members/{cardNumber}:
+    parameters:
+      - {name: cardNumber, in: path, required: true}
+    # specarch-problem: warning: test_case_missing: operation showMember has no red scenario for "not found cardNumber"; add under tests show-member-not-found-card-number: { operation: showMember, scenario: red, covers: [not found cardNumber], given: "no record has that cardNumber", when: "showMember is called with that cardNumber", then: "it is refused as not found" } [test_case_missing.902f305c@design/paths.yaml#/paths/~1members~1{cardNumber}/get]
+    # specarch-problem: warning: test_case_missing: operation showMember has no red scenario for "denied without members.read"; add under tests show-member-denied-without-members-read: { operation: showMember, scenario: red, covers: [denied without members.read], given: "a caller without members.read", when: "showMember is called", then: "it is refused as not allowed" } [test_case_missing.c032b335@design/paths.yaml#/paths/~1members~1{cardNumber}/get]
+    # specarch-problem: warning: test_golden_missing: operation showMember has no golden scenario; add one under tests, for example show-member-succeeds: { operation: showMember, scenario: golden, given: "a caller with members.read", when: "showMember is called with values inside every limit", then: "it succeeds" } [test_golden_missing@design/paths.yaml#/paths/~1members~1{cardNumber}/get]
+    get:
+      operationId: showMember
+      permission: members.read
+      origin: stated
+      cites:
+        - {source: code, clause: 'api GET /members/{cardNumber}', says: 'GET /members/{cardNumber} checks members.read; its handler is ShowMember.'}
+  /status:
+    # specarch-problem: warning: test_golden_missing: operation status has no golden scenario; add one under tests, for example status-succeeds: { operation: status, scenario: golden, given: "any caller", when: "status is called", then: "it succeeds" } [test_golden_missing@design/paths.yaml#/paths/~1status/get]
+    # specarch-problem: warning: test_red_missing: operation status has no red scenario; add one under tests, for example status-refused: { operation: status, scenario: red, given: "...", when: "...", then: "it is refused" } [test_red_missing@design/paths.yaml#/paths/~1status/get]
+    get:
+      operationId: status
+      origin: stated
+      cites:
+        - {source: code, clause: api GET /status, says: GET /status checks no permission; its handler is Status.}

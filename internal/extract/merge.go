@@ -78,6 +78,7 @@ type merger struct {
 	stages            map[string]bool        // the stages written
 	voAsk             []voAsk                // the questions about value objects, asked after the disputes
 	gatesAsked        map[string]bool        // the checks whose gate questions are joined
+	bypassAsked       map[string]bool        // the checks whose bypassed-gate questions are joined
 	readBack          map[string]*readBack   // a pointer read back as a value object -> what answers the questions on it
 
 	vocabularies []*vocabulary.Vocabulary // given with --vocabulary
@@ -875,6 +876,9 @@ func (m *merger) treeQuestions() {
 			if m.gate(ti, t, p.Key.Value, q) {
 				continue
 			}
+			if m.bypass(t, p.Key.Value, q) {
+				continue
+			}
 			if m.join(ti, t, p.Key.Value, q) {
 				continue
 			}
@@ -1104,6 +1108,88 @@ func (m *merger) gate(ti int, t *mergeTree, id string, q *yaml.Node) bool {
 	)
 	if len(cites.Content) > 0 {
 		set(joined, "cites", flowItems(cites))
+	}
+	m.addQuestion(joined, questionFile(joined))
+	return true
+}
+
+// bypassText is the question every reader asks on a check skipped for one
+// kind of caller (bypassQuestion).
+var bypassText = regexp.MustCompile(`^The check (\S+) is skipped for every (\S+):`)
+
+// bypass joins the questions on one check skipped for one kind of caller
+// that the trees ask (ADR-114): one question blocking every operation any
+// tree says the check guards, with every tree's citation. It is never
+// left out as answered: a tree that gives an operation's permission does
+// not say whether the kind of caller the check skips is meant to reach
+// it. It reports whether the tree's question is handled.
+func (m *merger) bypass(t *mergeTree, id string, q *yaml.Node) bool {
+	match := bypassText.FindStringSubmatch(source.Str(source.Child(q, "question")))
+	if match == nil {
+		return false
+	}
+	check, kind := match[1], match[2]
+	if m.bypassAsked == nil {
+		m.bypassAsked = map[string]bool{}
+	}
+	if m.bypassAsked[check+" "+kind] {
+		m.res.say("joined: %s of %s, the bypassed check %s, is left out; it is asked once with every tree's citation", id, t.s.Dir, check)
+		return true
+	}
+	m.bypassAsked[check+" "+kind] = true
+	var blocks, titles []string
+	cites := &yaml.Node{Kind: yaml.SequenceNode}
+	for _, u := range m.trees {
+		for _, p := range source.Pairs(source.Child(u.s.Root, spec.QuestionsSection)) {
+			g := bypassText.FindStringSubmatch(source.Str(source.Child(p.Value, "question")))
+			if g == nil || g[1] != check || g[2] != kind {
+				continue
+			}
+			if !contains(titles, u.title) {
+				titles = append(titles, u.title)
+			}
+			for _, b := range source.Items(source.Child(p.Value, "blocks")) {
+				at := b.Value
+				if parsed, ok := spec.ParseBlock(b.Value); ok && parsed.IsPointer() {
+					at = m.pointerOf(treeSteps(u.s.Root, parsed.Tokens))
+				}
+				if !contains(blocks, at) {
+					blocks = append(blocks, at)
+				}
+			}
+			for _, c := range source.Items(source.Child(p.Value, "cites")) {
+				if !containsNode(cites, c) {
+					cites.Content = append(cites.Content, copyNode(c))
+				}
+			}
+		}
+	}
+	// An operation is where the question is asked; the roles are where a
+	// tree with no operations asks it.
+	var at []string
+	for _, b := range blocks {
+		if strings.HasPrefix(b, "#/") {
+			at = append(at, b)
+		}
+	}
+	if len(at) > 0 {
+		blocks = at
+	}
+	sort.Strings(blocks)
+	text, why := bypassQuestion(check, kind)
+	joined := mapping(
+		"question", text,
+		"kind", "decision",
+		"priority", "must",
+		"blocks", blocks,
+		"decidedBy", owner,
+		"why", why,
+	)
+	if len(cites.Content) > 0 {
+		set(joined, "cites", flowItems(cites))
+	}
+	if len(titles) > 1 {
+		m.res.say("joined: the bypassed check %s, asked by %s, is asked once at %s with every tree's citation", check, joinAnd(titles), plural(len(blocks), "place"))
 	}
 	m.addQuestion(joined, questionFile(joined))
 	return true

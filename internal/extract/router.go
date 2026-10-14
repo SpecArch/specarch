@@ -128,6 +128,16 @@ type routeReader struct {
 	// table's rules give it, or the question to ask at the operation
 	// instead (extract permissions --routes, ADR-100).
 	ruled func(method, path string) (name string, cite *yaml.Node, question, why string)
+	// written are the operations written, in the order of the tree, with
+	// the permission each route names.
+	written []writtenRoute
+}
+
+// writtenRoute is one operation the reader wrote: where it is in the tree,
+// and the permission its route names, nil when it names none.
+type writtenRoute struct {
+	at      string
+	printed *string
 }
 
 // gap records what the meta-model cannot hold of the route at method and
@@ -265,6 +275,7 @@ func (rd *routeReader) read(dumpName string) error {
 			set(op, "cites", cites)
 			set(item, rt.key, op)
 			opAt := at + "/" + rt.key
+			rd.written = append(rd.written, writtenRoute{opAt, rt.printed})
 			rd.question(
 				fmt.Sprintf("What does %s %s do, and what does it answer?", rt.Method, rt.Path),
 				[]string{opAt + "/summary", opAt + "/responses"},

@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: extract
+level: system
+scenario: red
+covers: [exit 1]
+given: "a permission table whose one gate names both the setting a check needs and the kind of caller it skips"
+when: "extract permissions is run on the permission table"
+then: "it refuses the table, naming the gate and saying a gate is one or the other, writes nothing and exits 1"
+verifies: [SA-44]

@@ -166,7 +166,21 @@ commands:
         is a must question blocking the roles, citing the table, since
         while the setting is empty the check lets every request through
         and nothing says so; extract go asks it in the same words, so
-        that merge joins the two. A check that reads a policy of path
+        that merge joins the two. A gate may name, in place of the
+        setting, `bypassedFor`: the kind of caller the check lets through
+        whatever its roles grant, such as a check that returns early for a
+        machine-to-machine token, and client, a caller on its own account
+        rather than a person's, is the one kind (ADR-114). Each such check
+        prints a line and is one must question, asking whether every
+        client is meant to reach each operation the check guards, since a
+        check skipped for a kind of caller fails open for that kind,
+        citing the table's gate. With `--routes` it blocks the permission
+        of each operation the check guards, every route that names a
+        permission other than public, and every route where the check
+        reads rules, with a line counting them; without, it blocks the
+        roles. A gate with no check, with both a setting and a kind of
+        caller or neither, or with a kind other than client is refused,
+        naming the gate. A check that reads a policy of path
         patterns rather than named grants is printed as the table's
         rules (ADR-100), each a role, a pattern, the methods (a list, or
         `*` for every one) and the path matcher that reads the pattern:
@@ -602,7 +616,16 @@ commands:
         its own statements or those of the function it returns: an `if`
         that runs the handler it is given, calls `ServeHTTP` or `Next`,
         or returns `nil`, `true` or that handler, while a setting is
-        empty or false, asked as above.
+        empty or false, asked as above. A check the implementation file
+        names with `bypassedFor: client` lets a client through whatever
+        its roles grant, which syntax does not show, since the test of the
+        caller's token is written the project's way; it prints a line and
+        is the must question extract permissions asks on a bypassed gate,
+        in the same words, with the check named by its function's name
+        (the method's alone for Type.Method), blocking the permission of
+        each operation that calls it and citing the first call (ADR-114).
+        Another kind is a must question naming the item, and the check is
+        read as skipping no caller.
 
         A call of net/http's `Get`, `Head`, `Post`, `PostForm`,
         `NewRequest` or `NewRequestWithContext` with a literal method and
@@ -1168,7 +1191,9 @@ commands:
       the reader reads, or a document read as what the running system
       printed; one line per file that imports a library the reader knows
       and gives nothing it reads; one line per gate on a setting, naming
-      the check and the setting; for permissions with rules, one line
+      the check and the setting, and per check skipped for a kind of
+      caller, naming the check and the kind, with, given the routes, one
+      counting the operations it guards; for permissions with rules, one line
       counting the permissions and implications the rules give, one per
       set of patterns whose names meet, and with --routes one naming the
       route table's commit and one per rule no route reaches; for go, swift, javascript, dart and
@@ -1183,7 +1208,7 @@ commands:
     standardError: A usage message on a usage error, and the reason a source could not be read.
     exitCodes:
       "0": the specification was written
-      "1": "the surface could not be read as the source expects: a dump that does not parse or is stale, a dump whose repository is no gitlink of the repository holding it, is not checked out, pins a commit its history does not hold or whose checkout under the path is not the pinned commit's, a code-facts dump another parser version made, whose files are not the tracked files of its folder the reader reads, or, for pages, whose folder does not hold the router's folder, a route table that lists a method and path pair twice, a permission table that lists a grant or a rule twice, names a matcher the reader does not know, or holds a rule without one of its four keys, a vocabulary that does not parse, lacks a key, holds one it does not have, gives a number, a duration or a language tag in another form, or lists one word twice in a list or in two lists of one group, a route table given with --routes from another repository or from a commit on another line of history than the permission table's, a router root that gives one route twice or holds no page, a path with changes not committed, untracked files, a shallow clone, a path outside a git repository, a document that is not Markdown, a file that is not an OpenAPI 3.0 or 3.1 document, a file that is not BPMN 2.0 XML or holds no process, or an implementation file that does not parse as YAML"
+      "1": "the surface could not be read as the source expects: a dump that does not parse or is stale, a dump whose repository is no gitlink of the repository holding it, is not checked out, pins a commit its history does not hold or whose checkout under the path is not the pinned commit's, a code-facts dump another parser version made, whose files are not the tracked files of its folder the reader reads, or, for pages, whose folder does not hold the router's folder, a route table that lists a method and path pair twice, a permission table that lists a grant, a rule or a gate twice, holds a gate with no check, with both a setting and a kind of caller or neither, or skipped for a kind other than client, names a matcher the reader does not know, or holds a rule without one of its four keys, a vocabulary that does not parse, lacks a key, holds one it does not have, gives a number, a duration or a language tag in another form, or lists one word twice in a list or in two lists of one group, a route table given with --routes from another repository or from a commit on another line of history than the permission table's, a router root that gives one route twice or holds no page, a path with changes not committed, untracked files, a shallow clone, a path outside a git repository, a document that is not Markdown, a file that is not an OpenAPI 3.0 or 3.1 document, a file that is not BPMN 2.0 XML or holds no process, or an implementation file that does not parse as YAML"
       "2": usage error, a source this build does not offer, --implementation given to a source other than go, swift, javascript, dart or pages, or to pages without --facts, --facts given to a source other than pages, --routes given to a source other than permissions, --language, --vocabulary or --given-outside given to a source other than documents, a language that is not a BCP 47 tag, a language SpecArch ships no vocabulary for given without --vocabulary, a --language other than the vocabulary's own, more than one permission table, or a path that could not be read or written
     satisfies: [SA-11, SA-44, SA-63, SA-64]
     why: Existing systems enter SpecArch by extraction, so the verb exists from the start; it is built one reader at a time for the first real project that needs it, and every reader keeps the same rules so that the merge can trust their trees.

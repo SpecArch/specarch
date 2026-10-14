@@ -17,8 +17,9 @@ import (
 // The permission table a project's permission printer writes, in the
 // format tools/permissions/dump-permissions.sh wraps: the version of the
 // format, the path and the commit the check was built from, every grant
-// the check reads, and every check a setting switches off (ADR-050); and,
-// for a check that reads a policy of path patterns, its rules (ADR-100).
+// the check reads, every check a setting switches off (ADR-050) and every
+// check skipped for one kind of caller (ADR-114); and, for a check that
+// reads a policy of path patterns, its rules (ADR-100).
 type permissionTable struct {
 	PermissionTable int         `json:"permissionTable"`
 	Path            string      `json:"path"`
@@ -35,15 +36,21 @@ type dumpGrant struct {
 }
 
 type dumpGate struct {
-	Check   string `json:"check"`
-	Setting string `json:"setting"`
+	Check       string `json:"check"`
+	Setting     string `json:"setting"`
+	BypassedFor string `json:"bypassedFor"`
 }
+
+// callerKinds are the kinds of caller a check may be skipped for, in
+// meta-model 0.3's word: a client calls on its own account, not a
+// person's.
+var callerKinds = map[string]bool{"client": true}
 
 var roleWord = regexp.MustCompile(`^[a-z][a-z0-9]*(-[a-z0-9]+)*$`)
 
 // Permissions reads a permission table into roles and the permissions
 // each grants, and asks about every check the table says a setting
-// switches off. Given the route table too (routesPath), it writes the
+// switches off or one kind of caller skips. Given the route table too (routesPath), it writes the
 // routes' operations as extract router does, each route that checks no
 // permission taking the one the table's rules give it (ADR-100).
 func Permissions(dumpPath, routesPath, out, key string) (*Result, error) {
@@ -69,7 +76,7 @@ func Permissions(dumpPath, routesPath, out, key string) (*Result, error) {
 	}
 	res := &Result{Tree: newTree()}
 	res.say("commit %s: the last change to %s, as the permission table %s names it", r.Commit, t.Path, dumpName)
-	pr := &permissionReader{t: &t, key: key, res: res, questions: &yaml.Node{Kind: yaml.MappingNode}}
+	pr := &permissionReader{t: &t, key: key, res: res, questions: &yaml.Node{Kind: yaml.MappingNode}, bypassBlocks: map[string]*yaml.Node{}}
 	if err := pr.read(dumpName); err != nil {
 		return nil, err
 	}
@@ -97,6 +104,7 @@ func Permissions(dumpPath, routesPath, out, key string) (*Result, error) {
 		}
 		pr.nextID = rd.nextID
 		pr.deadRules()
+		pr.guarded(rd)
 		clauses = append(clauses, flow(mapping("clause", rt.Path, "title", "The routes the router built from here registers")))
 	}
 	src, err := codeSource(r, out, clauses)
@@ -156,6 +164,10 @@ type permissionReader struct {
 	roleNames   roleNames         // how the table writes its roles (ADR-099)
 	wireOf      map[string]string // a role's name -> the name the table writes
 	rulePerms   []*rulePermission // the permissions the rules give, by name
+	// bypassBlocks are the blocks of each bypassed gate's question, by
+	// the check's name, given the guarded operations once the routes are
+	// read.
+	bypassBlocks map[string]*yaml.Node
 }
 
 // gap records what the meta-model cannot hold of a grant of the role, as
@@ -186,6 +198,14 @@ func (pr *permissionReader) question(text string, blocks []string, why string, c
 func gateQuestion(check, setting string) (question, why string) {
 	return fmt.Sprintf("The check %s runs only when the setting %s is present. Is an empty %s ever meant to let every request through, or should the check refuse every request until it is set?", check, setting, setting),
 		"A check switched off by an empty setting fails open without an error, so no role's grants hold while it is off."
+}
+
+// bypassQuestion is the must question on a check skipped for one kind of
+// caller (ADR-114), the same whichever reader finds it, so that the merge
+// joins them by the check's name.
+func bypassQuestion(check, kind string) (question, why string) {
+	return fmt.Sprintf("The check %s is skipped for every %s: a %s passes it whatever its roles grant. Is every %s meant to reach each operation the check guards, or which ones are, and should the check hold the others to their roles' grants?", check, kind, kind, kind),
+		fmt.Sprintf("A check skipped for one kind of caller fails open for that kind without an error, so no role's grants hold for a %s.", kind)
 }
 
 // boolGateQuestion is gateQuestion for a check a boolean setting switches
@@ -279,18 +299,28 @@ func (pr *permissionReader) read(dumpName string) error {
 	gates := map[dumpGate]bool{}
 	for i, g := range pr.t.Gates {
 		where := fmt.Sprintf("%s, gate %d", dumpName, i+1)
-		if g.Check == "" || g.Setting == "" {
-			return refuse("%s names no check or no setting; a gate is the check and the setting it needs", where)
+		switch {
+		case g.Check == "":
+			return refuse("%s names no check; a gate is the check and either the setting it needs or the kind of caller it skips", where)
+		case g.Setting != "" && g.BypassedFor != "":
+			return refuse("%s names both the setting %s and the kind of caller %s for %s; a gate is one or the other, so list each as a gate of its own", where, g.Setting, g.BypassedFor, g.Check)
+		case g.Setting == "" && g.BypassedFor == "":
+			return refuse("%s names neither a setting nor a kind of caller for %s; a gate is the check and either the setting it needs or the kind of caller it skips", where, g.Check)
+		case g.BypassedFor != "" && !callerKinds[g.BypassedFor]:
+			return refuse("%s: %s is skipped for %q, and the kind of caller a check is skipped for is client, a caller on its own account rather than a person's", where, g.Check, g.BypassedFor)
 		}
 		if gates[g] {
+			if g.BypassedFor != "" {
+				return refuse("%s: the check %s skipped for %s is listed twice", where, g.Check, g.BypassedFor)
+			}
 			return refuse("%s: the check %s needing %s is listed twice", where, g.Check, g.Setting)
 		}
 		gates[g] = true
 	}
 	if pr.t.Rules != nil {
-		pr.res.say("counted %s, %s and %s: every entry of the permission table's lists, which hold every grant the check reads, every check the printer declares a setting switches off and every rule of the policy the check reads", plural(len(pr.t.Grants), "grant"), plural(len(pr.t.Gates), "gate"), plural(len(pr.t.Rules), "rule"))
+		pr.res.say("counted %s, %s and %s: every entry of the permission table's lists, which hold every grant the check reads, every check the printer declares a setting switches off or a kind of caller skips and every rule of the policy the check reads", plural(len(pr.t.Grants), "grant"), plural(len(pr.t.Gates), "gate"), plural(len(pr.t.Rules), "rule"))
 	} else {
-		pr.res.say("counted %s and %s: every entry of the permission table's lists, which hold every grant the check reads and every check the printer declares a setting switches off", plural(len(pr.t.Grants), "grant"), plural(len(pr.t.Gates), "gate"))
+		pr.res.say("counted %s and %s: every entry of the permission table's lists, which hold every grant the check reads and every check the printer declares a setting switches off or a kind of caller skips", plural(len(pr.t.Grants), "grant"), plural(len(pr.t.Gates), "gate"))
 	}
 	ruled, err := pr.readRules(dumpName, isRole)
 	if err != nil {
@@ -394,9 +424,19 @@ func (pr *permissionReader) read(dumpName string) error {
 		if sorted[i].Check != sorted[j].Check {
 			return sorted[i].Check < sorted[j].Check
 		}
-		return sorted[i].Setting < sorted[j].Setting
+		if sorted[i].Setting != sorted[j].Setting {
+			return sorted[i].Setting < sorted[j].Setting
+		}
+		return sorted[i].BypassedFor < sorted[j].BypassedFor
 	})
 	for _, g := range sorted {
+		if g.BypassedFor != "" {
+			pr.res.say("gate: the check %s is skipped for every %s, and lets every %s through whatever its roles grant", g.Check, g.BypassedFor, g.BypassedFor)
+			q, why := bypassQuestion(g.Check, g.BypassedFor)
+			pr.question(q, []string{"roles"}, why, citation(pr.key, pr.t.Path+" gate "+g.Check, fmt.Sprintf("The permission table declares that %s is skipped for every %s.", g.Check, g.BypassedFor)))
+			pr.bypassBlocks[g.Check] = child(pr.questions.Content[len(pr.questions.Content)-1], "blocks")
+			continue
+		}
 		pr.res.say("gate: the check %s runs only when the setting %s is present, and lets every request through while it is empty", g.Check, g.Setting)
 		q, why := gateQuestion(g.Check, g.Setting)
 		pr.question(q, []string{"roles"}, why, citation(pr.key, pr.t.Path+" gate "+g.Check, fmt.Sprintf("The permission table declares that %s runs only when %s is present.", g.Check, g.Setting)))
@@ -408,6 +448,35 @@ func (pr *permissionReader) read(dumpName string) error {
 	pr.res.say("wrote %s, %s and %s: one role per name the table grants something the meta-model holds or asks about, one permission per name a role grants, one question per thing the permission table does not say and per gate, and one per thing the meta-model cannot hold", plural(len(roleNames), "role"), plural(permissions, "permission"), plural(pr.nextID+couldCount(oneQuestions(pr.questions), pr.notHeld), "question"))
 	askNotHeld(pr.res, oneQuestions(pr.questions), &pr.nextID, pr.key, pr.notHeld)
 	return nil
+}
+
+// guarded gives each bypassed gate's question the operations the check
+// guards, from the route table: each route that names a permission other
+// than public, and, where the check reads a policy of rules, every route,
+// since the policy decides each one.
+func (pr *permissionReader) guarded(rd *routeReader) {
+	if len(pr.bypassBlocks) == 0 {
+		return
+	}
+	var at []string
+	for _, w := range rd.written {
+		if (w.printed != nil && *w.printed != "public") || (w.printed == nil && pr.t.Rules != nil) {
+			at = append(at, w.at+"/permission")
+		}
+	}
+	checks := make([]string, 0, len(pr.bypassBlocks))
+	for c := range pr.bypassBlocks {
+		checks = append(checks, c)
+	}
+	sort.Strings(checks)
+	for _, c := range checks {
+		if len(at) == 0 {
+			pr.res.say("gate: the check %s guards no route of the route table, so its question blocks the roles", c)
+			continue
+		}
+		pr.bypassBlocks[c].Content = value(at).Content
+		pr.res.say("gate: the check %s guards %s of the route table, and its question blocks the permission of each", c, plural(len(at), "operation"))
+	}
 }
 
 func grantOrGrants(n int) string {

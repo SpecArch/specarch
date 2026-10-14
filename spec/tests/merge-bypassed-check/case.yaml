@@ -1,0 +1,27 @@
+arguments: [merge, --out, spec, trees/grants, trees/code]
+exitStatus: 0
+standardOutput: |
+  tree trees/grants: Permissions of access, on the code, printed side: 10 elements and 11 questions
+  tree trees/code: Go source of ., on the code, parsed side: 8 elements and 13 questions
+  joined: the bypassed check Require, asked by Permissions of access and Go source of ., is asked once at 3 places with every tree's citation
+  asked twice: Q-10 of trees/grants, on #/permissions/loans.read/description, #/permissions/loans.write/description, #/permissions/members.read/description, is left out; Q-2 of trees/grants asks it
+  asked twice: Q-1 of trees/code, on #/paths/~1loans/get/summary, #/paths/~1loans/get/responses, is left out; Q-4 of trees/grants asks it
+  answered: Q-2 of trees/code, on #/paths/~1loans/get, is left out; Permissions of access prints it as the running system registers it
+  asked twice: Q-3 of trees/code, on #/paths/~1loans/post/summary, #/paths/~1loans/post/responses, is left out; Q-5 of trees/grants asks it
+  answered: Q-4 of trees/code, on #/paths/~1loans/post, is left out; Permissions of access prints it as the running system registers it
+  asked twice: Q-5 of trees/code, on #/paths/~1members~1{cardNumber}/parameters/0/schema, is left out; Q-6 of trees/grants asks it
+  asked twice: Q-6 of trees/code, on #/paths/~1members~1{cardNumber}/get/summary, #/paths/~1members~1{cardNumber}/get/responses, is left out; Q-7 of trees/grants asks it
+  answered: Q-7 of trees/code, on #/paths/~1members~1{cardNumber}/get, is left out; Permissions of access prints it as the running system registers it
+  asked twice: Q-8 of trees/code, on #/paths/~1status/get/permission, is left out; Q-9 of trees/grants asks it
+  asked twice: Q-9 of trees/code, on #/paths/~1status/get/summary, #/paths/~1status/get/responses, is left out; Q-8 of trees/grants asks it
+  answered: Q-10 of trees/code, on #/paths/~1status/get, is left out; Permissions of access prints it as the running system registers it
+  joined: Q-11 of trees/code, the bypassed check Require, is left out; it is asked once with every tree's citation
+  asked twice: Q-12 of trees/code, on #/permissions/loans.read/description, #/permissions/loans.write/description, #/permissions/members.read/description, is left out; Q-2 of trees/grants asks it
+  asked twice: Q-13 of trees/code, on #/permissions/loans.read, #/permissions/loans.write, #/permissions/members.read, is left out; Q-11 of trees/grants asks it
+  merged 10 elements, each an entry of a section or an operation: 8 in more than one tree, and 0 keys the trees disagree on
+  wrote 10 questions: 10 from the trees, numbered again in the order the trees are given, and 0 the merge asked
+  derived 0 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers
+  not derived: 2 draft tests for operation listLoans, held up by Q-3, Q-4, Q-5; the validator warns for them until the questions are answered
+  not derived: 2 draft tests for operation lendBook, held up by Q-3, Q-4, Q-5; the validator warns for them until the questions are answered
+  not derived: 3 draft tests for operation showMember, held up by Q-3, Q-6, Q-7; the validator warns for them until the questions are answered
+  not derived: 1 draft test for operation status, held up by Q-8, Q-9; the validator warns for them until the questions are answered

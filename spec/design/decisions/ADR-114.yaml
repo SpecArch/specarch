@@ -1,0 +1,99 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
+decisions:
+  ADR-114:
+    title: A check skipped for one kind of caller is a gate with bypassedFor client in the permission table and on a permission check's binding, asked as one must question blocking the permission of every operation the check guards, and joined by merge
+    status: accepted
+    date: "2026-10-14"
+    context: |
+      Point 6 of docs/estate.md, build item 7: an estate's role check
+      skips a machine-to-machine token entirely, so any service token
+      passes every route the check guards. The permission table's gates
+      (ADR-050) say only that a setting switches a check off, so a check
+      switched off by the kind of caller was read as one that holds every
+      caller to its roles, and nothing asked about it. The owner decided
+      on 2026-10-14 (decision 3 of docs/estate.md) that a route both
+      people and clients call is not given a keyword of its own in this
+      build and that the gate's question is the record. The caller
+      context designed the same day (docs/caller-context.md, ADR-110)
+      answers that row of meta-model 0.3 with callers, the explicit list
+      of who may call an operation, people and clients by name, with no
+      all; this build keeps decision 3's gate and leaves callers to the
+      caller context's own items.
+    decision: |
+      A gate of the permission table names, in place of setting,
+      bypassedFor: the kind of caller the check lets through whatever its
+      roles grant. client, meta-model 0.3's word for a caller on its own
+      account rather than a person's, is the one kind. A gate with both a
+      setting and a kind, neither, no check or another kind is refused,
+      naming the gate, and one listed twice is refused as a setting gate
+      is. extract permissions prints a line for each and asks one must
+      question per check, decided by the system owner and citing the
+      table's gate: "The check C is skipped for every client: a client
+      passes it whatever its roles grant. Is every client meant to reach
+      each operation the check guards, or which ones are, and should the
+      check hold the others to their roles' grants?". Given the route
+      table with --routes, it blocks the permission of each operation the
+      check guards: each route that names a permission other than public,
+      and, where the check reads a policy of rules (ADR-100), every route,
+      since the policy decides each one; a line counts them. Without the
+      route table, or where the check guards no route, it blocks the
+      roles.
+      The implementation file's bindings.http.permissionChecks item takes
+      bypassedFor: client too, in the implementation schema, so both
+      validator builds read it. extract go asks the same question, in the
+      same words, with the check named by its function's name, the
+      method's alone for Type.Method as a gate on a setting names it,
+      blocking the permission of each operation that calls the check and
+      citing the first call. merge asks the question once per check and
+      kind, blocking every operation any tree says the check guards, with
+      every tree's citation, and never leaves it out as answered.
+    why: |
+      A gate of its own form, beside the setting gate, because it is the
+      same fact of the same check, a condition under which the check
+      fails open, and the printer that declares one declares the other;
+      a second list would be a second way to say it. The value is the
+      caller kind rather than a token type or a header, because that is
+      what the answer is about and what meta-model 0.3 names; client
+      alone, because the other kind, people, is what the check is for,
+      and a check skipped for people is a check that does nothing, which
+      is not a gate but a missing check.
+      Asked at every guarded operation rather than once at the roles,
+      because the compiler test puts a problem at the entry it concerns:
+      the operations are where a reviewer sees that a client reaches them
+      unchecked, and the techspec marks each. One question per check, not
+      one per operation, because it is one decision the owners make about
+      one check, and a question per route would be twenty answers to one
+      question. A route the check does not guard (one that names no
+      permission or names public) is not blocked, since a client reaches
+      it as anyone does.
+      In extract go the skip is declared, not found: a test of the
+      caller's kind is a comparison of a header, a claim or a token's
+      prefix, written the project's way, and the setting gate's shape (an
+      early return while a setting is empty) has no counterpart that
+      syntax recognises without guessing. The implementation file already
+      names the project's checks, so the person who names a check says
+      there that it skips clients; it is a fact of the stack, not of the
+      design.
+      merge never leaves the question out as answered because ADR-049's
+      rule (a question whose blocked keys another tree gives is answered)
+      would drop it whenever the other tree gives the permissions, and
+      giving a permission says nothing of who may skip it.
+      The answer, where the owners say a client is meant to reach an
+      operation, is the client named in that operation's callers once
+      the caller context is built (docs/caller-context.md, ADR-110), which
+      the validator refuses unless one of the client's roles grants the
+      permission; where they say it is not, the check is to change. Until
+      then the question is the record, which needs no keyword in a 0.2
+      tree.
+      Acceptance test: the bypass shows at each operation of the first
+      techspec made from the readers, so an owner looking at a route sees
+      that every client reaches it, and the change asked for is one line,
+      in the callers of that operation or in the check.
+    consequences: |
+      A permission table without bypassedFor reads as before, and so does
+      an implementation file without it; the counting line of extract
+      permissions names a kind of caller beside a setting. The setting
+      gate still blocks the roles. A printed tree and a parsed one that
+      disagree on which operations the check guards are joined into their
+      union; asking about the difference waits for a case that needs it.
+    satisfies: [SA-44, SA-45]

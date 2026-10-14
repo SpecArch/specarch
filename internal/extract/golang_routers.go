@@ -138,12 +138,20 @@ type checkUse struct {
 	check      string // as the code names it
 	permission string // "" when the argument is not a literal
 	argument   string // the argument as the code writes it
+	bound      *permissionCheck
 }
 
 // permissionCheck is one check the implementation file names.
 type permissionCheck struct {
 	pkg, function string // the function, or Type.Method
 	argument      int    // the permission's argument, from 1
+	bypassedFor   string // the kind of caller the check skips, "" when none (ADR-114)
+}
+
+// name is the check's name in a gate's question: the function's, or the
+// method's alone, as a gate on a setting names it.
+func (c *permissionCheck) name() string {
+	return c.function[strings.LastIndex(c.function, ".")+1:]
 }
 
 // goRoute is one route a router registers.
@@ -1337,12 +1345,12 @@ func (sc *routeScope) checkCall(call *ast.CallExpr) (checkUse, bool) {
 	if name == "" {
 		return checkUse{}, false
 	}
-	for _, c := range sc.g.rt.checks {
+	for i, c := range sc.g.rt.checks {
 		if c.pkg != pkg || c.function != name {
 			continue
 		}
 		clause := sc.g.clause(sc.file, call.Pos())
-		use := checkUse{clause: clause, check: exprText(call.Fun)}
+		use := checkUse{clause: clause, check: exprText(call.Fun), bound: &sc.g.rt.checks[i]}
 		if c.argument > len(call.Args) {
 			use.argument = "nothing"
 			return use, true
@@ -1863,6 +1871,7 @@ func (g *goReader) writeRoutes(items map[string]*yaml.Node, uris *[]string, chec
 		}
 		return methodRank(held[i].key) < methodRank(held[j].key)
 	})
+	bypassed := map[*permissionCheck]*bypassedCheck{}
 	for _, r := range held {
 		at := "#/paths/" + escapeToken(r.full)
 		r.at = at + "/" + r.key
@@ -1888,6 +1897,18 @@ func (g *goReader) writeRoutes(items map[string]*yaml.Node, uris *[]string, chec
 			if !contains(r.params, p.name) {
 				g.question("must", fmt.Sprintf("%s: the handler of %s reads the path parameter %s, which its path does not have, so it reads an empty value. Is %s a parameter of the operation, or is the read a mistake?", p.clause, label, p.name, p.name),
 					[]string{r.at, r.at + "/parameters"}, "A path parameter the route's path does not name is always empty, so the code cannot work as written.", g.at(p.clause, "Reads the path parameter "+p.name+"."))
+			}
+		}
+		for _, c := range r.checks {
+			if c.bound.bypassedFor != "" {
+				b := bypassed[c.bound]
+				if b == nil {
+					b = &bypassedCheck{check: c.bound, clause: c.clause}
+					bypassed[c.bound] = b
+				}
+				if !contains(b.at, r.at+"/permission") {
+					b.at = append(b.at, r.at+"/permission")
+				}
 			}
 		}
 		op := mapping("operationId", r.id)
@@ -1929,8 +1950,42 @@ func (g *goReader) writeRoutes(items map[string]*yaml.Node, uris *[]string, chec
 	if snake {
 		g.wireSnake = true
 	}
+	g.writeBypassed(bypassed)
 	g.writeDependencies(held)
 	g.res.say("routes: wrote %s: one operation per route a router of net/http, chi, gin, echo or gorilla/mux registers with a literal method and path, outside a loop or a condition, under a prefix the reader knows", plural(len(held), "operation"))
+}
+
+// bypassedCheck is a check the implementation file says one kind of
+// caller skips, with the operations that call it.
+type bypassedCheck struct {
+	check  *permissionCheck
+	clause string   // the first call of it read
+	at     []string // the permission of each operation it guards
+}
+
+// writeBypassed asks about every check one kind of caller skips, at each
+// operation it guards, as the permission table's reader asks about a
+// bypassed gate, so that the merge joins them by the check's name
+// (ADR-114). Syntax does not show the skip, which is a test of the
+// caller's token written the project's way; the implementation file says
+// it.
+func (g *goReader) writeBypassed(bypassed map[*permissionCheck]*bypassedCheck) {
+	var list []*bypassedCheck
+	for _, b := range bypassed {
+		list = append(list, b)
+	}
+	sort.Slice(list, func(i, j int) bool {
+		if list[i].check.name() != list[j].check.name() {
+			return list[i].check.name() < list[j].check.name()
+		}
+		return list[i].check.pkg < list[j].check.pkg
+	})
+	for _, b := range list {
+		c := b.check
+		g.res.say("gate: %s names the check %s.%s as skipped for every %s, and it guards %s", g.rt.checkFile, c.pkg, c.function, c.bypassedFor, plural(len(b.at), "operation"))
+		q, why := bypassQuestion(c.name(), c.bypassedFor)
+		g.question("must", q, b.at, why, g.at(b.clause, fmt.Sprintf("Calls %s, which the implementation file says is skipped for every %s.", c.function, c.bypassedFor)))
+	}
 }
 
 // routePermission is the permission a route checks, or "" with a question.
@@ -2540,7 +2595,16 @@ func (g *goReader) loadChecks(file string) error {
 				[]string{"paths"}, "A check named in part cannot be found in the source, and the operations it guards would be read as open.")
 			continue
 		}
-		g.rt.checks = append(g.rt.checks, permissionCheck{pkg: pkg, function: fn, argument: n})
+		c := permissionCheck{pkg: pkg, function: fn, argument: n}
+		if kind := scalar(child(item, "bypassedFor")); kind != "" {
+			if callerKinds[kind] {
+				c.bypassedFor = kind
+			} else {
+				g.question("must", fmt.Sprintf("The implementation file %s says the check %s.%s is skipped for %q (item %d of bindings.http.permissionChecks), and the kind of caller a check is skipped for is client. Which callers does it skip?", file, pkg, fn, kind, i+1),
+					[]string{"paths"}, "A check skipped for a kind of caller fails open for that kind, so the kind is asked, never guessed; the check is read as one that skips none.")
+			}
+		}
+		g.rt.checks = append(g.rt.checks, c)
 	}
 	var names []string
 	for _, c := range g.rt.checks {

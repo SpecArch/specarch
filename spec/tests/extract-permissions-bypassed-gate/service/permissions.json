@@ -1,0 +1,14 @@
+{
+    "permissionTable": 1,
+    "path": "access",
+    "commit": "d314cc28850e82347b136cc5cdf532adb2e64ee6",
+    "grants": [
+        {"role": "desk-staff", "permission": "loans.read"},
+        {"role": "desk-supervisor", "permission": "loans.read"},
+        {"role": "desk-supervisor", "permission": "loans.write"}
+    ],
+    "gates": [
+        {"check": "Authorise", "bypassedFor": "client"},
+        {"check": "Authorise", "setting": "AUTHORISATION_URL"}
+    ]
+}

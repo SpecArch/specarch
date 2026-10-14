@@ -1,0 +1,24 @@
+permissions:
+  loans.read:
+    origin: stated
+    cites:
+      - {source: code, clause: access role desk-staff, says: desk-staff grants loans.read.}
+  loans.write:
+    origin: stated
+    cites:
+      - {source: code, clause: access role desk-supervisor, says: desk-supervisor grants loans.write.}
+  members.read:
+    origin: stated
+    cites:
+      - {source: code, clause: access role desk-staff, says: desk-staff grants members.read.}
+roles:
+  desk-staff:
+    permissions: [loans.read, members.read]
+    origin: stated
+    cites:
+      - {source: code, clause: access role desk-staff, says: desk-staff grants loans.read and members.read.}
+  desk-supervisor:
+    permissions: [loans.write]
+    origin: stated
+    cites:
+      - {source: code, clause: access role desk-supervisor, says: desk-supervisor grants loans.write.}

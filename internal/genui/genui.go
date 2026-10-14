@@ -445,14 +445,14 @@ func (g *gen) control(fields map[string]any, name string) []string {
 	}
 	out := []string{"<label>" + html.EscapeString(fieldTitle(fields, name))}
 	if len(values) > 0 {
-		out = append(out, `<select name="`+html.EscapeString(name)+`">`, `<option value="">Any</option>`)
+		out = append(out, "<select name="+quoted(name)+">", `<option value="">Any</option>`)
 		for _, v := range values {
 			e := html.EscapeString(text(v))
-			out = append(out, `<option value="`+e+`">`+e+`</option>`)
+			out = append(out, "<option value="+quoted(text(v))+">"+e+"</option>")
 		}
 		out = append(out, "</select>")
 	} else {
-		out = append(out, `<input name="`+html.EscapeString(name)+`" type="text">`)
+		out = append(out, "<input name="+quoted(name)+` type="text">`)
 	}
 	return append(out, "</label>")
 }
@@ -523,12 +523,20 @@ export function emit(name, payload) {
 	return b.String()
 }
 
+// quoted is a value as an HTML attribute, in double quotes. The text
+// escape already writes a double quote as &#34;; the replacement after it
+// handles any quote the escape would leave, right where the attribute is
+// built, so the value cannot end the attribute whatever the escape does.
+func quoted(s string) string {
+	return `"` + strings.ReplaceAll(html.EscapeString(s), `"`, "&quot;") + `"`
+}
+
 // html writes the page's HTML.
 func (p *page) html(g *gen) string {
 	var b strings.Builder
 	w := func(s string) { b.WriteString(s + "\n") }
 	w("<!doctype html>")
-	w(`<html lang="` + html.EscapeString(p.language) + `">`)
+	w("<html lang=" + quoted(p.language) + ">")
 	w("<head>")
 	w(`<meta charset="utf-8">`)
 	w(`<meta name="viewport" content="width=device-width, initial-scale=1">`)

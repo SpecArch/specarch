@@ -35,7 +35,7 @@ facts in a format SpecArch defines, never a reader of its own.
 | 4. role names on the wire | built, item 2 (ADR-099): `info.roleNames: upper_snake`, read by both readers of grants |
 | 5. authorisation by path pattern | built, item 3 (ADR-100): `implies` on a permission, counted by every check of a role's grants, and `rules` in the permission table, read with the route table by `extract permissions --routes`; a permission defined by a pattern is declined |
 | 6. a check bypassed for one kind of caller | built, item 7 (ADR-114): `bypassedFor: client` on a gate of the permission table and on a check the implementation file names, one `must` question at every operation the check guards, joined by `merge`; a route that serves people and clients both lists them in `callers` (`docs/caller-context.md`, ADR-110) |
-| 7. the schema file's name; the facts dump from the installed binary | the schema file's name built, item 8 (ADR-115): `bindings.ui.schemaFile`, read by `extract pages` and written by `specarch-gen-ui-typescript`; the facts dump from the installed binary planned, item 8 |
+| 7. the schema file's name; the facts dump from the installed binary | built, item 8: `bindings.ui.schemaFile`, read by `extract pages` and written by `specarch-gen-ui-typescript` (ADR-115); `specarch facts` for JavaScript, Swift and Dart, the JavaScript reader inside the binary on typescript-go with no Node (ADR-116) |
 | 8. workflow definitions that are not BPMN | planned as a printed workflow table, item 9, since the estate's format is custom; a standard format gets a plug-in reader (decision 5) |
 | 9. audience, requirements held elsewhere, material questions, partial answers, row citations | planned, items 10 and 11; a row citation is shipped in 0.6.0 as a clause that carries the row's identifier |
 | 10. `--given-outside`, two routes for one list, generated defaults, indexes, a source key from capitals | `--given-outside` built, item 4 (ADR-105); the rest planned, item 12; an index goes to the implementation file; the source key from capitals is on main already, after 0.6.0 |
@@ -372,19 +372,20 @@ bindings, `bindings.ui.schemaFile`, beside `bindings.ui.components`;
 that name, and the generator writes its schemas under it, so a project
 that has the one convention gets both halves from one key (ADR-115).
 
-The JavaScript facts dump is made by `readers/javascript/`, a Node
-program on the TypeScript compiler pinned in its lock file, which
-`dump-javascript.sh` installs with `npm ci` inside the SpecArch
-checkout. A team that installs the binary has no checkout. The reader
-and its lock file are embedded in the binary, and `specarch facts
-javascript <folder> <dump>` writes them once into a per-user cache
-(`$XDG_CACHE_HOME/specarch/readers/javascript-<version>`), runs `npm ci`
-there against the embedded lock file, whose integrity hashes pin every
-byte, and runs the reader; the binary already refuses a dump another
-compiler version made, so the pin cannot drift. Nothing is written into
-the source tree or the specarch checkout, no `npx`, no unpinned
-package. The same verb serves `swift` and `dart` from their toolchains.
-The shell scripts stay for a checkout and call the verb.
+A team that installs the binary has no checkout of SpecArch, so the
+readers come with the binary: `specarch facts <language> <folder>
+<dump>` writes the dump (ADR-116). The JavaScript reader is inside the
+binary, on the TypeScript compiler's own Go source (typescript-go,
+copied into `third_party/typescript-go` at a pinned tag, since upstream
+offers no public Go API), with a Vue reader of its own, so it needs no
+Node, no npm and no cache. The Swift and Dart readers need their own
+toolchains, for which no faithful Go parser exists: the binary carries
+their source with the lock file that pins every dependency, writes them
+once into a per-user cache named by a hash of those files, and builds
+them there. The binary refuses a dump another reader version made, so
+the pin cannot drift. Nothing is written into the source tree, no
+`npx`, no unpinned package. The shell scripts stay for a checkout and
+call the verb.
 
 ### 8. Workflow definitions that are not BPMN
 
@@ -636,11 +637,11 @@ step 1. Only item 7's meta-model half touches 0.3.
    Done when the permission-table case with a bypassed check asks at
    every guarded operation. The 0.3 decision is recorded with the
    amendment, if any.
-8. The schema file's name and `specarch facts`. Built in part (ADR-115):
-   `bindings.ui.schemaFile`
-   read by `extract pages` and written by the UI generator. Planned: the readers
-   and lock files embedded, the per-user cache, the verb for the three
-   languages, the scripts calling it. Done when the lending desk's web
+8. Built (ADR-115, ADR-116). The schema file's name and `specarch facts`. `bindings.ui.schemaFile`
+   read by `extract pages` and written by the UI generator; the
+   JavaScript reader inside the binary on typescript-go, the Swift and
+   Dart readers and lock files embedded with the per-user cache, the
+   verb for the three languages, the scripts calling it. Done when the lending desk's web
    folder is dumped by the installed binary with no checkout and
    `extract pages --facts` reads it byte for byte as today's dump, and a
    page whose schema is `_schema.ts` is read through the binding.
@@ -696,7 +697,11 @@ Decided on 2026-10-14.
    `callers`, the explicit subset the caller context designs
    (`docs/caller-context.md`, ADR-110). The caller's context as a whole
    is designed on its own, outside this plan.
-4. **The readers are inside the binary**: build item 8.
+4. **The readers are inside the binary**: build item 8. The JavaScript
+   reader is built on the TypeScript compiler's own Go source copied into
+   the repository at a pinned tag (decided 2026-10-14, after TypeScript 7
+   shipped its compiler in Go); the Swift and Dart readers are carried by
+   the binary and built in a per-user cache.
 5. **A standard workflow format gets a reader (a plug-in); a custom
    one gets a workflow table its project's printer writes.** The
    estate's workflow definitions are custom JSON, so build item 9 is

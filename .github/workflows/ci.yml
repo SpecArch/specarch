@@ -252,6 +252,16 @@ jobs:
           for target in techspec requirements testplan traceability deployment commissioning; do go run ./cmd/specarch document $target --check spec examples || exit 1; done
           for target in techspec requirements testplan traceability deployment commissioning questions problems changes releases html; do go run ./cmd/specarch document $target --check spec examples/library-lending || exit 1; done
           for target in techspec requirements traceability questions problems html; do go run ./cmd/specarch document $target --check examples/lending-desk || exit 1; done
+      - name: specarch facts remakes the examples' JavaScript dumps byte for byte, with no Node
+        # The JavaScript reader is inside the binary, on the TypeScript
+        # compiler in third_party/typescript-go (ADR-116), so this step
+        # installs no Node and no package.
+        run: |
+          go build -o "$RUNNER_TEMP/specarch" ./cmd/specarch
+          for pair in lending-desk/sources/web:lending-desk/sources/facts/web.json room-booking/sources/ts:room-booking/sources/facts/ts.json room-booking/sources/js:room-booking/sources/facts/js.json; do
+            "$RUNNER_TEMP/specarch" facts javascript "examples/${pair%%:*}" "$RUNNER_TEMP/dump.json" || exit 1
+            cmp "examples/${pair#*:}" "$RUNNER_TEMP/dump.json" || exit 1
+          done
       - name: The estate example validates as an estate and draws its module map
         # examples/estate lists the lending desk and the catalogue service;
         # validate on the estate file reads both modules through it.

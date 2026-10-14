@@ -300,7 +300,7 @@ commands:
         as public. Every permission a schema names is declared, its
         description and the role that grants it must questions.
 
-        With `--facts`, a code-facts dump that tools/code-facts/dump-javascript.sh
+        With `--facts`, a code-facts dump that specarch facts javascript
         made of a committed folder that holds the router's folder, and
         that is not stale (ADR-090), the App Router's and the Pages
         Router's files are also read for what their code says, and
@@ -649,7 +649,7 @@ commands:
         flag's.
 
       - `swift`: one code-facts dump of Swift source (ADR-087), written
-        by `tools/code-facts/dump-swift.sh`, which runs the Swift reader
+        by `specarch facts swift`, which runs the Swift reader
         `readers/swift` on the tracked Swift files under a committed
         folder. The reader parses each with SwiftSyntax, the parser the
         Swift toolchain's own tools use, and writes facts, not elements:
@@ -807,13 +807,13 @@ commands:
         could not read, which is also a should question.
 
       - `javascript`: one code-facts dump of JavaScript and TypeScript
-        source (ADR-089), written by `tools/code-facts/dump-javascript.sh`,
-        which runs the JavaScript reader `readers/javascript` on the
+        source (ADR-089, ADR-116), written by `specarch facts javascript`,
+        which runs the JavaScript reader inside the binary on the
         tracked `.ts`, `.tsx`, `.mts`, `.cts`, `.js`, `.jsx`, `.mjs` and
         `.cjs` files under a committed folder and its `tsconfig.json` and
         `jsconfig.json` files. The reader builds one program of them with
-        the TypeScript compiler 6.0.3, the last release whose compiler API
-        is stable and has no dependency of its own, over those files and
+        the TypeScript compiler 7.0.2, its own Go source copied into
+        third_party/typescript-go, over those files and
         the library TypeScript ships and nothing else, so no
         `node_modules` and no package's types are read. It writes facts,
         not elements: imports with the file each resolves to, each
@@ -954,8 +954,8 @@ commands:
         could not read, which is also a should question.
 
         Vue single-file components (`.vue`) are read too (ADR-091): the
-        reader splits each with `@vue/compiler-sfc` 3.5.43, pinned
-        exactly, gives the compiler its `<script>` and `<script setup>`
+        reader splits each as Vue 3's `@vue/compiler-sfc` does, with its
+        own Vue reader, gives the compiler its `<script>` and `<script setup>`
         blocks as one file in which every other character is a space, so
         every fact keeps the `.vue` file's own line and column, resolves an
         import of a `.vue` file to that script, and writes each element of
@@ -963,8 +963,8 @@ commands:
         a link, with its attributes, its directives' expressions by their
         syntax, its literal text and the component it is in. The dump then
         names the template parser and its version, and is refused when
-        another version made it or when it lists a `.vue` file and names
-        none. The routes vue-router's `createRouter` is given in a literal
+        another reader or another version of it split the files, or when
+        it lists a `.vue` file and names none. The routes vue-router's `createRouter` is given in a literal
         list are pages when their component is a `.vue` file the dump read,
         imported or loaded by `import()`, named after the file in
         kebab-case without `Page`, `Screen` or `View`, with their route,
@@ -985,7 +985,7 @@ commands:
         questions. `$fetch` and `useFetch` are clients as `fetch` is.
 
       - `dart`: one code-facts dump of Dart source (ADR-092), written by
-        `tools/code-facts/dump-dart.sh`, which runs the Dart reader
+        `specarch facts dart`, which runs the Dart reader
         `readers/dart` on the tracked Dart files under a committed folder.
         The reader parses each with the analyzer package 14.4.0, pinned
         exactly with `pubspec.lock` committed, through `parseString`,
@@ -1169,7 +1169,7 @@ commands:
         description: For go, swift, javascript and dart, and for pages with --facts, an implementation file whose `bindings.http.permissionChecks` name the project's permission checks, which the reader reads routes' permissions through; for pages, with or without --facts, its `bindings.ui.schemaFile` names the file a page's schema is read from.
         schema: { type: string }
       facts:
-        description: For pages, a code-facts dump of JavaScript and TypeScript, made by tools/code-facts/dump-javascript.sh of a folder that holds the router's folder, through which the Next.js files' code is read.
+        description: For pages, a code-facts dump of JavaScript and TypeScript, made by specarch facts javascript of a folder that holds the router's folder, through which the Next.js files' code is read.
         schema: { type: string }
       routes:
         description: For permissions, a route table of the same repository, made by tools/routes/dump-routes.sh, whose routes are written with the permission the permission table's rules give each.

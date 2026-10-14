@@ -19,7 +19,7 @@ import (
 // refused, since another parser may give other facts (ADR-087).
 const swiftSyntaxVersion = "604.0.0"
 
-// codeFactsDump is a code-facts dump, as tools/code-facts/dump-swift.sh
+// codeFactsDump is a code-facts dump, as specarch facts swift
 // writes it: the version of the format, the language and the parser, the
 // folder read and the commit that last changed it, the files read and
 // every fact, sorted by file, line and column.
@@ -338,13 +338,13 @@ func Swift(dumpPath, out, key, implementation string) (*Result, error) {
 	}
 	switch {
 	case d.CodeFacts != 1:
-		return nil, refuse("%s is not a code-facts dump in the format tools/code-facts/dump-swift.sh writes: its codeFacts is %d, not 1", dumpPath, d.CodeFacts)
+		return nil, refuse("%s is not a code-facts dump in the format specarch facts swift writes: its codeFacts is %d, not 1", dumpPath, d.CodeFacts)
 	case d.Language != "swift":
 		return nil, refuse("%s is a code-facts dump of %q, and extract swift reads one of Swift", dumpPath, d.Language)
 	case d.Parser.Name != "SwiftSyntax" || d.Parser.Version != swiftSyntaxVersion:
-		return nil, refuse("%s was made by %s %s, and this specarch reads dumps that SwiftSyntax %s made; run tools/code-facts/dump-swift.sh of this release again and commit the dump", dumpPath, d.Parser.Name, d.Parser.Version, swiftSyntaxVersion)
+		return nil, refuse("%s was made by %s %s, and this specarch reads dumps that SwiftSyntax %s made; run specarch facts swift of this release again and commit the dump", dumpPath, d.Parser.Name, d.Parser.Version, swiftSyntaxVersion)
 	}
-	r, dumpName, err := openDump(dumpPath, d.Repository, d.Path, d.Commit, "tools/code-facts/dump-swift.sh")
+	r, dumpName, err := openDump(dumpPath, d.Repository, d.Path, d.Commit, "specarch facts swift")
 	if err != nil {
 		return nil, err
 	}
@@ -412,7 +412,7 @@ func (sw *swiftReader) index(dumpName string) error {
 	}
 	for _, f := range sw.r.Files {
 		if strings.HasSuffix(f, ".swift") && under(f) && sw.files[f] == nil {
-			return refuse("%s does not list %s, a tracked Swift file under %s; run tools/code-facts/dump-swift.sh again and commit the dump", dumpName, f, d.Path)
+			return refuse("%s does not list %s, a tracked Swift file under %s; run specarch facts swift again and commit the dump", dumpName, f, d.Path)
 		}
 	}
 	sort.Strings(sw.fileOrder)

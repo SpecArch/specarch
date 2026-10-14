@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.0-dev of the specification: 442 design tests, 197 golden and 245 red, about 14 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.0-dev of the specification: 445 design tests, 198 golden and 247 red, about 15 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.7.0-dev of the specification: 442 design tests, 197 golden and 245 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 438 |
+| system | 441 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -911,9 +911,9 @@ Scenario: red; level: system; verifies SA-44.
 
 Scenario: red; level: system; verifies SA-44.
 
-- Given: a code-facts dump of a Vue file whose .vue files another version of @vue/compiler-sfc than the one this release pins split
+- Given: a code-facts dump of a Vue file whose .vue files @vue/compiler-sfc 3.5.0 split, not the Vue reader this release reads with
 - When: extract javascript is run on the dump
-- Then: it refuses the dump, naming the version that split the files and the one it reads, writes nothing and exits 1
+- Then: it refuses the dump, naming the parser and version that split the files and the reader and version it reads, writes nothing and exits 1
 
 #### extract-javascript-vue-router
 
@@ -1298,6 +1298,32 @@ Scenario: golden; level: system; verifies SA-44.
 - Given: a repository with a BPMN 2.0 file of two processes: one whose start event names its operation, with two user tasks whose potential owners are a resource and an expression, a timer that escalates to the second, a gateway that refuses after the first, a timer of a week and a service task naming its operation; and one with no documentation, no operation on its start event, lanes, a user task with no owner and a repeating timer, and a parallel gateway; beside them a signal and a diagram
 - When: extract workflows is run on the file
 - Then: it writes one workflow per process in the order of their names, the approvals with their roles, deadlines and escalation, a question naming the operation for the trigger and the service task, a question for each permission, subject and anything the file leaves out or the subset does not hold, a role per potential owner, a line per element left out in the order of the file, and a could question citing the file's line for each that no must question asks for already, and exits 0
+
+### Command facts
+
+#### facts-javascript
+
+Scenario: golden; level: system; verifies SA-44.
+
+- Given: a committed folder with a tsconfig.json that maps a path, a TypeScript server that imports a check through that path and reads the environment, and a Vue component with a script setup block in TypeScript, a form, a component of a UI library, a control in a v-for, a paragraph in a v-if with an interpolation and an entity
+- When: facts javascript is run on the folder with a dump file in the same repository
+- Then: it writes the dump with the TypeScript compiler's and the Vue reader's names and versions, the folder's path and commit, every file with no syntax error, the configuration, the imports resolved through the path mapping, the call with the check resolved to its declaration, the read of the environment with its default and the call it is given to, and the template's elements with their attributes, directives, text and loop and condition, names the dump, the folder and the commit, and exits 0
+
+#### facts-javascript-uncommitted
+
+Scenario: red; level: system; covers exit 1; verifies SA-44.
+
+- Given: a folder with one committed file and one file that is not tracked
+- When: facts javascript is run on the folder
+- Then: it refuses the folder, naming the file not tracked, writes no dump and exits 1
+
+#### facts-unknown-language
+
+Scenario: red; level: system; covers usage error, exit 2; verifies SA-44.
+
+- Given: a committed folder of a language specarch facts has no reader for
+- When: facts is run with that language
+- Then: it names the languages it reads, writes no dump and exits 2
 
 ### Command gaps
 

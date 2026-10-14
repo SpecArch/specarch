@@ -15,8 +15,8 @@
 #   service's source, with the permission check its implementation file
 #   names, and merges with the route table its printer wrote. The pages
 #   reader reads the web folder's code through its code-facts dump,
-#   sources/facts/web.json, which tools/code-facts/dump-javascript.sh
-#   makes again once sources/web changes.
+#   sources/facts/web.json, which specarch facts javascript makes again
+#   once sources/web changes.
 # - spec: the merged specification, and merge.txt the merge's standard
 #   output.
 # - validate.txt and gaps.txt: what specarch validate and specarch gaps

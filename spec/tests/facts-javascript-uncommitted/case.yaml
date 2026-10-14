@@ -1,0 +1,7 @@
+arguments: [facts, javascript, repo/app, repo/facts.json]
+repository:
+  folder: repo
+  commits:
+    - [app/index.ts]
+exitStatus: 1
+standardOutput: ""

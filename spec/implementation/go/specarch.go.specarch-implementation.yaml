@@ -58,14 +58,30 @@ libraries:
     version: v0.0.0-20261009195045-ca0d7ba23607
     licence: BSD-3-Clause
     purpose: Needed by the CEL parser.
-  typescript:
-    version: 6.0.3
+  github.com/microsoft/typescript-go:
+    version: typescript/v7.0.2 (2bd066d87f5bafd315be9f40889d0a60b9e58e0b)
     licence: Apache-2.0
-    purpose: "The TypeScript compiler, run on Node by the JavaScript reader of specarch extract, readers/javascript, which writes the code-facts dump the Go build reads (ADR-089); not linked into specarch. The last release whose compiler API is stable and whose package has no dependency. Pinned exactly in readers/javascript/package.json and package-lock.json, and the Go build refuses a dump another version made. SBOM scan on 2026-10-09: syft 1.54.0, grype 0.120.0 and osv-scanner 2.6.0 found no vulnerability."
-  "@vue/compiler-sfc":
-    version: 3.5.43
+    purpose: "The TypeScript compiler in Go: its parser, binder, checker, program and the bundled lib.d.ts files, which the JavaScript reader of specarch facts reads source with (ADR-116). Upstream keeps them under internal/ with no public Go API, so the packages needed are copied into third_party/typescript-go by tools/typescript-go/pull.sh, with LICENSE, NOTICE.txt and UPSTREAM naming the tag and commit. SBOM scan on 2026-10-14: syft 1.54.1, grype 0.120.1, osv-scanner 2.6.0 and govulncheck 1.8.0 found no vulnerability."
+  github.com/go-json-experiment/json:
+    version: v0.0.0-20260623181947-01eb4420fa68
+    licence: BSD-3-Clause
+    purpose: "JSON for the TypeScript compiler's configuration files and diagnostics, at the version typescript-go v7.0.2 pins. SBOM scan on 2026-10-14: syft 1.54.1, grype 0.120.1, osv-scanner 2.6.0 and govulncheck 1.8.0 found no vulnerability."
+  github.com/zeebo/xxh3:
+    version: v1.1.0
+    licence: BSD-2-Clause
+    purpose: "The hash the TypeScript compiler keys its caches by, at the version typescript-go v7.0.2 pins. SBOM scan on 2026-10-14: syft 1.54.1, grype 0.120.1, osv-scanner 2.6.0 and govulncheck 1.8.0 found no vulnerability."
+  github.com/klauspost/cpuid/v2:
+    version: v2.2.10
     licence: MIT
-    purpose: "Splits a Vue single-file component into its script blocks and template in the JavaScript reader, readers/javascript (ADR-091); not linked into specarch. Pinned exactly in readers/javascript/package.json, with its tree in package-lock.json: @vue/compiler-core, -dom, -ssr and @vue/shared 3.5.43, @babel/parser 7.29.9, @babel/types 7.29.8 and its two helpers 7.29.7, postcss 8.5.29, magic-string 0.30.21, @jridgewell/sourcemap-codec 1.6.0, estree-walker 2.0.2 and nanoid 3.3.20 (MIT), entities 7.0.1 (BSD-2-Clause), source-map-js 1.2.2 (BSD-3-Clause) and picocolors 1.1.1 (ISC). The Go build refuses a dump another version split. SBOM scan on 2026-10-09: syft 1.54.0, grype 0.120.0 and osv-scanner 2.6.0 found no vulnerability."
+    purpose: "Needed by xxh3 to choose its instructions. SBOM scan on 2026-10-14: syft 1.54.1, grype 0.120.1, osv-scanner 2.6.0 and govulncheck 1.8.0 found no vulnerability."
+  golang.org/x/sync:
+    version: v0.24.0
+    licence: BSD-3-Clause
+    purpose: "Wait groups for the TypeScript compiler's parallel work; typescript-go v7.0.2 pins v0.21.0, and the newer release the module graph already holds is taken. SBOM scan on 2026-10-14: syft 1.54.1, grype 0.120.1, osv-scanner 2.6.0 and govulncheck 1.8.0 found no vulnerability."
+  golang.org/x/sys:
+    version: v0.47.0
+    licence: BSD-3-Clause
+    purpose: "The operating system's file system for the TypeScript compiler; typescript-go v7.0.2 pins v0.46.0, and the newer release the module graph already holds is taken. SBOM scan on 2026-10-14: syft 1.54.1, grype 0.120.1, osv-scanner 2.6.0 and govulncheck 1.8.0 found no vulnerability."
   analyzer:
     version: 14.4.0
     licence: BSD-3-Clause
@@ -80,10 +96,14 @@ layout:
     description: The shipped idioms, one folder per concern, embedded into the binary; a release fixes the set.
   internal/extract:
     description: "The readers of specarch extract: the commit read (git, run with no user or system configuration), the outline, database, router, documents, OpenAPI, permissions, pages and workflows readers, the Go reader on the standard library's go/parser with dxlib's registration calls and the rule that maps dxlib_module's privilege names, the Swift reader of a code-facts dump with the property lists, build settings and Core Data models it reads as data, the JavaScript and TypeScript reader of a code-facts dump with the message catalogues it reads as data, the Dart reader of a code-facts dump, the subset of TypeScript a page schema is read in, the subset of BPMN 2.0 a workflow is read in, the check of a dump against the commit it names, the translation of SQL checks into the expression subset, and the tree writer; and the merge of their trees, with the newest commit of a repository read at several found by git's ancestry, a requirement that gives a number of days joined to the one check that names it, a question another tree answers, by giving a key or an element the asking tree gives only by name, or a question kept before it asks left out, the name a question gives written at the key it blocks once another tree declares it, a placeholder source reported, a permission granted and checked by nothing reported, and an operation a printed and a parsed tree do not both give asked about."
-  readers/javascript:
-    description: "The JavaScript and TypeScript reader of specarch extract, a Node program on the TypeScript compiler and @vue/compiler-sfc, code-facts-javascript.mjs: it builds one program over the files it is given, a .vue file's script blocks among them, and writes the facts specarch extract javascript reads as a code-facts dump (ADR-089). tools/code-facts/dump-javascript.sh runs it on the tracked files of a committed folder."
+  internal/facts:
+    description: "specarch facts: the git checks of a committed folder, its tracked files and the repository key of a dump in another repository; the JavaScript and TypeScript reader on the TypeScript compiler of third_party/typescript-go, which builds one program over the files it is given, a .vue file's script blocks among them, and writes the facts specarch extract javascript reads as a code-facts dump (ADR-089, ADR-116); the Vue reader, which splits a single-file component into its blocks and parses its template as Vue 3's compiler-sfc does; and the Swift and Dart readers written from the binary into the user's cache, built there and run."
+  third_party/typescript-go:
+    description: "The Go source of the TypeScript compiler, typescript-go at the tag UPSTREAM names: the packages its program and checker need, copied out of internal/ by tools/typescript-go/pull.sh with their import paths rewritten and nothing else changed, with upstream's LICENSE and NOTICE.txt (Apache-2.0)."
+  readers:
+    description: "The embedded files of the Swift and Dart readers (readers/embed.go), which specarch facts writes into the user's cache."
   readers/dart:
-    description: "The Dart reader of specarch extract, a Dart package with one program, bin/code_facts_dart.dart: it parses Dart source with the analyzer's parseString and writes the facts specarch extract dart reads as a code-facts dump (ADR-092). tools/code-facts/dump-dart.sh runs it on the tracked Dart files of a committed folder."
+    description: "The Dart reader of specarch extract, a Dart package with one program, bin/code_facts_dart.dart: it parses Dart source with the analyzer's parseString and writes the facts specarch extract dart reads as a code-facts dump (ADR-092). specarch facts dart builds it in the user's cache and runs it on the tracked Dart files of a committed folder."
   internal/source:
     description: Reads a YAML file into a node tree and a plain value, with the line of every node; finds unquoted dates and duplicate keys.
   internal/spec:

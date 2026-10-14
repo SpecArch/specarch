@@ -1,7 +1,7 @@
 {
     "codeFacts": 1,
     "language": "javascript",
-    "parser": {"name": "TypeScript", "version": "6.0.3"},
+    "parser": {"name": "TypeScript", "version": "7.0.2"},
     "path": "examples/lending-desk/sources/web",
     "commit": "f5efe5eea09aa92805437c7b3fa2e4f91711eda0",
     "files": [

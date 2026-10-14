@@ -1,0 +1,83 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
+decisions:
+  ADR-116:
+    title: specarch facts writes the code-facts dumps from the installed binary; the JavaScript reader is inside it on typescript-go copied into third_party at a pinned tag, with a Vue reader of its own, and the Swift and Dart readers are carried by it and built in a per-user cache
+    status: accepted
+    date: "2026-10-14"
+    context: |
+      Point 7 of docs/estate.md, second half of build item 8: the code-facts
+      dumps of JavaScript, Swift and Dart were made by scripts of a SpecArch
+      checkout, the JavaScript one by a Node program on the TypeScript
+      compiler 6.0.3 and @vue/compiler-sfc installed with npm ci, and a team
+      that installs the binary has no checkout. TypeScript 7 ships its
+      compiler written in Go, github.com/microsoft/typescript-go
+      (Apache-2.0); its parser, binder, checker and program are under
+      internal/, which Go lets no other module import, and it offers no
+      public Go API, only a JSON-RPC API to its own binary. The JavaScript
+      reader resolves names with the checker, so it needs the program and
+      the checker, not the parser alone. The owner decided on 2026-10-14
+      to copy the needed Go source at a pinned release tag rather than run
+      the tsgo binary beside specarch, and to write a Go reader of the Vue
+      parts the facts use, falling back to a Node helper for Vue only if
+      it could not match the existing dumps.
+    decision: |
+      specarch facts <language> <folder> <dump> writes the dump the
+      scripts wrote, with the same checks of a committed folder, the same
+      file list and the same repository key; tools/code-facts/dump-*.sh
+      build specarch from the checkout and call it.
+      javascript runs a reader inside the binary, internal/facts, a port
+      of the Node reader onto typescript-go: the packages the program and
+      the checker need (44, with the bundled lib.d.ts files) are copied
+      into third_party/typescript-go by tools/typescript-go/pull.sh at the
+      tag typescript/v7.0.2, out of internal/ with their import paths
+      rewritten and nothing else changed, with upstream's LICENSE,
+      NOTICE.txt and UPSTREAM naming the tag and its commit. The script is
+      how a later tag is pulled in, followed by the modules upstream's
+      go.mod pins, their scan, and every JavaScript dump made again and
+      compared. Its dumps name TypeScript 7.0.2, which specarch extract
+      reads. A .vue file is split by the reader's own Vue reader, which
+      reads a component as Vue 3's compiler-sfc parses it, and the dump
+      names it as the SpecArch Vue reader, version 1, which extract reads
+      in place of @vue/compiler-sfc 3.5.43. The Node reader is removed.
+      swift and dart run readers/swift and readers/dart, which the binary
+      embeds with Package.resolved or pubspec.lock: they are written once
+      into the user's cache ($XDG_CACHE_HOME, else the operating system's
+      cache folder, under specarch/readers/<language>-<hash of the files>)
+      and built there with swift build or dart pub get --enforce-lockfile.
+    why: |
+      The compiler's own Go source, because the reader's facts are the
+      checker's answers, and only the checker gives them as TypeScript
+      gives them; a resolver of our own would be a second resolver to keep
+      right. Copied rather than run as a second binary, because one binary
+      is what a team installs and pins, and a subprocess API is one more
+      version to keep in step. Copied whole per package and never edited,
+      so pulling a tag is mechanical and every difference in a dump after
+      it is the compiler's, seen in the dumps' diff. Swift and Dart keep
+      their helpers because no Go parser of either is faithful to
+      SwiftSyntax or the analyzer; they are pinned by their lock files and
+      a cache named by a hash, so a binary never runs another binary's
+      reader.
+      The port was checked against the Node reader before it was removed:
+      every JavaScript, TypeScript and Vue file committed under spec/tests
+      and examples, about 15,000 facts, gave the same dump from both, and
+      the 14 committed JavaScript dumps were made again identical below
+      the parser line. TypeScript 7 answered one thing differently: a name
+      imported from a CommonJS module that exports it as module.exports =
+      { allow } resolves to the shorthand property, where 6.0.3 resolved it
+      to the function; the reader follows such a property to its value's
+      declaration, so the dump keeps the place the value is declared.
+      The Vue reader gave the same facts on every .vue file there, so the
+      Node helper for Vue was not needed.
+      Acceptance test: the first techspec of a module comes from a dump
+      the team makes with the binary it installed, with nothing else to
+      install for JavaScript, and a dump made again after a change is the
+      same as before wherever the source did not change.
+    consequences: |
+      The binary grows from about 19 MB to about 40 MB, most of it the
+      compiler and the bundled library files. go.mod gains
+      go-json-experiment/json, zeebo/xxh3 (with klauspost/cpuid), and
+      x/sync and x/sys at the versions the graph already held. A dump of
+      JavaScript made before names TypeScript 6.0.3 and is refused until
+      it is made again. The Swift and Dart readers still need their
+      toolchains, and their first run builds them.
+    satisfies: [SA-44]

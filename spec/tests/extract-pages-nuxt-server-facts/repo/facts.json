@@ -1,7 +1,7 @@
 {
     "codeFacts": 1,
     "language": "javascript",
-    "parser": {"name": "TypeScript", "version": "6.0.3"},
+    "parser": {"name": "TypeScript", "version": "7.0.2"},
     "path": "site",
     "commit": "6baf6f38f7611238e316844f2d002d43b37fab79",
     "files": [

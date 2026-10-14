@@ -276,8 +276,9 @@ tools use) in `readers/swift/`, a Swift package that pins swift-syntax
 exactly with `Package.resolved` committed (ADR-087). SwiftSyntax has no
 type checker and the alternative, `swiftc -dump-ast`, needs a full build
 and prints no stable format, so a type the source does not write is a
-question. `tools/code-facts/dump-swift.sh` runs the reader on the tracked
-Swift files of a committed folder; the facts it writes are syntax (imports,
+question. `specarch facts swift` writes the reader, which the binary
+carries, into the user's cache, builds it there once and runs it on the
+tracked Swift files of a committed folder (ADR-116); the facts it writes are syntax (imports,
 types, properties, enum cases, functions, the calls its idiom table names,
 with their literal arguments and closures), and `specarch extract swift`
 turns them into elements. Property lists, `.xcconfig` files and Core Data
@@ -296,19 +297,19 @@ models are read as data, in Go, at the dump's commit.
 
 ## JavaScript and TypeScript
 
-One reader, `readers/javascript/`, running the TypeScript compiler (Apache-2.0,
-no dependencies of its own) on Node, which parses JavaScript, JSX,
-TypeScript and TSX, ES modules and CommonJS (ADR-089). A program is built
-over the project's tracked files only, with no `node_modules`, so the
-checker resolves the project's own types and the types that come with
-TypeScript, and a type from a package is a question. The TypeScript
-compiler API was chosen over tree-sitter for that type checker and
-because it is the parser every TypeScript tool uses. The reader pins
-6.0.3, the last release whose compiler API is stable; the 7.x releases
-are a native port with one binary per platform and only unstable entry
-points. `tools/code-facts/dump-javascript.sh` runs it on a committed
-folder, and its compiler host refuses to read any file it was not
-given, so a package's names are known only by the import that names
+One reader, inside the specarch binary (`internal/facts`), running the
+TypeScript compiler, which parses JavaScript, JSX, TypeScript and TSX, ES
+modules and CommonJS (ADR-089, ADR-116). The compiler is TypeScript 7's
+own Go source, typescript-go (Apache-2.0), copied into
+`third_party/typescript-go` at a pinned tag, since upstream keeps it under
+`internal/` with no public Go API; the reader needs no Node and no
+package. A program is built over the project's tracked files only, with
+no `node_modules`, so the checker resolves the project's own types and the
+types that come with TypeScript, and a type from a package is a question.
+The TypeScript compiler was chosen over tree-sitter for that type checker
+and because it is the parser every TypeScript tool uses. `specarch facts
+javascript` runs it on a committed folder, and its file system refuses to
+read any file it was not given, so a package's names are known only by the import that names
 them; the idiom table keys on that import. The facts are syntax with what
 the checker resolves: a name's import and declaration, and types as the
 source states them, from TypeScript or from JSDoc.
@@ -370,13 +371,14 @@ folders give and what the code says of them:
 
 ## Vue and Nuxt
 
-Vue single-file components are split with `@vue/compiler-sfc` 3.5.43
-(MIT), pinned exactly, in the JavaScript reader's program (ADR-091): their
-script blocks are read by the TypeScript compiler as a file that keeps
-every line and column of the `.vue` file, and their template by
-`@vue/compiler-dom`. Its dependencies (`@babel/parser`, `postcss`,
-`magic-string`, `source-map-js`, `entities` and the like) are MIT, BSD or
-ISC, and the reader's SBOM scan is clean. tree-sitter-vue was left for the
+Vue single-file components are split by the JavaScript reader's own Vue
+reader (ADR-091, ADR-116), which reads a component as Vue 3's
+`@vue/compiler-sfc` parses it: its top-level blocks, and its template as
+HTML with Vue's directives, interpolations and entities, every position
+in UTF-16 code units. Their script blocks are read by the TypeScript
+compiler as a file that keeps every line and column of the `.vue` file.
+The dump names the Vue reader and its version, and `specarch extract`
+refuses a dump another version split. tree-sitter-vue was left for the
 same reasons as tree-sitter. Plain Vue with vue-router is read by `extract
 javascript`; Nuxt's folders by `extract pages --facts`, as Next.js's are.
 The components of a UI library that bind a field or name a column are
@@ -397,8 +399,10 @@ Read by the analyzer package 14.4.0 (BSD-3-Clause, the parser of the Dart
 SDK's own tools), pinned exactly, in `readers/dart/`, a Dart package with
 `pubspec.lock` committed, using `parseString`, which gives syntax without
 resolving packages; a resolved unit needs `pub get` and the pub cache,
-which is no commit (ADR-092). `tools/code-facts/dump-dart.sh` runs it on
-the tracked Dart files of a committed folder, and `specarch extract dart`
+which is no commit (ADR-092). `specarch facts dart` writes the reader,
+which the binary carries, into the user's cache, runs `dart pub get
+--enforce-lockfile` there once and runs it on the tracked Dart files of a
+committed folder (ADR-116), and `specarch extract dart`
 reads the dump. A file a code generator wrote (`.g.dart`, `.freezed.dart`)
 is listed and not read.
 

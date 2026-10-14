@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: facts
+level: system
+scenario: red
+covers: [usage error, exit 2]
+given: "a committed folder of a language specarch facts has no reader for"
+when: "facts is run with that language"
+then: "it names the languages it reads, writes no dump and exits 2"
+verifies: [SA-44]

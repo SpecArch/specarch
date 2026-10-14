@@ -1,8 +1,8 @@
 {
     "codeFacts": 1,
     "language": "javascript",
-    "parser": {"name": "TypeScript", "version": "6.0.3"},
-    "templateParser": {"name": "@vue/compiler-sfc", "version": "3.5.43"},
+    "parser": {"name": "TypeScript", "version": "7.0.2"},
+    "templateParser": {"name": "SpecArch Vue reader", "version": "1"},
     "path": "site",
     "commit": "b72b487724494f43cdb8e5ad3a7f83bc2e23fcb5",
     "files": [

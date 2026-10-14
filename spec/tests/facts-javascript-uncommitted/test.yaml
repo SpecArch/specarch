@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: facts
+level: system
+scenario: red
+covers: [exit 1]
+given: "a folder with one committed file and one file that is not tracked"
+when: "facts javascript is run on the folder"
+then: "it refuses the folder, naming the file not tracked, writes no dump and exits 1"
+verifies: [SA-44]

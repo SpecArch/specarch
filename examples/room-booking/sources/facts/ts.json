@@ -1,7 +1,7 @@
 {
     "codeFacts": 1,
     "language": "javascript",
-    "parser": {"name": "TypeScript", "version": "6.0.3"},
+    "parser": {"name": "TypeScript", "version": "7.0.2"},
     "path": "examples/room-booking/sources/ts",
     "commit": "5df280beaa7f356fbae3101f9828c94a3436f52f",
     "files": [

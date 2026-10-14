@@ -1,0 +1,7 @@
+arguments: [facts, cobol, repo/app, repo/facts.json]
+repository:
+  folder: repo
+  commits:
+    - [app]
+exitStatus: 2
+standardOutput: ""

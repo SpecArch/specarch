@@ -492,7 +492,7 @@ changes `extract.yaml` first.
     Nuxt's pages and server, and a folder whose framework is guessed;
     the lending desk's web folder gains `middleware.ts`.
 17. Built. Swift (ADR-087): the code-facts dump format (`codeFacts:
-    1`), `tools/code-facts/dump-swift.sh` and `readers/swift/` on
+    1`), `specarch facts swift` and `readers/swift/` on
     SwiftSyntax 604.0.0, pinned exactly, Apache-2.0, its SBOM scan clean.
     `extract swift` reads a committed dump, refused when another
     SwiftSyntax version made it, and writes SwiftUI screens with their
@@ -505,11 +505,12 @@ changes `extract.yaml` first.
     `extract.sh` merges the two trees. A screen's call joined to the
     operation it calls, by method and path, waits for a question that
     can name a method and path.
-18. Built. JavaScript and TypeScript (ADR-089): `readers/javascript/` on
-    the TypeScript compiler 6.0.3, pinned exactly, Apache-2.0, with no
-    dependency of its own, its SBOM scan clean, run by
-    `tools/code-facts/dump-javascript.sh` over the tracked files of a
-    committed folder and nothing else, so no `node_modules` is read.
+18. Built. JavaScript and TypeScript (ADR-089, ADR-116): `specarch facts
+    javascript`, inside the binary on the TypeScript compiler's own Go
+    source, typescript-go 7.0.2 in `third_party/typescript-go`, pinned at
+    its tag, Apache-2.0, its SBOM scan clean, run over the tracked files
+    of a committed folder and nothing else, so no `node_modules` is read
+    and no Node is needed.
     `extract javascript` reads a committed dump, refused when another
     compiler version made it, and writes Express and Fastify routes with
     the permission the project's named check gives, through `use`,
@@ -542,10 +543,10 @@ changes `extract.yaml` first.
     on a route's parameters; and `page.schema.ts` is read as the compiler
     reads it, its consts resolved. The lending desk's web folder is read
     through its dump.
-20. Built. Vue and Nuxt (ADR-091): `@vue/compiler-sfc` 3.5.43 in the
-    JavaScript reader, pinned exactly, MIT with an MIT, BSD and ISC tree,
-    its SBOM scan clean; a `.vue` file's scripts keep their lines and its
-    template's elements are facts. The implementation file names a UI
+20. Built. Vue and Nuxt (ADR-091, ADR-116): the JavaScript reader's Vue
+    reader, which reads a component as Vue 3's `@vue/compiler-sfc` parses
+    it; a `.vue` file's scripts keep their lines and its template's
+    elements are facts. The implementation file names a UI
     library's components under `bindings.ui.components`, checked by both
     validators. `extract javascript` reads vue-router's routes as pages
     with their headings, `v-model` fields, mapped PrimeVue fields and

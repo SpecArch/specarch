@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.7.0-dev of the specification: 66 requirements, 5 entities, 12 commands, 7 algorithms, 442 tests, 110 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.7.0-dev of the specification: 66 requirements, 5 entities, 13 commands, 7 algorithms, 445 tests, 111 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -64,6 +64,7 @@ The interfaces the system offers, as its clients see them.
 | diff | Compare two versions of a specification and check the release between them | public | 0: every check passes; 1: a check fails, there is no release record for the new version, or a specification has errors; 2: usage error, or a path that could not be read |
 | document | Write a document from a specification | public | 0: written, or with `--check` the output is current; 1: a specification has an error (after its files are written, or with `--check` compared), a marker is wrong, or with `--check` the output differs; 2: usage error, a target this build does not offer, no output folder in any specification given, the implementation files of one naming different output folders, or a file that could not be read or written |
 | extract | Write a specification from existing code or documents | public | 0: the specification was written; 1: the surface could not be read as the source expects: a dump that does not parse or is stale, a dump whose repository is no gitlink of the repository holding it, is not checked out, pins a commit its history does not hold or whose checkout under the path is not the pinned commit's, a code-facts dump another parser version made, whose files are not the tracked files of its folder the reader reads, or, for pages, whose folder does not hold the router's folder, a route table that lists a method and path pair twice, a permission table that lists a grant, a rule or a gate twice, holds a gate with no check, with both a setting and a kind of caller or neither, or skipped for a kind other than client, names a matcher the reader does not know, or holds a rule without one of its four keys, a vocabulary that does not parse, lacks a key, holds one it does not have, gives a number, a duration or a language tag in another form, or lists one word twice in a list or in two lists of one group, a route table given with --routes from another repository or from a commit on another line of history than the permission table's, a router root that gives one route twice or holds no page, a path with changes not committed, untracked files, a shallow clone, a path outside a git repository, a document that is not Markdown, a file that is not an OpenAPI 3.0 or 3.1 document, a file that is not BPMN 2.0 XML or holds no process, or an implementation file that does not parse as YAML; 2: usage error, a source this build does not offer, --implementation given to a source other than go, swift, javascript, dart or pages, --facts given to a source other than pages, --routes given to a source other than permissions, --language, --vocabulary or --given-outside given to a source other than documents, a language that is not a BCP 47 tag, a language SpecArch ships no vocabulary for given without --vocabulary, a --language other than the vocabulary's own, more than one permission table, or a path that could not be read or written |
+| facts | Write the code-facts dump extract reads of a committed folder | public | 0: the dump was written; 1: the folder could not be read as committed code: it is in no git repository, it has changes not committed or files not tracked, no commit has changed it, the dump file is in a repository that does not hold the code's, or the reader's toolchain failed to build or to run it; 2: usage error, a language this build does not read, a folder that does not exist, a dump file whose folder does not exist or that could not be written, or a submodule folder with a quote or a backslash |
 | gaps | List the open questions and what they hold up | public | 0: no must or should question is open and no specification has an error; 1: at least one must or should question is open, or a specification or an estate has an error; 2: usage error, or a path that could not be read |
 | generate | Write code or data from a specification | public | 0: written, a draft included, or with `--check` the output is current; 1: a specification has an error, an open question blocks what the target reads or the specification is not approved and `--unapproved` was not given, the plug-in reported an error (what it answered is written or checked), or with `--check` the output differs; 2: usage error, no generator for the target (not built in and no plug-in on PATH), the plug-in failed or answered badly, no output folder in any specification given, or a file that could not be read or written |
 | idioms | List the idioms each implementation file uses, and how | public | 0: the idioms were listed; 2: usage error, a path that could not be read, or a specification with errors |
@@ -1043,7 +1044,7 @@ The sources this build reads:
   as public. Every permission a schema names is declared, its
   description and the role that grants it must questions.
 
-  With `--facts`, a code-facts dump that tools/code-facts/dump-javascript.sh
+  With `--facts`, a code-facts dump that specarch facts javascript
   made of a committed folder that holds the router's folder, and
   that is not stale (ADR-090), the App Router's and the Pages
   Router's files are also read for what their code says, and
@@ -1392,7 +1393,7 @@ The sources this build reads:
   flag's.
 
 - `swift`: one code-facts dump of Swift source (ADR-087), written
-  by `tools/code-facts/dump-swift.sh`, which runs the Swift reader
+  by `specarch facts swift`, which runs the Swift reader
   `readers/swift` on the tracked Swift files under a committed
   folder. The reader parses each with SwiftSyntax, the parser the
   Swift toolchain's own tools use, and writes facts, not elements:
@@ -1550,13 +1551,13 @@ The sources this build reads:
   could not read, which is also a should question.
 
 - `javascript`: one code-facts dump of JavaScript and TypeScript
-  source (ADR-089), written by `tools/code-facts/dump-javascript.sh`,
-  which runs the JavaScript reader `readers/javascript` on the
+  source (ADR-089, ADR-116), written by `specarch facts javascript`,
+  which runs the JavaScript reader inside the binary on the
   tracked `.ts`, `.tsx`, `.mts`, `.cts`, `.js`, `.jsx`, `.mjs` and
   `.cjs` files under a committed folder and its `tsconfig.json` and
   `jsconfig.json` files. The reader builds one program of them with
-  the TypeScript compiler 6.0.3, the last release whose compiler API
-  is stable and has no dependency of its own, over those files and
+  the TypeScript compiler 7.0.2, its own Go source copied into
+  third_party/typescript-go, over those files and
   the library TypeScript ships and nothing else, so no
   `node_modules` and no package's types are read. It writes facts,
   not elements: imports with the file each resolves to, each
@@ -1697,8 +1698,8 @@ The sources this build reads:
   could not read, which is also a should question.
 
   Vue single-file components (`.vue`) are read too (ADR-091): the
-  reader splits each with `@vue/compiler-sfc` 3.5.43, pinned
-  exactly, gives the compiler its `<script>` and `<script setup>`
+  reader splits each as Vue 3's `@vue/compiler-sfc` does, with its
+  own Vue reader, gives the compiler its `<script>` and `<script setup>`
   blocks as one file in which every other character is a space, so
   every fact keeps the `.vue` file's own line and column, resolves an
   import of a `.vue` file to that script, and writes each element of
@@ -1706,8 +1707,8 @@ The sources this build reads:
   a link, with its attributes, its directives' expressions by their
   syntax, its literal text and the component it is in. The dump then
   names the template parser and its version, and is refused when
-  another version made it or when it lists a `.vue` file and names
-  none. The routes vue-router's `createRouter` is given in a literal
+  another reader or another version of it split the files, or when
+  it lists a `.vue` file and names none. The routes vue-router's `createRouter` is given in a literal
   list are pages when their component is a `.vue` file the dump read,
   imported or loaded by `import()`, named after the file in
   kebab-case without `Page`, `Screen` or `View`, with their route,
@@ -1728,7 +1729,7 @@ The sources this build reads:
   questions. `$fetch` and `useFetch` are clients as `fetch` is.
 
 - `dart`: one code-facts dump of Dart source (ADR-092), written by
-  `tools/code-facts/dump-dart.sh`, which runs the Dart reader
+  `specarch facts dart`, which runs the Dart reader
   `readers/dart` on the tracked Dart files under a committed folder.
   The reader parses each with the analyzer package 14.4.0, pinned
   exactly with `pubspec.lock` committed, through `parseString`,
@@ -1901,7 +1902,7 @@ Every reader follows these rules:
 | `<paths>` | string, one or more | yes | What to read it from: for outline, files or folders in one repository; for database, one catalogue dump; for router, one route table; for documents, one Markdown file; for openapi, one OpenAPI document; for permissions, one permission table; for pages, one file-system router's root folder, such as app, pages or server; for workflows, one BPMN 2.0 XML file; for go, files or folders of Go source in one repository; for swift, javascript and dart, one code-facts dump. |
 | `--out` | string | yes | The folder the specification is written into; it becomes the specification's root folder. |
 | `--implementation` | string |   | For go, swift, javascript and dart, and for pages with --facts, an implementation file whose `bindings.http.permissionChecks` name the project's permission checks, which the reader reads routes' permissions through; for pages, with or without --facts, its `bindings.ui.schemaFile` names the file a page's schema is read from. |
-| `--facts` | string |   | For pages, a code-facts dump of JavaScript and TypeScript, made by tools/code-facts/dump-javascript.sh of a folder that holds the router's folder, through which the Next.js files' code is read. |
+| `--facts` | string |   | For pages, a code-facts dump of JavaScript and TypeScript, made by specarch facts javascript of a folder that holds the router's folder, through which the Next.js files' code is read. |
 | `--routes` | string |   | For permissions, a route table of the same repository, made by tools/routes/dump-routes.sh, whose routes are written with the permission the permission table's rules give each. |
 | `--language` | string |   | For documents, the language the document is written in, as a BCP 47 tag; the vocabulary SpecArch ships for it is read, or with --vocabulary the file's language must be this one. |
 | `--vocabulary` | string |   | For documents, a vocabulary file (docs/vocabularies.md) whose words the document is read by, for a language SpecArch ships none for or a project's own words. |
@@ -1946,6 +1947,69 @@ sequenceDiagram
   U->>P: extract <source> <paths>
   P->>F: read {paths}
   P->>F: write {out}/
+  P-->>U: exit status 0, 1, 2
+```
+
+### Command facts
+
+Reads a committed folder of code with the reader of its language and
+writes the code-facts dump that specarch extract of that language
+reads (docs/reading-code.md, ADR-116): the version of the format,
+the reader's name and version, the folder's path from its
+repository's root, the commit that last changed it, every tracked
+file the reader reads with the number of its syntax errors, and
+every fact the reader gives. It is what tools/code-facts/dump-*.sh
+run in a checkout, so a team with the installed binary and no
+checkout makes the same dump.
+
+The folder is read in its git repository, run without the user's or
+the system's configuration; a folder with changes not committed or
+files neither tracked nor ignored is refused, naming them, and so is
+one no commit has changed, since no commit would name what the facts
+were read from. A dump file in another repository than the code's,
+one holding the code's as a submodule, names that submodule's folder
+as its repository, so extract reads the code at the commit the
+gitlink pins; a dump file in a repository that does not hold the
+code's is refused.
+
+javascript reads the tracked JavaScript, TypeScript and Vue files
+and the tsconfig.json and jsconfig.json files under the folder, not
+the .d.ts files, with the TypeScript compiler inside this binary
+(third_party/typescript-go) and its Vue reader, and reads no file
+outside them: no node_modules, no Node. swift and dart read the
+tracked .swift or .dart files with the reader of readers/swift or
+readers/dart, which this binary holds with the lock file that pins
+every dependency: it is written once into the user's cache
+(`$XDG_CACHE_HOME/specarch/readers/<language>-<hash>`, else the
+operating system's cache folder), named by a hash of its files, and
+built there with the language's toolchain (swift build, or dart pub
+get --enforce-lockfile), whose progress is printed on standard
+error. Nothing is written into the folder read.
+
+**Insight:** A team that installs the binary has no checkout of this repository, so the readers come with the binary; the JavaScript reader is the TypeScript compiler's own Go source inside it, and the Swift and Dart readers, which need their own toolchains, are built from the pinned files it carries.
+
+| Argument or option | Type | Required | Description |
+|---|---|---|---|
+| `<language>` | string | yes | The reader to run. |
+| `<folder>` | string | yes | The committed folder to read. |
+| `<dump>` | string | yes | The dump file to write, in an existing folder. |
+
+Reads `{folder}`: The tracked files of the folder's language, at the commit that last changed it.
+
+Writes `{dump}`: The code-facts dump, whose header names the reader's version; specarch extract refuses a dump another version made.
+
+Standard output: One line naming the dump written, the folder, the commit and the repository, and the submodule read through when the dump file is in another repository.
+
+Standard error: A usage message on a usage error; the reason a folder or a dump file was refused, with git's own message; and for swift and dart, each step of writing and building the reader in the cache, with the toolchain's output.
+
+```mermaid
+sequenceDiagram
+  participant U as User
+  participant P as SpecArch toolchain
+  participant F as Files
+  U->>P: facts <language> <folder> <dump>
+  P->>F: read {folder}
+  P->>F: write {dump}
   P-->>U: exit status 0, 1, 2
 ```
 
@@ -2618,8 +2682,12 @@ Stack: language Go 1.27; toolchain go 1.27.2; platforms darwin/arm64, darwin/amd
 | google.golang.org/genproto/googleapis/api | v0.0.0-20261005182115-fad411399dd8 | Apache-2.0 | Needed by the CEL parser's tree types. |
 | google.golang.org/genproto/googleapis/rpc | v0.0.0-20261005182115-fad411399dd8 | Apache-2.0 | Needed by the CEL parser's tree types. |
 | golang.org/x/exp | v0.0.0-20261009195045-ca0d7ba23607 | BSD-3-Clause | Needed by the CEL parser. |
-| typescript | 6.0.3 | Apache-2.0 | The TypeScript compiler, run on Node by the JavaScript reader of specarch extract, readers/javascript, which writes the code-facts dump the Go build reads (ADR-089); not linked into specarch. The last release whose compiler API is stable and whose package has no dependency. Pinned exactly in readers/javascript/package.json and package-lock.json, and the Go build refuses a dump another version made. SBOM scan on 2026-10-09: syft 1.54.0, grype 0.120.0 and osv-scanner 2.6.0 found no vulnerability. |
-| @vue/compiler-sfc | 3.5.43 | MIT | Splits a Vue single-file component into its script blocks and template in the JavaScript reader, readers/javascript (ADR-091); not linked into specarch. Pinned exactly in readers/javascript/package.json, with its tree in package-lock.json: @vue/compiler-core, -dom, -ssr and @vue/shared 3.5.43, @babel/parser 7.29.9, @babel/types 7.29.8 and its two helpers 7.29.7, postcss 8.5.29, magic-string 0.30.21, @jridgewell/sourcemap-codec 1.6.0, estree-walker 2.0.2 and nanoid 3.3.20 (MIT), entities 7.0.1 (BSD-2-Clause), source-map-js 1.2.2 (BSD-3-Clause) and picocolors 1.1.1 (ISC). The Go build refuses a dump another version split. SBOM scan on 2026-10-09: syft 1.54.0, grype 0.120.0 and osv-scanner 2.6.0 found no vulnerability. |
+| github.com/microsoft/typescript-go | typescript/v7.0.2 (2bd066d87f5bafd315be9f40889d0a60b9e58e0b) | Apache-2.0 | The TypeScript compiler in Go: its parser, binder, checker, program and the bundled lib.d.ts files, which the JavaScript reader of specarch facts reads source with (ADR-116). Upstream keeps them under internal/ with no public Go API, so the packages needed are copied into third_party/typescript-go by tools/typescript-go/pull.sh, with LICENSE, NOTICE.txt and UPSTREAM naming the tag and commit. SBOM scan on 2026-10-14: syft 1.54.1, grype 0.120.1, osv-scanner 2.6.0 and govulncheck 1.8.0 found no vulnerability. |
+| github.com/go-json-experiment/json | v0.0.0-20260623181947-01eb4420fa68 | BSD-3-Clause | JSON for the TypeScript compiler's configuration files and diagnostics, at the version typescript-go v7.0.2 pins. SBOM scan on 2026-10-14: syft 1.54.1, grype 0.120.1, osv-scanner 2.6.0 and govulncheck 1.8.0 found no vulnerability. |
+| github.com/zeebo/xxh3 | v1.1.0 | BSD-2-Clause | The hash the TypeScript compiler keys its caches by, at the version typescript-go v7.0.2 pins. SBOM scan on 2026-10-14: syft 1.54.1, grype 0.120.1, osv-scanner 2.6.0 and govulncheck 1.8.0 found no vulnerability. |
+| github.com/klauspost/cpuid/v2 | v2.2.10 | MIT | Needed by xxh3 to choose its instructions. SBOM scan on 2026-10-14: syft 1.54.1, grype 0.120.1, osv-scanner 2.6.0 and govulncheck 1.8.0 found no vulnerability. |
+| golang.org/x/sync | v0.24.0 | BSD-3-Clause | Wait groups for the TypeScript compiler's parallel work; typescript-go v7.0.2 pins v0.21.0, and the newer release the module graph already holds is taken. SBOM scan on 2026-10-14: syft 1.54.1, grype 0.120.1, osv-scanner 2.6.0 and govulncheck 1.8.0 found no vulnerability. |
+| golang.org/x/sys | v0.47.0 | BSD-3-Clause | The operating system's file system for the TypeScript compiler; typescript-go v7.0.2 pins v0.46.0, and the newer release the module graph already holds is taken. SBOM scan on 2026-10-14: syft 1.54.1, grype 0.120.1, osv-scanner 2.6.0 and govulncheck 1.8.0 found no vulnerability. |
 | analyzer | 14.4.0 | BSD-3-Clause | Parses Dart source with parseString in the Dart reader of specarch extract, readers/dart (ADR-092); not linked into specarch. Pinned exactly in readers/dart/pubspec.yaml, with its tree in pubspec.lock: _fe_analyzer_shared 108.0.0, async 2.13.1, collection 1.19.1, convert 3.1.2, crypto 3.0.7, file 7.0.1, glob 2.2.0, meta 1.19.0, package_config 3.0.0, path 1.9.1, pub_semver 2.2.1, source_span 1.10.2, string_scanner 1.4.1, term_glyph 1.2.2, typed_data 1.4.0 and watcher 1.2.1 (BSD-3-Clause), and yaml 3.1.4 (MIT). The Go build refuses a dump another version made. SBOM scan on 2026-10-09: syft 1.54.0, grype 0.120.0 and osv-scanner 2.6.0 found no vulnerability. |
 
 #### Layout
@@ -2630,8 +2698,10 @@ Stack: language Go 1.27; toolchain go 1.27.2; platforms darwin/arm64, darwin/amd
 | schema | The JSON Schemas, embedded into the binary from the files editors use. |   |
 | idioms | The shipped idioms, one folder per concern, embedded into the binary; a release fixes the set. |   |
 | internal/extract | The readers of specarch extract: the commit read (git, run with no user or system configuration), the outline, database, router, documents, OpenAPI, permissions, pages and workflows readers, the Go reader on the standard library's go/parser with dxlib's registration calls and the rule that maps dxlib_module's privilege names, the Swift reader of a code-facts dump with the property lists, build settings and Core Data models it reads as data, the JavaScript and TypeScript reader of a code-facts dump with the message catalogues it reads as data, the Dart reader of a code-facts dump, the subset of TypeScript a page schema is read in, the subset of BPMN 2.0 a workflow is read in, the check of a dump against the commit it names, the translation of SQL checks into the expression subset, and the tree writer; and the merge of their trees, with the newest commit of a repository read at several found by git's ancestry, a requirement that gives a number of days joined to the one check that names it, a question another tree answers, by giving a key or an element the asking tree gives only by name, or a question kept before it asks left out, the name a question gives written at the key it blocks once another tree declares it, a placeholder source reported, a permission granted and checked by nothing reported, and an operation a printed and a parsed tree do not both give asked about. |   |
-| readers/javascript | The JavaScript and TypeScript reader of specarch extract, a Node program on the TypeScript compiler and @vue/compiler-sfc, code-facts-javascript.mjs: it builds one program over the files it is given, a .vue file's script blocks among them, and writes the facts specarch extract javascript reads as a code-facts dump (ADR-089). tools/code-facts/dump-javascript.sh runs it on the tracked files of a committed folder. |   |
-| readers/dart | The Dart reader of specarch extract, a Dart package with one program, bin/code_facts_dart.dart: it parses Dart source with the analyzer's parseString and writes the facts specarch extract dart reads as a code-facts dump (ADR-092). tools/code-facts/dump-dart.sh runs it on the tracked Dart files of a committed folder. |   |
+| internal/facts | specarch facts: the git checks of a committed folder, its tracked files and the repository key of a dump in another repository; the JavaScript and TypeScript reader on the TypeScript compiler of third_party/typescript-go, which builds one program over the files it is given, a .vue file's script blocks among them, and writes the facts specarch extract javascript reads as a code-facts dump (ADR-089, ADR-116); the Vue reader, which splits a single-file component into its blocks and parses its template as Vue 3's compiler-sfc does; and the Swift and Dart readers written from the binary into the user's cache, built there and run. |   |
+| third_party/typescript-go | The Go source of the TypeScript compiler, typescript-go at the tag UPSTREAM names: the packages its program and checker need, copied out of internal/ by tools/typescript-go/pull.sh with their import paths rewritten and nothing else changed, with upstream's LICENSE and NOTICE.txt (Apache-2.0). |   |
+| readers | The embedded files of the Swift and Dart readers (readers/embed.go), which specarch facts writes into the user's cache. |   |
+| readers/dart | The Dart reader of specarch extract, a Dart package with one program, bin/code_facts_dart.dart: it parses Dart source with the analyzer's parseString and writes the facts specarch extract dart reads as a code-facts dump (ADR-092). specarch facts dart builds it in the user's cache and runs it on the tracked Dart files of a committed folder. |   |
 | internal/source | Reads a YAML file into a node tree and a plain value, with the line of every node; finds unquoted dates and duplicate keys. |   |
 | internal/spec | Reads a specification from disk, the root file and the stage folders, and merges it into one document in which every node remembers its file; reports the layout problems. |   |
 | cmd/specarch-gen-sql | The plug-in behind generate sql. Reads the request on standard input, answers the migration and the snapshot on standard output, and never touches the disk. | #/commands/generate |
@@ -2845,7 +2915,7 @@ Stack: language Swift 6.0; toolchain Swift Package Manager 6.0; platforms darwin
 | swift/Sources/specarch | The executable; it passes the arguments to the library and exits with its status. |   |
 | swift/Sources/SpecArchKit | Everything else. Reading YAML, reading a specification tree into one document, the JSON Schema evaluator and its messages, the specification and implementation checks, the expression subset, tests and their derived cases with the rank of each, the life-cycle links, the open questions and origin, the records beside the specification, and the commands. | #/commands/validate, #/commands/version, #/entities/Diagnostic, #/entities/SpecFile, #/enums/Rule, #/enums/Severity, #/algorithms/exitStatus, #/algorithms/referenceResolves, #/algorithms/permissionGranted, #/algorithms/workedExampleHolds |
 | swift/embed-schemas.sh | Writes the schemas of schema/ into the library as Swift source; a test fails when they differ. |   |
-| readers/swift | The Swift reader of specarch extract, a package of its own with one executable, code-facts-swift: it parses Swift source with SwiftSyntax and writes the facts specarch extract swift reads as a code-facts dump (ADR-087). tools/code-facts/dump-swift.sh runs it on the tracked Swift files of a committed folder. |   |
+| readers/swift | The Swift reader of specarch extract, a package of its own with one executable, code-facts-swift: it parses Swift source with SwiftSyntax and writes the facts specarch extract swift reads as a code-facts dump (ADR-087). specarch facts swift builds it in the user's cache and runs it on the tracked Swift files of a committed folder. |   |
 
 #### Mappings
 
@@ -8158,6 +8228,60 @@ schema file of their own.
 
 **Insight:** One key in the implementation file, because the name is a fact of the stack and not of the design, and one key read by both the reader and the generator, so a project that has the one convention gets both halves from it and the two cannot disagree. The ui binding, beside components, because both say how the project's component library is used. The router's own file names are refused because a schema file of that name would be served as a page, a route or a layout, and the reader would read the same file twice. A name the reader cannot take is asked for, not refused, by the compiler test: the router's folder is still read, every page is written, and the question stands at the pages until the name is corrected. Acceptance test: the first techspec made from such an application shows each page's content, read from the file the team keeps it in, and the generator's output lands in the files the team already reviews.
 
+### ADR-116: specarch facts writes the code-facts dumps from the installed binary; the JavaScript reader is inside it on typescript-go copied into third_party at a pinned tag, with a Vue reader of its own, and the Swift and Dart readers are carried by it and built in a per-user cache
+
+Status: accepted, 2026-10-14.
+
+Context: Point 7 of docs/estate.md, second half of build item 8: the code-facts
+dumps of JavaScript, Swift and Dart were made by scripts of a SpecArch
+checkout, the JavaScript one by a Node program on the TypeScript
+compiler 6.0.3 and @vue/compiler-sfc installed with npm ci, and a team
+that installs the binary has no checkout. TypeScript 7 ships its
+compiler written in Go, github.com/microsoft/typescript-go
+(Apache-2.0); its parser, binder, checker and program are under
+internal/, which Go lets no other module import, and it offers no
+public Go API, only a JSON-RPC API to its own binary. The JavaScript
+reader resolves names with the checker, so it needs the program and
+the checker, not the parser alone. The owner decided on 2026-10-14
+to copy the needed Go source at a pinned release tag rather than run
+the tsgo binary beside specarch, and to write a Go reader of the Vue
+parts the facts use, falling back to a Node helper for Vue only if
+it could not match the existing dumps.
+
+Decision: specarch facts <language> <folder> <dump> writes the dump the
+scripts wrote, with the same checks of a committed folder, the same
+file list and the same repository key; tools/code-facts/dump-*.sh
+build specarch from the checkout and call it.
+javascript runs a reader inside the binary, internal/facts, a port
+of the Node reader onto typescript-go: the packages the program and
+the checker need (44, with the bundled lib.d.ts files) are copied
+into third_party/typescript-go by tools/typescript-go/pull.sh at the
+tag typescript/v7.0.2, out of internal/ with their import paths
+rewritten and nothing else changed, with upstream's LICENSE,
+NOTICE.txt and UPSTREAM naming the tag and its commit. The script is
+how a later tag is pulled in, followed by the modules upstream's
+go.mod pins, their scan, and every JavaScript dump made again and
+compared. Its dumps name TypeScript 7.0.2, which specarch extract
+reads. A .vue file is split by the reader's own Vue reader, which
+reads a component as Vue 3's compiler-sfc parses it, and the dump
+names it as the SpecArch Vue reader, version 1, which extract reads
+in place of @vue/compiler-sfc 3.5.43. The Node reader is removed.
+swift and dart run readers/swift and readers/dart, which the binary
+embeds with Package.resolved or pubspec.lock: they are written once
+into the user's cache ($XDG_CACHE_HOME, else the operating system's
+cache folder, under specarch/readers/<language>-<hash of the files>)
+and built there with swift build or dart pub get --enforce-lockfile.
+
+Consequences: The binary grows from about 19 MB to about 40 MB, most of it the
+compiler and the bundled library files. go.mod gains
+go-json-experiment/json, zeebo/xxh3 (with klauspost/cpuid), and
+x/sync and x/sys at the versions the graph already held. A dump of
+JavaScript made before names TypeScript 6.0.3 and is refused until
+it is made again. The Swift and Dart readers still need their
+toolchains, and their first run builds them.
+
+**Insight:** The compiler's own Go source, because the reader's facts are the checker's answers, and only the checker gives them as TypeScript gives them; a resolver of our own would be a second resolver to keep right. Copied rather than run as a second binary, because one binary is what a team installs and pins, and a subprocess API is one more version to keep in step. Copied whole per package and never edited, so pulling a tag is mechanical and every difference in a dump after it is the compiler's, seen in the dumps' diff. Swift and Dart keep their helpers because no Go parser of either is faithful to SwiftSyntax or the analyzer; they are pinned by their lock files and a cache named by a hash, so a binary never runs another binary's reader. The port was checked against the Node reader before it was removed: every JavaScript, TypeScript and Vue file committed under spec/tests and examples, about 15,000 facts, gave the same dump from both, and the 14 committed JavaScript dumps were made again identical below the parser line. TypeScript 7 answered one thing differently: a name imported from a CommonJS module that exports it as module.exports = { allow } resolves to the shorthand property, where 6.0.3 resolved it to the function; the reader follows such a property to its value's declaration, so the dump keeps the place the value is declared. The Vue reader gave the same facts on every .vue file there, so the Node helper for Vue was not needed. Acceptance test: the first techspec of a module comes from a dump the team makes with the binary it installed, with nothing else to install for JavaScript, and a dump made again after a change is the same as before wherever the source did not change.
+
 ## 10. Quality requirements
 
 The design tests: what must hold on every implementation. Golden scenarios succeed; red scenarios are refused.
@@ -8270,7 +8394,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | extract-javascript-plain-checkjs | command extract | system | golden | a code-facts dump of an Express service in plain JavaScript, written as CommonJS, whose jsconfig.json turns checkJs on; one handler states its body in JSDoc as a @typedef of the files read, whose fields are a union of strings @typedef, an optional field, a nullable field and a number; one handler reads two fields of its body by destructuring, and one uses its body whole; and the code loads a module by a computed require, a computed dynamic import(), and exports under a computed name | extract javascript is run on the dump with the implementation file | it writes one operation per route under the router's mount, with the permission the check names; writes the body the JSDoc states as a schema, since checkJs is on, with the union as an enum, and the body whose fields the handler reads as a schema of those fields by name; asks a must question on the types of the fields read by name, on the body used whole and on the width of the number; asks a should question on the computed require, the computed import() and the computed export; and exits 0 |
 | extract-javascript-react-screens | command extract | system | golden | a code-facts dump of a React app in TypeScript whose router createBrowserRouter is given a layout route with an index route, literal child paths, a parameter, a component given as Component, a component imported from a package, a catch-all and a lazy route; and whose <Routes> nest a route under a parent path and declare one behind a condition; whose screens have a heading by a literal, by t() with a key the default locale's catalogue holds and by a variable, fields that react-hook-form's register and Formik's Field bind, one by a name that is not a literal, links whose text is t() with a key the catalogue holds, a literal, a key it lacks and a key that is not a literal, a link to a route with a parameter, one to a path no route serves, and a navigate() call; and message catalogues of English, the locale i18next's init names, and French | extract javascript is run on the dump | it writes one page per route that shows a component of the files read, named after the component, with its route, its title from its literal heading or the catalogue, its fields in the order of the source and a navigate action per link to a route read, its label the link's text in English; asks a must question on each page's kind, title where none is known, entity, source, submit and columns, on its permission, on each label that is not known, on the component from a package, on the route declared twice and on the route behind a condition; asks a should question on the lazy route, the field named by a variable, the message whose key is not a literal and the link to a path no route serves; prints a line for the catch-all and the French catalogue; and exits 0 |
 | extract-javascript-stale-dump | command extract | system | red | a code-facts dump of JavaScript committed after the folder it was made from, which a later commit changed again by adding a file | extract javascript is run on the dump | it refuses the dump as stale, writes nothing and exits 1 |
-| extract-javascript-template-parser-version | command extract | system | red | a code-facts dump of a Vue file whose .vue files another version of @vue/compiler-sfc than the one this release pins split | extract javascript is run on the dump | it refuses the dump, naming the version that split the files and the one it reads, writes nothing and exits 1 |
+| extract-javascript-template-parser-version | command extract | system | red | a code-facts dump of a Vue file whose .vue files @vue/compiler-sfc 3.5.0 split, not the Vue reader this release reads with | extract javascript is run on the dump | it refuses the dump, naming the parser and version that split the files and the reader and version it reads, writes nothing and exits 1 |
 | extract-javascript-vue-router | command extract | system | golden | a code-facts dump of a Vue app whose router createRouter is given routes to .vue files imported directly and lazily and to a component of a package, with a beforeEach guard and one route's beforeEnter guard that call the check the implementation file names; whose views have literal headings, PrimeVue Columns and InputTexts the implementation file maps; and one view that calls $fetch with a path of its own system | extract javascript is run on the dump with the implementation file | it writes one page per route whose component is a .vue file read, named after the file, with its route, its heading as its title, its columns and fields, and the permission its one guard names; asks a must question on each page's kind and the rest, on the route whose two guards name two permissions, on the component from a package, and a should question on the call to its own path; and exits 0 |
 | extract-not-offered | command extract | system | red | a source this build does not read yet | extract events is run on a topic registry | it names the sources it reads, writes nothing and exits 2 |
 | extract-openapi-dxlib-privileges | command extract | system | golden | a repository holding an OpenAPI document in dxlib's dialect whose operations carry x-dxlib-endpoint-type: two that check one privilege, one that checks another, one that checks two, one that checks none, three whose privileges EXPORT_ALL, GLOBAL.SET_MAINTENANCE_MODE and EVERYTHING are in dxlib_module's capitals, one whose privilege is in mixed case, two whose privileges REPORT_RUN and REPORT.RUN give one permission name, one whose privilege is public, one that lists one privilege twice and one whose list holds a mapping, all under the document's mutualTLS security, and one operation without x-dxlib-endpoint-type that names a privilege | extract openapi is run on the document | it writes the one privilege of a dxlib operation as its permission and declares each such permission citing the operations that check it, with a must question on what each allows and which role grants each; it maps each privilege in capitals by the rule of ADR-076 and declares that permission inferred, with the rule as its why; it reads a privilege listed twice as one, asks a must question for the operation that checks two privileges, the one that checks none (naming its middlewares), the one whose privilege the rule of ADR-076 cannot map, both whose privileges give one permission, the one whose privilege is public and the one whose list is not of names, and prints the security of each dxlib operation as a line of its own, since it is not the permission; it reads x-dxlib-privileges only beside x-dxlib-endpoint-type, so the other operation's permission is asked as before and its extension printed as a line; and exits 0 |
@@ -8319,6 +8443,9 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | extract-workflows-reads-generated-bpmn | command extract | system | golden | a repository holding waiver.bpmn exactly as generate bpmn writes it in the case generate-bpmn: two approvals, the first escalating to the second after a day, and an operation step, with its diagram | extract workflows is run on the file | it writes workflow waiver with the description, the step names and kinds, the approvers, the deadlines and the escalation of the specification it was generated from, a question naming askWaiver for the trigger and grantWaiver for the operation step, reports that the file says it is generated and that the diagram is left out, and exits 0 |
 | extract-workflows-reads-generated-last-approval | command extract | system | golden | a repository holding reinstate.bpmn exactly as generate bpmn writes it in the case generate-bpmn-approved: one approval and no other step, so both flows of its gateway end the request, the refusal as the gateway's default flow | extract workflows is run on the file | it writes workflow reinstate with its one approval, its approver and its deadline, reads the default flow as the refusal and the other as the end of the approved request, and exits 0 |
 | extract-workflows-writes-tree | command extract | system | golden | a repository with a BPMN 2.0 file of two processes: one whose start event names its operation, with two user tasks whose potential owners are a resource and an expression, a timer that escalates to the second, a gateway that refuses after the first, a timer of a week and a service task naming its operation; and one with no documentation, no operation on its start event, lanes, a user task with no owner and a repeating timer, and a parallel gateway; beside them a signal and a diagram | extract workflows is run on the file | it writes one workflow per process in the order of their names, the approvals with their roles, deadlines and escalation, a question naming the operation for the trigger and the service task, a question for each permission, subject and anything the file leaves out or the subset does not hold, a role per potential owner, a line per element left out in the order of the file, and a could question citing the file's line for each that no must question asks for already, and exits 0 |
+| facts-javascript | command facts | system | golden | a committed folder with a tsconfig.json that maps a path, a TypeScript server that imports a check through that path and reads the environment, and a Vue component with a script setup block in TypeScript, a form, a component of a UI library, a control in a v-for, a paragraph in a v-if with an interpolation and an entity | facts javascript is run on the folder with a dump file in the same repository | it writes the dump with the TypeScript compiler's and the Vue reader's names and versions, the folder's path and commit, every file with no syntax error, the configuration, the imports resolved through the path mapping, the call with the check resolved to its declaration, the read of the environment with its default and the call it is given to, and the template's elements with their attributes, directives, text and loop and condition, names the dump, the folder and the commit, and exits 0 |
+| facts-javascript-uncommitted | command facts | system | red | a folder with one committed file and one file that is not tracked | facts javascript is run on the folder | it refuses the folder, naming the file not tracked, writes no dump and exits 1 |
+| facts-unknown-language | command facts | system | red | a committed folder of a language specarch facts has no reader for | facts is run with that language | it names the languages it reads, writes no dump and exits 2 |
 | gaps-coverage | command gaps | system | golden | a specification that tracks origin, built from a manual and from code that both list their clauses; one clause of each is cited by nothing, one citation names a clause outside the outline, and the implementation file's mapping cites the code | gaps is run | it shows, per source, the elements each clause produced, counts the clauses that produced nothing, names the citation outside the outline, and exits 0 |
 | gaps-estate | command gaps | system | red | an estate file listing two modules, one at a version its specification is not at | gaps is run on the estate file | it prints the estate's problem first, then each module's open questions document with the references between them resolved, and exits 1 |
 | gaps-invalid-spec | command gaps | system | red | a specification with an error | gaps is run | it prints the open questions document with the error listed after the summary, every output waiting on it, and exits 1 |
@@ -8897,7 +9024,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-41 | enums Rule; decisions ADR-033; decisions ADR-070 | tests validate-views; tests validate-views-valid |
 | SA-42 | enums Rule; decisions ADR-034; decisions ADR-035; decisions ADR-036; decisions ADR-037; decisions ADR-038; decisions ADR-039; decisions ADR-056; decisions ADR-058; decisions ADR-064; decisions ADR-082 | tests derive-page-elements; tests derive-task-page-checks; tests validate-accessibility; tests validate-child-rows; tests validate-compact-columns; tests validate-flows; tests validate-page-action-with; tests validate-page-elements-unresolved; tests validate-page-events; tests validate-page-states; tests validate-sections; tests validate-task-page-checks; tests validate-task-page-checks-valid; tests validate-task-pages; tests validate-theme |
 | SA-43 | decisions ADR-040 | tests generate-ui |
-| SA-44 | commands extract; decisions ADR-043; decisions ADR-044; decisions ADR-048; decisions ADR-049; decisions ADR-050; decisions ADR-057; decisions ADR-062; decisions ADR-075; decisions ADR-076; decisions ADR-081; decisions ADR-084; decisions ADR-087; decisions ADR-089; decisions ADR-090; decisions ADR-091; decisions ADR-092; decisions ADR-098; decisions ADR-114; decisions ADR-115 | tests extract-dart-flutter-screens; tests extract-dart-models; tests extract-dart-parser-version; tests extract-dart-server-clients; tests extract-database-json-column; tests extract-database-stale-dump; tests extract-database-writes-tree; tests extract-documents-not-markdown; tests extract-documents-upper-case-name; tests extract-documents-writes-tree; tests extract-exit-1; tests extract-go-bypassed-check; tests extract-go-dxlib-endpoints; tests extract-go-dxlib-tables-seeds; tests extract-go-http-handlers; tests extract-go-request-bodies; tests extract-go-routers; tests extract-javascript-express-routes; tests extract-javascript-fastify-validators; tests extract-javascript-parser-version; tests extract-javascript-plain-checkjs; tests extract-javascript-react-screens; tests extract-javascript-stale-dump; tests extract-javascript-template-parser-version; tests extract-javascript-vue-router; tests extract-openapi-dxlib-privileges; tests extract-openapi-not-openapi; tests extract-openapi-snake-case; tests extract-openapi-writes-tree; tests extract-outline-shallow-clone; tests extract-outline-uncommitted; tests extract-outline-writes-clauses; tests extract-pages-next-api-facts; tests extract-pages-next-app-facts; tests extract-pages-next-pages-router; tests extract-pages-nuxt-facts; tests extract-pages-nuxt-pages; tests extract-pages-nuxt-server; tests extract-pages-nuxt-server-facts; tests extract-pages-route-twice; tests extract-pages-router-guess; tests extract-pages-schema-file; tests extract-pages-schema-file-asked; tests extract-pages-task; tests extract-pages-writes-tree; tests extract-permissions-bypassed-gate; tests extract-permissions-gate-both-forms; tests extract-permissions-gate-people; tests extract-permissions-grant-twice; tests extract-permissions-writes-tree; tests extract-router-dump-repository-not-gitlink; tests extract-router-dump-through-gitlink; tests extract-router-route-twice; tests extract-router-stale-gitlink; tests extract-router-stale-table; tests extract-router-writes-tree; tests extract-swift-clients-settings; tests extract-swift-models; tests extract-swift-parser-version; tests extract-swift-screens; tests extract-swift-stale-dump; tests extract-swift-vapor-routes; tests extract-workflows-not-bpmn; tests extract-workflows-writes-tree; tests gaps-outline-not-read; tests validate-source-reading |
+| SA-44 | commands extract; commands facts; decisions ADR-043; decisions ADR-044; decisions ADR-048; decisions ADR-049; decisions ADR-050; decisions ADR-057; decisions ADR-062; decisions ADR-075; decisions ADR-076; decisions ADR-081; decisions ADR-084; decisions ADR-087; decisions ADR-089; decisions ADR-090; decisions ADR-091; decisions ADR-092; decisions ADR-098; decisions ADR-114; decisions ADR-115; decisions ADR-116 | tests extract-dart-flutter-screens; tests extract-dart-models; tests extract-dart-parser-version; tests extract-dart-server-clients; tests extract-database-json-column; tests extract-database-stale-dump; tests extract-database-writes-tree; tests extract-documents-not-markdown; tests extract-documents-upper-case-name; tests extract-documents-writes-tree; tests extract-exit-1; tests extract-go-bypassed-check; tests extract-go-dxlib-endpoints; tests extract-go-dxlib-tables-seeds; tests extract-go-http-handlers; tests extract-go-request-bodies; tests extract-go-routers; tests extract-javascript-express-routes; tests extract-javascript-fastify-validators; tests extract-javascript-parser-version; tests extract-javascript-plain-checkjs; tests extract-javascript-react-screens; tests extract-javascript-stale-dump; tests extract-javascript-template-parser-version; tests extract-javascript-vue-router; tests extract-openapi-dxlib-privileges; tests extract-openapi-not-openapi; tests extract-openapi-snake-case; tests extract-openapi-writes-tree; tests extract-outline-shallow-clone; tests extract-outline-uncommitted; tests extract-outline-writes-clauses; tests extract-pages-next-api-facts; tests extract-pages-next-app-facts; tests extract-pages-next-pages-router; tests extract-pages-nuxt-facts; tests extract-pages-nuxt-pages; tests extract-pages-nuxt-server; tests extract-pages-nuxt-server-facts; tests extract-pages-route-twice; tests extract-pages-router-guess; tests extract-pages-schema-file; tests extract-pages-schema-file-asked; tests extract-pages-task; tests extract-pages-writes-tree; tests extract-permissions-bypassed-gate; tests extract-permissions-gate-both-forms; tests extract-permissions-gate-people; tests extract-permissions-grant-twice; tests extract-permissions-writes-tree; tests extract-router-dump-repository-not-gitlink; tests extract-router-dump-through-gitlink; tests extract-router-route-twice; tests extract-router-stale-gitlink; tests extract-router-stale-table; tests extract-router-writes-tree; tests extract-swift-clients-settings; tests extract-swift-models; tests extract-swift-parser-version; tests extract-swift-screens; tests extract-swift-stale-dump; tests extract-swift-vapor-routes; tests extract-workflows-not-bpmn; tests extract-workflows-writes-tree; tests facts-javascript; tests facts-javascript-uncommitted; tests facts-unknown-language; tests gaps-outline-not-read; tests validate-source-reading |
 | SA-45 | commands merge; decisions ADR-045; decisions ADR-048; decisions ADR-049; decisions ADR-050; decisions ADR-057; decisions ADR-062; decisions ADR-075; decisions ADR-077; decisions ADR-114 | tests merge-bypassed-check; tests merge-documents-and-code; tests merge-joins-commits; tests merge-keeps-could-questions; tests merge-pages-field-by-name; tests merge-pages-joins-source; tests merge-path-changed; tests merge-permissions-asked-twice; tests merge-permissions-unchecked; tests merge-printed-parsed; tests merge-printed-parsed-grants; tests merge-source-differs; tests merge-tree-invalid; tests merge-value-object-columns; tests merge-value-object-differs; tests merge-value-object-unnamed; tests merge-workflows-joins-trigger; tests validate-source-given-outside |
 | SA-46 | commands generate; decisions ADR-046; decisions ADR-068 | tests generate-openapi-owned; tests generate-sql-owned; tests generate-sql-owned-handed-over; tests validate-mapping-menu-entry; tests validate-owned-by-unknown |
 | SA-47 | enums Rule; decisions ADR-054 | tests document-techspec-open-workflow; tests validate-maker-checker; tests validate-workflow; tests validate-workflow-valid |

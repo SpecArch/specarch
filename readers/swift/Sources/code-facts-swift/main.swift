@@ -1,6 +1,6 @@
 // code-facts-swift reads Swift source by its syntax and writes the facts
 // specarch extract swift reads, as a code-facts dump (docs/reading-code.md,
-// ADR-087). It is run by tools/code-facts/dump-swift.sh in the root of the
+// ADR-087). It is run by specarch facts swift in the root of the
 // repository, which gives it the folder's path, the commit and the
 // tracked Swift files on standard input, one per line.
 //

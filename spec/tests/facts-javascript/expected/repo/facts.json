@@ -1,0 +1,39 @@
+{
+    "codeFacts": 1,
+    "language": "javascript",
+    "parser": {"name": "TypeScript", "version": "7.0.2"},
+    "templateParser": {"name": "SpecArch Vue reader", "version": "1"},
+    "path": "app",
+    "commit": "32900addb72bbcfdaba5a79b35d2b27e9788a5ff",
+    "files": [
+        {"file": "app/src/ShelfForm.vue", "syntaxErrors": 0},
+        {"file": "app/src/guard.ts", "syntaxErrors": 0},
+        {"file": "app/src/server.ts", "syntaxErrors": 0},
+        {"file": "app/tsconfig.json", "syntaxErrors": 0}
+    ],
+    "facts": [
+        {"kind":"template","file":"app/src/ShelfForm.vue","line":2,"column":3,"element":"h1","attributes":[],"children":[{"text":"New shelf"}]},
+        {"kind":"template","file":"app/src/ShelfForm.vue","line":3,"column":3,"element":"form","attributes":[{"directive":"on","name":"submit","value":{"name":"save"}}]},
+        {"kind":"template","file":"app/src/ShelfForm.vue","line":4,"column":5,"element":"InputText","attributes":[{"directive":"model","value":{"member":{"object":{"name":"shelf"},"name":"name"}}}]},
+        {"kind":"template","file":"app/src/ShelfForm.vue","line":5,"column":5,"element":"input","attributes":[{"directive":"for","value":{"text":"tag in tags"}},{"directive":"bind","name":"key","value":{"name":"tag"}},{"directive":"model","value":{"member":{"object":{"name":"shelf"},"name":"tag"}}}],"inLoop":true},
+        {"kind":"import","file":"app/src/ShelfForm.vue","line":11,"column":1,"module":"primevue/inputtext","names":[{"imported":"default","local":"InputText"}]},
+        {"kind":"import","file":"app/src/ShelfForm.vue","line":12,"column":1,"module":"vue","names":[{"imported":"reactive","local":"reactive"}]},
+        {"kind":"variable","file":"app/src/ShelfForm.vue","line":14,"column":7,"name":"shelf","declaration":"const","value":{"call":{"callee":{"name":"reactive","import":{"module":"vue","imported":"reactive"}},"arguments":[{"object":[{"key":"name","line":14,"value":{"string":""}},{"key":"tag","line":14,"value":{"string":""}}]}]}}},
+        {"kind":"call","file":"app/src/ShelfForm.vue","line":14,"column":15,"callee":{"name":"reactive","import":{"module":"vue","imported":"reactive"}},"arguments":[{"object":[{"key":"name","line":14,"value":{"string":""}},{"key":"tag","line":14,"value":{"string":""}}]}],"assignedTo":"shelf"},
+        {"kind":"variable","file":"app/src/ShelfForm.vue","line":15,"column":7,"name":"tags","declaration":"const","value":{"array":[{"string":"a"},{"string":"b"}]}},
+        {"kind":"function","file":"app/src/ShelfForm.vue","line":16,"column":1,"name":"save","parameters":[]},
+        {"kind":"function","file":"app/src/guard.ts","line":1,"column":1,"name":"allow","parameters":[{"name":"permission","type":{"keyword":"string"},"typeFrom":"annotation"}],"exported":"named"},
+        {"kind":"function","file":"app/src/guard.ts","line":2,"column":10,"parameters":[{"name":"req","type":{"object":[{"name":"user","line":2,"column":18,"type":{"object":[]},"optional":true}]},"typeFrom":"annotation"},{"name":"res","type":{"keyword":"unknown"},"typeFrom":"annotation"},{"name":"next","type":{"text":"() => void"},"typeFrom":"annotation"}],"within":{"file":"app/src/guard.ts","line":1,"column":1}},
+        {"kind":"import","file":"app/src/server.ts","line":1,"column":1,"module":"express","names":[{"imported":"default","local":"express"}]},
+        {"kind":"import","file":"app/src/server.ts","line":2,"column":1,"module":"@/guard","names":[{"imported":"allow","local":"allow"}],"resolved":"app/src/guard.ts"},
+        {"kind":"variable","file":"app/src/server.ts","line":4,"column":7,"name":"app","declaration":"const","value":{"call":{"callee":{"name":"express","import":{"module":"express","imported":"default"}},"arguments":[]}}},
+        {"kind":"call","file":"app/src/server.ts","line":4,"column":13,"callee":{"name":"express","import":{"module":"express","imported":"default"}},"arguments":[],"assignedTo":"app"},
+        {"kind":"variable","file":"app/src/server.ts","line":5,"column":7,"name":"port","declaration":"const","value":{"call":{"callee":{"name":"Number","library":true},"arguments":[{"text":"process.env.PORT ?? '8080'"}]}}},
+        {"kind":"access","file":"app/src/server.ts","line":5,"column":21,"chain":["process","env","PORT"],"default":{"string":"8080"},"wrappedBy":"Number"},
+        {"kind":"call","file":"app/src/server.ts","line":7,"column":1,"callee":{"member":{"object":{"name":"app","declaration":{"file":"app/src/server.ts","line":4,"column":7}},"name":"get"}},"arguments":[{"string":"/shelves"},{"call":{"callee":{"name":"allow","import":{"module":"@/guard","imported":"allow"},"declaration":{"file":"app/src/guard.ts","line":1,"column":1}},"arguments":[{"string":"shelves.read"}]}},{"function":{"file":"app/src/server.ts","line":7,"column":44}}]},
+        {"kind":"call","file":"app/src/server.ts","line":7,"column":21,"callee":{"name":"allow","import":{"module":"@/guard","imported":"allow"},"declaration":{"file":"app/src/guard.ts","line":1,"column":1}},"arguments":[{"string":"shelves.read"}]},
+        {"kind":"function","file":"app/src/server.ts","line":7,"column":44,"parameters":[{"name":"req"},{"name":"res"}]},
+        {"kind":"call","file":"app/src/server.ts","line":11,"column":1,"callee":{"member":{"object":{"name":"app","declaration":{"file":"app/src/server.ts","line":4,"column":7}},"name":"listen"}},"arguments":[{"name":"port","declaration":{"file":"app/src/server.ts","line":5,"column":7}}]},
+        {"kind":"configuration","file":"app/tsconfig.json","line":1,"column":1,"checkJs":false,"allowJs":false,"strict":true}
+    ]
+}

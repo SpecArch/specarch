@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/SpecArch/specarch/internal/facts"
 	"os"
 	"path"
 	"sort"
@@ -15,18 +16,13 @@ import (
 )
 
 // The version of the TypeScript compiler whose dumps extract javascript
-// reads, as readers/javascript/package-lock.json pins it; a dump another
-// version made is refused, since another compiler may give other facts
-// (ADR-089).
-const typeScriptVersion = "6.0.3"
-
-// The version of @vue/compiler-sfc whose split of a .vue file the
-// JavaScript reader's dumps hold, as its package-lock.json pins it
-// (ADR-091).
-const vueCompilerVersion = "3.5.43"
+// reads, the one specarch facts reads with (third_party/typescript-go); a
+// dump another version made is refused, since another compiler may give
+// other facts (ADR-089, ADR-116).
+var typeScriptVersion = facts.ParserVersion()
 
 // jsDump is a code-facts dump of JavaScript and TypeScript, as
-// tools/code-facts/dump-javascript.sh writes it.
+// specarch facts javascript writes it.
 type jsDump struct {
 	CodeFacts int    `json:"codeFacts"`
 	Language  string `json:"language"`
@@ -525,20 +521,20 @@ func openJS(dumpPath, key string) (*jsReader, string, error) {
 	}
 	switch {
 	case d.CodeFacts != 1:
-		return nil, "", refuse("%s is not a code-facts dump in the format tools/code-facts/dump-javascript.sh writes: its codeFacts is %d, not 1", dumpPath, d.CodeFacts)
+		return nil, "", refuse("%s is not a code-facts dump in the format specarch facts javascript writes: its codeFacts is %d, not 1", dumpPath, d.CodeFacts)
 	case d.Language != "javascript":
 		return nil, "", refuse("%s is a code-facts dump of %q, and extract reads one of JavaScript and TypeScript here", dumpPath, d.Language)
 	case d.Parser.Name != "TypeScript" || d.Parser.Version != typeScriptVersion:
-		return nil, "", refuse("%s was made by %s %s, and this specarch reads dumps that the TypeScript compiler %s made; run tools/code-facts/dump-javascript.sh of this release again and commit the dump", dumpPath, d.Parser.Name, d.Parser.Version, typeScriptVersion)
-	case d.TemplateParser != nil && (d.TemplateParser.Name != "@vue/compiler-sfc" || d.TemplateParser.Version != vueCompilerVersion):
-		return nil, "", refuse("%s split its .vue files with %s %s, and this specarch reads dumps that @vue/compiler-sfc %s made; run tools/code-facts/dump-javascript.sh of this release again and commit the dump", dumpPath, d.TemplateParser.Name, d.TemplateParser.Version, vueCompilerVersion)
+		return nil, "", refuse("%s was made by %s %s, and this specarch reads dumps that the TypeScript compiler %s made; run specarch facts javascript of this release again and commit the dump", dumpPath, d.Parser.Name, d.Parser.Version, typeScriptVersion)
+	case d.TemplateParser != nil && (d.TemplateParser.Name != facts.TemplateParserName || d.TemplateParser.Version != facts.TemplateParserVersion):
+		return nil, "", refuse("%s split its .vue files with %s %s, and this specarch reads dumps that the %s %s split; run specarch facts javascript of this release again and commit the dump", dumpPath, d.TemplateParser.Name, d.TemplateParser.Version, facts.TemplateParserName, facts.TemplateParserVersion)
 	}
 	for _, f := range d.Files {
 		if strings.HasSuffix(f.File, ".vue") && d.TemplateParser == nil {
-			return nil, "", refuse("%s lists the Vue file %s and names no template parser; run tools/code-facts/dump-javascript.sh of this release again and commit the dump", dumpPath, f.File)
+			return nil, "", refuse("%s lists the Vue file %s and names no template parser; run specarch facts javascript of this release again and commit the dump", dumpPath, f.File)
 		}
 	}
-	r, dumpName, err := openDump(dumpPath, d.Repository, d.Path, d.Commit, "tools/code-facts/dump-javascript.sh")
+	r, dumpName, err := openDump(dumpPath, d.Repository, d.Path, d.Commit, "specarch facts javascript")
 	if err != nil {
 		return nil, "", err
 	}
@@ -580,7 +576,7 @@ func (js *jsReader) index(dumpName string) error {
 	}
 	for _, f := range js.r.Files {
 		if (jsSourceFile(f) || jsConfigFile(f)) && js.under(f) && js.files[f] == nil {
-			return refuse("%s does not list %s, a tracked file under %s that the reader reads; run tools/code-facts/dump-javascript.sh again and commit the dump", dumpName, f, d.Path)
+			return refuse("%s does not list %s, a tracked file under %s that the reader reads; run specarch facts javascript again and commit the dump", dumpName, f, d.Path)
 		}
 	}
 	sort.Strings(js.order)

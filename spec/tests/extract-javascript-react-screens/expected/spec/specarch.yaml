@@ -4,7 +4,7 @@ info:
   title: JavaScript and TypeScript source of web
   version: 0.1.0
   description: |
-    The JavaScript and TypeScript source under web, read at commit ddfbc6f9e488549d39033d3f804a3a7ba492e253 by the TypeScript compiler 6.0.3 through the code-facts dump, by its syntax and the types it declares, with the message catalogues there read as data. Every element cites the line that declares it; what the source does not say as a literal, or through an idiom the reader knows, is a question, and so is what the meta-model cannot hold.
+    The JavaScript and TypeScript source under web, read at commit ddfbc6f9e488549d39033d3f804a3a7ba492e253 by the TypeScript compiler 7.0.2 through the code-facts dump, by its syntax and the types it declares, with the message catalogues there read as data. Every element cites the line that declares it; what the source does not say as a literal, or through an idiom the reader knows, is a question, and so is what the meta-model cannot hold.
   tracksOrigin: true
 stages: [requirements, design]
 sources:

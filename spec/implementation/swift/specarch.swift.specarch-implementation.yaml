@@ -40,7 +40,7 @@ layout:
   swift/embed-schemas.sh:
     description: Writes the schemas of schema/ into the library as Swift source; a test fails when they differ.
   readers/swift:
-    description: "The Swift reader of specarch extract, a package of its own with one executable, code-facts-swift: it parses Swift source with SwiftSyntax and writes the facts specarch extract swift reads as a code-facts dump (ADR-087). tools/code-facts/dump-swift.sh runs it on the tracked Swift files of a committed folder."
+    description: "The Swift reader of specarch extract, a package of its own with one executable, code-facts-swift: it parses Swift source with SwiftSyntax and writes the facts specarch extract swift reads as a code-facts dump (ADR-087). specarch facts swift builds it in the user's cache and runs it on the tracked Swift files of a committed folder."
 
 mappings:
   "#/entities/Diagnostic": { target: SpecArchKit.Diagnostic, description: "A struct; its description is the one-line form." }

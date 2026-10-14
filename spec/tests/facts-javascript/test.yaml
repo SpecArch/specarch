@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: facts
+level: system
+scenario: golden
+given: "a committed folder with a tsconfig.json that maps a path, a TypeScript server that imports a check through that path and reads the environment, and a Vue component with a script setup block in TypeScript, a form, a component of a UI library, a control in a v-for, a paragraph in a v-if with an interpolation and an entity"
+when: "facts javascript is run on the folder with a dump file in the same repository"
+then: "it writes the dump with the TypeScript compiler's and the Vue reader's names and versions, the folder's path and commit, every file with no syntax error, the configuration, the imports resolved through the path mapping, the call with the check resolved to its declaration, the read of the environment with its default and the call it is given to, and the template's elements with their attributes, directives, text and loop and condition, names the dump, the folder and the commit, and exits 0"
+verifies: [SA-44]

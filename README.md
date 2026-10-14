@@ -133,6 +133,8 @@ a defect in the roadmap, not an accepted state.
 | `docs/changes.md`, `releases.md` | the change register and the release notes, generated from the records in `records/` |
 | `records/` | SpecArch's own records: its releases |
 | `swift/` | the Swift build of `specarch` |
+| `third_party/typescript-go/` | the TypeScript compiler's Go source that `specarch facts javascript` reads with, copied at a pinned release by `tools/typescript-go/pull.sh`, with its own LICENSE and NOTICE.txt |
+| `readers/` | the Swift and Dart readers of `specarch facts`, with the lock files that pin them, embedded into the program |
 | `history/` | what changed and why, one file per day |
 | `docs/principles.md` | the two principles, a compiler for specifications and the Low IQ Tax, and how SpecArch applies them |
 | `docs/conventions.md` | the tree layout, YAML layout, Markdown sections, generated and hand-drawn diagrams |
@@ -170,8 +172,12 @@ existing code or documents to a specification (its outline, database,
 router, Markdown documents, OpenAPI, permissions, pages and BPMN workflows readers are built; the others follow, as `docs/extraction.md` lists), `merge` joins the
 trees extract writes into one, and `diff` compares two versions of a
 specification and checks the release between them, and `derive` writes a
-draft test for every derived case no test covers, and `idioms` lists the
-idioms each implementation file uses. It has two builds from
+draft test for every derived case no test covers, `idioms` lists the
+idioms each implementation file uses, and `facts` writes the code-facts
+dump extract reads of a committed folder of JavaScript, TypeScript and
+Vue (its reader is inside the program, on the TypeScript compiler's own
+Go source, so it needs no Node), Swift or Dart (their readers come with
+the program and are built once in your cache with their toolchains). It has two builds from
 the same design.
 The Go build has every verb. With Go 1.27.2 or later:
 

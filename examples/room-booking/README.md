@@ -18,7 +18,7 @@ plain JavaScript gives no types:
   gone, one handler states its types in a JSDoc comment the compiler does
   not check, and a JSDoc `@typedef` describes a booking.
 - `sources/facts/ts.json` and `sources/facts/js.json` are the dumps
-  `tools/code-facts/dump-javascript.sh` made of each folder, committed
+  `specarch facts javascript` made of each folder, committed
   beside them, with the commit each was made at.
 - `implementation/room-booking-checks.yaml` names the check, so that the
   routes read their permission through it.
@@ -38,6 +38,6 @@ fields the cancel handler reads from its body, and whether the JSDoc
 comment no compiler checks says what the handler takes and answers.
 
 The dumps go stale when a file under `sources/ts` or `sources/js` changes;
-run `tools/code-facts/dump-javascript.sh examples/room-booking/sources/ts
+run `specarch facts javascript examples/room-booking/sources/ts
 examples/room-booking/sources/facts/ts.json` (and the same for `js`) after
 committing the change, then commit the dumps.

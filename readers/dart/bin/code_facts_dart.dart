@@ -1,6 +1,6 @@
 // code_facts_dart reads Dart source by its syntax and writes the facts
 // specarch extract dart reads, as a code-facts dump (docs/reading-code.md,
-// ADR-092). It is run by tools/code-facts/dump-dart.sh in the root of the
+// ADR-092). It is run by specarch facts dart in the root of the
 // repository, which gives it the folder's path, the commit and the tracked
 // Dart files on standard input, one per line.
 //

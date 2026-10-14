@@ -1,0 +1,8 @@
+arguments: [facts, javascript, repo/app, repo/facts.json]
+repository:
+  folder: repo
+  commits:
+    - [app]
+exitStatus: 0
+standardOutput: |
+  specarch facts: wrote repo/facts.json from app at commit 32900addb72bbcfdaba5a79b35d2b27e9788a5ff

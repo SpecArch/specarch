@@ -13,3 +13,8 @@ yours. You may license it under any terms you choose. Nothing in this
 repository's licence attaches to it.
 
 This repository is licensed under the Apache License, Version 2.0. See LICENSE.
+
+This product includes the Go source of the TypeScript compiler
+(typescript-go), copyright Microsoft Corporation, licensed under the Apache
+License, Version 2.0, in third_party/typescript-go. Its LICENSE and
+NOTICE.txt are kept there, and UPSTREAM names the release it was copied from.

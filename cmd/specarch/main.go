@@ -42,6 +42,9 @@ const usage = `usage:
                                             file names, pages reads Next.js and Nuxt files' code through --facts, and
                                             permissions gives each route of the route table --routes its permission;
                                             documents reads the words of --language or --vocabulary, English by default
+  specarch facts <language> <folder> <dump>
+                                            write the code-facts dump extract reads of a committed folder;
+                                            the languages are javascript, swift and dart
   specarch merge [--vocabulary <file>]... --out <folder> <tree>...
                                             merge the trees extract wrote into one specification
   specarch diff <old folder> <new folder>   list what changed between two versions and check the release
@@ -86,6 +89,8 @@ func run(args []string, stdout, stderr io.Writer) int {
 		return runDerive(args[1:], stdout, stderr)
 	case "idioms":
 		return runIdioms(args[1:], stdout, stderr)
+	case "facts":
+		return runFacts(args[1:], stdout, stderr)
 	case "version":
 		if len(args) > 1 {
 			fmt.Fprintf(stderr, "specarch version takes no arguments\n\n%s", usage)

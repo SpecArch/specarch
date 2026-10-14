@@ -18,9 +18,8 @@
 #
 # The exit status is 0 when every step ran and neither tree has errors.
 #
-# The dumps are committed in sources/facts. tools/code-facts/dump-javascript.sh
-# makes them again from sources/ts and sources/js once either changes,
-# which needs Node; this script does not.
+# The dumps are committed in sources/facts. specarch facts javascript
+# makes them again from sources/ts and sources/js once either changes.
 #
 # SPECARCH names the command that runs specarch, when it is not specarch
 # itself; it runs in the out folder, so a path in it is absolute.

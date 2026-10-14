@@ -310,13 +310,13 @@ func Dart(dumpPath, out, key, implementation string) (*Result, error) {
 	}
 	switch {
 	case d.CodeFacts != 1:
-		return nil, refuse("%s is not a code-facts dump in the format tools/code-facts/dump-dart.sh writes: its codeFacts is %d, not 1", dumpPath, d.CodeFacts)
+		return nil, refuse("%s is not a code-facts dump in the format specarch facts dart writes: its codeFacts is %d, not 1", dumpPath, d.CodeFacts)
 	case d.Language != "dart":
 		return nil, refuse("%s is a code-facts dump of %q, and extract dart reads one of Dart", dumpPath, d.Language)
 	case d.Parser.Name != "analyzer" || d.Parser.Version != dartAnalyzerVersion:
-		return nil, refuse("%s was made by %s %s, and this specarch reads dumps that the analyzer %s made; run tools/code-facts/dump-dart.sh of this release again and commit the dump", dumpPath, d.Parser.Name, d.Parser.Version, dartAnalyzerVersion)
+		return nil, refuse("%s was made by %s %s, and this specarch reads dumps that the analyzer %s made; run specarch facts dart of this release again and commit the dump", dumpPath, d.Parser.Name, d.Parser.Version, dartAnalyzerVersion)
 	}
-	r, dumpName, err := openDump(dumpPath, d.Repository, d.Path, d.Commit, "tools/code-facts/dump-dart.sh")
+	r, dumpName, err := openDump(dumpPath, d.Repository, d.Path, d.Commit, "specarch facts dart")
 	if err != nil {
 		return nil, err
 	}
@@ -407,7 +407,7 @@ func (dr *dartReader) index(dumpName string) error {
 	}
 	for _, f := range dr.r.Files {
 		if strings.HasSuffix(f, ".dart") && dr.under(f) && dr.files[f] == nil {
-			return refuse("%s does not list %s, a tracked Dart file under %s; run tools/code-facts/dump-dart.sh again and commit the dump", dumpName, f, d.Path)
+			return refuse("%s does not list %s, a tracked Dart file under %s; run specarch facts dart again and commit the dump", dumpName, f, d.Path)
 		}
 	}
 	sort.Strings(dr.order)

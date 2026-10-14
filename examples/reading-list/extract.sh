@@ -20,9 +20,9 @@
 # has no errors; specarch gaps exits 1 while a question is open, which is
 # the normal state of a specification read from sources.
 #
-# The dumps are committed in sources/facts. tools/code-facts/dump-swift.sh
-# makes them again from sources/app and sources/server once either
-# changes, which needs the Swift toolchain; this script does not.
+# The dumps are committed in sources/facts. specarch facts swift makes
+# them again from sources/app and sources/server once either changes,
+# which needs the Swift toolchain; this script does not.
 #
 # SPECARCH names the command that runs specarch, when it is not specarch
 # itself; it runs in the out folder, so a path in it is absolute.

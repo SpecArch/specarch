@@ -3,7 +3,7 @@ import PackageDescription
 
 // The Swift reader of specarch extract: it parses Swift source with
 // SwiftSyntax and writes the facts specarch extract swift reads, as a
-// code-facts dump (docs/reading-code.md). tools/code-facts/dump-swift.sh
+// code-facts dump (docs/reading-code.md). specarch facts swift
 // runs it. The version of swift-syntax is pinned exactly, since
 // specarch refuses a dump that another parser version made.
 let package = Package(

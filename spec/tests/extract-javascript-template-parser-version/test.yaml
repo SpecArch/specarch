@@ -2,7 +2,7 @@
 command: extract
 level: system
 scenario: red
-given: "a code-facts dump of a Vue file whose .vue files another version of @vue/compiler-sfc than the one this release pins split"
+given: "a code-facts dump of a Vue file whose .vue files @vue/compiler-sfc 3.5.0 split, not the Vue reader this release reads with"
 when: "extract javascript is run on the dump"
-then: "it refuses the dump, naming the version that split the files and the one it reads, writes nothing and exits 1"
+then: "it refuses the dump, naming the parser and version that split the files and the reader and version it reads, writes nothing and exits 1"
 verifies: [SA-44]

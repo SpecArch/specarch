@@ -15,7 +15,7 @@ code-facts dump (ADR-087):
   route registered in a loop, and a handler that reads a path parameter
   its route does not have.
 - `sources/facts/app.json` and `sources/facts/server.json` are the dumps
-  `tools/code-facts/dump-swift.sh` made of each folder, committed beside
+  `specarch facts swift` made of each folder, committed beside
   them, with the commit each was made at.
 - `implementation/server-checks.yaml` names the server's check, so that
   the routes under the guarded group read their permission through it.
@@ -31,6 +31,6 @@ a SwiftData model's key, the server's routes as the running system
 registers them.
 
 The dumps go stale when a file under `sources/app` or `sources/server`
-changes; run `tools/code-facts/dump-swift.sh examples/reading-list/sources/app
+changes; run `specarch facts swift examples/reading-list/sources/app
 examples/reading-list/sources/facts/app.json` (and the same for the server)
 after committing the change, then commit the dumps.

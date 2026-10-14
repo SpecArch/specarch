@@ -26,5 +26,10 @@ fi
 here=$(cd "$(dirname "$0")/../.." && pwd)
 bin=$(mktemp "${TMPDIR:-/tmp}/specarch.XXXXXX")
 trap 'rm -f "$bin"' EXIT
-(cd "$here" && go build -o "$bin" ./cmd/specarch)
+# A build runs under heavy-lock where the machine has it.
+if command -v heavy-lock >/dev/null 2>&1; then
+	(cd "$here" && heavy-lock specarch:build -- go build -o "$bin" ./cmd/specarch)
+else
+	(cd "$here" && go build -o "$bin" ./cmd/specarch)
+fi
 "$bin" facts swift "$1" "$2"

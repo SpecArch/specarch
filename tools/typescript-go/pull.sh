@@ -56,7 +56,7 @@ for p in $pkgs; do
 		if grep -q '^//go:build ignore' "$f"; then
 			continue
 		fi
-		sed "s#\"$upstream/#\"$local/#g" "$f" >"$to/$(basename "$f")"
+		LC_ALL=C sed "s#\"$upstream/#\"$local/#g" "$f" >"$to/$(basename "$f")"
 	done
 	# The files the package embeds.
 	(cd "$work/src" && go list -f '{{range .EmbedFiles}}{{.}}
@@ -66,6 +66,11 @@ for p in $pkgs; do
 		cp "$from/$e" "$to/$e"
 	done
 done
+cat >"$dest/.gitattributes" <<'END'
+# The copy of typescript-go is kept byte for byte as upstream wrote it,
+# line endings included (tools/typescript-go/pull.sh).
+* -text
+END
 cp "$work/src/LICENSE" "$dest/LICENSE"
 cp "$work/src/NOTICE.txt" "$dest/NOTICE.txt"
 cat >"$dest/UPSTREAM" <<END

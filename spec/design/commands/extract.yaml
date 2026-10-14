@@ -111,9 +111,9 @@ commands:
         and a line where the design would refuse it in columns (ADR-063,
         ADR-077); one of type string with an enum of snake_case values
         becomes an enum; a reference to any other component schema is
-        written in place, and so is one that allows members beyond its
-        properties, a map, which a field holds and an entity or a schema
-        does not. A document whose property names are snake_case
+        written in place, and so is a map, an object that names no
+        properties and allows other members, which a field holds and an
+        entity or a schema does not. A document whose property names are snake_case
         (one has an underscore and none a capital) gives info.wireNames
         snake_case, and each property is written by its camelCase name,
         printed as one line.

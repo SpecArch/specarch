@@ -310,10 +310,19 @@ func (k *classifier) walk(a, b any, path []string) {
 }
 
 // isMapKeyword says whether a path ends in a field's additionalProperties,
-// and not in a property of that name.
+// and not in a property of that name. Under a field the keyword properties
+// and a member's name take turns, so an odd run of properties before the
+// last token makes it a member's name, and an even one a keyword.
 func isMapKeyword(path []string) bool {
 	n := len(path)
-	return n > 0 && path[n-1] == "additionalProperties" && (n < 2 || path[n-2] != "properties")
+	if n == 0 || path[n-1] != "additionalProperties" {
+		return false
+	}
+	run := 0
+	for i := n - 2; i >= 0 && path[i] == "properties"; i-- {
+		run++
+	}
+	return run%2 == 0
 }
 
 // mapMembers records a change of what an object allows beyond its

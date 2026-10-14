@@ -1014,9 +1014,9 @@ The sources this build reads:
   and a line where the design would refuse it in columns (ADR-063,
   ADR-077); one of type string with an enum of snake_case values
   becomes an enum; a reference to any other component schema is
-  written in place, and so is one that allows members beyond its
-  properties, a map, which a field holds and an entity or a schema
-  does not. A document whose property names are snake_case
+  written in place, and so is a map, an object that names no
+  properties and allows other members, which a field holds and an
+  entity or a schema does not. A document whose property names are snake_case
   (one has an underscore and none a capital) gives info.wireNames
   snake_case, and each property is written by its camelCase name,
   printed as one line.
@@ -9163,8 +9163,9 @@ The readers write a map wherever the code says one:
 - dxlib: DataTypeMapStringString is a map of strings;
 - OpenAPI: additionalProperties is kept, {} as true, values with no
   field the meta-model holds as true with a line, and a component
-  schema that is a map is written in place, not as an entity or a
-  schema;
+  schema that is a map, naming no properties, is written in place,
+  not as an entity or a schema, and one that names properties stays
+  one, its additionalProperties a line;
 - Swift: [String: T] and a dictionary keyed by an integer, as
   JSONEncoder writes them as objects; another key and Any values
   print a line;
@@ -9192,7 +9193,7 @@ allowing more members minor and allowing fewer, or changing the
 values' type, major, with additionalProperties left out read as
 true.
 
-Consequences: A map of integers and a map of any value now differ in every tree a
+Consequences: A map of integers and a map of any value differ in every tree a
 reader writes, the OpenAPI document generated from it and the one
 read back, and the dxlib handler's request type. The extract cases
 of Go, Swift, Dart and JavaScript write maps where they printed a

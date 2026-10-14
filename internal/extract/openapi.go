@@ -357,7 +357,7 @@ func (o *openapiReader) read() {
 		default:
 			why := "it is neither an object with properties nor a string enum of snake_case values"
 			if isMap(s) {
-				why = "it holds members beyond the ones it names (additionalProperties), which a field holds and an entity or a schema does not"
+				why = "it is a map, an object of members it does not name (additionalProperties), which a field holds and an entity or a schema does not"
 			} else if schemaType(s) == "object" && child(s, "properties") != nil {
 				why = "none of its properties can be held"
 			}
@@ -1255,11 +1255,13 @@ func (o *openapiReader) mapValues(ap *yaml.Node, where, at string, depth int) an
 	return true
 }
 
-// isMap says whether a schema holds members beyond the ones it names: an
-// additionalProperties that is not false.
+// isMap says whether a schema is a map: an object that names no
+// properties and holds members through an additionalProperties that is
+// not false. An object that names properties stays an entity or a
+// schema, its additionalProperties a line.
 func isMap(s *yaml.Node) bool {
 	ap := child(s, "additionalProperties")
-	return ap != nil && !(ap.Kind == yaml.ScalarNode && ap.Value == "false")
+	return child(s, "properties") == nil && ap != nil && !(ap.Kind == yaml.ScalarNode && ap.Value == "false")
 }
 
 // schemaType is a schema's type, or the type its properties, additional

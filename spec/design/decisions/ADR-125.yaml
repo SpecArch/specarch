@@ -41,8 +41,9 @@ decisions:
       - dxlib: DataTypeMapStringString is a map of strings;
       - OpenAPI: additionalProperties is kept, {} as true, values with no
         field the meta-model holds as true with a line, and a component
-        schema that is a map is written in place, not as an entity or a
-        schema;
+        schema that is a map, naming no properties, is written in place,
+        not as an entity or a schema, and one that names properties stays
+        one, its additionalProperties a line;
       - Swift: [String: T] and a dictionary keyed by an integer, as
         JSONEncoder writes them as objects; another key and Any values
         print a line;
@@ -99,7 +100,7 @@ decisions:
       test holds: a map's value type is one field to change, and diff
       says whether the change breaks a client.
     consequences: |
-      A map of integers and a map of any value now differ in every tree a
+      A map of integers and a map of any value differ in every tree a
       reader writes, the OpenAPI document generated from it and the one
       read back, and the dxlib handler's request type. The extract cases
       of Go, Swift, Dart and JavaScript write maps where they printed a

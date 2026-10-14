@@ -115,13 +115,15 @@ components:
     Token: {type: object, properties: {access_token: {type: string}}}
     Wrapper: {type: object, properties: {token: {$ref: "#/components/schemas/Token"}}}
     Problem: {properties: {title: {type: string}}}
+    Labels: {type: object, additionalProperties: {type: string}}
+    Open: {type: object, additionalProperties: true, properties: {name: {type: string}}}
 `
 	if err := yaml.Unmarshal([]byte(src), &doc); err != nil {
 		t.Fatal(err)
 	}
 	o := &openapiReader{doc: doc.Content[0], key: "api", res: &Result{Tree: newTree()}, questions: &yaml.Node{Kind: yaml.MappingNode}}
 	o.read()
-	if got, want := o.written, map[string]string{"Wrapper": "schemas", "Problem": "schemas"}; len(got) != len(want) || got["Wrapper"] != want["Wrapper"] || got["Problem"] != want["Problem"] {
+	if got, want := o.written, map[string]string{"Wrapper": "schemas", "Problem": "schemas", "Open": "schemas"}; len(got) != len(want) || got["Wrapper"] != want["Wrapper"] || got["Problem"] != want["Problem"] || got["Open"] != want["Open"] {
 		t.Errorf("written %v, want %v", got, want)
 	}
 }

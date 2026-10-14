@@ -1,0 +1,8 @@
+arguments: [extract, workflows, --table, --out, spec, repo/workflow-table.json]
+repository:
+  folder: repo
+  commits:
+    - [flows]
+    - [workflow-table.json]
+exitStatus: 1
+standardOutput: ""

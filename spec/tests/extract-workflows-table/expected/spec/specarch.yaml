@@ -1,0 +1,18 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v0.6.2/schema/specarch-design-0.2.schema.json
+specarch: "0.2"
+info:
+  title: Workflows of flows
+  version: 0.1.0
+  description: |
+    The workflows the engine loads from flows, read from the workflow table workflow-table.json, made at commit 9caf770c61d4f54c22956dbb8c57cfe9bb11f7f8, in the sequential subset the meta-model holds: approvals, operation steps and deadlines. Every workflow cites its definition; what the table does not say, or says outside the subset, is a question.
+  tracksOrigin: true
+stages: [requirements, design]
+sources:
+  code:
+    kind: code
+    title: The code repository
+    edition: 9caf770c61d4f54c22956dbb8c57cfe9bb11f7f8
+    url: ../repo
+    clauses:
+      - {clause: flows/write-off.json, title: A workflow definition the engine loads}
+    reading: printed

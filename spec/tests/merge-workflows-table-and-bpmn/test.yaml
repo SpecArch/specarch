@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: merge
+level: system
+scenario: golden
+given: "the tree extract workflows wrote of a BPMN file defining the write-off workflow, and the tree extract workflows --table wrote of the workflow table of the same workflow in an engine's own format, both read from one repository at one commit"
+when: "merge is run on the two trees"
+then: "it writes one workflow write-off whose description and steps both trees give alike, citing the BPMN file and the table's definition file, role desk-supervisor citing both, the source's clauses joined, each question the table's tree asks again at the same key left out as asked twice, the could question for the form kept, and exits 0"
+verifies: [SA-45]

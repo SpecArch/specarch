@@ -1,0 +1,40 @@
+{
+    "workflowTable": 1,
+    "path": "engine/flows",
+    "commit": "6322453f60d2acc29ebab81f314ff8403d7a637a",
+    "workflows": [
+        {
+            "name": "fine-waiver",
+            "file": "engine/flows/fines.json",
+            "description": "A fine is waived after a branch manager and then a desk supervisor approve.",
+            "trigger": {"operation": "request-fine-waiver", "form": []},
+            "steps": [
+                {"name": "manager check", "kind": "approval", "approvers": ["Branch Manager", "!!"], "deadline": "P1W", "onDeadline": "escalate", "escalateTo": "supervisor check"},
+                {"name": "supervisor check", "kind": "approval", "approvers": ["desk-supervisor"], "deadline": null, "onDeadline": "refuse", "escalateTo": "manager check"},
+                {"name": "Supervisor-Check", "kind": "approval", "approvers": ["desk-supervisor"], "deadline": "PT0S", "onDeadline": "archive", "escalateTo": null},
+                {"name": "waive", "kind": "operation", "operation": "waive-fine"},
+                {"name": "tell member", "kind": "other", "description": "sends the member the template waived"},
+                {"name": "close", "kind": "operation", "operation": "closeFine"}
+            ],
+            "emits": ["fines/FineWaived", "fines", "fines/FineWaived"]
+        },
+        {
+            "name": "Renewal Request",
+            "file": "engine/flows/renewals.json",
+            "description": null,
+            "trigger": {"operation": null, "form": [{"name": "loanId", "type": "string"}, {"name": "weeks", "type": "number"}]},
+            "steps": [],
+            "emits": []
+        },
+        {
+            "name": "renewal_request",
+            "file": "engine/seeds/renewals.json",
+            "description": "  A renewal\n  read from the seeds.  ",
+            "trigger": {"operation": "renewLoan", "form": []},
+            "steps": [
+                {"name": "approve", "kind": "approval", "approvers": [], "deadline": "P3D", "onDeadline": "refuse", "escalateTo": null}
+            ],
+            "emits": []
+        }
+    ]
+}

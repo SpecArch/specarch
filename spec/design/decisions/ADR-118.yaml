@@ -1,0 +1,92 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
+decisions:
+  ADR-118:
+    title: Workflow definitions in a format of a project's own are read through a workflow table the project's printer writes, read by extract workflows --table into the workflows the BPMN reader writes, with the same questions at the same keys
+    status: accepted
+    date: "2026-10-14"
+    context: |
+      Point 8 of docs/estate.md, build item 9: an estate's workflow
+      engine keeps its definitions in JSON of its own (a flow per action,
+      a trigger, a binding and a form schema, in many files), and the
+      same files sit in two folders of which the seeding script loads
+      one. Only extract outline took them, so gaps listed the folder as
+      unread. A documented plug-in reader was asked for, or a neutral
+      format a project's printer writes. The owner decided on 2026-10-14
+      (decision 5 of docs/estate.md) that a standard workflow format gets
+      a reader of its own, as BPMN 2.0 has (ADR-054), and a format of a
+      project's own gets a table its printer writes.
+    decision: |
+      SpecArch defines the workflow table, as it does the route table
+      (ADR-044) and the permission table (ADR-050): a JSON object with
+      workflowTable 1, the path of the folder the engine loads its
+      definitions from, the commit that last changed it, repository when
+      the dump is in another repository (ADR-098), and workflows, each
+      with name, file (the file it is defined in, or null), description
+      (or null), trigger (operation, a name or null, and form, a list of
+      fields each with a name and the engine's type), steps in order, and
+      emits (the messages it publishes when it ends, channel/Message). A
+      step has a name and a kind: approval with approvers, deadline,
+      onDeadline and escalateTo; operation with operation; other with a
+      description. Every key is written, null where the format allows
+      it, and no other key is; a table that breaks this, a workflow with
+      no name or listed twice, and a step or a form field with no name
+      are refused, naming the workflow and the step.
+      tools/workflows/dump-workflows.sh runs the project's printer in a
+      committed folder and wraps what it prints with the version, the
+      path and the commit, as dump-routes.sh does.
+      extract workflows --table reads it with the BPMN reader's rules and
+      questions at the same keys: the workflow named in kebab-case, a step
+      in camelCase, an approver as a role in kebab-case citing the
+      workflow's file, the trigger's and each operation step's operation
+      left out with a must question naming it under names, and the
+      subject, each approval's permission and each role's grants and
+      description must questions. A value the subset does not hold prints
+      a line and is asked for or left out, as the BPMN reader does with
+      an element; a step of kind other ends the steps there with a must
+      question on the workflow. The form's fields and the messages
+      emitted each print a line and are a could question, since the 0.2
+      workflow holds neither: the form is the request body of the
+      trigger's operation, which another tree declares, and emits names
+      messages of channels, which the table does not declare and the
+      validator checks. The workflow cites its file, or the folder when
+      the file is null, outside the folder or not in the repository.
+    why: |
+      A table the project prints rather than a reader of the project's
+      format, because the readers' test keeps extract's rules in one
+      place: a plug-in that writes elements would be a second place for
+      them, and a format of one project is not a standard whose rules
+      SpecArch can learn once. The printer loads the definitions as the
+      engine does, so the two-folders question is answered by
+      construction: the folder the engine does not load is never read,
+      and the commit names what was loaded.
+      The same questions at the same keys as the BPMN reader, because
+      merge leaves out a question another tree asks at the same key, so
+      the two readings of one workflow merge into one workflow with both
+      citations and each question once, and a disagreement between them
+      is a must question at the key, as for any two trees. The keys of a
+      step are the 0.2 workflow step's own (approvers, deadline,
+      onDeadline, escalateTo, operation), one word for one meaning.
+      Every key written and null allowed, as the route table writes a
+      permission null, because a key left out is ambiguous between a
+      printer that cannot say and one that forgot; null says the first,
+      and the reader asks for it.
+      Kind other, rather than refusing a step the subset does not hold,
+      because the compiler test keeps an incomplete definition readable:
+      the steps before it are written, and the rest is a must question at
+      the workflow. The form and the messages are kept as could questions
+      rather than written in a key of the reader's own, because the 0.2
+      workflow has no key for either and a tree a reader writes validates
+      on its own; a reviewer who reads the question writes the request
+      body or the channel where the specification holds them.
+      Acceptance test: the first techspec of a module whose workflows are
+      in its own format shows each workflow with its steps, approvers and
+      deadlines, merged with the routes' tree, and a change a reviewer
+      asks for in a workflow is a change to its definition, printed again.
+    consequences: |
+      extract workflows reads a BPMN 2.0 XML file as before; --table is
+      refused for any other source. A project writes its printer, a
+      command that loads the definitions as the engine does and prints
+      the list of workflows. A plug-in reader protocol waits until a
+      format appears that a printer cannot flatten into the sequential
+      subset.
+    satisfies: [SA-44, SA-45]

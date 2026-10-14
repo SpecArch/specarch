@@ -1,0 +1,18 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v0.6.2/schema/specarch-design-0.2.schema.json
+specarch: "0.2"
+info:
+  title: Merge of 2 trees
+  version: 0.1.0
+  description: |
+    The elements of these trees, merged in this order: Workflows of workflows/write-off.bpmn; Workflows of flows. Every element cites where it was read; where the trees disagree, or the documents and the code do, a question asks which is right.
+  tracksOrigin: true
+stages: [requirements, design]
+sources:
+  code:
+    kind: code
+    title: The code repository
+    edition: 9caf770c61d4f54c22956dbb8c57cfe9bb11f7f8
+    url: ../../repo
+    clauses:
+      - {clause: flows/write-off.json, title: A workflow definition the engine loads}
+      - {clause: workflows/write-off.bpmn, title: The BPMN 2.0 process definitions}

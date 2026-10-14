@@ -28,7 +28,7 @@ func runExtract(args []string, stdout, stderr io.Writer) int {
 	}
 	source := args[0]
 	out, key, implementation, facts, routes, language, vocabularyPath := "", "", "", "", "", "", ""
-	givenOutside := false
+	givenOutside, table := false, false
 	var paths []string
 	rest := args[1:]
 	for i := 0; i < len(rest); i++ {
@@ -39,6 +39,8 @@ func runExtract(args []string, stdout, stderr io.Writer) int {
 			i = len(rest)
 		case a == "--given-outside":
 			givenOutside = true
+		case a == "--table":
+			table = true
 		case a == "--out" || a == "--source-key" || a == "--implementation" || a == "--facts" || a == "--routes" || a == "--language" || a == "--vocabulary":
 			if i+1 >= len(rest) {
 				fmt.Fprintf(stderr, "specarch extract: %s needs a value\n\n%s", a, usage)
@@ -97,6 +99,12 @@ func runExtract(args []string, stdout, stderr io.Writer) int {
 		return 2
 	case source == "pages" && len(paths) != 1:
 		fmt.Fprintf(stderr, "specarch extract pages reads one router's root folder, and was given %d paths\n", len(paths))
+		return 2
+	case table && source != "workflows":
+		fmt.Fprintf(stderr, "specarch extract %s takes no --table; only workflows reads a workflow table in place of a BPMN 2.0 XML file\n", source)
+		return 2
+	case source == "workflows" && table && len(paths) != 1:
+		fmt.Fprintf(stderr, "specarch extract workflows --table reads one workflow table, and was given %d paths\n", len(paths))
 		return 2
 	case source == "workflows" && len(paths) != 1:
 		fmt.Fprintf(stderr, "specarch extract workflows reads one BPMN 2.0 XML file, and was given %d paths\n", len(paths))
@@ -160,7 +168,11 @@ func runExtract(args []string, stdout, stderr io.Writer) int {
 	case "pages":
 		res, err = extract.Pages(paths[0], out, key, facts, implementation)
 	case "workflows":
-		res, err = extract.Workflows(paths[0], out, key)
+		if table {
+			res, err = extract.WorkflowTable(paths[0], out, key)
+		} else {
+			res, err = extract.Workflows(paths[0], out, key)
+		}
 	case "go":
 		res, err = extract.Go(paths, out, key, implementation)
 	case "swift":

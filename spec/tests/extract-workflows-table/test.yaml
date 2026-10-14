@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: extract
+level: system
+scenario: golden
+given: "a repository whose engine loads the write-off workflow from a definition file of its own format, and the workflow table its printer wrote of that folder: the trigger requestWriteOff with a form of two fields, an approval by desk-supervisor within P2D refused on its deadline, and an operation step calling writeOffLoan"
+when: "extract workflows --table is run on the table"
+then: "it writes workflow write-off citing the definition file, with the description, steps, approvers, deadline and onDeadline the BPMN reading of the same workflow gives, a question naming requestWriteOff for the trigger and writeOffLoan for the operation step, the subject and the approval's permission asked for, role desk-supervisor with its two questions, a line and a could question for the form's fields, and exits 0"
+verifies: [SA-44]

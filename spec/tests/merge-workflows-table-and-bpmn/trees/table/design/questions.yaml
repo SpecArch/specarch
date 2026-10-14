@@ -1,0 +1,61 @@
+questions:
+  # specarch-problem: question: open_question: (must, decision) Which entity holds the request of workflow write-off while it waits? Decided by system-owner. Answer with a decision record that names Q-1 under answers. [Q-1]
+  Q-1:
+    question: Which entity holds the request of workflow write-off while it waits?
+    kind: decision
+    priority: must
+    blocks: ['#/workflows/write-off/subject']
+    decidedBy: system-owner
+    why: The workflow table has no key for the record the request is kept in; the subject is where a page reads where the request is.
+  # specarch-problem: question: open_question: (must, decision) Workflow write-off is started by operation requestWriteOff, which the workflow table names as its trigger; the table does not declare it, so it waits for the tree that does. Is it that operation? Decided by system-owner. Answer with a decision record that names Q-2 under answers. [Q-2]
+  Q-2:
+    question: Workflow write-off is started by operation requestWriteOff, which the workflow table names as its trigger; the table does not declare it, so it waits for the tree that does. Is it that operation?
+    kind: decision
+    priority: must
+    blocks: ['#/workflows/write-off/trigger']
+    decidedBy: system-owner
+    names: requestWriteOff
+    why: The table names the operation and not its method or path, so the workflow's trigger waits for the tree that declares it; specarch merge writes it once one does.
+  # specarch-problem: question: open_question: (must, decision) Which permission does step approve of workflow write-off check? It cannot be the permission of the operation that starts the workflow. Decided by system-owner. Answer with a decision record that names Q-3 under answers. [Q-3]
+  Q-3:
+    question: Which permission does step approve of workflow write-off check? It cannot be the permission of the operation that starts the workflow.
+    kind: decision
+    priority: must
+    blocks: ['#/workflows/write-off/steps/0/permission']
+    decidedBy: system-owner
+    why: The workflow table names who may approve and not the permission the approval checks.
+  # specarch-problem: question: open_question: (must, decision) Step writeOff of workflow write-off calls operation writeOffLoan, which the workflow table names; the table does not declare it, so it waits for the tree that does. Is it that operation? Decided by system-owner. Answer with a decision record that names Q-4 under answers. [Q-4]
+  Q-4:
+    question: Step writeOff of workflow write-off calls operation writeOffLoan, which the workflow table names; the table does not declare it, so it waits for the tree that does. Is it that operation?
+    kind: decision
+    priority: must
+    blocks: ['#/workflows/write-off/steps/1/operation']
+    decidedBy: system-owner
+    names: writeOffLoan
+    why: The table names the operation and not its method or path, so the step waits for the tree that declares it; specarch merge writes it once one does.
+  # specarch-problem: question: open_question: (must, decision) Which permissions does role desk-supervisor grant? The workflow table names it as an approver and says nothing of what it may do. Decided by system-owner. Answer with a decision record that names Q-5 under answers. [Q-5]
+  Q-5:
+    question: Which permissions does role desk-supervisor grant? The workflow table names it as an approver and says nothing of what it may do.
+    kind: decision
+    priority: must
+    blocks: ['#/roles/desk-supervisor/permissions']
+    decidedBy: system-owner
+    why: An approver in the workflow table is a name; the grants are where the running permission check reads them.
+  # specarch-problem: question: open_question: (must, decision) What is role desk-supervisor, in a sentence a reviewer can check? Decided by system-owner. Answer with a decision record that names Q-6 under answers. [Q-6]
+  Q-6:
+    question: What is role desk-supervisor, in a sentence a reviewer can check?
+    kind: decision
+    priority: must
+    blocks: ['#/roles/desk-supervisor/description']
+    decidedBy: system-owner
+    why: The workflow table names the role and does not describe it.
+  # specarch-problem: question: open_question: (could, decision) Not held: flows/write-off.json: workflow write-off: its trigger's form has the fields loanId (string) and reason (text), and a workflow's form is the request body of its trigger's operation, which the tree that declares the operation gives; left out. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-7 under answers. [Q-7]
+  Q-7:
+    question: 'Not held: flows/write-off.json: workflow write-off: its trigger''s form has the fields loanId (string) and reason (text), and a workflow''s form is the request body of its trigger''s operation, which the tree that declares the operation gives; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/workflows/write-off']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: flows/write-off.json, says: 'Not held: workflow write-off: its trigger''s form has the fields loanId (string) and reason (text), and a workflow''s form is the request body of its trigger''s operation, which the tree that declares the operation gives; left out.'}

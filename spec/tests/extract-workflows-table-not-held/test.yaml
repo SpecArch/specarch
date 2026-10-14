@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: extract
+level: system
+scenario: golden
+given: "a workflow table of three workflows: one whose trigger and operation step name operations an operationId cannot take, whose approvals name a role in words and one no role can take, wait a week and zero seconds, escalate to a later approval, name an escalation without escalating, do an unknown thing on their deadline and share a name in camelCase, followed by a step of another kind and an operation after it, and that emits a message and a word; one with no description, no trigger operation, a form and no steps; and one whose name is taken in kebab-case and whose file is outside the folder"
+when: "extract workflows --table is run on the table"
+then: "it writes the three workflows with what the subset holds, the second step named supervisorCheck2 and the escalation kept, the steps from the other step left out with a must question on the workflow, a must question for each thing asked for instead, a line for each thing not held in the order of the workflows and their steps, each a could question unless a must question asks it, and exits 0"
+verifies: [SA-44]

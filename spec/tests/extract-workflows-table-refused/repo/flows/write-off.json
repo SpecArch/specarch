@@ -1,0 +1,13 @@
+{
+  "action": "write-off",
+  "summary": "A lost book's loan is written off only after a desk supervisor approves, within two days.",
+  "start": {
+    "endpoint": "requestWriteOff",
+    "form": {"loanId": "string", "reason": "text"}
+  },
+  "flow": [
+    {"type": "approve", "id": "approve", "role": "desk-supervisor", "timeout": "P2D", "onTimeout": "reject"},
+    {"type": "call", "id": "writeOff", "endpoint": "writeOffLoan"}
+  ],
+  "publish": []
+}

@@ -1,0 +1,21 @@
+{
+    "workflowTable": 1,
+    "path": "flows",
+    "commit": "e2b66785cf8e9ee366b75f365b10222f97d931fb",
+    "workflows": [
+        {
+            "name": "write-off",
+            "file": "flows/write-off.json",
+            "description": "A lost book's loan is written off only after a desk supervisor approves, within two days.",
+            "trigger": {
+                "operation": "requestWriteOff",
+                "form": [{"name": "loanId", "type": "string"}, {"name": "reason", "type": "text"}]
+            },
+            "steps": [
+                {"name": "approve", "kind": "approval", "approvers": ["desk-supervisor"], "deadline": "P2D", "onDeadline": "refuse"},
+                {"name": "writeOff", "kind": "operation", "operation": "writeOffLoan"}
+            ],
+            "emits": []
+        }
+    ]
+}

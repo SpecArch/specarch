@@ -144,7 +144,8 @@ Steps, in order:
    under the requirement SA-44, with `extract.yaml` holding the rules
    above. `extract outline` writes a source with its files as clauses and
    no elements, for a surface no reader reads yet, such as workflow
-   definitions in a format other than BPMN 2.0, so that `specarch gaps`
+   definitions in a format of a project's own before its printer of the
+   workflow table is written, so that `specarch gaps`
    lists it as not read rather than
    losing it. `extract database` reads a catalogue dump into entities:
    columns, types, nullability, defaults, primary and foreign keys,
@@ -382,6 +383,25 @@ Steps, in order:
     write-off step to the router's, and the merged specification
     validates with no errors; the approval's permission and the subject
     stay must questions, since BPMN has neither.
+    For workflow definitions in a format of a project's own, SpecArch
+    defines the workflow table (ADR-118), as it does the route and
+    permission tables: the version of the format, the folder the engine
+    loads its definitions from, the commit that last changed it, and
+    every workflow as its name, its file, its description, its trigger
+    (the operation's name and the form's fields), its steps in order (an
+    approval with its approvers, deadline and what the deadline does, an
+    operation step by its operation's name, or a step of another kind)
+    and the messages it emits when it ends. The project's printer loads
+    the definitions as the engine does, so a folder the engine does not
+    load is never read; `tools/workflows/dump-workflows.sh` runs it in a
+    committed folder and adds the version, the path and the commit.
+    `extract workflows --table` writes each workflow as the BPMN reader
+    writes a process, with the same questions at the same keys, and
+    `specarch merge` joins the two readings of one workflow into one
+    with both citations: the case `merge-workflows-table-and-bpmn` merges
+    the table's write-off with the BPMN file's. A standard workflow
+    format gets a reader of its own, as BPMN 2.0 has; a format of a
+    project's own gets this table.
 
 The steps from 12 read source code itself, by a parser of each language,
 for what no running system prints (ADR-075). `docs/reading-code.md` sets
@@ -568,7 +588,7 @@ changes `extract.yaml` first.
 
 An estate of many modules, read from an umbrella repository by a team
 that may not commit to the code, asked for dumps committed outside the
-code's repository, which `repository` gives (ADR-098), a workflow table for definitions that are not BPMN, a
+code's repository, which `repository` gives (ADR-098), a workflow table for definitions that are not BPMN (ADR-118), a
 gate by caller kind in the permission table and vocabularies for
 documents in another language; `docs/estate.md` is the design and the
 order of the items.

@@ -1,0 +1,276 @@
+questions:
+  # specarch-problem: question: open_question: (must, decision) Which entity holds the request of workflow fine-waiver while it waits? Decided by system-owner. Answer with a decision record that names Q-1 under answers. [Q-1]
+  Q-1:
+    question: Which entity holds the request of workflow fine-waiver while it waits?
+    kind: decision
+    priority: must
+    blocks: ['#/workflows/fine-waiver/subject']
+    decidedBy: system-owner
+    why: The workflow table has no key for the record the request is kept in; the subject is where a page reads where the request is.
+  # specarch-problem: question: open_question: (must, decision) Which operation starts workflow fine-waiver? The workflow table names no operation an operationId can name. Decided by system-owner. Answer with a decision record that names Q-2 under answers. [Q-2]
+  Q-2:
+    question: Which operation starts workflow fine-waiver? The workflow table names no operation an operationId can name.
+    kind: decision
+    priority: must
+    blocks: ['#/workflows/fine-waiver/trigger']
+    decidedBy: system-owner
+    why: A workflow starts from an operation that accepts the request and answers 202; the table does not say which.
+  # specarch-problem: question: open_question: (must, decision) Which permission does step managerCheck of workflow fine-waiver check? It cannot be the permission of the operation that starts the workflow. Decided by system-owner. Answer with a decision record that names Q-3 under answers. [Q-3]
+  Q-3:
+    question: Which permission does step managerCheck of workflow fine-waiver check? It cannot be the permission of the operation that starts the workflow.
+    kind: decision
+    priority: must
+    blocks: ['#/workflows/fine-waiver/steps/0/permission']
+    decidedBy: system-owner
+    why: The workflow table names who may approve and not the permission the approval checks.
+  # specarch-problem: question: open_question: (must, decision) How long does step managerCheck of workflow fine-waiver wait for an answer? Decided by system-owner. Answer with a decision record that names Q-4 under answers. [Q-4]
+  Q-4:
+    question: How long does step managerCheck of workflow fine-waiver wait for an answer?
+    kind: decision
+    priority: must
+    blocks: ['#/workflows/fine-waiver/steps/0/deadline']
+    decidedBy: system-owner
+    why: An approval has a deadline, as an ISO 8601 duration in days, hours, minutes and seconds; the table gives none it holds.
+  # specarch-problem: question: open_question: (must, decision) Which permission does step supervisorCheck of workflow fine-waiver check? It cannot be the permission of the operation that starts the workflow. Decided by system-owner. Answer with a decision record that names Q-5 under answers. [Q-5]
+  Q-5:
+    question: Which permission does step supervisorCheck of workflow fine-waiver check? It cannot be the permission of the operation that starts the workflow.
+    kind: decision
+    priority: must
+    blocks: ['#/workflows/fine-waiver/steps/1/permission']
+    decidedBy: system-owner
+    why: The workflow table names who may approve and not the permission the approval checks.
+  # specarch-problem: question: open_question: (must, decision) How long does step supervisorCheck of workflow fine-waiver wait for an answer? Decided by system-owner. Answer with a decision record that names Q-6 under answers. [Q-6]
+  Q-6:
+    question: How long does step supervisorCheck of workflow fine-waiver wait for an answer?
+    kind: decision
+    priority: must
+    blocks: ['#/workflows/fine-waiver/steps/1/deadline']
+    decidedBy: system-owner
+    why: An approval has a deadline, as an ISO 8601 duration in days, hours, minutes and seconds; the table gives none it holds.
+  # specarch-problem: question: open_question: (must, decision) Which permission does step supervisorCheck2 of workflow fine-waiver check? It cannot be the permission of the operation that starts the workflow. Decided by system-owner. Answer with a decision record that names Q-7 under answers. [Q-7]
+  Q-7:
+    question: Which permission does step supervisorCheck2 of workflow fine-waiver check? It cannot be the permission of the operation that starts the workflow.
+    kind: decision
+    priority: must
+    blocks: ['#/workflows/fine-waiver/steps/2/permission']
+    decidedBy: system-owner
+    why: The workflow table names who may approve and not the permission the approval checks.
+  # specarch-problem: question: open_question: (must, decision) How long does step supervisorCheck2 of workflow fine-waiver wait for an answer? Decided by system-owner. Answer with a decision record that names Q-8 under answers. [Q-8]
+  Q-8:
+    question: How long does step supervisorCheck2 of workflow fine-waiver wait for an answer?
+    kind: decision
+    priority: must
+    blocks: ['#/workflows/fine-waiver/steps/2/deadline']
+    decidedBy: system-owner
+    why: An approval has a deadline, as an ISO 8601 duration in days, hours, minutes and seconds; the table gives none it holds.
+  # specarch-problem: question: open_question: (must, decision) What happens when step supervisorCheck2 of workflow fine-waiver passes its deadline: is the request refused, or moved to a later approval? Decided by system-owner. Answer with a decision record that names Q-9 under answers. [Q-9]
+  Q-9:
+    question: 'What happens when step supervisorCheck2 of workflow fine-waiver passes its deadline: is the request refused, or moved to a later approval?'
+    kind: decision
+    priority: must
+    blocks: ['#/workflows/fine-waiver/steps/2/onDeadline']
+    decidedBy: system-owner
+    why: The workflow table does not say that the deadline ends the request or reaches a later approval.
+  # specarch-problem: question: open_question: (must, decision) Which operation does step waive of workflow fine-waiver call? The workflow table names no operation an operationId can name. Decided by system-owner. Answer with a decision record that names Q-10 under answers. [Q-10]
+  Q-10:
+    question: Which operation does step waive of workflow fine-waiver call? The workflow table names no operation an operationId can name.
+    kind: decision
+    priority: must
+    blocks: ['#/workflows/fine-waiver/steps/3/operation']
+    decidedBy: system-owner
+    why: An operation step calls an operation of the specification; the table does not say which.
+  # specarch-problem: question: open_question: (must, decision) Workflow fine-waiver of the workflow table leaves the sequential subset at step tell member: step tell member (sends the member the template waived) is neither an approval nor an operation. What are the steps of workflow fine-waiver from there? Decided by system-owner. Answer with a decision record that names Q-11 under answers. [Q-11]
+  Q-11:
+    question: 'Workflow fine-waiver of the workflow table leaves the sequential subset at step tell member: step tell member (sends the member the template waived) is neither an approval nor an operation. What are the steps of workflow fine-waiver from there?'
+    kind: decision
+    priority: must
+    blocks: ['#/workflows/fine-waiver']
+    decidedBy: system-owner
+    why: Only the steps before it are written, so the workflow may be missing a part of what the engine runs.
+  # specarch-problem: question: open_question: (must, decision) What does workflow renewal-request do, in a sentence a reviewer can check? The workflow table gives no description. Decided by system-owner. Answer with a decision record that names Q-12 under answers. [Q-12]
+  Q-12:
+    question: What does workflow renewal-request do, in a sentence a reviewer can check? The workflow table gives no description.
+    kind: decision
+    priority: must
+    blocks: ['#/workflows/renewal-request/description']
+    decidedBy: system-owner
+    why: The table gives the steps and not what the request is for.
+  # specarch-problem: question: open_question: (must, decision) Which entity holds the request of workflow renewal-request while it waits? Decided by system-owner. Answer with a decision record that names Q-13 under answers. [Q-13]
+  Q-13:
+    question: Which entity holds the request of workflow renewal-request while it waits?
+    kind: decision
+    priority: must
+    blocks: ['#/workflows/renewal-request/subject']
+    decidedBy: system-owner
+    why: The workflow table has no key for the record the request is kept in; the subject is where a page reads where the request is.
+  # specarch-problem: question: open_question: (must, decision) Which operation starts workflow renewal-request? The workflow table names no operation an operationId can name. Decided by system-owner. Answer with a decision record that names Q-14 under answers. [Q-14]
+  Q-14:
+    question: Which operation starts workflow renewal-request? The workflow table names no operation an operationId can name.
+    kind: decision
+    priority: must
+    blocks: ['#/workflows/renewal-request/trigger']
+    decidedBy: system-owner
+    why: A workflow starts from an operation that accepts the request and answers 202; the table does not say which.
+  # specarch-problem: question: open_question: (must, decision) What are the steps of workflow renewal-request? The workflow table gives none the subset holds. Decided by system-owner. Answer with a decision record that names Q-15 under answers. [Q-15]
+  Q-15:
+    question: What are the steps of workflow renewal-request? The workflow table gives none the subset holds.
+    kind: decision
+    priority: must
+    blocks: ['#/workflows/renewal-request/steps']
+    decidedBy: system-owner
+    why: A workflow has at least one step.
+  # specarch-problem: question: open_question: (must, decision) Which entity holds the request of workflow renewal-request-2 while it waits? Decided by system-owner. Answer with a decision record that names Q-16 under answers. [Q-16]
+  Q-16:
+    question: Which entity holds the request of workflow renewal-request-2 while it waits?
+    kind: decision
+    priority: must
+    blocks: ['#/workflows/renewal-request-2/subject']
+    decidedBy: system-owner
+    why: The workflow table has no key for the record the request is kept in; the subject is where a page reads where the request is.
+  # specarch-problem: question: open_question: (must, decision) Workflow renewal-request-2 is started by operation renewLoan, which the workflow table names as its trigger; the table does not declare it, so it waits for the tree that does. Is it that operation? Decided by system-owner. Answer with a decision record that names Q-17 under answers. [Q-17]
+  Q-17:
+    question: Workflow renewal-request-2 is started by operation renewLoan, which the workflow table names as its trigger; the table does not declare it, so it waits for the tree that does. Is it that operation?
+    kind: decision
+    priority: must
+    blocks: ['#/workflows/renewal-request-2/trigger']
+    decidedBy: system-owner
+    names: renewLoan
+    why: The table names the operation and not its method or path, so the workflow's trigger waits for the tree that declares it; specarch merge writes it once one does.
+  # specarch-problem: question: open_question: (must, decision) Which roles may approve step approve of workflow renewal-request-2? The workflow table names no approver. Decided by system-owner. Answer with a decision record that names Q-18 under answers. [Q-18]
+  Q-18:
+    question: Which roles may approve step approve of workflow renewal-request-2? The workflow table names no approver.
+    kind: decision
+    priority: must
+    blocks: ['#/workflows/renewal-request-2/steps/0/approvers']
+    decidedBy: system-owner
+    why: An approval names the roles that may approve it.
+  # specarch-problem: question: open_question: (must, decision) Which permission does step approve of workflow renewal-request-2 check? It cannot be the permission of the operation that starts the workflow. Decided by system-owner. Answer with a decision record that names Q-19 under answers. [Q-19]
+  Q-19:
+    question: Which permission does step approve of workflow renewal-request-2 check? It cannot be the permission of the operation that starts the workflow.
+    kind: decision
+    priority: must
+    blocks: ['#/workflows/renewal-request-2/steps/0/permission']
+    decidedBy: system-owner
+    why: The workflow table names who may approve and not the permission the approval checks.
+  # specarch-problem: question: open_question: (must, decision) Which permissions does role branch-manager grant? The workflow table names it as an approver and says nothing of what it may do. Decided by system-owner. Answer with a decision record that names Q-20 under answers. [Q-20]
+  Q-20:
+    question: Which permissions does role branch-manager grant? The workflow table names it as an approver and says nothing of what it may do.
+    kind: decision
+    priority: must
+    blocks: ['#/roles/branch-manager/permissions']
+    decidedBy: system-owner
+    why: An approver in the workflow table is a name; the grants are where the running permission check reads them.
+  # specarch-problem: question: open_question: (must, decision) What is role branch-manager, in a sentence a reviewer can check? Decided by system-owner. Answer with a decision record that names Q-21 under answers. [Q-21]
+  Q-21:
+    question: What is role branch-manager, in a sentence a reviewer can check?
+    kind: decision
+    priority: must
+    blocks: ['#/roles/branch-manager/description']
+    decidedBy: system-owner
+    why: The workflow table names the role and does not describe it.
+  # specarch-problem: question: open_question: (must, decision) Which permissions does role desk-supervisor grant? The workflow table names it as an approver and says nothing of what it may do. Decided by system-owner. Answer with a decision record that names Q-22 under answers. [Q-22]
+  Q-22:
+    question: Which permissions does role desk-supervisor grant? The workflow table names it as an approver and says nothing of what it may do.
+    kind: decision
+    priority: must
+    blocks: ['#/roles/desk-supervisor/permissions']
+    decidedBy: system-owner
+    why: An approver in the workflow table is a name; the grants are where the running permission check reads them.
+  # specarch-problem: question: open_question: (must, decision) What is role desk-supervisor, in a sentence a reviewer can check? Decided by system-owner. Answer with a decision record that names Q-23 under answers. [Q-23]
+  Q-23:
+    question: What is role desk-supervisor, in a sentence a reviewer can check?
+    kind: decision
+    priority: must
+    blocks: ['#/roles/desk-supervisor/description']
+    decidedBy: system-owner
+    why: The workflow table names the role and does not describe it.
+  # specarch-problem: question: open_question: (could, decision) Not held: engine/flows/fines.json: workflow fine-waiver: approver "Branch Manager" of step manager check is written as the role branch-manager. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-24 under answers. [Q-24]
+  Q-24:
+    question: 'Not held: engine/flows/fines.json: workflow fine-waiver: approver "Branch Manager" of step manager check is written as the role branch-manager. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/workflows/fine-waiver']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: engine/flows/fines.json, says: 'Not held: workflow fine-waiver: approver "Branch Manager" of step manager check is written as the role branch-manager.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: engine/flows/fines.json: workflow fine-waiver: approver "!!" of step manager check is not a name a role can take; left out. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-25 under answers. [Q-25]
+  Q-25:
+    question: 'Not held: engine/flows/fines.json: workflow fine-waiver: approver "!!" of step manager check is not a name a role can take; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/workflows/fine-waiver']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: engine/flows/fines.json, says: 'Not held: workflow fine-waiver: approver "!!" of step manager check is not a name a role can take; left out.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: engine/flows/fines.json: workflow fine-waiver: step supervisor check names manager check to escalate to and does not escalate on its deadline; left out. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-26 under answers. [Q-26]
+  Q-26:
+    question: 'Not held: engine/flows/fines.json: workflow fine-waiver: step supervisor check names manager check to escalate to and does not escalate on its deadline; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/workflows/fine-waiver']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: engine/flows/fines.json, says: 'Not held: workflow fine-waiver: step supervisor check names manager check to escalate to and does not escalate on its deadline; left out.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: engine/flows/fines.json: workflow fine-waiver: step Supervisor-Check: step supervisorCheck is taken by an earlier step; it is named supervisorCheck2. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-27 under answers. [Q-27]
+  Q-27:
+    question: 'Not held: engine/flows/fines.json: workflow fine-waiver: step Supervisor-Check: step supervisorCheck is taken by an earlier step; it is named supervisorCheck2. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/workflows/fine-waiver']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: engine/flows/fines.json, says: 'Not held: workflow fine-waiver: step Supervisor-Check: step supervisorCheck is taken by an earlier step; it is named supervisorCheck2.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: engine/flows/fines.json: workflow fine-waiver: it emits fines, which is not a channel and one of its messages written channel/Message; left out. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-28 under answers. [Q-28]
+  Q-28:
+    question: 'Not held: engine/flows/fines.json: workflow fine-waiver: it emits fines, which is not a channel and one of its messages written channel/Message; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/workflows/fine-waiver']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: engine/flows/fines.json, says: 'Not held: workflow fine-waiver: it emits fines, which is not a channel and one of its messages written channel/Message; left out.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: engine/flows/fines.json: workflow fine-waiver: it ends by publishing fines/FineWaived, and a workflow's emits name messages declared under channels, which the workflow table does not declare; left out. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-29 under answers. [Q-29]
+  Q-29:
+    question: 'Not held: engine/flows/fines.json: workflow fine-waiver: it ends by publishing fines/FineWaived, and a workflow''s emits name messages declared under channels, which the workflow table does not declare; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/workflows/fine-waiver']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: engine/flows/fines.json, says: 'Not held: workflow fine-waiver: it ends by publishing fines/FineWaived, and a workflow''s emits name messages declared under channels, which the workflow table does not declare; left out.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: engine/flows/renewals.json: workflow Renewal Request: its trigger's form has the fields loanId (string) and weeks (number), and a workflow's form is the request body of its trigger's operation, which the tree that declares the operation gives; left out. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-30 under answers. [Q-30]
+  Q-30:
+    question: 'Not held: engine/flows/renewals.json: workflow Renewal Request: its trigger''s form has the fields loanId (string) and weeks (number), and a workflow''s form is the request body of its trigger''s operation, which the tree that declares the operation gives; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/workflows/renewal-request']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: engine/flows/renewals.json, says: 'Not held: workflow Renewal Request: its trigger''s form has the fields loanId (string) and weeks (number), and a workflow''s form is the request body of its trigger''s operation, which the tree that declares the operation gives; left out.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: engine/flows: workflow renewal_request: its file engine/seeds/renewals.json is not under engine/flows, the folder the table was printed from; the workflow cites the folder. Does the specification need it, written another way or described by hand? It blocks workflows. Decided by system-owner. Answer with a decision record that names Q-31 under answers. [Q-31]
+  Q-31:
+    question: 'Not held: engine/flows: workflow renewal_request: its file engine/seeds/renewals.json is not under engine/flows, the folder the table was printed from; the workflow cites the folder. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: [workflows]
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: engine/flows, says: 'Not held: workflow renewal_request: its file engine/seeds/renewals.json is not under engine/flows, the folder the table was printed from; the workflow cites the folder.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: engine/flows: workflow renewal_request: workflow renewal-request is taken by another workflow of the table; it is named renewal-request-2. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-32 under answers. [Q-32]
+  Q-32:
+    question: 'Not held: engine/flows: workflow renewal_request: workflow renewal-request is taken by another workflow of the table; it is named renewal-request-2. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/workflows/renewal-request-2']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: engine/flows, says: 'Not held: workflow renewal_request: workflow renewal-request is taken by another workflow of the table; it is named renewal-request-2.'}

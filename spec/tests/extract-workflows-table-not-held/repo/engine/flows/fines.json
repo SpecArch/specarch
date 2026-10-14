@@ -1,0 +1,14 @@
+{
+  "action": "fine-waiver",
+  "summary": "A fine is waived after a branch manager and then a desk supervisor approve.",
+  "start": {"endpoint": "request-fine-waiver"},
+  "flow": [
+    {"type": "approve", "id": "manager check", "role": ["Branch Manager", "!!"], "timeout": "P1W", "onTimeout": "escalate", "escalate": "supervisor check"},
+    {"type": "approve", "id": "supervisor check", "role": ["desk-supervisor"], "onTimeout": "reject", "escalate": "manager check"},
+    {"type": "approve", "id": "Supervisor-Check", "role": ["desk-supervisor"], "timeout": "PT0S", "onTimeout": "archive"},
+    {"type": "call", "id": "waive", "endpoint": "waive-fine"},
+    {"type": "notify", "id": "tell member", "template": "waived"},
+    {"type": "call", "id": "close", "endpoint": "closeFine"}
+  ],
+  "publish": ["fines/FineWaived", "fines", "fines/FineWaived"]
+}

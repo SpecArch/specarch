@@ -1,0 +1,30 @@
+arguments: [extract, workflows, --table, --out, spec, repo/engine/workflow-table.json]
+repository:
+  folder: repo
+  commits:
+    - [engine/flows]
+    - [engine/workflow-table.json]
+exitStatus: 0
+standardOutput: |
+  commit 6322453f60d2acc29ebab81f314ff8403d7a637a: the last change to engine/flows, as the workflow table engine/workflow-table.json names it
+  counted 3 workflows, 4 approval steps, 2 operation steps and 1 other step: every entry of the workflow table's list and of each one's steps, which hold every workflow the engine loads
+  wrote 3 workflows, 2 roles and 32 questions: one workflow per workflow of the table, one role per approver, and one question per thing the table does not say or the subset does not hold
+  not held: engine/flows/fines.json: workflow fine-waiver: its trigger names operation request-fine-waiver, which is not a name an operationId can take; asked for instead; must question Q-2
+  not held: engine/flows/fines.json: workflow fine-waiver: approver "Branch Manager" of step manager check is written as the role branch-manager; could question Q-24
+  not held: engine/flows/fines.json: workflow fine-waiver: approver "!!" of step manager check is not a name a role can take; left out; could question Q-25
+  not held: engine/flows/fines.json: workflow fine-waiver: step manager check waits P1W, and a deadline is an ISO 8601 duration in days, hours, minutes and seconds that is not zero; asked for instead; must question Q-4
+  not held: engine/flows/fines.json: workflow fine-waiver: step supervisor check names manager check to escalate to and does not escalate on its deadline; left out; could question Q-26
+  not held: engine/flows/fines.json: workflow fine-waiver: step Supervisor-Check: step supervisorCheck is taken by an earlier step; it is named supervisorCheck2; could question Q-27
+  not held: engine/flows/fines.json: workflow fine-waiver: step Supervisor-Check waits PT0S, and a deadline is an ISO 8601 duration in days, hours, minutes and seconds that is not zero; asked for instead; must question Q-8
+  not held: engine/flows/fines.json: workflow fine-waiver: step Supervisor-Check does "archive" on its deadline, which is neither refuse nor escalate; asked for instead; must question Q-9
+  not held: engine/flows/fines.json: workflow fine-waiver: step waive names operation waive-fine, which is not a name an operationId can take; asked for instead; must question Q-10
+  not held: engine/flows/fines.json: workflow fine-waiver: step tell member (sends the member the template waived) is neither an approval nor an operation; the steps after it are left out; must question Q-11
+  not held: engine/flows/fines.json: workflow fine-waiver: it emits fines, which is not a channel and one of its messages written channel/Message; left out; could question Q-28
+  not held: engine/flows/fines.json: workflow fine-waiver: it ends by publishing fines/FineWaived, and a workflow's emits name messages declared under channels, which the workflow table does not declare; left out; could question Q-29
+  not held: engine/flows/renewals.json: workflow Renewal Request: its trigger's form has the fields loanId (string) and weeks (number), and a workflow's form is the request body of its trigger's operation, which the tree that declares the operation gives; left out; could question Q-30
+  not held: engine/flows: workflow renewal_request: its file engine/seeds/renewals.json is not under engine/flows, the folder the table was printed from; the workflow cites the folder; could question Q-31
+  not held: engine/flows: workflow renewal_request: workflow renewal-request is taken by another workflow of the table; it is named renewal-request-2; could question Q-32
+  derived 0 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers
+  not derived: 11 draft tests for workflow fine-waiver, held up by Q-1, Q-10, Q-11, Q-2, Q-3, Q-4, Q-5, Q-6, Q-7, Q-8, Q-9; the validator warns for them until the questions are answered
+  not derived: 1 draft test for workflow renewal-request, held up by Q-12, Q-13, Q-14, Q-15; the validator warns for them until the questions are answered
+  not derived: 5 draft tests for workflow renewal-request-2, held up by Q-16, Q-17, Q-18, Q-19; the validator warns for them until the questions are answered

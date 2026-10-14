@@ -1,0 +1,14 @@
+arguments: [extract, workflows, --table, --out, spec, repo/workflow-table.json]
+repository:
+  folder: repo
+  commits:
+    - [flows, workflows]
+    - [workflow-table.json]
+exitStatus: 0
+standardOutput: |
+  commit 9caf770c61d4f54c22956dbb8c57cfe9bb11f7f8: the last change to flows, as the workflow table workflow-table.json names it
+  counted 1 workflow, 1 approval step, 1 operation step and 0 other steps: every entry of the workflow table's list and of each one's steps, which hold every workflow the engine loads
+  wrote 1 workflow, 1 role and 7 questions: one workflow per workflow of the table, one role per approver, and one question per thing the table does not say or the subset does not hold
+  not held: flows/write-off.json: workflow write-off: its trigger's form has the fields loanId (string) and reason (text), and a workflow's form is the request body of its trigger's operation, which the tree that declares the operation gives; left out; could question Q-7
+  derived 0 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers
+  not derived: 5 draft tests for workflow write-off, held up by Q-1, Q-2, Q-3, Q-4; the validator warns for them until the questions are answered

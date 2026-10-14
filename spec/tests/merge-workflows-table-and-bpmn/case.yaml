@@ -1,0 +1,15 @@
+arguments: [merge, --out, spec, trees/bpmn, trees/table]
+exitStatus: 0
+standardOutput: |
+  tree trees/bpmn: Workflows of workflows/write-off.bpmn, on the code side: 3 elements and 6 questions
+  tree trees/table: Workflows of flows, on the code, printed side: 3 elements and 7 questions
+  asked twice: Q-1 of trees/table, on #/workflows/write-off/subject, is left out; Q-1 of trees/bpmn asks it
+  asked twice: Q-2 of trees/table, on #/workflows/write-off/trigger, is left out; Q-2 of trees/bpmn asks it
+  asked twice: Q-3 of trees/table, on #/workflows/write-off/steps/0/permission, is left out; Q-3 of trees/bpmn asks it
+  asked twice: Q-4 of trees/table, on #/workflows/write-off/steps/1/operation, is left out; Q-4 of trees/bpmn asks it
+  asked twice: Q-5 of trees/table, on #/roles/desk-supervisor/permissions, is left out; Q-5 of trees/bpmn asks it
+  asked twice: Q-6 of trees/table, on #/roles/desk-supervisor/description, is left out; Q-6 of trees/bpmn asks it
+  merged 3 elements, each an entry of a section or an operation: 3 in more than one tree, and 0 keys the trees disagree on
+  wrote 7 questions: 7 from the trees, numbered again in the order the trees are given, and 0 the merge asked
+  derived 0 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers
+  not derived: 5 draft tests for workflow write-off, held up by Q-1, Q-2, Q-3, Q-4; the validator warns for them until the questions are answered

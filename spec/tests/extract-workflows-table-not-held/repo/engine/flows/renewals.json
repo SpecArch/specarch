@@ -1,0 +1,6 @@
+{
+  "actions": [
+    {"action": "Renewal Request", "start": {"form": {"loanId": "string", "weeks": "number"}}},
+    {"action": "renewal_request", "flow": []}
+  ]
+}

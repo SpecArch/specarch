@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.0-dev of the specification: 449 design tests, 200 golden and 249 red, about 15 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.0-dev of the specification: 454 design tests, 203 golden and 251 red, about 15 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.7.0-dev of the specification: 449 design tests, 200 golden and 249 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 445 |
+| system | 450 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -1291,6 +1291,38 @@ Scenario: golden; level: system; verifies SA-58.
 - When: extract workflows is run on the file
 - Then: it writes workflow reinstate with its one approval, its approver and its deadline, reads the default flow as the refusal and the other as the end of the approved request, and exits 0
 
+#### extract-workflows-table
+
+Scenario: golden; level: system; verifies SA-44.
+
+- Given: a repository whose engine loads the write-off workflow from a definition file of its own format, and the workflow table its printer wrote of that folder: the trigger requestWriteOff with a form of two fields, an approval by desk-supervisor within P2D refused on its deadline, and an operation step calling writeOffLoan
+- When: extract workflows --table is run on the table
+- Then: it writes workflow write-off citing the definition file, with the description, steps, approvers, deadline and onDeadline the BPMN reading of the same workflow gives, a question naming requestWriteOff for the trigger and writeOffLoan for the operation step, the subject and the approval's permission asked for, role desk-supervisor with its two questions, a line and a could question for the form's fields, and exits 0
+
+#### extract-workflows-table-not-held
+
+Scenario: golden; level: system; verifies SA-44.
+
+- Given: a workflow table of three workflows: one whose trigger and operation step name operations an operationId cannot take, whose approvals name a role in words and one no role can take, wait a week and zero seconds, escalate to a later approval, name an escalation without escalating, do an unknown thing on their deadline and share a name in camelCase, followed by a step of another kind and an operation after it, and that emits a message and a word; one with no description, no trigger operation, a form and no steps; and one whose name is taken in kebab-case and whose file is outside the folder
+- When: extract workflows --table is run on the table
+- Then: it writes the three workflows with what the subset holds, the second step named supervisorCheck2 and the escalation kept, the steps from the other step left out with a must question on the workflow, a must question for each thing asked for instead, a line for each thing not held in the order of the workflows and their steps, each a could question unless a must question asks it, and exits 0
+
+#### extract-workflows-table-not-offered
+
+Scenario: red; level: system; covers exit 2; verifies SA-44.
+
+- Given: a workflow table
+- When: extract router is run on it with --table
+- Then: it says only workflows takes --table, writes nothing and exits 2
+
+#### extract-workflows-table-refused
+
+Scenario: red; level: system; covers exit 1; verifies SA-44.
+
+- Given: a committed workflow table whose approval step has no escalateTo key
+- When: extract workflows --table is run on it
+- Then: it says which workflow and step lacks the key and the keys such a step holds, writes nothing and exits 1
+
 #### extract-workflows-writes-tree
 
 Scenario: golden; level: system; verifies SA-44.
@@ -2070,6 +2102,14 @@ Scenario: golden; level: system; verifies SA-45.
 - Given: the tree of a route table that declares requestWriteOff, and the tree of a BPMN file whose workflow leaves its trigger and its service task's operation out, each with a must question naming the operation, requestWriteOff and writeOffLoan
 - When: merge is run on the two trees
 - Then: the trigger is written as requestWriteOff after the workflow's description and its question is left out as joined, naming the tree that declares it; the question for writeOffLoan, which no tree declares, stays open; it exits 0
+
+#### merge-workflows-table-and-bpmn
+
+Scenario: golden; level: system; verifies SA-45.
+
+- Given: the tree extract workflows wrote of a BPMN file defining the write-off workflow, and the tree extract workflows --table wrote of the workflow table of the same workflow in an engine's own format, both read from one repository at one commit
+- When: merge is run on the two trees
+- Then: it writes one workflow write-off whose description and steps both trees give alike, citing the BPMN file and the table's definition file, role desk-supervisor citing both, the source's clauses joined, each question the table's tree asks again at the same key left out as asked twice, the could question for the form kept, and exits 0
 
 ### Command validate
 

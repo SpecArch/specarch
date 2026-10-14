@@ -184,6 +184,20 @@ func Workflows(path, out, key string) (*Result, error) {
 	for _, p := range processes {
 		wr.process(p)
 	}
+	src, err := codeSource(r, out, []*yaml.Node{flow(mapping("clause", file, "title", "The BPMN 2.0 process definitions"))})
+	if err != nil {
+		return nil, err
+	}
+	description := fmt.Sprintf("The workflows the BPMN 2.0 file %s defines at commit %s, in the sequential subset the meta-model holds: approvals, operation steps and deadlines. Every workflow cites the file; what it does not say, or says outside the subset, is a question.\n", file, r.Commit)
+	wr.finish(src, "Workflows of "+file, description, "one workflow per process, one role per potential owner, and one question per thing the file does not say or the subset does not hold",
+		"The BPMN file names it as a potential owner and says nothing of what it may do.", "A potential owner in BPMN is a name; the grants are where the running permission check reads them.", "The BPMN file names the role and does not describe it.")
+	return wr.res, nil
+}
+
+// finish writes the tree of the workflows read: the roles with their two
+// questions each, the workflows, the questions, the line counting what was
+// written, the lines for what was not held, and the root file.
+func (wr *workflowReader) finish(src *yaml.Node, title, description, wroteWhat, roleSays, grantsWhy, describeWhy string) {
 	design := mapping()
 	if len(wr.roles) > 0 {
 		names := make([]string, 0, len(wr.roles))
@@ -194,10 +208,10 @@ func Workflows(path, out, key string) (*Result, error) {
 		roles := mapping()
 		for _, name := range names {
 			set(roles, name, mapping("origin", "stated", "cites", wr.roles[name]))
-			wr.question(fmt.Sprintf("Which permissions does role %s grant? The BPMN file names it as a potential owner and says nothing of what it may do.", name),
-				[]string{"#/roles/" + name + "/permissions"}, "", "A potential owner in BPMN is a name; the grants are where the running permission check reads them.")
+			wr.question(fmt.Sprintf("Which permissions does role %s grant? %s", name, roleSays),
+				[]string{"#/roles/" + name + "/permissions"}, "", grantsWhy)
 			wr.question(fmt.Sprintf("What is role %s, in a sentence a reviewer can check?", name),
-				[]string{"#/roles/" + name + "/description"}, "", "The BPMN file names the role and does not describe it.")
+				[]string{"#/roles/" + name + "/description"}, "", describeWhy)
 		}
 		set(design, "roles", roles)
 	}
@@ -207,33 +221,32 @@ func Workflows(path, out, key string) (*Result, error) {
 	res.Tree.put("design/workflows.yaml", design)
 	res.Tree.put("requirements/stakeholders.yaml", mapping("stakeholders", ownerStakeholder()))
 	res.Tree.put("design/questions.yaml", mapping("questions", wr.questions))
-	src, err := codeSource(r, out, []*yaml.Node{flow(mapping("clause", file, "title", "The BPMN 2.0 process definitions"))})
-	if err != nil {
-		return nil, err
-	}
 	sort.SliceStable(wr.notHeld, func(i, j int) bool { return wr.notHeld[i].line < wr.notHeld[j].line })
 	var held []notHeld
 	for _, h := range wr.notHeld {
 		held = append(held, h.notHeld)
 	}
-	res.say("wrote %s, %s and %s: one workflow per process, one role per potential owner, and one question per thing the file does not say or the subset does not hold",
-		plural(len(wr.workflows.Content)/2, "workflow"), plural(len(wr.roles), "role"), plural(wr.nextID+couldCount(oneQuestions(wr.questions), held), "question"))
+	res.say("wrote %s, %s and %s: %s",
+		plural(len(wr.workflows.Content)/2, "workflow"), plural(len(wr.roles), "role"), plural(wr.nextID+couldCount(oneQuestions(wr.questions), held), "question"), wroteWhat)
 	askNotHeld(res, oneQuestions(wr.questions), &wr.nextID, wr.key, held)
-	description := fmt.Sprintf("The workflows the BPMN 2.0 file %s defines at commit %s, in the sequential subset the meta-model holds: approvals, operation steps and deadlines. Every workflow cites the file; what it does not say, or says outside the subset, is a question.\n", file, r.Commit)
-	res.Tree.put("specarch.yaml", rootFile("Workflows of "+file, description, []string{"requirements", "design"}, mapping(key, src)))
-	return res, nil
+	res.Tree.put("specarch.yaml", rootFile(title, description, []string{"requirements", "design"}, mapping(wr.key, src)))
 }
 
 // gap records what the subset does not hold at an element of the file,
 // blocking the workflow being read, or the workflows outside a process.
 // asked is the pointer a question the reader asks for it blocks, or "".
 func (wr *workflowReader) gap(e *xmlElement, asked string, format string, args ...any) {
+	wr.gapAt(e.line, fmt.Sprintf("%s:%d", wr.file, e.line), asked, format, args...)
+}
+
+// gapAt records what is not held where the source says it, at a clause,
+// ordered by line: the line of the file, or the order read.
+func (wr *workflowReader) gapAt(line int, clause, asked string, format string, args ...any) {
 	block := wr.at
 	if block == "" {
 		block = "workflows"
 	}
-	clause := fmt.Sprintf("%s:%d", wr.file, e.line)
-	wr.notHeld = append(wr.notHeld, heldLine{e.line, notHeld{text: clause + ": " + fmt.Sprintf(format, args...), clause: clause, blocks: []string{block}, asked: asked}})
+	wr.notHeld = append(wr.notHeld, heldLine{line, notHeld{text: clause + ": " + fmt.Sprintf(format, args...), clause: clause, blocks: []string{block}, asked: asked}})
 }
 
 // question asks a must question; names is the name the file gives for the

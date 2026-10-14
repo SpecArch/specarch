@@ -36,7 +36,7 @@ facts in a format SpecArch defines, never a reader of its own.
 | 5. authorisation by path pattern | built, item 3 (ADR-100): `implies` on a permission, counted by every check of a role's grants, and `rules` in the permission table, read with the route table by `extract permissions --routes`; a permission defined by a pattern is declined |
 | 6. a check bypassed for one kind of caller | built, item 7 (ADR-114): `bypassedFor: client` on a gate of the permission table and on a check the implementation file names, one `must` question at every operation the check guards, joined by `merge`; a route that serves people and clients both lists them in `callers` (`docs/caller-context.md`, ADR-110) |
 | 7. the schema file's name; the facts dump from the installed binary | built, item 8: `bindings.ui.schemaFile`, read by `extract pages` and written by `specarch-gen-ui-typescript` (ADR-115); `specarch facts` for JavaScript, Swift and Dart, the JavaScript reader inside the binary on typescript-go with no Node (ADR-116) |
-| 8. workflow definitions that are not BPMN | planned as a printed workflow table, item 9, since the estate's format is custom; a standard format gets a plug-in reader (decision 5) |
+| 8. workflow definitions that are not BPMN | built, item 9 (ADR-118): the workflow table, `workflowTable: 1`, printed by the project's printer through `tools/workflows/dump-workflows.sh` and read by `extract workflows --table` with the BPMN reader's questions at the same keys, so `merge` joins the two readings of one workflow; a standard format gets a reader of its own (decision 5) |
 | 9. audience, requirements held elsewhere, material questions, partial answers, row citations | planned, items 10 and 11; a row citation is shipped in 0.6.0 as a clause that carries the row's identifier |
 | 10. `--given-outside`, two routes for one list, generated defaults, indexes, a source key from capitals | `--given-outside` built, item 4 (ADR-105); the rest planned, item 12; an index goes to the implementation file; the source key from capitals is on main already, after 0.6.0 |
 | 11. generation targets | shipped: the OpenAPI document and SQL migrations (0.4.0), the Next.js UI with task pages and a private component library through an idiom override (0.6.0); declined: Go server interfaces, which the stack's OpenAPI code generator makes from the document; planned later: sqlc queries, item 13 |
@@ -91,7 +91,7 @@ at A's root as it does today, so `specarch merge` finds A to compare
 editions, and B's commit of the dump appears nowhere in the tree: a
 commit elsewhere in B leaves the output byte for byte as it was. Every
 printer script (`dump-catalogue.sh`, `dump-routes.sh`,
-`dump-permissions.sh`, the three `dump-<language>.sh`) takes the dump
+`dump-permissions.sh`, `dump-workflows.sh`, the three `dump-<language>.sh`) takes the dump
 file's place as it does now and writes `repository` by itself when the
 dump file's repository is not the folder's; nothing is asked of the
 project's own printer beyond the one key. A dump without `repository`
@@ -646,7 +646,7 @@ step 1. Only item 7's meta-model half touches 0.3.
    `extract pages --facts` reads it byte for byte as today's dump, and a
    page whose schema is `_schema.ts` is read through the binding.
   
-9. The workflow table. The format, `extract workflows --table`, and a
+9. Built (ADR-118). The workflow table. The format, `extract workflows --table`, and a
    conformance case whose table gives the write-off workflow the BPMN
    case gives. Done when both readings merge into one workflow with
    both citations.

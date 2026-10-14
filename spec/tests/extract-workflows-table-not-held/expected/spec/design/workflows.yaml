@@ -1,0 +1,52 @@
+roles:
+  branch-manager:
+    origin: stated
+    cites:
+      - {source: code, clause: engine/flows/fines.json, says: The workflow table names role branch-manager as an approver of step manager check of workflow fine-waiver.}
+  desk-supervisor:
+    origin: stated
+    cites:
+      - {source: code, clause: engine/flows/fines.json, says: The workflow table names role desk-supervisor as an approver of step supervisor check of workflow fine-waiver.}
+      - {source: code, clause: engine/flows/fines.json, says: The workflow table names role desk-supervisor as an approver of step Supervisor-Check of workflow fine-waiver.}
+workflows:
+  fine-waiver:
+    description: A fine is waived after a branch manager and then a desk supervisor approve.
+    steps:
+      - name: managerCheck
+        kind: approval
+        approvers: [branch-manager]
+        onDeadline: escalate
+        escalateTo: supervisorCheck
+      - name: supervisorCheck
+        kind: approval
+        approvers: [desk-supervisor]
+        onDeadline: refuse
+      - name: supervisorCheck2
+        kind: approval
+        approvers: [desk-supervisor]
+      - name: waive
+        kind: operation
+    origin: stated
+    cites:
+      - {source: code, clause: engine/flows/fines.json, says: 'The workflow table prints workflow fine-waiver, with the steps manager check, supervisor check, Supervisor-Check and waive in that order.'}
+  # specarch-problem: warning: test_golden_missing: workflow renewal-request has no golden scenario; add one under tests, for example renewal-request-succeeds: { workflow: renewal-request, scenario: golden, given: "any caller", when: "a request is made through its trigger", then: "it answers 202, and the request ends approved" } [test_golden_missing@design/workflows.yaml#/workflows/renewal-request]
+  # specarch-problem: warning: test_red_missing: workflow renewal-request has no red scenario; add one under tests, for example renewal-request-refused: { workflow: renewal-request, scenario: red, given: "...", when: "...", then: "it is refused" } [test_red_missing@design/workflows.yaml#/workflows/renewal-request]
+  renewal-request:
+    origin: stated
+    cites:
+      - {source: code, clause: engine/flows/renewals.json, says: The workflow table prints workflow Renewal Request.}
+  # specarch-problem: warning: test_case_missing: workflow renewal-request-2 has no red scenario for "approval without the permission of approve"; add under tests renewal-request-2-approval-without-the-permission-of-approve: { workflow: renewal-request-2, scenario: red, covers: [approval without the permission of approve], given: "a caller without the permission of approve", when: "they approve a request waiting at approve", then: "it is refused as not allowed, and the request still waits" } [test_case_missing.617c33fb@design/workflows.yaml#/workflows/renewal-request-2]
+  # specarch-problem: warning: test_case_missing: workflow renewal-request-2 has no red scenario for "refused at approve"; add under tests renewal-request-2-refused-at-approve: { workflow: renewal-request-2, scenario: red, covers: [refused at approve], given: "a request waiting at approve", when: "a caller with the permission of approve refuses it", then: "the request ends refused" } [test_case_missing.9a4e8691@design/workflows.yaml#/workflows/renewal-request-2]
+  # specarch-problem: warning: test_case_missing: workflow renewal-request-2 has no red scenario for "requester approves own request"; add under tests renewal-request-2-requester-approves-own-request: { workflow: renewal-request-2, scenario: red, covers: [requester approves own request], given: "a request made by a caller who also holds the permission of approve", when: "the requester approves it", then: "it is refused, because the person who made a request never approves it, and the request still waits" } [test_case_missing.b896858b@design/workflows.yaml#/workflows/renewal-request-2]
+  # specarch-problem: warning: test_case_missing: workflow renewal-request-2 has no red scenario for "deadline passes at approve"; add under tests renewal-request-2-deadline-passes-at-approve: { workflow: renewal-request-2, scenario: red, covers: [deadline passes at approve], given: "a request waiting at approve", when: "P3D passes with no answer", then: "the request ends refused" } [test_case_missing.eb8e0af2@design/workflows.yaml#/workflows/renewal-request-2]
+  # specarch-problem: warning: test_golden_missing: workflow renewal-request-2 has no golden scenario; add one under tests, for example renewal-request-2-succeeds: { workflow: renewal-request-2, scenario: golden, given: "any caller", when: "a request is made through its trigger and is approved at approve", then: "it answers 202, and the request ends approved" } [test_golden_missing@design/workflows.yaml#/workflows/renewal-request-2]
+  renewal-request-2:
+    description: A renewal read from the seeds.
+    steps:
+      - name: approve
+        kind: approval
+        deadline: P3D
+        onDeadline: refuse
+    origin: stated
+    cites:
+      - {source: code, clause: engine/flows, says: 'The workflow table prints workflow renewal_request, with the step approve.'}

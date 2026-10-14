@@ -39,7 +39,7 @@ facts in a format SpecArch defines, never a reader of its own.
 | 8. workflow definitions that are not BPMN | built, item 9 (ADR-118): the workflow table, `workflowTable: 1`, printed by the project's printer through `tools/workflows/dump-workflows.sh` and read by `extract workflows --table` with the BPMN reader's questions at the same keys, so `merge` joins the two readings of one workflow; a standard format gets a reader of its own (decision 5) |
 | 9. audience, requirements held elsewhere, material questions, partial answers, row citations | audience and requirements held elsewhere built, item 10 (ADR-119): `audience: internal` on any element named by a key, the error `audience` where an element for everyone names an internal one, `document --audience external --out` leaving the internal elements out and counting them, and `ownedBy` with `fulfilledBy` on a requirement, exempt from the satisfied and verified warnings and listed under Requirements held elsewhere; the material questions in a group of their own, `opens` on a decision with the rule `question_opened` and the chain in `gaps`, and the outputs table counting questions per stage built, item 11 (ADR-120); a row citation is shipped in 0.6.0 as a clause that carries the row's identifier |
 | 10. `--given-outside`, two routes for one list, generated defaults, indexes, a source key from capitals | `--given-outside` built, item 4 (ADR-105); two routes for one list, generated defaults and indexes built, item 12 (ADR-121), an index in the implementation file; the source key from capitals is on main already, after 0.6.0 |
-| 11. generation targets | shipped: the OpenAPI document and SQL migrations (0.4.0), the Next.js UI with task pages and a private component library through an idiom override (0.6.0); declined: Go server interfaces, which the stack's OpenAPI code generator makes from the document; planned later: sqlc queries, item 13 |
+| 11. generation targets | shipped: the OpenAPI document and SQL migrations (0.4.0), the Next.js UI with task pages and a private component library through an idiom override (0.6.0); declined: Go server interfaces, which the stack's OpenAPI code generator makes from the document; sqlc queries built, item 13 (ADR-123), in PostgreSQL, checked against the lending desk's queries written by hand, the check against a real project's first query file still owed |
 | 12. output a CI gate compares with the code | planned later, item 14, on the readers and `merge` |
 
 ## Must have
@@ -532,12 +532,18 @@ stage blocked, a count and the first identifiers rather than every one.
 - Versioned SQL migrations: shipped in 0.4.0, `specarch-gen-sql`,
   PostgreSQL among its dialects, new files only, expand and contract,
   with the snapshot and `--check`.
-- sqlc queries from the data model: a plausible later plug-in,
-  `specarch-gen-sqlc`, writing the queries SpecArch can derive, one per
-  operation that reads or writes an entity by its key and one per list
-  with its filters and sorts, and leaving every other query to be
-  written by hand, which is sqlc's own rule. Item 13, after a real
-  project's first hand-written query file to check against.
+- sqlc queries from the data model: `specarch-gen-sqlc` (ADR-123),
+  writing the queries SpecArch can derive by keyword, an insert of an
+  entity, a read, replacement or amendment by a key of one field, and a
+  page of each list with its filters, search and sorts and its total, in
+  PostgreSQL, against the tables `specarch-gen-sql` writes, and leaving
+  every other query to be written by hand, which is sqlc's own rule
+  (`docs/generators.md`, Queries for sqlc). A query file written by hand
+  is compared, never written over. No real project's query file existed
+  to check it against, so it is checked against the lending desk's,
+  written by hand for this (decided 2026-10-14); a real project's first
+  file is still owed, and decides whether `--check` needs to read the
+  queries rather than compare their text.
 - A Next.js UI generator writing schema files for a private component
   library: shipped in 0.6.0, `specarch-gen-ui-typescript`. It writes
   task pages (sign-in and a second factor are its checked screens; a
@@ -677,8 +683,16 @@ step 1. Only item 7's meta-model half touches 0.3.
     `--implementation-out` on the database reader (decision 6). Done when the lending desk's catalogue reads its
     identifier default and indexes with no `could` line for them and
     `generate sql --check` passes.
-13. sqlc queries, `specarch-gen-sqlc`, checked against a real project's
-    first hand-written query file.
+13. Built (ADR-123). sqlc queries, `specarch-gen-sqlc`: the derived
+    queries in PostgreSQL through `specarch-gen-sql`'s tables, the
+    refusal to write over a file built by hand, `--check` against it, and
+    `tools/sqlc/compile-queries.sh`. Done when, by `docs/generators.md`'s
+    Adding a target, the output is what the project writes by hand, its
+    `--check` form runs in the project's CI and sqlc compiles both: the
+    lending desk's queries written by hand differ from the generated ones
+    only at the phone number Q-6 leaves open, and the library's and the
+    desk's queries compile. The check against a real project's first
+    hand-written query file is still owed.
 14. `specarch check` with the shrinking allowlist, run in the lending
     desk's CI.
 

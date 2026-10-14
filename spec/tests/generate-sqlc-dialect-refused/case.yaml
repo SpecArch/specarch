@@ -1,0 +1,5 @@
+arguments: [generate, sqlc, --unapproved, project]
+exitStatus: 1
+standardOutput: |
+  project/specarch.yaml:1:1: error: /: generator: specarch-gen-sqlc writes PostgreSQL queries only, and the sqlc target names mariadb: sqlc reads it as mysql, whose queries this version does not write yet; write those queries by hand, or generate them for postgresql [generator@specarch.yaml#/]
+plugins: [sqlc]

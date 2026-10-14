@@ -173,6 +173,27 @@ jobs:
           if grep -qE '^ +(cardNumber|fullName|loanedOn|dueOn|returnedOn):$' "$RUNNER_TEMP/owned-one/openapi/openapi.yaml"; then echo "a camelCase name went on the wire"; exit 1; fi
           status=0; go run ./cmd/specarch gaps examples/lending-desk > "$RUNNER_TEMP/owned-gaps.txt" || status=$?
           test "$status" -eq 1 && grep -q '#/entities/Book' "$RUNNER_TEMP/owned-gaps.txt"
+      - name: The lending desk's queries written by hand differ from the derived ones only at the phone number, and every query compiles under sqlc
+        # The desk writes its queries by hand, so generate sqlc compares the
+        # derived ones with them and never writes over them; the members
+        # table has no phone number column while Q-6 is open, and that is
+        # the one difference. sqlc 1.31.1 then type-checks the desk's
+        # queries against its migrations and the library's generated
+        # queries against its generated migrations.
+        run: |
+          go build -o "$RUNNER_TEMP/bin/specarch-gen-sqlc" ./cmd/specarch-gen-sqlc
+          export PATH="$RUNNER_TEMP/bin:$PATH"
+          status=0; go run ./cmd/specarch generate sqlc --check --unapproved examples/lending-desk > "$RUNNER_TEMP/desk-sqlc.txt" || status=$?
+          cat "$RUNNER_TEMP/desk-sqlc.txt"
+          test "$status" -eq 1
+          test "$(grep -c 'differs from what generate writes' "$RUNNER_TEMP/desk-sqlc.txt")" -eq 1
+          grep -q '^examples/lending-desk/sources/code/queries/members.sql: built by hand, and differs' "$RUNNER_TEMP/desk-sqlc.txt"
+          grep -F 'line 2: ' "$RUNNER_TEMP/desk-sqlc.txt" | grep -q 'address_street, full_name, phone_number)"$'
+          status=0; go run ./cmd/specarch generate sqlc --unapproved examples/lending-desk > "$RUNNER_TEMP/desk-sqlc-write.txt" || status=$?
+          test "$status" -eq 1 && grep -q 'members.sql is in the output folder and was not written by specarch-gen-sqlc' "$RUNNER_TEMP/desk-sqlc-write.txt"
+          git diff --exit-code -- examples/lending-desk/sources/code/queries
+          PODMAN=docker sh tools/sqlc/compile-queries.sh examples/lending-desk/sources/code/migrations examples/lending-desk/sources/code/queries
+          PODMAN=docker sh tools/sqlc/compile-queries.sh examples/library-lending/migrations examples/library-lending/queries
       - name: The lending desk extracts end to end the same twice, and gaps lists the phone number and the open member route as must questions
         # The manual has a personal phone number the members table does not;
         # the router serves GET /members/{cardNumber} with no permission,
@@ -284,7 +305,7 @@ jobs:
           grep -q '^specarch: 3 inputs checked: 0 errors,' "$RUNNER_TEMP/estate.txt"
           grep -q '^  lending_desk -->|"catalogue, written against 0.1.0"| catalogue_service$' examples/estate/docs/estate.md
       - name: Generated code and data are current
-        # The library's migrations, OpenAPI document, workflows as BPMN and SVG, and screens, in plain
+        # The library's migrations, queries, OpenAPI document, workflows as BPMN and SVG, and screens, in plain
         # JavaScript and on Next.js, are checked in, so a design change that
         # leaves them stale fails here. The
         # example is not approved, hence --unapproved. Its tests target
@@ -293,9 +314,9 @@ jobs:
         # with --out, in the step above.
         run: |
           mkdir -p "$RUNNER_TEMP/bin"
-          for generator in sql openapi ui ui-typescript bpmn; do go build -o "$RUNNER_TEMP/bin/specarch-gen-$generator" ./cmd/specarch-gen-$generator || exit 1; done
+          for generator in sql sqlc openapi ui ui-typescript bpmn; do go build -o "$RUNNER_TEMP/bin/specarch-gen-$generator" ./cmd/specarch-gen-$generator || exit 1; done
           export PATH="$RUNNER_TEMP/bin:$PATH"
-          for target in sql openapi ui bpmn; do go run ./cmd/specarch generate $target --check --unapproved examples/library-lending || exit 1; done
+          for target in sql sqlc openapi ui bpmn; do go run ./cmd/specarch generate $target --check --unapproved examples/library-lending || exit 1; done
       - name: A generated schema edited by hand is reported
         run: |
           export PATH="$RUNNER_TEMP/bin:$PATH"

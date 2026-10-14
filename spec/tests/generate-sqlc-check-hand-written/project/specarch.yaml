@@ -1,0 +1,28 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0 }
+stages: [implementation]
+stakeholders:
+  owner: { description: The product owner. }
+permissions:
+  public: { description: Open to everyone. }
+entities:
+  Shelf:
+    type: object
+    properties:
+      code: { type: string, maxLength: 12 }
+      label: { type: string, maxLength: 80 }
+    required: [code, label]
+    primaryKey: [code]
+paths:
+  /shelves:
+    post:
+      operationId: addShelf
+      summary: Add a shelf
+      permission: public
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/entities/Shelf" }
+      responses:
+        "201": { description: The shelf is added. }

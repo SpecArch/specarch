@@ -1,0 +1,5 @@
+arguments: [generate, sqlc, --unapproved, project]
+exitStatus: 1
+standardOutput: |
+  project/specarch.yaml:1:1: error: /: generator: shelf.sql is in the output folder and was not written by specarch-gen-sqlc, so it is left as it is and nothing is written; compare it with generate --check, move it, or delete it to have it generated [generator@specarch.yaml#/]
+plugins: [sqlc]

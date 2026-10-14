@@ -187,11 +187,13 @@ or, from a clone of this repository:
 
     go install ./cmd/specarch
 
-Code targets are plug-ins on PATH. This repository has nine:
+Code targets are plug-ins on PATH. This repository has ten:
 `specarch-gen-openapi`, which `specarch generate openapi` runs to write the
 OpenAPI 3.1 document of a specification, `specarch-gen-sql`, which
 `specarch generate sql` runs to write its migrations in PostgreSQL, SQL
-Server, Oracle or MariaDB, `specarch-gen-tests-go`, which `specarch
+Server, Oracle or MariaDB, `specarch-gen-sqlc`, which `specarch generate
+sqlc` runs to write the sqlc queries the design derives against those
+migrations, `specarch-gen-tests-go`, which `specarch
 generate tests` runs to write its Go tests, `specarch-gen-tests-swift` and
 `specarch-gen-tests-dart`, which `specarch generate tests` runs instead of
 the Go one for an implementation file in Swift (Swift Testing) or in Dart
@@ -215,6 +217,11 @@ diagram, and the diagram as SVG. Install them at the same tag as
     go install github.com/SpecArch/specarch/cmd/specarch-gen-ui@v0.6.3
     go install github.com/SpecArch/specarch/cmd/specarch-gen-ui-typescript@v0.6.3
     go install github.com/SpecArch/specarch/cmd/specarch-gen-bpmn@v0.6.3
+
+`specarch-gen-sqlc` is in no release yet; install it from a clone of this
+repository:
+
+    go install ./cmd/specarch-gen-sqlc
 
 The Swift build, for macOS, has the validate and version verbs and gives
 the same output. With Swift 6:

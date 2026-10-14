@@ -24,9 +24,9 @@ Is the loan period 21 days, as the manual says, or 14 days, as the service does?
 
 **Note:** From Lending desk manual, 2025, clause 3.3: The loan period is 21 days. <../sources/manual.md>
 
-**Note:** From The lending desk service, 2510c1a3de2f89e3b99131c45e4560ae1639ad20, clause lending/model.go:8: LoanPeriod is 14 days. <../sources/code>
+**Note:** From The lending desk service, 85f06f82a430a81cc24648d198454426a37c16c9, clause lending/model.go:8: LoanPeriod is 14 days. <../sources/code>
 
-**Note:** From The lending desk service, 2510c1a3de2f89e3b99131c45e4560ae1639ad20, clause migrations/001_init.sql:18: The loans table checks that due_on is loaned_on plus 14. <../sources/code>
+**Note:** From The lending desk service, 85f06f82a430a81cc24648d198454426a37c16c9, clause migrations/001_init.sql:18: The loans table checks that due_on is loaned_on plus 14. <../sources/code>
 
 ### Q-3 (must, decision)
 
@@ -65,7 +65,7 @@ Does the desk read the book records through the catalogue service's operations, 
 
 **Note:** From Lending desk manual, 2025, clause 3.4: The catalogue team keeps the book records; the desk reads them and never edits them. <../sources/manual.md>
 
-**Note:** From The lending desk service, 2510c1a3de2f89e3b99131c45e4560ae1639ad20, clause migrations/001_init.sql:6: CREATE TABLE books. <../sources/code>
+**Note:** From The lending desk service, 85f06f82a430a81cc24648d198454426a37c16c9, clause migrations/001_init.sql:6: CREATE TABLE books. <../sources/code>
 
 ## 3. Implementation
 
@@ -83,7 +83,7 @@ The manual has a phone number for each member, which is personal, and the databa
 
 **Note:** From Lending desk manual, 2025, clause 2: The desk keeps a member's phone number, which is personal. <../sources/manual.md>
 
-**Note:** From The lending desk service, 2510c1a3de2f89e3b99131c45e4560ae1639ad20, clause migrations/001_init.sql:1: members has card_number and full_name only. <../sources/code>
+**Note:** From The lending desk service, 85f06f82a430a81cc24648d198454426a37c16c9, clause migrations/001_init.sql:1: members has card_number and full_name only. <../sources/code>
 
 ### Q-7 (must, decision)
 
@@ -98,9 +98,9 @@ The service serves GET /members/{cardNumber}, which answers a member's card numb
 
 **Insight:** Undocumented, from code, and it answers a personal field to a caller who shows no permission, which is how an open endpoint is usually found. An operation's permission cannot be left out of the design, so the route waits here rather than as a guess.
 
-**Note:** From The lending desk service, 2510c1a3de2f89e3b99131c45e4560ae1639ad20, clause lending/routes.go:43: GET /members/{cardNumber} checks no permission. <../sources/code>
+**Note:** From The lending desk service, 85f06f82a430a81cc24648d198454426a37c16c9, clause lending/routes.go:43: GET /members/{cardNumber} checks no permission. <../sources/code>
 
-**Note:** From The lending desk service, 2510c1a3de2f89e3b99131c45e4560ae1639ad20, clause lending/routes.go:97: ShowMember answers one member's card number and full name. <../sources/code>
+**Note:** From The lending desk service, 85f06f82a430a81cc24648d198454426a37c16c9, clause lending/routes.go:97: ShowMember answers one member's card number and full name. <../sources/code>
 
 ### Q-4 (should, decision)
 
@@ -116,7 +116,7 @@ Renewing a loan is in the manual but not in the service. Build it as the manual 
 
 **Note:** From Lending desk manual, 2025, clause 4.1: A member may renew a loan once. <../sources/manual.md>
 
-**Note:** From The lending desk service, 2510c1a3de2f89e3b99131c45e4560ae1639ad20, clause lending/routes.go:36: Register registers no renew route. <../sources/code>
+**Note:** From The lending desk service, 85f06f82a430a81cc24648d198454426a37c16c9, clause lending/routes.go:36: Register registers no renew route. <../sources/code>
 
 ## 4. Material to provide
 
@@ -183,6 +183,7 @@ What can be made from the specification now. A document is a draft while a must 
 | html document | draft | 3 in requirements (Q-1, Q-3 and Q-2), 1 in design (Q-8), 3 in implementation (Q-6, Q-7 and Q-4), 1 in tests (Q-5) |
 | code target openapi | waits | not approved: there is no records/approvals/0.1.0.yaml beside the specification |
 | code target sql | waits | not approved: there is no records/approvals/0.1.0.yaml beside the specification |
+| code target sqlc | waits | not approved: there is no records/approvals/0.1.0.yaml beside the specification |
 
 ## Sources
 
@@ -190,6 +191,6 @@ Every source a Note in this document cites.
 
 | Source | Title | Edition | Author | Where to read it |
 |---|---|---|---|---|
-| desk-code | The lending desk service | 2510c1a3de2f89e3b99131c45e4560ae1639ad20 | The desk team | ../sources/code |
+| desk-code | The lending desk service | 85f06f82a430a81cc24648d198454426a37c16c9 | The desk team | ../sources/code |
 | desk-manual | Lending desk manual | 2025 | The desk team | ../sources/manual.md |
 

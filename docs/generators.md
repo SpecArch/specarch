@@ -391,6 +391,52 @@ translated into the target's dialect; one the target cannot express fails
 generation (rule 4). Names are derived with the rules in
 `docs/conventions.md`, so the database gate can derive them the same way.
 
+## Queries for sqlc
+
+`specarch-gen-sqlc` writes the sqlc queries the design derives, in
+PostgreSQL, against the tables `specarch-gen-sql` writes: it reads them
+through the same model, so a query never names a column the migrations do
+not create. Each table gets one file, `<table>.sql`, holding its queries in
+the order of the paths, each named after its operation in PascalCase, the
+name sqlc gives the Go method. A query is derived by keyword only (ADR-123):
+
+| The operation | The query |
+|---|---|
+| a POST whose request body is an entity, on a path with no parameter | an insert of every column but the ones the database draws and the soft-delete flag, answering the record |
+| a GET answering an entity, on a path with one parameter, the entity's key of one field | the record by its key |
+| a PUT or a PATCH whose request body is an entity, on such a path | the change of the record by its key: every column a caller may set and the change's audit columns; a PATCH keeps a column the request leaves out |
+| `listOf` on an entity, on a path with no parameter | a page and its total, `<Operation>Total` |
+
+A softly deleted record is not listed and reads as not found. A list
+filters by each `filterable` field and each query parameter that names a
+field, by equality and only when the argument is given, searches the
+`searchable` fields case-insensitively, and sorts by the wire name of a
+`sortable` field, or by it after a minus sign the other way, then by the
+key, so no record shows on two pages; the page is the arguments
+`page_size` and `page_offset`. sqlc builds no SQL at run time, so an
+optional filter is "the argument is null or the column equals it" and each
+sort is a `CASE` term per direction.
+
+Every other query is written by hand beside them, which is sqlc's own
+rule. A list of a view, a list under a path parameter, a list with a query
+parameter that names no field held in one column, and a read or change by
+a key of several fields are warnings at the operation, left to be written
+by hand; a DELETE and every operation with no such keyword derive nothing.
+An entity another stakeholder owns gets no query. A dialect other than
+PostgreSQL is an error at the target: sqlc reads MariaDB as MySQL, which is
+not written yet, and has no engine for SQL Server or Oracle.
+
+A query file in the output folder that the plug-in did not write is never
+written over, and `generate --check` compares it as a file built by hand:
+it matches when it equals the output but for the header. A project that
+writes its queries by hand points the target at its own folder and reads
+where they and the specification disagree; the lending desk does, and
+differs only at the phone number its members table does not have.
+`tools/sqlc/compile-queries.sh <migrations> <queries>` runs `sqlc vet`
+(1.31.1, at a pinned digest) in a disposable container under Podman, which
+type-checks each query against the migrations; `sqlc compile` would pass a
+column that does not exist.
+
 ## UI page definitions
 
 Where the target project already renders lists, forms and views from a schema

@@ -188,7 +188,7 @@ ol.problems p{margin:2px 0}
 <p class="origin"><strong>Origin:</strong> stated in Lending desk manual, clause 2.1; Lending desk manual, clause 2.2; The lending desk service, clause lending/routes.go:37.</p>
 <p class="note"><strong>Note:</strong> From <a href="#/sources/desk-manual">Lending desk manual, 2025, clause 2.1</a>: A member is known by the card number printed on the card, and the desk records the member&#39;s full name.</p>
 <p class="note"><strong>Note:</strong> From <a href="#/sources/desk-manual">Lending desk manual, 2025, clause 2.2</a>: Desk staff register new members.</p>
-<p class="note"><strong>Note:</strong> From <a href="#/sources/desk-code">The lending desk service, 2510c1a3de2f89e3b99131c45e4560ae1639ad20, clause lending/routes.go:37</a>: POST /members, checked against members.write.</p>
+<p class="note"><strong>Note:</strong> From <a href="#/sources/desk-code">The lending desk service, 85f06f82a430a81cc24648d198454426a37c16c9, clause lending/routes.go:37</a>: POST /members, checked against members.write.</p>
 <dl>
 <dt>statement</dt>
 <dd>Desk staff shall register a member by card number and full name.</dd>
@@ -206,7 +206,7 @@ ol.problems p{margin:2px 0}
 <p class="trace"><strong>Satisfied by:</strong> <a href="#/entities/Book">/entities/Book</a>, <a href="#/entities/Loan">/entities/Loan</a>, <a href="#/permissions/loans.write">/permissions/loans.write</a>, <a href="#/paths/~1loans/post">/paths/~1loans/post</a>. <strong>Verified by:</strong> <a href="#/tests/lend-book-card-number-not-matching-its-pattern">/tests/lend-book-card-number-not-matching-its-pattern</a>, <a href="#/tests/lend-book-denied-without-loans-write">/tests/lend-book-denied-without-loans-write</a>, <a href="#/tests/lend-book-missing-barcode">/tests/lend-book-missing-barcode</a>, <a href="#/tests/lend-book-missing-card-number">/tests/lend-book-missing-card-number</a>, <a href="#/tests/lend-book-not-found-barcode">/tests/lend-book-not-found-barcode</a>, <a href="#/tests/lend-book-not-found-card-number">/tests/lend-book-not-found-card-number</a>, <a href="#/tests/lend-book-succeeds">/tests/lend-book-succeeds</a>.</p>
 <p class="origin"><strong>Origin:</strong> stated in Lending desk manual, clause 3.1; The lending desk service, clause lending/routes.go:38.</p>
 <p class="note"><strong>Note:</strong> From <a href="#/sources/desk-manual">Lending desk manual, 2025, clause 3.1</a>: Desk staff lend a book by scanning the member&#39;s card and the book&#39;s barcode.</p>
-<p class="note"><strong>Note:</strong> From <a href="#/sources/desk-code">The lending desk service, 2510c1a3de2f89e3b99131c45e4560ae1639ad20, clause lending/routes.go:38</a>: POST /loans, checked against loans.write.</p>
+<p class="note"><strong>Note:</strong> From <a href="#/sources/desk-code">The lending desk service, 85f06f82a430a81cc24648d198454426a37c16c9, clause lending/routes.go:38</a>: POST /loans, checked against loans.write.</p>
 <dl>
 <dt>statement</dt>
 <dd>Desk staff shall lend a book to a member by the member&#39;s card number and the book&#39;s barcode.</dd>
@@ -224,7 +224,7 @@ ol.problems p{margin:2px 0}
 <p class="trace"><strong>Satisfied by:</strong> <a href="#/paths/~1loans/post">/paths/~1loans/post</a>. <strong>Verified by:</strong> <a href="#/tests/lend-book-card-number-not-matching-its-pattern">/tests/lend-book-card-number-not-matching-its-pattern</a>, <a href="#/tests/lend-book-denied-without-loans-write">/tests/lend-book-denied-without-loans-write</a>, <a href="#/tests/lend-book-missing-barcode">/tests/lend-book-missing-barcode</a>, <a href="#/tests/lend-book-missing-card-number">/tests/lend-book-missing-card-number</a>, <a href="#/tests/lend-book-not-found-barcode">/tests/lend-book-not-found-barcode</a>, <a href="#/tests/lend-book-not-found-card-number">/tests/lend-book-not-found-card-number</a>, <a href="#/tests/lend-book-succeeds">/tests/lend-book-succeeds</a>.</p>
 <p class="origin"><strong>Origin:</strong> stated in Lending desk manual, clause 3.2; The lending desk service, clause lending/model.go:11.</p>
 <p class="note"><strong>Note:</strong> From <a href="#/sources/desk-manual">Lending desk manual, 2025, clause 3.2</a>: A member may have at most five books on loan at a time.</p>
-<p class="note"><strong>Note:</strong> From <a href="#/sources/desk-code">The lending desk service, 2510c1a3de2f89e3b99131c45e4560ae1639ad20, clause lending/model.go:11</a>: MaxOpenLoans is 5; LendBook answers 409 at the limit.</p>
+<p class="note"><strong>Note:</strong> From <a href="#/sources/desk-code">The lending desk service, 85f06f82a430a81cc24648d198454426a37c16c9, clause lending/model.go:11</a>: MaxOpenLoans is 5; LendBook answers 409 at the limit.</p>
 <dl>
 <dt>statement</dt>
 <dd>A member shall have at most five books on loan at a time.</dd>
@@ -245,8 +245,8 @@ ol.problems p{margin:2px 0}
 <p class="origin"><strong>Origin:</strong> stated in Lending desk manual, clause 3.3; The lending desk service, clause lending/model.go:8; The lending desk service, clause migrations/001_init.sql:18.</p>
 <p class="insight"><strong>Insight:</strong> Both sources set a loan period, and they set different ones, so the statement waits for Q-1.</p>
 <p class="note"><strong>Note:</strong> From <a href="#/sources/desk-manual">Lending desk manual, 2025, clause 3.3</a>: The loan period is 21 days.</p>
-<p class="note"><strong>Note:</strong> From <a href="#/sources/desk-code">The lending desk service, 2510c1a3de2f89e3b99131c45e4560ae1639ad20, clause lending/model.go:8</a>: LoanPeriod is 14 days.</p>
-<p class="note"><strong>Note:</strong> From <a href="#/sources/desk-code">The lending desk service, 2510c1a3de2f89e3b99131c45e4560ae1639ad20, clause migrations/001_init.sql:18</a>: The loans table checks that due_on is loaned_on plus 14.</p>
+<p class="note"><strong>Note:</strong> From <a href="#/sources/desk-code">The lending desk service, 85f06f82a430a81cc24648d198454426a37c16c9, clause lending/model.go:8</a>: LoanPeriod is 14 days.</p>
+<p class="note"><strong>Note:</strong> From <a href="#/sources/desk-code">The lending desk service, 85f06f82a430a81cc24648d198454426a37c16c9, clause migrations/001_init.sql:18</a>: The loans table checks that due_on is loaned_on plus 14.</p>
 <dl>
 <dt>kind</dt>
 <dd>functional</dd>
@@ -279,7 +279,7 @@ ol.problems p{margin:2px 0}
 <p class="trace"><strong>Satisfied by:</strong> <a href="#/entities/Loan">/entities/Loan</a>, <a href="#/permissions/loans.write">/permissions/loans.write</a>, <a href="#/paths/~1loans~1%7BloanId%7D~1return/post">/paths/~1loans~1{loanId}~1return/post</a>. <strong>Verified by:</strong> <a href="#/tests/return-book-denied-without-loans-write">/tests/return-book-denied-without-loans-write</a>, <a href="#/tests/return-book-not-found-loan-id">/tests/return-book-not-found-loan-id</a>, <a href="#/tests/return-book-succeeds">/tests/return-book-succeeds</a>.</p>
 <p class="origin"><strong>Origin:</strong> stated in Lending desk manual, clause 5.1; The lending desk service, clause lending/routes.go:39.</p>
 <p class="note"><strong>Note:</strong> From <a href="#/sources/desk-manual">Lending desk manual, 2025, clause 5.1</a>: Desk staff check a returned book in by scanning its barcode, which closes the loan.</p>
-<p class="note"><strong>Note:</strong> From <a href="#/sources/desk-code">The lending desk service, 2510c1a3de2f89e3b99131c45e4560ae1639ad20, clause lending/routes.go:39</a>: POST /loans/{loanId}/return, checked against loans.write.</p>
+<p class="note"><strong>Note:</strong> From <a href="#/sources/desk-code">The lending desk service, 85f06f82a430a81cc24648d198454426a37c16c9, clause lending/routes.go:39</a>: POST /loans/{loanId}/return, checked against loans.write.</p>
 <dl>
 <dt>statement</dt>
 <dd>Desk staff shall check a returned book in by its barcode, which closes the loan.</dd>
@@ -298,7 +298,7 @@ ol.problems p{margin:2px 0}
 <p class="trace"><strong>Satisfied by:</strong> <a href="#/permissions/loans.read">/permissions/loans.read</a>, <a href="#/paths/~1members~1%7BcardNumber%7D~1loans/get">/paths/~1members~1{cardNumber}~1loans/get</a>. <strong>Verified by:</strong> <a href="#/tests/list-member-loans-card-number-not-matching-its-pattern">/tests/list-member-loans-card-number-not-matching-its-pattern</a>, <a href="#/tests/list-member-loans-denied-without-loans-read">/tests/list-member-loans-denied-without-loans-read</a>, <a href="#/tests/list-member-loans-not-found-card-number">/tests/list-member-loans-not-found-card-number</a>, <a href="#/tests/list-member-loans-succeeds">/tests/list-member-loans-succeeds</a>.</p>
 <p class="origin"><strong>Origin:</strong> inferred.</p>
 <p class="insight"><strong>Insight:</strong> Undocumented, from code. The service serves GET /members/{cardNumber}/loans; the manual never mentions it. Q-2 asks the desk manager to confirm it.</p>
-<p class="note"><strong>Note:</strong> From <a href="#/sources/desk-code">The lending desk service, 2510c1a3de2f89e3b99131c45e4560ae1639ad20, clause lending/routes.go:42</a>: GET /members/{cardNumber}/loans, checked against loans.read.</p>
+<p class="note"><strong>Note:</strong> From <a href="#/sources/desk-code">The lending desk service, 85f06f82a430a81cc24648d198454426a37c16c9, clause lending/routes.go:42</a>: GET /members/{cardNumber}/loans, checked against loans.read.</p>
 <dl>
 <dt>statement</dt>
 <dd>Desk staff shall list the loans of one member.</dd>
@@ -429,7 +429,7 @@ ol.problems p{margin:2px 0}
 <dt>title</dt>
 <dd>The lending desk service</dd>
 <dt>edition</dt>
-<dd>2510c1a3de2f89e3b99131c45e4560ae1639ad20</dd>
+<dd>85f06f82a430a81cc24648d198454426a37c16c9</dd>
 <dt>author</dt>
 <dd>The desk team</dd>
 <dt>url</dt>
@@ -517,9 +517,9 @@ ol.problems p{margin:2px 0}
 <p class="origin"><strong>Origin:</strong> stated in Lending desk manual, clause 2.1; Lending desk manual, clause 2; The lending desk service, clause lending/model.go:14; The lending desk service, clause migrations/001_init.sql:1; The lending desk service, clause lending/model.go:17.</p>
 <p class="note"><strong>Note:</strong> From <a href="#/sources/desk-manual">Lending desk manual, 2025, clause 2.1</a>: A member is known by the card number printed on the card, and the desk records the member&#39;s full name.</p>
 <p class="note"><strong>Note:</strong> From <a href="#/sources/desk-manual">Lending desk manual, 2025, clause 2</a>: The desk keeps a member&#39;s card number (internal), full name (personal) and phone number (personal).</p>
-<p class="note"><strong>Note:</strong> From <a href="#/sources/desk-code">The lending desk service, 2510c1a3de2f89e3b99131c45e4560ae1639ad20, clause lending/model.go:14</a>: Member has CardNumber, 10 digits, and FullName.</p>
-<p class="note"><strong>Note:</strong> From <a href="#/sources/desk-code">The lending desk service, 2510c1a3de2f89e3b99131c45e4560ae1639ad20, clause migrations/001_init.sql:1</a>: card_number CHAR(10) is the key; full_name VARCHAR(200) NOT NULL.</p>
-<p class="note"><strong>Note:</strong> From <a href="#/sources/desk-code">The lending desk service, 2510c1a3de2f89e3b99131c45e4560ae1639ad20, clause lending/model.go:17</a>: Member has an Address, nil when the member gave none.</p>
+<p class="note"><strong>Note:</strong> From <a href="#/sources/desk-code">The lending desk service, 85f06f82a430a81cc24648d198454426a37c16c9, clause lending/model.go:14</a>: Member has CardNumber, 10 digits, and FullName.</p>
+<p class="note"><strong>Note:</strong> From <a href="#/sources/desk-code">The lending desk service, 85f06f82a430a81cc24648d198454426a37c16c9, clause migrations/001_init.sql:1</a>: card_number CHAR(10) is the key; full_name VARCHAR(200) NOT NULL.</p>
+<p class="note"><strong>Note:</strong> From <a href="#/sources/desk-code">The lending desk service, 85f06f82a430a81cc24648d198454426a37c16c9, clause lending/model.go:17</a>: Member has an Address, nil when the member gave none.</p>
 <dl>
 <dt>description</dt>
 <dd>A card holder.</dd>
@@ -560,7 +560,7 @@ ol.problems p{margin:2px 0}
 <h4>Book <a class="ptr" href="#/entities/Book">/entities/Book</a></h4>
 <p class="origin"><strong>Origin:</strong> stated in Lending desk manual, clause 3.1; The lending desk service, clause migrations/001_init.sql:6.</p>
 <p class="note"><strong>Note:</strong> From <a href="#/sources/desk-manual">Lending desk manual, 2025, clause 3.1</a>: Desk staff scan the book&#39;s barcode.</p>
-<p class="note"><strong>Note:</strong> From <a href="#/sources/desk-code">The lending desk service, 2510c1a3de2f89e3b99131c45e4560ae1639ad20, clause migrations/001_init.sql:6</a>: barcode VARCHAR(20) is the key; title VARCHAR(300) NOT NULL.</p>
+<p class="note"><strong>Note:</strong> From <a href="#/sources/desk-code">The lending desk service, 85f06f82a430a81cc24648d198454426a37c16c9, clause migrations/001_init.sql:6</a>: barcode VARCHAR(20) is the key; title VARCHAR(300) NOT NULL.</p>
 <dl>
 <dt>description</dt>
 <dd>One copy on the shelves.</dd>
@@ -595,9 +595,9 @@ ol.problems p{margin:2px 0}
 <h4>Loan <a class="ptr" href="#/entities/Loan">/entities/Loan</a></h4>
 <p class="origin"><strong>Origin:</strong> stated in Lending desk manual, clause 3.3; The lending desk service, clause lending/model.go:35; The lending desk service, clause migrations/001_init.sql:11; The lending desk service, clause migrations/004_loan_reference.sql:4.</p>
 <p class="note"><strong>Note:</strong> From <a href="#/sources/desk-manual">Lending desk manual, 2025, clause 3.3</a>: The due date is printed on the slip.</p>
-<p class="note"><strong>Note:</strong> From <a href="#/sources/desk-code">The lending desk service, 2510c1a3de2f89e3b99131c45e4560ae1639ad20, clause lending/model.go:35</a>: Loan has ID, CardNumber, Barcode, LoanedOn, DueOn and ReturnedOn, which is empty until the book is back.</p>
-<p class="note"><strong>Note:</strong> From <a href="#/sources/desk-code">The lending desk service, 2510c1a3de2f89e3b99131c45e4560ae1639ad20, clause migrations/001_init.sql:11</a>: loans references members and books; returned_on may be null.</p>
-<p class="note"><strong>Note:</strong> From <a href="#/sources/desk-code">The lending desk service, 2510c1a3de2f89e3b99131c45e4560ae1639ad20, clause migrations/004_loan_reference.sql:4</a>: loans gets reference, a UUID that defaults to gen_random_uuid().</p>
+<p class="note"><strong>Note:</strong> From <a href="#/sources/desk-code">The lending desk service, 85f06f82a430a81cc24648d198454426a37c16c9, clause lending/model.go:35</a>: Loan has ID, CardNumber, Barcode, LoanedOn, DueOn and ReturnedOn, which is empty until the book is back.</p>
+<p class="note"><strong>Note:</strong> From <a href="#/sources/desk-code">The lending desk service, 85f06f82a430a81cc24648d198454426a37c16c9, clause migrations/001_init.sql:11</a>: loans references members and books; returned_on may be null.</p>
+<p class="note"><strong>Note:</strong> From <a href="#/sources/desk-code">The lending desk service, 85f06f82a430a81cc24648d198454426a37c16c9, clause migrations/004_loan_reference.sql:4</a>: loans gets reference, a UUID that defaults to gen_random_uuid().</p>
 <dl>
 <dt>description</dt>
 <dd>One book lent to one member.</dd>
@@ -673,8 +673,8 @@ ol.problems p{margin:2px 0}
 <article class="element" data-search id="/schemas/Address">
 <h4>Address <a class="ptr" href="#/schemas/Address">/schemas/Address</a></h4>
 <p class="origin"><strong>Origin:</strong> stated in The lending desk service, clause lending/model.go:22; The lending desk service, clause migrations/003_member_address.sql:1.</p>
-<p class="note"><strong>Note:</strong> From <a href="#/sources/desk-code">The lending desk service, 2510c1a3de2f89e3b99131c45e4560ae1639ad20, clause lending/model.go:22</a>: Address has Street, City and Postcode; one that is given has its street and city, and the postcode may be left out.</p>
-<p class="note"><strong>Note:</strong> From <a href="#/sources/desk-code">The lending desk service, 2510c1a3de2f89e3b99131c45e4560ae1639ad20, clause migrations/003_member_address.sql:1</a>: members gets address_street VARCHAR(200), address_city VARCHAR(100) and address_postcode VARCHAR(20), with a check that an address is wholly absent or has its street and city.</p>
+<p class="note"><strong>Note:</strong> From <a href="#/sources/desk-code">The lending desk service, 85f06f82a430a81cc24648d198454426a37c16c9, clause lending/model.go:22</a>: Address has Street, City and Postcode; one that is given has its street and city, and the postcode may be left out.</p>
+<p class="note"><strong>Note:</strong> From <a href="#/sources/desk-code">The lending desk service, 85f06f82a430a81cc24648d198454426a37c16c9, clause migrations/003_member_address.sql:1</a>: members gets address_street VARCHAR(200), address_city VARCHAR(100) and address_postcode VARCHAR(20), with a check that an address is wholly absent or has its street and city.</p>
 <dl>
 <dt>description</dt>
 <dd>Where a member lives. One that is given has its street and city.</dd>
@@ -722,7 +722,7 @@ ol.problems p{margin:2px 0}
 <article class="element" data-search id="/permissions/members.write">
 <h4>members.write <a class="ptr" href="#/permissions/members.write">/permissions/members.write</a></h4>
 <p class="origin"><strong>Origin:</strong> stated in The lending desk service, clause lending/routes.go:37.</p>
-<p class="note"><strong>Note:</strong> From <a href="#/sources/desk-code">The lending desk service, 2510c1a3de2f89e3b99131c45e4560ae1639ad20, clause lending/routes.go:37</a>: POST /members checks members.write.</p>
+<p class="note"><strong>Note:</strong> From <a href="#/sources/desk-code">The lending desk service, 85f06f82a430a81cc24648d198454426a37c16c9, clause lending/routes.go:37</a>: POST /members checks members.write.</p>
 <dl>
 <dt>description</dt>
 <dd>Register members.</dd>
@@ -735,7 +735,7 @@ ol.problems p{margin:2px 0}
 <article class="element" data-search id="/permissions/loans.write">
 <h4>loans.write <a class="ptr" href="#/permissions/loans.write">/permissions/loans.write</a></h4>
 <p class="origin"><strong>Origin:</strong> stated in The lending desk service, clause lending/routes.go:38.</p>
-<p class="note"><strong>Note:</strong> From <a href="#/sources/desk-code">The lending desk service, 2510c1a3de2f89e3b99131c45e4560ae1639ad20, clause lending/routes.go:38</a>: POST /loans and POST /loans/{loanId}/return check loans.write.</p>
+<p class="note"><strong>Note:</strong> From <a href="#/sources/desk-code">The lending desk service, 85f06f82a430a81cc24648d198454426a37c16c9, clause lending/routes.go:38</a>: POST /loans and POST /loans/{loanId}/return check loans.write.</p>
 <dl>
 <dt>description</dt>
 <dd>Lend, renew and check in books.</dd>
@@ -749,7 +749,7 @@ ol.problems p{margin:2px 0}
 <h4>loans.read <a class="ptr" href="#/permissions/loans.read">/permissions/loans.read</a></h4>
 <p class="origin"><strong>Origin:</strong> inferred.</p>
 <p class="insight"><strong>Insight:</strong> Undocumented, from code; it stands or falls with LEND-7 and Q-2.</p>
-<p class="note"><strong>Note:</strong> From <a href="#/sources/desk-code">The lending desk service, 2510c1a3de2f89e3b99131c45e4560ae1639ad20, clause lending/routes.go:42</a>: GET /members/{cardNumber}/loans checks loans.read.</p>
+<p class="note"><strong>Note:</strong> From <a href="#/sources/desk-code">The lending desk service, 85f06f82a430a81cc24648d198454426a37c16c9, clause lending/routes.go:42</a>: GET /members/{cardNumber}/loans checks loans.read.</p>
 <dl>
 <dt>description</dt>
 <dd>See the loans of a member.</dd>
@@ -766,7 +766,7 @@ ol.problems p{margin:2px 0}
 <h4>desk-staff <a class="ptr" href="#/roles/desk-staff">/roles/desk-staff</a></h4>
 <p class="origin"><strong>Origin:</strong> stated in Lending desk manual, clause 2.2; The lending desk service, clause seeds/001_roles.sql:3.</p>
 <p class="note"><strong>Note:</strong> From <a href="#/sources/desk-manual">Lending desk manual, 2025, clause 2.2</a>: Desk staff register new members.</p>
-<p class="note"><strong>Note:</strong> From <a href="#/sources/desk-code">The lending desk service, 2510c1a3de2f89e3b99131c45e4560ae1639ad20, clause seeds/001_roles.sql:3</a>: desk-staff grants members.write, loans.write and loans.read.</p>
+<p class="note"><strong>Note:</strong> From <a href="#/sources/desk-code">The lending desk service, 85f06f82a430a81cc24648d198454426a37c16c9, clause seeds/001_roles.sql:3</a>: desk-staff grants members.write, loans.write and loans.read.</p>
 <dl>
 <dt>description</dt>
 <dd>Staff at the lending desk.</dd>
@@ -796,7 +796,7 @@ ol.problems p{margin:2px 0}
 <h4>POST /members (registerMember) <a class="ptr" href="#/paths/~1members/post">/paths/~1members/post</a></h4>
 <p class="origin"><strong>Origin:</strong> stated in Lending desk manual, clause 2.2; The lending desk service, clause lending/routes.go:47.</p>
 <p class="note"><strong>Note:</strong> From <a href="#/sources/desk-manual">Lending desk manual, 2025, clause 2.2</a>: Desk staff register new members.</p>
-<p class="note"><strong>Note:</strong> From <a href="#/sources/desk-code">The lending desk service, 2510c1a3de2f89e3b99131c45e4560ae1639ad20, clause lending/routes.go:47</a>: RegisterMember answers 201.</p>
+<p class="note"><strong>Note:</strong> From <a href="#/sources/desk-code">The lending desk service, 85f06f82a430a81cc24648d198454426a37c16c9, clause lending/routes.go:47</a>: RegisterMember answers 201.</p>
 <dl>
 <dt>operationId</dt>
 <dd>registerMember</dd>
@@ -846,7 +846,7 @@ ol.problems p{margin:2px 0}
 <h4>POST /loans (lendBook) <a class="ptr" href="#/paths/~1loans/post">/paths/~1loans/post</a></h4>
 <p class="origin"><strong>Origin:</strong> stated in Lending desk manual, clause 3.1; The lending desk service, clause lending/routes.go:59.</p>
 <p class="note"><strong>Note:</strong> From <a href="#/sources/desk-manual">Lending desk manual, 2025, clause 3.1</a>: Desk staff lend a book by scanning the member&#39;s card and the book&#39;s barcode.</p>
-<p class="note"><strong>Note:</strong> From <a href="#/sources/desk-code">The lending desk service, 2510c1a3de2f89e3b99131c45e4560ae1639ad20, clause lending/routes.go:59</a>: LendBook answers 409 when the member has MaxOpenLoans books out, and 201 otherwise.</p>
+<p class="note"><strong>Note:</strong> From <a href="#/sources/desk-code">The lending desk service, 85f06f82a430a81cc24648d198454426a37c16c9, clause lending/routes.go:59</a>: LendBook answers 409 when the member has MaxOpenLoans books out, and 201 otherwise.</p>
 <dl>
 <dt>operationId</dt>
 <dd>lendBook</dd>
@@ -954,7 +954,7 @@ ol.problems p{margin:2px 0}
 <h4>POST /loans/{loanId}/return (returnBook) <a class="ptr" href="#/paths/~1loans~1%7BloanId%7D~1return/post">/paths/~1loans~1{loanId}~1return/post</a></h4>
 <p class="origin"><strong>Origin:</strong> stated in Lending desk manual, clause 5.1; The lending desk service, clause lending/routes.go:73.</p>
 <p class="note"><strong>Note:</strong> From <a href="#/sources/desk-manual">Lending desk manual, 2025, clause 5.1</a>: Checking a book in closes the loan.</p>
-<p class="note"><strong>Note:</strong> From <a href="#/sources/desk-code">The lending desk service, 2510c1a3de2f89e3b99131c45e4560ae1639ad20, clause lending/routes.go:73</a>: ReturnBook closes the loan and answers 200.</p>
+<p class="note"><strong>Note:</strong> From <a href="#/sources/desk-code">The lending desk service, 85f06f82a430a81cc24648d198454426a37c16c9, clause lending/routes.go:73</a>: ReturnBook closes the loan and answers 200.</p>
 <dl>
 <dt>operationId</dt>
 <dd>returnBook</dd>
@@ -1074,7 +1074,7 @@ ol.problems p{margin:2px 0}
 <h4>GET /members/{cardNumber}/loans (listMemberLoans) <a class="ptr" href="#/paths/~1members~1%7BcardNumber%7D~1loans/get">/paths/~1members~1{cardNumber}~1loans/get</a></h4>
 <p class="origin"><strong>Origin:</strong> inferred.</p>
 <p class="insight"><strong>Insight:</strong> Undocumented, from code; Q-2 asks whether it is wanted.</p>
-<p class="note"><strong>Note:</strong> From <a href="#/sources/desk-code">The lending desk service, 2510c1a3de2f89e3b99131c45e4560ae1639ad20, clause lending/routes.go:91</a>: ListMemberLoans answers 200 with the member&#39;s loans.</p>
+<p class="note"><strong>Note:</strong> From <a href="#/sources/desk-code">The lending desk service, 85f06f82a430a81cc24648d198454426a37c16c9, clause lending/routes.go:91</a>: ListMemberLoans answers 200 with the member&#39;s loans.</p>
 <dl>
 <dt>operationId</dt>
 <dd>listMemberLoans</dd>
@@ -1813,8 +1813,8 @@ ol.problems p{margin:2px 0}
 <p class="mark question"><a href="#problem-Q-1">open question</a> open_question: (must, decision) Is the loan period 21 days, as the manual says, or 14 days, as the service does? Decided by desk-manager. Answer with a decision record that names Q-1 under answers. [Q-1]</p>
 <p class="insight"><strong>Insight:</strong> The manual and the code disagree, and neither says which is current.</p>
 <p class="note"><strong>Note:</strong> From <a href="#/sources/desk-manual">Lending desk manual, 2025, clause 3.3</a>: The loan period is 21 days.</p>
-<p class="note"><strong>Note:</strong> From <a href="#/sources/desk-code">The lending desk service, 2510c1a3de2f89e3b99131c45e4560ae1639ad20, clause lending/model.go:8</a>: LoanPeriod is 14 days.</p>
-<p class="note"><strong>Note:</strong> From <a href="#/sources/desk-code">The lending desk service, 2510c1a3de2f89e3b99131c45e4560ae1639ad20, clause migrations/001_init.sql:18</a>: The loans table checks that due_on is loaned_on plus 14.</p>
+<p class="note"><strong>Note:</strong> From <a href="#/sources/desk-code">The lending desk service, 85f06f82a430a81cc24648d198454426a37c16c9, clause lending/model.go:8</a>: LoanPeriod is 14 days.</p>
+<p class="note"><strong>Note:</strong> From <a href="#/sources/desk-code">The lending desk service, 85f06f82a430a81cc24648d198454426a37c16c9, clause migrations/001_init.sql:18</a>: The loans table checks that due_on is loaned_on plus 14.</p>
 <dl>
 <dt>question</dt>
 <dd>Is the loan period 21 days, as the manual says, or 14 days, as the service does?</dd>
@@ -1881,7 +1881,7 @@ ol.problems p{margin:2px 0}
 <p class="mark question"><a href="#problem-Q-8">open question</a> open_question: (must, decision) Does the desk read the book records through the catalogue service&#39;s operations, and with what time limit per call, or from the books table as the service does today? Decided by desk-manager. Answer with a decision record that names Q-8 under answers. [Q-8]</p>
 <p class="insight"><strong>Insight:</strong> The manual names the catalogue team as the keeper of the book records and says nothing of how the desk reads them; the code reads a books table in the desk&#39;s own database.</p>
 <p class="note"><strong>Note:</strong> From <a href="#/sources/desk-manual">Lending desk manual, 2025, clause 3.4</a>: The catalogue team keeps the book records; the desk reads them and never edits them.</p>
-<p class="note"><strong>Note:</strong> From <a href="#/sources/desk-code">The lending desk service, 2510c1a3de2f89e3b99131c45e4560ae1639ad20, clause migrations/001_init.sql:6</a>: CREATE TABLE books.</p>
+<p class="note"><strong>Note:</strong> From <a href="#/sources/desk-code">The lending desk service, 85f06f82a430a81cc24648d198454426a37c16c9, clause migrations/001_init.sql:6</a>: CREATE TABLE books.</p>
 <dl>
 <dt>question</dt>
 <dd>
@@ -1908,7 +1908,7 @@ ol.problems p{margin:2px 0}
 <p class="mark question"><a href="#problem-Q-4">open question</a> open_question: (should, decision) Renewing a loan is in the manual but not in the service. Build it as the manual describes, or take it out of the manual? It blocks implementation. Decided by desk-manager. Answer with a decision record that names Q-4 under answers. [Q-4]</p>
 <p class="insight"><strong>Insight:</strong> Not built yet. The manual describes renewal (clause 4.1); the service serves no renew route and has no handler for one (lending/routes.go:36).</p>
 <p class="note"><strong>Note:</strong> From <a href="#/sources/desk-manual">Lending desk manual, 2025, clause 4.1</a>: A member may renew a loan once.</p>
-<p class="note"><strong>Note:</strong> From <a href="#/sources/desk-code">The lending desk service, 2510c1a3de2f89e3b99131c45e4560ae1639ad20, clause lending/routes.go:36</a>: Register registers no renew route.</p>
+<p class="note"><strong>Note:</strong> From <a href="#/sources/desk-code">The lending desk service, 85f06f82a430a81cc24648d198454426a37c16c9, clause lending/routes.go:36</a>: Register registers no renew route.</p>
 <dl>
 <dt>question</dt>
 <dd>Renewing a loan is in the manual but not in the service. Build it as the manual describes, or take it out of the manual?</dd>
@@ -1933,7 +1933,7 @@ ol.problems p{margin:2px 0}
 <p class="mark question"><a href="#problem-Q-6">open question</a> open_question: (must, decision) The manual has a phone number for each member, which is personal, and the database has no column for it. Build it as the manual describes, or take it out of the manual? It blocks implementation. Decided by desk-manager. Answer with a decision record that names Q-6 under answers. [Q-6]</p>
 <p class="insight"><strong>Insight:</strong> Not built yet, and the field is personal, so it is not left at should.</p>
 <p class="note"><strong>Note:</strong> From <a href="#/sources/desk-manual">Lending desk manual, 2025, clause 2</a>: The desk keeps a member&#39;s phone number, which is personal.</p>
-<p class="note"><strong>Note:</strong> From <a href="#/sources/desk-code">The lending desk service, 2510c1a3de2f89e3b99131c45e4560ae1639ad20, clause migrations/001_init.sql:1</a>: members has card_number and full_name only.</p>
+<p class="note"><strong>Note:</strong> From <a href="#/sources/desk-code">The lending desk service, 85f06f82a430a81cc24648d198454426a37c16c9, clause migrations/001_init.sql:1</a>: members has card_number and full_name only.</p>
 <dl>
 <dt>question</dt>
 <dd>
@@ -1959,8 +1959,8 @@ ol.problems p{margin:2px 0}
 <h4>Q-7 <a class="ptr" href="#/questions/Q-7">/questions/Q-7</a></h4>
 <p class="mark question"><a href="#problem-Q-7">open question</a> open_question: (must, decision) The service serves GET /members/{cardNumber}, which answers a member&#39;s card number and full name to anyone, checking no permission, and neither the manual nor the API document mentions it. Is it to stay, and behind which permission? It is left out of this specification until this is answered. It blocks implementation. Decided by desk-manager. Answer with a decision record that names Q-7 under answers. [Q-7]</p>
 <p class="insight"><strong>Insight:</strong> Undocumented, from code, and it answers a personal field to a caller who shows no permission, which is how an open endpoint is usually found. An operation&#39;s permission cannot be left out of the design, so the route waits here rather than as a guess.</p>
-<p class="note"><strong>Note:</strong> From <a href="#/sources/desk-code">The lending desk service, 2510c1a3de2f89e3b99131c45e4560ae1639ad20, clause lending/routes.go:43</a>: GET /members/{cardNumber} checks no permission.</p>
-<p class="note"><strong>Note:</strong> From <a href="#/sources/desk-code">The lending desk service, 2510c1a3de2f89e3b99131c45e4560ae1639ad20, clause lending/routes.go:97</a>: ShowMember answers one member&#39;s card number and full name.</p>
+<p class="note"><strong>Note:</strong> From <a href="#/sources/desk-code">The lending desk service, 85f06f82a430a81cc24648d198454426a37c16c9, clause lending/routes.go:43</a>: GET /members/{cardNumber} checks no permission.</p>
+<p class="note"><strong>Note:</strong> From <a href="#/sources/desk-code">The lending desk service, 85f06f82a430a81cc24648d198454426a37c16c9, clause lending/routes.go:97</a>: ShowMember answers one member&#39;s card number and full name.</p>
 <dl>
 <dt>question</dt>
 <dd>

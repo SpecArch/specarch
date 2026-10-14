@@ -1,0 +1,123 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
+decisions:
+  ADR-123:
+    title: specarch-gen-sqlc writes the sqlc queries the design derives, in PostgreSQL, one file per table, against the tables specarch-gen-sql writes, and leaves every other query to be written by hand beside them
+    status: accepted
+    date: "2026-10-14"
+    context: |
+      Point 11 of docs/estate.md, build item 13. A service on sqlc writes
+      its queries by hand in SQL files, and sqlc derives typed Go from
+      them; the query is the reviewed input, which is rule 5 of
+      docs/generators.md. Most of those queries are the same few shapes of
+      every entity: insert a record, read, replace or amend one by its
+      key, and a page of a list with its filters, search and sort. The
+      design already says each of them by keyword (a request body that
+      names an entity, a path parameter that is the key, listOf with its
+      whitelists), so they can be written from it, and every other query
+      stays the project's own. The plan was to check the generator
+      against a real project's first hand-written query file; none exists
+      yet, and the owner chose to build it now against a file written by
+      hand for the lending desk, with the check against a real project's
+      file still owed (docs/generators.md, Adding a target).
+    decision: |
+      The target is sqlc, the plug-in specarch-gen-sqlc. It writes
+      PostgreSQL only: another dialect is an error at the target, naming
+      the engine sqlc would read it with. It reads the tables and columns
+      through specarch-gen-sql's own model (gensql.Schema), so a query
+      never names a column the migrations do not create, and writes one
+      file per table, named after the table, holding that table's
+      queries in the order of the paths, each named after its operation
+      in PascalCase, as sqlc names the Go method. It derives a query by
+      keyword only:
+      - a POST whose request body is an entity, on a path with no
+        parameter: an insert of every column but the ones the database
+        draws (generatedDefault) and the soft-delete flag, the audit
+        columns among them, answering the record (:one, RETURNING);
+      - a GET that answers an entity, a PUT or a PATCH whose request body
+        is one, on a path with one parameter, of an entity whose key is
+        one field: a read or a change by the key, a softly deleted
+        record left out. A change sets every column a caller may set,
+        not the key, a readOnly field, a generated one or the creation's
+        audit columns, and sets the change's audit columns; a PATCH keeps
+        a column the request leaves out (coalesce of a nullable argument);
+      - an operation with listOf on an entity, on a path with no
+        parameter: the page (:many) and its total (<Operation>Total,
+        :one), under the same conditions. Each query parameter that names
+        a field of the entity, by its name or its wire name, and each
+        filterable field is an equality filter, optional unless the
+        parameter is required; the searchable fields are matched
+        case-insensitively by position() of the lowered text; the
+        sortable fields are a pair of CASE terms each, ascending under the
+        field's wire name and descending under it after a minus sign,
+        then the key, so a page is stable; the page is LIMIT and OFFSET
+        from the arguments page_size and page_offset.
+      A list of a view, a list under a path parameter, a list with a query
+      parameter that names no field held in one column, a list whose
+      filter, search or sort field is held in more than one column, and a
+      read or change of an entity whose key is not one field are warnings
+      at the operation, and their queries are left to be written by hand.
+      An entity another stakeholder owns gets no query. A DELETE and every
+      other operation derive nothing and are not reported: they are the
+      queries sqlc's rule leaves to the project. A file in the output
+      folder that the plug-in did not write is refused without --check
+      and compared with it, after the generators' rule for files built by
+      hand. tools/sqlc/compile-queries.sh runs sqlc vet, version 1.31.1 at
+      a pinned digest, on a folder of queries against a folder of
+      migrations in a disposable container.
+    why: |
+      Keywords only, because the rules for a specification say one way to
+      say one thing: a request body that names an entity says the record
+      is written whole, a key of one field in the path says which record,
+      and listOf says the whitelists. A GET answering an array with no
+      listOf, or a POST whose body is a shape of its own, says no more
+      than that the operation exists; guessing its query from the route
+      would put a meaning in the specification nobody wrote, so those stay
+      the project's, as sqlc's rule has it.
+      The model of gensql, because two derivations of a table's columns
+      would drift, and the queries must compile against what the
+      migrations create. sqlc's own conventions decide the rest: the
+      query names are the Go methods, a nullable argument (sqlc.narg)
+      with a cast is how sqlc types an optional filter, and sqlc builds no
+      SQL at run time, so an optional filter is "the argument is null or
+      the column equals it" and a sort is a CASE term per direction, each
+      of one column's type, since a single CASE over columns of different
+      types does not type-check. Text is matched by position() rather
+      than LIKE, so a percent sign or an underscore in what a user types
+      is matched as itself, as the paginated-list idiom's free-text search
+      means. The key after the sorts makes the order total, without which
+      PostgreSQL may give one record on two pages. LIMIT and OFFSET
+      follow the idiom's page from 1 and page size; the caller passes
+      the offset, so the arithmetic is in one place.
+      PostgreSQL only, because sqlc's engines are PostgreSQL, MySQL and
+      SQLite; MariaDB would be the second, when a project needs it, and
+      SQL Server and Oracle have no engine. A warning rather than an
+      error for a list left to be written by hand, because listOf is
+      expressible, the query is the project's to write, and the rest of
+      the output is ready; the warning keeps it from being silent.
+      sqlc vet rather than compile, because sqlc compile and generate
+      with no gen block exit 0 with a column that does not exist; vet
+      with no rules of its own type-checks every query as generate does.
+      The compiler test holds: nothing is refused that was read before,
+      and every query left to be written by hand is a warning at its
+      operation. The acceptance test holds: a change request that
+      changes a field changes the queries the next run writes, and
+      generate --check against the queries written by hand names the
+      first line that differs.
+    consequences: |
+      The implementation file's dialect setting describes the sqlc target;
+      the schemas and the Swift build's embedded schemas follow. The
+      library lending example names the sqlc target and checks in its
+      queries; CI compares them and compiles them under sqlc. The lending
+      desk's queries, written by hand under sources/code/queries with a
+      sqlc.yaml, are compared with generate --check, which differs only
+      where the members table has no phone number column while Q-6 is
+      open, and compile against the desk's migrations; the desk's route
+      and permission dumps and its code edition move to the commit that
+      added them. The byte comparison of a file written by hand is
+      exact, so a real project's file that lists the columns in another
+      order differs at that line; the real project's first file decides
+      whether --check needs a comparison that reads the queries, and the
+      check against it is still owed. MariaDB, a DELETE, a list under a
+      path parameter and a read by a key of several fields are not
+      written yet.
+    satisfies: [SA-71]

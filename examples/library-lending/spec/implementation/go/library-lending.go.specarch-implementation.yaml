@@ -99,6 +99,10 @@ targets:
     output: ../../../migrations
     dialect: postgresql
     description: Forward migrations, new files only, with the snapshot of the schema they built beside them.
+  sqlc:
+    output: ../../../queries
+    dialect: postgresql
+    description: The queries the design derives, for sqlc to compile against the migrations; every other query is written by hand beside them.
   ui:
     output: ../../../web
     platform: web

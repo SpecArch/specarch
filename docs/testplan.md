@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.0-dev of the specification: 477 design tests, 215 golden and 262 red, about 15 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.0-dev of the specification: 481 design tests, 217 golden and 264 red, about 15 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.7.0-dev of the specification: 477 design tests, 215 golden and 262 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 473 |
+| system | 477 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -1792,6 +1792,38 @@ Scenario: golden; level: system; verifies SA-50.
 - Given: an entity whose fields hold schemas: a required and an optional address in columns, with an optional location inside each, preferences stored as json and a list of phones, an implementation file in Go whose sql target is PostgreSQL, and specarch-gen-sql built from this repository on PATH
 - When: generate sql is run with --unapproved
 - Then: it writes each address as columns named after the field and the part, NOT NULL only where every level is required, a check that an optional value is wholly absent or has its required parts, and preferences and phones as one JSONB column each, and exits 0
+
+#### generate-sqlc-check-hand-written
+
+Scenario: golden; level: system; verifies SA-71.
+
+- Given: a specification with an insert of a shelf, whose sqlc output folder holds shelf.sql written by hand with the query generate writes; specarch-gen-sqlc built from this repository on PATH
+- When: generate sqlc is run with --check and --unapproved
+- Then: it says that shelf.sql was built by hand and matches what generate writes but for its header, writes nothing, and exits 0
+
+#### generate-sqlc-dialect-refused
+
+Scenario: red; level: system; verifies SA-71.
+
+- Given: a specification with an insert of a shelf, whose implementation file names mariadb as the sqlc target's dialect; specarch-gen-sqlc built from this repository on PATH
+- When: generate sqlc is run with --unapproved
+- Then: it writes nothing, reports that it writes PostgreSQL queries only and that sqlc reads mariadb as mysql, whose queries it does not write yet, and exits 1
+
+#### generate-sqlc-hand-written-refused
+
+Scenario: red; level: system; verifies SA-71.
+
+- Given: a specification with an insert of a shelf, whose sqlc output folder holds shelf.sql written by hand, with no generated header; specarch-gen-sqlc built from this repository on PATH
+- When: generate sqlc is run with --unapproved
+- Then: it leaves shelf.sql as it is, writes nothing, reports that the file was not written by specarch-gen-sqlc and can be compared with generate --check, and exits 1
+
+#### generate-sqlc-queries
+
+Scenario: golden; level: system; verifies SA-71.
+
+- Given: a specification whose notes are audited, deleted softly and hold a place in two columns, with an insert, a read, a replacement and an amendment by the key and a list with a query parameter, a filter, a search and two sorts; shelves another team owns, with an insert and a list; a list of a view, a list of tags with a query parameter that names no field, and a read of a tag, whose key is two fields; specarch-gen-sqlc built from this repository on PATH
+- When: generate sqlc is run with --unapproved
+- Then: it writes queries/notes.sql only: WriteNote inserts every column but the generated key and the deleted flag, GetNote reads by the key leaving a deleted note out, ReplaceNote sets every column a caller may set and the change's audit columns, AmendNote keeps a column the request leaves out, and ListNotes with ListNotesTotal filter, search and sort by the wire names, after the key; it warns that the view's list, the tags' list and the tag's read are left to be written by hand, writes nothing for the shelves, and exits 0
 
 #### generate-stack-fallback
 
@@ -3893,7 +3925,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-279 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+284 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -4093,6 +4125,11 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-61 | acceptance 2 | golden | SA-61 names no harm |
 | requirement SA-61 | acceptance 3 | golden | SA-61 names no harm |
 | requirement SA-61 | acceptance 4 | golden | SA-61 names no harm |
+| requirement SA-71 | acceptance 1 | golden | SA-71 names no harm |
+| requirement SA-71 | acceptance 2 | golden | SA-71 names no harm |
+| requirement SA-71 | acceptance 3 | golden | SA-71 names no harm |
+| requirement SA-71 | acceptance 4 | golden | SA-71 names no harm |
+| requirement SA-71 | acceptance 5 | golden | SA-71 names no harm |
 | requirement SA-32 | acceptance 1 | golden | SA-32 names no harm |
 | requirement SA-32 | acceptance 2 | golden | SA-32 names no harm |
 | requirement SA-32 | acceptance 3 | golden | SA-32 names no harm |

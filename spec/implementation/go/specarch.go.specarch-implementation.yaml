@@ -112,7 +112,12 @@ layout:
     description: The plug-in behind generate sql. Reads the request on standard input, answers the migration and the snapshot on standard output, and never touches the disk.
     implements: ["#/commands/generate"]
   internal/gensql:
-    description: The SQL migrations in four dialects, each column through the type-rendering idiom, with check expressions translated per dialect, the views after the tables, and a snapshot of the schema; an entity or view another stakeholder owns gets no statement, and the snapshot lists it as owned.
+    description: The SQL migrations in four dialects, each column through the type-rendering idiom, with check expressions translated per dialect, the views after the tables, and a snapshot of the schema; an entity or view another stakeholder owns gets no statement, and the snapshot lists it as owned. Schema answers the tables and columns it writes, for the queries generator.
+  cmd/specarch-gen-sqlc:
+    description: The plug-in behind generate sqlc. Reads the request on standard input, answers the query files on standard output, and never touches the disk.
+    implements: ["#/commands/generate"]
+  internal/gensqlc:
+    description: "The sqlc queries the design derives, in PostgreSQL, one file per table: an insert per operation that posts an entity, a read, a replacement or an amendment by a key of one field, and a page of a list with its filters, search and sorts and the list's total, against the tables internal/gensql writes; every other query is written by hand beside them, and a file written by hand is compared, never overwritten (ADR-123)."
   internal/ownership:
     description: Reads the ownedBy marks of an implementation file's mappings, which every generator that builds code or data follows by leaving the owned elements out.
   internal/mark:

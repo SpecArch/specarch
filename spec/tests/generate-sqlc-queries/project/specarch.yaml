@@ -1,0 +1,199 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0, wireNames: snake_case }
+stages: [implementation]
+stakeholders:
+  owner: { description: The product owner. }
+  shelf-team: { description: The team that keeps the shelves. }
+schemas:
+  Place:
+    type: object
+    properties:
+      room: { type: string, maxLength: 40 }
+      row: { type: integer, format: int32, minimum: 1, maximum: 99 }
+    required: [room]
+entities:
+  Note:
+    type: object
+    properties:
+      id: { type: string, format: uuid, generatedDefault: identifier, readOnly: true }
+      shelfCode: { type: string, maxLength: 12 }
+      title: { type: string, minLength: 1, maxLength: 200 }
+      body: { type: string, maxLength: 4000 }
+      writtenOn: { type: string, format: date, readOnly: true }
+      place: { $ref: "#/schemas/Place" }
+    required: [id, shelfCode, title, writtenOn]
+    primaryKey: [id]
+    relations:
+      shelf: { target: Shelf, kind: many-to-one, via: shelfCode, onDelete: restrict }
+    audited: true
+    deletion: soft
+  Shelf:
+    type: object
+    properties:
+      code: { type: string, maxLength: 12 }
+      label: { type: string, maxLength: 80 }
+    required: [code, label]
+    primaryKey: [code]
+  Tag:
+    type: object
+    properties:
+      noteId: { type: string, format: uuid }
+      word: { type: string, maxLength: 40 }
+    required: [noteId, word]
+    primaryKey: [noteId, word]
+views:
+  NoteRow:
+    from: Note
+    description: A note in a list.
+    properties:
+      shelfLabel: { path: shelf.label }
+permissions:
+  public: { description: Open to everyone. }
+paths:
+  /notes:
+    get:
+      operationId: listNotes
+      summary: listNotes
+      permission: public
+      parameters:
+        - { name: shelf_code, in: query, schema: { type: string, maxLength: 12 } }
+      listOf:
+        entity: Note
+        filterable: [writtenOn]
+        searchable: [title, body]
+        sortable: [writtenOn, title]
+        pageSize: { default: 20, maximum: 100 }
+      responses:
+        "200":
+          description: A page of notes.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/entities/Note" } }
+    post:
+      operationId: writeNote
+      summary: writeNote
+      permission: public
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/entities/Note" }
+      responses:
+        "201":
+          description: The note.
+          content:
+            application/json:
+              schema: { $ref: "#/entities/Note" }
+  /notes/{noteId}:
+    parameters:
+      - { name: noteId, in: path, required: true, schema: { type: string, format: uuid } }
+    get:
+      operationId: getNote
+      summary: getNote
+      permission: public
+      responses:
+        "200":
+          description: The note.
+          content:
+            application/json:
+              schema: { $ref: "#/entities/Note" }
+    put:
+      operationId: replaceNote
+      summary: replaceNote
+      permission: public
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/entities/Note" }
+      responses:
+        "200":
+          description: The note.
+          content:
+            application/json:
+              schema: { $ref: "#/entities/Note" }
+    patch:
+      operationId: amendNote
+      summary: amendNote
+      permission: public
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/entities/Note" }
+      responses:
+        "200":
+          description: The note.
+          content:
+            application/json:
+              schema: { $ref: "#/entities/Note" }
+  /note-rows:
+    get:
+      operationId: listNoteRows
+      summary: listNoteRows
+      permission: public
+      listOf:
+        view: NoteRow
+        pageSize: { maximum: 50 }
+      responses:
+        "200":
+          description: A page of rows.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/views/NoteRow" } }
+  /shelves:
+    get:
+      operationId: listShelves
+      summary: listShelves
+      permission: public
+      parameters:
+        - { name: q, in: query, schema: { type: string, maxLength: 80 } }
+      listOf:
+        entity: Shelf
+        pageSize: { maximum: 50 }
+      responses:
+        "200":
+          description: A page of shelves.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/entities/Shelf" } }
+    post:
+      operationId: addShelf
+      summary: addShelf
+      permission: public
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/entities/Shelf" }
+      responses:
+        "201": { description: The shelf is added. }
+  /tags/{noteId}:
+    parameters:
+      - { name: noteId, in: path, required: true, schema: { type: string, format: uuid } }
+    get:
+      operationId: getTag
+      summary: getTag
+      permission: public
+      responses:
+        "200":
+          description: A tag.
+          content:
+            application/json:
+              schema: { $ref: "#/entities/Tag" }
+  /tags:
+    get:
+      operationId: listTags
+      summary: listTags
+      permission: public
+      parameters:
+        - { name: q, in: query, schema: { type: string, maxLength: 40 } }
+      listOf:
+        entity: Tag
+        pageSize: { maximum: 50 }
+      responses:
+        "200":
+          description: A page of tags.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/entities/Tag" } }

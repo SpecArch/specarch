@@ -84,6 +84,13 @@ targets:
     output: ../../../generated/sql
     dialect: postgresql
     reads: [entities, enums]
+  sqlc:
+    # The desk writes its queries by hand: generate sqlc --check compares
+    # the ones the specification derives with them, and never writes over
+    # them.
+    output: ../../../sources/code/queries
+    dialect: postgresql
+    reads: [entities, paths]
   openapi:
     output: ../../../generated/openapi
     reads: [entities, enums, paths, permissions, roles]

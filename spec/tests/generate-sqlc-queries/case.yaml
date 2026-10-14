@@ -1,0 +1,7 @@
+arguments: [generate, sqlc, --unapproved, project]
+exitStatus: 0
+standardOutput: |
+  project/specarch.yaml:135:7: warning: /paths/~1note-rows/get/listOf: generator: listNoteRows lists the view NoteRow, whose rows are a query of their own; the query is left to be written by hand [generator@specarch.yaml#/paths/~1note-rows/get/listOf]
+  project/specarch.yaml:191:7: warning: /paths/~1tags/get/listOf: generator: listTags takes the query parameter q, which names no field of Tag held in one column, so the query cannot tell what it filters; the query is left to be written by hand [generator@specarch.yaml#/paths/~1tags/get/listOf]
+  project/specarch.yaml:174:5: warning: /paths/~1tags~1{noteId}/get: generator: getTag reads Tag by one path parameter, and the key of tag is not one field; the query is left to be written by hand [generator@specarch.yaml#/paths/~1tags~1{noteId}/get]
+plugins: [sqlc]

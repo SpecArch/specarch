@@ -1,0 +1,5 @@
+arguments: [generate, sqlc, --check, --unapproved, project]
+exitStatus: 0
+standardOutput: |
+  queries/shelf.sql: built by hand, and matches what generate writes but for its header
+plugins: [sqlc]

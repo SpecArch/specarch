@@ -117,36 +117,10 @@ type gen struct {
 
 // Generate writes the migrations of a request.
 func Generate(r *Request) Response {
-	g := &gen{spec: r.Specification, root: r.Root, idioms: map[string]Idiom{}}
-	for _, impl := range r.Implementations {
-		if t, ok := obj(obj0(impl.Content["targets"])[r.Target]); ok || len(r.Implementations) == 1 {
-			g.impl = impl
-			g.dialect = text(t["dialect"])
-			break
-		}
+	g, failed := prepare(r)
+	if failed != nil {
+		return *failed
 	}
-	if g.dialect == "" {
-		g.dialect = "postgresql"
-	}
-	g.owned = ownership.Of(g.impl.Content)
-	if !Dialects[g.dialect] {
-		return g.fail("/", "%s is not a SQL dialect specarch-gen-sql writes; it writes postgresql, sqlserver, oracle and mariadb", g.dialect)
-	}
-	for _, i := range g.impl.Idioms {
-		g.idioms[i.Name] = i
-	}
-	tr, ok := g.idioms["type-rendering"]
-	if !ok || tr.As == "excluded" || tr.Content == nil {
-		return g.fail("/", "the implementation file excludes the type-rendering idiom, so there is nothing to render a column type through; keep it, or override it")
-	}
-	g.version = tr.Version
-	g.rows = typerows.RowsOf(list(g.rendering("type-rendering", "types", g.dialect)["rows"]))
-	if len(g.rows) == 0 {
-		return g.fail("/", "type-rendering %s has no %s rows; add them in an override of its types part", g.version, g.dialect)
-	}
-	g.defaults = names(g.rendering("type-rendering", "defaults", g.dialect))
-	g.place(r)
-	g.flattenValueObjects()
 
 	tables := g.tables()
 	if len(g.diags) > 0 {
@@ -203,6 +177,42 @@ func Generate(r *Request) Response {
 	return Response{Files: []File{{Path: "0001_expand.sql", Content: b.String()}, {Path: SnapshotName, Content: snapshot}}, Diagnostics: []Diagnostic{}}
 }
 
+// prepare reads the target's dialect and idioms and writes out the value
+// objects, or answers why nothing can be written.
+func prepare(r *Request) (*gen, *Response) {
+	g := &gen{spec: r.Specification, root: r.Root, idioms: map[string]Idiom{}}
+	for _, impl := range r.Implementations {
+		if t, ok := obj(obj0(impl.Content["targets"])[r.Target]); ok || len(r.Implementations) == 1 {
+			g.impl = impl
+			g.dialect = text(t["dialect"])
+			break
+		}
+	}
+	if g.dialect == "" {
+		g.dialect = "postgresql"
+	}
+	g.owned = ownership.Of(g.impl.Content)
+	if !Dialects[g.dialect] {
+		return nil, g.failed("/", "%s is not a SQL dialect specarch-gen-sql writes; it writes postgresql, sqlserver, oracle and mariadb", g.dialect)
+	}
+	for _, i := range g.impl.Idioms {
+		g.idioms[i.Name] = i
+	}
+	tr, ok := g.idioms["type-rendering"]
+	if !ok || tr.As == "excluded" || tr.Content == nil {
+		return nil, g.failed("/", "the implementation file excludes the type-rendering idiom, so there is nothing to render a column type through; keep it, or override it")
+	}
+	g.version = tr.Version
+	g.rows = typerows.RowsOf(list(g.rendering("type-rendering", "types", g.dialect)["rows"]))
+	if len(g.rows) == 0 {
+		return nil, g.failed("/", "type-rendering %s has no %s rows; add them in an override of its types part", g.version, g.dialect)
+	}
+	g.defaults = names(g.rendering("type-rendering", "defaults", g.dialect))
+	g.place(r)
+	g.flattenValueObjects()
+	return g, nil
+}
+
 // header is the first line of every migration.
 func (g *gen) header(r *Request) string {
 	info := obj0(g.spec["info"])
@@ -244,6 +254,11 @@ func (g *gen) next(r *Request, previous string, last int, snapshot string) Respo
 	write("contract", s.contract)
 	files = append(files, File{Path: SnapshotName, Content: snapshot})
 	return Response{Files: files, Diagnostics: []Diagnostic{}}
+}
+
+func (g *gen) failed(path, format string, args ...any) *Response {
+	r := g.fail(path, format, args...)
+	return &r
 }
 
 func (g *gen) fail(path, format string, args ...any) Response {
@@ -430,6 +445,7 @@ type table struct {
 	indexes     []string // statements after the table, such as a filtered unique index
 	foreignKeys []string // statements after every table
 	elsewhere   []string // comments after every table: a column that keeps another specification's key
+	schema      []Column // the columns, for a generator that writes against the table
 }
 
 func (t table) create(dialect string) string {
@@ -510,6 +526,12 @@ func (g *gen) table(entity string, e map[string]any) table {
 			t.columnMarks[len(t.columns)] = g.marks("/entities/"+mark.Escape(entity)+"/properties/"+mark.Escape(p), "    ")
 		}
 		t.columns = append(t.columns, fc.lines...)
+		from := g.fieldOf(entity, f)
+		readOnly := obj0(obj0(obj0(g.originalEntities()[entity])["properties"])[from])["readOnly"] == true
+		t.schema = append(t.schema, Column{Name: fc.name, Type: fc.typ, Nullable: fc.nullable, Field: from, Key: inPK[f], ReadOnly: readOnly, Generated: text(field["generatedDefault"]) != ""})
+		if fc.hash != "" {
+			t.schema = append(t.schema, Column{Name: fc.hash, Type: names(g.rendering("encrypted-column", "column", g.dialect))["hash"], Nullable: fc.nullable, Field: from, ReadOnly: readOnly, Role: RoleHash})
+		}
 		if fc.check != "" {
 			t.constraints = append(t.constraints, fc.check)
 		}
@@ -527,12 +549,18 @@ func (g *gen) table(entity string, e map[string]any) table {
 			}
 			typ, _, _ := g.render(field, name)
 			t.columns = append(t.columns, columnLine(name, typ, "", false))
+			role := RoleCreated
+			if strings.HasPrefix(a.key, "lastModified") {
+				role = RoleModified
+			}
+			t.schema = append(t.schema, Column{Name: name, Type: typ, Role: role})
 		}
 	}
 	if text(e["deletion"]) == "soft" {
 		name := names(g.rendering("soft-delete", "column", "any"))["deleted"]
 		typ, check, _ := g.render(map[string]any{"type": "boolean"}, name)
 		t.columns = append(t.columns, columnLine(name, typ, g.defaults["false"], false))
+		t.schema = append(t.schema, Column{Name: name, Type: typ, Role: RoleDeleted})
 		if check != "" {
 			t.constraints = append(t.constraints, fmt.Sprintf("CONSTRAINT ck_%s_%s CHECK (%s)", t.name, name, check))
 		}

@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: generate
+level: system
+scenario: golden
+given: "a specification whose notes are audited, deleted softly and hold a place in two columns, with an insert, a read, a replacement and an amendment by the key and a list with a query parameter, a filter, a search and two sorts; shelves another team owns, with an insert and a list; a list of a view, a list of tags with a query parameter that names no field, and a read of a tag, whose key is two fields; specarch-gen-sqlc built from this repository on PATH"
+when: "generate sqlc is run with --unapproved"
+then: "it writes queries/notes.sql only: WriteNote inserts every column but the generated key and the deleted flag, GetNote reads by the key leaving a deleted note out, ReplaceNote sets every column a caller may set and the change's audit columns, AmendNote keeps a column the request leaves out, and ListNotes with ListNotesTotal filter, search and sort by the wire names, after the key; it warns that the view's list, the tags' list and the tag's read are left to be written by hand, writes nothing for the shelves, and exits 0"
+verifies: [SA-71]

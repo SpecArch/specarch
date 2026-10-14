@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: generate
+level: system
+scenario: golden
+given: "a specification with an insert of a shelf, whose sqlc output folder holds shelf.sql written by hand with the query generate writes; specarch-gen-sqlc built from this repository on PATH"
+when: "generate sqlc is run with --check and --unapproved"
+then: "it says that shelf.sql was built by hand and matches what generate writes but for its header, writes nothing, and exits 0"
+verifies: [SA-71]

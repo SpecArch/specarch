@@ -137,3 +137,17 @@ requirements:
     verification: test
     needs: [NEED-2]
     why: Most screens of a project that comes to SpecArch were built by hand; before the generated ones replace them, the owner needs to see, page by page, where the specification and the built screen disagree, without the noise of formatting.
+  SA-71:
+    statement: specarch generate sqlc shall write the sqlc queries the design derives against the tables generate sql writes, and leave every other query to be written by hand beside them.
+    kind: functional
+    priority: should
+    status: accepted
+    acceptance:
+      - An operation that posts an entity is an insert of every column but the ones the database draws and the soft-delete flag, answering the record; a read, a replacement or an amendment by one path parameter, of an entity whose key is one field, reads or changes the record by its key, a softly deleted record left out, an amendment keeping a column the request leaves out.
+      - An operation with listOf on an entity is a page of it and its total, filtered by each filterable field and each query parameter that names a field, searched case-insensitively over the searchable fields, and sorted by the wire name of each sortable field either way, then by the key.
+      - A list of a view, a list under a path parameter, a list with a query parameter that names no field held in one column, and a read or change of an entity whose key is not one field are warnings at the operation, and their queries are left to be written by hand; an entity another stakeholder owns gets no query.
+      - A dialect other than PostgreSQL is an error at the target. A query file in the output folder that the plug-in did not write is never overwritten; generate --check compares it, and it matches when it equals what the target writes but for its header.
+      - The queries compile under sqlc against the migrations, and the lending desk's query file written by hand differs from the generated one only where the specification and its database disagree.
+    verification: test
+    needs: [NEED-2, NEED-8]
+    why: A project on sqlc writes its queries by hand, and most of them are the same few shapes of every entity; writing those from the design keeps them in step with the tables, and a comparison with the file written by hand shows where the two disagree before the generated one replaces it.

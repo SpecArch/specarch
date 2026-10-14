@@ -70,7 +70,7 @@ No acceptance criteria yet.
 
 **Note:** From Lending desk manual, 2025, clause 2.2: Desk staff register new members. <../sources/manual.md>
 
-**Note:** From The lending desk service, 2510c1a3de2f89e3b99131c45e4560ae1639ad20, clause lending/routes.go:37: POST /members, checked against members.write. <../sources/code>
+**Note:** From The lending desk service, 85f06f82a430a81cc24648d198454426a37c16c9, clause lending/routes.go:37: POST /members, checked against members.write. <../sources/code>
 
 ### LEND-2
 
@@ -86,7 +86,7 @@ No acceptance criteria yet.
 
 **Note:** From Lending desk manual, 2025, clause 3.1: Desk staff lend a book by scanning the member's card and the book's barcode. <../sources/manual.md>
 
-**Note:** From The lending desk service, 2510c1a3de2f89e3b99131c45e4560ae1639ad20, clause lending/routes.go:38: POST /loans, checked against loans.write. <../sources/code>
+**Note:** From The lending desk service, 85f06f82a430a81cc24648d198454426a37c16c9, clause lending/routes.go:38: POST /loans, checked against loans.write. <../sources/code>
 
 ### LEND-3
 
@@ -102,7 +102,7 @@ No acceptance criteria yet.
 
 **Note:** From Lending desk manual, 2025, clause 3.2: A member may have at most five books on loan at a time. <../sources/manual.md>
 
-**Note:** From The lending desk service, 2510c1a3de2f89e3b99131c45e4560ae1639ad20, clause lending/model.go:11: MaxOpenLoans is 5; LendBook answers 409 at the limit. <../sources/code>
+**Note:** From The lending desk service, 85f06f82a430a81cc24648d198454426a37c16c9, clause lending/model.go:11: MaxOpenLoans is 5; LendBook answers 409 at the limit. <../sources/code>
 
 ### LEND-4
 
@@ -122,9 +122,9 @@ No acceptance criteria yet.
 
 **Note:** From Lending desk manual, 2025, clause 3.3: The loan period is 21 days. <../sources/manual.md>
 
-**Note:** From The lending desk service, 2510c1a3de2f89e3b99131c45e4560ae1639ad20, clause lending/model.go:8: LoanPeriod is 14 days. <../sources/code>
+**Note:** From The lending desk service, 85f06f82a430a81cc24648d198454426a37c16c9, clause lending/model.go:8: LoanPeriod is 14 days. <../sources/code>
 
-**Note:** From The lending desk service, 2510c1a3de2f89e3b99131c45e4560ae1639ad20, clause migrations/001_init.sql:18: The loans table checks that due_on is loaned_on plus 14. <../sources/code>
+**Note:** From The lending desk service, 85f06f82a430a81cc24648d198454426a37c16c9, clause migrations/001_init.sql:18: The loans table checks that due_on is loaned_on plus 14. <../sources/code>
 
 ### LEND-5
 
@@ -154,7 +154,7 @@ No acceptance criteria yet.
 
 **Note:** From Lending desk manual, 2025, clause 5.1: Desk staff check a returned book in by scanning its barcode, which closes the loan. <../sources/manual.md>
 
-**Note:** From The lending desk service, 2510c1a3de2f89e3b99131c45e4560ae1639ad20, clause lending/routes.go:39: POST /loans/{loanId}/return, checked against loans.write. <../sources/code>
+**Note:** From The lending desk service, 85f06f82a430a81cc24648d198454426a37c16c9, clause lending/routes.go:39: POST /loans/{loanId}/return, checked against loans.write. <../sources/code>
 
 ### LEND-7
 
@@ -172,7 +172,7 @@ No acceptance criteria yet.
 
 **Insight:** Undocumented, from code. The service serves GET /members/{cardNumber}/loans; the manual never mentions it. Q-2 asks the desk manager to confirm it.
 
-**Note:** From The lending desk service, 2510c1a3de2f89e3b99131c45e4560ae1639ad20, clause lending/routes.go:42: GET /members/{cardNumber}/loans, checked against loans.read. <../sources/code>
+**Note:** From The lending desk service, 85f06f82a430a81cc24648d198454426a37c16c9, clause lending/routes.go:42: GET /members/{cardNumber}/loans, checked against loans.read. <../sources/code>
 
 ## Sources
 
@@ -180,6 +180,6 @@ Every source a Note in this document cites.
 
 | Source | Title | Edition | Author | Where to read it |
 |---|---|---|---|---|
-| desk-code | The lending desk service | 2510c1a3de2f89e3b99131c45e4560ae1639ad20 | The desk team | ../sources/code |
+| desk-code | The lending desk service | 85f06f82a430a81cc24648d198454426a37c16c9 | The desk team | ../sources/code |
 | desk-manual | Lending desk manual | 2025 | The desk team | ../sources/manual.md |
 

@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.7.0-dev of the specification: 70 requirements, 5 entities, 13 commands, 7 algorithms, 477 tests, 117 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.7.0-dev of the specification: 71 requirements, 5 entities, 13 commands, 7 algorithms, 481 tests, 118 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -2851,7 +2851,9 @@ Stack: language Go 1.27; toolchain go 1.27.2; platforms darwin/arm64, darwin/amd
 | internal/source | Reads a YAML file into a node tree and a plain value, with the line of every node; finds unquoted dates and duplicate keys. |   |
 | internal/spec | Reads a specification from disk, the root file and the stage folders, and merges it into one document in which every node remembers its file; reports the layout problems. |   |
 | cmd/specarch-gen-sql | The plug-in behind generate sql. Reads the request on standard input, answers the migration and the snapshot on standard output, and never touches the disk. | #/commands/generate |
-| internal/gensql | The SQL migrations in four dialects, each column through the type-rendering idiom, with check expressions translated per dialect, the views after the tables, and a snapshot of the schema; an entity or view another stakeholder owns gets no statement, and the snapshot lists it as owned. |   |
+| internal/gensql | The SQL migrations in four dialects, each column through the type-rendering idiom, with check expressions translated per dialect, the views after the tables, and a snapshot of the schema; an entity or view another stakeholder owns gets no statement, and the snapshot lists it as owned. Schema answers the tables and columns it writes, for the queries generator. |   |
+| cmd/specarch-gen-sqlc | The plug-in behind generate sqlc. Reads the request on standard input, answers the query files on standard output, and never touches the disk. | #/commands/generate |
+| internal/gensqlc | The sqlc queries the design derives, in PostgreSQL, one file per table: an insert per operation that posts an entity, a read, a replacement or an amendment by a key of one field, and a page of a list with its filters, search and sorts and the list's total, against the tables internal/gensql writes; every other query is written by hand beside them, and a file written by hand is compared, never overwritten (ADR-123). |   |
 | internal/ownership | Reads the ownedBy marks of an implementation file's mappings, which every generator that builds code or data follows by leaving the owned elements out. |   |
 | internal/mark | The rule every generator plug-in places the request's problems by, at the deepest entry its output shows, a question at what it blocks and a target's own problem where the whole output is marked, and the mark's text each target writes in its comment form. |   |
 | internal/typerows | Matches a field to a row of a type rendering, for the validator and the generators alike. |   |
@@ -8829,6 +8831,89 @@ fails the suite.
 
 **Insight:** A type kept rather than left out, because a field without one is not a field to the schema, the generators or a reader of the techspec, and SpecArch reads an incomplete definition rather than refusing it (docs/principles.md): the problem is marked at the entry, by the must question that blocks the type, and nothing is dropped. The union where only null differs, because a nullable column and a non-null one agree on the type and differ on one more value, and the union allows what either allows, so no tree is contradicted while the question is open. The first tree's type otherwise, because the order of the trees is the one input the reviewer chooses and can repeat (ADR-045), and the question says in words that it is not a choice between the sources; the keys that go with the other type leave with it, because a format of one type is refused on another, and leaving them out unsaid would hide what that tree says, so the question names them. A field's type alone and not every required key, because every other key left out is covered by the question that blocks it, and keeping a value the design does not need would choose between the sources where the merge has no reason to. The ungranted permissions blocked by the question on the grants, because the grant is what is missing and it is written in the role, not under the permission; the validator holds that a question on the permission itself is the one place that can say the grant is not known (issue 11), and the merge is where the grant was left out, so it is the merge that says so. A union of the grants would widen a role while the question is open, which ADR-045 refuses for anything that concerns security. A name made valid rather than copied, because a folder name validate refuses makes the whole tree one validate refuses, and the ID is still cited in the draft's keys, so nothing of it is lost; a suffix and a question rather than an error where two names meet, because the subjects differ and both drafts can be written, and the reviewer decides whether the name suits. Every output of a tree-writing command validated in the suite, because the three cases were found by users, each after a release, each a different command writing a tree validate refused, and one check over every case catches the next before it ships. Acceptance test: two database trees that differ on a column's nullability merge into a tree validate accepts with no error, the column read with the union type and one must question on it; an owner reading the techspec sees the column with both citations and the question, and the change asked for is one line in the migration of the service that is wrong.
 
+### ADR-123: specarch-gen-sqlc writes the sqlc queries the design derives, in PostgreSQL, one file per table, against the tables specarch-gen-sql writes, and leaves every other query to be written by hand beside them
+
+Status: accepted, 2026-10-14.
+
+Context: Point 11 of docs/estate.md, build item 13. A service on sqlc writes
+its queries by hand in SQL files, and sqlc derives typed Go from
+them; the query is the reviewed input, which is rule 5 of
+docs/generators.md. Most of those queries are the same few shapes of
+every entity: insert a record, read, replace or amend one by its
+key, and a page of a list with its filters, search and sort. The
+design already says each of them by keyword (a request body that
+names an entity, a path parameter that is the key, listOf with its
+whitelists), so they can be written from it, and every other query
+stays the project's own. The plan was to check the generator
+against a real project's first hand-written query file; none exists
+yet, and the owner chose to build it now against a file written by
+hand for the lending desk, with the check against a real project's
+file still owed (docs/generators.md, Adding a target).
+
+Decision: The target is sqlc, the plug-in specarch-gen-sqlc. It writes
+PostgreSQL only: another dialect is an error at the target, naming
+the engine sqlc would read it with. It reads the tables and columns
+through specarch-gen-sql's own model (gensql.Schema), so a query
+never names a column the migrations do not create, and writes one
+file per table, named after the table, holding that table's
+queries in the order of the paths, each named after its operation
+in PascalCase, as sqlc names the Go method. It derives a query by
+keyword only:
+- a POST whose request body is an entity, on a path with no
+  parameter: an insert of every column but the ones the database
+  draws (generatedDefault) and the soft-delete flag, the audit
+  columns among them, answering the record (:one, RETURNING);
+- a GET that answers an entity, a PUT or a PATCH whose request body
+  is one, on a path with one parameter, of an entity whose key is
+  one field: a read or a change by the key, a softly deleted
+  record left out. A change sets every column a caller may set,
+  not the key, a readOnly field, a generated one or the creation's
+  audit columns, and sets the change's audit columns; a PATCH keeps
+  a column the request leaves out (coalesce of a nullable argument);
+- an operation with listOf on an entity, on a path with no
+  parameter: the page (:many) and its total (<Operation>Total,
+  :one), under the same conditions. Each query parameter that names
+  a field of the entity, by its name or its wire name, and each
+  filterable field is an equality filter, optional unless the
+  parameter is required; the searchable fields are matched
+  case-insensitively by position() of the lowered text; the
+  sortable fields are a pair of CASE terms each, ascending under the
+  field's wire name and descending under it after a minus sign,
+  then the key, so a page is stable; the page is LIMIT and OFFSET
+  from the arguments page_size and page_offset.
+A list of a view, a list under a path parameter, a list with a query
+parameter that names no field held in one column, a list whose
+filter, search or sort field is held in more than one column, and a
+read or change of an entity whose key is not one field are warnings
+at the operation, and their queries are left to be written by hand.
+An entity another stakeholder owns gets no query. A DELETE and every
+other operation derive nothing and are not reported: they are the
+queries sqlc's rule leaves to the project. A file in the output
+folder that the plug-in did not write is refused without --check
+and compared with it, after the generators' rule for files built by
+hand. tools/sqlc/compile-queries.sh runs sqlc vet, version 1.31.1 at
+a pinned digest, on a folder of queries against a folder of
+migrations in a disposable container.
+
+Consequences: The implementation file's dialect setting describes the sqlc target;
+the schemas and the Swift build's embedded schemas follow. The
+library lending example names the sqlc target and checks in its
+queries; CI compares them and compiles them under sqlc. The lending
+desk's queries, written by hand under sources/code/queries with a
+sqlc.yaml, are compared with generate --check, which differs only
+where the members table has no phone number column while Q-6 is
+open, and compile against the desk's migrations; the desk's route
+and permission dumps and its code edition move to the commit that
+added them. The byte comparison of a file written by hand is
+exact, so a real project's file that lists the columns in another
+order differs at that line; the real project's first file decides
+whether --check needs a comparison that reads the queries, and the
+check against it is still owed. MariaDB, a DELETE, a list under a
+path parameter and a read by a key of several fields are not
+written yet.
+
+**Insight:** Keywords only, because the rules for a specification say one way to say one thing: a request body that names an entity says the record is written whole, a key of one field in the path says which record, and listOf says the whitelists. A GET answering an array with no listOf, or a POST whose body is a shape of its own, says no more than that the operation exists; guessing its query from the route would put a meaning in the specification nobody wrote, so those stay the project's, as sqlc's rule has it. The model of gensql, because two derivations of a table's columns would drift, and the queries must compile against what the migrations create. sqlc's own conventions decide the rest: the query names are the Go methods, a nullable argument (sqlc.narg) with a cast is how sqlc types an optional filter, and sqlc builds no SQL at run time, so an optional filter is "the argument is null or the column equals it" and a sort is a CASE term per direction, each of one column's type, since a single CASE over columns of different types does not type-check. Text is matched by position() rather than LIKE, so a percent sign or an underscore in what a user types is matched as itself, as the paginated-list idiom's free-text search means. The key after the sorts makes the order total, without which PostgreSQL may give one record on two pages. LIMIT and OFFSET follow the idiom's page from 1 and page size; the caller passes the offset, so the arithmetic is in one place. PostgreSQL only, because sqlc's engines are PostgreSQL, MySQL and SQLite; MariaDB would be the second, when a project needs it, and SQL Server and Oracle have no engine. A warning rather than an error for a list left to be written by hand, because listOf is expressible, the query is the project's to write, and the rest of the output is ready; the warning keeps it from being silent. sqlc vet rather than compile, because sqlc compile and generate with no gen block exit 0 with a column that does not exist; vet with no rules of its own type-checks every query as generate does. The compiler test holds: nothing is refused that was read before, and every query left to be written by hand is a warning at its operation. The acceptance test holds: a change request that changes a field changes the queries the next run writes, and generate --check against the queries written by hand names the first line that differs.
+
 ## 10. Quality requirements
 
 The design tests: what must hold on every implementation. Golden scenarios succeed; red scenarios are refused.
@@ -9051,6 +9136,10 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | generate-sql-refuses-draft-migration | command generate | system | red | an approved specification whose migrations folder holds a migration a draft wrote, and specarch-gen-sql on PATH | generate sql is run | it reports that the migration was written by a draft and the approved schema starts in a new folder, writes nothing and exits 1 |
 | generate-sql-value-object | command generate | system | golden | a specification with an entity and a schema that a response refers to, an implementation file in Go whose sql target is PostgreSQL, and specarch-gen-sql built from this repository on PATH | generate sql is run with --unapproved | it writes 0001_expand.sql with the entity's table and nothing for the schema, and snapshot.yaml beside it, and exits 0 |
 | generate-sql-value-object-fields | command generate | system | golden | an entity whose fields hold schemas: a required and an optional address in columns, with an optional location inside each, preferences stored as json and a list of phones, an implementation file in Go whose sql target is PostgreSQL, and specarch-gen-sql built from this repository on PATH | generate sql is run with --unapproved | it writes each address as columns named after the field and the part, NOT NULL only where every level is required, a check that an optional value is wholly absent or has its required parts, and preferences and phones as one JSONB column each, and exits 0 |
+| generate-sqlc-check-hand-written | command generate | system | golden | a specification with an insert of a shelf, whose sqlc output folder holds shelf.sql written by hand with the query generate writes; specarch-gen-sqlc built from this repository on PATH | generate sqlc is run with --check and --unapproved | it says that shelf.sql was built by hand and matches what generate writes but for its header, writes nothing, and exits 0 |
+| generate-sqlc-dialect-refused | command generate | system | red | a specification with an insert of a shelf, whose implementation file names mariadb as the sqlc target's dialect; specarch-gen-sqlc built from this repository on PATH | generate sqlc is run with --unapproved | it writes nothing, reports that it writes PostgreSQL queries only and that sqlc reads mariadb as mysql, whose queries it does not write yet, and exits 1 |
+| generate-sqlc-hand-written-refused | command generate | system | red | a specification with an insert of a shelf, whose sqlc output folder holds shelf.sql written by hand, with no generated header; specarch-gen-sqlc built from this repository on PATH | generate sqlc is run with --unapproved | it leaves shelf.sql as it is, writes nothing, reports that the file was not written by specarch-gen-sqlc and can be compared with generate --check, and exits 1 |
+| generate-sqlc-queries | command generate | system | golden | a specification whose notes are audited, deleted softly and hold a place in two columns, with an insert, a read, a replacement and an amendment by the key and a list with a query parameter, a filter, a search and two sorts; shelves another team owns, with an insert and a list; a list of a view, a list of tags with a query parameter that names no field, and a read of a tag, whose key is two fields; specarch-gen-sqlc built from this repository on PATH | generate sqlc is run with --unapproved | it writes queries/notes.sql only: WriteNote inserts every column but the generated key and the deleted flag, GetNote reads by the key leaving a deleted note out, ReplaceNote sets every column a caller may set and the change's audit columns, AmendNote keeps a column the request leaves out, and ListNotes with ListNotesTotal filter, search and sort by the wire names, after the key; it warns that the view's list, the tags' list and the tag's read are left to be written by hand, writes nothing for the shelves, and exits 0 |
 | generate-stack-fallback | command generate | system | golden | a specification whose implementation file is in Go, with only specarch-gen-echo on PATH | generate echo is run with --unapproved | it runs specarch-gen-echo, writes its file into the output the implementation file names, and exits 0 |
 | generate-stack-plugin | command generate | system | golden | a specification whose implementation file is in Go, with specarch-gen-echo-go and specarch-gen-echo both on PATH | generate echo is run with --unapproved | it runs specarch-gen-echo-go, the plug-in for the file's stack, writes its file into the output the implementation file names, and exits 0 |
 | generate-tests-dart | command generate | system | golden | the specification of generate-tests-go, and an implementation file in Dart whose testing framework is flutter_test; specarch-gen-tests-dart built from this repository on PATH | generate tests is run with --unapproved | it writes the library of values, harness and checks and the test file beside it, both importing flutter_test: the same tests as in Go through Harness, a body to write by hand for the test with no call, the reason of the test that does not apply, a group per algorithm with a test per worked example, and exits 0 |
@@ -9394,6 +9483,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | SA-59 | specarch generate shall mark every warning and open question at the entry each generated file shows for it, shall write a draft labelled as one in every file when --unapproved lets it past open questions or a missing approval, and shall write the rest of a target's output with an entry the target cannot express marked at that entry and exit 1. | functional | must | accepted | test | generate --unapproved on a specification with a must question that blocks an entity writes the target's files, each saying it is a draft and naming the question, and the entity's entry carries the question's mark. A warning at an operation is marked above its handler in Go, in x-specarch-marks on the operation in OpenAPI, and a warning at an entity above its table in SQL. A target that cannot express one entry writes the rest with an error mark at that entry, prints the error and exits 1; SQL writes no migration then, and an approved run over a migration a draft wrote is an error. generate without --out passes over a specification that names no output folder for the target with an output_folder warning and writes the others. | NEED-3, NEED-8 |
 | SA-60 | specarch document html shall write a specification as one HTML page that opens from the disk with no server and makes no request, with an overview first, every element under an anchor named by its pointer, and every problem linked to the entry it marks and marked at that entry. | functional | should | accepted | test | The page is one index.html with its styles, its script and its diagrams inside it, a Content-Security-Policy that allows no request, and the generated-from header after its doctype; two runs write the same bytes. Every element shown has an id equal to its pointer, with what an id or a fragment cannot hold percent-encoded, and no id appears twice. Each error, warning and open question is listed in the order of the problems file and links to the deepest element the page shows that holds its pointer, and that element shows a mark linking back; an element an open question blocks says so and links to the question. Entities are drawn as an SVG diagram with their fields and relations, each workflow as specarch generate bpmn draws it, and each page that specarch generate ui writes as its screen without scripts; a page with no screen says why. An invalid specification is written all the same, from what could be read, with its errors marked. | NEED-3, NEED-10 |
 | SA-61 | specarch generate --check shall compare a folder of pages built by hand with what the target writes, saying for each file whether it matches and, for a page's data, which values differ. | functional | should | accepted | test | A file the plug-in marks as an object literal is read on both sides in the subset of TypeScript that is also JSON5 and compared by value, so formatting, comments, quotes and trailing commas do not count; each differing value is named by its path, with the value on disk and the one generated. A file on disk outside the subset is reported as not comparable, with the line and what was found, and never as matching. A file built by hand, which has no generated header, matches when it equals what the target writes without its header, draft notice and problem marks; it says so in a line of its own and is not counted as differing. A generated file is still compared byte for byte. The library lending example's sign-in and second-factor schemas, written by hand before the generator, compare equal, and a list schema with one column changed is reported as that column. | NEED-2 |
+| SA-71 | specarch generate sqlc shall write the sqlc queries the design derives against the tables generate sql writes, and leave every other query to be written by hand beside them. | functional | should | accepted | test | An operation that posts an entity is an insert of every column but the ones the database draws and the soft-delete flag, answering the record; a read, a replacement or an amendment by one path parameter, of an entity whose key is one field, reads or changes the record by its key, a softly deleted record left out, an amendment keeping a column the request leaves out. An operation with listOf on an entity is a page of it and its total, filtered by each filterable field and each query parameter that names a field, searched case-insensitively over the searchable fields, and sorted by the wire name of each sortable field either way, then by the key. A list of a view, a list under a path parameter, a list with a query parameter that names no field held in one column, and a read or change of an entity whose key is not one field are warnings at the operation, and their queries are left to be written by hand; an entity another stakeholder owns gets no query. A dialect other than PostgreSQL is an error at the target. A query file in the output folder that the plug-in did not write is never overwritten; generate --check compares it, and it matches when it equals what the target writes but for its header. The queries compile under sqlc against the migrations, and the lending desk's query file written by hand differs from the generated one only where the specification and its database disagree. | NEED-2, NEED-8 |
 | SA-32 | SpecArch shall ship versioned idioms that say how each recurring implementation concern is done per stack, apply them to every implementation file by default, let a file exclude or override one with the reason, and check the result, starting with the type rendering of every field on Go and on PostgreSQL, SQL Server, Oracle and MariaDB. | functional | must | accepted | test | An idiom key naming no idiom, an exclusion or override without why, an override naming an unknown part or defining one it does not list, rendering a stack that is not the file's, or changing a shipped contract statement is each reported under its rule in both builds; an override copied from an older version is warned about. A field that no row of the type rendering matches for a stack of the implementation file, such as a decimal wider than Oracle holds, is reported as idiom_contract. An override that replaces the Oracle text rows for MAX_STRING_SIZE = EXTENDED validates without a diagnostic. The shipped set holds the fifteen idioms of the first set and ui-components, each statement marked with what checks it, and every one passes the idiom schema and cites only the sources it declares. A ui target's framework, given or by its platform's default, is a stack of its implementation file, so specarch idioms lists ui-components for a TypeScript file whose ui target is nextjs-carbon and not for one on plain-javascript, and an override rendering nextjs-carbon in a file on plain-javascript is reported as idiom_stack in both builds. | NEED-2 |
 | SA-11 | A specification shall be a folder tree with one root file, specarch.yaml, and one folder per life-cycle stage it keeps, in which a file holds one or a few objects of one kind. | functional | must | accepted | test | A tree whose root lists its stages and holds each stage's files under that folder validates. A file in the wrong folder, a section in the wrong file, a listed stage without a folder, and a folder that is not a stage are each reported as layout. | NEED-4 |
 | SA-12 | A specification shall be able to hold every stage of the life cycle, from stakeholders and needs through requirements, design, implementation, tests, deployment, commissioning and operation, each optional until the project reaches it. | functional | must | accepted | test | A specification with only a requirements stage validates with no error. A requirement no design element satisfies, a requirement no test, check or monitor verifies, and a need no requirement refines are reported as warnings once the later stage exists. | NEED-5 |
@@ -9517,6 +9607,8 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 **Insight on SA-60:** Reviewers and testers read a specification long before it is finished and seldom read YAML; one page they can open anywhere, search, and link into by an element's id lets them name exactly what a remark is about, which is what takes it back into the specification.
 
 **Insight on SA-61:** Most screens of a project that comes to SpecArch were built by hand; before the generated ones replace them, the owner needs to see, page by page, where the specification and the built screen disagree, without the noise of formatting.
+
+**Insight on SA-71:** A project on sqlc writes its queries by hand, and most of them are the same few shapes of every entity; writing those from the design keeps them in step with the tables, and a comparison with the file written by hand shows where the two disagree before the generated one replaces it.
 
 **Insight on SA-32:** How a decimal, a text column or a missing value is held on a stack is decided once and read by every generator and every agent; without the table each implementation file restates it in prose, each a little differently.
 
@@ -9642,6 +9734,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-68 | enums Rule; commands document; decisions ADR-119 | tests document-audience-external; tests document-audience-marked; tests gaps-references-fulfilled-by; tests validate-requirement-fulfilled-by; tests validate-requirement-owned |
 | SA-69 | enums Rule; commands gaps; decisions ADR-120 | tests document-writes-questions; tests gaps-lists-questions; tests gaps-names-question; tests gaps-question-opened; tests validate-question-opened |
 | SA-70 | commands extract; decisions ADR-121 | tests extract-database-generated-default; tests extract-database-implementation-out; tests extract-router-list-twin; tests generate-openapi-list-twin; tests generate-sql-generated-default; tests generate-sql-generated-default-refused; tests generate-sql-index-changed; tests validate-generated-default; tests validate-index-field |
+| SA-71 | decisions ADR-123 | tests generate-sqlc-check-hand-written; tests generate-sqlc-dialect-refused; tests generate-sqlc-hand-written-refused; tests generate-sqlc-queries |
 
 ## Sources
 

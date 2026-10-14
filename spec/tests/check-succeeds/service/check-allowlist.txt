@@ -1,0 +1,4 @@
+# The differences known and not settled yet.
+route_not_specified DELETE /copies/{copyId}
+table_not_specified audit_log
+column_type_differs copies.label

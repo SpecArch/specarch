@@ -54,29 +54,13 @@ var roleWord = regexp.MustCompile(`^[a-z][a-z0-9]*(-[a-z0-9]+)*$`)
 // routes' operations as extract router does, each route that checks no
 // permission taking the one the table's rules give it (ADR-100).
 func Permissions(dumpPath, routesPath, out, key string) (*Result, error) {
-	data, err := os.ReadFile(dumpPath)
-	if err != nil {
-		return nil, err
-	}
-	var t permissionTable
-	dec := json.NewDecoder(bytes.NewReader(data))
-	dec.DisallowUnknownFields()
-	if err := dec.Decode(&t); err != nil {
-		return nil, refuse("%s is not a permission table: %v", dumpPath, err)
-	}
-	if t.PermissionTable != 1 {
-		return nil, refuse("%s is not a permission table in the format tools/permissions/dump-permissions.sh writes: its permissionTable is %d, not 1", dumpPath, t.PermissionTable)
-	}
-	if t.Grants == nil || t.Gates == nil {
-		return nil, refuse("%s is not a permission table: it needs both grants and gates, each a list, empty when there are none", dumpPath)
-	}
-	r, dumpName, err := openDump(dumpPath, t.Repository, t.Path, t.Commit, "tools/permissions/dump-permissions.sh")
+	t, r, dumpName, err := openPermissionTable(dumpPath)
 	if err != nil {
 		return nil, err
 	}
 	res := &Result{Tree: newTree()}
 	res.say("commit %s: the last change to %s, as the permission table %s names it", r.Commit, t.Path, dumpName)
-	pr := &permissionReader{t: &t, key: key, res: res, questions: &yaml.Node{Kind: yaml.MappingNode}, bypassBlocks: map[string]*yaml.Node{}}
+	pr := &permissionReader{t: t, key: key, res: res, questions: &yaml.Node{Kind: yaml.MappingNode}, bypassBlocks: map[string]*yaml.Node{}}
 	if err := pr.read(dumpName); err != nil {
 		return nil, err
 	}
@@ -151,6 +135,32 @@ func Permissions(dumpPath, routesPath, out, key string) (*Result, error) {
 	return res, nil
 }
 
+// openPermissionTable reads a permission table and checks it against the
+// commit it names.
+func openPermissionTable(dumpPath string) (*permissionTable, *Read, string, error) {
+	data, err := os.ReadFile(dumpPath)
+	if err != nil {
+		return nil, nil, "", err
+	}
+	var t permissionTable
+	dec := json.NewDecoder(bytes.NewReader(data))
+	dec.DisallowUnknownFields()
+	if err := dec.Decode(&t); err != nil {
+		return nil, nil, "", refuse("%s is not a permission table: %v", dumpPath, err)
+	}
+	if t.PermissionTable != 1 {
+		return nil, nil, "", refuse("%s is not a permission table in the format tools/permissions/dump-permissions.sh writes: its permissionTable is %d, not 1", dumpPath, t.PermissionTable)
+	}
+	if t.Grants == nil || t.Gates == nil {
+		return nil, nil, "", refuse("%s is not a permission table: it needs both grants and gates, each a list, empty when there are none", dumpPath)
+	}
+	r, dumpName, err := openDump(dumpPath, t.Repository, t.Path, t.Commit, "tools/permissions/dump-permissions.sh")
+	if err != nil {
+		return nil, nil, "", err
+	}
+	return &t, r, dumpName, nil
+}
+
 type permissionReader struct {
 	t           *permissionTable
 	key         string
@@ -168,6 +178,13 @@ type permissionReader struct {
 	// the check's name, given the guarded operations once the routes are
 	// read.
 	bypassBlocks map[string]*yaml.Node
+	compared     []comparedGrant
+}
+
+// comparedGrant is one grant of the table as specarch check compares it.
+type comparedGrant struct {
+	role, permission string
+	index            int // in the table's grants
 }
 
 // gap records what the meta-model cannot hold of a grant of the role, as
@@ -285,6 +302,19 @@ func (pr *permissionReader) read(dumpName string) error {
 			}
 			byRole[g.Role] = append(byRole[g.Role], p)
 		}
+	}
+	// What specarch check compares: every grant but a grant of public, by
+	// the names the tree reads, or as the table writes them where it reads
+	// none.
+	for i, g := range grants {
+		if g.Permission == "public" {
+			continue
+		}
+		p := g.Permission
+		if q, _ := privileges.grantProblem(g.Role, g.Permission); isRole[g.Role] && q == "" {
+			p, _, _ = privileges.read(g.Permission)
+		}
+		pr.compared = append(pr.compared, comparedGrant{role: g.Role, permission: p, index: i})
 	}
 	unknown := map[string]bool{}
 	for _, a := range problems {

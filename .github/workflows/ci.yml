@@ -194,6 +194,26 @@ jobs:
           git diff --exit-code -- examples/lending-desk/sources/code/queries
           PODMAN=docker sh tools/sqlc/compile-queries.sh examples/lending-desk/sources/code/migrations examples/lending-desk/sources/code/queries
           PODMAN=docker sh tools/sqlc/compile-queries.sh examples/library-lending/migrations examples/library-lending/queries
+      - name: The lending desk's specification matches its route table, permission table and catalogue but for its allowlist, which only shrinks
+        # specarch check compares the specification with the dumps of the
+        # desk's code; every difference it knows of is a line of
+        # check-allowlist.txt, each with the question that holds it open.
+        # --since fails a line the allowlist did not hold at the commit
+        # this change is made on top of. A line that names no difference
+        # fails as well, as a line for a settled difference would.
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          desk=examples/lending-desk
+          dumps="$desk/sources/routes/routes.json $desk/sources/permissions/permissions.json $desk/sources/catalogue/catalogue.json"
+          since=""
+          if [ -n "$BASE" ] && [ "$BASE" != 0000000000000000000000000000000000000000 ]; then since="--since $BASE"; fi
+          go run ./cmd/specarch check --allowlist $desk/check-allowlist.txt $since $desk $dumps
+          cp $desk/check-allowlist.txt "$RUNNER_TEMP/check-allowlist.txt"
+          echo "table_not_specified loans" >> "$RUNNER_TEMP/check-allowlist.txt"
+          status=0; go run ./cmd/specarch check --allowlist "$RUNNER_TEMP/check-allowlist.txt" $desk $dumps > "$RUNNER_TEMP/check-stale.txt" || status=$?
+          cat "$RUNNER_TEMP/check-stale.txt"
+          test "$status" -eq 1 && grep -q 'allowlist_stale: no difference that fails is table_not_specified loans' "$RUNNER_TEMP/check-stale.txt"
       - name: The lending desk extracts end to end the same twice, and gaps lists the phone number and the open member route as must questions
         # The manual has a personal phone number the members table does not;
         # the router serves GET /members/{cardNumber} with no permission,

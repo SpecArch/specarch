@@ -1,0 +1,11 @@
+{
+    "permissionTable": 1,
+    "path": "access",
+    "commit": "cd23fe47c2f75ac8e7d1b785be8fe5c7213c9a5e",
+    "grants": [
+        {"role": "clerk", "permission": "copies.read"},
+        {"role": "auditor", "permission": "copies.read"},
+        {"role": "clerk", "permission": "copies.write"}
+    ],
+    "gates": []
+}

@@ -1,0 +1,220 @@
+{
+    "catalogue": "postgresql",
+    "path": "migrations",
+    "commit": "cd23fe47c2f75ac8e7d1b785be8fe5c7213c9a5e",
+    "enums": [],
+    "views": [],
+    "tables": [
+        {
+            "name": "audit_log",
+            "schema": "public",
+            "comment": null,
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "bigint",
+                    "comment": null,
+                    "default": "nextval('audit_log_id_seq'::regclass)",
+                    "notNull": true,
+                    "identity": null,
+                    "generated": null
+                },
+                {
+                    "name": "said",
+                    "type": "text",
+                    "comment": null,
+                    "default": null,
+                    "notNull": true,
+                    "identity": null,
+                    "generated": null
+                }
+            ],
+            "constraints": [
+                {
+                    "kind": "primary",
+                    "name": "audit_log_pkey",
+                    "columns": [
+                        "id"
+                    ],
+                    "onDelete": null,
+                    "definition": "PRIMARY KEY (id)",
+                    "referencesTable": null,
+                    "referencesSchema": null,
+                    "referencesColumns": null
+                }
+            ],
+            "indexes": [
+                {
+                    "name": "audit_log_pkey",
+                    "unique": true,
+                    "primary": true,
+                    "definition": "CREATE UNIQUE INDEX audit_log_pkey ON public.audit_log USING btree (id)",
+                    "backsConstraint": true
+                }
+            ]
+        },
+        {
+            "name": "branches",
+            "schema": "public",
+            "comment": null,
+            "columns": [
+                {
+                    "name": "code",
+                    "type": "character varying(8)",
+                    "comment": null,
+                    "default": null,
+                    "notNull": true,
+                    "identity": null,
+                    "generated": null
+                },
+                {
+                    "name": "name",
+                    "type": "character varying(100)",
+                    "comment": null,
+                    "default": null,
+                    "notNull": true,
+                    "identity": null,
+                    "generated": null
+                }
+            ],
+            "constraints": [
+                {
+                    "kind": "primary",
+                    "name": "branches_pkey",
+                    "columns": [
+                        "code"
+                    ],
+                    "onDelete": null,
+                    "definition": "PRIMARY KEY (code)",
+                    "referencesTable": null,
+                    "referencesSchema": null,
+                    "referencesColumns": null
+                }
+            ],
+            "indexes": [
+                {
+                    "name": "branches_pkey",
+                    "unique": true,
+                    "primary": true,
+                    "definition": "CREATE UNIQUE INDEX branches_pkey ON public.branches USING btree (code)",
+                    "backsConstraint": true
+                }
+            ]
+        },
+        {
+            "name": "copies",
+            "schema": "public",
+            "comment": null,
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "bigint",
+                    "comment": null,
+                    "default": "nextval('copies_id_seq'::regclass)",
+                    "notNull": true,
+                    "identity": null,
+                    "generated": null
+                },
+                {
+                    "name": "branch_code",
+                    "type": "character varying(8)",
+                    "comment": null,
+                    "default": null,
+                    "notNull": true,
+                    "identity": null,
+                    "generated": null
+                },
+                {
+                    "name": "title",
+                    "type": "character varying(200)",
+                    "comment": null,
+                    "default": null,
+                    "notNull": true,
+                    "identity": null,
+                    "generated": null
+                },
+                {
+                    "name": "label",
+                    "type": "character(4)",
+                    "comment": null,
+                    "default": null,
+                    "notNull": false,
+                    "identity": null,
+                    "generated": null
+                },
+                {
+                    "name": "reference",
+                    "type": "uuid",
+                    "comment": null,
+                    "default": "gen_random_uuid()",
+                    "notNull": true,
+                    "identity": null,
+                    "generated": null
+                }
+            ],
+            "constraints": [
+                {
+                    "kind": "foreign",
+                    "name": "copies_branch_code_fkey",
+                    "columns": [
+                        "branch_code"
+                    ],
+                    "onDelete": "no action",
+                    "definition": "FOREIGN KEY (branch_code) REFERENCES branches(code)",
+                    "referencesTable": "branches",
+                    "referencesSchema": "public",
+                    "referencesColumns": [
+                        "code"
+                    ]
+                },
+                {
+                    "kind": "check",
+                    "name": "copies_title_given",
+                    "columns": [
+                        "title"
+                    ],
+                    "onDelete": null,
+                    "definition": "CHECK (((title)::text <> ''::text))",
+                    "referencesTable": null,
+                    "referencesSchema": null,
+                    "referencesColumns": null
+                },
+                {
+                    "kind": "primary",
+                    "name": "copies_pkey",
+                    "columns": [
+                        "id"
+                    ],
+                    "onDelete": null,
+                    "definition": "PRIMARY KEY (id)",
+                    "referencesTable": null,
+                    "referencesSchema": null,
+                    "referencesColumns": null
+                }
+            ],
+            "indexes": [
+                {
+                    "name": "copies_pkey",
+                    "unique": true,
+                    "primary": true,
+                    "definition": "CREATE UNIQUE INDEX copies_pkey ON public.copies USING btree (id)",
+                    "backsConstraint": true
+                },
+                {
+                    "name": "copies_title_lower",
+                    "unique": false,
+                    "primary": false,
+                    "definition": "CREATE INDEX copies_title_lower ON public.copies USING btree (lower((title)::text))",
+                    "backsConstraint": false
+                },
+                {
+                    "name": "ix_copies_branch_code",
+                    "unique": false,
+                    "primary": false,
+                    "definition": "CREATE INDEX ix_copies_branch_code ON public.copies USING btree (branch_code)",
+                    "backsConstraint": false
+                }
+            ]
+        }
+    ]
+}

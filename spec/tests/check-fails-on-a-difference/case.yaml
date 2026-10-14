@@ -1,0 +1,20 @@
+arguments: [check, --allowlist, service/check-allowlist.txt, project, service/routes.json, service/permissions.json, service/catalogue.json]
+repository:
+  folder: service
+  commits:
+    - [migrations, router, access]
+    - [catalogue.json, routes.json, permissions.json, check-allowlist.txt]
+exitStatus: 1
+standardOutput: |
+  specarch check: 3 dumps compared: 4 differences, 2 allowed by the allowlist, 2 reports, 5 allowlist lines that fail
+  project/specarch.yaml:20:7: error: /entities/Copy/properties/label: column_type_differs: column copies.label is character varying(4) in the specification's table and character(4) in the database [column_type_differs copies.label]
+  project/specarch.yaml:27:7: warning: /entities/Copy/constraints/copies_title_given: check_expression_differs: the check copies_title_given of copies reads (title <> '') in the specification's table and (((title)::text <> ''::text)) in the database; the database rewrites a check's text, so this is a report [check_expression_differs copies.copies_title_given]
+  project/specarch.yaml:33:49: error: /roles/visitor/permissions: grant_not_in_code: role visitor grants copies.read in the specification, and the permission table permissions.json grants neither it nor a permission that implies it [grant_not_in_code visitor copies.read]
+  project/specarch.yaml:51:5: error: /paths/~1copies~1{copyId}/get: operation_permission_differs: operation showCopy, GET /copies/{copyId}, checks copies.read in the specification and no permission in the route table routes.json [operation_permission_differs GET /copies/{copyId}]
+  service/catalogue.json:203:17: warning: /tables/2/indexes/1: index_not_listed: the index copies_title_lower of copies, CREATE INDEX copies_title_lower ON public.copies USING btree (lower((title)::text)), is in the database and the mapping of entity Copy does not list it; an index is physical design, so this is a report: list it under the mapping's indexes when it is plain [index_not_listed copies.copies_title_lower]
+  service/check-allowlist.txt:4:1: error: /: allowlist_stale: the allowlist names table_not_specified audit_log at line 3 already; take this line out [allowlist_stale table_not_specified audit_log]
+  service/check-allowlist.txt:5:1: error: /: allowlist_stale: no difference that fails is operation_not_served POST /copies, so the line allows nothing; take it out, since the list only shrinks [allowlist_stale operation_not_served POST /copies]
+  service/check-allowlist.txt:6:1: error: /: allowlist_stale: index_not_listed copies.copies_title_lower is a report, which never fails, so the line allows nothing; take it out [allowlist_stale index_not_listed copies.copies_title_lower]
+  service/check-allowlist.txt:7:1: error: /: allowlist_stale: no difference that fails is column_not_specified copies.barcode, so the line allows nothing; take it out, since the list only shrinks [allowlist_stale column_not_specified copies.barcode]
+  service/check-allowlist.txt:8:1: error: /: allowlist_stale: copies.label is no rule of check's, so the line allows nothing; a line is the id check prints between brackets, a rule and what the difference is about [allowlist_stale copies.label is CHAR]
+  service/permissions.json:7:9: error: /grants/1: grant_not_specified: the permission table grants copies.read to auditor, a role the specification does not declare; specify the role, or take the grant out [grant_not_specified auditor copies.read]

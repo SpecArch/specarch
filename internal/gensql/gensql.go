@@ -446,6 +446,7 @@ type table struct {
 	foreignKeys []string // statements after every table
 	elsewhere   []string // comments after every table: a column that keeps another specification's key
 	schema      []Column // the columns, for a generator that writes against the table
+	keys        Keys     // the keys, constraints and indexes, for a comparison with a database
 }
 
 func (t table) create(dialect string) string {
@@ -528,12 +529,13 @@ func (g *gen) table(entity string, e map[string]any) table {
 		t.columns = append(t.columns, fc.lines...)
 		from := g.fieldOf(entity, f)
 		readOnly := obj0(obj0(obj0(g.originalEntities()[entity])["properties"])[from])["readOnly"] == true
-		t.schema = append(t.schema, Column{Name: fc.name, Type: fc.typ, Nullable: fc.nullable, Field: from, Key: inPK[f], ReadOnly: readOnly, Generated: text(field["generatedDefault"]) != ""})
+		t.schema = append(t.schema, Column{Name: fc.name, Type: fc.typ, Nullable: fc.nullable, Field: from, Key: inPK[f], ReadOnly: readOnly, Generated: text(field["generatedDefault"]) != "", GeneratedDefault: text(field["generatedDefault"])})
 		if fc.hash != "" {
 			t.schema = append(t.schema, Column{Name: fc.hash, Type: names(g.rendering("encrypted-column", "column", g.dialect))["hash"], Nullable: fc.nullable, Field: from, ReadOnly: readOnly, Role: RoleHash})
 		}
 		if fc.check != "" {
 			t.constraints = append(t.constraints, fc.check)
+			t.keys.Checks = append(t.keys.Checks, Check{Name: fc.checkName, Expression: fc.checkExpression, Field: from})
 		}
 	}
 	if e["audited"] == true {
@@ -563,11 +565,13 @@ func (g *gen) table(entity string, e map[string]any) table {
 		t.schema = append(t.schema, Column{Name: name, Type: typ, Role: RoleDeleted})
 		if check != "" {
 			t.constraints = append(t.constraints, fmt.Sprintf("CONSTRAINT ck_%s_%s CHECK (%s)", t.name, name, check))
+			t.keys.Checks = append(t.keys.Checks, Check{Name: "ck_" + t.name + "_" + name, Expression: check})
 		}
 	}
 	g.addConstraints(&t, at, props, cols, pk, obj0(e["constraints"]))
 	for _, ix := range g.plainIndexes(entity, t.name, props) {
 		t.indexes = append(t.indexes, ix.create(t.name))
+		t.keys.Indexes = append(t.keys.Indexes, Index{Name: ix.Name, Columns: ix.Columns})
 	}
 	rels := obj0(e["relations"])
 	for _, rn := range sortedKeys(rels) {
@@ -587,6 +591,7 @@ func (g *gen) table(entity string, e map[string]any) table {
 			continue
 		}
 		t.foreignKeys = append(t.foreignKeys, g.foreignKey(t.name, rel))
+		t.keys.ForeignKeys = append(t.keys.ForeignKeys, g.foreignKeyOf(rn, rel))
 	}
 	return t
 }
@@ -674,6 +679,7 @@ func (g *gen) addConstraints(t *table, at string, props map[string]any, cols map
 	if len(pk) > 0 {
 		k, _ := keyCols(pk)
 		t.constraints = append([]string{fmt.Sprintf("CONSTRAINT pk_%s PRIMARY KEY (%s)", t.name, strings.Join(k, ", "))}, t.constraints...)
+		t.keys.PrimaryKey = k
 	}
 	for _, name := range sortedKeys(cs) {
 		c := obj0(cs[name])
@@ -696,6 +702,7 @@ func (g *gen) addConstraints(t *table, at string, props map[string]any, cols map
 				continue
 			}
 			t.constraints = append(t.constraints, fmt.Sprintf("CONSTRAINT %s UNIQUE (%s)", name, strings.Join(k, ", ")))
+			t.keys.Uniques = append(t.keys.Uniques, Unique{Name: name, Columns: k, Constraint: name})
 		case "check":
 			sql, err := g.check(text(c["expression"]), props)
 			if err != "" {
@@ -703,6 +710,7 @@ func (g *gen) addConstraints(t *table, at string, props map[string]any, cols map
 				continue
 			}
 			t.constraints = append(t.constraints, fmt.Sprintf("CONSTRAINT %s CHECK (%s)", name, sql))
+			t.keys.Checks = append(t.keys.Checks, Check{Name: name, Expression: sql, Constraint: name})
 		}
 	}
 }
@@ -814,6 +822,22 @@ func (g *gen) constraintsOnly(entity string, e map[string]any) table {
 	return t
 }
 
+// foreignKeyOf is the foreign key of a relation, as Keys holds it.
+func (g *gen) foreignKeyOf(relation string, rel map[string]any) ForeignKey {
+	via, target := text(rel["via"]), text(rel["target"])
+	fk := ForeignKey{Relation: relation, Columns: []string{snake(via)}, Table: g.tableName(target), OnDelete: "restrict"}
+	for _, f := range texts(list(obj0(obj0(g.spec["entities"])[target])["primaryKey"])) {
+		fk.References = append(fk.References, snake(f))
+	}
+	switch text(rel["onDelete"]) {
+	case "cascade":
+		fk.OnDelete = "cascade"
+	case "set_null":
+		fk.OnDelete = "set null"
+	}
+	return fk
+}
+
 // foreignKey is the statement that adds the foreign key of a relation.
 func (g *gen) foreignKey(tableName string, rel map[string]any) string {
 	via, target := text(rel["via"]), text(rel["target"])
@@ -842,6 +866,8 @@ type fieldCol struct {
 	lines []string
 	typ   string
 	check string
+	// checkName and checkExpression are check's name and condition.
+	checkName, checkExpression string
 }
 
 // fieldColumn renders one field of a table.
@@ -885,6 +911,7 @@ func (g *gen) fieldColumn(tableName, at, f string, field map[string]any, require
 	}
 	if check != "" {
 		fc.check = fmt.Sprintf("CONSTRAINT ck_%s_%s CHECK (%s)", tableName, fc.name, check)
+		fc.checkName, fc.checkExpression = "ck_"+tableName+"_"+fc.name, check
 	}
 	return fc, true
 }

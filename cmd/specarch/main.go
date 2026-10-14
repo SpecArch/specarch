@@ -7,6 +7,7 @@
 //	specarch extract <source> [--source-key <key>] [--implementation <file>] [--implementation-out <file>] [--facts <dump>] [--routes <dump>] [--language <tag>] [--vocabulary <file>] [--given-outside] [--table] --out <folder> <path>...
 //	specarch merge [--vocabulary <file>]... --out <folder> <tree>...
 //	specarch diff <old> <new>
+//	specarch check [--allowlist <file>] [--since <revision>] <specification> <dump>...
 //	specarch derive <folder>...
 //	specarch idioms [diff <idiom>] <folder>...
 //	specarch version
@@ -49,6 +50,11 @@ const usage = `usage:
   specarch merge [--vocabulary <file>]... --out <folder> <tree>...
                                             merge the trees extract wrote into one specification
   specarch diff <old folder> <new folder>   list what changed between two versions and check the release
+  specarch check [--allowlist <file>] [--since <revision>] <specification> <dump>...
+                                            compare a specification with the route tables, permission tables
+                                            and catalogue dumps of its code, and fail on a difference the
+                                            allowlist does not name or a line of it that names none or was
+                                            added since the revision
   specarch derive <folder>...               write a draft test for every derived case no test covers
   specarch idioms <folder>...               list the idioms each implementation file uses, and how
   specarch idioms diff <idiom> <folder>...  print a shipped idiom's parts beside each override's
@@ -86,6 +92,8 @@ func run(args []string, stdout, stderr io.Writer) int {
 		return runMerge(args[1:], stdout, stderr)
 	case "diff":
 		return runDiff(args[1:], stdout, stderr)
+	case "check":
+		return runCheck(args[1:], stdout, stderr)
 	case "derive":
 		return runDerive(args[1:], stdout, stderr)
 	case "idioms":

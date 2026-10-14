@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: check
+level: system
+scenario: red
+covers: [usage error]
+given: "a specification and no dump"
+when: "check is run with the specification alone"
+then: "it prints how to use it and exits 2"
+verifies: [SA-72]

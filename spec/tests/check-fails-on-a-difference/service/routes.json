@@ -1,0 +1,11 @@
+{
+    "routeTable": 1,
+    "path": "router",
+    "commit": "cd23fe47c2f75ac8e7d1b785be8fe5c7213c9a5e",
+    "routes": [
+        {"method":"GET","path":"/copies","permission":"copies.read","handler":"ListCopies"},
+        {"method":"POST","path":"/copies","permission":"copies.write","handler":"AddCopy"},
+        {"method":"GET","path":"/copies/{copyId}","permission":null,"handler":"ShowCopy"},
+        {"method":"DELETE","path":"/copies/{copyId}","permission":"copies.write","handler":"RemoveCopy"}
+    ]
+}

@@ -146,10 +146,10 @@ The checks that keep a spec and its code equal, in `docs/sync-gates.md`:
 the spec validates, the built router's routes match `paths` in both
 directions, a database built from every migration matches `entities`, and
 regenerating everything leaves the working tree unchanged. Each gate compares
-only what can be derived exactly and reports the rest. The gates are written
-as reusable test helpers, one per stack, alongside that stack's first
-generator, and run in this repository's CI against the examples as soon as
-the first generator exists.
+only what can be derived exactly and reports the rest. `specarch check`
+runs the route and database gates and compares the grants on the dumps the
+readers read, with an allowlist that only shrinks (ADR-124); the lending
+desk's CI runs it. `generate --check` is the regeneration gate.
 
 ## 4. The owner's finished applications as specifications
 

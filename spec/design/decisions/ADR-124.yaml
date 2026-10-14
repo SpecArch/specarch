@@ -1,0 +1,105 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
+decisions:
+  ADR-124:
+    title: specarch check compares a specification with the dumps of its code by the merge's matching, the database through the tables generate sql writes, fails on a difference an allowlist does not name, and lets the allowlist only shrink
+    status: accepted
+    date: "2026-10-14"
+    context: |
+      Point 12 of docs/estate.md, build item 14. docs/sync-gates.md
+      designs three comparisons a CI job runs on every change: the spec
+      against the route table, against the database, and the generated
+      output against the generator. The third is generate --check. The
+      readers already read the route table, the permission table and the
+      catalogue, and merge already matches the elements of two trees,
+      but nothing exits 1 on a difference, and a service that predates
+      its specification cannot pass on the first day, so the gate needs
+      an allowlist of the known differences that may only shrink.
+    decision: |
+      A verb, specarch check <specification> <dump>..., with --allowlist
+      <file> and --since <revision>. The specification must pass
+      validate. Each dump is told by the key that names its format
+      (routeTable, permissionTable, catalogue) and read with the reader
+      of specarch extract, after the same checks of the commit it names.
+      It is compared by the merge's matching:
+      - a route table, an operation by its method and path, and the
+        permission each checks; the list twins bindings.http.listRoutes
+        names are the specification's routes too, and an operation another
+        stakeholder owns is not compared;
+      - a permission table, a grant by its role and permission, each
+        side widened through the specification's implies, the names read
+        as the permissions reader reads them; the gates are not compared;
+      - a catalogue dump, a table by its name and a column by its table
+        and name, where the specification's side is the tables generate
+        sql writes for PostgreSQL through the implementation file
+        (gensql.Schema), not the database reader's entities.
+      Exact, and an error: an operation, route, grant, table or column
+      only one side has; a permission that differs; a column's type as
+      PostgreSQL's format_type spells it, its nullability and whether a
+      generated default draws it; the primary key; a foreign key, a
+      unique constraint by its columns, a check constraint by its name;
+      a plain index the mapping lists. A report, a warning: the text of
+      a check both name, and an index the mapping does not list.
+      Every problem is printed in validate's form at its entry, the
+      specification's or the dump's line, and its id is the rule and the
+      subject by the matching (POST /loans, members.phone_number,
+      desk-staff loans.read). The allowlist holds ids, one per line, and
+      # comments; an allowed difference is counted, not printed. A line
+      that names no failing difference of a format the run compares, or
+      repeats one, or names no rule, is allowlist_stale, and a line about
+      a format the run does not compare is skipped; with --since, a line the allowlist at that
+      revision did not hold is allowlist_added, and an allowlist the
+      revision does not hold is the gate turned on. Status 1 on any
+      error, 2 on what could not be read, 0 otherwise.
+    why: |
+      The database is compared against gensql.Schema, because the
+      database reader names an entity after its table (Members) and a
+      field after its column, where the specification has Member and a
+      value object held in three columns, and because it reads a CHAR
+      column as a string of that width, which hides the very difference
+      the gate is for. docs/sync-gates.md asks for names derived by the
+      rules the migration emitter uses, so the two sides meet without a
+      mapping table; the emitter's own model is those rules, and its
+      tables are the ones the specification's migrations would create.
+      The readers stay the way a dump is read, so a stale dump or one of
+      an unknown commit is refused exactly as extract refuses it.
+      Types are compared as PostgreSQL's format_type spells them, since
+      the catalogue prints that spelling and the idiom writes the short
+      one; only the spelling is normalised, never a width or a kind.
+      The exact comparisons are the ones an extractor produces exactly,
+      the reports the ones the database rewrites (a check's text) or no
+      mapping holds, after the rule of docs/sync-gates.md that a gate
+      that reports noise is switched off. A unique constraint is matched
+      by its columns, since the database and the emitter name it each
+      their own way, and a check by its name, which is all both keep.
+      The id names the difference and not its place, as validate's ids
+      do (ADR-065): an allowlist that broke when an entry moved to
+      another file would be rewritten, not shrunk. A stale line fails,
+      because a difference settled and still allowed would let the same
+      difference come back unseen; --since makes a line added fail, the
+      rule docs/sync-gates.md states, from what git holds, so no second
+      file keeps the old list. A grant is widened by implies on both
+      sides, because a table that grants the implied permission as well
+      means what the specification means. The gates of a permission
+      table are left out, since what a kind of caller may do is the
+      caller context's (ADR-110). check is a verb on the readers and
+      the generators' model, which are built in Go only; the Swift build
+      exits 2 for it, as for extract.
+      The compiler test holds: check reads what it is given and never
+      refuses a specification for a difference, which is a problem at its
+      entry, and a dump it cannot read is refused naming why. The
+      acceptance test holds: a change request taken into the
+      specification shows in the next run as a difference at the entry
+      changed until the code follows.
+    consequences: |
+      docs/sync-gates.md names the verb for gates 1 and 2 and for the
+      grants. The lending desk's CI runs specarch check on its route
+      table, permission table and catalogue with an allowlist of what it
+      knows, fifteen lines, each with why it stays open: the renewal Q-4
+      leaves unbuilt, the phone number of Q-6, the open member route of
+      Q-7, the loan period's check of Q-1, the books table of Q-8, the
+      write-off routes and the supervisor's grants the specification does
+      not hold yet, the roles tables, the CHAR card numbers and the
+      address check's two names. MySQL, SQL Server and Oracle catalogues,
+      a view, an enum type, a unique constraint with a condition and a
+      column default other than a generated one are not compared yet.
+    satisfies: [SA-72]

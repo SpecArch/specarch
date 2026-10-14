@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: check
+level: system
+scenario: red
+covers: [exit 2]
+given: "a specification and a JSON file with tables and a commit and none of the keys routeTable, permissionTable and catalogue"
+when: "check is run with the file as a dump"
+then: "it says on standard error that the file is no dump check reads, naming the three keys, prints nothing on standard output and exits 2"
+verifies: [SA-72]

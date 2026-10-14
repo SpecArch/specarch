@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: requirements specification
 
-Version 0.7.0-dev of the specification: 5 stakeholders, 10 needs and 71 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
+Version 0.7.0-dev of the specification: 5 stakeholders, 10 needs and 72 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -33,14 +33,14 @@ What the stakeholders said they need, before it was shaped into requirements, an
 
 | Need | Statement | Stakeholders | Status | Refined by |
 |---|---|---|---|---|
-| NEED-1 | I want a specification that cannot quietly be wrong, so that the code built from it is right. | specification-author, implementer | accepted | SA-33, SA-34, SA-35, SA-47, SA-48, SA-50, SA-1, SA-2, SA-3, SA-4, SA-5, SA-6, SA-51 |
+| NEED-1 | I want a specification that cannot quietly be wrong, so that the code built from it is right. | specification-author, implementer | accepted | SA-33, SA-34, SA-35, SA-47, SA-48, SA-50, SA-72, SA-1, SA-2, SA-3, SA-4, SA-5, SA-6, SA-51 |
 | NEED-2 | I want to write a design once and build it in more than one language. | implementer | accepted | SA-33, SA-34, SA-36, SA-37, SA-38, SA-39, SA-40, SA-41, SA-42, SA-43, SA-52, SA-53, SA-54, SA-55, SA-56, SA-49, SA-62, SA-63, SA-65, SA-66, SA-70, SA-46, SA-61, SA-71, SA-32, SA-9, SA-10 |
 | NEED-3 | I want the documents and diagrams to come from the specification, so they never drift from it. | reviewer, specification-author | accepted | SA-22, SA-36, SA-67, SA-7, SA-8, SA-26, SA-16, SA-58, SA-59, SA-60, SA-19 |
 | NEED-4 | I want a big specification split over many files, each about one thing, so I can find what I am looking for. | specification-author, reviewer | accepted | SA-11, SA-2 |
 | NEED-5 | I want the whole life of the system in one place, from the first requirement to the day it is accepted. | reviewer, operator | accepted | SA-35, SA-47, SA-68, SA-26, SA-16, SA-12, SA-23, SA-24, SA-25 |
 | NEED-6 | I want to see why something is the way it is, and which standard asks for it. | reviewer | accepted | SA-15, SA-13 |
 | NEED-7 | I want one tool to learn and install, not one program per task. | specification-author, ci-job | accepted | SA-14 |
-| NEED-8 | I want to build a specification from the documents and code that exist, without inventing what they do not say, and to see at every step what is still missing and what can already be made. | specification-author, reviewer | accepted | SA-69, SA-70, SA-46, SA-59, SA-71, SA-17, SA-18, SA-19, SA-20, SA-30, SA-44, SA-45, SA-64, SA-51 |
+| NEED-8 | I want to build a specification from the documents and code that exist, without inventing what they do not say, and to see at every step what is still missing and what can already be made. | specification-author, reviewer | accepted | SA-69, SA-70, SA-46, SA-59, SA-71, SA-17, SA-18, SA-19, SA-20, SA-30, SA-44, SA-45, SA-64, SA-72, SA-51 |
 | NEED-9 | I want the tests a specification implies, with the ones that matter most written first and the rest listed with the reason they were left out. | specification-author, implementer | accepted | SA-31, SA-29, SA-28, SA-27, SA-21, SA-22 |
 | NEED-10 | I want to show what a specification builds long before it is finished, and to take a remark from someone looking at the result back into the specification, knowing what it reaches, and out again in the next build. | reviewer, specification-author | accepted | SA-58, SA-60, SA-57 |
 
@@ -110,6 +110,7 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | SA-45 | functional | must | accepted | specarch merge shall merge the partial specification trees the readers write into one specification that keeps the citations of every tree, turn every disagreement between the trees into a must question that cites both, and give byte-identical output for the same trees in the same order. |
 | SA-57 | functional | should | proposed | Every output SpecArch generates shall name the element of the specification it came from, and a remark made at the user acceptance test shall be recorded as a change request or a defect that names the build it is about, where it was seen, what was observed and what was expected, and why the result was not what was wanted, and shall enter the specification as a decision, a question or a rejection, with what it reaches listed before anything changes. |
 | SA-64 | functional | must | accepted | specarch extract documents shall read a document in any language whose words a vocabulary gives, the English one SpecArch ships or a project's file, write the language on the source, and give for it the elements it gives for the same document in English; specarch merge shall read a number of days in a requirement by the vocabulary of its source's language. |
+| SA-72 | functional | should | accepted | specarch check shall compare a specification with the route tables, permission tables and catalogue dumps of its code, read by the readers of specarch extract, print every difference as a problem at its entry, and exit 1 on a difference the allowlist does not name or a line of the allowlist that names none. |
 | SA-1 | functional | must | accepted | specarch validate shall check every specification and implementation file given against the JSON Schema of its kind and meta-model version. |
 | SA-2 | functional | must | accepted | Every reference inside a specification shall resolve to an object of the right kind in the same specification, wherever its file is in the tree. |
 | SA-3 | functional | must | accepted | Every check constraint, condition of a unique constraint and formula shall parse and type-check in the fixed expression language. |
@@ -1079,6 +1080,22 @@ Acceptance criteria:
 - merge reads a requirement's number of days in the units and number words of its source's language, from the shipped vocabulary or the one given with --vocabulary, and says once per source that its requirements are not compared when there is neither.
 
 **Insight:** A document in another language gave its outline and nothing else, every table a could line, since the commitment words, the headers and the units were English in the code; a wrong or missing word has to be one line in a data file that the project changes without a release.
+
+### SA-72
+
+specarch check shall compare a specification with the route tables, permission tables and catalogue dumps of its code, read by the readers of specarch extract, print every difference as a problem at its entry, and exit 1 on a difference the allowlist does not name or a line of the allowlist that names none.
+
+Kind: functional; priority: should; status: accepted; verified by test; refines NEED-1, NEED-8.
+
+Acceptance criteria:
+
+- An operation the router does not serve, a route the specification does not name and a permission that differs between them are each an error, at the operation or at the route's line in the dump.
+- A grant only one of the specification and the permission table holds, after each side's grants are widened by the permissions they imply, is an error at the role or at the grant's line in the dump.
+- A table, a column, a type as PostgreSQL spells it, a nullability, a generated default, a primary key, a foreign key, a unique constraint, a check constraint's name or a listed plain index that differs between the tables generate sql writes and the catalogue is an error; the text of a check and an index the mapping does not list are reports that never fail.
+- Each problem ends with an id that names the rule and what the difference is about, the same wherever the entry is written; a difference whose id the allowlist holds is counted and not printed, and the run exits 0 when every difference is allowed or a report.
+- A line of the allowlist that no failing difference matches or that repeats one is an error at that line; with --since, so is a line the allowlist did not hold at that revision.
+
+**Insight:** A specification nobody compares with its code drifts and is then read by nobody; a gate that fails on every old difference is switched off, and one whose allowlist may grow lets the drift back in.
 
 ### SA-1
 

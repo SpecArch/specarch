@@ -97,24 +97,13 @@ var constraintName = regexp.MustCompile(`^[a-z][a-z0-9]*(_[a-z0-9]+)*$`)
 // into Result.Implementation, the implementation fragment
 // --implementation-out names (ADR-121).
 func Database(dumpPath, out, key string, fragment bool) (*Result, error) {
-	data, err := os.ReadFile(dumpPath)
-	if err != nil {
-		return nil, err
-	}
-	var c catalogue
-	if err := json.Unmarshal(data, &c); err != nil {
-		return nil, refuse("%s is not a catalogue dump: %v", dumpPath, err)
-	}
-	if c.Catalogue != "postgresql" {
-		return nil, refuse("%s is not a catalogue dump of tools/catalogue/catalogue.sql: its catalogue is %q, not postgresql", dumpPath, c.Catalogue)
-	}
-	r, dumpName, err := openDump(dumpPath, c.Repository, c.Path, c.Commit, "tools/catalogue/dump-catalogue.sh")
+	c, r, dumpName, err := openCatalogue(dumpPath)
 	if err != nil {
 		return nil, err
 	}
 	res := &Result{Tree: newTree()}
 	res.say("commit %s: the last change to %s, as the dump %s names it", r.Commit, c.Path, dumpName)
-	d := &dbReader{c: &c, key: key, clause: c.Path, res: res, enums: map[string][]string{}, entities: map[string]string{}, generated: generatedDefaults()}
+	d := &dbReader{c: c, key: key, clause: c.Path, res: res, enums: map[string][]string{}, entities: map[string]string{}, generated: generatedDefaults()}
 	if fragment {
 		d.mappings = &yaml.Node{Kind: yaml.MappingNode}
 	}
@@ -148,6 +137,27 @@ func Database(dumpPath, out, key string, fragment bool) (*Result, error) {
 		res.say("wrote %s into the implementation fragment, with %s", plural(len(d.mappings.Content)/2, "mapping"), plural(d.indexes, "index"))
 	}
 	return res, nil
+}
+
+// openCatalogue reads a catalogue dump and checks it against the commit
+// it names.
+func openCatalogue(dumpPath string) (*catalogue, *Read, string, error) {
+	data, err := os.ReadFile(dumpPath)
+	if err != nil {
+		return nil, nil, "", err
+	}
+	var c catalogue
+	if err := json.Unmarshal(data, &c); err != nil {
+		return nil, nil, "", refuse("%s is not a catalogue dump: %v", dumpPath, err)
+	}
+	if c.Catalogue != "postgresql" {
+		return nil, nil, "", refuse("%s is not a catalogue dump of tools/catalogue/catalogue.sql: its catalogue is %q, not postgresql", dumpPath, c.Catalogue)
+	}
+	r, dumpName, err := openDump(dumpPath, c.Repository, c.Path, c.Commit, "tools/catalogue/dump-catalogue.sh")
+	if err != nil {
+		return nil, nil, "", err
+	}
+	return &c, r, dumpName, nil
 }
 
 // generatedDefaults are the expressions the shipped type-rendering idiom

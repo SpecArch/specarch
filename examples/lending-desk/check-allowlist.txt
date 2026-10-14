@@ -1,0 +1,43 @@
+# The differences between the lending desk's specification and its code
+# that are known and not settled yet, for specarch check in CI. Each line is
+# the id check prints between brackets. The list only shrinks: a line that
+# no difference matches fails, and so does a line added since the commit
+# CI compares with.
+
+# Q-4: renewing a loan is in the manual and not in the service.
+operation_not_served POST /loans/{loanId}/renew
+
+# Q-6: the manual has a phone number the members table has no column for.
+column_not_in_database members.phone_number
+
+# Q-7: the service answers a member to anyone, and no document names it.
+route_not_specified GET /members/{cardNumber}
+
+# Q-1: the loan period, 21 days in the manual and 14 in the service's check.
+check_not_specified loans.loans_loan_period
+
+# Q-8: the desk reads the book records from a books table of its own, and
+# the specification has the catalogue service own them.
+table_not_specified books
+
+# The write-off of a lost loan, and the supervisor who approves it, are in
+# the code and the workflow, and not in the specification yet.
+route_not_specified POST /loans/{loanId}/write-off-requests
+route_not_specified POST /loans/{loanId}/write-off
+grant_not_specified desk-supervisor loans.read
+grant_not_specified desk-supervisor loans.writeoff
+
+# The roles tables hold the grants the permission table prints; roles are
+# design, and their tables are the service's own.
+table_not_specified role_permissions
+table_not_specified roles
+
+# A card number is CHAR(10) in the database, padded with spaces, which the
+# meta-model cannot say; the specification has a string of 10 digits.
+column_type_differs members.card_number
+column_type_differs loans.card_number
+
+# The address check: the database names it members_address and the
+# specification's table ck_members_address.
+check_not_specified members.members_address
+check_not_in_database members.ck_members_address

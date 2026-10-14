@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.0-dev of the specification: 481 design tests, 217 golden and 264 red, about 15 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.0-dev of the specification: 485 design tests, 218 golden and 267 red, about 16 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.7.0-dev of the specification: 481 design tests, 217 golden and 264 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 477 |
+| system | 481 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -78,6 +78,40 @@ Scenario: golden; level: system; verifies SA-20.
 - Given: a specification without open questions, a configured requirements document that is current, a configured problems target, which is not a document anyone approves, and a stakeholder owner
 - When: approve is run with --by owner and a date
 - Then: it writes records/approvals/1.0.0.yaml with the role, the date, the document and the digest of the files, and exits 0
+
+### Command check
+
+#### check-dump-of-no-format
+
+Scenario: red; level: system; covers exit 2; verifies SA-72.
+
+- Given: a specification and a JSON file with tables and a commit and none of the keys routeTable, permissionTable and catalogue
+- When: check is run with the file as a dump
+- Then: it says on standard error that the file is no dump check reads, naming the three keys, prints nothing on standard output and exits 2
+
+#### check-fails-on-a-difference
+
+Scenario: red; level: system; covers exit 1; verifies SA-72.
+
+- Given: the branches and copies of the golden case, where the route table's GET /copies/{copyId} checks no permission, the permission table grants nothing to the visitor and grants a role the specification does not declare, and the allowlist repeats a line and holds a line for a difference there is not, a line for a report and a line that is no id
+- When: check is run with the allowlist on the three dumps
+- Then: it prints the CHAR column the allowlist no longer names, the permission that differs, the visitor's grant the code does not hold and the undeclared role's grant at its line of the dump as errors, the two reports as warnings, and each of the five lines of the allowlist that allow nothing as allowlist_stale at its line, and exits 1
+
+#### check-succeeds
+
+Scenario: golden; level: system; verifies SA-72.
+
+- Given: a specification of branches and copies with its implementation file, and a repository whose first commit holds the migrations, the router and the permission check and whose second holds the catalogue dump, the route table and the permission table made from them, naming the first, and an allowlist of three lines; the router serves a route the specification does not name, the database has a table it does not hold and a CHAR column where it has a string of that width, a check whose text the database rewrote and an index on an expression, a clerk is granted a permission the specification's clerk holds through implies, and the foreign key's no action is the reader's restrict
+- When: check is run with the allowlist and --since HEAD on the three dumps
+- Then: it counts the three differences the allowlist names and does not print them, prints the check's text and the index the mapping does not list as warnings, finds no other difference, and exits 0
+
+#### check-usage-error
+
+Scenario: red; level: system; covers usage error; verifies SA-72.
+
+- Given: a specification and no dump
+- When: check is run with the specification alone
+- Then: it prints how to use it and exits 2
 
 ### Command derive
 
@@ -3925,7 +3959,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-284 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+289 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -4191,6 +4225,11 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-64 | acceptance 3 | golden | SA-64 names no harm |
 | requirement SA-64 | acceptance 4 | golden | SA-64 names no harm |
 | requirement SA-64 | acceptance 5 | golden | SA-64 names no harm |
+| requirement SA-72 | acceptance 1 | golden | SA-72 names no harm |
+| requirement SA-72 | acceptance 2 | golden | SA-72 names no harm |
+| requirement SA-72 | acceptance 3 | golden | SA-72 names no harm |
+| requirement SA-72 | acceptance 4 | golden | SA-72 names no harm |
+| requirement SA-72 | acceptance 5 | golden | SA-72 names no harm |
 | requirement SA-1 | acceptance 1 | golden | SA-1 names no harm |
 | requirement SA-1 | acceptance 2 | golden | SA-1 names no harm |
 | requirement SA-2 | acceptance 1 | golden | SA-2 names no harm |

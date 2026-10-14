@@ -1,0 +1,11 @@
+arguments: [check, --allowlist, service/check-allowlist.txt, --since, HEAD, project, service/routes.json, service/permissions.json, service/catalogue.json]
+repository:
+  folder: service
+  commits:
+    - [migrations, router, access]
+    - [catalogue.json, routes.json, permissions.json, check-allowlist.txt]
+exitStatus: 0
+standardOutput: |
+  specarch check: 3 dumps compared: 0 differences, 3 allowed by the allowlist, 2 reports, 0 allowlist lines that fail
+  project/specarch.yaml:27:7: warning: /entities/Copy/constraints/copies_title_given: check_expression_differs: the check copies_title_given of copies reads (title <> '') in the specification's table and (((title)::text <> ''::text)) in the database; the database rewrites a check's text, so this is a report [check_expression_differs copies.copies_title_given]
+  service/catalogue.json:203:17: warning: /tables/2/indexes/1: index_not_listed: the index copies_title_lower of copies, CREATE INDEX copies_title_lower ON public.copies USING btree (lower((title)::text)), is in the database and the mapping of entity Copy does not list it; an index is physical design, so this is a report: list it under the mapping's indexes when it is plain [index_not_listed copies.copies_title_lower]

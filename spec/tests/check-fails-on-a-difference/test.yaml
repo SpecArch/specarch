@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: check
+level: system
+scenario: red
+covers: [exit 1]
+given: "the branches and copies of the golden case, where the route table's GET /copies/{copyId} checks no permission, the permission table grants nothing to the visitor and grants a role the specification does not declare, and the allowlist repeats a line and holds a line for a difference there is not, a line for a report and a line that is no id"
+when: "check is run with the allowlist on the three dumps"
+then: "it prints the CHAR column the allowlist no longer names, the permission that differs, the visitor's grant the code does not hold and the undeclared role's grant at its line of the dump as errors, the two reports as warnings, and each of the five lines of the allowlist that allow nothing as allowlist_stale at its line, and exits 1"
+verifies: [SA-72]

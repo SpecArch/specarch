@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.7.0-dev of the specification: 71 requirements, 5 entities, 13 commands, 7 algorithms, 481 tests, 118 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.7.0-dev of the specification: 72 requirements, 5 entities, 14 commands, 7 algorithms, 485 tests, 119 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -60,6 +60,7 @@ The interfaces the system offers, as its clients see them.
 | Command | Summary | Permission | Exit statuses |
 |---|---|---|---|
 | approve | Record that the documents were read and the specification is approved | public | 0: the approval was recorded; 1: refused; the specification has errors or open questions, the stakeholder is unknown, no document is configured, or a document is not current; 2: usage error, or a file that could not be read or written |
+| check | Compare a specification with the dumps of the running code, for a CI gate | public | 0: every difference is one the allowlist names or a report, and every line of the allowlist names a difference and was there at --since; 1: a difference the allowlist does not name, a line of the allowlist that names none, repeats one or was added since --since, or a specification validate reports an error in; 2: usage error; a dump, the specification or the allowlist that could not be read; a dump of no format check reads, or one its reader refuses; a catalogue dump with no implementation file to compare it through, or with one whose tables cannot be written for PostgreSQL; or a revision git does not know |
 | derive | Write a draft test for every derived case no test covers | public | 0: the tests were written, or there was nothing to write; 1: a specification has errors other than the missing tests it writes, or a draft's name is taken by another draft or by a test of another subject; 2: usage error, a path that could not be read or written, or a specification that keeps its tests in the root file |
 | diff | Compare two versions of a specification and check the release between them | public | 0: every check passes; 1: a check fails, there is no release record for the new version, or a specification has errors; 2: usage error, or a path that could not be read |
 | document | Write a document from a specification | public | 0: written, or with `--check` the output is current; 1: a specification has an error (after its files are written, or with `--check` compared), a marker is wrong, or with `--check` the output differs; 2: usage error, a target this build does not offer, --audience with a value other than external, without --out or for the problems target, no output folder in any specification given, the implementation files of one naming different output folders, or a file that could not be read or written |
@@ -416,6 +417,126 @@ sequenceDiagram
   P->>F: read {paths}
   P->>F: read <output>/<target>.md
   P->>F: write records/approvals/<version>.yaml
+  P-->>U: exit status 0, 1, 2
+```
+
+### Command check
+
+Reads one specification and the dumps of its code, each with the
+reader `specarch extract` reads it with, after the same checks of the
+commit it names, and prints every difference between the two as a
+problem at its entry: the gates of `docs/sync-gates.md` in one verb
+(ADR-124). The specification must pass validate; one with errors is
+refused, as generate refuses it.
+
+A dump is told by the key that names its format: `routeTable` for a
+route table, `permissionTable` for a permission table, and
+`catalogue` for a catalogue dump. Each is compared by the merge's own
+matching:
+
+- A route table: an operation by its method and path. An operation
+  of the specification the router does not serve is
+  `operation_not_served` at the operation, and a route the
+  specification does not name is `route_not_specified` at the route
+  in the dump; the route table writes a path parameter `{name}`
+  whatever the router's own syntax, and no other normalisation is
+  made, so `{id}` and `{loanId}` are two paths. Where both
+  have the operation, a permission that differs, one of them naming
+  none among them, is `operation_permission_differs`. Under
+  `bindings.http.listRoutes` each list served by GET is served by POST
+  at its twin's path as well, with its permission. An operation
+  another stakeholder owns is not compared.
+- A permission table: a grant by its role and permission, each
+  side's grants widened by the permissions they imply, through the
+  specification's `implies`, and a role's and a permission's name
+  read as the permissions reader reads them (a role in capitals
+  under `info.roleNames`, a privilege by the rule of ADR-076); a
+  grant of `public` is no grant, as the reader has it. A grant
+  of the specification the table does not hold is
+  `grant_not_in_code` at the role, and a grant of the table the
+  specification does not hold is `grant_not_specified` at the
+  grant in the dump. The table's gates are not compared: what a
+  caller of each kind may do is the caller context's to design.
+- A catalogue dump: a table by its name, a column by its table and
+  name, where the specification's tables and columns are the ones
+  `specarch generate sql` writes for PostgreSQL through the
+  implementation file, every entity's but the ones another
+  stakeholder owns. Exact, and so a failure: a table or a column
+  only one side has (`table_not_in_database`,
+  `table_not_specified`, `column_not_in_database`,
+  `column_not_specified`); a column's type, as PostgreSQL spells
+  it, so `VARCHAR(10)` is `character varying(10)` and
+  `character(10)` differs from it (`column_type_differs`); its
+  nullability (`column_nullability_differs`); whether the database
+  draws its value by an expression the type-rendering idiom names
+  for a generated default (`column_generated_default_differs`);
+  the primary key's columns in order (`primary_key_differs`); a
+  foreign key by its columns, with the table and the columns it
+  refers to and its action on delete (`foreign_key_not_in_database`,
+  `foreign_key_not_specified`, `foreign_key_differs`); a unique
+  constraint by its columns (`unique_not_in_database`,
+  `unique_not_specified`); a check constraint by its name
+  (`check_not_in_database`, `check_not_specified`); and a plain
+  index the mapping lists, by its name, with its columns in order
+  (`index_not_in_database`, `index_differs`). A report, printed as
+  a warning and never a failure, after the gates' rule that a gate
+  compares only what can be derived exactly: the text of a check
+  both sides name, where it differs, since the database rewrites
+  it (`check_expression_differs`), and an index the mapping does not
+  list, plain or not (`index_not_listed`).
+
+Each problem is printed in validate's form, the file, line and
+column of the entry, the severity, the pointer, the rule and the
+message, and ends with its id in brackets: the rule and what the
+difference is about, by the matching (`POST /loans/{loanId}/renew`,
+`members.phone_number`, `desk-staff loans.read`), so an id stays the
+same when the entry moves to another file. A difference in the dump
+only is at the dump file's line of the entry; one about the
+specification's entry is at that entry.
+
+The allowlist names the differences a team knows of and has not
+settled yet, one id per line, as check prints it between the
+brackets; a line that starts with `#` and an empty line are
+skipped. A difference the allowlist names is counted and not
+printed. A line about a format of dump the run compares that no
+failing difference matches, one naming a report among them, since a
+report never fails, is `allowlist_stale` at that line, and so is a
+line that repeats one above it and a line whose rule is none of
+check's; a line about a format the run does not compare is another
+run's and is skipped, so one allowlist serves a gate per dump. With
+`--since`, the allowlist as the given commit holds it is read from
+git, and a line it did not hold is `allowlist_added` at that line,
+so the list only shrinks; an allowlist the commit does not hold is
+the gate being turned on, which a line says, and no line is added.
+
+**Insight:** A specification that is not compared with its code drifts within months; the readers already read the running code and the merge already matches its elements, so the gate is the comparison with a status, and an allowlist that may only shrink lets a gate be turned on for a service that predates its specification without letting a new difference in.
+
+| Argument or option | Type | Required | Description |
+|---|---|---|---|
+| `<specification>` | string | yes | The specification folder, with the implementation file the catalogue is compared through. |
+| `<dumps>` | string, one or more | yes | The dumps to compare it with, each a route table, a permission table or a catalogue dump, committed beside the code they were made from. |
+| `--allowlist` | string |   | The file of the differences the team knows of, one id per line. |
+| `--since` | string |   | A git revision, such as the commit a change is made on top of; the allowlist may hold no line the revision's allowlist did not. Only with --allowlist. |
+
+Reads `{specification}`: The specification and its implementation files; `{dumps}`: The dumps, read with their readers at the commit each names; `{allowlist}`: The allowlist, and with --since the allowlist as that revision holds it.
+
+Standard output: One line counting the dumps compared, the differences that fail, the
+ones the allowlist names, the reports and the allowlist's lines that
+fail; a line when --since names a commit that holds no allowlist;
+then one problem line per difference, report and allowlist line, in
+the order of their files, lines and ids.
+
+Standard error: A usage message on a usage error, and the reason a dump, the specification or the allowlist could not be read.
+
+```mermaid
+sequenceDiagram
+  participant U as User
+  participant P as SpecArch toolchain
+  participant F as Files
+  U->>P: check <specification> <dumps>
+  P->>F: read {specification}
+  P->>F: read {dumps}
+  P->>F: read {allowlist}
   P-->>U: exit status 0, 1, 2
 ```
 
@@ -2840,10 +2961,10 @@ Stack: language Go 1.27; toolchain go 1.27.2; platforms darwin/arm64, darwin/amd
 
 | Path | Holds | Implements |
 |---|---|---|
-| cmd/specarch | The command line. Argument handling, finding the specifications under folders, running plug-ins, printing the diagnostics and the exit status. | #/commands/validate, #/commands/gaps, #/commands/document, #/commands/approve, #/commands/generate, #/commands/extract, #/commands/merge, #/commands/diff, #/commands/derive, #/commands/idioms, #/commands/idioms diff, #/commands/version, #/entities/SpecFile, #/entities/GeneratedFile, #/algorithms/exitStatus, #/algorithms/checkStatus |
+| cmd/specarch | The command line. Argument handling, finding the specifications under folders, running plug-ins, printing the diagnostics and the exit status. | #/commands/validate, #/commands/gaps, #/commands/document, #/commands/approve, #/commands/generate, #/commands/extract, #/commands/merge, #/commands/diff, #/commands/check, #/commands/derive, #/commands/idioms, #/commands/idioms diff, #/commands/version, #/entities/SpecFile, #/entities/GeneratedFile, #/algorithms/exitStatus, #/algorithms/checkStatus |
 | schema | The JSON Schemas, embedded into the binary from the files editors use. |   |
 | idioms | The shipped idioms, one folder per concern, embedded into the binary; a release fixes the set. |   |
-| internal/extract | The readers of specarch extract: the commit read (git, run with no user or system configuration), the outline, database, router, documents, OpenAPI, permissions, pages and workflows readers, the Go reader on the standard library's go/parser with dxlib's registration calls and the rule that maps dxlib_module's privilege names, the Swift reader of a code-facts dump with the property lists, build settings and Core Data models it reads as data, the JavaScript and TypeScript reader of a code-facts dump with the message catalogues it reads as data, the Dart reader of a code-facts dump, the subset of TypeScript a page schema is read in, the subset of BPMN 2.0 a workflow is read in, the workflow table read into the same workflows (ADR-118), the check of a dump against the commit it names, the translation of SQL checks into the expression subset, and the tree writer; and the merge of their trees, with the newest commit of a repository read at several found by git's ancestry, a requirement that gives a number of days joined to the one check that names it, a question another tree answers, by giving a key or an element the asking tree gives only by name, or a question kept before it asks left out, the name a question gives written at the key it blocks once another tree declares it, a placeholder source reported, a permission granted and checked by nothing reported, and an operation a printed and a parsed tree do not both give asked about. |   |
+| internal/extract | The readers of specarch extract: the commit read (git, run with no user or system configuration), the outline, database, router, documents, OpenAPI, permissions, pages and workflows readers, the Go reader on the standard library's go/parser with dxlib's registration calls and the rule that maps dxlib_module's privilege names, the Swift reader of a code-facts dump with the property lists, build settings and Core Data models it reads as data, the JavaScript and TypeScript reader of a code-facts dump with the message catalogues it reads as data, the Dart reader of a code-facts dump, the subset of TypeScript a page schema is read in, the subset of BPMN 2.0 a workflow is read in, the workflow table read into the same workflows (ADR-118), the check of a dump against the commit it names, the translation of SQL checks into the expression subset, and the tree writer; and the merge of their trees, with the newest commit of a repository read at several found by git's ancestry, a requirement that gives a number of days joined to the one check that names it, a question another tree answers, by giving a key or an element the asking tree gives only by name, or a question kept before it asks left out, the name a question gives written at the key it blocks once another tree declares it, a placeholder source reported, a permission granted and checked by nothing reported, and an operation a printed and a parsed tree do not both give asked about; and specarch check's comparison of a route table, a permission table and a catalogue dump with a specification, each difference with its rule and subject (ADR-124). |   |
 | internal/facts | specarch facts: the git checks of a committed folder, its tracked files and the repository key of a dump in another repository; the JavaScript and TypeScript reader on the TypeScript compiler of third_party/typescript-go, which builds one program over the files it is given, a .vue file's script blocks among them, and writes the facts specarch extract javascript reads as a code-facts dump (ADR-089, ADR-116); the Vue reader, which splits a single-file component into its blocks and parses its template as Vue 3's compiler-sfc does; and the Swift and Dart readers written from the binary into the user's cache, built there and run. |   |
 | third_party/typescript-go | The Go source of the TypeScript compiler, typescript-go at the tag UPSTREAM names: the packages its program and checker need, copied out of internal/ by tools/typescript-go/pull.sh with their import paths rewritten and nothing else changed, with upstream's LICENSE and NOTICE.txt (Apache-2.0). |   |
 | readers | The embedded files of the Swift and Dart readers (readers/embed.go), which specarch facts writes into the user's cache. |   |
@@ -2851,7 +2972,7 @@ Stack: language Go 1.27; toolchain go 1.27.2; platforms darwin/arm64, darwin/amd
 | internal/source | Reads a YAML file into a node tree and a plain value, with the line of every node; finds unquoted dates and duplicate keys. |   |
 | internal/spec | Reads a specification from disk, the root file and the stage folders, and merges it into one document in which every node remembers its file; reports the layout problems. |   |
 | cmd/specarch-gen-sql | The plug-in behind generate sql. Reads the request on standard input, answers the migration and the snapshot on standard output, and never touches the disk. | #/commands/generate |
-| internal/gensql | The SQL migrations in four dialects, each column through the type-rendering idiom, with check expressions translated per dialect, the views after the tables, and a snapshot of the schema; an entity or view another stakeholder owns gets no statement, and the snapshot lists it as owned. Schema answers the tables and columns it writes, for the queries generator. |   |
+| internal/gensql | The SQL migrations in four dialects, each column through the type-rendering idiom, with check expressions translated per dialect, the views after the tables, and a snapshot of the schema; an entity or view another stakeholder owns gets no statement, and the snapshot lists it as owned. Schema answers the tables and columns it writes, with their keys, constraints and listed indexes, for the queries generator and specarch check. |   |
 | cmd/specarch-gen-sqlc | The plug-in behind generate sqlc. Reads the request on standard input, answers the query files on standard output, and never touches the disk. | #/commands/generate |
 | internal/gensqlc | The sqlc queries the design derives, in PostgreSQL, one file per table: an insert per operation that posts an entity, a read, a replacement or an amendment by a key of one field, and a page of a list with its filters, search and sorts and the list's total, against the tables internal/gensql writes; every other query is written by hand beside them, and a file written by hand is compared, never overwritten (ADR-123). |   |
 | internal/ownership | Reads the ownedBy marks of an implementation file's mappings, which every generator that builds code or data follows by leaving the owned elements out. |   |
@@ -2903,6 +3024,7 @@ Stack: language Go 1.27; toolchain go 1.27.2; platforms darwin/arm64, darwin/amd
 | #/commands/idioms | main.runIdioms | Prints validate.IdiomUses, the idioms each implementation file resolves to. |
 | #/commands/idioms diff | main.runIdiomsDiff |   |
 | #/commands/diff | main.runDiff | Lists diff.Compare's changes, then checks the release record beside the new folder. |
+| #/commands/check | main.runCheck | Tells each dump by its format with extract.DumpFormat and compares it with extract.CheckRoutes, extract.CheckGrants or extract.CheckCatalogue, the last against gensql.Schema's tables for PostgreSQL; reads the allowlist, and with --since the allowlist at that revision through git. |
 | #/enums/DocumentTarget | main.documentTargets |   |
 | #/enums/GeneratorTarget | main.builtGenerators | Empty; every target is a plug-in. |
 | #/entities/GeneratedFile | main.planned | A path and the content a target wants there; --check compares it with the disk. |
@@ -3084,6 +3206,7 @@ Stack: language Swift 6.0; toolchain Swift Package Manager 6.0; platforms darwin
 | #/commands/idioms | SpecArchKit.run | Exits 2: listing the idioms is built in Go only; the idiom checks are in this build. |
 | #/commands/idioms diff | SpecArchKit.run | Exits 2, as idioms does. |
 | #/commands/diff | SpecArchKit.run | Exits 2: the comparison of two versions is built in Go only; the release rules are in this build. |
+| #/commands/check | SpecArchKit.run | Exits 2: the comparison with the code's dumps is built in Go only, on the readers and the SQL generator's tables. |
 | #/algorithms/exitStatus | the end of SpecArchKit.runValidate |   |
 | #/algorithms/workedExampleHolds | SpecArchKit.Checker.checkExample |   |
 | #/algorithms/permissionGranted | SpecArchKit.Checker.checkAccess |   |
@@ -8914,6 +9037,70 @@ written yet.
 
 **Insight:** Keywords only, because the rules for a specification say one way to say one thing: a request body that names an entity says the record is written whole, a key of one field in the path says which record, and listOf says the whitelists. A GET answering an array with no listOf, or a POST whose body is a shape of its own, says no more than that the operation exists; guessing its query from the route would put a meaning in the specification nobody wrote, so those stay the project's, as sqlc's rule has it. The model of gensql, because two derivations of a table's columns would drift, and the queries must compile against what the migrations create. sqlc's own conventions decide the rest: the query names are the Go methods, a nullable argument (sqlc.narg) with a cast is how sqlc types an optional filter, and sqlc builds no SQL at run time, so an optional filter is "the argument is null or the column equals it" and a sort is a CASE term per direction, each of one column's type, since a single CASE over columns of different types does not type-check. Text is matched by position() rather than LIKE, so a percent sign or an underscore in what a user types is matched as itself, as the paginated-list idiom's free-text search means. The key after the sorts makes the order total, without which PostgreSQL may give one record on two pages. LIMIT and OFFSET follow the idiom's page from 1 and page size; the caller passes the offset, so the arithmetic is in one place. PostgreSQL only, because sqlc's engines are PostgreSQL, MySQL and SQLite; MariaDB would be the second, when a project needs it, and SQL Server and Oracle have no engine. A warning rather than an error for a list left to be written by hand, because listOf is expressible, the query is the project's to write, and the rest of the output is ready; the warning keeps it from being silent. sqlc vet rather than compile, because sqlc compile and generate with no gen block exit 0 with a column that does not exist; vet with no rules of its own type-checks every query as generate does. The compiler test holds: nothing is refused that was read before, and every query left to be written by hand is a warning at its operation. The acceptance test holds: a change request that changes a field changes the queries the next run writes, and generate --check against the queries written by hand names the first line that differs.
 
+### ADR-124: specarch check compares a specification with the dumps of its code by the merge's matching, the database through the tables generate sql writes, fails on a difference an allowlist does not name, and lets the allowlist only shrink
+
+Status: accepted, 2026-10-14.
+
+Context: Point 12 of docs/estate.md, build item 14. docs/sync-gates.md
+designs three comparisons a CI job runs on every change: the spec
+against the route table, against the database, and the generated
+output against the generator. The third is generate --check. The
+readers already read the route table, the permission table and the
+catalogue, and merge already matches the elements of two trees,
+but nothing exits 1 on a difference, and a service that predates
+its specification cannot pass on the first day, so the gate needs
+an allowlist of the known differences that may only shrink.
+
+Decision: A verb, specarch check <specification> <dump>..., with --allowlist
+<file> and --since <revision>. The specification must pass
+validate. Each dump is told by the key that names its format
+(routeTable, permissionTable, catalogue) and read with the reader
+of specarch extract, after the same checks of the commit it names.
+It is compared by the merge's matching:
+- a route table, an operation by its method and path, and the
+  permission each checks; the list twins bindings.http.listRoutes
+  names are the specification's routes too, and an operation another
+  stakeholder owns is not compared;
+- a permission table, a grant by its role and permission, each
+  side widened through the specification's implies, the names read
+  as the permissions reader reads them; the gates are not compared;
+- a catalogue dump, a table by its name and a column by its table
+  and name, where the specification's side is the tables generate
+  sql writes for PostgreSQL through the implementation file
+  (gensql.Schema), not the database reader's entities.
+Exact, and an error: an operation, route, grant, table or column
+only one side has; a permission that differs; a column's type as
+PostgreSQL's format_type spells it, its nullability and whether a
+generated default draws it; the primary key; a foreign key, a
+unique constraint by its columns, a check constraint by its name;
+a plain index the mapping lists. A report, a warning: the text of
+a check both name, and an index the mapping does not list.
+Every problem is printed in validate's form at its entry, the
+specification's or the dump's line, and its id is the rule and the
+subject by the matching (POST /loans, members.phone_number,
+desk-staff loans.read). The allowlist holds ids, one per line, and
+# comments; an allowed difference is counted, not printed. A line
+that names no failing difference of a format the run compares, or
+repeats one, or names no rule, is allowlist_stale, and a line about
+a format the run does not compare is skipped; with --since, a line the allowlist at that
+revision did not hold is allowlist_added, and an allowlist the
+revision does not hold is the gate turned on. Status 1 on any
+error, 2 on what could not be read, 0 otherwise.
+
+Consequences: docs/sync-gates.md names the verb for gates 1 and 2 and for the
+grants. The lending desk's CI runs specarch check on its route
+table, permission table and catalogue with an allowlist of what it
+knows, fifteen lines, each with why it stays open: the renewal Q-4
+leaves unbuilt, the phone number of Q-6, the open member route of
+Q-7, the loan period's check of Q-1, the books table of Q-8, the
+write-off routes and the supervisor's grants the specification does
+not hold yet, the roles tables, the CHAR card numbers and the
+address check's two names. MySQL, SQL Server and Oracle catalogues,
+a view, an enum type, a unique constraint with a condition and a
+column default other than a generated one are not compared yet.
+
+**Insight:** The database is compared against gensql.Schema, because the database reader names an entity after its table (Members) and a field after its column, where the specification has Member and a value object held in three columns, and because it reads a CHAR column as a string of that width, which hides the very difference the gate is for. docs/sync-gates.md asks for names derived by the rules the migration emitter uses, so the two sides meet without a mapping table; the emitter's own model is those rules, and its tables are the ones the specification's migrations would create. The readers stay the way a dump is read, so a stale dump or one of an unknown commit is refused exactly as extract refuses it. Types are compared as PostgreSQL's format_type spells them, since the catalogue prints that spelling and the idiom writes the short one; only the spelling is normalised, never a width or a kind. The exact comparisons are the ones an extractor produces exactly, the reports the ones the database rewrites (a check's text) or no mapping holds, after the rule of docs/sync-gates.md that a gate that reports noise is switched off. A unique constraint is matched by its columns, since the database and the emitter name it each their own way, and a check by its name, which is all both keep. The id names the difference and not its place, as validate's ids do (ADR-065): an allowlist that broke when an entry moved to another file would be rewritten, not shrunk. A stale line fails, because a difference settled and still allowed would let the same difference come back unseen; --since makes a line added fail, the rule docs/sync-gates.md states, from what git holds, so no second file keeps the old list. A grant is widened by implies on both sides, because a table that grants the implied permission as well means what the specification means. The gates of a permission table are left out, since what a kind of caller may do is the caller context's (ADR-110). check is a verb on the readers and the generators' model, which are built in Go only; the Swift build exits 2 for it, as for extract. The compiler test holds: check reads what it is given and never refuses a specification for a difference, which is a problem at its entry, and a dump it cannot read is refused naming why. The acceptance test holds: a change request taken into the specification shows in the next run as a difference at the entry changed until the code follows.
+
 ## 10. Quality requirements
 
 The design tests: what must hold on every implementation. Golden scenarios succeed; red scenarios are refused.
@@ -8924,6 +9111,10 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | approve-refuses-stale-document | command approve | system | red | a configured requirements document that is not what the specification generates now | approve is run | it names the document that differs, writes nothing and exits 1 |
 | approve-usage-error | command approve | system | red | no --by | approve is run without saying who approves | it prints how to use it and exits 2 |
 | approve-writes-record | command approve | system | golden | a specification without open questions, a configured requirements document that is current, a configured problems target, which is not a document anyone approves, and a stakeholder owner | approve is run with --by owner and a date | it writes records/approvals/1.0.0.yaml with the role, the date, the document and the digest of the files, and exits 0 |
+| check-dump-of-no-format | command check | system | red | a specification and a JSON file with tables and a commit and none of the keys routeTable, permissionTable and catalogue | check is run with the file as a dump | it says on standard error that the file is no dump check reads, naming the three keys, prints nothing on standard output and exits 2 |
+| check-fails-on-a-difference | command check | system | red | the branches and copies of the golden case, where the route table's GET /copies/{copyId} checks no permission, the permission table grants nothing to the visitor and grants a role the specification does not declare, and the allowlist repeats a line and holds a line for a difference there is not, a line for a report and a line that is no id | check is run with the allowlist on the three dumps | it prints the CHAR column the allowlist no longer names, the permission that differs, the visitor's grant the code does not hold and the undeclared role's grant at its line of the dump as errors, the two reports as warnings, and each of the five lines of the allowlist that allow nothing as allowlist_stale at its line, and exits 1 |
+| check-succeeds | command check | system | golden | a specification of branches and copies with its implementation file, and a repository whose first commit holds the migrations, the router and the permission check and whose second holds the catalogue dump, the route table and the permission table made from them, naming the first, and an allowlist of three lines; the router serves a route the specification does not name, the database has a table it does not hold and a CHAR column where it has a string of that width, a check whose text the database rewrote and an index on an expression, a clerk is granted a permission the specification's clerk holds through implies, and the foreign key's no action is the reader's restrict | check is run with the allowlist and --since HEAD on the three dumps | it counts the three differences the allowlist names and does not print them, prints the check's text and the index the mapping does not list as warnings, finds no other difference, and exits 0 |
+| check-usage-error | command check | system | red | a specification and no dump | check is run with the specification alone | it prints how to use it and exits 2 |
 | derive-invalid-spec | command derive | system | red | a specification whose operation names a permission that is not declared | derive is run | it prints the error, writes nothing and exits 1 |
 | derive-keeps-existing | command derive | system | golden | the same specification, with a test folder already named as the missing-name draft would be | derive is run | it keeps that folder as it is, says so on standard error, writes the other drafts and exits 0 |
 | derive-meta-model-0-2 | command derive | system | golden | a specification that says specarch 0.2, whose only errors are the tests derive writes, with a must question holding up one operation | derive is run | it writes the drafts of the operation and the requirement no test covers, leaves out the held-up operation's drafts, and exits 0 |
@@ -9500,6 +9691,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | SA-45 | specarch merge shall merge the partial specification trees the readers write into one specification that keeps the citations of every tree, turn every disagreement between the trees into a must question that cites both, and give byte-identical output for the same trees in the same order. | functional | must | accepted | test | The database and router trees of one repository, read at different commits, merge into one specification with one code source at the newer commit, which validate accepts with no errors and gaps reads, and a second run writes the same bytes. Two trees that give the same key of the same element different values merge into the element without that key and a must question citing both. A request body one tree gives as a reference to a named schema and another as a shape written in place merges into the reference when the shapes agree in all both say, into the element without the schema and a must question naming the difference when a key both give differs, and into the reference with a should question when only the properties listed differ; the merged specification validates with no error in either order. An element only the code has, merged with a documents tree that speaks of its section, is written inferred, starting its why with "Undocumented, from code.", with a question that is must for an operation, a permission, a role, a personal or credential field, or a source given outside, and should otherwise. A tree validate reports an error in, and a source two trees declare differently, are each refused with status 1. A question that names the operation a workflow's trigger refers to is left out as joined, and the trigger written, when another tree declares that operation; a name no tree declares keeps its question. A printed tree and a parsed tree of one repository merge into operations with both trees' citations; the parsed tree's question whether the running system registers an operation is left out where the printed tree has it, an operation only the parsed tree declares is a must question citing its line, and one only the printed tree has a could question. The same rows compare entities with a catalogue tree and roles with a permission table tree; a role both give grants what the permission table grants, a grant only a seed makes is a must question and one only the table holds a could question, and a gate on one check that both trees ask is asked once with both citations. | NEED-8 |
 | SA-57 | Every output SpecArch generates shall name the element of the specification it came from, and a remark made at the user acceptance test shall be recorded as a change request or a defect that names the build it is about, where it was seen, what was observed and what was expected, and why the result was not what was wanted, and shall enter the specification as a decision, a question or a rejection, with what it reaches listed before anything changes. | functional | should | proposed | test | A web page generated from a page of the specification carries the page's pointer and the pointer of each field and action it draws, and a build for an environment that shows the trace shows the pointer, the version and the digest on screen. A change request in the acceptance phase without the build, what was observed or what was expected is reported, and so is one analysed without a cause. A decision that answers a change request whose decision is not approved is reported. The changes document lists, under each open change request, the tests, outputs, documents and approval its pointers reach. | NEED-10 |
 | SA-64 | specarch extract documents shall read a document in any language whose words a vocabulary gives, the English one SpecArch ships or a project's file, write the language on the source, and give for it the elements it gives for the same document in English; specarch merge shall read a number of days in a requirement by the vocabulary of its source's language. | functional | must | accepted | test | extract documents with --vocabulary on a document written in a second language gives the counts, the requirements' priorities, the entities' types, required fields and sensitivities, and the questions the same document in English gives, and writes language on the source. extract documents with no vocabulary named reads the document by the English vocabulary and writes the tree it wrote before vocabularies were data, byte for byte. A vocabulary that lists one word in two lists of one group, such as two sensitivities, is refused with the file, the line and the two lists; a language tag SpecArch ships no vocabulary for, given with no file, is refused with the keys a vocabulary holds. A leading table column headed with the vocabulary's row-number word is skipped in every table, and --given-outside writes givenOutside on the source. merge reads a requirement's number of days in the units and number words of its source's language, from the shipped vocabulary or the one given with --vocabulary, and says once per source that its requirements are not compared when there is neither. | NEED-8 |
+| SA-72 | specarch check shall compare a specification with the route tables, permission tables and catalogue dumps of its code, read by the readers of specarch extract, print every difference as a problem at its entry, and exit 1 on a difference the allowlist does not name or a line of the allowlist that names none. | functional | should | accepted | test | An operation the router does not serve, a route the specification does not name and a permission that differs between them are each an error, at the operation or at the route's line in the dump. A grant only one of the specification and the permission table holds, after each side's grants are widened by the permissions they imply, is an error at the role or at the grant's line in the dump. A table, a column, a type as PostgreSQL spells it, a nullability, a generated default, a primary key, a foreign key, a unique constraint, a check constraint's name or a listed plain index that differs between the tables generate sql writes and the catalogue is an error; the text of a check and an index the mapping does not list are reports that never fail. Each problem ends with an id that names the rule and what the difference is about, the same wherever the entry is written; a difference whose id the allowlist holds is counted and not printed, and the run exits 0 when every difference is allowed or a report. A line of the allowlist that no failing difference matches or that repeats one is an error at that line; with --since, so is a line the allowlist did not hold at that revision. | NEED-1, NEED-8 |
 | SA-1 | specarch validate shall check every specification and implementation file given against the JSON Schema of its kind and meta-model version. | functional | must | accepted | test | A file that breaks the schema is reported with rule schema, its file, line and YAML path. A file that passes the schema and every other rule produces no output and status 0. | NEED-1 |
 | SA-2 | Every reference inside a specification shall resolve to an object of the right kind in the same specification, wherever its file is in the tree. | functional | must | accepted | test | A misspelt relation target, enum, operation, page, algorithm, decision, requirement, need, stakeholder, source or environment is reported with its own rule, naming the file and line of the reference. A name defined in two files of the specification is reported with both files. An operation, command or page's enabledBy that is not a setting of configuration, or names one that is not boolean, is reported as setting; a valid one derives the case disabled by <setting>, the element refused with the setting off. | NEED-1, NEED-4 |
 | SA-3 | Every check constraint, condition of a unique constraint and formula shall parse and type-check in the fixed expression language. | functional | must | accepted | test | An expression outside the subset is refused with a message naming the construct. An expression that mixes types without a written conversion is refused with the conversion to write. A unique constraint's where is an expression over the entity's fields that gives true or false, like a check; a where on a check constraint is refused. | NEED-1 |
@@ -9650,6 +9842,8 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 
 **Insight on SA-64:** A document in another language gave its outline and nothing else, every table a could line, since the commitment words, the headers and the units were English in the code; a wrong or missing word has to be one line in a data file that the project changes without a release.
 
+**Insight on SA-72:** A specification nobody compares with its code drifts and is then read by nobody; a gate that fails on every old difference is switched off, and one whose allowlist may grow lets the drift back in.
+
 **Insight on SA-1:** The schema is the one definition of a file's shape; checking it first means every later rule can assume the shape.
 
 **Note on SA-6:** From The go command, Go documentation, 1.26: The Go tools print one problem per line as file:line, which editors and CI already parse. <https://go.dev/doc/>
@@ -9735,6 +9929,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-69 | enums Rule; commands gaps; decisions ADR-120 | tests document-writes-questions; tests gaps-lists-questions; tests gaps-names-question; tests gaps-question-opened; tests validate-question-opened |
 | SA-70 | commands extract; decisions ADR-121 | tests extract-database-generated-default; tests extract-database-implementation-out; tests extract-router-list-twin; tests generate-openapi-list-twin; tests generate-sql-generated-default; tests generate-sql-generated-default-refused; tests generate-sql-index-changed; tests validate-generated-default; tests validate-index-field |
 | SA-71 | decisions ADR-123 | tests generate-sqlc-check-hand-written; tests generate-sqlc-dialect-refused; tests generate-sqlc-hand-written-refused; tests generate-sqlc-queries |
+| SA-72 | commands check; decisions ADR-124 | tests check-dump-of-no-format; tests check-fails-on-a-difference; tests check-succeeds; tests check-usage-error |
 
 ## Sources
 

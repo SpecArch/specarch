@@ -1,0 +1,3 @@
+arguments: [check, project]
+exitStatus: 2
+standardOutput: ""

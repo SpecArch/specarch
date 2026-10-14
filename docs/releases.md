@@ -2,11 +2,17 @@
 
 # SpecArch toolchain: release notes
 
-Version 0.7.0-dev of the specification: 9 releases are recorded beside it, newest first. Each lists what it includes, grouped as added, changed, removed and fixed, from the change and defect records in `records/`.
+Version 0.7.0-dev of the specification: 10 releases are recorded beside it, newest first. Each lists what it includes, grouped as added, changed, removed and fixed, from the change and defect records in `records/`.
 
 ## 0.7.0, planned
 
 Includes no recorded change or defect.
+
+## 0.6.3, released 2026-10-14
+
+Includes no recorded change or defect.
+
+Specification 0.6.3. Implementations: go 0.1.0, swift 0.1.0. Built from commit b70da026513ea7b5ea12e91de16195d6f42c1b2e.
 
 ## 0.6.2, released 2026-10-14
 

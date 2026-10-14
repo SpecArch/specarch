@@ -1,0 +1,8 @@
+specarchRecord: "0.1"
+kind: release
+version: 0.6.3
+status: released
+date: "2026-10-14"
+specificationVersion: 0.6.3
+implementations: { go: 0.1.0, swift: 0.1.0 }
+commit: b70da026513ea7b5ea12e91de16195d6f42c1b2e

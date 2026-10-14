@@ -181,7 +181,7 @@ the program and are built once in your cache with their toolchains). It has two 
 the same design.
 The Go build has every verb. With Go 1.27.2 or later:
 
-    go install github.com/SpecArch/specarch/cmd/specarch@v0.6.2
+    go install github.com/SpecArch/specarch/cmd/specarch@v0.6.3
 
 or, from a clone of this repository:
 
@@ -206,15 +206,15 @@ generate bpmn` runs to write each workflow as a BPMN 2.0 file with its
 diagram, and the diagram as SVG. Install them at the same tag as
 `specarch`:
 
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-openapi@v0.6.2
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-sql@v0.6.2
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-tests-go@v0.6.2
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-tests-swift@v0.6.2
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-tests-dart@v0.6.2
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-go-dxlib@v0.6.2
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-ui@v0.6.2
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-ui-typescript@v0.6.2
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-bpmn@v0.6.2
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-openapi@v0.6.3
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-sql@v0.6.3
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-tests-go@v0.6.3
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-tests-swift@v0.6.3
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-tests-dart@v0.6.3
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-go-dxlib@v0.6.3
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-ui@v0.6.3
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-ui-typescript@v0.6.3
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-bpmn@v0.6.3
 
 The Swift build, for macOS, has the validate and version verbs and gives
 the same output. With Swift 6:

@@ -1,0 +1,14 @@
+specarch: "0.1"
+info:
+  title: Lending desk database
+  version: 0.1.0
+  tracksOrigin: true
+stages: [requirements, design]
+sources:
+  desk:
+    kind: code
+    title: The lending desk service
+    edition: 7a8b9c0d1e2f30415263748596a7b8c9d0e1f2a3
+    url: https://example.invalid/lending-desk.git
+    clauses:
+      - {clause: migrations public.holds, title: Table public.holds}

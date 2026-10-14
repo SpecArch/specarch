@@ -1,0 +1,10 @@
+arguments: [merge, --out, spec, trees/api, trees/code]
+exitStatus: 0
+standardOutput: |
+  tree trees/api: Desk interface, on the documents side: 3 elements and 0 questions
+  tree trees/code: Desk database, on the code side: 2 elements and 0 questions
+  disagree: on #/entities/Members/properties/address, Desk interface refers to #/schemas/Address and Desk database writes the shape in place, and they differ: Address is of type object, and Desk database of type string; the key is left out
+  merged 3 elements, each an entry of a section or an operation: 2 in more than one tree, and 1 key the trees disagree on
+  wrote 1 question: 0 from the trees, numbered again in the order the trees are given, and 1 the merge asked
+  question Q-1 (must): #/entities/Members/properties/address: the trees disagree
+  derived 0 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers

@@ -437,7 +437,10 @@ changes `extract.yaml` first.
 15. Built. Go on `net/http` and the common routers (ADR-081). `extract
     go` follows the routers a module makes, is given or keeps in a
     field, from each function no call names, through the calls that pass
-    them, joining the literal prefixes of groups, routes, mounts,
+    them, with the literal strings and the function values a call passes
+    bound as well, so a helper that takes a prefix and a function
+    registering routes under it is followed through both, joining the
+    literal prefixes of groups, routes, mounts,
     subrouters and `ServeMux` subtrees: `http.ServeMux` patterns, chi,
     gin, echo and gorilla/mux. A type of the module with `ServeMux`'s
     `Handle` method is read as a `ServeMux`, so a route printer's

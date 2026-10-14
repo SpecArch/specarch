@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: derive
+level: system
+scenario: golden
+given: "a specification whose requirements AB-1.2, AB-1_2 and AB-Shelf.Two each name a harm and have one acceptance criterion, and whose tests folder holds one test, of another requirement"
+when: "derive is run"
+then: "it names each draft from its requirement made a valid name, ab-1-2-acceptance-1 and ab-shelf-two-acceptance-1, gives the draft of AB-1_2, whose name AB-1.2 gives as well, the suffix -2 with a question on standard error and in its why, keeps each requirement's own ID in the draft's keys and verifies, and exits 0 with a tree validate passes"
+verifies: [SA-28]

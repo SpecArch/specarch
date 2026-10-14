@@ -1,0 +1,13 @@
+entities:
+  Holds:
+    type: object
+    properties:
+      holdId: {type: string, maxLength: 20}
+      renewable: {type: [boolean, "null"], default: false}
+      branchCode: {type: string, maxLength: 10}
+    required: [holdId]
+    primaryKey: [holdId]
+    origin: stated
+    cites:
+      - {source: catalogue, clause: migrations public.holds, says: Table public.holds.}
+      - {source: desk, clause: migrations public.holds, says: 'Table public.holds, kept in step with the catalogue''s.'}

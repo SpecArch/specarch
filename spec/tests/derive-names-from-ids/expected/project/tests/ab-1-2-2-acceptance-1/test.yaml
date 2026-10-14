@@ -1,0 +1,10 @@
+requirement: AB-1_2
+level: acceptance
+scenario: golden
+covers: [acceptance 1]
+given: "..."
+when: "..."
+then: "A returned book is on the shelf."
+verifies: [AB-1_2]
+origin: inferred
+why: "Written by specarch derive: requirement AB-1_2 is at stake in a requirement that names a harm, so its cases are written; its test name is ab-1-2-2, not ab-1-2, which requirement AB-1.2 gives as well once both are valid names. A draft: complete the given, when and then, and remove what does not hold."

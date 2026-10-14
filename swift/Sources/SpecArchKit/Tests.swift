@@ -106,6 +106,24 @@ func kebab(_ s: String) -> String {
     return out
 }
 
+/// A name made kebab-case: small letters and digits (a capital letter of A
+/// to Z made small), every run of other characters one hyphen, none at either end, and a letter first, putting
+/// the subject key before a name that has none.
+func validName(_ name: String, _ word: String) -> String {
+    var out = ""
+    for u in name.unicodeScalars {
+        let c = ("A"..."Z").contains(u) ? Unicode.Scalar(u.value + 32)! : u
+        if ("a"..."z").contains(c) || ("0"..."9").contains(c) {
+            out.unicodeScalars.append(c)
+        } else if !out.isEmpty && !out.hasSuffix("-") {
+            out += "-"
+        }
+    }
+    if out.hasSuffix("-") { out.removeLast() }
+    if let f = out.unicodeScalars.first, ("a"..."z").contains(f) { return out }
+    return out.isEmpty ? word : word + "-" + out
+}
+
 private func chars(_ n: String) -> String { n == "1" ? "1 character" : n + " characters" }
 
 private func characters(_ n: String, _ off: Int) -> String {
@@ -225,8 +243,37 @@ extension Design {
         for r in pairs(root.child("requirements")) {
             if let s = requirementSubject(r) { out.append(s) }
         }
+        validNames(out)
         qualifyShared(out)
         return out
+    }
+
+    /// Makes every subject's name a valid test name, kebab-case with a
+    /// letter first, as a test folder's name must be: a requirement AB-1.2
+    /// gives ab-1-2. Where two subjects of one key had different names that
+    /// give the same valid name, each after the first in document order
+    /// takes a suffix, -2, -3, until its name is free; subjects whose names
+    /// were the same to start with are left as they are.
+    func validNames(_ subjects: [Subject]) {
+        var first: [String: String] = [:] // key and valid name to the name that gave it first
+        var taken = Set<String>()
+        for s in subjects { taken.insert(subjectKeyWord(s) + " " + validName(s.name, subjectKeyWord(s))) }
+        for s in subjects {
+            let word = subjectKeyWord(s), valid = validName(s.name, word)
+            let held = first[word + " " + valid]
+            if held == nil { first[word + " " + valid] = s.name }
+            if held == nil || held == s.name {
+                s.name = valid
+                continue
+            }
+            var name = valid, n = 2
+            while taken.contains(word + " " + name) {
+                name = valid + "-\(n)"
+                n += 1
+            }
+            taken.insert(word + " " + name)
+            s.name = name
+        }
     }
 
     /// Puts the subject key before the name of every subject whose name a

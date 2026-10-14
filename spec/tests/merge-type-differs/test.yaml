@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: merge
+level: system
+scenario: red
+given: "two database trees whose entity Holds gives the field renewable as a boolean in one and a nullable boolean in the other, and the field branchCode as a string with a maximum length in one and an integer with a format and a default in the other"
+when: "merge is run on the two trees"
+then: "renewable keeps the type [boolean, \"null\"] and branchCode the first tree's string with its maximum length, the replica's format and default left out with its type, a must question on each type names what was kept, and the merged specification validates with no error; it exits 0"
+verifies: [SA-45]

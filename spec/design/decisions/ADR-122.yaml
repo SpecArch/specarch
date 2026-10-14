@@ -1,0 +1,119 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
+decisions:
+  ADR-122:
+    title: Every tree a command writes passes validate; merge keeps a type where the trees give a field different types and blocks the permissions a role's disputed grants leave ungranted, and derive names a draft from its subject made a valid name
+    status: accepted
+    date: "2026-10-14"
+    context: |
+      ADR-045 leaves out a key the trees give different values and asks
+      a must question that blocks the key. The validator covers a
+      required key missing at a pointer a must question blocks, so a
+      merged tree with such a key left out passes validate, except in
+      two cases. A field with neither `$ref` nor `type` fails the design
+      schema's one-of between the two forms of a field, and the error
+      names `$ref`, which the question on `type` does not block; so two
+      databases that give one column as `boolean` and as
+      `[boolean, "null"]`, one a replica of the other, merged into a
+      field with a default and no type, and validate, gaps and document
+      refused the merged tree. A role's grants left out as a disputed
+      list can leave a permission no role grants, which the validator
+      reports at the permission, where no question blocks it. derive
+      named a requirement's acceptance drafts from the requirement's ID
+      as written, lower-cased, and an ID may hold a dot or an
+      underscore, so a requirement `AB-1.2` gave the folder
+      `tests/ab-1.2-acceptance-1`, which validate refuses as a test name
+      that is not kebab-case.
+    decision: |
+      A field's `type` the trees give differently is kept with one value
+      rather than left out, under the same must question. Where the
+      types differ only in whether null is allowed, the union is kept,
+      the types every tree lists and `"null"`. Otherwise the first
+      tree's type is kept, and each key of another tree that goes with
+      its type (a format, a width or a bound, a pattern, the values, a
+      default or an example, the items, the properties) that the first
+      tree does not give is left out with that type, and a tree that
+      gives the kept type keeps its keys. The question's why says what the sources say,
+      what the merge keeps and why, and names each key left out with a
+      type; the merge's output names the type kept at the question.
+      The must question on a role's `permissions` left out blocks, as
+      well as the list, each permission the lists name that no merged
+      role grants, among the permissions the merged specification declares, and its why says
+      so.
+      Every tree merge writes passes validate with no error: where
+      leaving a key out would leave an entry the schema cannot read, one
+      valid form is kept and the question says which; where a key left
+      out leaves an error elsewhere, the question blocks that place too.
+      derive makes each subject's name a valid test name before it names
+      a draft from it: small letters and digits, every run of other
+      characters one hyphen, none at either end, and the subject key in
+      front of a name that starts with no letter; the draft keeps the
+      subject's own name in its keys and `verifies`. Where two subjects
+      of one key have different names that give the same valid name,
+      each after the first in document order takes a suffix, `-2`, `-3`,
+      and derive asks about it on standard error and in the draft's
+      `why`. The validator suggests the same names, in both builds.
+      One rule holds for every command that writes a tree, the readers
+      of extract, merge, derive, and approve: what it writes passes
+      validate with no error, the problems it found asked as questions
+      at the nearest element rather than written as an entry validate
+      refuses. The conformance suite validates the tree of every case of
+      those commands that exits 0.
+    why: |
+      A type kept rather than left out, because a field without one is
+      not a field to the schema, the generators or a reader of the
+      techspec, and SpecArch reads an incomplete definition rather than
+      refusing it (docs/principles.md): the problem is marked at the
+      entry, by the must question that blocks the type, and nothing is
+      dropped. The union where only null differs, because a nullable
+      column and a non-null one agree on the type and differ on one
+      more value, and the union allows what either allows, so no tree is
+      contradicted while the question is open. The first tree's type
+      otherwise, because the order of the trees is the one input the
+      reviewer chooses and can repeat (ADR-045), and the question says
+      in words that it is not a choice between the sources; the keys
+      that go with the other type leave with it, because a format of
+      one type is refused on another, and leaving them out unsaid would
+      hide what that tree says, so the question names them. A field's
+      type alone and not every required key, because every other key
+      left out is covered by the question that blocks it, and keeping a
+      value the design does not need would choose between the sources
+      where the merge has no reason to.
+      The ungranted permissions blocked by the question on the grants,
+      because the grant is what is missing and it is written in the
+      role, not under the permission; the validator holds that a
+      question on the permission itself is the one place that can say
+      the grant is not known (issue 11), and the merge is where the
+      grant was left out, so it is the merge that says so. A union of
+      the grants would widen a role while the question is open, which
+      ADR-045 refuses for anything that concerns security.
+      A name made valid rather than copied, because a folder name
+      validate refuses makes the whole tree one validate refuses, and
+      the ID is still cited in the draft's keys, so nothing of it is
+      lost; a suffix and a question rather than an error where two names
+      meet, because the subjects differ and both drafts can be written,
+      and the reviewer decides whether the name suits.
+      Every output of a tree-writing command validated in the suite,
+      because the three cases were found by users, each after a release,
+      each a different command writing a tree validate refused, and one
+      check over every case catches the next before it ships.
+      Acceptance test: two database trees that differ on a column's
+      nullability merge into a tree validate accepts with no error, the
+      column read with the union type and one must question on it; an
+      owner reading the techspec sees the column with both citations and
+      the question, and the change asked for is one line in the
+      migration of the service that is wrong.
+    consequences: |
+      A merged specification whose trees disagree on a field's type
+      validates on its own, and gaps and the documents read it with the
+      type kept until the question is answered. Where the first tree's
+      type is kept, a format or width only another tree gave is in the
+      question and not in the tree. Where the types differ only in
+      null, the tree says the column may be null until the owner says
+      which service is wrong. A permission a disputed grants list leaves
+      ungranted is blocked by the question on the list, and the
+      validator reports it once the list is answered and it is still
+      granted by nobody. A requirement whose ID holds a dot gets drafts
+      validate accepts, under a name that is not its ID. A case of
+      extract, merge, derive or approve whose tree does not validate
+      fails the suite.
+    satisfies: [SA-45]

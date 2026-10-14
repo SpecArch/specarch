@@ -1,0 +1,13 @@
+questions:
+  # specarch-problem: question: open_question: (must, decision) Which is right for #/entities/Members/properties/address: {$ref: '#/schemas/Address'} or {type: string, maxLength: 200}? Decided by system-owner. Answer with a decision record that names Q-1 under answers. [Q-1]
+  Q-1:
+    question: 'Which is right for #/entities/Members/properties/address: {$ref: ''#/schemas/Address''} or {type: string, maxLength: 200}?'
+    kind: decision
+    priority: must
+    blocks: ['#/entities/Members/properties/address']
+    decidedBy: system-owner
+    options: ['{$ref: ''#/schemas/Address''}, as Desk interface has it', '{type: string, maxLength: 200}, as Desk database has it']
+    why: 'The sources disagree on the shape: Address is of type object, and Desk database of type string. The merge leaves the key out rather than choose between them.'
+    cites:
+      - {source: api, clause: /components/schemas/Members, says: 'The schema Members, with the properties cardNumber and address.'}
+      - {source: code, clause: migrations public.members, says: Table public.members.}

@@ -10,7 +10,7 @@ info:
 
 implements:
   file: ../../specarch.yaml
-  version: 0.6.3
+  version: 0.6.4
 
 stack:
   language: { name: Go, version: "1.27" }

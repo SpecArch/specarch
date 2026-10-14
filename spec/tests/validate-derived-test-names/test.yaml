@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: validate
+level: system
+scenario: golden
+given: "requirements AB-1.2, AB-1_2 and AB-Shelf.Two, each with a harm, one acceptance criterion and no test"
+when: validate is run
+then: "the test it says to add for each is named from the requirement made a valid name, ab-1-2-acceptance-1, ab-1-2-2-acceptance-1 with a suffix since AB-1.2 gives ab-1-2 as well, and ab-shelf-two-acceptance-1, and it exits 0"
+verifies: [SA-21]

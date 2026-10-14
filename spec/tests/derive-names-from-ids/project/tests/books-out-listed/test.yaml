@@ -1,0 +1,8 @@
+requirement: AB-9
+level: acceptance
+scenario: golden
+covers: [acceptance 1]
+given: "two books out on loan"
+when: "the clerk opens the loans"
+then: "both books are listed"
+verifies: [AB-9]

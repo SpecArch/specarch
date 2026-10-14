@@ -64,6 +64,7 @@ type merger struct {
 	order      []string               // the elements' pointers in the order they were met
 	disputes   map[string][]mergeStep // path string -> the path of a key the trees disagree on
 	disputeOrd []string               // the disputes in the order they were found
+	kept       map[string]*keptKey    // a dispute whose key is kept with one value, since the entry is not read without it
 	sources    map[string]*yaml.Node  // the merged sources
 	sourceKeys []string               // in the order they were met
 	given      map[string]bool        // the source keys marked givenOutside
@@ -82,7 +83,7 @@ type merger struct {
 // section 3.2; ADR-045).
 func Merge(specs []*spec.Spec, out string) (*Result, error) {
 	m := &merger{out: out, res: &Result{Tree: newTree()}, files: map[string]*yaml.Node{}, entries: map[string]*yaml.Node{},
-		elements: map[string]*element{}, disputes: map[string][]mergeStep{}, sources: map[string]*yaml.Node{},
+		elements: map[string]*element{}, disputes: map[string][]mergeStep{}, kept: map[string]*keptKey{}, sources: map[string]*yaml.Node{},
 		given: map[string]bool{}, stages: map[string]bool{}}
 	for _, s := range specs {
 		t, err := checkTree(s)
@@ -731,13 +732,206 @@ func (m *merger) mergeOrigin(acc, add *yaml.Node) {
 	}
 }
 
-// removeDisputed leaves out every key the trees disagree on.
+// removeDisputed leaves out every key the trees disagree on, but a field's
+// type, which is kept with one value (keepType).
 func (m *merger) removeDisputed() {
 	for _, k := range m.disputeOrd {
 		steps := m.disputes[k]
 		parent := m.walk(steps[:len(steps)-1])
+		if kept := m.keepType(steps, parent); kept != nil {
+			m.kept[k] = kept
+			continue
+		}
 		deleteKey(parent, steps[len(steps)-1].key)
+		// A field of an entity left out whole, as one a reference and a
+		// shape in place disagree on is (ADR-116), leaves its entity's
+		// required list too: a list may only name the fields the entity
+		// has.
+		if len(steps) == 4 && steps[0].key == "entities" && steps[2].key == "properties" {
+			entity := m.entries["entities/"+steps[1].key]
+			required := source.Child(entity, "required")
+			dropItem(required, steps[3].key)
+			if required != nil && len(required.Content) == 0 {
+				deleteKey(entity, "required")
+			}
+		}
 	}
+}
+
+// keptKey is a disputed key the merge keeps one value of, a field's type,
+// since a field is not read without one (ADR-122): the union where the
+// types differ only in whether null is allowed, else the first tree's.
+type keptKey struct {
+	value   string   // the value kept, on one line
+	union   bool     // the union of the types
+	title   string   // the tree whose value is kept, when not the union
+	leftOut []string // the other trees' keys that go with their types, such as "Service b's format int32"
+}
+
+// typeBoundKeys are the keys of a field that go with its type: a format, a
+// width or a bound, the values, a default or an example, the items and the
+// properties. When the
+// first tree's type is kept, another tree's such keys the first tree does
+// not give are left out with its type, since a format of one type is
+// refused on another.
+var typeBoundKeys = []string{"format", "maxLength", "minLength", "minimum", "maximum", "exclusiveMinimum", "exclusiveMaximum", "multipleOf", "precision", "scale", "pattern", "enum", "const", "default", "examples", "example", "items", "minItems", "maxItems", "uniqueItems", "properties", "required", "additionalProperties", "minProperties", "maxProperties"}
+
+// keepType keeps a type at a field whose type the trees give differently,
+// so the field is read: the union where the types differ only in whether
+// null is allowed, else the first tree's type, with the other trees' keys
+// that go with their types left out. nil for any other key.
+func (m *merger) keepType(steps []mergeStep, parent *yaml.Node) *keptKey {
+	if steps[len(steps)-1].key != "type" || parent == nil || source.Child(parent, "$ref") != nil {
+		return nil
+	}
+	var first *yaml.Node
+	var firstTree *mergeTree
+	var others []*mergeTree
+	var sets [][]string
+	for _, t := range m.trees {
+		v := follow(t.s.Root, steps)
+		if v == nil {
+			continue
+		}
+		names := typeNames(v)
+		if names == nil {
+			return nil
+		}
+		if first == nil {
+			first, firstTree = v, t
+		} else {
+			others = append(others, t)
+		}
+		sets = append(sets, names)
+	}
+	if first == nil {
+		return nil
+	}
+	kept := &keptKey{}
+	if base := sameButNull(sets); base != nil {
+		union := &yaml.Node{Kind: yaml.SequenceNode, Style: yaml.FlowStyle}
+		for _, n := range append(base, "null") {
+			union.Content = append(union.Content, str(n))
+		}
+		setKey(parent, "type", union)
+		kept.value, kept.union = inline(union), true
+		return kept
+	}
+	setKey(parent, "type", copyNode(first))
+	kept.value, kept.title = inline(first), firstTree.title
+	field := steps[:len(steps)-1]
+	firstField := follow(firstTree.s.Root, field)
+	for _, t := range others {
+		if inline(follow(t.s.Root, steps)) == kept.value {
+			continue // a tree that gives the kept type gives keys that fit it
+		}
+		theirs := follow(t.s.Root, field)
+		for _, key := range typeBoundKeys {
+			v := source.Child(theirs, key)
+			if v != nil && source.Child(firstField, key) == nil && source.Child(parent, key) != nil {
+				deleteKey(parent, key)
+				kept.leftOut = append(kept.leftOut, fmt.Sprintf("%s's %s %s", t.title, key, inline(v)))
+			}
+		}
+	}
+	return kept
+}
+
+// sentence says what the merge kept and why, after what the sources say.
+func (k *keptKey) sentence() string {
+	if k.union {
+		return fmt.Sprintf("The merge keeps %s, which allows what either allows, so the field is read until the question is answered.", k.value)
+	}
+	text := fmt.Sprintf("The merge keeps %s, as %s, the first tree given, has it, so the field is read until the question is answered; it is not a choice between them.", k.value, k.title)
+	switch len(k.leftOut) {
+	case 0:
+	case 1:
+		text += fmt.Sprintf(" %s goes with its type and is left out.", k.leftOut[0])
+	default:
+		text += fmt.Sprintf(" %s go with their types and are left out.", joinAnd(k.leftOut))
+	}
+	return text
+}
+
+// typeNames is a type as the names it lists, one for a scalar; nil for a
+// value that is not a type.
+func typeNames(v *yaml.Node) []string {
+	switch v.Kind {
+	case yaml.ScalarNode:
+		return []string{v.Value}
+	case yaml.SequenceNode:
+		var names []string
+		for _, item := range v.Content {
+			if item.Kind != yaml.ScalarNode {
+				return nil
+			}
+			names = append(names, item.Value)
+		}
+		return names
+	}
+	return nil
+}
+
+// sameButNull is the types every set lists apart from null, in the first
+// set's order, when the sets differ only in whether they list null; nil
+// otherwise.
+func sameButNull(sets [][]string) []string {
+	var base []string
+	for i, set := range sets {
+		var rest []string
+		for _, n := range set {
+			if n != "null" && !contains(rest, n) {
+				rest = append(rest, n)
+			}
+		}
+		if i == 0 {
+			base = rest
+			continue
+		}
+		if len(rest) != len(base) {
+			return nil
+		}
+		for _, n := range rest {
+			if !contains(base, n) {
+				return nil
+			}
+		}
+	}
+	if len(base) == 0 {
+		return nil
+	}
+	return base
+}
+
+// ungranted is the permissions a role's disputed lists name that, with the
+// list left out, no merged role grants, among the permissions the merged
+// specification declares: the
+// question on the list blocks them too, since no role grants them while
+// the question is open.
+func (m *merger) ungranted(steps []mergeStep) []string {
+	var granted []string
+	for _, ptr := range m.order {
+		e := m.elements[ptr]
+		if e.section != "roles" {
+			continue
+		}
+		for _, p := range source.Items(source.Child(m.entries["roles/"+e.tokens[1]], "permissions")) {
+			granted = append(granted, p.Value)
+		}
+	}
+	holds := map[string]bool{}
+	for _, q := range granted {
+		holds[q] = true
+	}
+	var out []string
+	for _, t := range m.trees {
+		for _, p := range source.Items(follow(t.s.Root, steps)) {
+			if !holds[p.Value] && !contains(out, p.Value) && m.entries["permissions/"+p.Value] != nil {
+				out = append(out, p.Value)
+			}
+		}
+	}
+	return out
 }
 
 // walk follows steps through the merged entries.
@@ -1356,11 +1550,32 @@ func (m *merger) disputeQuestions() int {
 		if differ := m.refs.disputed[k]; differ != "" {
 			why = fmt.Sprintf("The sources disagree on the shape: %s. The merge leaves the key out rather than choose between them.", differ)
 		}
+		line := fmt.Sprintf("question Q-%d (must): %s: the trees disagree", len(m.questions)+1, ptr)
+		if kept := m.kept[k]; kept != nil {
+			why = fmt.Sprintf("The sources disagree: %s. %s", strings.Join(said, ", and "), kept.sentence())
+			line += fmt.Sprintf("; %s is kept so the field is read", kept.value)
+		}
+		blocks := []string{ptr}
+		if n := len(steps); n == 3 && steps[0].key == "roles" && steps[2].key == "permissions" {
+			// A role's grants left out can leave a permission no role
+			// grants: the question blocks that permission too, as the
+			// one place that can say the grant is not known.
+			if ungranted := m.ungranted(steps); len(ungranted) > 0 {
+				for _, p := range ungranted {
+					blocks = append(blocks, "#"+source.Pointer("permissions", p))
+				}
+				them := "it"
+				if len(ungranted) > 1 {
+					them = "them"
+				}
+				why += fmt.Sprintf(" While the list is out, no role grants %s, so the question blocks %s too.", joinAnd(ungranted), them)
+			}
+		}
 		q := mapping(
 			"question", fmt.Sprintf("Which is right for %s: %s?", ptr, strings.Join(values, " or ")),
 			"kind", "decision",
 			"priority", "must",
-			"blocks", []string{ptr},
+			"blocks", blocks,
 			"decidedBy", owner,
 			"options", opts,
 			"why", why,
@@ -1369,7 +1584,7 @@ func (m *merger) disputeQuestions() int {
 			set(q, "cites", cites)
 		}
 		m.addQuestion(q, questionFile(q))
-		m.res.say("question Q-%d (must): %s: the trees disagree", len(m.questions), ptr)
+		m.res.say("%s", line)
 	}
 	return len(m.disputeOrd)
 }

@@ -76,6 +76,9 @@ func runDerive(args []string, stdout, stderr io.Writer) int {
 				return 2
 			}
 			fmt.Fprintln(stdout, filepath.ToSlash(file))
+			if dr.Renamed != "" {
+				fmt.Fprintf(stderr, "specarch derive: question: %s for %s: %s; rename the subject if the suffix does not suit\n", filepath.ToSlash(folder), dr.Subject, dr.Renamed)
+			}
 			drafts = append(drafts, file)
 			written++
 		}
@@ -117,6 +120,9 @@ func deriveInto(out string, tree *extract.Tree) ([]string, error) {
 			lines = append(lines, fmt.Sprintf("not derived: test %s for %s: %s; write this test by hand under a name of its own", dr.Name, dr.Subject, dr.Collision))
 		default:
 			write = append(write, dr)
+			if dr.Renamed != "" {
+				lines = append(lines, fmt.Sprintf("question: test %s for %s: %s; rename the subject if the suffix does not suit", dr.Name, dr.Subject, dr.Renamed))
+			}
 		}
 	}
 	if len(write) > 0 {

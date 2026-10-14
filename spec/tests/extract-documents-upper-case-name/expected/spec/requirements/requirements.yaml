@@ -1,0 +1,31 @@
+stakeholders:
+  system-owner:
+    description: Whoever owns the system that was read and answers for it; the reviewer replaces this with the real role.
+    origin: inferred
+    why: The surface names no one, and every question needs a stakeholder to decide it.
+requirements:
+  # specarch-problem: warning: acceptance_missing: requirement ARCHITECTURE-1 has no acceptance criteria, so no test can show it is met; add acceptance with one verifiable sentence per criterion [acceptance_missing@requirements/requirements.yaml#/requirements/ARCHITECTURE-1]
+  ARCHITECTURE-1:
+    statement: The gateway must forward every request to exactly one service.
+    priority: must
+    status: accepted
+    origin: stated
+    cites:
+      - {source: architecture, clause: "1", says: The gateway must forward every request to exactly one service.}
+  # specarch-problem: warning: acceptance_missing: requirement ARCHITECTURE-2 has no acceptance criteria, so no test can show it is met; add acceptance with one verifiable sentence per criterion [acceptance_missing@requirements/requirements.yaml#/requirements/ARCHITECTURE-2]
+  ARCHITECTURE-2:
+    statement: Each service shall keep its own database.
+    priority: must
+    status: accepted
+    origin: stated
+    cites:
+      - {source: architecture, clause: "2", says: Each service shall keep its own database.}
+questions:
+  # specarch-problem: question: open_question: (must, decision) Which kind is each requirement read from the document: ARCHITECTURE-1, ARCHITECTURE-2? Functional, quality, interface or constraint. Decided by system-owner. Answer with a decision record that names Q-1 under answers. [Q-1]
+  Q-1:
+    question: 'Which kind is each requirement read from the document: ARCHITECTURE-1, ARCHITECTURE-2? Functional, quality, interface or constraint.'
+    kind: decision
+    priority: must
+    blocks: ['#/requirements/ARCHITECTURE-1/kind', '#/requirements/ARCHITECTURE-2/kind']
+    decidedBy: system-owner
+    why: A document states what is committed, not which kind of requirement it is.

@@ -86,12 +86,16 @@ struct DerivedCase {
     var mistakes: String { str(child(field, "mistakes")) }
 }
 
-/// createLoan becomes create-loan.
+/// createLoan becomes create-loan. A capital starts a word after a small
+/// letter or a digit; in a run of capitals only the last starts one, and
+/// only when a small letter follows it: HTTPServer is http-server, README
+/// is readme.
 func kebab(_ s: String) -> String {
     var out = ""
-    for (i, c) in s.unicodeScalars.enumerated() {
+    let cs = Array(s.unicodeScalars)
+    for (i, c) in cs.enumerated() {
         if c.properties.isUppercase {
-            if i > 0 { out += "-" }
+            if i > 0 && (!cs[i - 1].properties.isUppercase || (i + 1 < cs.count && cs[i + 1].properties.isLowercase)) { out += "-" }
             out += String(c).lowercased()
         } else if c == " " || c == "_" || c == "." {
             out += "-"

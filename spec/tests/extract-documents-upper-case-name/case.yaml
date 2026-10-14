@@ -1,0 +1,11 @@
+arguments: [extract, documents, --out, spec, docs/ARCHITECTURE.md]
+repository:
+  folder: docs
+  commits:
+    - [ARCHITECTURE.md]
+exitStatus: 0
+standardOutput: |
+  commit 3b6384b5315424c87fc3efdae40c16a01dbebdb1: the last change to ARCHITECTURE.md
+  counted 3 headings, 0 numbered paragraphs, 2 sentences (2 commitments) and 0 tables (0 tables of fields): every ATX heading, every paragraph that starts with a section number such as 3.1, every sentence of a paragraph or list item, and every table, outside fenced code
+  wrote 2 requirements, 0 entities and 1 question: one per commitment that names its subject, one per table of fields, one per thing the document does not say, and one per thing the meta-model cannot hold
+  derived 0 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers

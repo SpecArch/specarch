@@ -26,7 +26,10 @@ decisions:
       read as a ServeMux, so a project's registration function may take
       an interface its printer's recorder implements. The walk starts at
       each function no call in the module names, follows calls of the
-      module's functions with the routers they pass, and walks every
+      module's functions and methods with the routers they pass, on a
+      value whose type the reader knows (made as a literal, by new, or
+      returned by a function or method of the module, alone or with an
+      error), and walks every
       function not reached with the routers it is given as routers whose
       place is not known. A group, a Route, a Mount, a subrouter and a
       ServeMux subtree handed to a router join their literal prefix; any

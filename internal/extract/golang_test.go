@@ -116,3 +116,136 @@ func TestPrivilegePermission(t *testing.T) {
 		}
 	}
 }
+
+// goRouterOperations runs extract go on a module and gives the paths
+// fragment and the questions fragment as text.
+func goRouterOperations(t *testing.T, files map[string]string) (string, string) {
+	t.Helper()
+	dir := goModuleRepository(t, files)
+	res, err := Go([]string{dir}, filepath.Join(t.TempDir(), "out"), "code", "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	paths, err := encode(res.Tree.files["design/paths.yaml"])
+	if err != nil {
+		t.Fatal(err)
+	}
+	questions, err := encode(res.Tree.files["design/questions.yaml"])
+	if err != nil {
+		t.Fatal(err)
+	}
+	return string(paths), string(questions)
+}
+
+// The server package of the two tests below: a struct another package's
+// constructor returns, with a method that is given the router.
+const goRestServer = `package rest
+
+import "github.com/gin-gonic/gin"
+
+type Server struct{ items []string }
+
+func NewServer() *Server { return &Server{} }
+
+func Open() (*Server, error) { return &Server{}, nil }
+
+func (s *Server) RegisterRoutes(r *gin.Engine) {
+	r.GET("/items", s.List)
+	r.POST("/items", s.Add)
+}
+
+func (s *Server) List(c *gin.Context) {}
+func (s *Server) Add(c *gin.Context)  {}
+`
+
+// TestGoRouterPassedToMethodOfConstructedValue follows a gin router into
+// a method of a struct from another package, when the value the method is
+// called on comes from a constructor, returning the value alone or with an
+// error.
+func TestGoRouterPassedToMethodOfConstructedValue(t *testing.T) {
+	paths, questions := goRouterOperations(t, map[string]string{
+		"go.mod":                      "module example.com/svc\n\ngo 1.26\n",
+		"internal/api/rest/server.go": goRestServer,
+		"cmd/main.go": `package main
+
+import (
+	"github.com/gin-gonic/gin"
+
+	"example.com/svc/internal/api/rest"
+)
+
+func main() {
+	r := gin.New()
+	server := rest.NewServer()
+	server.RegisterRoutes(r)
+	_ = r.Run(":8080")
+}
+`,
+		"cmd/other/main.go": `package main
+
+import (
+	"github.com/gin-gonic/gin"
+
+	"example.com/svc/internal/api/rest"
+)
+
+func main() {
+	r := gin.New()
+	server, err := rest.Open()
+	if err != nil {
+		panic(err)
+	}
+	server.RegisterRoutes(r)
+	_ = r.Run(":8081")
+}
+`,
+	})
+	for _, want := range []string{"/items:", "get:", "post:", "clause: 'internal/api/rest/server.go:12'"} {
+		if !strings.Contains(paths, want) {
+			t.Errorf("the paths fragment does not hold %q:\n%s", want, paths)
+		}
+	}
+	if strings.Contains(questions, "found no call that passes it one") {
+		t.Errorf("the router passed to the method was not followed:\n%s", questions)
+	}
+}
+
+// TestGoRouterPassedFromClosure follows the router when the call that
+// passes it sits in a closure, as a command's run function does.
+func TestGoRouterPassedFromClosure(t *testing.T) {
+	paths, questions := goRouterOperations(t, map[string]string{
+		"go.mod":                      "module example.com/svc\n\ngo 1.26\n",
+		"internal/api/rest/server.go": goRestServer,
+		"cmd/start.go": `package main
+
+import (
+	"github.com/gin-gonic/gin"
+	"github.com/spf13/cobra"
+
+	"example.com/svc/internal/api/rest"
+)
+
+func startCommand() *cobra.Command {
+	return &cobra.Command{
+		Use: "start",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			r := gin.New()
+			server := rest.NewServer()
+			server.RegisterRoutes(r)
+			return r.Run(":8080")
+		},
+	}
+}
+
+func main() { _ = startCommand().Execute() }
+`,
+	})
+	for _, want := range []string{"/items:", "get:", "post:"} {
+		if !strings.Contains(paths, want) {
+			t.Errorf("the paths fragment does not hold %q:\n%s", want, paths)
+		}
+	}
+	if strings.Contains(questions, "found no call that passes it one") {
+		t.Errorf("the router passed from the closure was not followed:\n%s", questions)
+	}
+}

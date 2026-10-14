@@ -550,6 +550,7 @@ func (sc *routeScope) walk(body ast.Node) {
 func (sc *routeScope) visit(n ast.Node) bool {
 	switch n := n.(type) {
 	case *ast.AssignStmt:
+		sc.assignResults(n.Lhs, n.Rhs)
 		for i, lhs := range n.Lhs {
 			id, ok := lhs.(*ast.Ident)
 			if !ok || len(n.Rhs) != len(n.Lhs) {
@@ -568,6 +569,11 @@ func (sc *routeScope) visit(n ast.Node) bool {
 				sc.assign(id.Name, n.Values[i])
 			}
 		}
+		var names []ast.Expr
+		for _, id := range n.Names {
+			names = append(names, id)
+		}
+		sc.assignResults(names, n.Values)
 	case *ast.ReturnStmt:
 		if len(n.Results) == 1 && sc.ret == nil {
 			sc.ret = sc.eval(n.Results[0])
@@ -587,7 +593,55 @@ func (sc *routeScope) assign(name string, rhs ast.Expr) {
 	}
 	if t := sc.g.valueType(sc.file, rhs); t != "" {
 		sc.types[name] = t
+	} else if call, ok := rhs.(*ast.CallExpr); ok {
+		if t := sc.resultType(call, 0, 1); t != "" {
+			sc.types[name] = t
+		}
 	}
+}
+
+// assignResults types the names one call's results are assigned to, as
+// server, err := rest.NewServer() does.
+func (sc *routeScope) assignResults(lhs, rhs []ast.Expr) {
+	if len(rhs) != 1 || len(lhs) < 2 {
+		return
+	}
+	call, ok := rhs[0].(*ast.CallExpr)
+	if !ok {
+		return
+	}
+	for i, l := range lhs {
+		if id, ok := l.(*ast.Ident); ok && id.Name != "_" {
+			if t := sc.resultType(call, i, len(lhs)); t != "" {
+				sc.types[id.Name] = t
+			}
+		}
+	}
+}
+
+// resultType is the type the call's result i has, when the call names a
+// function or method of the module that returns n values: a value a
+// constructor returns has the type the constructor declares, so a router
+// passed to a method on it is followed into that method.
+func (sc *routeScope) resultType(call *ast.CallExpr, i, n int) string {
+	fd, f := sc.funcValue(call.Fun)
+	if fd == nil || fd.Type.Results == nil {
+		return ""
+	}
+	var types []ast.Expr
+	for _, r := range fd.Type.Results.List {
+		k := len(r.Names)
+		if k == 0 {
+			k = 1
+		}
+		for j := 0; j < k; j++ {
+			types = append(types, r.Type)
+		}
+	}
+	if len(types) != n {
+		return ""
+	}
+	return sc.g.typeKey(f, types[i])
 }
 
 // valueType is the type of the module's a value is made as: T{}, &T{} or

@@ -255,14 +255,19 @@ func ownerStakeholder() *yaml.Node {
 // LoanItems both become loan-items.
 func kebab(s string) string {
 	var b strings.Builder
-	for i, r := range s {
+	rs := []rune(s)
+	for i, r := range rs {
 		switch {
 		case r == '_' || r == ' ' || r == '.' || r == '-':
 			if b.Len() > 0 && !strings.HasSuffix(b.String(), "-") {
 				b.WriteByte('-')
 			}
-		case r >= 'A' && r <= 'Z':
-			if i > 0 && b.Len() > 0 && !strings.HasSuffix(b.String(), "-") {
+		case upperASCII(r):
+			// A capital starts a word after a small letter or a digit; in a
+			// run of capitals only the last starts one, and only when a
+			// small letter follows it: HTTPServer is http-server, README
+			// is readme, FSD-Login is fsd-login.
+			if i > 0 && b.Len() > 0 && !strings.HasSuffix(b.String(), "-") && (!upperASCII(rs[i-1]) || i+1 < len(rs) && lowerASCII(rs[i+1])) {
 				b.WriteByte('-')
 			}
 			b.WriteRune(r + ('a' - 'A'))
@@ -272,3 +277,6 @@ func kebab(s string) string {
 	}
 	return strings.Trim(b.String(), "-")
 }
+
+func upperASCII(r rune) bool { return r >= 'A' && r <= 'Z' }
+func lowerASCII(r rune) bool { return r >= 'a' && r <= 'z' }

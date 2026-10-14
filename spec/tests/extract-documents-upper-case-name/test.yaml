@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: extract
+level: system
+scenario: golden
+given: "a repository holding a Markdown document whose file name is written in capitals, ARCHITECTURE.md, with two commitment sentences, and no --source-key"
+when: "extract documents is run on the document"
+then: "it names the document source architecture, the file name in kebab-case as one word rather than a letter per dash, writes one requirement per commitment under that source's clauses, and exits 0"
+verifies: [SA-44]

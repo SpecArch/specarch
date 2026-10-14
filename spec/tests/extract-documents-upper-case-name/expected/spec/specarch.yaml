@@ -1,0 +1,18 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v0.6.0/schema/specarch-design-0.2.schema.json
+specarch: "0.2"
+info:
+  title: Architecture
+  version: 0.1.0
+  description: |
+    The document ARCHITECTURE.md, read at commit 3b6384b5315424c87fc3efdae40c16a01dbebdb1: every heading and numbered section is a clause, every sentence that makes a commitment is a requirement citing its clause, and every table of fields is an entity's fields. What the document does not say is a question, and so is what the meta-model cannot hold.
+  tracksOrigin: true
+stages: [requirements]
+sources:
+  architecture:
+    kind: document
+    title: Architecture
+    edition: 3b6384b5315424c87fc3efdae40c16a01dbebdb1
+    url: ../docs/ARCHITECTURE.md
+    clauses:
+      - {clause: "1", title: Services}
+      - {clause: "2", title: Storage}

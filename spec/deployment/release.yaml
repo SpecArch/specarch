@@ -5,6 +5,9 @@ release:
     - name: Check the tree
       action: Run the implementation's build, test, validate and document --check tasks on the commit to release.
       check: Every task exits 0.
+    - name: Point the editor hints
+      action: An editor hint names the newest tag that serves the schema it points at. When a schema changed since the last tag, point every hint, and the schema line extract writes, at the tag about to be made, in a commit before it; when no schema changed, the hints stay at the tag they name.
+      check: The schemas at the tag every hint names are the same files as on the commit to release.
     - name: Tag the commit
       action: Tag the commit with the program version, as the version command prints it.
       check: The tag's name equals the output of specarch version.

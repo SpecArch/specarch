@@ -203,6 +203,9 @@ func runDocument(args []string, stdout, stderr io.Writer) int {
 		root := l.spec.Root
 		if everyone {
 			root = forEveryone(root, st)
+			for i := range impls {
+				impls[i].Node = st.Withheld.ForEveryoneImplementation(impls[i].Node)
+			}
 		}
 		text, _ := generate.Document(target, root, relSlash(folder, l.spec.RootFile), impls, st)
 		plan = append(plan, planned{path: filepath.Join(folder, generate.DocumentName(target)), content: text})

@@ -711,9 +711,10 @@ its `audience` key on its card in the html page. With `--audience
 external` a document is written for everyone (ADR-119): every
 internal element is left out with what is inside it, and so are the
 satisfies, verifies and needs entries that name an internal
-requirement or need, the open questions whose every pointer is at or
-under an internal element, and the errors, warnings and references
-at one; the summary says how many elements were left out in each
+requirement or need, an implementation file's mapping of an internal
+element and its satisfies entries naming an internal requirement,
+the open questions whose every pointer is at or under an internal
+element, and the errors, warnings and references at one; the summary says how many elements were left out in each
 section. It needs `--out`, since the folder the implementation files
 name holds the documents with every element, writes no region of
 `specarch.md`, and is refused for the problems target, whose files
@@ -8523,8 +8524,10 @@ names, a satisfies or verifies entry) are not checked.
 specarch document --audience external writes a document for
 everyone: every internal element is left out with what is inside
 it, and so are the satisfies, verifies and needs entries that name
-an internal requirement or need, the open questions whose every
-pointer is at or under an internal element, and the errors,
+an internal requirement or need, an implementation file's mappings
+of an internal element and its satisfies entries naming an internal
+requirement, the open questions whose every pointer is at or under
+an internal element, and the errors,
 warnings and waiting references at one; the summary says how many
 elements it left out in each section. It needs --out, writes no
 region of specarch.md, and is refused for the problems target.
@@ -8587,7 +8590,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | diff-usage-error | command diff | system | red | one folder | diff is run with only the old folder | it prints how to use it and exits 2 |
 | diff-version-step | command diff | system | red | a new version that removes a value from a public enum, released as 1.0.1 | diff is run | it lists the enum as major and reports version, naming 2.0.0, and exits 1 |
 | diff-version-unreadable | command diff | system | red | a new version whose info.version is next, not a semantic version | diff is run | it prints the schema error, lists the change, reports version naming the version it cannot read instead of a missing release record for 0.0.0, and exits 1 |
-| document-audience-external | command document | system | golden | an internal need, an internal requirement an entity for everyone satisfies, an internal entity with the open question that blocks only it, and a requirement another stakeholder owns | document techspec is run with --audience external | it writes techspec.md without the internal need, requirement and entity, the link to the internal requirement or the question, says in its summary that it left out one element in each of needs, requirements and entities, lists the owned requirement as held elsewhere, and exits 0 |
+| document-audience-external | command document | system | golden | an internal need, an internal requirement an entity for everyone and an implementation decision satisfy, an internal entity with its mapping and the open question that blocks only it, and a requirement another stakeholder owns | document techspec is run with --audience external | it writes techspec.md without the internal need, requirement and entity, the internal entity's mapping, the links to the internal requirement or the question, says in its summary that it left out one element in each of needs, requirements and entities, lists the owned requirement as held elsewhere, and exits 0 |
 | document-audience-marked | command document | system | golden | an internal need, an internal requirement an entity for everyone satisfies, an internal entity, and a requirement another stakeholder owns | document traceability is run without --audience | it writes traceability.md with every element, the internal need and requirement marked internal, the owned requirement under Requirements held elsewhere with its owner and out of the gaps, and exits 0 |
 | document-audience-needs-out | command document | system | red | --audience external with no --out | document is run | it prints the usage error saying a document for everyone is written beside the full documents, not over them, and exits 2 |
 | document-audience-problems-refused | command document | system | red | --audience external for the problems target | document is run | it prints the usage error saying the problems file holds every element and exits 2 |

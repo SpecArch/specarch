@@ -183,9 +183,10 @@ commands:
       external` a document is written for everyone (ADR-119): every
       internal element is left out with what is inside it, and so are the
       satisfies, verifies and needs entries that name an internal
-      requirement or need, the open questions whose every pointer is at or
-      under an internal element, and the errors, warnings and references
-      at one; the summary says how many elements were left out in each
+      requirement or need, an implementation file's mapping of an internal
+      element and its satisfies entries naming an internal requirement,
+      the open questions whose every pointer is at or under an internal
+      element, and the errors, warnings and references at one; the summary says how many elements were left out in each
       section. It needs `--out`, since the folder the implementation files
       name holds the documents with every element, writes no region of
       `specarch.md`, and is refused for the problems target, whose files

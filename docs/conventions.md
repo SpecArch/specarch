@@ -563,8 +563,8 @@ name an internal one through a `$ref`, a relation's `target`, a page's
 `entity` or a requirement's `needs` (`audience`), since a document for
 everyone would then name what it may not show. `specarch document
 --audience external --out <folder>` writes a document for everyone: the
-internal elements are left out, with the links, open questions and problems
-that concern only them, and its summary counts what it left out in each
+internal elements are left out, with the links, implementation mappings,
+open questions and problems that concern only them, and its summary counts what it left out in each
 section. Without the flag, a document holds everything and marks each
 internal element.
 

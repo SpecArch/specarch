@@ -18,8 +18,9 @@ type Withheld struct {
 	// Questions are the pointers of the open questions left out, whose
 	// every pointer is at or under an element left out.
 	Questions []string
-	Sections  []string       // the sections that lost an element, in document order
-	Counts    map[string]int // by section
+	Sections  []string        // the sections that lost an element, in document order
+	Counts    map[string]int  // by section
+	ids       map[string]bool // the requirements and needs left out, by ID
 }
 
 // Covers reports whether a pointer is at or under an element left out.
@@ -50,8 +51,8 @@ func (w *Withheld) Total() int {
 // an element left out. The nodes that stay are the specification's own,
 // so their pointers do not change.
 func ForEveryone(root *yaml.Node) (*yaml.Node, *Withheld) {
-	w := &Withheld{Counts: map[string]int{}}
-	ids := map[string]bool{} // the requirements and needs left out, by ID
+	w := &Withheld{Counts: map[string]int{}, ids: map[string]bool{}}
+	ids := w.ids
 	var find func(n *yaml.Node, path []string)
 	find = func(n *yaml.Node, path []string) {
 		n = source.Deref(n)
@@ -125,6 +126,46 @@ func ForEveryone(root *yaml.Node) (*yaml.Node, *Withheld) {
 		return n
 	}
 	return keep(root, nil), w
+}
+
+// ForEveryoneImplementation is an implementation file as a document for
+// everyone reads it: the mappings of an element left out are left out,
+// and so are the satisfies entries that name a requirement left out.
+func (w *Withheld) ForEveryoneImplementation(root *yaml.Node) *yaml.Node {
+	if w.Total() == 0 {
+		return root
+	}
+	var keep func(n *yaml.Node, path []string) *yaml.Node
+	keep = func(n *yaml.Node, path []string) *yaml.Node {
+		d := source.Deref(n)
+		if d == nil {
+			return n
+		}
+		switch d.Kind {
+		case yaml.MappingNode:
+			out := *d
+			out.Content = nil
+			for _, p := range source.Pairs(d) {
+				if len(path) == 1 && path[0] == "mappings" && w.Covers(strings.TrimPrefix(p.Key.Value, "#")) {
+					continue
+				}
+				out.Content = append(out.Content, p.Key, keep(p.Value, append(append([]string{}, path...), p.Key.Value)))
+			}
+			return &out
+		case yaml.SequenceNode:
+			out := *d
+			out.Content = nil
+			for i, item := range d.Content {
+				if len(path) > 0 && path[len(path)-1] == "satisfies" && w.ids[source.Str(item)] {
+					continue
+				}
+				out.Content = append(out.Content, keep(item, append(append([]string{}, path...), fmt.Sprint(i))))
+			}
+			return &out
+		}
+		return n
+	}
+	return keep(root, nil)
 }
 
 // blocksOnlyWithheld reports whether every pointer a question blocks is at

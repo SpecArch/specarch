@@ -293,9 +293,9 @@ Scenario: red; level: system; covers exit 1; verifies SA-25.
 
 Scenario: golden; level: system; verifies SA-67, SA-68.
 
-- Given: an internal need, an internal requirement an entity for everyone satisfies, an internal entity with the open question that blocks only it, and a requirement another stakeholder owns
+- Given: an internal need, an internal requirement an entity for everyone and an implementation decision satisfy, an internal entity with its mapping and the open question that blocks only it, and a requirement another stakeholder owns
 - When: document techspec is run with --audience external
-- Then: it writes techspec.md without the internal need, requirement and entity, the link to the internal requirement or the question, says in its summary that it left out one element in each of needs, requirements and entities, lists the owned requirement as held elsewhere, and exits 0
+- Then: it writes techspec.md without the internal need, requirement and entity, the internal entity's mapping, the links to the internal requirement or the question, says in its summary that it left out one element in each of needs, requirements and entities, lists the owned requirement as held elsewhere, and exits 0
 
 #### document-audience-marked
 

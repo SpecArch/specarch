@@ -1,0 +1,17 @@
+specarchImplementation: "0.1"
+info: { title: Lending desk in Go, version: 1.0.0 }
+implements: { file: specarch.yaml, version: 1.0.0 }
+stack: { language: { name: Go, version: "1.26" } }
+mappings:
+  "#/entities/Loan": { target: table loans }
+  "#/entities/RiskNote": { target: table risk_notes }
+decisions:
+  ADR-001:
+    title: Keep the risk band beside the loan
+    status: accepted
+    date: "2026-10-14"
+    context: The risk band is read with the loan on every page that shows it.
+    decision: The loans table holds the band.
+    consequences: A change to the band rewrites the loan.
+    why: One read per page.
+    satisfies: [LD-1, LD-2]

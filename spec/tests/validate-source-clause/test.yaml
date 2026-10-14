@@ -2,7 +2,7 @@
 command: validate
 level: system
 scenario: red
-given: "sources that list their clauses, cited once by a section under a listed one and a file line under a listed file, once by a section the outline does not hold, and once with no clause at all, and an interview without clauses cited with no clause"
+given: "sources that list their clauses, cited once by a section under a listed one, a row of a listed section (the section, a space, the row) and a file line under a listed file, once by a section the outline does not hold, and once with no clause at all, and an interview without clauses cited with no clause"
 when: "validate is run"
-then: "it warns of the clause outside the outline, naming the nearest listed one, and of the citation that names no clause of a source with clauses, accepts the clauses under listed ones and the interview's, and exits 0"
+then: "it warns of the clause outside the outline, naming the nearest listed one, and of the citation that names no clause of a source with clauses, accepts the clauses under listed ones, the row among them, and the interview's, and exits 0"
 verifies: [SA-13, SA-30]

@@ -40,6 +40,7 @@ requirements:
     why: The manual sets the period.
     cites:
       - { source: desk-manual, clause: "3.3.1", says: "The loan period is 21 days." }
+      - { source: desk-manual, clause: "2 M-4", says: "Row M-4 of the members table: a member holds a library card." }
       - { source: desk-code, clause: "lending/model.go:8", says: "LoanPeriod is 21 days." }
       - { source: desk-code, clause: "migrations/001_init.sql:18", says: "The loans table checks that due_on is loaned_on plus 21." }
   CASE-2:

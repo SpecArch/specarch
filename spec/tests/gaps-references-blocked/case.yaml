@@ -32,6 +32,8 @@ standardOutput: |+
 
   Version 2.4.0 of the specification: 1 open question (1 must, 0 should, 0 could). A must question holds up everything that reads what it blocks; a should question holds up code generation and approval until the stakeholder confirms what was inferred; a could question holds up nothing. Each is answered by the stakeholder named, with a decision record that names the question under answers; the question is then removed.
 
+  Decisions to take: registry-owner 1.
+
   ## 1. Design
 
   ### Q-1 (must, decision)
@@ -47,12 +49,12 @@ standardOutput: |+
 
   | Output | State | Waits on |
   |---|---|---|
-  | techspec document | draft | Q-1 |
+  | techspec document | draft | 1 in design (Q-1) |
   | requirements document | ready | |
   | testplan document | ready | |
   | traceability document | ready | |
   | deployment document | ready | |
   | commissioning document | ready | |
-  | html document | draft | Q-1 |
-  | code generation | waits | Q-1; not approved: there is no records/approvals/2.4.0.yaml beside the specification |
+  | html document | draft | 1 in design (Q-1) |
+  | code generation | waits | 1 in design (Q-1); not approved: there is no records/approvals/2.4.0.yaml beside the specification |
 

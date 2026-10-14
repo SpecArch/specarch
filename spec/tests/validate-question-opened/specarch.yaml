@@ -1,0 +1,57 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0 }
+stakeholders:
+  owner: { description: The product owner. }
+
+requirements:
+  CASE-1:
+    statement: A member shall borrow at most five books.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance: [A sixth loan is refused.]
+
+decisions:
+  ADR-001:
+    title: Members borrow books
+    status: accepted
+    date: "2026-10-08"
+    context: Q-1 asked whether members borrow books.
+    decision: They do; how many is not decided.
+    consequences: CASE-1 is written without its limit settled.
+    answers: [Q-1]
+    opens: [Q-2]
+    decidedBy: owner
+  ADR-002:
+    title: The limit is five
+    status: accepted
+    date: "2026-10-09"
+    context: Q-2 asked how many books a member may hold.
+    decision: Five; whether staff may lift it is not decided.
+    consequences: CASE-1 says five.
+    answers: [Q-2]
+    opens: [Q-3]
+    decidedBy: owner
+  ADR-003:
+    title: Staff may not lift the limit
+    status: proposed
+    date: "2026-10-10"
+    context: Q-4 asked whether the limit is the same for every member.
+    decision: It is.
+    consequences: No exception is written.
+    answers: [Q-4]
+    opens: [Q-4, Q-9]
+    decidedBy: owner
+questions:
+  Q-3:
+    question: May desk staff lift the limit for one member?
+    kind: decision
+    priority: could
+    blocks: [requirements]
+    decidedBy: owner
+  Q-4:
+    question: Is the limit the same for every member?
+    kind: decision
+    priority: could
+    blocks: [requirements]
+    decidedBy: owner

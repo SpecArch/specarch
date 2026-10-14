@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.0-dev of the specification: 463 design tests, 206 golden and 257 red, about 15 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.0-dev of the specification: 465 design tests, 207 golden and 258 red, about 15 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.7.0-dev of the specification: 463 design tests, 206 golden and 257 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 459 |
+| system | 461 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -683,11 +683,11 @@ Scenario: golden; level: system; verifies SA-60.
 
 #### document-writes-questions
 
-Scenario: golden; level: system; verifies SA-19.
+Scenario: golden; level: system; verifies SA-19, SA-69.
 
-- Given: a specification with two must questions in two stages and a could question, and no implementation file
+- Given: a specification with two must questions in two stages, one of them a material question, and a could question, and no implementation file
 - When: document questions is run
-- Then: it writes questions.md with the questions by stage and the outputs, where code generation waits on the questions and the approval, and exits 0
+- Then: it writes questions.md with the decisions by stage, the material question in a group of its own, and the outputs, where code generation waits on the questions and the approval, and exits 0
 
 #### document-writes-releases
 
@@ -1425,19 +1425,19 @@ Scenario: red; level: system; covers exit 1.
 
 #### gaps-lists-questions
 
-Scenario: red; level: system; covers exit 1; verifies SA-19.
+Scenario: red; level: system; covers exit 1; verifies SA-19, SA-69.
 
-- Given: a specification that tracks origin, with two must questions in two stages, one of them blocking an entity that is only a name, a could question, and an implementation file whose code target echo reads only the requirements
+- Given: a specification that tracks origin, with two must questions in two stages, one of them a material question blocking an entity that is only a name, a could question, and an implementation file whose code target echo reads only the requirements
 - When: gaps is run
-- Then: it prints the questions by stage with the missing keys of the blocked entity, the elements by origin, and the outputs with what each waits on, and exits 1
+- Then: it prints the decisions to take and the material to provide per stakeholder, the elements by origin, the decisions by stage, the material question in a group of its own with who it is needed from and the missing keys of the blocked entity, and the outputs with what each waits on per stage, and exits 1
 
 #### gaps-names-question
 
-Scenario: red; level: system; covers exit 1; verifies SA-19.
+Scenario: red; level: system; covers exit 1; verifies SA-19, SA-69.
 
 - Given: the tree extract workflows wrote for a BPMN file, whose workflow leaves out its trigger and its service task's operation, each with a must question that names the operation
 - When: gaps is run
-- Then: each of those questions lists the name it gives and the file and line of the element that leaves the key out, and it exits 1
+- Then: each of those questions lists the name it gives and the file and line of the element that leaves the key out, the outputs name the first three of the six questions in the design stage and count the rest, and it exits 1
 
 #### gaps-none
 
@@ -1454,6 +1454,14 @@ Scenario: golden; level: system; verifies SA-30, SA-44.
 - Given: the tree extract outline wrote for a folder of workflow definitions: one source whose clauses are the folder's files, and no element
 - When: gaps is run
 - Then: it lists every file of the source as producing nothing, so the files show as not read, and exits 0
+
+#### gaps-question-opened
+
+Scenario: golden; level: system; verifies SA-69.
+
+- Given: a question opened by a decision that answered a question an earlier decision opened, and a question opened by a proposed decision that answered none
+- When: gaps is run
+- Then: each question names the decision that opened it and the questions that decision answered, back along the chain, and gaps exits 0 since only could questions are open
 
 #### gaps-references-blocked
 
@@ -3065,6 +3073,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-17.
 - When: validate is run
 - Then: it reports each with question_block and exits 1
 
+#### validate-question-opened
+
+Scenario: red; level: system; covers exit 1; verifies SA-69.
+
+- Given: a decision that opens a question a later decision answered, one that opens a question still open, and a proposed one that opens a question it answers itself and a question nobody wrote
+- When: validate is run
+- Then: it accepts the first two, reports question_opened at the question the decision answers itself and at the one that does not exist, naming the nearest open question, and exits 1
+
 #### validate-question-should-not-covering
 
 Scenario: red; level: system; covers exit 1; verifies SA-17.
@@ -3397,9 +3413,9 @@ Scenario: red; level: system; covers exit 1; verifies SA-13.
 
 Scenario: red; level: system; verifies SA-13, SA-30.
 
-- Given: sources that list their clauses, cited once by a section under a listed one and a file line under a listed file, once by a section the outline does not hold, and once with no clause at all, and an interview without clauses cited with no clause
+- Given: sources that list their clauses, cited once by a section under a listed one, a row of a listed section (the section, a space, the row) and a file line under a listed file, once by a section the outline does not hold, and once with no clause at all, and an interview without clauses cited with no clause
 - When: validate is run
-- Then: it warns of the clause outside the outline, naming the nearest listed one, and of the citation that names no clause of a source with clauses, accepts the clauses under listed ones and the interview's, and exits 0
+- Then: it warns of the clause outside the outline, naming the nearest listed one, and of the citation that names no clause of a source with clauses, accepts the clauses under listed ones, the row among them, and the interview's, and exits 0
 
 #### validate-source-given-outside
 
@@ -3781,7 +3797,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-270 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+274 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -3937,6 +3953,10 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-68 | acceptance 2 | golden | SA-68 names no harm |
 | requirement SA-68 | acceptance 3 | golden | SA-68 names no harm |
 | requirement SA-68 | acceptance 4 | golden | SA-68 names no harm |
+| requirement SA-69 | acceptance 1 | golden | SA-69 names no harm |
+| requirement SA-69 | acceptance 2 | golden | SA-69 names no harm |
+| requirement SA-69 | acceptance 3 | golden | SA-69 names no harm |
+| requirement SA-69 | acceptance 4 | golden | SA-69 names no harm |
 | requirement SA-7 | acceptance 1 | golden | SA-7 names no harm |
 | requirement SA-7 | acceptance 2 | golden | SA-7 names no harm |
 | requirement SA-8 | acceptance 1 | golden | SA-8 names no harm |

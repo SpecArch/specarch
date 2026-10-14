@@ -42,6 +42,24 @@ extension Checker {
                     "\(id) answers question \(a.value), but \(a.value) is still open; remove the question now that it is answered, or set the decision's status to proposed")
             }
         }
+        // A decision opens questions that are open now or that a decision
+        // has answered since, whatever its status; a question it answers
+        // itself is not one it opened.
+        var answered: Set<String> = []
+        for (_, dec) in d.decisions {
+            for a in items(dec.child("answers")) { answered.insert(a.value) }
+        }
+        for (id, dec) in d.decisions {
+            let own = Set(items(dec.child("answers")).map { $0.value })
+            for (i, o) in items(dec.child("opens")).enumerated() {
+                let ptr = pointer("decisions", id, "opens", "\(i)")
+                if own.contains(o.value) {
+                    add(o, ptr, .questionOpened, "\(id) both answers and opens question \(o.value); a decision opens only what it leaves open, so name the open half as a question of its own")
+                } else if d.questions[o.value] == nil && !answered.contains(o.value) {
+                    add(o, ptr, .questionOpened, "\(id) opens question \(o.value), which is neither an open question of the specification nor answered by a decision; write the question, or correct the ID\(suggest(o.value, d.questions))")
+                }
+            }
+        }
     }
 
     /// Checks that a question naming what the source gives blocks one key,

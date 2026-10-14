@@ -5,6 +5,8 @@ standardOutput: |+
 
   Version 0.1.0 of the specification: 6 open questions (6 must, 0 should, 0 could). A must question holds up everything that reads what it blocks; a should question holds up code generation and approval until the stakeholder confirms what was inferred; a could question holds up nothing. Each is answered by the stakeholder named, with a decision record that names the question under answers; the question is then removed.
 
+  Decisions to take: system-owner 6.
+
   Elements by origin: 2 stated, 1 inferred, 0 decided, 0 without origin.
 
   ## 1. Design
@@ -83,12 +85,12 @@ standardOutput: |+
 
   | Output | State | Waits on |
   |---|---|---|
-  | techspec document | draft | Q-1, Q-2, Q-3, Q-4, Q-5, Q-6 |
+  | techspec document | draft | 6 in design (Q-1, Q-2, Q-3 and 3 more) |
   | requirements document | ready | |
   | testplan document | ready | |
-  | traceability document | draft | Q-1, Q-2, Q-3, Q-4, Q-5, Q-6 |
+  | traceability document | draft | 6 in design (Q-1, Q-2, Q-3 and 3 more) |
   | deployment document | ready | |
   | commissioning document | ready | |
-  | html document | draft | Q-1, Q-2, Q-3, Q-4, Q-5, Q-6 |
-  | code generation | waits | Q-1, Q-2, Q-3, Q-4, Q-5, Q-6; not approved: there is no records/approvals/0.1.0.yaml beside the specification |
+  | html document | draft | 6 in design (Q-1, Q-2, Q-3 and 3 more) |
+  | code generation | waits | 6 in design (Q-1, Q-2, Q-3 and 3 more); not approved: there is no records/approvals/0.1.0.yaml beside the specification |
 

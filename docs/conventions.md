@@ -272,7 +272,8 @@ consequences: the context is what was true and at stake, `why` the
 reasoning that led from it to the decision. A decision that answers open
 questions names them under `answers` and the stakeholder who decided under
 `decidedBy`; an answer given in words is declared as a source of kind
-`interview` with its date.
+`interview` with its date. A decision that answers a question only in
+part names the questions it raised under `opens`.
 
 ## Open questions
 
@@ -321,12 +322,22 @@ The validator checks that every `blocks` entry resolves (`question_block`),
 that a question sits in the stage of what it blocks and blocks one stage
 (`question_stage`), that `decidedBy` is a stakeholder (`stakeholder`), and
 that no accepted decision `answers` a question still present
-(`question_answered`). `validate` counts the open questions in its summary
+(`question_answered`), and that every question a decision `opens` is open
+or answered by a decision, and is not one that decision answers itself
+(`question_opened`). `validate` counts the open questions in its summary
 line and lists none; `specarch gaps` and the document `questions` list them
 by stage, with what each holds up and which outputs are ready, drafts or
-waiting. A question is removed when it is answered; the answer is a
-decision with `answers` and `decidedBy`, and the elements it settled carry
-`origin: decided`.
+waiting, each output's questions counted per stage with the first three
+named. A question of kind `material` asks a stakeholder to provide
+something to read rather than to decide, so both list it in a group of its
+own, Material to provide, with whom it is needed from, and count it apart
+from the decisions each stakeholder must take. A question is removed when
+it is answered; the answer is a decision with `answers` and `decidedBy`,
+and the elements it settled carry `origin: decided`. A decision that
+answers a question only in part keeps the open half as a question of its
+own and names it under `opens`; `gaps` shows that question with the
+decision that opened it and the questions the decision answered, back
+along the chain.
 
 ## YAML layout
 
@@ -508,6 +519,7 @@ redefined.
 | `modes`, `pairs`, `text`, `background`, `use` | SpecArch | the values a mode gives tokens, and the colours shown together, whose contrast is checked |
 | `algorithms`, `inputs`, `output`, `formula`, `examples` (of an algorithm), `pseudocode` | SpecArch | IEEE 1016 algorithm viewpoint, made testable |
 | `decisions` and the ADR fields | SpecArch, after Michael Nygard's record | the common ADR shape: context, decision, consequences, plus `why` |
+| `opens` (of a decision) | SpecArch | the questions a decision raised, by ID, the open half of an answer given in part; each is open or answered by a later decision (ADR-120) |
 | `tests`, `scenario`, `level`, `given`, `when`, `then`, `covers`, `notApplicable` | SpecArch, after ISO/IEC/IEEE 29119 and Gherkin | design tests; the levels are 29119-1's; given, when and then are the Gherkin words, without Gherkin's file format |
 | `environments`, `promotesTo`, `configuration`, `secret`, `release`, `rollback`, `migrations`, `steps`, `action`, `check` | SpecArch, after ISO/IEC/IEEE 12207 6.4.10 | the deployment stage: the transition process, written as environments, settings and steps |
 | `checks`, `signoff`, `criteria`, `signers` | SpecArch, after ISO/IEC/IEEE 12207 6.4.11 and IEC 62381 | the commissioning stage: validation on the installed system, the site acceptance test |

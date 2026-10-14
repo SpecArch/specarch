@@ -1,0 +1,82 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
+decisions:
+  ADR-120:
+    title: Material questions form a group of their own in gaps and the questions document, a decision names under opens the questions it raised, and the outputs table counts the questions per stage
+    status: accepted
+    date: "2026-10-14"
+    context: |
+      Point 9 of docs/estate.md, build item 11. An estate's specification
+      read from its sources holds many open questions, and three things
+      made the list hard to act on. A question of kind material asks a
+      stakeholder to send a document, a file or a record, yet gaps and
+      the questions document put it among the decisions, under "Decided
+      by", and nothing said how many decisions each stakeholder must
+      take. A decision that answered a question only in part wrote the
+      open half in prose or as a new question with nothing tying the two,
+      so a reader of the new question could not see where it came from.
+      And the outputs table named every question that holds an output
+      up in one cell, which a specification with dozens of questions
+      makes unreadable. The fourth part of the build item, the warning
+      for a citation whose clause falls under none of its source's listed
+      clauses, shipped in 0.6.2 as source_clause (both builds, the case
+      validate-source-clause), so it is not added again under another
+      name.
+    decision: |
+      gaps and the questions document list the decision questions by
+      stage as before and the questions of kind material after them, in
+      a section of their own, Material to provide, in the same order,
+      each with Needed from in place of Decided by. The summary gains one
+      sentence: the decisions each stakeholder must take and the material
+      each must provide, a material question counted only as the second.
+      A decision may name under opens, a SpecArch keyword, the questions
+      it raised, by ID. The validator, in both builds, reports
+      question_opened, an error at the entry, for a question that is
+      neither open in the specification nor named under answers by any
+      decision, with the nearest open question suggested, and for one the
+      decision answers itself. It checks every decision, whatever its
+      status. A question a decision opened shows Opened by: the decision
+      with its title and the questions it answered, then for each of
+      those that a decision opened in turn, that decision, back along the
+      chain.
+      The outputs table gives the questions that hold each output up per
+      stage, in the order of the stages: how many, and the first three by
+      priority then ID, the rest counted as "and N more".
+    why: |
+      A material question is answered by sending something, not by
+      choosing, and the person who sends it is often not the one who
+      decides; listed among the decisions it asks the wrong thing, and
+      counted with them it overstates what a stakeholder must decide. Its
+      blocks line stays, since what it holds up is what makes it urgent.
+      Leaving it out of the stage sections keeps each question in the
+      document once.
+      opens is the inverse of answers, so the convention of answering in
+      part is kept and made visible without a new meaning: the open half
+      is a question like any other. An opened question that is answered
+      later leaves the specification, so the check accepts an ID a
+      decision answers, as answers itself does, rather than refusing the
+      record of an older decision. A decision that answers and opens the
+      same question says two contrary things at one ID, which is the
+      ambiguity the principles make an error. Every status is checked
+      because a stale ID is stale in a proposal too.
+      Three identifiers per stage keep a cell one line wide; the stage
+      section above lists every question, so nothing is lost, and the
+      first by priority are the ones a reader acts on first. The stage
+      comes first because a stage's questions go to the people who own
+      that stage.
+      The compiler test holds: nothing is refused that was read before,
+      and a wrong opens entry is read and marked at the entry. The
+      acceptance test holds: a change request arriving as a document is a
+      material question its sender sees in a group addressed to them, and
+      a reviewer's partial answer keeps its open half traced.
+    consequences: |
+      The schema gains opens on a decision; the fragment schemas and the
+      Swift build's embedded schemas follow, and the rule enum gains
+      question_opened. Every gaps output and questions document changes
+      in its outputs table and gains the summary sentence; one with a
+      material question gains the section. The Open question paragraph
+      that other documents write at an element, and the html site's mark,
+      still say Decided by for a material question, and the draft notice
+      of each document still names every question; both are left as they
+      are, since point 9 asks for the change in gaps and the questions
+      document only.
+    satisfies: [SA-69]

@@ -65,6 +65,30 @@ func (c *checker) checkQuestions(d *design) {
 			}
 		}
 	}
+	// A decision opens questions that are open now or that a decision has
+	// answered since, whatever its status; a question it answers itself is
+	// not one it opened.
+	answered := map[string]bool{}
+	for _, dec := range d.decisions {
+		for _, a := range source.Items(source.Child(dec, "answers")) {
+			answered[a.Value] = true
+		}
+	}
+	for id, dec := range d.decisions {
+		own := map[string]bool{}
+		for _, a := range source.Items(source.Child(dec, "answers")) {
+			own[a.Value] = true
+		}
+		for i, o := range source.Items(source.Child(dec, "opens")) {
+			ptr := source.Pointer("decisions", id, "opens", fmt.Sprint(i))
+			switch {
+			case own[o.Value]:
+				c.add(o, ptr, RuleQuestionOpened, "%s both answers and opens question %s; a decision opens only what it leaves open, so name the open half as a question of its own", id, o.Value)
+			case d.questions[o.Value] == nil && !answered[o.Value]:
+				c.add(o, ptr, RuleQuestionOpened, "%s opens question %s, which is neither an open question of the specification nor answered by a decision; write the question, or correct the ID%s", id, o.Value, suggest(o.Value, d.questions))
+			}
+		}
+	}
 }
 
 // checkBlock checks one entry of a question's blocks and returns it parsed.

@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: requirements specification
 
-Version 0.7.0-dev of the specification: 5 stakeholders, 10 needs and 68 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
+Version 0.7.0-dev of the specification: 5 stakeholders, 10 needs and 69 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -40,7 +40,7 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | NEED-5 | I want the whole life of the system in one place, from the first requirement to the day it is accepted. | reviewer, operator | accepted | SA-35, SA-47, SA-68, SA-26, SA-16, SA-12, SA-23, SA-24, SA-25 |
 | NEED-6 | I want to see why something is the way it is, and which standard asks for it. | reviewer | accepted | SA-15, SA-13 |
 | NEED-7 | I want one tool to learn and install, not one program per task. | specification-author, ci-job | accepted | SA-14 |
-| NEED-8 | I want to build a specification from the documents and code that exist, without inventing what they do not say, and to see at every step what is still missing and what can already be made. | specification-author, reviewer | accepted | SA-46, SA-59, SA-17, SA-18, SA-19, SA-20, SA-30, SA-44, SA-45, SA-64, SA-51 |
+| NEED-8 | I want to build a specification from the documents and code that exist, without inventing what they do not say, and to see at every step what is still missing and what can already be made. | specification-author, reviewer | accepted | SA-69, SA-46, SA-59, SA-17, SA-18, SA-19, SA-20, SA-30, SA-44, SA-45, SA-64, SA-51 |
 | NEED-9 | I want the tests a specification implies, with the ones that matter most written first and the rest listed with the reason they were left out. | specification-author, implementer | accepted | SA-31, SA-29, SA-28, SA-27, SA-21, SA-22 |
 | NEED-10 | I want to show what a specification builds long before it is finished, and to take a remark from someone looking at the result back into the specification, knowing what it reaches, and out again in the next build. | reviewer, specification-author | accepted | SA-58, SA-60, SA-57 |
 
@@ -80,6 +80,7 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | SA-66 | functional | must | accepted | An estate file shall list the specifications of an estate's modules by name, each with its folder and the version the estate holds, and specarch validate, gaps and document techspec shall read every module through it and check each against its entry. |
 | SA-67 | functional | must | accepted | Every element of a specification shall be able to say that it is internal, for the people who build and run the system only, and specarch document shall write a document for everyone without the internal elements, saying how many it left out in each section. |
 | SA-68 | functional | must | accepted | A requirement shall be able to name the stakeholder whose component fulfils it, and the requirement of another specification that does, and the validator shall then ask no element to satisfy it and no test to verify it. |
+| SA-69 | functional | must | accepted | specarch gaps and the questions document shall set the material a stakeholder must provide apart from the decisions a stakeholder must take, show a decision that answered a question only in part with the questions it opened, and show per stage what holds each output up. |
 | SA-7 | functional | must | accepted | specarch document and specarch generate shall write only into the folder the target owns, and with --check shall fail when the committed output differs. |
 | SA-8 | functional | must | accepted | Every generated file shall name its source specification, version and meta-model, and a hand-written Markdown document shall change only between its markers. |
 | SA-26 | functional | should | accepted | specarch document shall write the change and defect register and the release notes from the records beside a specification, kept current with --check like the other documents. |
@@ -632,6 +633,21 @@ Acceptance criteria:
 - The traceability document lists the requirements held elsewhere under a heading of their own, with the stakeholder and the requirement that fulfils each, and leaves them out of its gaps.
 
 **Insight:** A promise in the customer's documents that another component keeps belongs in the specification, and without a form for it the validator asks for what satisfies and verifies it here, or the promise is left out and its trace is lost.
+
+### SA-69
+
+specarch gaps and the questions document shall set the material a stakeholder must provide apart from the decisions a stakeholder must take, show a decision that answered a question only in part with the questions it opened, and show per stage what holds each output up.
+
+Kind: functional; priority: must; status: accepted; verified by test; refines NEED-8.
+
+Acceptance criteria:
+
+- A question of kind material is listed in a group of its own, worded as what is needed and from whom, and the count of decisions each stakeholder must take leaves it out.
+- A decision may name under opens the questions it raised; one that is neither open nor answered by a decision, or one the decision answers itself, is refused as question_opened, the same in both builds.
+- An open question that a decision opened names that decision and the questions it answered, and so on back along the chain.
+- The outputs table gives, per stage, how many questions hold an output up and the first of them, rather than every one.
+
+**Insight:** A question that asks for a document is answered by sending it, not by deciding, and a list that puts it among the decisions asks the wrong thing of the wrong person; a split answer written in prose loses where the open half came from; and a list of every question in one cell cannot be read once a specification has many.
 
 ### SA-7
 

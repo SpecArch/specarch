@@ -4,6 +4,8 @@
 
 Version 1.0.0 of the specification: 3 open questions (2 must, 0 should, 1 could). A must question holds up everything that reads what it blocks; a should question holds up code generation and approval until the stakeholder confirms what was inferred; a could question holds up nothing. Each is answered by the stakeholder named, with a decision record that names the question under answers; the question is then removed.
 
+Decisions to take: owner 2. Material to provide: owner 1.
+
 ## 1. Requirements
 
 ### Q-1 (must, decision)
@@ -20,13 +22,6 @@ How important is the five-book limit, and how is it shown to be met?
 
 ## 2. Design
 
-### Q-2 (must, material)
-
-What are the fields of a loan?
-
-- Decided by: owner
-- Blocks: #/entities/Loan (primaryKey, properties and type missing)
-
 ### Q-3 (could, decision)
 
 Is the member id a UUID?
@@ -34,18 +29,29 @@ Is the member id a UUID?
 - Decided by: owner
 - Blocks: #/entities/Member/properties/id
 
-## 3. Outputs
+## 3. Material to provide
+
+What a stakeholder must send rather than decide: a document, a file, a screenshot or a record. Each is answered by providing it, declared as a source the specification cites, and a decision record that names the question under answers.
+
+### Q-2 (must, material)
+
+What are the fields of a loan?
+
+- Needed from: owner
+- Blocks: #/entities/Loan (primaryKey, properties and type missing)
+
+## 4. Outputs
 
 What can be made from the specification now. A document is a draft while a must or should question blocks what it reads, or an error is in it; code generation waits for those questions, for every error to be fixed, and for the approval.
 
 | Output | State | Waits on |
 |---|---|---|
-| techspec document | draft | Q-1, Q-2 |
-| requirements document | draft | Q-1 |
-| testplan document | draft | Q-1 |
-| traceability document | draft | Q-1, Q-2 |
+| techspec document | draft | 1 in requirements (Q-1), 1 in design (Q-2) |
+| requirements document | draft | 1 in requirements (Q-1) |
+| testplan document | draft | 1 in requirements (Q-1) |
+| traceability document | draft | 1 in requirements (Q-1), 1 in design (Q-2) |
 | deployment document | ready | |
 | commissioning document | ready | |
-| html document | draft | Q-1, Q-2 |
-| code generation | waits | Q-1, Q-2; not approved: there is no records/approvals/1.0.0.yaml beside the specification |
+| html document | draft | 1 in requirements (Q-1), 1 in design (Q-2) |
+| code generation | waits | 1 in requirements (Q-1), 1 in design (Q-2); not approved: there is no records/approvals/1.0.0.yaml beside the specification |
 

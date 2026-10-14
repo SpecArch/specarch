@@ -371,3 +371,16 @@ requirements:
     verification: test
     needs: [NEED-5]
     why: A promise in the customer's documents that another component keeps belongs in the specification, and without a form for it the validator asks for what satisfies and verifies it here, or the promise is left out and its trace is lost.
+  SA-69:
+    statement: specarch gaps and the questions document shall set the material a stakeholder must provide apart from the decisions a stakeholder must take, show a decision that answered a question only in part with the questions it opened, and show per stage what holds each output up.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance:
+      - A question of kind material is listed in a group of its own, worded as what is needed and from whom, and the count of decisions each stakeholder must take leaves it out.
+      - A decision may name under opens the questions it raised; one that is neither open nor answered by a decision, or one the decision answers itself, is refused as question_opened, the same in both builds.
+      - An open question that a decision opened names that decision and the questions it answered, and so on back along the chain.
+      - The outputs table gives, per stage, how many questions hold an output up and the first of them, rather than every one.
+    verification: test
+    needs: [NEED-8]
+    why: A question that asks for a document is answered by sending it, not by deciding, and a list that puts it among the decisions asks the wrong thing of the wrong person; a split answer written in prose loses where the open half came from; and a list of every question in one cell cannot be read once a specification has many.

@@ -3858,6 +3858,15 @@
           "minItems": 1,
           "uniqueItems": true
         },
+        "opens": {
+          "description": "SpecArch keyword. The open questions this decision raised, by ID: what it answered only in part, or what it made necessary to ask. Each is a question of the specification while it is open, and is named under answers by a later decision once it is answered; a decision does not open a question it answers. specarch gaps shows each such question under the decision that opened it and the questions that decision answered.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/questionId"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
         "decidedBy": {
           "description": "SpecArch keyword. The stakeholder who decided, by key; a role, never a person. Required when the decision answers questions.",
           "type": "string",

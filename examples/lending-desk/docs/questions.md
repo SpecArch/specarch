@@ -4,6 +4,8 @@
 
 Version 0.1.0 of the specification: 8 open questions (5 must, 3 should, 0 could). A must question holds up everything that reads what it blocks; a should question holds up code generation and approval until the stakeholder confirms what was inferred; a could question holds up nothing. Each is answered by the stakeholder named, with a decision record that names the question under answers; the question is then removed.
 
+Decisions to take: desk-manager 7. Material to provide: desk-manager 1.
+
 Elements by origin: 20 stated, 29 inferred, 0 decided, 0 without origin.
 
 ## 1. Requirements
@@ -116,13 +118,15 @@ Renewing a loan is in the manual but not in the service. Build it as the manual 
 
 **Note:** From The lending desk service, 925255a195f90e385f7bf9bbea8d4e8f7aa5031d, clause lending/routes.go:36: Register registers no renew route. <../sources/code>
 
-## 4. Tests
+## 4. Material to provide
+
+What a stakeholder must send rather than decide: a document, a file, a screenshot or a record. Each is answered by providing it, declared as a source the specification cites, and a decision record that names the question under answers.
 
 ### Q-5 (should, material)
 
 Which data must the service be tested with? specarch derive wrote the cases that follow from the design as draft tests under tests/; each says what it checks, and none names the members, books or loans it runs on.
 
-- Decided by: desk-manager
+- Needed from: desk-manager
 - Blocks: tests
 
 **Insight:** The code has no tests to read cases or data from, and the manual describes no checks.
@@ -169,13 +173,13 @@ What can be made from the specification now. A document is a draft while a must 
 
 | Output | State | Waits on |
 |---|---|---|
-| techspec document | draft | Q-1, Q-2, Q-3, Q-8, Q-4, Q-6, Q-7, Q-5 |
-| requirements document | draft | Q-1, Q-2, Q-3 |
-| testplan document | draft | Q-1, Q-2, Q-3, Q-5 |
-| traceability document | draft | Q-1, Q-2, Q-3, Q-8, Q-5 |
+| techspec document | draft | 3 in requirements (Q-1, Q-3 and Q-2), 1 in design (Q-8), 3 in implementation (Q-6, Q-7 and Q-4), 1 in tests (Q-5) |
+| requirements document | draft | 3 in requirements (Q-1, Q-3 and Q-2) |
+| testplan document | draft | 3 in requirements (Q-1, Q-3 and Q-2), 1 in tests (Q-5) |
+| traceability document | draft | 3 in requirements (Q-1, Q-3 and Q-2), 1 in design (Q-8), 1 in tests (Q-5) |
 | deployment document | ready | |
 | commissioning document | ready | |
-| html document | draft | Q-1, Q-2, Q-3, Q-8, Q-4, Q-6, Q-7, Q-5 |
+| html document | draft | 3 in requirements (Q-1, Q-3 and Q-2), 1 in design (Q-8), 3 in implementation (Q-6, Q-7 and Q-4), 1 in tests (Q-5) |
 | code target openapi | waits | not approved: there is no records/approvals/0.1.0.yaml beside the specification |
 | code target sql | waits | not approved: there is no records/approvals/0.1.0.yaml beside the specification |
 

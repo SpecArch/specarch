@@ -37,7 +37,7 @@ facts in a format SpecArch defines, never a reader of its own.
 | 6. a check bypassed for one kind of caller | built, item 7 (ADR-114): `bypassedFor: client` on a gate of the permission table and on a check the implementation file names, one `must` question at every operation the check guards, joined by `merge`; a route that serves people and clients both lists them in `callers` (`docs/caller-context.md`, ADR-110) |
 | 7. the schema file's name; the facts dump from the installed binary | built, item 8: `bindings.ui.schemaFile`, read by `extract pages` and written by `specarch-gen-ui-typescript` (ADR-115); `specarch facts` for JavaScript, Swift and Dart, the JavaScript reader inside the binary on typescript-go with no Node (ADR-116) |
 | 8. workflow definitions that are not BPMN | built, item 9 (ADR-118): the workflow table, `workflowTable: 1`, printed by the project's printer through `tools/workflows/dump-workflows.sh` and read by `extract workflows --table` with the BPMN reader's questions at the same keys, so `merge` joins the two readings of one workflow; a standard format gets a reader of its own (decision 5) |
-| 9. audience, requirements held elsewhere, material questions, partial answers, row citations | audience and requirements held elsewhere built, item 10 (ADR-119): `audience: internal` on any element named by a key, the error `audience` where an element for everyone names an internal one, `document --audience external --out` leaving the internal elements out and counting them, and `ownedBy` with `fulfilledBy` on a requirement, exempt from the satisfied and verified warnings and listed under Requirements held elsewhere; the material questions and partial answers planned, item 11; a row citation is shipped in 0.6.0 as a clause that carries the row's identifier |
+| 9. audience, requirements held elsewhere, material questions, partial answers, row citations | audience and requirements held elsewhere built, item 10 (ADR-119): `audience: internal` on any element named by a key, the error `audience` where an element for everyone names an internal one, `document --audience external --out` leaving the internal elements out and counting them, and `ownedBy` with `fulfilledBy` on a requirement, exempt from the satisfied and verified warnings and listed under Requirements held elsewhere; the material questions in a group of their own, `opens` on a decision with the rule `question_opened` and the chain in `gaps`, and the outputs table counting questions per stage built, item 11 (ADR-120); a row citation is shipped in 0.6.0 as a clause that carries the row's identifier |
 | 10. `--given-outside`, two routes for one list, generated defaults, indexes, a source key from capitals | `--given-outside` built, item 4 (ADR-105); the rest planned, item 12; an index goes to the implementation file; the source key from capitals is on main already, after 0.6.0 |
 | 11. generation targets | shipped: the OpenAPI document and SQL migrations (0.4.0), the Next.js UI with task pages and a private component library through an idiom override (0.6.0); declined: Go server interfaces, which the stack's OpenAPI code generator makes from the document; planned later: sqlc queries, item 13 |
 | 12. output a CI gate compares with the code | planned later, item 14, on the readers and `merge` |
@@ -473,10 +473,9 @@ One key, no new semantics.
 clause it equals or starts with, followed by a dot, a colon, a slash or
 a space (`docs/conventions.md`), so `clause: "4 F-13"` is a row of
 clause 4 already, and that is the convention: the section, a space, the
-row's identifier. What was missing is the check: a citation whose clause
-falls under none of a source's listed clauses is the warning
-`citation_clause`, the rule `docs/from-sources.md` kept for the first
-real project to ask for it.
+row's identifier. The check is the warning `source_clause`: a citation
+whose clause falls under none of a source's listed clauses, or that names
+no clause of a source that lists them.
 
 **Smaller.** A requirement's `release` names a release record, planned
 or released; a proposal for a release nobody has planned is written by
@@ -666,9 +665,9 @@ step 1. Only item 7's meta-model half touches 0.3.
     internal elements out and counts them, an everyone element
     depending on an internal one is refused in both builds, and an
     owned requirement draws no satisfied or verified warning.
-11. Questions in the outputs. Material questions grouped, `opens` on a
-    decision with its rule, the chain in `gaps`, the per-stage count,
-    `citation_clause`. Done when the lending desk's `gaps` and
+11. Built (ADR-120). Questions in the outputs. Material questions grouped, `opens` on a
+    decision with its rule, the chain in `gaps`, the per-stage count;
+    the clause check shipped in 0.6.2 as `source_clause`. Done when the lending desk's `gaps` and
     `questions` show the groups and a misspelt clause warns in both
     builds.
 12. The list twin, `generatedDefault`, indexes in the mapping. The router

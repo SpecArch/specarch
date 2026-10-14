@@ -123,6 +123,7 @@ const (
 	RuleOutputFolder           Rule = "output_folder"
 	RuleMetaModelVersion       Rule = "meta_model_version"
 	RuleAudience               Rule = "audience"
+	RuleQuestionOpened         Rule = "question_opened"
 )
 
 // Rules lists every rule, in the order of the design's Rule enum.
@@ -238,6 +239,7 @@ var Rules = []Rule{
 	RuleOutputFolder,
 	RuleMetaModelVersion,
 	RuleAudience,
+	RuleQuestionOpened,
 }
 
 // Severity says whether a diagnostic makes the file invalid.

@@ -1,0 +1,42 @@
+arguments: [gaps, .]
+exitStatus: 0
+standardOutput: |+
+  # Case: open questions
+
+  Version 1.0.0 of the specification: 2 open questions (0 must, 0 should, 2 could). A must question holds up everything that reads what it blocks; a should question holds up code generation and approval until the stakeholder confirms what was inferred; a could question holds up nothing. Each is answered by the stakeholder named, with a decision record that names the question under answers; the question is then removed.
+
+  Decisions to take: owner 2.
+
+  ## 1. Requirements
+
+  ### Q-3 (could, decision)
+
+  May desk staff lift the limit for one member?
+
+  - Decided by: owner
+  - Blocks: requirements
+  - Opened by: ADR-002 (The limit is five), which answered Q-2; Q-2 was opened by ADR-001 (Members borrow books), which answered Q-1
+
+  ### Q-4 (could, decision)
+
+  Is the limit the same for every member?
+
+  - Decided by: owner
+  - Blocks: requirements
+  - Opened by: ADR-003 (Members are told the limit at the desk)
+
+  ## 2. Outputs
+
+  What can be made from the specification now. A document is a draft while a must or should question blocks what it reads, or an error is in it; code generation waits for those questions, for every error to be fixed, and for the approval.
+
+  | Output | State | Waits on |
+  |---|---|---|
+  | techspec document | ready | |
+  | requirements document | ready | |
+  | testplan document | ready | |
+  | traceability document | ready | |
+  | deployment document | ready | |
+  | commissioning document | ready | |
+  | html document | ready | |
+  | code generation | waits | not approved: there is no records/approvals/1.0.0.yaml beside the specification |
+

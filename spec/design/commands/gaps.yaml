@@ -8,14 +8,20 @@ commands:
       document holds them (ADR-113), and prints the open questions document
       of a specification with errors too (ADR-065), the text
       `document questions` writes, from its title: the counts by
-      priority, the elements by origin when the specification tracks it,
-      the errors, one problem line each, when it has any, the questions
-      of what could be read grouped by stage in
-      life-cycle order and within a stage by priority then ID, each with
-      who decides, what it blocks (and for a blocked element, which keys
+      priority, the decisions each stakeholder must take and the material
+      each must provide, a material question counted only as the second,
+      the elements by origin when the specification tracks it,
+      the errors, one problem line each, when it has any, the decision
+      questions of what could be read grouped by stage in
+      life-cycle order and within a stage by priority then ID, then the
+      material questions in a group of their own, Material to provide, in
+      the same order (ADR-120), each with
+      who decides, or for material whom it is needed from, what it blocks (and for a blocked element, which keys
       are missing there), the name it gives for the key it blocks with
       the file and line of the element that leaves the key out, its
-      options, its Insight and Notes; then the references into other
+      options, the decision that opened it when one did, with the
+      questions that decision answered, and so on back along the chain,
+      its Insight and Notes; then the references into other
       specifications that are not resolved, each with where it stands,
       the specification and version it names, and what it waits on (the
       specification not given, or the must question that blocks the
@@ -25,7 +31,8 @@ commands:
       and the citations outside the listed clauses; then the outputs, one row per document target and per code target the
       implementation files name, each ready, a draft (the questions and
       the errors that concern it) or waiting (the errors, the questions,
-      and the approval that is missing or void).
+      and the approval that is missing or void), the questions given per
+      stage as how many and the first three by priority then ID.
     permission: public
     arguments:
       - name: paths
@@ -42,7 +49,7 @@ commands:
       "0": no must or should question is open and no specification has an error
       "1": at least one must or should question is open, or a specification or an estate has an error
       "2": usage error, or a path that could not be read
-    satisfies: [SA-19, SA-30, SA-65, SA-66]
+    satisfies: [SA-19, SA-30, SA-65, SA-66, SA-69]
     why: |
       The owner and the agent run validate after every edit, so validate
       counts the open questions and lists none; this verb is the list, with

@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: gaps
+level: system
+scenario: golden
+given: "a question opened by a decision that answered a question an earlier decision opened, and a question opened by a proposed decision that answered none"
+when: "gaps is run"
+then: "each question names the decision that opened it and the questions that decision answered, back along the chain, and gaps exits 0 since only could questions are open"
+verifies: [SA-69]

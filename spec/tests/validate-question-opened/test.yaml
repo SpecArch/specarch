@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "a decision that opens a question a later decision answered, one that opens a question still open, and a proposed one that opens a question it answers itself and a question nobody wrote"
+when: "validate is run"
+then: "it accepts the first two, reports question_opened at the question the decision answers itself and at the one that does not exist, naming the nearest open question, and exits 1"
+verifies: [SA-69]

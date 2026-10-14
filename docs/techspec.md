@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.7.0-dev of the specification: 68 requirements, 5 entities, 13 commands, 7 algorithms, 463 tests, 114 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.7.0-dev of the specification: 69 requirements, 5 entities, 13 commands, 7 algorithms, 465 tests, 115 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -362,6 +362,7 @@ Primary key: path.
 | Rule | output_folder | document or generate is given no --out, and no implementation file of a specification names an output folder for the target under targets, so that specification has no such output (a warning, ADR-073, ADR-086) |
 | Rule | meta_model_version | the file says `specarch: "0.1"`, which is read until 1.0; run `specarch derive` and change the line to "0.2" (a warning) |
 | Rule | audience | an element for everyone (no `audience`) names an element whose audience is internal through a `$ref`, a relation's `target`, a page's `entity` or a requirement's `needs`, so a document for everyone would name what it may not show (ADR-119) |
+| Rule | question_opened | a decision names under `opens` a question that is neither open in the specification nor answered by a decision, or one it answers itself (ADR-120) |
 | Severity | error | the file is invalid |
 | Severity | warning | printed, but the file stays valid; missing test scenarios, change-log phrases, traceability gaps and elements without origin |
 
@@ -2085,14 +2086,20 @@ given, one line each as validate prints them, since no module's
 document holds them (ADR-113), and prints the open questions document
 of a specification with errors too (ADR-065), the text
 `document questions` writes, from its title: the counts by
-priority, the elements by origin when the specification tracks it,
-the errors, one problem line each, when it has any, the questions
-of what could be read grouped by stage in
-life-cycle order and within a stage by priority then ID, each with
-who decides, what it blocks (and for a blocked element, which keys
+priority, the decisions each stakeholder must take and the material
+each must provide, a material question counted only as the second,
+the elements by origin when the specification tracks it,
+the errors, one problem line each, when it has any, the decision
+questions of what could be read grouped by stage in
+life-cycle order and within a stage by priority then ID, then the
+material questions in a group of their own, Material to provide, in
+the same order (ADR-120), each with
+who decides, or for material whom it is needed from, what it blocks (and for a blocked element, which keys
 are missing there), the name it gives for the key it blocks with
 the file and line of the element that leaves the key out, its
-options, its Insight and Notes; then the references into other
+options, the decision that opened it when one did, with the
+questions that decision answered, and so on back along the chain,
+its Insight and Notes; then the references into other
 specifications that are not resolved, each with where it stands,
 the specification and version it names, and what it waits on (the
 specification not given, or the must question that blocks the
@@ -2102,7 +2109,8 @@ elements each clause produced, how many clauses produced nothing,
 and the citations outside the listed clauses; then the outputs, one row per document target and per code target the
 implementation files name, each ready, a draft (the questions and
 the errors that concern it) or waiting (the errors, the questions,
-and the approval that is missing or void).
+and the approval that is missing or void), the questions given per
+stage as how many and the first three by priority then ID.
 
 **Insight:** The owner and the agent run validate after every edit, so validate counts the open questions and lists none; this verb is the list, with what each question holds up, so that the next decision is always in view. The same text is the document, because the people who decide read documents, not terminals.
 
@@ -8555,6 +8563,60 @@ specifications.
 
 **Insight:** One key with one value, because left out already says everyone: a second value would be a second way to say it. The four places the check reads are the names that make one element part of another's definition, so the external document could not show the element for everyone without the internal one; a satisfies or verifies entry only traces, and the external document drops the entry with the requirement, so an element for everyone may still satisfy an internal proposal. The compiler test holds: an element that breaks the rule is read and marked at the name, never left unread, and a document for everyone leaves out only what the specification says is internal, counting it, so the reader knows the document is not the whole. --out is required with --audience external because both documents are kept, and the folder the implementation files name is the full one's; writing the external one there would make --check of the full one fail. The problems target is refused because the problems file marks the YAML files themselves, which are the team's. ownedBy rather than a status value, as decision 7 says: status keeps the life cycle of ISO/IEC/IEEE 29148 (proposed, accepted, rejected, retired), and who fulfils a requirement is another fact. acceptance_missing stays, since the other component's promise is still accepted by its criteria. fulfilledBy is a reference so the umbrella checks it when the other specification is given, and gaps counts it while it is not. Acceptance test: the first document a customer reads is written from the same specification as the team's, with the internal part left out and counted, and a change a customer asks for in a promise another component keeps names the stakeholder who keeps it.
 
+### ADR-120: Material questions form a group of their own in gaps and the questions document, a decision names under opens the questions it raised, and the outputs table counts the questions per stage
+
+Status: accepted, 2026-10-14.
+
+Context: Point 9 of docs/estate.md, build item 11. An estate's specification
+read from its sources holds many open questions, and three things
+made the list hard to act on. A question of kind material asks a
+stakeholder to send a document, a file or a record, yet gaps and
+the questions document put it among the decisions, under "Decided
+by", and nothing said how many decisions each stakeholder must
+take. A decision that answered a question only in part wrote the
+open half in prose or as a new question with nothing tying the two,
+so a reader of the new question could not see where it came from.
+And the outputs table named every question that holds an output
+up in one cell, which a specification with dozens of questions
+makes unreadable. The fourth part of the build item, the warning
+for a citation whose clause falls under none of its source's listed
+clauses, shipped in 0.6.2 as source_clause (both builds, the case
+validate-source-clause), so it is not added again under another
+name.
+
+Decision: gaps and the questions document list the decision questions by
+stage as before and the questions of kind material after them, in
+a section of their own, Material to provide, in the same order,
+each with Needed from in place of Decided by. The summary gains one
+sentence: the decisions each stakeholder must take and the material
+each must provide, a material question counted only as the second.
+A decision may name under opens, a SpecArch keyword, the questions
+it raised, by ID. The validator, in both builds, reports
+question_opened, an error at the entry, for a question that is
+neither open in the specification nor named under answers by any
+decision, with the nearest open question suggested, and for one the
+decision answers itself. It checks every decision, whatever its
+status. A question a decision opened shows Opened by: the decision
+with its title and the questions it answered, then for each of
+those that a decision opened in turn, that decision, back along the
+chain.
+The outputs table gives the questions that hold each output up per
+stage, in the order of the stages: how many, and the first three by
+priority then ID, the rest counted as "and N more".
+
+Consequences: The schema gains opens on a decision; the fragment schemas and the
+Swift build's embedded schemas follow, and the rule enum gains
+question_opened. Every gaps output and questions document changes
+in its outputs table and gains the summary sentence; one with a
+material question gains the section. The Open question paragraph
+that other documents write at an element, and the html site's mark,
+still say Decided by for a material question, and the draft notice
+of each document still names every question; both are left as they
+are, since point 9 asks for the change in gaps and the questions
+document only.
+
+**Insight:** A material question is answered by sending something, not by choosing, and the person who sends it is often not the one who decides; listed among the decisions it asks the wrong thing, and counted with them it overstates what a stakeholder must decide. Its blocks line stays, since what it holds up is what makes it urgent. Leaving it out of the stage sections keeps each question in the document once. opens is the inverse of answers, so the convention of answering in part is kept and made visible without a new meaning: the open half is a question like any other. An opened question that is answered later leaves the specification, so the check accepts an ID a decision answers, as answers itself does, rather than refusing the record of an older decision. A decision that answers and opens the same question says two contrary things at one ID, which is the ambiguity the principles make an error. Every status is checked because a stale ID is stale in a proposal too. Three identifiers per stage keep a cell one line wide; the stage section above lists every question, so nothing is lost, and the first by priority are the ones a reader acts on first. The stage comes first because a stage's questions go to the people who own that stage. The compiler test holds: nothing is refused that was read before, and a wrong opens entry is read and marked at the entry. The acceptance test holds: a change request arriving as a document is a material question its sender sees in a group addressed to them, and a reviewer's partial answer keeps its open half traced.
+
 ## 10. Quality requirements
 
 The design tests: what must hold on every implementation. Golden scenarios succeed; red scenarios are refused.
@@ -8639,7 +8701,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | document-writes-commissioning | command document | system | golden | checks in two environments, one with a why and a citation, and a sign-off with one criterion and one signer | document commissioning is run | it writes commissioning.md with the staging checks before the production ones, a Result column for every step, the sign-off sheet, and exits 0 |
 | document-writes-deployment | command document | system | golden | two environments, a plain and a secret setting, release and rollback steps (one with a why and a citation), a migration that cannot be reversed, and an implementation file with two installations | document deployment is run | it writes deployment.md with the path a release takes, each installation's servers and setting values with the secret only named and an unset value marked, the steps, and exits 0 |
 | document-writes-html | command document | system | golden | a specification with a requirement, three entities, two of them related, a decision, a permission a role grants, and must and could questions that block an entity, a field and a requirement's keys | document html is run | it writes site/index.html, one page with the overview first, the entity diagram as SVG, every element under an id that is its pointer, a mark at each element a question blocks linking to the question, and each question in the problems linked to its entry, and exits 0 |
-| document-writes-questions | command document | system | golden | a specification with two must questions in two stages and a could question, and no implementation file | document questions is run | it writes questions.md with the questions by stage and the outputs, where code generation waits on the questions and the approval, and exits 0 |
+| document-writes-questions | command document | system | golden | a specification with two must questions in two stages, one of them a material question, and a could question, and no implementation file | document questions is run | it writes questions.md with the decisions by stage, the material question in a group of its own, and the outputs, where code generation waits on the questions and the approval, and exits 0 |
 | document-writes-releases | command document | system | golden | a released 1.0.0 that includes a change, and a planned 1.1.0 that includes a change and a defect | document releases is run | it writes releases.md with 1.1.0 first, each release's items grouped as changed and fixed, and exits 0 |
 | document-writes-requirements | command document | system | golden | a specification whose elements have an Insight only, a Note only, both, several Notes and neither | document requirements is run | it writes requirements.md with an Insight for every why and a Note for every citation, after the table for a row, ends with the two sources cited, and exits 0 |
 | document-writes-techspec | command document | system | golden | a design file and an implementation file that names techspec's output folder | document techspec is run on both | it writes techspec/shop.techspec.md with every chapter the design fills, chapter 7 from the implementation file, and exits 0 |
@@ -8731,10 +8793,11 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | gaps-coverage | command gaps | system | golden | a specification that tracks origin, built from a manual and from code that both list their clauses; one clause of each is cited by nothing, one citation names a clause outside the outline, and the implementation file's mapping cites the code | gaps is run | it shows, per source, the elements each clause produced, counts the clauses that produced nothing, names the citation outside the outline, and exits 0 |
 | gaps-estate | command gaps | system | red | an estate file listing two modules, one at a version its specification is not at | gaps is run on the estate file | it prints the estate's problem first, then each module's open questions document with the references between them resolved, and exits 1 |
 | gaps-invalid-spec | command gaps | system | red | a specification with an error | gaps is run | it prints the open questions document with the error listed after the summary, every output waiting on it, and exits 1 |
-| gaps-lists-questions | command gaps | system | red | a specification that tracks origin, with two must questions in two stages, one of them blocking an entity that is only a name, a could question, and an implementation file whose code target echo reads only the requirements | gaps is run | it prints the questions by stage with the missing keys of the blocked entity, the elements by origin, and the outputs with what each waits on, and exits 1 |
-| gaps-names-question | command gaps | system | red | the tree extract workflows wrote for a BPMN file, whose workflow leaves out its trigger and its service task's operation, each with a must question that names the operation | gaps is run | each of those questions lists the name it gives and the file and line of the element that leaves the key out, and it exits 1 |
+| gaps-lists-questions | command gaps | system | red | a specification that tracks origin, with two must questions in two stages, one of them a material question blocking an entity that is only a name, a could question, and an implementation file whose code target echo reads only the requirements | gaps is run | it prints the decisions to take and the material to provide per stakeholder, the elements by origin, the decisions by stage, the material question in a group of its own with who it is needed from and the missing keys of the blocked entity, and the outputs with what each waits on per stage, and exits 1 |
+| gaps-names-question | command gaps | system | red | the tree extract workflows wrote for a BPMN file, whose workflow leaves out its trigger and its service task's operation, each with a must question that names the operation | gaps is run | each of those questions lists the name it gives and the file and line of the element that leaves the key out, the outputs name the first three of the six questions in the design stage and count the rest, and it exits 1 |
 | gaps-none | command gaps | system | golden | a specification without open questions and without an approval | gaps is run | it prints that there is no open question, that every document is ready and that code generation waits on the approval, and exits 0 |
 | gaps-outline-not-read | command gaps | system | golden | the tree extract outline wrote for a folder of workflow definitions: one source whose clauses are the folder's files, and no element | gaps is run | it lists every file of the source as producing nothing, so the files show as not read, and exits 0 |
+| gaps-question-opened | command gaps | system | golden | a question opened by a decision that answered a question an earlier decision opened, and a question opened by a proposed decision that answered none | gaps is run | each question names the decision that opened it and the questions that decision answered, back along the chain, and gaps exits 0 since only could questions are open |
 | gaps-references-blocked | command gaps | system | golden | a specification whose field is typed by another specification's schema, given with that specification, where a must question blocks the schema | gaps is run on both | it lists the reference as waiting on that question, the other references resolved, and exits 1 for the open must question |
 | gaps-references-fulfilled-by | command gaps | system | golden | two requirements another stakeholder owns, each fulfilled by a requirement of a specification that is not given | gaps is run on the specification alone | it lists both fulfilledBy references as not resolved, waiting on the specification they name, and exits 0 |
 | gaps-references-unresolved | command gaps | system | golden | a specification whose references name another specification, given alone | gaps is run | it lists each reference with where it stands, the specification and version it names and that the specification is not given, reports no error, and exits 0 |
@@ -8935,6 +8998,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | validate-question-covers-problem | command validate | system | red | a specification that declares problem types, with an operation whose 409 and 422 responses name no problem: a must question blocks the 409's problem and a should question the 422's | validate is run | the 409's missing problem is covered by the must question, the 422's is reported, since a should question covers nothing, and it exits 1 |
 | validate-question-covers-ungranted | command validate | system | golden | a declared permission that no role grants and that has no description, with a must question that blocks the permission itself | validate is run | the missing description and the ungranted permission are covered by the question; it prints nothing and exits 0 |
 | validate-question-names | command validate | system | red | three questions that name what the source gives: one for a key the specification gives already, one blocking a whole element, and one blocking two keys | validate is run | it reports each with question_block and exits 1 |
+| validate-question-opened | command validate | system | red | a decision that opens a question a later decision answered, one that opens a question still open, and a proposed one that opens a question it answers itself and a question nobody wrote | validate is run | it accepts the first two, reports question_opened at the question the decision answers itself and at the one that does not exist, naming the nearest open question, and exits 1 |
 | validate-question-should-not-covering | command validate | system | red | a requirement without priority and a should question that blocks the key | validate is run | the missing key is still reported, because only a must question covers one, and it exits 1 |
 | validate-question-stage | command validate | system | red | a question under requirements/ about an entity, one in the root file about a requirement although requirements/ exists, and one that blocks two stages | validate is run | it reports each with question_stage, naming the folder to move to, and exits 1 |
 | validate-reads-marks | command validate | system | red | a specification whose fragments carry the marks of its problems | validate is run | it reads the marks as the comments they are and reports the same problems at the lines on disk, the same in both builds, and writes nothing |
@@ -8976,7 +9040,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | validate-session | command validate | system | red | a session whose idle timeout is zero | validate is run | it reports session and exits 1 |
 | validate-setting | command validate | system | red | an implementation deployment that gives a value to a setting the specification does not declare | validate is run | it reports setting and exits 1 |
 | validate-source | command validate | system | red | a citation of a source that is not declared | validate is run | it reports source and exits 1 |
-| validate-source-clause | command validate | system | red | sources that list their clauses, cited once by a section under a listed one and a file line under a listed file, once by a section the outline does not hold, and once with no clause at all, and an interview without clauses cited with no clause | validate is run | it warns of the clause outside the outline, naming the nearest listed one, and of the citation that names no clause of a source with clauses, accepts the clauses under listed ones and the interview's, and exits 0 |
+| validate-source-clause | command validate | system | red | sources that list their clauses, cited once by a section under a listed one, a row of a listed section (the section, a space, the row) and a file line under a listed file, once by a section the outline does not hold, and once with no clause at all, and an interview without clauses cited with no clause | validate is run | it warns of the clause outside the outline, naming the nearest listed one, and of the citation that names no clause of a source with clauses, accepts the clauses under listed ones, the row among them, and the interview's, and exits 0 |
 | validate-source-given-outside | command validate | system | red | two sources, one marked givenOutside with the text yes and one with false | validate is run | it reports that givenOutside of the first is not a boolean, accepts the second, and exits 1 |
 | validate-source-reading | command validate | system | red | code sources read printed and parsed, a document source that says how it was read, and a code source whose reading is neither printed nor parsed | validate is run | it accepts both code sources, reports the document source's reading and the reading that is neither, and exits 1 |
 | validate-stack-key | command validate | system | red | a design file with an x-oapi-codegen key on an operation | validate is run | it reports stack_key and exits 1 |
@@ -9093,6 +9157,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | SA-66 | An estate file shall list the specifications of an estate's modules by name, each with its folder and the version the estate holds, and specarch validate, gaps and document techspec shall read every module through it and check each against its entry. | functional | must | accepted | test | specarch-estate.yaml holds specarchEstate, info and modules, each module keyed by its specification's info.name with its location, a folder relative to the file, and its version; it holds nothing of a module. Naming an estate, or a folder that holds one, to validate, gaps or document brings every module's specification into the run once, so the references between modules resolve as when each is named. A module whose folder holds no specification, whose info.name is not its key or is missing, whose info.version is not the version listed, or whose operations' calls come back to it through the other modules is refused as module at the module's entry, the same in both builds. gaps prints the estate's problems before the modules' open questions documents, and exits 1 when the estate has an error. document techspec on an estate writes estate.md, the module map with the references between the modules drawn as a flowchart. | NEED-2 |
 | SA-67 | Every element of a specification shall be able to say that it is internal, for the people who build and run the system only, and specarch document shall write a document for everyone without the internal elements, saying how many it left out in each section. | functional | must | accepted | test | audience internal is accepted on every element named by a key; left out, an element is for everyone. An element for everyone that names an internal element through a $ref, a relation's target, a page's entity or a requirement's needs is refused as audience at that name, the same in both builds; an element inside an internal one is internal with it. document --audience external writes every document but problems without the internal elements, the errors at them, the open questions that block only them and the links that name them, and its summary says how many elements it left out in each section. Every document written without --audience marks each internal element it shows. | NEED-3 |
 | SA-68 | A requirement shall be able to name the stakeholder whose component fulfils it, and the requirement of another specification that does, and the validator shall then ask no element to satisfy it and no test to verify it. | functional | must | accepted | test | ownedBy on a requirement names a stakeholder of the specification, or is refused as stakeholder. A requirement with ownedBy draws neither requirement_unsatisfied nor requirement_unverified, in both builds. fulfilledBy, written <dependency>#/requirements/<id> beside ownedBy, is checked as a reference into the other specification when it is given in the same run, and is counted as unresolved otherwise. The traceability document lists the requirements held elsewhere under a heading of their own, with the stakeholder and the requirement that fulfils each, and leaves them out of its gaps. | NEED-5 |
+| SA-69 | specarch gaps and the questions document shall set the material a stakeholder must provide apart from the decisions a stakeholder must take, show a decision that answered a question only in part with the questions it opened, and show per stage what holds each output up. | functional | must | accepted | test | A question of kind material is listed in a group of its own, worded as what is needed and from whom, and the count of decisions each stakeholder must take leaves it out. A decision may name under opens the questions it raised; one that is neither open nor answered by a decision, or one the decision answers itself, is refused as question_opened, the same in both builds. An open question that a decision opened names that decision and the questions it answered, and so on back along the chain. The outputs table gives, per stage, how many questions hold an output up and the first of them, rather than every one. | NEED-8 |
 | SA-7 | specarch document and specarch generate shall write only into the folder the target owns, and with --check shall fail when the committed output differs. | functional | must | accepted | test | A run writes the target's files into its folder and nothing elsewhere. A run with --check on output edited by hand names the file and exits 1, writing nothing. | NEED-3 |
 | SA-8 | Every generated file shall name its source specification, version and meta-model, and a hand-written Markdown document shall change only between its markers. | functional | must | accepted | test | The first line of a generated document names the root file, its version and the meta-model. A marked region is rewritten and every other line of the document is unchanged. | NEED-3 |
 | SA-26 | specarch document shall write the change and defect register and the release notes from the records beside a specification, kept current with --check like the other documents. | functional | should | accepted | test | The register lists open change requests and defects before the closed ones, each with its status, what it affects and its decision. The release notes list the releases newest first, each with its changes and fixes grouped as added, changed, removed and fixed. | NEED-3, NEED-5 |
@@ -9205,6 +9270,8 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 **Insight on SA-67:** A note from inside the team must never reach the customer's documents, and a rule read by people does not keep it out; one key on the element and one check of what names it do.
 
 **Insight on SA-68:** A promise in the customer's documents that another component keeps belongs in the specification, and without a form for it the validator asks for what satisfies and verifies it here, or the promise is left out and its trace is lost.
+
+**Insight on SA-69:** A question that asks for a document is answered by sending it, not by deciding, and a list that puts it among the decisions asks the wrong thing of the wrong person; a split answer written in prose loses where the open half came from; and a list of every question in one cell cannot be read once a specification has many.
 
 **Insight on SA-26:** Reviewers and operators read what changed and why in documents; kept apart from the specification, the history stays out of it and still reaches them.
 
@@ -9346,6 +9413,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-66 | commands document; commands gaps; commands validate; decisions ADR-113 | tests document-estate-map; tests gaps-estate; tests validate-estate; tests validate-estate-cycle; tests validate-estate-modules-wrong |
 | SA-67 | enums Rule; commands document; decisions ADR-119 | tests document-audience-external; tests document-audience-marked; tests document-audience-needs-out; tests document-audience-problems-refused; tests document-audience-value-refused; tests validate-audience |
 | SA-68 | enums Rule; commands document; decisions ADR-119 | tests document-audience-external; tests document-audience-marked; tests gaps-references-fulfilled-by; tests validate-requirement-fulfilled-by; tests validate-requirement-owned |
+| SA-69 | enums Rule; commands gaps; decisions ADR-120 | tests document-writes-questions; tests gaps-lists-questions; tests gaps-names-question; tests gaps-question-opened; tests validate-question-opened |
 
 ## Sources
 

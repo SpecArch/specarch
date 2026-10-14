@@ -299,6 +299,9 @@ func Questions(root *yaml.Node, relRoot string, impls []Implementation, state *S
 		d.para(fmt.Sprintf("Version %s of the specification: %s (%d must, %d should, %d could). A must question holds up everything that reads what it blocks; a should question holds up code generation and approval until the stakeholder confirms what was inferred; a could question holds up nothing. Each is answered by the stakeholder named, with a decision record that names the question under answers; the question is then removed.",
 			str(info, "version"), countText(len(qs), "open question", "open questions"), must, should, could))
 	}
+	if len(qs) > 0 {
+		d.para(takers(qs))
+	}
 	d.para(d.withheld.audienceNotice())
 	if str(info, "tracksOrigin") == "true" {
 		stated, inferred, decided, none := originCounts(root)
@@ -306,58 +309,79 @@ func Questions(root *yaml.Node, relRoot string, impls []Implementation, state *S
 	}
 	d.errorsSection()
 
+	opened := openedBy(root)
+	write := func(q question) {
+		d.heading(3, q.label())
+		d.para(oneParagraph(str(q.node, "question")))
+		if q.material() {
+			d.line("- Needed from: %s", str(q.node, "decidedBy"))
+		} else {
+			d.line("- Decided by: %s", str(q.node, "decidedBy"))
+		}
+		var blocks []string
+		for _, item := range items(q.node, "blocks") {
+			text := item.Value
+			if b, ok := spec.ParseBlock(text); ok && b.IsPointer() && state != nil {
+				// The keys the validator found missing at the blocked
+				// element, at any depth; a pointer to a key that is
+				// not there names it already.
+				if missing := state.Missing[source.Pointer(b.Tokens...)]; len(missing) > 0 {
+					text += fmt.Sprintf(" (%s missing)", joinAnd(missing))
+				}
+			}
+			blocks = append(blocks, text)
+		}
+		d.line("- Blocks: %s", strings.Join(blocks, ", "))
+		if names := str(q.node, "names"); names != "" {
+			where := ""
+			if items := items(q.node, "blocks"); len(items) == 1 && state != nil && state.Places[items[0].Value] != "" {
+				where = " at " + state.Places[items[0].Value]
+			}
+			text := fmt.Sprintf("- Names: %s, the name the source gives for the key left out%s; it is written there once the specification declares an element of that name", names, where)
+			d.line("%s", text)
+		}
+		if opts := strs(q.node, "options"); len(opts) > 0 {
+			d.line("- Options:")
+			for i, o := range opts {
+				d.line("  %d. %s", i+1, oneParagraph(o))
+			}
+		}
+		if chain := d.chain(q.id, opened); chain != "" {
+			d.line("- Opened by: %s", chain)
+		}
+		d.blank()
+		d.explain(q.node)
+	}
+	// The decisions to take by stage, then the material to provide, which
+	// is answered by sending it, not by deciding (ADR-120).
 	for _, stage := range spec.Stages {
 		var inStage []question
 		for _, q := range qs {
-			if q.stage == stage {
+			if q.stage == stage && !q.material() {
 				inStage = append(inStage, q)
 			}
 		}
 		if len(inStage) == 0 {
 			continue
 		}
-		sort.SliceStable(inStage, func(i, j int) bool {
-			pi, pj := priorityRank(inStage[i].priority), priorityRank(inStage[j].priority)
-			if pi != pj {
-				return pi < pj
-			}
-			return idLess(inStage[i].id, inStage[j].id)
-		})
+		sortQuestions(inStage)
 		d.section(strings.ToUpper(stage[:1]) + stage[1:])
 		for _, q := range inStage {
-			d.heading(3, q.label())
-			d.para(oneParagraph(str(q.node, "question")))
-			d.line("- Decided by: %s", str(q.node, "decidedBy"))
-			var blocks []string
-			for _, item := range items(q.node, "blocks") {
-				text := item.Value
-				if b, ok := spec.ParseBlock(text); ok && b.IsPointer() && state != nil {
-					// The keys the validator found missing at the blocked
-					// element, at any depth; a pointer to a key that is
-					// not there names it already.
-					if missing := state.Missing[source.Pointer(b.Tokens...)]; len(missing) > 0 {
-						text += fmt.Sprintf(" (%s missing)", joinAnd(missing))
-					}
-				}
-				blocks = append(blocks, text)
-			}
-			d.line("- Blocks: %s", strings.Join(blocks, ", "))
-			if names := str(q.node, "names"); names != "" {
-				where := ""
-				if items := items(q.node, "blocks"); len(items) == 1 && state != nil && state.Places[items[0].Value] != "" {
-					where = " at " + state.Places[items[0].Value]
-				}
-				text := fmt.Sprintf("- Names: %s, the name the source gives for the key left out%s; it is written there once the specification declares an element of that name", names, where)
-				d.line("%s", text)
-			}
-			if opts := strs(q.node, "options"); len(opts) > 0 {
-				d.line("- Options:")
-				for i, o := range opts {
-					d.line("  %d. %s", i+1, oneParagraph(o))
-				}
-			}
-			d.blank()
-			d.explain(q.node)
+			write(q)
+		}
+	}
+	var material []question
+	for _, q := range qs {
+		if q.material() {
+			material = append(material, q)
+		}
+	}
+	if len(material) > 0 {
+		sortQuestions(material)
+		d.section("Material to provide")
+		d.para("What a stakeholder must send rather than decide: a document, a file, a screenshot or a record. Each is answered by providing it, declared as a source the specification cites, and a decision record that names the question under answers.")
+		for _, q := range material {
+			write(q)
 		}
 	}
 
@@ -386,7 +410,10 @@ func Questions(root *yaml.Node, relRoot string, impls []Implementation, state *S
 		if !BuiltDocuments[t] || t == "questions" || t == "problems" || recordDocuments[t] {
 			continue
 		}
-		waits := holding(qs, documentReads[t])
+		var waits []string
+		if ids := holding(qs, documentReads[t]); len(ids) > 0 {
+			waits = append(waits, byStage(qs, ids))
+		}
 		if errors := d.errorsConcerning(documentReads[t]); errors > 0 {
 			waits = append(waits, countText(errors, "error", "errors"))
 		}
@@ -437,7 +464,7 @@ func Questions(root *yaml.Node, relRoot string, impls []Implementation, state *S
 			waits = append(waits, countText(errors, "error", "errors"))
 		}
 		if len(ids) > 0 {
-			waits = append(waits, strings.Join(ids, ", "))
+			waits = append(waits, byStage(qs, ids))
 		}
 		if state == nil || !state.Approved {
 			waits = append(waits, approval)
@@ -455,6 +482,143 @@ func Questions(root *yaml.Node, relRoot string, impls []Implementation, state *S
 	d.blank()
 	d.sourcesIndex("Sources")
 	return d.String()
+}
+
+// material reports whether the question asks for something to read rather
+// than a decision.
+func (q question) material() bool { return str(q.node, "kind") == "material" }
+
+// sortQuestions orders questions by priority, then by ID.
+func sortQuestions(qs []question) {
+	sort.SliceStable(qs, func(i, j int) bool {
+		pi, pj := priorityRank(qs[i].priority), priorityRank(qs[j].priority)
+		if pi != pj {
+			return pi < pj
+		}
+		return idLess(qs[i].id, qs[j].id)
+	})
+}
+
+// takers says how many decisions each stakeholder must take and how much
+// material each must provide, a material question counted only as the
+// second.
+func takers(qs []question) string {
+	decide, provide := map[string]int{}, map[string]int{}
+	for _, q := range qs {
+		if q.material() {
+			provide[str(q.node, "decidedBy")]++
+		} else {
+			decide[str(q.node, "decidedBy")]++
+		}
+	}
+	list := func(counts map[string]int) string {
+		var names []string
+		for n := range counts {
+			names = append(names, n)
+		}
+		sort.Strings(names)
+		var parts []string
+		for _, n := range names {
+			parts = append(parts, fmt.Sprintf("%s %d", n, counts[n]))
+		}
+		return strings.Join(parts, ", ")
+	}
+	var says []string
+	if len(decide) > 0 {
+		says = append(says, "Decisions to take: "+list(decide)+".")
+	}
+	if len(provide) > 0 {
+		says = append(says, "Material to provide: "+list(provide)+".")
+	}
+	return strings.Join(says, " ")
+}
+
+// shownPerStage is how many identifiers a cell of the outputs table names
+// for one stage; the rest are counted, and listed in the stage's section.
+const shownPerStage = 3
+
+// byStage writes the questions holding an output up per stage, in the
+// order of the stages: how many, and the first of them by priority.
+func byStage(qs []question, ids []string) string {
+	holds := map[string]bool{}
+	for _, id := range ids {
+		holds[id] = true
+	}
+	var parts []string
+	for _, stage := range spec.Stages {
+		var in []question
+		for _, q := range qs {
+			if holds[q.id] && q.stage == stage {
+				in = append(in, q)
+			}
+		}
+		if len(in) == 0 {
+			continue
+		}
+		sortQuestions(in)
+		var shown []string
+		for i, q := range in {
+			if i == shownPerStage {
+				shown = append(shown, fmt.Sprintf("%d more", len(in)-shownPerStage))
+				break
+			}
+			shown = append(shown, q.id)
+		}
+		parts = append(parts, fmt.Sprintf("%d in %s (%s)", len(in), stage, joinAnd(shown)))
+	}
+	return strings.Join(parts, ", ")
+}
+
+// openedBy maps each question a decision opens to the decisions that
+// opened it, in the order of the decisions.
+func openedBy(root *yaml.Node) map[string][]string {
+	out := map[string][]string{}
+	for _, p := range pairs(root, "decisions") {
+		for _, o := range strs(p.Value, "opens") {
+			out[o] = append(out[o], p.Key.Value)
+		}
+	}
+	return out
+}
+
+// chain says which decisions opened a question and what each answered, and
+// so on back for every question answered that a decision opened in turn;
+// "" when no decision opened it.
+func (d *doc) chain(id string, opened map[string][]string) string {
+	var parts []string
+	seen := map[string]bool{id: true}
+	queue := []string{id}
+	for len(queue) > 0 {
+		q := queue[0]
+		queue = queue[1:]
+		decs := opened[q]
+		if len(decs) == 0 {
+			continue
+		}
+		var by []string
+		for _, dec := range decs {
+			text := dec
+			if title := str(get(d.decisions, dec), "title"); title != "" {
+				text += " (" + title + ")"
+			}
+			if answers := strs(get(d.decisions, dec), "answers"); len(answers) > 0 {
+				text += ", which answered " + joinAnd(answers)
+				for _, a := range answers {
+					if !seen[a] {
+						seen[a] = true
+						queue = append(queue, a)
+					}
+				}
+			}
+			by = append(by, text)
+		}
+		if q == id {
+			parts = append(parts, joinAnd(by))
+		} else {
+			parts = append(parts, q+" was opened by "+joinAnd(by))
+		}
+	}
+	return strings.Join(parts, "; ")
 }
 
 func priorityRank(p string) int {

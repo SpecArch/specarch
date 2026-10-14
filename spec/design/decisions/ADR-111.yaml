@@ -1,0 +1,106 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
+decisions:
+  ADR-111:
+    title: A token says its kind with tokenType, via on each operation names its immediate callers and is required wherever a Txn-Token or an act token is accepted, the validator derives the chain by induction, and every service in a chain proves a workload identity
+    status: accepted
+    date: "2026-10-14"
+    context: |
+      docs/caller-context.md, the owner's decision 7. The design as
+      first proposed put via on the token as the default, listing whole
+      chains in call order, with via on an operation to narrow, and
+      accepted every chain the issuer signed when both were left out. A
+      Transaction Token records no chain, only req_wl, the workload that
+      requested it, so the last hop cannot verify a whole chain from the
+      token; the first design keyed the rule on act, which a Txn-Token
+      lacks; and the services it named declared no proof, where the
+      draft says a workload must not authenticate itself with a
+      Txn-Token.
+    decision: |
+      A token declares tokenType: access_token, the default when left
+      out, or txn_token, the suffix of the OAuth token type identifier.
+      A txn_token has format jwt, is carried in the Txn-Token header and
+      never in Authorization, which generate openapi writes as an apiKey
+      scheme in that header for every operation accepting it, and
+      declares the claims of ADR-108.
+      via is written on an operation only: the list of the clients that
+      may be its immediate caller on a person's behalf, each a service.
+      It is required on every operation whose accepted token is a
+      txn_token or declares act, and missing there is the error via;
+      on an operation accepting neither it is refused, and so are an
+      empty list, a client not declared, an application, a client twice
+      and a client without a workload-identity proof. There is no
+      default on the token and no "left out means every chain the
+      issuer signed". The validator derives the chain by induction
+      across the estate: for each client in an operation's via, the
+      operation of that client's module that calls this one (the calls
+      of its dependency) must either accept a txn_token with a via of
+      its own or be the edge, accepting an access token; a hop whose
+      via does not name the caller that calls it, or a caller with no
+      via where one is required, is a gap, the error via at that hop.
+      The middleware's delete lists the front ends' backend, the core's
+      lists the middleware, and the chain is the induction.
+      Every client a via names declares a proof of a workload-identity
+      kind: mutualTls (RFC 8705), spiffe (an X.509 or JWT SVID carrying
+      the SPIFFE ID) or wimse (the Workload Identity Token of the WIMSE
+      drafts, bound to a key the workload proves it holds); a token
+      proof there is refused, and a proof of kind token naming a
+      txn_token is refused anywhere (proof). via binds to that proof:
+      the hop checks that the immediate caller's workload identity is
+      the one the implementation file's deployments map for the named
+      client, and the Txn-Token's req_wl is the edge, not the caller.
+      Derived red case at every operation with via: refused with a
+      caller not listed in via, which the test gives as the edge calling
+      the last hop directly; each refusal is the security event of
+      ADR-109.
+    consequences: |
+      Each hop's specification says who may call it and what the caller
+      proves, and the estate's chain is checked once, in the umbrella
+      run, from those local facts. A service forgotten in a chain is an
+      error at the hop that would admit it, not a token the issuer
+      signed. A specification declares which header a token rides in by
+      its kind, and the OpenAPI document shows it. The identity module's
+      exchange operation issues a txn_token for a call inside the
+      domain and an access token with act for one that leaves it.
+    why: |
+      The immediate caller rather than a whole chain, because the draft
+      keeps the call chain out of the token (only req_wl names a
+      workload) so the last hop has nothing to verify a chain against,
+      while its immediate caller's workload identity is something it can
+      check; the chain then holds by induction, each hop vouching for
+      the one before, and the validator is where the induction is
+      checked, since it reads every module. On the operation only, not
+      the token, because a token is minted once for the whole domain
+      and accepted at every hop, so a via on it would say one thing for
+      every hop where each hop's caller differs; the first design's
+      token-level default lost with it. No "every chain the issuer
+      signed" default, because an issuer's may_act policy is a second
+      place for the rule and a hop would admit a chain nobody wrote, the
+      fail-open the estate declined pattern permissions for. The rule
+      keys on tokenType and act rather than act alone, because a
+      Txn-Token has no act and via would otherwise not be required at
+      the hops the owner wants it on; tokenType is the token's own word
+      for what it is, taken from the OAuth token type identifiers so
+      that the exchange request and the specification say it one way.
+      The Txn-Token header because the draft says the Authorization
+      header MUST NOT be used, workloads use it for other purposes.
+      Proof is mandatory on a chain's services because the draft says a
+      workload MUST NOT use a Txn-Token to authenticate itself, so a hop
+      with no proof has nothing a via could bind to; the three kinds are
+      the published forms of a workload's identity, and an estate that
+      has none is told so at the client rather than at the first breach.
+      Compiler test: a missing via, a gap in the chain and a service
+      with no proof are each an error at the entry and the operation
+      stays read with its permission. Acceptance test: via is one line
+      per operation that reads as the call is drawn, and the techspec's
+      call diagram draws the chain the induction found with the token
+      on each arrow.
+    cites:
+      - source: ietf-oauth-transaction-tokens
+        says: "A Txn-Token is carried in the Txn-Token header, one per request; the Authorization header MUST NOT be used; a workload MUST NOT use a transaction token to authenticate itself to another workload; the token type is urn:ietf:params:oauth:token-type:txn_token; req_wl identifies the workload that requested the Txn-Token."
+      - source: rfc-8705
+        says: "An authorization server binds an access token to the client certificate presented over mutual TLS, so that only the holder of the private key can use it."
+      - source: spiffe
+        says: "A SPIFFE ID is a structured string, represented as a URI, which serves as the name of an entity; an SVID is a document which carries the SPIFFE ID itself, as an X.509 certificate or a JWT."
+      - source: ietf-wimse-workload-creds
+        says: "A Workload Identity Token carries the workload identifier as sub and a cnf claim with the workload's public key; the workload must prove possession of the matching private key, so it is not a bearer token."
+    satisfies: [SA-5, SA-29]

@@ -1,0 +1,100 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
+decisions:
+  ADR-108:
+    title: Inside a trust domain the application is checked at every hop in a Transaction Token's tctx, a call crossing a domain follows identity chaining, and the confused-deputy cases take their Txn-Token forms
+    status: accepted
+    date: "2026-10-14"
+    context: |
+      docs/caller-context.md, the owner's decisions 3 and 6. The design
+      as first proposed checked the application only where the person's
+      own token is accepted, because after a token exchange RFC 8693
+      makes client_id the service that requested the token and no
+      standard claim carries the application on; later hops were to
+      trust the first through the chain of act claims. The owner wants
+      the application checked at every hop, with the Transaction Tokens
+      draft of the OAuth working group, and the two confused-deputy
+      cases derived at every operation for people once a service exists.
+    decision: |
+      Inside a trust domain a call on a person's behalf carries one
+      Transaction Token (draft-ietf-oauth-transaction-tokens, cited as a
+      draft) from the edge to the last hop. The edge, the hop that
+      accepted the person's own access token, requests it from the
+      identity module's exchange operation with the token type
+      urn:ietf:params:oauth:token-type:txn_token, and the issuer writes
+      the application's software_id into tctx under the name
+      application: tctx is the claim the draft makes immutable through
+      the call chain, so the value every hop reads is the one the edge
+      had. A role's through is checked at every hop naming the
+      permission: against client_id on an access token, against
+      tctx.application on a Txn-Token. The token's sub is the person,
+      req_wl the edge workload, txn the transaction's identifier, aud the
+      trust domain (ADR-109), and scope, which the draft requires, holds
+      the permission the edge operation checked, in that module's wire
+      form; each later hop checks that scope is the permission of an edge
+      operation whose chain, derived by ADR-111, reaches it.
+      A call that leaves the trust domain follows OAuth identity chaining
+      (draft-ietf-oauth-identity-chaining, cited as a draft): the hop at
+      the boundary obtains a JWT authorisation grant from its own issuer
+      and presents it to the other domain's issuer for an access token
+      of that domain, which may carry act as RFC 8693 registers it; a
+      Txn-Token is never presented outside its domain. act nested inside
+      a domain is not used.
+      The confused-deputy cases are derived at every operation for people
+      once any service is declared, whether or not via is written, each
+      a security event of ADR-109: refused for a service's own token (a
+      hop calls on with its own proof or machine token and no
+      Txn-Token, and the person is lost with their rows, roles and
+      through); and refused for a person's token requested by a service
+      with no actor, which on an access token is client_id naming a
+      service with no act, and on a Txn-Token takes two forms, req_wl
+      naming a workload that is not an edge, and txn differing from the
+      one the hop received, since a hop passes the token on unmodified
+      and never mints a transaction of its own.
+    consequences: |
+      Every hop checks the application and the person with one token
+      and no exchange per hop, and the core's techspec says what it
+      checks the application against. The identity module holds the
+      transaction token service, and its exchange operation's response
+      is the Txn-Token. An estate with two trust domains writes the
+      boundary hop's outbound call as identity chaining and its inbound
+      token as an access token with act. The draft's claim names are
+      taken at version 11 and are revisited when it is published.
+    why: |
+      Every hop rather than the edge only, because the owner's rule is
+      that no hop trusts another for the application, and the first
+      design's reason for stopping at the edge, that no standard claim
+      carries the application on, no longer holds once a Txn-Token's
+      tctx does: the draft exists for "context that remains immutable
+      throughout the Call Chain", which is exactly this fact. The
+      application rides in tctx and not in rctx, because the draft calls
+      only tctx immutable and makes rctx the issuer's environmental
+      context, and under a name the design fixes, application, because
+      the draft defines no member for it and two issuers naming it two
+      ways would be two ways to say one thing. scope holds the edge's
+      permission because the draft requires scope, says it captures the
+      transaction's purpose as narrowly as possible, and the permission
+      the person was admitted for is the narrowest purpose the
+      specification names; a token minted to read invoices is then
+      refused at a delete. Identity chaining at a boundary rather than
+      act nesting, because the draft defers crossing a domain to that
+      draft and says a Txn-Token is accepted only inside the domain its
+      aud names; act nesting inside a domain lost because one Txn-Token
+      per transaction is the draft's design and a chain of exchanges per
+      hop would mint a token per hop with no immutable context. The
+      deputy cases take Txn-Token forms because the first design keyed
+      them on client_id and act, which a Txn-Token lacks; req_wl and txn
+      are what it has, and the draft's rule that a hop passes the token
+      on unmodified is what a differing txn breaks. Compiler test: a
+      Txn-Token declared without tctx.application where a through
+      exists is an error at the token and the token is still read.
+      Acceptance test: "only from the administration application" is one
+      line on the role and holds at every hop, and the call diagram
+      draws one token across the domain.
+    cites:
+      - source: ietf-oauth-transaction-tokens
+        says: "tctx holds values that remain immutable throughout the Call Chain; aud identifies the Trust Domain and a Txn-Token MUST NOT be accepted outside it; scope, sub, req_wl, txn, iat and exp are REQUIRED; a workload passes the Txn-Token on unmodified; for cross-domain access implementers SHOULD use OAuth Identity and Authorization Chaining Across Domains."
+      - source: ietf-oauth-identity-chaining
+        says: "A JWT authorization grant, obtained through an intra-domain OAuth 2.0 Token Exchange, facilitates the cross-domain acquisition of an access token; the same protocol is used every time a trust domain boundary is crossed."
+      - source: rfc-8693
+        says: "The act claim provides a means within a JWT to express that delegation has occurred; client_id carries the client identifier of the OAuth 2.0 client that requested the token."
+    satisfies: [SA-5, SA-29]

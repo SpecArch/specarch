@@ -238,13 +238,18 @@ so none waits for 0.3.
 
 The same estate's services call each other on a person's behalf, and
 `docs/caller-context.md` designs the four inputs of an authorisation
-decision beyond the person and the roles: the application the person
-signed in through as a condition on a grant (`kind` on a client,
-`through` on a role), the calling service with grants of its own, the
-delegation chain as RFC 8693's `act` claim with `via` on a token and an
-operation, and the audience per hop as `aud` required on every accepted
-token, with the confused-deputy red cases. It amends 0.3's steps 3 and
-4 before they are built and ends with the owner's questions.
+decision beyond the person and the roles, decided on 2026-10-14 (ADR-106
+to ADR-111): the application the person signed in through as a condition
+on a grant (`kind`, `softwareVersion` and `softwareStatement` on a
+client keyed by its `software_id`, `through` on a role, checked at every
+hop), the calling service with grants of its own and `callers` as an
+explicit subset, the delegation chain as one Transaction Token across
+the trust domain with `via` on each operation naming its immediate
+callers and a workload-identity proof on every service, and the audience
+per hop as `aud` fixed per token kind, with the confused-deputy red
+cases and a security event for every refusal. Clients, roles and the
+trust domain live in an identity module. It amends 0.3's steps 3 and 4
+before they are built and ends with five build items in order.
 
 ## 6. Changes, defects, releases and operation
 

@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.7.0-dev of the specification: 64 requirements, 5 entities, 12 commands, 7 algorithms, 422 tests, 100 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.7.0-dev of the specification: 64 requirements, 5 entities, 12 commands, 7 algorithms, 422 tests, 106 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -7501,6 +7501,361 @@ writes stay in English.
 
 **Insight:** The words are data because they are what a project changes: a wrong or missing word is one line in a file, changed without a release, which is the acceptance test. They are a file per language, and the language is on the source, because the language is a fact about the document, so it is design, and a reader of the tree has to know which words were applied to read what was found and what was not. BCP 47 is the tag every platform and the HTTP Content-Language header use; the tag here is a lookup key, so the pattern catches a typo such as english and does not check the registry, which would tie the schema to a list that grows. A word in two lists of one group is refused because it would mean both, and the reader would pick one by the order it happened to check them, which is ambiguity, an error; groups are where a word has to mean one thing, and a whole-file rule would refuse English itself. Types are in the vocabulary though the plan's list did not name them, since a table in another language writes its types in that language, and without them every field would be a could line. Units are in it because merge reads them: a key nothing reads would be a placeholder. A vocabulary is checked by the reader in Go and has no JSON Schema, so that one definition says what a vocabulary is; the validator does not read vocabularies, so the Swift build is untouched beyond the schema's new key. The matchers write a word's edges out rather than use RE2's `\b`, which knows only ASCII letters and so never matches before or after a word such as prüfen. The English run was kept byte-identical by making the English file say exactly what the code said, so a change to English is a change to the file, seen in its diff. Compiler test: a table whose headers no vocabulary matches still prints its could line and keeps the outline; the vocabulary widens what is read and refuses nothing of the document. Only the vocabulary, a tool input, is refused, at its file and line.
 
+### ADR-106: A client is keyed by its software_id with a kind, its client_id is a deployment value, and its version is checked once at the edge against a declared claim, after RFC 7591
+
+Status: accepted, 2026-10-14.
+
+Context: docs/caller-context.md, the owner's decision 1. A role may hold a
+permission only through one application, and an estate wants to
+refuse an application whose version is too old. The design as first
+proposed named a client by a key of its own and said nothing of its
+version. The owner asked for the standard's names: RFC 7591
+registers a client with client_id, software_id, software_version
+and a software_statement, and a hop that refuses an old version
+needs a value to check and a place to check it, since no claim of a
+token names the version.
+
+Decision: clients is keyed by the software_id of RFC 7591: the name the
+publisher gives the software, the same across its versions, in
+kebab-case like every key; through, via and callers name it. The
+client_id is issued by the authorisation server per registration and
+differs per environment, so it is a deployment value of the
+implementation file (deployments.<environment>.clients.<name>.clientId),
+never a design key. Each client says its kind, application (where a
+person signs in) or service (a program that calls on its own account
+or carries a person's call); a kind outside the two is refused
+(client). A client may say softwareVersion, the versions it is
+admitted at: a lower bound included and an upper bound excluded,
+each a Semantic Versioning 2.0.0 version, written ">=1.2.0 <2.0.0";
+and softwareStatement true when the version is the publisher's,
+asserted in the signed statement of RFC 7591, section 2.3, which the
+issuer verified at registration.
+The version is checked once, at the edge: the hop that accepts the
+client's own request, a person's access token or the client's own
+proof. It is read from the claim softwareVersion of that token,
+which the issuer fills from the registration; a specification with
+a softwareVersion on any client whose edge token declares no such
+claim is refused (software_version). No later hop checks it: a
+Txn-Token carries no version, and the chain of ADR-111 binds every
+later hop to the edge that did. A refusal is 403 with the problem
+type the design declares for it, never 426. With softwareStatement
+the techspec marks the check as security; without it the version is
+self-asserted (RFC 7591, section 5) and the check is marked
+compatibility. A native application whose installs run different
+versions registers each instance, the per-instance registration RFC
+8252, section 8.4, names RFC 7591 for; a browser application has the
+version it was deployed at, and its registration is updated when
+that changes. Derived red case at the edge, for every client with
+softwareVersion: refused with a version outside the admitted range,
+with the security event of ADR-109.
+
+Consequences: A client's name in a specification is the one that survives a
+re-registration and an environment, and the per-environment
+identifier sits with the other deployment values. Which hop checks
+the version is written, and a reader of the core's code expects no
+version check there. An estate that wants the version trusted
+registers its applications with a software statement; one that
+does not is told, in the techspec, that the check is for
+compatibility.
+
+**Insight:** software_id rather than client_id as the key, because RFC 7591 makes client_id the server's issue per registration, so a design keyed by it would change at every environment and re-registration, and software_id "SHOULD remain the same across multiple updates or versions of the same piece of software": a name that is the software's is the name a grant is written against. The version is checked at the edge and nowhere else because a claim is the only thing a hop can check, no claim of a Txn-Token carries the version, and a check whose input is not on the wire would be pretending; the alternative, every hop checking a version the client reports in a request header, lost because a header the client writes is self-asserted at every hop and could never be the trusted form, where the registration is where the standard puts the version and RFC 7591 itself draws the line the owner drew: a software statement's claims may be trusted, everything else "MUST treat all client metadata as self-asserted". A range of versions rather than a list, because an estate admits "this version and later, before the next major" and a list would be rewritten at every release; Semantic Versioning gives the order RFC 7591's string equality does not. 403 and not 426 because RFC 9110 reserves 426 for a server that "refuses to perform the request using the current protocol", and an application's version is not the protocol; 403 is the server that "understood the request but refuses to fulfill it", with the problem document saying why. Compiler test: a version range that does not parse, a client with a version and no claim to check it against, and a kind outside the two are each an error at the client, and the client stays read with its roles and proof. Acceptance test: the techspec's client table shows each client's admitted versions and whether the check is security or compatibility, one line per client.
+
+**Note:** From RFC 7591, OAuth 2.0 Dynamic Client Registration Protocol, 2015: software_id SHOULD remain the same across multiple updates or versions of the same piece of software; client_id is issued by the authorization server; apart from a software statement's claims, the server MUST treat all client metadata as self-asserted. <https://www.rfc-editor.org/rfc/rfc7591>
+
+**Note:** From RFC 8252, OAuth 2.0 for Native Apps, 2017: Except when using a mechanism like Dynamic Client Registration to provision per-instance secrets, native apps are classified as public clients. <https://www.rfc-editor.org/rfc/rfc8252>
+
+**Note:** From RFC 9110, HTTP Semantics, 2022: 403 Forbidden: the server understood the request but refuses to fulfill it. 426 Upgrade Required: the server refuses to perform the request using the current protocol. <https://www.rfc-editor.org/rfc/rfc9110>
+
+**Note:** From Semantic Versioning, 2.0.0: Versions are ordered by major, minor and patch, so a range with a lower and an upper bound is well defined. <https://semver.org/spec/v2.0.0.html>
+
+### ADR-107: Clients, roles and the trust domain live in an identity module the other modules reference, every hop's route has its own permission, and permissions, clients and roles are reference targets
+
+Status: accepted, 2026-10-14.
+
+Context: docs/caller-context.md, the owner's decision 2, with the estate's
+decision 2 (docs/estate.md). A role's grant through one application
+names a permission of the service that enforces it, and a call
+passes through services in several modules, each with a
+specification of its own. The owner's first answer put the clients
+and the roles in the umbrella; the umbrella lists and pins the
+modules and holds nothing of their design (docs/estate.md, section
+2), so they needed a module of their own. The first design also
+checked the permission at the last hop only, with the earlier hops
+forwarding.
+
+Decision: One module of the estate is the identity module: a specification
+like any other, holding trustDomain (the URI that names the trust
+domain), clients and roles, and the exchange operation that issues
+the estate's tokens. Every other module declares it as a dependency
+with specification and version, and names its clients and roles by
+reference, identity#/clients/<name> and identity#/roles/<name>, in
+through, via and callers; a role's permissions and through name
+each permission in the module that enforces it, core#/permissions/<name>.
+The reference targets of the estate's decision 2 widen by three:
+#/permissions/<name>, #/clients/<name> and #/roles/<name>. The
+umbrella still lists and pins, nothing more.
+Every hop's route has a permission of its own, so a call through
+the front ends' backend, the middleware and the core checks three
+permissions, one in each module; a route with none is the schema
+error it is today. A module validated alone counts a permission
+granted only by a referenced role as an unresolved reference in its
+summary line, beside the open questions; the umbrella run resolves
+every reference and refuses a permission no role grants and a
+through, via or callers naming a client or a role the identity
+module does not hold (reference), at the entry.
+
+Consequences: An estate has one place where its clients and roles are written and
+one trust domain, and the modules that enforce permissions keep
+them. A module alone validates with its grants as gaps, which is
+what one team needs; the estate's consistency is checked in the
+umbrella run. A route that forwarded a call without a permission of
+its own is now an error, which is the fail-closed rule applied at
+every hop.
+
+**Insight:** A module rather than the umbrella, because the estate's decision 2 made the umbrella a list of modules with their versions and nothing copied into it, and a clients object in it would be the one exception, with a second place for a thing the modules reference; an identity service is a module of the estate already, with the exchange operation ADR-097 gives it, so its specification is where the clients and the roles belong. A permission per hop rather than one at the last, because a hop with no permission admits every caller that reaches it, which is the fail-open SA-5 refuses, and because the front ends' backend and the middleware are services with routes of their own that the reader extracts like any. The references take the estate's form rather than a copy of the role into each module, because a copy is a second place to say one thing. Compiler test: a reference the validator cannot resolve alone is a counted gap and the module is still read; a reference the umbrella run cannot resolve is an error at the entry. Acceptance test: the identity module's techspec shows the one client table and the one matrix for the estate, and each module's techspec shows which of its permissions each referenced role reaches.
+
+### ADR-108: Inside a trust domain the application is checked at every hop in a Transaction Token's tctx, a call crossing a domain follows identity chaining, and the confused-deputy cases take their Txn-Token forms
+
+Status: accepted, 2026-10-14.
+
+Context: docs/caller-context.md, the owner's decisions 3 and 6. The design
+as first proposed checked the application only where the person's
+own token is accepted, because after a token exchange RFC 8693
+makes client_id the service that requested the token and no
+standard claim carries the application on; later hops were to
+trust the first through the chain of act claims. The owner wants
+the application checked at every hop, with the Transaction Tokens
+draft of the OAuth working group, and the two confused-deputy
+cases derived at every operation for people once a service exists.
+
+Decision: Inside a trust domain a call on a person's behalf carries one
+Transaction Token (draft-ietf-oauth-transaction-tokens, cited as a
+draft) from the edge to the last hop. The edge, the hop that
+accepted the person's own access token, requests it from the
+identity module's exchange operation with the token type
+urn:ietf:params:oauth:token-type:txn_token, and the issuer writes
+the application's software_id into tctx under the name
+application: tctx is the claim the draft makes immutable through
+the call chain, so the value every hop reads is the one the edge
+had. A role's through is checked at every hop naming the
+permission: against client_id on an access token, against
+tctx.application on a Txn-Token. The token's sub is the person,
+req_wl the edge workload, txn the transaction's identifier, aud the
+trust domain (ADR-109), and scope, which the draft requires, holds
+the permission the edge operation checked, in that module's wire
+form; each later hop checks that scope is the permission of an edge
+operation whose chain, derived by ADR-111, reaches it.
+A call that leaves the trust domain follows OAuth identity chaining
+(draft-ietf-oauth-identity-chaining, cited as a draft): the hop at
+the boundary obtains a JWT authorisation grant from its own issuer
+and presents it to the other domain's issuer for an access token
+of that domain, which may carry act as RFC 8693 registers it; a
+Txn-Token is never presented outside its domain. act nested inside
+a domain is not used.
+The confused-deputy cases are derived at every operation for people
+once any service is declared, whether or not via is written, each
+a security event of ADR-109: refused for a service's own token (a
+hop calls on with its own proof or machine token and no
+Txn-Token, and the person is lost with their rows, roles and
+through); and refused for a person's token requested by a service
+with no actor, which on an access token is client_id naming a
+service with no act, and on a Txn-Token takes two forms, req_wl
+naming a workload that is not an edge, and txn differing from the
+one the hop received, since a hop passes the token on unmodified
+and never mints a transaction of its own.
+
+Consequences: Every hop checks the application and the person with one token
+and no exchange per hop, and the core's techspec says what it
+checks the application against. The identity module holds the
+transaction token service, and its exchange operation's response
+is the Txn-Token. An estate with two trust domains writes the
+boundary hop's outbound call as identity chaining and its inbound
+token as an access token with act. The draft's claim names are
+taken at version 11 and are revisited when it is published.
+
+**Insight:** Every hop rather than the edge only, because the owner's rule is that no hop trusts another for the application, and the first design's reason for stopping at the edge, that no standard claim carries the application on, no longer holds once a Txn-Token's tctx does: the draft exists for "context that remains immutable throughout the Call Chain", which is exactly this fact. The application rides in tctx and not in rctx, because the draft calls only tctx immutable and makes rctx the issuer's environmental context, and under a name the design fixes, application, because the draft defines no member for it and two issuers naming it two ways would be two ways to say one thing. scope holds the edge's permission because the draft requires scope, says it captures the transaction's purpose as narrowly as possible, and the permission the person was admitted for is the narrowest purpose the specification names; a token minted to read invoices is then refused at a delete. Identity chaining at a boundary rather than act nesting, because the draft defers crossing a domain to that draft and says a Txn-Token is accepted only inside the domain its aud names; act nesting inside a domain lost because one Txn-Token per transaction is the draft's design and a chain of exchanges per hop would mint a token per hop with no immutable context. The deputy cases take Txn-Token forms because the first design keyed them on client_id and act, which a Txn-Token lacks; req_wl and txn are what it has, and the draft's rule that a hop passes the token on unmodified is what a differing txn breaks. Compiler test: a Txn-Token declared without tctx.application where a through exists is an error at the token and the token is still read. Acceptance test: "only from the administration application" is one line on the role and holds at every hop, and the call diagram draws one token across the domain.
+
+**Note:** From Transaction Tokens, an Internet-Draft of the IETF OAuth working group (draft-ietf-oauth-transaction-tokens-11), 11, 30 July 2026: tctx holds values that remain immutable throughout the Call Chain; aud identifies the Trust Domain and a Txn-Token MUST NOT be accepted outside it; scope, sub, req_wl, txn, iat and exp are REQUIRED; a workload passes the Txn-Token on unmodified; for cross-domain access implementers SHOULD use OAuth Identity and Authorization Chaining Across Domains. <https://datatracker.ietf.org/doc/draft-ietf-oauth-transaction-tokens/>
+
+**Note:** From OAuth Identity and Authorization Chaining Across Domains, an Internet-Draft of the IETF OAuth working group (draft-ietf-oauth-identity-chaining-17), 17, 19 July 2026: A JWT authorization grant, obtained through an intra-domain OAuth 2.0 Token Exchange, facilitates the cross-domain acquisition of an access token; the same protocol is used every time a trust domain boundary is crossed. <https://datatracker.ietf.org/doc/draft-ietf-oauth-identity-chaining/>
+
+**Note:** From RFC 8693, OAuth 2.0 Token Exchange, 2020: The act claim provides a means within a JWT to express that delegation has occurred; client_id carries the client identifier of the OAuth 2.0 client that requested the token. <https://www.rfc-editor.org/rfc/rfc8693>
+
+### ADR-109: The audience rule is per token kind, and every refusal of a caller derives a security event with a fixed name and severity, written to a declared append-only store with an alarm channel, after RFC 8417 and ASVS V16
+
+Status: accepted, 2026-10-14.
+
+Context: docs/caller-context.md, the owner's decision 4. The design as first
+proposed required aud with const or enum on every accepted token
+and, in the umbrella, refused two modules accepting one aud value.
+A Transaction Token's aud names the trust domain, one value for
+every hop in it, so that rule would refuse every Txn-Token domain.
+The owner also wants every refusal of a caller logged to a separate
+append-only store in a standard form, with severities and an alarm
+channel, and first asked that the validator refuse a refusal with
+no event declared.
+
+Decision: A token accepted without a fixed audience is an error
+(token_audience), and what fixed means is per token kind: an
+access token declares aud with const or enum naming the service
+that accepts it, as RFC 9068, section 4, and RFC 7519, section
+4.1.3, require; a Txn-Token (tokenType txn_token, ADR-111)
+declares no aud, since its audience is the identity module's
+trustDomain by the draft's rule, and aud written on one is refused
+as a second way to say it. The estate's check that two modules do
+not accept one aud value runs over access tokens only. A Txn-Token
+captured at one hop and replayed at another is refused not by its
+audience but by the workload identity of the immediate caller,
+which via binds to the caller's proof (ADR-111).
+Every refusal of a caller derives a security event with the case:
+nobody writes one per case, and a refusal with no event cannot
+exist. The event has a fixed name per rule, the identifier URI
+<trustDomain>/events/<rule>, and a fixed severity:
+a token for another audience, high; an immediate caller not listed
+in via, high; the confused deputy in each form, high; a caller not
+in callers, medium; an application not in through, medium; a
+version outside the admitted range, medium with a software
+statement and low without; an expired token, low. The identity
+module declares securityEvents with store, the dependency that is
+the separate append-only store every module writes to, and alarm,
+the dependency that is the alarm channel; an estate with a client
+and no securityEvents is refused (security_events). An event is a
+Security Event Token (RFC 8417): events keyed by the identifier
+URI, jti, iat, toe, txn always, and in the event the rule, the
+severity, the operation, the client, sub, req_wl, the jti of the
+refused token and the SHA-256 of it; never the token. An event
+of severity high, or a repeat of any event for one client within
+a window, goes to the alarm channel too; the count and the window
+are deployment values of the implementation file. The validator
+derives the event beside the red case; the techspec lists the
+events with their severities under a Security events heading.
+
+Consequences: A Txn-Token domain validates, and the replay the audience check
+refuses for access tokens is refused for Txn-Tokens by the caller's
+identity, which the design says in so many words. Every refusal
+of this design and of ADR-096 and ADR-097 is logged in one form,
+with one transaction identifier across the chain, to a store the
+specification names, and a reviewer reads the list of events in
+the techspec without reading the code. A project logs the token
+itself nowhere.
+
+**Insight:** Per token kind rather than one rule, because the draft says a Txn-Token's aud "MUST identify the Trust Domain" and the first design's rule, right for access tokens, would have made every Txn-Token domain an error; the alternative, exempting Txn-Tokens from the audience rule altogether, lost because a token with no audience at all is the replay the rule exists to refuse, and the trust domain is an audience, checked at every hop. Events derived rather than declared, because the first form, "the validator errors when a refusal has no event declared", cannot hold for the derived cases nobody writes, and a case that someone could forget to log is the gap ASVS V16 exists to close: 16.3.2 wants failed authorisation attempts logged, every one. A fixed name per rule and a fixed table of severities, because two projects then log one refusal under one name at one severity, and a severity written per case would be a placeholder nobody fills; the identifier is a URI under the trust domain because RFC 8417 makes each event's member name a URI. The SET format because it is the published form of a security event as a JWT with txn, which the Txn-Token draft takes from the same RFC, so one identifier joins the refusal to the transaction it refused. jti and a hash and never the token, because the draft's security considerations say complete Txn-Tokens must not be logged verbatim and ASVS 16.2.5 allows a session token only hashed or masked. The author declares only the store and the channel because those are what the estate must provide, the interface boundary's test: operators depend on the store existing and on where an alarm arrives; the count and the window are tuning, per deployment. "alarm" is the owner's word. Compiler test: a refusal whose event the project does not write is a derived red case that fails, never a silent gap, and a missing securityEvents is one error at the identity module with every token still read. Acceptance test: the techspec's event table is the list a security reviewer asks for, one line per rule.
+
+**Note:** From Transaction Tokens, an Internet-Draft of the IETF OAuth working group (draft-ietf-oauth-transaction-tokens-11), 11, 30 July 2026: aud MUST identify the Trust Domain; complete Txn-Tokens MUST NOT be logged verbatim, log a hash or the payload without the signature. <https://datatracker.ietf.org/doc/draft-ietf-oauth-transaction-tokens/>
+
+**Note:** From RFC 8417, Security Event Token (SET), 2018: A SET is a JWT; the events claim's member names are URIs identifying the event statements; txn is a unique transaction identifier used to correlate related JWTs. <https://www.rfc-editor.org/rfc/rfc8417>
+
+**Note:** From OWASP Application Security Verification Standard, chapter V16, Security Logging and Error Handling, 5.0.0: 16.3.2: failed authorization attempts are logged. 16.2.1: each log entry includes when, where, who and what. 16.2.5: session tokens are logged only hashed or masked. 16.4.2 and 16.4.3: logs cannot be modified and go to a logically separate system. <https://github.com/OWASP/ASVS/blob/master/5.0/en/0x25-V16-Security-Logging-and-Error-Handling.md>
+
+**Note:** From RFC 9068, JSON Web Token (JWT) Profile for OAuth 2.0 Access Tokens, 2021: The resource server MUST validate that the aud claim contains a resource indicator value corresponding to an identifier the resource server expects for itself, and MUST reject the token otherwise. <https://www.rfc-editor.org/rfc/rfc9068>
+
+### ADR-110: callers is an explicit subset, people is a reserved caller like nobody is a reserved permission, and a service listed with no granting role is an error
+
+Status: accepted, 2026-10-14.
+
+Context: docs/caller-context.md, the owner's decision 5, and the estate's
+question 3. A route both people and a service call, the reporting
+service reading the list people read, was left out of meta-model
+0.3 (two operations with one handler), and the design as first
+proposed recommended callers all, reported in the techspec as every
+client with a granting role. ADR-096 has callers clients for a
+machine route and nothing for people, who are admitted when it is
+left out.
+
+Decision: callers is a list, the explicit subset of who may call: people,
+the reserved word for anyone signed in, and clients by name
+(identity#/clients/reporting). Left out, it is [people], as
+today. Which people is the roles' business, never callers'. The
+validator refuses, as callers at the entry, an empty list, a name
+that is neither people nor a declared client, a client twice, a
+service with no roles (it only carries a person's call and never
+calls on its own account), and a client none of whose roles grants
+the operation's permission, directly or by implies. ADR-096's
+callers clients is written [reporting], naming the clients. There
+is no all. A client listed with a granting role is admitted on
+its own account, and the derived cases of ADR-096 follow: refused
+for a signed-in person where people is absent, refused for every
+caller not listed.
+
+Consequences: A route people and one service share is one operation that says
+so, and the OpenAPI document keeps one path. A client not listed
+is refused whatever its roles grant, and a client listed must hold
+a role that grants the permission, so the list and the matrix
+agree by construction. A route meant for machines names them.
+
+**Insight:** A subset rather than all, because all would admit a client added later with a granting role without anyone writing it on the operation, the fail-open the estate declined pattern permissions for; the list is as long as the callers and no longer. people reserved rather than a flag beside the list, because nobody is a reserved word on the same scale already (ADR-096) and a flag would be a second way to say who may call. A listed service with no granting role is an error rather than a warning, because a name on an operation that no grant backs is a list and a matrix saying two things, and the fail-closed rule is one rule. Compiler test: a wrong name in callers is an error at the operation and the operation stays read with its permission. Acceptance test: the techspec's matrix row for the service shows the operation beside the roles that reach it, which the policy rows never showed.
+
+### ADR-111: A token says its kind with tokenType, via on each operation names its immediate callers and is required wherever a Txn-Token or an act token is accepted, the validator derives the chain by induction, and every service in a chain proves a workload identity
+
+Status: accepted, 2026-10-14.
+
+Context: docs/caller-context.md, the owner's decision 7. The design as
+first proposed put via on the token as the default, listing whole
+chains in call order, with via on an operation to narrow, and
+accepted every chain the issuer signed when both were left out. A
+Transaction Token records no chain, only req_wl, the workload that
+requested it, so the last hop cannot verify a whole chain from the
+token; the first design keyed the rule on act, which a Txn-Token
+lacks; and the services it named declared no proof, where the
+draft says a workload must not authenticate itself with a
+Txn-Token.
+
+Decision: A token declares tokenType: access_token, the default when left
+out, or txn_token, the suffix of the OAuth token type identifier.
+A txn_token has format jwt, is carried in the Txn-Token header and
+never in Authorization, which generate openapi writes as an apiKey
+scheme in that header for every operation accepting it, and
+declares the claims of ADR-108.
+via is written on an operation only: the list of the clients that
+may be its immediate caller on a person's behalf, each a service.
+It is required on every operation whose accepted token is a
+txn_token or declares act, and missing there is the error via;
+on an operation accepting neither it is refused, and so are an
+empty list, a client not declared, an application, a client twice
+and a client without a workload-identity proof. There is no
+default on the token and no "left out means every chain the
+issuer signed". The validator derives the chain by induction
+across the estate: for each client in an operation's via, the
+operation of that client's module that calls this one (the calls
+of its dependency) must either accept a txn_token with a via of
+its own or be the edge, accepting an access token; a hop whose
+via does not name the caller that calls it, or a caller with no
+via where one is required, is a gap, the error via at that hop.
+The middleware's delete lists the front ends' backend, the core's
+lists the middleware, and the chain is the induction.
+Every client a via names declares a proof of a workload-identity
+kind: mutualTls (RFC 8705), spiffe (an X.509 or JWT SVID carrying
+the SPIFFE ID) or wimse (the Workload Identity Token of the WIMSE
+drafts, bound to a key the workload proves it holds); a token
+proof there is refused, and a proof of kind token naming a
+txn_token is refused anywhere (proof). via binds to that proof:
+the hop checks that the immediate caller's workload identity is
+the one the implementation file's deployments map for the named
+client, and the Txn-Token's req_wl is the edge, not the caller.
+Derived red case at every operation with via: refused with a
+caller not listed in via, which the test gives as the edge calling
+the last hop directly; each refusal is the security event of
+ADR-109.
+
+Consequences: Each hop's specification says who may call it and what the caller
+proves, and the estate's chain is checked once, in the umbrella
+run, from those local facts. A service forgotten in a chain is an
+error at the hop that would admit it, not a token the issuer
+signed. A specification declares which header a token rides in by
+its kind, and the OpenAPI document shows it. The identity module's
+exchange operation issues a txn_token for a call inside the
+domain and an access token with act for one that leaves it.
+
+**Insight:** The immediate caller rather than a whole chain, because the draft keeps the call chain out of the token (only req_wl names a workload) so the last hop has nothing to verify a chain against, while its immediate caller's workload identity is something it can check; the chain then holds by induction, each hop vouching for the one before, and the validator is where the induction is checked, since it reads every module. On the operation only, not the token, because a token is minted once for the whole domain and accepted at every hop, so a via on it would say one thing for every hop where each hop's caller differs; the first design's token-level default lost with it. No "every chain the issuer signed" default, because an issuer's may_act policy is a second place for the rule and a hop would admit a chain nobody wrote, the fail-open the estate declined pattern permissions for. The rule keys on tokenType and act rather than act alone, because a Txn-Token has no act and via would otherwise not be required at the hops the owner wants it on; tokenType is the token's own word for what it is, taken from the OAuth token type identifiers so that the exchange request and the specification say it one way. The Txn-Token header because the draft says the Authorization header MUST NOT be used, workloads use it for other purposes. Proof is mandatory on a chain's services because the draft says a workload MUST NOT use a Txn-Token to authenticate itself, so a hop with no proof has nothing a via could bind to; the three kinds are the published forms of a workload's identity, and an estate that has none is told so at the client rather than at the first breach. Compiler test: a missing via, a gap in the chain and a service with no proof are each an error at the entry and the operation stays read with its permission. Acceptance test: via is one line per operation that reads as the call is drawn, and the techspec's call diagram draws the chain the induction found with the token on each arrow.
+
+**Note:** From Transaction Tokens, an Internet-Draft of the IETF OAuth working group (draft-ietf-oauth-transaction-tokens-11), 11, 30 July 2026: A Txn-Token is carried in the Txn-Token header, one per request; the Authorization header MUST NOT be used; a workload MUST NOT use a transaction token to authenticate itself to another workload; the token type is urn:ietf:params:oauth:token-type:txn_token; req_wl identifies the workload that requested the Txn-Token. <https://datatracker.ietf.org/doc/draft-ietf-oauth-transaction-tokens/>
+
+**Note:** From RFC 8705, OAuth 2.0 Mutual-TLS Client Authentication and Certificate-Bound Access Tokens, 2020: An authorization server binds an access token to the client certificate presented over mutual TLS, so that only the holder of the private key can use it. <https://www.rfc-editor.org/rfc/rfc8705>
+
+**Note:** From The SPIFFE Standards, the SPIFFE ID and the SPIFFE Verifiable Identity Document (SVID) as an X.509 certificate or a JWT: A SPIFFE ID is a structured string, represented as a URI, which serves as the name of an entity; an SVID is a document which carries the SPIFFE ID itself, as an X.509 certificate or a JWT. <https://github.com/spiffe/spiffe/tree/main/standards>
+
+**Note:** From WIMSE Workload Credentials, an Internet-Draft of the IETF WIMSE working group (draft-ietf-wimse-workload-creds-02), 02, 2 July 2026: A Workload Identity Token carries the workload identifier as sub and a cnf claim with the workload's public key; the workload must prove possession of the matching private key, so it is not a bearer token. <https://datatracker.ietf.org/doc/draft-ietf-wimse-workload-creds/>
+
 ## 10. Quality requirements
 
 The design tests: what must hold on every implementation. Golden scenarios succeed; red scenarios are refused.
@@ -8175,7 +8530,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-2 | enums Rule; commands validate; algorithms referenceResolves; decisions ADR-061 | tests validate-duplicate-name-across-files; tests validate-enabled-by; tests validate-environment; tests validate-need; tests validate-ref-type; tests validate-relation-target; tests validate-requirement-set; tests validate-stakeholder |
 | SA-3 | enums Rule; commands validate; decisions ADR-004; decisions ADR-047; decisions ADR-061; decisions ADR-094; decisions ADR-095; decisions ADR-097 | tests validate-expression-date-days; tests validate-expression-date-number; tests validate-expression-in-stage-file; tests validate-expression-syntax; tests validate-expression-type; tests validate-unique-where |
 | SA-4 | enums Rule; commands validate; algorithms workedExampleHolds; decisions ADR-004 | tests validate-example-mismatch |
-| SA-5 | enums Rule; commands validate; algorithms permissionGranted; algorithms separationOfDuties; decisions ADR-006; decisions ADR-053; decisions ADR-054; decisions ADR-094; decisions ADR-095; decisions ADR-096; decisions ADR-097 | tests validate-permission-undeclared; tests validate-permission-ungranted; tests validate-permission-ungranted-without-description; tests validate-question-covers-problem; tests validate-question-covers-ungranted; tests validate-schema-operation-without-permission; tests validate-separation-of-duties |
+| SA-5 | enums Rule; commands validate; algorithms permissionGranted; algorithms separationOfDuties; decisions ADR-006; decisions ADR-053; decisions ADR-054; decisions ADR-094; decisions ADR-095; decisions ADR-096; decisions ADR-097; decisions ADR-106; decisions ADR-107; decisions ADR-108; decisions ADR-109; decisions ADR-110; decisions ADR-111 | tests validate-permission-undeclared; tests validate-permission-ungranted; tests validate-permission-ungranted-without-description; tests validate-question-covers-problem; tests validate-question-covers-ungranted; tests validate-schema-operation-without-permission; tests validate-separation-of-duties |
 | SA-6 | enums Rule; enums Severity; entities Diagnostic; commands validate; algorithms exitStatus; decisions ADR-005; decisions ADR-008 | tests validate-usage-error; tests validate-yaml-syntax; tests version-prints-versions; checks installs-and-answers |
 | SA-7 | enums DocumentTarget; enums GeneratorTarget; entities GeneratedFile; commands document; commands generate; algorithms checkStatus; decisions ADR-013; decisions ADR-073 | tests document-check-differs; tests document-check-invalid; tests document-two-implementations; tests document-writes-techspec; tests generate-plugin-path-outside; tests generate-with-plugin; checks checks-the-examples; monitors main-stays-green |
 | SA-8 | entities GeneratedFile; commands document; commands generate; algorithms markersWellFormed | tests document-entity-diagram; tests document-two-implementations; tests document-writes-techspec |
@@ -8199,7 +8554,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-26 | enums DocumentTarget; commands document | tests document-writes-changes; tests document-writes-releases |
 | SA-27 | enums Rule; commands validate | tests validate-test-data; tests validate-test-data-folder; tests validate-test-data-valid |
 | SA-28 | commands derive; decisions ADR-055 | tests derive-invalid-spec; tests derive-keeps-existing; tests derive-meta-model-0-2; tests derive-meta-model-0-2-other-error; tests derive-name-taken; tests derive-page-elements; tests derive-page-named-after-operation; tests derive-root-tests; tests derive-skips-blocked; tests derive-task-page-checks; tests derive-usage-error; tests derive-writes-drafts; tests merge-takes-derived-drafts |
-| SA-29 | enums Rule; commands validate; decisions ADR-021; decisions ADR-097 | tests validate-concept-cases-listed; tests validate-dependency; tests validate-guard; tests validate-idempotency-key; tests validate-session; tests validate-validity |
+| SA-29 | enums Rule; commands validate; decisions ADR-021; decisions ADR-097; decisions ADR-108; decisions ADR-109; decisions ADR-111 | tests validate-concept-cases-listed; tests validate-dependency; tests validate-guard; tests validate-idempotency-key; tests validate-session; tests validate-validity |
 | SA-30 | commands gaps; decisions ADR-022 | tests gaps-coverage; tests gaps-outline-not-read; tests validate-mapping-origin; tests validate-source-clause |
 | SA-31 | commands generate; decisions ADR-041; decisions ADR-078 | tests generate-stack-fallback; tests generate-stack-plugin; tests generate-tests-dart; tests generate-tests-framework-refused; tests generate-tests-go; tests generate-tests-swift; tests generate-tests-value-objects |
 | SA-32 | commands idioms; commands idioms diff; decisions ADR-023; decisions ADR-028 | tests idioms-diff; tests idioms-diff-unknown; tests idioms-diff-usage-error; tests idioms-lists; tests idioms-lists-ui-framework; tests idioms-usage-error; tests validate-idiom-override; tests validate-idiom-problems; tests validate-idiom-stack-framework |
@@ -8253,6 +8608,9 @@ Every source a Note in this document cites.
 | iec-62381 | IEC 62381, Automation systems in the process industry, Factory acceptance test (FAT), site acceptance test (SAT) and site integration test (SIT) | 2024 | IEC |   |
 | ieee-830 | IEEE Std 830-1998, IEEE Recommended Practice for Software Requirements Specifications | 1998 | IEEE |   |
 | ietf-idempotency-key | The Idempotency-Key HTTP Header Field, an Internet-Draft of the IETF HTTP API working group |   | IETF HTTP API working group | https://datatracker.ietf.org/doc/draft-ietf-httpapi-idempotency-key-header/ |
+| ietf-oauth-identity-chaining | OAuth Identity and Authorization Chaining Across Domains, an Internet-Draft of the IETF OAuth working group (draft-ietf-oauth-identity-chaining-17) | 17, 19 July 2026 | IETF OAuth working group | https://datatracker.ietf.org/doc/draft-ietf-oauth-identity-chaining/ |
+| ietf-oauth-transaction-tokens | Transaction Tokens, an Internet-Draft of the IETF OAuth working group (draft-ietf-oauth-transaction-tokens-11) | 11, 30 July 2026 | IETF OAuth working group | https://datatracker.ietf.org/doc/draft-ietf-oauth-transaction-tokens/ |
+| ietf-wimse-workload-creds | WIMSE Workload Credentials, an Internet-Draft of the IETF WIMSE working group (draft-ietf-wimse-workload-creds-02) | 02, 2 July 2026 | IETF WIMSE working group | https://datatracker.ietf.org/doc/draft-ietf-wimse-workload-creds/ |
 | iso-12207 | ISO/IEC/IEEE 12207, Systems and software engineering, Software life cycle processes | 2017 | ISO, IEC and IEEE | https://www.iso.org/standard/63712.html |
 | iso-29119-1 | ISO/IEC/IEEE 29119-1, Software and systems engineering, Software testing, Part 1, General concepts | 2022 | ISO, IEC and IEEE |   |
 | iso-29119-3 | ISO/IEC/IEEE 29119-3, Software and systems engineering, Software testing, Part 3, Test documentation | 2021 | ISO, IEC and IEEE | https://www.iso.org/standard/79429.html |
@@ -8263,6 +8621,7 @@ Every source a Note in this document cites.
 | mil-std-961 | MIL-STD-961E, Defense and program-unique specifications format and content | 2003, with change 3 of 2020 | United States Department of Defense |   |
 | moscow | MoSCoW prioritisation, in the DSDM Agile Project Framework handbook | 2014 | Agile Business Consortium | https://www.agilebusiness.org/dsdm-project-framework/moscow-prioritisation.html |
 | openapi | OpenAPI Specification | 3.1.0 | OpenAPI Initiative | https://spec.openapis.org/oas/v3.1.0 |
+| owasp-asvs | OWASP Application Security Verification Standard, chapter V16, Security Logging and Error Handling | 5.0.0 | OWASP | https://github.com/OWASP/ASVS/blob/master/5.0/en/0x25-V16-Security-Logging-and-Error-Handling.md |
 | owasp-authorization | OWASP Authorization Cheat Sheet |   | OWASP | https://cheatsheetseries.owasp.org/cheatsheets/Authorization_Cheat_Sheet.html |
 | owasp-session-management | OWASP Session Management Cheat Sheet |   | OWASP | https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html |
 | postgresql-row-security | PostgreSQL documentation, Row Security Policies and CREATE POLICY | 17 | The PostgreSQL Global Development Group | https://www.postgresql.org/docs/17/ddl-rowsecurity.html |
@@ -8270,12 +8629,19 @@ Every source a Note in this document cites.
 | rfc-3986 | RFC 3986, Uniform Resource Identifier (URI): Generic Syntax | 2005 | IETF | https://www.rfc-editor.org/rfc/rfc3986 |
 | rfc-6901 | RFC 6901, JavaScript Object Notation (JSON) Pointer | 2013 | IETF | https://www.rfc-editor.org/rfc/rfc6901 |
 | rfc-7519 | RFC 7519, JSON Web Token (JWT) | 2015 | IETF | https://www.rfc-editor.org/rfc/rfc7519 |
+| rfc-7591 | RFC 7591, OAuth 2.0 Dynamic Client Registration Protocol | 2015 | IETF | https://www.rfc-editor.org/rfc/rfc7591 |
+| rfc-8252 | RFC 8252, OAuth 2.0 for Native Apps | 2017 | IETF | https://www.rfc-editor.org/rfc/rfc8252 |
+| rfc-8417 | RFC 8417, Security Event Token (SET) | 2018 | IETF | https://www.rfc-editor.org/rfc/rfc8417 |
+| rfc-8693 | RFC 8693, OAuth 2.0 Token Exchange | 2020 | IETF | https://www.rfc-editor.org/rfc/rfc8693 |
+| rfc-8705 | RFC 8705, OAuth 2.0 Mutual-TLS Client Authentication and Certificate-Bound Access Tokens | 2020 | IETF | https://www.rfc-editor.org/rfc/rfc8705 |
 | rfc-8725 | RFC 8725, JSON Web Token Best Current Practices | 2020 | IETF | https://www.rfc-editor.org/rfc/rfc8725 |
+| rfc-9068 | RFC 9068, JSON Web Token (JWT) Profile for OAuth 2.0 Access Tokens | 2021 | IETF | https://www.rfc-editor.org/rfc/rfc9068 |
 | rfc-9110 | RFC 9110, HTTP Semantics | 2022 | IETF | https://www.rfc-editor.org/rfc/rfc9110 |
 | rfc-9421 | RFC 9421, HTTP Message Signatures | 2024 | IETF | https://www.rfc-editor.org/rfc/rfc9421 |
 | rfc-9457 | RFC 9457, Problem Details for HTTP APIs | 2023 | IETF | https://www.rfc-editor.org/rfc/rfc9457 |
 | sarif | Static Analysis Results Interchange Format (SARIF) Version 2.1.0 | 2020 | OASIS | https://docs.oasis-open.org/sarif/sarif/v2.1.0/sarif-v2.1.0.html |
 | semver | Semantic Versioning | 2.0.0 | The Semantic Versioning project | https://semver.org/spec/v2.0.0.html |
+| spiffe | The SPIFFE Standards, the SPIFFE ID and the SPIFFE Verifiable Identity Document (SVID) as an X.509 certificate or a JWT |   | The SPIFFE project, Cloud Native Computing Foundation | https://github.com/spiffe/spiffe/tree/main/standards |
 | whatwg-html | HTML Living Standard |   | WHATWG | https://html.spec.whatwg.org/ |
 | yaml | YAML Ain't Markup Language (YAML) version 1.2 | 1.2.2 | The YAML Language Development Team | https://yaml.org/spec/1.2.2/ |
 

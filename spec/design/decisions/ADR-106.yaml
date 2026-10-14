@@ -1,0 +1,100 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
+decisions:
+  ADR-106:
+    title: A client is keyed by its software_id with a kind, its client_id is a deployment value, and its version is checked once at the edge against a declared claim, after RFC 7591
+    status: accepted
+    date: "2026-10-14"
+    context: |
+      docs/caller-context.md, the owner's decision 1. A role may hold a
+      permission only through one application, and an estate wants to
+      refuse an application whose version is too old. The design as first
+      proposed named a client by a key of its own and said nothing of its
+      version. The owner asked for the standard's names: RFC 7591
+      registers a client with client_id, software_id, software_version
+      and a software_statement, and a hop that refuses an old version
+      needs a value to check and a place to check it, since no claim of a
+      token names the version.
+    decision: |
+      clients is keyed by the software_id of RFC 7591: the name the
+      publisher gives the software, the same across its versions, in
+      kebab-case like every key; through, via and callers name it. The
+      client_id is issued by the authorisation server per registration and
+      differs per environment, so it is a deployment value of the
+      implementation file (deployments.<environment>.clients.<name>.clientId),
+      never a design key. Each client says its kind, application (where a
+      person signs in) or service (a program that calls on its own account
+      or carries a person's call); a kind outside the two is refused
+      (client). A client may say softwareVersion, the versions it is
+      admitted at: a lower bound included and an upper bound excluded,
+      each a Semantic Versioning 2.0.0 version, written ">=1.2.0 <2.0.0";
+      and softwareStatement true when the version is the publisher's,
+      asserted in the signed statement of RFC 7591, section 2.3, which the
+      issuer verified at registration.
+      The version is checked once, at the edge: the hop that accepts the
+      client's own request, a person's access token or the client's own
+      proof. It is read from the claim softwareVersion of that token,
+      which the issuer fills from the registration; a specification with
+      a softwareVersion on any client whose edge token declares no such
+      claim is refused (software_version). No later hop checks it: a
+      Txn-Token carries no version, and the chain of ADR-111 binds every
+      later hop to the edge that did. A refusal is 403 with the problem
+      type the design declares for it, never 426. With softwareStatement
+      the techspec marks the check as security; without it the version is
+      self-asserted (RFC 7591, section 5) and the check is marked
+      compatibility. A native application whose installs run different
+      versions registers each instance, the per-instance registration RFC
+      8252, section 8.4, names RFC 7591 for; a browser application has the
+      version it was deployed at, and its registration is updated when
+      that changes. Derived red case at the edge, for every client with
+      softwareVersion: refused with a version outside the admitted range,
+      with the security event of ADR-109.
+    consequences: |
+      A client's name in a specification is the one that survives a
+      re-registration and an environment, and the per-environment
+      identifier sits with the other deployment values. Which hop checks
+      the version is written, and a reader of the core's code expects no
+      version check there. An estate that wants the version trusted
+      registers its applications with a software statement; one that
+      does not is told, in the techspec, that the check is for
+      compatibility.
+    why: |
+      software_id rather than client_id as the key, because RFC 7591
+      makes client_id the server's issue per registration, so a design
+      keyed by it would change at every environment and re-registration,
+      and software_id "SHOULD remain the same across multiple updates or
+      versions of the same piece of software": a name that is the
+      software's is the name a grant is written against. The version is
+      checked at the edge and nowhere else because a claim is the only
+      thing a hop can check, no claim of a Txn-Token carries the version,
+      and a check whose input is not on the wire would be pretending; the
+      alternative, every hop checking a version the client reports in a
+      request header, lost because a header the client writes is
+      self-asserted at every hop and could never be the trusted form,
+      where the registration is where the standard puts the version and
+      RFC 7591 itself draws the line the owner drew: a software
+      statement's claims may be trusted, everything else "MUST treat all
+      client metadata as self-asserted". A range of versions rather than
+      a list, because an estate admits "this version and later, before
+      the next major" and a list would be rewritten at every release;
+      Semantic Versioning gives the order RFC 7591's string equality does
+      not. 403 and not 426 because RFC 9110 reserves 426 for a server
+      that "refuses to perform the request using the current protocol",
+      and an application's version is not the protocol; 403 is the server
+      that "understood the request but refuses to fulfill it", with the
+      problem document saying why. Compiler test: a version range that
+      does not parse, a client with a version and no claim to check it
+      against, and a kind outside the two are each an error at the
+      client, and the client stays read with its roles and proof.
+      Acceptance test: the techspec's client table shows each client's
+      admitted versions and whether the check is security or
+      compatibility, one line per client.
+    cites:
+      - source: rfc-7591
+        says: "software_id SHOULD remain the same across multiple updates or versions of the same piece of software; client_id is issued by the authorization server; apart from a software statement's claims, the server MUST treat all client metadata as self-asserted."
+      - source: rfc-8252
+        says: "Except when using a mechanism like Dynamic Client Registration to provision per-instance secrets, native apps are classified as public clients."
+      - source: rfc-9110
+        says: "403 Forbidden: the server understood the request but refuses to fulfill it. 426 Upgrade Required: the server refuses to perform the request using the current protocol."
+      - source: semver
+        says: "Versions are ordered by major, minor and patch, so a range with a lower and an upper bound is well defined."
+    satisfies: [SA-5]

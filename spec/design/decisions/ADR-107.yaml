@@ -1,0 +1,68 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
+decisions:
+  ADR-107:
+    title: Clients, roles and the trust domain live in an identity module the other modules reference, every hop's route has its own permission, and permissions, clients and roles are reference targets
+    status: accepted
+    date: "2026-10-14"
+    context: |
+      docs/caller-context.md, the owner's decision 2, with the estate's
+      decision 2 (docs/estate.md). A role's grant through one application
+      names a permission of the service that enforces it, and a call
+      passes through services in several modules, each with a
+      specification of its own. The owner's first answer put the clients
+      and the roles in the umbrella; the umbrella lists and pins the
+      modules and holds nothing of their design (docs/estate.md, section
+      2), so they needed a module of their own. The first design also
+      checked the permission at the last hop only, with the earlier hops
+      forwarding.
+    decision: |
+      One module of the estate is the identity module: a specification
+      like any other, holding trustDomain (the URI that names the trust
+      domain), clients and roles, and the exchange operation that issues
+      the estate's tokens. Every other module declares it as a dependency
+      with specification and version, and names its clients and roles by
+      reference, identity#/clients/<name> and identity#/roles/<name>, in
+      through, via and callers; a role's permissions and through name
+      each permission in the module that enforces it, core#/permissions/<name>.
+      The reference targets of the estate's decision 2 widen by three:
+      #/permissions/<name>, #/clients/<name> and #/roles/<name>. The
+      umbrella still lists and pins, nothing more.
+      Every hop's route has a permission of its own, so a call through
+      the front ends' backend, the middleware and the core checks three
+      permissions, one in each module; a route with none is the schema
+      error it is today. A module validated alone counts a permission
+      granted only by a referenced role as an unresolved reference in its
+      summary line, beside the open questions; the umbrella run resolves
+      every reference and refuses a permission no role grants and a
+      through, via or callers naming a client or a role the identity
+      module does not hold (reference), at the entry.
+    consequences: |
+      An estate has one place where its clients and roles are written and
+      one trust domain, and the modules that enforce permissions keep
+      them. A module alone validates with its grants as gaps, which is
+      what one team needs; the estate's consistency is checked in the
+      umbrella run. A route that forwarded a call without a permission of
+      its own is now an error, which is the fail-closed rule applied at
+      every hop.
+    why: |
+      A module rather than the umbrella, because the estate's decision 2
+      made the umbrella a list of modules with their versions and nothing
+      copied into it, and a clients object in it would be the one
+      exception, with a second place for a thing the modules reference;
+      an identity service is a module of the estate already, with the
+      exchange operation ADR-097 gives it, so its specification is where
+      the clients and the roles belong. A permission per hop rather than
+      one at the last, because a hop with no permission admits every
+      caller that reaches it, which is the fail-open SA-5 refuses, and
+      because the front ends' backend and the middleware are services
+      with routes of their own that the reader extracts like any. The
+      references take the estate's form rather than a copy of the role
+      into each module, because a copy is a second place to say one
+      thing. Compiler test: a reference the validator cannot resolve
+      alone is a counted gap and the module is still read; a reference
+      the umbrella run cannot resolve is an error at the entry.
+      Acceptance test: the identity module's techspec shows the one
+      client table and the one matrix for the estate, and each module's
+      techspec shows which of its permissions each referenced role
+      reaches.
+    satisfies: [SA-5]

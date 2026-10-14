@@ -221,3 +221,89 @@ sources:
     title: OWASP Authorization Cheat Sheet
     author: OWASP
     url: https://cheatsheetseries.owasp.org/cheatsheets/Authorization_Cheat_Sheet.html
+  rfc-6749:
+    kind: standard
+    title: RFC 6749, The OAuth 2.0 Authorization Framework
+    edition: "2012"
+    author: IETF
+    url: https://www.rfc-editor.org/rfc/rfc6749
+  rfc-7591:
+    kind: standard
+    title: RFC 7591, OAuth 2.0 Dynamic Client Registration Protocol
+    edition: "2015"
+    author: IETF
+    url: https://www.rfc-editor.org/rfc/rfc7591
+  rfc-8252:
+    kind: standard
+    title: RFC 8252, OAuth 2.0 for Native Apps
+    edition: "2017"
+    author: IETF
+    url: https://www.rfc-editor.org/rfc/rfc8252
+  rfc-8693:
+    kind: standard
+    title: RFC 8693, OAuth 2.0 Token Exchange
+    edition: "2020"
+    author: IETF
+    url: https://www.rfc-editor.org/rfc/rfc8693
+  rfc-9068:
+    kind: standard
+    title: RFC 9068, JSON Web Token (JWT) Profile for OAuth 2.0 Access Tokens
+    edition: "2021"
+    author: IETF
+    url: https://www.rfc-editor.org/rfc/rfc9068
+  rfc-8707:
+    kind: standard
+    title: RFC 8707, Resource Indicators for OAuth 2.0
+    edition: "2020"
+    author: IETF
+    url: https://www.rfc-editor.org/rfc/rfc8707
+  rfc-9700:
+    kind: standard
+    title: RFC 9700, Best Current Practice for OAuth 2.0 Security
+    edition: "2025"
+    author: IETF
+    url: https://www.rfc-editor.org/rfc/rfc9700
+  rfc-8417:
+    kind: standard
+    title: RFC 8417, Security Event Token (SET)
+    edition: "2018"
+    author: IETF
+    url: https://www.rfc-editor.org/rfc/rfc8417
+  rfc-8705:
+    kind: standard
+    title: RFC 8705, OAuth 2.0 Mutual-TLS Client Authentication and Certificate-Bound Access Tokens
+    edition: "2020"
+    author: IETF
+    url: https://www.rfc-editor.org/rfc/rfc8705
+  ietf-oauth-transaction-tokens:
+    kind: document
+    title: Transaction Tokens, an Internet-Draft of the IETF OAuth working group (draft-ietf-oauth-transaction-tokens-11)
+    edition: "11, 30 July 2026"
+    author: IETF OAuth working group
+    url: https://datatracker.ietf.org/doc/draft-ietf-oauth-transaction-tokens/
+    description: A draft on the standards track, not a standard yet; cited for the Txn-Token's claims, its header, its audience as the trust domain, and the rule that a workload never authenticates with one. The claim names are the draft's at this version and may change before it is an RFC.
+  ietf-oauth-identity-chaining:
+    kind: document
+    title: OAuth Identity and Authorization Chaining Across Domains, an Internet-Draft of the IETF OAuth working group (draft-ietf-oauth-identity-chaining-17)
+    edition: "17, 19 July 2026"
+    author: IETF OAuth working group
+    url: https://datatracker.ietf.org/doc/draft-ietf-oauth-identity-chaining/
+    description: A draft submitted for publication as a proposed standard, not a standard yet; cited for how a call keeps its identity and authorisation when it crosses a trust domain.
+  ietf-wimse-workload-creds:
+    kind: document
+    title: WIMSE Workload Credentials, an Internet-Draft of the IETF WIMSE working group (draft-ietf-wimse-workload-creds-02)
+    edition: "02, 2 July 2026"
+    author: IETF WIMSE working group
+    url: https://datatracker.ietf.org/doc/draft-ietf-wimse-workload-creds/
+    description: A draft, not a standard; cited for the Workload Identity Token, a credential bound to a key the workload proves it holds.
+  spiffe:
+    kind: document
+    title: The SPIFFE Standards, the SPIFFE ID and the SPIFFE Verifiable Identity Document (SVID) as an X.509 certificate or a JWT
+    author: The SPIFFE project, Cloud Native Computing Foundation
+    url: https://github.com/spiffe/spiffe/tree/main/standards
+  owasp-asvs:
+    kind: document
+    title: OWASP Application Security Verification Standard, chapter V16, Security Logging and Error Handling
+    edition: "5.0.0"
+    author: OWASP
+    url: https://github.com/OWASP/ASVS/blob/master/5.0/en/0x25-V16-Security-Logging-and-Error-Handling.md

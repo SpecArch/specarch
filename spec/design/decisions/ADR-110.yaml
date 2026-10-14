@@ -1,0 +1,52 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
+decisions:
+  ADR-110:
+    title: callers is an explicit subset, people is a reserved caller like nobody is a reserved permission, and a service listed with no granting role is an error
+    status: accepted
+    date: "2026-10-14"
+    context: |
+      docs/caller-context.md, the owner's decision 5, and the estate's
+      question 3. A route both people and a service call, the reporting
+      service reading the list people read, was left out of meta-model
+      0.3 (two operations with one handler), and the design as first
+      proposed recommended callers all, reported in the techspec as every
+      client with a granting role. ADR-096 has callers clients for a
+      machine route and nothing for people, who are admitted when it is
+      left out.
+    decision: |
+      callers is a list, the explicit subset of who may call: people,
+      the reserved word for anyone signed in, and clients by name
+      (identity#/clients/reporting). Left out, it is [people], as
+      today. Which people is the roles' business, never callers'. The
+      validator refuses, as callers at the entry, an empty list, a name
+      that is neither people nor a declared client, a client twice, a
+      service with no roles (it only carries a person's call and never
+      calls on its own account), and a client none of whose roles grants
+      the operation's permission, directly or by implies. ADR-096's
+      callers clients is written [reporting], naming the clients. There
+      is no all. A client listed with a granting role is admitted on
+      its own account, and the derived cases of ADR-096 follow: refused
+      for a signed-in person where people is absent, refused for every
+      caller not listed.
+    consequences: |
+      A route people and one service share is one operation that says
+      so, and the OpenAPI document keeps one path. A client not listed
+      is refused whatever its roles grant, and a client listed must hold
+      a role that grants the permission, so the list and the matrix
+      agree by construction. A route meant for machines names them.
+    why: |
+      A subset rather than all, because all would admit a client added
+      later with a granting role without anyone writing it on the
+      operation, the fail-open the estate declined pattern permissions
+      for; the list is as long as the callers and no longer. people
+      reserved rather than a flag beside the list, because nobody is a
+      reserved word on the same scale already (ADR-096) and a flag would
+      be a second way to say who may call. A listed service with no
+      granting role is an error rather than a warning, because a name on
+      an operation that no grant backs is a list and a matrix saying two
+      things, and the fail-closed rule is one rule. Compiler test: a
+      wrong name in callers is an error at the operation and the
+      operation stays read with its permission. Acceptance test: the
+      techspec's matrix row for the service shows the operation beside
+      the roles that reach it, which the policy rows never showed.
+    satisfies: [SA-5]

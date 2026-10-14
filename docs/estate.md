@@ -34,7 +34,7 @@ facts in a format SpecArch defines, never a reader of its own.
 | 3. documents in another language | built, item 4 (ADR-105): a vocabulary per language, English shipped, `--language` and `--vocabulary` on extract documents and `--vocabulary` on merge, `language` on a source, the row-number column skipped |
 | 4. role names on the wire | built, item 2 (ADR-099): `info.roleNames: upper_snake`, read by both readers of grants |
 | 5. authorisation by path pattern | built, item 3 (ADR-100): `implies` on a permission, counted by every check of a role's grants, and `rules` in the permission table, read with the route table by `extract permissions --routes`; a permission defined by a pattern is declined |
-| 6. a check bypassed for one kind of caller | planned as a gate kind in the permission table, item 7; whether a route may serve people and clients both is decision 3: left out of 0.3 |
+| 6. a check bypassed for one kind of caller | planned as a gate kind in the permission table, item 7; a route that serves people and clients both lists them in `callers` (`docs/caller-context.md`, ADR-110) |
 | 7. the schema file's name; the facts dump from the installed binary | planned, item 8 |
 | 8. workflow definitions that are not BPMN | planned as a printed workflow table, item 9, since the estate's format is custom; a standard format gets a plug-in reader (decision 5) |
 | 9. audience, requirements held elsewhere, material questions, partial answers, row citations | planned, items 10 and 11; a row citation is shipped in 0.6.0 as a clause that carries the row's identifier |
@@ -339,19 +339,18 @@ in the output. `extract go` asks the same where the implementation
 file's bindings name the check. That works on a 0.2 tree today and
 needs no keyword.
 
-What the meta-model says about it is 0.3's: a client holds roles, a
-machine route is `callers: clients`, and a route both people and clients
-call is in the left-out table because no system asked for one
-(`docs/meta-model-0.3.md`). This system has one on every guarded route,
-by accident or by design, which is exactly what the question asks the
-owners. 0.3 keeps that row left out rather than adding a `callers: all`
-that the validator would report as every client reaching the operation
-(decision 3); the gate's question is the record. The meta-model side of
-the calling service, and the three inputs beside it (the application a
-person signed in through, the delegation chain and the audience per
-hop), are designed in `docs/caller-context.md`, which recommends
-`callers: all`; that recommendation is for the owner to weigh against
-decision 3.
+What the meta-model says about it is 0.3's as `docs/caller-context.md`
+amends it: a client holds roles, and `callers` on an operation is the
+explicit list of who may call it, `people` and clients by name, with no
+`all` (ADR-110). This system lets every client through on every guarded
+route, by accident or by design, which is exactly what the question asks
+the owners; the gate's question is the record, and the answer, where it
+is a design, is the client's name in that operation's `callers`, which
+the validator refuses unless one of the client's roles grants the
+permission. The meta-model side of the calling service, and the three
+inputs beside it (the application a person signed in through, the
+delegation chain and the audience per hop), are designed in
+`docs/caller-context.md`, decided on 2026-10-14 (ADR-106 to ADR-111).
 
 ### 7. The schema file's name, and the facts dump from the installed binary
 

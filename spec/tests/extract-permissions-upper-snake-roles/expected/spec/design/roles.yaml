@@ -1,0 +1,34 @@
+permissions:
+  loans.approve:
+    origin: stated
+    cites:
+      - {source: code, clause: access role DESK_SUPERVISOR, says: DESK_SUPERVISOR grants loans.approve.}
+  loans.read:
+    origin: stated
+    cites:
+      - {source: code, clause: access role AUDITOR, says: 'AUDITOR, DESK_STAFF, DESK_SUPERVISOR and LEVEL_2_CLERK grant loans.read.'}
+  loans.write:
+    origin: stated
+    cites:
+      - {source: code, clause: access role DESK_STAFF, says: DESK_STAFF grants loans.write.}
+roles:
+  auditor:
+    permissions: [loans.read]
+    origin: stated
+    cites:
+      - {source: code, clause: access role AUDITOR, says: AUDITOR grants loans.read and public.}
+  desk-staff:
+    permissions: [loans.read, loans.write]
+    origin: stated
+    cites:
+      - {source: code, clause: access role DESK_STAFF, says: DESK_STAFF grants loans.read and loans.write.}
+  desk-supervisor:
+    permissions: [loans.approve, loans.read]
+    origin: stated
+    cites:
+      - {source: code, clause: access role DESK_SUPERVISOR, says: DESK_SUPERVISOR grants loans.approve and loans.read.}
+  level-2-clerk:
+    permissions: [loans.read]
+    origin: stated
+    cites:
+      - {source: code, clause: access role LEVEL_2_CLERK, says: LEVEL_2_CLERK grants loans.read.}

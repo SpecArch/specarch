@@ -1,0 +1,9 @@
+specarch: "0.2"
+info: { title: Case, version: 1.0.0, roleNames: upper_snake }
+permissions:
+  items.read: { description: See items. }
+  items.write: { description: Change items. }
+roles:
+  desk_staff: { description: Works the desk under another name., permissions: [items.read] }
+  desk-staff: { description: Works the desk., permissions: [items.read] }
+  desk-supervisor: { description: Supervises the desk., permissions: [items.read, items.write] }

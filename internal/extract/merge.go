@@ -1980,6 +1980,15 @@ func (m *merger) write(asked int) (*Result, error) {
 			break
 		}
 	}
+	// A reader of the roles a permission check reads says when it found
+	// them written in upper snake case; a tree that names the rule names it
+	// for the merge (ADR-099).
+	for _, t := range m.trees {
+		if r := source.Str(source.Child(source.Child(t.s.Root, "info"), "roleNames")); r != "" {
+			set(child(root, "info"), "roleNames", r)
+			break
+		}
+	}
 	m.res.Tree.put(spec.RootFile, root)
 	return m.res, nil
 }

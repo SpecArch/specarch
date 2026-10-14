@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: extract
+level: system
+scenario: golden
+given: "a repository whose first commit holds the folder a permission check is built from and whose second holds the permission table printed from it; the table writes every role in upper snake case, one of them with a digit, one granting public, one with two underscores in a row and one in mixed case"
+when: "extract permissions is run on the permission table"
+then: "it writes info.roleNames upper_snake and each upper snake role by its kebab-case name with the permissions it grants, each role and permission citing the table's own names; prints a line and writes a could question for the grant of public, for the name with two underscores, which would not go back on the wire unchanged, and for the name in mixed case, each saying why, and exits 0"
+verifies: [SA-62]

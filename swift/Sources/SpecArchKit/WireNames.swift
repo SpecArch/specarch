@@ -1,7 +1,8 @@
 import Foundation
 
 // A property's name on the wire, by the rule info.wireNames names
-// (ADR-062), and the check that two properties of one object do not take
+// (ADR-062), and a role's, by the rule info.roleNames names (ADR-099), and
+// the checks that two properties of one object, or two roles, do not take
 // one wire name. The Go build's internal/wirename writes the same names.
 
 /// The only rule info.wireNames takes.
@@ -30,6 +31,27 @@ func snakeWireName(_ name: String) -> String {
     return String(out)
 }
 
+/// The only rule info.roleNames takes (ADR-099).
+let upperSnakeRoleNames = "upper_snake"
+
+/// A role's name on the wire under a rule: under upper_snake every letter
+/// in upper case and every hyphen an underscore, so desk-supervisor is
+/// DESK_SUPERVISOR; the name as written when the rule is empty.
+func roleWireName(_ rule: String, _ name: String) -> String {
+    guard rule == upperSnakeRoleNames else { return name }
+    var out = String.UnicodeScalarView()
+    for r in name.unicodeScalars {
+        if r == "-" {
+            out.append("_")
+        } else if r >= "a" && r <= "z" {
+            out.append(Unicode.Scalar(r.value - 32)!)
+        } else {
+            out.append(r)
+        }
+    }
+    return String(out)
+}
+
 /// A name on the wire under a rule: the name as written when the rule is
 /// empty.
 func wireName(_ rule: String, _ name: String) -> String {
@@ -42,6 +64,7 @@ extension Checker {
     /// view's together with its entity's, and the inline objects of a body,
     /// a parameter's schema and a message's payload, at any depth.
     func checkWireNames(_ d: Design) {
+        checkRoleNames(d)
         let rule = str(d.root.child("info")?.child("wireNames"))
         guard rule == snakeCaseWireNames else { return }
         for e in pairs(d.root.child("entities")) {
@@ -66,6 +89,26 @@ extension Checker {
         for ch in pairs(d.root.child("channels")) {
             for m in pairs(ch.value.child("messages")) {
                 wireField(rule, m.value.child("payload"), ["channels", ch.key.value, "messages", m.key.value, "payload"])
+            }
+        }
+    }
+
+    /// Refuses two roles that go on the wire under one name, once the
+    /// specification names its roles' wire names, reported at the second in
+    /// the order the roles are written.
+    func checkRoleNames(_ d: Design) {
+        let rule = str(d.root.child("info")?.child("roleNames"))
+        guard rule == upperSnakeRoleNames else { return }
+        var taken: [String: String] = [:]
+        for r in pairs(d.root.child("roles")) {
+            let name = r.key.value
+            let wire = roleWireName(rule, name)
+            if let other = taken[wire] {
+                if other != name {
+                    add(r.key, pointer(["roles", name]), .wireName, "the roles \(other) and \(name) both go on the wire as \(wire) (info.roleNames: \(rule)); rename one")
+                }
+            } else {
+                taken[wire] = name
             }
         }
     }

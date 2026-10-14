@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: document
+level: system
+scenario: golden
+given: "a specification whose roles go on the wire in upper snake case, with two roles"
+when: document techspec is run
+then: "the Permissions section says how a role goes on the wire and lists each role with its wire name, and it exits 0"
+verifies: [SA-62]

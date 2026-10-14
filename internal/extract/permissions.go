@@ -83,7 +83,12 @@ func Permissions(dumpPath, out, key string) (*Result, error) {
 		res.Tree.put("design/questions.yaml", mapping("questions", pr.questions))
 	}
 	description := fmt.Sprintf("The roles and the permissions each grants, as the permission check built from %s reads them, from the permission table %s, made at commit %s. Every role and permission cites the table; what the table does not say is a question, and so is what the meta-model cannot hold.\n", t.Path, dumpName, r.Commit)
-	res.Tree.put("specarch.yaml", rootFile("Permissions of "+t.Path, description, stages, mapping(key, src)))
+	root := rootFile("Permissions of "+t.Path, description, stages, mapping(key, src))
+	if rule := pr.roleNames.rule(); rule != "" && pr.roles != nil {
+		set(child(root, "info"), "roleNames", rule)
+		res.say("role names: the table writes its roles in upper snake case, so each is read by its kebab-case name and the tree says info.roleNames %s", rule)
+	}
+	res.Tree.put("specarch.yaml", root)
 	return res, nil
 }
 
@@ -97,6 +102,8 @@ type permissionReader struct {
 	nextID      int
 	notHeld     []notHeld
 	mappedFrom  map[string]string // a permission the rule of ADR-076 mapped -> the privilege named
+	roleNames   roleNames         // how the table writes its roles (ADR-099)
+	wireOf      map[string]string // a role's name -> the name the table writes
 }
 
 // gap records what the meta-model cannot hold of a grant of the role, as
@@ -141,7 +148,7 @@ func boolGateQuestion(check, setting string) (question, why string) {
 // not show.
 func (pr *permissionReader) read(dumpName string) error {
 	seen := map[dumpGrant]bool{}
-	var names []string
+	var roles []string
 	for i, g := range pr.t.Grants {
 		where := fmt.Sprintf("%s, grant %d", dumpName, i+1)
 		if g.Role == "" || g.Permission == "" {
@@ -151,7 +158,26 @@ func (pr *permissionReader) read(dumpName string) error {
 			return refuse("%s: %s granting %s is listed twice", where, g.Role, g.Permission)
 		}
 		seen[g] = true
-		if roleWord.MatchString(g.Role) && g.Permission != "public" {
+		roles = append(roles, g.Role)
+	}
+	// Roles the table writes in upper snake case are read by their
+	// kebab-case names under info.roleNames (ADR-099); a role the rule
+	// cannot read keeps the name the table gives it, and is left out.
+	pr.roleNames = readRoleNames(roles)
+	pr.wireOf = map[string]string{}
+	grants := make([]dumpGrant, len(pr.t.Grants))
+	isRole := map[string]bool{}
+	for i, g := range pr.t.Grants {
+		if n, ok := pr.roleNames.name(g.Role); ok {
+			g.Role = n
+			isRole[n] = true
+			pr.wireOf[n] = pr.t.Grants[i].Role
+		}
+		grants[i] = g
+	}
+	var names []string
+	for _, g := range grants {
+		if isRole[g.Role] && g.Permission != "public" {
 			names = append(names, g.Permission)
 		}
 	}
@@ -162,12 +188,12 @@ func (pr *permissionReader) read(dumpName string) error {
 	type asked struct{ role, question, why string }
 	var problems []asked
 	pr.mappedFrom = map[string]string{}
-	for _, g := range pr.t.Grants {
+	for _, g := range grants {
 		switch {
-		case !roleWord.MatchString(g.Role):
-			pr.gap(g.Role, "grant of %s to %q: the role's name is not kebab-case, which a role name is; left out", g.Permission, g.Role)
+		case !isRole[g.Role]:
+			pr.gap(g.Role, "grant of %s to %q: %s; left out", g.Permission, g.Role, pr.roleNames.why(g.Role))
 		case g.Permission == "public":
-			pr.gap(g.Role, "grant of public to %s: public is open to everyone and granted by no role; left out", g.Role)
+			pr.gap(pr.wireOf[g.Role], "grant of public to %s: public is open to everyone and granted by no role; left out", pr.wireOf[g.Role])
 		default:
 			if q, why := privileges.grantProblem(g.Role, g.Permission); q != "" {
 				problems = append(problems, asked{g.Role, q, why})
@@ -187,9 +213,9 @@ func (pr *permissionReader) read(dumpName string) error {
 	for _, a := range problems {
 		unknown[a.role] = true
 	}
-	for _, g := range pr.t.Grants {
-		if roleWord.MatchString(g.Role) && byRole[g.Role] == nil {
-			pr.gap(g.Role, "role %s: it grants nothing the meta-model holds, and a role that grants nothing is left out", g.Role)
+	for _, g := range grants {
+		if isRole[g.Role] && byRole[g.Role] == nil {
+			pr.gap(pr.wireOf[g.Role], "role %s: it grants nothing the meta-model holds, and a role that grants nothing is left out", pr.wireOf[g.Role])
 			byRole[g.Role] = []string{}
 		}
 	}
@@ -224,7 +250,7 @@ func (pr *permissionReader) read(dumpName string) error {
 			perms := byRole[name]
 			sort.Strings(perms)
 			var granted []string
-			for _, g := range pr.t.Grants {
+			for _, g := range grants {
 				if g.Role == name {
 					granted = append(granted, g.Permission)
 				}
@@ -235,7 +261,8 @@ func (pr *permissionReader) read(dumpName string) error {
 				set(role, "permissions", perms)
 			}
 			set(role, "origin", "stated")
-			set(role, "cites", []*yaml.Node{citation(pr.key, pr.t.Path+" role "+name, fmt.Sprintf("%s grants %s.", name, joinAnd(granted)))})
+			wire := pr.wireOf[name]
+			set(role, "cites", []*yaml.Node{citation(pr.key, pr.t.Path+" role "+wire, fmt.Sprintf("%s grants %s.", wire, joinAnd(granted)))})
 			set(pr.roles, name, role)
 			blocks = append(blocks, "#/roles/"+escapeToken(name)+"/description")
 		}
@@ -260,7 +287,11 @@ func (pr *permissionReader) read(dumpName string) error {
 			if pr.mappedFrom[n] != "" {
 				named = pr.mappedFrom[n]
 			}
-			cites := []*yaml.Node{citation(pr.key, pr.t.Path+" role "+roles[0], fmt.Sprintf("%s %s %s.", joinAnd(roles), grantOrGrants(len(roles)), named))}
+			var wires []string
+			for _, r := range roles {
+				wires = append(wires, pr.wireOf[r])
+			}
+			cites := []*yaml.Node{citation(pr.key, pr.t.Path+" role "+wires[0], fmt.Sprintf("%s %s %s.", joinAnd(wires), grantOrGrants(len(roles)), named))}
 			if pr.mappedFrom[n] != "" {
 				set(pr.permissions, n, mapping("origin", "inferred", "why", privilegeWhy(named, n), "cites", cites))
 			} else {

@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: extract
+level: system
+scenario: golden
+given: "a repository whose first commit holds the folder a permission check is built from and whose second holds the permission table printed from it; the table names one role in kebab-case and one in upper snake case"
+when: "extract permissions is run on the permission table"
+then: "it writes the kebab-case role and no info.roleNames, prints a line and writes a could question for the upper snake role saying the table names its roles both ways, and exits 0"
+verifies: [SA-62]

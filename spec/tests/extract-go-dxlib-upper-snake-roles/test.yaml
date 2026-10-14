@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: extract
+level: system
+scenario: golden
+given: "a Go module whose seed inserts dxlib_module roles named in upper snake case, two that grant privileges and one with two underscores in a row that grants one"
+when: "extract go is run on the module"
+then: "it writes info.roleNames upper_snake and each role by its kebab-case name with its description and the permissions it grants, citing the seed's own names; prints a line and writes a could question for the name with two underscores, which would not go back on the wire unchanged, and exits 0"
+verifies: [SA-62]

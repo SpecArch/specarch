@@ -32,7 +32,7 @@ facts in a format SpecArch defines, never a reader of its own.
 | 1. a dump committed outside the code's repository | built, item 1 (ADR-098): `repository` in every dump, read at the gitlink's commit |
 | 2. references between specifications; an umbrella specification | planned, items 5 and 6 |
 | 3. documents in another language | planned, item 4 |
-| 4. role names on the wire | planned, item 2 |
+| 4. role names on the wire | built, item 2 (ADR-099): `info.roleNames: upper_snake`, read by both readers of grants |
 | 5. authorisation by path pattern | planned, item 3: pattern rules in the permission table and `implies` on a permission; a permission defined by a pattern is declined |
 | 6. a check bypassed for one kind of caller | planned as a gate kind in the permission table, item 7; whether a route may serve people and clients both is decision 3: left out of 0.3 |
 | 7. the schema file's name; the facts dump from the installed binary | planned, item 8 |
@@ -221,9 +221,9 @@ line in a data file, changed without a release.
 ### 4. Role names on the wire
 
 A role is `UPPER_SNAKE` in the token's roles claim and in the
-permission table, and kebab-case in a specification; `extract
-permissions` leaves out every grant whose role is not kebab-case, so a
-module whose roles are all upper snake comes out with no role. A
+permission table, and kebab-case in a specification; a reader that took
+only kebab-case roles would leave out every grant of a module whose
+roles are all upper snake, and the module would come out with no role. A
 property has the same split, settled by one rule for the whole contract,
 `info.wireNames: snake_case` (ADR-062), rather than a name per property.
 
@@ -233,11 +233,12 @@ every role goes on the wire as its kebab-case name in upper snake
 roles that map to one wire name (`wire_name`, the rule that already
 holds for properties). `extract permissions` and `extract go` write
 `roleNames: upper_snake` into the tree's `info` and map each name when
-every role in the table is upper snake; a table with roles in both
-forms, or a name that would not go back on the wire unchanged, keeps
-today's `could` line for those roles. `generate openapi`,
-`specarch-gen-go-dxlib`'s role data, the UI generators' session reading
-and the techspec write the wire form where the wire is meant. The token
+no role in the table is kebab-case and one at least is upper snake; a
+table with roles in both forms, or a name that would not go back on the
+wire unchanged, keeps the `could` line for those roles, with the
+reason. `specarch-gen-go-dxlib`'s role data and the techspec write the
+wire form; the OpenAPI document and the UI generators' session carry
+permissions and no role, so the wire form has no place there. The token
 claims of meta-model 0.3 carry the roles in the same form, since a
 claim is a property under the one rule (ADR-097).
 
@@ -574,7 +575,7 @@ step 1. Only item 7's meta-model half touches 0.3.
    one's code at the gitlink's commit, byte for byte with the dump
    committed inside, a stale gitlink is refused naming both commits, and
    a dump without the key reads as today.
-2. `info.roleNames: upper_snake`. The key in the design schema, the
+2. Built (ADR-099). `info.roleNames: upper_snake`. The key in the design schema, the
    `wire_name` rule for roles in both builds, the two readers mapping
    and writing it, the generators and the techspec writing the wire
    form. Done when the permission-table case with upper-snake roles

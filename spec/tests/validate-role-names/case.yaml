@@ -1,0 +1,5 @@
+arguments: [validate, .]
+exitStatus: 1
+standardOutput: |
+  specarch.yaml:7:15: error: /roles/desk_staff: schema: the name desk_staff is not valid: it must be kebab-case, such as members-list; rename it [schema@specarch.yaml#/roles/desk_staff]
+  specarch.yaml:8:15: error: /roles/desk-staff: wire_name: the roles desk_staff and desk-staff both go on the wire as DESK_STAFF (info.roleNames: upper_snake); rename one [wire_name@specarch.yaml#/roles/desk-staff]

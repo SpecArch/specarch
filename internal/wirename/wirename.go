@@ -1,5 +1,6 @@
 // Package wirename writes a property's name as it goes on the wire, by the
-// rule info.wireNames names (ADR-062). The validator, the readers and the
+// rule info.wireNames names (ADR-062), and a role's, by the rule
+// info.roleNames names (ADR-099). The validator, the readers and the
 // generators all map a name here, so they agree on every name.
 package wirename
 
@@ -56,4 +57,29 @@ func Camel(wire string) (string, bool) {
 	}
 	name := b.String()
 	return name, name != "" && Snake(name) == wire
+}
+
+// UpperSnake is the only rule info.roleNames takes (ADR-099).
+const UpperSnake = "upper_snake"
+
+// Role is a role's name on the wire under rule, the info.roleNames of a
+// specification: under upper_snake every letter in upper case and every
+// hyphen an underscore, so desk-supervisor is DESK_SUPERVISOR; the name as
+// written when rule is empty.
+func Role(rule, name string) string {
+	if rule != UpperSnake {
+		return name
+	}
+	var b strings.Builder
+	for _, r := range name {
+		switch {
+		case r == '-':
+			b.WriteByte('_')
+		case r >= 'a' && r <= 'z':
+			b.WriteRune(r - ('a' - 'A'))
+		default:
+			b.WriteRune(r)
+		}
+	}
+	return b.String()
 }

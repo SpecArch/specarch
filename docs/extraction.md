@@ -271,7 +271,12 @@ Steps, in order:
    in a committed folder and adds the version, the path and the commit.
    Each role and each permission granted is written, their descriptions
    must questions, and each declared check prints a line and is a `must`
-   question. `specarch merge` asks a question two trees ask only once, and
+   question. A table that names no role in kebab-case and at least one in
+   upper snake case is read with `info.roleNames: upper_snake`, each role
+   by its kebab-case name (ADR-099); `extract go` reads a seed's roles the
+   same way. An upper snake name in a table that names roles both ways,
+   or one that would not go back on the wire unchanged, is left out with
+   a line that says why. `specarch merge` asks a question two trees ask only once, and
    reports a permission a role grants that no operation, command or page
    checks. The lending desk's roles move from a Go map to a roles table
    and a seed script, which its check reads with `lending/grants.sql`;

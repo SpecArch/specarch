@@ -27,3 +27,14 @@ func TestCamel(t *testing.T) {
 		}
 	}
 }
+
+func TestRole(t *testing.T) {
+	for name, want := range map[string]string{"desk-supervisor": "DESK_SUPERVISOR", "auditor": "AUDITOR", "level-2-clerk": "LEVEL_2_CLERK", "desk_staff": "DESK_STAFF"} {
+		if got := Role(UpperSnake, name); got != want {
+			t.Errorf("Role(%q) = %q, want %q", name, got, want)
+		}
+	}
+	if got := Role("", "desk-supervisor"); got != "desk-supervisor" {
+		t.Errorf("Role with no rule = %q, want the name as written", got)
+	}
+}

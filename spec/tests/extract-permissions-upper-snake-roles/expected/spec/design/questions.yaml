@@ -1,0 +1,47 @@
+questions:
+  # specarch-problem: question: open_question: (must, decision) What is each role for, and who holds it: auditor, desk-staff, desk-supervisor, level-2-clerk? Decided by system-owner. Answer with a decision record that names Q-1 under answers. [Q-1]
+  Q-1:
+    question: 'What is each role for, and who holds it: auditor, desk-staff, desk-supervisor, level-2-clerk?'
+    kind: decision
+    priority: must
+    blocks: ['#/roles/auditor/description', '#/roles/desk-staff/description', '#/roles/desk-supervisor/description', '#/roles/level-2-clerk/description']
+    decidedBy: system-owner
+    why: A permission table names a role and what it grants, not who holds it.
+  # specarch-problem: question: open_question: (must, decision) What does each permission allow: loans.approve, loans.read, loans.write? Decided by system-owner. Answer with a decision record that names Q-2 under answers. [Q-2]
+  Q-2:
+    question: 'What does each permission allow: loans.approve, loans.read, loans.write?'
+    kind: decision
+    priority: must
+    blocks: ['#/permissions/loans.approve/description', '#/permissions/loans.read/description', '#/permissions/loans.write/description']
+    decidedBy: system-owner
+    why: A permission table names the permissions a role grants and not what they are for.
+  # specarch-problem: question: open_question: (could, decision) Not held: grant of public to AUDITOR: public is open to everyone and granted by no role; left out. Does the specification need it, written another way or described by hand? It blocks roles. Decided by system-owner. Answer with a decision record that names Q-3 under answers. [Q-3]
+  Q-3:
+    question: 'Not held: grant of public to AUDITOR: public is open to everyone and granted by no role; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: [roles]
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: access role AUDITOR, says: 'Not held: grant of public to AUDITOR: public is open to everyone and granted by no role; left out.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: grant of loans.read to "DESK__RUNNER": the role's name is read as desk-runner, which goes on the wire as DESK_RUNNER under info.roleNames upper_snake, not as DESK__RUNNER; left out. Does the specification need it, written another way or described by hand? It blocks roles. Decided by system-owner. Answer with a decision record that names Q-4 under answers. [Q-4]
+  Q-4:
+    question: 'Not held: grant of loans.read to "DESK__RUNNER": the role''s name is read as desk-runner, which goes on the wire as DESK_RUNNER under info.roleNames upper_snake, not as DESK__RUNNER; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: [roles]
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: access role DESK__RUNNER, says: 'Not held: grant of loans.read to "DESK__RUNNER": the role''s name is read as desk-runner, which goes on the wire as DESK_RUNNER under info.roleNames upper_snake, not as DESK__RUNNER; left out.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: grant of loans.write to "Branch_Manager": the role's name is not in upper snake case, the form every other role of the source takes, and not kebab-case, which a role name is; left out. Does the specification need it, written another way or described by hand? It blocks roles. Decided by system-owner. Answer with a decision record that names Q-5 under answers. [Q-5]
+  Q-5:
+    question: 'Not held: grant of loans.write to "Branch_Manager": the role''s name is not in upper snake case, the form every other role of the source takes, and not kebab-case, which a role name is; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: [roles]
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: access role Branch_Manager, says: 'Not held: grant of loans.write to "Branch_Manager": the role''s name is not in upper snake case, the form every other role of the source takes, and not kebab-case, which a role name is; left out.'}

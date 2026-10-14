@@ -1,0 +1,12 @@
+specarch: "0.2"
+info:
+  title: Desk
+  version: 1.0.0
+  description: A lending desk whose token carries its roles in capitals.
+  roleNames: upper_snake
+permissions:
+  loans.read: { description: See the loans. }
+  loans.writeoff: { description: Write off a loan. }
+roles:
+  desk-staff: { description: Works the desk., permissions: [loans.read] }
+  desk-supervisor: { description: Supervises the desk., permissions: [loans.read, loans.writeoff] }

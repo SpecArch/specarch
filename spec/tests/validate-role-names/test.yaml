@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "a specification whose roles go on the wire in upper snake case, with a role desk_staff, whose name is not kebab-case, written before desk-staff, both going on the wire as DESK_STAFF, and a third role whose wire name no other takes"
+when: "validate is run"
+then: "it reports the name that is not kebab-case as schema and the second role taking DESK_STAFF as wire_name, naming both roles and the wire name, and exits 1"
+verifies: [SA-62]

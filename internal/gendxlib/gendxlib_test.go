@@ -239,3 +239,25 @@ func TestOwned(t *testing.T) {
 		}
 	}
 }
+
+// TestRoleNames writes each role's name id as it goes on the wire when the
+// specification names its roles in upper snake case (ADR-099).
+func TestRoleNames(t *testing.T) {
+	resp := generateWith(t, func(sp map[string]any) {
+		sp["info"].(map[string]any)["roleNames"] = "upper_snake"
+		sp["roles"].(map[string]any)["desk-supervisor"] = map[string]any{"description": "Supervises the desk.", "permissions": []any{"books.read"}}
+	})
+	if len(resp.Files) != 1 {
+		t.Fatalf("want one file, got %d and %v", len(resp.Files), resp.Diagnostics)
+	}
+	src := resp.Files[0].Content
+	for _, want := range []string{
+		`{"DESK", "The desk.", []string{"books.read", "books.write"}}`,
+		`{"DESK_SUPERVISOR", "Supervises the desk.", []string{"books.read"}}`,
+		"// wire (info.roleNames upper_snake).",
+	} {
+		if !strings.Contains(src, want) {
+			t.Errorf("the file has no %q", want)
+		}
+	}
+}

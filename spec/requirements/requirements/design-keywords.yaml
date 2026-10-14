@@ -289,3 +289,16 @@ requirements:
     verification: test
     needs: [NEED-1]
     why: A member's address or a list of phone numbers is a value with no identity that a record holds, and a design could only write its parts as loose fields of the entity or make it an entity with a made-up key.
+  SA-62:
+    statement: A specification shall be able to say, once for the whole system, that its roles go on the wire in upper snake case while it names them in kebab-case, and specarch validate shall refuse two roles that would go on the wire under one name.
+    kind: functional
+    priority: should
+    status: accepted
+    acceptance:
+      - info.roleNames upper_snake maps every role by one rule, each hyphen an underscore and each letter in upper case, the same function in the validator, the readers and the generators.
+      - Two roles that map to one wire name are refused as wire_name at the second, the same in both builds.
+      - specarch extract permissions and extract go read a source whose roles are all in upper snake case into kebab-case roles and info.roleNames, and leave out with a line, as before, a role of a source that names roles both ways and a name that does not come back the same.
+      - specarch generate go-dxlib writes each role's name id in the wire form, and the techspec names each role's wire form.
+    verification: test
+    needs: [NEED-2]
+    why: A system whose token's roles claim and permission tables write DESK_SUPERVISOR came out of extract permissions with no role at all, and a specification that wrote its roles in upper case would break the one naming rule every role and its generated names follow.

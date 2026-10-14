@@ -146,9 +146,15 @@ commands:
         EVERYTHING, which is never expanded, a name the rule does not map
         and two names that give one permission are each a must question
         blocking the role's permissions, and the role is written with the
-        grants it can read. A role whose name is not kebab-case and a
-        grant of public, which is open to everyone and granted by no
-        role, print a line and are left out, and so is a role left with
+        grants it can read. A table that names no role in kebab-case and
+        at least one in upper snake case writes its roles on the wire as
+        info.roleNames upper_snake says (ADR-099): the tree says so, and
+        each such role is read by its kebab-case name, citing the table's
+        own. A role whose name is not kebab-case and that the rule does
+        not read (an upper snake name beside kebab-case ones, or one that
+        would not go back on the wire unchanged) and a grant of public,
+        which is open to everyone and granted by no role, print a line
+        that says why and are left out, and so is a role left with
         nothing to grant or ask about. Each such check prints a line and
         is a must question blocking the roles, citing the table, since
         while the setting is empty the check lets every request through
@@ -443,8 +449,10 @@ commands:
         one permission are must questions on the role's permissions, as
         extract permissions asks them; a seed in a loop or behind a
         condition, a role id the reader does not trace and a privilege
-        that is not a literal are must questions; a role whose name is not
-        kebab-case prints a line. Each role carries a must question
+        that is not a literal are must questions; roles the seeds name in
+        upper snake case are read as extract permissions reads them, under
+        info.roleNames upper_snake, and a role whose name is not
+        kebab-case and that the rule does not read prints a line. Each role carries a must question
         whether the running system grants it what the seeds grant, which
         a permission table answers in the merge, and a role with no
         literal description a must question on it.

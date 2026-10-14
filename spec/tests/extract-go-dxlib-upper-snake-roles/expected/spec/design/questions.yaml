@@ -1,0 +1,39 @@
+questions:
+  # specarch-problem: question: open_question: (must, decision) Does the running system grant role desk-staff what the seeds grant it? It is seeded at seed/seed.go:15, and no permission table of the running system was read with it. Decided by system-owner. Answer with a decision record that names Q-1 under answers. [Q-1]
+  Q-1:
+    question: Does the running system grant role desk-staff what the seeds grant it? It is seeded at seed/seed.go:15, and no permission table of the running system was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/roles/desk-staff']
+    decidedBy: system-owner
+    why: A seed that did not run, or whose rows something removed, is not a grant; the tables the check reads, printed as a permission table, say what is granted, and merging it answers this.
+    cites:
+      - {source: code, clause: 'seed/seed.go:15', says: Seeds role desk-staff.}
+  # specarch-problem: question: open_question: (must, decision) Does the running system grant role desk-supervisor what the seeds grant it? It is seeded at seed/seed.go:18, and no permission table of the running system was read with it. Decided by system-owner. Answer with a decision record that names Q-2 under answers. [Q-2]
+  Q-2:
+    question: Does the running system grant role desk-supervisor what the seeds grant it? It is seeded at seed/seed.go:18, and no permission table of the running system was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/roles/desk-supervisor']
+    decidedBy: system-owner
+    why: A seed that did not run, or whose rows something removed, is not a grant; the tables the check reads, printed as a permission table, say what is granted, and merging it answers this.
+    cites:
+      - {source: code, clause: 'seed/seed.go:18', says: Seeds role desk-supervisor.}
+  # specarch-problem: question: open_question: (must, decision) What does each permission allow: loans.renew? Decided by system-owner. Answer with a decision record that names Q-3 under answers. [Q-3]
+  Q-3:
+    question: 'What does each permission allow: loans.renew?'
+    kind: decision
+    priority: must
+    blocks: ['#/permissions/loans.renew/description']
+    decidedBy: system-owner
+    why: The source names the privilege an endpoint checks or a seed grants, and a seed's description is read only as a literal of the privilege's insert.
+  # specarch-problem: question: open_question: (could, decision) Not held: seed/seed.go:21: grant of LOANS.READ to "DESK__RUNNER": the role's name is read as desk-runner, which goes on the wire as DESK_RUNNER under info.roleNames upper_snake, not as DESK__RUNNER; left out. Does the specification need it, written another way or described by hand? It blocks roles. Decided by system-owner. Answer with a decision record that names Q-4 under answers. [Q-4]
+  Q-4:
+    question: 'Not held: seed/seed.go:21: grant of LOANS.READ to "DESK__RUNNER": the role''s name is read as desk-runner, which goes on the wire as DESK_RUNNER under info.roleNames upper_snake, not as DESK__RUNNER; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: [roles]
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'seed/seed.go:21', says: 'Not held: grant of LOANS.READ to "DESK__RUNNER": the role''s name is read as desk-runner, which goes on the wire as DESK_RUNNER under info.roleNames upper_snake, not as DESK__RUNNER; left out.'}

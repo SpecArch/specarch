@@ -1,0 +1,17 @@
+{
+    "permissionTable": 1,
+    "path": "access",
+    "commit": "91577cff0fdaa5365ab992c1a63461487b4ff941",
+    "grants": [
+        {"role": "DESK_STAFF", "permission": "loans.write"},
+        {"role": "DESK_STAFF", "permission": "loans.read"},
+        {"role": "DESK_SUPERVISOR", "permission": "loans.read"},
+        {"role": "DESK_SUPERVISOR", "permission": "loans.approve"},
+        {"role": "LEVEL_2_CLERK", "permission": "loans.read"},
+        {"role": "AUDITOR", "permission": "public"},
+        {"role": "AUDITOR", "permission": "loans.read"},
+        {"role": "DESK__RUNNER", "permission": "loans.read"},
+        {"role": "Branch_Manager", "permission": "loans.write"}
+    ],
+    "gates": []
+}

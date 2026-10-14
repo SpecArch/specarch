@@ -48,6 +48,8 @@ type seeds struct {
 	privileges map[string]*seedPrivilege
 	grants     []seedGrant
 	calls      int
+	names      roleNames         // how the seeds write their roles (ADR-099)
+	wireOf     map[string]string // a role's name -> the name the seeds write
 }
 
 // readSeeds reads the role, privilege and grant inserts of every file that
@@ -75,6 +77,42 @@ func (g *goReader) readSeeds() {
 	}
 	if g.seeds.calls > 0 || len(g.seeds.roles) > 0 {
 		g.res.say("dxlib_module: counted %s, %s and %s seeded with literal names: every insert into dxlib_module's role and privilege tables, and every RolePrivilege...Insert call, in a file that imports a package of dxlib_module", plural(len(g.seeds.roles), "role"), plural(len(g.seeds.privileges), "privilege"), plural(len(g.seeds.grants), "grant"))
+	}
+	g.seeds.readRoleNames()
+}
+
+// readRoleNames reads roles the seeds write in upper snake case by their
+// kebab-case names (ADR-099); a role the rule cannot read keeps the name
+// the seeds give it, and is left out.
+func (s *seeds) readRoleNames() {
+	var all []string
+	for n := range s.roles {
+		all = append(all, n)
+	}
+	for _, gr := range s.grants {
+		all = append(all, gr.role)
+	}
+	sort.Strings(all)
+	s.names = readRoleNames(all)
+	s.wireOf = map[string]string{}
+	roles := map[string]*seedRole{}
+	for wire, r := range s.roles {
+		n, ok := s.names.name(wire)
+		if !ok {
+			n = wire
+		}
+		s.wireOf[n] = wire
+		r.name = n
+		roles[n] = r
+	}
+	s.roles = roles
+	for i, gr := range s.grants {
+		if n, ok := s.names.name(gr.role); ok {
+			s.wireOf[n] = gr.role
+			s.grants[i].role = n
+		} else {
+			s.wireOf[gr.role] = gr.role
+		}
 	}
 }
 
@@ -243,16 +281,16 @@ func (g *goReader) writeSeeds(privileges *privilegeNames, declare func(permissio
 	for _, gr := range g.seeds.grants {
 		switch {
 		case !roleWord.MatchString(gr.role):
-			g.notHeld = append(g.notHeld, notHeld{text: fmt.Sprintf("%s: grant of %s to %q: the role's name is not kebab-case, which a role name is; left out", gr.clause, gr.privilege, gr.role), clause: gr.clause, blocks: []string{"roles"}})
+			g.notHeld = append(g.notHeld, notHeld{text: fmt.Sprintf("%s: grant of %s to %q: %s; left out", gr.clause, gr.privilege, gr.role, g.seeds.names.why(gr.role)), clause: gr.clause, blocks: []string{"roles"}})
 			continue
 		case gr.privilege == "public":
-			g.notHeld = append(g.notHeld, notHeld{text: fmt.Sprintf("%s: grant of public to %s: public is open to everyone and granted by no role; left out", gr.clause, gr.role), clause: gr.clause, blocks: []string{"roles"}})
+			g.notHeld = append(g.notHeld, notHeld{text: fmt.Sprintf("%s: grant of public to %s: public is open to everyone and granted by no role; left out", gr.clause, g.seeds.wireOf[gr.role]), clause: gr.clause, blocks: []string{"roles"}})
 			continue
 		}
 		if byRole[gr.role] == nil {
 			byRole[gr.role] = []string{}
 		}
-		cites[gr.role] = append(cites[gr.role], g.at(gr.clause, fmt.Sprintf("Grants %s to %s.", gr.privilege, gr.role)))
+		cites[gr.role] = append(cites[gr.role], g.at(gr.clause, fmt.Sprintf("Grants %s to %s.", gr.privilege, g.seeds.wireOf[gr.role])))
 		if q, why := privileges.grantProblem(gr.role, gr.privilege); q != "" {
 			problems = append(problems, asked{gr.role, gr.clause + ": " + q, why, gr.clause})
 			unknown[gr.role] = true
@@ -262,7 +300,7 @@ func (g *goReader) writeSeeds(privileges *privilegeNames, declare func(permissio
 		if !contains(byRole[gr.role], p) {
 			byRole[gr.role] = append(byRole[gr.role], p)
 		}
-		declare(p, gr.privilege, "", gr.clause, fmt.Sprintf("Grants %s to %s.", gr.privilege, gr.role))
+		declare(p, gr.privilege, "", gr.clause, fmt.Sprintf("Grants %s to %s.", gr.privilege, g.seeds.wireOf[gr.role]))
 	}
 	for _, sp := range sortedPrivileges(g.seeds.privileges) {
 		if sp.name == "public" || sp.name == "EVERYTHING" {
@@ -288,9 +326,9 @@ func (g *goReader) writeSeeds(privileges *privilegeNames, declare func(permissio
 	for _, name := range seededRoles {
 		r := g.seeds.roles[name]
 		if roleWord.MatchString(name) && byRole[name] == nil {
-			g.notHeld = append(g.notHeld, notHeld{text: fmt.Sprintf("%s: role %s: the seeds grant it nothing, and a role that grants nothing is left out", r.clause, name), clause: r.clause, blocks: []string{"roles"}})
+			g.notHeld = append(g.notHeld, notHeld{text: fmt.Sprintf("%s: role %s: the seeds grant it nothing, and a role that grants nothing is left out", r.clause, g.seeds.wireOf[name]), clause: r.clause, blocks: []string{"roles"}})
 		} else if !roleWord.MatchString(name) && !granted(g.seeds.grants, name) {
-			g.notHeld = append(g.notHeld, notHeld{text: fmt.Sprintf("%s: role %q: its name is not kebab-case, which a role name is; left out", r.clause, name), clause: r.clause, blocks: []string{"roles"}})
+			g.notHeld = append(g.notHeld, notHeld{text: fmt.Sprintf("%s: role %q: %s; left out", r.clause, name, strings.Replace(g.seeds.names.why(name), "the role's name is", "its name is", 1)), clause: r.clause, blocks: []string{"roles"}})
 		}
 	}
 	sort.Strings(names)
@@ -317,7 +355,7 @@ func (g *goReader) writeSeeds(privileges *privilegeNames, declare func(permissio
 		set(role, "origin", "stated")
 		var c []*yaml.Node
 		if r != nil {
-			c = append(c, g.at(r.clause, fmt.Sprintf("Inserts the role %s.", name)))
+			c = append(c, g.at(r.clause, fmt.Sprintf("Inserts the role %s.", g.seeds.wireOf[name])))
 		}
 		set(role, "cites", append(c, cites[name]...))
 		set(g.roles, name, role)

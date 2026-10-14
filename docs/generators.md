@@ -265,7 +265,9 @@ refusal. Any other operation calls `body<Operation>`, and each job that
 repeats at an interval becomes a task in `RegisterTasks` calling
 `job<Name>`; the service writes both, and the compiler names what is
 missing. Permissions, roles and the menu are `Privileges`, `Roles` and
-`MenuItems`, data for the service to seed, `public` left out. Wire names
+`MenuItems`, data for the service to seed, `public` left out; under
+`info.roleNames: upper_snake` a role's name id is its wire form,
+`DESK_SUPERVISOR` for `desk-supervisor` (ADR-099). Wire names
 are snake_case, as in the dxlib dialect, because dxlib's standard
 operations take a parameter's name as its column's.
 

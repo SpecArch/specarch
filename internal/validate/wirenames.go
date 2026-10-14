@@ -14,6 +14,7 @@ import (
 // an entity's, a view's together with its entity's, and the inline objects
 // of a body, a parameter's schema and a message's payload, at any depth.
 func (c *checker) checkWireNames(d *design) {
+	c.checkRoleNames(d)
 	rule := source.Str(source.Child(source.Child(d.root, "info"), "wireNames"))
 	if rule != wirename.SnakeCase {
 		return
@@ -97,5 +98,25 @@ func (w wireCheck) object(carried, props *yaml.Node, at []string) {
 			taken[wire] = name
 		}
 		w.field(p.Value, path)
+	}
+}
+
+// checkRoleNames refuses two roles that go on the wire under one name, once
+// the specification names its roles' wire names (ADR-099), reported at the
+// second in the order the roles are written.
+func (c *checker) checkRoleNames(d *design) {
+	rule := source.Str(source.Child(source.Child(d.root, "info"), "roleNames"))
+	if rule != wirename.UpperSnake {
+		return
+	}
+	taken := map[string]string{}
+	for _, r := range source.Pairs(source.Child(d.root, "roles")) {
+		name := r.Key.Value
+		wire := wirename.Role(rule, name)
+		if other, ok := taken[wire]; ok && other != name {
+			c.add(r.Key, source.Pointer("roles", name), RuleWireName, "the roles %s and %s both go on the wire as %s (info.roleNames: %s); rename one", other, name, wire, rule)
+		} else if !ok {
+			taken[wire] = name
+		}
 	}
 }

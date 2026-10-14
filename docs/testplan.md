@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.0-dev of the specification: 407 design tests, 177 golden and 230 red, about 14 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.0-dev of the specification: 412 design tests, 181 golden and 231 red, about 14 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.7.0-dev of the specification: 407 design tests, 177 golden and 230 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 403 |
+| system | 408 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -521,6 +521,14 @@ Scenario: golden; level: system; verifies SA-47.
 - When: document techspec is run
 - Then: the workflow's text and flowchart write each open key as what it is, the question that holds it and the name it gives, and it exits 0
 
+#### document-techspec-role-names
+
+Scenario: golden; level: system; verifies SA-62.
+
+- Given: a specification whose roles go on the wire in upper snake case, with two roles
+- When: document techspec is run
+- Then: the Permissions section says how a role goes on the wire and lists each role with its wire name, and it exits 0
+
 #### document-techspec-without-implementation
 
 Scenario: golden; level: system.
@@ -771,6 +779,14 @@ Scenario: golden; level: system; verifies SA-44.
 - When: extract go is run on the module
 - Then: it writes one entity per table with a literal schema and name, named as extract database names it, with the types of dxlib's data types as the catalogue writes them, nullability and the primary key, and a must question whether the database holds each; it cites each paging list endpoint at its table's constructor with the whitelists and prints a line that the meta-model holds no whitelist, and asks a should question where the whitelists are not literal; it writes the seeded roles with their descriptions and the permissions they grant, mapped by the rule of ADR-076 and declared with a privilege's description, a must question for EVERYTHING, for the two names that give one permission, the loop, the untraced role and the computed privilege, and one whether the running system grants each role; it writes each setting under configuration in the deployment stage by its camelCase name with its type and default, the file's value over the code's, secret where the configuration marks it, a must question on what each is for and whether names that look like a credential are secrets, a must question on the width of a whole number and a should question on the computed name; it asks the gate question for each middleware that lets every request through; it prints a line and asks a could question for the geometry, the type it does not know, the 32-bit float and the role that is not kebab-case; and exits 0
 
+#### extract-go-dxlib-upper-snake-roles
+
+Scenario: golden; level: system; verifies SA-62.
+
+- Given: a Go module whose seed inserts dxlib_module roles named in upper snake case, two that grant privileges and one with two underscores in a row that grants one
+- When: extract go is run on the module
+- Then: it writes info.roleNames upper_snake and each role by its kebab-case name with its description and the permissions it grants, citing the seed's own names; prints a line and writes a could question for the name with two underscores, which would not go back on the wire unchanged, and exits 0
+
 #### extract-go-http-handlers
 
 Scenario: golden; level: system; verifies SA-44.
@@ -1018,6 +1034,22 @@ Scenario: red; level: system; covers exit 1; verifies SA-44.
 - Given: a permission table that lists one role granting one permission twice
 - When: extract permissions is run on the permission table
 - Then: it refuses the table, naming the grant listed twice, writes nothing and exits 1
+
+#### extract-permissions-mixed-role-names
+
+Scenario: golden; level: system; verifies SA-62.
+
+- Given: a repository whose first commit holds the folder a permission check is built from and whose second holds the permission table printed from it; the table names one role in kebab-case and one in upper snake case
+- When: extract permissions is run on the permission table
+- Then: it writes the kebab-case role and no info.roleNames, prints a line and writes a could question for the upper snake role saying the table names its roles both ways, and exits 0
+
+#### extract-permissions-upper-snake-roles
+
+Scenario: golden; level: system; verifies SA-62.
+
+- Given: a repository whose first commit holds the folder a permission check is built from and whose second holds the permission table printed from it; the table writes every role in upper snake case, one of them with a digit, one granting public, one with two underscores in a row and one in mixed case
+- When: extract permissions is run on the permission table
+- Then: it writes info.roleNames upper_snake and each upper snake role by its kebab-case name with the permissions it grants, each role and permission citing the table's own names; prints a line and writes a could question for the grant of public, for the name with two underscores, which would not go back on the wire unchanged, and for the name in mixed case, each saying why, and exits 0
 
 #### extract-permissions-writes-tree
 
@@ -2823,6 +2855,14 @@ Scenario: golden; level: system; verifies SA-12.
 - When: validate is run
 - Then: it prints nothing and exits 0
 
+#### validate-role-names
+
+Scenario: red; level: system; covers exit 1; verifies SA-62.
+
+- Given: a specification whose roles go on the wire in upper snake case, with a role desk_staff, whose name is not kebab-case, written before desk-staff, both going on the wire as DESK_STAFF, and a third role whose wire name no other takes
+- When: validate is run
+- Then: it reports the name that is not kebab-case as schema and the second role taking DESK_STAFF as wire_name, naming both roles and the wire name, and exits 1
+
 #### validate-schema-algorithm-without-pseudocode
 
 Scenario: red; level: system; covers exit 1.
@@ -3331,7 +3371,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-236 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+240 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -3459,6 +3499,10 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-50 | acceptance 5 | golden | SA-50 names no harm |
 | requirement SA-50 | acceptance 6 | golden | SA-50 names no harm |
 | requirement SA-50 | acceptance 7 | golden | SA-50 names no harm |
+| requirement SA-62 | acceptance 1 | golden | SA-62 names no harm |
+| requirement SA-62 | acceptance 2 | golden | SA-62 names no harm |
+| requirement SA-62 | acceptance 3 | golden | SA-62 names no harm |
+| requirement SA-62 | acceptance 4 | golden | SA-62 names no harm |
 | requirement SA-7 | acceptance 1 | golden | SA-7 names no harm |
 | requirement SA-7 | acceptance 2 | golden | SA-7 names no harm |
 | requirement SA-8 | acceptance 1 | golden | SA-8 names no harm |

@@ -21,6 +21,7 @@ import (
 	"github.com/SpecArch/specarch/internal/genopenapi"
 	"github.com/SpecArch/specarch/internal/mark"
 	"github.com/SpecArch/specarch/internal/ownership"
+	"github.com/SpecArch/specarch/internal/wirename"
 )
 
 // sections are the sections of the specification the file shows as a
@@ -770,11 +771,17 @@ func (g *gen) seeds() {
 	}
 	g.line("}")
 	g.line("")
-	g.line("// Roles are the specification's roles.")
+	rule := text(obj(g.spec["info"])["roleNames"])
+	if rule == wirename.UpperSnake {
+		g.line("// Roles are the specification's roles, each named as it goes on the")
+		g.line("// wire (info.roleNames %s).", rule)
+	} else {
+		g.line("// Roles are the specification's roles.")
+	}
 	g.line("var Roles = []Role{")
 	for _, r := range sortedKeys(roles) {
 		role := obj(roles[r])
-		g.line("\t{%q, %q, []string{%s}},", r, oneLine(text(role["description"])), quoteAll(texts(list(role["permissions"]))))
+		g.line("\t{%q, %q, []string{%s}},", wirename.Role(rule, r), oneLine(text(role["description"])), quoteAll(texts(list(role["permissions"]))))
 	}
 	g.line("}")
 	g.line("")

@@ -609,6 +609,15 @@ func crossCutting(d *doc, root *yaml.Node) {
 		d.heading(3, "Permissions")
 		d.para("Access is fail-closed: every operation, command and page names the one permission it needs, and only the roles below grant one.")
 		d.block(perms)
+		if rule := str(source.Child(root, "info"), "roleNames"); rule == wirename.UpperSnake {
+			d.para("Every role goes on the wire in upper snake case (info.roleNames): in a token's roles claim and in the tables the permission check reads, a role is its name in capitals with each hyphen an underscore.")
+			d.line("| Role | On the wire |")
+			d.line("|---|---|")
+			for _, r := range pairs(root, "roles") {
+				d.line("| %s | %s |", r.Key.Value, wirename.Role(rule, r.Key.Value))
+			}
+			d.blank()
+		}
 		d.explainRows(append(pairRows(root, "permissions"), pairRows(root, "roles")...))
 	}
 	if sets := pairs(root, "separationOfDuties"); len(sets) > 0 {

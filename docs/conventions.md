@@ -391,6 +391,13 @@ both `user_id`), and the validator refuses two properties of one object
 that would meet there (`wire_name`). A parameter's name is written as it
 is on the wire, and is not mapped (ADR-062).
 
+A role keeps its kebab-case name in the specification in the same way. A
+system whose token's roles claim and permission tables write a role in
+upper snake case says so once, with `info.roleNames: upper_snake`: every
+role then goes on the wire as its name in capitals with each hyphen an
+underscore (`desk-supervisor` is `DESK_SUPERVISOR`), and the validator
+refuses two roles that would meet there (`wire_name`, ADR-099).
+
 In SQL, a table is the entity's name in snake case (`LoanStatus` is
 `loan_status`), unless the implementation file's mapping names it
 (`target: table loans`); a column is the field's name in snake case

@@ -214,6 +214,10 @@ func Go(paths []string, out, key, implementation string) (*Result, error) {
 	if g.wireSnake {
 		set(child(root, "info"), "wireNames", wirename.SnakeCase)
 	}
+	if rule := g.seeds.names.rule(); rule != "" && g.roles != nil {
+		set(child(root, "info"), "roleNames", rule)
+		res.say("role names: the seeds write their roles in upper snake case, so each is read by its kebab-case name and the tree says info.roleNames %s", rule)
+	}
 	res.Tree.put("specarch.yaml", root)
 	return res, nil
 }

@@ -1,0 +1,11 @@
+permissions:
+  loans.read:
+    origin: stated
+    cites:
+      - {source: code, clause: access role desk-staff, says: desk-staff grants loans.read.}
+roles:
+  desk-staff:
+    permissions: [loans.read]
+    origin: stated
+    cites:
+      - {source: code, clause: access role desk-staff, says: desk-staff grants loans.read.}

@@ -1,0 +1,87 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
+decisions:
+  ADR-099:
+    title: A specification names how its roles go on the wire with one rule, info.roleNames upper_snake, which the validator, the two readers of grants and the generators apply through one function
+    status: accepted
+    date: "2026-10-14"
+    context: |
+      Point 4 of docs/estate.md, build item 2. A role's name is kebab-case
+      in a specification, and the token's roles claim and the permission
+      table of the systems the estate holds write it in upper snake case
+      (DESK_SUPERVISOR). extract permissions and extract go left out every
+      grant whose role is not kebab-case, so a module whose roles are all
+      upper snake came out with no role at all. A property had the same
+      split, settled by info.wireNames (ADR-062).
+    decision: |
+      info.roleNames takes one value, upper_snake; left out, every role
+      goes on the wire as written. Under it every role goes on the wire as
+      its kebab-case name with each hyphen an underscore and each letter in
+      upper case: desk-supervisor is DESK_SUPERVISOR, level-2-clerk is
+      LEVEL_2_CLERK. The mapping is one function in each build
+      (internal/wirename's Role, and roleWireName in WireNames.swift).
+      The validator refuses two roles that go on the wire under one name,
+      as wire_name, the rule that already holds for properties, reported
+      at the second in the order the roles are written.
+      extract permissions and extract go read a source's roles in upper
+      snake case when the source names no role in kebab-case and at least
+      one in upper snake case (capitals, digits and underscores, a capital
+      first). The tree then says info.roleNames upper_snake, each such
+      role is written by its kebab-case name, and every citation keeps the
+      source's own name. A name the mapping would not give back (two
+      underscores in a row, an underscore last) prints a line and is a
+      could question, left out as before, and so is a name in another
+      form. A source that names roles both ways is read as before: its
+      kebab-case roles are read, and each upper snake one prints a line
+      that says the source names its roles both ways. merge writes the
+      rule when a tree names it.
+      generate go-dxlib writes each role's name id in the wire form, since
+      dxlib_module's role table holds the name the token carries, and says
+      so in the comment above the roles. The techspec's Permissions
+      section says how a role goes on the wire and lists each role with its
+      wire name. The OpenAPI document and the UI's session carry no role:
+      an operation names the permission it needs, and the session the
+      permissions its holder has, so neither writes a role's wire form.
+    why: |
+      One rule rather than a name per role, for the reason of ADR-062: a
+      system names its roles one way throughout, and a wire name on every
+      role would be a second way to say the same thing on each. One value
+      only, since no source has shown another convention, and kebab-case
+      named explicitly would be a second way to say what leaving the key
+      out says.
+      The mapping is one to one on kebab-case names, so two valid roles
+      never meet; the rule matters for a name the schema refuses, such as
+      desk_staff beside desk-staff, which the validator still reads, and
+      would give the token one role where the specification holds two. A
+      roles claim holds each role as a string (RFC 9068, section 2.2.3.1,
+      after SCIM's roles attribute), and a check compares the strings, so
+      two roles meeting on the wire are one role to every check, and the validator refuses it rather than let a
+      generator pick one. The error is reported at the second role, as a
+      property's is, so it is not hidden as an echo of the schema error
+      at a name the schema refused when that name comes first; when the
+      refused name comes second, its schema error is the one shown, and
+      renaming it settles both.
+      A reader reads the upper snake form only when no role of the source
+      is kebab-case, because a source that writes both has no one rule
+      that gives back every name; reading it as kebab-case keeps today's
+      result for the roles it already read, and a line says why the others
+      are left out. The round trip is the reason ADR-062 gives for
+      properties: a reader that renamed a role whose name does not come
+      back the same would generate a seed or a token check that differs
+      from the source it read.
+      Only a reader of grants (the permission table, a seed) sees roles as
+      the wire writes them; a workflow file or a document names roles its
+      own way, so merge takes the rule from the tree that states it.
+      The token claims of meta-model 0.3 carry roles in this form too,
+      since a claim is a property under the one rule (ADR-097); no claim
+      is written by this build.
+      Compiler test: a role the rule cannot map is still a line and a
+      question, never dropped, and a collision is an error at the role.
+      Acceptance test: one key in info answers it for a whole system.
+    consequences: |
+      A module whose permission table and seeds write DESK_SUPERVISOR is
+      extracted with its roles, info.roleNames upper_snake, and no line for
+      them. A table with kebab-case roles, the lending desk's among them,
+      extracts byte for byte as before. A specification that names its
+      roles in upper snake case keeps its roles' names in kebab-case, and
+      its generated dxlib seed and techspec show the wire form.
+    satisfies: [SA-62]

@@ -147,7 +147,10 @@ func (c *checker) schemaLeaves(k Kind, ve *jsonschema.ValidationError, parent []
 		c.schemaPropertyName(k, ve, c.propertyNameObject(pn.Property, ve.InstanceLocation, ve.SchemaURL), pn, seen)
 		return
 	}
-	if len(ve.Causes) > 0 {
+	// A list that holds no item contains accepts fails as a whole, not item
+	// by item: the library keeps each item's failure as a cause, and those
+	// would read as if every item were wrong.
+	if _, ok := ve.ErrorKind.(*kind.Contains); !ok && len(ve.Causes) > 0 {
 		for _, cause := range ve.Causes {
 			c.schemaLeaves(k, cause, ve.InstanceLocation, seen)
 		}
@@ -318,6 +321,8 @@ func plainSchemaMessage(k jsonschema.ErrorKind) string {
 		return "this key is not allowed here; remove it"
 	case *kind.Not:
 		return "this value is not allowed here"
+	case *kind.Contains:
+		return "this list does not hold the item it needs"
 	}
 	return k.LocalizedString(printer)
 }

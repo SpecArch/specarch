@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "a schema whose fields have type lists: one type and null, two types without null, three types, a misspelt type beside null, null twice, and one type alone in a list"
+when: validate is run
+then: "one type and null validates; every other list is refused once at the list, never at each of its items, a misspelt type is named at its item, and it exits 1"
+verifies: [SA-9]

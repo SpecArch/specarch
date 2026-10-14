@@ -1,0 +1,9 @@
+arguments: [validate, .]
+exitStatus: 1
+standardOutput: |
+  specarch.yaml:8:23: error: /schemas/Settings/properties/either/type: schema: this is an array, but a string is expected here [schema@specarch.yaml#/schemas/Settings/properties/either/type]
+  specarch.yaml:9:22: error: /schemas/Settings/properties/three/type: schema: this is an array, but a string is expected here [schema@specarch.yaml#/schemas/Settings/properties/three/type]
+  specarch.yaml:10:21: error: /schemas/Settings/properties/typo/type: schema: this is an array, but a string is expected here [schema@specarch.yaml#/schemas/Settings/properties/typo/type]
+  specarch.yaml:10:22: error: /schemas/Settings/properties/typo/type/0: schema: strng is not allowed here; use one of array, boolean, integer, null, number, object, string [schema@specarch.yaml#/schemas/Settings/properties/typo/type/0]
+  specarch.yaml:11:22: error: /schemas/Settings/properties/twice/type: schema: this is an array, but a string is expected here [schema@specarch.yaml#/schemas/Settings/properties/twice/type]
+  specarch.yaml:12:22: error: /schemas/Settings/properties/alone/type: schema: this is an array, but a string is expected here [schema@specarch.yaml#/schemas/Settings/properties/alone/type]

@@ -1,0 +1,12 @@
+specarch: "0.2"
+info: { title: Case, version: 1.0.0 }
+schemas:
+  Settings:
+    type: object
+    properties:
+      maybe: { type: [string, "null"] }
+      either: { type: [object, string] }
+      three: { type: [string, boolean, "null"] }
+      typo: { type: [strng, "null"] }
+      twice: { type: ["null", "null"] }
+      alone: { type: [string] }

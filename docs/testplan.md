@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.0-dev of the specification: 488 design tests, 219 golden and 269 red, about 16 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.0-dev of the specification: 489 design tests, 219 golden and 270 red, about 16 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.7.0-dev of the specification: 488 design tests, 219 golden and 269 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 484 |
+| system | 485 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -3778,6 +3778,14 @@ Scenario: red; level: system; covers exit 1.
 - Given: a transition whose trigger names nothing in the file
 - When: validate is run
 - Then: it reports trigger and exits 1
+
+#### validate-type-list
+
+Scenario: red; level: system; covers exit 1; verifies SA-9.
+
+- Given: a schema whose fields have type lists: one type and null, two types without null, three types, a misspelt type beside null, null twice, and one type alone in a list
+- When: validate is run
+- Then: one type and null validates; every other list is refused once at the list, never at each of its items, a misspelt type is named at its item, and it exits 1
 
 #### validate-ui-components
 

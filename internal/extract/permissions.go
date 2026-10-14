@@ -10,12 +10,15 @@ import (
 	"strings"
 
 	"go.yaml.in/yaml/v3"
+
+	"github.com/SpecArch/specarch/internal/source"
 )
 
 // The permission table a project's permission printer writes, in the
 // format tools/permissions/dump-permissions.sh wraps: the version of the
 // format, the path and the commit the check was built from, every grant
-// the check reads, and every check a setting switches off (ADR-050).
+// the check reads, and every check a setting switches off (ADR-050); and,
+// for a check that reads a policy of path patterns, its rules (ADR-100).
 type permissionTable struct {
 	PermissionTable int         `json:"permissionTable"`
 	Path            string      `json:"path"`
@@ -23,6 +26,7 @@ type permissionTable struct {
 	Repository      string      `json:"repository"`
 	Grants          []dumpGrant `json:"grants"`
 	Gates           []dumpGate  `json:"gates"`
+	Rules           []dumpRule  `json:"rules"`
 }
 
 type dumpGrant struct {
@@ -39,8 +43,10 @@ var roleWord = regexp.MustCompile(`^[a-z][a-z0-9]*(-[a-z0-9]+)*$`)
 
 // Permissions reads a permission table into roles and the permissions
 // each grants, and asks about every check the table says a setting
-// switches off.
-func Permissions(dumpPath, out, key string) (*Result, error) {
+// switches off. Given the route table too (routesPath), it writes the
+// routes' operations as extract router does, each route that checks no
+// permission taking the one the table's rules give it (ADR-100).
+func Permissions(dumpPath, routesPath, out, key string) (*Result, error) {
 	data, err := os.ReadFile(dumpPath)
 	if err != nil {
 		return nil, err
@@ -67,7 +73,33 @@ func Permissions(dumpPath, out, key string) (*Result, error) {
 	if err := pr.read(dumpName); err != nil {
 		return nil, err
 	}
-	src, err := codeSource(r, out, []*yaml.Node{flow(mapping("clause", t.Path, "title", "The grants the permission check built from here reads"))})
+	clauses := []*yaml.Node{flow(mapping("clause", t.Path, "title", "The grants the permission check built from here reads"))}
+	var rd *routeReader
+	var routesName string
+	if routesPath != "" {
+		rt, rr, name, err := openRouteTable(routesPath)
+		routesName = name
+		if err != nil {
+			return nil, err
+		}
+		if rr.Repository.Root != r.Repository.Root {
+			return nil, refuse("the route table %s reads the repository at %s, and the permission table %s the one at %s; give two tables of one repository", routesName, rr.Repository.Root, dumpName, r.Repository.Root)
+		}
+		edition, err := laterCommit(r.Repository.Root, r.Commit, rr.Commit)
+		if err != nil {
+			return nil, refuse("the permission table %s was made at commit %s and the route table %s at commit %s, and neither is an ancestor of the other, so no one commit holds both; make them again from one checkout", dumpName, r.Commit, routesName, rr.Commit)
+		}
+		r.Commit = edition
+		res.say("commit %s: the last change to %s, as the route table %s names it; the tree is read at commit %s", rr.Commit, rt.Path, routesName, edition)
+		rd = &routeReader{t: rt, key: key, res: res, questions: pr.questions, nextID: pr.nextID, ruled: pr.routePermission}
+		if err := rd.read(routesName); err != nil {
+			return nil, err
+		}
+		pr.nextID = rd.nextID
+		pr.deadRules()
+		clauses = append(clauses, flow(mapping("clause", rt.Path, "title", "The routes the router built from here registers")))
+	}
+	src, err := codeSource(r, out, clauses)
 	if err != nil {
 		return nil, err
 	}
@@ -77,12 +109,31 @@ func Permissions(dumpPath, out, key string) (*Result, error) {
 		stages = []string{"design"}
 		res.Tree.put("design/roles.yaml", mapping("permissions", pr.permissions, "roles", pr.roles))
 	}
+	if rd != nil && len(rd.routes) > 0 {
+		stages = []string{"design"}
+		design := mapping()
+		// A permission a route names that a role grants too is written
+		// once, with the roles.
+		if rd.permissions != nil && pr.permissions != nil {
+			for _, p := range source.Pairs(pr.permissions) {
+				deleteKey(rd.permissions, p.Key.Value)
+			}
+		}
+		if rd.permissions != nil && len(rd.permissions.Content) > 0 {
+			set(design, "permissions", rd.permissions)
+		}
+		set(design, "paths", rd.paths)
+		res.Tree.put("design/paths.yaml", design)
+	}
 	if len(pr.questions.Content) > 0 {
 		stages = []string{"requirements", "design"}
 		res.Tree.put("requirements/stakeholders.yaml", mapping("stakeholders", ownerStakeholder()))
 		res.Tree.put("design/questions.yaml", mapping("questions", pr.questions))
 	}
-	description := fmt.Sprintf("The roles and the permissions each grants, as the permission check built from %s reads them, from the permission table %s, made at commit %s. Every role and permission cites the table; what the table does not say is a question, and so is what the meta-model cannot hold.\n", t.Path, dumpName, r.Commit)
+	description := fmt.Sprintf("The roles and the permissions each grants, as the permission check built from %s reads them, from the permission table %s, made at commit %s. Every role and permission cites the table; what the table does not say is a question, and so is what the meta-model cannot hold.\n", t.Path, dumpName, t.Commit)
+	if rd != nil {
+		description = fmt.Sprintf("The roles and the permissions each grants, as the permission check built from %s reads them, from the permission table %s, made at commit %s; and the routes the router built from %s registers, from the route table %s, made at commit %s, each route that checks no permission taking the one the table's rules give it. Every role, permission and operation cites its table; what the tables do not say is a question, and so is what the meta-model cannot hold.\n", t.Path, dumpName, t.Commit, rd.t.Path, routesName, rd.t.Commit)
+	}
 	root := rootFile("Permissions of "+t.Path, description, stages, mapping(key, src))
 	if rule := pr.roleNames.rule(); rule != "" && pr.roles != nil {
 		set(child(root, "info"), "roleNames", rule)
@@ -104,6 +155,7 @@ type permissionReader struct {
 	mappedFrom  map[string]string // a permission the rule of ADR-076 mapped -> the privilege named
 	roleNames   roleNames         // how the table writes its roles (ADR-099)
 	wireOf      map[string]string // a role's name -> the name the table writes
+	rulePerms   []*rulePermission // the permissions the rules give, by name
 }
 
 // gap records what the meta-model cannot hold of a grant of the role, as
@@ -159,6 +211,11 @@ func (pr *permissionReader) read(dumpName string) error {
 		}
 		seen[g] = true
 		roles = append(roles, g.Role)
+	}
+	for _, r := range pr.t.Rules {
+		if r.Role != "" {
+			roles = append(roles, r.Role)
+		}
 	}
 	// Roles the table writes in upper snake case are read by their
 	// kebab-case names under info.roleNames (ADR-099); a role the rule
@@ -230,7 +287,18 @@ func (pr *permissionReader) read(dumpName string) error {
 		}
 		gates[g] = true
 	}
-	pr.res.say("counted %s and %s: every entry of the permission table's lists, which hold every grant the check reads and every check the printer declares a setting switches off", plural(len(pr.t.Grants), "grant"), plural(len(pr.t.Gates), "gate"))
+	if pr.t.Rules != nil {
+		pr.res.say("counted %s, %s and %s: every entry of the permission table's lists, which hold every grant the check reads, every check the printer declares a setting switches off and every rule of the policy the check reads", plural(len(pr.t.Grants), "grant"), plural(len(pr.t.Gates), "gate"), plural(len(pr.t.Rules), "rule"))
+	} else {
+		pr.res.say("counted %s and %s: every entry of the permission table's lists, which hold every grant the check reads and every check the printer declares a setting switches off", plural(len(pr.t.Grants), "grant"), plural(len(pr.t.Gates), "gate"))
+	}
+	ruled, err := pr.readRules(dumpName, isRole)
+	if err != nil {
+		return err
+	}
+	for role, perms := range ruled {
+		byRole[role] = append(byRole[role], perms...)
+	}
 
 	var roleNames []string
 	usedBy := map[string][]string{}
@@ -262,7 +330,14 @@ func (pr *permissionReader) read(dumpName string) error {
 			}
 			set(role, "origin", "stated")
 			wire := pr.wireOf[name]
-			set(role, "cites", []*yaml.Node{citation(pr.key, pr.t.Path+" role "+wire, fmt.Sprintf("%s grants %s.", wire, joinAnd(granted)))})
+			var says []string
+			if len(granted) > 0 {
+				says = append(says, fmt.Sprintf("%s grants %s.", wire, joinAnd(granted)))
+			}
+			if reach := pr.roleRows(wire); reach != "" {
+				says = append(says, reach)
+			}
+			set(role, "cites", []*yaml.Node{citation(pr.key, pr.t.Path+" role "+wire, strings.Join(says, " "))})
 			set(pr.roles, name, role)
 			blocks = append(blocks, "#/roles/"+escapeToken(name)+"/description")
 		}
@@ -292,7 +367,9 @@ func (pr *permissionReader) read(dumpName string) error {
 				wires = append(wires, pr.wireOf[r])
 			}
 			cites := []*yaml.Node{citation(pr.key, pr.t.Path+" role "+wires[0], fmt.Sprintf("%s %s %s.", joinAnd(wires), grantOrGrants(len(roles)), named))}
-			if pr.mappedFrom[n] != "" {
+			if rp := pr.rulePermission(n); rp != nil {
+				set(pr.permissions, n, pr.rulePermissionEntry(rp))
+			} else if pr.mappedFrom[n] != "" {
 				set(pr.permissions, n, mapping("origin", "inferred", "why", privilegeWhy(named, n), "cites", cites))
 			} else {
 				set(pr.permissions, n, mapping("origin", "stated", "cites", cites))
@@ -306,6 +383,7 @@ func (pr *permissionReader) read(dumpName string) error {
 				"A permission table names the permissions a role grants and not what they are for.",
 			)
 		}
+		pr.renameQuestion()
 	}
 	sort.SliceStable(problems, func(i, j int) bool { return problems[i].role < problems[j].role })
 	for _, a := range problems {
@@ -337,4 +415,19 @@ func grantOrGrants(n int) string {
 		return "grants"
 	}
 	return "grant"
+}
+
+// laterCommit is whichever of two commits has the other as an ancestor.
+func laterCommit(repo, a, b string) (string, error) {
+	if ok, err := isAncestor(repo, a, b); err != nil {
+		return "", err
+	} else if ok {
+		return b, nil
+	}
+	if ok, err := isAncestor(repo, b, a); err != nil {
+		return "", err
+	} else if ok {
+		return a, nil
+	}
+	return "", fmt.Errorf("neither %s nor %s is an ancestor of the other", a, b)
 }

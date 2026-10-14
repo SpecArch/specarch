@@ -11,7 +11,7 @@ import (
 // checkSeparationOfDuties checks each separation-of-duties set: every
 // permission it names is declared and is not public, its cardinality is no
 // more than the permissions it names, and no role grants cardinality or
-// more of them. Which person holds which roles is data, so two roles that
+// more of them, counting the ones it grants through implies. Which person holds which roles is data, so two roles that
 // together reach a set are left to the techspec's list.
 func (c *checker) checkSeparationOfDuties(d *design) {
 	for _, set := range source.Pairs(source.Child(d.root, "separationOfDuties")) {
@@ -45,10 +45,7 @@ func (c *checker) checkSeparationOfDuties(d *design) {
 			}
 		}
 		for _, role := range source.Pairs(source.Child(d.root, "roles")) {
-			grants := map[string]bool{}
-			for _, p := range source.Items(source.Child(role.Value, "permissions")) {
-				grants[p.Value] = true
-			}
+			grants := d.roleHolds(role.Value)
 			var held []string
 			for _, p := range perms {
 				if grants[p] {

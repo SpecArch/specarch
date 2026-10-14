@@ -13,6 +13,7 @@ import (
 
 	"go.yaml.in/yaml/v3"
 
+	"github.com/SpecArch/specarch/internal/implies"
 	"github.com/SpecArch/specarch/internal/source"
 	"github.com/SpecArch/specarch/internal/spec"
 	"github.com/SpecArch/specarch/internal/validate"
@@ -109,7 +110,8 @@ func Merge(specs []*spec.Spec, out string) (*Result, error) {
 }
 
 // unchecked reports, where the code side has operations, every permission
-// a role grants that no operation, command or page checks (ADR-050).
+// a role grants that no operation, command or page checks, itself or
+// through a permission it implies (ADR-050, ADR-100).
 func (m *merger) unchecked() {
 	served := false
 	for _, ptr := range m.order {
@@ -146,8 +148,23 @@ func (m *merger) unchecked() {
 		}
 	}
 	sort.Strings(granted)
+	impliedBy := func(name string) []string {
+		var out []string
+		for _, q := range source.Items(source.Child(m.entries["permissions/"+name], "implies")) {
+			out = append(out, q.Value)
+		}
+		return out
+	}
+	reaches := func(p string) bool {
+		for q := range implies.Holds([]string{p}, impliedBy) {
+			if checked[q] {
+				return true
+			}
+		}
+		return false
+	}
 	for _, p := range granted {
-		if !checked[p] {
+		if !reaches(p) {
 			roles := grantedBy[p]
 			sort.Strings(roles)
 			m.res.say("unchecked: the permission %s, which %s %s, is checked by no operation, command or page; it is left from code that was removed, or guards something the routes do not show",

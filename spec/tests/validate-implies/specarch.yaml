@@ -1,0 +1,12 @@
+specarch: "0.2"
+info: { title: Case, version: 1.0.0 }
+permissions:
+  public: { description: Open to everyone., implies: [items.read] }
+  items.all: { description: Every call on items., implies: [items.read, items.write, items.archive] }
+  items.read: { description: See items., implies: [public] }
+  items.write: { description: Change items., implies: [items.review] }
+  items.review: { description: Review a change., implies: [items.write] }
+roles:
+  desk-staff: { description: Works the desk., permissions: [items.all] }
+separationOfDuties:
+  change-and-review: { description: Whoever changes an item does not review it., permissions: [items.write, items.review] }

@@ -72,7 +72,7 @@ func (c *checker) checkWorkflows(d *design) {
 				switch {
 				case role == nil:
 					c.add(r, ptr, RuleWorkflow, "%s is not a role of the specification%s", r.Value, suggest(r.Value, d.roles))
-				case perm != nil && d.permissions[perm.Value] != nil && !grants(role, perm.Value):
+				case perm != nil && d.permissions[perm.Value] != nil && !d.roleHolds(role)[perm.Value]:
 					c.add(r, ptr, RuleWorkflow, "%s does not grant %s, which the approval checks; grant it to the role, or name another approver", r.Value, perm.Value)
 				}
 			}
@@ -97,21 +97,11 @@ func (c *checker) checkWorkflowSeparation(d *design, perm *yaml.Node, ptr, trigg
 			continue
 		}
 		for _, role := range source.Pairs(source.Child(d.root, "roles")) {
-			if grants(role.Value, triggerPerm) && grants(role.Value, perm.Value) {
+			if held := d.roleHolds(role.Value); held[triggerPerm] && held[perm.Value] {
 				c.add(perm, ptr, RuleWorkflow, "role %s grants both %s, the trigger's permission, and %s, and set %s keeps them apart; take one of them from the role", role.Key.Value, triggerPerm, perm.Value, set.Key.Value)
 			}
 		}
 	}
-}
-
-// grants reports whether a role grants a permission.
-func grants(role *yaml.Node, perm string) bool {
-	for _, p := range source.Items(source.Child(role, "permissions")) {
-		if p.Value == perm {
-			return true
-		}
-	}
-	return false
 }
 
 // laterApproval reports whether one of the steps is an approval of that

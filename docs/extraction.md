@@ -285,9 +285,16 @@ Steps, in order:
    by its kebab-case name (ADR-099); `extract go` reads a seed's roles the
    same way. An upper snake name in a table that names roles both ways,
    or one that would not go back on the wire unchanged, is left out with
-   a line that says why. `specarch merge` asks a question two trees ask only once, and
+   a line that says why. A check that reads a policy of path patterns is
+   printed as the table's `rules`, each a role, a pattern, the methods and
+   the path matcher (ADR-100): the reader writes one permission per
+   distinct pattern and method pair, named by a fixed rule, each implying
+   the ones its pattern covers, and given the route table with `--routes`
+   writes the routes too, each with the one permission every other match
+   implies; an ambiguous route and a route no rule reaches are `must`
+   questions, and a rule no route reaches a `could` one. `specarch merge` asks a question two trees ask only once, and
    reports a permission a role grants that no operation, command or page
-   checks. The lending desk's roles move from a Go map to a roles table
+   checks, itself or through a permission it implies. The lending desk's roles move from a Go map to a roles table
    and a seed script, which its check reads with `lending/grants.sql`;
    its printer, `cmd/permissiontable/print.sh`, runs the migrations and
    the seeds in a disposable PostgreSQL under Podman and runs that query,

@@ -1,0 +1,19 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v0.6.0/schema/specarch-design-0.2.schema.json
+specarch: "0.2"
+info:
+  title: Permissions of access
+  version: 0.1.0
+  description: |
+    The roles and the permissions each grants, as the permission check built from access reads them, from the permission table permissions.json, made at commit b6650a4697ebaa5ec5de39a0d38528beef9146e7; and the routes the router built from api registers, from the route table routes.json, made at commit be5537b2da0d3962d1ae03cc51a53c221cada5ce, each route that checks no permission taking the one the table's rules give it. Every role, permission and operation cites its table; what the tables do not say is a question, and so is what the meta-model cannot hold.
+  tracksOrigin: true
+stages: [requirements, design]
+sources:
+  code:
+    kind: code
+    title: The code repository
+    edition: be5537b2da0d3962d1ae03cc51a53c221cada5ce
+    url: ../service
+    clauses:
+      - {clause: access, title: The grants the permission check built from here reads}
+      - {clause: api, title: The routes the router built from here registers}
+    reading: printed

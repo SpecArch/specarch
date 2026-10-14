@@ -159,7 +159,32 @@ commands:
         is a must question blocking the roles, citing the table, since
         while the setting is empty the check lets every request through
         and nothing says so; extract go asks it in the same words, so
-        that merge joins the two.
+        that merge joins the two. A check that reads a policy of path
+        patterns rather than named grants is printed as the table's
+        rules (ADR-100), each a role, a pattern, the methods (a list, or
+        `*` for every one) and the path matcher that reads the pattern:
+        `colon`, where a segment `:name` is one segment, or `brace`, where
+        a segment `{name}` is, `*` as the last segment being the rest of
+        the path in both. The rules give one permission per distinct
+        pattern and method pair, inferred, named by the fixed rule: the
+        pattern's literal segments' words in lower case joined by dots,
+        then `all` for every method or the method in lower case
+        (`/v1/*` with `*` is `v1.all`); pairs that would share a name are
+        named with their parameters' words too, and a pair whose name
+        still meets another's, or has a word that does not start with a
+        letter, prints a line and is left out, as is a rule whose pattern
+        has `*` other than as its last segment. A permission implies each
+        one its pattern and methods cover with none between them, each
+        role is granted the permissions of its rows, and a could question
+        offers to rename the inferred names. Given the route table too,
+        with `--routes`, the routes are read as extract router reads them
+        and written in the same tree, under one code source read at the
+        later of the two tables' commits; each route that checks no
+        permission takes the matching permission every other matching one
+        implies. A route two permissions reach with neither implying the
+        other, and a route no rule reaches, are must questions on its
+        permission, and a permission no route reaches prints a line and is
+        a could question.
       - `pages`: one folder that is a file-system router's root, read
         from its tracked files with no parser (ADR-057, ADR-084). The
         folder's name tells the router: `server` is Nuxt's server
@@ -1108,6 +1133,9 @@ commands:
       facts:
         description: For pages, a code-facts dump of JavaScript and TypeScript, made by tools/code-facts/dump-javascript.sh of a folder that holds the router's folder, through which the Next.js files' code is read.
         schema: { type: string }
+      routes:
+        description: For permissions, a route table of the same repository, made by tools/routes/dump-routes.sh, whose routes are written with the permission the permission table's rules give each.
+        schema: { type: string }
       source-key:
         description: The key of the source in the written tree; code for the code readers, and the file's name in kebab-case for documents and openapi, when it is not given.
         schema: { type: string, pattern: "^[a-z][a-z0-9]*(-[a-z0-9]+)*$" }
@@ -1123,7 +1151,10 @@ commands:
       the reader reads, or a document read as what the running system
       printed; one line per file that imports a library the reader knows
       and gives nothing it reads; one line per gate on a setting, naming
-      the check and the setting; for go, swift, javascript, dart and
+      the check and the setting; for permissions with rules, one line
+      counting the permissions and implications the rules give, one per
+      set of patterns whose names meet, and with --routes one naming the
+      route table's commit and one per rule no route reaches; for go, swift, javascript, dart and
       pages with --facts, one line naming the checks the implementation file
       names; for pages with --facts, one line naming the dump, one per
       middleware file saying what it covers and checks, and one counting
@@ -1135,7 +1166,7 @@ commands:
     standardError: A usage message on a usage error, and the reason a source could not be read.
     exitCodes:
       "0": the specification was written
-      "1": "the surface could not be read as the source expects: a dump that does not parse or is stale, a dump whose repository is no gitlink of the repository holding it, is not checked out, pins a commit its history does not hold or whose checkout under the path is not the pinned commit's, a code-facts dump another parser version made, whose files are not the tracked files of its folder the reader reads, or, for pages, whose folder does not hold the router's folder, a route table that lists a method and path pair twice, a permission table that lists a grant twice, a router root that gives one route twice or holds no page, a path with changes not committed, untracked files, a shallow clone, a path outside a git repository, a document that is not Markdown, a file that is not an OpenAPI 3.0 or 3.1 document, a file that is not BPMN 2.0 XML or holds no process, or an implementation file that does not parse as YAML"
-      "2": usage error, a source this build does not offer, --implementation given to a source other than go, swift, javascript, dart or pages, or to pages without --facts, --facts given to a source other than pages, or a path that could not be read or written
-    satisfies: [SA-11, SA-44]
+      "1": "the surface could not be read as the source expects: a dump that does not parse or is stale, a dump whose repository is no gitlink of the repository holding it, is not checked out, pins a commit its history does not hold or whose checkout under the path is not the pinned commit's, a code-facts dump another parser version made, whose files are not the tracked files of its folder the reader reads, or, for pages, whose folder does not hold the router's folder, a route table that lists a method and path pair twice, a permission table that lists a grant or a rule twice, names a matcher the reader does not know, or holds a rule without one of its four keys, a route table given with --routes from another repository or from a commit on another line of history than the permission table's, a router root that gives one route twice or holds no page, a path with changes not committed, untracked files, a shallow clone, a path outside a git repository, a document that is not Markdown, a file that is not an OpenAPI 3.0 or 3.1 document, a file that is not BPMN 2.0 XML or holds no process, or an implementation file that does not parse as YAML"
+      "2": usage error, a source this build does not offer, --implementation given to a source other than go, swift, javascript, dart or pages, or to pages without --facts, --facts given to a source other than pages, --routes given to a source other than permissions, more than one permission table, or a path that could not be read or written
+    satisfies: [SA-11, SA-44, SA-63]
     why: Existing systems enter SpecArch by extraction, so the verb exists from the start; it is built one reader at a time for the first real project that needs it, and every reader keeps the same rules so that the merge can trust their trees.

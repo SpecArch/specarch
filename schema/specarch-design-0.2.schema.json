@@ -1912,6 +1912,15 @@
         "description": {
           "$ref": "#/$defs/markdown"
         },
+        "implies": {
+          "description": "SpecArch keyword. Permissions this one implies: a holder of it holds each of them too, and what they imply, transitively. A client depends on it, since a holder calls what an implied permission guards without being told of it. Every name is declared, none is public, and no permission implies itself through the list (the implies rule).",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/permissionName"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
         "satisfies": {
           "$ref": "#/$defs/satisfies"
         },

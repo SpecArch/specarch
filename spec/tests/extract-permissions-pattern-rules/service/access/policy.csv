@@ -1,0 +1,7 @@
+role,pattern,methods
+desk-supervisor,/v1/*,*
+desk-staff,/v1/*,GET
+desk-staff,/v1/loans/:id/renew,POST
+desk-staff,/v1/:kind/export,GET
+auditor,/v1/reports/*,GET
+auditor,/v2/*,GET

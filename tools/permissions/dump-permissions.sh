@@ -26,9 +26,18 @@
 #   present, and so lets every request through when the setting is
 #   empty: the check's name and the setting's. The project declares
 #   these itself; an empty list says no check has one.
+# - rules: only for a check that reads a policy of path patterns
+#   rather than named grants, and left out otherwise. Each rule is a
+#   role, a pattern, the methods (a list of methods in capitals, or "*"
+#   for every one) and the path matcher that reads the pattern, "colon"
+#   (a segment :name is one segment) or "brace" (a segment {name} is):
+#       {"role": "desk-staff", "pattern": "/v1/*", "methods": ["GET"], "matcher": "colon"}
+#   specarch extract permissions names one permission per pattern and
+#   method by a fixed rule, and gives each route of a route table given
+#   with --routes its permission.
 #
 # The keys named here are all there is; a permission table with any other
-# key, or without one of these, is refused.
+# key, or without grants or gates, is refused.
 #
 # The folder must be committed: a change not committed, or a file that is
 # neither tracked nor ignored, is refused, since no commit would name what

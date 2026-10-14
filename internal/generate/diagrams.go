@@ -6,6 +6,8 @@ import (
 	"strings"
 
 	"go.yaml.in/yaml/v3"
+
+	"github.com/SpecArch/specarch/internal/implies"
 )
 
 func fence(body string) string {
@@ -281,7 +283,8 @@ func pagesFlowchart(root *yaml.Node) string {
 }
 
 // permissionsTable is the matrix of permissions and the roles that grant
-// them.
+// them: yes where a role grants it, and through the permission that
+// implies it where the role holds it only by an implication.
 func permissionsTable(root *yaml.Node) string {
 	perms := pairs(root, "permissions")
 	if len(perms) == 0 {
@@ -290,10 +293,7 @@ func permissionsTable(root *yaml.Node) string {
 	roles := pairs(root, "roles")
 	grants := map[string]map[string]bool{}
 	for _, r := range roles {
-		grants[r.Key.Value] = map[string]bool{}
-		for _, p := range strs(r.Value, "permissions") {
-			grants[r.Key.Value][p] = true
-		}
+		grants[r.Key.Value] = roleHolds(root, r.Value)
 	}
 	hasPublic := get(get(root, "permissions"), "public") != nil
 	var b strings.Builder
@@ -313,7 +313,9 @@ func permissionsTable(root *yaml.Node) string {
 	for _, p := range perms {
 		fmt.Fprintf(&b, "| %s |", p.Key.Value)
 		for _, r := range roles {
-			if grants[r.Key.Value][p.Key.Value] {
+			if through := implies.Through(strs(r.Value, "permissions"), p.Key.Value, impliedBy(root)); through != "" {
+				b.WriteString(" through " + through + " |")
+			} else if grants[r.Key.Value][p.Key.Value] {
 				b.WriteString(" yes |")
 			} else {
 				b.WriteString(" |")

@@ -37,6 +37,7 @@ enums:
       - permission_undeclared
       - permission_ungranted
       - separation_of_duties
+      - implies
       - expression_syntax
       - expression_name
       - expression_type
@@ -145,6 +146,7 @@ enums:
       permission_undeclared: an operation, command, page, action or role names a permission that is not declared
       permission_ungranted: a declared permission is granted by no role and is not `public`
       separation_of_duties: "a separation-of-duties set names a permission that is not declared or is `public`, asks for more of its permissions than it holds, or a role grants as many of the set's permissions as its cardinality"
+      implies: "a permission implies a name that is not declared, implies `public`, is `public` and implies another, or implies itself through the implications"
       expression_syntax: a check, a unique constraint's condition or a formula does not parse
       expression_name: an expression names a field, input or function that does not exist
       expression_type: an expression combines values of types that do not fit
@@ -221,4 +223,4 @@ enums:
       wire_name: "the specification names its wire names (info.wireNames) and two properties of one object, an entity's, a view's with its entity's, or a body's, a parameter's or a message's, go on the wire under one name; or it names its roles' wire names (info.roleNames) and two roles go on the wire under one name"
       meta_model_version: "the file says `specarch: \"0.1\"`, which is read until 1.0; run `specarch derive` and change the line to \"0.2\" (a warning)"
       output_folder: "document or generate is given no --out, and no implementation file of a specification names an output folder for the target under targets, so that specification has no such output (a warning, ADR-073, ADR-086)"
-    satisfies: [SA-2, SA-3, SA-4, SA-5, SA-6, SA-9, SA-10, SA-11, SA-12, SA-13, SA-17, SA-18, SA-23, SA-24, SA-27, SA-29, SA-41, SA-42, SA-47, SA-48, SA-49, SA-50, SA-62]
+    satisfies: [SA-2, SA-3, SA-4, SA-5, SA-6, SA-9, SA-10, SA-11, SA-12, SA-13, SA-17, SA-18, SA-23, SA-24, SA-27, SA-29, SA-41, SA-42, SA-47, SA-48, SA-49, SA-50, SA-62, SA-63]

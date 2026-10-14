@@ -219,11 +219,7 @@ func (d *design) draftData(root *yaml.Node, s *subject, dc derivedCase) (caller,
 		perm := strings.TrimPrefix(dc.name, "denied without ")
 		var roles []string
 		for name, role := range d.roles {
-			holds := false
-			for _, p := range source.Items(source.Child(role, "permissions")) {
-				holds = holds || p.Value == perm
-			}
-			if !holds {
+			if !d.roleHolds(role)[perm] {
 				roles = append(roles, name)
 			}
 		}

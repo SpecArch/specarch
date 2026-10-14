@@ -10,6 +10,7 @@ import (
 
 	"go.yaml.in/yaml/v3"
 
+	"github.com/SpecArch/specarch/internal/implies"
 	"github.com/SpecArch/specarch/internal/source"
 	"github.com/SpecArch/specarch/internal/spec"
 )
@@ -971,7 +972,9 @@ func (s *site) permissionMatrix() {
 	for _, p := range perms {
 		s.line(`<tr><th scope="row">%s</th>`, s.linkName("permission", p.Key.Value))
 		for _, r := range roles {
-			if slices.Contains(strs(r.Value, "permissions"), p.Key.Value) {
+			if through := implies.Through(strs(r.Value, "permissions"), p.Key.Value, impliedBy(s.root)); through != "" {
+				s.line(`<td class="yes">through %s</td>`, html.EscapeString(through))
+			} else if slices.Contains(strs(r.Value, "permissions"), p.Key.Value) {
 				s.line(`<td class="yes">yes</td>`)
 			} else {
 				s.line("<td></td>")

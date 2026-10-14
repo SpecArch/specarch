@@ -1,0 +1,116 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
+decisions:
+  ADR-100:
+    title: A permission may imply others, every check of what a role grants counts the implications, and extract permissions reads a policy of path patterns into permissions named by a fixed rule
+    status: accepted
+    date: "2026-10-14"
+    context: |
+      Point 5 of docs/estate.md, build item 3, and the owner's decision 1
+      there. Some systems check a policy of rows, each a role, a path
+      pattern and a method or `*`, matched by the library's path matcher,
+      and name no permission anywhere. A printer that made names by a rule
+      of its own had to grant a role with a `*` row two names, since
+      nothing said that one permission covers another. A permission
+      computed from a pattern was declined in the plan: rows overlap by
+      design, so one operation would have several permissions, and a
+      pattern would reach a route added later without anyone writing it,
+      which is the fail-open that fail-closed access refuses.
+    decision: |
+      A permission may list `implies`: the permissions a holder of it
+      holds too, transitively. The validator refuses, as `implies` at the
+      entry, a name that is not declared, `public` implied (everyone holds
+      it already) or implying (it would give the implied permission to
+      everyone), and a permission that implies itself through the
+      implications, reported at every permission on the cycle with the
+      way round, the shortest one, following each list in its order. Every
+      check of what a role grants counts what its permissions imply: the
+      grants check, separation of duties, workflow approvals, a picker's
+      list, a flow's pages, the role chosen for a derived "denied without"
+      case, and merge's line for a permission no operation checks. The
+      techspec's matrix and the site's write "through" and the permission
+      a role holds an implied one by, and the techspec lists what each
+      permission implies when one does; generate go-dxlib writes a role's
+      privileges with the ones they imply after them, since the check
+      reads each privilege by its name.
+      The permission table gains `rules`, beside `grants` and `gates`, and
+      a table without it reads as before. A rule is a role, a pattern, the
+      methods (a list of methods in capitals, or `*`) and the matcher:
+      `colon`, where a segment `:name` is one segment, or `brace`, where a
+      segment `{name}` is; in both `*` as the whole last segment is the
+      rest of the path after the slash before it, slashes included. The
+      rules give one permission per distinct pattern and method pair, the
+      parameters' names aside, named by the fixed rule: the literal
+      segments' words in lower case joined by dots, then `all` for `*` or
+      the method in lower case; `/v1/*` with `*` is `v1.all`, and
+      `/v1/items/{id}` with `DELETE` is `v1.items.delete`. Pairs that
+      would share a name are each named with their parameters' words too
+      (and `any` for the rest of the path); a pair whose name still meets
+      another's, or has a word that does not start with a letter, prints a
+      line and is a could question, left out, and so is a rule with `*`
+      anywhere but as the last segment. A permission implies each one its
+      pattern covers by the matcher's rule, with its methods including the
+      other's, and the implications written are the fewest that give
+      them all. Each role is granted the permissions of its rows. Every
+      such permission is inferred, with a could question offering to
+      rename them all.
+      With `--routes`, extract permissions reads the route table too and
+      writes its routes as extract router does, under the same code
+      source, read at the later of the two tables' commits. A route that
+      checks no permission takes the matching permission that every other
+      matching one implies; a route two match with neither implying the
+      other is a must question at its permission naming the narrowest
+      matches, and so is a route no rule reaches, asking whether it is
+      closed on purpose. A permission no route reaches prints a line and
+      is a could question.
+    why: |
+      implies is design, not implementation, because the client depends on
+      it: a holder of v1.all calls a read without being told of v1.get,
+      which is the interface boundary's test. Implications rather than one
+      permission per route (decision 1): the matrix stays one a person
+      reads, with few permissions whose names mean something, and a route
+      added under a pattern changes no permission. RBAC's role hierarchy
+      (ANSI INCITS 359) orders roles, not permissions; ordering
+      permissions is the one thing the policy's overlapping rows say, so
+      it is put where they say it. Every check counts implied permissions
+      because a check that counted only the listed ones would pass a role
+      that reaches two separated permissions through one, which is the
+      fail-open the checks exist to refuse.
+      Cycles are refused because a cycle makes two names one permission,
+      which is one thing said two ways. public is refused on either side
+      for the same reason as in separation of duties: everyone holds it,
+      so implying it says nothing, and public implying another would open
+      that one to everyone without anyone writing public on it.
+      The naming rule is fixed so that two runs and two people give the
+      same name, and it keeps the plan's rule unchanged where no names
+      meet; the list and read-one pair every API has (`/v1/items` and
+      `/v1/items/{id}` with GET) would meet under it, so the parameters'
+      words are what tells them apart, which the plan did not settle. The
+      matchers read `*` only as the last segment because both libraries
+      the plan names do, and a rule written another way is a line, not a
+      guess. A pattern covers another by inclusion of the paths each
+      matches, the one relation that is the same whichever matcher wrote
+      either; a rule that reaches only part of a route's paths does not
+      reach it, since the route's caller would be refused for some values.
+      The route's permission is the one every other match implies, so that
+      the most specific rule wins only where the others agree it is
+      narrower; anything else is an ambiguity, and an ambiguity is a
+      question at the operation, never a pick. --routes writes the routes
+      in the permissions tree, rather than a second tree joined by merge,
+      because a question at the operation needs the operation, and the
+      two tables are one surface for such a system: it names no
+      permission in its routes.
+      Compiler test: an ambiguous route, a closed route, a dead rule, a
+      name that cannot be made and a pattern the matchers do not read are
+      each a question, never dropped and never guessed. Acceptance test: a
+      reviewer reads the matrix with the implications marked and sees in
+      one table what each role reaches.
+    consequences: |
+      A system that checks pattern rows is extracted with its roles,
+      permissions and implications and each route's one permission, and
+      the questions a reviewer answers are only the ambiguous, closed and
+      dead ones and the names. A specification with no implies validates,
+      documents and generates byte for byte as before, the lending desk's
+      among them. A tree from extract permissions --routes stands in for
+      extract router on such a system, so the two are not both run on one
+      route table.
+    satisfies: [SA-63]

@@ -33,7 +33,7 @@ facts in a format SpecArch defines, never a reader of its own.
 | 2. references between specifications; an umbrella specification | planned, items 5 and 6 |
 | 3. documents in another language | planned, item 4 |
 | 4. role names on the wire | built, item 2 (ADR-099): `info.roleNames: upper_snake`, read by both readers of grants |
-| 5. authorisation by path pattern | planned, item 3: pattern rules in the permission table and `implies` on a permission; a permission defined by a pattern is declined |
+| 5. authorisation by path pattern | built, item 3 (ADR-100): `implies` on a permission, counted by every check of a role's grants, and `rules` in the permission table, read with the route table by `extract permissions --routes`; a permission defined by a pattern is declined |
 | 6. a check bypassed for one kind of caller | planned as a gate kind in the permission table, item 7; whether a route may serve people and clients both is decision 3: left out of 0.3 |
 | 7. the schema file's name; the facts dump from the installed binary | planned, item 8 |
 | 8. workflow definitions that are not BPMN | planned as a printed workflow table, item 9, since the estate's format is custom; a standard format gets a plug-in reader (decision 5) |
@@ -285,14 +285,20 @@ depends on it (a holder of `v1.all` calls a read without being told of
 `v1.get`), which is the interface boundary's test.
 
 The permission table gains `rules`, beside `grants` and `gates`: each a
-role, a pattern, the methods (a list, or `*`) and the matcher's name.
+role, a pattern, the methods (a list, or `*`) and the matcher's name,
+`colon` for the matcher that takes `:name` for one segment and `brace`
+for the one that takes `{name}`.
 `extract permissions`, given the route table too (`--routes`), writes
 one permission per distinct pattern and method pair, named by a fixed
 rule: the pattern's literal segments as lower-case words joined by
 dots, `*` and a parameter dropped, then `all` for `*` or the method
 (`/v1/*` with `*` is `v1.all`; `/v1/items/{id}` with `delete` is
 `v1.items.delete`); a row listing several methods is one permission per
-method. A permission implies another when its pattern covers every path
+method. Two pairs the rule gives one name, such as the list and the
+read-one route of `/v1/items` and `/v1/items/{id}` with `get`, are each
+named with their parameters' words too (`v1.items.get` and
+`v1.items.id.get`). With `--routes` the routes are written in the same
+tree, as `extract router` writes them, each with its permission. A permission implies another when its pattern covers every path
 the other's covers, by the matcher's own rule, and its methods include
 the other's; the implications are written. Each role is granted the
 permissions of its rows. Each route's permission is the one matching
@@ -581,7 +587,7 @@ step 1. Only item 7's meta-model half touches 0.3.
    form. Done when the permission-table case with upper-snake roles
    gives every role, two roles mapping to one wire name are refused in
    both builds, and the techspec shows the wire form.
-3. `implies` and pattern rules. `implies` in the design schema with the
+3. Built (ADR-100). `implies` and pattern rules. `implies` in the design schema with the
    `implies` rule (cycle, undeclared) in both builds, expansion in the
    grants check, separation of duties and the techspec matrix; `rules`
    in the permission table with `--routes` on the reader, the naming

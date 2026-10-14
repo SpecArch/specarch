@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "a specification whose public permission implies one, a permission that implies an undeclared name, one that implies public, two that imply each other, a role granting only the permission that implies the others, and a separation-of-duties set over the two that imply each other"
+when: "validate is run"
+then: "it reports public implying, the undeclared name, public implied and the cycle at each of its two permissions as implies, the role reaching the set through the implications as separation_of_duties, no implied permission as ungranted, and exits 1"
+verifies: [SA-63]

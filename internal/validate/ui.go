@@ -304,10 +304,8 @@ func (c *checker) checkFlows(d *design) {
 		if actorNode != nil && role == nil {
 			c.add(actorNode, source.Pointer("flows", name, "actor"), RuleFlow, "%s is not a role of the specification%s", actor, suggest(actor, d.roles))
 		}
-		granted := map[string]bool{"public": true}
-		for _, p := range source.Items(source.Child(role, "permissions")) {
-			granted[p.Value] = true
-		}
+		granted := d.roleHolds(role)
+		granted["public"] = true
 		steps := source.Items(source.Child(f.Value, "steps"))
 		for i, step := range steps {
 			at := []string{"flows", name, "steps", fmt.Sprint(i)}

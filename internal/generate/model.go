@@ -10,6 +10,7 @@ import (
 
 	"go.yaml.in/yaml/v3"
 
+	"github.com/SpecArch/specarch/internal/implies"
 	"github.com/SpecArch/specarch/internal/source"
 )
 
@@ -186,4 +187,24 @@ func mermaidID(s string) string {
 // mermaidText makes text safe inside a quoted Mermaid label.
 func mermaidText(s string) string {
 	return strings.NewReplacer(`"`, "'", "\n", " ", ";", ",", "#", "").Replace(s)
+}
+
+// impliedBy gives, for the design under root, the declared and non-public
+// permissions a permission lists under implies.
+func impliedBy(root *yaml.Node) func(string) []string {
+	perms := get(root, "permissions")
+	return func(name string) []string {
+		var out []string
+		for _, p := range strs(get(perms, name), "implies") {
+			if p != "public" && get(perms, p) != nil {
+				out = append(out, p)
+			}
+		}
+		return out
+	}
+}
+
+// roleHolds is every permission a role grants, with the ones they imply.
+func roleHolds(root, role *yaml.Node) map[string]bool {
+	return implies.Holds(strs(role, "permissions"), impliedBy(root))
 }

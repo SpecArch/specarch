@@ -212,6 +212,7 @@ extension Checker {
         checkPageElements(d)
         checkDecisions(d)
         checkAccess(d)
+        checkImplies(d)
         checkSeparationOfDuties(d)
         checkExpressions(d)
         checkMetaModelVersion(d)
@@ -671,7 +672,8 @@ extension Checker {
     }
 
     /// The fail-closed rule: every permission used is declared, and every
-    /// declared permission is granted by a role or is public.
+    /// declared permission is granted by a role, or implied by one a role
+    /// grants, or is public.
     func checkAccess(_ d: Design) {
         func use(_ n: YNode?, _ ptr: String, _ who: String) {
             let p = str(n)
@@ -696,9 +698,9 @@ extension Checker {
         var granted = Set<String>()
         for (name, r) in d.roles {
             for (i, p) in items(r.child("permissions")).enumerated() {
-                granted.insert(p.value)
                 use(p, pointer("roles", name, "permissions", "\(i)"), "role " + name)
             }
+            granted.formUnion(d.roleHolds(r))
         }
         for p in pairs(d.root.child("permissions")) where p.key.value != "public" && !granted.contains(p.key.value) {
             add(p.key, pointer("permissions", p.key.value), .permissionUngranted,

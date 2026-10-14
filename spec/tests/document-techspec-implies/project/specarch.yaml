@@ -1,0 +1,18 @@
+specarch: "0.2"
+info:
+  title: Desk
+  version: 1.0.0
+  description: A lending desk whose supervisor's permission covers every read.
+permissions:
+  v1.all: { description: Every call under /v1., implies: [v1.get, v1.loans.writeoff] }
+  v1.get: { description: Every read under /v1., implies: [v1.reports.get] }
+  v1.reports.get: { description: Read the reports. }
+  v1.loans.writeoff: { description: Write off a loan. }
+  loans.approve: { description: Approve a write-off. }
+roles:
+  approver: { description: Approves write-offs., permissions: [loans.approve] }
+  auditor: { description: Reads the reports., permissions: [v1.reports.get] }
+  desk-staff: { description: Works the desk., permissions: [v1.get] }
+  desk-supervisor: { description: Supervises the desk., permissions: [v1.all] }
+separationOfDuties:
+  audit-and-approve: { description: Whoever approves a write-off does not also audit the reports., permissions: [v1.reports.get, loans.approve] }

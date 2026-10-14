@@ -1,0 +1,9 @@
+arguments: [validate, .]
+exitStatus: 1
+standardOutput: |
+  specarch.yaml:4:54: error: /permissions/public/implies: implies: public implies items.read, which would give it to everyone, signed in or not; grant it to a role instead [implies@specarch.yaml#/permissions/public/implies]
+  specarch.yaml:5:86: error: /permissions/items.all/implies/2: implies: permission items.all implies items.archive, which is not declared; add it under permissions; use one of items.all, items.read, items.review, items.write, public [implies@specarch.yaml#/permissions/items.all/implies/2]
+  specarch.yaml:6:52: error: /permissions/items.read/implies/0: implies: permission items.read implies public, which everyone holds already; take it out of the list [implies@specarch.yaml#/permissions/items.read/implies/0]
+  specarch.yaml:7:55: error: /permissions/items.write/implies: implies: permission items.write implies itself through items.write → items.review → items.write; take one of the implications out [implies@specarch.yaml#/permissions/items.write/implies]
+  specarch.yaml:8:59: error: /permissions/items.review/implies: implies: permission items.review implies itself through items.review → items.write → items.review; take one of the implications out [implies@specarch.yaml#/permissions/items.review/implies]
+  specarch.yaml:10:15: error: /roles/desk-staff: separation_of_duties: role desk-staff grants items.write and items.review of set change-and-review, and no holder may have 2 of its permissions; split them between roles [separation_of_duties@specarch.yaml#/roles/desk-staff]

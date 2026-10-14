@@ -533,7 +533,13 @@ Chapter 13 of the techspec is the matrix.
 Every operation, command and page names exactly one `permission`. Leaving it out
 is a schema error. The permission `public` is reserved for things open to
 everyone and must be written out; there is no default. A role lists the
-permissions it grants and cannot be empty. Row-level rules (a member sees only
+permissions it grants and cannot be empty. A permission may list `implies`,
+the permissions its holder holds too, transitively (ADR-100): `v1.all`
+implying `v1.get` lets a holder of `v1.all` call what `v1.get` guards. Every
+check of what a role grants counts what its permissions imply, and the
+techspec's matrix marks an implied one with the permission it comes through.
+An undeclared name, `public` on either side and a cycle are refused
+(`implies`). Row-level rules (a member sees only
 their own loans) are not in the meta-model yet; they are described in prose and
 enforced by the service, and are on the list in `docs/roadmap.md`.
 

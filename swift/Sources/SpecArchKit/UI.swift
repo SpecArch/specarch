@@ -213,8 +213,8 @@ extension Checker {
             if let actorNode, role == nil {
                 add(actorNode, pointer("flows", name, "actor"), .flow, "\(actor) is not a role of the specification\(suggest(actor, d.roles))")
             }
-            var granted: Set<String> = ["public"]
-            for p in items(role?.child("permissions")) { granted.insert(p.value) }
+            var granted = d.roleHolds(role)
+            granted.insert("public")
             let steps = items(f.value.child("steps"))
             for (i, step) in steps.enumerated() {
                 let at = ["flows", name, "steps", "\(i)"]

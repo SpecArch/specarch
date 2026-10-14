@@ -56,7 +56,7 @@ extension Checker {
                 for (j, r) in items(st.child("approvers")).enumerated() {
                     let ptr = pointer(at + ["approvers", "\(j)"])
                     if let role = d.roles[r.value] {
-                        if let perm, d.permissions[perm.value] != nil, !grants(role, perm.value) {
+                        if let perm, d.permissions[perm.value] != nil, !d.roleHolds(role).contains(perm.value) {
                             add(r, ptr, .workflow, "\(r.value) does not grant \(perm.value), which the approval checks; grant it to the role, or name another approver")
                         }
                     } else {
@@ -80,16 +80,11 @@ extension Checker {
         for set in pairs(d.root.child("separationOfDuties")) {
             let names = items(set.value.child("permissions")).map { $0.value }
             guard names.contains(triggerPerm), names.contains(perm.value) else { continue }
-            for role in pairs(d.root.child("roles")) where grants(role.value, triggerPerm) && grants(role.value, perm.value) {
+            for role in pairs(d.root.child("roles")) where d.roleHolds(role.value).isSuperset(of: [triggerPerm, perm.value]) {
                 add(perm, ptr, .workflow, "role \(role.key.value) grants both \(triggerPerm), the trigger's permission, and \(perm.value), and set \(set.key.value) keeps them apart; take one of them from the role")
             }
         }
     }
-}
-
-/// Whether a role grants a permission.
-private func grants(_ role: YNode, _ perm: String) -> Bool {
-    items(role.child("permissions")).contains { $0.value == perm }
 }
 
 /// Whether one of the steps is an approval of that name.

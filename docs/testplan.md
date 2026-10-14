@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.6.2 of the specification: 413 design tests, 182 golden and 231 red, about 14 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.6.2 of the specification: 416 design tests, 184 golden and 232 red, about 14 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.6.2 of the specification: 413 design tests, 182 golden and 231 red, ab
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 409 |
+| system | 412 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -512,6 +512,14 @@ Scenario: red; level: system; covers exit 2.
 - Given: a document target of the design that this build does not offer
 - When: document manual is run
 - Then: it says which targets it has and exits 2
+
+#### document-techspec-implies
+
+Scenario: golden; level: system; verifies SA-63.
+
+- Given: a specification whose permission v1.all implies v1.get and another, v1.get implies a third, three roles each granting one of them, a fourth granting a permission no other implies, and a separation-of-duties set over the third and the fourth's
+- When: document techspec is run
+- Then: the matrix marks a permission a role holds only by an implication as through the permission it grants, a table lists what each permission implies, the separation-of-duties set lists every role that reaches it through an implication, and it exits 0
 
 #### document-techspec-open-workflow
 
@@ -1050,6 +1058,14 @@ Scenario: golden; level: system; verifies SA-62.
 - Given: a repository whose first commit holds the folder a permission check is built from and whose second holds the permission table printed from it; the table names one role in kebab-case and one in upper snake case
 - When: extract permissions is run on the permission table
 - Then: it writes the kebab-case role and no info.roleNames, prints a line and writes a could question for the upper snake role saying the table names its roles both ways, and exits 0
+
+#### extract-permissions-pattern-rules
+
+Scenario: golden; level: system; verifies SA-63.
+
+- Given: a repository whose first commit holds a policy's folder, whose second holds a router's folder, and whose third holds the permission table printed from the first, with no grant and six rules, and the route table printed from the second, with seven routes that check no permission; one role reaches /v1/* with every method and another /v1/* with GET, a /v2/* rule reaches no route, two rules reach one route with neither covering the other, and no rule reaches /health
+- When: extract permissions is run on the permission table with the route table given by --routes
+- Then: it writes one permission per distinct pattern and method pair, named by the fixed rule, v1.all implying v1.get and the narrower ones, each role granted the permissions of its rows, every route's operation with the one permission every other match implies, a must question at the route two permissions reach with neither implying the other and at the route no rule reaches, a could question for the dead rule and one offering to rename the inferred names, reads the tree at the later of the two commits, and exits 0
 
 #### extract-permissions-upper-snake-roles
 
@@ -2311,6 +2327,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-10.
 - When: validate is run
 - Then: it reports implements and exits 1
 
+#### validate-implies
+
+Scenario: red; level: system; covers exit 1; verifies SA-63.
+
+- Given: a specification whose public permission implies one, a permission that implies an undeclared name, one that implies public, two that imply each other, a role granting only the permission that implies the others, and a separation-of-duties set over the two that imply each other
+- When: validate is run
+- Then: it reports public implying, the undeclared name, public implied and the cycle at each of its two permissions as implies, the role reaching the set through the implications as separation_of_duties, no implied permission as ungranted, and exits 1
+
 #### validate-incident-link
 
 Scenario: golden; level: system; verifies SA-23.
@@ -3379,7 +3403,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-240 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+244 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -3511,6 +3535,10 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-62 | acceptance 2 | golden | SA-62 names no harm |
 | requirement SA-62 | acceptance 3 | golden | SA-62 names no harm |
 | requirement SA-62 | acceptance 4 | golden | SA-62 names no harm |
+| requirement SA-63 | acceptance 1 | golden | SA-63 names no harm |
+| requirement SA-63 | acceptance 2 | golden | SA-63 names no harm |
+| requirement SA-63 | acceptance 3 | golden | SA-63 names no harm |
+| requirement SA-63 | acceptance 4 | golden | SA-63 names no harm |
 | requirement SA-7 | acceptance 1 | golden | SA-7 names no harm |
 | requirement SA-7 | acceptance 2 | golden | SA-7 names no harm |
 | requirement SA-8 | acceptance 1 | golden | SA-8 names no harm |

@@ -26,7 +26,7 @@ func runExtract(args []string, stdout, stderr io.Writer) int {
 		return 2
 	}
 	source := args[0]
-	out, key, implementation, facts := "", "", "", ""
+	out, key, implementation, facts, routes := "", "", "", "", ""
 	var paths []string
 	rest := args[1:]
 	for i := 0; i < len(rest); i++ {
@@ -35,7 +35,7 @@ func runExtract(args []string, stdout, stderr io.Writer) int {
 		case a == "--":
 			paths = append(paths, rest[i+1:]...)
 			i = len(rest)
-		case a == "--out" || a == "--source-key" || a == "--implementation" || a == "--facts":
+		case a == "--out" || a == "--source-key" || a == "--implementation" || a == "--facts" || a == "--routes":
 			if i+1 >= len(rest) {
 				fmt.Fprintf(stderr, "specarch extract: %s needs a value\n\n%s", a, usage)
 				return 2
@@ -47,6 +47,8 @@ func runExtract(args []string, stdout, stderr io.Writer) int {
 				key = rest[i+1]
 			case "--facts":
 				facts = rest[i+1]
+			case "--routes":
+				routes = rest[i+1]
 			default:
 				implementation = rest[i+1]
 			}
@@ -100,6 +102,12 @@ func runExtract(args []string, stdout, stderr io.Writer) int {
 	case source == "javascript" && len(paths) != 1:
 		fmt.Fprintf(stderr, "specarch extract javascript reads one code-facts dump, and was given %d paths\n", len(paths))
 		return 2
+	case routes != "" && source != "permissions":
+		fmt.Fprintf(stderr, "specarch extract %s takes no --routes; only permissions reads a route table beside its permission table, to give each route the permission its rules give\n", source)
+		return 2
+	case source == "permissions" && len(paths) != 1:
+		fmt.Fprintf(stderr, "specarch extract permissions reads one permission table, and was given %d paths\n", len(paths))
+		return 2
 	case facts != "" && source != "pages":
 		fmt.Fprintf(stderr, "specarch extract %s takes no --facts; only pages reads its router's files through a code-facts dump\n", source)
 		return 2
@@ -130,7 +138,7 @@ func runExtract(args []string, stdout, stderr io.Writer) int {
 	case "openapi":
 		res, err = extract.OpenAPI(paths[0], out, key)
 	case "permissions":
-		res, err = extract.Permissions(paths[0], out, key)
+		res, err = extract.Permissions(paths[0], routes, out, key)
 	case "pages":
 		res, err = extract.Pages(paths[0], out, key, facts, implementation)
 	case "workflows":

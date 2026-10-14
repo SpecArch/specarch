@@ -19,6 +19,7 @@ import (
 	"unicode"
 
 	"github.com/SpecArch/specarch/internal/genopenapi"
+	"github.com/SpecArch/specarch/internal/implies"
 	"github.com/SpecArch/specarch/internal/mark"
 	"github.com/SpecArch/specarch/internal/ownership"
 	"github.com/SpecArch/specarch/internal/wirename"
@@ -748,7 +749,17 @@ func (g *gen) seeds() {
 	g.line("// dxlib_module's user management. Seeding them is the service's.")
 	g.line("type Privilege struct{ NameId, Description string }")
 	g.line("")
-	g.line("// Role is a role of the specification with the privileges it grants.")
+	anyImplies := false
+	for _, p := range perms {
+		anyImplies = anyImplies || len(list(obj(p)["implies"])) > 0
+	}
+	if anyImplies {
+		g.line("// Role is a role of the specification with the privileges it grants,")
+		g.line("// and after them the ones those imply, since the check reads each")
+		g.line("// privilege by its own name.")
+	} else {
+		g.line("// Role is a role of the specification with the privileges it grants.")
+	}
 	g.line("type Role struct {")
 	g.line("\tNameId, Description string")
 	g.line("\tPrivilegeNameIds    []string")
@@ -779,9 +790,18 @@ func (g *gen) seeds() {
 		g.line("// Roles are the specification's roles.")
 	}
 	g.line("var Roles = []Role{")
+	impliedBy := func(name string) []string {
+		var out []string
+		for _, p := range texts(list(obj(perms[name])["implies"])) {
+			if p != "public" && perms[p] != nil {
+				out = append(out, p)
+			}
+		}
+		return out
+	}
 	for _, r := range sortedKeys(roles) {
 		role := obj(roles[r])
-		g.line("\t{%q, %q, []string{%s}},", wirename.Role(rule, r), oneLine(text(role["description"])), quoteAll(texts(list(role["permissions"]))))
+		g.line("\t{%q, %q, []string{%s}},", wirename.Role(rule, r), oneLine(text(role["description"])), quoteAll(withImplied(texts(list(role["permissions"])), impliedBy)))
 	}
 	g.line("}")
 	g.line("")
@@ -1015,4 +1035,23 @@ func (g *gen) marks(ptr, indent string) string {
 		b.WriteString(indent + "// " + mark.Line(p) + "\n")
 	}
 	return b.String()
+}
+
+// withImplied is the permissions a role grants, in the order written, and
+// after them, in the order of their names, every one they imply that it
+// does not grant itself (ADR-100).
+func withImplied(granted []string, impliedBy func(string) []string) []string {
+	out := append([]string(nil), granted...)
+	own := map[string]bool{}
+	for _, p := range granted {
+		own[p] = true
+	}
+	var extra []string
+	for p := range implies.Holds(granted, impliedBy) {
+		if !own[p] {
+			extra = append(extra, p)
+		}
+	}
+	sort.Strings(extra)
+	return append(out, extra...)
 }

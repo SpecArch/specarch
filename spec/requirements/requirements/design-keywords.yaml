@@ -302,3 +302,16 @@ requirements:
     verification: test
     needs: [NEED-2]
     why: A system whose token's roles claim and permission tables write DESK_SUPERVISOR came out of extract permissions with no role at all, and a specification that wrote its roles in upper case would break the one naming rule every role and its generated names follow.
+  SA-63:
+    statement: A permission shall be able to imply other permissions, and every check of what a role grants shall count what its permissions imply; specarch extract permissions shall read a permission table's pattern rules into permissions named by a fixed rule, with the implications pattern inclusion gives, and each route's one permission.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance:
+      - implies on a permission lists permissions a holder holds too, transitively; an undeclared name, public implied or implying, and a cycle are refused as implies at the entry, the same in both builds.
+      - The grants check, separation of duties, workflow approvals, pickers, flows, the derived red case's caller, the merge's unchecked line, the techspec's matrix and the generated grants count what a role's permissions imply.
+      - A permission table's rules (a role, a pattern, the methods or *, and the matcher) become one permission per distinct pattern and method pair, named from the pattern's literal words and the method, each implying the ones its pattern and methods cover, and each role granted the permissions of its rows.
+      - Given the route table with --routes, each route's permission is the matching one every other match implies; a route two permissions match with neither implying the other and a route no rule reaches are must questions at the operation, and a permission no route reaches is a could question.
+    verification: test
+    needs: [NEED-2]
+    why: A system checked by pattern rows names no permission anywhere, and a role with a `*` row beside a `get` row came out of a printer with two names and nothing saying one covers the other; the matrix a reviewer reads has to show what each role reaches.

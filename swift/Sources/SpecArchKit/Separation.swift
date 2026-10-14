@@ -4,7 +4,7 @@ extension Checker {
     /// Checks each separation-of-duties set: every permission it names is
     /// declared and is not public, its cardinality is no more than the
     /// permissions it names, and no role grants cardinality or more of
-    /// them. Which person holds which roles is data, so two roles that
+    /// them, counting the ones it grants through implies. Which person holds which roles is data, so two roles that
     /// together reach a set are left to the techspec's list.
     func checkSeparationOfDuties(_ d: Design) {
         for set in pairs(d.root.child("separationOfDuties")) {
@@ -35,7 +35,7 @@ extension Checker {
                 }
             }
             for role in pairs(d.root.child("roles")) {
-                let grants = Set(items(role.value.child("permissions")).map { $0.value })
+                let grants = d.roleHolds(role.value)
                 let held = perms.filter { grants.contains($0) }
                 if held.count >= cardinality {
                     add(role.key, pointer("roles", role.key.value), .separationOfDuties,

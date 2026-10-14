@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: requirements specification
 
-Version 0.6.2 of the specification: 5 stakeholders, 10 needs and 62 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
+Version 0.6.2 of the specification: 5 stakeholders, 10 needs and 63 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -34,7 +34,7 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | Need | Statement | Stakeholders | Status | Refined by |
 |---|---|---|---|---|
 | NEED-1 | I want a specification that cannot quietly be wrong, so that the code built from it is right. | specification-author, implementer | accepted | SA-33, SA-34, SA-35, SA-47, SA-48, SA-50, SA-1, SA-2, SA-3, SA-4, SA-5, SA-6, SA-51 |
-| NEED-2 | I want to write a design once and build it in more than one language. | implementer | accepted | SA-33, SA-34, SA-36, SA-37, SA-38, SA-39, SA-40, SA-41, SA-42, SA-43, SA-52, SA-53, SA-54, SA-55, SA-56, SA-49, SA-62, SA-46, SA-61, SA-32, SA-9, SA-10 |
+| NEED-2 | I want to write a design once and build it in more than one language. | implementer | accepted | SA-33, SA-34, SA-36, SA-37, SA-38, SA-39, SA-40, SA-41, SA-42, SA-43, SA-52, SA-53, SA-54, SA-55, SA-56, SA-49, SA-62, SA-63, SA-46, SA-61, SA-32, SA-9, SA-10 |
 | NEED-3 | I want the documents and diagrams to come from the specification, so they never drift from it. | reviewer, specification-author | accepted | SA-22, SA-36, SA-7, SA-8, SA-26, SA-16, SA-58, SA-59, SA-60, SA-19 |
 | NEED-4 | I want a big specification split over many files, each about one thing, so I can find what I am looking for. | specification-author, reviewer | accepted | SA-11, SA-2 |
 | NEED-5 | I want the whole life of the system in one place, from the first requirement to the day it is accepted. | reviewer, operator | accepted | SA-35, SA-47, SA-26, SA-16, SA-12, SA-23, SA-24, SA-25 |
@@ -75,6 +75,7 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | SA-49 | functional | should | accepted | A specification shall be able to say, once for the whole interface, that its properties go on the wire in snake_case while it names them in camelCase, and specarch validate shall refuse two properties of one object that would go on the wire under one name. |
 | SA-50 | functional | should | accepted | An entity's field shall be able to hold a value object, one schema or a list of them, stored in columns of the entity's row or as one JSON value as the field's storage says, and specarch validate shall refuse a value object that cannot be stored that way. |
 | SA-62 | functional | should | accepted | A specification shall be able to say, once for the whole system, that its roles go on the wire in upper snake case while it names them in kebab-case, and specarch validate shall refuse two roles that would go on the wire under one name. |
+| SA-63 | functional | must | accepted | A permission shall be able to imply other permissions, and every check of what a role grants shall count what its permissions imply; specarch extract permissions shall read a permission table's pattern rules into permissions named by a fixed rule, with the implications pattern inclusion gives, and each route's one permission. |
 | SA-7 | functional | must | accepted | specarch document and specarch generate shall write only into the folder the target owns, and with --check shall fail when the committed output differs. |
 | SA-8 | functional | must | accepted | Every generated file shall name its source specification, version and meta-model, and a hand-written Markdown document shall change only between its markers. |
 | SA-26 | functional | should | accepted | specarch document shall write the change and defect register and the release notes from the records beside a specification, kept current with --check like the other documents. |
@@ -547,6 +548,21 @@ Acceptance criteria:
 - specarch generate go-dxlib writes each role's name id in the wire form, and the techspec names each role's wire form.
 
 **Insight:** A system whose token's roles claim and permission tables write DESK_SUPERVISOR came out of extract permissions with no role at all, and a specification that wrote its roles in upper case would break the one naming rule every role and its generated names follow.
+
+### SA-63
+
+A permission shall be able to imply other permissions, and every check of what a role grants shall count what its permissions imply; specarch extract permissions shall read a permission table's pattern rules into permissions named by a fixed rule, with the implications pattern inclusion gives, and each route's one permission.
+
+Kind: functional; priority: must; status: accepted; verified by test; refines NEED-2.
+
+Acceptance criteria:
+
+- implies on a permission lists permissions a holder holds too, transitively; an undeclared name, public implied or implying, and a cycle are refused as implies at the entry, the same in both builds.
+- The grants check, separation of duties, workflow approvals, pickers, flows, the derived red case's caller, the merge's unchecked line, the techspec's matrix and the generated grants count what a role's permissions imply.
+- A permission table's rules (a role, a pattern, the methods or *, and the matcher) become one permission per distinct pattern and method pair, named from the pattern's literal words and the method, each implying the ones its pattern and methods cover, and each role granted the permissions of its rows.
+- Given the route table with --routes, each route's permission is the matching one every other match implies; a route two permissions match with neither implying the other and a route no rule reaches are must questions at the operation, and a permission no route reaches is a could question.
+
+**Insight:** A system checked by pattern rows names no permission anywhere, and a role with a `*` row beside a `get` row came out of a printer with two names and nothing saying one covers the other; the matrix a reviewer reads has to show what each role reaches.
 
 ### SA-7
 

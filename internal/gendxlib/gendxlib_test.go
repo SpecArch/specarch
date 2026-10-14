@@ -261,3 +261,27 @@ func TestRoleNames(t *testing.T) {
 		}
 	}
 }
+
+// TestImplies writes after each role's own privileges the ones they imply,
+// since the check reads each privilege by its name (ADR-100).
+func TestImplies(t *testing.T) {
+	resp := generateWith(t, func(sp map[string]any) {
+		perms := sp["permissions"].(map[string]any)
+		perms["books.all"] = map[string]any{"description": "Every call on books.", "implies": []any{"books.write"}}
+		perms["books.write"].(map[string]any)["implies"] = []any{"books.read"}
+		sp["roles"].(map[string]any)["desk-supervisor"] = map[string]any{"description": "Supervises the desk.", "permissions": []any{"books.all"}}
+	})
+	if len(resp.Files) != 1 {
+		t.Fatalf("want one file, got %d and %v", len(resp.Files), resp.Diagnostics)
+	}
+	src := resp.Files[0].Content
+	for _, want := range []string{
+		`{"desk", "The desk.", []string{"books.read", "books.write"}}`,
+		`{"desk-supervisor", "Supervises the desk.", []string{"books.all", "books.read", "books.write"}}`,
+		"// and after them the ones those imply, since the check reads each",
+	} {
+		if !strings.Contains(src, want) {
+			t.Errorf("the file has no %q", want)
+		}
+	}
+}

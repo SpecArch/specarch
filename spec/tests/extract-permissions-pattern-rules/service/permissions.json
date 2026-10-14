@@ -1,0 +1,15 @@
+{
+    "permissionTable": 1,
+    "path": "access",
+    "commit": "b6650a4697ebaa5ec5de39a0d38528beef9146e7",
+    "grants": [],
+    "gates": [],
+    "rules": [
+        {"role": "desk-supervisor", "pattern": "/v1/*", "methods": "*", "matcher": "colon"},
+        {"role": "desk-staff", "pattern": "/v1/*", "methods": ["GET"], "matcher": "colon"},
+        {"role": "desk-staff", "pattern": "/v1/loans/:id/renew", "methods": ["POST"], "matcher": "colon"},
+        {"role": "desk-staff", "pattern": "/v1/:kind/export", "methods": ["GET"], "matcher": "colon"},
+        {"role": "auditor", "pattern": "/v1/reports/*", "methods": ["GET"], "matcher": "colon"},
+        {"role": "auditor", "pattern": "/v2/*", "methods": ["GET"], "matcher": "colon"}
+    ]
+}

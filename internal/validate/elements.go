@@ -211,10 +211,7 @@ func (c *checker) checkPickerAccess(d *design, name string, pg, srcNode *yaml.No
 		return
 	}
 	for _, r := range source.Pairs(source.Child(d.root, "roles")) {
-		granted := map[string]bool{}
-		for _, p := range source.Items(source.Child(r.Value, "permissions")) {
-			granted[p.Value] = true
-		}
+		granted := d.roleHolds(r.Value)
 		if (perm == "public" || granted[perm]) && !granted[need] {
 			c.add(srcNode, source.Pointer(append(at, "source")...), RulePicker, "%s may open %s but not read %s, which needs %s; grant it to the role, or pick from a list the role may read", r.Key.Value, name, src, need)
 		}

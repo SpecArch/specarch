@@ -219,7 +219,7 @@ extension Checker {
         let perm = str(pg.child("permission"))
         if need.isEmpty || need == "public" || need == perm { return }
         for r in pairs(d.root.child("roles")) {
-            let granted = Set(items(r.value.child("permissions")).map { $0.value })
+            let granted = d.roleHolds(r.value)
             if (perm == "public" || granted.contains(perm)) && !granted.contains(need) {
                 add(srcNode, pointer(at + ["source"]), .picker, "\(r.key.value) may open \(name) but not read \(src), which needs \(need); grant it to the role, or pick from a list the role may read")
             }

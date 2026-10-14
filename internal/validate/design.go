@@ -202,6 +202,7 @@ func (c *checker) checkDesign(d *design) {
 	c.checkPageElements(d)
 	c.checkDecisions(d)
 	c.checkAccess(d)
+	c.checkImplies(d)
 	c.checkSeparationOfDuties(d)
 	c.checkExpressions(d)
 	c.checkMetaModelVersion(d)
@@ -679,7 +680,8 @@ func (c *checker) checkDecisions(d *design) {
 }
 
 // checkAccess is the fail-closed rule: every permission used is declared,
-// and every declared permission is granted by a role or is public.
+// and every declared permission is granted by a role, or implied by one a
+// role grants, or is public.
 func (c *checker) checkAccess(d *design) {
 	use := func(n *yaml.Node, ptr string, who string) {
 		p := source.Str(n)
@@ -707,8 +709,10 @@ func (c *checker) checkAccess(d *design) {
 	granted := map[string]bool{}
 	for name, r := range d.roles {
 		for i, p := range source.Items(source.Child(r, "permissions")) {
-			granted[p.Value] = true
 			use(p, source.Pointer("roles", name, "permissions", fmt.Sprint(i)), "role "+name)
+		}
+		for p := range d.roleHolds(r) {
+			granted[p] = true
 		}
 	}
 	for _, p := range source.Pairs(source.Child(d.root, "permissions")) {

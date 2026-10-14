@@ -43,6 +43,7 @@ const (
 	RulePermissionUndeclared   Rule = "permission_undeclared"
 	RulePermissionUngranted    Rule = "permission_ungranted"
 	RuleSeparationOfDuties     Rule = "separation_of_duties"
+	RuleImplies                Rule = "implies"
 	RuleExpressionSyntax       Rule = "expression_syntax"
 	RuleExpressionName         Rule = "expression_name"
 	RuleExpressionType         Rule = "expression_type"
@@ -154,6 +155,7 @@ var Rules = []Rule{
 	RulePermissionUndeclared,
 	RulePermissionUngranted,
 	RuleSeparationOfDuties,
+	RuleImplies,
 	RuleExpressionSyntax,
 	RuleExpressionName,
 	RuleExpressionType,

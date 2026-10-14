@@ -56,26 +56,13 @@ type route struct {
 // Router reads a route table into operations, one per method and path
 // pair, with their path parameters and the permission each checks.
 func Router(dumpPath, out, key string) (*Result, error) {
-	data, err := os.ReadFile(dumpPath)
-	if err != nil {
-		return nil, err
-	}
-	var t routeTable
-	dec := json.NewDecoder(bytes.NewReader(data))
-	dec.DisallowUnknownFields()
-	if err := dec.Decode(&t); err != nil {
-		return nil, refuse("%s is not a route table: %v", dumpPath, err)
-	}
-	if t.RouteTable != 1 {
-		return nil, refuse("%s is not a route table in the format tools/routes/dump-routes.sh writes: its routeTable is %d, not 1", dumpPath, t.RouteTable)
-	}
-	r, dumpName, err := openDump(dumpPath, t.Repository, t.Path, t.Commit, "tools/routes/dump-routes.sh")
+	t, r, dumpName, err := openRouteTable(dumpPath)
 	if err != nil {
 		return nil, err
 	}
 	res := &Result{Tree: newTree()}
 	res.say("commit %s: the last change to %s, as the route table %s names it", r.Commit, t.Path, dumpName)
-	rd := &routeReader{t: &t, key: key, res: res, questions: &yaml.Node{Kind: yaml.MappingNode}}
+	rd := &routeReader{t: t, key: key, res: res, questions: &yaml.Node{Kind: yaml.MappingNode}}
 	if err := rd.read(dumpName); err != nil {
 		return nil, err
 	}
@@ -104,6 +91,29 @@ func Router(dumpPath, out, key string) (*Result, error) {
 	return res, nil
 }
 
+// openRouteTable reads a route table and checks it against the commit it
+// names.
+func openRouteTable(dumpPath string) (*routeTable, *Read, string, error) {
+	data, err := os.ReadFile(dumpPath)
+	if err != nil {
+		return nil, nil, "", err
+	}
+	var t routeTable
+	dec := json.NewDecoder(bytes.NewReader(data))
+	dec.DisallowUnknownFields()
+	if err := dec.Decode(&t); err != nil {
+		return nil, nil, "", refuse("%s is not a route table: %v", dumpPath, err)
+	}
+	if t.RouteTable != 1 {
+		return nil, nil, "", refuse("%s is not a route table in the format tools/routes/dump-routes.sh writes: its routeTable is %d, not 1", dumpPath, t.RouteTable)
+	}
+	r, dumpName, err := openDump(dumpPath, t.Repository, t.Path, t.Commit, "tools/routes/dump-routes.sh")
+	if err != nil {
+		return nil, nil, "", err
+	}
+	return &t, r, dumpName, nil
+}
+
 type routeReader struct {
 	t           *routeTable
 	key         string
@@ -114,6 +124,10 @@ type routeReader struct {
 	questions   *yaml.Node
 	nextID      int
 	notHeld     []notHeld
+	// ruled gives a route that checks no permission the one a permission
+	// table's rules give it, or the question to ask at the operation
+	// instead (extract permissions --routes, ADR-100).
+	ruled func(method, path string) (name string, cite *yaml.Node, question, why string)
 }
 
 // gap records what the meta-model cannot hold of the route at method and
@@ -223,16 +237,32 @@ func (rd *routeReader) read(dumpName string) error {
 		}
 		for _, rt := range routes {
 			op := mapping("operationId", rt.id)
+			var ruleCite *yaml.Node
+			var ruleQuestion, ruleWhy string
+			if rd.ruled != nil {
+				// Asked for a route that names its permission too, so a
+				// rule that reaches it is not taken for a dead one.
+				name, cite, question, why := rd.ruled(rt.Method, rt.Path)
+				if rt.printed == nil {
+					rt.permission, ruleCite, ruleQuestion, ruleWhy = name, cite, question, why
+				}
+			}
 			if rt.permission != "" {
 				set(op, "permission", rt.permission)
-				usedBy[rt.permission] = append(usedBy[rt.permission], rt)
+				if ruleCite == nil {
+					usedBy[rt.permission] = append(usedBy[rt.permission], rt)
+				}
 			}
 			checks := "checks no permission"
 			if rt.printed != nil {
 				checks = "checks " + *rt.printed
 			}
 			set(op, "origin", "stated")
-			set(op, "cites", []*yaml.Node{citation(rd.key, rd.clause(rt), fmt.Sprintf("%s %s %s; its handler is %s.", rt.Method, rt.Path, checks, rt.Handler))})
+			cites := []*yaml.Node{citation(rd.key, rd.clause(rt), fmt.Sprintf("%s %s %s; its handler is %s.", rt.Method, rt.Path, checks, rt.Handler))}
+			if ruleCite != nil {
+				cites = append(cites, ruleCite)
+			}
+			set(op, "cites", cites)
 			set(item, rt.key, op)
 			opAt := at + "/" + rt.key
 			rd.question(
@@ -240,7 +270,10 @@ func (rd *routeReader) read(dumpName string) error {
 				[]string{opAt + "/summary", opAt + "/responses"},
 				"A route table names the handler and not what it does or the responses it gives.",
 			)
-			if rt.permission == "" {
+			switch {
+			case rt.permission == "" && ruleQuestion != "":
+				rd.question(ruleQuestion, []string{opAt + "/permission"}, ruleWhy)
+			case rt.permission == "":
 				asked := fmt.Sprintf("%s %s checks no permission that the route table names.", rt.Method, rt.Path)
 				if rt.printed != nil {
 					asked = fmt.Sprintf("%s %s checks %s, which is not a permission name.", rt.Method, rt.Path, *rt.printed)

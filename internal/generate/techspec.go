@@ -609,6 +609,21 @@ func crossCutting(d *doc, root *yaml.Node) {
 		d.heading(3, "Permissions")
 		d.para("Access is fail-closed: every operation, command and page names the one permission it needs, and only the roles below grant one.")
 		d.block(perms)
+		var implying []source.Pair
+		for _, p := range pairs(root, "permissions") {
+			if len(strs(p.Value, "implies")) > 0 {
+				implying = append(implying, p)
+			}
+		}
+		if len(implying) > 0 {
+			d.para("A permission implies the ones it lists: its holder holds them too, and what they imply. A cell that says through a permission is one the role holds only by that permission's implications.")
+			d.line("| Permission | Implies |")
+			d.line("|---|---|")
+			for _, p := range implying {
+				d.line("| %s | %s |", p.Key.Value, cell(strings.Join(strs(p.Value, "implies"), ", ")))
+			}
+			d.blank()
+		}
 		if rule := str(source.Child(root, "info"), "roleNames"); rule == wirename.UpperSnake {
 			d.para("Every role goes on the wire in upper snake case (info.roleNames): in a token's roles claim and in the tables the permission check reads, a role is its name in capitals with each hyphen an underscore.")
 			d.line("| Role | On the wire |")
@@ -1242,7 +1257,8 @@ func childRowsText(pg *yaml.Node) string {
 }
 
 // roleCombinations lists the smallest combinations of roles that together
-// grant cardinality or more of a set's permissions, in the order the roles
+// grant cardinality or more of a set's permissions, counting what their
+// permissions imply, in the order the roles
 // are declared: a combination is left out when a smaller one inside it
 // already reaches the set. Only roles that grant one of the set take part,
 // and no smallest combination has more roles than the cardinality.
@@ -1258,7 +1274,7 @@ func roleCombinations(root *yaml.Node, perms []string, cardinality int) [][]stri
 	var roles []holder
 	for _, r := range pairs(root, "roles") {
 		g := map[string]bool{}
-		for _, p := range strs(r.Value, "permissions") {
+		for p := range roleHolds(root, r.Value) {
 			if inSet[p] {
 				g[p] = true
 			}

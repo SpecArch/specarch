@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: document
+level: system
+scenario: golden
+given: "a specification whose permission v1.all implies v1.get and another, v1.get implies a third, three roles each granting one of them, a fourth granting a permission no other implies, and a separation-of-duties set over the third and the fourth's"
+when: document techspec is run
+then: "the matrix marks a permission a role holds only by an implication as through the permission it grants, a table lists what each permission implies, the separation-of-duties set lists every role that reaches it through an implication, and it exits 0"
+verifies: [SA-63]

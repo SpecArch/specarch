@@ -34,6 +34,7 @@ public enum Rule: String, CaseIterable, Sendable {
     case permissionUndeclared = "permission_undeclared"
     case permissionUngranted = "permission_ungranted"
     case separationOfDuties = "separation_of_duties"
+    case implies = "implies"
     case expressionSyntax = "expression_syntax"
     case expressionName = "expression_name"
     case expressionType = "expression_type"

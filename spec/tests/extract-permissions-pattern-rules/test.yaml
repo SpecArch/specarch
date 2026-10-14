@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: extract
+level: system
+scenario: golden
+given: "a repository whose first commit holds a policy's folder, whose second holds a router's folder, and whose third holds the permission table printed from the first, with no grant and six rules, and the route table printed from the second, with seven routes that check no permission; one role reaches /v1/* with every method and another /v1/* with GET, a /v2/* rule reaches no route, two rules reach one route with neither covering the other, and no rule reaches /health"
+when: "extract permissions is run on the permission table with the route table given by --routes"
+then: "it writes one permission per distinct pattern and method pair, named by the fixed rule, v1.all implying v1.get and the narrower ones, each role granted the permissions of its rows, every route's operation with the one permission every other match implies, a must question at the route two permissions reach with neither implying the other and at the route no rule reaches, a could question for the dead rule and one offering to rename the inferred names, reads the tree at the later of the two commits, and exits 0"
+verifies: [SA-63]

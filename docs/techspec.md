@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.6.2 of the specification: 62 requirements, 5 entities, 12 commands, 7 algorithms, 413 tests, 98 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.6.2 of the specification: 63 requirements, 5 entities, 12 commands, 7 algorithms, 416 tests, 99 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -63,7 +63,7 @@ The interfaces the system offers, as its clients see them.
 | derive | Write a draft test for every derived case no test covers | public | 0: the tests were written, or there was nothing to write; 1: a specification has errors other than the missing tests it writes, or a draft's name is taken by another draft or by a test of another subject; 2: usage error, a path that could not be read or written, or a specification that keeps its tests in the root file |
 | diff | Compare two versions of a specification and check the release between them | public | 0: every check passes; 1: a check fails, there is no release record for the new version, or a specification has errors; 2: usage error, or a path that could not be read |
 | document | Write a document from a specification | public | 0: written, or with `--check` the output is current; 1: a specification has an error (after its files are written, or with `--check` compared), a marker is wrong, or with `--check` the output differs; 2: usage error, a target this build does not offer, no output folder in any specification given, the implementation files of one naming different output folders, or a file that could not be read or written |
-| extract | Write a specification from existing code or documents | public | 0: the specification was written; 1: the surface could not be read as the source expects: a dump that does not parse or is stale, a dump whose repository is no gitlink of the repository holding it, is not checked out, pins a commit its history does not hold or whose checkout under the path is not the pinned commit's, a code-facts dump another parser version made, whose files are not the tracked files of its folder the reader reads, or, for pages, whose folder does not hold the router's folder, a route table that lists a method and path pair twice, a permission table that lists a grant twice, a router root that gives one route twice or holds no page, a path with changes not committed, untracked files, a shallow clone, a path outside a git repository, a document that is not Markdown, a file that is not an OpenAPI 3.0 or 3.1 document, a file that is not BPMN 2.0 XML or holds no process, or an implementation file that does not parse as YAML; 2: usage error, a source this build does not offer, --implementation given to a source other than go, swift, javascript, dart or pages, or to pages without --facts, --facts given to a source other than pages, or a path that could not be read or written |
+| extract | Write a specification from existing code or documents | public | 0: the specification was written; 1: the surface could not be read as the source expects: a dump that does not parse or is stale, a dump whose repository is no gitlink of the repository holding it, is not checked out, pins a commit its history does not hold or whose checkout under the path is not the pinned commit's, a code-facts dump another parser version made, whose files are not the tracked files of its folder the reader reads, or, for pages, whose folder does not hold the router's folder, a route table that lists a method and path pair twice, a permission table that lists a grant or a rule twice, names a matcher the reader does not know, or holds a rule without one of its four keys, a route table given with --routes from another repository or from a commit on another line of history than the permission table's, a router root that gives one route twice or holds no page, a path with changes not committed, untracked files, a shallow clone, a path outside a git repository, a document that is not Markdown, a file that is not an OpenAPI 3.0 or 3.1 document, a file that is not BPMN 2.0 XML or holds no process, or an implementation file that does not parse as YAML; 2: usage error, a source this build does not offer, --implementation given to a source other than go, swift, javascript, dart or pages, or to pages without --facts, --facts given to a source other than pages, --routes given to a source other than permissions, more than one permission table, or a path that could not be read or written |
 | gaps | List the open questions and what they hold up | public | 0: no must or should question is open and no specification has an error; 1: at least one must or should question is open, or a specification has an error; 2: usage error, or a path that could not be read |
 | generate | Write code or data from a specification | public | 0: written, a draft included, or with `--check` the output is current; 1: a specification has an error, an open question blocks what the target reads or the specification is not approved and `--unapproved` was not given, the plug-in reported an error (what it answered is written or checked), or with `--check` the output differs; 2: usage error, no generator for the target (not built in and no plug-in on PATH), the plug-in failed or answered badly, no output folder in any specification given, or a file that could not be read or written |
 | idioms | List the idioms each implementation file uses, and how | public | 0: the idioms were listed; 2: usage error, a path that could not be read, or a specification with errors |
@@ -281,6 +281,7 @@ Primary key: path.
 | Rule | permission_undeclared | an operation, command, page, action or role names a permission that is not declared |
 | Rule | permission_ungranted | a declared permission is granted by no role and is not `public` |
 | Rule | separation_of_duties | a separation-of-duties set names a permission that is not declared or is `public`, asks for more of its permissions than it holds, or a role grants as many of the set's permissions as its cardinality |
+| Rule | implies | a permission implies a name that is not declared, implies `public`, is `public` and implies another, or implies itself through the implications |
 | Rule | expression_syntax | a check, a unique constraint's condition or a formula does not parse |
 | Rule | expression_name | an expression names a field, input or function that does not exist |
 | Rule | expression_type | an expression combines values of types that do not fit |
@@ -886,7 +887,32 @@ The sources this build reads:
   is a must question blocking the roles, citing the table, since
   while the setting is empty the check lets every request through
   and nothing says so; extract go asks it in the same words, so
-  that merge joins the two.
+  that merge joins the two. A check that reads a policy of path
+  patterns rather than named grants is printed as the table's
+  rules (ADR-100), each a role, a pattern, the methods (a list, or
+  `*` for every one) and the path matcher that reads the pattern:
+  `colon`, where a segment `:name` is one segment, or `brace`, where
+  a segment `{name}` is, `*` as the last segment being the rest of
+  the path in both. The rules give one permission per distinct
+  pattern and method pair, inferred, named by the fixed rule: the
+  pattern's literal segments' words in lower case joined by dots,
+  then `all` for every method or the method in lower case
+  (`/v1/*` with `*` is `v1.all`); pairs that would share a name are
+  named with their parameters' words too, and a pair whose name
+  still meets another's, or has a word that does not start with a
+  letter, prints a line and is left out, as is a rule whose pattern
+  has `*` other than as its last segment. A permission implies each
+  one its pattern and methods cover with none between them, each
+  role is granted the permissions of its rows, and a could question
+  offers to rename the inferred names. Given the route table too,
+  with `--routes`, the routes are read as extract router reads them
+  and written in the same tree, under one code source read at the
+  later of the two tables' commits; each route that checks no
+  permission takes the matching permission every other matching one
+  implies. A route two permissions reach with neither implying the
+  other, and a route no rule reaches, are must questions on its
+  permission, and a permission no route reaches prints a line and is
+  a could question.
 - `pages`: one folder that is a file-system router's root, read
   from its tracked files with no parser (ADR-057, ADR-084). The
   folder's name tells the router: `server` is Nuxt's server
@@ -1823,6 +1849,7 @@ Every reader follows these rules:
 | `--out` | string | yes | The folder the specification is written into; it becomes the specification's root folder. |
 | `--implementation` | string |   | For go, swift, javascript and dart, and for pages with --facts, an implementation file whose `bindings.http.permissionChecks` name the project's permission checks, which the reader reads routes' permissions through. |
 | `--facts` | string |   | For pages, a code-facts dump of JavaScript and TypeScript, made by tools/code-facts/dump-javascript.sh of a folder that holds the router's folder, through which the Next.js files' code is read. |
+| `--routes` | string |   | For permissions, a route table of the same repository, made by tools/routes/dump-routes.sh, whose routes are written with the permission the permission table's rules give each. |
 | `--source-key` | string |   | The key of the source in the written tree; code for the code readers, and the file's name in kebab-case for documents and openapi, when it is not given. |
 
 Reads `{paths}`: The surface being read.
@@ -1836,7 +1863,10 @@ naming the question that asks about it; one line naming a dialect
 the reader reads, or a document read as what the running system
 printed; one line per file that imports a library the reader knows
 and gives nothing it reads; one line per gate on a setting, naming
-the check and the setting; for go, swift, javascript, dart and
+the check and the setting; for permissions with rules, one line
+counting the permissions and implications the rules give, one per
+set of patterns whose names meet, and with --routes one naming the
+route table's commit and one per rule no route reaches; for go, swift, javascript, dart and
 pages with --facts, one line naming the checks the implementation file
 names; for pages with --facts, one line naming the dump, one per
 middleware file saying what it covers and checks, and one counting
@@ -7315,6 +7345,79 @@ its generated dxlib seed and techspec show the wire form.
 
 **Insight:** One rule rather than a name per role, for the reason of ADR-062: a system names its roles one way throughout, and a wire name on every role would be a second way to say the same thing on each. One value only, since no source has shown another convention, and kebab-case named explicitly would be a second way to say what leaving the key out says. The mapping is one to one on kebab-case names, so two valid roles never meet; the rule matters for a name the schema refuses, such as desk_staff beside desk-staff, which the validator still reads, and would give the token one role where the specification holds two. A roles claim holds each role as a string (RFC 9068, section 2.2.3.1, after SCIM's roles attribute), and a check compares the strings, so two roles meeting on the wire are one role to every check, and the validator refuses it rather than let a generator pick one. The error is reported at the second role, as a property's is, so it is not hidden as an echo of the schema error at a name the schema refused when that name comes first; when the refused name comes second, its schema error is the one shown, and renaming it settles both. A reader reads the upper snake form only when no role of the source is kebab-case, because a source that writes both has no one rule that gives back every name; reading it as kebab-case keeps today's result for the roles it already read, and a line says why the others are left out. The round trip is the reason ADR-062 gives for properties: a reader that renamed a role whose name does not come back the same would generate a seed or a token check that differs from the source it read. Only a reader of grants (the permission table, a seed) sees roles as the wire writes them; a workflow file or a document names roles its own way, so merge takes the rule from the tree that states it. The token claims of meta-model 0.3 carry roles in this form too, since a claim is a property under the one rule (ADR-097); no claim is written by this build. Compiler test: a role the rule cannot map is still a line and a question, never dropped, and a collision is an error at the role. Acceptance test: one key in info answers it for a whole system.
 
+### ADR-100: A permission may imply others, every check of what a role grants counts the implications, and extract permissions reads a policy of path patterns into permissions named by a fixed rule
+
+Status: accepted, 2026-10-14.
+
+Context: Point 5 of docs/estate.md, build item 3, and the owner's decision 1
+there. Some systems check a policy of rows, each a role, a path
+pattern and a method or `*`, matched by the library's path matcher,
+and name no permission anywhere. A printer that made names by a rule
+of its own had to grant a role with a `*` row two names, since
+nothing said that one permission covers another. A permission
+computed from a pattern was declined in the plan: rows overlap by
+design, so one operation would have several permissions, and a
+pattern would reach a route added later without anyone writing it,
+which is the fail-open that fail-closed access refuses.
+
+Decision: A permission may list `implies`: the permissions a holder of it
+holds too, transitively. The validator refuses, as `implies` at the
+entry, a name that is not declared, `public` implied (everyone holds
+it already) or implying (it would give the implied permission to
+everyone), and a permission that implies itself through the
+implications, reported at every permission on the cycle with the
+way round, the shortest one, following each list in its order. Every
+check of what a role grants counts what its permissions imply: the
+grants check, separation of duties, workflow approvals, a picker's
+list, a flow's pages, the role chosen for a derived "denied without"
+case, and merge's line for a permission no operation checks. The
+techspec's matrix and the site's write "through" and the permission
+a role holds an implied one by, and the techspec lists what each
+permission implies when one does; generate go-dxlib writes a role's
+privileges with the ones they imply after them, since the check
+reads each privilege by its name.
+The permission table gains `rules`, beside `grants` and `gates`, and
+a table without it reads as before. A rule is a role, a pattern, the
+methods (a list of methods in capitals, or `*`) and the matcher:
+`colon`, where a segment `:name` is one segment, or `brace`, where a
+segment `{name}` is; in both `*` as the whole last segment is the
+rest of the path after the slash before it, slashes included. The
+rules give one permission per distinct pattern and method pair, the
+parameters' names aside, named by the fixed rule: the literal
+segments' words in lower case joined by dots, then `all` for `*` or
+the method in lower case; `/v1/*` with `*` is `v1.all`, and
+`/v1/items/{id}` with `DELETE` is `v1.items.delete`. Pairs that
+would share a name are each named with their parameters' words too
+(and `any` for the rest of the path); a pair whose name still meets
+another's, or has a word that does not start with a letter, prints a
+line and is a could question, left out, and so is a rule with `*`
+anywhere but as the last segment. A permission implies each one its
+pattern covers by the matcher's rule, with its methods including the
+other's, and the implications written are the fewest that give
+them all. Each role is granted the permissions of its rows. Every
+such permission is inferred, with a could question offering to
+rename them all.
+With `--routes`, extract permissions reads the route table too and
+writes its routes as extract router does, under the same code
+source, read at the later of the two tables' commits. A route that
+checks no permission takes the matching permission that every other
+matching one implies; a route two match with neither implying the
+other is a must question at its permission naming the narrowest
+matches, and so is a route no rule reaches, asking whether it is
+closed on purpose. A permission no route reaches prints a line and
+is a could question.
+
+Consequences: A system that checks pattern rows is extracted with its roles,
+permissions and implications and each route's one permission, and
+the questions a reviewer answers are only the ambiguous, closed and
+dead ones and the names. A specification with no implies validates,
+documents and generates byte for byte as before, the lending desk's
+among them. A tree from extract permissions --routes stands in for
+extract router on such a system, so the two are not both run on one
+route table.
+
+**Insight:** implies is design, not implementation, because the client depends on it: a holder of v1.all calls a read without being told of v1.get, which is the interface boundary's test. Implications rather than one permission per route (decision 1): the matrix stays one a person reads, with few permissions whose names mean something, and a route added under a pattern changes no permission. RBAC's role hierarchy (ANSI INCITS 359) orders roles, not permissions; ordering permissions is the one thing the policy's overlapping rows say, so it is put where they say it. Every check counts implied permissions because a check that counted only the listed ones would pass a role that reaches two separated permissions through one, which is the fail-open the checks exist to refuse. Cycles are refused because a cycle makes two names one permission, which is one thing said two ways. public is refused on either side for the same reason as in separation of duties: everyone holds it, so implying it says nothing, and public implying another would open that one to everyone without anyone writing public on it. The naming rule is fixed so that two runs and two people give the same name, and it keeps the plan's rule unchanged where no names meet; the list and read-one pair every API has (`/v1/items` and `/v1/items/{id}` with GET) would meet under it, so the parameters' words are what tells them apart, which the plan did not settle. The matchers read `*` only as the last segment because both libraries the plan names do, and a rule written another way is a line, not a guess. A pattern covers another by inclusion of the paths each matches, the one relation that is the same whichever matcher wrote either; a rule that reaches only part of a route's paths does not reach it, since the route's caller would be refused for some values. The route's permission is the one every other match implies, so that the most specific rule wins only where the others agree it is narrower; anything else is an ambiguity, and an ambiguity is a question at the operation, never a pick. --routes writes the routes in the permissions tree, rather than a second tree joined by merge, because a question at the operation needs the operation, and the two tables are one surface for such a system: it names no permission in its routes. Compiler test: an ambiguous route, a closed route, a dead rule, a name that cannot be made and a pattern the matchers do not read are each a question, never dropped and never guessed. Acceptance test: a reviewer reads the matrix with the implications marked and sees in one table what each role reaches.
+
 ## 10. Quality requirements
 
 The design tests: what must hold on every implementation. Golden scenarios succeed; red scenarios are refused.
@@ -7378,6 +7481,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | document-sequence-diagram | command document | system | golden | a hand-written document with a sequenceDiagram payOrder marker | document techspec is run | the region holds the call, the event on order.events and the 200 answer, and it exits 0 |
 | document-state-diagram | command document | system | golden | a hand-written document with a stateDiagram Order marker | document techspec is run | the region holds the states of Order with a start and an end, and it exits 0 |
 | document-target-not-offered | command document | system | red | a document target of the design that this build does not offer | document manual is run | it says which targets it has and exits 2 |
+| document-techspec-implies | command document | system | golden | a specification whose permission v1.all implies v1.get and another, v1.get implies a third, three roles each granting one of them, a fourth granting a permission no other implies, and a separation-of-duties set over the third and the fourth's | document techspec is run | the matrix marks a permission a role holds only by an implication as through the permission it grants, a table lists what each permission implies, the separation-of-duties set lists every role that reaches it through an implication, and it exits 0 |
 | document-techspec-open-workflow | command document | system | golden | the tree extract workflows wrote for a BPMN file, whose workflow's trigger, subject, approval permission and step operation are held open by must questions, two of them naming an operation | document techspec is run | the workflow's text and flowchart write each open key as what it is, the question that holds it and the name it gives, and it exits 0 |
 | document-techspec-role-names | command document | system | golden | a specification whose roles go on the wire in upper snake case, with two roles | document techspec is run | the Permissions section says how a role goes on the wire and lists each role with its wire name, and it exits 0 |
 | document-techspec-without-implementation | command document | system | golden | a design file and no implementation file | document techspec is run with --out docs | it writes docs/shop.techspec.md without chapter 7 and exits 0 |
@@ -7445,6 +7549,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | extract-pages-writes-tree | command extract | system | golden | a repository whose app folder holds a root page, a route group with a list page whose schema file gives its content, keys the reader does not read, a hook and a compact column that is not a column, a page with a dynamic segment whose schema is outside the subset, a page that says it is generated, and a catch-all segment, a parallel route, a private folder, an intercepting route, a route handler and a page.mdx, and middleware.ts beside the app folder | extract pages is run on the app folder | it writes one page per route with its parameter, the list page's content from its schema with the entity, its fields and the permission it names, a question for what neither the folders nor the schemas say, a must question citing the route handler that asks for its methods, a must question citing middleware.ts on every page's permission and the paths, names the commit and the router, counts the page and schema files, reports the generated page, prints a line for every folder, file and key it leaves out, a could question citing the file, or the schema's line, for each but the content the question for the page asks for, and exits 0 |
 | extract-permissions-grant-twice | command extract | system | red | a permission table that lists one role granting one permission twice | extract permissions is run on the permission table | it refuses the table, naming the grant listed twice, writes nothing and exits 1 |
 | extract-permissions-mixed-role-names | command extract | system | golden | a repository whose first commit holds the folder a permission check is built from and whose second holds the permission table printed from it; the table names one role in kebab-case and one in upper snake case | extract permissions is run on the permission table | it writes the kebab-case role and no info.roleNames, prints a line and writes a could question for the upper snake role saying the table names its roles both ways, and exits 0 |
+| extract-permissions-pattern-rules | command extract | system | golden | a repository whose first commit holds a policy's folder, whose second holds a router's folder, and whose third holds the permission table printed from the first, with no grant and six rules, and the route table printed from the second, with seven routes that check no permission; one role reaches /v1/* with every method and another /v1/* with GET, a /v2/* rule reaches no route, two rules reach one route with neither covering the other, and no rule reaches /health | extract permissions is run on the permission table with the route table given by --routes | it writes one permission per distinct pattern and method pair, named by the fixed rule, v1.all implying v1.get and the narrower ones, each role granted the permissions of its rows, every route's operation with the one permission every other match implies, a must question at the route two permissions reach with neither implying the other and at the route no rule reaches, a could question for the dead rule and one offering to rename the inferred names, reads the tree at the later of the two commits, and exits 0 |
 | extract-permissions-upper-snake-roles | command extract | system | golden | a repository whose first commit holds the folder a permission check is built from and whose second holds the permission table printed from it; the table writes every role in upper snake case, one of them with a digit, one granting public, one with two underscores in a row and one in mixed case | extract permissions is run on the permission table | it writes info.roleNames upper_snake and each upper snake role by its kebab-case name with the permissions it grants, each role and permission citing the table's own names; prints a line and writes a could question for the grant of public, for the name with two underscores, which would not go back on the wire unchanged, and for the name in mixed case, each saying why, and exits 0 |
 | extract-permissions-writes-tree | command extract | system | golden | a repository whose first commit holds the folder a permission check is built from and whose second holds the permission table printed from it, naming the first; the table has two roles sharing a permission, a privilege in dxlib_module's capitals, a grant of EVERYTHING, two privileges that give one permission granted to two roles, a grant of public, a role whose name is not kebab-case, a role whose permissions are not a permission name and a privilege that gives another's permission, and a check that runs only when a setting is present | extract permissions is run on the permission table | it writes each role with the permissions it grants in the order of their names and every permission granted, the privilege in capitals mapped by the rule of ADR-076 and declared inferred; a must question on the grant of EVERYTHING, which it does not expand, on each of the two privileges that give one permission and on the name that is not a permission name, each blocking the role's permissions, with the role written with the grants it can read; a question for the roles' and the permissions' descriptions and one for the check a setting switches off, citing the table; names the commit, counts the grants and gates, prints a line for the gate, prints a line and writes a could question citing the role for the grant of public and the role's name, and exits 0 |
 | extract-router-dump-repository-not-gitlink | command extract | system | red | a repository holding a router's folder inside a plain folder, committed as files and not as a gitlink, and a route table that names that plain folder as the code's repository | extract router is run on the route table | it refuses the route table because the folder it names is not a gitlink, so nothing pins the commit of the code read, writes nothing and exits 1 |
@@ -7601,6 +7706,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | validate-idiom-problems | command validate | system | red | an implementation file in Go with an Oracle sql target, which names an idiom SpecArch does not ship, excludes the project's own idiom without why, and overrides type-rendering with a file that has no why, lists an unknown part, defines a part it does not list, renders swift, changes a shipped contract statement and was copied from an older version; a decimal field is wider than Oracle holds, and a stray file sits in the idioms folder | validate is run | it reports idiom_unknown, idiom_override_reason, idiom_part_unknown, idiom_stack, idiom_contract on the statement and on the decimal's missing Oracle row, idiom_version_behind as a warning, and the stray file under layout, and exits 1 |
 | validate-idiom-stack-framework | command validate | system | red | an implementation file in TypeScript whose ui target is platform web, framework plain-javascript, and whose override of ui-components renders its list-page part for nextjs-carbon, recording the project's own library as LicenseRef-acme-screens | validate is run | it reports idiom_stack at the nextjs-carbon rendering, naming the file's stacks any, plain-javascript and typescript, and exits 1; the project's own licence is not reported |
 | validate-implements | command validate | system | red | an implementation file written against an older version of its design | validate is run | it reports implements and exits 1 |
+| validate-implies | command validate | system | red | a specification whose public permission implies one, a permission that implies an undeclared name, one that implies public, two that imply each other, a role granting only the permission that implies the others, and a separation-of-duties set over the two that imply each other | validate is run | it reports public implying, the undeclared name, public implied and the cycle at each of its two permissions as implies, the role reaching the set through the implications as separation_of_duties, no implied permission as ungranted, and exits 1 |
 | validate-incident-link | command validate | system | golden | a resolved incident that names no defect and no change and gives no noChange reason | validate is run | it warns with incident_link and exits 0, since the record is still valid |
 | validate-interface-problems | command validate | system | red | a list naming a field its entity lacks, an encrypted field to sort by and one to filter by without a hash, and a default page above the maximum; a rate over no time with a burst below it; a catalogue of problem types, a response naming an unknown type, one naming a type of another status, and a 4xx response naming none | validate is run | it reports list_of four times, limits twice and problem three times, and exits 1 |
 | validate-interface-valid | command validate | system | golden | a list with search, filter and sort fields and a page size, a body size limit and a rate, a catalogue of problem types named by every 4xx response, and a requirement with a harm the operations satisfy | validate is run | it reports no error, warns that no test covers the cases page beyond last, page size above the maximum, sort and filter outside the lists, a request too large and too many requests, among the others, and exits 0 |
@@ -7798,6 +7904,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | SA-49 | A specification shall be able to say, once for the whole interface, that its properties go on the wire in snake_case while it names them in camelCase, and specarch validate shall refuse two properties of one object that would go on the wire under one name. | functional | should | accepted | test | info.wireNames snake_case maps every property of every entity, view, body, parameter schema and message payload by one rule, and a parameter's own name is written as it is on the wire. Two properties of one object that map to one wire name, a view's added field and its entity's included, are refused as wire_name, the same in both builds. specarch extract openapi reads a document whose property names are snake_case into camelCase names and info.wireNames, and leaves out with a line a name that does not come back the same. specarch generate openapi writes the wire names back, the names of the paginated-list idiom included. | NEED-2 |
 | SA-50 | An entity's field shall be able to hold a value object, one schema or a list of them, stored in columns of the entity's row or as one JSON value as the field's storage says, and specarch validate shall refuse a value object that cannot be stored that way. | functional | should | accepted | test | A field refers to a schema, or holds a list whose items refer to one; storage columns, the default for one value, keeps each part in a column named after the field and the part, and storage json, the only storage for a list, keeps the value in one JSON column. Storage on a field that holds no schema or inside a value, columns on a list, an optional value in columns whose schema has no required part that is never null, and a list of schemas, a cycle or a reference to an entity inside a value in columns are refused as value_object, the same in both builds. specarch generate sql writes a value in columns as one column per part, NOT NULL only where every value above the part is required, with a check that an optional value is wholly absent or has its required parts, and a value in json as the dialect's JSON column, on every dialect it writes; a part added to a schema is a column added by the next migration. specarch validate derives a red case missing <field>.<part> for every required part a value a request body holds can lack, at any depth and for each item of a list, the same in both builds; a part's mistakes key ranks it. The test generators give a value object its parts and a list its items, each typed by its schema, and compare a value got part by part and item by item. specarch generate go-dxlib reads a value into a Go struct and a list into a slice, refuses a value without a required part, writes it into its columns or as JSON as its storage says, and answers a created or read record with the value gathered back. specarch generate sql refuses a table, column, constraint or index name longer than the dialect takes, at the field it comes from. | NEED-1 |
 | SA-62 | A specification shall be able to say, once for the whole system, that its roles go on the wire in upper snake case while it names them in kebab-case, and specarch validate shall refuse two roles that would go on the wire under one name. | functional | should | accepted | test | info.roleNames upper_snake maps every role by one rule, each hyphen an underscore and each letter in upper case, the same function in the validator, the readers and the generators. Two roles that map to one wire name are refused as wire_name at the second, the same in both builds. specarch extract permissions and extract go read a source whose roles are all in upper snake case into kebab-case roles and info.roleNames, and leave out with a line, as before, a role of a source that names roles both ways and a name that does not come back the same. specarch generate go-dxlib writes each role's name id in the wire form, and the techspec names each role's wire form. | NEED-2 |
+| SA-63 | A permission shall be able to imply other permissions, and every check of what a role grants shall count what its permissions imply; specarch extract permissions shall read a permission table's pattern rules into permissions named by a fixed rule, with the implications pattern inclusion gives, and each route's one permission. | functional | must | accepted | test | implies on a permission lists permissions a holder holds too, transitively; an undeclared name, public implied or implying, and a cycle are refused as implies at the entry, the same in both builds. The grants check, separation of duties, workflow approvals, pickers, flows, the derived red case's caller, the merge's unchecked line, the techspec's matrix and the generated grants count what a role's permissions imply. A permission table's rules (a role, a pattern, the methods or *, and the matcher) become one permission per distinct pattern and method pair, named from the pattern's literal words and the method, each implying the ones its pattern and methods cover, and each role granted the permissions of its rows. Given the route table with --routes, each route's permission is the matching one every other match implies; a route two permissions match with neither implying the other and a route no rule reaches are must questions at the operation, and a permission no route reaches is a could question. | NEED-2 |
 | SA-7 | specarch document and specarch generate shall write only into the folder the target owns, and with --check shall fail when the committed output differs. | functional | must | accepted | test | A run writes the target's files into its folder and nothing elsewhere. A run with --check on output edited by hand names the file and exits 1, writing nothing. | NEED-3 |
 | SA-8 | Every generated file shall name its source specification, version and meta-model, and a hand-written Markdown document shall change only between its markers. | functional | must | accepted | test | The first line of a generated document names the root file, its version and the meta-model. A marked region is rewritten and every other line of the document is unchanged. | NEED-3 |
 | SA-26 | specarch document shall write the change and defect register and the release notes from the records beside a specification, kept current with --check like the other documents. | functional | should | accepted | test | The register lists open change requests and defects before the closed ones, each with its status, what it affects and its decision. The release notes list the releases newest first, each with its changes and fixes grouped as added, changed, removed and fixed. | NEED-3, NEED-5 |
@@ -7899,6 +8006,8 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 **Insight on SA-50:** A member's address or a list of phone numbers is a value with no identity that a record holds, and a design could only write its parts as loose fields of the entity or make it an entity with a made-up key.
 
 **Insight on SA-62:** A system whose token's roles claim and permission tables write DESK_SUPERVISOR came out of extract permissions with no role at all, and a specification that wrote its roles in upper case would break the one naming rule every role and its generated names follow.
+
+**Insight on SA-63:** A system checked by pattern rows names no permission anywhere, and a role with a `*` row beside a `get` row came out of a printer with two names and nothing saying one covers the other; the matrix a reviewer reads has to show what each role reaches.
 
 **Insight on SA-26:** Reviewers and operators read what changed and why in documents; kept apart from the specification, the history stays out of it and still reaches them.
 
@@ -8032,6 +8141,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-60 | enums DocumentTarget; commands document; decisions ADR-088 | tests document-html-marks-problems; tests document-writes-html |
 | SA-61 | commands generate; decisions ADR-093 | tests generate-ui-typescript-hand-built; tests generate-ui-typescript-hand-built-differs |
 | SA-62 | enums Rule; decisions ADR-099 | tests document-techspec-role-names; tests extract-go-dxlib-upper-snake-roles; tests extract-permissions-mixed-role-names; tests extract-permissions-upper-snake-roles; tests validate-role-names |
+| SA-63 | enums Rule; commands extract; decisions ADR-100 | tests document-techspec-implies; tests extract-permissions-pattern-rules; tests validate-implies |
 
 ## Sources
 

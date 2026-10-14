@@ -23,7 +23,9 @@ commands:
         whatever the router's own syntax, and no other normalisation is
         made, so `{id}` and `{loanId}` are two paths. Where both
         have the operation, a permission that differs, one of them naming
-        none among them, is `operation_permission_differs`. Under
+        none among them, is `operation_permission_differs`; an operation
+        whose permission is `public` checks none, as the route table prints
+        a route open to everyone. Under
         `bindings.http.listRoutes` each list served by GET is served by POST
         at its twin's path as well, with its permission. An operation
         another stakeholder owns is not compared.

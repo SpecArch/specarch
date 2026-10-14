@@ -26,6 +26,7 @@ entities:
     constraints:
       copies_title_given: { kind: check, expression: "title != \"\"", message: A copy has a title. }
 permissions:
+  public: { description: Open to everyone. }
   copies.read: { description: See the copies. }
   copies.write: { description: Add copies., implies: [copies.read] }
 roles:
@@ -54,3 +55,10 @@ paths:
       permission: copies.read
       responses:
         "200": { description: The copy. }
+  /health:
+    get:
+      operationId: showHealth
+      summary: Say the service is up
+      permission: public
+      responses:
+        "200": { description: It is up. }

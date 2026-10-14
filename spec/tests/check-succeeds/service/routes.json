@@ -6,6 +6,7 @@
         {"method":"GET","path":"/copies","permission":"copies.read","handler":"ListCopies"},
         {"method":"POST","path":"/copies","permission":"copies.write","handler":"AddCopy"},
         {"method":"GET","path":"/copies/{copyId}","permission":"copies.read","handler":"ShowCopy"},
-        {"method":"DELETE","path":"/copies/{copyId}","permission":"copies.write","handler":"RemoveCopy"}
+        {"method":"DELETE","path":"/copies/{copyId}","permission":"copies.write","handler":"RemoveCopy"},
+        {"method":"GET","path":"/health","permission":null,"handler":"ShowHealth"}
     ]
 }

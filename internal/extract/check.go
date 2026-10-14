@@ -179,7 +179,7 @@ func CheckRoutes(dumpPath string, root *yaml.Node, implementations []*yaml.Node)
 			if op == nil || owned.Covers(ownership.Operation(p.Key.Value, method)) {
 				continue
 			}
-			r := specRoute{permission: source.Str(source.Child(op, "permission")), pointer: "/paths/" + escapeToken(p.Key.Value) + "/" + method, operation: source.Str(source.Child(op, "operationId"))}
+			r := specRoute{permission: openToAll(source.Str(source.Child(op, "permission"))), pointer: "/paths/" + escapeToken(p.Key.Value) + "/" + method, operation: source.Str(source.Child(op, "operationId"))}
 			add(strings.ToUpper(method)+" "+p.Key.Value, r)
 			if method == "get" && segment != "" && source.Child(op, "listOf") != nil {
 				add("POST "+strings.TrimSuffix(p.Key.Value, "/")+"/"+segment, r)
@@ -192,7 +192,7 @@ func CheckRoutes(dumpPath string, root *yaml.Node, implementations []*yaml.Node)
 	}
 	code := map[string]codeRoute{}
 	for i, r := range t.Routes {
-		code[strings.ToUpper(r.Method)+" "+r.Path] = codeRoute{permission: printedPermission(r.Permission), handler: r.Handler, index: i}
+		code[strings.ToUpper(r.Method)+" "+r.Path] = codeRoute{permission: openToAll(printedPermission(r.Permission)), handler: r.Handler, index: i}
 	}
 	var out []Difference
 	for _, key := range order {
@@ -234,9 +234,18 @@ func printedPermission(raw json.RawMessage) string {
 	return string(raw)
 }
 
+// openToAll is a permission with public, an operation open to everyone,
+// as a route that checks none: the route table prints null for it.
+func openToAll(p string) string {
+	if p == "public" {
+		return ""
+	}
+	return p
+}
+
 func permissionOrNone(p string) string {
 	if p == "" {
-		return "no permission"
+		return "no permission (public)"
 	}
 	return p
 }

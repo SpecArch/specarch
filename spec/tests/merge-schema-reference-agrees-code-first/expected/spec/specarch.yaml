@@ -1,0 +1,26 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v0.6.2/schema/specarch-design-0.2.schema.json
+specarch: "0.2"
+info:
+  title: Merge of 2 trees
+  version: 0.1.0
+  description: |
+    The elements of these trees, merged in this order: Go source of things; Things API. Every element cites where it was read; where the trees disagree, or the documents and the code do, a question asks which is right.
+  tracksOrigin: true
+stages: [requirements, design]
+sources:
+  code:
+    kind: code
+    title: The code repository
+    edition: 9c8b7a6f5e4d3c2b1a0f9e8d7c6b5a4f3e2d1c0b
+    url: https://example.invalid/things.git
+    clauses:
+      - {clause: api/server.go, title: 'Go source, read by its syntax'}
+    reading: parsed
+  openapi:
+    kind: document
+    title: Things API
+    edition: 4f2c1a9e7b3d5c6a8e0f1b2d3c4e5f6a7b8c9d0e
+    url: https://example.invalid/things/openapi.yaml
+    clauses:
+      - {clause: /components/schemas/CreateThingRequest, title: schema CreateThingRequest}
+      - {clause: /paths/~1v1~1things/post, title: POST /v1/things}

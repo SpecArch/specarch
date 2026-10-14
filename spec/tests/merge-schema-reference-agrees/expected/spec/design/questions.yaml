@@ -1,0 +1,9 @@
+questions:
+  # specarch-problem: question: open_question: (must, decision) Which permission does POST /v1/things check? The document gives it no security. Decided by system-owner. Answer with a decision record that names Q-1 under answers. [Q-1]
+  Q-1:
+    question: Which permission does POST /v1/things check? The document gives it no security.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1v1~1things/post/permission']
+    decidedBy: system-owner
+    why: A security scheme says how a caller proves who it is, not what it may do, so the permission is asked and never written as public.

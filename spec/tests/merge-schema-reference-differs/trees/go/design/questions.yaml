@@ -1,0 +1,45 @@
+questions:
+  Q-1:
+    question: 'api/server.go:20: no implementation file names the project''s permission check, so the reader does not know which permission POST /v1/things checks. Which permission does it check, or is it meant to be open to everyone (public)?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1v1~1things/post/permission']
+    decidedBy: system-owner
+    why: A check is a call the project writes its own way; the implementation file names it (bindings.http.permissionChecks), and without it no permission is read.
+  Q-2:
+    question: 'POST /v1/things, request body, property name: it is Go''s int64, which encoding/json writes as a number, and a number above 2^53 loses digits in JavaScript and other readers. Is it bounded within 2^53, or carried as text?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1v1~1things/post/requestBody/content/application~1json/schema/properties/name/format']
+    decidedBy: system-owner
+    why: Every integer in a specification has a width, and a 64-bit one is held only within 2^53 or as text; which one the code needs is not in the source.
+    cites:
+      - {source: code, clause: 'api/server.go:9', says: 'POST /v1/things, request body, property name: Go''s int64.'}
+  Q-3:
+    question: What does POST /v1/things do, and what does it answer?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1v1~1things/post/summary', '#/paths/~1v1~1things/post/responses']
+    decidedBy: system-owner
+    why: The source registers a handler and does not say what it does or the responses it gives.
+  Q-4:
+    question: 'api/server.go:21: no implementation file names the project''s permission check, so the reader does not know which permission PUT /v1/things/{id} checks. Which permission does it check, or is it meant to be open to everyone (public)?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1v1~1things~1{id}/put/permission']
+    decidedBy: system-owner
+    why: A check is a call the project writes its own way; the implementation file names it (bindings.http.permissionChecks), and without it no permission is read.
+  Q-5:
+    question: What does PUT /v1/things/{id} do, and what does it answer?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1v1~1things~1{id}/put/summary', '#/paths/~1v1~1things~1{id}/put/responses']
+    decidedBy: system-owner
+    why: The source registers a handler and does not say what it does or the responses it gives.
+  Q-6:
+    question: 'What values does each path parameter of /v1/things/{id} take: id?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1v1~1things~1{id}/parameters/0/schema']
+    decidedBy: system-owner
+    why: The source reads a path parameter by name and does not say the values it takes.

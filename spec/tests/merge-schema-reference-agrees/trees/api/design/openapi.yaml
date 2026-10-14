@@ -1,0 +1,27 @@
+paths:
+  /v1/things:
+    post:
+      operationId: createThing
+      summary: Create a thing
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/schemas/CreateThingRequest'}
+      responses:
+        "201":
+          description: The thing, created.
+      origin: stated
+      cites:
+        - {source: openapi, clause: /paths/~1v1~1things/post, says: 'POST /v1/things: Create a thing.'}
+schemas:
+  CreateThingRequest:
+    type: object
+    properties:
+      code: {type: string, maxLength: 20}
+      name: {type: string}
+      quantity: {type: integer, format: int32}
+    required: [code]
+    origin: stated
+    cites:
+      - {source: openapi, clause: /components/schemas/CreateThingRequest, says: 'The schema CreateThingRequest, with the properties code, name and quantity.'}

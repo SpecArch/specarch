@@ -1,0 +1,97 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
+decisions:
+  ADR-116:
+    title: merge keeps a reference where the shape written in place agrees with the named one, leaves the key out where a key both give differs, and asks about properties only one side lists
+    status: accepted
+    date: "2026-10-14"
+    context: |
+      An OpenAPI document names a request body's schema by reference,
+      `{$ref: '#/schemas/CreateThingRequest'}`, and writes the schema once
+      under its components; the code's handler decodes the body into a
+      struct, which the Go reader writes in place, `{type: object,
+      properties: {...}, required: [...]}`. ADR-045 joins two trees key
+      by key: a key only one tree gives is kept, and a key both give with
+      different values is left out with a must question. The two forms
+      share no key, so both were kept, and the merged tree held `$ref`
+      beside `type`, which the design schema refuses as two forms of one
+      field. Each tree validated on its own, and the merged one did not,
+      in either order; the same held at every position where two schema
+      mappings meet: a response, a parameter, an array's items, a
+      property. A reader that asked a question below the position, the
+      width of an `int64` or the shape of a map, blocked a pointer that
+      no longer existed once one form was taken.
+    decision: |
+      A position where exactly one tree gives `$ref` and another gives a
+      shape in place (a `type`, `properties` or `items`) is not joined key
+      by key. It is kept as it was first given while the trees are read,
+      and settled once every tree is in, when the merged entries hold the
+      reference's target under schemas, entities or enums. The named shape
+      and each shape written in place are compared on what both say: the
+      keys that say what a value is (type, format, the widths and bounds,
+      pattern, enum as a set), `required` as a set, the items, and each
+      property both list, down through a property that is itself a
+      reference on one side and a shape on the other. A key only one side
+      gives says nothing.
+      Where nothing both say differs, the reference is kept, the one name
+      for the shape, and a line names the trees that refer and the trees
+      that write; the element above carries every tree's citation as
+      before. Where a key both give differs, the key is left out and the
+      must question of ADR-045 asks which is right, its why naming each
+      difference (the property, and what each side says). Where nothing
+      both say differs and the sides list different properties, the
+      reference is kept and one should question at the position names
+      the properties each lists and the other does not; nothing is
+      written into the named shape and nothing is dropped unsaid.
+      A question a tree asked at the position where the reference is kept
+      is answered by the trees that refer, since the named shape is the
+      shape. A question asked below the position follows the reference:
+      its pointer is written under the named entry, where the rules of
+      ADR-049 and ADR-050 take it from there, so a width the document's
+      schema gives answers it and one it does not give stays asked, at
+      the property it is about. Where the key is left out, a question
+      below it moves up to the position, the one missing key the must
+      question blocks.
+      An entity's field one tree gives as an object with nothing more and
+      another as a schema is not such a position: it is the schema kept
+      as JSON (ADR-077).
+    why: |
+      The reference rather than the shape in place, because the design
+      says a shape once and names it everywhere else (docs/principles.md,
+      one way to say one thing); writing the shape out where the code has
+      it would say the same thing twice and let the two drift. Comparing
+      only what both say, because that is ADR-045's rule for every other
+      key, and a struct cannot state a maximum length or a pattern that a
+      document states; a key only one side gives was never a
+      disagreement. Properties only one side lists as a should question
+      rather than a union or a silence, because writing the code's extra
+      property into the named schema would say every operation that
+      refers to it takes that property, which the merge does not know,
+      and leaving it out would hide a difference between the document and
+      the code, which is what the merge is for; should rather than must,
+      because the shapes do not contradict each other and the reader
+      decides whether the document or the code is to change.
+      Settling the position after every tree is in rather than as the
+      trees are read, because the named entry may come from a tree merged
+      later, or from a section merged after the one that refers to it,
+      and the comparison needs the whole entry. Moving a question below
+      the position to the named entry, because the validator holds every
+      question to a pointer the tree has (issue 10), and the question is
+      about the property, which now lives under its name; collapsing it
+      to the position where the key is left out, for the same rule.
+      Acceptance test: the first merge of a service's OpenAPI document
+      with its Go source validates with no error, and an owner reading
+      the techspec sees one schema per request body, cited from both, and
+      a question wherever the struct and the schema disagree; the change
+      asked for is one line at the property named, in the document or in
+      the code.
+    consequences: |
+      A merged specification whose trees refer and write in place
+      validates on its own, and gaps reads it. Two trees that both write a
+      shape in place, or both refer, merge as before. A key only the
+      document gives (a maximum length, a pattern) stays with the named
+      schema, and a key only the code gives at a property both list (a
+      nullable type where the document states none) is a disagreement,
+      asked as any other. Where the trees give the same position three
+      ways, the trees that write in place are each compared with the
+      named shape.
+    satisfies: [SA-45]

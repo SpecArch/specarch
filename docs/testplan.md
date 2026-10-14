@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.6.2 of the specification: 413 design tests, 182 golden and 231 red, about 14 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.6.2 of the specification: 416 design tests, 184 golden and 232 red, about 14 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.6.2 of the specification: 413 design tests, 182 golden and 231 red, ab
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 409 |
+| system | 412 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -1781,6 +1781,30 @@ Scenario: red; level: system; covers exit 1; verifies SA-11.
 - When: merge is run on the three trees
 - Then: it names the tree and the test that differs from its draft, says to write that test in the merged specification, writes nothing, and exits 1
 
+#### merge-schema-reference-agrees
+
+Scenario: golden; level: system; verifies SA-45.
+
+- Given: the tree of an OpenAPI document whose POST /v1/things takes a request body that refers to the schema CreateThingRequest, and the tree of the Go source whose handler decodes that body into a struct, written in place with the same properties, with a question on the width of its int64 property
+- When: merge is run on the two trees, the document's first
+- Then: the request body keeps the reference and the operation cites both trees, the Go tree's width question follows the reference to the schema's property and is answered by the format the document gives, and the merged specification validates with no error; it exits 0
+
+#### merge-schema-reference-agrees-code-first
+
+Scenario: golden; level: system; verifies SA-45.
+
+- Given: the same two trees as merge-schema-reference-agrees: an OpenAPI document that refers to the schema CreateThingRequest for a request body, and the Go source that writes the body's shape in place
+- When: merge is run on the two trees, the Go source's first
+- Then: the request body keeps the reference whichever tree came first, the Go tree's width question is answered by the schema's format, and the merged specification validates with no error; it exits 0
+
+#### merge-schema-reference-differs
+
+Scenario: red; level: system; verifies SA-45.
+
+- Given: the tree of an OpenAPI document whose POST /v1/things and PUT /v1/things/{id} take request bodies that refer to the schemas CreateThingRequest and UpdateThingRequest, and the tree of the Go source whose handlers decode them into structs written in place: the first with name as an integer where the schema says string, with a question on its width, and the second with a property extra the schema does not list
+- When: merge is run on the two trees
+- Then: the first request body's schema is left out with a must question that names the property whose type differs, the Go tree's width question moves up to that position, the second keeps its reference with a should question naming the property only the code writes, and the merged specification validates with no error; it exits 0
+
 #### merge-source-differs
 
 Scenario: red; level: system; covers exit 1; verifies SA-45.
@@ -3379,7 +3403,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-240 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+241 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -3597,6 +3621,7 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-45 | acceptance 5 | golden | SA-45 names no harm |
 | requirement SA-45 | acceptance 6 | golden | SA-45 names no harm |
 | requirement SA-45 | acceptance 7 | golden | SA-45 names no harm |
+| requirement SA-45 | acceptance 8 | golden | SA-45 names no harm |
 | requirement SA-57 | acceptance 1 | golden | SA-57 names no harm |
 | requirement SA-57 | acceptance 2 | golden | SA-57 names no harm |
 | requirement SA-57 | acceptance 3 | golden | SA-57 names no harm |

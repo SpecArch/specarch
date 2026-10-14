@@ -1,0 +1,21 @@
+paths:
+  /v1/things:
+    post:
+      operationId: createThing
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                code:
+                  type: string
+                name:
+                  type: string
+                quantity:
+                  type: integer
+              required: [code]
+      origin: stated
+      cites:
+        - {source: code, clause: 'api/server.go:14', says: Registers POST /v1/things on a gin router; its handler is createThing.}
+        - {source: code, clause: 'api/server.go:18', says: The handler of POST /v1/things reads no path parameter by name and decodes its body into req.}

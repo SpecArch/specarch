@@ -1,0 +1,41 @@
+paths:
+  /v1/things:
+    post:
+      operationId: createThing
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                code:
+                  type: string
+                name:
+                  type: integer
+              required: [code]
+      origin: stated
+      cites:
+        - {source: code, clause: 'api/server.go:20', says: Registers POST /v1/things on a gin router; its handler is createThing.}
+        - {source: code, clause: 'api/server.go:25', says: The handler of POST /v1/things reads no path parameter by name and decodes its body into req.}
+  /v1/things/{id}:
+    parameters:
+      - {name: id, in: path, required: true}
+    put:
+      operationId: updateThing
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                code:
+                  type: string
+                name:
+                  type: string
+                extra:
+                  type: string
+              required: [code, name]
+      origin: stated
+      cites:
+        - {source: code, clause: 'api/server.go:21', says: 'Registers PUT /v1/things/{id} on a gin router; its handler is updateThing.'}
+        - {source: code, clause: 'api/server.go:34', says: 'The handler of PUT /v1/things/{id} reads the path parameter id and decodes its body into req.'}

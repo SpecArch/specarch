@@ -1,0 +1,19 @@
+arguments: [merge, --out, spec, trees/api, trees/go]
+exitStatus: 0
+standardOutput: |
+  tree trees/api: Things API, on the documents side: 5 elements and 2 questions
+  tree trees/go: Go source of things, on the code, parsed side: 3 elements and 6 questions
+  disagree: on #/paths/~1v1~1things/post/requestBody/content/application~1json/schema, Things API refers to #/schemas/CreateThingRequest and Go source of things writes the shape in place, and they differ: CreateThingRequest.name is of type string, and Go source of things of type integer; the key is left out
+  joined: on #/paths/~1v1~1things~1{id}/put/requestBody/content/application~1json/schema, Things API refers to #/schemas/UpdateThingRequest and Go source of things writes the shape in place; the shapes agree, and the reference is kept with a question on what each lists
+  asked twice: Q-1 of trees/go, on #/paths/~1v1~1things/post/permission, is left out; Q-1 of trees/api asks it
+  answered: Q-3 of trees/go, on #/paths/~1v1~1things/post/summary, #/paths/~1v1~1things/post/responses, is left out; Things API gives it
+  asked twice: Q-4 of trees/go, on #/paths/~1v1~1things~1{id}/put/permission, is left out; Q-2 of trees/api asks it
+  answered: Q-5 of trees/go, on #/paths/~1v1~1things~1{id}/put/summary, #/paths/~1v1~1things~1{id}/put/responses, is left out; Things API gives it
+  answered: Q-6 of trees/go, on #/paths/~1v1~1things~1{id}/parameters/0/schema, is left out; Things API gives it
+  merged 5 elements, each an entry of a section or an operation: 3 in more than one tree, and 1 key the trees disagree on
+  wrote 5 questions: 3 from the trees, numbered again in the order the trees are given, and 2 the merge asked
+  question Q-4 (must): #/paths/~1v1~1things/post/requestBody/content/application~1json/schema: the trees disagree
+  question Q-5 (should): #/paths/~1v1~1things~1{id}/put/requestBody/content/application~1json/schema: the shapes list different properties
+  derived 0 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers
+  not derived: 1 draft test for operation createThing, held up by Q-1, Q-3, Q-4; the validator warns for them until the questions are answered
+  not derived: 4 draft tests for operation updateThing, held up by Q-2, Q-5; the validator warns for them until the questions are answered

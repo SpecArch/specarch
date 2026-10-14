@@ -1,0 +1,18 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v0.6.2/schema/specarch-design-0.2.schema.json
+specarch: "0.2"
+info:
+  title: Things API
+  version: 0.1.0
+  description: |
+    The OpenAPI document openapi.yaml, read at commit 4f2c1a9e7b3d5c6a8e0f1b2d3c4e5f6a7b8c9d0e: every operation and component schema is a clause, every operation is written under its path citing it, every component schema of type object that an operation creates or a path with a parameter answers is an entity, and every other one a schema. What the document does not say is a question, and so is what the meta-model cannot hold.
+  tracksOrigin: true
+stages: [requirements, design]
+sources:
+  openapi:
+    kind: document
+    title: Things API
+    edition: 4f2c1a9e7b3d5c6a8e0f1b2d3c4e5f6a7b8c9d0e
+    url: https://example.invalid/things/openapi.yaml
+    clauses:
+      - {clause: /paths/~1v1~1things/post, title: POST /v1/things}
+      - {clause: /components/schemas/CreateThingRequest, title: schema CreateThingRequest}

@@ -29,7 +29,7 @@ facts in a format SpecArch defines, never a reader of its own.
 
 | Point | Standing |
 |---|---|
-| 1. a dump committed outside the code's repository | planned, item 1 |
+| 1. a dump committed outside the code's repository | built, item 1 (ADR-098): `repository` in every dump, read at the gitlink's commit |
 | 2. references between specifications; an umbrella specification | planned, items 5 and 6 |
 | 3. documents in another language | planned, item 4 |
 | 4. role names on the wire | planned, item 2 |
@@ -59,8 +59,8 @@ only read the code cannot commit anything there, and a local branch
 holding the dumps, the pilot's way round, gives an edition that exists
 on one machine only.
 
-The dump gains an optional key, `repository`: the path of the code's
-repository from the root of the repository holding the dump, a
+The dump takes an optional key, `repository` (ADR-098): the path of the
+code's repository from the root of the repository holding the dump, a
 submodule's folder in the usual case. With it the reader checks:
 
 - the dump file itself is committed, in its own repository B, as today;
@@ -74,10 +74,16 @@ submodule's folder in the usual case. With it the reader checks:
   (`git -C A log -1 --format=%H <reference> -- <path>` equals `commit`);
   otherwise the dump is stale, and the refusal names both commits and
   the script to run again.
+- A's checkout holds the reference commit's files under `path` (the same
+  tree object); otherwise it is refused with the `git submodule update`
+  that checks the reference out. A gitlink not checked out, and a
+  reference commit A's history does not hold, are refused with that
+  reason.
 
 The reference commit is the gitlink, not A's working checkout: a
-checkout moved ahead or left dirty in A changes no answer, and two
-machines with the same B commit give the same bytes. A's own working
+checkout moved ahead without touching `path` reads as the reference,
+one that changed `path` is refused rather than read at another commit,
+and two machines with the same B commit give the same bytes. A's own working
 tree is still refused when it has changes not committed under `path`,
 as today, because what the printer read is then not what any commit
 names. The code source's `edition` stays A's `commit`, its `url` points
@@ -559,7 +565,7 @@ answer the must-have points and go first; every keyword among them is
 an addition that breaks no 0.2 file, so none waits for meta-model 0.3
 step 1. Only item 7's meta-model half touches 0.3.
 
-1. `repository` in every dump. The key in the catalogue, route, permission
+1. Built (ADR-098). `repository` in every dump. The key in the catalogue, route, permission
    and code-facts formats; the gitlink checks in `openDump`; the six
    printer scripts writing it; the conformance case with two throwaway
    repositories, one a submodule of the other, read at a fixed gitlink.

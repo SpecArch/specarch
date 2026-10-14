@@ -30,9 +30,10 @@ type codeFactsDump struct {
 		Name    string `json:"name"`
 		Version string `json:"version"`
 	} `json:"parser"`
-	Path   string `json:"path"`
-	Commit string `json:"commit"`
-	Files  []struct {
+	Path       string `json:"path"`
+	Commit     string `json:"commit"`
+	Repository string `json:"repository"`
+	Files      []struct {
 		File         string `json:"file"`
 		SyntaxErrors int    `json:"syntaxErrors"`
 	} `json:"files"`
@@ -343,7 +344,7 @@ func Swift(dumpPath, out, key, implementation string) (*Result, error) {
 	case d.Parser.Name != "SwiftSyntax" || d.Parser.Version != swiftSyntaxVersion:
 		return nil, refuse("%s was made by %s %s, and this specarch reads dumps that SwiftSyntax %s made; run tools/code-facts/dump-swift.sh of this release again and commit the dump", dumpPath, d.Parser.Name, d.Parser.Version, swiftSyntaxVersion)
 	}
-	r, dumpName, err := openDump(dumpPath, d.Path, d.Commit, "tools/code-facts/dump-swift.sh")
+	r, dumpName, err := openDump(dumpPath, d.Repository, d.Path, d.Commit, "tools/code-facts/dump-swift.sh")
 	if err != nil {
 		return nil, err
 	}

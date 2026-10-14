@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: extract
+level: system
+scenario: red
+covers: [exit 1]
+given: "a code repository whose first commit holds a router's routes and whose second adds a file to the router's folder, and another repository holding it as a gitlink at the second commit and a route table that names the code repository's folder and the first commit"
+when: "extract router is run on the route table in the outer repository"
+then: "it refuses the route table as stale, naming the commit it was made at, the commit that last changed the router's folder at the gitlink and the gitlink's commit, writes nothing and exits 1"
+verifies: [SA-44]

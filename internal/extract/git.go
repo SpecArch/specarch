@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -199,10 +200,12 @@ func hasOrHave(n int) string {
 // table: it names a full commit hash and the path it was made from, that
 // path is in the dump's own repository, nothing under either is left
 // uncommitted, and the commit is the last change to the path, so the dump
-// is not stale. script names what makes the dump again. It returns the
-// read, with the dump's commit as its commit, and the dump's path from the
-// repository's root.
-func openDump(dumpPath, madeFrom, commit, script string) (*Read, string, error) {
+// is not stale. A dump that names a repository was made from the code of
+// that one, a submodule of the dump's own, and is checked by dumpElsewhere.
+// script names what makes the dump again. It returns the read, with the
+// dump's commit as its commit, and the dump's path from the root of its
+// own repository.
+func openDump(dumpPath, repository, madeFrom, commit, script string) (*Read, string, error) {
 	if !fullHash.MatchString(commit) {
 		return nil, "", refuse("%s names no full commit hash it was made from (commit: %q)", dumpPath, commit)
 	}
@@ -214,6 +217,10 @@ func openDump(dumpPath, madeFrom, commit, script string) (*Read, string, error) 
 		return nil, "", err
 	}
 	name := dumpRead.Paths[0]
+	if repository != "" {
+		r, err := dumpElsewhere(dumpRead, name, repository, madeFrom, commit, script)
+		return r, name, err
+	}
 	made := filepath.Join(dumpRead.Repository.Root, filepath.FromSlash(madeFrom))
 	if _, err := os.Stat(made); err != nil {
 		return nil, "", refuse("%s was made from %s, which is not in the repository", name, madeFrom)
@@ -234,4 +241,104 @@ func openDump(dumpPath, madeFrom, commit, script string) (*Read, string, error) 
 	}
 	r.Commit = commit
 	return r, name, nil
+}
+
+// dumpElsewhere checks a dump committed outside the code's repository. Its
+// repository is a gitlink of the dump's own repository, and the commit
+// recorded there is the reference: the dump's commit must be the last
+// change to the path at the reference, and the code's checkout must hold
+// the reference's files under the path, so that the files read are the
+// ones the gitlink names, whatever else the checkout holds.
+func dumpElsewhere(dumpRead *Read, name, repository, madeFrom, commit, script string) (*Read, error) {
+	if path.IsAbs(repository) || path.Clean(repository) != repository || repository == "." || repository == ".." || strings.HasPrefix(repository, "../") || strings.Contains(repository, `\`) {
+		return nil, refuse("%s names the repository %q, which is not a folder's path from the root of the repository holding the dump, slash-separated, with no . or .. part", name, repository)
+	}
+	outer := dumpRead.Repository.Root
+	entry, err := git(outer, "ls-tree", "HEAD", "--", repository)
+	if err != nil {
+		return nil, err
+	}
+	mode, kind, reference, _ := gitlinkEntry(entry)
+	switch {
+	case entry == "" || mode == "":
+		return nil, refuse("%s names the repository %s, which the commit checked out in %s does not hold; add the code's repository there as a submodule and commit it", name, repository, outer)
+	case mode != "160000" || kind != "commit":
+		what := map[string]string{"tree": "folder", "blob": "file"}[kind]
+		if what == "" {
+			what = kind
+		}
+		return nil, refuse("%s names the repository %s, which %s records as a plain %s and not as a gitlink, so nothing pins which commit of the code was read; add the code's repository there as a submodule and commit it", name, repository, outer, what)
+	}
+	inner := filepath.Join(outer, filepath.FromSlash(repository))
+	top, err := git(inner, "rev-parse", "--show-toplevel")
+	if err == nil {
+		top, err = filepath.EvalSymlinks(top)
+	}
+	if err != nil || top != inner {
+		return nil, refuse("%s names the repository %s, which %s pins at commit %s but which is not checked out there; run git submodule update --init -- %s in %s", name, repository, outer, reference, repository, outer)
+	}
+	made := filepath.Join(inner, filepath.FromSlash(madeFrom))
+	if _, err := os.Stat(made); err != nil {
+		return nil, refuse("%s was made from %s, which is not in the repository %s", name, madeFrom, repository)
+	}
+	r, err := Open([]string{made})
+	if err != nil {
+		return nil, err
+	}
+	if r.Repository.Root != inner {
+		return nil, refuse("%s was made from %s, which is in another repository than %s, at %s; name that repository instead", name, madeFrom, repository, r.Repository.Root)
+	}
+	if !r.Exists(reference) {
+		return nil, refuse("%s names the repository %s, which %s pins at commit %s, and that commit is not in its history; fetch it in %s", name, repository, outer, reference, inner)
+	}
+	if !r.Exists(commit) {
+		return nil, refuse("%s was made at commit %s, which is not in the history of the repository %s", name, commit, repository)
+	}
+	last, err := git(inner, "log", "-1", "--format=%H", reference, "--", madeFrom)
+	if err != nil {
+		return nil, err
+	}
+	if last != commit {
+		return nil, refuse("%s is stale: it was made at commit %s, and %s was last changed at commit %s in the repository %s, which %s pins at commit %s; run %s again and commit the dump", name, commit, madeFrom, last, repository, outer, reference, script)
+	}
+	pinned, err := git(inner, "rev-parse", treeOf(reference, madeFrom))
+	if err != nil {
+		return nil, err
+	}
+	head, err := git(inner, "rev-parse", "HEAD")
+	if err != nil {
+		return nil, err
+	}
+	checkedOut, err := git(inner, "rev-parse", treeOf(head, madeFrom))
+	if err != nil {
+		return nil, err
+	}
+	if checkedOut != pinned {
+		return nil, refuse("%s in the repository %s is checked out at commit %s, whose files there are not those of commit %s, which %s pins; run git submodule update -- %s in %s", madeFrom, repository, head, reference, outer, repository, outer)
+	}
+	r.Commit = commit
+	return r, nil
+}
+
+// gitlinkEntry splits a line of git ls-tree into its mode, its kind and its
+// object.
+func gitlinkEntry(line string) (mode, kind, object, name string) {
+	meta, name, ok := strings.Cut(line, "\t")
+	if !ok {
+		return "", "", "", ""
+	}
+	fields := strings.Fields(meta)
+	if len(fields) != 3 {
+		return "", "", "", ""
+	}
+	return fields[0], fields[1], fields[2], name
+}
+
+// treeOf names the tree of a path at a commit, the commit's own tree for
+// the repository's root.
+func treeOf(commit, p string) string {
+	if p == "." {
+		return commit + "^{tree}"
+	}
+	return commit + ":" + p
 }

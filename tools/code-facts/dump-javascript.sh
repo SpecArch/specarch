@@ -12,7 +12,9 @@
 #
 # The folder must be committed: a change not committed, or a file that is
 # neither tracked nor ignored, is refused, since no commit would name what
-# the facts were read from. Commit the dump beside the code afterwards; it
+# the facts were read from. Commit the dump beside the code afterwards,
+# or in a repository holding the code's as a submodule
+# (tools/repository-key.sh); it
 # is stale once the folder changes, and specarch extract javascript
 # refuses it then, and when another version of the TypeScript compiler
 # made it than the one specarch pins.
@@ -58,6 +60,10 @@ if [ -z "$commit" ]; then
 	echo "dump-javascript.sh: no commit has changed $path" >&2
 	exit 1
 fi
+# A dump file in another repository, one holding the code's as a
+# submodule, names that submodule's folder as its repository.
+. "$(dirname "$0")/../repository-key.sh"
+repository=$(repository_key dump-javascript.sh "$root" "$dump")
 
 if [ ! -d "$reader/node_modules/typescript" ]; then
 	(cd "$reader" && npm ci --ignore-scripts --no-audit --no-fund) >&2
@@ -68,5 +74,6 @@ fi
 	grep -E '(\.(ts|tsx|mts|cts|js|jsx|mjs|cjs|vue)$|(^|/)(tsconfig|jsconfig)\.json$)' | grep -v '\.d\.[cm]\?ts$' | grep -v '(^|/)node_modules/' || true) >"$dump.files"
 (cd "$root" && node "$reader/code-facts-javascript.mjs" "$path" "$commit" <"$dump.files") >"$dump.tmp"
 rm -f "$dump.files"
+add_repository_key dump-javascript.sh "$dump.tmp" "$repository"
 mv "$dump.tmp" "$dump"
-echo "dump-javascript.sh: wrote $dump from $path at $commit in $root"
+echo "dump-javascript.sh: wrote $dump from $path at $commit in $root${repository:+, read through the submodule $repository}"

@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: extract
+level: system
+scenario: golden
+given: "a code repository whose one commit holds a router's folder, and another repository holding it as a gitlink at that commit and, in a later commit, the route table printed from it, naming the code repository's folder, the router's folder and the code's commit; the table is the one of the case where the route table is committed beside the code"
+when: "extract router is run on the route table in the outer repository"
+then: "it writes the tree, the commit line and the counts of the case where the route table is committed beside the code, byte for byte: the code source's edition is the code's commit and its url the code repository's folder, and no commit of the outer repository appears; it exits 0"
+verifies: [SA-44]

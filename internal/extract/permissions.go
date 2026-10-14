@@ -20,6 +20,7 @@ type permissionTable struct {
 	PermissionTable int         `json:"permissionTable"`
 	Path            string      `json:"path"`
 	Commit          string      `json:"commit"`
+	Repository      string      `json:"repository"`
 	Grants          []dumpGrant `json:"grants"`
 	Gates           []dumpGate  `json:"gates"`
 }
@@ -56,7 +57,7 @@ func Permissions(dumpPath, out, key string) (*Result, error) {
 	if t.Grants == nil || t.Gates == nil {
 		return nil, refuse("%s is not a permission table: it needs both grants and gates, each a list, empty when there are none", dumpPath)
 	}
-	r, dumpName, err := openDump(dumpPath, t.Path, t.Commit, "tools/permissions/dump-permissions.sh")
+	r, dumpName, err := openDump(dumpPath, t.Repository, t.Path, t.Commit, "tools/permissions/dump-permissions.sh")
 	if err != nil {
 		return nil, err
 	}

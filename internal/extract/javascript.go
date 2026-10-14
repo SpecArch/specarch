@@ -38,9 +38,10 @@ type jsDump struct {
 		Name    string `json:"name"`
 		Version string `json:"version"`
 	} `json:"templateParser"`
-	Path   string `json:"path"`
-	Commit string `json:"commit"`
-	Files  []struct {
+	Path       string `json:"path"`
+	Commit     string `json:"commit"`
+	Repository string `json:"repository"`
+	Files      []struct {
 		File         string `json:"file"`
 		SyntaxErrors int    `json:"syntaxErrors"`
 	} `json:"files"`
@@ -537,7 +538,7 @@ func openJS(dumpPath, key string) (*jsReader, string, error) {
 			return nil, "", refuse("%s lists the Vue file %s and names no template parser; run tools/code-facts/dump-javascript.sh of this release again and commit the dump", dumpPath, f.File)
 		}
 	}
-	r, dumpName, err := openDump(dumpPath, d.Path, d.Commit, "tools/code-facts/dump-javascript.sh")
+	r, dumpName, err := openDump(dumpPath, d.Repository, d.Path, d.Commit, "tools/code-facts/dump-javascript.sh")
 	if err != nil {
 		return nil, "", err
 	}

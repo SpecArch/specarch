@@ -10,7 +10,9 @@
 #
 # The folder must be committed: a change not committed, or a file that is
 # neither tracked nor ignored, is refused, since no commit would name what
-# the facts were read from. Commit the dump beside the code afterwards; it
+# the facts were read from. Commit the dump beside the code afterwards,
+# or in a repository holding the code's as a submodule
+# (tools/repository-key.sh); it
 # is stale once the folder changes, and specarch extract dart refuses it
 # then, and when another version of the analyzer made it than the one
 # specarch pins.
@@ -57,6 +59,10 @@ if [ -z "$commit" ]; then
 	echo "dump-dart.sh: no commit has changed $path" >&2
 	exit 1
 fi
+# A dump file in another repository, one holding the code's as a
+# submodule, names that submodule's folder as its repository.
+. "$(dirname "$0")/../repository-key.sh"
+repository=$(repository_key dump-dart.sh "$root" "$dump")
 
 if [ ! -f "$reader/.dart_tool/package_config.json" ]; then
 	dart pub get --enforce-lockfile --directory "$reader" >&2
@@ -66,5 +72,6 @@ fi
 (cd "$root" && GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1 git -c core.quotePath=false ls-files -- "$path" | grep '\.dart$' || true) >"$dump.files"
 (cd "$root" && dart run "$reader/bin/code_facts_dart.dart" "$path" "$commit" <"$dump.files") >"$dump.tmp"
 rm -f "$dump.files"
+add_repository_key dump-dart.sh "$dump.tmp" "$repository"
 mv "$dump.tmp" "$dump"
-echo "dump-dart.sh: wrote $dump from $path at $commit in $root"
+echo "dump-dart.sh: wrote $dump from $path at $commit in $root${repository:+, read through the submodule $repository}"

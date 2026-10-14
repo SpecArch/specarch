@@ -1,0 +1,64 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
+decisions:
+  ADR-098:
+    title: A dump committed outside the code's repository names the code's repository as a gitlink of its own, and is read at the commit that gitlink records
+    status: accepted
+    date: "2026-10-14"
+    context: |
+      Every dump reader checks that the dump is committed in the code's
+      repository, beside the path it was made from, so that its commit
+      is a real edition and a stale dump is refused. A team that may
+      only read the code of an estate of modules cannot commit there;
+      the dumps it makes would live on a local branch, an edition that
+      exists on one machine only. Point 1 of docs/estate.md asks for the
+      dump to be committed in the team's own repository instead.
+    decision: |
+      Every dump format (catalogue, route table, permission table and
+      the three code-facts dumps) takes an optional key, repository: the
+      folder of the code's repository from the root of the repository
+      holding the dump, a slash-separated path with no . or .. part. It
+      must be a gitlink there (mode 160000 in git ls-tree HEAD), and the
+      commit the gitlink records is the reference. The dump's path is
+      then from the code's repository's root, and its commit must be the
+      last change to that path at the reference (git log -1 <reference>
+      -- <path>), or the dump is stale and the refusal names the dump's
+      commit, that last change and the reference. The code's checkout
+      must be a full clone with nothing uncommitted under the path, and
+      its files under the path must be the reference's (the same tree
+      object), or it is refused with the git submodule update that
+      checks the reference out. A folder that is a plain folder or file
+      and no gitlink, a gitlink that is not checked out and a reference
+      the code's history does not hold are refused with that reason,
+      before anything is read. The code source's edition is the dump's
+      commit and its url the code's repository, as for a dump committed
+      beside the code; no commit of the dump's own repository appears in
+      the tree. A dump without repository is read as before. Every dump
+      script writes the key by itself when the dump file's repository is
+      not the code's, and refuses a dump file in a repository that does
+      not hold the code's.
+    consequences: |
+      An extracting team commits its dumps in its own repository, which
+      holds each module as a submodule, and a change on the code side
+      reaches the specification by moving the gitlink and running the
+      script again, without a change request to the code's owners. Two
+      machines at the same commit of the outer repository read the same
+      files and write the same bytes, and the output equals the output
+      of the same dump committed beside the code. A code checkout moved
+      ahead without touching the path reads as before; one that changed
+      the path is refused rather than read at the wrong commit.
+    why: |
+      A gitlink is git's own record of which commit of another
+      repository a repository uses, committed with the rest of it, so it
+      pins the code's commit as firmly as committing the dump beside the
+      code does. A plain checkout in the folder would pin nothing: what
+      was read would depend on where that checkout stood on the machine.
+      The reference is the gitlink and not the checkout's HEAD for the
+      same reason, and the readers keep reading the checkout's files
+      only because the check makes them the reference's: refusing a
+      checkout that differs under the path is cheaper and clearer than a
+      second way of reading files out of git objects in every reader.
+      The key is optional and changes nothing for a dump without it, so
+      no 0.2 dump or specification breaks, and a problem with it is a
+      refusal naming the dump and its reason, as every other dump check
+      is.
+    satisfies: [SA-44]

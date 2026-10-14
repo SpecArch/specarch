@@ -29,6 +29,11 @@ type conformanceCase struct {
 	// Repository makes a folder of the case a git repository before the
 	// run, for the cases of extract, which read a commit.
 	Repository *caseRepository `yaml:"repository"`
+	// Repositories are made in order, for a case that reads one repository
+	// through another: a commit of a later one that lists the folder of an
+	// earlier one records that repository's checked-out commit as a
+	// gitlink, as a submodule does.
+	Repositories []*caseRepository `yaml:"repositories"`
 }
 
 // A throwaway git repository a case runs in. Its commits are made with a
@@ -69,7 +74,7 @@ func makeRepository(t *testing.T, work string, r *caseRepository) {
 	dir := filepath.Join(work, filepath.FromSlash(r.Folder))
 	caseGit(t, dir, "init", "-q", "-b", "main")
 	for i, paths := range r.Commits {
-		caseGit(t, dir, append([]string{"add", "--"}, paths...)...)
+		caseGit(t, dir, append([]string{"-c", "advice.addEmbeddedRepo=false", "add", "--"}, paths...)...)
 		caseGit(t, dir, "commit", "-q", "--no-gpg-sign", "-m", fmt.Sprintf("Commit %d of the case", i+1))
 	}
 	for _, p := range r.Changed {
@@ -179,7 +184,12 @@ func TestConformance(t *testing.T) {
 				}
 			}
 			if c.Repository != nil {
-				makeRepository(t, work, c.Repository)
+				c.Repositories = append([]*caseRepository{c.Repository}, c.Repositories...)
+			}
+			for _, r := range c.Repositories {
+				makeRepository(t, work, r)
+			}
+			if len(c.Repositories) > 0 {
 				inputs = readTree(t, work) // what the run must leave as it found it
 			}
 			var built string
@@ -187,7 +197,7 @@ func TestConformance(t *testing.T) {
 				built = buildPlugin(t, target)
 			}
 			gitDir := ""
-			if c.Repository != nil {
+			if len(c.Repositories) > 0 {
 				gitPath, err := exec.LookPath("git")
 				if err != nil {
 					t.Fatal(err)
@@ -203,7 +213,7 @@ func TestConformance(t *testing.T) {
 			default:
 				t.Setenv("PATH", filepath.Join(work, "no-plugins"))
 			}
-			if c.Repository != nil {
+			if len(c.Repositories) > 0 {
 				// extract reads the case's repository with git; only git's
 				// own folder is added.
 				t.Setenv("PATH", os.Getenv("PATH")+string(os.PathListSeparator)+gitDir)

@@ -1,0 +1,8 @@
+arguments: [extract, router, --out, spec, routes.json]
+repository:
+  folder: .
+  commits:
+    - [service/router]
+    - [routes.json]
+exitStatus: 1
+standardOutput: ""

@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.0-dev of the specification: 401 design tests, 174 golden and 227 red, about 14 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.0-dev of the specification: 404 design tests, 175 golden and 229 red, about 14 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.7.0-dev of the specification: 401 design tests, 174 golden and 227 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 397 |
+| system | 400 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -1027,6 +1027,22 @@ Scenario: golden; level: system; verifies SA-44.
 - When: extract permissions is run on the permission table
 - Then: it writes each role with the permissions it grants in the order of their names and every permission granted, the privilege in capitals mapped by the rule of ADR-076 and declared inferred; a must question on the grant of EVERYTHING, which it does not expand, on each of the two privileges that give one permission and on the name that is not a permission name, each blocking the role's permissions, with the role written with the grants it can read; a question for the roles' and the permissions' descriptions and one for the check a setting switches off, citing the table; names the commit, counts the grants and gates, prints a line for the gate, prints a line and writes a could question citing the role for the grant of public and the role's name, and exits 0
 
+#### extract-router-dump-repository-not-gitlink
+
+Scenario: red; level: system; covers exit 1; verifies SA-44.
+
+- Given: a repository holding a router's folder inside a plain folder, committed as files and not as a gitlink, and a route table that names that plain folder as the code's repository
+- When: extract router is run on the route table
+- Then: it refuses the route table because the folder it names is not a gitlink, so nothing pins the commit of the code read, writes nothing and exits 1
+
+#### extract-router-dump-through-gitlink
+
+Scenario: golden; level: system; verifies SA-44.
+
+- Given: a code repository whose one commit holds a router's folder, and another repository holding it as a gitlink at that commit and, in a later commit, the route table printed from it, naming the code repository's folder, the router's folder and the code's commit; the table is the one of the case where the route table is committed beside the code
+- When: extract router is run on the route table in the outer repository
+- Then: it writes the tree, the commit line and the counts of the case where the route table is committed beside the code, byte for byte: the code source's edition is the code's commit and its url the code repository's folder, and no commit of the outer repository appears; it exits 0
+
 #### extract-router-route-twice
 
 Scenario: red; level: system; covers exit 1; verifies SA-44.
@@ -1034,6 +1050,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-44.
 - Given: a route table that lists the same method and path pair twice
 - When: extract router is run on the route table
 - Then: it refuses the route table, naming the route listed twice, writes nothing and exits 1
+
+#### extract-router-stale-gitlink
+
+Scenario: red; level: system; covers exit 1; verifies SA-44.
+
+- Given: a code repository whose first commit holds a router's routes and whose second adds a file to the router's folder, and another repository holding it as a gitlink at the second commit and a route table that names the code repository's folder and the first commit
+- When: extract router is run on the route table in the outer repository
+- Then: it refuses the route table as stale, naming the commit it was made at, the commit that last changed the router's folder at the gitlink and the gitlink's commit, writes nothing and exits 1
 
 #### extract-router-stale-table
 

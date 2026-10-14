@@ -86,6 +86,21 @@ Every reader shares these rules:
   catalogue or a route table, is itself committed and names the commit
   and the path it was made from; that commit is its edition, and a dump
   older than the last change to that path is refused as stale.
+- A dump may be committed outside the code's repository, by a team that
+  may only read the code: it then names, as `repository`, the folder of
+  the code's repository from the root of its own, which must be a gitlink
+  there (a submodule). The commit the gitlink records is the reference:
+  the dump's commit must be the last change to its path at that commit,
+  or the dump is stale and the refusal names the dump's commit, the last
+  change and the gitlink's commit; the code's checkout must hold that
+  commit's files under the path, or it is refused with the command that
+  checks it out; a folder that is no gitlink, a gitlink that is not
+  checked out and a gitlink's commit the code's history does not hold are
+  refused with their reason. The edition and the `url` are the code's,
+  so the output is byte for byte what the dump committed beside the code
+  gives, and no commit of the dump's own repository appears in it. Every
+  dump script writes `repository` by itself when the dump file is in
+  another repository than the code's (`tools/repository-key.sh`).
 - Standard output is one line per object the meta-model could not hold,
   one line naming the commit read, and every count with what was counted
   and how.
@@ -523,7 +538,7 @@ changes `extract.yaml` first.
 
 An estate of many modules, read from an umbrella repository by a team
 that may not commit to the code, asked for dumps committed outside the
-code's repository, a workflow table for definitions that are not BPMN, a
+code's repository, which `repository` gives (ADR-098), a workflow table for definitions that are not BPMN, a
 gate by caller kind in the permission table and vocabularies for
 documents in another language; `docs/estate.md` is the design and the
 order of the items.

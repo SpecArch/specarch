@@ -27,9 +27,10 @@ type dartDump struct {
 		Name    string `json:"name"`
 		Version string `json:"version"`
 	} `json:"parser"`
-	Path   string `json:"path"`
-	Commit string `json:"commit"`
-	Files  []struct {
+	Path       string `json:"path"`
+	Commit     string `json:"commit"`
+	Repository string `json:"repository"`
+	Files      []struct {
 		File         string `json:"file"`
 		SyntaxErrors int    `json:"syntaxErrors"`
 	} `json:"files"`
@@ -315,7 +316,7 @@ func Dart(dumpPath, out, key, implementation string) (*Result, error) {
 	case d.Parser.Name != "analyzer" || d.Parser.Version != dartAnalyzerVersion:
 		return nil, refuse("%s was made by %s %s, and this specarch reads dumps that the analyzer %s made; run tools/code-facts/dump-dart.sh of this release again and commit the dump", dumpPath, d.Parser.Name, d.Parser.Version, dartAnalyzerVersion)
 	}
-	r, dumpName, err := openDump(dumpPath, d.Path, d.Commit, "tools/code-facts/dump-dart.sh")
+	r, dumpName, err := openDump(dumpPath, d.Repository, d.Path, d.Commit, "tools/code-facts/dump-dart.sh")
 	if err != nil {
 		return nil, err
 	}

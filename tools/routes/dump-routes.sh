@@ -27,7 +27,9 @@
 #
 # The folder must be committed: a change not committed, or a file that is
 # neither tracked nor ignored, is refused, since no commit would name what
-# the routes were read from. Commit the dump beside the code afterwards.
+# the routes were read from. Commit the dump beside the code afterwards,
+# or in a repository holding the code's as a submodule
+# (tools/repository-key.sh).
 set -eu
 
 if [ $# -lt 3 ]; then
@@ -72,6 +74,10 @@ if [ -z "$commit" ]; then
 	echo "dump-routes.sh: no commit has changed $path" >&2
 	exit 1
 fi
+# A dump file in another repository, one holding the code's as a
+# submodule, names that submodule's folder as its repository.
+. "$(dirname "$0")/../repository-key.sh"
+repository=$(repository_key dump-routes.sh "$root" "$dump")
 
 routes=$(cd "$folder" && "$@")
 if [ -z "$routes" ]; then
@@ -85,5 +91,6 @@ fi
 	printf '%s\n' "$routes" | sed '2,$s/^/    /'
 	printf '}\n'
 } >"$dump.tmp"
+add_repository_key dump-routes.sh "$dump.tmp" "$repository"
 mv "$dump.tmp" "$dump"
-echo "dump-routes.sh: wrote $dump from $path at $commit in $root"
+echo "dump-routes.sh: wrote $dump from $path at $commit in $root${repository:+, read through the submodule $repository}"

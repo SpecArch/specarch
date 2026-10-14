@@ -16,12 +16,13 @@ import (
 
 // The catalogue dump tools/catalogue/catalogue.sql writes.
 type catalogue struct {
-	Catalogue string         `json:"catalogue"`
-	Path      string         `json:"path"`
-	Commit    string         `json:"commit"`
-	Tables    []dumpTable    `json:"tables"`
-	Views     []dumpView     `json:"views"`
-	Enums     []dumpEnumType `json:"enums"`
+	Catalogue  string         `json:"catalogue"`
+	Path       string         `json:"path"`
+	Commit     string         `json:"commit"`
+	Repository string         `json:"repository"`
+	Tables     []dumpTable    `json:"tables"`
+	Views      []dumpView     `json:"views"`
+	Enums      []dumpEnumType `json:"enums"`
 }
 
 type dumpTable struct {
@@ -103,7 +104,7 @@ func Database(dumpPath, out, key string) (*Result, error) {
 	if c.Catalogue != "postgresql" {
 		return nil, refuse("%s is not a catalogue dump of tools/catalogue/catalogue.sql: its catalogue is %q, not postgresql", dumpPath, c.Catalogue)
 	}
-	r, dumpName, err := openDump(dumpPath, c.Path, c.Commit, "tools/catalogue/dump-catalogue.sh")
+	r, dumpName, err := openDump(dumpPath, c.Repository, c.Path, c.Commit, "tools/catalogue/dump-catalogue.sh")
 	if err != nil {
 		return nil, err
 	}

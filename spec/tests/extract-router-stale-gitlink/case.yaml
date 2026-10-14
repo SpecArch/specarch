@@ -1,0 +1,12 @@
+arguments: [extract, router, --out, spec, routes.json]
+repositories:
+  - folder: service
+    commits:
+      - [router/routes.ts]
+      - [router/later.ts]
+  - folder: .
+    commits:
+      - [service]
+      - [routes.json]
+exitStatus: 1
+standardOutput: ""

@@ -14,7 +14,9 @@
 #
 # The folder must be committed: a change not committed, or a file that is
 # neither tracked nor ignored, is refused, since no commit would name what
-# the dump was made from. Commit the dump beside the code afterwards.
+# the dump was made from. Commit the dump beside the code afterwards,
+# or in a repository holding the code's as a submodule
+# (tools/repository-key.sh).
 #
 # PODMAN names the command that runs podman, when it is not podman itself.
 set -eu
@@ -54,6 +56,10 @@ if [ -z "$commit" ]; then
 	echo "dump-catalogue.sh: no commit has changed $path" >&2
 	exit 1
 fi
+# A dump file in another repository, one holding the code's as a
+# submodule, names that submodule's folder as its repository.
+. "$(dirname "$0")/../repository-key.sh"
+repository=$(repository_key dump-catalogue.sh "$root" "$dump")
 
 name="specarch-catalogue-$$"
 cleanup() {
@@ -89,5 +95,6 @@ git_clean ls-files -z -- '*.sql' | tr '\0' '\n' | LC_ALL=C sort | while IFS= rea
 done
 
 psql_in -A -t -v path="$path" -v commit="$commit" -f - <"$query" >"$dump.tmp"
+add_repository_key dump-catalogue.sh "$dump.tmp" "$repository"
 mv "$dump.tmp" "$dump"
-echo "dump-catalogue.sh: wrote $dump from $path at $commit in $root"
+echo "dump-catalogue.sh: wrote $dump from $path at $commit in $root${repository:+, read through the submodule $repository}"

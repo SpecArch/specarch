@@ -1031,6 +1031,22 @@ commands:
         from, and is itself committed. That commit is its edition; a dump
         whose commit is not the last change to that path is refused as
         stale.
+      - A dump committed outside the code's repository names, as
+        `repository`, the folder of the code's repository from the root
+        of the repository holding the dump; that folder must be a gitlink
+        there, and the commit the gitlink records is the reference
+        (ADR-098). The path is then from the code's repository's root, and
+        the dump is stale unless its commit is the last change to the
+        path at the reference; the refusal names the dump's commit, that
+        last change and the reference. The code's checkout must be a full
+        clone with nothing uncommitted under the path and hold the
+        reference's files there. A folder that is no gitlink, one not
+        checked out and a reference the code's history does not hold are
+        refused. The edition and the `url` are the code's repository's,
+        so the output equals that of the dump committed beside the code,
+        byte for byte. A dump without `repository` is read as one
+        committed beside the code. Every dump script writes it by itself
+        when the dump file is in another repository than the code's.
       - The same sources at the same commit give byte-identical output:
         objects are written in the order of their names, and nothing
         depends on the date, the clock, the working folder or the user's
@@ -1095,7 +1111,7 @@ commands:
     standardError: A usage message on a usage error, and the reason a source could not be read.
     exitCodes:
       "0": the specification was written
-      "1": "the surface could not be read as the source expects: a dump that does not parse or is stale, a code-facts dump another parser version made, whose files are not the tracked files of its folder the reader reads, or, for pages, whose folder does not hold the router's folder, a route table that lists a method and path pair twice, a permission table that lists a grant twice, a router root that gives one route twice or holds no page, a path with changes not committed, untracked files, a shallow clone, a path outside a git repository, a document that is not Markdown, a file that is not an OpenAPI 3.0 or 3.1 document, a file that is not BPMN 2.0 XML or holds no process, or an implementation file that does not parse as YAML"
+      "1": "the surface could not be read as the source expects: a dump that does not parse or is stale, a dump whose repository is no gitlink of the repository holding it, is not checked out, pins a commit its history does not hold or whose checkout under the path is not the pinned commit's, a code-facts dump another parser version made, whose files are not the tracked files of its folder the reader reads, or, for pages, whose folder does not hold the router's folder, a route table that lists a method and path pair twice, a permission table that lists a grant twice, a router root that gives one route twice or holds no page, a path with changes not committed, untracked files, a shallow clone, a path outside a git repository, a document that is not Markdown, a file that is not an OpenAPI 3.0 or 3.1 document, a file that is not BPMN 2.0 XML or holds no process, or an implementation file that does not parse as YAML"
       "2": usage error, a source this build does not offer, --implementation given to a source other than go, swift, javascript, dart or pages, or to pages without --facts, --facts given to a source other than pages, or a path that could not be read or written
     satisfies: [SA-11, SA-44]
     why: Existing systems enter SpecArch by extraction, so the verb exists from the start; it is built one reader at a time for the first real project that needs it, and every reader keeps the same rules so that the merge can trust their trees.

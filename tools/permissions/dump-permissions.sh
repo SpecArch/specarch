@@ -32,7 +32,9 @@
 #
 # The folder must be committed: a change not committed, or a file that is
 # neither tracked nor ignored, is refused, since no commit would name what
-# the grants were read from. Commit the dump beside the code afterwards.
+# the grants were read from. Commit the dump beside the code afterwards,
+# or in a repository holding the code's as a submodule
+# (tools/repository-key.sh).
 set -eu
 
 if [ $# -lt 3 ]; then
@@ -77,6 +79,10 @@ if [ -z "$commit" ]; then
 	echo "dump-permissions.sh: no commit has changed $path" >&2
 	exit 1
 fi
+# A dump file in another repository, one holding the code's as a
+# submodule, names that submodule's folder as its repository.
+. "$(dirname "$0")/../repository-key.sh"
+repository=$(repository_key dump-permissions.sh "$root" "$dump")
 
 printed=$(cd "$folder" && "$@")
 if [ "$(printf '%s\n' "$printed" | head -n 1)" != "{" ]; then
@@ -88,5 +94,6 @@ fi
 	printf '{\n    "permissionTable": 1,\n    "path": "%s",\n    "commit": "%s",\n' "$path" "$commit"
 	printf '%s\n' "$printed" | sed '1d'
 } >"$dump.tmp"
+add_repository_key dump-permissions.sh "$dump.tmp" "$repository"
 mv "$dump.tmp" "$dump"
-echo "dump-permissions.sh: wrote $dump from $path at $commit in $root"
+echo "dump-permissions.sh: wrote $dump from $path at $commit in $root${repository:+, read through the submodule $repository}"

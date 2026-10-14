@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: extract
+level: system
+scenario: red
+covers: [exit 1]
+given: "a repository holding a router's folder inside a plain folder, committed as files and not as a gitlink, and a route table that names that plain folder as the code's repository"
+when: "extract router is run on the route table"
+then: "it refuses the route table because the folder it names is not a gitlink, so nothing pins the commit of the code read, writes nothing and exits 1"
+verifies: [SA-44]

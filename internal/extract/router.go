@@ -19,6 +19,7 @@ type routeTable struct {
 	RouteTable int         `json:"routeTable"`
 	Path       string      `json:"path"`
 	Commit     string      `json:"commit"`
+	Repository string      `json:"repository"`
 	Routes     []dumpRoute `json:"routes"`
 }
 
@@ -68,7 +69,7 @@ func Router(dumpPath, out, key string) (*Result, error) {
 	if t.RouteTable != 1 {
 		return nil, refuse("%s is not a route table in the format tools/routes/dump-routes.sh writes: its routeTable is %d, not 1", dumpPath, t.RouteTable)
 	}
-	r, dumpName, err := openDump(dumpPath, t.Path, t.Commit, "tools/routes/dump-routes.sh")
+	r, dumpName, err := openDump(dumpPath, t.Repository, t.Path, t.Commit, "tools/routes/dump-routes.sh")
 	if err != nil {
 		return nil, err
 	}

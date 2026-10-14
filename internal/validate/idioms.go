@@ -376,10 +376,17 @@ func resolvedRendering(i, o Idiom, hasOverride bool, part, stack string) *yaml.N
 }
 
 // checkRows reports every entity field that no row of a rendering matches.
+// A field a must question blocks, by its pointer, its entity's, or one of
+// its keys, is skipped: its shape is not known yet, as the schema check
+// also lets it be.
 func (c *checker) checkRows(i Idiom, part, stack string, r *yaml.Node, root *yaml.Node, at *yaml.Node, ptr string) {
 	rows := typerows.RowsOf(asList(source.ValueOf(source.Child(r, "rows"))))
+	b := blockedPointers(root)
 	for _, e := range source.Pairs(source.Child(root, "entities")) {
 		for _, f := range source.Pairs(source.Child(e.Value, "properties")) {
+			if fp := source.Pointer("entities", e.Key.Value, "properties", f.Key.Value); b.under(fp) || len(b.keys[fp]) > 0 {
+				continue
+			}
 			field, _ := source.ValueOf(f.Value).(map[string]any)
 			shape := typerows.ShapeOf(field)
 			if _, ok := typerows.Match(shape, rows); !ok {

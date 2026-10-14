@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: validate
+level: system
+scenario: golden
+given: "an entity with a field that has its width and no type, and a constraint that has its message and no kind, each blocked by its pointer by a must question"
+when: "validate is run"
+then: "the keys missing at the blocked field and constraint are covered by the questions, as they are for an element known only by name; it prints nothing and exits 0"
+verifies: [SA-17]

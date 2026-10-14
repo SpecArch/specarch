@@ -169,56 +169,78 @@ func joinAnd(_ items: [String]) -> String {
     }
 }
 
+/// What the open must questions of a specification hold up by pointer: the
+/// elements, each the full pointer of a blocks entry that resolves, such as
+/// /entities/Loan or /entities/Loan/properties/dueOn; and the keys, a blocks
+/// entry whose last token is missing, by the pointer of the mapping it is
+/// missing from.
+struct Blocked {
+    var elements: [String] = []
+    var keys: [String: [String]] = [:]
+
+    var none: Bool { elements.isEmpty && keys.isEmpty }
+
+    /// Reports whether the path is a blocked element or inside one.
+    func under(_ path: String) -> Bool {
+        elements.contains { path == $0 || path.hasPrefix($0 + "/") }
+    }
+}
+
+/// Reads the pointers the must questions block. A pointer that resolves
+/// blocks the node it points to, whatever it holds: an entity, a field with
+/// content, a field known only by its name (an empty mapping) or one key
+/// with a value. A pointer of three tokens or more also blocks its last
+/// token as a key of the mapping before it, whether the key is there (an
+/// acceptance list left empty) or missing.
+func blockedPointers(_ root: YNode) -> Blocked {
+    var b = Blocked()
+    for p in pairs(root.child("questions")) where str(p.value.child("priority")) == "must" {
+        for item in items(p.value.child("blocks")) {
+            guard let bl = parseBlock(item.value), bl.isPointer else { continue }
+            let (_, reached) = resolve(root, bl.tokens)
+            if reached {
+                b.elements.append(pointer(bl.tokens))
+            }
+            if !bl.key.isEmpty {
+                b.keys[pointer(Array(bl.tokens.dropLast())), default: []].append(bl.key)
+            }
+        }
+    }
+    return b
+}
+
 /// Splits the diagnostics into the ones to report and the ones an open must
 /// question covers: a required key missing at or under a pointer the
 /// question blocks, the warnings about that element, the problem a response
 /// must name once problem types are declared when the question blocks that
 /// problem, and a permission no role grants when the question blocks that
-/// permission. A pointer to an
-/// element known only by name, an empty mapping such as a field with
-/// nothing but its name, covers everything under it. A wrong value next to
-/// the gap stays an error.
+/// permission. A pointer to an element covers everything missing at or
+/// under it, whether the element is written out in part, such as a field
+/// with its width and no type, or known only by name, an empty mapping. A
+/// pointer to a key that is not there covers that one key. A wrong value
+/// next to the gap stays an error.
 func coveredByQuestions(_ ds: [Diagnostic], _ root: YNode) -> (kept: [Diagnostic], covered: [Diagnostic]) {
-    var elements: [String] = []
-    var keys: [String: [String]] = [:]
-    for p in pairs(root.child("questions")) where str(p.value.child("priority")) == "must" {
-        for item in items(p.value.child("blocks")) {
-            guard let b = parseBlock(item.value), b.isPointer else { continue }
-            let k = b.key
-            if !k.isEmpty {
-                keys[pointer(Array(b.tokens.dropLast())), default: []].append(k)
-                let (n, reached) = resolve(root, b.tokens)
-                if reached && n.kind == .mapping && n.pairs.isEmpty {
-                    elements.append(pointer(b.tokens))
-                }
-            } else {
-                elements.append(b.element)
-            }
-        }
-    }
-    if elements.isEmpty && keys.isEmpty { return (ds, []) }
-    func under(_ path: String) -> Bool {
-        elements.contains { path == $0 || path.hasPrefix($0 + "/") }
-    }
+    let b = blockedPointers(root)
+    if b.none { return (ds, []) }
     var kept: [Diagnostic] = [], covered: [Diagnostic] = []
     let suffix = " is missing; add it here"
     for d in ds {
         var isCovered = false
         if d.rule == .schema && d.message.hasSuffix(suffix) {
             let missing = String(d.message.dropLast(suffix.count))
-            isCovered = under(d.path) || (keys[d.path] ?? []).contains(missing)
+            isCovered = b.under(d.path) || (b.keys[d.path] ?? []).contains(missing)
         } else if d.severity == .warning {
-            isCovered = under(d.path) || (d.rule == .acceptanceMissing && (keys[d.path] ?? []).contains("acceptance"))
+            isCovered = b.under(d.path) || (d.rule == .acceptanceMissing && (b.keys[d.path] ?? []).contains("acceptance"))
         } else if d.rule == .problem && d.message.hasSuffix(" names one under problem") {
             // A response whose problem the source does not name, while the
             // specification declares problem types: the problem is the key
             // missing, and a question on it says it is not known.
-            isCovered = under(d.path) || (keys[d.path] ?? []).contains("problem")
+            isCovered = b.under(d.path) || (b.keys[d.path] ?? []).contains("problem")
         } else if d.rule == .permissionUngranted {
             // The grant is what is missing, and it is written in a role,
             // not under the permission; a question on the permission
             // itself is the one place that can say it is not known.
-            isCovered = under(d.path)
+            isCovered = b.under(d.path)
         }
         if isCovered { covered.append(d) } else { kept.append(d) }
     }

@@ -22,3 +22,8 @@ sources:
       - {clause: app/page.tsx, title: The page file of /}
       - {clause: app/status/page.js, title: The page file of /status}
       - {clause: middleware.ts, title: Middleware the router runs before the routes it covers}
+      - {clause: app/(.)photo/page.tsx, title: Set aside; the question that cites it says why}
+      - {clause: app/@modal/page.tsx, title: Set aside; the question that cites it says why}
+      - {clause: app/_parts/page.tsx, title: Set aside; the question that cites it says why}
+      - {clause: app/about/page.mdx, title: Set aside; the question that cites it says why}
+      - {clause: 'app/orders/[...rest]/page.tsx', title: Set aside; the question that cites it says why}

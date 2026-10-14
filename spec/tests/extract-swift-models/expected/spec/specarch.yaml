@@ -20,4 +20,5 @@ sources:
       - {clause: app/Payloads.swift, title: 'Swift source, read by its syntax'}
       - {clause: app/Store.xcdatamodeld/.xccurrentversion, title: 'The current version of a Core Data model, read as data'}
       - {clause: app/Store.xcdatamodeld/Store 2.xcdatamodel/contents, title: 'A Core Data model, read as data'}
+      - {clause: app/Store.xcdatamodeld/Store.xcdatamodel/contents, title: Set aside; the question that cites it says why}
     reading: parsed

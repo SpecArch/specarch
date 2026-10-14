@@ -21,3 +21,6 @@ sources:
       - {clause: server/api/loans/index.post.ts, title: The route file of /api/loans}
       - {clause: server/middleware/session.ts, title: Middleware the router runs before the routes it covers}
       - {clause: server/routes/feed.xml.get.ts, title: The route file of /feed.xml}
+      - {clause: 'server/api/files/[...path].get.ts', title: Set aside; the question that cites it says why}
+      - {clause: 'server/api/loans/[loanId].head.ts', title: Set aside; the question that cites it says why}
+      - {clause: server/api/notes.md, title: Set aside; the question that cites it says why}

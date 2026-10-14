@@ -20,3 +20,7 @@ sources:
       - {clause: /components/schemas/Loan, title: schema Loan}
       - {clause: /components/schemas/LoanStatus, title: schema LoanStatus}
       - {clause: /components/schemas/loanList, title: schema loanList}
+      - {clause: /components/securitySchemes, title: Set aside; the question that cites it says why}
+      - {clause: '/paths/~1loans~1{loanId}', title: Set aside; the question that cites it says why}
+      - {clause: /servers, title: Set aside; the question that cites it says why}
+      - {clause: /tags, title: Set aside; the question that cites it says why}

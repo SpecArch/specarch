@@ -1,0 +1,7 @@
+requirements:
+  CASE-1:
+    statement: The desk shall show when each loan is due.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance: [A loan's due date is shown beside it.]

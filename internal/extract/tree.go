@@ -96,8 +96,10 @@ func newTree() *Tree { return &Tree{files: map[string]*yaml.Node{}} }
 func (t *Tree) put(path string, n *yaml.Node) { t.files[path] = n }
 
 // Write writes the tree into out, creating the folder. It writes only its
-// own files; it never removes one.
+// own files; it never removes one. Before writing, every source's outline
+// is completed with the clauses the tree cites of it.
 func (t *Tree) Write(out string) error {
+	t.completeOutlines()
 	names := make([]string, 0, len(t.files))
 	for name := range t.files {
 		names = append(names, name)
@@ -120,6 +122,92 @@ func (t *Tree) Write(out string) error {
 		}
 	}
 	return nil
+}
+
+// completeOutlines adds to every source that lists its clauses each clause
+// the tree cites of it that falls under none listed, so the outline holds
+// everything the reader looked at: a file it set aside with a question, a
+// section of a document a question is about. A clause only questions cite
+// says so in its title; the validator warns of a citation outside the
+// outline (source_clause), and gaps shows what each clause produced.
+func (t *Tree) completeOutlines() {
+	root := t.files[spec.RootFile]
+	if root == nil {
+		return
+	}
+	for _, src := range source.Pairs(source.Child(root, "sources")) {
+		clauses := source.Child(src.Value, "clauses")
+		if clauses == nil || len(source.Items(clauses)) == 0 {
+			continue
+		}
+		var listed []string
+		for _, cl := range source.Items(clauses) {
+			if v := source.Str(source.Child(cl, "clause")); v != "" {
+				listed = append(listed, v)
+			}
+		}
+		inOutline := func(clause string) bool {
+			for _, l := range listed {
+				if spec.ClauseUnder(clause, l) {
+					return true
+				}
+			}
+			return false
+		}
+		cited := map[string]bool{} // clause -> only questions cite it
+		var order []string
+		var visit func(n *yaml.Node, inQuestion bool)
+		visit = func(n *yaml.Node, inQuestion bool) {
+			n = source.Deref(n)
+			if n == nil {
+				return
+			}
+			switch n.Kind {
+			case yaml.MappingNode:
+				for _, p := range source.Pairs(n) {
+					if p.Key.Value == "cites" {
+						for _, c := range source.Items(p.Value) {
+							if source.Str(source.Child(c, "source")) != src.Key.Value {
+								continue
+							}
+							clause := source.Str(source.Child(c, "clause"))
+							if clause == "" || inOutline(clause) {
+								continue
+							}
+							if only, seen := cited[clause]; !seen {
+								cited[clause] = inQuestion
+								order = append(order, clause)
+							} else if only && !inQuestion {
+								cited[clause] = false
+							}
+						}
+						continue
+					}
+					visit(p.Value, inQuestion || p.Key.Value == "questions")
+				}
+			case yaml.SequenceNode:
+				for _, item := range source.Items(n) {
+					visit(item, inQuestion)
+				}
+			}
+		}
+		names := make([]string, 0, len(t.files))
+		for name := range t.files {
+			names = append(names, name)
+		}
+		sort.Strings(names)
+		for _, name := range names {
+			visit(t.files[name], false)
+		}
+		sort.Strings(order)
+		for _, clause := range order {
+			title := "Read for what cites it"
+			if cited[clause] {
+				title = "Set aside; the question that cites it says why"
+			}
+			clauses.Content = append(clauses.Content, flow(mapping("clause", clause, "title", title)))
+		}
+	}
 }
 
 // ListStage lists a stage among the root file's stages, in life-cycle

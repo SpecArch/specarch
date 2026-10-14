@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.7.0-dev of the specification: 61 requirements, 5 entities, 12 commands, 7 algorithms, 404 tests, 97 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.7.0-dev of the specification: 61 requirements, 5 entities, 12 commands, 7 algorithms, 407 tests, 97 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -303,6 +303,7 @@ Primary key: path.
 | Rule | need | a requirement's `needs` names a need that does not exist |
 | Rule | stakeholder | a need's `stakeholders`, a question's `decidedBy` or a mapping's `ownedBy` names a stakeholder that does not exist |
 | Rule | source | a citation names a source that is not declared under `sources` |
+| Rule | source_clause | a citation of a source that lists its `clauses` names no clause, or one that is neither a listed clause nor a part of one, such as section 3.3.1 under 3.3 or file.go:14 under file.go (a warning) |
 | Rule | environment | a check, an environment's `promotesTo` or an implementation's deployment names an environment that does not exist, or a deployment names none when the specification declares them |
 | Rule | setting | an implementation's deployment gives a value to a setting the specification does not declare, or an operation, command or page is enabledBy a name that is not a boolean setting |
 | Rule | secret_value | a setting marked secret carries a value, as a default or in a deployment |
@@ -736,7 +737,11 @@ partial specification tree, to be merged with the trees of the other
 surfaces (`specarch merge`), checked by regenerating and comparing,
 then reviewed by hand. The readers are built one at a time, in the
 steps of docs/extraction.md, Building extract; a source this build
-does not read is answered with status 2.
+does not read is answered with status 2. Every source a tree declares
+lists as clauses what the tree cites of it: a clause only a question
+cites, such as a file the reader set aside, is titled as set aside, so
+the outline the validator and `specarch gaps` check against is
+complete.
 
 The sources this build reads:
 
@@ -3511,7 +3516,10 @@ priority (must, should, could), what it blocks (a stage, a section,
 or a pointer to an element or to one key of it), who decides, and
 the options when the answer is a choice. A required key missing at or
 under a pointer a must question blocks is covered, as are the warnings
-about that element, a permission no role grants when the question
+about that element and the idiom checks on it: a pointer to an element,
+written out in part or only by name as an empty mapping, covers what
+is missing at or under it, and a pointer to a key that is not there
+covers that key alone. Covered too are a permission no role grants when the question
 blocks that permission, since the grant is written in a role and not
 under the permission, and a response that names no problem while
 problem types are declared when the question blocks its problem,
@@ -7561,7 +7569,9 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | validate-permission-ungranted-without-description | command validate | system | red | a declared permission that no role grants and that has no description, with a must question that blocks its description, as an extracted tree writes it | validate is run | the missing description is covered by the question, and it still reports permission_ungranted and exits 1 |
 | validate-question-answered | command validate | system | red | an accepted decision that answers a question still present | validate is run | it reports question_answered at the answers entry and exits 1 |
 | validate-question-block | command validate | system | red | a question whose decider is misspelt and whose blocks name a misspelt entity, a word that is no stage or section, a key below a missing key, a pointer into no section and a pointer with no name | validate is run | it reports each with question_block or stakeholder and exits 1 |
+| validate-question-covers-element-with-content | command validate | system | golden | an entity with a field that has its width and no type, and a constraint that has its message and no kind, each blocked by its pointer by a must question | validate is run | the keys missing at the blocked field and constraint are covered by the questions, as they are for an element known only by name; it prints nothing and exits 0 |
 | validate-question-covers-field-by-name | command validate | system | golden | an entity with a field known only by its name, an empty mapping, and a must question that blocks that field by its pointer | validate is run | the field's missing type is covered by the question, as an element known only by name is; it prints nothing and exits 0 |
+| validate-question-covers-idiom-field | command validate | system | golden | an entity field with its width and no type, which no row of the shipped type-rendering idiom matches, a must question that blocks the field by its pointer, and a Go implementation file with an SQL target | validate is run | the idiom check skips the blocked field as the schema check does: no idiom_contract error is reported, it prints nothing and exits 0 |
 | validate-question-covers-missing | command validate | system | golden | a requirement without priority and acceptance, an entity that is only a name, and must questions in every stage folder that block exactly those, including files directly under tests/ and implementation/ | validate is run | the missing keys and the warnings about the blocked elements are covered by the questions; it prints nothing and exits 0 |
 | validate-question-covers-problem | command validate | system | red | a specification that declares problem types, with an operation whose 409 and 422 responses name no problem: a must question blocks the 409's problem and a should question the 422's | validate is run | the 409's missing problem is covered by the must question, the 422's is reported, since a should question covers nothing, and it exits 1 |
 | validate-question-covers-ungranted | command validate | system | golden | a declared permission that no role grants and that has no description, with a must question that blocks the permission itself | validate is run | the missing description and the ungranted permission are covered by the question; it prints nothing and exits 0 |
@@ -7601,6 +7611,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | validate-session | command validate | system | red | a session whose idle timeout is zero | validate is run | it reports session and exits 1 |
 | validate-setting | command validate | system | red | an implementation deployment that gives a value to a setting the specification does not declare | validate is run | it reports setting and exits 1 |
 | validate-source | command validate | system | red | a citation of a source that is not declared | validate is run | it reports source and exits 1 |
+| validate-source-clause | command validate | system | red | sources that list their clauses, cited once by a section under a listed one and a file line under a listed file, once by a section the outline does not hold, and once with no clause at all, and an interview without clauses cited with no clause | validate is run | it warns of the clause outside the outline, naming the nearest listed one, and of the citation that names no clause of a source with clauses, accepts the clauses under listed ones and the interview's, and exits 0 |
 | validate-source-given-outside | command validate | system | red | two sources, one marked givenOutside with the text yes and one with false | validate is run | it reports that givenOutside of the first is not a boolean, accepts the second, and exits 1 |
 | validate-source-reading | command validate | system | red | code sources read printed and parsed, a document source that says how it was read, and a code source whose reading is neither printed nor parsed | validate is run | it accepts both code sources, reports the document source's reading and the reading that is neither, and exits 1 |
 | validate-stack-key | command validate | system | red | a design file with an x-oapi-codegen key on an operation | validate is run | it reports stack_key and exits 1 |
@@ -7892,11 +7903,11 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-10 | enums Rule; commands validate | tests validate-deployment-environment-missing; tests validate-design-ref; tests validate-implements; tests validate-permission-checks; tests validate-setting; tests validate-tree-valid; tests validate-ui-components |
 | SA-11 | enums Rule; entities SpecFile; commands extract; commands validate; decisions ADR-010; decisions ADR-042; decisions ADR-048; decisions ADR-049; decisions ADR-050; decisions ADR-057 | tests merge-documents-days; tests merge-openapi-placeholder; tests merge-openapi-unserved; tests merge-refuses-edited-test; tests merge-takes-derived-drafts; tests validate-duplicate-name-across-files; tests validate-layout-folder-missing; tests validate-layout-not-a-stage; tests validate-layout-section-folder-in-root; tests validate-layout-section-in-root; tests validate-layout-section-in-wrong-stage; tests validate-layout-stack-mismatch; tests validate-layout-stage-not-listed; tests validate-layout-subfolder-section; tests validate-layout-test-file-unreadable; tests validate-layout-test-without-file; tests validate-tree-valid; checks checks-the-examples |
 | SA-12 | enums Rule; commands validate; decisions ADR-011; decisions ADR-014; decisions ADR-052 | tests validate-deployment-valid; tests validate-monitor-environment; tests validate-monitor-not-declared; tests validate-monitor-valid; tests validate-need-rejected; tests validate-requirements-only; tests validate-secret-in-deployment; tests validate-secret-value; tests validate-traceability-warnings |
-| SA-13 | enums Rule; commands validate; decisions ADR-012 | tests document-citation-unknown-source; tests validate-cites; tests validate-source |
+| SA-13 | enums Rule; commands validate; decisions ADR-012 | tests document-citation-unknown-source; tests validate-cites; tests validate-source; tests validate-source-clause |
 | SA-14 | enums GeneratorTarget; commands generate; decisions ADR-013; decisions ADR-051 | tests generate-no-plugin; tests generate-plugin-path-outside; tests generate-with-plugin |
 | SA-15 | commands document; decisions ADR-015 | tests document-writes-requirements |
 | SA-16 | enums DocumentTarget; commands document; decisions ADR-016 | tests document-testplan-by-release; tests document-testplan-state-machine; tests document-writes-commissioning; tests document-writes-deployment; tests document-writes-requirements; tests document-writes-testplan; tests document-writes-traceability |
-| SA-17 | enums Rule; commands validate; decisions ADR-017 | tests validate-question-answered; tests validate-question-block; tests validate-question-covers-field-by-name; tests validate-question-covers-missing; tests validate-question-covers-problem; tests validate-question-covers-ungranted; tests validate-question-names; tests validate-question-should-not-covering; tests validate-question-stage |
+| SA-17 | enums Rule; commands validate; decisions ADR-017 | tests validate-question-answered; tests validate-question-block; tests validate-question-covers-element-with-content; tests validate-question-covers-field-by-name; tests validate-question-covers-idiom-field; tests validate-question-covers-missing; tests validate-question-covers-problem; tests validate-question-covers-ungranted; tests validate-question-names; tests validate-question-should-not-covering; tests validate-question-stage |
 | SA-18 | enums Rule; commands validate; decisions ADR-018 | tests document-draft-notice; tests validate-origin; tests validate-origin-tracked |
 | SA-19 | enums DocumentTarget; commands document; commands gaps | tests document-draft-notice; tests document-writes-questions; tests gaps-lists-questions; tests gaps-names-question; tests gaps-none |
 | SA-20 | commands approve; commands generate; decisions ADR-019; decisions ADR-086 | tests approve-refuses-open-question; tests approve-refuses-stale-document; tests approve-writes-record; tests generate-refuses-open-question; tests generate-refuses-unapproved; tests generate-unapproved |
@@ -7909,7 +7920,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-27 | enums Rule; commands validate | tests validate-test-data; tests validate-test-data-folder; tests validate-test-data-valid |
 | SA-28 | commands derive; decisions ADR-055 | tests derive-invalid-spec; tests derive-keeps-existing; tests derive-meta-model-0-2; tests derive-meta-model-0-2-other-error; tests derive-name-taken; tests derive-page-elements; tests derive-page-named-after-operation; tests derive-root-tests; tests derive-skips-blocked; tests derive-task-page-checks; tests derive-usage-error; tests derive-writes-drafts; tests merge-takes-derived-drafts |
 | SA-29 | enums Rule; commands validate; decisions ADR-021; decisions ADR-097 | tests validate-concept-cases-listed; tests validate-dependency; tests validate-guard; tests validate-idempotency-key; tests validate-session; tests validate-validity |
-| SA-30 | commands gaps; decisions ADR-022 | tests gaps-coverage; tests gaps-outline-not-read; tests validate-mapping-origin |
+| SA-30 | commands gaps; decisions ADR-022 | tests gaps-coverage; tests gaps-outline-not-read; tests validate-mapping-origin; tests validate-source-clause |
 | SA-31 | commands generate; decisions ADR-041; decisions ADR-078 | tests generate-stack-fallback; tests generate-stack-plugin; tests generate-tests-dart; tests generate-tests-framework-refused; tests generate-tests-go; tests generate-tests-swift; tests generate-tests-value-objects |
 | SA-32 | commands idioms; commands idioms diff; decisions ADR-023; decisions ADR-028 | tests idioms-diff; tests idioms-diff-unknown; tests idioms-diff-usage-error; tests idioms-lists; tests idioms-lists-ui-framework; tests idioms-usage-error; tests validate-idiom-override; tests validate-idiom-problems; tests validate-idiom-stack-framework |
 | SA-33 | decisions ADR-024 | tests validate-stored-data; tests validate-stored-data-valid |

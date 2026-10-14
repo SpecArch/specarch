@@ -313,13 +313,18 @@ func (c *checker) checkRequirementLinks(root *yaml.Node, base []string, d *desig
 	})
 }
 
-// checkCitations checks every citation names a declared source.
+// checkCitations checks every citation names a declared source and, when
+// that source lists its clauses, a clause of its outline.
 func (c *checker) checkCitations(root *yaml.Node, base []string, d *design) {
 	walk(root, base, func(n *yaml.Node, path []string) {
 		for i, item := range source.Items(source.Child(n, "cites")) {
 			srcNode := source.Child(item, "source")
 			name := source.Str(srcNode)
-			if name == "" || d.sources[name] != nil {
+			if name == "" {
+				continue
+			}
+			if src := d.sources[name]; src != nil {
+				c.checkClause(item, append(path, "cites", fmt.Sprint(i)), name, src)
 				continue
 			}
 			ptr := source.Pointer(append(path, "cites", fmt.Sprint(i), "source")...)
@@ -330,6 +335,33 @@ func (c *checker) checkCitations(root *yaml.Node, base []string, d *design) {
 			c.add(srcNode, ptr, RuleSource, "%s is not a source declared under sources%s", name, suggest(name, d.sources))
 		}
 	})
+}
+
+// checkClause warns when a citation of a source that lists its clauses
+// names none, or names one that falls under no clause of that outline: the
+// clause itself, or one of its parts (3.3.1 under 3.3, file.go:14 under
+// file.go). A source without clauses has no outline to check against.
+func (c *checker) checkClause(cite *yaml.Node, path []string, name string, src *yaml.Node) {
+	listed := source.Items(source.Child(src, "clauses"))
+	if len(listed) == 0 {
+		return
+	}
+	clauseNode := source.Child(cite, "clause")
+	clause := source.Str(clauseNode)
+	if clause == "" {
+		c.warn(cite, source.Pointer(path...), RuleSourceClause, "the citation of %s names no clause, and %s lists its clauses; add clause: with the section or file cited", name, name)
+		return
+	}
+	valid := map[string]*yaml.Node{}
+	for _, cl := range listed {
+		if v := source.Str(source.Child(cl, "clause")); v != "" {
+			if spec.ClauseUnder(clause, v) {
+				return
+			}
+			valid[v] = cl
+		}
+	}
+	c.warn(clauseNode, source.Pointer(append(path, "clause")...), RuleSourceClause, "%s is not a clause of %s nor under one; correct the citation, or add the clause to the source's clauses%s", clause, name, suggest(clause, valid))
 }
 
 func (c *checker) checkEnums(d *design) {

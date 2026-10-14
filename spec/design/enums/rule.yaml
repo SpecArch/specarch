@@ -59,6 +59,7 @@ enums:
       - need
       - stakeholder
       - source
+      - source_clause
       - environment
       - setting
       - secret_value
@@ -166,6 +167,7 @@ enums:
       need: a requirement's `needs` names a need that does not exist
       stakeholder: a need's `stakeholders`, a question's `decidedBy` or a mapping's `ownedBy` names a stakeholder that does not exist
       source: a citation names a source that is not declared under `sources`
+      source_clause: a citation of a source that lists its `clauses` names no clause, or one that is neither a listed clause nor a part of one, such as section 3.3.1 under 3.3 or file.go:14 under file.go (a warning)
       environment: a check, an environment's `promotesTo` or an implementation's deployment names an environment that does not exist, or a deployment names none when the specification declares them
       setting: an implementation's deployment gives a value to a setting the specification does not declare, or an operation, command or page is enabledBy a name that is not a boolean setting
       secret_value: a setting marked secret carries a value, as a default or in a deployment

@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: validate
+level: system
+scenario: golden
+given: "an entity field with its width and no type, which no row of the shipped type-rendering idiom matches, a must question that blocks the field by its pointer, and a Go implementation file with an SQL target"
+when: "validate is run"
+then: "the idiom check skips the blocked field as the schema check does: no idiom_contract error is reported, it prints nothing and exits 0"
+verifies: [SA-17]

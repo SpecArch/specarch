@@ -207,50 +207,73 @@ func (c *checker) checkOriginTracked(d *design) {
 	}
 }
 
-// Covered splits the diagnostics into the ones to report and the ones an
-// open must question covers: a required key missing at or under a pointer
-// the question blocks, the warnings about that element, the problem a
-// response must name once problem types are declared when the question
-// blocks that problem, and a permission no role grants when the question
-// blocks that permission. A pointer to an
-// element known only by name, an empty mapping such as a field with
-// nothing but its name, covers everything under it. A wrong value next to
-// the gap stays an error. root is the merged specification.
-func Covered(ds []Diagnostic, root *yaml.Node) (kept, covered []Diagnostic) {
-	var elements []string         // pointers of blocked elements, such as /entities/Loan
-	keys := map[string][]string{} // element pointer -> the blocked keys
+// blocked is what the open must questions of a specification hold up by
+// pointer: the elements, each the full pointer of a blocks entry that
+// resolves, such as /entities/Loan or /entities/Loan/properties/dueOn; and
+// the keys, a blocks entry whose last token is missing, by the pointer of
+// the mapping it is missing from.
+type blocked struct {
+	elements []string
+	keys     map[string][]string
+}
+
+// blockedPointers reads the pointers the must questions block. A pointer
+// that resolves blocks the node it points to, whatever it holds: an
+// entity, a field with content, a field known only by its name (an empty
+// mapping) or one key with a value. A pointer of three tokens or more also
+// blocks its last token as a key of the mapping before it, whether the key
+// is there (an acceptance list left empty) or missing.
+func blockedPointers(root *yaml.Node) blocked {
+	b := blocked{keys: map[string][]string{}}
 	for _, p := range source.Pairs(source.Child(root, "questions")) {
 		if source.Str(source.Child(p.Value, "priority")) != "must" {
 			continue
 		}
 		for _, item := range source.Items(source.Child(p.Value, "blocks")) {
-			b, ok := spec.ParseBlock(item.Value)
-			if !ok || !b.IsPointer() {
+			bl, ok := spec.ParseBlock(item.Value)
+			if !ok || !bl.IsPointer() {
 				continue
 			}
-			if k := b.Key(); k != "" {
-				parent := source.Pointer(b.Tokens[:len(b.Tokens)-1]...)
-				keys[parent] = append(keys[parent], k)
-				if n, ok := source.Resolve(root, b.Tokens); ok {
-					if n = source.Deref(n); n.Kind == yaml.MappingNode && len(n.Content) == 0 {
-						elements = append(elements, source.Pointer(b.Tokens...))
-					}
-				}
-			} else {
-				elements = append(elements, b.Element())
+			if _, ok := source.Resolve(root, bl.Tokens); ok {
+				b.elements = append(b.elements, source.Pointer(bl.Tokens...))
+			}
+			if k := bl.Key(); k != "" {
+				parent := source.Pointer(bl.Tokens[:len(bl.Tokens)-1]...)
+				b.keys[parent] = append(b.keys[parent], k)
 			}
 		}
 	}
-	if len(elements) == 0 && len(keys) == 0 {
+	return b
+}
+
+// none reports whether no pointer is blocked.
+func (b blocked) none() bool { return len(b.elements) == 0 && len(b.keys) == 0 }
+
+// under reports whether the path is a blocked element or inside one.
+func (b blocked) under(path string) bool {
+	for _, e := range b.elements {
+		if path == e || strings.HasPrefix(path, e+"/") {
+			return true
+		}
+	}
+	return false
+}
+
+// Covered splits the diagnostics into the ones to report and the ones an
+// open must question covers: a required key missing at or under a pointer
+// the question blocks, the warnings about that element, the problem a
+// response must name once problem types are declared when the question
+// blocks that problem, and a permission no role grants when the question
+// blocks that permission. A pointer to an element covers everything missing
+// at or under it, whether the element is written out in part, such as a
+// field with its width and no type, or known only by name, an empty
+// mapping. A pointer to a key that is not there covers that one key. A
+// wrong value next to the gap stays an error. root is the merged
+// specification.
+func Covered(ds []Diagnostic, root *yaml.Node) (kept, covered []Diagnostic) {
+	b := blockedPointers(root)
+	if b.none() {
 		return ds, nil
-	}
-	under := func(path string) bool {
-		for _, e := range elements {
-			if path == e || strings.HasPrefix(path, e+"/") {
-				return true
-			}
-		}
-		return false
 	}
 	for _, d := range ds {
 		missing := ""
@@ -260,19 +283,19 @@ func Covered(ds []Diagnostic, root *yaml.Node) (kept, covered []Diagnostic) {
 		isCovered := false
 		switch {
 		case missing != "":
-			isCovered = under(d.Path) || contains(keys[d.Path], missing)
+			isCovered = b.under(d.Path) || contains(b.keys[d.Path], missing)
 		case d.Severity == Warning:
-			isCovered = under(d.Path) || d.Rule == RuleAcceptanceMissing && contains(keys[d.Path], "acceptance")
+			isCovered = b.under(d.Path) || d.Rule == RuleAcceptanceMissing && contains(b.keys[d.Path], "acceptance")
 		case d.Rule == RuleProblem && strings.HasSuffix(d.Message, " names one under problem"):
 			// A response whose problem the source does not name, while
 			// the specification declares problem types: the problem is
 			// the key missing, and a question on it says it is not known.
-			isCovered = under(d.Path) || contains(keys[d.Path], "problem")
+			isCovered = b.under(d.Path) || contains(b.keys[d.Path], "problem")
 		case d.Rule == RulePermissionUngranted:
 			// The grant is what is missing, and it is written in a role,
 			// not under the permission; a question on the permission
 			// itself is the one place that can say it is not known.
-			isCovered = under(d.Path)
+			isCovered = b.under(d.Path)
 		}
 		if isCovered {
 			covered = append(covered, d)

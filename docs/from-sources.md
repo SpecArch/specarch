@@ -97,7 +97,9 @@ outline: every section of the document that has a number or a heading,
 and every file or folder of the code that holds behaviour (routes,
 handlers, models, migrations, seeds, configuration). List the leaves of
 the outline, not their parents: a parent listed beside its children
-shows as producing nothing when everything cites a child.
+shows as producing nothing when everything cites a child. A reader's
+outline holds every clause its tree cites: a file or section it set aside
+with a question is listed with a title that says so.
 
 A citation names its source, the clause, and what the source says there:
 
@@ -109,7 +111,10 @@ For a document the clause is the section number, or the heading when the
 section has none. For code it is the path from the code source's root,
 with `:line`, or with a space and `package.Function`. A citation falls
 under the longest listed clause it equals or starts with, followed by a
-dot, a colon, a slash or a space.
+dot, a colon, a slash or a space. When the source lists its clauses, the
+validator warns of a citation that names no clause, or one that falls
+under none listed (`source_clause`), naming the nearest listed clause;
+`gaps` lists the same citations as outside the outline.
 
 ## 3. The procedure
 
@@ -419,8 +424,5 @@ with the pinned version and checksum filled in:
   `specarch merge`.
 - `specarch decide`: the agent writes the decision record by hand.
 - The dispatcher's reading of `problems.sarif`: it reads the text.
-- A validator rule for a citation outside its source's clauses: `gaps`
-  lists them, and the rule follows once a real project shows whether
-  outlines stay complete.
 - The document target `comparison`, which would set the old document
   beside the refined one.

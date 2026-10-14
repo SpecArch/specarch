@@ -250,7 +250,9 @@ an external tracker, each with its `prefix`), `title`, `edition`, `author`,
 it to parties outside, such as a published interface or a contract, which
 makes `specarch merge` ask a `must` question about an element only it or
 only the code has. A citation of a source that is not
-declared is refused (`source`). A `system` is a running system that was
+declared is refused (`source`), and when the source lists its `clauses`, a
+citation that names no clause, or one that is neither listed nor a part of
+a listed one, is a warning (`source_clause`). A `system` is a running system that was
 observed; `code` is a system's source code, read at the commit its
 `edition` names, and a citation of it names a file and line, or a package
 and function, as its clause. A source may list its `clauses`, each with a
@@ -296,10 +298,17 @@ is an upper-case prefix of one or more letters, a dash and a number.
 The question is the one licence for an element to be incomplete. A
 required key missing at or under a pointer a `must` question blocks is
 covered: the validator reports neither it nor the warnings about that
-element, and `specarch gaps` lists the missing keys under the question. An
-element known only by name, such as an entity or one of its fields, is
-written as an empty mapping and blocked by pointer. Nothing else is covered: a wrong value beside the gap is still an
-error, and a `should` question covers no missing key.
+element, the idiom checks skip it, and `specarch gaps` lists the missing
+keys under the question. A pointer to an element covers what is missing at
+or under it, whether the element is written out in part, such as a field
+with its width and no `type`, or known only by name: an element known only
+by name, such as an entity or one of its fields, is written as an empty
+mapping and blocked by pointer. A pointer to one key that is not there,
+such as `#/workflows/<name>/trigger`, covers that key alone; when the key's
+value decides what else the element needs, such as a field's `type` or a
+constraint's `kind`, block the element. Nothing else is covered: a wrong
+value beside the gap is still an error, and a `should` question covers no
+missing key.
 
 The validator checks that every `blocks` entry resolves (`question_block`),
 that a question sits in the stage of what it blocks and blocks one stage

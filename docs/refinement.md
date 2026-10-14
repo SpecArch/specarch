@@ -130,8 +130,11 @@ its pointer is an ordinary error.
   after every edit, and a list of a hundred known questions would bury
   the errors. The count goes into the summary line on standard error:
   `specarch: 1 input checked: 0 errors, 2 warnings, 12 open questions`.
-- A required key missing at a pointer a `must` question blocks is covered: it
-  is not reported, and `gaps` lists it under the question instead. So is a
+- A required key missing at or under a pointer a `must` question blocks is
+  covered: it is not reported, and `gaps` lists it under the question
+  instead. A pointer to an element, written out in part or only by name,
+  covers what is missing at or under it; a pointer to a key that is not
+  there covers that key alone. So is a
   warning about the blocked element (its acceptance criteria, its
   traceability, its missing test cases). A wrong value next to the gap is
   still an error.

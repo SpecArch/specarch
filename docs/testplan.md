@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.0-dev of the specification: 404 design tests, 175 golden and 229 red, about 14 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.0-dev of the specification: 407 design tests, 177 golden and 230 red, about 14 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.7.0-dev of the specification: 404 design tests, 175 golden and 229 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 400 |
+| system | 403 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -2615,6 +2615,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-17.
 - When: validate is run
 - Then: it reports each with question_block or stakeholder and exits 1
 
+#### validate-question-covers-element-with-content
+
+Scenario: golden; level: system; verifies SA-17.
+
+- Given: an entity with a field that has its width and no type, and a constraint that has its message and no kind, each blocked by its pointer by a must question
+- When: validate is run
+- Then: the keys missing at the blocked field and constraint are covered by the questions, as they are for an element known only by name; it prints nothing and exits 0
+
 #### validate-question-covers-field-by-name
 
 Scenario: golden; level: system; verifies SA-17.
@@ -2622,6 +2630,14 @@ Scenario: golden; level: system; verifies SA-17.
 - Given: an entity with a field known only by its name, an empty mapping, and a must question that blocks that field by its pointer
 - When: validate is run
 - Then: the field's missing type is covered by the question, as an element known only by name is; it prints nothing and exits 0
+
+#### validate-question-covers-idiom-field
+
+Scenario: golden; level: system; verifies SA-17.
+
+- Given: an entity field with its width and no type, which no row of the shipped type-rendering idiom matches, a must question that blocks the field by its pointer, and a Go implementation file with an SQL target
+- When: validate is run
+- Then: the idiom check skips the blocked field as the schema check does: no idiom_contract error is reported, it prints nothing and exits 0
 
 #### validate-question-covers-missing
 
@@ -2934,6 +2950,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-13.
 - Given: a citation of a source that is not declared
 - When: validate is run
 - Then: it reports source and exits 1
+
+#### validate-source-clause
+
+Scenario: red; level: system; verifies SA-13, SA-30.
+
+- Given: sources that list their clauses, cited once by a section under a listed one and a file line under a listed file, once by a section the outline does not hold, and once with no clause at all, and an interview without clauses cited with no clause
+- When: validate is run
+- Then: it warns of the clause outside the outline, naming the nearest listed one, and of the citation that names no clause of a source with clauses, accepts the clauses under listed ones and the interview's, and exits 0
 
 #### validate-source-given-outside
 

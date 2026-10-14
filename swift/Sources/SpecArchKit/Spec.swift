@@ -652,3 +652,14 @@ func parseBlock(_ s: String) -> Block? {
     guard tokens.count >= 2, let stage = sections[tokens[0]] else { return nil }
     return Block(stage: stage, section: tokens[0], tokens: tokens)
 }
+
+/// Reports whether a cited clause falls under a clause a source lists in
+/// its outline: it is the same, or starts with it followed by a dot
+/// (section 3.3.1 under 3.3), a colon (file.go:14 under file.go), a slash
+/// (a file under its folder) or a space (file.go Handler under file.go).
+func clauseUnder(_ cited: String, _ listed: String) -> Bool {
+    if cited == listed { return true }
+    if listed.isEmpty || !cited.hasPrefix(listed) { return false }
+    let next = cited[cited.index(cited.startIndex, offsetBy: listed.count)]
+    return next == "." || next == ":" || next == "/" || next == " "
+}

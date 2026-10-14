@@ -22,3 +22,10 @@ sources:
       - {clause: 'pages/loans/[loanId].tsx', title: 'The page file of /loans/{loanId}'}
       - {clause: pages/loans/index.tsx, title: The page file of /loans}
       - {clause: proxy.ts, title: Middleware the router runs before the routes it covers}
+      - {clause: pages/404.tsx, title: Set aside; the question that cites it says why}
+      - {clause: pages/_app.tsx, title: Set aside; the question that cites it says why}
+      - {clause: pages/_document.tsx, title: Set aside; the question that cites it says why}
+      - {clause: pages/about/index.tsx, title: Set aside; the question that cites it says why}
+      - {clause: 'pages/api/[...all].ts', title: Set aside; the question that cites it says why}
+      - {clause: 'pages/docs/[...slug].tsx', title: Set aside; the question that cites it says why}
+      - {clause: pages/terms.mdx, title: Set aside; the question that cites it says why}

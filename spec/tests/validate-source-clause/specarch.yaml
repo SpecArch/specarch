@@ -1,0 +1,56 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0 }
+sources:
+  till-interview:
+    kind: interview
+    title: Interview with the till staff
+    date: "2026-09-15"
+  desk-manual:
+    kind: document
+    title: Lending desk manual
+    edition: "2025"
+    clauses:
+      - { clause: "2", title: Members }
+      - { clause: "3.3", title: The loan period }
+  desk-code:
+    kind: code
+    title: The lending desk service
+    edition: 925255a195f90e385f7bf9bbea8d4e8f7aa5031d
+    clauses:
+      - { clause: lending/model.go, title: The records }
+      - { clause: migrations, title: The tables }
+stakeholders:
+  clerk: { description: Staff at the till. }
+needs:
+  NEED-1:
+    statement: Loans must come back in time.
+    stakeholders: [clerk]
+    status: accepted
+    cites:
+      - { source: till-interview, says: "Clerks chase loans that are late." }
+requirements:
+  CASE-1:
+    statement: A loan shall be due 21 days after it is made.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance: [A loan made on the first is due on the twenty-second.]
+    verification: test
+    needs: [NEED-1]
+    why: The manual sets the period.
+    cites:
+      - { source: desk-manual, clause: "3.3.1", says: "The loan period is 21 days." }
+      - { source: desk-code, clause: "lending/model.go:8", says: "LoanPeriod is 21 days." }
+      - { source: desk-code, clause: "migrations/001_init.sql:18", says: "The loans table checks that due_on is loaned_on plus 21." }
+  CASE-2:
+    statement: A member shall hold at most five loans.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance: [A sixth loan is refused.]
+    verification: test
+    needs: [NEED-1]
+    why: The manual sets the limit.
+    cites:
+      - { source: desk-manual, clause: "3.7", says: "A member may hold five books." }
+      - { source: desk-code, says: "MaxLoans is 5." }

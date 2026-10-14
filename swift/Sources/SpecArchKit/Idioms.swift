@@ -289,9 +289,13 @@ extension Checker {
         }
     }
 
-    /// Reports every entity field that no row of a rendering matches.
+    /// Reports every entity field that no row of a rendering matches. A
+    /// field a must question blocks, by its pointer, its entity's, or one of
+    /// its keys, is skipped: its shape is not known yet, as the schema check
+    /// also lets it be.
     func checkRows(_ i: Idiom, _ part: String, _ stack: String, _ r: YNode, _ specRoot: YNode, _ at: YNode?, _ ptr: String) {
         let rows = items(r.child("rows"))
+        let blocked = blockedPointers(specRoot)
         var claimed = Set<String>() // the formats a row names: only such a row renders them
         for row in rows {
             let f = str(row.child("format"))
@@ -299,6 +303,8 @@ extension Checker {
         }
         for e in pairs(specRoot.child("entities")) {
             for f in pairs(e.value.child("properties")) {
+                let fp = pointer(["entities", e.key.value, "properties", f.key.value])
+                if blocked.under(fp) || !(blocked.keys[fp] ?? []).isEmpty { continue }
                 let field = FieldShape(f.value)
                 if !rows.contains(where: { field.matches($0, claimed) }) {
                     add(at, ptr, .idiomContract, "\(i.name) \(i.version) has no \(stack) row in its \(part) part for #/entities/\(e.key.value)/properties/\(f.key.value) (\(field.description)); add one in an override of the part, or exclude the idiom with the reason")

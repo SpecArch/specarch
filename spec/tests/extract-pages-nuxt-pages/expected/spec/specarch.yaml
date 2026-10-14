@@ -21,3 +21,8 @@ sources:
       - {clause: pages/index.vue, title: The page file of /}
       - {clause: 'pages/loans/[loanId].vue', title: 'The page file of /loans/{loanId}'}
       - {clause: pages/loans/index.vue, title: The page file of /loans}
+      - {clause: pages/README.md, title: Set aside; the question that cites it says why}
+      - {clause: 'pages/docs/[...slug].vue', title: Set aside; the question that cites it says why}
+      - {clause: pages/help.vue, title: Set aside; the question that cites it says why}
+      - {clause: pages/loans.vue, title: Set aside; the question that cites it says why}
+      - {clause: 'pages/search/[[term]].vue', title: Set aside; the question that cites it says why}

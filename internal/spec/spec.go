@@ -754,3 +754,22 @@ func ParseBlock(s string) (b Block, ok bool) {
 	b.Stage, b.Section = stage, b.Tokens[0]
 	return b, true
 }
+
+// ClauseUnder reports whether a cited clause falls under a clause a
+// source lists in its outline: it is the same, or starts with it followed
+// by a dot (section 3.3.1 under 3.3), a colon (file.go:14 under file.go),
+// a slash (a file under its folder) or a space (file.go Handler under
+// file.go).
+func ClauseUnder(cited, listed string) bool {
+	if cited == listed {
+		return true
+	}
+	if listed == "" || !strings.HasPrefix(cited, listed) {
+		return false
+	}
+	switch cited[len(listed)] {
+	case '.', ':', '/', ' ':
+		return true
+	}
+	return false
+}

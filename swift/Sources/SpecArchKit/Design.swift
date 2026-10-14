@@ -280,13 +280,41 @@ extension Checker {
         }
     }
 
-    /// Checks every citation names a declared source.
+    /// Warns when a citation of a source that lists its clauses names none,
+    /// or names one that falls under no clause of that outline: the clause
+    /// itself, or one of its parts (3.3.1 under 3.3, file.go:14 under
+    /// file.go). A source without clauses has no outline to check against.
+    func checkClause(_ cite: YNode, _ path: [String], _ name: String, _ src: YNode) {
+        let listed = items(src.child("clauses"))
+        if listed.isEmpty { return }
+        let clauseNode = cite.child("clause")
+        let clause = str(clauseNode)
+        if clause.isEmpty {
+            warn(cite, pointer(path), .sourceClause, "the citation of \(name) names no clause, and \(name) lists its clauses; add clause: with the section or file cited")
+            return
+        }
+        var valid: [String: YNode] = [:]
+        for cl in listed {
+            let v = str(cl.child("clause"))
+            if v.isEmpty { continue }
+            if clauseUnder(clause, v) { return }
+            valid[v] = cl
+        }
+        warn(clauseNode, pointer(path + ["clause"]), .sourceClause, "\(clause) is not a clause of \(name) nor under one; correct the citation, or add the clause to the source's clauses\(suggest(clause, valid))")
+    }
+
+    /// Checks every citation names a declared source and, when that source
+    /// lists its clauses, a clause of its outline.
     func checkCitations(_ root: YNode?, _ base: [String], _ d: Design) {
         walk(root, base) { n, path in
             for (i, item) in items(n.child("cites")).enumerated() {
                 let srcNode = item.child("source")
                 let name = str(srcNode)
-                if name.isEmpty || d.sources[name] != nil { continue }
+                if name.isEmpty { continue }
+                if let src = d.sources[name] {
+                    checkClause(item, path + ["cites", "\(i)"], name, src)
+                    continue
+                }
                 let ptr = pointer(path + ["cites", "\(i)", "source"])
                 if d.sources.isEmpty {
                     add(srcNode, ptr, .source, "\(name) is not a declared source: the specification declares none; add it under sources in \(rootFile)")

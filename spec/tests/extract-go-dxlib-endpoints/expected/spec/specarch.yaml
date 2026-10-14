@@ -18,4 +18,5 @@ sources:
       - {clause: api/loans.go, title: 'Go source, read by its syntax'}
       - {clause: api/session.go, title: 'Go source, read by its syntax'}
       - {clause: handlers/show.go, title: 'Go source, read by its syntax'}
+      - {clause: api/broken.go, title: Set aside; the question that cites it says why}
     reading: parsed

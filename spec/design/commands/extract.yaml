@@ -10,7 +10,11 @@ commands:
       surfaces (`specarch merge`), checked by regenerating and comparing,
       then reviewed by hand. The readers are built one at a time, in the
       steps of docs/extraction.md, Building extract; a source this build
-      does not read is answered with status 2.
+      does not read is answered with status 2. Every source a tree declares
+      lists as clauses what the tree cites of it: a clause only a question
+      cites, such as a file the reader set aside, is titled as set aside, so
+      the outline the validator and `specarch gaps` check against is
+      complete.
 
       The sources this build reads:
 

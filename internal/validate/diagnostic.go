@@ -65,6 +65,7 @@ const (
 	RuleNeed                   Rule = "need"
 	RuleStakeholder            Rule = "stakeholder"
 	RuleSource                 Rule = "source"
+	RuleSourceClause           Rule = "source_clause"
 	RuleEnvironment            Rule = "environment"
 	RuleSetting                Rule = "setting"
 	RuleSecretValue            Rule = "secret_value"
@@ -175,6 +176,7 @@ var Rules = []Rule{
 	RuleNeed,
 	RuleStakeholder,
 	RuleSource,
+	RuleSourceClause,
 	RuleEnvironment,
 	RuleSetting,
 	RuleSecretValue,

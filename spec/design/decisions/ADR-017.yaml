@@ -17,7 +17,10 @@ decisions:
       or a pointer to an element or to one key of it), who decides, and
       the options when the answer is a choice. A required key missing at or
       under a pointer a must question blocks is covered, as are the warnings
-      about that element, a permission no role grants when the question
+      about that element and the idiom checks on it: a pointer to an element,
+      written out in part or only by name as an empty mapping, covers what
+      is missing at or under it, and a pointer to a key that is not there
+      covers that key alone. Covered too are a permission no role grants when the question
       blocks that permission, since the grant is written in a role and not
       under the permission, and a response that names no problem while
       problem types are declared when the question blocks its problem,

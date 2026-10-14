@@ -9,6 +9,7 @@ import (
 	"go.yaml.in/yaml/v3"
 
 	"github.com/SpecArch/specarch/internal/source"
+	"github.com/SpecArch/specarch/internal/spec"
 )
 
 // citer is one element that cites a source, and the clause it names.
@@ -58,22 +59,6 @@ func citers(root *yaml.Node, impls []Implementation) map[string][]citer {
 	return out
 }
 
-// under reports whether a cited clause falls under a listed one: it is the
-// same, or starts with it followed by a dot, a colon, a slash or a space.
-func under(cited, listed string) bool {
-	if cited == listed {
-		return true
-	}
-	if !strings.HasPrefix(cited, listed) {
-		return false
-	}
-	switch cited[len(listed)] {
-	case '.', ':', '/', ' ':
-		return true
-	}
-	return false
-}
-
 // coverage writes, for every source that lists its clauses, which elements
 // each clause produced and which clauses produced nothing, so that the
 // reader sees what of a document or of the code the specification has not
@@ -101,7 +86,7 @@ func (d *doc) coverage(root *yaml.Node, impls []Implementation) {
 		for _, c := range cited[key] {
 			best := -1
 			for i, cl := range clauses {
-				if under(c.clause, str(cl, "clause")) && (best < 0 || len(str(cl, "clause")) > len(str(clauses[best], "clause"))) {
+				if spec.ClauseUnder(c.clause, str(cl, "clause")) && (best < 0 || len(str(cl, "clause")) > len(str(clauses[best], "clause"))) {
 					best = i
 				}
 			}

@@ -1,0 +1,6 @@
+arguments: [validate, .]
+exitStatus: 0
+standardOutput: |
+  specarch.yaml:1:11: warning: /specarch: meta_model_version: the specification is written against meta-model 0.1, which is read until 1.0, and its missing tests are warnings; run specarch derive to write the tests 0.2 asks for, then change the line to specarch: "0.2" [meta_model_version@specarch.yaml#/specarch]
+  specarch.yaml:55:40: warning: /requirements/CASE-2/cites/0/clause: source_clause: 3.7 is not a clause of desk-manual nor under one; correct the citation, or add the clause to the source's clauses; did you mean 3.3? [source_clause@specarch.yaml#/requirements/CASE-2/cites/0/clause]
+  specarch.yaml:56:9: warning: /requirements/CASE-2/cites/1: source_clause: the citation of desk-code names no clause, and desk-code lists its clauses; add clause: with the section or file cited [source_clause@specarch.yaml#/requirements/CASE-2/cites/1]

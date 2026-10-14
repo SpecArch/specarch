@@ -29,3 +29,4 @@ sources:
       - {clause: /paths/~1setMaintenance/post, title: POST /setMaintenance}
       - {clause: /paths/~1showLoan/post, title: POST /showLoan}
       - {clause: /paths/~1tagLoan/post, title: POST /tagLoan}
+      - {clause: /components/securitySchemes, title: Set aside; the question that cites it says why}

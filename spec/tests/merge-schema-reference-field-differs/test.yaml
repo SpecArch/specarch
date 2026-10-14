@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: merge
+level: system
+scenario: red
+given: "an interface tree whose entity Members holds a required field address that refers to the schema Address, and a database tree whose Members has address as a string column"
+when: "merge is run on the two trees"
+then: "the field is left out of Members and of its required list, a must question names that Address is an object and the column a string, and the merged specification validates with no error; it exits 0"
+verifies: [SA-45]

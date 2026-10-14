@@ -50,7 +50,9 @@ decisions:
       schema gives answers it and one it does not give stays asked, at
       the property it is about. Where the key is left out, a question
       below it moves up to the position, the one missing key the must
-      question blocks.
+      question blocks. A field of an entity left out so leaves the
+      entity's required list too, which may only name the fields the
+      entity has.
       An entity's field one tree gives as an object with nothing more and
       another as a schema is not such a position: it is the schema kept
       as JSON (ADR-077).

@@ -50,7 +50,8 @@ commands:
         the properties each side lists and the other does not. A tree's
         question at that position is answered by the trees that refer;
         one below it follows the reference to the named entry, or moves
-        up to the position where the key is left out.
+        up to the position where the key is left out. An entity's field
+        left out so leaves the entity's `required` list too.
       - An entity's field holding a schema in columns is written out as
         `specarch generate sql` writes it, every part's column and the
         check that an optional value is wholly absent or has its required

@@ -38,7 +38,7 @@ facts in a format SpecArch defines, never a reader of its own.
 | 7. the schema file's name; the facts dump from the installed binary | planned, item 8 |
 | 8. workflow definitions that are not BPMN | planned as a printed workflow table, item 9; a plug-in reader waits |
 | 9. audience, requirements held elsewhere, material questions, partial answers, row citations | planned, items 10 and 11; a row citation is shipped in 0.6.0 as a clause that carries the row's identifier |
-| 10. `--given-outside`, two routes for one list, generated defaults, indexes, a source key from capitals | planned, items 4 and 12; an index goes to the implementation file |
+| 10. `--given-outside`, two routes for one list, generated defaults, indexes, a source key from capitals | planned, items 4 and 12; an index goes to the implementation file; the source key from capitals is on main already, after 0.6.0 |
 | 11. generation targets | shipped: the OpenAPI document and SQL migrations (0.4.0), the Next.js UI with task pages and a private component library through an idiom override (0.6.0); declined: Go server interfaces, which the stack's OpenAPI code generator makes from the document; planned later: sqlc queries, item 13 |
 | 12. output a CI gate compares with the code | planned later, item 14, on the readers and `merge` |
 
@@ -200,12 +200,12 @@ shipped beyond English is decided when the first project supplies a
 vocabulary; a project's file is in its specification repository, not in
 SpecArch.
 
-Two small rules go with it, in every language: a leading column headed
+One small rule goes with it, in every language: a leading column headed
 with the row-number header (`#`, `No.` or the vocabulary's word) is
-skipped in every table, and the default source key of a file whose name
-is a run of capitals (`ARCHITECTURE.md`) is that run as one word
-(`architecture`), so two such files no longer collide and `--source-key`
-is the exception again.
+skipped in every table. The default source key of a file whose name is
+a run of capitals (`ARCHITECTURE.md`) is that run as one word
+(`architecture`) already, on main after 0.6.0 (issue #9), so two such
+files no longer collide and `--source-key` is the exception again.
 
 Compiler test: a table whose headers no vocabulary matches still prints
 its `could` line and keeps the outline, as today; the vocabulary widens
@@ -580,8 +580,8 @@ step 1. Only item 7's meta-model half touches 0.3.
    and the lending desk's matrix is unchanged.
 4. Documents in another language, and the small reader points. The
    vocabulary format and the English file, `language` on a source,
-   `--language` and `--vocabulary`, the row-number column, the capitals
-   source key, `--given-outside`. Done when a conformance document in a
+   `--language` and `--vocabulary`, the row-number column,
+   `--given-outside`. Done when a conformance document in a
    second vocabulary gives the same elements the English one does, a
    file with a word in two lists is refused, and the English run is
    byte-identical with today's.

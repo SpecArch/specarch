@@ -1,0 +1,112 @@
+specarch: "0.1"
+info: { title: Case, version: 2.0.0 }
+stakeholders:
+  owner: { description: The product owner. }
+requirements:
+  CASE-1:
+    statement: Staff shall read the settings.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance: [Reading answers every setting.]
+entities:
+  Setting1:
+    type: object
+    properties:
+      id: { type: string, format: uuid }
+      values: { type: object, additionalProperties: { type: string } }
+    required: [id]
+    primaryKey: [id]
+  Setting2:
+    type: object
+    properties:
+      id: { type: string, format: uuid }
+      values: { type: object, properties: { a: { type: string } }, additionalProperties: true }
+    required: [id]
+    primaryKey: [id]
+  Setting3:
+    type: object
+    properties:
+      id: { type: string, format: uuid }
+      values: { type: object, properties: { a: { type: string } }, additionalProperties: false }
+    required: [id]
+    primaryKey: [id]
+  Setting4:
+    type: object
+    properties:
+      id: { type: string, format: uuid }
+      values: { type: object, additionalProperties: true }
+    required: [id]
+    primaryKey: [id]
+  Setting5:
+    type: object
+    properties:
+      id: { type: string, format: uuid }
+      values: { type: object, additionalProperties: { type: string, format: date } }
+    required: [id]
+    primaryKey: [id]
+permissions:
+  settings.read: { description: See the settings. }
+roles:
+  clerk: { description: Staff., permissions: [settings.read] }
+paths:
+  /settings1:
+    get:
+      operationId: readSettings1
+      summary: Read the settings
+      permission: settings.read
+      satisfies: [CASE-1]
+      responses:
+        "200":
+          description: The settings.
+          content:
+            application/json:
+              schema: { $ref: "#/entities/Setting1" }
+  /settings2:
+    get:
+      operationId: readSettings2
+      summary: Read the settings
+      permission: settings.read
+      satisfies: [CASE-1]
+      responses:
+        "200":
+          description: The settings.
+          content:
+            application/json:
+              schema: { $ref: "#/entities/Setting2" }
+  /settings3:
+    get:
+      operationId: readSettings3
+      summary: Read the settings
+      permission: settings.read
+      satisfies: [CASE-1]
+      responses:
+        "200":
+          description: The settings.
+          content:
+            application/json:
+              schema: { $ref: "#/entities/Setting3" }
+  /settings4:
+    get:
+      operationId: readSettings4
+      summary: Read the settings
+      permission: settings.read
+      satisfies: [CASE-1]
+      responses:
+        "200":
+          description: The settings.
+          content:
+            application/json:
+              schema: { $ref: "#/entities/Setting4" }
+  /settings5:
+    get:
+      operationId: readSettings5
+      summary: Read the settings
+      permission: settings.read
+      satisfies: [CASE-1]
+      responses:
+        "200":
+          description: The settings.
+          content:
+            application/json:
+              schema: { $ref: "#/entities/Setting5" }

@@ -1,0 +1,22 @@
+specarch: "0.2"
+info: { title: Case, version: 1.0.0 }
+schemas:
+  Settings:
+    type: object
+    properties:
+      labels: { type: object, additionalProperties: { type: string } }
+      counts: { type: [object, "null"], additionalProperties: { type: integer, format: int32 } }
+      extra: { type: object, additionalProperties: true }
+      closed: { type: object, properties: { a: { type: string } }, additionalProperties: false }
+      emptyOpen: { type: object, additionalProperties: {} }
+      onString: { type: string, additionalProperties: true }
+      nested: { type: object, additionalProperties: { type: object, additionalProperties: { $ref: "#/schemas/Settings" } } }
+    required: [labels]
+entities:
+  Holder:
+    type: object
+    properties:
+      id: { type: string, format: uuid }
+      parts: { type: object, additionalProperties: { $ref: "#/schemas/Settings", storage: json } }
+    required: [id]
+    primaryKey: [id]

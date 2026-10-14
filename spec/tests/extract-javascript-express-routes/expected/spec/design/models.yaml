@@ -16,7 +16,9 @@ schemas:
       tags: {type: array, items: {type: string}}
       assignee: {type: [string, "null"]}
       priority: {type: number}
-    required: [id, subject, state, opened, tags]
+      extra: {type: object, additionalProperties: {type: string}}
+      meta: {type: object, additionalProperties: true}
+    required: [id, subject, state, opened, tags, extra, meta]
     origin: stated
     cites:
       - {source: code, clause: 'server/src/types.ts:3', says: Interface Ticket.}
@@ -28,4 +30,4 @@ schemas:
     required: [text]
     origin: stated
     cites:
-      - {source: code, clause: 'server/src/types.ts:14', says: Interface NewReply.}
+      - {source: code, clause: 'server/src/types.ts:15', says: Interface NewReply.}

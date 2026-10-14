@@ -95,6 +95,9 @@ func (c *checker) checkStorageOutside(n *yaml.Node, path []string) {
 	if items := source.Child(n, "items"); items != nil {
 		c.checkField(items, append(append([]string{}, path...), "items"))
 	}
+	if values := source.Child(n, "additionalProperties"); values != nil && values.Kind == yaml.MappingNode {
+		c.checkField(values, append(append([]string{}, path...), "additionalProperties"))
+	}
 }
 
 // checkField refuses storage on a field that is not an entity's own, and

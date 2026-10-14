@@ -196,3 +196,21 @@ func TestDxlibOwned(t *testing.T) {
 		t.Errorf("want listBooks without createBook and without the Book schema:\n%s", doc)
 	}
 }
+
+// TestDxlibMapTypes carries a map of text as dxlib's map-string-string,
+// and any other map as json-passthrough, which the handler decodes.
+func TestDxlibMapTypes(t *testing.T) {
+	for _, c := range []struct {
+		field map[string]any
+		want  string
+	}{
+		{map[string]any{"type": "object", "additionalProperties": map[string]any{"type": "string"}}, "map-string-string"},
+		{map[string]any{"type": "object", "additionalProperties": map[string]any{"type": "string", "format": "date"}}, "json-passthrough"},
+		{map[string]any{"type": "object", "additionalProperties": map[string]any{"type": "integer", "format": "int32"}}, "json-passthrough"},
+		{map[string]any{"type": "object", "additionalProperties": true}, "json-passthrough"},
+	} {
+		if got, _ := DXType(c.field); got != c.want {
+			t.Errorf("%v: got %s, want %s", c.field, got, c.want)
+		}
+	}
+}

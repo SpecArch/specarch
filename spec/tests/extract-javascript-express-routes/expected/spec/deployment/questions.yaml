@@ -1,6 +1,6 @@
 questions:
-  # specarch-problem: question: open_question: (must, decision) The setting PORT is read as a number, and a JavaScript number has no width. Which width does it take: int32, int64 within 2^53, or a double? Decided by system-owner. Answer with a decision record that names Q-29 under answers. [Q-29]
-  Q-29:
+  # specarch-problem: question: open_question: (must, decision) The setting PORT is read as a number, and a JavaScript number has no width. Which width does it take: int32, int64 within 2^53, or a double? Decided by system-owner. Answer with a decision record that names Q-30 under answers. [Q-30]
+  Q-30:
     question: 'The setting PORT is read as a number, and a JavaScript number has no width. Which width does it take: int32, int64 within 2^53, or a double?'
     kind: decision
     priority: must
@@ -9,8 +9,8 @@ questions:
     why: Every number in a specification has a width, and the code states none.
     cites:
       - {source: code, clause: 'server/src/app.ts:27', says: Reads PORT as a number.}
-  # specarch-problem: question: open_question: (must, decision) What is each setting for, where does its value come from, and is it a secret: CLOSE_PERMISSION, DEBUG_ROUTES, PORT? Decided by system-owner. Answer with a decision record that names Q-30 under answers. [Q-30]
-  Q-30:
+  # specarch-problem: question: open_question: (must, decision) What is each setting for, where does its value come from, and is it a secret: CLOSE_PERMISSION, DEBUG_ROUTES, PORT? Decided by system-owner. Answer with a decision record that names Q-31 under answers. [Q-31]
+  Q-31:
     question: 'What is each setting for, where does its value come from, and is it a secret: CLOSE_PERMISSION, DEBUG_ROUTES, PORT?'
     kind: decision
     priority: must

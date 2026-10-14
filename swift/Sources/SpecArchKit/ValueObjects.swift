@@ -40,6 +40,9 @@ extension Checker {
         if let items = child(n, "items") {
             checkField(items, path + ["items"])
         }
+        if let values = child(n, "additionalProperties"), values.kind == .mapping {
+            checkField(values, path + ["additionalProperties"])
+        }
     }
 
     /// Refuses storage on a field that is not an entity's own, and on every

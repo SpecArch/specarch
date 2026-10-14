@@ -14,17 +14,17 @@ standardOutput: |
   routers: counted 8 registrations: every call that registers a route on a router of net/http, chi, gin, echo or gorilla/mux that the reader follows from where it is made, with its groups, mounts and subrouters
   gate: desk/access.go:11: the check Require runs only when the setting DESK_CHECKS is present, and lets every request through while it is empty
   routes: wrote 8 operations: one operation per route a router of net/http, chi, gin, echo or gorilla/mux registers with a literal method and path, outside a loop or a condition, under a prefix the reader knows
-  wrote 5 permissions and 44 questions: one permission per name a route checks with a literal, one question per thing the source does not say, and one per thing the meta-model cannot hold
+  wrote 5 permissions and 43 questions: one permission per name a route checks with a literal, one question per thing the source does not say, and one per thing the meta-model cannot hold
   wrote 0 entities, 0 roles and 7 settings: one entity per table NewModelDBTable declares with a literal schema and name, one role per role the seeds grant something, and one setting per name the source reads or a configuration file holds
-  not held: desk/server.go:56: POST /loans, request body, property notes, property text: the validate rule excludesall=<> has no keyword of the meta-model the reader writes it as; not written; could question Q-42
-  not held: desk/server.go:47: POST /loans, request body, property notes: the validate rule dive has no keyword of the meta-model the reader writes it as; not written; could question Q-43
-  not held: desk/server.go:104: Member.FullName has no json tag, so encoding/json writes it as FullName, which is neither camelCase nor snake_case; left out; could question Q-44
+  not held: desk/server.go:56: POST /loans, request body, property notes, property text: the validate rule excludesall=<> has no keyword of the meta-model the reader writes it as; not written; could question Q-41
+  not held: desk/server.go:47: POST /loans, request body, property notes: the validate rule dive has no keyword of the meta-model the reader writes it as; not written; could question Q-42
+  not held: desk/server.go:104: Member.FullName has no json tag, so encoding/json writes it as FullName, which is neither camelCase nor snake_case; left out; could question Q-43
   derived 0 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers
   not derived: 3 draft tests for operation showFine, held up by Q-1, Q-10, Q-11, Q-4, Q-9; the validator warns for them until the questions are answered
   not derived: 2 draft tests for operation waiveFine, held up by Q-1, Q-12, Q-13, Q-14, Q-15, Q-4; the validator warns for them until the questions are answered
-  not derived: 11 draft tests for operation lendBook, held up by Q-1, Q-16, Q-17, Q-18, Q-19, Q-20, Q-4; the validator warns for them until the questions are answered
-  not derived: 3 draft tests for operation showLoan, held up by Q-1, Q-21, Q-22, Q-23, Q-24, Q-4; the validator warns for them until the questions are answered
-  not derived: 3 draft tests for operation showMember, held up by Q-1, Q-25, Q-26, Q-27, Q-28, Q-29, Q-30, Q-4; the validator warns for them until the questions are answered
-  not derived: 3 draft tests for operation updateMember, held up by Q-1, Q-25, Q-26, Q-27, Q-28, Q-29, Q-30, Q-4; the validator warns for them until the questions are answered
-  not derived: 1 draft test for operation reports, held up by Q-1, Q-31, Q-32, Q-33, Q-4; the validator warns for them until the questions are answered
-  not derived: 1 draft test for operation status, held up by Q-1, Q-34, Q-35, Q-36, Q-4; the validator warns for them until the questions are answered
+  not derived: 11 draft tests for operation lendBook, held up by Q-1, Q-16, Q-17, Q-18, Q-19, Q-4; the validator warns for them until the questions are answered
+  not derived: 3 draft tests for operation showLoan, held up by Q-1, Q-20, Q-21, Q-22, Q-23, Q-4; the validator warns for them until the questions are answered
+  not derived: 3 draft tests for operation showMember, held up by Q-1, Q-24, Q-25, Q-26, Q-27, Q-28, Q-29, Q-4; the validator warns for them until the questions are answered
+  not derived: 3 draft tests for operation updateMember, held up by Q-1, Q-24, Q-25, Q-26, Q-27, Q-28, Q-29, Q-4; the validator warns for them until the questions are answered
+  not derived: 1 draft test for operation reports, held up by Q-1, Q-30, Q-31, Q-32, Q-4; the validator warns for them until the questions are answered
+  not derived: 1 draft test for operation status, held up by Q-1, Q-33, Q-34, Q-35, Q-4; the validator warns for them until the questions are answered

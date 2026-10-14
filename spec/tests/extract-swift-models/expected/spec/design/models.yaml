@@ -24,10 +24,11 @@ entities:
       age: {type: integer, format: int32, minimum: 0, maximum: 255}
       photo: {type: [string, "null"], format: binary}
       tags: {type: array, items: {type: string}}
+      extras: {type: object, additionalProperties: {type: string}}
       shelf: {$ref: '#/enums/ShelfKind'}
       origin: {$ref: '#/enums/Origin'}
       home: {}
-    required: [handle, name, born, rating, balance, visits, age, tags, shelf]
+    required: [handle, name, born, rating, balance, visits, age, tags, extras, shelf]
     relations:
       books:
         target: Book

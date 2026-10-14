@@ -3,4 +3,4 @@ entities:
     type: object
     origin: stated
     cites:
-      - {source: code, clause: 'db/model.go:41', says: NewModelDBTable declares table desk.archive.}
+      - {source: code, clause: 'db/model.go:42', says: NewModelDBTable declares table desk.archive.}

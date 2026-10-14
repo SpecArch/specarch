@@ -43,7 +43,7 @@ mappings:
   '#/entities/Book': table books
 owned:
   - '#/entities/Author'
-typeRendering: 1.3.0
+typeRendering: 1.4.0
 views:
   BookWithAuthor:
     from: Book

@@ -285,3 +285,40 @@ func TestImplies(t *testing.T) {
 		}
 	}
 }
+
+// TestMaps reads a map of text with dxlib's own map getter, any other
+// typed map as JSON decoded into map[string]T, a map whose values may be
+// null into pointers, and a map of any values as JSON, as dxlib passes it
+// through.
+func TestMaps(t *testing.T) {
+	resp := generateWith(t, func(s map[string]any) {
+		book := s["entities"].(map[string]any)["Book"].(map[string]any)
+		props := book["properties"].(map[string]any)
+		props["labels"] = map[string]any{"type": "object", "additionalProperties": map[string]any{"type": "string"}}
+		props["counts"] = map[string]any{"type": "object", "additionalProperties": map[string]any{"type": "integer", "format": "int32"}}
+		props["ratings"] = map[string]any{"type": "object", "additionalProperties": map[string]any{"type": []any{"number", "null"}, "format": "double"}}
+		props["extra"] = map[string]any{"type": "object", "additionalProperties": true}
+	})
+	if len(resp.Files) != 1 {
+		t.Fatalf("want one file, got %d and %v", len(resp.Files), resp.Diagnostics)
+	}
+	src := resp.Files[0].Content
+	for _, want := range []string{
+		`aepr.GetParameterValueAsMapStringString("labels")`,
+		`readValue[map[string]int32](aepr, "counts")`,
+		`readValue[map[string]*float64](aepr, "ratings")`,
+		`aepr.GetParameterValueAsJSON("extra")`,
+	} {
+		if !strings.Contains(src, want) {
+			t.Errorf("the file has no %q", want)
+		}
+	}
+	for _, field := range []string{`Labels +map\[string\]string`, `Counts +map\[string\]int32`, `Ratings +map\[string\]\*float64`, `Extra +utils\.JSON`} {
+		if !regexp.MustCompile(`\t` + field + `\n`).MatchString(src) {
+			t.Errorf("the request has no field %s", field)
+		}
+	}
+	if dxlib := os.Getenv("SPECARCH_DXLIB"); dxlib != "" {
+		compiles(t, dxlib, src)
+	}
+}

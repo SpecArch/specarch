@@ -410,8 +410,12 @@ func (g *goReader) modelTable(f *goFile, call *ast.CallExpr, stack []ast.Node) {
 				continue
 			}
 		}
-		n := g.columnType(qualified, at, col, sqlType, at2)
-		if n == nil {
+		var n *yaml.Node
+		if typ == "DataTypeMapStringString" {
+			// The data type names the map's value type, which the jsonb
+			// column alone does not, so no question is asked of its shape.
+			n = mapping("type", "object", "additionalProperties", flow(mapping("type", "string")))
+		} else if n = g.columnType(qualified, at, col, sqlType, at2); n == nil {
 			continue
 		}
 		if c.nullable {

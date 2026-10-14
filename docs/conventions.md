@@ -453,6 +453,7 @@ the value is. The types, one line each:
 | duration | `type: string, format: duration` | a length of time, ISO 8601, `"PT2H"` |
 | time of day | `type: string, format: time` | a time of day without a date, RFC 3339 partial time, `"09:30:00"` |
 | enum | `$ref: "#/enums/Name"` | one of the enum's values, carried as a string |
+| map | `type: object, additionalProperties: { ... }` | an object whose members are any text and whose values all have the field's type; `additionalProperties: true` for values of any type |
 
 The schema refuses an `integer` without `int32`, `int64` or `uint64`, a
 `number` without `double`, and a decimal without `precision` and `scale`.
@@ -461,6 +462,17 @@ bounds inside 2^53 (`unsafe_integer`): either bound it, or carry it as a
 string. `format` keeps its JSON Schema and OpenAPI meaning; `uint64` and
 `decimal` are SpecArch's additions to the format list, because neither
 standard names them.
+
+A map is JSON Schema's `additionalProperties` on an object (ADR-125): a
+field for the type of every member the object's `properties` do not name,
+`true` for members of any value, `false` for none. With no `properties` the
+object is a map, whose keys are data and never wire-named; with both, the
+named members are fixed and the rest follow `additionalProperties`. Any
+value is written `true`, never `{}`, and the keyword goes on an object
+only. `patternProperties` and `propertyNames` are not in the subset: a key
+pattern names no member a stack's type can hold, so a generator could only
+leave it unchecked. An entity and a value object name their members, so a
+map is a field of one, stored as JSON.
 
 ### Where each keyword comes from
 
@@ -471,7 +483,7 @@ redefined.
 | Keyword | Origin | Notes |
 |---|---|---|
 | `info`, `paths`, `parameters`, `requestBody`, `responses`, `content`, `operationId`, `summary`, `deprecated` | OpenAPI 3 | bounded subset: `in` is path, query or header; no callbacks, links or servers |
-| `type`, `title`, `properties`, `required`, `enum`, `const`, `format`, `default`, `examples`, `minimum`, `maximum`, `exclusiveMinimum`, `exclusiveMaximum`, `multipleOf`, `minLength`, `maxLength`, `pattern`, `items`, `minItems`, `maxItems`, `uniqueItems`, `readOnly`, `writeOnly`, `$ref` | JSON Schema 2020-12 | `$ref` is restricted to `#/entities/X`, `#/enums/X`, `#/views/X` and `#/schemas/X`, of this specification or, as `<dependency>#/...`, of another one a dependency names (References between specifications); nullability is written `type: [string, "null"]` as JSON Schema does |
+| `type`, `title`, `properties`, `required`, `additionalProperties`, `enum`, `const`, `format`, `default`, `examples`, `minimum`, `maximum`, `exclusiveMinimum`, `exclusiveMaximum`, `multipleOf`, `minLength`, `maxLength`, `pattern`, `items`, `minItems`, `maxItems`, `uniqueItems`, `readOnly`, `writeOnly`, `$ref` | JSON Schema 2020-12 | `$ref` is restricted to `#/entities/X`, `#/enums/X`, `#/views/X` and `#/schemas/X`, of this specification or, as `<dependency>#/...`, of another one a dependency names (References between specifications); nullability is written `type: [string, "null"]` as JSON Schema does |
 | `channels`, `messages`, `payload` | AsyncAPI | one level: channel, messages, payload; no servers, bindings or operations objects |
 | `x-*` | OpenAPI convention | allowed in every object, ignored by validation |
 | `stages`, `sources`, `givenOutside` | SpecArch | the root file's list of stage folders and its registry of cited sources, each marked when it was given to parties outside |

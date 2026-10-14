@@ -30,6 +30,7 @@ schemas:
       createdAt: {type: string, format: date-time}
       mood: {$ref: '#/enums/Mood'}
       tags: {type: array, items: {type: string}}
+      extra: {type: object, additionalProperties: {type: string}}
     required: [id, title, pages, createdAt, mood]
     origin: stated
     cites:

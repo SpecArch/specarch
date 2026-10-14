@@ -4,14 +4,14 @@ info:
   title: JavaScript and TypeScript source of server
   version: 0.1.0
   description: |
-    The JavaScript and TypeScript source under server, read at commit a699d8adaf4b9a014190d41759390d4757acf35f by the TypeScript compiler 7.0.2 through the code-facts dump, by its syntax and the types it declares, with the message catalogues there read as data. Every element cites the line that declares it; what the source does not say as a literal, or through an idiom the reader knows, is a question, and so is what the meta-model cannot hold.
+    The JavaScript and TypeScript source under server, read at commit 8c0e8d7fd49c8494bb32c38479b5977606998433 by the TypeScript compiler 7.0.2 through the code-facts dump, by its syntax and the types it declares, with the message catalogues there read as data. Every element cites the line that declares it; what the source does not say as a literal, or through an idiom the reader knows, is a question, and so is what the meta-model cannot hold.
   tracksOrigin: true
 stages: [requirements, design, deployment]
 sources:
   code:
     kind: code
     title: The code repository
-    edition: a699d8adaf4b9a014190d41759390d4757acf35f
+    edition: 8c0e8d7fd49c8494bb32c38479b5977606998433
     url: ../repo
     clauses:
       - {clause: server/src/app.ts, title: 'TypeScript source, read by its syntax and its declared types'}

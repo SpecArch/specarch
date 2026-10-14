@@ -1,0 +1,14 @@
+entities:
+  Holds:
+    type: object
+    properties:
+      holdId: {type: string, maxLength: 20}
+      labels: {type: object, additionalProperties: {type: string, maxLength: 40}}
+      counts: {type: object, additionalProperties: {type: integer, format: int32}}
+      extra: {type: object}
+    required: [holdId]
+    primaryKey: [holdId]
+    origin: stated
+    cites:
+      - {source: catalogue, clause: migrations public.holds, says: Table public.holds.}
+      - {source: desk, clause: migrations public.holds, says: 'Table public.holds, kept in step with the catalogue''s.'}

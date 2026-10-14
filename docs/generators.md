@@ -238,6 +238,10 @@ listed in `x-specarch-unenforced` on the field, for the go-dxlib handler to
 check. A field that may be null takes dxlib's nullable type where its base
 has one and is not required, with a warning where the design requires it,
 because dxlib reads a null and a left-out parameter as one case, not given.
+A map of plain text is dxlib's `map-string-string`, and any other map, or
+an object of any members, `json-passthrough`, whose values the go-dxlib
+handler decodes (ADR-125); a map's `additionalProperties` is written as the
+design has it, its keys never wire-named.
 Permissions are `x-dxlib-privileges`, no security scheme is written,
 a refusal is dxlib's error body named by its problem type, and a list uses
 the dxlib names and envelope of the paginated-list idiom. Two limits are
@@ -287,6 +291,13 @@ names it, and a value kept as JSON as its text, and a create or a read
 answers the stored row in the interface's shape: the columns gathered back
 into the value and the JSON read. dxlib's paging list answers rows as they
 are stored, so a list of an entity holding a value is warned about.
+
+A map of text is read with dxlib's `GetParameterValueAsMapStringString`
+into `map[string]string`; any other typed map is read as JSON and decoded
+into `map[string]T`, a pointer for a value that may be null, so a value of
+another type is refused with 422 as a value object's is; a map of any
+value stays dxlib's JSON (ADR-125). The limits of a map's values are not
+checked, as a list's items' are not.
 
 The file holds no data model besides those structs, since `specarch-gen-sql`
 writes the schema.

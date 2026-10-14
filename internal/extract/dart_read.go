@@ -69,8 +69,24 @@ func (dr *dartReader) dartField(t, at string) swField {
 		return f
 	}
 	switch {
-	case strings.HasPrefix(t, "Map<") || strings.HasPrefix(t, "Set<") || t == "Map" || t == "Set":
-		return swField{held: "the type " + t + ", a map or a set, which a field does not hold"}
+	case strings.HasPrefix(t, "Map<") && strings.HasSuffix(t, ">"):
+		key, value, ok := splitTopLevel(t[len("Map<"):len(t)-1], ',')
+		switch {
+		case !ok:
+			return swField{held: "the type " + t + ", which the reader does not read"}
+		case key != "String" && key != "int":
+			// json_serializable writes a map as a JSON object, each key as
+			// text; a key of another type is read back only by its own
+			// converter, which syntax does not show.
+			return swField{held: "the type " + t + ", a map keyed by " + key + ", which a JSON object holds only as String or int keys"}
+		case value == "dynamic" || value == "Object?" || value == "Object":
+			return openMap("it is " + t)
+		}
+		return mapField(dr.dartField(value, at+"/additionalProperties"))
+	case t == "Map":
+		return openMap("it is a Map with no type arguments")
+	case strings.HasPrefix(t, "Set<") || t == "Set":
+		return swField{held: "the type " + t + ", a set, which a field does not hold"}
 	}
 	switch t {
 	case "":

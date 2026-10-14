@@ -429,6 +429,9 @@ func (g *gen) schema(s map[string]any) *yaml.Node {
 			if req := list(s["required"]); len(req) > 0 {
 				add(n, "required", plain(g.wireList(req)))
 			}
+			if values := mapValues(s, g.schema); values != nil {
+				add(n, "additionalProperties", values)
+			}
 		}
 	}
 	for _, k := range extensionKeys {
@@ -437,6 +440,19 @@ func (g *gen) schema(s map[string]any) *yaml.Node {
 		}
 	}
 	return n
+}
+
+// mapValues is a field's additionalProperties: a boolean as it is, a field
+// through write, the map's keys never wire-named, since they are data and
+// not members; nil when the field has none.
+func mapValues(s map[string]any, write func(map[string]any) *yaml.Node) *yaml.Node {
+	switch v := s["additionalProperties"].(type) {
+	case bool:
+		return boolean(v)
+	case map[string]any:
+		return write(v)
+	}
+	return nil
 }
 
 // components writes the entities, views, schemas and enums as schemas,

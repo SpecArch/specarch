@@ -1,0 +1,14 @@
+specarchRecord: "0.1"
+kind: change
+id: CR-1
+title: Settings hold their values as text
+raisedBy: owner
+raised: "2026-10-09"
+phase: production
+type: adaptive
+urgency: normal
+reason: Every setting is entered as text.
+affects: { changes: ["#/entities/Setting1", "#/entities/Setting2", "#/entities/Setting3", "#/entities/Setting4", "#/entities/Setting5"] }
+impact: major
+decision: { by: owner, date: "2026-10-10", outcome: approved, why: Entry needs it. }
+status: approved

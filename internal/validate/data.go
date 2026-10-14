@@ -142,6 +142,7 @@ func (d *design) responseFields(schema *yaml.Node) []namedField {
 			return
 		}
 		visit(source.Child(s, "items"), owner)
+		visit(source.Child(s, "additionalProperties"), owner)
 		for _, p := range source.Pairs(source.Child(s, "properties")) {
 			label := p.Key.Value
 			if owner != "" {

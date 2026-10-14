@@ -37,6 +37,8 @@ paths:
                       type: string
                 extra:
                   type: object
+                  additionalProperties:
+                    type: string
               required: [name]
       origin: stated
       cites:
@@ -72,6 +74,7 @@ paths:
               properties:
                 policy:
                   type: object
+                  additionalProperties: true
       origin: stated
       cites:
         - {source: code, clause: 'shelf/server.go:25', says: 'Registers POST /items/{id}/policy on a gin router; its handler is s.upsert.'}

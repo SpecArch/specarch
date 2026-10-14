@@ -292,3 +292,44 @@ func TestValueObjects(t *testing.T) {
 		}
 	}
 }
+
+// TestMaps writes a map's additionalProperties as the design has it: a
+// field for the values, its members wire-named and the map's keys not, and
+// true or false as written.
+func TestMaps(t *testing.T) {
+	r := request(t, "../../examples/library-lending/spec")
+	r.Specification["schemas"] = map[string]any{
+		"Settings": map[string]any{
+			"type": "object",
+			"properties": map[string]any{
+				"labels": map[string]any{"type": "object", "additionalProperties": map[string]any{"type": "string", "maxLength": json.Number("40")}},
+				"byShelf": map[string]any{"type": "object", "additionalProperties": map[string]any{
+					"type": "object", "properties": map[string]any{"shelfCode": map[string]any{"type": "string"}}}},
+				"extra":  map[string]any{"type": "object", "additionalProperties": true},
+				"closed": map[string]any{"type": "object", "properties": map[string]any{"a": map[string]any{"type": "string"}}, "additionalProperties": false},
+			},
+		},
+	}
+	resp := Generate(r)
+	if len(resp.Diagnostics) > 0 {
+		t.Fatalf("diagnostics: %v", resp.Diagnostics)
+	}
+	var doc map[string]any
+	if err := yaml.Unmarshal([]byte(resp.Files[0].Content), &doc); err != nil {
+		t.Fatal(err)
+	}
+	s := at(t, doc, "components", "schemas", "Settings", "properties")
+	for _, c := range []struct {
+		keys []any
+		want any
+	}{
+		{[]any{"labels", "additionalProperties", "maxLength"}, 40},
+		{[]any{"byShelf", "additionalProperties", "properties", "shelfCode", "type"}, "string"},
+		{[]any{"extra", "additionalProperties"}, true},
+		{[]any{"closed", "additionalProperties"}, false},
+	} {
+		if got := at(t, s, c.keys...); got != c.want {
+			t.Errorf("Settings %v is %#v, not %#v", c.keys, got, c.want)
+		}
+	}
+}

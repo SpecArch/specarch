@@ -227,7 +227,7 @@ func (g *gen) valueTypes() {
 // themselves.
 func (g *gen) partType(s map[string]any) string {
 	typ, _ := g.goType(s)
-	if strings.HasPrefix(typ, "[]") || strings.HasPrefix(typ, "*") || typ == "utils.JSON" {
+	if strings.HasPrefix(typ, "[]") || strings.HasPrefix(typ, "*") || strings.HasPrefix(typ, "map[") || typ == "utils.JSON" {
 		return typ
 	}
 	return "*" + typ

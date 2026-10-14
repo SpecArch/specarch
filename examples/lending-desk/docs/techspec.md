@@ -335,7 +335,7 @@ How this implementation does each recurring concern: the idioms SpecArch ships a
 | pii-in-logs | 1.0.0 | shipped |   |
 | request-validation | 1.1.0 | shipped |   |
 | transactions | 1.0.0 | shipped |   |
-| type-rendering | 1.3.0 | shipped |   |
+| type-rendering | 1.4.0 | shipped |   |
 
 ## 8. Cross-cutting concepts
 

@@ -77,4 +77,4 @@ enums:
     type: string
 mappings:
   '#/entities/Book': table books
-typeRendering: 1.3.0
+typeRendering: 1.4.0

@@ -81,6 +81,8 @@ paths:
                   enum: [desk, kiosk, web]
                 extra:
                   type: object
+                  additionalProperties:
+                    type: string
                 contactEmail:
                   type: string
                   format: email

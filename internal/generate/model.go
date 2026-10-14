@@ -90,16 +90,45 @@ func typeLabel(f *yaml.Node) string {
 			return "list of " + typeLabel(it)
 		}
 		return "list"
+	case "object":
+		if values, ok := mapValues(f); ok {
+			if values == nil {
+				return "map of any value"
+			}
+			return "map of " + typeLabel(values)
+		}
 	case "":
 		return "value"
 	}
 	return base
 }
 
+// mapValues is the field of a map's values, nil for any value; ok is false
+// for an object that is no map: one with properties, or with no
+// additionalProperties or additionalProperties false.
+func mapValues(f *yaml.Node) (*yaml.Node, bool) {
+	values := get(f, "additionalProperties")
+	switch {
+	case values == nil || get(f, "properties") != nil:
+		return nil, false
+	case values.Kind == yaml.MappingNode:
+		return values, true
+	}
+	return nil, values.Value == "true"
+}
+
 // typeText is typeLabel with the details a reader needs: decimal size,
 // whether null is allowed, and how a large integer travels.
 func typeText(f *yaml.Node) string {
 	t := typeLabel(f)
+	if values, ok := mapValues(f); ok && values != nil {
+		// The values' details, kept apart from the map's own null.
+		v := typeText(values)
+		if strings.Contains(v, ",") || strings.Contains(v, " or ") {
+			v = "(" + v + ")"
+		}
+		t = "map of " + v
+	}
 	if str(f, "format") == "decimal" && str(f, "precision") != "" {
 		t = fmt.Sprintf("decimal(%s, %s)", str(f, "precision"), str(f, "scale"))
 	}
@@ -149,6 +178,11 @@ func limits(f *yaml.Node) string {
 	}
 	if v := str(f, "mistakes"); v != "" {
 		out = append(out, "users get it wrong "+map[string]string{"frequent": "often", "rare": "rarely"}[v])
+	}
+	if values, ok := mapValues(f); ok && values != nil {
+		if l := limits(values); l != "" {
+			out = append(out, "each value "+l)
+		}
 	}
 	return strings.Join(out, ", ")
 }

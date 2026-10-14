@@ -251,16 +251,26 @@ questions:
     blocks: ['#/permissions/tickets.read']
     decidedBy: system-owner
     why: The source names the permission a route checks and not who holds it.
-  # specarch-problem: question: open_question: (must, decision) Which width does each of these numbers take: int32, int64 within 2^53 or carried as text, or a double or a decimal with its precision and scale? Decided by system-owner. Answer with a decision record that names Q-31 under answers. [Q-31]
-  Q-31:
+  # specarch-problem: question: open_question: (should, decision) Ticket.meta at server/src/types.ts:12: the source declares it Record<string, unknown>, whose values may be any JSON value. Which shape do the values take? Decided by system-owner. Answer with a decision record that names Q-29 under answers. [Q-29]
+  Q-29:
+    question: 'Ticket.meta at server/src/types.ts:12: the source declares it Record<string, unknown>, whose values may be any JSON value. Which shape do the values take?'
+    kind: decision
+    priority: should
+    blocks: ['#/schemas/Ticket/properties/meta/additionalProperties']
+    decidedBy: system-owner
+    why: Nothing in the source says the values' shape, and the map is written open until it is known.
+    cites:
+      - {source: code, clause: 'server/src/types.ts:12', says: Declares meta.}
+  # specarch-problem: question: open_question: (must, decision) Which width does each of these numbers take: int32, int64 within 2^53 or carried as text, or a double or a decimal with its precision and scale? Decided by system-owner. Answer with a decision record that names Q-32 under answers. [Q-32]
+  Q-32:
     question: 'Which width does each of these numbers take: int32, int64 within 2^53 or carried as text, or a double or a decimal with its precision and scale?'
     kind: decision
     priority: must
     blocks: ['#/schemas/Ticket/properties/priority/format']
     decidedBy: system-owner
     why: A JavaScript number has no width, and the meta-model needs one; choosing one would be a guess.
-  # specarch-problem: question: open_question: (could, decision) Not held: server/src/app.ts:12: the route GET /files/*: the segment * matches anything after it, and a path parameter holds one segment; left out. Does the specification need it, written another way or described by hand? It blocks paths. Decided by system-owner. Answer with a decision record that names Q-32 under answers. [Q-32]
-  Q-32:
+  # specarch-problem: question: open_question: (could, decision) Not held: server/src/app.ts:12: the route GET /files/*: the segment * matches anything after it, and a path parameter holds one segment; left out. Does the specification need it, written another way or described by hand? It blocks paths. Decided by system-owner. Answer with a decision record that names Q-33 under answers. [Q-33]
+  Q-33:
     question: 'Not held: server/src/app.ts:12: the route GET /files/*: the segment * matches anything after it, and a path parameter holds one segment; left out. Does the specification need it, written another way or described by hand?'
     kind: decision
     priority: could
@@ -269,8 +279,8 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: code, clause: 'server/src/app.ts:12', says: 'Not held: the route GET /files/*: the segment * matches anything after it, and a path parameter holds one segment; left out.'}
-  # specarch-problem: question: open_question: (could, decision) Not held: server/src/app.ts:13: the route GET /users/:userId?: the parameter :userId? is optional, and a path parameter is always there; left out. Does the specification need it, written another way or described by hand? It blocks paths. Decided by system-owner. Answer with a decision record that names Q-33 under answers. [Q-33]
-  Q-33:
+  # specarch-problem: question: open_question: (could, decision) Not held: server/src/app.ts:13: the route GET /users/:userId?: the parameter :userId? is optional, and a path parameter is always there; left out. Does the specification need it, written another way or described by hand? It blocks paths. Decided by system-owner. Answer with a decision record that names Q-34 under answers. [Q-34]
+  Q-34:
     question: 'Not held: server/src/app.ts:13: the route GET /users/:userId?: the parameter :userId? is optional, and a path parameter is always there; left out. Does the specification need it, written another way or described by hand?'
     kind: decision
     priority: could
@@ -279,8 +289,8 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: code, clause: 'server/src/app.ts:13', says: 'Not held: the route GET /users/:userId?: the parameter :userId? is optional, and a path parameter is always there; left out.'}
-  # specarch-problem: question: open_question: (could, decision) Not held: server/src/app.ts:14: the route ALL /ping: the method ALL has no operation in the meta-model, which holds GET, POST, PUT, PATCH and DELETE; left out. Does the specification need it, written another way or described by hand? It blocks paths. Decided by system-owner. Answer with a decision record that names Q-34 under answers. [Q-34]
-  Q-34:
+  # specarch-problem: question: open_question: (could, decision) Not held: server/src/app.ts:14: the route ALL /ping: the method ALL has no operation in the meta-model, which holds GET, POST, PUT, PATCH and DELETE; left out. Does the specification need it, written another way or described by hand? It blocks paths. Decided by system-owner. Answer with a decision record that names Q-35 under answers. [Q-35]
+  Q-35:
     question: 'Not held: server/src/app.ts:14: the route ALL /ping: the method ALL has no operation in the meta-model, which holds GET, POST, PUT, PATCH and DELETE; left out. Does the specification need it, written another way or described by hand?'
     kind: decision
     priority: could
@@ -289,13 +299,3 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: code, clause: 'server/src/app.ts:14', says: 'Not held: the route ALL /ping: the method ALL has no operation in the meta-model, which holds GET, POST, PUT, PATCH and DELETE; left out.'}
-  # specarch-problem: question: open_question: (could, decision) Not held: server/src/types.ts:11: Ticket.extra: the type Record, which a field does not hold; left out. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-35 under answers. [Q-35]
-  Q-35:
-    question: 'Not held: server/src/types.ts:11: Ticket.extra: the type Record, which a field does not hold; left out. Does the specification need it, written another way or described by hand?'
-    kind: decision
-    priority: could
-    blocks: ['#/schemas/Ticket']
-    decidedBy: system-owner
-    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
-    cites:
-      - {source: code, clause: 'server/src/types.ts:11', says: 'Not held: Ticket.extra: the type Record, which a field does not hold; left out.'}

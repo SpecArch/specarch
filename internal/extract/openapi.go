@@ -297,6 +297,7 @@ func (o *openapiReader) read() {
 		s := o.resolve(child(schemas, name))
 		switch {
 		case !typeNameWord.MatchString(name):
+		case isMap(s):
 		case schemaType(s) == "object" && child(s, "properties") != nil && resources[name]:
 			o.written[name] = "entities"
 		case schemaType(s) == "object" && child(s, "properties") != nil:
@@ -355,7 +356,9 @@ func (o *openapiReader) read() {
 			enums++
 		default:
 			why := "it is neither an object with properties nor a string enum of snake_case values"
-			if schemaType(s) == "object" && child(s, "properties") != nil {
+			if isMap(s) {
+				why = "it holds members beyond the ones it names (additionalProperties), which a field holds and an entity or a schema does not"
+			} else if schemaType(s) == "object" && child(s, "properties") != nil {
 				why = "none of its properties can be held"
 			}
 			if !typeNameWord.MatchString(name) {
@@ -1208,9 +1211,16 @@ func (o *openapiReader) field(s *yaml.Node, where, at string, depth int) *yaml.N
 			set(out, "required", required)
 		}
 	}
+	if ap := child(s, "additionalProperties"); ap != nil && base == "object" {
+		set(out, "additionalProperties", o.mapValues(ap, where, at, depth))
+	}
 	for _, k := range keys(s) {
 		switch k {
 		case "type", "format", "items", "properties", "required", "nullable", "example":
+		case "additionalProperties":
+			if base != "object" {
+				o.gap(at, "%s: additionalProperties on a schema of type %s, where JSON Schema applies it to an object only; left out", where, inlineNode(typ))
+			}
 		default:
 			if !containsWord(fieldKeywords, k) {
 				o.gap(at, "%s: %s; left out", where, notHeldKey(k))
@@ -1227,13 +1237,38 @@ func (o *openapiReader) field(s *yaml.Node, where, at string, depth int) *yaml.N
 	return out
 }
 
-// schemaType is a schema's type, or the type its properties or items
-// keyword implies when it names none.
+// mapValues is a map's additionalProperties in the meta-model: false and
+// true as written, {} as true, the one way the meta-model says any value,
+// and a schema as a field; a schema with no field the meta-model holds
+// leaves the values open, with the line that says why.
+func (o *openapiReader) mapValues(ap *yaml.Node, where, at string, depth int) any {
+	switch {
+	case ap.Kind == yaml.ScalarNode && (ap.Value == "true" || ap.Value == "false"):
+		return ap.Value == "true"
+	case ap.Kind == yaml.MappingNode && len(ap.Content) == 0:
+		return true
+	}
+	if v := o.field(ap, where+", a value of the map", at+"/additionalProperties", depth+1); v != nil {
+		return v
+	}
+	o.gap(at+"/additionalProperties", "%s: the values of the map have no schema the meta-model holds; written as any value, true", where)
+	return true
+}
+
+// isMap says whether a schema holds members beyond the ones it names: an
+// additionalProperties that is not false.
+func isMap(s *yaml.Node) bool {
+	ap := child(s, "additionalProperties")
+	return ap != nil && !(ap.Kind == yaml.ScalarNode && ap.Value == "false")
+}
+
+// schemaType is a schema's type, or the type its properties, additional
+// properties or items keyword implies when it names none.
 func schemaType(s *yaml.Node) string {
 	switch {
 	case child(s, "type") != nil:
 		return scalar(child(s, "type"))
-	case child(s, "properties") != nil:
+	case child(s, "properties") != nil, child(s, "additionalProperties") != nil:
 		return "object"
 	case child(s, "items") != nil:
 		return "array"
@@ -1382,7 +1417,7 @@ func notHeldKey(k string) string {
 	case "allOf", "oneOf", "anyOf", "not":
 		return k + " combines schemas, which the field subset does not"
 	case "additionalProperties":
-		return "additionalProperties, which the field subset does not hold"
+		return "additionalProperties, which an entity or a schema does not hold, since its members are the ones it names"
 	case "discriminator":
 		return "discriminator, which the field subset does not hold"
 	case "$ref":

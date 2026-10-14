@@ -2629,12 +2629,24 @@ func (g *goReader) fieldSchema(f *goFile, e ast.Expr, at, where string, snake bo
 		}
 		return mapping("type", "array", "items", items)
 	case *ast.MapType:
-		// A map is an object on the wire whose properties the source does
-		// not name, so the object is written and its shape is the
-		// question, blocking the object it is about.
-		g.question("should", fmt.Sprintf("%s: it is a map, %s, whose keys and values JSON writes as an object of any properties. Which shape does it take?", where, exprText(t)),
-			[]string{at}, "A map has no fixed properties, and the meta-model names each property of an object.", g.at(clause, where+": it is a map, "+exprText(t)+"."))
-		return mapping("type", "object")
+		// A map is an object on the wire whose members the source does not
+		// name, and whose values are all of one type: additionalProperties.
+		// encoding/json writes every key as text, an integer in decimal and
+		// a TextMarshaler by its text, so the key's Go type is not in the
+		// schema. Values of any JSON value are written open, true, and
+		// their shape is the question, blocking the values only.
+		values := at + "/additionalProperties"
+		if isOpenValue(t.Value) {
+			g.question("should", fmt.Sprintf("%s: it is a map, %s, whose values may be any JSON value. Which shape do the values take?", where, exprText(t)),
+				[]string{values}, "An interface says nothing of the value's shape, and the map is written open until it is known.", g.at(clause, where+": it is a map, "+exprText(t)+"."))
+			return mapping("type", "object", "additionalProperties", true)
+		}
+		v := g.fieldSchema(f, t.Value, values, where+", a value of the map", snake, seen, clause)
+		if v == nil {
+			// The question is asked at the values; the map is written open.
+			return mapping("type", "object", "additionalProperties", true)
+		}
+		return mapping("type", "object", "additionalProperties", v)
 	case *ast.InterfaceType:
 		return ask("it is an interface, which holds any JSON value", "An interface says nothing of the value's shape.")
 	case *ast.Ident:
@@ -2683,6 +2695,18 @@ func (g *goReader) fieldSchema(f *goFile, e ast.Expr, at, where string, snake bo
 	seen = copySeen(seen)
 	seen[ts] = true
 	return g.structSchema(tf, stt, ts.Name.Name, at, where, snake, seen, clause)
+}
+
+// isOpenValue reports whether a Go type holds any JSON value: an interface,
+// any among them, whose dynamic value encoding/json writes.
+func isOpenValue(e ast.Expr) bool {
+	switch t := e.(type) {
+	case *ast.InterfaceType:
+		return true
+	case *ast.Ident:
+		return t.Name == "any"
+	}
+	return false
 }
 
 // structSchema is the object a struct's fields give on the wire. owner is

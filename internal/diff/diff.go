@@ -234,6 +234,10 @@ func (k *classifier) walk(a, b any, path []string) {
 	}
 	am, aIsMap := a.(map[string]any)
 	bm, bIsMap := b.(map[string]any)
+	if isMapKeyword(path) && !(aIsMap && bIsMap) {
+		k.mapMembers(a, b, path)
+		return
+	}
 	al, aIsList := a.([]any)
 	bl, bIsList := b.([]any)
 	switch {
@@ -247,6 +251,8 @@ func (k *classifier) walk(a, b any, path []string) {
 			bv, inB := bm[name]
 			sub := append(append([]string{}, path...), name)
 			switch {
+			case isMapKeyword(sub):
+				k.walk(av, bv, sub)
 			case !inB:
 				if !isDescriptive(name) {
 					k.record(semver.Major, sub, "is removed")
@@ -300,6 +306,39 @@ func (k *classifier) walk(a, b any, path []string) {
 		k.record(semver.Major, path, "changes from %s to %s", display(a), display(b))
 	default:
 		k.record(semver.Major, path, "changes")
+	}
+}
+
+// isMapKeyword says whether a path ends in a field's additionalProperties,
+// and not in a property of that name.
+func isMapKeyword(path []string) bool {
+	n := len(path)
+	return n > 0 && path[n-1] == "additionalProperties" && (n < 2 || path[n-2] != "properties")
+}
+
+// mapMembers records a change of what an object allows beyond its
+// properties, where additionalProperties left out allows any member, as
+// true does: allowing more is minor, allowing less major. A change of the
+// values' type is walked as any field's is, and is major.
+func (k *classifier) mapMembers(a, b any, path []string) {
+	if a == nil {
+		a = true
+	}
+	if b == nil {
+		b = true
+	}
+	if reflect.DeepEqual(a, b) {
+		return
+	}
+	switch {
+	case b == true:
+		k.record(semver.Minor, path, "now allows any member")
+	case a == false:
+		k.record(semver.Minor, path, "now allows members beyond the properties")
+	case b == false:
+		k.record(semver.Major, path, "no longer allows members beyond the properties")
+	default:
+		k.record(semver.Major, path, "now allows only %s values", display(b))
 	}
 }
 

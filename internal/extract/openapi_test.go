@@ -180,3 +180,33 @@ components:
 		}
 	}
 }
+
+// TestOpenAPIMap keeps additionalProperties on an object: a schema as the
+// type of the map's values, false and true as written, {} as true, and
+// the keyword alone as saying the type object; a values schema the
+// meta-model cannot hold leaves the map open with a line, and the keyword
+// on a type that is not an object is left out with a line.
+func TestOpenAPIMap(t *testing.T) {
+	for _, c := range []struct {
+		schema, want string
+		notHeld      int
+	}{
+		{`{type: object, additionalProperties: {type: integer, format: int32}}`, `{type: object, additionalProperties: {type: integer, format: int32}}`, 0},
+		{`{additionalProperties: {type: string}}`, `{type: object, additionalProperties: {type: string}}`, 0},
+		{`{type: object, additionalProperties: {}}`, `{type: object, additionalProperties: true}`, 0},
+		{`{type: object, additionalProperties: true}`, `{type: object, additionalProperties: true}`, 0},
+		{`{type: object, properties: {a: {type: string}}, additionalProperties: false}`, `{type: object, properties: {a: {type: string}}, additionalProperties: false}`, 0},
+		{`{type: object, additionalProperties: {$ref: "#/components/schemas/Loan"}}`, `{type: object, additionalProperties: {$ref: '#/entities/Loan'}}`, 0},
+		{`{type: object, additionalProperties: {type: object, additionalProperties: {type: boolean}}}`, `{type: object, additionalProperties: {type: object, additionalProperties: {type: boolean}}}`, 0},
+		{`{type: object, additionalProperties: {oneOf: [{type: string}]}}`, `{type: object, additionalProperties: true}`, 3},
+		{`{type: string, additionalProperties: true}`, `{type: string}`, 1},
+	} {
+		got, o := openapiField(t, false, c.schema)
+		if got != c.want {
+			t.Errorf("%s: got %s, want %s", c.schema, got, c.want)
+		}
+		if len(o.notHeld) != c.notHeld {
+			t.Errorf("%s: want %d lines, got %v", c.schema, c.notHeld, o.notHeld)
+		}
+	}
+}

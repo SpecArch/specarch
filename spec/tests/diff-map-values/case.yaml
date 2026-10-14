@@ -1,0 +1,8 @@
+arguments: [diff, old/spec, new/spec]
+exitStatus: 0
+standardOutput: |
+  major changed #/entities/Setting1: properties/values/additionalProperties/type changes from boolean to string
+  minor changed #/entities/Setting2: properties/values/additionalProperties now allows any member
+  major changed #/entities/Setting3: properties/values/additionalProperties no longer allows members beyond the properties
+  patch changed #/entities/Setting4
+  major changed #/entities/Setting5: properties/values/additionalProperties now allows only {"format":"date","type":"string"} values

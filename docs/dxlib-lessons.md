@@ -240,7 +240,7 @@ fact (`docs/conventions.md`, Types):
 | `bool` | `type: boolean` |
 | `blob` | `type: string, format: byte` |
 | `json`, `array-string`, `array-int64` | `type: object` with `properties`; `type: array, items: { ... }` |
-| `map-string-string` | no spelling yet: `additionalProperties` is not in the field schema |
+| `map-string-string` | `type: object, additionalProperties: { type: string }`, a map of text (ADR-125) |
 | an `Enum` list on a parameter | `$ref: "#/enums/Name"`, with `valueDescriptions` |
 | `protected-string` | no spelling yet: the gap section 2 fills |
 | `id`, the public id, `serial`, `bigserial` | `primaryKey`, `readOnly`, and the identifier idiom of `docs/idioms.md` |

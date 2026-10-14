@@ -48,7 +48,7 @@ func dxJSONType(t string) string {
 		return "number"
 	case t == "bool":
 		return "boolean"
-	case t == "json" || t == "json-passthrough":
+	case t == "json" || t == "json-passthrough" || t == "map-string-string":
 		return "object"
 	case strings.HasPrefix(t, "array"):
 		return "array"
@@ -91,6 +91,13 @@ func dxBaseType(f map[string]any, enums map[string]any) (string, string) {
 		if obj(f["properties"]) != nil {
 			return "json", ""
 		}
+		if values := obj(f["additionalProperties"]); values != nil && text(values["type"]) == "string" && text(values["format"]) == "" && values["enum"] == nil {
+			// A map of text: dxlib's own map type, which checks every value
+			// is a string.
+			return "map-string-string", ""
+		}
+		// Any other map, or an object of any members: dxlib passes it
+		// through, and the handler decodes and checks its values.
 		return "json-passthrough", ""
 	case "array":
 		items := obj(f["items"])
@@ -204,6 +211,9 @@ func (g *gen) dxField(f map[string]any, at string) *yaml.Node {
 	}
 	if items, ok := f["items"].(map[string]any); ok {
 		add(n, "items", g.dxSchema(items, at+"/items"))
+	}
+	if values := mapValues(f, func(v map[string]any) *yaml.Node { return g.dxSchema(v, at+"/additionalProperties") }); values != nil {
+		add(n, "additionalProperties", values)
 	}
 	if props, ok := f["properties"].(map[string]any); ok {
 		pn := mapping()

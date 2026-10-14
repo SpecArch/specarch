@@ -74,7 +74,7 @@ func entityDiagram(root *yaml.Node) string {
 			case fk[f.Key.Value]:
 				keys = " FK"
 			}
-			fmt.Fprintf(&b, "    %s %s%s\n", mermaidID(strings.ReplaceAll(erName(typeLabel(f.Value)), "list of ", "list_")), f.Key.Value, keys)
+			fmt.Fprintf(&b, "    %s %s%s\n", mermaidID(strings.NewReplacer("list of ", "list_", "map of ", "map_").Replace(erName(typeLabel(f.Value)))), f.Key.Value, keys)
 		}
 		b.WriteString("  }\n")
 	}

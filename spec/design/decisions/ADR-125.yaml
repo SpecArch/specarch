@@ -1,0 +1,112 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
+decisions:
+  ADR-125:
+    title: A map is JSON Schema's additionalProperties on an object, a field or a boolean, read from every reader's map shapes and written by every generator, with patternProperties and propertyNames left out
+    status: accepted
+    date: "2026-10-14"
+    context: |
+      The field subset had no way to say a map. validate refused
+      additionalProperties as a key the object cannot have, extract
+      openapi left it out, and the Go reader wrote map[string]T as an
+      object with a should question naming the Go type, so a map of
+      integers and a map of any value came out alike, an OpenAPI document
+      read back lost its value types, and no generator could write the
+      types again. Extracting a service, writing its specification and
+      generating it again must give the same interface, so the shape is
+      needed before 0.7.0. A reported shape is a request property of
+      map[string]any bound from JSON.
+    decision: |
+      additionalProperties joins the field subset with its JSON Schema
+      2020-12 and OpenAPI 3.1 meaning: on an object, the members the
+      object's properties do not name. Its value is a field, the type of
+      every such member's value; true, members of any value; or false,
+      none. Left out, the object says nothing of other members. An object
+      with additionalProperties and no properties is a map, whose keys
+      are data; with both, the named members are fixed and the rest follow
+      additionalProperties, and required names properties only. The
+      keyword goes on a field of type object, nullable or not, and the
+      schema refuses it elsewhere; any value is written true, and {} is
+      refused, as a field that has neither a type nor a reference.
+      patternProperties and propertyNames stay out of the subset. An
+      entity and a value object do not take it: their members are columns
+      and named parts, so a map is a field of one, stored as JSON. The
+      meta-model stays 0.2 (ADR-052).
+
+      The readers write a map wherever the code says one:
+      - Go: map[K]T is an object whose additionalProperties is T's schema,
+        whatever K, since encoding/json writes every key as text; a map
+        of an interface or any is true, with a should question blocking
+        the values; a value type the meta-model has no type for leaves
+        the map true, with the question at the values;
+      - dxlib: DataTypeMapStringString is a map of strings;
+      - OpenAPI: additionalProperties is kept, {} as true, values with no
+        field the meta-model holds as true with a line, and a component
+        schema that is a map is written in place, not as an entity or a
+        schema;
+      - Swift: [String: T] and a dictionary keyed by an integer, as
+        JSONEncoder writes them as objects; another key and Any values
+        print a line;
+      - Dart: Map keyed by String or int, dynamic or Object values or no
+        type arguments true with a should question;
+      - JavaScript and TypeScript: zod's record() keyed by string(), and
+        Record<string, T>, any or unknown values true with a should
+        question;
+      - a database's json and jsonb columns stay an object with a should
+        question, since such a column holds any JSON value, not only an
+        object.
+
+      The generators write it as the design has it: the OpenAPI document
+      as additionalProperties, its keys never wire-named; the dxlib dialect
+      a map of plain text as map-string-string and any other as
+      json-passthrough; the go-dxlib handler a map of text through dxlib's
+      map getter into map[string]string and any other typed map decoded
+      from JSON into map[string]T, a pointer for a value that may be null;
+      the documents a map of T, with the limits of its values as each
+      value's. type-rendering moves to 1.4.0, its Go row naming the map.
+      merge treats it as any key, keeping the first tree's value type with
+      a must question where the types differ and leaving it out with a
+      must question where one tree is open and another typed. diff calls
+      allowing more members minor and allowing fewer, or changing the
+      values' type, major, with additionalProperties left out read as
+      true.
+    why: |
+      JSON Schema and OpenAPI 3.1 say a map this way, and every stack's
+      own map type (Go's map[string]T, TypeScript's Record<string, T>,
+      Swift's [String: T], Dart's Map<String, T>) is the same shape, so the
+      standard keyword with its standard meaning is the one way to say it.
+      JSON Schema reads {} and true alike; the subset keeps true only,
+      after one way to say one thing, and {} is refused rather than read,
+      since a field without a type or a reference is refused everywhere
+      else. The keyword constrains an object only, so on any other type
+      it would say nothing, which is ambiguity the validator reports.
+      patternProperties and propertyNames are left out because a key
+      pattern names no member a stack's type holds: a generator could only
+      leave it unchecked, and no reader writes one. They can join when a
+      real system asks, which is the roadmap's rule for the meta-model.
+      An entity's and a value object's members are named because each is
+      a column or a part; a map has no fixed columns, so it is a field
+      kept as JSON. The Go key is left out of the schema because the wire
+      is text whatever the key, and the design says what is on the wire;
+      the Go type that holds a key is the implementation's. A JSON column
+      is not a map because it may hold an array or a scalar as well.
+      Absent additionalProperties is read as true in diff because that is
+      its meaning in JSON Schema, so a change from absent to true is no
+      change to a client.
+      The compiler test holds: a map the meta-model cannot hold whole is
+      still written, open with true, and the question or the line says
+      what is missing at the entry; {} and the keyword on a string are
+      errors at their entry, the rest of the file read. The acceptance
+      test holds: a map's value type is one field to change, and diff
+      says whether the change breaks a client.
+    consequences: |
+      A map of integers and a map of any value now differ in every tree a
+      reader writes, the OpenAPI document generated from it and the one
+      read back, and the dxlib handler's request type. The extract cases
+      of Go, Swift, Dart and JavaScript write maps where they printed a
+      line or asked, and new cases cover validate, merge and diff. The
+      limits of a map's values derive no test cases and are not checked
+      by the dxlib handler, as a list's items' limits are not. A map keyed
+      by an enum (zod's record() keyed by an enum, a Swift dictionary
+      keyed by another type) still prints a line, since a key constraint
+      is not in the subset.
+    satisfies: [SA-1, SA-44]

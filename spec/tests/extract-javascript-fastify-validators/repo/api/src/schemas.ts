@@ -25,6 +25,10 @@ export const searchSchema = z.object({
   slug: z.string().regex(/^[a-z-]+$/),
   from: z.coerce.date(),
   colour: colourSchema,
+  counts: z.record(z.string(), z.number().int().min(0).max(1000)),
+  labels: z.record(z.string().nullable()),
+  meta: z.record(z.unknown()),
+  byColour: z.record(colourSchema, z.string()),
 });
 
 export const colourSchema = z.enum(['plain', 'yellow', 'blue']);

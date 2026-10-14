@@ -19,86 +19,86 @@ questions:
     why: Syntax shows a declaration and not what the database holds; the catalogue dump after every migration says it, and merging it answers this.
     cites:
       - {source: code, clause: 'db/model.go:17', says: Declares desk.loans with NewModelDBTable.}
-  # specarch-problem: question: open_question: (should, decision) db/model.go:33: the column public.branches.code is declared by idField(...), which the reader does not read as a literal ModelDBField. What type is it, and may it be empty? Decided by system-owner. Answer with a decision record that names Q-3 under answers. [Q-3]
+  # specarch-problem: question: open_question: (should, decision) db/model.go:34: the column public.branches.code is declared by idField(...), which the reader does not read as a literal ModelDBField. What type is it, and may it be empty? Decided by system-owner. Answer with a decision record that names Q-3 under answers. [Q-3]
   Q-3:
-    question: 'db/model.go:33: the column public.branches.code is declared by idField(...), which the reader does not read as a literal ModelDBField. What type is it, and may it be empty?'
+    question: 'db/model.go:34: the column public.branches.code is declared by idField(...), which the reader does not read as a literal ModelDBField. What type is it, and may it be empty?'
     kind: decision
     priority: should
     blocks: ['#/entities/Branches/properties']
     decidedBy: system-owner
     why: A field built by a function is not known by syntax.
     cites:
-      - {source: code, clause: 'db/model.go:33', says: Declares code with idField(...).}
-  # specarch-problem: question: open_question: (must, decision) Table public.branches, declared at db/model.go:32, marks no column IsPrimaryKey. Which fields identify one of its records? Decided by system-owner. Answer with a decision record that names Q-4 under answers. [Q-4]
+      - {source: code, clause: 'db/model.go:34', says: Declares code with idField(...).}
+  # specarch-problem: question: open_question: (must, decision) Table public.branches, declared at db/model.go:33, marks no column IsPrimaryKey. Which fields identify one of its records? Decided by system-owner. Answer with a decision record that names Q-4 under answers. [Q-4]
   Q-4:
-    question: Table public.branches, declared at db/model.go:32, marks no column IsPrimaryKey. Which fields identify one of its records?
+    question: Table public.branches, declared at db/model.go:33, marks no column IsPrimaryKey. Which fields identify one of its records?
     kind: decision
     priority: must
     blocks: ['#/entities/Branches/primaryKey']
     decidedBy: system-owner
     why: Every entity names the fields that identify a record, and the declaration gives none.
     cites:
-      - {source: code, clause: 'db/model.go:32', says: Declares public.branches with no primary key.}
-  # specarch-problem: question: open_question: (must, decision) Does the database hold table public.branches? It is declared at db/model.go:32, and no catalogue of the running database was read with it. Decided by system-owner. Answer with a decision record that names Q-5 under answers. [Q-5]
+      - {source: code, clause: 'db/model.go:33', says: Declares public.branches with no primary key.}
+  # specarch-problem: question: open_question: (must, decision) Does the database hold table public.branches? It is declared at db/model.go:33, and no catalogue of the running database was read with it. Decided by system-owner. Answer with a decision record that names Q-5 under answers. [Q-5]
   Q-5:
-    question: Does the database hold table public.branches? It is declared at db/model.go:32, and no catalogue of the running database was read with it.
+    question: Does the database hold table public.branches? It is declared at db/model.go:33, and no catalogue of the running database was read with it.
     kind: decision
     priority: must
     blocks: ['#/entities/Branches']
     decidedBy: system-owner
     why: Syntax shows a declaration and not what the database holds; the catalogue dump after every migration says it, and merging it answers this.
     cites:
-      - {source: code, clause: 'db/model.go:32', says: Declares public.branches with NewModelDBTable.}
-  # specarch-problem: question: open_question: (must, decision) db/model.go:37 declares a table whose name tableName(...) the reader does not read as a literal. Which table does it declare? It blocks entities. Decided by system-owner. Answer with a decision record that names Q-6 under answers. [Q-6]
+      - {source: code, clause: 'db/model.go:33', says: Declares public.branches with NewModelDBTable.}
+  # specarch-problem: question: open_question: (must, decision) db/model.go:38 declares a table whose name tableName(...) the reader does not read as a literal. Which table does it declare? It blocks entities. Decided by system-owner. Answer with a decision record that names Q-6 under answers. [Q-6]
   Q-6:
-    question: db/model.go:37 declares a table whose name tableName(...) the reader does not read as a literal. Which table does it declare?
+    question: db/model.go:38 declares a table whose name tableName(...) the reader does not read as a literal. Which table does it declare?
     kind: decision
     priority: must
     blocks: [entities]
     decidedBy: system-owner
     why: A table's schema and name are read where they are literals, or a NewModelDBSchema call with a literal name assigned once; an entity is never named from a guess.
     cites:
-      - {source: code, clause: 'db/model.go:37', says: Calls NewModelDBTable with name tableName(...).}
-  # specarch-problem: question: open_question: (must, decision) db/model.go:39 declares a table whose schema nil the reader does not read as a literal. Which table does it declare? It blocks entities. Decided by system-owner. Answer with a decision record that names Q-7 under answers. [Q-7]
+      - {source: code, clause: 'db/model.go:38', says: Calls NewModelDBTable with name tableName(...).}
+  # specarch-problem: question: open_question: (must, decision) db/model.go:40 declares a table whose schema nil the reader does not read as a literal. Which table does it declare? It blocks entities. Decided by system-owner. Answer with a decision record that names Q-7 under answers. [Q-7]
   Q-7:
-    question: db/model.go:39 declares a table whose schema nil the reader does not read as a literal. Which table does it declare?
+    question: db/model.go:40 declares a table whose schema nil the reader does not read as a literal. Which table does it declare?
     kind: decision
     priority: must
     blocks: [entities]
     decidedBy: system-owner
     why: A table's schema and name are read where they are literals, or a NewModelDBSchema call with a literal name assigned once; an entity is never named from a guess.
     cites:
-      - {source: code, clause: 'db/model.go:39', says: Calls NewModelDBTable with schema nil.}
-  # specarch-problem: question: open_question: (must, decision) db/model.go:41 declares the table desk.archive with fields archiveFields, which the reader does not read as a literal map. Which columns does it have, and which identify a record? Decided by system-owner. Answer with a decision record that names Q-8 under answers. [Q-8]
+      - {source: code, clause: 'db/model.go:40', says: Calls NewModelDBTable with schema nil.}
+  # specarch-problem: question: open_question: (must, decision) db/model.go:42 declares the table desk.archive with fields archiveFields, which the reader does not read as a literal map. Which columns does it have, and which identify a record? Decided by system-owner. Answer with a decision record that names Q-8 under answers. [Q-8]
   Q-8:
-    question: db/model.go:41 declares the table desk.archive with fields archiveFields, which the reader does not read as a literal map. Which columns does it have, and which identify a record?
+    question: db/model.go:42 declares the table desk.archive with fields archiveFields, which the reader does not read as a literal map. Which columns does it have, and which identify a record?
     kind: decision
     priority: must
     blocks: ['#/entities/DeskArchive/properties', '#/entities/DeskArchive/primaryKey']
     decidedBy: system-owner
     why: A table's columns are read from a literal map of ModelDBField; the catalogue gives them once it is read.
     cites:
-      - {source: code, clause: 'db/model.go:41', says: Declares desk.archive with fields that are not a literal map.}
-  # specarch-problem: question: open_question: (must, decision) Does the database hold table desk.archive? It is declared at db/model.go:41, and no catalogue of the running database was read with it. Decided by system-owner. Answer with a decision record that names Q-9 under answers. [Q-9]
+      - {source: code, clause: 'db/model.go:42', says: Declares desk.archive with fields that are not a literal map.}
+  # specarch-problem: question: open_question: (must, decision) Does the database hold table desk.archive? It is declared at db/model.go:42, and no catalogue of the running database was read with it. Decided by system-owner. Answer with a decision record that names Q-9 under answers. [Q-9]
   Q-9:
-    question: Does the database hold table desk.archive? It is declared at db/model.go:41, and no catalogue of the running database was read with it.
+    question: Does the database hold table desk.archive? It is declared at db/model.go:42, and no catalogue of the running database was read with it.
     kind: decision
     priority: must
     blocks: ['#/entities/DeskArchive']
     decidedBy: system-owner
     why: Syntax shows a declaration and not what the database holds; the catalogue dump after every migration says it, and merging it answers this.
     cites:
-      - {source: code, clause: 'db/model.go:41', says: Declares desk.archive with NewModelDBTable.}
-  # specarch-problem: question: open_question: (must, decision) db/model.go:49 declares a table with NewModelDBTable in a loop at db/model.go:48, so the reader cannot tell how many tables it declares, or whether it declares one. Which tables does the database hold? It blocks entities. Decided by system-owner. Answer with a decision record that names Q-10 under answers. [Q-10]
+      - {source: code, clause: 'db/model.go:42', says: Declares desk.archive with NewModelDBTable.}
+  # specarch-problem: question: open_question: (must, decision) db/model.go:50 declares a table with NewModelDBTable in a loop at db/model.go:49, so the reader cannot tell how many tables it declares, or whether it declares one. Which tables does the database hold? It blocks entities. Decided by system-owner. Answer with a decision record that names Q-10 under answers. [Q-10]
   Q-10:
-    question: db/model.go:49 declares a table with NewModelDBTable in a loop at db/model.go:48, so the reader cannot tell how many tables it declares, or whether it declares one. Which tables does the database hold?
+    question: db/model.go:50 declares a table with NewModelDBTable in a loop at db/model.go:49, so the reader cannot tell how many tables it declares, or whether it declares one. Which tables does the database hold?
     kind: decision
     priority: must
     blocks: [entities]
     decidedBy: system-owner
     why: Syntax does not run the code; only the database's catalogue says what a loop or a condition declares.
     cites:
-      - {source: code, clause: 'db/model.go:49', says: Calls NewModelDBTable in a loop.}
+      - {source: code, clause: 'db/model.go:50', says: Calls NewModelDBTable in a loop.}
   # specarch-problem: question: open_question: (must, decision) seed/seed.go:27 grants a privilege with RolePrivilegeMustInsert in a loop at seed/seed.go:26, so the reader cannot tell which grants the seed makes, or whether it makes one. Which grants does the running system hold? It blocks roles. Decided by system-owner. Answer with a decision record that names Q-11 under answers. [Q-11]
   Q-11:
     question: seed/seed.go:27 grants a privilege with RolePrivilegeMustInsert in a loop at seed/seed.go:26, so the reader cannot tell which grants the seed makes, or whether it makes one. Which grants does the running system hold?

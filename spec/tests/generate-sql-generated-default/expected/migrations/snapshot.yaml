@@ -36,4 +36,4 @@ indexes:
       name: notes_by_shelf
 mappings:
   '#/entities/Note': table notes
-typeRendering: 1.3.0
+typeRendering: 1.4.0

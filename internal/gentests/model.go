@@ -458,6 +458,18 @@ func (g *walker) value(v any, field map[string]any) Value {
 		var parts map[string]map[string]any
 		if field != nil {
 			parts = g.schemaFields(field)
+			// A map's members beyond its properties take the type of its
+			// values.
+			if values, ok := field["additionalProperties"].(map[string]any); ok {
+				for k := range x {
+					if parts[k] == nil {
+						if parts == nil {
+							parts = map[string]map[string]any{}
+						}
+						parts[k] = values
+					}
+				}
+			}
 		}
 		out.Parts = g.record(x, parts)
 	case []any:

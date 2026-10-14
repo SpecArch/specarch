@@ -9,6 +9,7 @@ export interface Ticket {
   assignee: string | null;
   priority?: number;
   extra: Record<string, string>;
+  meta: Record<string, unknown>;
 }
 
 export interface NewReply {

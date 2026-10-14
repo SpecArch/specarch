@@ -199,18 +199,8 @@ questions:
     why: Core Data keeps a relationship by the related object, with no attribute that holds its key.
     cites:
       - {source: code, clause: 'app/Store.xcdatamodeld/Store 2.xcdatamodel/contents:19', says: The Core Data model declares the entity Slot.}
-  # specarch-problem: question: open_question: (could, decision) Not held: app/Library.swift:16: Author.extras: the type [String: String], a dictionary or a set, which a field does not hold; left out. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-21 under answers. [Q-21]
+  # specarch-problem: question: open_question: (could, decision) Not held: app/Library.swift:18: Author.selected is marked @Transient, so SwiftData does not store it; left out. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-21 under answers. [Q-21]
   Q-21:
-    question: 'Not held: app/Library.swift:16: Author.extras: the type [String: String], a dictionary or a set, which a field does not hold; left out. Does the specification need it, written another way or described by hand?'
-    kind: decision
-    priority: could
-    blocks: ['#/entities/Author']
-    decidedBy: system-owner
-    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
-    cites:
-      - {source: code, clause: 'app/Library.swift:16', says: 'Not held: Author.extras: the type [String: String], a dictionary or a set, which a field does not hold; left out.'}
-  # specarch-problem: question: open_question: (could, decision) Not held: app/Library.swift:18: Author.selected is marked @Transient, so SwiftData does not store it; left out. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-22 under answers. [Q-22]
-  Q-22:
     question: 'Not held: app/Library.swift:18: Author.selected is marked @Transient, so SwiftData does not store it; left out. Does the specification need it, written another way or described by hand?'
     kind: decision
     priority: could
@@ -219,8 +209,8 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: code, clause: 'app/Library.swift:18', says: 'Not held: Author.selected is marked @Transient, so SwiftData does not store it; left out.'}
-  # specarch-problem: question: open_question: (could, decision) Not held: app/Payloads.swift:10: AuthorPayload.nickname goes on the wire as nick, which info.wireNames cannot give; written by its Swift name. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-23 under answers. [Q-23]
-  Q-23:
+  # specarch-problem: question: open_question: (could, decision) Not held: app/Payloads.swift:10: AuthorPayload.nickname goes on the wire as nick, which info.wireNames cannot give; written by its Swift name. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-22 under answers. [Q-22]
+  Q-22:
     question: 'Not held: app/Payloads.swift:10: AuthorPayload.nickname goes on the wire as nick, which info.wireNames cannot give; written by its Swift name. Does the specification need it, written another way or described by hand?'
     kind: decision
     priority: could
@@ -229,8 +219,8 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: code, clause: 'app/Payloads.swift:10', says: 'Not held: AuthorPayload.nickname goes on the wire as nick, which info.wireNames cannot give; written by its Swift name.'}
-  # specarch-problem: question: open_question: (could, decision) Not held: app/Payloads.swift:11: AuthorPayload.internalNote is not among the type's CodingKeys, so Codable does not encode it; left out. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-24 under answers. [Q-24]
-  Q-24:
+  # specarch-problem: question: open_question: (could, decision) Not held: app/Payloads.swift:11: AuthorPayload.internalNote is not among the type's CodingKeys, so Codable does not encode it; left out. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-23 under answers. [Q-23]
+  Q-23:
     question: 'Not held: app/Payloads.swift:11: AuthorPayload.internalNote is not among the type''s CodingKeys, so Codable does not encode it; left out. Does the specification need it, written another way or described by hand?'
     kind: decision
     priority: could
@@ -239,8 +229,8 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: code, clause: 'app/Payloads.swift:11', says: 'Not held: AuthorPayload.internalNote is not among the type''s CodingKeys, so Codable does not encode it; left out.'}
-  # specarch-problem: question: open_question: (could, decision) Not held: app/Library.swift:44: Book.payload holds the schema AuthorPayload, and an entity refers to an entity or an enum, never to a schema; left out. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-25 under answers. [Q-25]
-  Q-25:
+  # specarch-problem: question: open_question: (could, decision) Not held: app/Library.swift:44: Book.payload holds the schema AuthorPayload, and an entity refers to an entity or an enum, never to a schema; left out. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-24 under answers. [Q-24]
+  Q-24:
     question: 'Not held: app/Library.swift:44: Book.payload holds the schema AuthorPayload, and an entity refers to an entity or an enum, never to a schema; left out. Does the specification need it, written another way or described by hand?'
     kind: decision
     priority: could
@@ -249,8 +239,8 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: code, clause: 'app/Library.swift:44', says: 'Not held: Book.payload holds the schema AuthorPayload, and an entity refers to an entity or an enum, never to a schema; left out.'}
-  # specarch-problem: question: open_question: (could, decision) Not held: app/Payloads.swift:38: the type Outer.Inner is declared inside another type, and a model is named by one PascalCase word; left out. Does the specification need it, written another way or described by hand? It blocks schemas. Decided by system-owner. Answer with a decision record that names Q-26 under answers. [Q-26]
-  Q-26:
+  # specarch-problem: question: open_question: (could, decision) Not held: app/Payloads.swift:38: the type Outer.Inner is declared inside another type, and a model is named by one PascalCase word; left out. Does the specification need it, written another way or described by hand? It blocks schemas. Decided by system-owner. Answer with a decision record that names Q-25 under answers. [Q-25]
+  Q-25:
     question: 'Not held: app/Payloads.swift:38: the type Outer.Inner is declared inside another type, and a model is named by one PascalCase word; left out. Does the specification need it, written another way or described by hand?'
     kind: decision
     priority: could
@@ -259,8 +249,8 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: code, clause: 'app/Payloads.swift:38', says: 'Not held: the type Outer.Inner is declared inside another type, and a model is named by one PascalCase word; left out.'}
-  # specarch-problem: question: open_question: (could, decision) Not held: app/Payloads.swift:30: ShelfKind.kids is "Kids" on the wire, and an enum's values are snake_case words; left out. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-27 under answers. [Q-27]
-  Q-27:
+  # specarch-problem: question: open_question: (could, decision) Not held: app/Payloads.swift:30: ShelfKind.kids is "Kids" on the wire, and an enum's values are snake_case words; left out. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-26 under answers. [Q-26]
+  Q-26:
     question: 'Not held: app/Payloads.swift:30: ShelfKind.kids is "Kids" on the wire, and an enum''s values are snake_case words; left out. Does the specification need it, written another way or described by hand?'
     kind: decision
     priority: could
@@ -269,8 +259,8 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: code, clause: 'app/Payloads.swift:30', says: 'Not held: ShelfKind.kids is "Kids" on the wire, and an enum''s values are snake_case words; left out.'}
-  # specarch-problem: question: open_question: (could, decision) Not held: app/Payloads.swift:23: Summary.bookCount goes on the wire as bookCount, since its type has no CodingKeys, and info.wireNames snake_case, which another type's CodingKeys give, would write it book_count. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-28 under answers. [Q-28]
-  Q-28:
+  # specarch-problem: question: open_question: (could, decision) Not held: app/Payloads.swift:23: Summary.bookCount goes on the wire as bookCount, since its type has no CodingKeys, and info.wireNames snake_case, which another type's CodingKeys give, would write it book_count. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-27 under answers. [Q-27]
+  Q-27:
     question: 'Not held: app/Payloads.swift:23: Summary.bookCount goes on the wire as bookCount, since its type has no CodingKeys, and info.wireNames snake_case, which another type''s CodingKeys give, would write it book_count. Does the specification need it, written another way or described by hand?'
     kind: decision
     priority: could
@@ -279,8 +269,8 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: code, clause: 'app/Payloads.swift:23', says: 'Not held: Summary.bookCount goes on the wire as bookCount, since its type has no CodingKeys, and info.wireNames snake_case, which another type''s CodingKeys give, would write it book_count.'}
-  # specarch-problem: question: open_question: (could, decision) Not held: app/Payloads.swift:24: Summary.topAuthor goes on the wire as topAuthor, since its type has no CodingKeys, and info.wireNames snake_case, which another type's CodingKeys give, would write it top_author. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-29 under answers. [Q-29]
-  Q-29:
+  # specarch-problem: question: open_question: (could, decision) Not held: app/Payloads.swift:24: Summary.topAuthor goes on the wire as topAuthor, since its type has no CodingKeys, and info.wireNames snake_case, which another type's CodingKeys give, would write it top_author. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-28 under answers. [Q-28]
+  Q-28:
     question: 'Not held: app/Payloads.swift:24: Summary.topAuthor goes on the wire as topAuthor, since its type has no CodingKeys, and info.wireNames snake_case, which another type''s CodingKeys give, would write it top_author. Does the specification need it, written another way or described by hand?'
     kind: decision
     priority: could
@@ -289,8 +279,8 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: code, clause: 'app/Payloads.swift:24', says: 'Not held: Summary.topAuthor goes on the wire as topAuthor, since its type has no CodingKeys, and info.wireNames snake_case, which another type''s CodingKeys give, would write it top_author.'}
-  # specarch-problem: question: open_question: (could, decision) Not held: app/Store.xcdatamodeld/Store 2.xcdatamodel/contents:9: Shelf.scratch is transient, so Core Data does not store it; left out. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-30 under answers. [Q-30]
-  Q-30:
+  # specarch-problem: question: open_question: (could, decision) Not held: app/Store.xcdatamodeld/Store 2.xcdatamodel/contents:9: Shelf.scratch is transient, so Core Data does not store it; left out. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-29 under answers. [Q-29]
+  Q-29:
     question: 'Not held: app/Store.xcdatamodeld/Store 2.xcdatamodel/contents:9: Shelf.scratch is transient, so Core Data does not store it; left out. Does the specification need it, written another way or described by hand?'
     kind: decision
     priority: could
@@ -299,8 +289,8 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: code, clause: 'app/Store.xcdatamodeld/Store 2.xcdatamodel/contents:9', says: 'Not held: Shelf.scratch is transient, so Core Data does not store it; left out.'}
-  # specarch-problem: question: open_question: (could, decision) Not held: app/Store.xcdatamodeld/Store 2.xcdatamodel/contents:11: Shelf.createdAt has the default "today", which is not a value its field's type takes as written; left out. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-31 under answers. [Q-31]
-  Q-31:
+  # specarch-problem: question: open_question: (could, decision) Not held: app/Store.xcdatamodeld/Store 2.xcdatamodel/contents:11: Shelf.createdAt has the default "today", which is not a value its field's type takes as written; left out. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-30 under answers. [Q-30]
+  Q-30:
     question: 'Not held: app/Store.xcdatamodeld/Store 2.xcdatamodel/contents:11: Shelf.createdAt has the default "today", which is not a value its field''s type takes as written; left out. Does the specification need it, written another way or described by hand?'
     kind: decision
     priority: could
@@ -309,8 +299,8 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: code, clause: 'app/Store.xcdatamodeld/Store 2.xcdatamodel/contents:11', says: 'Not held: Shelf.createdAt has the default "today", which is not a value its field''s type takes as written; left out.'}
-  # specarch-problem: question: open_question: (could, decision) Not held: app/Store.xcdatamodeld/Store 2.xcdatamodel/contents:23: the Core Data entity Book: its name is not a PascalCase name, or another model has it; left out. Does the specification need it, written another way or described by hand? It blocks entities. Decided by system-owner. Answer with a decision record that names Q-32 under answers. [Q-32]
-  Q-32:
+  # specarch-problem: question: open_question: (could, decision) Not held: app/Store.xcdatamodeld/Store 2.xcdatamodel/contents:23: the Core Data entity Book: its name is not a PascalCase name, or another model has it; left out. Does the specification need it, written another way or described by hand? It blocks entities. Decided by system-owner. Answer with a decision record that names Q-31 under answers. [Q-31]
+  Q-31:
     question: 'Not held: app/Store.xcdatamodeld/Store 2.xcdatamodel/contents:23: the Core Data entity Book: its name is not a PascalCase name, or another model has it; left out. Does the specification need it, written another way or described by hand?'
     kind: decision
     priority: could
@@ -319,8 +309,8 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: code, clause: 'app/Store.xcdatamodeld/Store 2.xcdatamodel/contents:23', says: 'Not held: the Core Data entity Book: its name is not a PascalCase name, or another model has it; left out.'}
-  # specarch-problem: question: open_question: (could, decision) Not held: app/Store.xcdatamodeld/Store.xcdatamodel/contents: a version of the Core Data model Store.xcdatamodeld other than its current one, Store 2.xcdatamodel; left out. Does the specification need it, written another way or described by hand? It blocks entities. Decided by system-owner. Answer with a decision record that names Q-33 under answers. [Q-33]
-  Q-33:
+  # specarch-problem: question: open_question: (could, decision) Not held: app/Store.xcdatamodeld/Store.xcdatamodel/contents: a version of the Core Data model Store.xcdatamodeld other than its current one, Store 2.xcdatamodel; left out. Does the specification need it, written another way or described by hand? It blocks entities. Decided by system-owner. Answer with a decision record that names Q-32 under answers. [Q-32]
+  Q-32:
     question: 'Not held: app/Store.xcdatamodeld/Store.xcdatamodel/contents: a version of the Core Data model Store.xcdatamodeld other than its current one, Store 2.xcdatamodel; left out. Does the specification need it, written another way or described by hand?'
     kind: decision
     priority: could

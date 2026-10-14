@@ -69,13 +69,15 @@ func (w wireCheck) content(content *yaml.Node, at []string) {
 	}
 }
 
-// field checks a field's own properties and its items', at any depth.
+// field checks a field's own properties, its items' and a map's values', at
+// any depth.
 func (w wireCheck) field(f *yaml.Node, at []string) {
 	if f == nil || f.Kind != yaml.MappingNode {
 		return
 	}
 	w.object(nil, source.Child(f, "properties"), at)
 	w.field(source.Child(f, "items"), append(append([]string{}, at...), "items"))
+	w.field(source.Child(f, "additionalProperties"), append(append([]string{}, at...), "additionalProperties"))
 }
 
 // object checks the properties of one object: first those it carries from

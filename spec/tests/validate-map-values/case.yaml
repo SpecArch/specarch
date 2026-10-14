@@ -1,0 +1,8 @@
+arguments: [validate, .]
+exitStatus: 1
+standardOutput: |
+  specarch.yaml:11:56: error: /schemas/Settings/properties/emptyOpen/additionalProperties: schema: $ref is missing; add it here [schema.7c41a1e7@specarch.yaml#/schemas/Settings/properties/emptyOpen/additionalProperties]
+  specarch.yaml:11:56: error: /schemas/Settings/properties/emptyOpen/additionalProperties: schema: this is an object, but a boolean is expected here [schema.382a201b@specarch.yaml#/schemas/Settings/properties/emptyOpen/additionalProperties]
+  specarch.yaml:11:56: error: /schemas/Settings/properties/emptyOpen/additionalProperties: schema: type is missing; add it here [schema.ce5aa38a@specarch.yaml#/schemas/Settings/properties/emptyOpen/additionalProperties]
+  specarch.yaml:12:25: error: /schemas/Settings/properties/onString/type: schema: string is not allowed here; use one of ["null","object"], ["object","null"], object [schema@specarch.yaml#/schemas/Settings/properties/onString/type]
+  specarch.yaml:20:91: error: /entities/Holder/properties/parts/additionalProperties/storage: value_object: storage says how an entity's field holding a schema is kept, and this value is stored with what holds it; leave storage out here [value_object@specarch.yaml#/entities/Holder/properties/parts/additionalProperties/storage]

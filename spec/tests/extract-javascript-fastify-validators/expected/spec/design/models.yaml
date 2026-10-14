@@ -4,7 +4,7 @@ enums:
     enum: [plain, yellow, blue]
     origin: stated
     cites:
-      - {source: code, clause: 'api/src/schemas.ts:30', says: 'colourSchema is a zod enum of plain, yellow, blue.'}
+      - {source: code, clause: 'api/src/schemas.ts:34', says: 'colourSchema is a zod enum of plain, yellow, blue.'}
 schemas:
   Note:
     type: object
@@ -38,7 +38,10 @@ schemas:
       slug: {type: string}
       from: {type: string, format: date-time}
       colour: {$ref: '#/enums/Colour'}
-    required: [q, slug, from, colour]
+      counts: {type: object, additionalProperties: {type: integer, minimum: 0, maximum: 1000, format: int32}}
+      labels: {type: object, additionalProperties: {type: [string, "null"]}}
+      meta: {type: object, additionalProperties: true}
+    required: [q, slug, from, colour, counts, labels, meta]
     origin: stated
     cites:
       - {source: code, clause: 'api/src/schemas.ts:20', says: searchSchema is a zod object schema.}

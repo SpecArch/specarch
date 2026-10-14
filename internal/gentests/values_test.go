@@ -34,3 +34,16 @@ func TestValueOfSchema(t *testing.T) {
 		t.Errorf("a list of fees is %+v", l)
 	}
 }
+
+// TestValueOfMap types each member of a map by the map's values, and a
+// member its properties name by that property.
+func TestValueOfMap(t *testing.T) {
+	g := &walker{spec: map[string]any{}}
+	field := map[string]any{"type": "object",
+		"properties":           map[string]any{"total": map[string]any{"type": "string", "format": "decimal"}},
+		"additionalProperties": map[string]any{"type": "integer", "format": "int32"}}
+	v := g.value(map[string]any{"a": json.Number("1"), "total": "3.50"}, field)
+	if v.Kind != "object" || len(v.Parts) != 2 || v.Parts[0].Value.Kind != "int" || v.Parts[1].Value.Kind != "decimal" {
+		t.Errorf("a map is %+v", v)
+	}
+}

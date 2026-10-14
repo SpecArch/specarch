@@ -5,7 +5,7 @@ repository:
     - [.]
 exitStatus: 0
 standardOutput: |
-  commit a4f2e0725e717131552dd4bae2d127f9dc0e28ab: the last change to .
+  commit 79de68bccce863ca415e66d6717227499cc878b0: the last change to .
   counted 6 Go files, 2 of them importing dxlib's api package and 0 that do not parse, and left out 0: every tracked Go file under . but test files and files in a folder below it named testdata or vendor, or that the go command ignores
   dxlib: counted 6 NewModelDBTable calls and 2 table constructors: every call by that name in a file that imports dxlib's models package, and every call of dxlib's tables package that makes a table the API serves
   dxlib_module: counted 3 roles, 2 privileges and 7 grants seeded with literal names: every insert into dxlib_module's role and privilege tables, and every RolePrivilege...Insert call, in a file that imports a package of dxlib_module

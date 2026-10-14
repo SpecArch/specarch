@@ -124,6 +124,7 @@ extension Design {
                 return
             }
             visit(s.child("items"), owner)
+            visit(s.child("additionalProperties"), owner)
             for p in pairs(s.child("properties")) {
                 out.append(NamedField(name: owner.isEmpty ? p.key.value : owner + "." + p.key.value, node: p.value))
                 visit(p.value, "")

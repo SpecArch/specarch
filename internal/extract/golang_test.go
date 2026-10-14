@@ -259,8 +259,8 @@ func main() { _ = startCommand().Execute() }
 // struct is read by: json tags, a nested struct in place, a pointer and a
 // slice; and anchors every question's pointer in the tree it writes, so
 // that a body of a type outside the module blocks the operation's missing
-// requestBody, a map is an object whose shape the question asks, blocking
-// the written property, and an interface as a struct's only field blocks
+// requestBody, a map of any values is an open map whose values the
+// question asks, blocking the written values, and an interface as a struct's only field blocks
 // the object's missing properties, never a key below one the tree does
 // not have.
 func TestGoBodyIntoStructWrittenInPlace(t *testing.T) {
@@ -360,14 +360,14 @@ func (s *Server) Tag(c *gin.Context) {
 	if strings.Count(paths, "requestBody:") != 4 {
 		t.Errorf("want a requestBody on POST /items, PUT /items, POST /policies and POST /tags:\n%s", paths)
 	}
-	if want := "policy:\n                  type: object\n"; !strings.Contains(paths, want) {
-		t.Errorf("the map property is not written as an object:\n%s", paths)
+	if want := "policy:\n                  type: object\n                  additionalProperties: true\n"; !strings.Contains(paths, want) {
+		t.Errorf("the map property is not written as an open map:\n%s", paths)
 	}
 	for _, want := range []string{
 		"blocks: ['#/paths/~1imports/post/requestBody']",
-		"blocks: ['#/paths/~1policies/post/requestBody/content/application~1json/schema/properties/policy']",
+		"blocks: ['#/paths/~1policies/post/requestBody/content/application~1json/schema/properties/policy/additionalProperties']",
 		"blocks: ['#/paths/~1tags/post/requestBody/content/application~1json/schema/properties']",
-		"it is a map, map[string]any, whose keys",
+		"it is a map, map[string]any, whose values may be any JSON value",
 	} {
 		if !strings.Contains(questions, want) {
 			t.Errorf("the questions fragment does not hold %q:\n%s", want, questions)
@@ -706,5 +706,83 @@ func list(c *gin.Context) {}
 	}
 	if counted != 7 || written != 1 || notHeld != 1 || counted != written+asked+notHeld {
 		t.Errorf("counted %d registrations, wrote %d operations, asked %d questions and printed %d not-held lines; every registration is one of the three\n%s", counted, written, asked, notHeld, strings.Join(res.Lines, "\n"))
+	}
+}
+
+// TestGoTypedMaps checks that a map is written as an object whose
+// additionalProperties is the schema of its values, whatever its key type,
+// since encoding/json writes every key as text; that a map of maps, of
+// lists, of structs and of pointers keeps its value type; and that a value
+// type the meta-model has no type for leaves the map open, with the
+// question at its values.
+func TestGoTypedMaps(t *testing.T) {
+	paths, questions := goRouterOperations(t, map[string]string{
+		"go.mod": "module example.com/svc\n\ngo 1.26\n",
+		"cmd/main.go": `package main
+
+import (
+	"github.com/gin-gonic/gin"
+
+	"example.com/svc"
+)
+
+func main() {
+	r := gin.New()
+	server := svc.NewServer()
+	server.Routes(r)
+	_ = r.Run(":8080")
+}
+`,
+		"server.go": `package svc
+
+import "github.com/gin-gonic/gin"
+
+type Server struct{}
+
+func NewServer() *Server { return &Server{} }
+
+func (s *Server) Routes(r *gin.Engine) {
+	r.POST("/settings", s.Save)
+}
+
+type Code string
+
+type Label struct {
+	Text string ` + "`json:\"text\"`" + `
+}
+
+type saveRequest struct {
+	Counts  map[string]int32            ` + "`json:\"counts\"`" + `
+	ByID    map[int32]Label             ` + "`json:\"byId\"`" + `
+	ByCode  map[Code]*Label             ` + "`json:\"byCode\"`" + `
+	Groups  map[string][]string         ` + "`json:\"groups\"`" + `
+	Nested  map[string]map[string]bool  ` + "`json:\"nested\"`" + `
+	Weights map[string]float32          ` + "`json:\"weights\"`" + `
+}
+
+func (s *Server) Save(c *gin.Context) {
+	var req saveRequest
+	_ = c.ShouldBindJSON(&req)
+}
+`,
+	})
+	for _, want := range []string{
+		"counts:\n                  type: object\n                  additionalProperties:\n                    type: integer\n                    format: int32\n",
+		"byId:\n                  type: object\n                  additionalProperties:\n                    type: object\n                    properties:\n                      text:\n                        type: string\n",
+		"byCode:\n                  type: object\n                  additionalProperties:\n                    type: [object, \"null\"]\n",
+		"groups:\n                  type: object\n                  additionalProperties:\n                    type: array\n                    items:\n                      type: string\n",
+		"nested:\n                  type: object\n                  additionalProperties:\n                    type: object\n                    additionalProperties:\n                      type: boolean\n",
+		"weights:\n                  type: object\n                  additionalProperties: true\n",
+	} {
+		if strings.Count(paths, want) != 1 {
+			t.Errorf("the paths fragment does not hold %q once:\n%s", want, paths)
+		}
+	}
+	if !strings.Contains(questions, "blocks: ['#/paths/~1settings/post/requestBody/content/application~1json/schema/properties/weights/additionalProperties']") ||
+		!strings.Contains(questions, "property weights, a value of the map: it is Go''s float32") {
+		t.Errorf("want the question on the float32 values, blocking the values:\n%s", questions)
+	}
+	if strings.Contains(questions, "it is a map") {
+		t.Errorf("a typed map is asked about:\n%s", questions)
 	}
 }

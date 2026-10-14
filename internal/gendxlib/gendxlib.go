@@ -416,6 +416,11 @@ func (g *gen) goType(s map[string]any) (typ, getter string) {
 	// A nullable type reads as its base: dxlib's getter answers a null and a
 	// left-out parameter alike, with Has false.
 	t = strings.TrimPrefix(t, "nullable-")
+	if values, ok := s["additionalProperties"].(map[string]any); ok && obj(s["properties"]) == nil && t != "map-string-string" {
+		// A typed map dxlib has no getter for: read as JSON and decoded
+		// into map[string]T, which refuses a value of another type.
+		return "map[string]" + g.mapValueType(values), readValue
+	}
 	switch {
 	case strings.HasPrefix(t, "int32"):
 		return "int32", "GetParameterValueAsInt32"
@@ -434,6 +439,8 @@ func (g *gen) goType(s map[string]any) (typ, getter string) {
 	case t == "json" || t == "json-passthrough":
 		g.imports["github.com/donnyhardyanto/dxlib/utils"] = true
 		return "utils.JSON", "GetParameterValueAsJSON"
+	case t == "map-string-string":
+		return "map[string]string", "GetParameterValueAsMapStringString"
 	case t == "array-string":
 		return "[]string", "GetParameterValueAsStrings"
 	case t == "array-int64":
@@ -442,6 +449,17 @@ func (g *gen) goType(s map[string]any) (typ, getter string) {
 		return "[]any", "GetParameterValueAsArrayOfAny"
 	}
 	return "string", "GetParameterValueAsString"
+}
+
+// mapValueType is the Go type of a map's values: a pointer when a value
+// may be null, except for a list, a map or a value object, which are nil
+// themselves.
+func (g *gen) mapValueType(values map[string]any) string {
+	typ, _ := g.goType(values)
+	if nullableType(values) && !strings.HasPrefix(typ, "[]") && !strings.HasPrefix(typ, "*") && !strings.HasPrefix(typ, "map[") && typ != "utils.JSON" {
+		return "*" + typ
+	}
+	return typ
 }
 
 // defaultValue is the Go literal of a field's design default, which a

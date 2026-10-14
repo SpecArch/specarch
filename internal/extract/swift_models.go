@@ -76,7 +76,7 @@ func (sw *swiftReader) field(text string, wire bool) swField {
 		f = sw.field(t[len("Optional<"):len(t)-1], wire)
 		f.nullable = true
 		return f
-	case strings.HasPrefix(t, "[") && strings.HasSuffix(t, "]") && !strings.Contains(t, ":"),
+	case strings.HasPrefix(t, "[") && strings.HasSuffix(t, "]") && !isDictionaryLiteral(t),
 		strings.HasPrefix(t, "Array<") && strings.HasSuffix(t, ">"):
 		inner := strings.TrimSuffix(strings.TrimPrefix(strings.TrimPrefix(t, "Array<"), "["), "]")
 		if strings.HasPrefix(t, "Array<") {
@@ -99,8 +99,29 @@ func (sw *swiftReader) field(text string, wire bool) swField {
 			f.asks = append(f.asks, a)
 		}
 		return f
-	case strings.HasPrefix(t, "[") || strings.HasPrefix(t, "Dictionary<") || strings.HasPrefix(t, "Set<"):
-		return swField{held: "the type " + t + ", a dictionary or a set, which a field does not hold"}
+	case strings.HasPrefix(t, "[") && strings.HasSuffix(t, "]"), strings.HasPrefix(t, "Dictionary<") && strings.HasSuffix(t, ">"):
+		sep := ':'
+		inner := t[1 : len(t)-1]
+		if strings.HasPrefix(t, "Dictionary<") {
+			sep, inner = ',', t[len("Dictionary<"):len(t)-1]
+		}
+		key, value, ok := splitTopLevel(inner, sep)
+		if !ok {
+			return swField{held: "the type " + t + ", which the reader does not read"}
+		}
+		if !swiftMapKeys[key] {
+			// JSONEncoder writes a dictionary as an object only when its key
+			// is a String or an Int, or conforms to CodingKeyRepresentable,
+			// which syntax does not show; otherwise as a list of keys and
+			// values.
+			return swField{held: "the type " + t + ", a dictionary keyed by " + key + ", which Codable writes as a JSON object only for String or Int keys"}
+		}
+		if value == "Any" || value == "AnyObject" {
+			return swField{held: "the type " + t + ", whose values are Any, which Codable does not encode"}
+		}
+		return mapField(sw.field(value, wire))
+	case strings.HasPrefix(t, "Set<"):
+		return swField{held: "the type " + t + ", a set, which a field does not hold"}
 	}
 	if pairs, ok := swiftScalars[t]; ok {
 		return swField{node: fieldOf(pairs)}
@@ -439,6 +460,64 @@ func literalType(v *swValue) string {
 
 // nullable lets a field also be null, as JSON Schema writes it; a
 // reference stays as it is, and is left out of required.
+// swiftMapKeys are the key types JSONEncoder writes a dictionary with as
+// a JSON object, an integer key as its decimal text.
+var swiftMapKeys = map[string]bool{"String": true, "Int": true, "Int8": true, "Int16": true, "Int32": true, "Int64": true,
+	"UInt": true, "UInt8": true, "UInt16": true, "UInt32": true, "UInt64": true}
+
+// splitTopLevel splits a type's text at the first sep outside brackets,
+// angle brackets and parentheses.
+func splitTopLevel(text string, sep rune) (string, string, bool) {
+	depth := 0
+	for i, r := range text {
+		switch r {
+		case '[', '<', '(':
+			depth++
+		case ']', '>', ')':
+			depth--
+		case sep:
+			if depth == 0 {
+				return strings.TrimSpace(text[:i]), strings.TrimSpace(text[i+1:]), true
+			}
+		}
+	}
+	return "", "", false
+}
+
+// isDictionaryLiteral says whether a type in brackets is a dictionary,
+// [Key: Value], rather than an array, whose element may hold one.
+func isDictionaryLiteral(t string) bool {
+	_, _, ok := splitTopLevel(t[1:len(t)-1], ':')
+	return ok
+}
+
+// mapField writes a map whose values are v: an object whose
+// additionalProperties is v's field, null kept in its type when a value
+// may be null, and the questions on v moved under it. The map refers to
+// no model, so it is never read as a relation.
+func mapField(v swField) swField {
+	if v.held != "" {
+		return v
+	}
+	node := v.node
+	if v.nullable {
+		node = nullable(node)
+	}
+	f := swField{node: flow(mapping("type", "object", "additionalProperties", node))}
+	for _, a := range v.asks {
+		a.key = "/additionalProperties" + a.key
+		f.asks = append(f.asks, a)
+	}
+	return f
+}
+
+// openMap is a map whose values may be any JSON value, written open, with
+// the question of their shape on the values.
+func openMap(what string) swField {
+	return swField{node: flow(mapping("type", "object", "additionalProperties", true)), asks: []swAsk{{"should", "/additionalProperties",
+		what + ", whose values may be any JSON value. Which shape do the values take?", "Nothing in the source says the values' shape, and the map is written open until it is known."}}}
+}
+
 func nullable(n *yaml.Node) *yaml.Node {
 	t := child(n, "type")
 	if t == nil || t.Kind != yaml.ScalarNode {

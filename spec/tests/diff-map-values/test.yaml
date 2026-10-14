@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: diff
+level: system
+scenario: golden
+given: "a new version in which one map's values change from boolean to string, a closed object comes to allow any member, a map of strings becomes a closed object, an object that said nothing of other members allows any, and a map open to any value comes to allow only dates, released as 2.0.0 by a major change naming them"
+when: "diff is run"
+then: "the changed value type, the closed object and the map narrowed to dates are major with the reason, the object that allows any member minor, the object that says the same as before a patch, the major step passes, and it exits 0"
+verifies: [SA-25]

@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "a schema whose fields are maps: of strings, of nullable integers, open to any value, closed beside properties, of maps of a schema; one written with {} for any value, one on a string, and an entity's map whose values carry storage"
+when: validate is run
+then: "the maps validate; {} is refused for having neither a type nor a reference nor being a boolean, additionalProperties on a string is refused as only an object takes it, storage inside the map's values is refused as on any value inside a field, and it exits 1"
+verifies: [SA-9]

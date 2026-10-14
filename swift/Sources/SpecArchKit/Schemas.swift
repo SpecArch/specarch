@@ -1395,6 +1395,17 @@ let designSchemaJSON = #"""
             "$ref": "#/$defs/field"
           }
         },
+        "additionalProperties": {
+          "description": "JSON Schema keyword, on an object only. The members an object may have beyond the ones properties names, and the type of their values: a field, a map whose keys are any text and whose values are all of that type; true, any members of any value; false, no members beyond properties. Left out, the object says nothing of other members. An object with additionalProperties and no properties is a map; with both, the named members are fixed and the rest follow additionalProperties. Open is written true, never {}.",
+          "oneOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "$ref": "#/$defs/field"
+            }
+          ]
+        },
         "required": {
           "type": "array",
           "items": {
@@ -1683,6 +1694,33 @@ let designSchemaJSON = #"""
               "format": {
                 "enum": [
                   "date-time"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "additionalProperties"
+            ]
+          },
+          "then": {
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "enum": [
+                  "object",
+                  [
+                    "object",
+                    "null"
+                  ],
+                  [
+                    "null",
+                    "object"
+                  ]
                 ]
               }
             }
@@ -8768,7 +8806,7 @@ parts:
 # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-0.1.schema.json
 specarchIdiom: "0.1"
 name: type-rendering
-version: 1.3.0
+version: 1.4.0
 concern: type-rendering
 stacks: [go, postgresql, sqlserver, oracle, mariadb, any]
 reads: [entities]
@@ -8896,7 +8934,9 @@ parts:
           - { type: number, render: float64 }
           - { type: boolean, render: bool }
           - { type: array, render: "[]{items}" }
-          - { type: object, render: "the entity's struct, or map[string]any for an object without properties" }
+          - type: object
+            render: "the entity's or the schema's struct; for a map, an object with additionalProperties a field and no properties, map[string] and its values' rendering, a pointer for a value that may be null; map[string]any for an object without properties or with additionalProperties true"
+            why: encoding/json writes a map as a JSON object, each key as text, so map[string]T holds a map of the design with its values typed and refuses a value of another type when it decodes.
       postgresql:
         rows:
           - { type: string, enum: true, render: "VARCHAR({longestValue})", check: "{column} IN ({values})" }

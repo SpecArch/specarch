@@ -312,6 +312,17 @@
             "$ref": "#/$defs/field"
           }
         },
+        "additionalProperties": {
+          "description": "JSON Schema keyword, on an object only. The members an object may have beyond the ones properties names, and the type of their values: a field, a map whose keys are any text and whose values are all of that type; true, any members of any value; false, no members beyond properties. Left out, the object says nothing of other members. An object with additionalProperties and no properties is a map; with both, the named members are fixed and the rest follow additionalProperties. Open is written true, never {}.",
+          "oneOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "$ref": "#/$defs/field"
+            }
+          ]
+        },
         "required": {
           "type": "array",
           "items": {
@@ -600,6 +611,33 @@
               "format": {
                 "enum": [
                   "date-time"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "additionalProperties"
+            ]
+          },
+          "then": {
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "enum": [
+                  "object",
+                  [
+                    "object",
+                    "null"
+                  ],
+                  [
+                    "null",
+                    "object"
+                  ]
                 ]
               }
             }

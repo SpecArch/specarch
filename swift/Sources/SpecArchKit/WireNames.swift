@@ -126,11 +126,12 @@ extension Checker {
         }
     }
 
-    /// Checks a field's own properties and its items', at any depth.
+    /// Checks a field's own properties, its items' and a map's values', at any depth.
     private func wireField(_ rule: String, _ f: YNode?, _ at: [String]) {
         guard let f, f.kind == .mapping else { return }
         wireObject(rule, nil, f.child("properties"), at)
         wireField(rule, f.child("items"), at + ["items"])
+        wireField(rule, f.child("additionalProperties"), at + ["additionalProperties"])
     }
 
     /// Checks the properties of one object: first those it carries from

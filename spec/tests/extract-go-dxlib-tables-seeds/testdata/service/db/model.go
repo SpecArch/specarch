@@ -24,6 +24,7 @@ var Loans = models.NewModelDBTable(Desk, "loans", 1, map[string]*models.ModelDBF
 	"place":     {Order: 7, Type: types.DataTypeGeometryPoint},
 	"shelf":     {Order: 8, Type: shelfType},
 	"weight":    {Order: 9, Type: types.DataTypeFloat32},
+	"labels":    {Order: 10, Type: types.DataTypeMapStringString},
 }, models.ModelDBTDEConfig{})
 
 var shelfType = types.DataTypeString10

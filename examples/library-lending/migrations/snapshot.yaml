@@ -241,7 +241,7 @@ mappings:
   '#/entities/Book': table books
   '#/entities/Loan': table loans
   '#/entities/Member': table members
-typeRendering: 1.3.0
+typeRendering: 1.4.0
 views:
   MemberWithLoans:
     from: Member

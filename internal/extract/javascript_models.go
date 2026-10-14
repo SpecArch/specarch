@@ -270,6 +270,25 @@ func (js *jsReader) validatorValue(v *jsValue, at string) (swField, bool) {
 	return f, required
 }
 
+// record writes zod's record(), a JSON object whose keys are text and
+// whose values all pass one schema, as a map: record(value), or
+// record(key, value) with a key of string(). A key of any other schema,
+// an enum's or a literal's, names the members, which a map does not; and
+// a value of any() or unknown() leaves the map open, with its question.
+func (js *jsReader) record(args []jsValue, at string) swField {
+	value := &args[len(args)-1]
+	if len(args) > 1 {
+		if _, steps, ok := js.schemaChain(&args[0]); !ok || steps[0].name != "string" || len(steps) > 1 {
+			return swField{held: fmt.Sprintf("zod's record() keyed by %s, whose keys a map of the meta-model does not restrict", args[0].describe())}
+		}
+	}
+	if _, steps, ok := js.schemaChain(value); ok && (steps[0].name == "any" || steps[0].name == "unknown") {
+		return openMap("its validation is zod's record() of " + steps[0].name + "()")
+	}
+	v, _ := js.validatorValue(value, at+"/additionalProperties")
+	return mapField(v)
+}
+
 // validatorField writes a chain of a validation library as a field.
 func (js *jsReader) validatorField(lib string, steps []jsStep, at string) swField {
 	base := steps[0].name
@@ -325,7 +344,12 @@ func (js *jsReader) validatorField(lib string, steps []jsStep, at string) swFiel
 		return f
 	case "object":
 		return swField{held: "an object nested in a property, which a field holds only as a schema of its own"}
-	case "union", "discriminatedUnion", "intersection", "alternatives", "record", "map", "tuple", "any", "unknown", "lazy", "when":
+	case "record":
+		if lib == "zod" && len(steps[0].args) > 0 {
+			return js.record(steps[0].args, at)
+		}
+		return swField{held: fmt.Sprintf("%s's %s(), which a field does not hold", lib, base)}
+	case "union", "discriminatedUnion", "intersection", "alternatives", "map", "tuple", "any", "unknown", "lazy", "when":
 		return swField{held: fmt.Sprintf("%s's %s(), which a field does not hold", lib, base)}
 	default:
 		return swField{node: flow(mapping()), asks: []swAsk{{"must", "", fmt.Sprintf("its validation starts with %s's %s(), which the reader does not read. Which type is it?", lib, base), "A property's type is read from the validation calls the reader knows."}}}
@@ -809,6 +833,14 @@ func (js *jsReader) typeField(t *jsType, at string) swField {
 		}
 		if ref == "Date" && t.Library {
 			return swField{node: fieldOf([]any{"type", "string", "format", "date-time"})}
+		}
+		if ref == "Record" && t.Library && len(t.Arguments) == 2 && t.Arguments[0] != nil && t.Arguments[0].Keyword == "string" {
+			// Record<string, T>: an object whose keys are any text and whose
+			// values are all T, a map.
+			if v := t.Arguments[1]; v != nil && (v.Keyword == "any" || v.Keyword == "unknown") {
+				return openMap("the source declares it Record<string, " + v.Keyword + ">")
+			}
+			return mapField(js.typeField(t.Arguments[1], at+"/additionalProperties"))
 		}
 		if name, section, ok := js.typeName(t); ok {
 			return swField{node: flow(mapping("$ref", "#/"+section+"/"+name)), model: name}

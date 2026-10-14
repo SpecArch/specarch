@@ -99,7 +99,9 @@ commands:
         list, and its boolean `exclusiveMinimum` and `exclusiveMaximum`
         the number form; a schema with properties and no type is an
         object, and one with items an array, as JSON Schema reads those
-        keywords. A component schema of type object with at least one
+        keywords; additionalProperties on an object is kept, a schema of
+        the values as a field, `{}` as true, and values with no field the
+        meta-model holds as true with a line (ADR-125). A component schema of type object with at least one
         property that can be held becomes an entity when an operation's
         201 response answers it or a path with a parameter answers it as
         it is, its primary key a must question, and a reference to it a
@@ -109,7 +111,9 @@ commands:
         and a line where the design would refuse it in columns (ADR-063,
         ADR-077); one of type string with an enum of snake_case values
         becomes an enum; a reference to any other component schema is
-        written in place. A document whose property names are snake_case
+        written in place, and so is one that allows members beyond its
+        properties, a map, which a field holds and an entity or a schema
+        does not. A document whose property names are snake_case
         (one has an underscore and none a capital) gives info.wireNames
         snake_case, and each property is written by its camelCase name,
         printed as one line.
@@ -117,8 +121,9 @@ commands:
         methods head, options and trace; a cookie parameter or one given
         by content; a response code range; response headers and links;
         callbacks, servers, tags and external documents; a reference
-        outside the document; allOf, oneOf, anyOf, not,
-        additionalProperties and discriminator; a property name that is
+        outside the document; allOf, oneOf, anyOf, not and
+        discriminator; additionalProperties on an entity or a schema, and
+        on a type that is not an object; a property name that is
         snake_case in a document whose other names are camelCase, or that
         would not go back on the wire unchanged under info.wireNames; and an
         operationId that is not camelCase, the operation then named by
@@ -515,7 +520,9 @@ commands:
         table, so that the two trees give one entity. Its fields are a
         literal map of `ModelDBField`: each column is a property named in
         camelCase, its type the column type dxlib's data type makes on
-        PostgreSQL, written as extract database writes that type, nullable
+        PostgreSQL, written as extract database writes that type, except
+        `DataTypeMapStringString`, an object whose additionalProperties is
+        a string, which the jsonb column alone does not say, nullable
         unless `IsNotNull` or `IsPrimaryKey` says otherwise, read-only for
         a serial type or `IsAutoIncrement`, and the `IsPrimaryKey` columns
         the primary key. A field's other keys, such as `References`,
@@ -668,8 +675,11 @@ commands:
         place both an object in place, with `info.wireNames: snake_case`
         when the tagged names are snake_case. A field with no json tag goes on the wire by its Go
         name, which is neither camelCase nor snake_case, and prints a
-        line; a map is an object, written, whose shape is a should
-        question blocking it; an interface, an embedded struct and a
+        line; a map is an object whose additionalProperties is its values'
+        schema, whatever its key, since encoding/json writes every key as
+        text, and a map of an interface's values is additionalProperties
+        true with a should question blocking the values (ADR-125); an
+        interface, an embedded struct and a
         type outside the module are should questions, and the width of
         an `int` or a 64-bit integer a must question. The tags of
         go-playground/validator (`validate`, read when the module imports
@@ -783,7 +793,10 @@ commands:
         (a date-time) as their JSON types, the integers of a width below
         64 bits with their bounds, `Double` a double, `Data` a byte
         string on the wire and a binary one stored, an array of one of
-        these an array, and a model of the files read a reference to it.
+        these an array, a dictionary keyed by `String` or an integer an
+        object whose additionalProperties is its values' field, as
+        `JSONEncoder` writes it, and a model of the files read a reference
+        to it.
         An `Int`, `UInt`, `Int64` or `UInt64`, a `Float` and a `Decimal`
         are must questions on their format or type, since the width of a
         word, a 32-bit float and a decimal's precision and scale are not
@@ -794,8 +807,8 @@ commands:
         property of an entity that holds another model is a relation to
         it, its kind and its key a must question, since SwiftData keeps a
         relation by the model; a schema held by an entity, a static or
-        computed property, `@Transient`, a dictionary or a set print a
-        line or are counted. An entity's primary key is a must question,
+        computed property, `@Transient`, a dictionary keyed by another type
+        or of `Any`, and a set print a line or are counted. An entity's primary key is a must question,
         naming the properties `@Attribute(.unique)` marks. A schema's
         `CodingKeys` give its wire names: one that is the property's
         snake_case form gives `info.wireNames: snake_case`, as a JSON
@@ -952,8 +965,11 @@ commands:
         variable without `Schema`; each property's chain gives its type,
         format, bounds, enum, default and whether it is required, by each
         library's own rule (zod's properties are required unless optional,
-        yup's and joi's only when required); a nested object, a union, a
-        record and the like print a line, and a refinement, a pattern, a
+        yup's and joi's only when required); zod's record() keyed by
+        string() is a map, an object whose additionalProperties is the
+        values' field, of any() or unknown() additionalProperties true
+        with a should question on the values; a nested object, a union, a
+        record keyed otherwise and the like print a line, and a refinement, a pattern, a
         coercion and a call the reader does not know are should questions.
         A declared type is a schema with each member a field by its type:
         `string`, `boolean`, a `Date` as a date-time, a union of string
@@ -1101,7 +1117,11 @@ commands:
         nullable or given a default, with the default `@Default` or a
         field's initial value gives; an `int`'s width is one must question
         with every other number's, and a `num`, `dynamic` and a type
-        outside the files read are must questions, a map and a set a line.
+        outside the files read are must questions; a `Map` keyed by
+        `String` or `int` is an object whose additionalProperties is its
+        values' field, one of `dynamic` or `Object` values or with no type
+        arguments additionalProperties true with a should question on the
+        values, and a map keyed otherwise and a set a line.
         `FieldRename.snake` and a `@JsonKey(name:)` that is the field's
         snake_case form give `info.wireNames: snake_case`, and any other
         name prints a line; a field `@JsonKey` leaves out of JSON prints a

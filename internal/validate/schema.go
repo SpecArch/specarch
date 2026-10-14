@@ -92,6 +92,7 @@ var patternNames = map[string]string{
 	"^(0|[1-9][0-9]?|1[0-9][0-9]|2[0-4][0-9]|25[0-5])$":            "an exit status from 0 to 255",
 	"(^|/)specarch\\.yaml$":                                        "a path ending in specarch.yaml, the specification's root file",
 	"^[A-Za-z][A-Za-z0-9 ./'-]*$":                                  "a term: letters, digits, spaces, dots, slashes, apostrophes and dashes, such as late fee",
+	"^[A-Za-z]{2,3}(-[A-Za-z0-9]{1,8})*$":                          "a BCP 47 language tag, such as en or pt-BR",
 }
 
 func describePattern(p string) string {

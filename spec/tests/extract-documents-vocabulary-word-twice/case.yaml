@@ -1,0 +1,3 @@
+arguments: [extract, documents, --out, spec, --vocabulary, de.specarch-vocabulary.yaml, handbuch.md]
+exitStatus: 1
+standardOutput: ""

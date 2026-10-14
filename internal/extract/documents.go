@@ -9,6 +9,8 @@ import (
 	"unicode"
 
 	"go.yaml.in/yaml/v3"
+
+	"github.com/SpecArch/specarch/internal/vocabulary"
 )
 
 // The Markdown a document is read from: ATX headings, paragraphs whose
@@ -22,37 +24,53 @@ var (
 	fence           = regexp.MustCompile("^\\s*(```|~~~)")
 )
 
-// The words that make a sentence a commitment (docs/extraction.md, step 6):
-// a modal of obligation, a quantity, a frequency or a time limit.
-var (
-	modalWord     = regexp.MustCompile(`(?i)\b(shall|must|will|should)\b`)
-	numberWords   = `one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|fifteen|twenty|thirty|forty|fifty|sixty|hundred|thousand`
-	quantity      = regexp.MustCompile(`(?i)\b([0-9]+(?:[.,][0-9]+)?|` + numberWords + `)\s+[a-z]`)
-	clockTime     = regexp.MustCompile(`\b[0-9]{1,2}:[0-9]{2}\b`)
-	frequencyWord = regexp.MustCompile(`(?i)\b(once|twice)\b`)
-	timeLimit     = regexp.MustCompile(`(?i)\b(within|before|after|until|no later than)\b`)
-	pronounStart  = regexp.MustCompile(`(?i)^(it|they|this|these|that|those|he|she)\b`)
-	sensitiveWord = regexp.MustCompile(`(?i)\b(personal|credentials?)\b`)
-)
-
-// The header of a table the reader holds: the fields of one entity. The
-// first column is Field; the others are any of these, in any order.
-var fieldColumns = map[string]bool{"field": true, "type": true, "required": true, "sensitivity": true, "description": true}
-
-// The types a field table may name, and the field each becomes. A type
-// with no row here is left for a question.
-var tableTypes = map[string][]any{
-	"text":      {"type", "string"},
-	"string":    {"type", "string"},
-	"date":      {"type", "string", "format", "date"},
-	"date-time": {"type", "string", "format", "date-time"},
-	"timestamp": {"type", "string", "format", "date-time"},
-	"boolean":   {"type", "boolean"},
-	"yes/no":    {"type", "boolean"},
-	"email":     {"type", "string", "format", "email"},
+// docWords is a vocabulary made into the matchers the reader applies
+// (docs/extraction.md, step 6): a commitment is a modal of obligation, a
+// quantity, a time of day, a frequency or a time limit.
+type docWords struct {
+	v                                     *vocabulary.Vocabulary
+	modal, quantity, clockTime, frequency *regexp.Regexp
+	timeLimit, pronounStart, sensitive    *regexp.Regexp
 }
 
-var sensitivities = map[string]bool{"public": true, "internal": true, "personal": true, "credential": true}
+func newDocWords(v *vocabulary.Vocabulary) *docWords {
+	words := func(ws []string) *regexp.Regexp {
+		return regexp.MustCompile(`(?i)` + vocabulary.Before + vocabulary.Words(ws) + vocabulary.After)
+	}
+	var seps []string
+	for _, s := range v.TimeSeparators {
+		seps = append(seps, regexp.QuoteMeta(s))
+	}
+	clock := `[^\s\S]`
+	if len(seps) > 0 {
+		clock = vocabulary.Before + `[0-9]{1,2}(?:` + strings.Join(seps, "|") + `)[0-9]{2}` + vocabulary.After
+	}
+	number := `([0-9]+(?:[.,][0-9]+)?`
+	if len(v.Numbers) > 0 {
+		number += `|` + vocabulary.Words(v.NumberWords())
+	}
+	return &docWords{
+		v:            v,
+		modal:        words(v.CommitmentWords()),
+		quantity:     regexp.MustCompile(`(?i)` + vocabulary.Before + number + `)\s+\p{L}`),
+		clockTime:    regexp.MustCompile(clock),
+		frequency:    words(v.Frequencies),
+		timeLimit:    words(v.TimeLimits),
+		pronounStart: regexp.MustCompile(`(?i)^` + vocabulary.Words(v.Pronouns) + vocabulary.After),
+		sensitive:    words(append(append([]string(nil), v.Sensitivities["personal"]...), v.Sensitivities["credential"]...)),
+	}
+}
+
+// The types a field table may name, by the key a vocabulary lists their
+// words under, and the field each becomes. A type with no word in the
+// vocabulary is left for a question.
+var tableTypes = map[string][]any{
+	"string":   {"type", "string"},
+	"date":     {"type", "string", "format", "date"},
+	"dateTime": {"type", "string", "format", "date-time"},
+	"boolean":  {"type", "boolean"},
+	"email":    {"type", "string", "format", "email"},
+}
 
 // docClause is one clause of the document's outline: a heading, or a
 // paragraph that starts with a section number.
@@ -75,10 +93,19 @@ type docTable struct {
 	rows   [][]string
 }
 
+// DocumentOptions are what extract documents is told beside the path.
+type DocumentOptions struct {
+	Key          string                 // the source key, or "" for the file's name
+	Vocabulary   *vocabulary.Vocabulary // the words named with --language or --vocabulary, or nil for English
+	GivenOutside bool                   // the document was given to parties outside
+}
+
 // Documents reads one Markdown document into a tree: its outline as the
 // clauses of one document source, every commitment sentence as a
-// requirement, and every table with a known header as an entity's fields.
-func Documents(path, out, key string) (*Result, error) {
+// requirement, and every table with a known header as an entity's fields,
+// by the words of the vocabulary named, or English.
+func Documents(path, out string, opts DocumentOptions) (*Result, error) {
+	key := opts.Key
 	if ext := strings.ToLower(filepath.Ext(path)); ext != ".md" && ext != ".markdown" {
 		return nil, refuse("%s is not a Markdown file; this build reads Markdown documents, and PDF and slide decks come in a later step", path)
 	}
@@ -98,7 +125,13 @@ func Documents(path, out, key string) (*Result, error) {
 	}
 	res := &Result{Tree: newTree()}
 	commitLine(res, r)
-	d := &docReader{key: key, res: res, questions: &yaml.Node{Kind: yaml.MappingNode}}
+	v := opts.Vocabulary
+	if v == nil {
+		v = vocabulary.English()
+	} else {
+		res.say("vocabulary: the words of %s, from %s", v.Language, v.Path)
+	}
+	d := &docReader{key: key, res: res, questions: &yaml.Node{Kind: yaml.MappingNode}, words: newDocWords(v)}
 	d.parse(strings.Split(strings.ReplaceAll(string(data), "\r\n", "\n"), "\n"))
 	if line, text, ok := generatedMark(path); ok {
 		res.say("generated: %s:%d says it is generated from another source: %s", r.Paths[0], line, text)
@@ -119,7 +152,14 @@ func Documents(path, out, key string) (*Result, error) {
 			clauses = append(clauses, flow(mapping("clause", c.id, "title", c.title)))
 		}
 	}
-	src := mapping("kind", "document", "title", title, "edition", r.Commit, "url", url, "clauses", clauses)
+	src := mapping("kind", "document", "title", title, "edition", r.Commit, "url", url)
+	if opts.Vocabulary != nil {
+		set(src, "language", opts.Vocabulary.Language)
+	}
+	if opts.GivenOutside {
+		set(src, "givenOutside", true)
+	}
+	set(src, "clauses", clauses)
 	var stages []string
 	if d.requirements != nil || d.nextID > 0 {
 		stages = append(stages, "requirements")
@@ -134,6 +174,7 @@ func Documents(path, out, key string) (*Result, error) {
 
 type docReader struct {
 	key       string
+	words     *docWords
 	res       *Result
 	title     string
 	clauses   []*docClause
@@ -311,15 +352,12 @@ func cells(line string) []string {
 }
 
 // commitment says whether a sentence makes a commitment, and with what
-// priority: should for should, must for anything else.
-func commitment(s string) (string, bool) {
-	if m := modalWord.FindStringSubmatch(s); m != nil {
-		if strings.EqualFold(m[1], "should") {
-			return "should", true
-		}
-		return "must", true
+// priority: should for a should word, must for anything else.
+func (w *docWords) commitment(s string) (string, bool) {
+	if m := w.modal.FindStringSubmatch(s); m != nil {
+		return w.v.Priority(m[1]), true
 	}
-	if quantity.MatchString(s) || clockTime.MatchString(s) || frequencyWord.MatchString(s) || timeLimit.MatchString(s) {
+	if w.quantity.MatchString(s) || w.clockTime.MatchString(s) || w.frequency.MatchString(s) || w.timeLimit.MatchString(s) {
 		return "must", true
 	}
 	return "", false
@@ -360,13 +398,13 @@ func (d *docReader) write() {
 	var ids []string
 	for _, s := range d.sentences {
 		d.counts.sentences++
-		priority, ok := commitment(s.text)
+		priority, ok := d.words.commitment(s.text)
 		if !ok {
 			continue
 		}
 		d.counts.commitments++
 		cite := citation(d.key, s.clause.id, s.text)
-		if pronounStart.MatchString(s.text) {
+		if d.words.pronounStart.MatchString(s.text) {
 			d.question(fmt.Sprintf("Section %s says %q, and does not name what it commits; which element is it?", s.clause.id, s.text), priority,
 				[]string{"requirements"}, "A sentence that names its subject only by a word such as it or they cannot be placed as one element without guessing.", []*yaml.Node{cite})
 			continue
@@ -426,15 +464,18 @@ func (d *docReader) write() {
 // heading of its section, in PascalCase as the database reader names a
 // table, and every field in camelCase.
 func (d *docReader) readTables() {
+	v := d.words.v
 	for _, t := range d.tables {
+		t = withoutRowNumbers(v, t)
 		header := make([]string, len(t.header))
-		known := len(t.header) > 1 && strings.EqualFold(t.header[0], "field")
+		known := len(t.header) > 1 && vocabulary.Key(v.Headers, t.header[0]) == vocabulary.Field
 		for i, h := range t.header {
-			header[i] = strings.ToLower(h)
-			known = known && fieldColumns[header[i]]
+			header[i] = vocabulary.Key(v.Headers, h)
+			known = known && header[i] != "" && header[i] != vocabulary.RowNumber
 		}
 		if !known || t.clause == nil {
-			d.gap(t.clause, t.line, "entities", "the table at line %d, headed %s: only a table whose first column is Field, and whose others are Type, Required, Sensitivity or Description, is read", t.line, strings.Join(t.header, " | "))
+			d.gap(t.clause, t.line, "entities", "the table at line %d, headed %s: only a table whose first column is %s, and whose others are %s, %s, %s or %s, is read", t.line, strings.Join(t.header, " | "),
+				v.HeaderWord(vocabulary.Field), v.HeaderWord(vocabulary.Type), v.HeaderWord(vocabulary.Required), v.HeaderWord(vocabulary.Sensitivity), v.HeaderWord(vocabulary.Description))
 			continue
 		}
 		d.counts.known++
@@ -458,7 +499,7 @@ func (d *docReader) readTables() {
 				continue
 			}
 			f := &yaml.Node{Kind: yaml.MappingNode}
-			if tt, ok := tableTypes[strings.ToLower(col["type"])]; ok {
+			if tt, ok := tableTypes[vocabulary.Key(v.Types, col["type"])]; ok {
 				for i := 0; i < len(tt); i += 2 {
 					set(f, tt[i].(string), tt[i+1])
 				}
@@ -466,7 +507,7 @@ func (d *docReader) readTables() {
 				d.gap(t.clause, t.line, "#/entities/"+name, "field %s of %s, at line %d, of type %q: the meta-model holds no type for it; left out", col["field"], name, t.line, col["type"])
 				continue
 			}
-			if s := strings.ToLower(col["sensitivity"]); sensitivities[s] {
+			if s := vocabulary.Key(v.Sensitivities, col["sensitivity"]); s != "" {
 				set(f, "sensitivity", s)
 			} else if sens, ok := d.sentenceSensitivity(col["field"]); ok {
 				set(f, "sensitivity", sens)
@@ -477,7 +518,7 @@ func (d *docReader) readTables() {
 				set(f, "description", desc)
 			}
 			set(props, field, flow(f))
-			if r := strings.ToLower(col["required"]); r == "yes" || r == "true" || r == "required" {
+			if vocabulary.Has(v.Yes, col["required"]) {
 				required = append(required, field)
 			}
 		}
@@ -513,20 +554,36 @@ func (d *docReader) sentenceSensitivity(field string) (string, bool) {
 	}
 	found := ""
 	for _, s := range d.sentences {
-		m := sensitiveWord.FindStringSubmatch(s.text)
+		m := d.words.sensitive.FindStringSubmatch(s.text)
 		if m == nil || !strings.Contains(strings.ToLower(s.text), strings.ToLower(field)) {
 			continue
 		}
-		v := "personal"
-		if strings.HasPrefix(strings.ToLower(m[1]), "credential") {
-			v = "credential"
-		}
+		v := vocabulary.Key(d.words.v.Sensitivities, m[1])
 		if found != "" && found != v {
 			return "", false
 		}
 		found = v
 	}
 	return found, found != ""
+}
+
+// withoutRowNumbers is a table without its leading column when the
+// column's header is the vocabulary's row-number word: the column numbers
+// the rows and says nothing about them.
+func withoutRowNumbers(v *vocabulary.Vocabulary, t docTable) docTable {
+	if len(t.header) < 2 || vocabulary.Key(v.Headers, t.header[0]) != vocabulary.RowNumber {
+		return t
+	}
+	t.header = t.header[1:]
+	var rows [][]string
+	for _, r := range t.rows {
+		if len(r) > 0 {
+			r = r[1:]
+		}
+		rows = append(rows, r)
+	}
+	t.rows = rows
+	return t
 }
 
 func tableFields(t docTable) []string {

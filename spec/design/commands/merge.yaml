@@ -73,7 +73,13 @@ commands:
         exactly one number of whole days. When exactly one such check has
         every word of the statement's subject in its name (the words
         before is, are, shall, must, will or should, without the, a, an,
-        of, each and every), the check satisfies the requirement. When the
+        of, each and every), the check satisfies the requirement. The
+        words, the number words and the units of whole days, such as
+        days and weeks, are the vocabulary's of the language of the
+        source the requirement cites first (`docs/vocabularies.md`):
+        English when the source names none, the one SpecArch ships for
+        it, or the one given with `--vocabulary`; a language with none is
+        said once and its requirements are not compared. When the
         numbers differ, the requirement's statement is left out and one
         must question cites both and blocks it; the check keeps the
         expression the code runs. No match, or more than one, changes
@@ -180,6 +186,9 @@ commands:
         description: The folder the merged specification is written into; it becomes the specification's root folder.
         schema: { type: string }
         required: true
+      vocabulary:
+        description: A vocabulary file (docs/vocabularies.md) for a language SpecArch ships none for, by which the requirements of the sources in that language are compared with the code's checks; repeated, one per language.
+        schema: { type: array, items: { type: string } }
     reads:
       - { path: "{trees}", description: The partial specification trees. }
     writes:
@@ -189,7 +198,8 @@ commands:
       has one, and what it holds; one line per
       source joined from several trees, naming the edition taken; one line
       counting the elements written and those found in more than one
-      tree; one line per field read back from its columns, and one per
+      tree; one line per source whose language has no vocabulary, saying
+      its requirements' days are not compared; one line per field read back from its columns, and one per
       question that what was read back answers; one line per requirement joined to a check that gives the
       same number of days; one line per question of a tree that another
       tree answers or a question kept before it asks, and per parsed
@@ -207,7 +217,7 @@ commands:
     standardError: A usage message on a usage error, and the reason a tree could not be merged.
     exitCodes:
       "0": the merged specification was written
-      "1": "a tree could not be merged: it does not track origin, validate reports an error in it, it holds implementation files or records or a test that is not the draft derive writes for it, or it declares a source another tree declares differently, or whose paths changed after the commit a tree read them at"
-      "2": usage error, fewer than two trees, or a folder that could not be read or written
-    satisfies: [SA-45]
+      "1": "a tree could not be merged: it does not track origin, validate reports an error in it, it holds implementation files or records or a test that is not the draft derive writes for it, or it declares a source another tree declares differently, or whose paths changed after the commit a tree read them at; or a vocabulary that is not one this build reads"
+      "2": usage error, fewer than two trees, two vocabularies of one language, or a folder or file that could not be read or written
+    satisfies: [SA-45, SA-64]
     why: The readers write one tree per surface so that each is checked on its own; the comparison between surfaces, and between the documents and the code, is made once, here, where a disagreement becomes a question rather than a choice.

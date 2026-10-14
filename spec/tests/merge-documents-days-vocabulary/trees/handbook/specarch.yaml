@@ -1,0 +1,16 @@
+specarch: "0.1"
+info:
+  title: Handbuch der Zweigstelle
+  version: 0.1.0
+  tracksOrigin: true
+stages: [requirements]
+sources:
+  handbook:
+    kind: document
+    title: Handbuch der Zweigstelle
+    edition: "4"
+    language: de
+    clauses:
+      - {clause: "2.1", title: Ausleihen}
+      - {clause: "2.2", title: Ausleihen}
+      - {clause: "2.3", title: Ausleihen}

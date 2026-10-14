@@ -1,0 +1,61 @@
+specarchVocabulary: "0.1"
+language: en
+description: The English words extract documents finds a commitment and reads a table of fields by, and merge reads a number of days by.
+commitments:
+  must: [shall, must, will]
+  should: [should]
+frequencies: [once, twice]
+timeLimits: [within, before, after, until, no later than]
+pronouns: [it, they, this, these, that, those, he, she]
+linkingVerbs: [is, are]
+leadingWords: [the, a, an, of, each, every]
+numbers:
+  one: 1
+  two: 2
+  three: 3
+  four: 4
+  five: 5
+  six: 6
+  seven: 7
+  eight: 8
+  nine: 9
+  ten: 10
+  eleven: 11
+  twelve: 12
+  fifteen: 15
+  twenty: 20
+  thirty: 30
+  forty: 40
+  fifty: 50
+  sixty: 60
+  hundred: 100
+  thousand: 1000
+units:
+  day: P1D
+  days: P1D
+  week: P7D
+  weeks: P7D
+  hour: PT1H
+  hours: PT1H
+  minute: PT1M
+  minutes: PT1M
+timeSeparators: [":"]
+headers:
+  field: [field]
+  type: [type]
+  required: [required]
+  sensitivity: [sensitivity]
+  description: [description]
+  rowNumber: ["#", "no."]
+yes: ["yes", "true", required]
+sensitivities:
+  public: [public]
+  internal: [internal]
+  personal: [personal]
+  credential: [credential, credentials]
+types:
+  string: [text, string]
+  date: [date]
+  dateTime: [date-time, timestamp]
+  boolean: [boolean, yes/no]
+  email: [email]

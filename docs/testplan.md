@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.6.2 of the specification: 416 design tests, 184 golden and 232 red, about 14 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.6.2 of the specification: 422 design tests, 187 golden and 235 red, about 14 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.6.2 of the specification: 416 design tests, 184 golden and 232 red, ab
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 412 |
+| system | 418 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -739,6 +739,14 @@ Scenario: golden; level: system; verifies SA-44.
 - When: extract database is run on the dump
 - Then: it writes one entity per table, with the types, keys, relations and constraints it can hold, a question for every constraint message and for the missing primary key, names the commit, counts what it read, prints a line and writes a could question citing the table for the money column, the fixed width, the default it cannot hold, the index and the view, and exits 0
 
+#### extract-documents-language-not-shipped
+
+Scenario: red; level: system; covers exit 2; verifies SA-64.
+
+- Given: a handbook, and a language tag SpecArch ships no vocabulary for
+- When: extract documents is run on the handbook with --language fr and no --vocabulary
+- Then: it refuses on standard error, naming the tag, the languages shipped and the keys a vocabulary file holds, writes nothing, and exits 2
+
 #### extract-documents-not-markdown
 
 Scenario: red; level: system; covers exit 1; verifies SA-44.
@@ -754,6 +762,22 @@ Scenario: golden; level: system; verifies SA-44.
 - Given: a repository holding a Markdown document whose file name is written in capitals, ARCHITECTURE.md, with two commitment sentences, and no --source-key
 - When: extract documents is run on the document
 - Then: it names the document source architecture, the file name in kebab-case as one word rather than a letter per dash, writes one requirement per commitment under that source's clauses, and exits 0
+
+#### extract-documents-vocabulary
+
+Scenario: golden; level: system; verifies SA-64.
+
+- Given: a repository holding the branch handbook of extract-documents-writes-tree written in German, its first table with a leading row-number column, and a German vocabulary beside it
+- When: extract documents is run on the handbook with --vocabulary and --given-outside
+- Then: it names the vocabulary applied, writes language de and givenOutside on the source, skips the row-number column, and gives the same counts, requirements with the same priorities, entities with the same types, required fields and sensitivities, and the same questions as the English handbook, with the gap message naming the German headers, and exits 0
+
+#### extract-documents-vocabulary-word-twice
+
+Scenario: red; level: system; covers exit 1; verifies SA-64.
+
+- Given: a German vocabulary that lists personenbezogen under both sensitivities.internal and sensitivities.personal, and a handbook
+- When: extract documents is run on the handbook with that vocabulary
+- Then: it refuses the vocabulary on standard error, naming the file, the line and the two lists, writes nothing, and exits 1
 
 #### extract-documents-writes-tree
 
@@ -1700,6 +1724,22 @@ Scenario: golden; level: system; verifies SA-11.
 - Given: a code tree whose loans checks move a date by 14, 2 and 60 days, and a documents tree whose requirements say the loan period is 21 days, the reminder period two days and the period for a lost book 90 days
 - When: merge is run on the two trees
 - Then: the check whose name holds the reminder period satisfies its requirement, the loan period's statement is left out with one must question citing both, the lost book period matches no check and is kept as it is, and it exits 0
+
+#### merge-documents-days-vocabulary
+
+Scenario: golden; level: system; verifies SA-64.
+
+- Given: the trees of merge-documents-days with the handbook's source in language de, its requirements saying in German that the loan period is three weeks, the reminder period two days and the period for a lost book 90 days, the checks named in the same words, and a German vocabulary
+- When: merge is run on the two trees with --vocabulary
+- Then: it reads three weeks as 21 days and two days as 2 by the vocabulary's units and numbers, the reminder check satisfies its requirement, the loan period's statement is left out with one must question citing both, as the English case does, and it exits 0
+
+#### merge-documents-language-not-given
+
+Scenario: golden; level: system; verifies SA-64.
+
+- Given: the trees of merge-documents-days-vocabulary, whose handbook is in language de, and no vocabulary for it
+- When: merge is run on the two trees without --vocabulary
+- Then: it prints that the handbook's requirements are not compared, naming the language and the option, keeps every statement as it is, asks nothing about days, and exits 0
 
 #### merge-joins-commits
 
@@ -2919,6 +2959,14 @@ Scenario: red; level: system; verifies SA-21.
 - When: validate is run
 - Then: it reports the value with rule schema and exits 1
 
+#### validate-schema-language-tag
+
+Scenario: red; level: system; covers exit 1; verifies SA-64.
+
+- Given: a document source whose language is a BCP 47 tag, next to one whose language is a word
+- When: validate is run
+- Then: it reports the word with rule schema at its own line and path, naming the form of a language tag, and exits 1
+
 #### validate-schema-list-page-without-source
 
 Scenario: red; level: system; covers exit 1.
@@ -3403,7 +3451,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-244 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+249 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -3629,6 +3677,11 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-57 | acceptance 2 | golden | SA-57 names no harm |
 | requirement SA-57 | acceptance 3 | golden | SA-57 names no harm |
 | requirement SA-57 | acceptance 4 | golden | SA-57 names no harm |
+| requirement SA-64 | acceptance 1 | golden | SA-64 names no harm |
+| requirement SA-64 | acceptance 2 | golden | SA-64 names no harm |
+| requirement SA-64 | acceptance 3 | golden | SA-64 names no harm |
+| requirement SA-64 | acceptance 4 | golden | SA-64 names no harm |
+| requirement SA-64 | acceptance 5 | golden | SA-64 names no harm |
 | requirement SA-1 | acceptance 1 | golden | SA-1 names no harm |
 | requirement SA-1 | acceptance 2 | golden | SA-1 names no harm |
 | requirement SA-2 | acceptance 1 | golden | SA-2 names no harm |

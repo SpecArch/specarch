@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: extract
+level: system
+scenario: red
+covers: [exit 2]
+given: "a handbook, and a language tag SpecArch ships no vocabulary for"
+when: "extract documents is run on the handbook with --language fr and no --vocabulary"
+then: "it refuses on standard error, naming the tag, the languages shipped and the keys a vocabulary file holds, writes nothing, and exits 2"
+verifies: [SA-64]

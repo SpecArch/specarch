@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: extract
+level: system
+scenario: red
+covers: [exit 1]
+given: "a German vocabulary that lists personenbezogen under both sensitivities.internal and sensitivities.personal, and a handbook"
+when: "extract documents is run on the handbook with that vocabulary"
+then: "it refuses the vocabulary on standard error, naming the file, the line and the two lists, writes nothing, and exits 1"
+verifies: [SA-64]

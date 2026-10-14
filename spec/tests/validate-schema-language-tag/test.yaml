@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "a document source whose language is a BCP 47 tag, next to one whose language is a word"
+when: "validate is run"
+then: "it reports the word with rule schema at its own line and path, naming the form of a language tag, and exits 1"
+verifies: [SA-64]

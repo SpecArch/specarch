@@ -1,0 +1,24 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v0.6.0/schema/specarch-design-0.2.schema.json
+specarch: "0.2"
+info:
+  title: Handbuch der Zweigstelle
+  version: 0.1.0
+  description: |
+    The document handbuch.md, read at commit 4d32f0616c3b8418939853c7d17b125f3d51226b: every heading and numbered section is a clause, every sentence that makes a commitment is a requirement citing its clause, and every table of fields is an entity's fields. What the document does not say is a question, and so is what the meta-model cannot hold.
+  tracksOrigin: true
+stages: [requirements, design]
+sources:
+  handbuch:
+    kind: document
+    title: Handbuch der Zweigstelle
+    edition: 4d32f0616c3b8418939853c7d17b125f3d51226b
+    url: ../docs/handbuch.md
+    language: de
+    givenOutside: true
+    clauses:
+      - {clause: Handbuch der Zweigstelle, title: Handbuch der Zweigstelle}
+      - {clause: "1.1", title: Mitglieder}
+      - {clause: "1.2", title: Mitglieder}
+      - {clause: "2.1", title: Ausleihen}
+      - {clause: "2.2", title: Ausleihen}
+      - {clause: "3", title: Öffnung}

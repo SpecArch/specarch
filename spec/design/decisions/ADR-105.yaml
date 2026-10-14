@@ -1,0 +1,96 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
+decisions:
+  ADR-105:
+    title: The words a document is read by are a vocabulary, a data file per language, English shipped; a source names its language, and the small points of the documents reader go with it
+    status: accepted
+    date: "2026-10-14"
+    context: |
+      Point 3 of docs/estate.md, build item 4, and the documents half of
+      point 10. extract documents found a commitment by English modal
+      words and read a table of fields only under English headers; the
+      yes words of a Required column, the sensitivity words, the types and
+      merge's days were English too, all of it in the code. A document in
+      another language gave its outline and nothing else, each table a
+      could line. Two small points went with it: a leading row-number
+      column made a table unreadable, and a document given to the
+      customer needed givenOutside written on its source by hand.
+    decision: |
+      A vocabulary is a YAML file, `<tag>.specarch-vocabulary.yaml`
+      (docs/vocabularies.md), holding for one language: the commitment
+      words by priority (must, should), the frequency, time-limit,
+      pronoun, linking-verb and leading words, the number words with
+      their values, the units with the ISO 8601 duration each stands for,
+      the separators of a time of day, the table headers (field, type,
+      required, sensitivity, description and the row-number header), the
+      yes words, the sensitivity words of each sensitivity and the type
+      words of each type the reader writes. SpecArch ships the English
+      file, embedded in the binary, and reads it when nothing is named;
+      a project's file lives in its specification repository. Every key
+      is written, a list may be empty. The file is checked when read: a
+      key missing or unknown, a number, a duration or a tag in another
+      form, a word twice in a list, and a word in two lists of one group
+      (commitments, headers, sensitivities, types) are refused with the
+      file and the line, exit 1. Words in different groups may meet:
+      required is both a header and a yes word in English, and means one
+      thing in each place.
+      extract documents takes `--language <tag>` (a vocabulary SpecArch
+      ships) or `--vocabulary <file>`, or both naming one language, and
+      then prints a line naming the vocabulary and writes `language` on
+      the source; a tag with no shipped vocabulary and no file is refused
+      with the keys to write, exit 2. With neither, English is read and
+      no `language` is written, so the English tree is the one written
+      before, byte for byte. `language` on a source is a BCP 47 tag: the
+      language subtag and the subtags after it, by the schema's pattern.
+      A leading column headed with the row-number word is skipped in
+      every table, and `--given-outside` writes `givenOutside: true` on
+      the source.
+      merge reads a requirement's number of days by the vocabulary of the
+      language of the source it cites first: English when the source
+      names none, the shipped one, or one given with `--vocabulary`
+      (repeated, one per language). A unit counts when its duration is
+      whole days, so weeks count and hours do not. A language with no
+      vocabulary is said once per source, and its requirements are not
+      compared.
+    why: |
+      The words are data because they are what a project changes: a
+      wrong or missing word is one line in a file, changed without a
+      release, which is the acceptance test. They are a file per
+      language, and the language is on the source, because the language
+      is a fact about the document, so it is design, and a reader of the
+      tree has to know which words were applied to read what was found
+      and what was not. BCP 47 is the tag every platform and the HTTP
+      Content-Language header use; the tag here is a lookup key, so the
+      pattern catches a typo such as english and does not check the
+      registry, which would tie the schema to a list that grows.
+      A word in two lists of one group is refused because it would mean
+      both, and the reader would pick one by the order it happened to
+      check them, which is ambiguity, an error; groups are where a word
+      has to mean one thing, and a whole-file rule would refuse English
+      itself. Types are in the vocabulary though the plan's list did not
+      name them, since a table in another language writes its types in
+      that language, and without them every field would be a could line.
+      Units are in it because merge reads them: a key nothing reads would
+      be a placeholder. A vocabulary is checked by the reader in Go and
+      has no JSON Schema, so that one definition says what a vocabulary
+      is; the validator does not read vocabularies, so the Swift build is
+      untouched beyond the schema's new key.
+      The matchers write a word's edges out rather than use RE2's `\b`,
+      which knows only ASCII letters and so never matches before or after
+      a word such as prüfen. The English run was kept byte-identical by
+      making the English file say exactly what the code said, so a change
+      to English is a change to the file, seen in its diff.
+      Compiler test: a table whose headers no vocabulary matches still
+      prints its could line and keeps the outline; the vocabulary widens
+      what is read and refuses nothing of the document. Only the
+      vocabulary, a tool input, is refused, at its file and line.
+    consequences: |
+      A document in another language is read as fully as one in English
+      once its vocabulary exists, and the second-language conformance
+      case gives the same counts, priorities, fields, sensitivities and
+      questions as the English handbook. Which languages SpecArch ships
+      beyond English is decided when a project first supplies one. merge
+      joins a requirement in another language with a check only where the
+      check's name holds the subject's words, so in practice where the
+      code is named in that language. The questions and lines SpecArch
+      writes stay in English.
+    satisfies: [SA-64]

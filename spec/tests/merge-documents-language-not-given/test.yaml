@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: merge
+level: system
+scenario: golden
+given: "the trees of merge-documents-days-vocabulary, whose handbook is in language de, and no vocabulary for it"
+when: "merge is run on the two trees without --vocabulary"
+then: "it prints that the handbook's requirements are not compared, naming the language and the option, keeps every statement as it is, asks nothing about days, and exits 0"
+verifies: [SA-64]

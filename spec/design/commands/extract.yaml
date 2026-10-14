@@ -63,7 +63,14 @@ commands:
         one sentence that names the field and calls it personal or a
         credential; the primary key is a must question, and a sensitivity
         the document does not give a should question. A field of any other
-        type, any other table and fenced code each print a line. The
+        type, any other table and fenced code each print a line. A leading
+        column headed with the row-number word (`#` or `No.`) is skipped in
+        every table. The words named here are the English vocabulary's
+        (`docs/vocabularies.md`): `--language` names a language SpecArch
+        ships a vocabulary for, `--vocabulary` a project's file, and the
+        reader then reads by its words and writes `language` on the source;
+        with neither, English is read and no `language` is written.
+        `--given-outside` writes `givenOutside: true` on the source. The
         edition is the commit that last changed the file.
       - `openapi`: one OpenAPI 3.0 or 3.1 document, in YAML or JSON, as
         one document source under `--source-key` (default as for
@@ -1136,6 +1143,15 @@ commands:
       routes:
         description: For permissions, a route table of the same repository, made by tools/routes/dump-routes.sh, whose routes are written with the permission the permission table's rules give each.
         schema: { type: string }
+      language:
+        description: For documents, the language the document is written in, as a BCP 47 tag; the vocabulary SpecArch ships for it is read, or with --vocabulary the file's language must be this one.
+        schema: { type: string, pattern: "^[A-Za-z]{2,3}(-[A-Za-z0-9]{1,8})*$" }
+      vocabulary:
+        description: For documents, a vocabulary file (docs/vocabularies.md) whose words the document is read by, for a language SpecArch ships none for or a project's own words.
+        schema: { type: string }
+      given-outside:
+        description: For documents, marks the source givenOutside, a document the system's owners gave to parties outside, so that merge gives its promises their priority.
+        schema: { type: boolean, default: false }
       source-key:
         description: The key of the source in the written tree; code for the code readers, and the file's name in kebab-case for documents and openapi, when it is not given.
         schema: { type: string, pattern: "^[a-z][a-z0-9]*(-[a-z0-9]+)*$" }
@@ -1147,7 +1163,8 @@ commands:
       One line naming the commit read and the paths it was the last change
       to; one line per count, saying what was counted and how; one line per
       object the specification could not hold, naming it, saying why and
-      naming the question that asks about it; one line naming a dialect
+      naming the question that asks about it; for documents with a
+      vocabulary named, one line naming its language and file; one line naming a dialect
       the reader reads, or a document read as what the running system
       printed; one line per file that imports a library the reader knows
       and gives nothing it reads; one line per gate on a setting, naming
@@ -1166,7 +1183,7 @@ commands:
     standardError: A usage message on a usage error, and the reason a source could not be read.
     exitCodes:
       "0": the specification was written
-      "1": "the surface could not be read as the source expects: a dump that does not parse or is stale, a dump whose repository is no gitlink of the repository holding it, is not checked out, pins a commit its history does not hold or whose checkout under the path is not the pinned commit's, a code-facts dump another parser version made, whose files are not the tracked files of its folder the reader reads, or, for pages, whose folder does not hold the router's folder, a route table that lists a method and path pair twice, a permission table that lists a grant or a rule twice, names a matcher the reader does not know, or holds a rule without one of its four keys, a route table given with --routes from another repository or from a commit on another line of history than the permission table's, a router root that gives one route twice or holds no page, a path with changes not committed, untracked files, a shallow clone, a path outside a git repository, a document that is not Markdown, a file that is not an OpenAPI 3.0 or 3.1 document, a file that is not BPMN 2.0 XML or holds no process, or an implementation file that does not parse as YAML"
-      "2": usage error, a source this build does not offer, --implementation given to a source other than go, swift, javascript, dart or pages, or to pages without --facts, --facts given to a source other than pages, --routes given to a source other than permissions, more than one permission table, or a path that could not be read or written
-    satisfies: [SA-11, SA-44, SA-63]
+      "1": "the surface could not be read as the source expects: a dump that does not parse or is stale, a dump whose repository is no gitlink of the repository holding it, is not checked out, pins a commit its history does not hold or whose checkout under the path is not the pinned commit's, a code-facts dump another parser version made, whose files are not the tracked files of its folder the reader reads, or, for pages, whose folder does not hold the router's folder, a route table that lists a method and path pair twice, a permission table that lists a grant or a rule twice, names a matcher the reader does not know, or holds a rule without one of its four keys, a vocabulary that does not parse, lacks a key, holds one it does not have, gives a number, a duration or a language tag in another form, or lists one word twice in a list or in two lists of one group, a route table given with --routes from another repository or from a commit on another line of history than the permission table's, a router root that gives one route twice or holds no page, a path with changes not committed, untracked files, a shallow clone, a path outside a git repository, a document that is not Markdown, a file that is not an OpenAPI 3.0 or 3.1 document, a file that is not BPMN 2.0 XML or holds no process, or an implementation file that does not parse as YAML"
+      "2": usage error, a source this build does not offer, --implementation given to a source other than go, swift, javascript, dart or pages, or to pages without --facts, --facts given to a source other than pages, --routes given to a source other than permissions, --language, --vocabulary or --given-outside given to a source other than documents, a language that is not a BCP 47 tag, a language SpecArch ships no vocabulary for given without --vocabulary, a --language other than the vocabulary's own, more than one permission table, or a path that could not be read or written
+    satisfies: [SA-11, SA-44, SA-63, SA-64]
     why: Existing systems enter SpecArch by extraction, so the verb exists from the start; it is built one reader at a time for the first real project that needs it, and every reader keeps the same rules so that the merge can trust their trees.

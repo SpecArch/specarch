@@ -1,0 +1,26 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v0.6.0/schema/specarch-design-0.2.schema.json
+specarch: "0.2"
+info:
+  title: Merge of 2 trees
+  version: 0.1.0
+  description: |
+    The elements of these trees, merged in this order: Branch code; Handbuch der Zweigstelle. Every element cites where it was read; where the trees disagree, or the documents and the code do, a question asks which is right.
+  tracksOrigin: true
+stages: [requirements, design, tests]
+sources:
+  code:
+    kind: code
+    title: The code repository
+    edition: 2ddae4f53139c036e8b99477922186064bdb4d6f
+    url: https://example.invalid/branch.git
+    clauses:
+      - {clause: migrations, title: The tables}
+  handbook:
+    kind: document
+    title: Handbuch der Zweigstelle
+    edition: "4"
+    language: de
+    clauses:
+      - {clause: "2.1", title: Ausleihen}
+      - {clause: "2.2", title: Ausleihen}
+      - {clause: "2.3", title: Ausleihen}

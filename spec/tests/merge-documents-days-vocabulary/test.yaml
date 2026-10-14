@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: merge
+level: system
+scenario: golden
+given: "the trees of merge-documents-days with the handbook's source in language de, its requirements saying in German that the loan period is three weeks, the reminder period two days and the period for a lost book 90 days, the checks named in the same words, and a German vocabulary"
+when: "merge is run on the two trees with --vocabulary"
+then: "it reads three weeks as 21 days and two days as 2 by the vocabulary's units and numbers, the reminder check satisfies its requirement, the loan period's statement is left out with one must question citing both, as the English case does, and it exits 0"
+verifies: [SA-64]

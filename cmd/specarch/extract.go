@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/SpecArch/specarch/internal/extract"
+	"github.com/SpecArch/specarch/internal/vocabulary"
 )
 
 // extractSources are the surfaces this build reads, in the order the usage
@@ -26,7 +27,8 @@ func runExtract(args []string, stdout, stderr io.Writer) int {
 		return 2
 	}
 	source := args[0]
-	out, key, implementation, facts, routes := "", "", "", "", ""
+	out, key, implementation, facts, routes, language, vocabularyPath := "", "", "", "", "", "", ""
+	givenOutside := false
 	var paths []string
 	rest := args[1:]
 	for i := 0; i < len(rest); i++ {
@@ -35,7 +37,9 @@ func runExtract(args []string, stdout, stderr io.Writer) int {
 		case a == "--":
 			paths = append(paths, rest[i+1:]...)
 			i = len(rest)
-		case a == "--out" || a == "--source-key" || a == "--implementation" || a == "--facts" || a == "--routes":
+		case a == "--given-outside":
+			givenOutside = true
+		case a == "--out" || a == "--source-key" || a == "--implementation" || a == "--facts" || a == "--routes" || a == "--language" || a == "--vocabulary":
 			if i+1 >= len(rest) {
 				fmt.Fprintf(stderr, "specarch extract: %s needs a value\n\n%s", a, usage)
 				return 2
@@ -49,6 +53,10 @@ func runExtract(args []string, stdout, stderr io.Writer) int {
 				facts = rest[i+1]
 			case "--routes":
 				routes = rest[i+1]
+			case "--language":
+				language = rest[i+1]
+			case "--vocabulary":
+				vocabularyPath = rest[i+1]
 			default:
 				implementation = rest[i+1]
 			}
@@ -102,6 +110,12 @@ func runExtract(args []string, stdout, stderr io.Writer) int {
 	case source == "javascript" && len(paths) != 1:
 		fmt.Fprintf(stderr, "specarch extract javascript reads one code-facts dump, and was given %d paths\n", len(paths))
 		return 2
+	case (language != "" || vocabularyPath != "" || givenOutside) && source != "documents":
+		fmt.Fprintf(stderr, "specarch extract %s takes no --language, --vocabulary or --given-outside; only documents reads a document's words and marks it given outside\n", source)
+		return 2
+	case language != "" && !vocabulary.Tag.MatchString(language):
+		fmt.Fprintf(stderr, "specarch extract: --language %s is not a language tag; write it as BCP 47 does, such as en or pt-BR\n", language)
+		return 2
 	case routes != "" && source != "permissions":
 		fmt.Fprintf(stderr, "specarch extract %s takes no --routes; only permissions reads a route table beside its permission table, to give each route the permission its rules give\n", source)
 		return 2
@@ -124,6 +138,13 @@ func runExtract(args []string, stdout, stderr io.Writer) int {
 	if key == "" && source != "documents" && source != "openapi" {
 		key = "code"
 	}
+	var vocab *vocabulary.Vocabulary
+	if source == "documents" && (language != "" || vocabularyPath != "") {
+		var code int
+		if vocab, code = documentVocabulary(language, vocabularyPath, stderr); vocab == nil {
+			return code
+		}
+	}
 	var res *extract.Result
 	var err error
 	switch source {
@@ -134,7 +155,7 @@ func runExtract(args []string, stdout, stderr io.Writer) int {
 	case "router":
 		res, err = extract.Router(paths[0], out, key)
 	case "documents":
-		res, err = extract.Documents(paths[0], out, key)
+		res, err = extract.Documents(paths[0], out, extract.DocumentOptions{Key: key, Vocabulary: vocab, GivenOutside: givenOutside})
 	case "openapi":
 		res, err = extract.OpenAPI(paths[0], out, key)
 	case "permissions":
@@ -179,6 +200,41 @@ func runExtract(args []string, stdout, stderr io.Writer) int {
 		fmt.Fprintln(stdout, line)
 	}
 	return 0
+}
+
+// documentVocabulary is the vocabulary --language and --vocabulary name:
+// the file, whose language must be the tag when both are given, or the one
+// SpecArch ships for the tag. It is nil, with the exit status, when there
+// is none: 1 for a file that is not a vocabulary, 2 otherwise.
+func documentVocabulary(language, path string, stderr io.Writer) (*vocabulary.Vocabulary, int) {
+	if path == "" {
+		v, err := vocabulary.Shipped(language)
+		if err != nil {
+			fmt.Fprintf(stderr, "specarch extract documents: the shipped vocabulary of %s does not read: %v\n", language, err)
+			return nil, 1
+		}
+		if v == nil {
+			fmt.Fprintf(stderr, "specarch extract documents: SpecArch ships no vocabulary for the language %s (it ships %s); write one and give it with --vocabulary: a YAML file holding %s\n",
+				language, strings.Join(vocabulary.ShippedTags(), ", "), vocabulary.Format)
+			return nil, 2
+		}
+		return v, 0
+	}
+	v, err := vocabulary.Read(path)
+	if err != nil {
+		var bad *vocabulary.Error
+		if errors.As(err, &bad) {
+			fmt.Fprintf(stderr, "specarch extract documents: %s\n", bad.Reason)
+			return nil, 1
+		}
+		fmt.Fprintf(stderr, "specarch extract documents: cannot read the vocabulary %s: %v\n", path, err)
+		return nil, 2
+	}
+	if language != "" && !strings.EqualFold(language, v.Language) {
+		fmt.Fprintf(stderr, "specarch extract documents: --language %s names another language than the vocabulary %s, which is of %s; give one of them, or both naming one language\n", language, path, v.Language)
+		return nil, 2
+	}
+	return v, 0
 }
 
 // sourceList names the sources this build reads, as a sentence lists them.

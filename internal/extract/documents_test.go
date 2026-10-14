@@ -3,6 +3,8 @@ package extract
 import (
 	"reflect"
 	"testing"
+
+	"github.com/SpecArch/specarch/internal/vocabulary"
 )
 
 // TestSentences splits at a stop followed by a capital or a digit, and
@@ -31,7 +33,7 @@ func TestCommitment(t *testing.T) {
 		"A member is known by the card number.":       "",
 		"The desk lends books to registered members.": "",
 	} {
-		got, ok := commitment(s)
+		got, ok := newDocWords(vocabulary.English()).commitment(s)
 		if ok != (want != "") || got != want {
 			t.Errorf("commitment(%q) = %q, %v; want %q", s, got, ok, want)
 		}
@@ -40,6 +42,8 @@ func TestCommitment(t *testing.T) {
 
 // TestDaysCommitment reads the subject and the days of a statement.
 func TestDaysCommitment(t *testing.T) {
+	w := newDayWords(vocabulary.English())
+	daysCommitment := w.daysCommitment
 	subject, days, ok := daysCommitment("The loan period is 21 days.")
 	if !ok || days != 21 || !reflect.DeepEqual(subject, []string{"loan", "period"}) {
 		t.Errorf("got %v %d %v", subject, days, ok)
@@ -49,6 +53,12 @@ func TestDaysCommitment(t *testing.T) {
 	}
 	if _, _, ok := daysCommitment("A loan lasts 14 days and a renewal 7 days."); ok {
 		t.Errorf("two numbers of days should not be read as one")
+	}
+	if _, days, ok := daysCommitment("The renewal period is two weeks."); !ok || days != 14 {
+		t.Errorf("two weeks: got %d %v", days, ok)
+	}
+	if _, _, ok := daysCommitment("The renewal period is 48 hours."); ok {
+		t.Errorf("hours are not whole days and should not be read")
 	}
 	if d, ok := checkDays(`dueOn == loanedOn + duration("P14D")`); !ok || d != 14 {
 		t.Errorf("checkDays: got %d %v", d, ok)

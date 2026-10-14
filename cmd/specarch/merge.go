@@ -6,10 +6,12 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/SpecArch/specarch/internal/extract"
 	"github.com/SpecArch/specarch/internal/spec"
 	"github.com/SpecArch/specarch/internal/validate"
+	"github.com/SpecArch/specarch/internal/vocabulary"
 )
 
 // runMerge is the merge command: 0 when the merged specification was
@@ -18,18 +20,40 @@ import (
 func runMerge(args []string, stdout, stderr io.Writer) int {
 	out := ""
 	var trees []string
+	var vocabs []*vocabulary.Vocabulary
 	for i := 0; i < len(args); i++ {
 		a := args[i]
 		switch {
 		case a == "--":
 			trees = append(trees, args[i+1:]...)
 			i = len(args)
-		case a == "--out":
+		case a == "--out" || a == "--vocabulary":
 			if i+1 >= len(args) {
-				fmt.Fprintf(stderr, "specarch merge: --out needs a value\n\n%s", usage)
+				fmt.Fprintf(stderr, "specarch merge: %s needs a value\n\n%s", a, usage)
 				return 2
 			}
-			out = args[i+1]
+			if a == "--out" {
+				out = args[i+1]
+				i++
+				continue
+			}
+			v, err := vocabulary.Read(args[i+1])
+			if err != nil {
+				var bad *vocabulary.Error
+				if errors.As(err, &bad) {
+					fmt.Fprintf(stderr, "specarch merge: %s\n", bad.Reason)
+					return 1
+				}
+				fmt.Fprintf(stderr, "specarch merge: cannot read the vocabulary %s: %v\n", args[i+1], err)
+				return 2
+			}
+			for _, g := range vocabs {
+				if strings.EqualFold(g.Language, v.Language) {
+					fmt.Fprintf(stderr, "specarch merge: the vocabularies %s and %s are both of %s; give one per language\n", g.Path, v.Path, v.Language)
+					return 2
+				}
+			}
+			vocabs = append(vocabs, v)
 			i++
 		case len(a) > 1 && a[0] == '-':
 			fmt.Fprintf(stderr, "specarch merge has no option %s\n\n%s", a, usage)
@@ -68,7 +92,7 @@ func runMerge(args []string, stdout, stderr io.Writer) int {
 		}
 		specs = append(specs, s)
 	}
-	res, err := extract.Merge(specs, out)
+	res, err := extract.Merge(specs, out, vocabs)
 	if err != nil {
 		var refusal *extract.Refusal
 		if errors.As(err, &refusal) {

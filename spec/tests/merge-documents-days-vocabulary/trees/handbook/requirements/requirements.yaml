@@ -1,0 +1,25 @@
+requirements:
+  HANDBOOK-1:
+    statement: Die Leihfrist beträgt drei Wochen.
+    kind: functional
+    priority: must
+    status: accepted
+    origin: stated
+    cites:
+      - {source: handbook, clause: "2.1", says: Die Leihfrist beträgt drei Wochen.}
+  HANDBOOK-2:
+    statement: Die Erinnerungsfrist ist zwei Tage.
+    kind: functional
+    priority: must
+    status: accepted
+    origin: stated
+    cites:
+      - {source: handbook, clause: "2.2", says: Die Erinnerungsfrist ist zwei Tage.}
+  HANDBOOK-3:
+    statement: Die Frist für ein verlorenes Buch ist 90 Tage.
+    kind: functional
+    priority: must
+    status: accepted
+    origin: stated
+    cites:
+      - {source: handbook, clause: "2.3", says: Die Frist für ein verlorenes Buch ist 90 Tage.}

@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: extract
+level: system
+scenario: golden
+given: "a repository holding the branch handbook of extract-documents-writes-tree written in German, its first table with a leading row-number column, and a German vocabulary beside it"
+when: "extract documents is run on the handbook with --vocabulary and --given-outside"
+then: "it names the vocabulary applied, writes language de and givenOutside on the source, skips the row-number column, and gives the same counts, requirements with the same priorities, entities with the same types, required fields and sensitivities, and the same questions as the English handbook, with the gap message naming the German headers, and exits 0"
+verifies: [SA-64]

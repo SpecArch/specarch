@@ -1,0 +1,34 @@
+requirements:
+  # specarch-problem: warning: acceptance_missing: requirement HANDBOOK-1 has no acceptance criteria, so no test can show it is met; add acceptance with one verifiable sentence per criterion [acceptance_missing@requirements/requirements.yaml#/requirements/HANDBOOK-1]
+  # specarch-problem: warning: requirement_unsatisfied: no design element satisfies requirement HANDBOOK-1; add satisfies: [HANDBOOK-1] to the entity, operation, command, page, algorithm or decision that meets it [requirement_unsatisfied@requirements/requirements.yaml#/requirements/HANDBOOK-1]
+  # specarch-problem: warning: requirement_unverified: no test, commissioning check or monitor verifies requirement HANDBOOK-1; add verifies: [HANDBOOK-1] to the test that shows it is met [requirement_unverified@requirements/requirements.yaml#/requirements/HANDBOOK-1]
+  HANDBOOK-1:
+    statement: Die Leihfrist beträgt drei Wochen.
+    kind: functional
+    priority: must
+    status: accepted
+    origin: stated
+    cites:
+      - {source: handbook, clause: "2.1", says: Die Leihfrist beträgt drei Wochen.}
+  # specarch-problem: warning: acceptance_missing: requirement HANDBOOK-2 has no acceptance criteria, so no test can show it is met; add acceptance with one verifiable sentence per criterion [acceptance_missing@requirements/requirements.yaml#/requirements/HANDBOOK-2]
+  # specarch-problem: warning: requirement_unsatisfied: no design element satisfies requirement HANDBOOK-2; add satisfies: [HANDBOOK-2] to the entity, operation, command, page, algorithm or decision that meets it [requirement_unsatisfied@requirements/requirements.yaml#/requirements/HANDBOOK-2]
+  # specarch-problem: warning: requirement_unverified: no test, commissioning check or monitor verifies requirement HANDBOOK-2; add verifies: [HANDBOOK-2] to the test that shows it is met [requirement_unverified@requirements/requirements.yaml#/requirements/HANDBOOK-2]
+  HANDBOOK-2:
+    statement: Die Erinnerungsfrist ist zwei Tage.
+    kind: functional
+    priority: must
+    status: accepted
+    origin: stated
+    cites:
+      - {source: handbook, clause: "2.2", says: Die Erinnerungsfrist ist zwei Tage.}
+  # specarch-problem: warning: acceptance_missing: requirement HANDBOOK-3 has no acceptance criteria, so no test can show it is met; add acceptance with one verifiable sentence per criterion [acceptance_missing@requirements/requirements.yaml#/requirements/HANDBOOK-3]
+  # specarch-problem: warning: requirement_unsatisfied: no design element satisfies requirement HANDBOOK-3; add satisfies: [HANDBOOK-3] to the entity, operation, command, page, algorithm or decision that meets it [requirement_unsatisfied@requirements/requirements.yaml#/requirements/HANDBOOK-3]
+  # specarch-problem: warning: requirement_unverified: no test, commissioning check or monitor verifies requirement HANDBOOK-3; add verifies: [HANDBOOK-3] to the test that shows it is met [requirement_unverified@requirements/requirements.yaml#/requirements/HANDBOOK-3]
+  HANDBOOK-3:
+    statement: Die Frist für ein verlorenes Buch ist 90 Tage.
+    kind: functional
+    priority: must
+    status: accepted
+    origin: stated
+    cites:
+      - {source: handbook, clause: "2.3", says: Die Frist für ein verlorenes Buch ist 90 Tage.}

@@ -17,6 +17,7 @@ import (
 	"github.com/SpecArch/specarch/internal/source"
 	"github.com/SpecArch/specarch/internal/spec"
 	"github.com/SpecArch/specarch/internal/validate"
+	"github.com/SpecArch/specarch/internal/vocabulary"
 )
 
 // The methods a path item holds, in the order the readers write them.
@@ -74,15 +75,19 @@ type merger struct {
 	voAsk      []voAsk                // the questions about value objects, asked after the disputes
 	gatesAsked map[string]bool        // the checks whose gate questions are joined
 	readBack   map[string]*readBack   // a pointer read back as a value object -> what answers the questions on it
+
+	vocabularies []*vocabulary.Vocabulary // given with --vocabulary
+	dayWords     map[string]*dayWords     // language tag in lower case -> its matchers, nil for one with no vocabulary
+	notCompared  map[string]bool          // the sources said to be in a language with no vocabulary
 }
 
 // Merge merges the trees, each a specification that tracks origin and that
 // validate accepts, into one written into out (docs/from-sources.md,
 // section 3.2; ADR-045).
-func Merge(specs []*spec.Spec, out string) (*Result, error) {
+func Merge(specs []*spec.Spec, out string, vocabularies []*vocabulary.Vocabulary) (*Result, error) {
 	m := &merger{out: out, res: &Result{Tree: newTree()}, files: map[string]*yaml.Node{}, entries: map[string]*yaml.Node{},
 		elements: map[string]*element{}, disputes: map[string][]mergeStep{}, sources: map[string]*yaml.Node{},
-		given: map[string]bool{}, stages: map[string]bool{}}
+		given: map[string]bool{}, stages: map[string]bool{}, vocabularies: vocabularies, dayWords: map[string]*dayWords{}, notCompared: map[string]bool{}}
 	for _, s := range specs {
 		t, err := checkTree(s)
 		if err != nil {

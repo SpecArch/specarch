@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: traceability matrix
 
-Version 0.6.2 of the specification: 10 needs, 63 requirements, and 1 gap. Each requirement is traced back to the needs it refines and forward to what satisfies it in the design and what verifies it in the tests and commissioning checks.
+Version 0.6.2 of the specification: 10 needs, 64 requirements, and 1 gap. Each requirement is traced back to the needs it refines and forward to what satisfies it in the design and what verifies it in the tests and commissioning checks.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -19,7 +19,7 @@ Version 0.6.2 of the specification: 10 needs, 63 requirements, and 1 gap. Each r
 | NEED-5 | accepted | SA-35, SA-47, SA-26, SA-16, SA-12, SA-23, SA-24, SA-25 |
 | NEED-6 | accepted | SA-15, SA-13 |
 | NEED-7 | accepted | SA-14 |
-| NEED-8 | accepted | SA-46, SA-59, SA-17, SA-18, SA-19, SA-20, SA-30, SA-44, SA-45, SA-51 |
+| NEED-8 | accepted | SA-46, SA-59, SA-17, SA-18, SA-19, SA-20, SA-30, SA-44, SA-45, SA-64, SA-51 |
 | NEED-9 | accepted | SA-31, SA-29, SA-28, SA-27, SA-21, SA-22 |
 | NEED-10 | accepted | SA-58, SA-60, SA-57 |
 
@@ -90,6 +90,7 @@ Version 0.6.2 of the specification: 10 needs, 63 requirements, and 1 gap. Each r
 | SA-61 | NEED-2 | commands generate; decisions ADR-093 | tests generate-ui-typescript-hand-built; tests generate-ui-typescript-hand-built-differs |
 | SA-62 | NEED-2 | enums Rule; decisions ADR-099 | tests document-techspec-role-names; tests extract-go-dxlib-upper-snake-roles; tests extract-permissions-mixed-role-names; tests extract-permissions-upper-snake-roles; tests validate-role-names |
 | SA-63 | NEED-2 | enums Rule; commands extract; decisions ADR-100 | tests document-techspec-implies; tests extract-permissions-pattern-rules; tests validate-implies |
+| SA-64 | NEED-8 | commands extract; commands merge; decisions ADR-105 | tests extract-documents-language-not-shipped; tests extract-documents-vocabulary; tests extract-documents-vocabulary-word-twice; tests merge-documents-days-vocabulary; tests merge-documents-language-not-given; tests validate-schema-language-tag |
 
 ## 3. Gaps
 

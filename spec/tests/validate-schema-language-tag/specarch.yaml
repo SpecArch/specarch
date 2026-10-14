@@ -1,0 +1,5 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0 }
+sources:
+  handbook: { kind: document, title: The handbook, language: pt-BR }
+  manual: { kind: document, title: The manual, language: english }

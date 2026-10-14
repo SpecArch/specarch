@@ -1,0 +1,9 @@
+entity: Loans
+constraint: loans_return_period
+level: system
+scenario: golden
+given: "..."
+when: "a Loans keeping it is saved"
+then: "it is saved"
+origin: inferred
+why: "Written by specarch derive: every subject needs a golden path, and this is the success the design gives. A draft: complete the given, when and then, and remove what does not hold."

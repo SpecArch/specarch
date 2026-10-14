@@ -31,14 +31,14 @@ facts in a format SpecArch defines, never a reader of its own.
 |---|---|
 | 1. a dump committed outside the code's repository | built, item 1 (ADR-098): `repository` in every dump, read at the gitlink's commit |
 | 2. references between specifications; an umbrella specification | planned, items 5 and 6 |
-| 3. documents in another language | planned, item 4 |
+| 3. documents in another language | built, item 4 (ADR-105): a vocabulary per language, English shipped, `--language` and `--vocabulary` on extract documents and `--vocabulary` on merge, `language` on a source, the row-number column skipped |
 | 4. role names on the wire | built, item 2 (ADR-099): `info.roleNames: upper_snake`, read by both readers of grants |
 | 5. authorisation by path pattern | built, item 3 (ADR-100): `implies` on a permission, counted by every check of a role's grants, and `rules` in the permission table, read with the route table by `extract permissions --routes`; a permission defined by a pattern is declined |
 | 6. a check bypassed for one kind of caller | planned as a gate kind in the permission table, item 7; whether a route may serve people and clients both is decision 3: left out of 0.3 |
 | 7. the schema file's name; the facts dump from the installed binary | planned, item 8 |
 | 8. workflow definitions that are not BPMN | planned as a printed workflow table, item 9, since the estate's format is custom; a standard format gets a plug-in reader (decision 5) |
 | 9. audience, requirements held elsewhere, material questions, partial answers, row citations | planned, items 10 and 11; a row citation is shipped in 0.6.0 as a clause that carries the row's identifier |
-| 10. `--given-outside`, two routes for one list, generated defaults, indexes, a source key from capitals | planned, items 4 and 12; an index goes to the implementation file; the source key from capitals is on main already, after 0.6.0 |
+| 10. `--given-outside`, two routes for one list, generated defaults, indexes, a source key from capitals | `--given-outside` built, item 4 (ADR-105); the rest planned, item 12; an index goes to the implementation file; the source key from capitals is on main already, after 0.6.0 |
 | 11. generation targets | shipped: the OpenAPI document and SQL migrations (0.4.0), the Next.js UI with task pages and a private component library through an idiom override (0.6.0); declined: Go server interfaces, which the stack's OpenAPI code generator makes from the document; planned later: sqlc queries, item 13 |
 | 12. output a CI gate compares with the code | planned later, item 14, on the readers and `merge` |
 
@@ -201,7 +201,11 @@ reader takes `--language <tag>` and `--vocabulary <file>` and writes
 `language` on the source, so a reader of the tree knows which words
 were applied. A tag with no shipped vocabulary and no file is refused
 with the format to write one in; a vocabulary is checked when read, and
-a word in two lists is an error at the file. Which languages are
+a word in two lists of one group (two priorities, two headers, two
+sensitivities, two types) is an error at the file. The vocabulary also
+gives the type words of a Type column and the linking and leading words
+merge reads a requirement's subject by, and merge reads a number of
+days by the vocabulary of its source's language (`docs/vocabularies.md`). Which languages are
 shipped beyond English is decided when the first project supplies a
 vocabulary; a project's file is in its specification repository, not in
 SpecArch.
@@ -596,7 +600,7 @@ step 1. Only item 7's meta-model half touches 0.3.
    Done when a conformance case with a `*` row beside a `get` row gives
    two permissions with the implication, each route its one permission,
    and the lending desk's matrix is unchanged.
-4. Documents in another language, and the small reader points. The
+4. Built (ADR-105). Documents in another language, and the small reader points. The
    vocabulary format and the English file, `language` on a source,
    `--language` and `--vocabulary`, the row-number column,
    `--given-outside`. Done when a conformance document in a

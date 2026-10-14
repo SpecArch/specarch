@@ -1,0 +1,13 @@
+questions:
+  # specarch-problem: question: open_question: (must, decision) Is it 21 days, as HANDBOOK-1 says ("Die Leihfrist beträgt drei Wochen."), or 14 days, as the check loans_leihfrist of Loans has it (dueOn == loanedOn + duration("P14D"))? Decided by system-owner. Answer with a decision record that names Q-1 under answers. [Q-1]
+  Q-1:
+    question: Is it 21 days, as HANDBOOK-1 says ("Die Leihfrist beträgt drei Wochen."), or 14 days, as the check loans_leihfrist of Loans has it (dueOn == loanedOn + duration("P14D"))?
+    kind: decision
+    priority: must
+    blocks: ['#/requirements/HANDBOOK-1/statement']
+    decidedBy: system-owner
+    options: ['21 days: the code is to change', '14 days: the document is to change']
+    why: 'The documents and the code disagree: the document says 21 days, the code checks 14. The merge leaves the statement out rather than choose, and keeps the check the code runs, which satisfies the requirement whichever way it is answered.'
+    cites:
+      - {source: handbook, clause: "2.1", says: Die Leihfrist beträgt drei Wochen.}
+      - {source: code, clause: migrations/001_init.sql, says: The loans table and its checks.}

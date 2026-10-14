@@ -1,0 +1,71 @@
+stakeholders:
+  system-owner:
+    description: Whoever owns the system that was read and answers for it; the reviewer replaces this with the real role.
+    origin: inferred
+    why: The surface names no one, and every question needs a stakeholder to decide it.
+requirements:
+  # specarch-problem: warning: acceptance_missing: requirement HANDBUCH-1 has no acceptance criteria, so no test can show it is met; add acceptance with one verifiable sentence per criterion [acceptance_missing@requirements/requirements.yaml#/requirements/HANDBUCH-1]
+  # specarch-problem: warning: requirement_unsatisfied: no design element satisfies requirement HANDBUCH-1; add satisfies: [HANDBUCH-1] to the entity, operation, command, page, algorithm or decision that meets it [requirement_unsatisfied@requirements/requirements.yaml#/requirements/HANDBUCH-1]
+  HANDBUCH-1:
+    statement: Das Personal soll die Karte bei jedem Besuch prüfen.
+    priority: should
+    status: accepted
+    origin: stated
+    cites:
+      - {source: handbuch, clause: "1.2", says: Das Personal soll die Karte bei jedem Besuch prüfen.}
+  # specarch-problem: warning: acceptance_missing: requirement HANDBUCH-2 has no acceptance criteria, so no test can show it is met; add acceptance with one verifiable sentence per criterion [acceptance_missing@requirements/requirements.yaml#/requirements/HANDBUCH-2]
+  # specarch-problem: warning: requirement_unsatisfied: no design element satisfies requirement HANDBUCH-2; add satisfies: [HANDBUCH-2] to the entity, operation, command, page, algorithm or decision that meets it [requirement_unsatisfied@requirements/requirements.yaml#/requirements/HANDBUCH-2]
+  HANDBUCH-2:
+    statement: Eine Ausleihe dauert 14 Tage.
+    priority: must
+    status: accepted
+    origin: stated
+    cites:
+      - {source: handbuch, clause: "2.1", says: Eine Ausleihe dauert 14 Tage.}
+  # specarch-problem: warning: acceptance_missing: requirement HANDBUCH-3 has no acceptance criteria, so no test can show it is met; add acceptance with one verifiable sentence per criterion [acceptance_missing@requirements/requirements.yaml#/requirements/HANDBUCH-3]
+  # specarch-problem: warning: requirement_unsatisfied: no design element satisfies requirement HANDBUCH-3; add satisfies: [HANDBUCH-3] to the entity, operation, command, page, algorithm or decision that meets it [requirement_unsatisfied@requirements/requirements.yaml#/requirements/HANDBUCH-3]
+  HANDBUCH-3:
+    statement: 'Die Zweigstelle muss vor dem Fälligkeitstag eine Erinnerung senden:'
+    priority: must
+    status: accepted
+    origin: stated
+    cites:
+      - {source: handbuch, clause: "2.2", says: 'Die Zweigstelle muss vor dem Fälligkeitstag eine Erinnerung senden:'}
+  # specarch-problem: warning: acceptance_missing: requirement HANDBUCH-4 has no acceptance criteria, so no test can show it is met; add acceptance with one verifiable sentence per criterion [acceptance_missing@requirements/requirements.yaml#/requirements/HANDBUCH-4]
+  # specarch-problem: warning: requirement_unsatisfied: no design element satisfies requirement HANDBUCH-4; add satisfies: [HANDBUCH-4] to the entity, operation, command, page, algorithm or decision that meets it [requirement_unsatisfied@requirements/requirements.yaml#/requirements/HANDBUCH-4]
+  HANDBUCH-4:
+    statement: Die Zweigstelle öffnet um 9.00 Uhr.
+    priority: must
+    status: accepted
+    origin: stated
+    cites:
+      - {source: handbuch, clause: "3", says: Die Zweigstelle öffnet um 9.00 Uhr.}
+questions:
+  # specarch-problem: question: open_question: (must, decision) Section 2.1 says "Sie muss an die Zweigstelle zurückgegeben werden, die sie verliehen hat.", and does not name what it commits; which element is it? It blocks requirements. Decided by system-owner. Answer with a decision record that names Q-1 under answers. [Q-1]
+  Q-1:
+    question: Section 2.1 says "Sie muss an die Zweigstelle zurückgegeben werden, die sie verliehen hat.", and does not name what it commits; which element is it?
+    kind: decision
+    priority: must
+    blocks: [requirements]
+    decidedBy: system-owner
+    why: A sentence that names its subject only by a word such as it or they cannot be placed as one element without guessing.
+    cites:
+      - {source: handbuch, clause: "2.1", says: 'Sie muss an die Zweigstelle zurückgegeben werden, die sie verliehen hat.'}
+  # specarch-problem: question: open_question: (must, decision) Which kind is each requirement read from the document: HANDBUCH-1, HANDBUCH-2, HANDBUCH-3, HANDBUCH-4? Functional, quality, interface or constraint. Decided by system-owner. Answer with a decision record that names Q-2 under answers. [Q-2]
+  Q-2:
+    question: 'Which kind is each requirement read from the document: HANDBUCH-1, HANDBUCH-2, HANDBUCH-3, HANDBUCH-4? Functional, quality, interface or constraint.'
+    kind: decision
+    priority: must
+    blocks: ['#/requirements/HANDBUCH-1/kind', '#/requirements/HANDBUCH-2/kind', '#/requirements/HANDBUCH-3/kind', '#/requirements/HANDBUCH-4/kind']
+    decidedBy: system-owner
+    why: A document states what is committed, not which kind of requirement it is.
+  # specarch-problem: question: open_question: (could, decision) Not held: a code block at line 40: code in a document is not read as a commitment. Does the specification need it, written another way or described by hand? It blocks requirements. Decided by system-owner. Answer with a decision record that names Q-6 under answers. [Q-6]
+  Q-6:
+    question: 'Not held: a code block at line 40: code in a document is not read as a commitment. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: [requirements]
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: handbuch, clause: "3", says: 'Not held: a code block at line 40: code in a document is not read as a commitment.'}

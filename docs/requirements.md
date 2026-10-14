@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: requirements specification
 
-Version 0.6.2 of the specification: 5 stakeholders, 10 needs and 63 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
+Version 0.6.2 of the specification: 5 stakeholders, 10 needs and 64 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -40,7 +40,7 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | NEED-5 | I want the whole life of the system in one place, from the first requirement to the day it is accepted. | reviewer, operator | accepted | SA-35, SA-47, SA-26, SA-16, SA-12, SA-23, SA-24, SA-25 |
 | NEED-6 | I want to see why something is the way it is, and which standard asks for it. | reviewer | accepted | SA-15, SA-13 |
 | NEED-7 | I want one tool to learn and install, not one program per task. | specification-author, ci-job | accepted | SA-14 |
-| NEED-8 | I want to build a specification from the documents and code that exist, without inventing what they do not say, and to see at every step what is still missing and what can already be made. | specification-author, reviewer | accepted | SA-46, SA-59, SA-17, SA-18, SA-19, SA-20, SA-30, SA-44, SA-45, SA-51 |
+| NEED-8 | I want to build a specification from the documents and code that exist, without inventing what they do not say, and to see at every step what is still missing and what can already be made. | specification-author, reviewer | accepted | SA-46, SA-59, SA-17, SA-18, SA-19, SA-20, SA-30, SA-44, SA-45, SA-64, SA-51 |
 | NEED-9 | I want the tests a specification implies, with the ones that matter most written first and the rest listed with the reason they were left out. | specification-author, implementer | accepted | SA-31, SA-29, SA-28, SA-27, SA-21, SA-22 |
 | NEED-10 | I want to show what a specification builds long before it is finished, and to take a remark from someone looking at the result back into the specification, knowing what it reaches, and out again in the next build. | reviewer, specification-author | accepted | SA-58, SA-60, SA-57 |
 
@@ -102,6 +102,7 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | SA-44 | functional | must | accepted | specarch extract shall read one surface of an existing system into a specification tree in which every element carries its origin and cites where it was read, name the commit it read, refuse a source no commit names, and give byte-identical output for the same sources at the same commit. |
 | SA-45 | functional | must | accepted | specarch merge shall merge the partial specification trees the readers write into one specification that keeps the citations of every tree, turn every disagreement between the trees into a must question that cites both, and give byte-identical output for the same trees in the same order. |
 | SA-57 | functional | should | proposed | Every output SpecArch generates shall name the element of the specification it came from, and a remark made at the user acceptance test shall be recorded as a change request or a defect that names the build it is about, where it was seen, what was observed and what was expected, and why the result was not what was wanted, and shall enter the specification as a decision, a question or a rejection, with what it reaches listed before anything changes. |
+| SA-64 | functional | must | accepted | specarch extract documents shall read a document in any language whose words a vocabulary gives, the English one SpecArch ships or a project's file, write the language on the source, and give for it the elements it gives for the same document in English; specarch merge shall read a number of days in a requirement by the vocabulary of its source's language. |
 | SA-1 | functional | must | accepted | specarch validate shall check every specification and implementation file given against the JSON Schema of its kind and meta-model version. |
 | SA-2 | functional | must | accepted | Every reference inside a specification shall resolve to an object of the right kind in the same specification, wherever its file is in the tree. |
 | SA-3 | functional | must | accepted | Every check constraint, condition of a unique constraint and formula shall parse and type-check in the fixed expression language. |
@@ -943,6 +944,22 @@ Acceptance criteria:
 **Problem:** warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SA-57; add verifies: [SA-57] to the test that shows it is met [requirement_unverified@requirements/requirements/refinement.yaml#/requirements/SA-57]
 
 **Insight:** People never write a complete specification, and the people who will use a system see it first at the user acceptance test; a remark that cannot name the element it is about, or that has no way back into the specification, is lost or applied by hand where the next generation overwrites it.
+
+### SA-64
+
+specarch extract documents shall read a document in any language whose words a vocabulary gives, the English one SpecArch ships or a project's file, write the language on the source, and give for it the elements it gives for the same document in English; specarch merge shall read a number of days in a requirement by the vocabulary of its source's language.
+
+Kind: functional; priority: must; status: accepted; verified by test; refines NEED-8.
+
+Acceptance criteria:
+
+- extract documents with --vocabulary on a document written in a second language gives the counts, the requirements' priorities, the entities' types, required fields and sensitivities, and the questions the same document in English gives, and writes language on the source.
+- extract documents with no vocabulary named reads the document by the English vocabulary and writes the tree it wrote before vocabularies were data, byte for byte.
+- A vocabulary that lists one word in two lists of one group, such as two sensitivities, is refused with the file, the line and the two lists; a language tag SpecArch ships no vocabulary for, given with no file, is refused with the keys a vocabulary holds.
+- A leading table column headed with the vocabulary's row-number word is skipped in every table, and --given-outside writes givenOutside on the source.
+- merge reads a requirement's number of days in the units and number words of its source's language, from the shipped vocabulary or the one given with --vocabulary, and says once per source that its requirements are not compared when there is neither.
+
+**Insight:** A document in another language gave its outline and nothing else, every table a could line, since the commitment words, the headers and the units were English in the code; a wrong or missing word has to be one line in a data file that the project changes without a release.
 
 ### SA-1
 

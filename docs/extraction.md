@@ -239,7 +239,12 @@ Steps, in order:
    manual gives its outline and four commitments, and merged with the
    database and router trees gives the loan period, 21 days against 14,
    as one `must` question citing clause 3.3 and the loans table,
-   validated and byte-identical; CI repeats it. PDF and slide decks
+   validated and byte-identical; CI repeats it. The words are a
+   vocabulary, a data file per language (ADR-105,
+   `docs/vocabularies.md`): English is shipped and read by default,
+   `--language` or `--vocabulary` names another, and the source records
+   its `language`; a leading row-number column is skipped in every
+   table, and `--given-outside` marks the source. PDF and slide decks
    follow once a reader for them passes the dependency rules.
 7. Built. The OpenAPI reader, `extract openapi`, for OpenAPI 3.0 and
    3.1, in YAML or JSON, with no dependency beyond the YAML library

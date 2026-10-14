@@ -11,38 +11,74 @@ import (
 
 	"github.com/SpecArch/specarch/internal/expr"
 	"github.com/SpecArch/specarch/internal/source"
+	"github.com/SpecArch/specarch/internal/vocabulary"
 )
 
-// A commitment that states a number of days, and the words before its
-// verb, which name what it is about: "The loan period is 21 days."
-var (
-	daysQuantity = regexp.MustCompile(`(?i)\b([0-9]+|` + numberWords + `)\s+days?\b`)
-	subjectVerb  = regexp.MustCompile(`(?i)^(.*?)\s+(is|are|shall|must|will|should)\b`)
-	stopWords    = map[string]bool{"the": true, "a": true, "an": true, "of": true, "each": true, "every": true}
-	numberValues = map[string]int{"one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six": 6, "seven": 7, "eight": 8, "nine": 9,
-		"ten": 10, "eleven": 11, "twelve": 12, "fifteen": 15, "twenty": 20, "thirty": 30, "forty": 40, "fifty": 50, "sixty": 60}
-)
+// dayWords is a vocabulary made into the matchers of a commitment that
+// states a number of days, and of the words before its verb, which name
+// what it is about: "The loan period is 21 days."
+type dayWords struct {
+	v            *vocabulary.Vocabulary
+	quantity     *regexp.Regexp // the number, and the unit of whole days
+	subjectVerb  *regexp.Regexp
+	unitDays     map[string]int
+	leadingWords map[string]bool
+}
+
+func newDayWords(v *vocabulary.Vocabulary) *dayWords {
+	w := &dayWords{v: v, unitDays: map[string]int{}, leadingWords: map[string]bool{}}
+	var units []string
+	for u, d := range v.Units {
+		if d%(24*time.Hour) == 0 {
+			units = append(units, u)
+			w.unitDays[u] = int(d / (24 * time.Hour))
+		}
+	}
+	number := `[0-9]+`
+	if len(v.Numbers) > 0 {
+		number += `|` + vocabulary.Words(v.NumberWords())
+	}
+	w.quantity = regexp.MustCompile(`(?i)` + vocabulary.Before + `(` + number + `)\s+` + vocabulary.Words(units) + vocabulary.After)
+	w.subjectVerb = regexp.MustCompile(`(?i)^(.*?)\s+` + vocabulary.Words(append(append([]string(nil), v.LinkingVerbs...), v.CommitmentWords()...)) + vocabulary.After)
+	for _, l := range v.LeadingWords {
+		w.leadingWords[l] = true
+	}
+	return w
+}
 
 // daysCommitment is the subject's words and the number of days of a
 // requirement statement, when it states exactly one number of days.
-func daysCommitment(statement string) ([]string, int, bool) {
-	ms := daysQuantity.FindAllStringSubmatch(statement, -1)
-	sv := subjectVerb.FindStringSubmatch(statement)
-	if len(ms) != 1 || sv == nil {
+func (w *dayWords) daysCommitment(statement string) ([]string, int, bool) {
+	sv := w.subjectVerb.FindStringSubmatch(statement)
+	if sv == nil {
 		return nil, 0, false
 	}
-	n, err := strconv.Atoi(ms[0][1])
+	var found [][]string
+	for at := 0; at < len(statement); {
+		loc := w.quantity.FindStringSubmatchIndex(statement[at:])
+		if loc == nil {
+			break
+		}
+		last := len(loc) - 2
+		found = append(found, []string{statement[at+loc[2] : at+loc[3]], statement[at+loc[last] : at+loc[last+1]]})
+		at += loc[last+1]
+	}
+	if len(found) != 1 {
+		return nil, 0, false
+	}
+	n, err := strconv.Atoi(found[0][0])
 	if err != nil {
-		v, ok := numberValues[strings.ToLower(ms[0][1])]
+		v, ok := w.v.Numbers[strings.ToLower(found[0][0])]
 		if !ok {
 			return nil, 0, false
 		}
 		n = v
 	}
+	n *= w.unitDays[strings.ToLower(found[0][1])]
 	var subject []string
-	for _, w := range words(sv[1]) {
-		if !stopWords[w] {
-			subject = append(subject, w)
+	for _, x := range words(sv[1]) {
+		if !w.leadingWords[x] {
+			subject = append(subject, x)
 		}
 	}
 	return subject, n, len(subject) > 0
@@ -118,7 +154,11 @@ func (m *merger) quantityQuestions() int {
 		}
 		req := m.elementNode(e)
 		statement := source.Str(source.Child(req, "statement"))
-		subject, days, ok := daysCommitment(statement)
+		w := m.dayWordsOf(req)
+		if w == nil {
+			continue
+		}
+		subject, days, ok := w.daysCommitment(statement)
 		if !ok {
 			continue
 		}
@@ -162,6 +202,42 @@ func (m *merger) quantityQuestions() int {
 		asked++
 	}
 	return asked
+}
+
+// dayWordsOf is the matchers of the vocabulary of the language of the
+// source a requirement cites first: English when the source names none,
+// the shipped one or the one given with --vocabulary otherwise. A language
+// with neither is said once, and its requirements are not compared.
+func (m *merger) dayWordsOf(req *yaml.Node) *dayWords {
+	key, tag := "", ""
+	if cites := source.Items(source.Child(req, "cites")); len(cites) > 0 {
+		key = source.Str(source.Child(cites[0], "source"))
+		tag = source.Str(source.Child(m.sources[key], "language"))
+	}
+	if tag == "" {
+		tag = "en"
+	}
+	w, ok := m.dayWords[strings.ToLower(tag)]
+	if !ok {
+		var v *vocabulary.Vocabulary
+		for _, g := range m.vocabularies {
+			if strings.EqualFold(g.Language, tag) {
+				v = g
+			}
+		}
+		if v == nil {
+			v, _ = vocabulary.Shipped(tag)
+		}
+		if v != nil {
+			w = newDayWords(v)
+		}
+		m.dayWords[strings.ToLower(tag)] = w
+	}
+	if w == nil && !m.notCompared[key] {
+		m.notCompared[key] = true
+		m.res.say("not compared: the requirements of the source %s are in the language %s, for which SpecArch ships no vocabulary and none was given; give its file with --vocabulary to compare their numbers of days with the code's checks", key, tag)
+	}
+	return w
 }
 
 // onSide says whether a tree of that side has the element.

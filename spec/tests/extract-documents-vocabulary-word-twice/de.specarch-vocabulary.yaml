@@ -1,0 +1,59 @@
+specarchVocabulary: "0.1"
+language: de
+description: The German words a project's handbooks are read by.
+commitments:
+  must: [muss, müssen]
+  should: [soll, sollte, sollen]
+frequencies: [einmal, zweimal]
+timeLimits: [innerhalb, vor, nach, bis, spätestens]
+pronouns: [es, sie, er, dies, diese, dieser]
+linkingVerbs: [ist, sind, beträgt]
+leadingWords: [der, die, das, ein, eine, jeder, jede, jedes]
+numbers:
+  eins: 1
+  zwei: 2
+  drei: 3
+  vier: 4
+  fünf: 5
+  sechs: 6
+  sieben: 7
+  acht: 8
+  neun: 9
+  zehn: 10
+  elf: 11
+  zwölf: 12
+  fünfzehn: 15
+  zwanzig: 20
+  dreißig: 30
+  hundert: 100
+  tausend: 1000
+units:
+  tag: P1D
+  tage: P1D
+  tagen: P1D
+  woche: P7D
+  wochen: P7D
+  stunde: PT1H
+  stunden: PT1H
+  minute: PT1M
+  minuten: PT1M
+timeSeparators: [":", "."]
+headers:
+  field: [feld]
+  type: [typ]
+  required: [pflicht]
+  sensitivity: [schutzbedarf]
+  description: [beschreibung]
+  rowNumber: ["nr.", "#"]
+yes: [ja, wahr, pflicht]
+sensitivities:
+  public: [öffentlich]
+  internal: [intern, personenbezogen]
+  personal: [personenbezogen]
+  credential: [zugangsdaten]
+types:
+  string: [text, zeichenkette]
+  date: [datum]
+  dateTime: [zeitpunkt]
+  boolean: [wahrheitswert, ja/nein]
+  email: [e-mail]

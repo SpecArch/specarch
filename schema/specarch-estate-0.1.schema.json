@@ -1,0 +1,93 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-estate-0.1.schema.json",
+  "title": "SpecArch estate, 0.1",
+  "description": "A SpecArch estate lists the specifications of the modules of one estate, each owned by its own team and held in its own folder, and pins the version of each. On disk it is the file specarch-estate.yaml, usually in an umbrella repository whose submodules hold the modules. It has no stages and holds nothing of a module: it lists and pins. The validator reads every module it lists, checks each against its entry, and resolves the references between them. Every object rejects unknown keys; keys starting with 'x-' are allowed everywhere as extensions.",
+  "type": "object",
+  "properties": {
+    "specarchEstate": {
+      "description": "Estate format version this file is written against.",
+      "type": "string",
+      "const": "0.1"
+    },
+    "info": {
+      "description": "What the estate is.",
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "version": {
+          "description": "Version of this estate file, semantic versioning: a module added, dropped or moved to another version is a new version.",
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(-[0-9A-Za-z.-]+)?$"
+        },
+        "description": {
+          "$ref": "#/$defs/markdown"
+        }
+      },
+      "required": [
+        "title",
+        "version"
+      ],
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "modules": {
+      "description": "The modules of the estate, each keyed by its specification's info.name, kebab case.",
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": {
+        "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/module"
+      }
+    }
+  },
+  "required": [
+    "specarchEstate",
+    "info",
+    "modules"
+  ],
+  "patternProperties": {
+    "^x-": {}
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "markdown": {
+      "description": "Prose in Markdown.",
+      "type": "string"
+    },
+    "module": {
+      "description": "One module of the estate: where its specification is and the version the estate holds.",
+      "type": "object",
+      "properties": {
+        "description": {
+          "$ref": "#/$defs/markdown"
+        },
+        "location": {
+          "description": "The folder that holds the module's specification (its specarch.yaml), relative to this file, with slashes: a module's spec folder in a submodule, such as modules/lending-desk/spec.",
+          "type": "string",
+          "minLength": 1
+        },
+        "version": {
+          "description": "The info.version of the module's specification that the estate holds; the validator compares it.",
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(-[0-9A-Za-z.-]+)?$"
+        }
+      },
+      "required": [
+        "location",
+        "version"
+      ],
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    }
+  }
+}

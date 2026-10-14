@@ -479,6 +479,7 @@ redefined.
 | `session`, `idleTimeout`, `absoluteTimeout` | SpecArch, after the OWASP Session Management Cheat Sheet | how a signed-in session ends; the two timeouts are the cheat sheet's |
 | `dependencies`, `timeout`, `calls` | SpecArch | external systems an operation calls, each with a time limit per call |
 | `specification`, `version` (on a dependency), `name` (in `info`) | SpecArch, after JSON Schema's `$ref` as a URI reference | a dependency that is another specification, named by its `info.name` and pinned to its `info.version`; its elements are named `<dependency>#/<pointer>` |
+| `specarchEstate`, `modules`, `location` | SpecArch | an estate file: the modules' specifications by `info.name`, each with its folder and the version held |
 | `idempotencyKey` | SpecArch, after RFC 9110 9.2.2 and the IETF Idempotency-Key header draft | a header that tells a repeated request from a new one, on a method that is not idempotent by itself |
 | `validity`, `from`, `until` | SpecArch | the fields that bound when a record is current |
 | `guard`, `precondition`, `recordsChanged` | SpecArch | what is checked together with a data change |
@@ -669,6 +670,37 @@ alone, so every code target that would write it refuses it as `reference`
 at the field; the UI targets refuse a list page or picker that reads
 another specification's list for the same reason. The techspec names
 each reference with the specification and version it points at.
+
+### Estates
+
+An estate's modules are checked against each other where the estate is,
+usually an umbrella repository that holds each module as a submodule. The
+estate is the file `specarch-estate.yaml`, of a kind of its own
+(`schema/specarch-estate-0.1.schema.json`): it lists each module's
+specification by its `info.name`, with the folder that holds its
+`specarch.yaml`, relative to the estate file, and the version the estate
+holds, and it copies nothing of a module (ADR-113):
+
+    # specarch-estate.yaml
+    specarchEstate: "0.1"
+    info: { title: Lending estate, version: 1.0.0 }
+    modules:
+      loans: { location: modules/loans/spec, version: 1.0.0 }
+      customer-registry: { location: modules/registry/spec, version: 2.4.0 }
+
+`validate`, `gaps` and `document` given the estate file, or a folder that
+holds one, read every module there once, so every reference between them
+resolves as when both are named. Each module is checked against its entry,
+as the error `module` at the module: its folder holds a specification,
+whose `info.name` is the key and whose `info.version` is the version
+listed, and no module's operations or jobs call round a cycle of modules
+through their dependencies. `gaps` prints the estate's problems before
+the modules' open questions documents. `document techspec` also writes
+`estate.md`, the module map, into `docs` beside the estate file (or
+`--out`): the modules, the version each is held at, and the references
+between them as a flowchart. Generators read one module at a time.
+`examples/estate` is an estate of the lending desk and a catalogue
+service.
 
 ### Idempotency
 

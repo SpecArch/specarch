@@ -24,6 +24,99 @@
           "kind": "open",
           "level": "none",
           "message": {
+            "text": "(must, decision) Does the desk read the book records through the catalogue service's operations, and with what time limit per call, or from the books table as the service does today? Decided by desk-manager. Answer with a decision record that names Q-8 under answers."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../spec/design/design.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 204,
+                  "startColumn": 3
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "/questions/Q-8",
+                  "kind": "element"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "specarchId/v1": "Q-8"
+          },
+          "relatedLocations": [
+            {
+              "id": 1,
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../spec/design/design.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 193,
+                  "startColumn": 3
+                }
+              },
+              "message": {
+                "text": "blocks #/dependencies/catalogue/timeout, which is not given yet"
+              }
+            },
+            {
+              "id": 2,
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../spec/design/design.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 213,
+                  "startColumn": 9
+                }
+              },
+              "message": {
+                "text": "source desk-manual, clause 3.4: The catalogue team keeps the book records; the desk reads them and never edits them."
+              }
+            },
+            {
+              "id": 3,
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../sources/code/migrations/001_init.sql",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 6,
+                  "startColumn": 1
+                }
+              },
+              "message": {
+                "text": "source desk-code, clause migrations/001_init.sql:6: CREATE TABLE books."
+              }
+            }
+          ],
+          "properties": {
+            "priority": "must",
+            "questionKind": "decision",
+            "decidedBy": "desk-manager",
+            "options": [
+              "Through the catalogue service, with a time limit to name",
+              "From the books table, as today"
+            ],
+            "blocks": [
+              "#/dependencies/catalogue/timeout"
+            ]
+          }
+        },
+        {
+          "ruleId": "open_question",
+          "kind": "open",
+          "level": "none",
+          "message": {
             "text": "(should, decision) Renewing a loan is in the manual but not in the service. Build it as the manual describes, or take it out of the manual? It blocks implementation. Decided by desk-manager. Answer with a decision record that names Q-4 under answers."
           },
           "locations": [

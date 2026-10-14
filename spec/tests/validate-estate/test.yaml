@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: validate
+level: system
+scenario: golden
+given: "an estate file listing two modules, each by its info.name with its folder and version, one of whose references name elements of the other"
+when: "validate is run on the estate file alone"
+then: "it reads both modules, resolves every reference between them, reports nothing at the estate, and exits 0"
+verifies: [SA-66]

@@ -1,0 +1,6 @@
+specarchEstate: "0.1"
+info: { title: Asking estate, version: 1.0.0 }
+modules:
+  alpha: { location: alpha, version: 1.0.0 }
+  beta: { location: beta, version: 1.0.0 }
+  gamma: { location: gamma, version: 1.0.0 }

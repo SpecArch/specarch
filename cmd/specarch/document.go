@@ -157,11 +157,16 @@ func runDocument(args []string, stdout, stderr io.Writer) int {
 	if target == "problems" {
 		return runProblems(paths, out, check, stdout, stderr)
 	}
-	specs, invalid, status := readSpecs(paths, "document", stdout, stderr)
+	specs, estates, invalid, status := readInputs(paths, "document", stdout, stderr, nil)
 	if status != 0 {
 		return status
 	}
 	var plan []planned
+	if target == "techspec" {
+		for _, ce := range estates {
+			plan = append(plan, estatePlan(ce, specs, out))
+		}
+	}
 	failed := false
 	skipped := 0
 	for _, l := range specs {
@@ -207,7 +212,7 @@ func runDocument(args []string, stdout, stderr io.Writer) int {
 		fmt.Fprintln(stderr, "specarch document: the markers have errors, so nothing was written")
 		return 1
 	}
-	if skipped == len(specs) {
+	if skipped == len(specs) && len(plan) == 0 {
 		fmt.Fprintf(stderr, "specarch: no output folder for %s in any specification given; give --out, or an implementation file whose targets name %s and its output\n", target, target)
 		return 2
 	}
@@ -247,21 +252,52 @@ func readSpecs(paths []string, verb string, stdout, stderr io.Writer) (specs []l
 // readSpecsSettling is readSpecs for a command that settles some errors
 // itself: an error settles says yes to is neither printed nor counted.
 func readSpecsSettling(paths []string, verb string, stdout, stderr io.Writer, settles func(validate.Diagnostic) bool) (specs []loaded, invalid bool, status int) {
+	specs, _, invalid, status = readInputs(paths, verb, stdout, stderr, settles)
+	return specs, invalid, status
+}
+
+// checkedEstate is an estate given to a command, with what its check found.
+type checkedEstate struct {
+	estate *validate.Estate
+	diags  []validate.Diagnostic
+}
+
+// readInputs is readSpecsSettling that also returns the estates given,
+// checked; an estate's errors are printed and count as the input's, since
+// no document of a module holds them.
+func readInputs(paths []string, verb string, stdout, stderr io.Writer, settles func(validate.Diagnostic) bool) (specs []loaded, estates []checkedEstate, invalid bool, status int) {
 	inputs, ioError := collect(paths, stderr)
 	if ioError {
-		return nil, false, 2
+		return nil, nil, false, 2
 	}
 	var all []*spec.Spec
+	byFolder := map[string]*spec.Spec{}
 	for _, in := range inputs {
+		if in.estate != nil {
+			continue
+		}
 		if in.root == "" {
 			name := in.implementation
 			if name == "" {
 				name = in.other
 			}
 			fmt.Fprintf(stderr, "specarch %s: %s is not a specification; name the folder that holds %s\n", verb, name, spec.RootFile)
-			return nil, false, 2
+			return nil, nil, false, 2
 		}
-		all = append(all, spec.Load(in.root))
+		s := spec.Load(in.root)
+		all = append(all, s)
+		byFolder[filepath.Clean(in.root)] = s
+	}
+	for _, in := range inputs {
+		if in.estate == nil {
+			continue
+		}
+		ce := checkedEstate{estate: in.estate, diags: validate.CheckEstate(in.estate, byFolder)}
+		for _, d := range ce.diags {
+			fmt.Fprintln(stdout, d.String())
+			invalid = invalid || d.Severity == validate.Error
+		}
+		estates = append(estates, ce)
 	}
 	given := validate.NewGiven(all)
 	for _, s := range all {
@@ -284,9 +320,9 @@ func readSpecsSettling(paths []string, verb string, stdout, stderr io.Writer, se
 	}
 	if len(specs) == 0 {
 		fmt.Fprintf(stderr, "specarch %s: no specification given; name a folder that holds %s\n", verb, spec.RootFile)
-		return nil, false, 2
+		return nil, nil, false, 2
 	}
-	return specs, invalid, 0
+	return specs, estates, invalid, 0
 }
 
 // namesOutput says whether an implementation file of the specification
@@ -491,4 +527,33 @@ func idiomUses(path string, root *yaml.Node, s *spec.Spec) []generate.IdiomUse {
 		out = append(out, generate.IdiomUse{Name: u.Name, Version: u.Version, As: u.As, From: u.From, Why: u.Why, Parts: u.Parts})
 	}
 	return out
+}
+
+// estatePlan is the module map of an estate, written to --out or to the
+// folder docs beside the estate file, since an estate has no
+// implementation file to name one (ADR-113).
+func estatePlan(ce checkedEstate, specs []loaded, out string) planned {
+	folder := filepath.Join(filepath.Dir(ce.estate.Path), "docs")
+	if out != "" {
+		folder = filepath.Clean(out)
+	}
+	byFolder := map[string]*spec.Spec{}
+	for _, l := range specs {
+		byFolder[filepath.Clean(l.spec.Dir)] = l.spec
+	}
+	var modules []generate.EstateModule
+	for _, m := range ce.estate.Modules {
+		em := generate.EstateModule{Key: m.Key, Version: m.Version, Location: m.LocationText(), About: m.Description()}
+		if s := byFolder[m.Location]; s != nil && m.Location != "" {
+			em.RelRoot = relSlash(folder, s.RootFile)
+			em.Root = s.Root
+		}
+		modules = append(modules, em)
+	}
+	var marks []generate.Mark
+	for _, d := range ce.diags {
+		marks = append(marks, generate.Mark{Severity: string(d.Severity), File: relSlash(folder, d.File), Line: d.Line, Column: d.Column, Rule: string(d.Rule), Message: d.Message, ID: d.ID, Pointer: d.Path})
+	}
+	text := generate.Estate(ce.estate.Root, relSlash(folder, ce.estate.Path), modules, marks)
+	return planned{path: filepath.Join(folder, generate.EstateName), content: text}
 }

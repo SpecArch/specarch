@@ -24,6 +24,7 @@ const (
 	implementationSchemaID = "https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-implementation-0.1.schema.json"
 	recordSchemaID         = "https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-record-0.1.schema.json"
 	idiomSchemaID          = "https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-0.1.schema.json"
+	estateSchemaID         = "https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-estate-0.1.schema.json"
 )
 
 var (
@@ -32,6 +33,7 @@ var (
 	implSchema   *jsonschema.Schema
 	recordSchema *jsonschema.Schema
 	idiomSchema  *jsonschema.Schema
+	estateSchema *jsonschema.Schema
 	compileErr   error
 	printer      = message.NewPrinter(language.English)
 )
@@ -39,7 +41,7 @@ var (
 func compileSchemas() {
 	c := jsonschema.NewCompiler()
 	c.AssertFormat()
-	for id, raw := range map[string][]byte{designSchemaID: schema.Definition, implementationSchemaID: schema.Implementation, recordSchemaID: schema.Record, idiomSchemaID: schema.Idiom} {
+	for id, raw := range map[string][]byte{designSchemaID: schema.Definition, implementationSchemaID: schema.Implementation, recordSchemaID: schema.Record, idiomSchemaID: schema.Idiom, estateSchemaID: schema.Estate} {
 		doc, err := jsonschema.UnmarshalJSON(bytes.NewReader(raw))
 		if err != nil {
 			compileErr = err
@@ -63,6 +65,10 @@ func compileSchemas() {
 		return
 	}
 	idiomSchema, compileErr = c.Compile(idiomSchemaID)
+	if compileErr != nil {
+		return
+	}
+	estateSchema, compileErr = c.Compile(estateSchemaID)
 }
 
 // Plain descriptions of the naming patterns in the schemas, so a message can
@@ -118,6 +124,8 @@ func (c *checker) checkSchema(k Kind, value any) {
 		sch = recordSchema
 	case KindIdiom:
 		sch = idiomSchema
+	case KindEstate:
+		sch = estateSchema
 	}
 	err := sch.Validate(value)
 	if err == nil {

@@ -1,0 +1,19 @@
+specarch: "0.1"
+info: { title: gamma, version: 1.0.0, name: gamma }
+permissions:
+  public: { description: Open to everyone. }
+dependencies:
+  next:
+    description: The module this one asks.
+    timeout: PT2S
+    specification: alpha
+    version: 1.0.0
+paths:
+  /answer:
+    get:
+      operationId: answer
+      summary: Answer, asking the next module first
+      permission: public
+      responses:
+        "200": { description: The answer. }
+      calls: ["next#/paths/~1answer/get"]

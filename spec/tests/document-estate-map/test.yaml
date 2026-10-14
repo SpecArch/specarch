@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: document
+level: system
+scenario: golden
+given: "an estate file listing two modules, one of which depends on the other and on a specification the estate does not list, and no implementation file naming a techspec folder"
+when: "document techspec is run on the estate file"
+then: "it writes docs/estate.md beside the estate file, the modules with their versions and links and the references between them drawn as a flowchart, the unlisted specification apart, passes over each module with a warning, and exits 0"
+verifies: [SA-66]

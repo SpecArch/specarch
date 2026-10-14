@@ -24,3 +24,9 @@ var Record []byte
 //
 //go:embed specarch-idiom-0.1.schema.json
 var Idiom []byte
+
+// Estate is the schema of a SpecArch estate: the modules' specifications
+// it lists and pins.
+//
+//go:embed specarch-estate-0.1.schema.json
+var Estate []byte

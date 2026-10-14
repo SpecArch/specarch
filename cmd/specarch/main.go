@@ -51,8 +51,9 @@ const usage = `usage:
   specarch version                          print the program version
 
 A specification is a folder holding specarch.yaml. A folder given here is
-searched for specifications and for *.specarch-implementation.yaml files
-outside one.
+searched for specifications, for *.specarch-implementation.yaml files
+outside one, and for estates (specarch-estate.yaml), which bring the
+specifications of the modules they list.
 `
 
 func main() {
@@ -126,11 +127,13 @@ func runValidate(args []string, stdout, stderr io.Writer) int {
 	// Every specification is read before any is checked, so that a
 	// reference into another one given in the same run resolves there.
 	loaded := map[string]*spec.Spec{}
+	byFolder := map[string]*spec.Spec{}
 	var specs []*spec.Spec
 	for _, in := range inputs {
 		if in.root != "" {
 			s := spec.Load(in.root)
 			loaded[in.root] = s
+			byFolder[filepath.Clean(in.root)] = s
 			specs = append(specs, s)
 		}
 	}
@@ -139,6 +142,8 @@ func runValidate(args []string, stdout, stderr io.Writer) int {
 	open, unresolved := 0, 0
 	for _, in := range inputs {
 		switch {
+		case in.estate != nil:
+			all = append(all, validate.CheckEstate(in.estate, byFolder)...)
 		case in.root != "":
 			s := loaded[in.root]
 			all = append(all, validate.CheckSpec(s, given)...)
@@ -180,17 +185,19 @@ func runValidate(args []string, stdout, stderr io.Writer) int {
 }
 
 // An input is one thing to check: a specification (its root folder), an
-// implementation file outside any specification, or a file given by name
-// that is neither.
+// implementation file outside any specification, an estate, or a file
+// given by name that is none of them.
 type input struct {
 	root           string
 	implementation string
+	estate         *validate.Estate
 	other          string
 }
 
 // collect turns the arguments into inputs: a folder is searched for
-// specifications and standalone implementation files; a file is taken as
-// given.
+// specifications, standalone implementation files and estates; a file is
+// taken as given. An estate brings the specifications of its modules, each
+// once however often it is named.
 func collect(args []string, stderr io.Writer) ([]input, bool) {
 	var inputs []input
 	ioError := false
@@ -199,6 +206,21 @@ func collect(args []string, stderr io.Writer) ([]input, bool) {
 		if !seen[key] {
 			seen[key] = true
 			inputs = append(inputs, in)
+		}
+	}
+	addEstate := func(path string) {
+		if seen["estate:"+filepath.Clean(path)] {
+			return
+		}
+		e, err := validate.LoadEstate(path)
+		if err != nil {
+			fmt.Fprintf(stderr, "specarch: cannot read %s: %s\n", path, spec.PlainIOError(err))
+			ioError = true
+			return
+		}
+		add("estate:"+filepath.Clean(path), input{estate: e})
+		for _, r := range e.Roots() {
+			add("root:"+filepath.Clean(r), input{root: r})
 		}
 	}
 	for _, a := range args {
@@ -214,20 +236,25 @@ func collect(args []string, stderr io.Writer) ([]input, bool) {
 				add("root:"+filepath.Clean(filepath.Dir(a)), input{root: filepath.Dir(a)})
 			case validate.KindImplementation:
 				add("impl:"+filepath.Clean(a), input{implementation: a})
+			case validate.KindEstate:
+				addEstate(a)
 			default:
 				add("other:"+filepath.Clean(a), input{other: a})
 			}
 			continue
 		}
-		roots, impls, err := spec.Find(a)
+		roots, impls, estates, err := spec.Find(a)
 		if err != nil {
 			fmt.Fprintf(stderr, "specarch: cannot read %s: %s\n", a, spec.PlainIOError(err))
 			ioError = true
 			continue
 		}
-		if len(roots)+len(impls) == 0 {
-			fmt.Fprintf(stderr, "specarch: %s holds no %s and no *%s file; name a folder that does\n", a, spec.RootFile, spec.ImplementationSuffix)
+		if len(roots)+len(impls)+len(estates) == 0 {
+			fmt.Fprintf(stderr, "specarch: %s holds no %s, no *%s file and no %s; name a folder that does\n", a, spec.RootFile, spec.ImplementationSuffix, spec.EstateFile)
 			ioError = true
+		}
+		for _, e := range estates {
+			addEstate(e)
 		}
 		for _, r := range roots {
 			add("root:"+filepath.Clean(r), input{root: r})

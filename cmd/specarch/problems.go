@@ -29,6 +29,14 @@ func runProblems(paths []string, out string, check bool, stdout, stderr io.Write
 	invalid := false
 	skipped := 0
 	for _, in := range inputs {
+		if in.estate != nil {
+			// An estate has no problems file of its own: what is wrong in
+			// it is printed, and makes the status 1 (ADR-113).
+			ds := validate.CheckEstate(in.estate, estateFolders(inputs))
+			printErrors(ds, nil, stdout)
+			invalid = invalid || validate.Errors(ds) > 0
+			continue
+		}
 		if in.root == "" {
 			name := in.implementation
 			if name == "" {
@@ -172,4 +180,16 @@ func printErrors(diags []validate.Diagnostic, moved problems.Moved, stdout io.Wr
 			fmt.Fprintln(stdout, d.String())
 		}
 	}
+}
+
+// estateFolders reads the specifications among the inputs, by folder, for
+// an estate's check.
+func estateFolders(inputs []input) map[string]*spec.Spec {
+	out := map[string]*spec.Spec{}
+	for _, in := range inputs {
+		if in.root != "" {
+			out[filepath.Clean(in.root)] = spec.Load(in.root)
+		}
+	}
+	return out
 }

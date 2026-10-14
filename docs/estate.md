@@ -30,7 +30,7 @@ facts in a format SpecArch defines, never a reader of its own.
 | Point | Standing |
 |---|---|
 | 1. a dump committed outside the code's repository | built, item 1 (ADR-098): `repository` in every dump, read at the gitlink's commit |
-| 2. references between specifications; an umbrella specification | references built, item 5 (ADR-112): `info.name`, `specification` and `version` on a dependency, `<dependency>#/<pointer>`, resolved when the other specification is given in the same run and counted as unresolved otherwise; the umbrella planned, item 6 |
+| 2. references between specifications; an umbrella specification | references built, item 5 (ADR-112): `info.name`, `specification` and `version` on a dependency, `<dependency>#/<pointer>`, resolved when the other specification is given in the same run and counted as unresolved otherwise; the umbrella built, item 6 (ADR-113): `specarch-estate.yaml` lists each module by `info.name` with its folder and version, brings every module into validate, gaps and document, checks each against its entry, and `document techspec` draws the module map |
 | 3. documents in another language | built, item 4 (ADR-105): a vocabulary per language, English shipped, `--language` and `--vocabulary` on extract documents and `--vocabulary` on merge, `language` on a source, the row-number column skipped |
 | 4. role names on the wire | built, item 2 (ADR-099): `info.roleNames: upper_snake`, read by both readers of grants |
 | 5. authorisation by path pattern | built, item 3 (ADR-100): `implies` on a permission, counted by every check of a role's grants, and `rules` in the permission table, read with the route table by `extract permissions --routes`; a permission defined by a pattern is declined |
@@ -151,18 +151,19 @@ blocked by a must question, in which case the reference is covered as
 the element is. A reference into a specification that is given and does
 not hold the element is the error `reference` at the entry.
 
-The umbrella is a root file of its own kind, `specarch-estate`, with no
-stages: `info`, and `modules`, each the specification's key, its
-`location` (a folder relative to the umbrella file, a module's `spec/`
-folder in a submodule) and the `version` it holds. `specarch validate
-<umbrella>` reads every module, checks that each `info.version` is the
-one listed, and resolves every reference across them; `specarch gaps
-<umbrella>` lists each module's open questions and unresolved
-references in one report; `document techspec` on it writes the module
-map and the references between modules as the context diagram. A module
-listed and not found, a version that differs and a cycle of references
-through `calls` are errors at the module's entry. Nothing of a module is
-copied into the umbrella: it lists and pins.
+The umbrella is a file of its own kind, `specarch-estate.yaml`, with no
+stages: `info`, and `modules`, each keyed by the module specification's
+`info.name`, with its `location` (a folder relative to the umbrella file,
+a module's `spec/` folder in a submodule) and the `version` it holds.
+`specarch validate <umbrella>` reads every module, checks that each
+`info.name` is its key and each `info.version` the one listed, and
+resolves every reference across them; `specarch gaps <umbrella>` prints
+the umbrella's problems and then each module's open questions and
+unresolved references; `document techspec` on it writes `estate.md`, the
+module map, with the references between modules as the context diagram.
+A module listed and not found, a name or version that differs, and a
+cycle of calls between modules are errors at the module's entry. Nothing
+of a module is copied into the umbrella: it lists and pins.
 
 Generators read one specification at a time: `generate sql` writes the
 column that keeps the other module's key with the type of its own `via`
@@ -617,7 +618,7 @@ step 1. Only item 7's meta-model half touches 0.3.
    resolve them, a wrong pointer is an error at the entry in both
    builds, and `generate sql` writes the column with no foreign key.
   
-6. The umbrella. The `specarch-estate` root with `modules`, `validate`,
+6. Built (ADR-113). The umbrella. The `specarch-estate` root with `modules`, `validate`,
    `gaps` and `document techspec` on it, the version check, the check
    that each module's key is its `info.name`, and the cycle check.
    `examples/` gains a two-module estate, the lending desk

@@ -20,6 +20,10 @@ out=Sources/SpecArchKit/Schemas.swift
   cat ../schema/specarch-record-0.1.schema.json
   echo '"""#'
   echo
+  echo 'let estateSchemaJSON = #"""'
+  cat ../schema/specarch-estate-0.1.schema.json
+  echo '"""#'
+  echo
   echo 'let idiomSchemaJSON = #"""'
   cat ../schema/specarch-idiom-0.1.schema.json
   echo '"""#'

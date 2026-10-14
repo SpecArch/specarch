@@ -14,6 +14,7 @@ public enum Rule: String, CaseIterable, Sendable {
     case relationTarget = "relation_target"
     case relationVia = "relation_via"
     case reference = "reference"
+    case module = "module"
     case field = "field"
     case stateField = "state_field"
     case stateValue = "state_value"

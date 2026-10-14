@@ -23,6 +23,7 @@ const (
 	RuleRelationTarget         Rule = "relation_target"
 	RuleRelationVia            Rule = "relation_via"
 	RuleReference              Rule = "reference"
+	RuleModule                 Rule = "module"
 	RuleField                  Rule = "field"
 	RuleStateField             Rule = "state_field"
 	RuleStateValue             Rule = "state_value"
@@ -136,6 +137,7 @@ var Rules = []Rule{
 	RuleRelationTarget,
 	RuleRelationVia,
 	RuleReference,
+	RuleModule,
 	RuleField,
 	RuleStateField,
 	RuleStateValue,

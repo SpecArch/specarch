@@ -2,9 +2,9 @@
 
 # Lending Desk: open questions
 
-Version 0.1.0 of the specification: 7 open questions (4 must, 3 should, 0 could). A must question holds up everything that reads what it blocks; a should question holds up code generation and approval until the stakeholder confirms what was inferred; a could question holds up nothing. Each is answered by the stakeholder named, with a decision record that names the question under answers; the question is then removed.
+Version 0.1.0 of the specification: 8 open questions (5 must, 3 should, 0 could). A must question holds up everything that reads what it blocks; a should question holds up code generation and approval until the stakeholder confirms what was inferred; a could question holds up nothing. Each is answered by the stakeholder named, with a decision record that names the question under answers; the question is then removed.
 
-Elements by origin: 20 stated, 28 inferred, 0 decided, 0 without origin.
+Elements by origin: 20 stated, 29 inferred, 0 decided, 0 without origin.
 
 ## 1. Requirements
 
@@ -47,7 +47,25 @@ The service lists a member's loans, which the manual never mentions. Is that wan
 
 **Insight:** Undocumented, from code.
 
-## 2. Implementation
+## 2. Design
+
+### Q-8 (must, decision)
+
+Does the desk read the book records through the catalogue service's operations, and with what time limit per call, or from the books table as the service does today?
+
+- Decided by: desk-manager
+- Blocks: #/dependencies/catalogue/timeout
+- Options:
+  1. Through the catalogue service, with a time limit to name
+  2. From the books table, as today
+
+**Insight:** The manual names the catalogue team as the keeper of the book records and says nothing of how the desk reads them; the code reads a books table in the desk's own database.
+
+**Note:** From Lending desk manual, 2025, clause 3.4: The catalogue team keeps the book records; the desk reads them and never edits them. <../sources/manual.md>
+
+**Note:** From The lending desk service, 925255a195f90e385f7bf9bbea8d4e8f7aa5031d, clause migrations/001_init.sql:6: CREATE TABLE books. <../sources/code>
+
+## 3. Implementation
 
 ### Q-6 (must, decision)
 
@@ -98,7 +116,7 @@ Renewing a loan is in the manual but not in the service. Build it as the manual 
 
 **Note:** From The lending desk service, 925255a195f90e385f7bf9bbea8d4e8f7aa5031d, clause lending/routes.go:36: Register registers no renew route. <../sources/code>
 
-## 3. Tests
+## 4. Tests
 
 ### Q-5 (should, material)
 
@@ -109,7 +127,7 @@ Which data must the service be tested with? specarch derive wrote the cases that
 
 **Insight:** The code has no tests to read cases or data from, and the manual describes no checks.
 
-## 4. Coverage
+## 5. Coverage
 
 What each source's sections produced: the elements that cite a clause, or the clauses under it. A clause that produced nothing is either not read yet or holds nothing the specification needs; say which by citing it from an element or a question.
 
@@ -126,7 +144,7 @@ What each source's sections produced: the elements that cite a clause, or the cl
 | 3.1 | Lending a book | #/entities/Book, #/paths/~1loans/post, #/requirements/LEND-2 |
 | 3.2 | The five-book limit | #/requirements/LEND-3 |
 | 3.3 | The loan period | #/entities/Loan, #/questions/Q-1, #/requirements/LEND-4 |
-| 3.4 | The book records | #/stakeholders/catalogue-team, mapping of #/entities/Book |
+| 3.4 | The book records | #/dependencies/catalogue, #/questions/Q-8, #/stakeholders/catalogue-team, mapping of #/entities/Book |
 | 4.1 | Renewals | #/paths/~1loans~1{loanId}~1renew/post, #/questions/Q-4, #/requirements/LEND-5 |
 | 5.1 | Returns | #/paths/~1loans~1{loanId}~1return/post, #/requirements/LEND-6 |
 | 6 | Opening hours | nothing |
@@ -140,24 +158,24 @@ What each source's sections produced: the elements that cite a clause, or the cl
 | lending/model.go | The records and the lending limits | #/entities/Loan, #/entities/Member, #/questions/Q-1, #/requirements/LEND-3, #/requirements/LEND-4, #/schemas/Address, mapping of #/entities/Book, mapping of #/entities/Loan, mapping of #/entities/Member |
 | lending/routes.go | The served routes and their handlers | #/paths/~1loans/post, #/paths/~1loans~1{loanId}~1return/post, #/paths/~1members/post, #/paths/~1members~1{cardNumber}~1loans/get, #/permissions/loans.read, #/permissions/loans.write, #/permissions/members.write, #/questions/Q-4, #/questions/Q-7, #/requirements/LEND-1, #/requirements/LEND-2, #/requirements/LEND-6, #/requirements/LEND-7, mapping of #/paths/~1loans/post, mapping of #/paths/~1loans~1{loanId}~1return/post, mapping of #/paths/~1members/post, mapping of #/paths/~1members~1{cardNumber}~1loans/get |
 | lending/access.go | The permission check | lending-desk.go.specarch-implementation.yaml #/bindings/http |
-| migrations/001_init.sql | The tables | #/entities/Book, #/entities/Loan, #/entities/Member, #/questions/Q-1, #/questions/Q-6, #/requirements/LEND-4, mapping of #/entities/Book, mapping of #/entities/Loan, mapping of #/entities/Member |
+| migrations/001_init.sql | The tables | #/entities/Book, #/entities/Loan, #/entities/Member, #/questions/Q-1, #/questions/Q-6, #/questions/Q-8, #/requirements/LEND-4, mapping of #/entities/Book, mapping of #/entities/Loan, mapping of #/entities/Member |
 | migrations/002_roles.sql | The roles tables | nothing |
 | migrations/003_member_address.sql | The member's address | #/schemas/Address |
 | seeds/001_roles.sql | The seed of the roles tables | #/roles/desk-staff, mapping of #/roles/desk-staff |
 
-## 5. Outputs
+## 6. Outputs
 
 What can be made from the specification now. A document is a draft while a must or should question blocks what it reads, or an error is in it; code generation waits for those questions, for every error to be fixed, and for the approval.
 
 | Output | State | Waits on |
 |---|---|---|
-| techspec document | draft | Q-1, Q-2, Q-3, Q-4, Q-6, Q-7, Q-5 |
+| techspec document | draft | Q-1, Q-2, Q-3, Q-8, Q-4, Q-6, Q-7, Q-5 |
 | requirements document | draft | Q-1, Q-2, Q-3 |
 | testplan document | draft | Q-1, Q-2, Q-3, Q-5 |
-| traceability document | draft | Q-1, Q-2, Q-3, Q-5 |
+| traceability document | draft | Q-1, Q-2, Q-3, Q-8, Q-5 |
 | deployment document | ready | |
 | commissioning document | ready | |
-| html document | draft | Q-1, Q-2, Q-3, Q-4, Q-6, Q-7, Q-5 |
+| html document | draft | Q-1, Q-2, Q-3, Q-8, Q-4, Q-6, Q-7, Q-5 |
 | code target openapi | waits | not approved: there is no records/approvals/0.1.0.yaml beside the specification |
 | code target sql | waits | not approved: there is no records/approvals/0.1.0.yaml beside the specification |
 

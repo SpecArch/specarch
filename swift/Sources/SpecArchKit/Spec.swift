@@ -580,8 +580,8 @@ func rootOf(_ path: String) -> String? {
 /// The specifications and the standalone implementation files under a
 /// folder: a folder holding specarch.yaml is a specification, and nothing
 /// under it is searched further.
-func findSpecs(_ dir: String) throws -> (roots: [String], implementations: [String]) {
-    var roots: [String] = [], impls: [String] = []
+func findSpecs(_ dir: String) throws -> (roots: [String], implementations: [String], estates: [String]) {
+    var roots: [String] = [], impls: [String] = [], estates: [String] = []
     func visit(_ d: String) throws {
         if FileManager.default.fileExists(atPath: joinPath(d, rootFile)) {
             roots.append(d)
@@ -594,11 +594,13 @@ func findSpecs(_ dir: String) throws -> (roots: [String], implementations: [Stri
                 try visit(p)
             } else if e.name.hasSuffix(implementationSuffix) {
                 impls.append(p)
+            } else if e.name == estateFile {
+                estates.append(p)
             }
         }
     }
     try visit(dir)
-    return (roots.sorted(by: byteLess), impls.sorted(by: byteLess))
+    return (roots.sorted(by: byteLess), impls.sorted(by: byteLess), estates.sorted(by: byteLess))
 }
 
 /// A node tree as plain JSON values, reporting nothing: a repeated key keeps

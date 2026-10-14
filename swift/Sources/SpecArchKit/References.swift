@@ -1,7 +1,7 @@
 import Foundation
 
 /// The specifications given together in one run, by their info.name; a
-/// specification without one is not listed (ADR-106).
+/// specification without one is not listed (ADR-112).
 typealias Given = [String: [Spec]]
 
 /// Lists the specifications by name.

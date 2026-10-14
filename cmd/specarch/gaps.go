@@ -13,7 +13,7 @@ import (
 // runGaps prints the open questions document of every specification given:
 // the questions by stage with what they block, and which outputs are
 // ready, drafts or waiting, after the errors of a specification that has
-// them (ADR-065). It exits 1 while a must or should question is open or the
+// them (ADR-065), each estate's problems before them (ADR-113). It exits 1 while a must or should question is open or the
 // specification has errors, 0 otherwise, and 2 on a usage error.
 func runGaps(args []string, stdout, stderr io.Writer) int {
 	if len(args) > 0 && args[0] == "--" {
@@ -30,10 +30,19 @@ func runGaps(args []string, stdout, stderr io.Writer) int {
 		}
 	}
 	// The errors are listed in the document, so they are not printed
-	// before it as well.
-	specs, invalid, status := readSpecs(args, "gaps", io.Discard, stderr)
+	// before it as well; an estate's are in no module's document, so they
+	// are printed first.
+	specs, estates, invalid, status := readInputs(args, "gaps", io.Discard, stderr, nil)
 	if status != 0 {
 		return status
+	}
+	for _, ce := range estates {
+		for _, d := range ce.diags {
+			fmt.Fprintln(stdout, d.String())
+		}
+		if len(ce.diags) > 0 {
+			fmt.Fprintln(stdout)
+		}
 	}
 	holding := 0
 	for _, l := range specs {

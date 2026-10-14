@@ -3,6 +3,7 @@ specarch: "0.2"
 
 info:
   title: Lending Desk
+  name: lending-desk
   version: 0.1.0
   tracksOrigin: true
   wireNames: snake_case

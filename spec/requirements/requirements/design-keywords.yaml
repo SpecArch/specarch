@@ -331,3 +331,17 @@ requirements:
     verification: test
     needs: [NEED-2]
     why: An estate of modules owned by different teams is specified one module at a time, and a module keeps another's customer number, picks from another's list and calls another's operations; with $ref reaching only its own specification, those links were prose, and nothing checked them when the two specifications met.
+  SA-66:
+    statement: An estate file shall list the specifications of an estate's modules by name, each with its folder and the version the estate holds, and specarch validate, gaps and document techspec shall read every module through it and check each against its entry.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance:
+      - specarch-estate.yaml holds specarchEstate, info and modules, each module keyed by its specification's info.name with its location, a folder relative to the file, and its version; it holds nothing of a module.
+      - Naming an estate, or a folder that holds one, to validate, gaps or document brings every module's specification into the run once, so the references between modules resolve as when each is named.
+      - A module whose folder holds no specification, whose info.name is not its key or is missing, whose info.version is not the version listed, or whose operations' calls come back to it through the other modules is refused as module at the module's entry, the same in both builds.
+      - gaps prints the estate's problems before the modules' open questions documents, and exits 1 when the estate has an error.
+      - document techspec on an estate writes estate.md, the module map with the references between the modules drawn as a flowchart.
+    verification: test
+    needs: [NEED-2]
+    why: An estate's consistency is checked where the estate is, in one run over every module, and the umbrella that does it lists and pins the modules rather than copying them, so each team's specification stays the one truth of its module.

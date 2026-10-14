@@ -104,24 +104,25 @@ ol.problems p{margin:2px 0}
 </ol></li>
 <li><a href="#operations">Operations</a><ol>
 <li><a href="#/paths">HTTP operations</a> <span class="count">5</span></li>
+<li><a href="#/dependencies">Dependencies</a> <span class="count">1</span></li>
 </ol></li>
 <li><a href="#tests-and-traceability">Tests and traceability</a><ol>
 <li><a href="#/tests">Tests</a> <span class="count">24</span></li>
 <li><a href="#traceability">Traceability</a></li>
 </ol></li>
 <li><a href="#open-questions">Open questions</a><ol>
-<li><a href="#/questions">Questions</a> <span class="count">7</span></li>
+<li><a href="#/questions">Questions</a> <span class="count">8</span></li>
 </ol></li>
-<li><a href="#problems">Problems</a> <span class="count">8</span></li>
+<li><a href="#problems">Problems</a> <span class="count">9</span></li>
 </ol></nav>
 <main>
 <section class="group" id="overview">
 <h1>Lending Desk</h1>
 <p>The as-built specification of a small lending desk, written from its desk manual and its code by the procedure in docs/from-sources.md. Every element says how it is known and cites the manual section or the code file and line it came from. Where the two disagree, or a source is silent, the specification asks instead of choosing. It is an example, not a real library&#39;s system.</p>
 <p>Version 0.1.0; meta-model 0.2; stages requirements, design, implementation, tests.</p>
-<p class="notice draft"><strong>Draft:</strong> 7 must or should questions hold up what this page shows (Q-1, Q-2, Q-3, Q-4, Q-6, Q-7, Q-5); see <a href="#/questions">Open questions</a>.</p>
+<p class="notice draft"><strong>Draft:</strong> 8 must or should questions hold up what this page shows (Q-1, Q-2, Q-3, Q-8, Q-4, Q-6, Q-7, Q-5); see <a href="#/questions">Open questions</a>.</p>
 <p class="notice"><strong>Approval:</strong> not approved: there is no records/approvals/0.1.0.yaml beside the specification</p>
-<p><a href="#problems">0 errors, 1 warning and 7 open questions</a>; each is listed under Problems and marked at the entry it concerns.</p>
+<p><a href="#problems">0 errors, 1 warning and 8 open questions</a>; each is listed under Problems and marked at the entry it concerns.</p>
 <table class="counts"><thead><tr><th scope="col">Section</th><th scope="col">Elements</th></tr></thead><tbody>
 <tr><td><a href="#/stakeholders">Stakeholders</a></td><td>4</td></tr>
 <tr><td><a href="#/requirements">Requirements</a></td><td>7</td></tr>
@@ -131,8 +132,9 @@ ol.problems p{margin:2px 0}
 <tr><td><a href="#/permissions">Permissions</a></td><td>3</td></tr>
 <tr><td><a href="#/roles">Roles</a></td><td>1</td></tr>
 <tr><td><a href="#/paths">HTTP operations</a></td><td>5</td></tr>
+<tr><td><a href="#/dependencies">Dependencies</a></td><td>1</td></tr>
 <tr><td><a href="#/tests">Tests</a></td><td>24</td></tr>
-<tr><td><a href="#/questions">Questions</a></td><td>7</td></tr>
+<tr><td><a href="#/questions">Questions</a></td><td>8</td></tr>
 </tbody></table>
 <p class="how">Every element carries its id, the pointer beside its name, such as <code>/entities/Name</code>. Link to it with <code>#</code> and the pointer after this page's address, and give the id when you report what you see, so the remark reaches the element it is about.</p>
 </section>
@@ -1089,6 +1091,24 @@ ol.problems p{margin:2px 0}
 </article>
 </div>
 </section>
+<section class="section" id="/dependencies">
+<h3>Dependencies <a class="ptr" href="#/dependencies">/dependencies</a></h3>
+<article class="element" data-search id="/dependencies/catalogue">
+<h4>catalogue <a class="ptr" href="#/dependencies/catalogue">/dependencies/catalogue</a></h4>
+<p class="mark question">Held open by <a href="#/questions/Q-8">Q-8 (must, decision)</a>: Does the desk read the book records through the catalogue service&#39;s operations, and with what time limit per call, or from the books table as the service does today? Decided by desk-manager.</p>
+<p class="origin"><strong>Origin:</strong> inferred.</p>
+<p class="insight"><strong>Insight:</strong> The manual says the catalogue team keeps the book records the desk reads; the estate in examples/estate lists that team&#39;s service as catalogue-service. How the desk reads them, and so the time limit, is Q-8.</p>
+<p class="note"><strong>Note:</strong> From <a href="#/sources/desk-manual">Lending desk manual, 2025, clause 3.4</a>: The catalogue team keeps the book records; the desk reads them and never edits them.</p>
+<dl>
+<dt>description</dt>
+<dd>The catalogue service, whose team keeps the book records the desk reads and never edits.</dd>
+<dt>specification</dt>
+<dd>catalogue-service</dd>
+<dt>version</dt>
+<dd>0.1.0</dd>
+</dl>
+</article>
+</section>
 </section>
 <section class="group" id="tests-and-traceability">
 <h2>Tests and traceability</h2>
@@ -1844,6 +1864,33 @@ ol.problems p{margin:2px 0}
 <dd><a href="#/stakeholders/desk-manager">desk-manager</a></dd>
 </dl>
 </article>
+<article class="element" data-search id="/questions/Q-8">
+<h4>Q-8 <a class="ptr" href="#/questions/Q-8">/questions/Q-8</a></h4>
+<p class="mark question"><a href="#problem-Q-8">open question</a> open_question: (must, decision) Does the desk read the book records through the catalogue service&#39;s operations, and with what time limit per call, or from the books table as the service does today? Decided by desk-manager. Answer with a decision record that names Q-8 under answers. [Q-8]</p>
+<p class="insight"><strong>Insight:</strong> The manual names the catalogue team as the keeper of the book records and says nothing of how the desk reads them; the code reads a books table in the desk&#39;s own database.</p>
+<p class="note"><strong>Note:</strong> From <a href="#/sources/desk-manual">Lending desk manual, 2025, clause 3.4</a>: The catalogue team keeps the book records; the desk reads them and never edits them.</p>
+<p class="note"><strong>Note:</strong> From <a href="#/sources/desk-code">The lending desk service, 925255a195f90e385f7bf9bbea8d4e8f7aa5031d, clause migrations/001_init.sql:6</a>: CREATE TABLE books.</p>
+<dl>
+<dt>question</dt>
+<dd>
+<p>Does the desk read the book records through the catalogue service&#39;s operations, and with what time limit per call, or from the books table as the service does today?</p>
+</dd>
+<dt>kind</dt>
+<dd>decision</dd>
+<dt>priority</dt>
+<dd>must</dd>
+<dt>blocks</dt>
+<dd>
+<p><a href="#/dependencies/catalogue">#/dependencies/catalogue/timeout</a></p>
+</dd>
+<dt>decidedBy</dt>
+<dd><a href="#/stakeholders/desk-manager">desk-manager</a></dd>
+<dt>options</dt>
+<dd>
+<p>Through the catalogue service, with a time limit to name, From the books table, as today</p>
+</dd>
+</dl>
+</article>
 <article class="element" data-search id="/questions/Q-4">
 <h4>Q-4 <a class="ptr" href="#/questions/Q-4">/questions/Q-4</a></h4>
 <p class="mark question"><a href="#problem-Q-4">open question</a> open_question: (should, decision) Renewing a loan is in the manual but not in the service. Build it as the manual describes, or take it out of the manual? It blocks implementation. Decided by desk-manager. Answer with a decision record that names Q-4 under answers. [Q-4]</p>
@@ -1950,6 +1997,13 @@ ol.problems p{margin:2px 0}
 <h2>Problems</h2>
 <p>Every error, warning and open question, in the order of the problems file, each with the file and line it is at and the entry it marks. The same problems are in problems.txt and problems.sarif.</p>
 <ol class="problems">
+<li class="question" data-search id="problem-Q-8">
+<p><code>../spec/design/design.yaml:204:3: question: /questions/Q-8: open_question: (must, decision) Does the desk read the book records through the catalogue service&#39;s operations, and with what time limit per call, or from the books table as the service does today? Decided by desk-manager. Answer with a decision record that names Q-8 under answers. [Q-8]</code></p>
+<p class="problem-note"><code>../spec/design/design.yaml:193:3: note: blocks #/dependencies/catalogue/timeout, which is not given yet</code></p>
+<p class="problem-note"><code>../spec/design/design.yaml:213:9: note: source desk-manual, clause 3.4: The catalogue team keeps the book records; the desk reads them and never edits them.</code></p>
+<p class="problem-note"><code>../sources/code/migrations/001_init.sql:6:1: note: source desk-code, clause migrations/001_init.sql:6: CREATE TABLE books.</code></p>
+<p>Marked at <a href="#/questions/Q-8">/questions/Q-8</a>.</p>
+</li>
 <li class="question" data-search id="problem-Q-4">
 <p><code>../spec/implementation/questions.yaml:4:3: question: /questions/Q-4: open_question: (should, decision) Renewing a loan is in the manual but not in the service. Build it as the manual describes, or take it out of the manual? It blocks implementation. Decided by desk-manager. Answer with a decision record that names Q-4 under answers. [Q-4]</code></p>
 <p class="problem-note"><code>../spec/implementation/questions.yaml:13:9: note: source desk-manual, clause 4.1: A member may renew a loan once.</code></p>

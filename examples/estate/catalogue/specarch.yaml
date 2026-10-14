@@ -1,0 +1,68 @@
+# yaml-language-server: $schema=../../../schema/specarch-design-0.2.schema.json
+specarch: "0.2"
+
+info:
+  title: Catalogue Service
+  name: catalogue-service
+  version: 0.1.0
+  description: |
+    The book records of a small library, which the catalogue team keeps
+    and the lending desk reads. It is the second module of the estate in
+    examples/estate, written spec-first and kept small: one entity and the
+    two operations that read it. It is an example, not a real library's
+    system.
+
+entities:
+  Book:
+    description: One copy on the shelves, as the catalogue records it.
+    type: object
+    properties:
+      barcode: { type: string, minLength: 1, maxLength: 20 }
+      title: { type: string, minLength: 1, maxLength: 300 }
+      author: { type: string, minLength: 1, maxLength: 200 }
+    required: [barcode, title, author]
+    primaryKey: [barcode]
+
+permissions:
+  books.read:
+    description: Read the book records.
+
+roles:
+  reader-service:
+    description: A service that reads the book records, such as the lending desk.
+    permissions: [books.read]
+
+paths:
+  /books:
+    get:
+      operationId: listBooks
+      summary: The book records
+      permission: books.read
+      responses:
+        "200":
+          description: The book records, in barcode order.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/entities/Book" } }
+  /books/{barcode}:
+    parameters:
+      - { name: barcode, in: path, required: true, schema: { type: string, minLength: 1, maxLength: 20 } }
+    get:
+      operationId: getBook
+      summary: One book record
+      permission: books.read
+      responses:
+        "200":
+          description: The book record.
+          content:
+            application/json:
+              schema: { $ref: "#/entities/Book" }
+        "404":
+          description: No book has this barcode.
+
+tests:
+  list-books-succeeds: { level: system, operation: listBooks, scenario: golden, given: "a caller with books.read", when: "listBooks is called", then: "it answers 200: The book records, in barcode order." }
+  list-books-denied-without-books-read: { level: system, operation: listBooks, scenario: red, covers: [denied without books.read], given: "a caller without books.read", when: "listBooks is called", then: "it is refused as not allowed" }
+  get-book-succeeds: { level: system, operation: getBook, scenario: golden, given: "a caller with books.read", when: "getBook is called with values inside every limit", then: "it answers 200: The book record." }
+  get-book-denied-without-books-read: { level: system, operation: getBook, scenario: red, covers: [denied without books.read], given: "a caller without books.read", when: "getBook is called", then: "it is refused as not allowed" }
+  get-book-not-found-barcode: { level: system, operation: getBook, scenario: red, covers: [not found barcode], given: "no record has that barcode", when: "getBook is called with that barcode", then: "it is refused as not found" }

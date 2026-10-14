@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.0-dev of the specification: 429 design tests, 191 golden and 238 red, about 14 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.0-dev of the specification: 434 design tests, 193 golden and 241 red, about 14 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.7.0-dev of the specification: 429 design tests, 191 golden and 238 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 425 |
+| system | 430 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -360,6 +360,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-51.
 - Given: a specification with errors only under info and entities, which the requirements document does not read
 - When: document requirements is run
 - Then: it prints both errors, writes requirements.md with a Problems notice saying the specification is invalid and that none of its errors is in what the document covers, and exits 1
+
+#### document-estate-map
+
+Scenario: golden; level: system; verifies SA-66.
+
+- Given: an estate file listing two modules, one of which depends on the other and on a specification the estate does not list, and no implementation file naming a techspec folder
+- When: document techspec is run on the estate file
+- Then: it writes docs/estate.md beside the estate file, the modules with their versions and links and the references between them drawn as a flowchart, the unlisted specification apart, passes over each module with a warning, and exits 0
 
 #### document-html-marks-problems
 
@@ -1252,6 +1260,14 @@ Scenario: golden; level: system; verifies SA-30.
 - Given: a specification that tracks origin, built from a manual and from code that both list their clauses; one clause of each is cited by nothing, one citation names a clause outside the outline, and the implementation file's mapping cites the code
 - When: gaps is run
 - Then: it shows, per source, the elements each clause produced, counts the clauses that produced nothing, names the citation outside the outline, and exits 0
+
+#### gaps-estate
+
+Scenario: red; level: system; verifies SA-66.
+
+- Given: an estate file listing two modules, one at a version its specification is not at
+- When: gaps is run on the estate file
+- Then: it prints the estate's problem first, then each module's open questions document with the references between them resolved, and exits 1
 
 #### gaps-invalid-spec
 
@@ -2214,6 +2230,30 @@ Scenario: red; level: system; covers exit 1; verifies SA-2.
 - Given: a check that runs in an environment the specification does not declare
 - When: validate is run
 - Then: it reports environment and exits 1
+
+#### validate-estate
+
+Scenario: golden; level: system; verifies SA-66.
+
+- Given: an estate file listing two modules, each by its info.name with its folder and version, one of whose references name elements of the other
+- When: validate is run on the estate file alone
+- Then: it reads both modules, resolves every reference between them, reports nothing at the estate, and exits 0
+
+#### validate-estate-cycle
+
+Scenario: red; level: system; verifies SA-66.
+
+- Given: an estate of three modules where alpha's operation calls beta's, beta's calls alpha's, and gamma's calls alpha's
+- When: validate is run on the estate's folder
+- Then: it refuses alpha and beta as module at each module's entry, naming the cycle alpha calls beta, which calls alpha, leaves gamma alone, and exits 1
+
+#### validate-estate-modules-wrong
+
+Scenario: red; level: system; verifies SA-66.
+
+- Given: an estate file listing a module at a version its specification is not at, one under a key that is not its info.name, one at a folder that does not exist, one at a folder with no specification, and one whose specification has no info.name
+- When: validate is run on the estate file
+- Then: it reads every module that is there, refuses each entry as module at the module's entry, and exits 1
 
 #### validate-example-error
 
@@ -3507,7 +3547,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-256 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+261 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -3650,6 +3690,11 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-65 | acceptance 4 | golden | SA-65 names no harm |
 | requirement SA-65 | acceptance 5 | golden | SA-65 names no harm |
 | requirement SA-65 | acceptance 6 | golden | SA-65 names no harm |
+| requirement SA-66 | acceptance 1 | golden | SA-66 names no harm |
+| requirement SA-66 | acceptance 2 | golden | SA-66 names no harm |
+| requirement SA-66 | acceptance 3 | golden | SA-66 names no harm |
+| requirement SA-66 | acceptance 4 | golden | SA-66 names no harm |
+| requirement SA-66 | acceptance 5 | golden | SA-66 names no harm |
 | requirement SA-7 | acceptance 1 | golden | SA-7 names no harm |
 | requirement SA-7 | acceptance 2 | golden | SA-7 names no harm |
 | requirement SA-8 | acceptance 1 | golden | SA-8 names no harm |

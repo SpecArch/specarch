@@ -20,6 +20,7 @@ const (
 	KindImplementation
 	KindRecord
 	KindIdiom
+	KindEstate
 )
 
 const (
@@ -28,11 +29,13 @@ const (
 )
 
 // KindOf tells the kind of a file from its name: the root file of a
-// specification, an implementation file, or neither.
+// specification, an implementation file, an estate, or none of them.
 func KindOf(name string) Kind {
 	switch {
 	case name == RootFile || strings.HasSuffix(name, "/"+RootFile):
 		return KindDesign
+	case name == spec.EstateFile || strings.HasSuffix(name, "/"+spec.EstateFile):
+		return KindEstate
 	case strings.HasSuffix(name, ImplementationSuffix):
 		return KindImplementation
 	}

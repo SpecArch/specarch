@@ -9,8 +9,9 @@ usage:
   specarch version                          print the program version
 
 A specification is a folder holding specarch.yaml. A folder given here is
-searched for specifications and for *.specarch-implementation.yaml files
-outside one. This build has no gaps, document, approve, generate, extract,
+searched for specifications, for *.specarch-implementation.yaml files
+outside one, and for estates (specarch-estate.yaml), which bring the
+specifications of the modules they list. This build has no gaps, document, approve, generate, extract,
 merge, diff, derive or idioms verbs; the Go build of specarch has them.
 
 """
@@ -78,11 +79,13 @@ func runValidate(_ argsIn: [String], _ stdout: TextSink, _ stderr: TextSink) -> 
     // Every specification is read before any is checked, so that a
     // reference into another one given in the same run resolves there.
     var loaded: [String: Spec] = [:]
+    var byFolder: [String: Spec] = [:]
     var specs: [Spec] = []
     for input in inputs {
         if case .root(let dir) = input {
             let s = Spec(dir: dir)
             loaded[dir] = s
+            byFolder[cleanPath(dir)] = s
             specs.append(s)
         }
     }
@@ -104,6 +107,8 @@ func runValidate(_ argsIn: [String], _ stdout: TextSink, _ stderr: TextSink) -> 
                 continue
             }
             all += checkImplementationFile(path: path, data: data, load: { Spec(dir: $0) })
+        case .estate(let e):
+            all += checkEstate(e, byFolder)
         case .other(let path):
             all += checkNamed(path)
         }
@@ -145,17 +150,19 @@ func isNoSuchFile(_ error: Error) -> Bool {
 }
 
 /// One thing to check: a specification (its root folder), an
-/// implementation file outside any specification, or a file given by name
-/// that is neither.
+/// implementation file outside any specification, an estate, or a file
+/// given by name that is none of them.
 enum Input {
     case root(String)
     case implementation(String)
+    case estate(Estate)
     case other(String)
 }
 
 /// Turns the arguments into inputs: a folder is searched for
-/// specifications and standalone implementation files; a file is taken as
-/// given.
+/// specifications, standalone implementation files and estates; a file is
+/// taken as given. An estate brings the specifications of its modules,
+/// each once however often it is named.
 func collect(_ args: [String], _ stderr: TextSink) -> ([Input], Bool) {
     var inputs: [Input] = []
     var seen = Set<String>()
@@ -165,6 +172,18 @@ func collect(_ args: [String], _ stderr: TextSink) -> ([Input], Bool) {
             seen.insert(key)
             inputs.append(input)
         }
+    }
+    func addEstate(_ path: String) {
+        if seen.contains("estate:" + cleanPath(path)) { return }
+        let data: Data
+        do { data = try readFile(path) } catch {
+            stderr.write("specarch: cannot read \(path): \(plainIOError(error))\n")
+            ioError = true
+            return
+        }
+        let e = Estate(path: path, data: data)
+        add("estate:" + cleanPath(path), .estate(e))
+        for r in e.roots { add("root:" + cleanPath(r), .root(r)) }
     }
     for a in args {
         var isDir: ObjCBool = false
@@ -177,11 +196,12 @@ func collect(_ args: [String], _ stderr: TextSink) -> ([Input], Bool) {
             switch kindOf(a) {
             case .design: add("root:" + cleanPath(dirPath(a)), .root(dirPath(a)))
             case .implementation: add("impl:" + cleanPath(a), .implementation(a))
+            case .estate: addEstate(a)
             case .none, .record, .idiom: add("other:" + cleanPath(a), .other(a))
             }
             continue
         }
-        let found: (roots: [String], implementations: [String])
+        let found: (roots: [String], implementations: [String], estates: [String])
         do {
             found = try findSpecs(a)
         } catch {
@@ -189,12 +209,13 @@ func collect(_ args: [String], _ stderr: TextSink) -> ([Input], Bool) {
             ioError = true
             continue
         }
-        if found.roots.isEmpty && found.implementations.isEmpty {
-            stderr.write("specarch: \(a) holds no \(rootFile) and no *\(implementationSuffix) file; name a folder that does\n")
+        if found.roots.isEmpty && found.implementations.isEmpty && found.estates.isEmpty {
+            stderr.write("specarch: \(a) holds no \(rootFile), no *\(implementationSuffix) file and no \(estateFile); name a folder that does\n")
             ioError = true
         }
         for r in found.roots { add("root:" + cleanPath(r), .root(r)) }
         for i in found.implementations { add("impl:" + cleanPath(i), .implementation(i)) }
+        for e in found.estates { addEstate(e) }
     }
     return (inputs, ioError)
 }

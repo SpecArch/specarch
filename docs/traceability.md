@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: traceability matrix
 
-Version 0.7.0-dev of the specification: 10 needs, 65 requirements, and 1 gap. Each requirement is traced back to the needs it refines and forward to what satisfies it in the design and what verifies it in the tests and commissioning checks.
+Version 0.7.0-dev of the specification: 10 needs, 66 requirements, and 1 gap. Each requirement is traced back to the needs it refines and forward to what satisfies it in the design and what verifies it in the tests and commissioning checks.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.7.0-dev of the specification: 10 needs, 65 requirements, and 1 gap. Ea
 | Need | Status | Refined by |
 |---|---|---|
 | NEED-1 | accepted | SA-33, SA-34, SA-35, SA-47, SA-48, SA-50, SA-1, SA-2, SA-3, SA-4, SA-5, SA-6, SA-51 |
-| NEED-2 | accepted | SA-33, SA-34, SA-36, SA-37, SA-38, SA-39, SA-40, SA-41, SA-42, SA-43, SA-52, SA-53, SA-54, SA-55, SA-56, SA-49, SA-62, SA-63, SA-65, SA-46, SA-61, SA-32, SA-9, SA-10 |
+| NEED-2 | accepted | SA-33, SA-34, SA-36, SA-37, SA-38, SA-39, SA-40, SA-41, SA-42, SA-43, SA-52, SA-53, SA-54, SA-55, SA-56, SA-49, SA-62, SA-63, SA-65, SA-66, SA-46, SA-61, SA-32, SA-9, SA-10 |
 | NEED-3 | accepted | SA-22, SA-36, SA-7, SA-8, SA-26, SA-16, SA-58, SA-59, SA-60, SA-19 |
 | NEED-4 | accepted | SA-11, SA-2 |
 | NEED-5 | accepted | SA-35, SA-47, SA-26, SA-16, SA-12, SA-23, SA-24, SA-25 |
@@ -92,6 +92,7 @@ Version 0.7.0-dev of the specification: 10 needs, 65 requirements, and 1 gap. Ea
 | SA-63 | NEED-2 | enums Rule; commands extract; decisions ADR-100 | tests document-techspec-implies; tests extract-permissions-pattern-rules; tests validate-implies |
 | SA-64 | NEED-8 | commands extract; commands merge; decisions ADR-105 | tests extract-documents-language-not-shipped; tests extract-documents-vocabulary; tests extract-documents-vocabulary-word-twice; tests merge-documents-days-vocabulary; tests merge-documents-language-not-given; tests validate-schema-language-tag |
 | SA-65 | NEED-2 | commands gaps; commands validate; decisions ADR-112 | tests gaps-references-blocked; tests gaps-references-unresolved; tests generate-openapi-reference-refused; tests generate-sql-reference; tests validate-references; tests validate-references-wrong |
+| SA-66 | NEED-2 | commands document; commands gaps; commands validate; decisions ADR-113 | tests document-estate-map; tests gaps-estate; tests validate-estate; tests validate-estate-cycle; tests validate-estate-modules-wrong |
 
 ## 3. Gaps
 

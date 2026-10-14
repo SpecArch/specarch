@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.7.0-dev of the specification: 65 requirements, 5 entities, 12 commands, 7 algorithms, 429 tests, 107 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.7.0-dev of the specification: 66 requirements, 5 entities, 12 commands, 7 algorithms, 434 tests, 108 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -64,12 +64,12 @@ The interfaces the system offers, as its clients see them.
 | diff | Compare two versions of a specification and check the release between them | public | 0: every check passes; 1: a check fails, there is no release record for the new version, or a specification has errors; 2: usage error, or a path that could not be read |
 | document | Write a document from a specification | public | 0: written, or with `--check` the output is current; 1: a specification has an error (after its files are written, or with `--check` compared), a marker is wrong, or with `--check` the output differs; 2: usage error, a target this build does not offer, no output folder in any specification given, the implementation files of one naming different output folders, or a file that could not be read or written |
 | extract | Write a specification from existing code or documents | public | 0: the specification was written; 1: the surface could not be read as the source expects: a dump that does not parse or is stale, a dump whose repository is no gitlink of the repository holding it, is not checked out, pins a commit its history does not hold or whose checkout under the path is not the pinned commit's, a code-facts dump another parser version made, whose files are not the tracked files of its folder the reader reads, or, for pages, whose folder does not hold the router's folder, a route table that lists a method and path pair twice, a permission table that lists a grant or a rule twice, names a matcher the reader does not know, or holds a rule without one of its four keys, a vocabulary that does not parse, lacks a key, holds one it does not have, gives a number, a duration or a language tag in another form, or lists one word twice in a list or in two lists of one group, a route table given with --routes from another repository or from a commit on another line of history than the permission table's, a router root that gives one route twice or holds no page, a path with changes not committed, untracked files, a shallow clone, a path outside a git repository, a document that is not Markdown, a file that is not an OpenAPI 3.0 or 3.1 document, a file that is not BPMN 2.0 XML or holds no process, or an implementation file that does not parse as YAML; 2: usage error, a source this build does not offer, --implementation given to a source other than go, swift, javascript, dart or pages, or to pages without --facts, --facts given to a source other than pages, --routes given to a source other than permissions, --language, --vocabulary or --given-outside given to a source other than documents, a language that is not a BCP 47 tag, a language SpecArch ships no vocabulary for given without --vocabulary, a --language other than the vocabulary's own, more than one permission table, or a path that could not be read or written |
-| gaps | List the open questions and what they hold up | public | 0: no must or should question is open and no specification has an error; 1: at least one must or should question is open, or a specification has an error; 2: usage error, or a path that could not be read |
+| gaps | List the open questions and what they hold up | public | 0: no must or should question is open and no specification has an error; 1: at least one must or should question is open, or a specification or an estate has an error; 2: usage error, or a path that could not be read |
 | generate | Write code or data from a specification | public | 0: written, a draft included, or with `--check` the output is current; 1: a specification has an error, an open question blocks what the target reads or the specification is not approved and `--unapproved` was not given, the plug-in reported an error (what it answered is written or checked), or with `--check` the output differs; 2: usage error, no generator for the target (not built in and no plug-in on PATH), the plug-in failed or answered badly, no output folder in any specification given, or a file that could not be read or written |
 | idioms | List the idioms each implementation file uses, and how | public | 0: the idioms were listed; 2: usage error, a path that could not be read, or a specification with errors |
 | idioms diff | Print a shipped idiom's parts beside each override's | public | 0: the overrides were printed, or there was none; 2: usage error, an idiom this program does not ship, a path that could not be read, or a specification with errors |
 | merge | Merge the partial specifications the readers wrote into one | public | 0: the merged specification was written; 1: a tree could not be merged: it does not track origin, validate reports an error in it, it holds implementation files or records or a test that is not the draft derive writes for it, or it declares a source another tree declares differently, or whose paths changed after the commit a tree read them at; or a vocabulary that is not one this build reads; 2: usage error, fewer than two trees, two vocabularies of one language, or a folder or file that could not be read or written |
-| validate | Check specifications and implementation files | public | 0: every input is valid; 1: at least one input has an error; 2: usage error, a path could not be read, or a folder holds no specification and no implementation file |
+| validate | Check specifications and implementation files | public | 0: every input is valid; 1: at least one input has an error; 2: usage error, a path could not be read, or a folder holds no specification, no implementation file and no estate |
 | version | Print the program version and the meta-model versions it reads | public | 0: printed |
 
 ## 5. Building blocks
@@ -261,6 +261,7 @@ Primary key: path.
 | Rule | relation_target | a relation's target is not an entity of the specification |
 | Rule | relation_via | a relation's `via` is not the field or join entity its kind needs |
 | Rule | reference | a reference into another specification (`<dependency>#/<pointer>`) names no dependency, a dependency with no `specification`, stands where it may not (a one-to-many or many-to-many relation, a page that is not a list, a picker or list page whose entity and list are not of one dependency), or, when that specification is given, names an element it does not have, a list that does not list the entity, or a field the entity does not have; or a dependency's `version` is not the given specification's `info.version` |
+| Rule | module | an estate's module is not at its `location`, its specification's `info.version` is not the version the estate lists, its `info.name` is not the key the estate lists it under, or its operations' `calls` reach back to it through the other modules |
 | Rule | field | a name that must be a field of an entity is not one (required, primaryKey, unique fields, page columns, fields and filters) |
 | Rule | state_field | the `stateField` is not a field whose type is an enum |
 | Rule | state_value | a transition's `from` or `to` is not a value of the state field's enum |
@@ -558,6 +559,16 @@ harm once a requirement names one. A marker
 names what goes in its region: `erDiagram`, `stateDiagram <Entity>`,
 `sequenceDiagram <operationId or command>`, `flowchart pages` or
 `permissions`.
+
+Given an estate file, the techspec target also writes `estate.md`,
+the estate's module map, into `--out` or else the `docs` folder
+beside the estate file, since an estate has no implementation file
+to name one: the modules with the version the estate holds each at
+and where its specification is, the estate's problems at their
+entries, and the references between the modules through their
+dependencies as a Mermaid flowchart and a table, a specification a
+dependency names that the estate does not list drawn apart. The
+modules' own documents are written as when each is named (ADR-113).
 
 The requirements target writes `requirements.md`: the stakeholders,
 the needs with the requirements that refine them, and each
@@ -1906,7 +1917,9 @@ sequenceDiagram
 
 ### Command gaps
 
-Validates its input first, and prints the open questions document
+Validates its input first, prints the problems of each estate
+given, one line each as validate prints them, since no module's
+document holds them (ADR-113), and prints the open questions document
 of a specification with errors too (ADR-065), the text
 `document questions` writes, from its title: the counts by
 priority, the elements by origin when the specification tracks it,
@@ -1938,7 +1951,7 @@ and the approval that is missing or void).
 
 Reads `{paths}`: The specifications and their implementation files; `records/approvals/<version>.yaml`: The approval of the specification's version, beside its folder, when there is one.
 
-Standard output: The open questions document of each specification, with its errors listed in it.
+Standard output: The problems of each estate given, then the open questions document of each specification, with its errors listed in it.
 
 Standard error: A usage message on a usage error, and the reason on an unreadable path.
 
@@ -2409,13 +2422,23 @@ the same run: its element is checked as a local one is, and the
 dependency's version against that specification's `info.version`.
 A reference whose specification is not given, or whose element is
 blocked there by a must question, is not an error: it is counted as
-unresolved, and `gaps` lists it (ADR-106).
+unresolved, and `gaps` lists it (ADR-112).
+
+An estate file, `specarch-estate.yaml`, found under a folder or
+named, lists the modules' specifications by their `info.name` with
+the folder each is in and the version the estate holds; it brings
+each module's specification into the run, read once however often
+it is named, so every reference between them resolves. Each module
+is checked against its entry, as `module` at the module: its folder
+holds a specification, whose `info.name` is the key and whose
+`info.version` is the version listed, and its operations' and jobs'
+`calls` do not come back to it through the other modules' (ADR-113).
 
 | Argument or option | Type | Required | Description |
 |---|---|---|---|
-| `<paths>` | string, one or more | yes | Folders and files. A folder is searched for specifications and for implementation files outside one. |
+| `<paths>` | string, one or more | yes | Folders and files. A folder is searched for specifications, for implementation files outside one, and for estate files. |
 
-Reads `{paths}`: Root files, the files under their stage folders, and implementation files; `records/ beside each specification's folder`: The change, defect, release, incident, commissioning and approval records of that specification; `the specification named in each standalone implementation file's `implements``: Read to resolve that file's references.
+Reads `{paths}`: Root files, the files under their stage folders, and implementation files; `records/ beside each specification's folder`: The change, defect, release, incident, commissioning and approval records of that specification; `the specification named in each standalone implementation file's `implements``: Read to resolve that file's references; `each estate's modules, at their location`: The specification of every module an estate lists, read with the estate.
 
 Standard output: One line per diagnostic, `file:line:column: severity: /yaml/path: rule: message [id]`, sorted by file, then line, column, path, rule, message and id.
 
@@ -2430,6 +2453,7 @@ sequenceDiagram
   P->>F: read {paths}
   P->>F: read records/ beside each specification's folder
   P->>F: read the specification named in each standalone implementation file's `implements`
+  P->>F: read each estate's modules, at their location
   P->>P: exitStatus
   P-->>U: exit status 0, 1, 2
 ```
@@ -7953,6 +7977,56 @@ SQL and documents are written.
 
 **Insight:** The name is on the specification, not only in the umbrella, because two modules given to one run have to find each other without an umbrella, and a folder's name is not the module's (a module's specification sits in a folder named spec); the umbrella's key is then checked equal to info.name, so it is one name said once and checked where it is repeated, as version is. The pointer form is JSON Schema's own (a $ref is a URI reference, RFC 3986 section 4.1, whose fragment is a JSON pointer, RFC 6901), which the rule for new keywords asks for, with the dependency's name standing for the document: a dependency already is the other system and carries its time limit, so the reference adds no second registry. An operation is named by its path and method rather than its operationId because a pointer is a path into the document, and an operationId is a name the other team may change without moving the operation. Only to-one relations may cross, because their key is a field this module keeps; a one-to-many relation's via is in the other module's table and a many-to-many's join is in neither, so neither could be checked or generated across two databases. A page of another module's records is a list because a form or view loads and writes one record through this module's own operations. An unresolved reference is a counted gap and not an error by the compiler test: one module alone is readable and validates, and the error comes only where the other specification contradicts it, at the entry. A reference to a blocked element waits on the question rather than resolving, so the answer there is what unblocks it here. Generators refuse at the entry rather than guess: a column typed by a schema this run has not read would be a type made up, and inlining the schema needs the other specification, which arrives with generation over the estate (build item 6). The SQL column needs no foreign key across databases, which is the design the plan asked for. roleNames: a tree whose roles grant permissions was read from where a permission check reads them, so its silence on roleNames says the roles go on the wire as named; two such trees that differ are a disagreement, and a disagreement is a question, never a pick. A tree's silence on wireNames does not say the names go as written, since most readers (the database, documents, a router) never see a body, so it stays as it was. Acceptance test: a module is shown on its own, with its references listed as gaps, and two modules' consistency is checked by giving both in one run, before the umbrella exists.
 
+### ADR-113: An estate is the file specarch-estate.yaml that lists each module's specification by its info.name with its folder and the version held, brings every module into the run, and checks each against its entry as module
+
+Status: accepted, 2026-10-14.
+
+Context: Point 2 of docs/estate.md, build item 6: an estate of modules owned
+by different teams is specified one module at a time (ADR-112), and
+its consistency is to be checked where the estate is, in an umbrella
+repository that holds the modules as submodules and commits to none
+of them. ADR-112 resolves the references between two specifications
+named in one run; nothing listed which specifications make up the
+estate, pinned the version of each, or checked that the name a
+dependency gives is the module's.
+
+Decision: An estate is a file of its own kind, specarch-estate.yaml, with
+specarchEstate 0.1, info (title, version, description) and modules:
+each keyed by its specification's info.name in kebab case, with its
+location, the folder that holds its specarch.yaml relative to the
+estate file, and the version the estate holds. It has no stages and
+holds nothing of a module.
+validate, gaps, document, generate and the other verbs that read
+specifications take an estate as a file named or found under a
+folder, and read each module whose folder holds a specification as
+if it were named, once however often it is reached, so references
+between modules resolve as ADR-112 says. The estate is an input of
+validate's count. Each module is checked against its entry with the
+rule module: a folder that does not exist or holds no specarch.yaml
+at its location; a specification with no info.name, or one that is
+not the key, at the module; an info.version that is not the version
+listed at its version; and a module whose operations' or jobs' calls
+come back to it through the modules their dependencies name, at each
+module on the cycle, with the shortest such cycle from the smallest
+name on it. The estate's problems are printed by validate, by gaps
+before the modules' documents, and by document, and make the status
+1; an estate has no problems file of its own.
+document techspec given an estate also writes estate.md, the module
+map, into --out or else docs beside the estate file: the modules with
+the version held and a link to each specification, the estate's
+problems, and each dependency that names a specification as an edge
+of a flowchart and a row of a table, a specification the estate does
+not list drawn apart.
+
+Consequences: validate, gaps and document on an umbrella folder read every module
+in one run and resolve every reference between them. A module alone
+validates as before. A specification with no estate validates,
+documents and generates byte for byte as before. Generators still
+read one specification at a time, each module of an estate given on
+its own; writing another module's schema inline waits.
+
+**Insight:** A file of its own kind, rather than a specification with a modules section, because an estate has no stages, requirements or design of its own, and a specification that held none would be one with every stage empty; the fixed name lets a folder search find it as it finds specarch.yaml. The key is the module's info.name, so the name is said in the module and checked where it is repeated, as ADR-112 does for a dependency's specification; the version listed is checked the same way, so moving a module to a new version is a change to the estate file a reviewer sees. The estate lists and pins and copies nothing, so each team's specification stays the one truth of its module and the estate cannot drift from it. A cycle of calls is an error because each call in it waits on the next, so one slow module makes every module on the cycle give up at its time limit; a cycle through a dependency named but not called, such as one module keeping another's key, is not one. It is reported at every module on it, since any of their owners may break it, with one cycle chosen the same way in both builds. An estate's problems are about its listing, not about any module, so they go in no module's problems file and are printed wherever the estate is read; by the compiler test the estate is still read, every module that is there is checked, and a module that is not found is an error at its entry, never a run refused. The module map goes to docs beside the estate file because the estate has no implementation file to name an output folder (ADR-073), and the umbrella is where the estate's reader looks. Acceptance test: the estate is shown as one map of the modules and their references, made from the specifications as they stand, and a module moved to a new version is checked against the others in one run before the estate's version changes.
+
 ## 10. Quality requirements
 
 The design tests: what must hold on every implementation. Golden scenarios succeed; red scenarios are refused.
@@ -7997,6 +8071,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | document-draft-notice | command document | system | golden | a requirement a must question blocks, one stated in a source and one inferred | document requirements is run | it writes requirements.md with a Draft notice under the summary, an Origin line for each requirement and the open question under the blocked one, and exits 0 |
 | document-entity-diagram | command document | system | golden | a hand-written document with an erDiagram marker | document techspec is run | the region holds the entity diagram, every other line is unchanged, and it exits 0 |
 | document-errors-elsewhere | command document | system | red | a specification with errors only under info and entities, which the requirements document does not read | document requirements is run | it prints both errors, writes requirements.md with a Problems notice saying the specification is invalid and that none of its errors is in what the document covers, and exits 1 |
+| document-estate-map | command document | system | golden | an estate file listing two modules, one of which depends on the other and on a specification the estate does not list, and no implementation file naming a techspec folder | document techspec is run on the estate file | it writes docs/estate.md beside the estate file, the modules with their versions and links and the references between them drawn as a flowchart, the unlisted specification apart, passes over each module with a warning, and exits 0 |
 | document-html-marks-problems | command document | system | red | the same specification with a permission no role grants, which is an error | document html is run | it prints the error, writes site/index.html all the same with an Invalid notice, the error listed under Problems with a link to the permission, and the permission's row marked with a link back to the problem, and exits 1 |
 | document-invalid-input | command document | system | red | a design file with a relation to an entity that does not exist | document techspec is run | it prints the error, writes the technical specification with a Problems notice and a Problem paragraph at the relation, and exits 1 |
 | document-marker-unclosed | command document | system | red | a marker with no end marker | document techspec is run | it reports the marker's line, writes nothing and exits 1 |
@@ -8108,6 +8183,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | extract-workflows-reads-generated-last-approval | command extract | system | golden | a repository holding reinstate.bpmn exactly as generate bpmn writes it in the case generate-bpmn-approved: one approval and no other step, so both flows of its gateway end the request, the refusal as the gateway's default flow | extract workflows is run on the file | it writes workflow reinstate with its one approval, its approver and its deadline, reads the default flow as the refusal and the other as the end of the approved request, and exits 0 |
 | extract-workflows-writes-tree | command extract | system | golden | a repository with a BPMN 2.0 file of two processes: one whose start event names its operation, with two user tasks whose potential owners are a resource and an expression, a timer that escalates to the second, a gateway that refuses after the first, a timer of a week and a service task naming its operation; and one with no documentation, no operation on its start event, lanes, a user task with no owner and a repeating timer, and a parallel gateway; beside them a signal and a diagram | extract workflows is run on the file | it writes one workflow per process in the order of their names, the approvals with their roles, deadlines and escalation, a question naming the operation for the trigger and the service task, a question for each permission, subject and anything the file leaves out or the subset does not hold, a role per potential owner, a line per element left out in the order of the file, and a could question citing the file's line for each that no must question asks for already, and exits 0 |
 | gaps-coverage | command gaps | system | golden | a specification that tracks origin, built from a manual and from code that both list their clauses; one clause of each is cited by nothing, one citation names a clause outside the outline, and the implementation file's mapping cites the code | gaps is run | it shows, per source, the elements each clause produced, counts the clauses that produced nothing, names the citation outside the outline, and exits 0 |
+| gaps-estate | command gaps | system | red | an estate file listing two modules, one at a version its specification is not at | gaps is run on the estate file | it prints the estate's problem first, then each module's open questions document with the references between them resolved, and exits 1 |
 | gaps-invalid-spec | command gaps | system | red | a specification with an error | gaps is run | it prints the open questions document with the error listed after the summary, every output waiting on it, and exits 1 |
 | gaps-lists-questions | command gaps | system | red | a specification that tracks origin, with two must questions in two stages, one of them blocking an entity that is only a name, a could question, and an implementation file whose code target echo reads only the requirements | gaps is run | it prints the questions by stage with the missing keys of the blocked entity, the elements by origin, and the outputs with what each waits on, and exits 1 |
 | gaps-names-question | command gaps | system | red | the tree extract workflows wrote for a BPMN file, whose workflow leaves out its trigger and its service task's operation, each with a must question that names the operation | gaps is run | each of those questions lists the name it gives and the file and line of the element that leaves the key out, and it exits 1 |
@@ -8227,6 +8303,9 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | validate-enabled-by | command validate | system | red | an operation served behind a boolean setting with no test of it switched off, an operation behind a setting that is not declared, and a command behind a text setting | validate is run | it reports setting for the undeclared and the text setting, warns that the operation behind exportsOn has no red scenario for disabled by exportsOn, with a test to copy, and exits 1 |
 | validate-enum-value | command validate | system | red | a value description for a value the enum does not have | validate is run | it reports enum_value and exits 1 |
 | validate-environment | command validate | system | red | a check that runs in an environment the specification does not declare | validate is run | it reports environment and exits 1 |
+| validate-estate | command validate | system | golden | an estate file listing two modules, each by its info.name with its folder and version, one of whose references name elements of the other | validate is run on the estate file alone | it reads both modules, resolves every reference between them, reports nothing at the estate, and exits 0 |
+| validate-estate-cycle | command validate | system | red | an estate of three modules where alpha's operation calls beta's, beta's calls alpha's, and gamma's calls alpha's | validate is run on the estate's folder | it refuses alpha and beta as module at each module's entry, naming the cycle alpha calls beta, which calls alpha, leaves gamma alone, and exits 1 |
+| validate-estate-modules-wrong | command validate | system | red | an estate file listing a module at a version its specification is not at, one under a key that is not its info.name, one at a folder that does not exist, one at a folder with no specification, and one whose specification has no info.name | validate is run on the estate file | it reads every module that is there, refuses each entry as module at the module's entry, and exits 1 |
 | validate-example-error | command validate | system | red | a formula that divides by zero on a worked example | validate is run | it reports example_error and exits 1 |
 | validate-example-expected | command validate | system | red | a worked example whose expected value has more places than the output's scale | validate is run | it reports example_expected and exits 1 |
 | validate-example-input | command validate | system | red | a worked example whose decimal input is not quoted | validate is run | it reports example_input and exits 1 |
@@ -8454,6 +8533,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | SA-62 | A specification shall be able to say, once for the whole system, that its roles go on the wire in upper snake case while it names them in kebab-case, and specarch validate shall refuse two roles that would go on the wire under one name. | functional | should | accepted | test | info.roleNames upper_snake maps every role by one rule, each hyphen an underscore and each letter in upper case, the same function in the validator, the readers and the generators. Two roles that map to one wire name are refused as wire_name at the second, the same in both builds. specarch extract permissions and extract go read a source whose roles are all in upper snake case into kebab-case roles and info.roleNames, and leave out with a line, as before, a role of a source that names roles both ways and a name that does not come back the same. specarch generate go-dxlib writes each role's name id in the wire form, and the techspec names each role's wire form. specarch merge asks a must question, and leaves info.roleNames out, when one tree whose roles grant permissions says upper_snake and another says nothing of it. | NEED-2 |
 | SA-63 | A permission shall be able to imply other permissions, and every check of what a role grants shall count what its permissions imply; specarch extract permissions shall read a permission table's pattern rules into permissions named by a fixed rule, with the implications pattern inclusion gives, and each route's one permission. | functional | must | accepted | test | implies on a permission lists permissions a holder holds too, transitively; an undeclared name, public implied or implying, and a cycle are refused as implies at the entry, the same in both builds. The grants check, separation of duties, workflow approvals, pickers, flows, the derived red case's caller, the merge's unchecked line, the techspec's matrix and the generated grants count what a role's permissions imply. A permission table's rules (a role, a pattern, the methods or *, and the matcher) become one permission per distinct pattern and method pair, named from the pattern's literal words and the method, each implying the ones its pattern and methods cover, and each role granted the permissions of its rows. Given the route table with --routes, each route's permission is the matching one every other match implies; a route two permissions match with neither implying the other and a route no rule reaches are must questions at the operation, and a permission no route reaches is a could question. | NEED-2 |
 | SA-65 | A specification shall be able to name an element of another specification through a dependency, and specarch validate shall check such a reference against that specification when it is given in the same run, and count it as unresolved, not as an error, when it is not. | functional | must | accepted | test | info.name gives a specification its name; a dependency's specification and version name another specification and the info.version its references were written against, each only with the other. <dependency>#/<pointer> stands in a field's $ref (an entity, enum, view or schema), a many-to-one or one-to-one relation's target and a list page's entity (an entity), and a picker's source, a list page's source and an entry of calls (an operation as A reference through a name that is not a dependency, through a dependency with no specification, in a one-to-many or many-to-many relation, on a page that is not a list, or whose page or picker reads one specification's list for another's entity is refused as reference at the entry, the same in both builds. Given the other specification in the same run, an element it does not have, a list that does not list the entity, a column, filter or picked field the entity does not have, and a dependency whose version is not the other's info.version are refused as reference at the entry, the same in both builds. A reference whose specification is not given, or whose element is blocked there by a must question, is counted in validate's summary as unresolved and listed in gaps and the questions document, and validate exits 0 for it. specarch generate sql writes the column of a relation to another specification's entity with no foreign key, and the techspec names each reference with the specification and version it points at. | NEED-2 |
+| SA-66 | An estate file shall list the specifications of an estate's modules by name, each with its folder and the version the estate holds, and specarch validate, gaps and document techspec shall read every module through it and check each against its entry. | functional | must | accepted | test | specarch-estate.yaml holds specarchEstate, info and modules, each module keyed by its specification's info.name with its location, a folder relative to the file, and its version; it holds nothing of a module. Naming an estate, or a folder that holds one, to validate, gaps or document brings every module's specification into the run once, so the references between modules resolve as when each is named. A module whose folder holds no specification, whose info.name is not its key or is missing, whose info.version is not the version listed, or whose operations' calls come back to it through the other modules is refused as module at the module's entry, the same in both builds. gaps prints the estate's problems before the modules' open questions documents, and exits 1 when the estate has an error. document techspec on an estate writes estate.md, the module map with the references between the modules drawn as a flowchart. | NEED-2 |
 | SA-7 | specarch document and specarch generate shall write only into the folder the target owns, and with --check shall fail when the committed output differs. | functional | must | accepted | test | A run writes the target's files into its folder and nothing elsewhere. A run with --check on output edited by hand names the file and exits 1, writing nothing. | NEED-3 |
 | SA-8 | Every generated file shall name its source specification, version and meta-model, and a hand-written Markdown document shall change only between its markers. | functional | must | accepted | test | The first line of a generated document names the root file, its version and the meta-model. A marked region is rewritten and every other line of the document is unchanged. | NEED-3 |
 | SA-26 | specarch document shall write the change and defect register and the release notes from the records beside a specification, kept current with --check like the other documents. | functional | should | accepted | test | The register lists open change requests and defects before the closed ones, each with its status, what it affects and its decision. The release notes list the releases newest first, each with its changes and fixes grouped as added, changed, removed and fixed. | NEED-3, NEED-5 |
@@ -8560,6 +8640,8 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 **Insight on SA-63:** A system checked by pattern rows names no permission anywhere, and a role with a `*` row beside a `get` row came out of a printer with two names and nothing saying one covers the other; the matrix a reviewer reads has to show what each role reaches.
 
 **Insight on SA-65:** An estate of modules owned by different teams is specified one module at a time, and a module keeps another's customer number, picks from another's list and calls another's operations; with $ref reaching only its own specification, those links were prose, and nothing checked them when the two specifications met.
+
+**Insight on SA-66:** An estate's consistency is checked where the estate is, in one run over every module, and the umbrella that does it lists and pins the modules rather than copying them, so each team's specification stays the one truth of its module.
 
 **Insight on SA-26:** Reviewers and operators read what changed and why in documents; kept apart from the specification, the history stays out of it and still reaches them.
 
@@ -8698,6 +8780,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-63 | enums Rule; commands extract; decisions ADR-100 | tests document-techspec-implies; tests extract-permissions-pattern-rules; tests validate-implies |
 | SA-64 | commands extract; commands merge; decisions ADR-105 | tests extract-documents-language-not-shipped; tests extract-documents-vocabulary; tests extract-documents-vocabulary-word-twice; tests merge-documents-days-vocabulary; tests merge-documents-language-not-given; tests validate-schema-language-tag |
 | SA-65 | commands gaps; commands validate; decisions ADR-112 | tests gaps-references-blocked; tests gaps-references-unresolved; tests generate-openapi-reference-refused; tests generate-sql-reference; tests validate-references; tests validate-references-wrong |
+| SA-66 | commands document; commands gaps; commands validate; decisions ADR-113 | tests document-estate-map; tests gaps-estate; tests validate-estate; tests validate-estate-cycle; tests validate-estate-modules-wrong |
 
 ## Sources
 

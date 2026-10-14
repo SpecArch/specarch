@@ -1,0 +1,5 @@
+specarchEstate: "0.1"
+info: { title: Lending estate, version: 1.0.0 }
+modules:
+  loans: { location: loans, version: 1.0.0 }
+  customer-registry: { location: customers, version: 2.3.0 }

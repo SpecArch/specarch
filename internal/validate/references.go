@@ -12,7 +12,7 @@ import (
 )
 
 // Given is the specifications given together in one run, by their
-// info.name; a specification without one is not listed (ADR-106).
+// info.name; a specification without one is not listed (ADR-112).
 type Given map[string][]*spec.Spec
 
 // NewGiven lists the specifications by name.

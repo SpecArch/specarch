@@ -252,6 +252,13 @@ jobs:
           for target in techspec requirements testplan traceability deployment commissioning; do go run ./cmd/specarch document $target --check spec examples || exit 1; done
           for target in techspec requirements testplan traceability deployment commissioning questions problems changes releases html; do go run ./cmd/specarch document $target --check spec examples/library-lending || exit 1; done
           for target in techspec requirements traceability questions problems html; do go run ./cmd/specarch document $target --check examples/lending-desk || exit 1; done
+      - name: The estate example validates as an estate and draws its module map
+        # examples/estate lists the lending desk and the catalogue service;
+        # validate on the estate file reads both modules through it.
+        run: |
+          go run ./cmd/specarch validate examples/estate/specarch-estate.yaml 2> "$RUNNER_TEMP/estate.txt"
+          grep -q '^specarch: 3 inputs checked: 0 errors,' "$RUNNER_TEMP/estate.txt"
+          grep -q '^  lending_desk -->|"catalogue, written against 0.1.0"| catalogue_service$' examples/estate/docs/estate.md
       - name: Generated code and data are current
         # The library's migrations, OpenAPI document, workflows as BPMN and SVG, and screens, in plain
         # JavaScript and on Next.js, are checked in, so a design change that

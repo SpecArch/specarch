@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: validate
+level: system
+scenario: red
+given: "an estate of three modules where alpha's operation calls beta's, beta's calls alpha's, and gamma's calls alpha's"
+when: "validate is run on the estate's folder"
+then: "it refuses alpha and beta as module at each module's entry, naming the cycle alpha calls beta, which calls alpha, leaves gamma alone, and exits 1"
+verifies: [SA-66]

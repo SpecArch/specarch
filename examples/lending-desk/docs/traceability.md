@@ -4,7 +4,7 @@
 
 Version 0.1.0 of the specification: 0 needs, 7 requirements, and 8 gaps. Each requirement is traced back to the needs it refines and forward to what satisfies it in the design and what verifies it in the tests and commissioning checks.
 
-**Draft:** 4 open questions concern this document (Q-1, Q-2, Q-3, Q-5); see the open questions document, or run specarch gaps.
+**Draft:** 5 open questions concern this document (Q-1, Q-2, Q-3, Q-8, Q-5); see the open questions document, or run specarch gaps.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 

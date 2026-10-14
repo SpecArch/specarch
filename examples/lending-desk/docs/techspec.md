@@ -2,9 +2,9 @@
 
 # Lending Desk: technical specification
 
-Version 0.1.0 of the specification: 7 requirements, 3 entities, 1 schema, 5 HTTP operations and 24 tests. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.1.0 of the specification: 7 requirements, 3 entities, 1 schema, 5 HTTP operations, 1 dependency and 24 tests. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
-**Draft:** 7 open questions concern this document (Q-1, Q-2, Q-3, Q-4, Q-6, Q-7, Q-5); see the open questions document, or run specarch gaps.
+**Draft:** 8 open questions concern this document (Q-1, Q-2, Q-3, Q-8, Q-4, Q-6, Q-7, Q-5); see the open questions document, or run specarch gaps.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -57,6 +57,22 @@ Every property goes on the wire in snake_case (info.wireNames): a field this spe
 | POST /loans/{loanId}/return | returnBook | Check a book in | loans.write |
 | POST /loans/{loanId}/renew | renewLoan | Renew a loan | loans.write |
 | GET /members/{cardNumber}/loans | listMemberLoans | The loans of one member | loans.read |
+
+### Dependencies
+
+External systems the operations call. A call that fails, or that does not answer within its time limit, is given up, and the operation answers as its failure response says.
+
+| Dependency | Time limit per call | Called by | Description |
+|---|---|---|---|
+| catalogue |  |   | Specified on its own as catalogue-service; the references were written against version 0.1.0. The catalogue service, whose team keeps the book records the desk reads and never edits. |
+
+**Origin on catalogue:** inferred.
+
+**Open question Q-8 (must, decision) on catalogue:** Does the desk read the book records through the catalogue service's operations, and with what time limit per call, or from the books table as the service does today? Decided by desk-manager.
+
+**Insight on catalogue:** The manual says the catalogue team keeps the book records the desk reads; the estate in examples/estate lists that team's service as catalogue-service. How the desk reads them, and so the time limit, is Q-8.
+
+**Note on catalogue:** From Lending desk manual, 2025, clause 3.4: The catalogue team keeps the book records; the desk reads them and never edits them. <../sources/manual.md>
 
 ## 5. Building blocks
 

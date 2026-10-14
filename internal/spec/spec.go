@@ -24,6 +24,10 @@ const RootFile = "specarch.yaml"
 // ImplementationSuffix ends the name of every implementation file.
 const ImplementationSuffix = ".specarch-implementation.yaml"
 
+// EstateFile is the name of an estate's file: the modules' specifications
+// it lists and pins.
+const EstateFile = "specarch-estate.yaml"
+
 // TestFile is the file each test folder holds.
 const TestFile = "test.yaml"
 
@@ -654,10 +658,10 @@ func RootOf(path string) string {
 	}
 }
 
-// Find lists the specifications and the standalone implementation files
-// under a folder: a folder holding specarch.yaml is a specification, and
-// nothing under it is searched further.
-func Find(dir string) (roots []string, implementations []string, err error) {
+// Find lists the specifications, the standalone implementation files and
+// the estates under a folder: a folder holding specarch.yaml is a
+// specification, and nothing under it is searched further.
+func Find(dir string) (roots, implementations, estates []string, err error) {
 	err = filepath.WalkDir(dir, func(p string, d os.DirEntry, err error) error {
 		if err != nil {
 			return err
@@ -672,14 +676,18 @@ func Find(dir string) (roots []string, implementations []string, err error) {
 			}
 			return nil
 		}
-		if strings.HasSuffix(d.Name(), ImplementationSuffix) {
+		switch {
+		case strings.HasSuffix(d.Name(), ImplementationSuffix):
 			implementations = append(implementations, p)
+		case d.Name() == EstateFile:
+			estates = append(estates, p)
 		}
 		return nil
 	})
 	sort.Strings(roots)
 	sort.Strings(implementations)
-	return roots, implementations, err
+	sort.Strings(estates)
+	return roots, implementations, estates, err
 }
 
 // PlainIOError is the reason a file could not be read, in the words the C

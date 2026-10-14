@@ -1,0 +1,22 @@
+# yaml-language-server: $schema=../../schema/specarch-estate-0.1.schema.json
+specarchEstate: "0.1"
+
+info:
+  title: Library Estate
+  version: 0.1.0
+  description: |
+    Two modules of a small library, each specified on its own: the
+    lending desk, which lends the books, and the catalogue service, whose
+    team keeps the book records the desk reads. The lending desk's
+    specification is the one in examples/lending-desk; nothing of it is
+    copied here.
+
+modules:
+  lending-desk:
+    description: Lends books to members and takes them back.
+    location: ../lending-desk/spec
+    version: 0.1.0
+  catalogue-service:
+    description: Keeps the book records.
+    location: catalogue
+    version: 0.1.0

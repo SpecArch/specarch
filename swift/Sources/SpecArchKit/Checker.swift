@@ -2,15 +2,16 @@ import Foundation
 
 /// The kind of a SpecArch file, read from its name.
 public enum Kind {
-    case none, design, implementation, record, idiom
+    case none, design, implementation, record, idiom, estate
 }
 
 public let implementationSuffix = ".specarch-implementation.yaml"
 
 /// Tells the kind of a file from its name: the root file of a
-/// specification, an implementation file, or neither.
+/// specification, an implementation file, an estate, or none of them.
 public func kindOf(_ name: String) -> Kind {
     if name == rootFile || name.hasSuffix("/" + rootFile) { return .design }
+    if name == estateFile || name.hasSuffix("/" + estateFile) { return .estate }
     if name.hasSuffix(implementationSuffix) { return .implementation }
     return .none
 }

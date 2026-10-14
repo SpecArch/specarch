@@ -26,11 +26,21 @@ commands:
       dependency's version against that specification's `info.version`.
       A reference whose specification is not given, or whose element is
       blocked there by a must question, is not an error: it is counted as
-      unresolved, and `gaps` lists it (ADR-106).
+      unresolved, and `gaps` lists it (ADR-112).
+
+      An estate file, `specarch-estate.yaml`, found under a folder or
+      named, lists the modules' specifications by their `info.name` with
+      the folder each is in and the version the estate holds; it brings
+      each module's specification into the run, read once however often
+      it is named, so every reference between them resolves. Each module
+      is checked against its entry, as `module` at the module: its folder
+      holds a specification, whose `info.name` is the key and whose
+      `info.version` is the version listed, and its operations' and jobs'
+      `calls` do not come back to it through the other modules' (ADR-113).
     permission: public
     arguments:
       - name: paths
-        description: Folders and files. A folder is searched for specifications and for implementation files outside one.
+        description: Folders and files. A folder is searched for specifications, for implementation files outside one, and for estate files.
         required: true
         repeatable: true
         schema: { type: string }
@@ -38,11 +48,12 @@ commands:
       - { path: "{paths}", description: "Root files, the files under their stage folders, and implementation files." }
       - { path: "records/ beside each specification's folder", description: "The change, defect, release, incident, commissioning and approval records of that specification." }
       - { path: "the specification named in each standalone implementation file's `implements`", description: Read to resolve that file's references. }
+      - { path: "each estate's modules, at their location", description: "The specification of every module an estate lists, read with the estate." }
     standardOutput: "One line per diagnostic, `file:line:column: severity: /yaml/path: rule: message [id]`, sorted by file, then line, column, path, rule, message and id."
     standardError: A usage message on a usage error, the reason on an unreadable path, and a one-line count at the end, with the number of open questions and of unresolved references when there are any.
     exitCodes:
       "0": every input is valid
       "1": at least one input has an error
-      "2": usage error, a path could not be read, or a folder holds no specification and no implementation file
+      "2": usage error, a path could not be read, or a folder holds no specification, no implementation file and no estate
     algorithm: exitStatus
-    satisfies: [SA-1, SA-2, SA-3, SA-4, SA-5, SA-6, SA-9, SA-10, SA-11, SA-12, SA-13, SA-17, SA-18, SA-21, SA-23, SA-24, SA-27, SA-29, SA-65]
+    satisfies: [SA-1, SA-2, SA-3, SA-4, SA-5, SA-6, SA-9, SA-10, SA-11, SA-12, SA-13, SA-17, SA-18, SA-21, SA-23, SA-24, SA-27, SA-29, SA-65, SA-66]

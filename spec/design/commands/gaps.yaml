@@ -3,7 +3,9 @@ commands:
   gaps:
     summary: List the open questions and what they hold up
     description: |
-      Validates its input first, and prints the open questions document
+      Validates its input first, prints the problems of each estate
+      given, one line each as validate prints them, since no module's
+      document holds them (ADR-113), and prints the open questions document
       of a specification with errors too (ADR-065), the text
       `document questions` writes, from its title: the counts by
       priority, the elements by origin when the specification tracks it,
@@ -34,13 +36,13 @@ commands:
     reads:
       - { path: "{paths}", description: The specifications and their implementation files. }
       - { path: "records/approvals/<version>.yaml", description: "The approval of the specification's version, beside its folder, when there is one." }
-    standardOutput: The open questions document of each specification, with its errors listed in it.
+    standardOutput: The problems of each estate given, then the open questions document of each specification, with its errors listed in it.
     standardError: A usage message on a usage error, and the reason on an unreadable path.
     exitCodes:
       "0": no must or should question is open and no specification has an error
-      "1": at least one must or should question is open, or a specification has an error
+      "1": at least one must or should question is open, or a specification or an estate has an error
       "2": usage error, or a path that could not be read
-    satisfies: [SA-19, SA-30, SA-65]
+    satisfies: [SA-19, SA-30, SA-65, SA-66]
     why: |
       The owner and the agent run validate after every edit, so validate
       counts the open questions and lists none; this verb is the list, with

@@ -34,6 +34,16 @@ commands:
       `sequenceDiagram <operationId or command>`, `flowchart pages` or
       `permissions`.
 
+      Given an estate file, the techspec target also writes `estate.md`,
+      the estate's module map, into `--out` or else the `docs` folder
+      beside the estate file, since an estate has no implementation file
+      to name one: the modules with the version the estate holds each at
+      and where its specification is, the estate's problems at their
+      entries, and the references between the modules through their
+      dependencies as a Mermaid flowchart and a table, a specification a
+      dependency names that the estate does not list drawn apart. The
+      modules' own documents are written as when each is named (ADR-113).
+
       The requirements target writes `requirements.md`: the stakeholders,
       the needs with the requirements that refine them, and each
       requirement with its attributes and acceptance criteria. The
@@ -205,7 +215,7 @@ commands:
       "1": a specification has an error (after its files are written, or with `--check` compared), a marker is wrong, or with `--check` the output differs
       "2": usage error, a target this build does not offer, no output folder in any specification given, the implementation files of one naming different output folders, or a file that could not be read or written
     algorithm: checkStatus
-    satisfies: [SA-7, SA-8, SA-15, SA-16, SA-19, SA-22, SA-26, SA-51, SA-60]
+    satisfies: [SA-7, SA-8, SA-15, SA-16, SA-19, SA-22, SA-26, SA-51, SA-60, SA-66]
     why: Documents are read by more people than the YAML, so they come first among the targets and are made from the specification rather than kept beside it.
     cites:
       - source: arc42

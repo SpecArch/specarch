@@ -123,6 +123,7 @@ a defect in the roadmap, not an accepted state.
 | `schema/specarch-implementation-0.1.schema.json` | the meta-model of implementation files |
 | `schema/specarch-record-0.1.schema.json` | the records beside a specification |
 | `schema/specarch-idiom-0.1.schema.json` | the meta-model of an idiom, shipped or a project's |
+| `schema/specarch-estate-0.1.schema.json` | an estate: the modules' specifications it lists and pins (`docs/conventions.md`, Estates) |
 | `schema/specarch-fragment-*-0.2.schema.json` | one schema per kind of file under a stage folder, written from the design schema by `tools/fragment-schemas` (`docs/conventions.md`, The tree) |
 | `idioms/` | the idioms SpecArch ships, one folder per concern, embedded into the program: fifteen, each a stack-neutral contract and its Go rendering, such as `type-rendering` (what each field type becomes in Go and in PostgreSQL, SQL Server, Oracle and MariaDB), `paginated-list`, `request-validation` and `error-response`; `ui-components`, what draws each page and field on Next.js with Carbon; and `design-tokens`, which Carbon token takes each colour of the theme |
 | `spec/` | SpecArch's own specification: every stage, the design of the `specarch` command, its Go and Swift implementation files, and in `spec/tests/` the conformance suite every implementation of `specarch` must pass |
@@ -154,6 +155,7 @@ a defect in the roadmap, not an accepted state.
 | `docs/meta-model-0.2.md` | meta-model 0.2: separation of duties, workflows, task pages and page elements, value objects, missing tests as errors, and the steps that build them |
 | `examples/library-lending/` | a small complete example: a specification with every stage in `spec/`, its document in `docs/` |
 | `examples/lending-desk/` | a partial specification written from a desk manual and a small Go service that disagree, by `docs/from-sources.md`, and `extract.sh`, which reads the same sources with every reader and merges them |
+| `examples/estate/` | an estate of two modules, the lending desk above and a small catalogue service it depends on: `specarch-estate.yaml` lists and pins them, and `docs/estate.md` is their module map |
 | `examples/reading-list/` | an iPhone app on SwiftUI and SwiftData and the Vapor server it calls, with the code-facts dumps of their Swift source and `extract.sh`, which reads both and merges them |
 | `examples/room-booking/` | one Express service written in TypeScript and in plain JavaScript, with the code-facts dumps of both and `extract.sh`, which reads both and lists the questions only one of them asks |
 

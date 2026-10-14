@@ -188,3 +188,27 @@ paths:
       why: Undocumented, from code; Q-2 asks whether it is wanted.
       cites:
         - { source: desk-code, clause: "lending/routes.go:91", says: "ListMemberLoans answers 200 with the member's loans." }
+
+dependencies:
+  catalogue:
+    description: The catalogue service, whose team keeps the book records the desk reads and never edits.
+    specification: catalogue-service
+    version: 0.1.0
+    origin: inferred
+    why: The manual says the catalogue team keeps the book records the desk reads; the estate in examples/estate lists that team's service as catalogue-service. How the desk reads them, and so the time limit, is Q-8.
+    cites:
+      - { source: desk-manual, clause: "3.4", says: "The catalogue team keeps the book records; the desk reads them and never edits them." }
+
+questions:
+  # specarch-problem: question: open_question: (must, decision) Does the desk read the book records through the catalogue service's operations, and with what time limit per call, or from the books table as the service does today? Decided by desk-manager. Answer with a decision record that names Q-8 under answers. [Q-8]
+  Q-8:
+    question: Does the desk read the book records through the catalogue service's operations, and with what time limit per call, or from the books table as the service does today?
+    kind: decision
+    priority: must
+    blocks: ["#/dependencies/catalogue/timeout"]
+    decidedBy: desk-manager
+    options: ["Through the catalogue service, with a time limit to name", "From the books table, as today"]
+    why: The manual names the catalogue team as the keeper of the book records and says nothing of how the desk reads them; the code reads a books table in the desk's own database.
+    cites:
+      - { source: desk-manual, clause: "3.4", says: "The catalogue team keeps the book records; the desk reads them and never edits them." }
+      - { source: desk-code, clause: "migrations/001_init.sql:6", says: "CREATE TABLE books." }

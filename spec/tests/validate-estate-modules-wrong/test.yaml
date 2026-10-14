@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: validate
+level: system
+scenario: red
+given: "an estate file listing a module at a version its specification is not at, one under a key that is not its info.name, one at a folder that does not exist, one at a folder with no specification, and one whose specification has no info.name"
+when: "validate is run on the estate file"
+then: "it reads every module that is there, refuses each entry as module at the module's entry, and exits 1"
+verifies: [SA-66]

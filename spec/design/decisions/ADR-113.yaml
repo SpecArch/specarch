@@ -1,0 +1,81 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
+decisions:
+  ADR-113:
+    title: An estate is the file specarch-estate.yaml that lists each module's specification by its info.name with its folder and the version held, brings every module into the run, and checks each against its entry as module
+    status: accepted
+    date: "2026-10-14"
+    context: |
+      Point 2 of docs/estate.md, build item 6: an estate of modules owned
+      by different teams is specified one module at a time (ADR-112), and
+      its consistency is to be checked where the estate is, in an umbrella
+      repository that holds the modules as submodules and commits to none
+      of them. ADR-112 resolves the references between two specifications
+      named in one run; nothing listed which specifications make up the
+      estate, pinned the version of each, or checked that the name a
+      dependency gives is the module's.
+    decision: |
+      An estate is a file of its own kind, specarch-estate.yaml, with
+      specarchEstate 0.1, info (title, version, description) and modules:
+      each keyed by its specification's info.name in kebab case, with its
+      location, the folder that holds its specarch.yaml relative to the
+      estate file, and the version the estate holds. It has no stages and
+      holds nothing of a module.
+      validate, gaps, document, generate and the other verbs that read
+      specifications take an estate as a file named or found under a
+      folder, and read each module whose folder holds a specification as
+      if it were named, once however often it is reached, so references
+      between modules resolve as ADR-112 says. The estate is an input of
+      validate's count. Each module is checked against its entry with the
+      rule module: a folder that does not exist or holds no specarch.yaml
+      at its location; a specification with no info.name, or one that is
+      not the key, at the module; an info.version that is not the version
+      listed at its version; and a module whose operations' or jobs' calls
+      come back to it through the modules their dependencies name, at each
+      module on the cycle, with the shortest such cycle from the smallest
+      name on it. The estate's problems are printed by validate, by gaps
+      before the modules' documents, and by document, and make the status
+      1; an estate has no problems file of its own.
+      document techspec given an estate also writes estate.md, the module
+      map, into --out or else docs beside the estate file: the modules with
+      the version held and a link to each specification, the estate's
+      problems, and each dependency that names a specification as an edge
+      of a flowchart and a row of a table, a specification the estate does
+      not list drawn apart.
+    why: |
+      A file of its own kind, rather than a specification with a modules
+      section, because an estate has no stages, requirements or design of
+      its own, and a specification that held none would be one with every
+      stage empty; the fixed name lets a folder search find it as it finds
+      specarch.yaml. The key is the module's info.name, so the name is said
+      in the module and checked where it is repeated, as ADR-112 does for
+      a dependency's specification; the version listed is checked the same
+      way, so moving a module to a new version is a change to the estate
+      file a reviewer sees. The estate lists and pins and copies nothing,
+      so each team's specification stays the one truth of its module and
+      the estate cannot drift from it.
+      A cycle of calls is an error because each call in it waits on the
+      next, so one slow module makes every module on the cycle give up at
+      its time limit; a cycle through a dependency named but not called,
+      such as one module keeping another's key, is not one. It is reported
+      at every module on it, since any of their owners may break it, with
+      one cycle chosen the same way in both builds.
+      An estate's problems are about its listing, not about any module, so
+      they go in no module's problems file and are printed wherever the
+      estate is read; by the compiler test the estate is still read, every
+      module that is there is checked, and a module that is not found is
+      an error at its entry, never a run refused. The module map goes to
+      docs beside the estate file because the estate has no implementation
+      file to name an output folder (ADR-073), and the umbrella is where
+      the estate's reader looks.
+      Acceptance test: the estate is shown as one map of the modules and
+      their references, made from the specifications as they stand, and a
+      module moved to a new version is checked against the others in one
+      run before the estate's version changes.
+    consequences: |
+      validate, gaps and document on an umbrella folder read every module
+      in one run and resolve every reference between them. A module alone
+      validates as before. A specification with no estate validates,
+      documents and generates byte for byte as before. Generators still
+      read one specification at a time, each module of an estate given on
+      its own; writing another module's schema inline waits.
+    satisfies: [SA-66]

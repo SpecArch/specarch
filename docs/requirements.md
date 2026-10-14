@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: requirements specification
 
-Version 0.7.0-dev of the specification: 5 stakeholders, 10 needs and 65 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
+Version 0.7.0-dev of the specification: 5 stakeholders, 10 needs and 66 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -34,7 +34,7 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | Need | Statement | Stakeholders | Status | Refined by |
 |---|---|---|---|---|
 | NEED-1 | I want a specification that cannot quietly be wrong, so that the code built from it is right. | specification-author, implementer | accepted | SA-33, SA-34, SA-35, SA-47, SA-48, SA-50, SA-1, SA-2, SA-3, SA-4, SA-5, SA-6, SA-51 |
-| NEED-2 | I want to write a design once and build it in more than one language. | implementer | accepted | SA-33, SA-34, SA-36, SA-37, SA-38, SA-39, SA-40, SA-41, SA-42, SA-43, SA-52, SA-53, SA-54, SA-55, SA-56, SA-49, SA-62, SA-63, SA-65, SA-46, SA-61, SA-32, SA-9, SA-10 |
+| NEED-2 | I want to write a design once and build it in more than one language. | implementer | accepted | SA-33, SA-34, SA-36, SA-37, SA-38, SA-39, SA-40, SA-41, SA-42, SA-43, SA-52, SA-53, SA-54, SA-55, SA-56, SA-49, SA-62, SA-63, SA-65, SA-66, SA-46, SA-61, SA-32, SA-9, SA-10 |
 | NEED-3 | I want the documents and diagrams to come from the specification, so they never drift from it. | reviewer, specification-author | accepted | SA-22, SA-36, SA-7, SA-8, SA-26, SA-16, SA-58, SA-59, SA-60, SA-19 |
 | NEED-4 | I want a big specification split over many files, each about one thing, so I can find what I am looking for. | specification-author, reviewer | accepted | SA-11, SA-2 |
 | NEED-5 | I want the whole life of the system in one place, from the first requirement to the day it is accepted. | reviewer, operator | accepted | SA-35, SA-47, SA-26, SA-16, SA-12, SA-23, SA-24, SA-25 |
@@ -77,6 +77,7 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | SA-62 | functional | should | accepted | A specification shall be able to say, once for the whole system, that its roles go on the wire in upper snake case while it names them in kebab-case, and specarch validate shall refuse two roles that would go on the wire under one name. |
 | SA-63 | functional | must | accepted | A permission shall be able to imply other permissions, and every check of what a role grants shall count what its permissions imply; specarch extract permissions shall read a permission table's pattern rules into permissions named by a fixed rule, with the implications pattern inclusion gives, and each route's one permission. |
 | SA-65 | functional | must | accepted | A specification shall be able to name an element of another specification through a dependency, and specarch validate shall check such a reference against that specification when it is given in the same run, and count it as unresolved, not as an error, when it is not. |
+| SA-66 | functional | must | accepted | An estate file shall list the specifications of an estate's modules by name, each with its folder and the version the estate holds, and specarch validate, gaps and document techspec shall read every module through it and check each against its entry. |
 | SA-7 | functional | must | accepted | specarch document and specarch generate shall write only into the folder the target owns, and with --check shall fail when the committed output differs. |
 | SA-8 | functional | must | accepted | Every generated file shall name its source specification, version and meta-model, and a hand-written Markdown document shall change only between its markers. |
 | SA-26 | functional | should | accepted | specarch document shall write the change and defect register and the release notes from the records beside a specification, kept current with --check like the other documents. |
@@ -583,6 +584,22 @@ Acceptance criteria:
 - specarch generate sql writes the column of a relation to another specification's entity with no foreign key, and the techspec names each reference with the specification and version it points at.
 
 **Insight:** An estate of modules owned by different teams is specified one module at a time, and a module keeps another's customer number, picks from another's list and calls another's operations; with $ref reaching only its own specification, those links were prose, and nothing checked them when the two specifications met.
+
+### SA-66
+
+An estate file shall list the specifications of an estate's modules by name, each with its folder and the version the estate holds, and specarch validate, gaps and document techspec shall read every module through it and check each against its entry.
+
+Kind: functional; priority: must; status: accepted; verified by test; refines NEED-2.
+
+Acceptance criteria:
+
+- specarch-estate.yaml holds specarchEstate, info and modules, each module keyed by its specification's info.name with its location, a folder relative to the file, and its version; it holds nothing of a module.
+- Naming an estate, or a folder that holds one, to validate, gaps or document brings every module's specification into the run once, so the references between modules resolve as when each is named.
+- A module whose folder holds no specification, whose info.name is not its key or is missing, whose info.version is not the version listed, or whose operations' calls come back to it through the other modules is refused as module at the module's entry, the same in both builds.
+- gaps prints the estate's problems before the modules' open questions documents, and exits 1 when the estate has an error.
+- document techspec on an estate writes estate.md, the module map with the references between the modules drawn as a flowchart.
+
+**Insight:** An estate's consistency is checked where the estate is, in one run over every module, and the umbrella that does it lists and pins the modules rather than copying them, so each team's specification stays the one truth of its module.
 
 ### SA-7
 

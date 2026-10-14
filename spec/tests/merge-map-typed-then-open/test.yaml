@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: merge
+level: system
+scenario: red
+given: "two database trees whose entity Holds gives the map extra with boolean values in the first and open to any value in the second, which asks in a should question what its values are, and the map counts with integer values in the first and string values in the second"
+when: "merge is run on the two trees, the typed one first"
+then: "extra is merged with boolean values and no dispute, and the second tree's question on its values is left out as answered by the first; counts keeps the first tree's value type with a must question on it, since two value types are a disagreement; the merged specification validates with no error; it exits 0"
+verifies: [SA-45]

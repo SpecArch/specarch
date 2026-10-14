@@ -1,0 +1,10 @@
+arguments: [merge, --out, spec, trees/catalogue, trees/replica]
+exitStatus: 0
+standardOutput: |
+  tree trees/catalogue: Catalogue database, on the code side: 2 elements and 0 questions
+  tree trees/replica: Lending desk database, on the code side: 2 elements and 1 question
+  answered: Q-1 of trees/replica, on #/entities/Holds/properties/extra/additionalProperties, is left out; Catalogue database gives it
+  merged 2 elements, each an entry of a section or an operation: 2 in more than one tree, and 1 key the trees disagree on
+  wrote 1 question: 0 from the trees, numbered again in the order the trees are given, and 1 the merge asked
+  question Q-1 (must): #/entities/Holds/properties/counts/additionalProperties/type: the trees disagree; integer is kept so the field is read
+  derived 0 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers

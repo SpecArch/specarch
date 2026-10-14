@@ -1,0 +1,14 @@
+specarch: "0.1"
+info:
+  title: Catalogue database
+  version: 0.1.0
+  tracksOrigin: true
+stages: [requirements, design]
+sources:
+  catalogue:
+    kind: code
+    title: The catalogue service
+    edition: 2f1d3c9a4b5e6f708192a3b4c5d6e7f8091a2b3c
+    url: https://example.invalid/catalogue.git
+    clauses:
+      - {clause: migrations public.holds, title: Table public.holds}

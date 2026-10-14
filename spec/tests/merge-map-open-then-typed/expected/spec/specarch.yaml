@@ -1,0 +1,24 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v0.6.2/schema/specarch-design-0.2.schema.json
+specarch: "0.2"
+info:
+  title: Merge of 2 trees
+  version: 0.1.0
+  description: |
+    The elements of these trees, merged in this order: Lending desk database; Catalogue database. Every element cites where it was read; where the trees disagree, or the documents and the code do, a question asks which is right.
+  tracksOrigin: true
+stages: [requirements, design]
+sources:
+  desk:
+    kind: code
+    title: The lending desk service
+    edition: 7a8b9c0d1e2f30415263748596a7b8c9d0e1f2a3
+    url: https://example.invalid/lending-desk.git
+    clauses:
+      - {clause: migrations public.holds, title: Table public.holds}
+  catalogue:
+    kind: code
+    title: The catalogue service
+    edition: 2f1d3c9a4b5e6f708192a3b4c5d6e7f8091a2b3c
+    url: https://example.invalid/catalogue.git
+    clauses:
+      - {clause: migrations public.holds, title: Table public.holds}

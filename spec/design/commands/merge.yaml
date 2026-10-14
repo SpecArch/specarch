@@ -194,6 +194,15 @@ commands:
         name, as an empty mapping, is one it does not give, so a tree that
         gives it with content answers the question, such as a field a page
         shows whose type the database gives (ADR-057).
+      - A map one tree writes open, `additionalProperties: true`, with a
+        question of that tree blocking that key, and another tree writes
+        with a value type, takes the value type with no disagreement, in
+        whichever order the trees are given: the open map is unknown, not
+        a claim. The asking tree's question is left out as answered, with
+        a line naming the trees that give the type. A tree that writes
+        the map open and asks nothing says its values may be anything,
+        and two value types are two claims: either is a disagreement, as
+        `false` against `true` or a type is (ADR-126).
       - A question of a tree that names, under `names`, the operation a
         key it blocks refers to, such as a workflow's trigger or a step's
         operation, or a page's source or submit, is left out as joined

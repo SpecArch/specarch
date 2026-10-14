@@ -1,0 +1,13 @@
+questions:
+  # specarch-problem: question: open_question: (must, decision) Which is right for #/entities/Holds/properties/counts/additionalProperties/type: string or integer? Decided by system-owner. Answer with a decision record that names Q-1 under answers. [Q-1]
+  Q-1:
+    question: 'Which is right for #/entities/Holds/properties/counts/additionalProperties/type: string or integer?'
+    kind: decision
+    priority: must
+    blocks: ['#/entities/Holds/properties/counts/additionalProperties/type']
+    decidedBy: system-owner
+    options: ['string, as Lending desk database has it', 'integer, as Catalogue database has it']
+    why: 'The sources disagree: Lending desk database says string, and Catalogue database says integer. The merge keeps string, as Lending desk database, the first tree given, has it, so the field is read until the question is answered; it is not a choice between them. Catalogue database''s format int32 goes with its type and is left out.'
+    cites:
+      - {source: desk, clause: migrations public.holds, says: 'Table public.holds, kept in step with the catalogue''s.'}
+      - {source: catalogue, clause: migrations public.holds, says: Table public.holds.}

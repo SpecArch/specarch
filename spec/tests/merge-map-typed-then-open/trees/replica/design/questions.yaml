@@ -1,0 +1,10 @@
+questions:
+  Q-1:
+    question: 'Holds.extra at migrations public.holds: the column is a map whose values may be any JSON value. Which shape do the values take?'
+    kind: decision
+    priority: should
+    blocks: ['#/entities/Holds/properties/extra/additionalProperties']
+    decidedBy: system-owner
+    why: Nothing in the source says the values' shape, and the map is written open until it is known.
+    cites:
+      - {source: desk, clause: migrations public.holds, says: Declares extra.}

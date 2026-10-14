@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.7.0-dev of the specification: 72 requirements, 5 entities, 14 commands, 7 algorithms, 489 tests, 120 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.7.0-dev of the specification: 72 requirements, 5 entities, 14 commands, 7 algorithms, 491 tests, 121 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -2720,6 +2720,15 @@ runs again into the merged specification, as extract runs it
   name, as an empty mapping, is one it does not give, so a tree that
   gives it with content answers the question, such as a field a page
   shows whose type the database gives (ADR-057).
+- A map one tree writes open, `additionalProperties: true`, with a
+  question of that tree blocking that key, and another tree writes
+  with a value type, takes the value type with no disagreement, in
+  whichever order the trees are given: the open map is unknown, not
+  a claim. The asking tree's question is left out as answered, with
+  a line naming the trees that give the type. A tree that writes
+  the map open and asks nothing says its values may be anything,
+  and two value types are two claims: either is a disagreement, as
+  `false` against `true` or a type is (ADR-126).
 - A question of a tree that names, under `names`, the operation a
   key it blocks refers to, such as a workflow's trigger or a step's
   operation, or a page's source or submit, is left out as joined
@@ -9187,8 +9196,8 @@ from JSON into map[string]T, a pointer for a value that may be null;
 the documents a map of T, with the limits of its values as each
 value's. type-rendering moves to 1.4.0, its Go row naming the map.
 merge treats it as any key, keeping the first tree's value type with
-a must question where the types differ and leaving it out with a
-must question where one tree is open and another typed. diff calls
+a must question where the types differ, and takes a typed map over
+one a tree writes open and asks about (ADR-126). diff calls
 allowing more members minor and allowing fewer, or changing the
 values' type, major, with additionalProperties left out read as
 true.
@@ -9205,6 +9214,49 @@ keyed by another type) still prints a line, since a key constraint
 is not in the subset.
 
 **Insight:** JSON Schema and OpenAPI 3.1 say a map this way, and every stack's own map type (Go's map[string]T, TypeScript's Record<string, T>, Swift's [String: T], Dart's Map<String, T>) is the same shape, so the standard keyword with its standard meaning is the one way to say it. JSON Schema reads {} and true alike; the subset keeps true only, after one way to say one thing, and {} is refused rather than read, since a field without a type or a reference is refused everywhere else. The keyword constrains an object only, so on any other type it would say nothing, which is ambiguity the validator reports. patternProperties and propertyNames are left out because a key pattern names no member a stack's type holds: a generator could only leave it unchecked, and no reader writes one. They can join when a real system asks, which is the roadmap's rule for the meta-model. An entity's and a value object's members are named because each is a column or a part; a map has no fixed columns, so it is a field kept as JSON. The Go key is left out of the schema because the wire is text whatever the key, and the design says what is on the wire; the Go type that holds a key is the implementation's. A JSON column is not a map because it may hold an array or a scalar as well. Absent additionalProperties is read as true in diff because that is its meaning in JSON Schema, so a change from absent to true is no change to a client. The compiler test holds: a map the meta-model cannot hold whole is still written, open with true, and the question or the line says what is missing at the entry; {} and the keyword on a string are errors at their entry, the rest of the file read. The acceptance test holds: a map's value type is one field to change, and diff says whether the change breaks a client.
+
+### ADR-126: merge takes a typed map over one another tree writes open and asks about, with no dispute, and closes that tree's question
+
+Status: accepted, 2026-10-14.
+
+Context: A reader that meets a map whose values the code does not type, such
+as Go's map[string]any or TypeScript's Record<string, unknown>,
+writes it open, additionalProperties: true, with a should question
+on what the values are (ADR-125). Another tree read from the same
+system, a database's or an OpenAPI document's, may give the values'
+type. merge compared the two as any key: true against a field is a
+disagreement, so the key was left out with a must question, and the
+reader's should question was carried as well. The merged map lost
+the type one tree did know, and the owner was asked twice about one
+thing a source already said.
+
+Decision: Where one tree writes a map open, additionalProperties: true, with
+a question of its own blocking that key, and another tree writes the
+map with a value type, merge takes the value type and records no
+disagreement, whichever tree is given first. The asking tree's
+question is left out as answered, with the line merge prints for
+every answered question, naming the trees that give the type. This
+holds for every priority of the question; the readers ask a should
+question. Where several trees write the map open, each must ask, or
+the type is a disagreement as before.
+
+Everything else stays a disagreement with a must question: two value
+types that differ (the first tree's type kept so the field is read,
+ADR-122), true written by a tree that asks nothing about the values,
+and false against true or a type.
+
+Consequences: Merging a code tree with an open map and a tree that types its
+values writes the map with that type and asks nothing about it, in
+either order; the cases merge-map-typed-then-open and
+merge-map-open-then-typed cover it, beside a pair of differing types
+that is still a disagreement. merge-map-values keeps a map written
+open with no question against a typed one as a disagreement. A type
+taken this way cites both trees through the field's entity, as any
+merged key does; it is not marked as filled from another tree, so a
+wrong type is caught by review or by the user acceptance test, not by
+a question.
+
+**Insight:** A tree that writes true and asks what the values are is saying it does not know them; true is the place-holding value ADR-125 gives that case, so the map stays readable, not a claim that any value is allowed. A type from another tree fills that unknown the way an answer would, which is the rule merge already follows for a key one tree does not give and another does (ADR-049): the open map is the same gap, held by a value instead of left out. Asking a must question there would ask the owner to choose between knowing and not knowing. A tree that writes true and asks nothing is different: an OpenAPI document's additionalProperties: true, or {}, says on purpose that the values may be anything, and that competes with a type as much as another type does. JSON Schema reads true as allowing every value, and only the question marks the true as a reader's stand-in, so the question is what tells the two apart. false allows no member, so it is a claim as well. Two types are two claims, and the order the trees are given must not choose between them beyond keeping the field readable. The compiler test holds: nothing is refused or left unread; the open map's question is closed only because the merged map holds the answer, and the line says which tree gave it, so a reader of the output sees where the type came from. The acceptance test holds: the merged map has its value type at once, and a type that turns out wrong is one field to change, with diff saying whether the change breaks a client.
 
 ## 10. Quality requirements
 
@@ -9467,7 +9519,9 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | merge-documents-language-not-given | command merge | system | golden | the trees of merge-documents-days-vocabulary, whose handbook is in language de, and no vocabulary for it | merge is run on the two trees without --vocabulary | it prints that the handbook's requirements are not compared, naming the language and the option, keeps every statement as it is, asks nothing about days, and exits 0 |
 | merge-joins-commits | command merge | system | golden | a repository whose first commit holds the migrations and whose second the router, a database tree read at the first that asks one question, and a router tree read at the second that asks two, both declaring the repository as the source code | merge is run on the two trees | it writes one specification with one source code at the second commit, whose clauses are both trees', every element of both trees, the stakeholder they share once and the three questions numbered again in the order the trees are given, says the migrations are unchanged up to the second commit, and exits 0 |
 | merge-keeps-could-questions | command merge | system | golden | the tree of a route table and the tree of a permission table, each asking with must what the same three permissions allow, the permission table with two could questions on one role and each with a could question on one permission, each about something its reader could not hold | merge is run on the two trees | it leaves out the permission table's must question as asked twice, keeps every could question, the two on one role and the two on one permission, and exits 0 |
-| merge-map-values | command merge | system | red | two database trees whose entity Holds gives the map labels alike in both, the map counts with integer values in one and string values in the other, and the map extra open to any value in one and with boolean values in the other | merge is run on the two trees | labels is merged as both give it; counts keeps the first tree's value type so the field is read, with a must question on the values' type; extra is written with no additionalProperties and a must question on it, since open and typed values are no type to keep; the merged specification validates with no error; it exits 0 |
+| merge-map-open-then-typed | command merge | system | red | the two database trees of merge-map-typed-then-open: the map extra open to any value, with a should question on its values, in one and with boolean values in the other, and the map counts with string values in one and integer values in the other | merge is run on the two trees, the open one first | extra is merged with boolean values and no dispute, as when the typed tree comes first, and the open tree's question is left out as answered; counts keeps the first tree's value type, string, with a must question on it; the merged specification validates with no error; it exits 0 |
+| merge-map-typed-then-open | command merge | system | red | two database trees whose entity Holds gives the map extra with boolean values in the first and open to any value in the second, which asks in a should question what its values are, and the map counts with integer values in the first and string values in the second | merge is run on the two trees, the typed one first | extra is merged with boolean values and no dispute, and the second tree's question on its values is left out as answered by the first; counts keeps the first tree's value type with a must question on it, since two value types are a disagreement; the merged specification validates with no error; it exits 0 |
+| merge-map-values | command merge | system | red | two database trees whose entity Holds gives the map labels alike in both, the map counts with integer values in one and string values in the other, and the map extra open to any value, with no question on its values, in one and with boolean values in the other | merge is run on the two trees | labels is merged as both give it; counts keeps the first tree's value type so the field is read, with a must question on the values' type; extra is written with no additionalProperties and a must question on it, since the tree that writes it open asks nothing of its values and so says they may be anything, a claim the typed one disagrees with; the merged specification validates with no error; it exits 0 |
 | merge-openapi-placeholder | command merge | system | golden | the tree the router's route table gives, and the tree of a sample OpenAPI document a service template ships, none of whose paths the router serves | merge is run on the two trees | it reports the sample as a placeholder with the number of its paths, still asks whether each of its operations is to be built and whether each route is meant to exist, and exits 0 |
 | merge-openapi-unserved | command merge | system | golden | the tree an OpenAPI document gives, with the four operations the router serves and one more, and the tree the router's route table gives | merge is run on the two trees | the router's questions about summaries, responses and path parameters, and the document's questions about the permissions the router names, are left out as answered, the operation the router does not serve is one must question that names its path, and it exits 0 |
 | merge-pages-field-by-name | command merge | system | golden | the tree a catalogue dump gives, and the tree of an app folder whose one schema names the loans entity and the fields its page shows, each field known only by name, with a must question on the entity's primary key and those fields | merge is run on the two trees | the database tree gives the primary key and every field the pages tree knows only by name, so the pages tree's question is left out as answered; the entity cites both trees, and it exits 0 |
@@ -10011,7 +10065,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-42 | enums Rule; decisions ADR-034; decisions ADR-035; decisions ADR-036; decisions ADR-037; decisions ADR-038; decisions ADR-039; decisions ADR-056; decisions ADR-058; decisions ADR-064; decisions ADR-082 | tests derive-page-elements; tests derive-task-page-checks; tests validate-accessibility; tests validate-child-rows; tests validate-compact-columns; tests validate-flows; tests validate-page-action-with; tests validate-page-elements-unresolved; tests validate-page-events; tests validate-page-states; tests validate-sections; tests validate-task-page-checks; tests validate-task-page-checks-valid; tests validate-task-pages; tests validate-theme |
 | SA-43 | decisions ADR-040 | tests generate-ui |
 | SA-44 | commands extract; commands facts; decisions ADR-043; decisions ADR-044; decisions ADR-048; decisions ADR-049; decisions ADR-050; decisions ADR-057; decisions ADR-062; decisions ADR-075; decisions ADR-076; decisions ADR-081; decisions ADR-084; decisions ADR-087; decisions ADR-089; decisions ADR-090; decisions ADR-091; decisions ADR-092; decisions ADR-098; decisions ADR-114; decisions ADR-115; decisions ADR-116; decisions ADR-118; decisions ADR-125 | tests extract-dart-flutter-screens; tests extract-dart-models; tests extract-dart-parser-version; tests extract-dart-server-clients; tests extract-database-json-column; tests extract-database-stale-dump; tests extract-database-writes-tree; tests extract-documents-not-markdown; tests extract-documents-upper-case-name; tests extract-documents-writes-tree; tests extract-exit-1; tests extract-go-bypassed-check; tests extract-go-dxlib-endpoints; tests extract-go-dxlib-tables-seeds; tests extract-go-http-handlers; tests extract-go-request-bodies; tests extract-go-routers; tests extract-javascript-express-routes; tests extract-javascript-fastify-validators; tests extract-javascript-parser-version; tests extract-javascript-plain-checkjs; tests extract-javascript-react-screens; tests extract-javascript-stale-dump; tests extract-javascript-template-parser-version; tests extract-javascript-vue-router; tests extract-openapi-dxlib-privileges; tests extract-openapi-not-openapi; tests extract-openapi-snake-case; tests extract-openapi-writes-tree; tests extract-outline-shallow-clone; tests extract-outline-uncommitted; tests extract-outline-writes-clauses; tests extract-pages-next-api-facts; tests extract-pages-next-app-facts; tests extract-pages-next-pages-router; tests extract-pages-nuxt-facts; tests extract-pages-nuxt-pages; tests extract-pages-nuxt-server; tests extract-pages-nuxt-server-facts; tests extract-pages-route-twice; tests extract-pages-router-guess; tests extract-pages-schema-file; tests extract-pages-schema-file-asked; tests extract-pages-task; tests extract-pages-writes-tree; tests extract-permissions-bypassed-gate; tests extract-permissions-gate-both-forms; tests extract-permissions-gate-people; tests extract-permissions-grant-twice; tests extract-permissions-writes-tree; tests extract-router-dump-repository-not-gitlink; tests extract-router-dump-through-gitlink; tests extract-router-route-twice; tests extract-router-stale-gitlink; tests extract-router-stale-table; tests extract-router-writes-tree; tests extract-swift-clients-settings; tests extract-swift-models; tests extract-swift-parser-version; tests extract-swift-screens; tests extract-swift-stale-dump; tests extract-swift-vapor-routes; tests extract-workflows-not-bpmn; tests extract-workflows-table; tests extract-workflows-table-not-held; tests extract-workflows-table-not-offered; tests extract-workflows-table-refused; tests extract-workflows-writes-tree; tests facts-javascript; tests facts-javascript-uncommitted; tests facts-unknown-language; tests gaps-outline-not-read; tests validate-source-reading |
-| SA-45 | commands merge; decisions ADR-045; decisions ADR-048; decisions ADR-049; decisions ADR-050; decisions ADR-057; decisions ADR-062; decisions ADR-075; decisions ADR-077; decisions ADR-114; decisions ADR-117; decisions ADR-118; decisions ADR-122 | tests merge-bypassed-check; tests merge-documents-and-code; tests merge-joins-commits; tests merge-keeps-could-questions; tests merge-map-values; tests merge-pages-field-by-name; tests merge-pages-joins-source; tests merge-path-changed; tests merge-permissions-asked-twice; tests merge-permissions-unchecked; tests merge-printed-parsed; tests merge-printed-parsed-grants; tests merge-schema-reference-agrees; tests merge-schema-reference-agrees-code-first; tests merge-schema-reference-differs; tests merge-schema-reference-field-differs; tests merge-source-differs; tests merge-tree-invalid; tests merge-type-differs; tests merge-value-object-columns; tests merge-value-object-differs; tests merge-value-object-unnamed; tests merge-workflows-joins-trigger; tests merge-workflows-table-and-bpmn; tests validate-source-given-outside |
+| SA-45 | commands merge; decisions ADR-045; decisions ADR-048; decisions ADR-049; decisions ADR-050; decisions ADR-057; decisions ADR-062; decisions ADR-075; decisions ADR-077; decisions ADR-114; decisions ADR-117; decisions ADR-118; decisions ADR-122; decisions ADR-126 | tests merge-bypassed-check; tests merge-documents-and-code; tests merge-joins-commits; tests merge-keeps-could-questions; tests merge-map-open-then-typed; tests merge-map-typed-then-open; tests merge-map-values; tests merge-pages-field-by-name; tests merge-pages-joins-source; tests merge-path-changed; tests merge-permissions-asked-twice; tests merge-permissions-unchecked; tests merge-printed-parsed; tests merge-printed-parsed-grants; tests merge-schema-reference-agrees; tests merge-schema-reference-agrees-code-first; tests merge-schema-reference-differs; tests merge-schema-reference-field-differs; tests merge-source-differs; tests merge-tree-invalid; tests merge-type-differs; tests merge-value-object-columns; tests merge-value-object-differs; tests merge-value-object-unnamed; tests merge-workflows-joins-trigger; tests merge-workflows-table-and-bpmn; tests validate-source-given-outside |
 | SA-46 | commands generate; decisions ADR-046; decisions ADR-068 | tests generate-openapi-owned; tests generate-sql-owned; tests generate-sql-owned-handed-over; tests validate-mapping-menu-entry; tests validate-owned-by-unknown |
 | SA-47 | enums Rule; decisions ADR-054 | tests document-techspec-open-workflow; tests validate-maker-checker; tests validate-workflow; tests validate-workflow-valid |
 | SA-48 | enums Rule; decisions ADR-060; decisions ADR-063 | tests extract-openapi-writes-schema; tests generate-sql-value-object; tests validate-value-objects; tests validate-value-objects-valid |

@@ -1,0 +1,72 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
+decisions:
+  ADR-126:
+    title: merge takes a typed map over one another tree writes open and asks about, with no dispute, and closes that tree's question
+    status: accepted
+    date: "2026-10-14"
+    context: |
+      A reader that meets a map whose values the code does not type, such
+      as Go's map[string]any or TypeScript's Record<string, unknown>,
+      writes it open, additionalProperties: true, with a should question
+      on what the values are (ADR-125). Another tree read from the same
+      system, a database's or an OpenAPI document's, may give the values'
+      type. merge compared the two as any key: true against a field is a
+      disagreement, so the key was left out with a must question, and the
+      reader's should question was carried as well. The merged map lost
+      the type one tree did know, and the owner was asked twice about one
+      thing a source already said.
+    decision: |
+      Where one tree writes a map open, additionalProperties: true, with
+      a question of its own blocking that key, and another tree writes the
+      map with a value type, merge takes the value type and records no
+      disagreement, whichever tree is given first. The asking tree's
+      question is left out as answered, with the line merge prints for
+      every answered question, naming the trees that give the type. This
+      holds for every priority of the question; the readers ask a should
+      question. Where several trees write the map open, each must ask, or
+      the type is a disagreement as before.
+
+      Everything else stays a disagreement with a must question: two value
+      types that differ (the first tree's type kept so the field is read,
+      ADR-122), true written by a tree that asks nothing about the values,
+      and false against true or a type.
+    why: |
+      A tree that writes true and asks what the values are is saying it
+      does not know them; true is the place-holding value ADR-125 gives
+      that case, so the map stays readable, not a claim that any value is
+      allowed. A type from another tree fills that unknown the way an
+      answer would, which is the rule merge already follows for a key one
+      tree does not give and another does (ADR-049): the open map is the
+      same gap, held by a value instead of left out. Asking a must
+      question there would ask the owner to choose between knowing and
+      not knowing.
+
+      A tree that writes true and asks nothing is different: an OpenAPI
+      document's additionalProperties: true, or {}, says on purpose that
+      the values may be anything, and that competes with a type as much as
+      another type does. JSON Schema reads true as allowing every value,
+      and only the question marks the true as a reader's stand-in, so the
+      question is what tells the two apart. false allows no member, so it
+      is a claim as well. Two types are two claims, and the order the
+      trees are given must not choose between them beyond keeping the
+      field readable.
+
+      The compiler test holds: nothing is refused or left unread; the
+      open map's question is closed only because the merged map holds the
+      answer, and the line says which tree gave it, so a reader of the
+      output sees where the type came from. The acceptance test holds:
+      the merged map has its value type at once, and a type that turns
+      out wrong is one field to change, with diff saying whether the
+      change breaks a client.
+    consequences: |
+      Merging a code tree with an open map and a tree that types its
+      values writes the map with that type and asks nothing about it, in
+      either order; the cases merge-map-typed-then-open and
+      merge-map-open-then-typed cover it, beside a pair of differing types
+      that is still a disagreement. merge-map-values keeps a map written
+      open with no question against a typed one as a disagreement. A type
+      taken this way cites both trees through the field's entity, as any
+      merged key does; it is not marked as filled from another tree, so a
+      wrong type is caught by review or by the user acceptance test, not by
+      a question.
+    satisfies: [SA-45]

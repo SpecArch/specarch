@@ -65,8 +65,8 @@ decisions:
       the documents a map of T, with the limits of its values as each
       value's. type-rendering moves to 1.4.0, its Go row naming the map.
       merge treats it as any key, keeping the first tree's value type with
-      a must question where the types differ and leaving it out with a
-      must question where one tree is open and another typed. diff calls
+      a must question where the types differ, and takes a typed map over
+      one a tree writes open and asks about (ADR-126). diff calls
       allowing more members minor and allowing fewer, or changing the
       values' type, major, with additionalProperties left out read as
       true.

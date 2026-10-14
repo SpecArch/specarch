@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.0-dev of the specification: 489 design tests, 219 golden and 270 red, about 16 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.0-dev of the specification: 491 design tests, 219 golden and 272 red, about 16 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.7.0-dev of the specification: 489 design tests, 219 golden and 270 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 485 |
+| system | 487 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -2113,13 +2113,29 @@ Scenario: golden; level: system; verifies SA-45.
 - When: merge is run on the two trees
 - Then: it leaves out the permission table's must question as asked twice, keeps every could question, the two on one role and the two on one permission, and exits 0
 
+#### merge-map-open-then-typed
+
+Scenario: red; level: system; verifies SA-45.
+
+- Given: the two database trees of merge-map-typed-then-open: the map extra open to any value, with a should question on its values, in one and with boolean values in the other, and the map counts with string values in one and integer values in the other
+- When: merge is run on the two trees, the open one first
+- Then: extra is merged with boolean values and no dispute, as when the typed tree comes first, and the open tree's question is left out as answered; counts keeps the first tree's value type, string, with a must question on it; the merged specification validates with no error; it exits 0
+
+#### merge-map-typed-then-open
+
+Scenario: red; level: system; verifies SA-45.
+
+- Given: two database trees whose entity Holds gives the map extra with boolean values in the first and open to any value in the second, which asks in a should question what its values are, and the map counts with integer values in the first and string values in the second
+- When: merge is run on the two trees, the typed one first
+- Then: extra is merged with boolean values and no dispute, and the second tree's question on its values is left out as answered by the first; counts keeps the first tree's value type with a must question on it, since two value types are a disagreement; the merged specification validates with no error; it exits 0
+
 #### merge-map-values
 
 Scenario: red; level: system; verifies SA-45.
 
-- Given: two database trees whose entity Holds gives the map labels alike in both, the map counts with integer values in one and string values in the other, and the map extra open to any value in one and with boolean values in the other
+- Given: two database trees whose entity Holds gives the map labels alike in both, the map counts with integer values in one and string values in the other, and the map extra open to any value, with no question on its values, in one and with boolean values in the other
 - When: merge is run on the two trees
-- Then: labels is merged as both give it; counts keeps the first tree's value type so the field is read, with a must question on the values' type; extra is written with no additionalProperties and a must question on it, since open and typed values are no type to keep; the merged specification validates with no error; it exits 0
+- Then: labels is merged as both give it; counts keeps the first tree's value type so the field is read, with a must question on the values' type; extra is written with no additionalProperties and a must question on it, since the tree that writes it open asks nothing of its values and so says they may be anything, a claim the typed one disagrees with; the merged specification validates with no error; it exits 0
 
 #### merge-openapi-placeholder
 

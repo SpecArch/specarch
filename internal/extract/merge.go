@@ -692,6 +692,13 @@ func (m *merger) mergeNode(acc, add *yaml.Node, at []mergeStep) {
 		case k == "permissions" && len(at) == 2 && at[0].key == "roles" && m.readBothWays(source.Pointer(at[0].key, at[1].key)):
 			// The grants of a role a printed and a parsed tree both give
 			// are compared grant by grant (grantQuestions).
+		case k == "additionalProperties" && openValues(a) && p.Value.Kind == yaml.MappingNode && m.openAsked(here):
+			// A map open to any value whose tree asks what its values are
+			// is unknown, not a claim: another tree's value type fills it
+			// as an answer would, and the question is left out as answered
+			// (openAnswered, ADR-126).
+			setKey(acc, k, copyNode(p.Value))
+		case k == "additionalProperties" && a.Kind == yaml.MappingNode && openValues(p.Value) && m.openAsked(here):
 		case !sameNode(a, p.Value):
 			m.disputes[stepsKey(here)] = here
 			m.disputeOrd = append(m.disputeOrd, stepsKey(here))
@@ -1532,6 +1539,9 @@ func setBefore(m *yaml.Node, key string, v *yaml.Node, before ...string) {
 // element written only by name, as an empty mapping, is not given
 // (ADR-057).
 func (m *merger) giversOf(asking int, steps []mergeStep) []string {
+	if by := m.openAnswered(asking, steps); by != nil {
+		return by
+	}
 	if len(steps) < 3 || given(follow(m.trees[asking].s.Root, steps)) || !given(m.walk(steps)) {
 		return nil
 	}
@@ -1541,6 +1551,61 @@ func (m *merger) giversOf(asking int, steps []mergeStep) []string {
 			continue
 		}
 		if given(follow(t.s.Root, steps)) {
+			out = append(out, t.title)
+		}
+	}
+	return out
+}
+
+// openValues says whether a node is additionalProperties: true, a map open
+// to any value.
+func openValues(n *yaml.Node) bool {
+	n = source.Deref(n)
+	return n != nil && n.Kind == yaml.ScalarNode && n.ShortTag() == "!!bool" && n.Value == "true"
+}
+
+// openAsked says whether every tree that gives the map at steps open to any
+// value also asks, in a question blocking that key, what its values are:
+// then the open map is unknown, and a typed one from another tree is no
+// disagreement (ADR-126). A tree that writes true and asks nothing says
+// the values may be anything, which is a claim of its own.
+func (m *merger) openAsked(steps []mergeStep) bool {
+	want := stepsKey(steps)
+	open := 0
+	for _, t := range m.trees {
+		if !openValues(follow(t.s.Root, steps)) {
+			continue
+		}
+		open++
+		asks := false
+		for _, p := range source.Pairs(source.Child(t.s.Root, spec.QuestionsSection)) {
+			for _, b := range source.Items(source.Child(p.Value, "blocks")) {
+				parsed, ok := spec.ParseBlock(b.Value)
+				if ok && parsed.IsPointer() && stepsKey(treeSteps(t.s.Root, parsed.Tokens)) == want {
+					asks = true
+				}
+			}
+		}
+		if !asks {
+			return false
+		}
+	}
+	return open > 0
+}
+
+// openAnswered is the trees that answer a question on a map's values when
+// the asking tree has the map open and the merge took another tree's value
+// type for it (ADR-126); nil otherwise.
+func (m *merger) openAnswered(asking int, steps []mergeStep) []string {
+	if len(steps) == 0 || steps[len(steps)-1].key != "additionalProperties" || !openValues(follow(m.trees[asking].s.Root, steps)) {
+		return nil
+	}
+	if merged := source.Deref(m.walk(steps)); merged == nil || merged.Kind != yaml.MappingNode {
+		return nil
+	}
+	var out []string
+	for ti, t := range m.trees {
+		if n := source.Deref(follow(t.s.Root, steps)); ti != asking && n != nil && n.Kind == yaml.MappingNode {
 			out = append(out, t.title)
 		}
 	}

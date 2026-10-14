@@ -4,7 +4,7 @@
     ],
     "views": [
     ],
-    "commit": "747ca5a74e35489f85e88bd758b342e9e98b7233",
+    "commit": "2510c1a3de2f89e3b99131c45e4560ae1639ad20",
     "tables": [
         {
             "name": "books",
@@ -111,10 +111,33 @@
                     "notNull": false,
                     "identity": null,
                     "generated": null
+                },
+                {
+                    "name": "reference",
+                    "type": "uuid",
+                    "comment": null,
+                    "default": "gen_random_uuid()",
+                    "notNull": true,
+                    "identity": null,
+                    "generated": null
                 }
             ],
             "comment": null,
             "indexes": [
+                {
+                    "name": "ix_loans_card_number",
+                    "unique": false,
+                    "primary": false,
+                    "definition": "CREATE INDEX ix_loans_card_number ON public.loans USING btree (card_number)",
+                    "backsConstraint": false
+                },
+                {
+                    "name": "loans_falling_due",
+                    "unique": false,
+                    "primary": false,
+                    "definition": "CREATE INDEX loans_falling_due ON public.loans USING btree (due_on, returned_on)",
+                    "backsConstraint": false
+                },
                 {
                     "name": "loans_pkey",
                     "unique": true,

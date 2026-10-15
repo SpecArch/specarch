@@ -136,6 +136,7 @@ a defect in the roadmap, not an accepted state.
 | `third_party/typescript-go/` | the TypeScript compiler's Go source that `specarch facts javascript` reads with, copied at a pinned release by `tools/typescript-go/pull.sh`, with its own LICENSE and NOTICE.txt |
 | `readers/` | the Swift and Dart readers of `specarch facts`, with the lock files that pin them, embedded into the program |
 | `history/` | what changed and why, one file per day |
+| `BUG_OUTSTANDING.md`, `BUG_HISTORY.md` | the bugs, one BUG-NNN entry each: the open ones, and the fixed ones with the commit that fixed them; the repository has no GitHub issues (`CONTRIBUTING.md`, Bugs) |
 | `docs/principles.md` | the two principles, a compiler for specifications and the Low IQ Tax, and how SpecArch applies them |
 | `docs/conventions.md` | the tree layout, YAML layout, Markdown sections, generated and hand-drawn diagrams |
 | `docs/stages.md` | the seven life-cycle stages: what each holds, which standard says so, and why |

@@ -77,7 +77,7 @@ decisions:
       later, or from a section merged after the one that refers to it,
       and the comparison needs the whole entry. Moving a question below
       the position to the named entry, because the validator holds every
-      question to a pointer the tree has (issue 10), and the question is
+      question to a pointer the tree has (BUG-010), and the question is
       about the property, which now lives under its name; collapsing it
       to the position where the key is left out, for the same rule.
       Acceptance test: the first merge of a service's OpenAPI document

@@ -1,16 +1,30 @@
 # Contributing
 
 SpecArch is developed and owned by one person. Anyone who wants to
-contribute contacts the owner first, by opening an issue or by writing to the
-owner, and waits for an answer before writing the change. The owner decides
-each contribution on its own, yes or no, and may ask for a signed agreement
-before accepting one. A pull request or patch that arrives without that
-first contact is closed, whatever its quality.
+contribute writes to the owner first and waits for an answer before writing
+the change. The owner decides each contribution on its own, yes or no, and
+may ask for a signed agreement before accepting one. A pull request or patch
+that arrives without that first contact is closed, whatever its quality, and
+so is one whose only grounds are that it fixes a listed bug: the owner fixes
+listed bugs.
 
 Agents working in this repository never merge or accept an outside pull
 request or patch themselves. They report it to the owner, who decides.
 
-Issues, questions and suggestions are welcome at any time.
+## Bugs
+
+The repository has no GitHub issues: an issue tracker open to anyone is a
+way in for a pull request that claims to fix what an issue lists. Bugs are
+kept in the repository instead, one entry per bug, numbered BUG-NNN:
+
+- `BUG_OUTSTANDING.md` holds the open bugs: what was seen, what was
+  expected and how to repeat it.
+- The commit that fixes one names it with `Fixes BUG-NNN` in its message,
+  and the entry moves to `BUG_HISTORY.md` with that commit.
+
+BUG-001 to BUG-021 were GitHub issues #1 to #21 and keep the same number,
+so an older commit's `Fixes #N` names BUG-N. Anyone outside who finds a bug
+writes to the owner; a security weakness goes the way `SECURITY.md` says.
 
 ## What belongs here
 

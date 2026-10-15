@@ -33,7 +33,7 @@ A user who hits a problem in a release installs the previous tag; the tags of ev
 | Step | Action | Check |
 |---|---|---|
 | 1. Install the previous tag | Install the program from the previous release tag with the implementation's install task. | specarch version prints the previous version. |
-| 2. Record the problem | Open an issue naming the release and the problem, and note the rollback in the history file. | The issue exists and the history file names it. |
+| 2. Record the problem | Add a BUG-NNN entry naming the release and the problem to BUG_OUTSTANDING.md, and note the rollback in the history file. | The entry is in BUG_OUTSTANDING.md and the history file names it. |
 
 ## 4. Monitors
 

@@ -77,5 +77,12 @@ and the history file. Make no other change in that folder.
   its design test, and both must print the same output. The documents and
   generators are Go only.
 - Contributions from outside are the owner's decision; never merge one.
+- Bugs are kept in `BUG_OUTSTANDING.md` and `BUG_HISTORY.md`, one
+  BUG-NNN entry per bug, not in GitHub issues (the repository has them
+  turned off). A new bug takes the next free number in
+  `BUG_OUTSTANDING.md`; the fixing commit says `Fixes BUG-NNN`, and the
+  entry moves to `BUG_HISTORY.md` with that commit's hash in the same
+  commit. An outside pull request that claims to fix a listed bug is
+  reported to the owner, never taken on that ground.
 - Commits and pushes follow the repository's switches (`agentq policy
   specarch`).

@@ -6,5 +6,5 @@ rollback:
       action: Install the program from the previous release tag with the implementation's install task.
       check: specarch version prints the previous version.
     - name: Record the problem
-      action: Open an issue naming the release and the problem, and note the rollback in the history file.
-      check: The issue exists and the history file names it.
+      action: Add a BUG-NNN entry naming the release and the problem to BUG_OUTSTANDING.md, and note the rollback in the history file.
+      check: The entry is in BUG_OUTSTANDING.md and the history file names it.

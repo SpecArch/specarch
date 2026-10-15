@@ -217,7 +217,7 @@ One small rule goes with it, in every language: a leading column headed
 with the row-number header (`#`, `No.` or the vocabulary's word) is
 skipped in every table. The default source key of a file whose name is
 a run of capitals (`ARCHITECTURE.md`) is that run as one word
-(`architecture`) already, on main after 0.6.0 (issue #9), so two such
+(`architecture`) already, on main after 0.6.0 (BUG-009), so two such
 files no longer collide and `--source-key` is the exception again.
 
 Compiler test: a table whose headers no vocabulary matches still prints

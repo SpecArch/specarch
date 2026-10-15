@@ -83,7 +83,7 @@ decisions:
       because the grant is what is missing and it is written in the
       role, not under the permission; the validator holds that a
       question on the permission itself is the one place that can say
-      the grant is not known (issue 11), and the merge is where the
+      the grant is not known (BUG-011), and the merge is where the
       grant was left out, so it is the merge that says so. A union of
       the grants would widen a role while the question is open, which
       ADR-045 refuses for anything that concerns security.

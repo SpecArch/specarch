@@ -8,15 +8,16 @@ vulnerability reporting: open the repository's Security tab and choose
 (<https://github.com/SpecArch/specarch/security/advisories/new>). The report
 reaches the owner alone, and the fix is worked on in a private advisory.
 
-Never describe a weakness in a public issue, pull request, discussion or
-commit message before the release tag that fixes it is out. That holds for
-everyone, the owner included: until the fixed tag exists, anyone who reads
-the description can use it against every copy in use. Once the tag is out,
-the advisory is published and the weakness may be discussed in the open.
+Never describe a weakness in a pull request, discussion, commit message or
+`BUG_OUTSTANDING.md` before the release tag that fixes it is out. That holds
+for everyone, the owner included: until the fixed tag exists, anyone who
+reads the description can use it against every copy in use. Once the tag is
+out, the advisory is published and the weakness may be discussed in the open.
 
-Issues stay open for everything else: bugs that are not a weakness,
-questions and suggestions. When it is not clear whether a bug is a weakness,
-report it privately; it can be moved to an issue afterwards.
+The repository has no GitHub issues. A bug that is not a weakness is written
+to the owner, who keeps it in `BUG_OUTSTANDING.md` (`CONTRIBUTING.md`, Bugs).
+When it is not clear whether a bug is a weakness, report it privately; it
+can be moved to `BUG_OUTSTANDING.md` afterwards.
 
 ## What to include
 

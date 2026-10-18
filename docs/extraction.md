@@ -152,7 +152,9 @@ Steps, in order:
    unique keys and checks; a check the expression subset can say becomes
    its expression, and a list of allowed values becomes the field's enum.
    An index, a view, a type with no row in the type-rendering idiom and a
-   check the subset cannot say each print a line. SpecArch ships the
+   check the subset cannot say each print a line. A partition is read as
+   its table, and the partitions are one line at the table (ADR-128).
+   SpecArch ships the
    catalogue query, `tools/catalogue/catalogue.sql`, and
    `tools/catalogue/dump-catalogue.sh`, which starts a disposable
    PostgreSQL under Podman, applies every migration and writes the dump

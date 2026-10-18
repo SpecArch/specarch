@@ -1018,6 +1018,7 @@ Acceptance criteria:
 
 - extract database on a committed catalogue dump writes a tree that validate accepts with no errors, and a second run writes the same bytes.
 - A column type the meta-model cannot hold is printed as a line naming it, and is a could question in the tree citing its table.
+- extract database reads a partition as the table it is a partition of, with one entity for the table and none for a partition, one could question at the entity listing the partitions with their bounds, and one for each constraint, index or column setting a partition has of its own, citing the partition's entry.
 - A dump older than the last change to the path it was made from, a path with changes not committed and a shallow clone are each refused with status 1.
 - extract outline on a folder writes a source listing its files as clauses, and gaps on that tree lists each of them as producing nothing.
 - extract router on a committed route table writes one operation per method and path pair, with its path parameters and the permission it checks, that validate accepts with no errors, and a route that checks no permission is a must question.
@@ -1093,6 +1094,7 @@ Acceptance criteria:
 - An operation the router does not serve, a route the specification does not name and a permission that differs between them are each an error, at the operation or at the route's line in the dump.
 - A grant only one of the specification and the permission table holds, after each side's grants are widened by the permissions they imply, is an error at the role or at the grant's line in the dump.
 - A table, a column, a type as PostgreSQL spells it, a nullability, a generated default, a primary key, a foreign key, a unique constraint, a check constraint's name or a listed plain index that differs between the tables generate sql writes and the catalogue is an error; the text of a check and an index the mapping does not list are reports that never fail.
+- A partition of the catalogue is never compared and never a table the specification does not hold; a partitioned table's index, which the catalogue prints with ON ONLY, is compared as any plain index.
 - Each problem ends with an id that names the rule and what the difference is about, the same wherever the entry is written; a difference whose id the allowlist holds is counted and not printed, and the run exits 0 when every difference is allowed or a report.
 - A line of the allowlist that no failing difference matches or that repeats one is an error at that line; with --since, so is a line the allowlist did not hold at that revision.
 

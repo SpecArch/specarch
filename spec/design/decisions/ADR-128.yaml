@@ -1,0 +1,136 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
+decisions:
+  ADR-128:
+    title: extract database reads a partition as the table it is a partition of, and check compares that table alone
+    status: accepted
+    date: "2026-10-19"
+    context: |
+      The catalogue query listed a partition among the tables with nothing
+      to tell it from a table: a partition is a pg_class row of relkind r
+      or p like any table, and the query read only the relkind. The reader
+      made an entity of every table, so a partitioned table with three
+      partitions gave four entities with the same columns, three of them
+      named after the partitions, each with the primary key and the
+      indexes the partition takes from its table under the names
+      PostgreSQL gives them. Every generated default and every index of
+      the table was a could question once per partition, and check would
+      have reported each partition as a table the specification does not
+      hold (BUG-023).
+    decision: |
+      The catalogue query prints for each table partitionBy, the partition
+      key of a partitioned table as pg_get_partkeydef prints it,
+      partitionOf, the schema and name of the table a partition is a
+      partition of, and partitionBound, its bound as pg_get_expr prints
+      it; and for each constraint and each index whether it is inherited,
+      taken by a partition from its table (coninhcount or conparentid for
+      a constraint, a pg_inherits row for an index).
+
+      extract database reads a partition as the table it is a partition
+      of, following partitionOf to the table that is no partition, so a
+      partition of a partition is read as that table too. No entity is
+      made for a partition. The table's entity cites its partitions in
+      what the catalogue says of the table, and one could question at the
+      entity lists every partition with its bound, the partition it is a
+      partition of when that is not the table, and its own partition key
+      when it is partitioned itself, saying that partitioning is physical
+      design the meta-model cannot hold and that each partition is read as
+      the table. What a partition takes from its table, its inherited
+      constraints and indexes, is read once, at the table. What a partition
+      has of its own is a could question at the entity citing the
+      partition's entry, read as the table's: a constraint not inherited,
+      an index not inherited that backs no constraint, and a column whose
+      type, nullability, default, identity or generated expression differs
+      from the table's. A foreign key that references a partition is read
+      as a relation to that partition's table, with a could question
+      saying so. A partition whose table the dump does not list is read as
+      a table of its own, with a could question saying so, and its own
+      partitions are read as it. A table that inherits from another
+      through INHERITS is no partition and stays a table of its own. The
+      counted line says how many of the tables are partitions when any
+      is, and the wrote line then says one entity per table that is not a
+      partition.
+
+      An index of a partitioned table, which pg_get_indexdef prints with
+      ON ONLY, is a plain index as any other: the reader and check read
+      ON ONLY as ON.
+
+      check compares the specification's tables with the tables of the
+      catalogue that are not partitions. A partition is never compared,
+      neither as a table the specification does not hold nor by its own
+      constraints and indexes.
+
+      A dump made by the earlier catalogue query has none of the keys and
+      reads as before, every table an entity.
+    why: |
+      ISO SQL has no partitioning. It is each database's way of storing a
+      table's rows, physical design like an index (ADR-121), and PostgreSQL
+      says so itself: a query on a partitioned table reaches the rows of
+      every partition, and a partition exists to hold some of the table's
+      rows. The meta-model says what a record is and how it is kept, not
+      where; an entity for a partition would be a second entity for the
+      same records, and every question of the table asked once more for
+      each partition. The table is what the migrations mean, so the
+      partition is read as it.
+
+      Partitioning is a could question and not a line in the implementation
+      fragment because the mapping has no key for it. Writing one would
+      take generate sql writing PARTITION BY and each partition's bound,
+      the next migration attaching and detaching partitions, and the
+      database gate comparing them: a design of its own, taken when a
+      project needs the generated SQL to partition, as ADR-121 left the
+      twin to the other readers. Until then the question keeps the
+      partitions read and marked at the entity, which is the compiler test,
+      and the answer to it is where the keyword's design starts.
+
+      A partition's own constraint, index or column setting is a question
+      and not an error, and not read as the table's, because the meta-model
+      says a constraint for every record of the entity and the source says
+      it for the rows of one partition. Reading it as the table's would
+      claim more than the source says; leaving it out silently would lose
+      it; so it is left out with a question citing the partition, where the
+      reviewer sees what the source has. An inherited constraint or index is
+      told from the partition's own by the catalogue, not by its name:
+      PostgreSQL names an inherited index after the partition and the
+      columns, and a user may name an index of their own the same way.
+
+      A relation points at an entity, and a partition has none; its rows
+      are the table's, so the relation to the table is what the source
+      says, less narrowly, and the question says so rather than leaving the
+      key out as a reference to a table that was never read.
+
+      pg_get_indexdef prints ON ONLY for a partitioned table's index to say
+      that the statement makes the index on the table alone, each partition
+      having its own attached to it. The index is the table's, the mapping
+      lists the table's indexes, and the partitions' copies are inherited,
+      so ONLY is part of the dialect's spelling and not a difference.
+
+      check skips a partition because generate sql writes one table per
+      entity and the specification has no place for a partition until
+      partitioning is a keyword; reporting each as not specified would be a
+      difference the owner cannot settle in the specification. The table's
+      columns and keys are compared through the table, and PostgreSQL holds
+      a partition to its table's columns and gives it the table's
+      constraints and indexes, so the comparison of the table covers them.
+      A partition's own index or constraint is not compared, since the
+      specification cannot hold it; extract's question is where it
+      surfaces.
+
+      The compiler test holds: nothing is refused or left unread, a dump of
+      the earlier query reads as before, and every problem is a question
+      at the entity, in the problems file and at the entry. The acceptance
+      test holds: the tree shows one entity for the table at once, and a
+      constraint a reviewer wants for every row is one constraint to add to
+      the entity.
+    consequences: |
+      The catalogue query prints three more keys per table and inherited
+      per constraint and index; a project whose database has partitions
+      makes its dump again to be read this way. The cases
+      extract-database-partitioned-table and check-skips-a-partition cover
+      a table partitioned by range with a default partition, a partition
+      partitioned again by list, a partition's own default, check and
+      index, and a check and an index on the partitioned table that every
+      partition carries as inherited. The counted and wrote
+      lines change only when a partition is in the dump. The mapping may
+      gain partitioning later, when a project needs generate sql to write
+      it; the could question goes then.
+    satisfies: [SA-44, SA-72]

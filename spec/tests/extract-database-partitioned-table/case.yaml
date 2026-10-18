@@ -1,0 +1,18 @@
+arguments: [extract, database, --out, spec, service/catalogue.json]
+repository:
+  folder: service
+  commits:
+    - [migrations]
+    - [catalogue.json]
+exitStatus: 0
+standardOutput: |
+  commit 0ef0e4e3bac900e108dee9363ce651f02c3accf9: the last change to migrations, as the dump catalogue.json names it
+  counted 4 tables, 3 of them partitions, 16 columns, 9 constraints (0 foreign keys, 0 unique keys, 5 checks), 5 indexes besides those of keys, 0 views and 0 enum types: every entry of the dump's lists, which hold every schema but pg_catalog, information_schema and pg_toast
+  wrote 1 entity and 6 questions: one per table that is not a partition and whose name an entity can hold, one per thing the catalogue does not say, and one per thing the meta-model cannot hold
+  not held: index idx_at of public.events, CREATE INDEX idx_at ON ONLY public.events USING btree (at): an index is physical design, which an implementation file holds under the entity's mapping; run specarch extract database with --implementation-out to write it there; could question Q-2
+  not held: table public.events, partitioned by RANGE (at): public.events_2026 FOR VALUES FROM ('2026-01-01 00:00:00+00') TO ('2027-01-01 00:00:00+00'), itself partitioned by LIST (kind); public.events_2026_sale of public.events_2026 FOR VALUES IN ('sale'); public.events_default DEFAULT; partitioning is physical design, which the meta-model cannot hold, so each partition is read as the table; could question Q-3
+  not held: column public.events_2026_sale.note: default 'sale'::text where the table public.events has none; a partition's own column setting holds for its rows alone, which the meta-model cannot say; read as the table's column; could question Q-4
+  not held: check events_default_note_given of partition public.events_default, CHECK ((note <> ''::text)): a partition's own constraint holds for its rows alone, which the meta-model cannot say; left out; could question Q-5
+  not held: index events_default_note of partition public.events_default, CREATE INDEX events_default_note ON public.events_default USING btree (note): a partition's own index is physical design of that partition alone, which neither the meta-model nor a mapping holds; left out; could question Q-6
+  derived 0 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers
+  not derived: 1 draft test for Events constraint events_kind_given, held up by Q-1; the validator warns for them until the question is answered

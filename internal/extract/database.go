@@ -27,12 +27,20 @@ type catalogue struct {
 }
 
 type dumpTable struct {
-	Schema      string           `json:"schema"`
-	Name        string           `json:"name"`
-	Comment     *string          `json:"comment"`
-	Columns     []dumpColumn     `json:"columns"`
-	Constraints []dumpConstraint `json:"constraints"`
-	Indexes     []dumpIndex      `json:"indexes"`
+	Schema  string  `json:"schema"`
+	Name    string  `json:"name"`
+	Comment *string `json:"comment"`
+	// PartitionBy is the partition key of a partitioned table, as
+	// pg_get_partkeydef prints it; PartitionOf the schema.name of the table
+	// a partition is a partition of, and PartitionBound its bound. A dump
+	// of an earlier catalogue.sql has none of the three, and reads as a
+	// dump with no partition (ADR-128).
+	PartitionBy    *string          `json:"partitionBy"`
+	PartitionOf    *string          `json:"partitionOf"`
+	PartitionBound *string          `json:"partitionBound"`
+	Columns        []dumpColumn     `json:"columns"`
+	Constraints    []dumpConstraint `json:"constraints"`
+	Indexes        []dumpIndex      `json:"indexes"`
 }
 
 type dumpColumn struct {
@@ -54,6 +62,8 @@ type dumpConstraint struct {
 	ReferencesTable   *string  `json:"referencesTable"`
 	ReferencesColumns []string `json:"referencesColumns"`
 	OnDelete          *string  `json:"onDelete"`
+	// Inherited is true for a partition's constraint taken from its table.
+	Inherited bool `json:"inherited"`
 }
 
 type dumpIndex struct {
@@ -61,7 +71,9 @@ type dumpIndex struct {
 	Unique          bool   `json:"unique"`
 	Primary         bool   `json:"primary"`
 	BacksConstraint bool   `json:"backsConstraint"`
-	Definition      string `json:"definition"`
+	// Inherited is true for a partition's index taken from its table.
+	Inherited  bool   `json:"inherited"`
+	Definition string `json:"definition"`
 }
 
 type dumpView struct {
@@ -199,6 +211,11 @@ type dbReader struct {
 	generated   map[string]string // the generatedDefault of each expression the idiom names
 	mappings    *yaml.Node        // the implementation fragment's mappings, or nil
 	indexes     int               // the indexes written into it
+	// roots is the table each partition is read as, by schema.name: the
+	// one partitionOf leads to that is no partition (ADR-128). partitions
+	// are the partitions read as each table, in the dump's order.
+	roots      map[string]string
+	partitions map[string][]dumpTable
 }
 
 // gap records what the meta-model cannot hold, at the table or view the
@@ -217,10 +234,24 @@ func (d *dbReader) read() {
 		}
 		return tables[i].Name < tables[j].Name
 	})
-	// Name every table first, so that a foreign key finds its target.
+	byName := map[string]dumpTable{}
+	for _, t := range tables {
+		byName[t.Schema+"."+t.Name] = t
+	}
+	// Name every table first, so that a foreign key finds its target. A
+	// partition is read as its table and gets no entity (ADR-128).
 	byEntity := map[string]string{}
+	d.roots = map[string]string{}
+	d.partitions = map[string][]dumpTable{}
 	for _, t := range tables {
 		qualified := t.Schema + "." + t.Name
+		if t.PartitionOf != nil {
+			if root := rootOf(t, byName); root != qualified {
+				d.roots[qualified] = root
+				d.partitions[root] = append(d.partitions[root], t)
+				continue
+			}
+		}
 		if !plainName.MatchString(t.Name) || !plainName.MatchString(t.Schema) {
 			d.gap(qualified, "entities", "table %s: its name has characters an entity name cannot hold; left out", qualified)
 			continue
@@ -235,6 +266,9 @@ func (d *dbReader) read() {
 		}
 		byEntity[name] = qualified
 		d.entities[qualified] = name
+		if t.PartitionOf != nil {
+			d.gap(qualified, "#/entities/"+name, "table %s: it is a partition of %s, which the dump does not list; read as a table of its own", qualified, *t.PartitionOf)
+		}
 	}
 	columns, constraints, checks, uniques, foreign, indexes := 0, 0, 0, 0, 0, 0
 	for _, t := range tables {
@@ -266,11 +300,21 @@ func (d *dbReader) read() {
 		}
 		d.gap(v.Schema+"."+v.Name, "views", "%s %s.%s: a view is not read from the catalogue; describe it under views by hand", kind, v.Schema, v.Name)
 	}
+	tablesCounted := plural(len(tables), "table")
+	perTable := "one per table whose name an entity can hold"
+	switch partitions := len(d.roots); {
+	case partitions == 1:
+		tablesCounted += ", one of them a partition"
+		perTable = "one per table that is not a partition and whose name an entity can hold"
+	case partitions > 1:
+		tablesCounted += fmt.Sprintf(", %d of them partitions", partitions)
+		perTable = "one per table that is not a partition and whose name an entity can hold"
+	}
 	d.res.say("counted %s, %s, %s (%s, %s, %s), %s besides those of keys, %s and %s: every entry of the dump's lists, which hold every schema but pg_catalog, information_schema and pg_toast",
-		plural(len(tables), "table"), plural(columns, "column"), plural(constraints, "constraint"),
+		tablesCounted, plural(columns, "column"), plural(constraints, "constraint"),
 		plural(foreign, "foreign key"), plural(uniques, "unique key"), plural(checks, "check"),
 		plural(indexes, "index"), plural(len(d.c.Views), "view"), plural(len(d.c.Enums), "enum type"))
-	d.res.say("wrote %s and %s: one per table whose name an entity can hold, one per thing the catalogue does not say, and one per thing the meta-model cannot hold", plural(len(d.entities), "entity"), plural(len(d.questions.Content)/2+couldCount(oneQuestions(d.questions), d.notHeld), "question"))
+	d.res.say("wrote %s and %s: %s, one per thing the catalogue does not say, and one per thing the meta-model cannot hold", plural(len(d.entities), "entity"), plural(len(d.questions.Content)/2+couldCount(oneQuestions(d.questions), d.notHeld), "question"), perTable)
 	askNotHeld(d.res, oneQuestions(d.questions), &d.nextID, d.key, d.notHeld)
 }
 
@@ -344,7 +388,8 @@ func (d *dbReader) table(t dumpTable, name string) {
 	targets := map[string]int{}
 	for _, k := range t.Constraints {
 		if k.Kind == "foreign" && k.ReferencesTable != nil {
-			targets[*k.ReferencesSchema+"."+*k.ReferencesTable]++
+			ref, _ := d.referenced(k)
+			targets[ref]++
 		}
 	}
 	keys := append([]dumpConstraint(nil), t.Constraints...)
@@ -438,6 +483,7 @@ func (d *dbReader) table(t dumpTable, name string) {
 		set(constraintNodes, k.Name, flow(mapping("kind", "check", "expression", expression)))
 		messages = append(messages, k.Name)
 	}
+	d.partitioned(t, at)
 	if pk != nil {
 		set(entity, "primaryKey", pk)
 	}
@@ -450,7 +496,7 @@ func (d *dbReader) table(t dumpTable, name string) {
 	}
 	sort.Strings(messages)
 	set(entity, "origin", "stated")
-	set(entity, "cites", []*yaml.Node{citation(d.key, d.clause+" "+qualified, tableSays(t))})
+	set(entity, "cites", []*yaml.Node{citation(d.key, d.clause+" "+qualified, tableSays(t, d.partitions[qualified]))})
 	if pk == nil {
 		d.question(
 			fmt.Sprintf("Table %s has no primary key in the catalogue. Which fields identify one of its records?", qualified),
@@ -474,7 +520,10 @@ func (d *dbReader) table(t dumpTable, name string) {
 	d.entityFiles["design/entities/"+kebab(name)+".yaml"] = mapping("entities", mapping(name, entity))
 }
 
-var indexDefinition = regexp.MustCompile(`^CREATE INDEX ([a-z_][a-z0-9_$]*) ON ([a-z_][a-z0-9_]*\.[a-z_][a-z0-9_]*) USING btree \(([^()]*)\)$`)
+// A partitioned table's index is printed with ON ONLY, since the statement
+// makes it on the table alone and each partition has its own attached to
+// it; the index is the table's all the same (ADR-128).
+var indexDefinition = regexp.MustCompile(`^CREATE INDEX ([a-z_][a-z0-9_$]*) ON (?:ONLY )?([a-z_][a-z0-9_]*\.[a-z_][a-z0-9_]*) USING btree \(([^()]*)\)$`)
 
 // plainIndexColumns are the columns of an index the catalogue prints as a
 // btree of plain columns of the table, with no expression, condition,
@@ -507,7 +556,9 @@ func sortPairs(m *yaml.Node) {
 	}
 }
 
-func tableSays(t dumpTable) string {
+// tableSays is what the catalogue says of a table: its columns, its
+// constraints and, when it is partitioned, its partitions.
+func tableSays(t dumpTable, partitions []dumpTable) string {
 	var cols []string
 	for _, c := range t.Columns {
 		s := c.Name + " " + c.Type
@@ -531,7 +582,152 @@ func tableSays(t dumpTable) string {
 	if len(keys) > 0 {
 		says += " " + strings.Join(keys, "; ") + "."
 	}
+	if len(partitions) > 0 {
+		says += fmt.Sprintf(" Partitioned by %s: %s.", deref(t.PartitionBy), partitionList(t.Schema+"."+t.Name, partitions))
+	}
 	return says
+}
+
+// rootOf is the table a partition is read as: the one partitionOf leads
+// to that is no partition. A partition whose table the dump does not list,
+// or whose chain of tables comes back on itself, is read as a table of its
+// own, and so is its own root.
+func rootOf(t dumpTable, byName map[string]dumpTable) string {
+	seen := map[string]bool{t.Schema + "." + t.Name: true}
+	for t.PartitionOf != nil {
+		parent, ok := byName[*t.PartitionOf]
+		if !ok || seen[*t.PartitionOf] {
+			return t.Schema + "." + t.Name
+		}
+		seen[*t.PartitionOf] = true
+		t = parent
+	}
+	return t.Schema + "." + t.Name
+}
+
+// partitioned asks about a table's partitions (ADR-128): one could
+// question listing them, since partitioning is physical design the
+// meta-model cannot hold, and one for each thing a partition has of its
+// own, a constraint or an index not taken from the table, or a column
+// setting that differs from the table's; what a partition takes from its
+// table is read once, at the table.
+func (d *dbReader) partitioned(t dumpTable, at string) {
+	qualified := t.Schema + "." + t.Name
+	partitions := d.partitions[qualified]
+	if len(partitions) == 0 {
+		return
+	}
+	d.gap(qualified, at, "table %s, partitioned by %s: %s; partitioning is physical design, which the meta-model cannot hold, so each partition is read as the table", qualified, deref(t.PartitionBy), partitionList(qualified, partitions))
+	own := map[string]dumpColumn{}
+	for _, c := range t.Columns {
+		own[c.Name] = c
+	}
+	for _, p := range partitions {
+		pq := p.Schema + "." + p.Name
+		for _, c := range p.Columns {
+			r, ok := own[c.Name]
+			if !ok {
+				d.gap(pq, at, "column %s.%s: the partition has it and the table %s does not; left out", pq, c.Name, qualified)
+				continue
+			}
+			if diff := columnDifferences(c, r, qualified); diff != "" {
+				d.gap(pq, at, "column %s.%s: %s; a partition's own column setting holds for its rows alone, which the meta-model cannot say; read as the table's column", pq, c.Name, diff)
+			}
+		}
+		keys := append([]dumpConstraint(nil), p.Constraints...)
+		sort.SliceStable(keys, func(i, j int) bool { return keys[i].Name < keys[j].Name })
+		for _, k := range keys {
+			if k.Inherited {
+				continue
+			}
+			d.gap(pq, at, "%s %s of partition %s, %s: a partition's own constraint holds for its rows alone, which the meta-model cannot say; left out", constraintWords(k.Kind), k.Name, pq, k.Definition)
+		}
+		for _, ix := range p.Indexes {
+			if ix.BacksConstraint || ix.Inherited {
+				continue
+			}
+			d.gap(pq, at, "index %s of partition %s, %s: a partition's own index is physical design of that partition alone, which neither the meta-model nor a mapping holds; left out", ix.Name, pq, ix.Definition)
+		}
+	}
+}
+
+// partitionList names each partition of a table with its bound, the
+// partition it is a partition of when that is not the table, and its own
+// partition key when it is partitioned itself.
+func partitionList(table string, partitions []dumpTable) string {
+	var out []string
+	for _, p := range partitions {
+		s := p.Schema + "." + p.Name
+		if p.PartitionOf != nil && *p.PartitionOf != table {
+			s += " of " + *p.PartitionOf
+		}
+		if p.PartitionBound != nil {
+			s += " " + *p.PartitionBound
+		}
+		if p.PartitionBy != nil {
+			s += ", itself partitioned by " + *p.PartitionBy
+		}
+		out = append(out, s)
+	}
+	return strings.Join(out, "; ")
+}
+
+// columnDifferences says how a partition's column differs from the
+// table's, or nothing when it does not.
+func columnDifferences(c, table dumpColumn, qualified string) string {
+	var out []string
+	if c.Type != table.Type {
+		out = append(out, fmt.Sprintf("type %s where the table %s has %s", c.Type, qualified, table.Type))
+	}
+	switch {
+	case c.NotNull && !table.NotNull:
+		out = append(out, fmt.Sprintf("not null where the table %s has it nullable", qualified))
+	case !c.NotNull && table.NotNull:
+		out = append(out, fmt.Sprintf("nullable where the table %s has it not null", qualified))
+	}
+	for _, s := range []struct {
+		what   string
+		c, own *string
+	}{{"default", c.Default, table.Default}, {"identity", c.Identity, table.Identity}, {"generated expression", c.Generated, table.Generated}} {
+		switch {
+		case s.c == nil && s.own == nil, s.c != nil && s.own != nil && *s.c == *s.own:
+		case s.c == nil:
+			out = append(out, fmt.Sprintf("no %s where the table %s has %s", s.what, qualified, *s.own))
+		case s.own == nil:
+			out = append(out, fmt.Sprintf("%s %s where the table %s has none", s.what, *s.c, qualified))
+		default:
+			out = append(out, fmt.Sprintf("%s %s where the table %s has %s", s.what, *s.c, qualified, *s.own))
+		}
+	}
+	return strings.Join(out, ", ")
+}
+
+// constraintWords is a constraint's kind as the lines say it.
+func constraintWords(kind string) string {
+	switch kind {
+	case "primary":
+		return "primary key"
+	case "foreign":
+		return "foreign key"
+	case "unique":
+		return "unique key"
+	case "check":
+		return "check"
+	case "exclusion":
+		return "exclusion constraint"
+	}
+	return kind + " constraint"
+}
+
+// referenced is the table a foreign key refers to, read as the table a
+// partition is a partition of when it refers to a partition (ADR-128), and
+// the partition it named then.
+func (d *dbReader) referenced(k dumpConstraint) (ref, partition string) {
+	ref = *k.ReferencesSchema + "." + *k.ReferencesTable
+	if root, ok := d.roots[ref]; ok {
+		return root, ref
+	}
+	return ref, ""
 }
 
 func fieldNames(columns []string, fields map[string]*field) ([]string, bool) {
@@ -549,7 +745,12 @@ func fieldNames(columns []string, fields map[string]*field) ([]string, bool) {
 func (d *dbReader) foreignKey(t dumpTable, k dumpConstraint, fields map[string]*field, relations *yaml.Node, targets map[string]int) {
 	qualified := t.Schema + "." + t.Name
 	at := "#/entities/" + d.entities[qualified]
-	ref := *k.ReferencesSchema + "." + *k.ReferencesTable
+	ref, partition := d.referenced(k)
+	refName := *k.ReferencesTable
+	if partition != "" {
+		d.gap(qualified, at, "foreign key %s of %s, %s: it references %s, a partition, whose rows are those of %s; read as a relation to that table", k.Name, qualified, k.Definition, partition, ref)
+		refName = ref[strings.Index(ref, ".")+1:]
+	}
 	target, ok := d.entities[ref]
 	switch {
 	case !ok:
@@ -585,9 +786,9 @@ func (d *dbReader) foreignKey(t dumpTable, k dumpConstraint, fields map[string]*
 		set(rel, "onDelete", "restrict")
 		d.gap(qualified, at, "foreign key %s of %s: on delete %s is not a choice of the meta-model; written as restrict", k.Name, qualified, onDelete(k.OnDelete))
 	}
-	name := camel(*k.ReferencesTable)
+	name := camel(refName)
 	if targets[ref] > 1 {
-		name = camel(*k.ReferencesTable) + "Via" + pascal(k.Columns[0])
+		name = camel(refName) + "Via" + pascal(k.Columns[0])
 	}
 	if !memberName.MatchString(name) {
 		d.gap(qualified, at, "foreign key %s of %s: no relation name can be made from %s", k.Name, qualified, ref)

@@ -66,7 +66,12 @@ commands:
         compares only what can be derived exactly: the text of a check
         both sides name, where it differs, since the database rewrites
         it (`check_expression_differs`), and an index the mapping does not
-        list, plain or not (`index_not_listed`).
+        list, plain or not (`index_not_listed`). A partition is not
+        compared, neither as a table the specification does not hold nor
+        by its own constraints and indexes: its rows are its table's,
+        which is compared, and an index of a partitioned table, which the
+        catalogue prints with `ON ONLY`, is a plain index as any other
+        (ADR-128).
 
       Each problem is printed in validate's form, the file, line and
       column of the entry, the severity, the pointer, the rule and the

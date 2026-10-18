@@ -334,7 +334,10 @@ mapping carries `origin: stated` and cites the line it was read from:
 mappings of the tables it read into an implementation fragment, each
 table's target and its plain indexes under `indexes`, citing the
 catalogue (ADR-121); they are copied into the implementation file as they
-are, with the source key the file's specification uses.
+are, with the source key the file's specification uses. A partition is
+read as its table and gets no mapping: the mapping has no key for
+partitioning, so the partitions stay a could question at the entity
+(ADR-128).
 
 An element of the design that no mapping names is not built, and has the
 question of section 3.2 saying so.

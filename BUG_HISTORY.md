@@ -347,3 +347,13 @@ Expected 5 operations: 1 under the plain group, 2 under the callback helper's gr
 Cause: the walk followed a call of a function value held in a local name, or bound to a parameter, only as a statement, never as a value. The router a call gives was a library's maker, a group or subrouter, or what a function of the module returns, so `g := returned("/d")` gave `g` no router, and the routes on `g` reached no registration, counted or asked. Beside it, a literal's `return` set the return of the function it is written in, so a function that declared such a helper and then returned its own group could hand a caller the helper's group instead.
 
 Found with 0.6.4.
+
+## BUG-023 — extract database: a partition is read as a second table
+
+- Reported: 2026-10-18, from reading a system whose database has partitioned tables
+- Closed: 2026-10-19, completed
+- Fixed by: the commit on `main` whose message says `Fixes BUG-023`; ADR-128
+
+`tools/catalogue/catalogue.sql` listed every relation of relkind `r` or `p` as a table and did not mark a partition, so a catalogue dump of a partitioned table held the table and each of its partitions as tables with the same columns, each partition with the primary key and the indexes it takes from its table under the names PostgreSQL gives them. `extract database` wrote an entity for each table and each partition, `Events` and `EventsDefault` for a table `events` with a default partition `events_default`, and asked its could question for each generated default and each index once per entity. `validate` reported no error, so nothing blocked; `check` would have reported each partition as a table the specification does not hold. The migration in `spec/tests/extract-database-partitioned-table/service/migrations/001_init.sql` repeats it against a dump made by the earlier query.
+
+Expected: one entity for the table, the partitions folded into it and named at it, and one question for each default and each index.

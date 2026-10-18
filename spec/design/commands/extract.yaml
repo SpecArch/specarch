@@ -42,7 +42,19 @@ commands:
         `--implementation-out` it is written under the entity's mapping in
         an implementation fragment, which holds every table's mapping
         (ADR-121); without it, and for any other index, it is a could
-        question.
+        question. A partition is read as the table it is a partition of,
+        following partitionOf to the table that is no partition: it gets
+        no entity, the table's entity cites it, and one could question at
+        the entity lists the partitions with their bounds, since
+        partitioning is physical design the meta-model cannot hold
+        (ADR-128). What a partition takes from its table, its inherited
+        constraints and indexes, is read once, at the table; a constraint
+        or an index a partition has of its own, and a column of it that
+        differs from the table's, are each a could question citing the
+        partition's entry, and a foreign key that references a partition
+        is a relation to its table with a could question saying so. An
+        index of a partitioned table, which the catalogue prints with
+        `ON ONLY`, is a plain index as any other.
       - `router`: a route table, written by `tools/routes/dump-routes.sh`
         around the project's own route printer, which builds the router as
         the server does and prints every route it registered: its method,

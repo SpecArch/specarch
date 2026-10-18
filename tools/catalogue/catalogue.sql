@@ -1,9 +1,12 @@
 -- The catalogue query of specarch extract database, for PostgreSQL 12 and
 -- later. It prints one JSON document: every table, view and enum type of
 -- every schema but the system ones, each list in the order of its names,
--- so that the same database gives the same bytes. Run it with psql, giving
--- the path the migrations were read from and the commit that last changed
--- it:
+-- so that the same database gives the same bytes. A partition is listed
+-- among the tables with the table it is a partition of and its bound, and
+-- a partitioned table with its partition key; a constraint or an index a
+-- partition takes from its table says it is inherited. Run it with psql,
+-- giving the path the migrations were read from and the commit that last
+-- changed it:
 --
 --   psql -X -q -A -t -v path=<path> -v commit=<hash> -f catalogue.sql
 --
@@ -18,7 +21,14 @@ schemas AS (
     AND n.nspname NOT LIKE 'pg_toast_temp_%'
 ),
 tables AS (
-  SELECT c.oid, s.nspname AS schema, c.relname AS name, obj_description(c.oid, 'pg_class') AS comment
+  SELECT c.oid, s.nspname AS schema, c.relname AS name, obj_description(c.oid, 'pg_class') AS comment,
+    pg_get_partkeydef(c.oid) AS partition_by,
+    CASE WHEN c.relispartition THEN (
+      SELECT pn.nspname || '.' || pc.relname
+      FROM pg_inherits h JOIN pg_class pc ON pc.oid = h.inhparent JOIN pg_namespace pn ON pn.oid = pc.relnamespace
+      WHERE h.inhrelid = c.oid
+    ) END AS partition_of,
+    CASE WHEN c.relispartition THEN pg_get_expr(c.relpartbound, c.oid) END AS partition_bound
   FROM pg_class c JOIN schemas s ON s.oid = c.relnamespace
   WHERE c.relkind IN ('r', 'p')
 ),
@@ -48,7 +58,8 @@ constraints AS (
       'referencesSchema', rn.nspname,
       'referencesTable', rc.relname,
       'referencesColumns', (SELECT json_agg(a.attname ORDER BY u.ord) FROM unnest(k.confkey) WITH ORDINALITY u(num, ord) JOIN pg_attribute a ON a.attrelid = k.confrelid AND a.attnum = u.num),
-      'onDelete', CASE WHEN k.contype = 'f' THEN CASE k.confdeltype WHEN 'a' THEN 'no action' WHEN 'r' THEN 'restrict' WHEN 'c' THEN 'cascade' WHEN 'n' THEN 'set null' WHEN 'd' THEN 'set default' END END
+      'onDelete', CASE WHEN k.contype = 'f' THEN CASE k.confdeltype WHEN 'a' THEN 'no action' WHEN 'r' THEN 'restrict' WHEN 'c' THEN 'cascade' WHEN 'n' THEN 'set null' WHEN 'd' THEN 'set default' END END,
+      'inherited', k.coninhcount > 0 OR k.conparentid <> 0
     ) AS doc
   FROM pg_constraint k
   JOIN tables t ON t.oid = k.conrelid
@@ -63,6 +74,7 @@ indexes AS (
       'unique', i.indisunique,
       'primary', i.indisprimary,
       'backsConstraint', EXISTS (SELECT 1 FROM pg_constraint k WHERE k.conindid = i.indexrelid AND k.conrelid = i.indrelid),
+      'inherited', EXISTS (SELECT 1 FROM pg_inherits h WHERE h.inhrelid = i.indexrelid),
       'definition', pg_get_indexdef(i.indexrelid)
     ) AS doc
   FROM pg_index i
@@ -78,6 +90,9 @@ SELECT jsonb_pretty(jsonb_build_object(
       'schema', t.schema,
       'name', t.name,
       'comment', t.comment,
+      'partitionBy', t.partition_by,
+      'partitionOf', t.partition_of,
+      'partitionBound', t.partition_bound,
       'columns', COALESCE((SELECT json_agg(c.doc ORDER BY c.attnum) FROM columns c WHERE c.table_oid = t.oid), '[]'::json),
       'constraints', COALESCE((SELECT json_agg(k.doc ORDER BY k.conname) FROM constraints k WHERE k.table_oid = t.oid), '[]'::json),
       'indexes', COALESCE((SELECT json_agg(i.doc ORDER BY i.relname) FROM indexes i WHERE i.table_oid = t.oid), '[]'::json)

@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: extract
+level: system
+scenario: golden
+given: "a repository holding a catalogue dump of an events table partitioned by range with a check and a plain index on it, a partition partitioned again by list whose own partition gives one column a default, and a default partition with a check and an index of its own, every partition carrying the table's key, check and index as inherited"
+when: "extract database is run on the dump"
+then: "it writes one entity, Events, with the check and a citation naming the partitions with their bounds, counts the four tables as three of them partitions, asks the must question for the check's message, one could question for the index saying it goes to an implementation file, one listing the partitions as physical design the meta-model cannot hold, and one each for the partition's default, check and index citing the partition's entry, writes no entity and no question for what a partition takes from its table, and exits 0"
+verifies: [SA-44]

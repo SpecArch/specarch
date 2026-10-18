@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.0-dev of the specification: 493 design tests, 220 golden and 273 red, about 16 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.0-dev of the specification: 495 design tests, 222 golden and 273 red, about 16 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.7.0-dev of the specification: 493 design tests, 220 golden and 273 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 489 |
+| system | 491 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -96,6 +96,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-72.
 - Given: the branches and copies of the golden case, where the route table's GET /copies/{copyId} checks no permission, the permission table grants nothing to the visitor and grants a role the specification does not declare, and the allowlist repeats a line and holds a line for a difference there is not, a line for a report and a line that is no id
 - When: check is run with the allowlist on the three dumps
 - Then: it prints the CHAR column the allowlist no longer names, the permission that differs, the visitor's grant the code does not hold and the undeclared role's grant at its line of the dump as errors, the two reports as warnings, and each of the five lines of the allowlist that allow nothing as allowlist_stale at its line, and exits 1
+
+#### check-skips-a-partition
+
+Scenario: golden; level: system; verifies SA-72.
+
+- Given: a specification of an events entity with a check whose implementation file maps it to the events table and lists its index idx_at, and a repository whose first commit holds the migration of a table partitioned by range with that check and that index, a partition partitioned again by list, and a default partition with a check and an index of its own, and whose second commit holds the catalogue dump made from it
+- When: check is run on the catalogue dump
+- Then: it compares the events table alone, finds no difference since the partitions are not compared, neither as tables nor by the check and index of their own, and the index, which the catalogue prints with ON ONLY, is the plain index the mapping lists, reports the check's text the database rewrote, and exits 0
 
 #### check-succeeds
 
@@ -836,6 +844,14 @@ Scenario: golden; level: system; verifies SA-44, SA-50.
 - Given: a repository holding a catalogue dump whose members table has a jsonb column that is NOT NULL and a json column that may be null
 - When: extract database is run on the dump
 - Then: it writes each JSON column as a field of type object, the nullable one allowing null, asks a should question at each field which schema it holds, and exits 0
+
+#### extract-database-partitioned-table
+
+Scenario: golden; level: system; verifies SA-44.
+
+- Given: a repository holding a catalogue dump of an events table partitioned by range with a check and a plain index on it, a partition partitioned again by list whose own partition gives one column a default, and a default partition with a check and an index of its own, every partition carrying the table's key, check and index as inherited
+- When: extract database is run on the dump
+- Then: it writes one entity, Events, with the check and a citation naming the partitions with their bounds, counts the four tables as three of them partitions, asks the must question for the check's message, one could question for the index saying it goes to an implementation file, one listing the partitions as physical design the meta-model cannot hold, and one each for the partition's default, check and index citing the partition's entry, writes no entity and no question for what a partition takes from its table, and exits 0
 
 #### extract-database-stale-dump
 
@@ -4023,7 +4039,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-290 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+292 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -4272,6 +4288,7 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-44 | acceptance 8 | golden | SA-44 names no harm |
 | requirement SA-44 | acceptance 9 | golden | SA-44 names no harm |
 | requirement SA-44 | acceptance 10 | golden | SA-44 names no harm |
+| requirement SA-44 | acceptance 11 | golden | SA-44 names no harm |
 | requirement SA-45 | acceptance 1 | golden | SA-45 names no harm |
 | requirement SA-45 | acceptance 2 | golden | SA-45 names no harm |
 | requirement SA-45 | acceptance 3 | golden | SA-45 names no harm |
@@ -4295,6 +4312,7 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-72 | acceptance 3 | golden | SA-72 names no harm |
 | requirement SA-72 | acceptance 4 | golden | SA-72 names no harm |
 | requirement SA-72 | acceptance 5 | golden | SA-72 names no harm |
+| requirement SA-72 | acceptance 6 | golden | SA-72 names no harm |
 | requirement SA-1 | acceptance 1 | golden | SA-1 names no harm |
 | requirement SA-1 | acceptance 2 | golden | SA-1 names no harm |
 | requirement SA-2 | acceptance 1 | golden | SA-2 names no harm |

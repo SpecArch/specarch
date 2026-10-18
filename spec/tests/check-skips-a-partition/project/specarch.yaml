@@ -1,0 +1,17 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0 }
+stages: [implementation]
+stakeholders:
+  owner: { description: The product owner. }
+entities:
+  Events:
+    type: object
+    properties:
+      id: { type: string, format: uuid, generatedDefault: identifier }
+      at: { type: string, format: date-time }
+      kind: { type: string, maxLength: 20 }
+      note: { type: [string, "null"] }
+    required: [id, at, kind]
+    primaryKey: [id, at, kind]
+    constraints:
+      events_kind_given: { kind: check, expression: "kind != \"\"", message: An event has a kind. }

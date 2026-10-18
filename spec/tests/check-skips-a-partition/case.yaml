@@ -1,0 +1,10 @@
+arguments: [check, project, service/catalogue.json]
+repository:
+  folder: service
+  commits:
+    - [migrations]
+    - [catalogue.json]
+exitStatus: 0
+standardOutput: |
+  specarch check: 1 dump compared: 0 differences, 0 allowed by the allowlist, 1 report, 0 allowlist lines that fail
+  project/specarch.yaml:17:7: warning: /entities/Events/constraints/events_kind_given: check_expression_differs: the check events_kind_given of events reads (kind <> '') in the specification's table and (((kind)::text <> ''::text)) in the database; the database rewrites a check's text, so this is a report [check_expression_differs events.events_kind_given]

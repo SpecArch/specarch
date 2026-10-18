@@ -1,0 +1,408 @@
+{
+    "path": "migrations",
+    "enums": [
+    ],
+    "views": [
+    ],
+    "commit": "0ef0e4e3bac900e108dee9363ce651f02c3accf9",
+    "tables": [
+        {
+            "name": "events",
+            "schema": "public",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "uuid",
+                    "comment": null,
+                    "default": "gen_random_uuid()",
+                    "notNull": true,
+                    "identity": null,
+                    "generated": null
+                },
+                {
+                    "name": "at",
+                    "type": "timestamp with time zone",
+                    "comment": null,
+                    "default": null,
+                    "notNull": true,
+                    "identity": null,
+                    "generated": null
+                },
+                {
+                    "name": "kind",
+                    "type": "character varying(20)",
+                    "comment": null,
+                    "default": null,
+                    "notNull": true,
+                    "identity": null,
+                    "generated": null
+                },
+                {
+                    "name": "note",
+                    "type": "text",
+                    "comment": null,
+                    "default": null,
+                    "notNull": false,
+                    "identity": null,
+                    "generated": null
+                }
+            ],
+            "comment": null,
+            "indexes": [
+                {
+                    "name": "events_pkey",
+                    "unique": true,
+                    "primary": true,
+                    "inherited": false,
+                    "definition": "CREATE UNIQUE INDEX events_pkey ON ONLY public.events USING btree (id, at, kind)",
+                    "backsConstraint": true
+                },
+                {
+                    "name": "idx_at",
+                    "unique": false,
+                    "primary": false,
+                    "inherited": false,
+                    "definition": "CREATE INDEX idx_at ON ONLY public.events USING btree (at)",
+                    "backsConstraint": false
+                }
+            ],
+            "constraints": [
+                {
+                    "kind": "check",
+                    "name": "events_kind_given",
+                    "columns": [
+                        "kind"
+                    ],
+                    "onDelete": null,
+                    "inherited": false,
+                    "definition": "CHECK (((kind)::text <> ''::text))",
+                    "referencesTable": null,
+                    "referencesSchema": null,
+                    "referencesColumns": null
+                },
+                {
+                    "kind": "primary",
+                    "name": "events_pkey",
+                    "columns": [
+                        "id",
+                        "at",
+                        "kind"
+                    ],
+                    "onDelete": null,
+                    "inherited": false,
+                    "definition": "PRIMARY KEY (id, at, kind)",
+                    "referencesTable": null,
+                    "referencesSchema": null,
+                    "referencesColumns": null
+                }
+            ],
+            "partitionBy": "RANGE (at)",
+            "partitionOf": null,
+            "partitionBound": null
+        },
+        {
+            "name": "events_2026",
+            "schema": "public",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "uuid",
+                    "comment": null,
+                    "default": "gen_random_uuid()",
+                    "notNull": true,
+                    "identity": null,
+                    "generated": null
+                },
+                {
+                    "name": "at",
+                    "type": "timestamp with time zone",
+                    "comment": null,
+                    "default": null,
+                    "notNull": true,
+                    "identity": null,
+                    "generated": null
+                },
+                {
+                    "name": "kind",
+                    "type": "character varying(20)",
+                    "comment": null,
+                    "default": null,
+                    "notNull": true,
+                    "identity": null,
+                    "generated": null
+                },
+                {
+                    "name": "note",
+                    "type": "text",
+                    "comment": null,
+                    "default": null,
+                    "notNull": false,
+                    "identity": null,
+                    "generated": null
+                }
+            ],
+            "comment": null,
+            "indexes": [
+                {
+                    "name": "events_2026_at_idx",
+                    "unique": false,
+                    "primary": false,
+                    "inherited": true,
+                    "definition": "CREATE INDEX events_2026_at_idx ON ONLY public.events_2026 USING btree (at)",
+                    "backsConstraint": false
+                },
+                {
+                    "name": "events_2026_pkey",
+                    "unique": true,
+                    "primary": true,
+                    "inherited": true,
+                    "definition": "CREATE UNIQUE INDEX events_2026_pkey ON ONLY public.events_2026 USING btree (id, at, kind)",
+                    "backsConstraint": true
+                }
+            ],
+            "constraints": [
+                {
+                    "kind": "primary",
+                    "name": "events_2026_pkey",
+                    "columns": [
+                        "id",
+                        "at",
+                        "kind"
+                    ],
+                    "onDelete": null,
+                    "inherited": true,
+                    "definition": "PRIMARY KEY (id, at, kind)",
+                    "referencesTable": null,
+                    "referencesSchema": null,
+                    "referencesColumns": null
+                },
+                {
+                    "kind": "check",
+                    "name": "events_kind_given",
+                    "columns": [
+                        "kind"
+                    ],
+                    "onDelete": null,
+                    "inherited": true,
+                    "definition": "CHECK (((kind)::text <> ''::text))",
+                    "referencesTable": null,
+                    "referencesSchema": null,
+                    "referencesColumns": null
+                }
+            ],
+            "partitionBy": "LIST (kind)",
+            "partitionOf": "public.events",
+            "partitionBound": "FOR VALUES FROM ('2026-01-01 00:00:00+00') TO ('2027-01-01 00:00:00+00')"
+        },
+        {
+            "name": "events_2026_sale",
+            "schema": "public",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "uuid",
+                    "comment": null,
+                    "default": "gen_random_uuid()",
+                    "notNull": true,
+                    "identity": null,
+                    "generated": null
+                },
+                {
+                    "name": "at",
+                    "type": "timestamp with time zone",
+                    "comment": null,
+                    "default": null,
+                    "notNull": true,
+                    "identity": null,
+                    "generated": null
+                },
+                {
+                    "name": "kind",
+                    "type": "character varying(20)",
+                    "comment": null,
+                    "default": null,
+                    "notNull": true,
+                    "identity": null,
+                    "generated": null
+                },
+                {
+                    "name": "note",
+                    "type": "text",
+                    "comment": null,
+                    "default": "'sale'::text",
+                    "notNull": false,
+                    "identity": null,
+                    "generated": null
+                }
+            ],
+            "comment": null,
+            "indexes": [
+                {
+                    "name": "events_2026_sale_at_idx",
+                    "unique": false,
+                    "primary": false,
+                    "inherited": true,
+                    "definition": "CREATE INDEX events_2026_sale_at_idx ON public.events_2026_sale USING btree (at)",
+                    "backsConstraint": false
+                },
+                {
+                    "name": "events_2026_sale_pkey",
+                    "unique": true,
+                    "primary": true,
+                    "inherited": true,
+                    "definition": "CREATE UNIQUE INDEX events_2026_sale_pkey ON public.events_2026_sale USING btree (id, at, kind)",
+                    "backsConstraint": true
+                }
+            ],
+            "constraints": [
+                {
+                    "kind": "primary",
+                    "name": "events_2026_sale_pkey",
+                    "columns": [
+                        "id",
+                        "at",
+                        "kind"
+                    ],
+                    "onDelete": null,
+                    "inherited": true,
+                    "definition": "PRIMARY KEY (id, at, kind)",
+                    "referencesTable": null,
+                    "referencesSchema": null,
+                    "referencesColumns": null
+                },
+                {
+                    "kind": "check",
+                    "name": "events_kind_given",
+                    "columns": [
+                        "kind"
+                    ],
+                    "onDelete": null,
+                    "inherited": true,
+                    "definition": "CHECK (((kind)::text <> ''::text))",
+                    "referencesTable": null,
+                    "referencesSchema": null,
+                    "referencesColumns": null
+                }
+            ],
+            "partitionBy": null,
+            "partitionOf": "public.events_2026",
+            "partitionBound": "FOR VALUES IN ('sale')"
+        },
+        {
+            "name": "events_default",
+            "schema": "public",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "uuid",
+                    "comment": null,
+                    "default": "gen_random_uuid()",
+                    "notNull": true,
+                    "identity": null,
+                    "generated": null
+                },
+                {
+                    "name": "at",
+                    "type": "timestamp with time zone",
+                    "comment": null,
+                    "default": null,
+                    "notNull": true,
+                    "identity": null,
+                    "generated": null
+                },
+                {
+                    "name": "kind",
+                    "type": "character varying(20)",
+                    "comment": null,
+                    "default": null,
+                    "notNull": true,
+                    "identity": null,
+                    "generated": null
+                },
+                {
+                    "name": "note",
+                    "type": "text",
+                    "comment": null,
+                    "default": null,
+                    "notNull": false,
+                    "identity": null,
+                    "generated": null
+                }
+            ],
+            "comment": null,
+            "indexes": [
+                {
+                    "name": "events_default_at_idx",
+                    "unique": false,
+                    "primary": false,
+                    "inherited": true,
+                    "definition": "CREATE INDEX events_default_at_idx ON public.events_default USING btree (at)",
+                    "backsConstraint": false
+                },
+                {
+                    "name": "events_default_note",
+                    "unique": false,
+                    "primary": false,
+                    "inherited": false,
+                    "definition": "CREATE INDEX events_default_note ON public.events_default USING btree (note)",
+                    "backsConstraint": false
+                },
+                {
+                    "name": "events_default_pkey",
+                    "unique": true,
+                    "primary": true,
+                    "inherited": true,
+                    "definition": "CREATE UNIQUE INDEX events_default_pkey ON public.events_default USING btree (id, at, kind)",
+                    "backsConstraint": true
+                }
+            ],
+            "constraints": [
+                {
+                    "kind": "check",
+                    "name": "events_default_note_given",
+                    "columns": [
+                        "note"
+                    ],
+                    "onDelete": null,
+                    "inherited": false,
+                    "definition": "CHECK ((note <> ''::text))",
+                    "referencesTable": null,
+                    "referencesSchema": null,
+                    "referencesColumns": null
+                },
+                {
+                    "kind": "primary",
+                    "name": "events_default_pkey",
+                    "columns": [
+                        "id",
+                        "at",
+                        "kind"
+                    ],
+                    "onDelete": null,
+                    "inherited": true,
+                    "definition": "PRIMARY KEY (id, at, kind)",
+                    "referencesTable": null,
+                    "referencesSchema": null,
+                    "referencesColumns": null
+                },
+                {
+                    "kind": "check",
+                    "name": "events_kind_given",
+                    "columns": [
+                        "kind"
+                    ],
+                    "onDelete": null,
+                    "inherited": true,
+                    "definition": "CHECK (((kind)::text <> ''::text))",
+                    "referencesTable": null,
+                    "referencesSchema": null,
+                    "referencesColumns": null
+                }
+            ],
+            "partitionBy": null,
+            "partitionOf": "public.events",
+            "partitionBound": "DEFAULT"
+        }
+    ],
+    "catalogue": "postgresql"
+}

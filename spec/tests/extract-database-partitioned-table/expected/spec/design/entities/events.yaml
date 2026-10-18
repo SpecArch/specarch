@@ -1,0 +1,16 @@
+entities:
+  Events:
+    type: object
+    properties:
+      id: {type: string, format: uuid, generatedDefault: identifier}
+      at: {type: string, format: date-time}
+      kind: {type: string, maxLength: 20}
+      note: {type: [string, "null"]}
+    required: [id, at, kind]
+    primaryKey: [id, at, kind]
+    constraints:
+      # specarch-problem: warning: test_golden_missing: Events constraint events_kind_given has no golden scenario; add one under tests, for example events-kind-given-succeeds: { entity: Events, constraint: events_kind_given, scenario: golden, given: "...", when: "a Events keeping it is saved", then: "it is saved" } [test_golden_missing@design/entities/events.yaml#/entities/Events/constraints/events_kind_given]
+      events_kind_given: {kind: check, expression: kind != ""}
+    origin: stated
+    cites:
+      - {source: code, clause: migrations public.events, says: 'Table public.events: id uuid not null default gen_random_uuid(), at timestamp with time zone not null, kind character varying(20) not null, note text. events_kind_given CHECK (((kind)::text <> ''''::text)); events_pkey PRIMARY KEY (id, at, kind). Partitioned by RANGE (at): public.events_2026 FOR VALUES FROM (''2026-01-01 00:00:00+00'') TO (''2027-01-01 00:00:00+00''), itself partitioned by LIST (kind); public.events_2026_sale of public.events_2026 FOR VALUES IN (''sale''); public.events_default DEFAULT.'}

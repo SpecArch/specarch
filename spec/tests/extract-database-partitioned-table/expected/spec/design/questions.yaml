@@ -1,0 +1,59 @@
+questions:
+  # specarch-problem: question: open_question: (must, decision) What is a user told when each constraint of table public.events fails: events_kind_given? Decided by system-owner. Answer with a decision record that names Q-1 under answers. [Q-1]
+  Q-1:
+    question: 'What is a user told when each constraint of table public.events fails: events_kind_given?'
+    kind: decision
+    priority: must
+    blocks: ['#/entities/Events/constraints/events_kind_given/message']
+    decidedBy: system-owner
+    why: A constraint carries the message a user reads, and a database catalogue holds none.
+  # specarch-problem: question: open_question: (could, decision) Not held: index idx_at of public.events, CREATE INDEX idx_at ON ONLY public.events USING btree (at): an index is physical design, which an implementation file holds under the entity's mapping; run specarch extract database with --implementation-out to write it there. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-2 under answers. [Q-2]
+  Q-2:
+    question: 'Not held: index idx_at of public.events, CREATE INDEX idx_at ON ONLY public.events USING btree (at): an index is physical design, which an implementation file holds under the entity''s mapping; run specarch extract database with --implementation-out to write it there. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/entities/Events']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: migrations public.events, says: 'Not held: index idx_at of public.events, CREATE INDEX idx_at ON ONLY public.events USING btree (at): an index is physical design, which an implementation file holds under the entity''s mapping; run specarch extract database with --implementation-out to write it there.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: table public.events, partitioned by RANGE (at): public.events_2026 FOR VALUES FROM ('2026-01-01 00:00:00+00') TO ('2027-01-01 00:00:00+00'), itself partitioned by LIST (kind); public.events_2026_sale of public.events_2026 FOR VALUES IN ('sale'); public.events_default DEFAULT; partitioning is physical design, which the meta-model cannot hold, so each partition is read as the table. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-3 under answers. [Q-3]
+  Q-3:
+    question: 'Not held: table public.events, partitioned by RANGE (at): public.events_2026 FOR VALUES FROM (''2026-01-01 00:00:00+00'') TO (''2027-01-01 00:00:00+00''), itself partitioned by LIST (kind); public.events_2026_sale of public.events_2026 FOR VALUES IN (''sale''); public.events_default DEFAULT; partitioning is physical design, which the meta-model cannot hold, so each partition is read as the table. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/entities/Events']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: migrations public.events, says: 'Not held: table public.events, partitioned by RANGE (at): public.events_2026 FOR VALUES FROM (''2026-01-01 00:00:00+00'') TO (''2027-01-01 00:00:00+00''), itself partitioned by LIST (kind); public.events_2026_sale of public.events_2026 FOR VALUES IN (''sale''); public.events_default DEFAULT; partitioning is physical design, which the meta-model cannot hold, so each partition is read as the table.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: column public.events_2026_sale.note: default 'sale'::text where the table public.events has none; a partition's own column setting holds for its rows alone, which the meta-model cannot say; read as the table's column. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-4 under answers. [Q-4]
+  Q-4:
+    question: 'Not held: column public.events_2026_sale.note: default ''sale''::text where the table public.events has none; a partition''s own column setting holds for its rows alone, which the meta-model cannot say; read as the table''s column. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/entities/Events']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: migrations public.events_2026_sale, says: 'Not held: column public.events_2026_sale.note: default ''sale''::text where the table public.events has none; a partition''s own column setting holds for its rows alone, which the meta-model cannot say; read as the table''s column.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: check events_default_note_given of partition public.events_default, CHECK ((note <> ''::text)): a partition's own constraint holds for its rows alone, which the meta-model cannot say; left out. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-5 under answers. [Q-5]
+  Q-5:
+    question: 'Not held: check events_default_note_given of partition public.events_default, CHECK ((note <> ''''::text)): a partition''s own constraint holds for its rows alone, which the meta-model cannot say; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/entities/Events']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: migrations public.events_default, says: 'Not held: check events_default_note_given of partition public.events_default, CHECK ((note <> ''''::text)): a partition''s own constraint holds for its rows alone, which the meta-model cannot say; left out.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: index events_default_note of partition public.events_default, CREATE INDEX events_default_note ON public.events_default USING btree (note): a partition's own index is physical design of that partition alone, which neither the meta-model nor a mapping holds; left out. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-6 under answers. [Q-6]
+  Q-6:
+    question: 'Not held: index events_default_note of partition public.events_default, CREATE INDEX events_default_note ON public.events_default USING btree (note): a partition''s own index is physical design of that partition alone, which neither the meta-model nor a mapping holds; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/entities/Events']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: migrations public.events_default, says: 'Not held: index events_default_note of partition public.events_default, CREATE INDEX events_default_note ON public.events_default USING btree (note): a partition''s own index is physical design of that partition alone, which neither the meta-model nor a mapping holds; left out.'}

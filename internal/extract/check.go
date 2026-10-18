@@ -344,6 +344,9 @@ func CheckCatalogue(dumpPath string, tables []gensql.Table) ([]Difference, error
 		return schema + "." + table
 	}
 	for i, t := range c.Tables {
+		if t.PartitionOf != nil {
+			continue // a partition's rows are its table's, which is compared (ADR-128)
+		}
 		db[tableName(t.Schema, t.Name)] = dbTable{t, i}
 	}
 	var out []Difference
@@ -361,7 +364,7 @@ func CheckCatalogue(dumpPath string, tables []gensql.Table) ([]Difference, error
 	}
 	for i, t := range c.Tables {
 		n := tableName(t.Schema, t.Name)
-		if specTables[n] {
+		if specTables[n] || t.PartitionOf != nil {
 			continue
 		}
 		d := Difference{Rule: "table_not_specified", Subject: n,

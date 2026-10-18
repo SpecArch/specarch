@@ -28,10 +28,20 @@ commands:
         other trees' keys that go with their types (a format, a width, a
         pattern, the values, a default or an example, the items, the
         properties) left out with them; the question says what was kept and names each key left
-        out, and a line names the type kept. The question on a role's
-        `permissions` left out blocks, as well, each permission the lists
-        name that no merged role grants, itself or through a permission
-        it implies. The merged specification always passes validate. An
+        out, and a line names the type kept. A role's `permissions` are
+        joined grant by grant once every tree is in, on the permissions
+        the trees declare (ADR-127): a tree's list says nothing of a
+        permission the tree does not declare, so the merged list is the
+        first tree's, then what each later tree adds, with every tree's
+        citation, and a line names the trees whose grants add up. A
+        permission one tree grants that another tree, which has the
+        role, declares and does not grant is a disagreement: the list is
+        left out, and the must question names each such permission with
+        the trees that grant it and the trees that withhold it, and
+        blocks, as well, each permission the lists name that no merged
+        role grants, itself or through a permission it implies. A role a
+        printed and a parsed tree both give is compared below instead.
+        The merged specification always passes validate. An
         entity's `required` is compared field by field: a field only one
         tree has keeps what that tree says, and a field both have that
         one requires and the other does not is left out of `required`,
@@ -248,6 +258,7 @@ commands:
       One line per tree naming its title, its side, its reading where it
       has one, and what it holds; one line per
       source joined from several trees, naming the edition taken; one line
+      per role whose grants several trees add up, naming the trees; one line
       counting the elements written and those found in more than one
       tree; one line per position where a reference and a shape written
       in place meet, saying whether the reference is kept or the key left

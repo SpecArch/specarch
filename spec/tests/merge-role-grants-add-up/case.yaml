@@ -1,0 +1,10 @@
+arguments: [merge, --out, spec, trees/stock, trees/invoices]
+exitStatus: 0
+standardOutput: |
+  tree trees/stock: Stock service permissions, on the code, printed side: 3 elements and 2 questions
+  tree trees/invoices: Invoice service permissions, on the code, printed side: 3 elements and 2 questions
+  joined: #/roles/clerk/permissions holds every grant of Stock service permissions and Invoice service permissions, since neither declares a permission the other grants the role
+  asked twice: Q-1 of trees/invoices, on #/roles/clerk/description, is left out; Q-1 of trees/stock asks it
+  merged 4 elements, each an entry of a section or an operation: 2 in more than one tree, and 0 keys the trees disagree on
+  wrote 3 questions: 3 from the trees, numbered again in the order the trees are given, and 0 the merge asked
+  derived 0 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers

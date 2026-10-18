@@ -191,9 +191,14 @@ side they are on. A field's type is kept rather than left out, since a
 field is not read without one: the union where the types differ only in
 whether null is allowed, else the first tree's, with the other tree's
 format or width left out with its type; the question says what was kept
-(ADR-122). A role's grants left out can leave a permission no role
-grants, and the question on the grants blocks that permission too. The
-merged tree always passes `validate`. Where one tree refers to a named schema and another
+(ADR-122). A role's grants are joined grant by grant once every tree is
+in: a tree's list says nothing of a permission the tree does not
+declare, so the lists of several permission tables add up, with every
+tree's citation; a permission one tree grants that another tree, which
+has the role, declares and does not grant is a disagreement, left out
+with a `must` question naming it (ADR-127). A role's grants left out
+can leave a permission no role grants, and the question on the grants
+blocks that permission too. The merged tree always passes `validate`. Where one tree refers to a named schema and another
 writes the shape in place, as an OpenAPI document and a Go handler do
 for one request body, the reference is kept when the shapes agree in all
 both say; a key both give that differs is left out with a `must`

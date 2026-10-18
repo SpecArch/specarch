@@ -70,6 +70,7 @@ type merger struct {
 	order             []string               // the elements' pointers in the order they were met
 	disputes          map[string][]mergeStep // path string -> the path of a key the trees disagree on
 	disputeOrd        []string               // the disputes in the order they were found
+	grantDisputes     map[string]string      // a dispute on a role's grants -> the grants one tree makes that another declares and withholds
 	kept              map[string]*keptKey    // a dispute whose key is kept with one value, since the entry is not read without it
 	sources           map[string]*yaml.Node  // the merged sources
 	sourceKeys        []string               // in the order they were met
@@ -94,7 +95,7 @@ type merger struct {
 // section 3.2; ADR-045).
 func Merge(specs []*spec.Spec, out string, vocabularies []*vocabulary.Vocabulary) (*Result, error) {
 	m := &merger{out: out, res: &Result{Tree: newTree()}, files: map[string]*yaml.Node{}, entries: map[string]*yaml.Node{},
-		elements: map[string]*element{}, disputes: map[string][]mergeStep{}, kept: map[string]*keptKey{}, sources: map[string]*yaml.Node{},
+		elements: map[string]*element{}, disputes: map[string][]mergeStep{}, grantDisputes: map[string]string{}, kept: map[string]*keptKey{}, sources: map[string]*yaml.Node{},
 		given: map[string]bool{}, stages: map[string]bool{}, vocabularies: vocabularies, dayWords: map[string]*dayWords{}, notCompared: map[string]bool{}}
 	for _, s := range specs {
 		t, err := checkTree(s)
@@ -109,6 +110,7 @@ func Merge(specs []*spec.Spec, out string, vocabularies []*vocabulary.Vocabulary
 	for i, t := range m.trees {
 		m.mergeTree(i, t)
 	}
+	m.roleGrants()
 	m.resolveReferences()
 	m.readValueObjects()
 	m.removeDisputed()
@@ -689,9 +691,12 @@ func (m *merger) mergeNode(acc, add *yaml.Node, at []mergeStep) {
 					a.Content = append(a.Content, copyNode(item))
 				}
 			}
-		case k == "permissions" && len(at) == 2 && at[0].key == "roles" && m.readBothWays(source.Pointer(at[0].key, at[1].key)):
-			// The grants of a role a printed and a parsed tree both give
-			// are compared grant by grant (grantQuestions).
+		case k == "permissions" && len(at) == 2 && at[0].key == "roles":
+			// A role's grants are joined once every tree is in
+			// (roleGrants), since whether a grant is a disagreement
+			// depends on what every tree that has the role declares; the
+			// grants of a role a printed and a parsed tree both give are
+			// compared grant by grant instead (grantQuestions).
 		case k == "additionalProperties" && openValues(a) && p.Value.Kind == yaml.MappingNode && m.openAsked(here):
 			// A map open to any value whose tree asks what its values are
 			// is unknown, not a claim: another tree's value type fills it
@@ -705,6 +710,94 @@ func (m *merger) mergeNode(acc, add *yaml.Node, at []mergeStep) {
 		}
 	}
 	m.mergeOrigin(acc, add)
+}
+
+// roleGrants joins the grants of a role that several trees give, once
+// every tree is in (ADR-127). A tree's list says nothing of a permission
+// the tree does not declare, so the lists add up: the first tree's, then
+// what each later tree adds. A permission one tree grants that another
+// tree, which has the role, declares and does not grant is a
+// disagreement: the list is left out and asked about (disputeQuestions).
+// A role a printed and a parsed tree both give is compared grant by grant
+// instead (grantQuestions).
+func (m *merger) roleGrants() {
+	for _, ptr := range m.order {
+		e := m.elements[ptr]
+		if e.section != "roles" || e.parent != "" || m.readBothWays(ptr) {
+			continue
+		}
+		name := e.tokens[1]
+		steps := []mergeStep{{key: "roles"}, {key: name}, {key: "permissions"}}
+		type listing struct {
+			t      *mergeTree
+			grants []string
+		}
+		var listings []listing
+		var union []string
+		for _, ti := range e.trees {
+			t := m.trees[ti]
+			list := follow(t.s.Root, steps)
+			if list == nil {
+				continue
+			}
+			var grants []string
+			for _, p := range source.Items(list) {
+				grants = append(grants, p.Value)
+				if !contains(union, p.Value) {
+					union = append(union, p.Value)
+				}
+			}
+			listings = append(listings, listing{t: t, grants: grants})
+		}
+		if len(union) == 0 {
+			continue
+		}
+		var withheld []string
+		for _, p := range union {
+			var grants, withholds []string
+			for _, l := range listings {
+				switch {
+				case contains(l.grants, p):
+					grants = append(grants, l.t.title)
+				case source.Child(source.Child(l.t.s.Root, "permissions"), p) != nil:
+					withholds = append(withholds, l.t.title)
+				}
+			}
+			if len(withholds) > 0 {
+				withheld = append(withheld, fmt.Sprintf("%s %s %s, which %s %s and %s not grant %s",
+					joinAnd(grants), grantOrGrants(len(grants)), p, joinAnd(withholds), declareOrDeclares(len(withholds)), doOrDoes(len(withholds)), name))
+			}
+		}
+		key := stepsKey(steps)
+		if len(withheld) > 0 {
+			m.disputes[key] = steps
+			m.disputeOrd = append(m.disputeOrd, key)
+			m.grantDisputes[key] = strings.Join(withheld, ", and ")
+			continue
+		}
+		acc := m.entries["roles/"+name]
+		var current []string
+		for _, p := range source.Items(source.Child(acc, "permissions")) {
+			current = append(current, p.Value)
+		}
+		if strings.Join(current, " ") != strings.Join(union, " ") {
+			setKey(acc, "permissions", flow(value(union)))
+		}
+		added := false
+		var titles []string
+		for _, l := range listings {
+			added = added || len(l.grants) < len(union)
+			titles = append(titles, l.t.title)
+		}
+		if !added {
+			continue
+		}
+		since := "neither declares a permission the other grants the role"
+		if len(titles) > 2 {
+			since = "none declares a permission another grants the role"
+		}
+		m.res.say("joined: #%s holds every grant of %s, since %s", source.Pointer("roles", name, "permissions"), joinAnd(titles), since)
+	}
 }
 
 // mergeRequired joins the required fields of an entity field by field: a
@@ -1734,6 +1827,9 @@ func (m *merger) disputeQuestions() int {
 		why := fmt.Sprintf("The sources disagree: %s. The merge leaves the key out rather than choose between them.", strings.Join(said, ", and "))
 		if differ := m.refs.disputed[k]; differ != "" {
 			why = fmt.Sprintf("The sources disagree on the shape: %s. The merge leaves the key out rather than choose between them.", differ)
+		}
+		if withheld := m.grantDisputes[k]; withheld != "" {
+			why = fmt.Sprintf("The sources disagree: %s: %s. The merge leaves the key out rather than choose between them.", strings.Join(said, ", and "), withheld)
 		}
 		line := fmt.Sprintf("question Q-%d (must): %s: the trees disagree", len(m.questions)+1, ptr)
 		if kept := m.kept[k]; kept != nil {

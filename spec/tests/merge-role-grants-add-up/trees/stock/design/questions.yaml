@@ -1,0 +1,15 @@
+questions:
+  Q-1:
+    question: 'What is each role for, and who holds it: clerk?'
+    kind: decision
+    priority: must
+    blocks: ['#/roles/clerk/description']
+    decidedBy: system-owner
+    why: A permission table names a role and what it grants, not who holds it.
+  Q-2:
+    question: 'What does each permission allow: stock.read?'
+    kind: decision
+    priority: must
+    blocks: ['#/permissions/stock.read/description']
+    decidedBy: system-owner
+    why: A permission table names the permissions a role grants and not what they are for.

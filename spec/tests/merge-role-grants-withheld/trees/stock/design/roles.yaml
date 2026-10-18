@@ -1,0 +1,20 @@
+permissions:
+  stock.read:
+    origin: stated
+    cites:
+      - {source: stock, clause: stock/access role clerk, says: clerk grants stock.read.}
+  stock.write:
+    origin: stated
+    cites:
+      - {source: stock, clause: stock/access role stock-manager, says: stock-manager grants stock.write.}
+roles:
+  clerk:
+    permissions: [stock.read]
+    origin: stated
+    cites:
+      - {source: stock, clause: stock/access role clerk, says: clerk grants stock.read.}
+  stock-manager:
+    permissions: [stock.write]
+    origin: stated
+    cites:
+      - {source: stock, clause: stock/access role stock-manager, says: stock-manager grants stock.write.}

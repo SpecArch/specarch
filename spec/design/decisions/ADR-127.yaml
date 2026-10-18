@@ -1,0 +1,83 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
+decisions:
+  ADR-127:
+    title: merge adds up a role's grants from trees that declare different permissions, and disputes only a grant a tree declares and withholds
+    status: accepted
+    date: "2026-10-19"
+    context: |
+      A system of several services keeps one permission table per
+      service, each read into a tree of its own, and one role is in
+      several of them: a clerk the stock service's table grants
+      stock.read and the invoice service's grants invoices.read. merge
+      compared the lists as any key: two lists that differ were a
+      disagreement, so the role's permissions were left out with a must
+      question asking which list is right, and the question blocked
+      every permission the lists name that no other role grants. The
+      merged specification lost every grant of such a role, though each
+      tree still held them, and the owner was asked to choose between
+      two lists that were both right.
+    decision: |
+      A role's grants are joined grant by grant once every tree is in,
+      on the permissions the trees declare. A tree's list says nothing
+      of a permission the tree does not declare in its permissions
+      section, so the merged list is the first tree's, then what each
+      later tree adds, with every tree's citation; a line names the
+      trees whose grants add up. A permission one tree grants that
+      another tree, which has the role, declares and does not grant is a
+      disagreement as before: the list is left out, and the must
+      question names each such permission with the trees that grant it
+      and the trees that withhold it, beside the list each tree gives.
+      A role a printed and a parsed tree both give is compared grant by
+      grant as before: the printed trees' grants are what the check
+      reads, and a grant only a seed makes is a must question.
+    why: |
+      A permission table claims what it declares. A role that holds
+      stock.read in the stock service's table and invoices.read in the
+      invoice service's holds both, since each check reads only its own
+      table, so the two lists are two parts of one claim, not two claims
+      about one key. Asking which is right asks the owner to choose
+      between two true things, and the question blocked every grant of
+      the role until it was answered. SA-45 turns every disagreement
+      between the trees into a must question; two lists that add up are
+      no disagreement, because neither tree says the other's grant is
+      not made.
+
+      A tree that declares a permission and does not grant it to a role
+      it has is saying something: its table has the place the grant
+      would be in, and the grant is not there. Against another tree that
+      grants it, that is a disagreement, and the rule keeps it one. It
+      is the case of a document against the code: a manual that lists a
+      role's permissions and leaves one out, against a table that grants
+      it, is a difference the owner decides (docs/from-sources.md, Never
+      choose between a document and the code). A rule that joined the
+      lists whenever the trees come from different sources would lose
+      that case, and a rule that joined them only for sources of one
+      kind would need the trees to say what kind they are, while whether
+      a tree declares the permission is in the tree.
+
+      The compiler test holds: nothing is refused or left unread; the
+      merged role holds every grant with the citation of the tree that
+      makes it, and the line says whose grants were added, so a reader
+      of the output sees where each came from. A grant one tree
+      withholds still surfaces, in the problems file and at the entry,
+      as the question that names it. The acceptance test holds: the
+      merged role grants at once what it grants in every service, so
+      the user acceptance test shows the whole role, and a grant that
+      turns out wrong is one item of one list to change, with diff
+      saying what it breaks.
+    consequences: |
+      Merging the permission tables of several services writes each
+      shared role with the grants of every table and asks nothing on
+      the grants; merge-role-grants-add-up covers it.
+      merge-role-grants-withheld covers the disagreement kept: a
+      permission both tables declare that one grants the role and the
+      other withholds. A role's grants are no longer compared while the
+      trees are read in, since whether a grant is disputed depends on
+      what every tree that has the role declares; they are joined after
+      the last tree, before the disputed keys are left out, so the
+      order the trees are given no longer decides whether a list is a
+      dispute. merge-role-names-disagree, whose two tables declare
+      different permissions, now joins the role's grants and asks only
+      how the roles go on the wire. The lending desk's roles, printed
+      and parsed, are unchanged.
+    satisfies: [SA-45]

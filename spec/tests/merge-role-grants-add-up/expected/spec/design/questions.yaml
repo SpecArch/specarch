@@ -1,0 +1,25 @@
+questions:
+  # specarch-problem: question: open_question: (must, decision) What is each role for, and who holds it: clerk? Decided by system-owner. Answer with a decision record that names Q-1 under answers. [Q-1]
+  Q-1:
+    question: 'What is each role for, and who holds it: clerk?'
+    kind: decision
+    priority: must
+    blocks: ['#/roles/clerk/description']
+    decidedBy: system-owner
+    why: A permission table names a role and what it grants, not who holds it.
+  # specarch-problem: question: open_question: (must, decision) What does each permission allow: stock.read? Decided by system-owner. Answer with a decision record that names Q-2 under answers. [Q-2]
+  Q-2:
+    question: 'What does each permission allow: stock.read?'
+    kind: decision
+    priority: must
+    blocks: ['#/permissions/stock.read/description']
+    decidedBy: system-owner
+    why: A permission table names the permissions a role grants and not what they are for.
+  # specarch-problem: question: open_question: (must, decision) What does each permission allow: invoices.read? Decided by system-owner. Answer with a decision record that names Q-3 under answers. [Q-3]
+  Q-3:
+    question: 'What does each permission allow: invoices.read?'
+    kind: decision
+    priority: must
+    blocks: ['#/permissions/invoices.read/description']
+    decidedBy: system-owner
+    why: A permission table names the permissions a role grants and not what they are for.

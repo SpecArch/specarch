@@ -28,6 +28,7 @@ roles:
     cites:
       - {source: code, clause: access role AUDITOR, says: AUDITOR grants loans.read and public.}
   desk-staff:
+    permissions: [loans.read, loans.write, fines.waive, members.write]
     origin: stated
     cites:
       - {source: code, clause: access role DESK_STAFF, says: DESK_STAFF grants loans.read and loans.write.}

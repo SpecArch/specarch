@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: merge
+level: system
+scenario: golden
+given: "the trees of two services' permission tables, each declaring permissions of its own and granting a role of one name its own"
+when: "merge is run on the two trees"
+then: "it writes the role with every grant of both trees and both trees' citations, prints one line saying whose grants add up, asks nothing on the grants, and exits 0"
+verifies: [SA-45]

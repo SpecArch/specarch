@@ -1,0 +1,26 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v0.6.2/schema/specarch-design-0.2.schema.json
+specarch: "0.2"
+info:
+  title: Merge of 2 trees
+  version: 0.1.0
+  description: |
+    The elements of these trees, merged in this order: Stock service permissions; Billing service permissions. Every element cites where it was read; where the trees disagree, or the documents and the code do, a question asks which is right.
+  tracksOrigin: true
+stages: [requirements, design]
+sources:
+  stock:
+    kind: code
+    title: The stock service's code repository
+    edition: 2f1c0a9d7b3e4c5a6f8e9d0c1b2a3f4e5d6c7b8a
+    url: ../trees/stock
+    clauses:
+      - {clause: stock/access, title: The grants the permission check built from here reads}
+    reading: printed
+  billing:
+    kind: code
+    title: The billing service's code repository
+    edition: 2f1c0a9d7b3e4c5a6f8e9d0c1b2a3f4e5d6c7b8a
+    url: ../trees/billing
+    clauses:
+      - {clause: billing/access, title: The grants the permission check built from here reads}
+    reading: printed

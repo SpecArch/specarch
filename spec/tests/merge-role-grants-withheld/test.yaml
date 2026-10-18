@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: merge
+level: system
+scenario: red
+given: "the trees of two services' permission tables that both declare one permission, where one grants it to a role and the other has the role and does not grant it"
+when: "merge is run on the two trees"
+then: "it leaves the role's permissions out, asks one must question that names the permission with the tree that grants it and the tree that declares and withholds it, and exits 0"
+verifies: [SA-45]

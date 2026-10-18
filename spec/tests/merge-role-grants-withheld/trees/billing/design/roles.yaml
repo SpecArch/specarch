@@ -1,0 +1,11 @@
+permissions:
+  stock.write:
+    origin: stated
+    cites:
+      - {source: billing, clause: billing/access role clerk, says: clerk grants stock.write.}
+roles:
+  clerk:
+    permissions: [stock.write]
+    origin: stated
+    cites:
+      - {source: billing, clause: billing/access role clerk, says: clerk grants stock.write.}

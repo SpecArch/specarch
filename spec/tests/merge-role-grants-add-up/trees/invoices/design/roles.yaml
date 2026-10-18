@@ -1,0 +1,11 @@
+permissions:
+  invoices.read:
+    origin: stated
+    cites:
+      - {source: invoices, clause: invoices/access role clerk, says: clerk grants invoices.read.}
+roles:
+  clerk:
+    permissions: [invoices.read]
+    origin: stated
+    cites:
+      - {source: invoices, clause: invoices/access role clerk, says: clerk grants invoices.read.}

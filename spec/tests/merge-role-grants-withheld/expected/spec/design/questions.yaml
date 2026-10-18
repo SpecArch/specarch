@@ -1,0 +1,29 @@
+questions:
+  # specarch-problem: question: open_question: (must, decision) What is each role for, and who holds it: clerk, stock-manager? Decided by system-owner. Answer with a decision record that names Q-1 under answers. [Q-1]
+  Q-1:
+    question: 'What is each role for, and who holds it: clerk, stock-manager?'
+    kind: decision
+    priority: must
+    blocks: ['#/roles/clerk/description', '#/roles/stock-manager/description']
+    decidedBy: system-owner
+    why: A permission table names a role and what it grants, not who holds it.
+  # specarch-problem: question: open_question: (must, decision) What does each permission allow: stock.read, stock.write? Decided by system-owner. Answer with a decision record that names Q-2 under answers. [Q-2]
+  Q-2:
+    question: 'What does each permission allow: stock.read, stock.write?'
+    kind: decision
+    priority: must
+    blocks: ['#/permissions/stock.read/description', '#/permissions/stock.write/description']
+    decidedBy: system-owner
+    why: A permission table names the permissions a role grants and not what they are for.
+  # specarch-problem: question: open_question: (must, decision) Which is right for #/roles/clerk/permissions: [stock.read] or [stock.write]? Decided by system-owner. Answer with a decision record that names Q-3 under answers. [Q-3]
+  Q-3:
+    question: 'Which is right for #/roles/clerk/permissions: [stock.read] or [stock.write]?'
+    kind: decision
+    priority: must
+    blocks: ['#/roles/clerk/permissions', '#/permissions/stock.read']
+    decidedBy: system-owner
+    options: ['[stock.read], as Stock service permissions has it', '[stock.write], as Billing service permissions has it']
+    why: 'The sources disagree: Stock service permissions says [stock.read], and Billing service permissions says [stock.write]: Billing service permissions grants stock.write, which Stock service permissions declares and does not grant clerk. The merge leaves the key out rather than choose between them. While the list is out, no role grants stock.read, so the question blocks it too.'
+    cites:
+      - {source: stock, clause: stock/access role clerk, says: clerk grants stock.read.}
+      - {source: billing, clause: billing/access role clerk, says: clerk grants stock.write.}

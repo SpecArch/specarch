@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.0-dev of the specification: 491 design tests, 219 golden and 272 red, about 16 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.0-dev of the specification: 493 design tests, 220 golden and 273 red, about 16 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.7.0-dev of the specification: 491 design tests, 219 golden and 272 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 487 |
+| system | 489 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -2217,6 +2217,22 @@ Scenario: red; level: system; covers exit 1; verifies SA-11.
 - When: merge is run on the three trees
 - Then: it names the tree and the test that differs from its draft, says to write that test in the merged specification, writes nothing, and exits 1
 
+#### merge-role-grants-add-up
+
+Scenario: golden; level: system; verifies SA-45.
+
+- Given: the trees of two services' permission tables, each declaring permissions of its own and granting a role of one name its own
+- When: merge is run on the two trees
+- Then: it writes the role with every grant of both trees and both trees' citations, prints one line saying whose grants add up, asks nothing on the grants, and exits 0
+
+#### merge-role-grants-withheld
+
+Scenario: red; level: system; verifies SA-45.
+
+- Given: the trees of two services' permission tables that both declare one permission, where one grants it to a role and the other has the role and does not grant it
+- When: merge is run on the two trees
+- Then: it leaves the role's permissions out, asks one must question that names the permission with the tree that grants it and the tree that declares and withholds it, and exits 0
+
 #### merge-role-names-disagree
 
 Scenario: red; level: system; verifies SA-62.
@@ -4007,7 +4023,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-289 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+290 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -4264,6 +4280,7 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-45 | acceptance 6 | golden | SA-45 names no harm |
 | requirement SA-45 | acceptance 7 | golden | SA-45 names no harm |
 | requirement SA-45 | acceptance 8 | golden | SA-45 names no harm |
+| requirement SA-45 | acceptance 9 | golden | SA-45 names no harm |
 | requirement SA-57 | acceptance 1 | golden | SA-57 names no harm |
 | requirement SA-57 | acceptance 2 | golden | SA-57 names no harm |
 | requirement SA-57 | acceptance 3 | golden | SA-57 names no harm |

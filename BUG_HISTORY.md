@@ -328,7 +328,7 @@ The Go schema library keeps a failed `contains` as one cause per item, and the G
 
 - Reported: 2026-10-18
 - Fixed: 2026-10-19
-- Fixed by: the commit after the fix records it
+- Fixed by: dda47fdd
 
 A gin service registers routes in three ways: on a plain group, through a local helper that takes a prefix and a callback (read since 0.6.4, BUG-018), and through a local helper that takes a prefix and returns the group:
 

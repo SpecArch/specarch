@@ -357,3 +357,15 @@ Found with 0.6.4.
 `tools/catalogue/catalogue.sql` listed every relation of relkind `r` or `p` as a table and did not mark a partition, so a catalogue dump of a partitioned table held the table and each of its partitions as tables with the same columns, each partition with the primary key and the indexes it takes from its table under the names PostgreSQL gives them. `extract database` wrote an entity for each table and each partition, `Events` and `EventsDefault` for a table `events` with a default partition `events_default`, and asked its could question for each generated default and each index once per entity. `validate` reported no error, so nothing blocked; `check` would have reported each partition as a table the specification does not hold. The migration in `spec/tests/extract-database-partitioned-table/service/migrations/001_init.sql` repeats it against a dump made by the earlier query.
 
 Expected: one entity for the table, the partitions folded into it and named at it, and one question for each default and each index.
+
+## BUG-024 — a history entry names a private organisation
+
+- Reported: 2026-10-19
+- Closed: 2026-10-19, completed
+- Fixed by: the commit on `main` whose message says `Fixes BUG-024`
+
+The entry for the merge item in `history/2026-10-19.md`, added by commit ddde375c, called the handoff mailbox by the short name of a private organisation. The repository is public and holds generic material only, so no such name may appear in it.
+
+Expected: the mailbox named generically, as every other history entry does ("The handoff mailbox folder was empty."), and no other private name or path anywhere in the tree.
+
+The fix rewords the sentence in a normal commit. The old text stays in the history of commit ddde375c; rewriting published history is the owner's decision.

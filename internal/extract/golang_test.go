@@ -471,11 +471,7 @@ func main() {
 // that block. A helper walked once per string its callers pass, where the
 // string does not change the route, counts the registration once.
 func TestGoLiteralSeesWhereItIsWritten(t *testing.T) {
-	for name, c := range map[string]struct {
-		code                  string
-		want, notWant         []string
-		counted, wrote, asked int
-	}{
+	goRoutesCases(t, map[string]goRoutesCase{
 		"callee has a router of the same name": {code: `
 func Routes(r *gin.Engine) {
 	api := r.Group("/api")
@@ -582,7 +578,120 @@ func Routes(r *gin.Engine) {
 	reg()
 }
 `, want: []string{"/a/outer:"}, notWant: []string{"/a/inner:"}, counted: 2, wrote: 1, asked: 1},
-	} {
+	})
+}
+
+// TestGoRouterReturnedByHelper follows a route registered on the group a
+// helper returns: the helper a local closure called as a value, assigned
+// in a block or chained, called with two prefixes, registering a route
+// of its own before it returns, or passed to a function of the module
+// that calls it for the group; and a function of the module, called by
+// name or passed as a value. A literal's return is its call's value and
+// never the return of the function it is written in.
+func TestGoRouterReturnedByHelper(t *testing.T) {
+	goRoutesCases(t, map[string]goRoutesCase{
+		"closure returning the group, assigned in a block": {code: `
+func Routes(r *gin.Engine) {
+	v1 := r.Group("/v1")
+	returned := func(p string) *gin.RouterGroup {
+		g := v1.Group(p)
+		return g
+	}
+	{
+		g := returned("/d")
+		g.POST("/x", h)
+		g.PUT("/:id/y", h)
+	}
+}
+`, want: []string{"/v1/d/x:", "/v1/d/{id}/y:"}, counted: 2, wrote: 2},
+		"closure called with two prefixes, and in a chain": {code: `
+func Routes(r *gin.Engine) {
+	v1 := r.Group("/v1")
+	under := func(p string) *gin.RouterGroup { return v1.Group(p) }
+	a := under("/a")
+	a.GET("/x", h)
+	b := under("/b")
+	b.GET("/y", h)
+	under("/c").GET("/z", h)
+}
+`, want: []string{"/v1/a/x:", "/v1/b/y:", "/v1/c/z:"}, notWant: []string{"/v1/a/y:", "/v1/b/x:"}, counted: 3, wrote: 3},
+		"closure registering a route before it returns the group": {code: `
+func Routes(r *gin.Engine) {
+	v1 := r.Group("/v1")
+	mk := func(p string) *gin.RouterGroup {
+		g := v1.Group(p)
+		g.GET("/ping", h)
+		return g
+	}
+	g := mk("/e")
+	g.GET("/x", h)
+}
+`, want: []string{"/v1/e/ping:", "/v1/e/x:"}, counted: 2, wrote: 2},
+		"closure passed to a function of the module that calls it for the group": {code: `
+func Routes(r *gin.Engine) {
+	v1 := r.Group("/v1")
+	mk := func(p string) *gin.RouterGroup { return v1.Group(p) }
+	apply(mk)
+}
+
+func apply(mk func(string) *gin.RouterGroup) {
+	g := mk("/g")
+	g.GET("/x", h)
+}
+`, want: []string{"/v1/g/x:"}, counted: 1, wrote: 1},
+		"function of the module returning the group": {code: `
+func Routes(r *gin.Engine) {
+	v1 := r.Group("/v1")
+	g := sub(v1, "/f")
+	g.GET("/x", h)
+}
+
+func sub(parent *gin.RouterGroup, p string) *gin.RouterGroup { return parent.Group(p) }
+`, want: []string{"/v1/f/x:"}, counted: 1, wrote: 1},
+		"function of the module passed as a value and called for the group": {code: `
+func Routes(r *gin.Engine) {
+	v1 := r.Group("/v1")
+	mount(v1, sub)
+}
+
+func mount(parent *gin.RouterGroup, mk func(*gin.RouterGroup, string) *gin.RouterGroup) {
+	g := mk(parent, "/h")
+	g.GET("/x", h)
+}
+
+func sub(parent *gin.RouterGroup, p string) *gin.RouterGroup { return parent.Group(p) }
+`, want: []string{"/v1/h/x:"}, counted: 1, wrote: 1},
+		"a literal's return is not the return of the function around it": {code: `
+func Routes(r *gin.Engine) {
+	api := newAPI(r)
+	api.GET("/b", h)
+}
+
+func newAPI(r *gin.Engine) *gin.RouterGroup {
+	api := r.Group("/api")
+	add := func(p string) *gin.RouterGroup { return api.Group(p) }
+	add("/x").GET("/a", h)
+	return api
+}
+`, want: []string{"/api/x/a:", "/api/b:"}, notWant: []string{"/api/x/b:"}, counted: 2, wrote: 2},
+	})
+}
+
+// goRoutesCase is one module whose routes.go holds code around a Routes
+// function, and what the reader must write, count and ask of it.
+type goRoutesCase struct {
+	code                  string
+	want, notWant         []string
+	counted, wrote, asked int
+}
+
+// goRoutesCases reads each case's module, its code in routes.go with a
+// handler h and a main that hands Routes a gin engine, and checks that
+// the paths fragment holds each wanted path once and no unwanted one,
+// and that every registration counted is written or asked once.
+func goRoutesCases(t *testing.T, cases map[string]goRoutesCase) {
+	t.Helper()
+	for name, c := range cases {
 		t.Run(name, func(t *testing.T) {
 			dir := goModuleRepository(t, map[string]string{
 				"go.mod":    "module example.com/svc\n\ngo 1.26\n",

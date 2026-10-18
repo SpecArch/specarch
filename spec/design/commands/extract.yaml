@@ -622,9 +622,14 @@ commands:
         still holding, and a name declared in a block, a router, a
         string or a literal, holding to the end of that block, so that a
         helper taking a prefix and a function registering routes under
-        it is followed through both; walks a literal declared in a block
-        that no call walked at the end of that block, the last declared
-        first; counts a registration, and writes it or asks about it,
+        it is followed through both; takes the router such a call
+        returns, of a literal or of a function of the module, as the
+        call's value, a literal's return never standing for the return
+        of the function it is written in, so that a helper taking a
+        prefix and returning the group under it is followed as well;
+        walks a literal declared in a block that no call walked at the
+        end of that block, the last declared first; counts a
+        registration, and writes it or asks about it,
         once for each call, router, arguments and whether it is behind a
         loop or a condition, however often the walk reaches it;
         walks a literal no call names, or passed to a call that never

@@ -720,21 +720,25 @@ func (sc *routeScope) bindParams(ft *ast.FuncType, bound map[int]binding, given 
 
 // walkLit walks a function literal with its parameters bound to what a
 // call passes them, in the scope of the function it is written in, so it
-// sees the routers and names around it.
-func (sc *routeScope) walkLit(lit *ast.FuncLit, bound map[int]binding, given bool) {
+// sees the routers and names around it, and gives the router it returns,
+// if any. The literal's return is its own: the return of the function it
+// is written in is kept apart from it.
+func (sc *routeScope) walkLit(lit *ast.FuncLit, bound map[int]binding, given bool) *routerNode {
 	if sc.active[lit] {
-		return
+		return nil
 	}
 	sc.active[lit], sc.g.rt.litCalled[lit] = true, true
 	defer delete(sc.active, lit)
 	restore := sc.bindParams(lit.Type, bound, given, lit.Pos())
 	// The routers the literal's own expressions give depend on what is
 	// bound, so each walk evaluates them afresh.
-	nodes := sc.nodes
-	sc.nodes = map[ast.Expr]*routerNode{}
+	nodes, ret := sc.nodes, sc.ret
+	sc.nodes, sc.ret = map[ast.Expr]*routerNode{}, nil
 	sc.walk(lit.Body)
-	sc.nodes = nodes
+	got := sc.ret
+	sc.nodes, sc.ret = nodes, ret
 	restore()
+	return got
 }
 
 // walkUncalled walks each function literal held in a local name that no
@@ -1031,7 +1035,8 @@ func (sc *routeScope) eval(e ast.Expr) *routerNode {
 }
 
 // evalCall is the router a call gives: a library's maker, a group or
-// subrouter, or what a function of the module returns.
+// subrouter, what a function literal held in a local name or bound to a
+// parameter returns, or what a function of the module returns.
 func (sc *routeScope) evalCall(call *ast.CallExpr) *routerNode {
 	sel, isSel := call.Fun.(*ast.SelectorExpr)
 	if isSel {
@@ -1045,6 +1050,18 @@ func (sc *routeScope) evalCall(call *ast.CallExpr) *routerNode {
 		}
 		if sel.Sel.Name == "Subrouter" {
 			return sc.subrouter(call)
+		}
+	}
+	if id, ok := call.Fun.(*ast.Ident); ok {
+		if hf, ok := sc.funcs[id.Name]; ok {
+			// A helper that takes a prefix and returns the group under it
+			// is followed through its value here; the statement walk,
+			// which reaches the call after the name it is assigned to,
+			// leaves it alone.
+			bound, routers := sc.bindings(call.Args)
+			sc.skip[call] = true
+			ret, _ := sc.callHeld(hf, bound, routers)
+			return ret
 		}
 	}
 	if fd, f := sc.callee(call); fd != nil {
@@ -1124,7 +1141,7 @@ func (sc *routeScope) within(child *routerNode, fn ast.Expr) {
 		}
 	default:
 		if hf, ok := sc.heldFunc(fn); ok {
-			sc.callHeld(hf, map[int]binding{0: {router: child}}, 1)
+			_, _ = sc.callHeld(hf, map[int]binding{0: {router: child}}, 1)
 		}
 	}
 }
@@ -1276,10 +1293,12 @@ func (hf heldFunc) home(sc *routeScope) *routeScope {
 // callHeld walks a function value a call names with its parameters bound:
 // a literal in the scope it is written in, even when a function it was
 // passed to calls it, and a function of the module as any call of one. It
-// says whether the call's arguments are to be descended into.
-func (sc *routeScope) callHeld(hf heldFunc, bound map[int]binding, routers int) bool {
+// gives the router the function returns, if any, and says whether the
+// call's arguments are to be descended into.
+func (sc *routeScope) callHeld(hf heldFunc, bound map[int]binding, routers int) (*routerNode, bool) {
 	if hf.lit != nil {
 		home := hf.home(sc)
+		var ret *routerNode
 		if home != sc {
 			// The literal is walked where it is written, but a loop or a
 			// condition this function calls it behind still holds.
@@ -1287,17 +1306,15 @@ func (sc *routeScope) callHeld(hf heldFunc, bound map[int]binding, routers int) 
 			if b := sc.branchNode(); b != nil {
 				home.outer, home.outerFile = b, sc.branchFile()
 			}
-			home.walkLit(hf.lit, bound, false)
+			ret = home.walkLit(hf.lit, bound, false)
 			home.outer, home.outerFile = outer, outerFile
-			sc.walkUnused(bound)
-			return false
+		} else {
+			ret = home.walkLit(hf.lit, bound, false)
 		}
-		home.walkLit(hf.lit, bound, false)
 		sc.walkUnused(bound)
-		return false
+		return ret, false
 	}
-	sc.walkBound(hf.file, hf.fd, bound, routers)
-	return true
+	return sc.walkBound(hf.file, hf.fd, bound, routers), true
 }
 
 // call reads one call: a registration, a mount, a check applied to a
@@ -1339,7 +1356,8 @@ func (sc *routeScope) call(call *ast.CallExpr) bool {
 	if id, ok := call.Fun.(*ast.Ident); ok {
 		if hf, ok := sc.funcs[id.Name]; ok {
 			bound, routers := sc.bindings(call.Args)
-			return sc.callHeld(hf, bound, routers)
+			_, descend := sc.callHeld(hf, bound, routers)
+			return descend
 		}
 	}
 	if fd, f := sc.callee(call); fd != nil {

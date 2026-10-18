@@ -323,3 +323,27 @@ A field whose type is a list without "null", such as `type: [object, string]`, g
 ```
 
 The Go schema library keeps a failed `contains` as one cause per item, and the Go build reported every cause. The Swift build reports a failed `contains` once, at the list. Both builds must print the same output for the same input.
+
+## BUG-022 — extract go: routes on a group a helper returns are not read
+
+- Reported: 2026-10-18
+- Fixed: 2026-10-19
+- Fixed by: the commit after the fix records it
+
+A gin service registers routes in three ways: on a plain group, through a local helper that takes a prefix and a callback (read since 0.6.4, BUG-018), and through a local helper that takes a prefix and returns the group:
+
+    returned := func(path string) *gin.RouterGroup {
+        g := v1.Group(path)
+        return g
+    }
+    {
+        g := returned("/d")
+        g.POST("/x", h)
+        g.PUT("/:id/y", h)
+    }
+
+Expected 5 operations: 1 under the plain group, 2 under the callback helper's group and 2 under the returned group. `specarch extract go` writes 3: both routes on the returned group are missing, and no question or warning is raised for them.
+
+Cause: the walk followed a call of a function value held in a local name, or bound to a parameter, only as a statement, never as a value. The router a call gives was a library's maker, a group or subrouter, or what a function of the module returns, so `g := returned("/d")` gave `g` no router, and the routes on `g` reached no registration, counted or asked. Beside it, a literal's `return` set the return of the function it is written in, so a function that declared such a helper and then returned its own group could hand a caller the helper's group instead.
+
+Found with 0.6.4.

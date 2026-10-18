@@ -476,7 +476,8 @@ changes `extract.yaml` first.
     field, from each function no call names, through the calls that pass
     them, with the literal strings and the function values a call passes
     bound as well, so a helper that takes a prefix and a function
-    registering routes under it is followed through both, joining the
+    registering routes under it is followed through both, and one that
+    returns the group it makes through its value, joining the
     literal prefixes of groups, routes, mounts,
     subrouters and `ServeMux` subtrees: `http.ServeMux` patterns, chi,
     gin, echo and gorilla/mux. A type of the module with `ServeMux`'s

@@ -2,11 +2,15 @@
 
 # SpecArch toolchain: traceability matrix
 
-Version 0.7.0 of the specification: 10 needs, 74 requirements, and 2 gaps. Each requirement is traced back to the needs it refines and forward to what satisfies it in the design and what verifies it in the tests and commissioning checks.
+Version 0.7.0 of the specification: 10 needs, 76 requirements, and 4 gaps. Each requirement is traced back to the needs it refines and forward to what satisfies it in the design and what verifies it in the tests and commissioning checks.
 
-**Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
+**Problems:** 4 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
+
+**Problem:** warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SA-75; add verifies: [SA-75] to the test that shows it is met [requirement_unverified@requirements/requirements/design-keywords.yaml#/requirements/SA-75]
 
 **Problem:** warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SA-57; add verifies: [SA-57] to the test that shows it is met [requirement_unverified@requirements/requirements/refinement.yaml#/requirements/SA-57]
+
+**Problem:** warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SA-76; add verifies: [SA-76] to the test that shows it is met [requirement_unverified@requirements/requirements/refinement.yaml#/requirements/SA-76]
 
 **Problem:** warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SA-74; add verifies: [SA-74] to the test that shows it is met [requirement_unverified@requirements/requirements/validator.yaml#/requirements/SA-74]
 
@@ -14,15 +18,15 @@ Version 0.7.0 of the specification: 10 needs, 74 requirements, and 2 gaps. Each 
 
 | Need | Status | Refined by |
 |---|---|---|
-| NEED-1 | accepted | SA-33, SA-34, SA-35, SA-47, SA-48, SA-50, SA-72, SA-1, SA-2, SA-3, SA-4, SA-5, SA-6, SA-51 |
+| NEED-1 | accepted | SA-33, SA-34, SA-35, SA-47, SA-48, SA-50, SA-75, SA-72, SA-1, SA-2, SA-3, SA-4, SA-5, SA-6, SA-51 |
 | NEED-2 | accepted | SA-33, SA-34, SA-36, SA-37, SA-38, SA-39, SA-40, SA-41, SA-42, SA-43, SA-52, SA-53, SA-54, SA-55, SA-56, SA-49, SA-62, SA-63, SA-65, SA-66, SA-70, SA-46, SA-61, SA-71, SA-32, SA-9, SA-10 |
-| NEED-3 | accepted | SA-22, SA-36, SA-67, SA-7, SA-8, SA-26, SA-16, SA-58, SA-59, SA-60, SA-19, SA-74 |
+| NEED-3 | accepted | SA-22, SA-36, SA-67, SA-75, SA-7, SA-8, SA-26, SA-16, SA-58, SA-59, SA-60, SA-19, SA-74 |
 | NEED-4 | accepted | SA-11, SA-2 |
 | NEED-5 | accepted | SA-35, SA-47, SA-68, SA-26, SA-16, SA-12, SA-23, SA-24, SA-25, SA-73 |
 | NEED-6 | accepted | SA-15, SA-13 |
 | NEED-7 | accepted | SA-14, SA-74 |
-| NEED-8 | accepted | SA-69, SA-70, SA-46, SA-59, SA-71, SA-17, SA-18, SA-19, SA-20, SA-30, SA-44, SA-45, SA-64, SA-72, SA-51 |
-| NEED-9 | accepted | SA-31, SA-29, SA-28, SA-27, SA-21, SA-22 |
+| NEED-8 | accepted | SA-69, SA-70, SA-46, SA-59, SA-71, SA-17, SA-18, SA-19, SA-20, SA-30, SA-44, SA-45, SA-64, SA-72, SA-76, SA-51 |
+| NEED-9 | accepted | SA-31, SA-29, SA-28, SA-27, SA-21, SA-22, SA-75 |
 | NEED-10 | accepted | SA-58, SA-60, SA-57 |
 
 ## 2. Requirements to design and verification
@@ -103,10 +107,12 @@ Version 0.7.0 of the specification: 10 needs, 74 requirements, and 2 gaps. Each 
 | SA-72 | NEED-1, NEED-8 | commands check; decisions ADR-124; decisions ADR-128 | tests check-dump-of-no-format; tests check-fails-on-a-difference; tests check-skips-a-partition; tests check-succeeds; tests check-usage-error |
 | SA-73 | NEED-5 | enums DocumentTarget; enums Rule; commands document; decisions ADR-129; decisions ADR-136; decisions ADR-137 | tests document-handover-none; tests document-writes-handover; tests validate-build-task-unknown; tests validate-handover-build-missing; tests validate-handover-incomplete; tests validate-handover-missing; tests validate-handover-no-customer; tests validate-handover-valid |
 | SA-74 | NEED-3, NEED-7 | decisions ADR-138 |   |
+| SA-75 | NEED-1, NEED-3, NEED-9 | decisions ADR-141 |   |
+| SA-76 | NEED-8 | decisions ADR-142; decisions ADR-143 |   |
 
 ## 3. Gaps
 
 The work the specification still owes, the same gaps the validator warns about. Rejected needs and rejected or retired requirements are left out.
 
-- Requirements no test, check or monitor verifies: SA-57, SA-74.
+- Requirements no test, check or monitor verifies: SA-75, SA-57, SA-76, SA-74.
 

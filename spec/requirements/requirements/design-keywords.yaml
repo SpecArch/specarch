@@ -398,3 +398,16 @@ requirements:
     verification: test
     needs: [NEED-2, NEED-8]
     why: Read from an estate's sources, each generated key, each index and each list route was a could question on every table or route, so most of the questions an owner read were noise; and what a reader read but no generator wrote back would be lost the first time the schema or the API was generated.
+  # specarch-problem: warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SA-75; add verifies: [SA-75] to the test that shows it is met [requirement_unverified@requirements/requirements/design-keywords.yaml#/requirements/SA-75]
+  SA-75:
+    statement: A specification shall be able to declare a gateway, a service that verifies a token, reads one claim of it and forwards every request no operation answers, as received, to the dependency the claim's value selects, with the refusals it answers itself and no permission of its own; specarch validate shall check it against the design, the forwards shall fix the audience of the token it forwards by, and a gateway shall be a subject of tests with the cases it implies.
+    kind: functional
+    priority: should
+    status: proposed
+    acceptance:
+      - A gateway naming a token the specification lacks, a claim the token does not declare, an empty forwards, a value twice, a dependency not declared or of kind database, messageBroker or fileStore, or a forward's dependency under calls is reported as gateway in both builds; with claim aud, so is the token marked default or named by an operation, and const or enum on that token's aud is reported as token_audience.
+      - A test may name a gateway as its subject, and a gateway gets the cases forwarded to each dependency, no token, a bad signature, an expired token, an unknown claim value, a claim naming two forwarded services, and a dependency failing or timing out for each it forwards to or calls.
+      - The technical specification draws each forward in the context diagram and writes a section per gateway with its token, claim, forwards, middlewares, refusals and cases; generate openapi writes nothing for a gateway and prints a line naming it; a specification without one renders byte for byte as before.
+    verification: test
+    needs: [NEED-1, NEED-3, NEED-9]
+    why: A service that forwards by the token's audience had no place in its own specification, so the one behaviour it exists for was recorded as a surface not read; written as an element, its token, its table and its refusals are checked, drawn and tested like an operation's.

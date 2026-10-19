@@ -1,0 +1,82 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
+decisions:
+  ADR-143:
+    title: extract go reads a package-level string constant as the literal it names and a package-level list assigned once as a literal list, and asks a must question at every fallback handler and catch-all route in place of silence or a line
+    status: proposed
+    date: "2026-10-19"
+    context: |
+      docs/gateway.md, ask 3. Read with the 0.7.0 build, a Go module
+      whose router registers Match with a package-level var holding a
+      literal list of net/http method constants and a path from a
+      package-level const, and a GET with a constant path, gives must
+      questions for them, "the reader does not read as a literal" and
+      "not a literal list", where a literal list and path are read; and
+      gin's NoRoute handler gives nothing, no question, no line, and is
+      not counted among the registrations. ADR-075 reads a literal or a
+      known idiom and asks about the rest; it never drops a registration
+      the table knows.
+    decision: |
+      A package-level const of a string type is read as the literal it
+      names, in the same package through any of its files and in another
+      package of the module through its import, as a handler is found
+      today, and so is a constant written as literals and constants joined
+      by +. A package-level var is read as a literal list only when the
+      syntax shows it never changes: its value is a composite literal of
+      string literals, string constants or net/http method constants, and
+      no statement of the package assigns to the name, appends to it or
+      takes its address, by the test the reader applies to a name a call
+      bound once. Any other name stays the must question it is, and the
+      question says what stopped the reader: the second assignment and
+      its line, or the value that is not a list. The rule holds wherever
+      a literal path or method list is read: Match, gin's and echo's
+      method calls, gorilla/mux's Methods, chi's Method, a ServeMux
+      pattern and a group's prefix.
+
+      gin's NoRoute and NoMethod, chi's NotFound and MethodNotAllowed,
+      gorilla/mux's NotFoundHandler and MethodNotAllowedHandler, echo's
+      HTTPErrorHandler and a ServeMux pattern of / alone with no method
+      are each a must question citing the call, or the assignment where the
+      library's fallback is a field, blocking gateways, asking
+      what the handler answers or forwards and by which claim, and are
+      counted as registrations. A route whose path ends in a catch-all,
+      which prints a line today, is the same must question, naming the
+      prefix and the methods, in place of the line. A gateway table
+      answers the question in the merge (ADR-142); an answer that the
+      handler answers a problem document is a decision that closes it
+      with nothing written.
+    why: |
+      Go gives a constant one value at compile time, so the syntax gives
+      it as surely as a literal's, and the reader's own question already
+      calls it a literal it does not read; a handler in another package is
+      found through the import today, so a constant is found the same
+      way. Go has no constant lists, so a method list named by a
+      package-level name is always a var, which the reader may read only
+      when nothing in the package can change it, and syntax can show that
+      for a whole package where it cannot for a value from outside the
+      module. A name that fails the test stays a question, since a value
+      assigned twice is a guess, and the question names the line so the
+      owner sees why.
+
+      A fallback handler is where a gateway lives in each library, and
+      where a plain 404 lives too; the reader cannot tell which, and
+      ADR-075 forbids dropping a registration the table knows on a
+      surface it reads, so a must question is the one record, and
+      blocking gateways is right because a handler that takes every
+      unmatched request is the shape of a gateway or of nothing. The
+      catch-all is the other way the same thing is written, so it takes
+      the same question in place of a line that said only that the
+      meta-model does not hold it.
+
+      These are reader changes and no meta-model change, built first:
+      they need no decision on the element, and a specification with a
+      question at its fallback handler is better than one that does not
+      know it has one. The readers' test holds: a constant and a list
+      assigned once are what the code says; the question writes nothing.
+    consequences: |
+      internal/extract resolves constants and lists assigned once and
+      asks at fallbacks and catch-alls; the walk paragraph of
+      spec/design/commands/extract.yaml, the Go table of
+      docs/reading-code.md and step 15 of docs/extraction.md say so; a
+      test with the fixture of docs/gateway.md, section 3; BUG-028 and
+      BUG-029 move to BUG_HISTORY.md with the fixing commit.
+    satisfies: [SA-76]

@@ -2,9 +2,9 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.7.0 of the specification: 74 requirements, 5 entities, 14 commands, 7 algorithms, 515 tests, 134 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.7.0 of the specification: 76 requirements, 5 entities, 14 commands, 7 algorithms, 515 tests, 137 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
-**Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
+**Problems:** 4 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
 ## 1. Introduction and goals
 
@@ -10134,6 +10134,182 @@ workflow reader is unchanged except that lanes are read past.
 
 **Insight:** A lane is BPMN's own way to say who does a step, and the people who read a process diagram expect it. BPMN puts a flow node in exactly one lane, so an approval of several roles needs a rule; its first role was chosen over a lane per set of roles because a BPMN lane is one participant's. The lane set is written always, and not only when a workflow has several approver roles, because one layout is one thing a viewer learns, and a one-role workflow with the system's lane and the role's lane is still plain. The existing ids are kept because they are already derived from the step names, stable across runs and across the XML and the SVG, so a click in a viewer and an element in a modeller name the same step, and a rename would break every file that cites one. The lane ids take a prefix of their own because BPMN forbids two elements one id, and the system's lane carries no suffix while a role's always does, so no role name can collide with it. The compiler test holds: every workflow is still written, and a step name that cannot be an id is written with a problem at it, as every other mark is. The acceptance test holds: the picture shows who approves what the day it is drawn, and a viewer can open the step a click lands on.
 
+### ADR-141: A gateway that forwards by a token claim is a design element of its own under gateways, after RFC 9110's gateway, with the token it verifies, the claim it reads, the dependency each value selects, its own refusals and no permission, and its forwards fix the token's audience
+
+Status: proposed, 2026-10-19.
+
+Context: docs/gateway.md, ask 1. A service in front of an estate's services
+registers routes only for its health and its metrics, and forwards
+every other request, whatever its method and path, to the service
+the bearer token's audience names, after verifying the token's
+signature against the issuer's keys. The meta-model could not hold
+it: an entry under paths is one method on one path with a
+permission and a handler, a path parameter holds one segment, and
+the readers set a catch-all aside with a line, so the behaviour the
+service exists for was missing from its specification, and the
+table of services was listed by gaps as a surface not read.
+
+Decision: The design gains gateways, a section keyed by a camelCase name,
+each a description; token, the key under tokens of the token the
+gateway verifies, with the word and meaning an operation's token
+has; claim, the name of a claim that token declares, whose value
+selects the service; forwards, a list of rows, each a value, the
+claim's value, and a dependency, the key of a dependency of kind
+system or identityProvider the request is forwarded to as received;
+calls, the dependencies called besides the forwards, the identity
+provider whose keys it fetches among them; middlewares, as an
+operation's; and refusals, what the gateway answers itself, in a
+middleware's form. A gateway names no permission and the schema has
+no key for one. It forwards every request no operation under paths
+answers; a path it must not forward is an operation that answers
+it, closed with nobody when nobody may reach it. A claim whose
+value is a list selects a service when exactly one of its values is
+a forward's, and is refused when two are.
+
+The validator, in both builds, reports as the rule gateway at the
+entry a token not declared, a claim the token does not declare, an
+empty forwards, a value twice, a dependency not declared or of kind
+database, messageBroker or fileStore, a forward's dependency under
+calls, and, when the claim is aud, the token marked default or named
+by an operation. token_audience (ADR-109) treats the aud of a token
+a gateway forwards by aud as fixed by the forwards and refuses const
+or enum on it. middleware, middleware_missing, dependency and problem
+reach a gateway as they reach an operation; link_missing (ADR-137)
+gains the gateway's forwards and calls, and the implementation
+schema's designRef admits gateways so a package implements one and
+the server that runs the package runs it.
+
+The derived cases, with the gateway a subject of tests: forwarded
+to <dependency> per forward; refused with no token, refused with a
+bad signature, denied with expired <token>; refused with an unknown
+<claim>; refused with a <claim> naming two forwarded services; and
+dependency fails <name> and dependency times out <name> for every
+dependency forwarded to or called. The technical specification's
+chapter 3 draws the gateway's edges in the context diagram, chapter
+6 gains a section per gateway with a sequence diagram of one
+forwarded request, the test plan lists its cases, and generate
+openapi writes nothing for it and prints a line naming it.
+
+Consequences: The design schema, its fragment schema and the Swift embed gain
+gateways; the implementation schema's designRef admits gateways;
+the rule gateway is new, token_audience and link_missing grow, in
+both builds, with cases; derive gains the cases and the rank table
+a row; document techspec draws the edges and the section, the test
+plan the rows, generate openapi the line; the convention's section
+and origin rows are added; the library estate gains a gateway
+module. The forward table's reader is ADR-142, the Go reader's
+fixes ADR-143.
+
+**Insight:** The word is RFC 9110's, section 3.7: a gateway, also a reverse proxy, is an intermediary that acts as an origin server for the outbound connection and forwards received requests inbound to another server or servers; upstream was not taken because the RFC gives it a direction that changes with the message, backend because it is a product's word, and proxy because ADR-136 gives it to a server in front of a service. claim is RFC 7519's. A section of its own rather than a catch-all operation under paths because OpenAPI has no catch-all, a path parameter holds one segment, and an operation must name a permission the gateway does not check. The table is design because a client must know which audience to ask the issuer for (RFC 8707's resource parameter) and what a wrong one is answered with; where each service is in an environment is a deployment's fact, a server with dependency per deployment (ADR-136), and the setting the code reads is declared as every setting is. The issuer is said by iss with const on the token, RFC 8414's issuer identifier, and the algorithm by the token's signature (ADR-097, RFC 8725 section 3.1), so no issuer or keys key is added; where the keys are, the issuer's jwks_uri, is a deployment's fact. The identity provider is what the gateway calls, so the context diagram and the link check see it with no special case. No permission, and still fail-closed (SA-5): the gateway decides nothing and answers no request of its own, the service it forwards to checks the permission of every path as it would without the gateway, and the gate is a token the issuer signed for a service the table holds; a request without one is refused, and the derived cases make that a test. The caller-context's rule that every hop's route has a permission is about a hop with routes of its own; a gateway has none, and it is no hop of the delegation chain either, since it presents nothing of its own. The forwards fix the audience because RFC 7519, section 4.1.3, is met the way a gateway meets it: the principal processing the token identifies itself with a value in aud, and the gateway identifies itself with every value in its table on the services' behalf, while each service still checks that aud names itself (RFC 9068, section 4). Writing the enum on the claim beside the table would say one list twice and give the validator a disagreement to report, which the Low IQ Tax forbids; const or enum on that aud is refused as aud on a Txn-Token is (ADR-109). The refusals are written and not derived because the statuses are the project's choice, 404 or 403 for an unknown audience. A prefix or a method list is left out because paths already carves the space and no system asked for a partial gateway; the shape admits them. The compiler test holds: a file with no gateways, and a token with no gateway, read and render as before; a wrong row is an error at the row and the section still draws the other forwards. The acceptance test holds: the gateway's section is the first page the services' teams read, and a remark on it changes one row. The element stacks on 0.3's step 4 (tokens) and the diagram keywords' items 2 and 4, so its build item follows them.
+
+### ADR-142: A gateway's table of services is printed by the project in SpecArch's gateway table format and read by extract gateway, as the route, permission and workflow tables are, never from the project's own file, and check compares it
+
+Status: proposed, 2026-10-19.
+
+Context: docs/gateway.md, ask 2. The gateway loads its table, a value of the
+claim to the setting that holds the service's address, from a file
+of its own format, so extract outline is all that reads it and gaps
+lists it as a surface not read. A reader of the table was asked
+for, of the file directly or of a dump the project writes.
+
+Decision: SpecArch defines the gateway table, gatewayTable 1, wrapped by
+tools/gateways/dump-gateway.sh around the project's printer with the
+folder's path, the commit and, for a submodule, the repository
+(ADR-098): the gateway's name, the claim it reads, the environment
+the addresses were resolved in or null, and one row per forward
+with the claim's value, the project's name for the service or null,
+the setting the address is read from or null, and the address as
+resolved or null; any other key, or one missing, is refused.
+
+extract gateway reads it into a tree: the gateway, stated, citing
+the dump and each row, with its claim and forwards; its description
+and its token must questions, the token's blocking it, its refusals
+a should question. Each row's dependency is named by the row's name
+in camelCase, else by a fixed rule from the value, the host's first
+label of a URI and the value itself otherwise, with a could question
+to rename it; kind system; protocol from the URL's scheme, or a
+should question when there is no URL; description and timeout must
+questions; two rows naming one dependency a must question at the
+gateway. A row's setting is a setting under configuration, named by
+extract go's camelCase rule for an environment variable, secret
+false, a string of format uri, described as the forwarded service's
+address, with a should question to confirm it is no secret, must
+when its name holds secret, token, key or password. With
+--implementation-out and an environment, the reader writes an
+implementation fragment holding that deployment's servers, one per
+row with an address, name, url and dependency (ADR-136); without an
+environment the addresses are not written and a line says so.
+
+merge leaves the Go reader's question at a fallback handler
+(ADR-143) out when a table's gateway answers it, by the rule for a
+question whose every blocked key another tree gives. check compares
+a specification with its gateway table: forward_not_served at a
+forward the table does not hold, forward_not_specified at a table
+row the specification does not hold, claim_differs at the gateway,
+each an error the allowlist may name.
+
+Consequences: tools/gateways/dump-gateway.sh, the source gateway of specarch
+extract with --implementation-out, the reader's paragraph in
+spec/design/commands/extract.yaml, merge's answer of the fallback
+question, check's three differences, a dump for the library
+estate's gateway and a CI step that extracts it twice. Built after
+ADR-141, since the tree it writes needs the element.
+
+**Insight:** A reader of the project's own file would put the rules of extract in a second place and read one project's format, which the readers' test forbids and ADR-118 declined for the workflow table; a printer that writes what the gateway loads gives a table that is what runs, which is ADR-044's reason for the route table. The alternative of a second route table version with a catch-all row lost: a route table's row is one operation with one permission, every reader of it would need a second shape for one row, and a forward is not a route. The reader writes what the table says and asks the rest: the table shows a lookup, not a verifier, so the token is a must question (the rule of docs/caller-context.md, The readers); a timeout and a description are not in a table; a name is derived by a fixed rule with the could question the permission table's names carry. The address is a deployment's fact, so it is written only where a deployment can hold it, the fragment of ADR-121 for the environment the printer names, and never into the design. The setting is written because the table names it and the code reads it, as extract go writes an environment variable. The readers' test holds: nothing is written that the table does not say. The compiler test holds: a refused table says why, and a tree with its must questions validates. The acceptance test holds: the owner sees the gateway's forwards the day the dump exists, and check says the day a row drifts.
+
+### ADR-143: extract go reads a package-level string constant as the literal it names and a package-level list assigned once as a literal list, and asks a must question at every fallback handler and catch-all route in place of silence or a line
+
+Status: proposed, 2026-10-19.
+
+Context: docs/gateway.md, ask 3. Read with the 0.7.0 build, a Go module
+whose router registers Match with a package-level var holding a
+literal list of net/http method constants and a path from a
+package-level const, and a GET with a constant path, gives must
+questions for them, "the reader does not read as a literal" and
+"not a literal list", where a literal list and path are read; and
+gin's NoRoute handler gives nothing, no question, no line, and is
+not counted among the registrations. ADR-075 reads a literal or a
+known idiom and asks about the rest; it never drops a registration
+the table knows.
+
+Decision: A package-level const of a string type is read as the literal it
+names, in the same package through any of its files and in another
+package of the module through its import, as a handler is found
+today, and so is a constant written as literals and constants joined
+by +. A package-level var is read as a literal list only when the
+syntax shows it never changes: its value is a composite literal of
+string literals, string constants or net/http method constants, and
+no statement of the package assigns to the name, appends to it or
+takes its address, by the test the reader applies to a name a call
+bound once. Any other name stays the must question it is, and the
+question says what stopped the reader: the second assignment and
+its line, or the value that is not a list. The rule holds wherever
+a literal path or method list is read: Match, gin's and echo's
+method calls, gorilla/mux's Methods, chi's Method, a ServeMux
+pattern and a group's prefix.
+
+gin's NoRoute and NoMethod, chi's NotFound and MethodNotAllowed,
+gorilla/mux's NotFoundHandler and MethodNotAllowedHandler, echo's
+HTTPErrorHandler and a ServeMux pattern of / alone with no method
+are each a must question citing the call, or the assignment where the
+library's fallback is a field, blocking gateways, asking
+what the handler answers or forwards and by which claim, and are
+counted as registrations. A route whose path ends in a catch-all,
+which prints a line today, is the same must question, naming the
+prefix and the methods, in place of the line. A gateway table
+answers the question in the merge (ADR-142); an answer that the
+handler answers a problem document is a decision that closes it
+with nothing written.
+
+Consequences: internal/extract resolves constants and lists assigned once and
+asks at fallbacks and catch-alls; the walk paragraph of
+spec/design/commands/extract.yaml, the Go table of
+docs/reading-code.md and step 15 of docs/extraction.md say so; a
+test with the fixture of docs/gateway.md, section 3; BUG-028 and
+BUG-029 move to BUG_HISTORY.md with the fixing commit.
+
+**Insight:** Go gives a constant one value at compile time, so the syntax gives it as surely as a literal's, and the reader's own question already calls it a literal it does not read; a handler in another package is found through the import today, so a constant is found the same way. Go has no constant lists, so a method list named by a package-level name is always a var, which the reader may read only when nothing in the package can change it, and syntax can show that for a whole package where it cannot for a value from outside the module. A name that fails the test stays a question, since a value assigned twice is a guess, and the question names the line so the owner sees why. A fallback handler is where a gateway lives in each library, and where a plain 404 lives too; the reader cannot tell which, and ADR-075 forbids dropping a registration the table knows on a surface it reads, so a must question is the one record, and blocking gateways is right because a handler that takes every unmatched request is the shape of a gateway or of nothing. The catch-all is the other way the same thing is written, so it takes the same question in place of a line that said only that the meta-model does not hold it. These are reader changes and no meta-model change, built first: they need no decision on the element, and a specification with a question at its fallback handler is better than one that does not know it has one. The readers' test holds: a constant and a list assigned once are what the code says; the question writes nothing.
+
 ## 10. Quality requirements
 
 The design tests: what must hold on every implementation. Golden scenarios succeed; red scenarios are refused.
@@ -10726,6 +10902,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | SA-68 | A requirement shall be able to name the stakeholder whose component fulfils it, and the requirement of another specification that does, and the validator shall then ask no element to satisfy it and no test to verify it. | functional | must | accepted | test | ownedBy on a requirement names a stakeholder of the specification, or is refused as stakeholder. A requirement with ownedBy draws neither requirement_unsatisfied nor requirement_unverified, in both builds. fulfilledBy, written <dependency>#/requirements/<id> beside ownedBy, is checked as a reference into the other specification when it is given in the same run, and is counted as unresolved otherwise. The traceability document lists the requirements held elsewhere under a heading of their own, with the stakeholder and the requirement that fulfils each, and leaves them out of its gaps. | NEED-5 |
 | SA-69 | specarch gaps and the questions document shall set the material a stakeholder must provide apart from the decisions a stakeholder must take, show a decision that answered a question only in part with the questions it opened, and show per stage what holds each output up. | functional | must | accepted | test | A question of kind material is listed in a group of its own, worded as what is needed and from whom, and the count of decisions each stakeholder must take leaves it out. A decision may name under opens the questions it raised; one that is neither open nor answered by a decision, or one the decision answers itself, is refused as question_opened, the same in both builds. An open question that a decision opened names that decision and the questions it answered, and so on back along the chain. The outputs table gives, per stage, how many questions hold an output up and the first of them, rather than every one. | NEED-8 |
 | SA-70 | specarch shall carry a column default the database computes, a table's plain indexes and a list served two ways from the sources into the specification and back into the generated SQL and OpenAPI, with no question for any of them. | functional | should | accepted | test | A field's generatedDefault, identifier or currentTime, is written by generate sql as the expression the type-rendering idiom names for the dialect; a dialect with none for it is an error at the field. A default beside generatedDefault, or generatedDefault on a field of another format, is refused by the schema in both builds. specarch extract database writes generatedDefault where the catalogue's default is the expression the idiom names for PostgreSQL, and keeps the could question for any other expression. An entity's mapping lists the plain indexes of its table under indexes; generate sql writes each, and the next migration creates an index added and drops one removed. A field an index names that the entity lacks, or indexes under a mapping that is not an entity's, is refused as field in both builds. specarch extract database writes each plain index of the catalogue into the implementation fragment that --implementation-out names, with no question for it; an index the mapping cannot hold stays a could question. specarch extract router reads a handler that serves a GET on a path and a POST on that path with a literal last segment as two operations named after the handler, the POST's with Post added, each citing both routes, with no question about the name. With bindings.http.listRoutes, generate openapi writes that POST twin of each list operation served by GET. | NEED-2, NEED-8 |
+| SA-75 | A specification shall be able to declare a gateway, a service that verifies a token, reads one claim of it and forwards every request no operation answers, as received, to the dependency the claim's value selects, with the refusals it answers itself and no permission of its own; specarch validate shall check it against the design, the forwards shall fix the audience of the token it forwards by, and a gateway shall be a subject of tests with the cases it implies. | functional | should | proposed | test | A gateway naming a token the specification lacks, a claim the token does not declare, an empty forwards, a value twice, a dependency not declared or of kind database, messageBroker or fileStore, or a forward's dependency under calls is reported as gateway in both builds; with claim aud, so is the token marked default or named by an operation, and const or enum on that token's aud is reported as token_audience. A test may name a gateway as its subject, and a gateway gets the cases forwarded to each dependency, no token, a bad signature, an expired token, an unknown claim value, a claim naming two forwarded services, and a dependency failing or timing out for each it forwards to or calls. The technical specification draws each forward in the context diagram and writes a section per gateway with its token, claim, forwards, middlewares, refusals and cases; generate openapi writes nothing for a gateway and prints a line naming it; a specification without one renders byte for byte as before. | NEED-1, NEED-3, NEED-9 |
 | SA-7 | specarch document and specarch generate shall write only into the folder the target owns, and with --check shall fail when the committed output differs. | functional | must | accepted | test | A run writes the target's files into its folder and nothing elsewhere. A run with --check on output edited by hand names the file and exits 1, writing nothing. | NEED-3 |
 | SA-8 | Every generated file shall name its source specification, version and meta-model, and a hand-written Markdown document shall change only between its markers. | functional | must | accepted | test | The first line of a generated document names the root file, its version and the meta-model. A marked region is rewritten and every other line of the document is unchanged. | NEED-3 |
 | SA-26 | specarch document shall write the change and defect register and the release notes from the records beside a specification, kept current with --check like the other documents. | functional | should | accepted | test | The register lists open change requests and defects before the closed ones, each with its status, what it affects and its decision. The release notes list the releases newest first, each with its changes and fixes grouped as added, changed, removed and fixed. | NEED-3, NEED-5 |
@@ -10756,6 +10933,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | SA-57 | Every output SpecArch generates shall name the element of the specification it came from, and a remark made at the user acceptance test shall be recorded as a change request or a defect that names the build it is about, where it was seen, what was observed and what was expected, and why the result was not what was wanted, and shall enter the specification as a decision, a question or a rejection, with what it reaches listed before anything changes. | functional | should | proposed | test | A web page generated from a page of the specification carries the page's pointer and the pointer of each field and action it draws, and a build for an environment that shows the trace shows the pointer, the version and the digest on screen. A change request in the acceptance phase without the build, what was observed or what was expected is reported, and so is one analysed without a cause. A decision that answers a change request whose decision is not approved is reported. The changes document lists, under each open change request, the tests, outputs, documents and approval its pointers reach. | NEED-10 |
 | SA-64 | specarch extract documents shall read a document in any language whose words a vocabulary gives, the English one SpecArch ships or a project's file, write the language on the source, and give for it the elements it gives for the same document in English; specarch merge shall read a number of days in a requirement by the vocabulary of its source's language. | functional | must | accepted | test | extract documents with --vocabulary on a document written in a second language gives the counts, the requirements' priorities, the entities' types, required fields and sensitivities, and the questions the same document in English gives, and writes language on the source. extract documents with no vocabulary named reads the document by the English vocabulary and writes the tree it wrote before vocabularies were data, byte for byte. A vocabulary that lists one word in two lists of one group, such as two sensitivities, is refused with the file, the line and the two lists; a language tag SpecArch ships no vocabulary for, given with no file, is refused with the keys a vocabulary holds. A leading table column headed with the vocabulary's row-number word is skipped in every table, and --given-outside writes givenOutside on the source. merge reads a requirement's number of days in the units and number words of its source's language, from the shipped vocabulary or the one given with --vocabulary, and says once per source that its requirements are not compared when there is neither. | NEED-8 |
 | SA-72 | specarch check shall compare a specification with the route tables, permission tables and catalogue dumps of its code, read by the readers of specarch extract, print every difference as a problem at its entry, and exit 1 on a difference the allowlist does not name or a line of the allowlist that names none. | functional | should | accepted | test | An operation the router does not serve, a route the specification does not name and a permission that differs between them are each an error, at the operation or at the route's line in the dump. A grant only one of the specification and the permission table holds, after each side's grants are widened by the permissions they imply, is an error at the role or at the grant's line in the dump. A table, a column, a type as PostgreSQL spells it, a nullability, a generated default, a primary key, a foreign key, a unique constraint, a check constraint's name or a listed plain index that differs between the tables generate sql writes and the catalogue is an error; the text of a check and an index the mapping does not list are reports that never fail. A partition of the catalogue is never compared and never a table the specification does not hold; a partitioned table's index, which the catalogue prints with ON ONLY, is compared as any plain index. Each problem ends with an id that names the rule and what the difference is about, the same wherever the entry is written; a difference whose id the allowlist holds is counted and not printed, and the run exits 0 when every difference is allowed or a report. A line of the allowlist that no failing difference matches or that repeats one is an error at that line; with --since, so is a line the allowlist did not hold at that revision. | NEED-1, NEED-8 |
+| SA-76 | specarch extract gateway shall read a gateway table the project's printer wrote from what the gateway loads into a gateway with its forwards, dependencies and settings, asking for what the table does not say; specarch check shall compare a specification's gateways with it; and specarch extract go shall read a route whose path is a package-level constant or whose method list is a package-level list assigned once as it reads a literal one, and shall ask a must question at every fallback handler and catch-all route. | functional | should | proposed | test | extract gateway on a table with two rows writes the gateway with its claim and two forwards, two dependencies of kind system with their protocol from the addresses, two settings, and must questions for the gateway's description and token and for each dependency's description and timeout, byte-identical twice; a table with a repeated value or a key the format lacks is refused with the reason; with --implementation-out and an environment it writes that deployment's servers with name, url and dependency. check reports a forward only the specification holds as forward_not_served, one only the table holds as forward_not_specified and a claim that differs as claim_differs, each an error the allowlist may name. extract go writes a route registered with Match on a package-level list of method constants and a path from a package-level constant, in the same package or another of the module, as it writes one with a literal list and path, and asks the must question naming the line for a list assigned in a second place. extract go asks a must question blocking gateways at a NoRoute, NoMethod, NotFound, MethodNotAllowed or NotFoundHandler registration and at a route whose path ends in a catch-all, each counted as a registration, and merge leaves it out when a gateway table's tree answers it. | NEED-8 |
 | SA-1 | specarch validate shall check every specification and implementation file given against the JSON Schema of its kind and meta-model version. | functional | must | accepted | test | A file that breaks the schema is reported with rule schema, its file, line and YAML path. A file that passes the schema and every other rule produces no output and status 0. | NEED-1 |
 | SA-2 | Every reference inside a specification shall resolve to an object of the right kind in the same specification, wherever its file is in the tree. | functional | must | accepted | test | A misspelt relation target, enum, operation, page, algorithm, decision, requirement, need, stakeholder, source or environment is reported with its own rule, naming the file and line of the reference. A name defined in two files of the specification is reported with both files. An operation, command or page's enabledBy that is not a setting of configuration, or names one that is not boolean, is reported as setting; a valid one derives the case disabled by <setting>, the element refused with the setting off. | NEED-1, NEED-4 |
 | SA-3 | Every check constraint, condition of a unique constraint and formula shall parse and type-check in the fixed expression language. | functional | must | accepted | test | An expression outside the subset is refused with a message naming the construct. An expression that mixes types without a written conversion is refused with the conversion to write. A unique constraint's where is an expression over the entity's fields that gives true or false, like a check; a where on a check constraint is refused. | NEED-1 |
@@ -10847,6 +11025,10 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 
 **Insight on SA-70:** Read from an estate's sources, each generated key, each index and each list route was a could question on every table or route, so most of the questions an owner read were noise; and what a reader read but no generator wrote back would be lost the first time the schema or the API was generated.
 
+**Problem on SA-75:** warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SA-75; add verifies: [SA-75] to the test that shows it is met [requirement_unverified@requirements/requirements/design-keywords.yaml#/requirements/SA-75]
+
+**Insight on SA-75:** A service that forwards by the token's audience had no place in its own specification, so the one behaviour it exists for was recorded as a surface not read; written as an element, its token, its table and its refusals are checked, drawn and tested like an operation's.
+
 **Insight on SA-26:** Reviewers and operators read what changed and why in documents; kept apart from the specification, the history stays out of it and still reaches them.
 
 **Note on SA-14:** From Protocol buffers compiler plug-in protocol, plugin.proto, 2024: A plug-in reads a CodeGeneratorRequest from standard input and writes a CodeGeneratorResponse to standard output; protoc writes the files, so a plug-in never touches the disk. <https://github.com/protocolbuffers/protobuf/blob/main/src/google/protobuf/compiler/plugin.proto>
@@ -10912,6 +11094,10 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 **Insight on SA-64:** A document in another language gave its outline and nothing else, every table a could line, since the commitment words, the headers and the units were English in the code; a wrong or missing word has to be one line in a data file that the project changes without a release.
 
 **Insight on SA-72:** A specification nobody compares with its code drifts and is then read by nobody; a gate that fails on every old difference is switched off, and one whose allowlist may grow lets the drift back in.
+
+**Problem on SA-76:** warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SA-76; add verifies: [SA-76] to the test that shows it is met [requirement_unverified@requirements/requirements/refinement.yaml#/requirements/SA-76]
+
+**Insight on SA-76:** The table a gateway forwards by was readable by nothing, a route registered through the module's own constants was a question where the code was plain, and a handler that takes every unmatched request was dropped with no question, which is the one thing a reader may never do.
 
 **Insight on SA-1:** The schema is the one definition of a file's shape; checking it first means every later rule can assume the shape.
 
@@ -11005,6 +11191,8 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-72 | commands check; decisions ADR-124; decisions ADR-128 | tests check-dump-of-no-format; tests check-fails-on-a-difference; tests check-skips-a-partition; tests check-succeeds; tests check-usage-error |
 | SA-73 | enums DocumentTarget; enums Rule; commands document; decisions ADR-129; decisions ADR-136; decisions ADR-137 | tests document-handover-none; tests document-writes-handover; tests validate-build-task-unknown; tests validate-handover-build-missing; tests validate-handover-incomplete; tests validate-handover-missing; tests validate-handover-no-customer; tests validate-handover-valid |
 | SA-74 | decisions ADR-138 |   |
+| SA-75 | decisions ADR-141 |   |
+| SA-76 | decisions ADR-142; decisions ADR-143 |   |
 
 ## Sources
 

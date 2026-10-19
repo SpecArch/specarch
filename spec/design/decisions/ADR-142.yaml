@@ -1,0 +1,83 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
+decisions:
+  ADR-142:
+    title: A gateway's table of services is printed by the project in SpecArch's gateway table format and read by extract gateway, as the route, permission and workflow tables are, never from the project's own file, and check compares it
+    status: proposed
+    date: "2026-10-19"
+    context: |
+      docs/gateway.md, ask 2. The gateway loads its table, a value of the
+      claim to the setting that holds the service's address, from a file
+      of its own format, so extract outline is all that reads it and gaps
+      lists it as a surface not read. A reader of the table was asked
+      for, of the file directly or of a dump the project writes.
+    decision: |
+      SpecArch defines the gateway table, gatewayTable 1, wrapped by
+      tools/gateways/dump-gateway.sh around the project's printer with the
+      folder's path, the commit and, for a submodule, the repository
+      (ADR-098): the gateway's name, the claim it reads, the environment
+      the addresses were resolved in or null, and one row per forward
+      with the claim's value, the project's name for the service or null,
+      the setting the address is read from or null, and the address as
+      resolved or null; any other key, or one missing, is refused.
+
+      extract gateway reads it into a tree: the gateway, stated, citing
+      the dump and each row, with its claim and forwards; its description
+      and its token must questions, the token's blocking it, its refusals
+      a should question. Each row's dependency is named by the row's name
+      in camelCase, else by a fixed rule from the value, the host's first
+      label of a URI and the value itself otherwise, with a could question
+      to rename it; kind system; protocol from the URL's scheme, or a
+      should question when there is no URL; description and timeout must
+      questions; two rows naming one dependency a must question at the
+      gateway. A row's setting is a setting under configuration, named by
+      extract go's camelCase rule for an environment variable, secret
+      false, a string of format uri, described as the forwarded service's
+      address, with a should question to confirm it is no secret, must
+      when its name holds secret, token, key or password. With
+      --implementation-out and an environment, the reader writes an
+      implementation fragment holding that deployment's servers, one per
+      row with an address, name, url and dependency (ADR-136); without an
+      environment the addresses are not written and a line says so.
+
+      merge leaves the Go reader's question at a fallback handler
+      (ADR-143) out when a table's gateway answers it, by the rule for a
+      question whose every blocked key another tree gives. check compares
+      a specification with its gateway table: forward_not_served at a
+      forward the table does not hold, forward_not_specified at a table
+      row the specification does not hold, claim_differs at the gateway,
+      each an error the allowlist may name.
+    why: |
+      A reader of the project's own file would put the rules of extract
+      in a second place and read one project's format, which the readers'
+      test forbids and ADR-118 declined for the workflow table; a printer
+      that writes what the gateway loads gives a table that is what runs,
+      which is ADR-044's reason for the route table. The alternative of a
+      second route table version with a catch-all row lost: a route
+      table's row is one operation with one permission, every reader of
+      it would need a second shape for one row, and a forward is not a
+      route.
+
+      The reader writes what the table says and asks the rest: the table
+      shows a lookup, not a verifier, so the token is a must question
+      (the rule of docs/caller-context.md, The readers); a timeout and a
+      description are not in a table; a name is derived by a fixed rule
+      with the could question the permission table's names carry. The
+      address is a deployment's fact, so it is written only where a
+      deployment can hold it, the fragment of ADR-121 for the environment
+      the printer names, and never into the design. The setting is
+      written because the table names it and the code reads it, as
+      extract go writes an environment variable.
+
+      The readers' test holds: nothing is written that the table does not
+      say. The compiler test holds: a refused table says why, and a tree
+      with its must questions validates. The acceptance test holds: the
+      owner sees the gateway's forwards the day the dump exists, and check
+      says the day a row drifts.
+    consequences: |
+      tools/gateways/dump-gateway.sh, the source gateway of specarch
+      extract with --implementation-out, the reader's paragraph in
+      spec/design/commands/extract.yaml, merge's answer of the fallback
+      question, check's three differences, a dump for the library
+      estate's gateway and a CI step that extracts it twice. Built after
+      ADR-141, since the tree it writes needs the element.
+    satisfies: [SA-76]

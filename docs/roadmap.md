@@ -262,6 +262,20 @@ with a check that every declared call has a link, the model a program
 reads the specification through, and lanes and ids in the BPMN output.
 It ends with six build items in order.
 
+A gateway in front of an estate's services, which verifies the token,
+reads its audience and forwards every other request to the service the
+audience names, had no element, no reader for its table of services, and
+a Go reader that asked at every route registered through the module's
+own constants; `docs/gateway.md` decides the three, proposed on
+2026-10-19 for the owner's approval (ADR-141 to ADR-143): `gateways` in
+the design with the token, the claim, the forwards and the refusals and
+no permission, the forwards fixing the token's audience; a printed
+gateway table read by `extract gateway` and compared by `check`; and
+the Go reader reading a package-level constant as a literal and asking
+at every fallback handler and catch-all (BUG-028, BUG-029). It ends with
+three build items in order, the reader fixes first and the element after
+0.3's tokens and the diagram keywords' dependency and server kinds.
+
 ## 6. Changes, defects, releases and operation
 
 The life after commissioning, designed in `docs/maintenance.md`: change

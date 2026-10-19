@@ -24,3 +24,19 @@ func TestKebab(t *testing.T) {
 		}
 	}
 }
+
+// TestEncodeQuotesNumericText writes a string whose text reads as a
+// number, such as a commit of digits, in quotes, so a reader of the file
+// gets the string back and a schema that asks for one accepts it.
+func TestEncodeQuotesNumericText(t *testing.T) {
+	for _, commit := range []string{"1111111111111111111111111111111111111111", "1234567"} {
+		out, err := encode(mapping("commit", commit, "depth", 3))
+		if err != nil {
+			t.Fatalf("encode: %v", err)
+		}
+		want := "commit: \"" + commit + "\"\ndepth: 3\n"
+		if string(out) != want {
+			t.Errorf("encode of commit %s:\n got %q\nwant %q", commit, out, want)
+		}
+	}
+}

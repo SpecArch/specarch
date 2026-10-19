@@ -267,7 +267,11 @@ func matches(_ re: NSRegularExpression, _ s: String) -> Bool {
 
 /// Resolves a scalar's tag the way YAML 1.2's core schema does: quoted and
 /// block scalars are strings; a plain scalar is null, a bool, an int, a
-/// float, a timestamp or a string by its form.
+/// float, a timestamp or a string by its form. One form follows yaml.v3
+/// instead of the core schema, on purpose (ADR-202): a plain decimal
+/// integer that fits neither Int64 nor UInt64 is a float, as the Go build
+/// reads it, so both builds report it as a number where a string is
+/// expected.
 private func resolveTag(_ v: String, explicit: String, style: YNode.Style) -> String {
     switch explicit {
     case "tag:yaml.org,2002:str" where style != .plain: return "!!str"

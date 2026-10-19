@@ -127,7 +127,15 @@ decisions:
       only where the mapping starts.
     decision: |
       Parse with Yams and resolve plain scalars by YAML 1.2's core schema
-      (null, bool, int, float, timestamp), as yaml.v3 does. When Yams refuses
+      (null, bool, int, float, timestamp), with yaml.v3's reading of one
+      form: a plain decimal integer that fits neither Int64 nor UInt64 is
+      read as a float. The core schema puts no width on an int, so a
+      forty-digit value is an int there; yaml.v3 has no integer that wide
+      and reads it as a float, and the Go build reads through yaml.v3, so
+      the Swift build reads it the same way, and a value of that form
+      where the schema asks for a string is a number in both builds, with
+      the type error at its line. A 0x, 0o or 0b form past 64 bits is
+      text in both builds. When Yams refuses
       a repeated key, rename every later repeat in the text, keeping all
       lines in place, and parse again, so each repeat is reported on its own
       line with its path. The repeat keeps its own name in the node tree and
@@ -144,6 +152,12 @@ decisions:
       rule may then differ. A key repeated inside a flow mapping, such as
       `{ a: 1, a: 2 }`, is refused as yaml_syntax at the mapping, where the
       Go build reports duplicate_key for the repeat and checks the rest.
+      A plain decimal integer past 64 bits is a number, not a string, so
+      an unquoted all-digit commit or id is reported where the schema
+      asks for a string; the conformance case validate-unquoted-commit
+      shows it. A decimal so wide that a Double holds no finite value for
+      it is text in both builds, tagged !!int here and !!str by yaml.v3,
+      as the 0x, 0o and 0b forms past 64 bits are.
   ADR-203:
     title: A JSON Schema evaluator for exactly the keywords the schemas use
     status: accepted

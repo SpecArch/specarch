@@ -164,11 +164,11 @@ func bodyDownloadAttachment(aepr *api.DXAPIEndPointRequest, r DownloadAttachment
 	if !ok {
 		return aepr.WriteResponseAndNewErrorf(http.StatusNotFound, "ATTACHMENT_NOT_FOUND", "no attachment %s", r.AttachmentId)
 	}
-	return SendStream(aepr, DownloadAttachmentMediaType, r.AttachmentId+".bin", size, DownloadAttachmentMaxBytes, &pattern{n: size})
+	return SendStream(aepr, DownloadAttachmentStatus, DownloadAttachmentMediaType, r.AttachmentId+".bin", size, DownloadAttachmentMaxBytes, &pattern{n: size})
 }
 
 func bodyExportVault(aepr *api.DXAPIEndPointRequest, r ExportVaultRequest) error {
-	return SendStream(aepr, ExportVaultMediaType, "vault."+r.Format, exportSize, ExportVaultMaxBytes, &pattern{n: exportSize})
+	return SendStream(aepr, ExportVaultStatus, ExportVaultMediaType, "vault."+r.Format, exportSize, ExportVaultMaxBytes, &pattern{n: exportSize})
 }
 
 const exportSize = 24 << 20

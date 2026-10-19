@@ -120,9 +120,11 @@ func DownloadAttachment(aepr *api.DXAPIEndPointRequest) error {
 	return bodyDownloadAttachment(aepr, r)
 }
 
-// DownloadAttachmentMediaType and DownloadAttachmentMaxBytes are the media type the design gives downloadAttachment's
-// file and the largest file it answers (0 for no limit), for SendStream.
+// DownloadAttachmentStatus, DownloadAttachmentMediaType and DownloadAttachmentMaxBytes are the status and the media type
+// the design gives downloadAttachment's file and the largest file it answers (0 for no
+// limit), for SendStream.
 const (
+	DownloadAttachmentStatus    = 200
 	DownloadAttachmentMediaType = "application/octet-stream"
 	DownloadAttachmentMaxBytes  = int64(1073741824)
 )
@@ -163,9 +165,11 @@ func ExportVault(aepr *api.DXAPIEndPointRequest) error {
 	return bodyExportVault(aepr, r)
 }
 
-// ExportVaultMediaType and ExportVaultMaxBytes are the media type the design gives exportVault's
-// file and the largest file it answers (0 for no limit), for SendStream.
+// ExportVaultStatus, ExportVaultMediaType and ExportVaultMaxBytes are the status and the media type
+// the design gives exportVault's file and the largest file it answers (0 for no
+// limit), for SendStream.
 const (
+	ExportVaultStatus    = 200
 	ExportVaultMediaType = "application/octet-stream"
 	ExportVaultMaxBytes  = int64(0)
 )
@@ -425,10 +429,11 @@ func UploadStream(aepr *api.DXAPIEndPointRequest, maxBytes int64) io.Reader {
 
 // SendStream writes a download stream as dxlib's own sender does: the media
 // type, the length when known (size below 0 for unknown) and the file's name
-// in the headers, the status, then the bytes. A file above maxBytes (0 for
-// none) is refused before a byte is sent; a copy that fails abandons the
-// response, so a client never keeps a short file as a whole one.
-func SendStream(aepr *api.DXAPIEndPointRequest, mediaType, filename string, size, maxBytes int64, r io.Reader) error {
+// in the headers, the status the design gives the file, then the bytes. A
+// file above maxBytes (0 for none) is refused before a byte is sent; a copy
+// that fails abandons the response, so a client never keeps a short file as
+// a whole one.
+func SendStream(aepr *api.DXAPIEndPointRequest, status int, mediaType, filename string, size, maxBytes int64, r io.Reader) error {
 	if maxBytes > 0 && size > maxBytes {
 		return aepr.WriteResponseAndNewErrorf(http.StatusInternalServerError, "", "FILE_ABOVE_LIMIT:%d>%d", size, maxBytes)
 	}
@@ -441,8 +446,8 @@ func SendStream(aepr *api.DXAPIEndPointRequest, mediaType, filename string, size
 		w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%q", filename))
 	}
 	aepr.ResponseHeaderSent = true
-	w.WriteHeader(http.StatusOK)
-	aepr.ResponseStatusCode = http.StatusOK
+	w.WriteHeader(status)
+	aepr.ResponseStatusCode = status
 	if _, err := io.Copy(w, r); err != nil {
 		aepr.Log.Errorf(err, "SEND_STREAM_ERROR:%s", err.Error())
 		panic(http.ErrAbortHandler)

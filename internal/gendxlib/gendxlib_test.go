@@ -332,3 +332,38 @@ func TestMaps(t *testing.T) {
 		compiles(t, dxlib, resp.Files)
 	}
 }
+
+// TestStreamDeclared checks that a download stream answers the status the
+// design gives its file and the client sends an upload with the media type
+// the design gives it, in place of 200 and octet-stream (ADR-146).
+func TestStreamDeclared(t *testing.T) {
+	resp := generateFrom(t, envelopeFixture, func(s map[string]any) {
+		paths := s["paths"].(map[string]any)
+		download := paths["/attachments/download"].(map[string]any)["post"].(map[string]any)
+		responses := download["responses"].(map[string]any)
+		responses["206"] = responses["200"]
+		delete(responses, "200")
+		upload := paths["/attachments"].(map[string]any)["post"].(map[string]any)
+		upload["requestBody"].(map[string]any)["content"] = map[string]any{"image/png": map[string]any{"schema": map[string]any{"type": "string", "format": "binary"}}}
+	}, nil)
+	if len(resp.Files) != 2 {
+		t.Fatalf("want the service file and the client, got %d and %v", len(resp.Files), resp.Diagnostics)
+	}
+	for _, d := range resp.Diagnostics {
+		if d.Severity == "error" {
+			t.Errorf("unexpected error: %v", d)
+		}
+	}
+	service, client := resp.Files[0].Content, resp.Files[1].Content
+	for _, want := range []string{"\tDownloadAttachmentStatus    = 206\n", "\tDownloadAttachmentMediaType = \"application/octet-stream\"\n", "\tExportVaultStatus    = 200\n", "\tw.WriteHeader(status)\n"} {
+		if !strings.Contains(service, want) {
+			t.Errorf("the service file has no %q", want)
+		}
+	}
+	if !strings.Contains(client, `return c.upload(ctx, "uploadAttachment", "image/png", r, size)`) {
+		t.Error("the client does not send the upload as image/png, the media type the design gives it")
+	}
+	if dxlib := os.Getenv("SPECARCH_DXLIB"); dxlib != "" {
+		compiles(t, dxlib, resp.Files)
+	}
+}

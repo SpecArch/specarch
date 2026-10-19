@@ -93,10 +93,25 @@ func (g *goReader) writeTransport(ep *goEndpoint, op *yaml.Node, regAt, label st
 	}
 }
 
+// streamsOut says whether a response of the endpoint is the file a
+// download stream answers: a success code of a download stream. Such a
+// response carries the file's bytes, so a JSON body the registration or the
+// handler declares for it is never written, and nothing is asked about it
+// but whether it is answered at all.
+func (ep *goEndpoint) streamsOut(code string) bool {
+	if ep.stream != "download" || !strings.HasPrefix(code, "2") {
+		return false
+	}
+	if ep.templated == nil {
+		ep.templated = map[string]bool{}
+	}
+	return true
+}
+
 // streamResponses gives a download stream's success response the file it
 // answers: application/octet-stream, as dxlib's own sender sets it, a
-// binary string, in place of a data template the registration or the
-// handler declares, which is then a question.
+// binary string; a data template the registration or the handler declares
+// for it was left unwritten, and is a question.
 func (g *goReader) streamResponses(ep *goEndpoint, declared *yaml.Node, codes *[]string, label, regAt string) {
 	if ep.stream != "download" {
 		return
@@ -117,24 +132,12 @@ func (g *goReader) streamResponses(ep *goEndpoint, declared *yaml.Node, codes *[
 			resp = mapping()
 			set(declared, c, resp)
 		}
-		if content := child(resp, "content"); content != nil {
+		if ep.templated[c] {
 			g.question("should", fmt.Sprintf("%s registers %s as a download stream, whose %s response is the file's bytes, and its registration or handler gives that response a JSON body. Which does it answer?", regAt, label, c),
 				[]string{ep.at + "/responses/" + c + "/content"}, "A download stream writes the file to the response as dxlib's sender does, with no JSON body, so a body declared for it is what the running system does not send.", g.at(regAt, "Registers "+label+" as a download stream with a body on its "+c+" response."))
-			resp.Content = withoutKey(resp, "content")
 		}
 		set(resp, "content", mapping("application/octet-stream", mapping("schema", flow(mapping("type", "string", "format", "binary")))))
 	}
-}
-
-// withoutKey is a mapping's content with one key and its value left out.
-func withoutKey(m *yaml.Node, key string) []*yaml.Node {
-	var out []*yaml.Node
-	for i := 0; i+1 < len(m.Content); i += 2 {
-		if m.Content[i].Value != key {
-			out = append(out, m.Content[i], m.Content[i+1])
-		}
-	}
-	return out
 }
 
 // transportSays is what a registration says of its transport, for the

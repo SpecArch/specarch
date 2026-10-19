@@ -582,6 +582,16 @@ func (g *gen) dxOperation(path, method string, op, item map[string]any) *yaml.No
 		if len(props) > 0 {
 			g.diags = append(g.diags, g.problem(at, "%s streams an upload and takes parameters (%s); dxlib reads an upload stream's parameters from the X-Var header, which the meta-model does not hold, so an upload in the dxlib dialect takes none", id, strings.Join(sortedKeys(props), ", ")))
 		}
+		// The validator leaves the design one binary media type; dxlib
+		// takes an upload stream only as octet-stream, so another is
+		// written as that and said, and the go-dxlib client sends the
+		// design's, which dxlib does not read on an upload stream.
+		for _, mt := range sortedKeys(obj(obj(op["requestBody"])["content"])) {
+			if mt != "application/octet-stream" {
+				g.diags = append(g.diags, Diagnostic{File: g.root, Line: 1, Severity: "warning", Path: at + "/requestBody", Rule: "generator",
+					Message: fmt.Sprintf("%s streams an upload of %s, written as application/octet-stream: dxlib hands a handler an upload stream's body unread only as that type; the go-dxlib client sends %s, which dxlib accepts, since it does not read the Content-Type of an upload stream", id, mt, mt)})
+			}
+		}
 		body := mapping()
 		add(body, "required", boolean(true))
 		c := mapping()

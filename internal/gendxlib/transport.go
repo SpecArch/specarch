@@ -89,16 +89,28 @@ func stream(o operation) string {
 	return text(obj(o.node["stream"])["direction"])
 }
 
-// streamMediaType is the media type of a download stream's success
-// response, octet-stream when it names none.
-func streamMediaType(o operation) string {
+// streamSuccess is the success response a download stream answers the file
+// with, its status and media type: the validator leaves one 2xx response
+// with one binary media type; 200 and octet-stream when it names none.
+func streamSuccess(o operation) (int, string) {
 	for _, code := range sortedKeys(obj(o.node["responses"])) {
 		if !strings.HasPrefix(code, "2") {
 			continue
 		}
 		for _, mt := range sortedKeys(obj(obj(obj(o.node["responses"])[code])["content"])) {
-			return mt
+			var status int
+			fmt.Sscan(code, &status)
+			return status, mt
 		}
+	}
+	return 200, "application/octet-stream"
+}
+
+// uploadMediaType is the media type the design gives an upload stream's
+// body, octet-stream when it names none.
+func uploadMediaType(o operation) string {
+	for _, mt := range sortedKeys(obj(obj(o.node["requestBody"])["content"])) {
+		return mt
 	}
 	return "application/octet-stream"
 }
@@ -233,10 +245,11 @@ func (g *gen) transport() {
 		}
 		g.line("// SendStream writes a download stream as dxlib's own sender does: the media")
 		g.line("// type, the length when known (size below 0 for unknown) and the file's name")
-		g.line("// in the headers, the status, then the bytes. A file above maxBytes (0 for")
-		g.line("// none) is refused before a byte is sent; a copy that fails abandons the")
-		g.line("// response, so a client never keeps a short file as a whole one.")
-		g.line("func SendStream(aepr *api.DXAPIEndPointRequest, mediaType, filename string, size, maxBytes int64, r io.Reader) error {")
+		g.line("// in the headers, the status the design gives the file, then the bytes. A")
+		g.line("// file above maxBytes (0 for none) is refused before a byte is sent; a copy")
+		g.line("// that fails abandons the response, so a client never keeps a short file as")
+		g.line("// a whole one.")
+		g.line("func SendStream(aepr *api.DXAPIEndPointRequest, status int, mediaType, filename string, size, maxBytes int64, r io.Reader) error {")
 		g.line("\tif maxBytes > 0 && size > maxBytes {")
 		g.line("\t\treturn aepr.WriteResponseAndNewErrorf(http.StatusInternalServerError, \"\", \"FILE_ABOVE_LIMIT:%%d>%%d\", size, maxBytes)")
 		g.line("\t}")
@@ -249,8 +262,8 @@ func (g *gen) transport() {
 		g.line("\t\tw.Header().Set(\"Content-Disposition\", fmt.Sprintf(\"attachment; filename=%%q\", filename))")
 		g.line("\t}")
 		g.line("\taepr.ResponseHeaderSent = true")
-		g.line("\tw.WriteHeader(http.StatusOK)")
-		g.line("\taepr.ResponseStatusCode = http.StatusOK")
+		g.line("\tw.WriteHeader(status)")
+		g.line("\taepr.ResponseStatusCode = status")
 		g.line("\tif _, err := io.Copy(w, r); err != nil {")
 		g.line("\t\taepr.Log.Errorf(err, \"SEND_STREAM_ERROR:%%s\", err.Error())")
 		g.line("\t\tpanic(http.ErrAbortHandler)")

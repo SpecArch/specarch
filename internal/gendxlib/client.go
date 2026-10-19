@@ -104,14 +104,15 @@ func (g *gen) client(pkg string, info map[string]any) (string, bool) {
 	}
 	if hasUpload {
 		w("// upload posts a file as the request body, streamed from r, with size as its")
-		w("// Content-Length (below 0 for unknown, sent chunked), and reads the JSON answer.")
-		w("func (c *Client) upload(ctx context.Context, operationId string, r io.Reader, size int64) (int, map[string]any, error) {")
+		w("// Content-Length (below 0 for unknown, sent chunked) and mediaType as its")
+		w("// Content-Type, and reads the JSON answer.")
+		w("func (c *Client) upload(ctx context.Context, operationId, mediaType string, r io.Reader, size int64) (int, map[string]any, error) {")
 		w("\treq, err := http.NewRequestWithContext(ctx, http.MethodPost, c.BaseURL+\"/\"+operationId, r)")
 		w("\tif err != nil {")
 		w("\t\treturn 0, nil, err")
 		w("\t}")
 		w("\treq.ContentLength = size")
-		w("\treq.Header.Set(\"Content-Type\", \"application/octet-stream\")")
+		w("\treq.Header.Set(\"Content-Type\", mediaType)")
 		w("\tresp, err := c.do(req)")
 		w("\tif err != nil {")
 		w("\t\treturn 0, nil, err")
@@ -173,10 +174,11 @@ func (g *gen) client(pkg string, info map[string]any) (string, bool) {
 		encrypted := text(o.node["handshake"]) != "" && h != nil && text(o.node["handshake"]) == h.name
 		switch {
 		case stream(o) == "upload":
-			w("// %s calls %s: it streams the file from r as the request body, with size as", name, o.id)
-			w("// its length (below 0 for unknown), and answers the status and the JSON answer.")
+			w("// %s calls %s: it streams the file from r as the request body, of the media", name, o.id)
+			w("// type the design gives it, with size as its length (below 0 for unknown), and")
+			w("// answers the status and the JSON answer.")
 			w("func (c *Client) %s(ctx context.Context, r io.Reader, size int64) (int, map[string]any, error) {", name)
-			w("\treturn c.upload(ctx, %q, r, size)", o.id)
+			w("\treturn c.upload(ctx, %q, %q, r, size)", o.id, uploadMediaType(o))
 		case stream(o) == "download" && encrypted:
 			w("// %s calls %s: the request travels in the envelope of handshake %s, after", name, o.id, h.name)
 			w("// Handshake, and the file comes back plain, streamed into w.")

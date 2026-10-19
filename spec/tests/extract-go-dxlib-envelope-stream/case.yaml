@@ -8,23 +8,22 @@ standardOutput: |
   commit b6cba32caeca6d90d7070e5548af4240793048c8: the last change to .
   counted 2 Go files, 2 of them importing dxlib's api package and 0 that do not parse, and left out 0: every tracked Go file under . but test files and files in a folder below it named testdata or vendor, or that the go command ignores
   dxlib: counted 9 NewEndPoint calls, 0 NewWSEndPoint calls and 0 RegisterHandler calls: every call by that name in a file that imports dxlib's api package
-  wrote 9 operations on 9 paths, 2 permissions, 1 problem and 32 questions: one operation per endpoint NewEndPoint registers with a literal method and URI, outside a loop or a condition, one permission per privilege an endpoint names alone, one problem per literal reason a handler answers, one question per thing the source does not say, and one per thing the meta-model cannot hold
-  not held: api/endpoints.go:48: the endpoint POST /attachments/download: dxlib names it attachments_download from its URI, which is not camelCase, as an operationId is; it is named postAttachmentsDownload; could question Q-26
-  not held: api/endpoints.go:43: the endpoint POST /attachments/upload: dxlib names it attachments_upload from its URI, which is not camelCase, as an operationId is; it is named postAttachmentsUpload; could question Q-27
-  not held: api/endpoints.go:82: the endpoint POST /forms/upload: dxlib names it forms_upload from its URI, which is not camelCase, as an operationId is; it is named postFormsUpload; could question Q-28
-  not held: api/endpoints.go:32: the endpoint POST /notes/add: dxlib names it notes_add from its URI, which is not camelCase, as an operationId is; it is named postNotesAdd; could question Q-29
-  not held: api/endpoints.go:72: NewEndPoint registers POST /ping with EndPointTypeHTTPEndToEndEncryptionV1, which dxlib itself refuses with 422 as not implemented; written as a plain operation; could question Q-30
-  not held: api/endpoints.go:67: the endpoint POST /session/open: dxlib names it session_open from its URI, which is not camelCase, as an operationId is; it is named postSessionOpen; could question Q-31
-  not held: api/endpoints.go:57: the endpoint POST /vault/export: dxlib names it vault_export from its URI, which is not camelCase, as an operationId is; it is named postVaultExport; could question Q-32
-  not held: api/endpoints.go:57: operation POST /vault/export, response 200, media type application/json, property size: the format int64 is not a width the meta-model holds for a JSON integer; left out, and asked; must question Q-21
+  wrote 9 operations on 9 paths, 2 permissions, 1 problem and 31 questions: one operation per endpoint NewEndPoint registers with a literal method and URI, outside a loop or a condition, one permission per privilege an endpoint names alone, one problem per literal reason a handler answers, one question per thing the source does not say, and one per thing the meta-model cannot hold
+  not held: api/endpoints.go:48: the endpoint POST /attachments/download: dxlib names it attachments_download from its URI, which is not camelCase, as an operationId is; it is named postAttachmentsDownload; could question Q-25
+  not held: api/endpoints.go:43: the endpoint POST /attachments/upload: dxlib names it attachments_upload from its URI, which is not camelCase, as an operationId is; it is named postAttachmentsUpload; could question Q-26
+  not held: api/endpoints.go:82: the endpoint POST /forms/upload: dxlib names it forms_upload from its URI, which is not camelCase, as an operationId is; it is named postFormsUpload; could question Q-27
+  not held: api/endpoints.go:32: the endpoint POST /notes/add: dxlib names it notes_add from its URI, which is not camelCase, as an operationId is; it is named postNotesAdd; could question Q-28
+  not held: api/endpoints.go:72: NewEndPoint registers POST /ping with EndPointTypeHTTPEndToEndEncryptionV1, which dxlib itself refuses with 422 as not implemented; written as a plain operation; could question Q-29
+  not held: api/endpoints.go:67: the endpoint POST /session/open: dxlib names it session_open from its URI, which is not camelCase, as an operationId is; it is named postSessionOpen; could question Q-30
+  not held: api/endpoints.go:57: the endpoint POST /vault/export: dxlib names it vault_export from its URI, which is not camelCase, as an operationId is; it is named postVaultExport; could question Q-31
   handlers: followed 9 of 9 handlers into 9 functions, to 3 calls deep, and left 0 calls not followed: the handler of each operation, where it is a function literal, a function of the same package or one of another package of the module, and each function of the module its steps call
   derived 0 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers
-  not derived: 3 draft tests for operation postAttachmentsDownload, held up by Q-1, Q-33; the validator warns for them until the questions are answered
-  not derived: 2 draft tests for operation postAttachmentsUpload, held up by Q-2, Q-34; the validator warns for them until the questions are answered
-  not derived: 2 draft tests for operation postFormsUpload, held up by Q-3, Q-35, Q-4, Q-5; the validator warns for them until the questions are answered
-  not derived: 1 draft test for operation health, held up by Q-36, Q-6, Q-7, Q-8; the validator warns for them until the questions are answered
-  not derived: 4 draft tests for operation postNotesAdd, held up by Q-37, Q-38, Q-9; the validator warns for them until the questions are answered
-  not derived: 1 draft test for operation ping, held up by Q-10, Q-11, Q-12, Q-36; the validator warns for them until the questions are answered
-  not derived: 4 draft tests for operation prekey, held up by Q-13, Q-14, Q-39; the validator warns for them until the questions are answered
-  not derived: 1 draft test for operation postSessionOpen, held up by Q-15, Q-16, Q-17, Q-18, Q-40; the validator warns for them until the questions are answered
-  not derived: 4 draft tests for operation postVaultExport, held up by Q-19, Q-20, Q-21, Q-41; the validator warns for them until the questions are answered
+  not derived: 3 draft tests for operation postAttachmentsDownload, held up by Q-1, Q-32; the validator warns for them until the questions are answered
+  not derived: 2 draft tests for operation postAttachmentsUpload, held up by Q-2, Q-33; the validator warns for them until the questions are answered
+  not derived: 2 draft tests for operation postFormsUpload, held up by Q-3, Q-34, Q-4, Q-5; the validator warns for them until the questions are answered
+  not derived: 1 draft test for operation health, held up by Q-35, Q-6, Q-7, Q-8; the validator warns for them until the questions are answered
+  not derived: 4 draft tests for operation postNotesAdd, held up by Q-36, Q-37, Q-9; the validator warns for them until the questions are answered
+  not derived: 1 draft test for operation ping, held up by Q-10, Q-11, Q-12, Q-35; the validator warns for them until the questions are answered
+  not derived: 4 draft tests for operation prekey, held up by Q-13, Q-14, Q-38; the validator warns for them until the questions are answered
+  not derived: 1 draft test for operation postSessionOpen, held up by Q-15, Q-16, Q-17, Q-18, Q-39; the validator warns for them until the questions are answered
+  not derived: 4 draft tests for operation postVaultExport, held up by Q-19, Q-20, Q-40; the validator warns for them until the questions are answered

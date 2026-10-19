@@ -1019,7 +1019,12 @@ func (w *declaredWriter) responses(ep *goEndpoint, responses *yaml.Node, label, 
 		where := "operation " + label + ", response " + c
 		resp := mapping()
 		set(resp, "description", nonEmpty(r.description))
-		if r.content != nil {
+		switch {
+		case r.content != nil && ep.streamsOut(c):
+			// A download stream answers the file's bytes, never the
+			// template, so its widths are not asked (ADR-146).
+			ep.templated[c] = true
+		case r.content != nil:
 			content := w.o.content(mapping("application/json", mapping("schema", r.content)), where, at+"/content")
 			if content != nil {
 				set(resp, "content", content)

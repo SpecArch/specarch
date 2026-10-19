@@ -276,9 +276,14 @@ ed25519, aes-256-cbc) is `EndPointTypeHTTPEndToEndEncryptionV2`, and
 `EndPointTypeHTTPDownloadStreamV2` when it also streams a download; a
 handshake of other primitives is an error at the operation, since no type
 of dxlib's carries it. An upload stream is `EndPointTypeHTTPUploadStream`
-with a required `application/octet-stream` body of a binary string, and
-takes no parameter, since dxlib reads an upload's parameters from the
-X-Var header, which the meta-model does not hold; a download stream is
+with a required `application/octet-stream` body of a binary string, since
+dxlib hands a handler an upload's body unread only as that type: a design
+that names another binary media type for it gets octet-stream and a
+warning at the operation, and the go-dxlib client sends the design's
+type, which dxlib accepts, as it does not read an upload stream's
+Content-Type. An upload takes no parameter, since dxlib reads an upload's
+parameters from the X-Var header, which the meta-model does not hold
+(`docs/roadmap.md`, 5a); a download stream is
 `EndPointTypeHTTPDownloadStream` with its success response described and
 carrying no content, since dxlib's reader takes a response's content only
 as a JSON object. Every other operation is `EndPointTypeHTTPJSON`. The
@@ -361,11 +366,12 @@ the request body as a reader, `body<Operation>(aepr, r, UploadStream(aepr,
 limit))`, held to `limits.maxRequestBytes` by `UploadStream`, since dxlib
 caps a streamed upload only by its declared Content-Length and a chunked
 upload declares none; an upload takes no parameter, as in the dialect. A
-download's body streams the file through `SendStream` with the operation's
-media type and `limits.maxResponseBytes`, written as constants beside the
-handler: the headers, the status, then the bytes, as dxlib's own sender
-does, a file above the limit refused before a byte is sent and a failed
-copy abandoning the response so a client never keeps a short file whole.
+download's body streams the file through `SendStream` with the status and
+the media type the design gives the file and `limits.maxResponseBytes`,
+written as constants beside the handler: the headers, the status, then the
+bytes, as dxlib's own sender does, a file above the limit refused before a
+byte is sent and a failed copy abandoning the response so a client never
+keeps a short file whole.
 
 A second file, `specarch_dxlib_client.go`, is the client: `NewClient` on a
 base URL, and a method per operation that calls it as the dialect serves
@@ -373,8 +379,8 @@ it, a POST at `/<operationId>`. `Handshake` performs the exchange and holds
 the keys; an operation in the envelope is sealed and opened as the hooks
 do, the status and the answer being the ones inside, and a plain refusal
 (dxlib's `REFRESH_PREKEY`) is answered as it came; an upload streams from a
-reader with its size, a download streams into a writer and answers a
-refusal's JSON instead of the file. The round-trip test of this repository
+reader with its size as the media type the design gives it, a download
+streams into a writer and answers a refusal's JSON instead of the file. The round-trip test of this repository
 generates the vault fixture, binds the service to a dxlib API through the
 document the dialect writes, and drives the client through the handshake,
 an encrypted call, a refused second envelope, a 40 MiB upload and download

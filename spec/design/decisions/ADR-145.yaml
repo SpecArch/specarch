@@ -2,7 +2,7 @@
 decisions:
   ADR-145:
     title: A handshake is declared once with its key agreement, signature, cipher, establishing operation, lifetime and uses, and an operation names the one whose envelope its request and response travel in
-    status: accepted
+    status: proposed
     date: "2026-10-20"
     context: |
       Services on dxlib register most endpoints with an end-to-end

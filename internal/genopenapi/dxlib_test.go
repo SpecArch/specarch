@@ -214,3 +214,35 @@ func TestDxlibMapTypes(t *testing.T) {
 		}
 	}
 }
+
+// TestDxlibUploadMediaType checks that an upload stream whose design names
+// a binary media type other than octet-stream is written as octet-stream,
+// the only type dxlib streams an upload as, with a warning at the operation
+// saying so (ADR-146).
+func TestDxlibUploadMediaType(t *testing.T) {
+	req := request(t, "../../spec/tests/generate-openapi-dxlib-envelope-stream/project")
+	upload := at(t, req.Specification, "paths", "/attachments", "post", "requestBody").(map[string]any)
+	upload["content"] = map[string]any{"image/png": map[string]any{"schema": map[string]any{"type": "string", "format": "binary"}}}
+	resp := Generate(req)
+	if len(resp.Files) != 1 {
+		t.Fatalf("want one file, got %d and %v", len(resp.Files), resp.Diagnostics)
+	}
+	var doc map[string]any
+	if err := yaml.Unmarshal([]byte(resp.Files[0].Content), &doc); err != nil {
+		t.Fatalf("the document is not YAML: %v", err)
+	}
+	if at(t, doc, "paths", "/uploadAttachment", "post", "requestBody", "content", "application/octet-stream", "schema", "format") != "binary" {
+		t.Error("the upload's body is not an octet-stream binary string")
+	}
+	warned := false
+	for _, d := range resp.Diagnostics {
+		if d.Severity == "warning" && d.Path == "/paths/~1attachments/post/requestBody" && strings.Contains(d.Message, "uploadAttachment streams an upload of image/png, written as application/octet-stream") {
+			warned = true
+		} else {
+			t.Errorf("unexpected diagnostic: %v", d)
+		}
+	}
+	if !warned {
+		t.Errorf("no warning at the upload says image/png is written as octet-stream: %v", resp.Diagnostics)
+	}
+}

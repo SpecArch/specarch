@@ -114,15 +114,16 @@ type goEndpoint struct {
 	reads      []string // the parameters the handler reads, in order, each once
 	responses  map[string]string
 	answered   []goProblem
-	at         string       // the operation's pointer in the tree
-	handlerAt  string       // the handler's path:line, "" when it was not found
-	paging     *dxTable     // the dxlib table whose paging list the handler is
-	pagingCall string       // that method's name
-	shapes     *handlerRead // the body the handler decodes and the JSON it answers (ADR-140)
-	typeName   string       // the endpoint type's constant, "" when the argument is not a selector
-	typeText   string       // the endpoint type's argument, as the code writes it
-	handshake  string       // the handshake the operation travels in (ADR-145)
-	stream     string       // upload or download when it streams a file (ADR-146)
+	at         string          // the operation's pointer in the tree
+	handlerAt  string          // the handler's path:line, "" when it was not found
+	paging     *dxTable        // the dxlib table whose paging list the handler is
+	pagingCall string          // that method's name
+	shapes     *handlerRead    // the body the handler decodes and the JSON it answers (ADR-140)
+	typeName   string          // the endpoint type's constant, "" when the argument is not a selector
+	typeText   string          // the endpoint type's argument, as the code writes it
+	handshake  string          // the handshake the operation travels in (ADR-145)
+	stream     string          // upload or download when it streams a file (ADR-146)
+	templated  map[string]bool // the success codes of a download stream whose registration or handler declared a JSON body, which is not written
 }
 
 // goProblem is one refusal a handler answers.

@@ -10766,7 +10766,7 @@ follow with the same record: the step kinds name nothing of Go.
 
 ### ADR-145: A handshake is declared once with its key agreement, signature, cipher, establishing operation, lifetime and uses, and an operation names the one whose envelope its request and response travel in
 
-Status: accepted, 2026-10-20.
+Status: proposed, 2026-10-20.
 
 Context: Services on dxlib register most endpoints with an end-to-end
 encryption type: a client first calls a pre-key operation with its
@@ -10868,7 +10868,7 @@ docs/roadmap.md.
 
 ### ADR-146: An operation that carries a file says so with stream and its direction, the media type and the binary string stay where OpenAPI puts them, and the largest download is a limit
 
-Status: accepted, 2026-10-20.
+Status: proposed, 2026-10-20.
 
 Context: dxlib serves very large files: an upload endpoint hands the handler
 the request body as it arrives, from the first byte to the last, and
@@ -10909,20 +10909,25 @@ pre-key handshake (ADR-145); a download's success response is
 written as application/octet-stream, the type dxlib's own sender
 sets, with a schema of a binary string, in place of what the
 registration's data template declares, which is a should question
-when it declares one. generate openapi in the dxlib dialect writes
-the upload type with a requestBody of the binary string, as dxlib's
-reader asks, and the download type with its success response
-described but carrying no content, since dxlib's reader takes a
-response's content only as a JSON object. generate go-dxlib writes
+when it declares one, and never written. generate openapi in the
+dxlib dialect writes the upload type with a requestBody of the
+binary string as application/octet-stream, the one type dxlib
+streams an upload as, with a warning at the operation when the
+design names another, and the download type with its success
+response described but carrying no content, since dxlib's reader
+takes a response's content only as a JSON object. generate go-dxlib
+writes
 an upload helper that hands the body to the service's own code as a
 reader held to maxRequestBytes, since dxlib caps a streamed upload
 only by the declared Content-Length and a chunked upload declares
-none, and a download helper that writes the headers, the status and
-the bytes from a reader as dxlib's own sender does, refusing a file
+none, and a download helper that writes the headers, the status the
+design gives the file and the bytes from a reader as dxlib's own
+sender does, refusing a file
 above maxResponseBytes before a byte is sent and abandoning the
 response on a failed copy so a client never keeps a short file as a
-whole one; the client it writes uploads from and downloads to a
-stream. The tests target leaves a stream's call to the harness, the
+whole one; the client it writes uploads from a stream with the
+media type the design gives the file, and downloads to a stream. The
+tests target leaves a stream's call to the harness, the
 ui targets report an error at a page that submits to or loads from
 a stream, and the plain openapi target writes x-specarch-stream.
 

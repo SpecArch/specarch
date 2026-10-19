@@ -238,14 +238,15 @@ func (c *Client) callEncrypted(ctx context.Context, operationId string, body map
 }
 
 // upload posts a file as the request body, streamed from r, with size as its
-// Content-Length (below 0 for unknown, sent chunked), and reads the JSON answer.
-func (c *Client) upload(ctx context.Context, operationId string, r io.Reader, size int64) (int, map[string]any, error) {
+// Content-Length (below 0 for unknown, sent chunked) and mediaType as its
+// Content-Type, and reads the JSON answer.
+func (c *Client) upload(ctx context.Context, operationId, mediaType string, r io.Reader, size int64) (int, map[string]any, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.BaseURL+"/"+operationId, r)
 	if err != nil {
 		return 0, nil, err
 	}
 	req.ContentLength = size
-	req.Header.Set("Content-Type", "application/octet-stream")
+	req.Header.Set("Content-Type", mediaType)
 	resp, err := c.do(req)
 	if err != nil {
 		return 0, nil, err
@@ -308,8 +309,9 @@ func (c *Client) ExportVault(ctx context.Context, body map[string]any, w io.Writ
 	return c.download(ctx, "exportVault", body, true, w)
 }
 
-// UploadAttachment calls uploadAttachment: it streams the file from r as the request body, with size as
-// its length (below 0 for unknown), and answers the status and the JSON answer.
+// UploadAttachment calls uploadAttachment: it streams the file from r as the request body, of the media
+// type the design gives it, with size as its length (below 0 for unknown), and
+// answers the status and the JSON answer.
 func (c *Client) UploadAttachment(ctx context.Context, r io.Reader, size int64) (int, map[string]any, error) {
-	return c.upload(ctx, "uploadAttachment", r, size)
+	return c.upload(ctx, "uploadAttachment", "application/octet-stream", r, size)
 }

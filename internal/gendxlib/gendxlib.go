@@ -587,7 +587,8 @@ func (g *gen) operation(o operation) {
 		g.line("\treturn body%s(aepr, r, UploadStream(aepr, %d))", name, limitOf(o, "maxRequestBytes"))
 	case "download":
 		// The service's body streams the file through SendStream with the
-		// operation's media type and bound, written beside the handler.
+		// operation's status, media type and bound, written beside the
+		// handler.
 		g.helper("sendStream")
 		g.line("\treturn body%s(aepr, r)", name)
 	default:
@@ -596,10 +597,13 @@ func (g *gen) operation(o operation) {
 	g.line("}")
 	g.line("")
 	if stream(o) == "download" {
-		g.line("// %sMediaType and %sMaxBytes are the media type the design gives %s's", name, name, o.id)
-		g.line("// file and the largest file it answers (0 for no limit), for SendStream.")
+		status, mediaType := streamSuccess(o)
+		g.line("// %sStatus, %sMediaType and %sMaxBytes are the status and the media type", name, name, name)
+		g.line("// the design gives %s's file and the largest file it answers (0 for no", o.id)
+		g.line("// limit), for SendStream.")
 		g.line("const (")
-		g.line("\t%sMediaType = %q", name, streamMediaType(o))
+		g.line("\t%sStatus    = %d", name, status)
+		g.line("\t%sMediaType = %q", name, mediaType)
 		g.line("\t%sMaxBytes  = int64(%d)", name, limitOf(o, "maxResponseBytes"))
 		g.line(")")
 		g.line("")

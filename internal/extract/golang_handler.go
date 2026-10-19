@@ -959,6 +959,8 @@ func (w *declaredWriter) handlerResponses(ep *goEndpoint, responses *yaml.Node, 
 		case a.why != "":
 			g.question("must", fmt.Sprintf("%s: the handler of %s answers %s with the body %s, %s. Which fields does it carry, with their types?", a.clauses[0], label, code, a.text, a.why),
 				[]string{at + "/content"}, "A body built outside the call is not known by syntax; only a literal map gives its fields.", g.at(a.clauses[0], "Answers "+code+" with "+a.text+"."))
+		case a.content != nil && ep.streamsOut(code):
+			ep.templated[code] = true
 		case a.content != nil:
 			set(resp, "content", mapping("application/json", mapping("schema", a.content)))
 		}

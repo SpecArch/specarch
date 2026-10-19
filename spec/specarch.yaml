@@ -3,7 +3,7 @@ specarch: "0.2"
 
 info:
   title: SpecArch toolchain
-  version: 0.7.0
+  version: 0.8.0-dev
   description: |
     The `specarch` command: it validates SpecArch specifications and makes
     documents and code from them. This folder is the specification, with no

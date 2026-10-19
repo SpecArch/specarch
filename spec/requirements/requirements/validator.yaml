@@ -103,6 +103,7 @@ requirements:
       - source: sarif
         clause: result
         says: "A result names its rule, its kind and level, its locations, and partial fingerprints that recognise it in a later run."
+  # specarch-problem: warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SA-74; add verifies: [SA-74] to the test that shows it is met [requirement_unverified@requirements/requirements/validator.yaml#/requirements/SA-74]
   SA-74:
     statement: specarch model shall print, in both builds, one JSON document in RFC 8785's canonical form that holds, for every specification of the folders given, the merged document, every node's file, line and column, every resolved reference with the keyword that made it, the layout problems, and each implementation file and estate, so that a program reads a specification as specarch does without a loader of its own.
     kind: interface

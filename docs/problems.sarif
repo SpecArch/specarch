@@ -46,6 +46,37 @@
           "partialFingerprints": {
             "specarchId/v1": "requirement_unverified@requirements/requirements/refinement.yaml#/requirements/SA-57"
           }
+        },
+        {
+          "ruleId": "requirement_unverified",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "no test, commissioning check or monitor verifies requirement SA-74; add verifies: [SA-74] to the test that shows it is met"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../spec/requirements/requirements/validator.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 107,
+                  "startColumn": 3
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "/requirements/SA-74",
+                  "kind": "element"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "specarchId/v1": "requirement_unverified@requirements/requirements/validator.yaml#/requirements/SA-74"
+          }
         }
       ]
     }

@@ -56,7 +56,7 @@ var siteGroups = []struct {
 }{
 	{"Requirements", []string{"stakeholders", "needs", "requirements", "glossary", "assumptions", "constraints", "sources"}},
 	{"Data", []string{"enums", "entities", "views", "schemas"}},
-	{"Roles and permissions", []string{"permissions", "roles", "separationOfDuties", "session"}},
+	{"Roles and permissions", []string{"permissions", "roles", "separationOfDuties", "session", "middlewares"}},
 	{"Operations", []string{"paths", "commands", "channels", "dependencies", "jobs", "errors"}},
 	{"Pages and menus", []string{"pages", "menus", "flows", "accessibility", "theme"}},
 	{"Workflows", []string{"workflows"}},
@@ -83,7 +83,7 @@ var sectionTitles = map[string]string{
 var linkTo = map[string][]string{
 	"satisfies": {"requirements"}, "verifies": {"requirements"}, "requirements": {"requirements"}, "refines": {"requirements"},
 	"needs": {"needs"}, "stakeholders": {"stakeholders"}, "decidedBy": {"stakeholders"}, "owner": {"stakeholders"},
-	"permission": {"permissions"}, "permissions": {"permissions"},
+	"permission": {"permissions"}, "permissions": {"permissions"}, "middlewares": {"middlewares"},
 	"role": {"roles"}, "roles": {"roles"}, "approvers": {"roles"},
 	"entity": {"entities", "views"}, "subject": {"entities", "operations"}, "target": {"entities", "pages", "operations"},
 	"page": {"pages"}, "navigate": {"pages"}, "pages": {"pages"},

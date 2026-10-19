@@ -181,6 +181,7 @@ func (c *checker) checkDesign(d *design) {
 	c.checkEntities(d)
 	c.checkLookups(d)
 	c.checkOperations(d)
+	c.checkMiddlewares(d)
 	c.checkCommands(d)
 	c.checkDependencies(d)
 	c.checkJobs(d)
@@ -556,6 +557,7 @@ func (c *checker) checkOperations(d *design) {
 		c.checkLimits(o)
 		c.checkProblems(d, o)
 		c.checkInterface(o)
+		c.checkOperationMiddlewares(d, o)
 		c.checkGuard(d, source.Child(o.node, "guard"), o.pointer("guard"))
 	}
 }

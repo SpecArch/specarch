@@ -151,6 +151,56 @@ func (c *checker) checkInterface(o operation) {
 	c.warn(source.Key(o.node, "responses"), o.pointer("responses"), RuleSuccessResponseMissing, "%s answers %s and no success, so what it answers when it succeeds is not written; add its success response", o.id, strings.Join(codes, ", "))
 }
 
+// checkMiddlewares checks each middleware's refusals against the catalogue
+// of problem types, as a response's are checked (ADR-131).
+func (c *checker) checkMiddlewares(d *design) {
+	errors := source.Child(d.root, "errors")
+	for _, m := range source.Pairs(source.Child(d.root, "middlewares")) {
+		for i, r := range source.Items(source.Child(m.Value, "refusals")) {
+			status := source.Str(source.Child(r, "status"))
+			at := source.Pointer("middlewares", m.Key.Value, "refusals", fmt.Sprint(i))
+			p := source.Child(r, "problem")
+			if p == nil {
+				if len(source.Pairs(errors)) > 0 {
+					c.add(r, at, RuleProblem, "the specification declares its problem types under errors, so the %s refusal of middleware %s names one under problem", status, m.Key.Value)
+				}
+				continue
+			}
+			t := source.Child(errors, p.Value)
+			if t == nil {
+				c.add(p, at+"/problem", RuleProblem, "%s is not a problem type under errors%s", p.Value, suggestPairs(p.Value, errors))
+				continue
+			}
+			if s := source.Str(source.Child(t, "status")); s != status {
+				c.add(p, at+"/problem", RuleProblem, "%s is a %s problem, and this is a %s refusal; name a problem type of status %s", p.Value, s, status, status)
+			}
+		}
+	}
+}
+
+// checkOperationMiddlewares checks that an operation's middlewares are
+// declared, and warns of an operation that names none once the
+// specification declares its middlewares, as a refusal names its problem
+// once problem types are declared (ADR-131).
+func (c *checker) checkOperationMiddlewares(d *design, o operation) {
+	declared := map[string]*yaml.Node{}
+	for _, p := range source.Pairs(source.Child(d.root, "middlewares")) {
+		declared[p.Key.Value] = p.Value
+	}
+	list := source.Child(o.node, "middlewares")
+	if list == nil {
+		if len(declared) > 0 {
+			c.warn(source.Key(o.pathItem, o.method), o.pointer(), RuleMiddlewareMissing, "the specification declares its middlewares, and %s names none; list the ones it runs, in order, under middlewares, or write middlewares: [] if it runs none", o.id)
+		}
+		return
+	}
+	for i, item := range source.Items(list) {
+		if declared[item.Value] == nil {
+			c.add(item, o.pointer("middlewares", fmt.Sprint(i)), RuleMiddleware, "%s is not a middleware of the specification%s", item.Value, suggest(item.Value, declared))
+		}
+	}
+}
+
 // objectOnly says whether a type is object, alone or with null.
 func objectOnly(t *yaml.Node) bool {
 	if t == nil {

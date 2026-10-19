@@ -118,6 +118,54 @@ extension Checker {
     }
 }
 
+extension Checker {
+    /// Checks each middleware's refusals against the catalogue of problem
+    /// types, as a response's are checked (ADR-131).
+    func checkMiddlewares(_ d: Design) {
+        let errors = d.root.child("errors")
+        for m in pairs(d.root.child("middlewares")) {
+            for (i, r) in items(m.value.child("refusals")).enumerated() {
+                let status = str(r.child("status"))
+                let at = pointer("middlewares", m.key.value, "refusals", "\(i)")
+                guard let p = r.child("problem") else {
+                    if !pairs(errors).isEmpty {
+                        add(r, at, .problem, "the specification declares its problem types under errors, so the \(status) refusal of middleware \(m.key.value) names one under problem")
+                    }
+                    continue
+                }
+                guard let t = errors?.child(p.value) else {
+                    var valid: [String: YNode] = [:]
+                    for e in pairs(errors) { valid[e.key.value] = e.value }
+                    add(p, at + "/problem", .problem, "\(p.value) is not a problem type under errors\(suggest(p.value, valid))")
+                    continue
+                }
+                let s = str(t.child("status"))
+                if s != status {
+                    add(p, at + "/problem", .problem, "\(p.value) is a \(s) problem, and this is a \(status) refusal; name a problem type of status \(status)")
+                }
+            }
+        }
+    }
+
+    /// Checks that an operation's middlewares are declared, and warns of an
+    /// operation that names none once the specification declares its
+    /// middlewares, as a refusal names its problem once problem types are
+    /// declared (ADR-131).
+    func checkOperationMiddlewares(_ d: Design, _ o: Operation) {
+        var declared: [String: YNode] = [:]
+        for p in pairs(d.root.child("middlewares")) { declared[p.key.value] = p.value }
+        guard let list = o.node.child("middlewares") else {
+            if !declared.isEmpty {
+                warn(o.pathItem.key(o.method), o.pointer(), .middlewareMissing, "the specification declares its middlewares, and \(o.id) names none; list the ones it runs, in order, under middlewares, or write middlewares: [] if it runs none")
+            }
+            return
+        }
+        for (i, item) in items(list).enumerated() where declared[item.value] == nil {
+            add(item, o.pointer("middlewares", "\(i)"), .middleware, "\(item.value) is not a middleware of the specification\(suggest(item.value, declared))")
+        }
+    }
+}
+
 /// Says whether a type is object, alone or with null.
 func objectOnly(_ t: YNode?) -> Bool {
     guard let t else { return false }

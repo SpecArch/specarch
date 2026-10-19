@@ -1,0 +1,67 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0 }
+requirements:
+  CASE-1: { statement: One., kind: functional, priority: must, status: accepted, acceptance: [One.] }
+stakeholders:
+  owner: { description: The owner. }
+errors:
+  session-missing: { status: 401, title: No session, condition: The request carries no session. }
+  not-staff: { status: 403, title: Not staff, condition: The caller is not on the staff. }
+permissions:
+  desk.read: { description: See the desk. }
+roles:
+  desk: { description: The desk., permissions: [desk.read] }
+middlewares:
+  require-session:
+    description: Refuses a request that carries no session.
+    refusals:
+      - { status: 401, problem: session-missing }
+  require-staff:
+    description: Refuses a caller who is not on the staff.
+    refusals:
+      - { status: 403, problem: no-such-problem }
+      - { status: 401, problem: not-staff }
+      - { status: 403 }
+paths:
+  /desk:
+    get:
+      operationId: showDesk
+      summary: The desk
+      permission: desk.read
+      middlewares: [require-session, require-staf]
+      responses:
+        "200": { description: The desk. }
+      satisfies: [CASE-1]
+  /desk/health:
+    get:
+      operationId: deskHealth
+      summary: Whether the desk is up
+      permission: desk.read
+      middlewares: []
+      responses:
+        "200": { description: Up. }
+      satisfies: [CASE-1]
+  /desk/report:
+    get:
+      operationId: deskReport
+      summary: The desk's report
+      permission: desk.read
+      responses:
+        "200": { description: The report. }
+      satisfies: [CASE-1]
+  /desk/audit:
+    get:
+      operationId: deskAudit
+      summary: The desk's audit
+      permission: desk.read
+      responses:
+        "200": { description: The audit. }
+      satisfies: [CASE-1]
+questions:
+  Q-1:
+    question: Which middlewares does deskAudit run, in order?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1desk~1audit/get/middlewares']
+    decidedBy: owner
+    why: The source builds its chain at run time.

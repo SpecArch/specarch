@@ -514,6 +514,28 @@
           },
           "minItems": 1
         },
+        "middlewares": {
+          "description": "SpecArch keyword. The function of the code each middleware of the design is, by its name under middlewares: the package that declares it and its name there. Read for the http binding.",
+          "type": "object",
+          "propertyNames": { "type": "string", "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$" },
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "package": {
+                "description": "Where the function is declared, as the language names it: a Go import path, a module path of JavaScript or TypeScript, a Swift module, or a Dart file's path.",
+                "type": "string",
+                "minLength": 1
+              },
+              "function": {
+                "description": "The function's name in that package, or a type and its method joined by a dot.",
+                "type": "string",
+                "pattern": "^[A-Za-z_$][A-Za-z0-9_$]*(\\.[A-Za-z_$][A-Za-z0-9_$]*)?$"
+              }
+            },
+            "required": ["package", "function"],
+            "additionalProperties": false
+          }
+        },
         "listRoutes": {
           "description": "SpecArch keyword. That every list is served two ways: an operation with listOf served by GET on a path is served by POST too, on that path with the literal segment named here added, its search, filter, sort and page in a JSON body, so a long filter fits. specarch generate openapi writes that twin for each such operation, named after it with Post added, and specarch extract router reads a handler that serves both routes as the two operations without a question (ADR-121). Read for the http binding.",
           "type": "object",

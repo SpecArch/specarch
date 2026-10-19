@@ -249,6 +249,7 @@ func coveredByQuestions(_ ds: [Diagnostic], _ root: YNode) -> (kept: [Diagnostic
             isCovered = b.under(d.path) || (b.keys[d.path] ?? []).contains(missing)
         } else if d.severity == .warning {
             isCovered = b.under(d.path) || (d.rule == .acceptanceMissing && (b.keys[d.path] ?? []).contains("acceptance"))
+                || (d.rule == .middlewareMissing && (b.keys[d.path] ?? []).contains("middlewares"))
         } else if d.rule == .problem && d.message.hasSuffix(" names one under problem") {
             // A response whose problem the source does not name, while the
             // specification declares problem types: the problem is the key

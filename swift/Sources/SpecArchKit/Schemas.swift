@@ -180,6 +180,17 @@ let designSchemaJSON = #"""
       "description": "SpecArch keyword. How a caller's signed-in session ends: 'idleTimeout', the time without a request after which it expires, and 'absoluteTimeout', the time after signing in after which it expires whatever the caller does; at least one of the two (OWASP Session Management Cheat Sheet). Once a session is declared, every operation, command and page whose permission is not 'public' gets the derived red case 'denied with expired session'.",
       "$ref": "#/$defs/session"
     },
+    "middlewares": {
+      "description": "SpecArch keyword. The steps a request passes before an operation's handler runs, such as checking a session, a permission, a tenant or a rate, or writing an audit line, keyed by kebab-case name and declared once. An operation lists the ones it runs, in order, under middlewares. Which function of the code each one is belongs to the implementation file (bindings.http.middlewares).",
+      "type": "object",
+      "propertyNames": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/middleware"
+      }
+    },
     "paths": {
       "description": "OpenAPI keyword. HTTP endpoints keyed by path template.",
       "type": "object",
@@ -2447,6 +2458,15 @@ let designSchemaJSON = #"""
         "permission": {
           "description": "SpecArch keyword. The one permission a caller must hold. Use 'public' for an endpoint open to everyone.",
           "$ref": "#/$defs/permissionName"
+        },
+        "middlewares": {
+          "description": "SpecArch keyword. The middlewares the operation runs before its handler, in the order they run, by their names under middlewares; an empty list says it runs none.",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+          },
+          "uniqueItems": true
         },
         "parameters": {
           "$ref": "#/$defs/parameters"
@@ -5400,6 +5420,72 @@ let designSchemaJSON = #"""
       },
       "additionalProperties": false
     },
+    "middleware": {
+      "description": "SpecArch keyword. One step a request passes before an operation's handler runs: what it checks or does, and the refusals it answers when the check fails, each with its status and the problem type it names.",
+      "type": "object",
+      "properties": {
+        "description": {
+          "$ref": "#/$defs/markdown"
+        },
+        "refusals": {
+          "description": "The answers the step gives in place of the handler's, in the order it checks.",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "type": "integer",
+                "minimum": 400,
+                "maximum": 599
+              },
+              "problem": {
+                "description": "The problem type under errors that the refusal names.",
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+              },
+              "condition": {
+                "$ref": "#/$defs/markdown"
+              }
+            },
+            "required": [
+              "status"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 1
+        },
+        "satisfies": {
+          "$ref": "#/$defs/satisfies"
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
+        },
+        "audience": {
+          "$ref": "#/$defs/audience"
+        }
+      },
+      "required": [
+        "description"
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
     "job": {
       "description": "SpecArch keyword. Work the system does on its own: on a schedule, at an interval, or for each message it consumes. It acts as a role, reads and writes entities, may call dependencies and publish messages, and retries a failed item a bounded number of times.",
       "type": "object",
@@ -6252,6 +6338,28 @@ let implementationSchemaJSON = #"""
             "additionalProperties": false
           },
           "minItems": 1
+        },
+        "middlewares": {
+          "description": "SpecArch keyword. The function of the code each middleware of the design is, by its name under middlewares: the package that declares it and its name there. Read for the http binding.",
+          "type": "object",
+          "propertyNames": { "type": "string", "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$" },
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "package": {
+                "description": "Where the function is declared, as the language names it: a Go import path, a module path of JavaScript or TypeScript, a Swift module, or a Dart file's path.",
+                "type": "string",
+                "minLength": 1
+              },
+              "function": {
+                "description": "The function's name in that package, or a type and its method joined by a dot.",
+                "type": "string",
+                "pattern": "^[A-Za-z_$][A-Za-z0-9_$]*(\\.[A-Za-z_$][A-Za-z0-9_$]*)?$"
+              }
+            },
+            "required": ["package", "function"],
+            "additionalProperties": false
+          }
         },
         "listRoutes": {
           "description": "SpecArch keyword. That every list is served two ways: an operation with listOf served by GET on a path is served by POST too, on that path with the literal segment named here added, its search, filter, sort and page in a JSON body, so a long filter fits. specarch generate openapi writes that twin for each such operation, named after it with Post added, and specarch extract router reads a handler that serves both routes as the two operations without a question (ADR-121). Read for the http binding.",

@@ -23,6 +23,7 @@ var (
 	openapiVersion = regexp.MustCompile(`^3\.[01]\.[0-9]+$`)
 	typeNameWord   = regexp.MustCompile(`^[A-Z][A-Za-z0-9]*$`)
 	memberNameWord = regexp.MustCompile(`^[a-z][A-Za-z0-9]*$`)
+	closureName    = regexp.MustCompile(`^func[0-9]+$`)
 	enumValueWord  = regexp.MustCompile(`^[a-z][a-z0-9]*(_[a-z0-9]+)*$`)
 	mediaTypeWord  = regexp.MustCompile(`^[a-z]+/[a-z0-9.+-]+$`)
 	responseCode   = regexp.MustCompile(`^([1-5][0-9][0-9]|default)$`)
@@ -133,6 +134,9 @@ func OpenAPI(path, out, key string) (*Result, error) {
 	if o.permits != nil {
 		set(design, "permissions", o.permits)
 	}
+	if o.middlewares != nil {
+		set(design, "middlewares", o.middlewares)
+	}
 	if len(design.Content) > 0 {
 		stages = []string{"design"}
 		res.Tree.put("design/"+key+".yaml", design)
@@ -208,8 +212,13 @@ type openapiReader struct {
 	mappedFrom map[string]string
 	privileges *privilegeNames
 	permits    *yaml.Node
-	nextID     int
-	notHeld    []notHeld
+	// The middlewares x-dxlib-middlewares names (ADR-131), by name, with
+	// the function each is and the first operation that runs it.
+	middlewares     *yaml.Node
+	middlewareNames []string
+	middlewareOf    map[string][2]string
+	nextID          int
+	notHeld         []notHeld
 	// The component schemas written as an entity, a schema or an enum, by
 	// name; a reference to any other is written in place.
 	written map[string]string
@@ -334,6 +343,7 @@ func (o *openapiReader) read() {
 		}
 	}
 	o.declarePermissions()
+	o.declareMiddlewares()
 	if o.dxlibOps > 0 {
 		o.res.say("dialect: dxlib: %s carry x-dxlib-endpoint-type, and each one's x-dxlib-privileges is read as its permission; %s declared, each named alone by an operation's privileges, %d of them mapped from a privilege name in capitals by the rule of ADR-076", plural(o.dxlibOps, "operation"), plural(len(o.checkedBy), "permission"), len(o.mappedFrom))
 	}
@@ -536,6 +546,8 @@ func (o *openapiReader) operation(p, method string, op *yaml.Node, params []stri
 		case k == "operationId", k == "summary", k == "description", k == "parameters", k == "requestBody", k == "responses", k == "deprecated", k == "security":
 		case k == "x-dxlib-privileges" && dxlib:
 			// Read below as the operation's permission.
+		case k == "x-dxlib-middlewares" && dxlib:
+			// Read below as the operation's middlewares (ADR-131).
 		default:
 			o.gap(at, "operation %s: %s; left out", label, notHeldKey(k))
 		}
@@ -555,6 +567,7 @@ func (o *openapiReader) operation(p, method string, op *yaml.Node, params []stri
 	if dxlib {
 		o.dxlibOps++
 		o.dxlibPermission(out, op, label, pointer, at)
+		o.dxlibMiddlewares(out, op, label, pointer, at)
 		return out
 	}
 	o.question(fmt.Sprintf("Which permission does %s check? %s", label, o.securityText(op)),
@@ -622,7 +635,7 @@ func (o *openapiReader) dxlibPermission(out, op *yaml.Node, label, pointer, at s
 			o.checkedBy[permission] = append(o.checkedBy[permission], label)
 		}
 	case len(privileges) == 0:
-		chain := "the document does not name its middlewares"
+		chain := "it runs no middleware, since dxlib leaves x-dxlib-middlewares out for an empty chain"
 		if names := scalarList(child(op, "x-dxlib-middlewares")); len(names) > 0 {
 			chain = "its middlewares are " + joinAnd(names)
 		}
@@ -632,6 +645,67 @@ func (o *openapiReader) dxlibPermission(out, op *yaml.Node, label, pointer, at s
 		o.question(fmt.Sprintf("%s checks the privileges %s: dxlib lets a caller holding any one of them through, and an operation checks one permission. Which permission should it check?", label, joinAnd(privileges)),
 			[]string{at + "/permission"}, "An operation names one permission; choosing one of dxlib's would write a check the code does not make.")
 	}
+}
+
+// dxlibMiddlewares reads the middlewares of an operation in dxlib's
+// dialect: x-dxlib-middlewares names each function by the name the Go
+// runtime gives it, package path included, and the middleware is declared
+// by the kebab-case name of the function; dxlib leaves the key out when the
+// chain is empty, so its absence is none.
+func (o *openapiReader) dxlibMiddlewares(out, op *yaml.Node, label, pointer, at string) {
+	given := child(op, "x-dxlib-middlewares")
+	if given != nil && given.Kind != yaml.SequenceNode {
+		o.question(fmt.Sprintf("%s gives x-dxlib-middlewares as %s, which is not a list of names as dxlib writes it. Which middlewares does it run, in order?", label, inlineNode(given)),
+			[]string{at + "/middlewares"}, "dxlib's dialect writes the middlewares as a list, and a value in another form says nothing the reader can trust.")
+		return
+	}
+	names := []string{}
+	for _, item := range items(given) {
+		function := strings.TrimSuffix(item.Value, "-fm")
+		short := function[strings.LastIndex(function, "/")+1:]
+		parts := strings.Split(short, ".")
+		last := parts[len(parts)-1]
+		name := kebab(last)
+		if item.Kind != yaml.ScalarNode || len(parts) < 2 || closureName.MatchString(last) || !problemWord.MatchString(name) {
+			o.question(fmt.Sprintf("%s runs the middleware %s, which names no function the reader can name a middleware by, such as a function literal a call makes. Which middlewares does it run, in order?", label, inlineNode(item)),
+				[]string{at + "/middlewares"}, "A middleware is declared by the name of its function, and a closure is named only by the function that makes it.")
+			return
+		}
+		names = append(names, name)
+		if o.middlewareOf == nil {
+			o.middlewareOf = map[string][2]string{}
+		}
+		if _, seen := o.middlewareOf[name]; !seen {
+			o.middlewareOf[name] = [2]string{function, pointer}
+			o.middlewareNames = append(o.middlewareNames, name)
+		} else if prior := o.middlewareOf[name][0]; prior != function {
+			o.question(fmt.Sprintf("The document names the middlewares %s and %s, which give the one middleware name %s. Are they one middleware, or which name does each take?", prior, function, name),
+				[]string{"#/middlewares/" + name}, "A middleware is declared by its function's name, and two functions of one name in different packages may do different things.")
+		}
+	}
+	set(out, "middlewares", flow(value(names)))
+}
+
+// declareMiddlewares declares every middleware the operations run, citing
+// the first that runs it; what each checks and refuses is code, so it is
+// asked.
+func (o *openapiReader) declareMiddlewares() {
+	if len(o.middlewareNames) == 0 {
+		return
+	}
+	sort.Strings(o.middlewareNames)
+	o.middlewares = &yaml.Node{Kind: yaml.MappingNode}
+	var blocks []string
+	for _, name := range o.middlewareNames {
+		m := o.middlewareOf[name]
+		set(o.middlewares, name, mapping(
+			"origin", "stated",
+			"cites", []*yaml.Node{citation(o.key, m[1], "Runs "+m[0]+" before the handler.")},
+		))
+		blocks = append(blocks, "#/middlewares/"+name+"/description")
+	}
+	o.question(fmt.Sprintf("What does each middleware check or do, and what does it refuse with: %s? The document names each by its function and says nothing of what it does.", strings.Join(o.middlewareNames, ", ")),
+		blocks, "x-dxlib-middlewares names the functions a request passes before the handler, and what each checks is code; extract go reads it from the source.")
 }
 
 // printed says whether every operation of the document, under any method,

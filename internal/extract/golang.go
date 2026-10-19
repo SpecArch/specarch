@@ -94,7 +94,10 @@ type goEndpoint struct {
 	handler    string          // as the code writes it
 	chain      []string        // the middlewares, as the code writes them
 	chainExprs []ast.Expr
+	chainFile  *goFile // the file the chain's list is written in
 	chainKnown bool
+	chainText  string   // the chain's argument, as the code writes it
+	chainWhy   string   // why the chain is not read, "" when it is
 	privileges []string // nil when the call gives nil
 	privKnown  bool
 	id         string
@@ -166,6 +169,9 @@ func Go(paths []string, out, key, implementation string) (*Result, error) {
 	design := mapping()
 	if g.permits != nil {
 		set(design, "permissions", g.permits)
+	}
+	if g.middlewares != nil {
+		set(design, "middlewares", g.middlewares)
 	}
 	if len(g.paths.Content) > 0 {
 		set(design, "paths", g.paths)
@@ -258,6 +264,10 @@ type goReader struct {
 	deps      *yaml.Node
 	wireSnake bool // the bodies read name their fields in snake_case
 	dxlib     bool // a file imports dxlib's api package
+
+	middlewareOf    map[string]*goMiddleware // the middlewares the chains name, by name
+	middlewareNames []string
+	middlewares     *yaml.Node
 }
 
 func (g *goReader) question(priority, text string, blocks []string, why string, cites ...*yaml.Node) {
@@ -354,7 +364,7 @@ func (g *goReader) parse() error {
 		if line, text, ok := generatedMark(full); ok {
 			g.res.say("generated: %s:%d says it is generated from another source: %s", f, line, text)
 		}
-		file, err := parser.ParseFile(g.fset, f, src, parser.SkipObjectResolution)
+		file, err := parser.ParseFile(g.fset, f, src, parser.ParseComments|parser.SkipObjectResolution)
 		if err != nil {
 			reason := err.Error()
 			if list, ok := err.(interface{ Unwrap() []error }); ok && len(list.Unwrap()) > 0 {
@@ -592,9 +602,11 @@ func (g *goReader) registration(f *goFile, call *ast.CallExpr, name string, stac
 	ep.desc, _ = g.stringValue(f, call.Args[1])
 	g.declare(ep, f, call)
 	ep.handler = exprText(call.Args[7])
-	ep.chain, ep.chainKnown = exprList(call.Args[10])
-	if cl, ok := call.Args[10].(*ast.CompositeLit); ok {
-		ep.chainExprs = cl.Elts
+	ep.chainText = exprText(call.Args[10])
+	ep.chainExprs, ep.chainFile, ep.chainWhy = g.chainList(f, call.Args[10])
+	ep.chainKnown = ep.chainWhy == ""
+	for _, m := range ep.chainExprs {
+		ep.chain = append(ep.chain, exprText(m))
 	}
 	if names, ok := g.stringList(f, call.Args[11]); ok {
 		ep.privileges, ep.privKnown = names, true
@@ -757,22 +769,25 @@ func (g *goReader) write() {
 	problemAt := map[string]goProblem{} // problem name -> where it is first answered
 	problemStatus := map[string]map[int]bool{}
 	var problemOrder []string
+	g.readMiddlewares()
+	var answered []goProblem
 	for _, ep := range g.endpoints {
-		for _, p := range ep.answered {
-			if p.reason == "" {
-				continue
-			}
-			name := strings.ToLower(strings.NewReplacer("_", "-", " ", "-").Replace(p.reason))
-			if !problemWord.MatchString(name) {
-				continue
-			}
-			if problemStatus[name] == nil {
-				problemStatus[name] = map[int]bool{}
-				problemAt[name] = p
-				problemOrder = append(problemOrder, name)
-			}
-			problemStatus[name][p.status] = true
+		answered = append(answered, ep.answered...)
+	}
+	for _, name := range g.middlewareNames {
+		answered = append(answered, g.middlewareOf[name].refusals...)
+	}
+	for _, p := range answered {
+		name := problemName(p.reason)
+		if name == "" {
+			continue
 		}
+		if problemStatus[name] == nil {
+			problemStatus[name] = map[int]bool{}
+			problemAt[name] = p
+			problemOrder = append(problemOrder, name)
+		}
+		problemStatus[name][p.status] = true
 	}
 	conflicts := map[string][]string{} // a problem answered at two statuses -> the responses that would name it
 	w := g.declaredWriter()
@@ -858,6 +873,7 @@ func (g *goReader) write() {
 			}
 			set(op, "permission", nonEmpty(permission))
 			regAts[ep.at] = regAt
+			g.writeChain(ep, op, regAt, label)
 			if ep.decl != nil {
 				w.request(ep, op, regAt, label)
 			}
@@ -977,6 +993,7 @@ func (g *goReader) write() {
 		s.cites = append(s.cites, g.at(clause, says))
 	})
 	g.declarePermissions(checkedBy, firstAt, firstVia, mappedFrom, seeded)
+	g.writeMiddlewares(problemStatus, conflicts)
 	g.declareProblems(problemOrder, problemAt, problemStatus, conflicts)
 	permissions := len(checkedBy)
 	if !g.dxlib {

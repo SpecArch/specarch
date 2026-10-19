@@ -19,6 +19,21 @@ permissions:
     cites:
       - {source: code, clause: 'seed/seed.go:18', says: Grants LOANS.RENEW to desk-staff.}
       - {source: code, clause: 'seed/seed.go:15', says: Inserts the privilege LOANS.RENEW.}
+middlewares:
+  require-checks:
+    description: RequireChecks runs the desk's checks while they are switched on.
+    origin: stated
+    cites:
+      - {source: code, clause: 'api/middleware.go:24', says: RequireChecks is a middleware; it answers no refusal through its request.}
+      - {source: code, clause: 'api/endpoints.go:9', says: Runs RequireChecks before the handler.}
+  require-desk-key:
+    description: RequireDeskKey refuses a request without the desk's key, and lets every request through while no key is set.
+    refusals:
+      - {status: 401, problem: desk-key-wrong}
+    origin: stated
+    cites:
+      - {source: code, clause: 'api/middleware.go:12', says: RequireDeskKey is a middleware; it answers 401 DESK_KEY_WRONG.}
+      - {source: code, clause: 'api/endpoints.go:9', says: Runs RequireDeskKey before the handler.}
 paths:
   /branches/list:
     post:
@@ -26,6 +41,7 @@ paths:
       summary: List branches
       description: Lists the branches.
       permission: branches.read
+      middlewares: [require-desk-key]
       origin: stated
       cites:
         - {source: code, clause: 'api/endpoints.go:13', says: 'NewEndPoint registers POST /branches/list; its handler is BranchList.RequestSearchPagingList, its middlewares are RequireDeskKey, it declares no parameter and no response, and it checks BRANCHES.READ.'}
@@ -36,7 +52,14 @@ paths:
       summary: List loans
       description: Lists the loans a page at a time.
       permission: loans.read
+      middlewares: [require-desk-key, require-checks]
       origin: stated
       cites:
         - {source: code, clause: 'api/endpoints.go:9', says: 'NewEndPoint registers POST /loans/list; its handler is LoanList.RequestSearchPagingList, its middlewares are RequireDeskKey and RequireChecks, it declares the parameters search_text, row_per_page and page_index and no response, and it checks LOANS.READ.'}
         - {source: code, clause: 'api/tables.go:5', says: 'The handler of POST /loans/list is dxlib''s RequestSearchPagingList of this table. NewDXTableSimple makes the table desk.loans: its paging list searches title, member_name; orders by due_on, title; filters by member_id, state.'}
+errors:
+  desk-key-wrong:
+    status: 401
+    origin: stated
+    cites:
+      - {source: code, clause: 'api/middleware.go:18', says: Answers 401 with the reason DESK_KEY_WRONG.}

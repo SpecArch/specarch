@@ -261,8 +261,16 @@ questions:
     blocks: ['#/permissions/branches.read/description', '#/permissions/loans.renew/description']
     decidedBy: system-owner
     why: The source names the privilege an endpoint checks or a seed grants, and a seed's description is read only as a literal of the privilege's insert.
-  # specarch-problem: question: open_question: (could, decision) Not held: db/model.go:24: column desk.loans.place, DataTypeGeometryPoint: the meta-model has no type for it; left out. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-33 under answers. [Q-33]
+  # specarch-problem: question: open_question: (must, decision) What is each problem's title, and when is it answered: desk-key-wrong? Decided by system-owner. Answer with a decision record that names Q-33 under answers. [Q-33]
   Q-33:
+    question: 'What is each problem''s title, and when is it answered: desk-key-wrong?'
+    kind: decision
+    priority: must
+    blocks: ['#/errors/desk-key-wrong/title', '#/errors/desk-key-wrong/condition']
+    decidedBy: system-owner
+    why: The source gives a problem's status and reason, and not a title a person reads or the condition it is answered under.
+  # specarch-problem: question: open_question: (could, decision) Not held: db/model.go:24: column desk.loans.place, DataTypeGeometryPoint: the meta-model has no type for it; left out. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-34 under answers. [Q-34]
+  Q-34:
     question: 'Not held: db/model.go:24: column desk.loans.place, DataTypeGeometryPoint: the meta-model has no type for it; left out. Does the specification need it, written another way or described by hand?'
     kind: decision
     priority: could
@@ -271,8 +279,8 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: code, clause: 'db/model.go:24', says: 'Not held: column desk.loans.place, DataTypeGeometryPoint: the meta-model has no type for it; left out.'}
-  # specarch-problem: question: open_question: (could, decision) Not held: db/model.go:25: column desk.loans.shelf: its Type shelfType is not one of dxlib's data types by name; left out. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-34 under answers. [Q-34]
-  Q-34:
+  # specarch-problem: question: open_question: (could, decision) Not held: db/model.go:25: column desk.loans.shelf: its Type shelfType is not one of dxlib's data types by name; left out. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-35 under answers. [Q-35]
+  Q-35:
     question: 'Not held: db/model.go:25: column desk.loans.shelf: its Type shelfType is not one of dxlib''s data types by name; left out. Does the specification need it, written another way or described by hand?'
     kind: decision
     priority: could
@@ -281,8 +289,8 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: code, clause: 'db/model.go:25', says: 'Not held: column desk.loans.shelf: its Type shelfType is not one of dxlib''s data types by name; left out.'}
-  # specarch-problem: question: open_question: (could, decision) Not held: db/model.go:26: column desk.loans.weight, real: a 32-bit float; written as a double, which holds every value of it. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-35 under answers. [Q-35]
-  Q-35:
+  # specarch-problem: question: open_question: (could, decision) Not held: db/model.go:26: column desk.loans.weight, real: a 32-bit float; written as a double, which holds every value of it. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-36 under answers. [Q-36]
+  Q-36:
     question: 'Not held: db/model.go:26: column desk.loans.weight, real: a 32-bit float; written as a double, which holds every value of it. Does the specification need it, written another way or described by hand?'
     kind: decision
     priority: could
@@ -291,8 +299,8 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: code, clause: 'db/model.go:26', says: 'Not held: column desk.loans.weight, real: a 32-bit float; written as a double, which holds every value of it.'}
-  # specarch-problem: question: open_question: (could, decision) Not held: db/model.go:17: table desk.loans: its fields' IsUnique and References say how the database keeps a column, which the catalogue dump reads; left to it. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-36 under answers. [Q-36]
-  Q-36:
+  # specarch-problem: question: open_question: (could, decision) Not held: db/model.go:17: table desk.loans: its fields' IsUnique and References say how the database keeps a column, which the catalogue dump reads; left to it. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-37 under answers. [Q-37]
+  Q-37:
     question: 'Not held: db/model.go:17: table desk.loans: its fields'' IsUnique and References say how the database keeps a column, which the catalogue dump reads; left to it. Does the specification need it, written another way or described by hand?'
     kind: decision
     priority: could
@@ -301,8 +309,8 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: code, clause: 'db/model.go:17', says: 'Not held: table desk.loans: its fields'' IsUnique and References say how the database keeps a column, which the catalogue dump reads; left to it.'}
-  # specarch-problem: question: open_question: (could, decision) Not held: api/tables.go:5: the paging list of POST /loans/list searches, orders and filters by the fields its table's constructor lists, and the meta-model holds no such list on an operation; cited at the operation. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-37 under answers. [Q-37]
-  Q-37:
+  # specarch-problem: question: open_question: (could, decision) Not held: api/tables.go:5: the paging list of POST /loans/list searches, orders and filters by the fields its table's constructor lists, and the meta-model holds no such list on an operation; cited at the operation. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-38 under answers. [Q-38]
+  Q-38:
     question: 'Not held: api/tables.go:5: the paging list of POST /loans/list searches, orders and filters by the fields its table''s constructor lists, and the meta-model holds no such list on an operation; cited at the operation. Does the specification need it, written another way or described by hand?'
     kind: decision
     priority: could
@@ -311,8 +319,8 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: code, clause: 'api/tables.go:5', says: 'Not held: the paging list of POST /loans/list searches, orders and filters by the fields its table''s constructor lists, and the meta-model holds no such list on an operation; cited at the operation.'}
-  # specarch-problem: question: open_question: (could, decision) Not held: api/endpoints.go:13: the endpoint POST /branches/list: dxlib names it branches_list from its URI, which is not camelCase, as an operationId is; it is named postBranchesList. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-38 under answers. [Q-38]
-  Q-38:
+  # specarch-problem: question: open_question: (could, decision) Not held: api/endpoints.go:13: the endpoint POST /branches/list: dxlib names it branches_list from its URI, which is not camelCase, as an operationId is; it is named postBranchesList. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-39 under answers. [Q-39]
+  Q-39:
     question: 'Not held: api/endpoints.go:13: the endpoint POST /branches/list: dxlib names it branches_list from its URI, which is not camelCase, as an operationId is; it is named postBranchesList. Does the specification need it, written another way or described by hand?'
     kind: decision
     priority: could
@@ -321,8 +329,8 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: code, clause: 'api/endpoints.go:13', says: 'Not held: the endpoint POST /branches/list: dxlib names it branches_list from its URI, which is not camelCase, as an operationId is; it is named postBranchesList.'}
-  # specarch-problem: question: open_question: (could, decision) Not held: api/endpoints.go:9: the endpoint POST /loans/list: dxlib names it loans_list from its URI, which is not camelCase, as an operationId is; it is named postLoansList. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-39 under answers. [Q-39]
-  Q-39:
+  # specarch-problem: question: open_question: (could, decision) Not held: api/endpoints.go:9: the endpoint POST /loans/list: dxlib names it loans_list from its URI, which is not camelCase, as an operationId is; it is named postLoansList. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-40 under answers. [Q-40]
+  Q-40:
     question: 'Not held: api/endpoints.go:9: the endpoint POST /loans/list: dxlib names it loans_list from its URI, which is not camelCase, as an operationId is; it is named postLoansList. Does the specification need it, written another way or described by hand?'
     kind: decision
     priority: could
@@ -331,8 +339,8 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: code, clause: 'api/endpoints.go:9', says: 'Not held: the endpoint POST /loans/list: dxlib names it loans_list from its URI, which is not camelCase, as an operationId is; it is named postLoansList.'}
-  # specarch-problem: question: open_question: (could, decision) Not held: api/endpoints.go:9: the endpoint POST /loans/list declares no content type and the parameters search_text, row_per_page and page_index, which dxlib reads from the X-Var header as JSON; the meta-model holds no parameter carried in a header as JSON; left out. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-40 under answers. [Q-40]
-  Q-40:
+  # specarch-problem: question: open_question: (could, decision) Not held: api/endpoints.go:9: the endpoint POST /loans/list declares no content type and the parameters search_text, row_per_page and page_index, which dxlib reads from the X-Var header as JSON; the meta-model holds no parameter carried in a header as JSON; left out. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-41 under answers. [Q-41]
+  Q-41:
     question: 'Not held: api/endpoints.go:9: the endpoint POST /loans/list declares no content type and the parameters search_text, row_per_page and page_index, which dxlib reads from the X-Var header as JSON; the meta-model holds no parameter carried in a header as JSON; left out. Does the specification need it, written another way or described by hand?'
     kind: decision
     priority: could
@@ -341,8 +349,8 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: code, clause: 'api/endpoints.go:9', says: 'Not held: the endpoint POST /loans/list declares no content type and the parameters search_text, row_per_page and page_index, which dxlib reads from the X-Var header as JSON; the meta-model holds no parameter carried in a header as JSON; left out.'}
-  # specarch-problem: question: open_question: (could, decision) Not held: seed/seed.go:25: grant of LOANS.READ to "Branch_Manager": the role's name is not kebab-case, which a role name is; left out. Does the specification need it, written another way or described by hand? It blocks roles. Decided by system-owner. Answer with a decision record that names Q-41 under answers. [Q-41]
-  Q-41:
+  # specarch-problem: question: open_question: (could, decision) Not held: seed/seed.go:25: grant of LOANS.READ to "Branch_Manager": the role's name is not kebab-case, which a role name is; left out. Does the specification need it, written another way or described by hand? It blocks roles. Decided by system-owner. Answer with a decision record that names Q-42 under answers. [Q-42]
+  Q-42:
     question: 'Not held: seed/seed.go:25: grant of LOANS.READ to "Branch_Manager": the role''s name is not kebab-case, which a role name is; left out. Does the specification need it, written another way or described by hand?'
     kind: decision
     priority: could

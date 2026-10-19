@@ -1,0 +1,45 @@
+specarch: "0.2"
+info:
+  title: Desk
+  version: 1.0.0
+  description: A lending desk whose operations pass a session check and a staff check before their handlers.
+errors:
+  session-missing: { status: 401, title: No session, condition: The request carries no session. }
+  not-staff: { status: 403, title: Not staff, condition: The caller is not on the desk's staff. }
+permissions:
+  desk.read: { description: See the desk. }
+roles:
+  desk-staff: { description: Works the desk., permissions: [desk.read] }
+middlewares:
+  require-session:
+    description: Refuses a request that carries no session.
+    refusals:
+      - { status: 401, problem: session-missing }
+  require-staff:
+    description: Refuses a caller who is not on the desk's staff.
+    refusals:
+      - { status: 403, problem: not-staff, condition: The caller's staff card is missing or expired. }
+  audit-log:
+    description: Writes one audit line per request, with the caller and the outcome.
+paths:
+  /desk:
+    get:
+      operationId: showDesk
+      summary: The desk
+      permission: desk.read
+      middlewares: [require-session, require-staff, audit-log]
+      responses:
+        "200": { description: The desk. }
+  /health:
+    get:
+      operationId: health
+      summary: Whether the desk is up
+      permission: desk.read
+      middlewares: []
+      responses:
+        "200": { description: Up. }
+tests:
+  show-desk-succeeds: { operation: showDesk, level: system, scenario: golden, given: "a caller with desk.read", when: "showDesk is called", then: "it answers 200: The desk." }
+  show-desk-denied-without-desk-read: { operation: showDesk, level: system, scenario: red, covers: [denied without desk.read], given: "a caller without desk.read", when: "showDesk is called", then: "it is refused as not allowed" }
+  health-succeeds: { operation: health, level: system, scenario: golden, given: "any caller", when: "health is called", then: "it answers 200: Up." }
+  health-denied-without-desk-read: { operation: health, level: system, scenario: red, covers: [denied without desk.read], given: "a caller without desk.read", when: "health is called", then: "it is refused as not allowed" }

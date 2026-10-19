@@ -442,8 +442,10 @@ changes `extract.yaml` first.
     module's tracked files with `go/parser`: dxlib's `NewEndPoint` calls
     with literal values become operations citing the registration's and
     the handler's `path:line`, with the handler, the middleware chain and
-    the privileges in the citation, the parameters, content type and
-    responses the call declares (ADR-130), the parameters the handler
+    the privileges in the citation, the middlewares it runs in order, each
+    declared once with its doc comment and refusals (ADR-131), the
+    parameters, content type and responses the call declares (ADR-130),
+    the parameters the handler
     reads and the problems it answers; a registration in a loop, behind a
     condition or computed, a parameter read the endpoint does not
     declare and a reason that names no problem are must questions;

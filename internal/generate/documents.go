@@ -434,7 +434,7 @@ func Traceability(root *yaml.Node, relRoot string, impls []Implementation, state
 		}
 	}
 	hasDesign := false
-	for _, s := range []string{"enums", "entities", "views", "permissions", "roles", "separationOfDuties", "session", "paths", "commands", "channels", "dependencies", "jobs", "workflows", "errors", "pages", "algorithms", "decisions"} {
+	for _, s := range []string{"enums", "entities", "views", "permissions", "roles", "separationOfDuties", "session", "middlewares", "paths", "commands", "channels", "dependencies", "jobs", "workflows", "errors", "pages", "algorithms", "decisions"} {
 		if get(root, s) != nil {
 			hasDesign = true
 		}

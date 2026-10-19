@@ -8,6 +8,13 @@ permissions:
     origin: stated
     cites:
       - {source: code, clause: 'api/endpoints.go:38', says: POST /loans/renew checks loans.write in its privileges.}
+middlewares:
+  require-session:
+    description: RequireSession lets a request with a session through.
+    origin: stated
+    cites:
+      - {source: code, clause: 'api/session.go:6', says: RequireSession is a middleware; it answers no refusal through its request.}
+      - {source: code, clause: 'api/endpoints.go:17', says: Runs RequireSession before the handler.}
 paths:
   /loans/list:
     post:
@@ -15,6 +22,7 @@ paths:
       summary: List loans
       description: Lists the loans.
       permission: loans.read
+      middlewares: [require-session]
       requestBody:
         content:
           application/json:
@@ -36,6 +44,7 @@ paths:
       summary: Renew a loan
       description: Renews a loan for another period.
       permission: loans.write
+      middlewares: []
       responses:
         "400": {}
         "409": {}
@@ -50,6 +59,7 @@ paths:
     get:
       operationId: getLoansById
       summary: Show a loan
+      middlewares: []
       parameters:
         - {name: id, in: query}
       origin: stated

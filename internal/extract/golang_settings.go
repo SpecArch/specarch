@@ -435,7 +435,7 @@ func (g *goReader) readGates() {
 	seen := map[*ast.FuncDecl]bool{}
 	for _, ep := range g.endpoints {
 		for _, m := range ep.chainExprs {
-			fd, file := g.funcOf(ep.file, m)
+			fd, file := g.funcOf(ep.chainFile, m)
 			if fd == nil || seen[fd] || fd.Body == nil {
 				continue
 			}

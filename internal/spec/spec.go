@@ -48,7 +48,7 @@ const QuestionsSection = "questions"
 var Sections = map[string]string{
 	"stakeholders": "requirements", "needs": "requirements", "requirements": "requirements",
 	"glossary": "requirements", "assumptions": "requirements", "constraints": "requirements",
-	"enums": "design", "entities": "design", "views": "design", "schemas": "design", "permissions": "design", "roles": "design", "separationOfDuties": "design", "session": "design", "paths": "design",
+	"enums": "design", "entities": "design", "views": "design", "schemas": "design", "permissions": "design", "roles": "design", "separationOfDuties": "design", "session": "design", "middlewares": "design", "paths": "design",
 	"commands": "design", "channels": "design", "dependencies": "design", "jobs": "design", "workflows": "design", "errors": "design", "pages": "design", "menus": "design", "flows": "design", "accessibility": "design", "theme": "design", "algorithms": "design", "decisions": "design",
 	"tests":        "tests",
 	"environments": "deployment", "configuration": "deployment", "release": "deployment",
@@ -61,7 +61,7 @@ var Sections = map[string]string{
 // docs/conventions.md: life-cycle order, the questions last.
 var sectionOrder = []string{
 	"stakeholders", "needs", "requirements", "glossary", "assumptions", "constraints",
-	"enums", "entities", "views", "schemas", "permissions", "roles", "separationOfDuties", "session", "paths", "commands", "channels", "dependencies", "jobs", "workflows", "errors", "pages", "menus", "flows", "accessibility", "theme", "algorithms",
+	"enums", "entities", "views", "schemas", "permissions", "roles", "separationOfDuties", "session", "middlewares", "paths", "commands", "channels", "dependencies", "jobs", "workflows", "errors", "pages", "menus", "flows", "accessibility", "theme", "algorithms",
 	"tests", "decisions",
 	"environments", "configuration", "release", "rollback", "migrations", "handover",
 	"checks", "signoff",
@@ -80,7 +80,7 @@ var rootOnly = map[string]bool{"specarch": true, "info": true, "stages": true, "
 // may carry audience (ADR-119).
 var keyedElements = map[string]bool{
 	"stakeholders": true, "needs": true, "requirements": true, "glossary": true, "assumptions": true, "constraints": true,
-	"enums": true, "entities": true, "views": true, "schemas": true, "permissions": true, "roles": true, "separationOfDuties": true,
+	"enums": true, "entities": true, "views": true, "schemas": true, "permissions": true, "roles": true, "separationOfDuties": true, "middlewares": true,
 	"commands": true, "channels": true, "dependencies": true, "jobs": true, "workflows": true, "errors": true, "pages": true, "flows": true,
 	"algorithms": true, "tests": true, "decisions": true,
 	"environments": true, "configuration": true, "migrations": true, "checks": true, "monitors": true,

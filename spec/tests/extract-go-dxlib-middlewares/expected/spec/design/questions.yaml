@@ -1,0 +1,183 @@
+questions:
+  # specarch-problem: question: open_question: (must, decision) api/endpoints.go:39 registers POST /desk/audit with the middlewares chainFor(...), which is a call to chainFor, which does more than return a literal, so the steps a request passes before its handler are not read. Which middlewares does it run, in order? Decided by system-owner. Answer with a decision record that names Q-1 under answers. [Q-1]
+  Q-1:
+    question: api/endpoints.go:39 registers POST /desk/audit with the middlewares chainFor(...), which is a call to chainFor, which does more than return a literal, so the steps a request passes before its handler are not read. Which middlewares does it run, in order?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1desk~1audit/post/middlewares']
+    decidedBy: system-owner
+    why: The middlewares decide whether a caller must sign in, which permission is checked and what a refused request is answered; syntax reads only a chain it can follow to a literal.
+    cites:
+      - {source: code, clause: 'api/endpoints.go:39', says: Names its middlewares with chainFor(...).}
+  # specarch-problem: question: open_question: (must, decision) POST /desk/audit declares no parameter where api/endpoints.go:39 registers it, and its handler reads none by name (api/middleware.go:36), so its body is written as any object. Which fields does its body take, with their types? Decided by system-owner. Answer with a decision record that names Q-2 under answers. [Q-2]
+  Q-2:
+    question: POST /desk/audit declares no parameter where api/endpoints.go:39 registers it, and its handler reads none by name (api/middleware.go:36), so its body is written as any object. Which fields does its body take, with their types?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1desk~1audit/post/requestBody/content/application~1json/schema']
+    decidedBy: system-owner
+    why: dxlib reads and checks only the parameters an endpoint declares; a handler that reads its body in another way, such as decoding it itself, gives its fields only in code syntax does not follow.
+    cites:
+      - {source: code, clause: 'api/endpoints.go:39', says: Declares no parameter.}
+  # specarch-problem: question: open_question: (must, decision) Does the running system register POST /desk/audit? It is declared at api/endpoints.go:39, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-3 under answers. [Q-3]
+  Q-3:
+    question: Does the running system register POST /desk/audit? It is declared at api/endpoints.go:39, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1desk~1audit/post']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; the document dxlib emits, or a route table, says what the running system registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'api/endpoints.go:39', says: Registers POST /desk/audit with NewEndPoint.}
+  # specarch-problem: question: open_question: (must, decision) POST /desk/close declares no parameter where api/endpoints.go:31 registers it, and its handler reads none by name (api/middleware.go:36), so its body is written as any object. Which fields does its body take, with their types? Decided by system-owner. Answer with a decision record that names Q-4 under answers. [Q-4]
+  Q-4:
+    question: POST /desk/close declares no parameter where api/endpoints.go:31 registers it, and its handler reads none by name (api/middleware.go:36), so its body is written as any object. Which fields does its body take, with their types?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1desk~1close/post/requestBody/content/application~1json/schema']
+    decidedBy: system-owner
+    why: dxlib reads and checks only the parameters an endpoint declares; a handler that reads its body in another way, such as decoding it itself, gives its fields only in code syntax does not follow.
+    cites:
+      - {source: code, clause: 'api/endpoints.go:31', says: Declares no parameter.}
+  # specarch-problem: question: open_question: (must, decision) Does the running system register POST /desk/close? It is declared at api/endpoints.go:31, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-5 under answers. [Q-5]
+  Q-5:
+    question: Does the running system register POST /desk/close? It is declared at api/endpoints.go:31, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1desk~1close/post']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; the document dxlib emits, or a route table, says what the running system registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'api/endpoints.go:31', says: Registers POST /desk/close with NewEndPoint.}
+  # specarch-problem: question: open_question: (must, decision) POST /desk/open declares no parameter where api/endpoints.go:35 registers it, and its handler reads none by name (api/middleware.go:36), so its body is written as any object. Which fields does its body take, with their types? Decided by system-owner. Answer with a decision record that names Q-6 under answers. [Q-6]
+  Q-6:
+    question: POST /desk/open declares no parameter where api/endpoints.go:35 registers it, and its handler reads none by name (api/middleware.go:36), so its body is written as any object. Which fields does its body take, with their types?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1desk~1open/post/requestBody/content/application~1json/schema']
+    decidedBy: system-owner
+    why: dxlib reads and checks only the parameters an endpoint declares; a handler that reads its body in another way, such as decoding it itself, gives its fields only in code syntax does not follow.
+    cites:
+      - {source: code, clause: 'api/endpoints.go:35', says: Declares no parameter.}
+  # specarch-problem: question: open_question: (must, decision) Does the running system register POST /desk/open? It is declared at api/endpoints.go:35, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-7 under answers. [Q-7]
+  Q-7:
+    question: Does the running system register POST /desk/open? It is declared at api/endpoints.go:35, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1desk~1open/post']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; the document dxlib emits, or a route table, says what the running system registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'api/endpoints.go:35', says: Registers POST /desk/open with NewEndPoint.}
+  # specarch-problem: question: open_question: (must, decision) POST /desk/show declares no parameter where api/endpoints.go:27 registers it, and its handler reads none by name (api/middleware.go:36), so its body is written as any object. Which fields does its body take, with their types? Decided by system-owner. Answer with a decision record that names Q-8 under answers. [Q-8]
+  Q-8:
+    question: POST /desk/show declares no parameter where api/endpoints.go:27 registers it, and its handler reads none by name (api/middleware.go:36), so its body is written as any object. Which fields does its body take, with their types?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1desk~1show/post/requestBody/content/application~1json/schema']
+    decidedBy: system-owner
+    why: dxlib reads and checks only the parameters an endpoint declares; a handler that reads its body in another way, such as decoding it itself, gives its fields only in code syntax does not follow.
+    cites:
+      - {source: code, clause: 'api/endpoints.go:27', says: Declares no parameter.}
+  # specarch-problem: question: open_question: (must, decision) Does the running system register POST /desk/show? It is declared at api/endpoints.go:27, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-9 under answers. [Q-9]
+  Q-9:
+    question: Does the running system register POST /desk/show? It is declared at api/endpoints.go:27, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1desk~1show/post']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; the document dxlib emits, or a route table, says what the running system registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'api/endpoints.go:27', says: Registers POST /desk/show with NewEndPoint.}
+  # specarch-problem: question: open_question: (must, decision) What does each permission allow: desk.read, desk.write? Decided by system-owner. Answer with a decision record that names Q-10 under answers. [Q-10]
+  Q-10:
+    question: 'What does each permission allow: desk.read, desk.write?'
+    kind: decision
+    priority: must
+    blocks: ['#/permissions/desk.read/description', '#/permissions/desk.write/description']
+    decidedBy: system-owner
+    why: The source names the privilege an endpoint checks and not what it is for.
+  # specarch-problem: question: open_question: (must, decision) Which role grants each permission: desk.read, desk.write? Decided by system-owner. Answer with a decision record that names Q-11 under answers. [Q-11]
+  Q-11:
+    question: 'Which role grants each permission: desk.read, desk.write?'
+    kind: decision
+    priority: must
+    blocks: ['#/permissions/desk.read', '#/permissions/desk.write']
+    decidedBy: system-owner
+    why: The source names the privilege an endpoint checks and not who holds it.
+  # specarch-problem: question: open_question: (must, decision) The middleware audit.Log, which api/endpoints.go:27 runs, is not a function the reader finds by syntax in the files read, such as a function outside the module or one a call makes, so what it checks and what it refuses with are not read. What does it check or do, and what does it refuse with? Decided by system-owner. Answer with a decision record that names Q-12 under answers. [Q-12]
+  Q-12:
+    question: The middleware audit.Log, which api/endpoints.go:27 runs, is not a function the reader finds by syntax in the files read, such as a function outside the module or one a call makes, so what it checks and what it refuses with are not read. What does it check or do, and what does it refuse with?
+    kind: decision
+    priority: must
+    blocks: ['#/middlewares/log/description', '#/middlewares/log/refusals']
+    decidedBy: system-owner
+    why: Syntax alone finds a function declared in the module and named directly, and no other.
+    cites:
+      - {source: code, clause: 'api/endpoints.go:27', says: Runs audit.Log.}
+  # specarch-problem: question: open_question: (should, decision) The middleware throttle: api/middleware.go:30 answers with WriteResponseAndNewErrorf the status statusFor(...), which is not a literal refusal status. Which status and problem does it answer, and when? Decided by system-owner. Answer with a decision record that names Q-13 under answers. [Q-13]
+  Q-13:
+    question: 'The middleware throttle: api/middleware.go:30 answers with WriteResponseAndNewErrorf the status statusFor(...), which is not a literal refusal status. Which status and problem does it answer, and when?'
+    kind: decision
+    priority: should
+    blocks: ['#/middlewares/throttle/refusals']
+    decidedBy: system-owner
+    why: Only a literal status and a literal reason say which refusal the code answers.
+    cites:
+      - {source: code, clause: 'api/middleware.go:29', says: Answers a refusal the reader cannot read.}
+  # specarch-problem: question: open_question: (must, decision) What does each middleware check or do: throttle? Its function has no doc comment. Decided by system-owner. Answer with a decision record that names Q-14 under answers. [Q-14]
+  Q-14:
+    question: 'What does each middleware check or do: throttle? Its function has no doc comment.'
+    kind: decision
+    priority: must
+    blocks: ['#/middlewares/throttle/description']
+    decidedBy: system-owner
+    why: A middleware's description says what it checks or does, and a function without a doc comment does not say it.
+  # specarch-problem: question: open_question: (must, decision) What is each problem's title, and when is it answered: card-expired, not-staff, session-missing? Decided by system-owner. Answer with a decision record that names Q-15 under answers. [Q-15]
+  Q-15:
+    question: 'What is each problem''s title, and when is it answered: card-expired, not-staff, session-missing?'
+    kind: decision
+    priority: must
+    blocks: ['#/errors/card-expired/title', '#/errors/card-expired/condition', '#/errors/not-staff/title', '#/errors/not-staff/condition', '#/errors/session-missing/title', '#/errors/session-missing/condition']
+    decidedBy: system-owner
+    why: The source gives a problem's status and reason, and not a title a person reads or the condition it is answered under.
+  # specarch-problem: question: open_question: (could, decision) Not held: api/endpoints.go:39: the endpoint POST /desk/audit: dxlib names it desk_audit from its URI, which is not camelCase, as an operationId is; it is named postDeskAudit. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-16 under answers. [Q-16]
+  Q-16:
+    question: 'Not held: api/endpoints.go:39: the endpoint POST /desk/audit: dxlib names it desk_audit from its URI, which is not camelCase, as an operationId is; it is named postDeskAudit. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/paths/~1desk~1audit/post']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'api/endpoints.go:39', says: 'Not held: the endpoint POST /desk/audit: dxlib names it desk_audit from its URI, which is not camelCase, as an operationId is; it is named postDeskAudit.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: api/endpoints.go:31: the endpoint POST /desk/close: dxlib names it desk_close from its URI, which is not camelCase, as an operationId is; it is named postDeskClose. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-17 under answers. [Q-17]
+  Q-17:
+    question: 'Not held: api/endpoints.go:31: the endpoint POST /desk/close: dxlib names it desk_close from its URI, which is not camelCase, as an operationId is; it is named postDeskClose. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/paths/~1desk~1close/post']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'api/endpoints.go:31', says: 'Not held: the endpoint POST /desk/close: dxlib names it desk_close from its URI, which is not camelCase, as an operationId is; it is named postDeskClose.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: api/endpoints.go:35: the endpoint POST /desk/open: dxlib names it desk_open from its URI, which is not camelCase, as an operationId is; it is named postDeskOpen. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-18 under answers. [Q-18]
+  Q-18:
+    question: 'Not held: api/endpoints.go:35: the endpoint POST /desk/open: dxlib names it desk_open from its URI, which is not camelCase, as an operationId is; it is named postDeskOpen. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/paths/~1desk~1open/post']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'api/endpoints.go:35', says: 'Not held: the endpoint POST /desk/open: dxlib names it desk_open from its URI, which is not camelCase, as an operationId is; it is named postDeskOpen.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: api/endpoints.go:27: the endpoint POST /desk/show: dxlib names it desk_show from its URI, which is not camelCase, as an operationId is; it is named postDeskShow. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-19 under answers. [Q-19]
+  Q-19:
+    question: 'Not held: api/endpoints.go:27: the endpoint POST /desk/show: dxlib names it desk_show from its URI, which is not camelCase, as an operationId is; it is named postDeskShow. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/paths/~1desk~1show/post']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'api/endpoints.go:27', says: 'Not held: the endpoint POST /desk/show: dxlib names it desk_show from its URI, which is not camelCase, as an operationId is; it is named postDeskShow.'}

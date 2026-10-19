@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.0-dev of the specification: 505 design tests, 226 golden and 279 red, about 16 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.0-dev of the specification: 508 design tests, 228 golden and 280 red, about 16 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.7.0-dev of the specification: 505 design tests, 226 golden and 279 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 501 |
+| system | 504 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -635,6 +635,14 @@ Scenario: golden; level: system; verifies SA-63.
 - When: document techspec is run
 - Then: the matrix marks a permission a role holds only by an implication as through the permission it grants, a table lists what each permission implies, the separation-of-duties set lists every role that reaches it through an implication, and it exits 0
 
+#### document-techspec-middlewares
+
+Scenario: golden; level: system; verifies SA-7, SA-8.
+
+- Given: a specification that declares three middlewares, two with a refusal each, and an operation that runs all three in order and one that runs none
+- When: document techspec is run
+- Then: the table of HTTP operations names each operation's middlewares in order, or none, each operation's runtime view says what it runs before its handler, with the refusals, a section lists every middleware with what it does, its refusals and the operations that run it, and it exits 0
+
 #### document-techspec-open-workflow
 
 Scenario: golden; level: system; verifies SA-47.
@@ -963,7 +971,15 @@ Scenario: golden; level: system; verifies SA-44.
 
 - Given: a repository holding a Go module on dxlib whose files register endpoints with NewEndPoint: one with a URI joined from literals, a net/http method constant and a privilege in dxlib_module's capitals, whose handler reads a declared parameter and answers two refusals; one with a path parameter whose handler is in another package, which the reader cannot find with no go.mod read, and that checks no privilege; one in a loop, one behind a condition and one with a computed URI; one whose handler is a function literal that reads a declared parameter, one whose name is computed and one the endpoint does not declare, and answers two reasons at one status, an empty reason, a status alone and a computed status; the same method and URI a second time; a HEAD endpoint; a call with too few arguments; a WebSocket endpoint and a RegisterHandler call; a reason answered at two statuses; a file that does not parse, a test file, a file under testdata and a file that imports dxlib and registers nothing
 - When: extract go is run on the module
-- Then: it writes each endpoint registered with literal values outside a loop or a condition as an operation citing its registration line and its handler's first line, with its summary, description, path parameters, permission (mapped from capitals by the rule of ADR-076 and declared inferred) and the refusal statuses its handler answers, each naming the problem its literal reason gives; it declares each problem answered at one status, and asks a must question for the loop, the condition, the computed URI, the undeclared parameter, the empty reason, the status alone, two reasons at one status, a reason at two statuses, the second registration, the short call, the file that does not parse, the open endpoint, each operation's success response and whether the running system registers it; a should question for the computed parameter name and status and for the handler it cannot find; prints a line and asks a could question for the HEAD endpoint, the WebSocket endpoint, the RegisterHandler call and each operationId dxlib derives that is not camelCase; leaves out the test file and the testdata file; names the file that registers nothing; declares its code source reading: parsed; and exits 0
+- Then: it writes each endpoint registered with literal values outside a loop or a condition as an operation citing its registration line and its handler's first line, with its summary, description, path parameters, permission (mapped from capitals by the rule of ADR-076 and declared inferred), its middlewares in order, or none, the parameters its registration declares as its body or its query, and the refusal statuses its handler answers, each naming the problem its literal reason gives; it declares each problem answered at one status, and asks a must question for the loop, the condition, the computed URI, the undeclared parameter, the empty reason, the status alone, two reasons at one status, a reason at two statuses, the second registration, the short call, the file that does not parse, the open endpoint, each operation's success response and whether the running system registers it; a should question for the computed parameter name and status and for the handler it cannot find; prints a line and asks a could question for the HEAD endpoint, the WebSocket endpoint, the RegisterHandler call and each operationId dxlib derives that is not camelCase; leaves out the test file and the testdata file; names the file that registers nothing; declares its code source reading: parsed; and exits 0
+
+#### extract-go-dxlib-middlewares
+
+Scenario: golden; level: system; verifies SA-44.
+
+- Given: a repository holding a Go module on dxlib whose endpoints are registered with middleware chains: a literal list naming a function of the module and one of a package outside it, a package variable holding a list, a call to a helper that returns its variadic parameter, and a function that builds the chain with statements; the middlewares are a function with a doc comment that refuses 401 with a literal reason, one with a doc comment that refuses 403 with two reasons, and one with no doc comment that refuses with a computed status
+- When: extract go is run on the module
+- Then: it declares each middleware once under middlewares by its function's name in kebab-case, with its doc comment as its description and each refusal's status and problem, citing the function and the first registration that runs it, and declares the problems; each operation lists its middlewares in order; it asks a must question for the middleware outside the module, for the one with no doc comment and for the chain built with statements, which leaves that operation without middlewares, and a should question for the refusal whose status is computed; and exits 0
 
 #### extract-go-dxlib-tables-seeds
 
@@ -971,7 +987,7 @@ Scenario: golden; level: system; verifies SA-44.
 
 - Given: a repository holding a Go module on dxlib and dxlib_module: tables declared with NewModelDBTable in a schema NewModelDBSchema names, one with a serial key, a reference, a unique column, a nullable date, money, JSON, a map of strings, a 32-bit float, a geometry and a type named through a variable, one whose key column a function builds, one with a computed name, one with no schema, one whose fields are a variable and one in a loop; two tables NewDXTableSimple makes, one with literal whitelists and one with a whitelist in a variable, each the handler of a paging list endpoint whose middlewares let every request through while an environment setting is empty or a boolean setting is false; a seed that inserts privileges and roles and grants privileges in capitals, EVERYTHING, two names that give one permission, a role whose name is not kebab-case, a grant in a loop, one to a role it cannot trace and one of a computed privilege; and settings read from the environment by literal and computed names and from a dxlib configuration whose JSON file is tracked, with defaults in code and a sensitive key
 - When: extract go is run on the module
-- Then: it writes one entity per table with a literal schema and name, named as extract database names it, with the types of dxlib's data types as the catalogue writes them, the map of strings as an object whose additionalProperties is a string, nullability and the primary key, and a must question whether the database holds each; it cites each paging list endpoint at its table's constructor with the whitelists and prints a line that the meta-model holds no whitelist, and asks a should question where the whitelists are not literal; it writes the seeded roles with their descriptions and the permissions they grant, mapped by the rule of ADR-076 and declared with a privilege's description, a must question for EVERYTHING, for the two names that give one permission, the loop, the untraced role and the computed privilege, and one whether the running system grants each role; it writes each setting under configuration in the deployment stage by its camelCase name with its type and default, the file's value over the code's, secret where the configuration marks it, a must question on what each is for and whether names that look like a credential are secrets, a must question on the width of a whole number and a should question on the computed name; it asks the gate question for each middleware that lets every request through; it prints a line and asks a could question for the geometry, the type it does not know, the 32-bit float and the role that is not kebab-case; and exits 0
+- Then: it writes one entity per table with a literal schema and name, named as extract database names it, with the types of dxlib's data types as the catalogue writes them, the map of strings as an object whose additionalProperties is a string, nullability and the primary key, and a must question whether the database holds each; it cites each paging list endpoint at its table's constructor with the whitelists and prints a line that the meta-model holds no whitelist, and asks a should question where the whitelists are not literal; it writes the seeded roles with their descriptions and the permissions they grant, mapped by the rule of ADR-076 and declared with a privilege's description, a must question for EVERYTHING, for the two names that give one permission, the loop, the untraced role and the computed privilege, and one whether the running system grants each role; it writes each setting under configuration in the deployment stage by its camelCase name with its type and default, the file's value over the code's, secret where the configuration marks it, a must question on what each is for and whether names that look like a credential are secrets, a must question on the width of a whole number and a should question on the computed name; it declares each middleware the chains name, with its doc comment and the refusal its body answers, lists each operation's middlewares in order, and asks the gate question for each middleware that lets every request through; it prints a line and asks a could question for the geometry, the type it does not know, the 32-bit float and the role that is not kebab-case; and exits 0
 
 #### extract-go-dxlib-upper-snake-roles
 
@@ -1081,9 +1097,9 @@ Scenario: red; level: system; covers exit 2.
 
 Scenario: golden; level: system; verifies SA-44.
 
-- Given: a repository holding an OpenAPI document in dxlib's dialect whose operations carry x-dxlib-endpoint-type: two that check one privilege, one that checks another, one that checks two, one that checks none, three whose privileges EXPORT_ALL, GLOBAL.SET_MAINTENANCE_MODE and EVERYTHING are in dxlib_module's capitals, one whose privilege is in mixed case, two whose privileges REPORT_RUN and REPORT.RUN give one permission name, one whose privilege is public, one that lists one privilege twice and one whose list holds a mapping, all under the document's mutualTLS security, and one operation without x-dxlib-endpoint-type that names a privilege
+- Given: a repository holding an OpenAPI document in dxlib's dialect whose operations carry x-dxlib-endpoint-type: two that check one privilege, one that checks another, one that checks two, one that checks none, three whose privileges EXPORT_ALL, GLOBAL.SET_MAINTENANCE_MODE and EVERYTHING are in dxlib_module's capitals, one whose privilege is in mixed case, two whose privileges REPORT_RUN and REPORT.RUN give one permission name, one whose privilege is public, one that lists one privilege twice and one whose list holds a mapping, two of them naming their middlewares in x-dxlib-middlewares, all under the document's mutualTLS security, and one operation without x-dxlib-endpoint-type that names a privilege
 - When: extract openapi is run on the document
-- Then: it writes the one privilege of a dxlib operation as its permission and declares each such permission citing the operations that check it, with a must question on what each allows and which role grants each; it maps each privilege in capitals by the rule of ADR-076 and declares that permission inferred, with the rule as its why; it reads a privilege listed twice as one, asks a must question for the operation that checks two privileges, the one that checks none (naming its middlewares), the one whose privilege the rule of ADR-076 cannot map, both whose privileges give one permission, the one whose privilege is public and the one whose list is not of names, and prints the security of each dxlib operation as a line of its own, since it is not the permission; it reads x-dxlib-privileges only beside x-dxlib-endpoint-type, so the other operation's permission is asked as before and its extension printed as a line; and exits 0
+- Then: it writes the one privilege of a dxlib operation as its permission and declares each such permission citing the operations that check it, with a must question on what each allows and which role grants each; it maps each privilege in capitals by the rule of ADR-076 and declares that permission inferred, with the rule as its why; it reads a privilege listed twice as one, asks a must question for the operation that checks two privileges, the one that checks none (naming its middlewares), the one whose privilege the rule of ADR-076 cannot map, both whose privileges give one permission, the one whose privilege is public and the one whose list is not of names, writes each dxlib operation's middlewares in order by their functions' names in kebab-case, none where the document names none, declares each middleware citing the first operation that runs it with one must question on what each checks or does, and prints the security of each dxlib operation as a line of its own, since it is not the permission; it reads x-dxlib-privileges only beside x-dxlib-endpoint-type, so the other operation's permission is asked as before and its extension printed as a line; and exits 0
 
 #### extract-openapi-not-openapi
 
@@ -3154,6 +3170,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-1, SA-21.
 - Given: a specification that says specarch 0.2, with an operation and a requirement no test covers, and an operation a must question holds up
 - When: validate is run
 - Then: it reports the missing golden test and red case of the operation and the requirement's acceptance case as errors, nothing for the operation the question holds up, and exits 1
+
+#### validate-middlewares
+
+Scenario: red; level: system; covers exit 1; verifies SA-34.
+
+- Given: a specification that declares its problem types and two middlewares, one whose refusals name a problem not under errors, one of another status and none; an operation that names a middleware not declared, one that runs none, one that names no middlewares, and one whose middlewares an open must question blocks
+- When: validate is run
+- Then: it reports middleware for the undeclared name, problem for each of the three refusals, warns middleware_missing for the operation that names none, counts the one under the question as covered, and exits 1
 
 #### validate-monitor-environment
 

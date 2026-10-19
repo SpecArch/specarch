@@ -10,6 +10,7 @@ paths:
       cites:
         - {source: openapi, clause: /paths/~1archiveLoan/post, says: 'POST /archiveLoan: Archive a loan.'}
       permission: loans.write
+      middlewares: []
   /auditLoan:
     # specarch-problem: warning: test_golden_missing: operation auditLoan has no golden scenario; add one under tests, for example audit-loan-succeeds: { operation: auditLoan, scenario: golden, given: "any caller", when: "auditLoan is called", then: "it answers 200: The audit." } [test_golden_missing@design/openapi.yaml#/paths/~1auditLoan/post]
     # specarch-problem: warning: test_red_missing: operation auditLoan has no red scenario; add one under tests, for example audit-loan-refused: { operation: auditLoan, scenario: red, given: "...", when: "...", then: "it is refused" } [test_red_missing@design/openapi.yaml#/paths/~1auditLoan/post]
@@ -22,6 +23,7 @@ paths:
       origin: stated
       cites:
         - {source: openapi, clause: /paths/~1auditLoan/post, says: 'POST /auditLoan: Audit a loan.'}
+      middlewares: []
   /cancelLoan:
     # specarch-problem: warning: test_golden_missing: operation cancelLoan has no golden scenario; add one under tests, for example cancel-loan-succeeds: { operation: cancelLoan, scenario: golden, given: "any caller", when: "cancelLoan is called", then: "it answers 200: The loan cancelled." } [test_golden_missing@design/openapi.yaml#/paths/~1cancelLoan/post]
     # specarch-problem: warning: test_red_missing: operation cancelLoan has no red scenario; add one under tests, for example cancel-loan-refused: { operation: cancelLoan, scenario: red, given: "...", when: "...", then: "it is refused" } [test_red_missing@design/openapi.yaml#/paths/~1cancelLoan/post]
@@ -34,6 +36,7 @@ paths:
       origin: stated
       cites:
         - {source: openapi, clause: /paths/~1cancelLoan/post, says: 'POST /cancelLoan: Cancel a loan.'}
+      middlewares: []
   /createLoan:
     post:
       operationId: createLoan
@@ -45,6 +48,7 @@ paths:
       cites:
         - {source: openapi, clause: /paths/~1createLoan/post, says: 'POST /createLoan: Lend a copy.'}
       permission: loans.write
+      middlewares: []
   /exportAll:
     post:
       operationId: exportAll
@@ -56,6 +60,7 @@ paths:
       cites:
         - {source: openapi, clause: /paths/~1exportAll/post, says: 'POST /exportAll: Export every record.'}
       permission: export.all
+      middlewares: []
   /health:
     # specarch-problem: warning: test_golden_missing: operation health has no golden scenario; add one under tests, for example health-succeeds: { operation: health, scenario: golden, given: "any caller", when: "health is called", then: "it answers 200: Up." } [test_golden_missing@design/openapi.yaml#/paths/~1health/post]
     # specarch-problem: warning: test_red_missing: operation health has no red scenario; add one under tests, for example health-refused: { operation: health, scenario: red, given: "...", when: "...", then: "it is refused" } [test_red_missing@design/openapi.yaml#/paths/~1health/post]
@@ -68,6 +73,7 @@ paths:
       origin: stated
       cites:
         - {source: openapi, clause: /paths/~1health/post, says: 'POST /health: Say the service is up.'}
+      middlewares: []
   /listBooks:
     # specarch-problem: warning: test_golden_missing: operation listBooks has no golden scenario; add one under tests, for example list-books-succeeds: { operation: listBooks, scenario: golden, given: "any caller", when: "listBooks is called", then: "it answers 200: The books." } [test_golden_missing@design/openapi.yaml#/paths/~1listBooks/post]
     # specarch-problem: warning: test_red_missing: operation listBooks has no red scenario; add one under tests, for example list-books-refused: { operation: listBooks, scenario: red, given: "...", when: "...", then: "it is refused" } [test_red_missing@design/openapi.yaml#/paths/~1listBooks/post]
@@ -80,6 +86,7 @@ paths:
       origin: stated
       cites:
         - {source: openapi, clause: /paths/~1listBooks/post, says: 'POST /listBooks: List the books.'}
+      middlewares: [require-session, audit]
   /listLoans:
     post:
       operationId: listLoans
@@ -91,6 +98,7 @@ paths:
       cites:
         - {source: openapi, clause: /paths/~1listLoans/post, says: 'POST /listLoans: List the loans.'}
       permission: loans.read
+      middlewares: []
   /purgeAll:
     post:
       operationId: purgeAll
@@ -102,7 +110,9 @@ paths:
       cites:
         - {source: openapi, clause: /paths/~1purgeAll/post, says: 'POST /purgeAll: Remove every record.'}
       permission: everything
+      middlewares: []
   /renewLoan:
+    # specarch-problem: warning: middleware_missing: the specification declares its middlewares, and renewLoan names none; list the ones it runs, in order, under middlewares, or write middlewares: [] if it runs none [middleware_missing@design/openapi.yaml#/paths/~1renewLoan/post]
     # specarch-problem: warning: test_golden_missing: operation renewLoan has no golden scenario; add one under tests, for example renew-loan-succeeds: { operation: renewLoan, scenario: golden, given: "any caller", when: "renewLoan is called", then: "it answers 200: The loan renewed." } [test_golden_missing@design/openapi.yaml#/paths/~1renewLoan/post]
     # specarch-problem: warning: test_red_missing: operation renewLoan has no red scenario; add one under tests, for example renew-loan-refused: { operation: renewLoan, scenario: red, given: "...", when: "...", then: "it is refused" } [test_red_missing@design/openapi.yaml#/paths/~1renewLoan/post]
     post:
@@ -126,6 +136,7 @@ paths:
       origin: stated
       cites:
         - {source: openapi, clause: /paths/~1runReport/post, says: 'POST /runReport: Run a report.'}
+      middlewares: []
   /runReportNow:
     # specarch-problem: warning: test_golden_missing: operation runReportNow has no golden scenario; add one under tests, for example run-report-now-succeeds: { operation: runReportNow, scenario: golden, given: "any caller", when: "runReportNow is called", then: "it answers 200: The report." } [test_golden_missing@design/openapi.yaml#/paths/~1runReportNow/post]
     # specarch-problem: warning: test_red_missing: operation runReportNow has no red scenario; add one under tests, for example run-report-now-refused: { operation: runReportNow, scenario: red, given: "...", when: "...", then: "it is refused" } [test_red_missing@design/openapi.yaml#/paths/~1runReportNow/post]
@@ -138,6 +149,7 @@ paths:
       origin: stated
       cites:
         - {source: openapi, clause: /paths/~1runReportNow/post, says: 'POST /runReportNow: Run a report at once.'}
+      middlewares: [require-session]
   /setMaintenance:
     post:
       operationId: setMaintenance
@@ -149,6 +161,7 @@ paths:
       cites:
         - {source: openapi, clause: /paths/~1setMaintenance/post, says: 'POST /setMaintenance: Put the service in maintenance.'}
       permission: global.set.maintenance.mode
+      middlewares: []
   /showLoan:
     post:
       operationId: showLoan
@@ -160,6 +173,7 @@ paths:
       cites:
         - {source: openapi, clause: /paths/~1showLoan/post, says: 'POST /showLoan: Show one loan.'}
       permission: loans.read
+      middlewares: []
   /tagLoan:
     # specarch-problem: warning: test_golden_missing: operation tagLoan has no golden scenario; add one under tests, for example tag-loan-succeeds: { operation: tagLoan, scenario: golden, given: "any caller", when: "tagLoan is called", then: "it answers 200: The loan tagged." } [test_golden_missing@design/openapi.yaml#/paths/~1tagLoan/post]
     # specarch-problem: warning: test_red_missing: operation tagLoan has no red scenario; add one under tests, for example tag-loan-refused: { operation: tagLoan, scenario: red, given: "...", when: "...", then: "it is refused" } [test_red_missing@design/openapi.yaml#/paths/~1tagLoan/post]
@@ -172,6 +186,7 @@ paths:
       origin: stated
       cites:
         - {source: openapi, clause: /paths/~1tagLoan/post, says: 'POST /tagLoan: Tag a loan.'}
+      middlewares: []
 permissions:
   everything:
     origin: inferred
@@ -196,3 +211,12 @@ permissions:
     origin: stated
     cites:
       - {source: openapi, clause: /paths/~1archiveLoan/post, says: POST /archiveLoan and POST /createLoan check loans.write in x-dxlib-privileges.}
+middlewares:
+  audit:
+    origin: stated
+    cites:
+      - {source: openapi, clause: /paths/~1listBooks/post, says: Runs example.com/lending/api.Audit before the handler.}
+  require-session:
+    origin: stated
+    cites:
+      - {source: openapi, clause: /paths/~1listBooks/post, says: Runs example.com/lending/api.RequireSession before the handler.}

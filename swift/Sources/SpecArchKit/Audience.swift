@@ -6,7 +6,7 @@ import Foundation
 /// The sections whose entries are each an element that may carry audience.
 private let keyedElements: Set<String> = [
     "stakeholders", "needs", "requirements", "glossary", "assumptions", "constraints",
-    "enums", "entities", "views", "schemas", "permissions", "roles", "separationOfDuties",
+    "enums", "entities", "views", "schemas", "permissions", "roles", "separationOfDuties", "middlewares",
     "commands", "channels", "dependencies", "jobs", "workflows", "errors", "pages", "flows",
     "algorithms", "tests", "decisions",
     "environments", "configuration", "migrations", "checks", "monitors",

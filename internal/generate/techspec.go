@@ -218,10 +218,25 @@ func context(d *doc, root *yaml.Node) {
 	}
 	if len(ops) > 0 {
 		d.heading(3, "HTTP operations")
-		d.line("| Method and path | Operation | Summary | Permission |")
-		d.line("|---|---|---|---|")
+		chains := false
 		for _, o := range ops {
-			d.line("| %s %s | %s | %s | %s |", strings.ToUpper(o.method), cell(o.path), o.id, cell(str(o.node, "summary")), str(o.node, "permission"))
+			chains = chains || get(o.node, "middlewares") != nil
+		}
+		if chains {
+			// The middlewares each runs, once any operation names them
+			// (ADR-131).
+			d.line("| Method and path | Operation | Summary | Permission | Middlewares, in order |")
+			d.line("|---|---|---|---|---|")
+		} else {
+			d.line("| Method and path | Operation | Summary | Permission |")
+			d.line("|---|---|---|---|")
+		}
+		for _, o := range ops {
+			if !chains {
+				d.line("| %s %s | %s | %s | %s |", strings.ToUpper(o.method), cell(o.path), o.id, cell(str(o.node, "summary")), str(o.node, "permission"))
+				continue
+			}
+			d.line("| %s %s | %s | %s | %s | %s |", strings.ToUpper(o.method), cell(o.path), o.id, cell(str(o.node, "summary")), str(o.node, "permission"), cell(chainText(o.node)))
 		}
 		d.blank()
 	}
@@ -483,7 +498,39 @@ func runtime(d *doc, root *yaml.Node) {
 
 // operationDetails writes what an operation calls, how a repeat is told
 // from a new request, and its guard.
+// chainText is the middlewares an operation runs, in order: none for an
+// empty list, not stated when it has no list.
+func chainText(op *yaml.Node) string {
+	if get(op, "middlewares") == nil {
+		return "not stated"
+	}
+	names := strs(op, "middlewares")
+	if len(names) == 0 {
+		return "none"
+	}
+	return strings.Join(names, ", then ")
+}
+
 func operationDetails(d *doc, root *yaml.Node, op *yaml.Node) {
+	if get(op, "middlewares") != nil {
+		names := strs(op, "middlewares")
+		if len(names) == 0 {
+			d.para("Runs no middleware before its handler.")
+		} else {
+			var parts []string
+			for _, n := range names {
+				var refuses []string
+				for _, r := range items(get(get(root, "middlewares"), n), "refusals") {
+					refuses = append(refuses, strings.TrimSpace(str(r, "status")+" "+str(r, "problem")))
+				}
+				if len(refuses) > 0 {
+					n += " (refuses with " + joinAnd(refuses) + ")"
+				}
+				parts = append(parts, n)
+			}
+			d.para("Runs before its handler, in this order: " + strings.Join(parts, ", then ") + ".")
+		}
+	}
 	if calls := strs(op, "calls"); len(calls) > 0 {
 		var parts []string
 		for _, c := range calls {
@@ -596,7 +643,8 @@ func crossCutting(d *doc, root *yaml.Node) {
 	algs := pairs(root, "algorithms")
 	session := get(root, "session")
 	sensitive := sensitiveFields(root)
-	if perms == "" && session == nil && len(pages)+len(algs)+len(sensitive) == 0 {
+	middlewares := pairs(root, "middlewares")
+	if perms == "" && session == nil && len(pages)+len(algs)+len(sensitive)+len(middlewares) == 0 {
 		return
 	}
 	d.heading(2, "8. Cross-cutting concepts")
@@ -662,6 +710,38 @@ func crossCutting(d *doc, root *yaml.Node) {
 		}
 		d.blank()
 		d.explainRows(rowsOf(sets))
+	}
+	if len(middlewares) > 0 {
+		d.heading(3, "Middlewares")
+		d.para("The steps a request passes before an operation's handler runs, each declared once. Each operation names the ones it runs, in order, under HTTP operations; a refusal answers in place of the handler.")
+		ranBy := map[string][]string{}
+		for _, o := range operations(root) {
+			for _, n := range strs(o.node, "middlewares") {
+				ranBy[n] = append(ranBy[n], o.id)
+			}
+		}
+		d.line("| Middleware | What it checks or does | Refusals | Run by |")
+		d.line("|---|---|---|---|")
+		for _, m := range middlewares {
+			var refuses []string
+			for _, r := range items(m.Value, "refusals") {
+				text := strings.TrimSpace(str(r, "status") + " " + str(r, "problem"))
+				if c := str(r, "condition"); c != "" {
+					text += ": " + c
+				}
+				refuses = append(refuses, text)
+			}
+			if len(refuses) == 0 {
+				refuses = []string{"none"}
+			}
+			run := strings.Join(ranBy[m.Key.Value], ", ")
+			if run == "" {
+				run = "no operation"
+			}
+			d.line("| %s | %s | %s | %s |", m.Key.Value, cell(str(m.Value, "description")), cell(strings.Join(refuses, "; ")), cell(run))
+		}
+		d.blank()
+		d.explainRows(rowsOf(middlewares))
 	}
 	if session != nil {
 		d.heading(3, "Sessions")

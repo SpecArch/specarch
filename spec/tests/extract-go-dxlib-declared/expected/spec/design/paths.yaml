@@ -17,6 +17,7 @@ paths:
       operationId: postLoansClose
       summary: Close a loan
       permission: loans.write
+      middlewares: []
       origin: stated
       cites:
         - {source: code, clause: 'api/endpoints.go:70', says: 'NewEndPoint registers POST /loans/close; its handler is CloseLoan, it has no middleware, its parameters are not a literal list, its responses are not a literal list, and it checks loans.write.'}
@@ -26,6 +27,7 @@ paths:
       operationId: postLoansImport
       summary: Import loans
       permission: loans.write
+      middlewares: []
       requestBody:
         content:
           application/json:
@@ -39,6 +41,7 @@ paths:
       operationId: getLoansList
       summary: List a member's loans
       permission: loans.read
+      middlewares: []
       parameters:
         - name: page_size
           in: query
@@ -60,6 +63,7 @@ paths:
       summary: Open a loan
       description: Opens a loan for a member.
       permission: loans.write
+      middlewares: []
       requestBody:
         content:
           application/json:
@@ -109,6 +113,7 @@ paths:
       operationId: putLoansScan
       summary: Upload a scan
       permission: loans.write
+      middlewares: []
       requestBody:
         content:
           application/octet-stream:
@@ -122,6 +127,7 @@ paths:
       operationId: postMembersShow
       summary: Show a member
       permission: members.read
+      middlewares: []
       requestBody:
         content:
           application/json:

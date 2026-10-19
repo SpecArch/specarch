@@ -160,7 +160,16 @@ commands:
         that is not a list of names are each a must question on the
         operation's permission, never written as public; a name listed
         twice counts once. The question on an operation with no privilege
-        names its middlewares when `x-dxlib-middlewares` lists them. A
+        names its middlewares when `x-dxlib-middlewares` lists them. The
+        functions `x-dxlib-middlewares` lists, by the names the Go runtime
+        gives them, are the operation's middlewares in order, each by its
+        function's name in kebab-case, none when the key is absent, since
+        dxlib leaves it out for an empty chain (ADR-131); each is declared
+        under middlewares citing the first operation that runs it, with one
+        must question on what each checks or does, which the Go reader's
+        tree answers in the merge. A closure, which the runtime names by
+        the function that makes it, or a value that is not a list, is a
+        must question on the operation's middlewares. A
         document every operation of which is in dxlib's dialect is what
         the running service printed (ADR-076), so its source is a code
         source with `reading: printed`, its clauses the operations' and
@@ -519,7 +528,24 @@ commands:
         why, and a parameter it cannot read inside a list is written by
         its name alone with a must question on it. A body that declares
         no parameter is any object, with a must question on its fields.
-        In the handler, each
+        The middleware chain is followed as the parameter list is, and
+        through a call to a function of the module whose one statement
+        returns its variadic parameter, such as `mw(a, b)` (ADR-131): the
+        operation lists its middlewares in order by their functions' names
+        in kebab-case, an empty list when the chain is nil, and each
+        middleware is declared once under middlewares, its function's doc
+        comment its description, and each refusal its body answers through
+        its request, read as a handler's are, a refusal with its status and
+        problem, the problem declared under errors; it cites the function
+        and the first registration that runs it. A chain not followed is a
+        must question on the operation's middlewares, and the operation has
+        none written; a middleware that is not a function of the module
+        found by syntax, such as one outside the module or one a call
+        makes, is declared by name with a must question on what it checks
+        and refuses; one with no doc comment is a must question on its
+        description, a refusal whose status or reason is not a literal a
+        should question, and two functions that give one name a must
+        question. In the handler, each
         `GetParameterValue...` call on the request with a literal name
         is a parameter read, and one whose name the endpoint's literal
         parameter list does not declare is a must question, since dxlib

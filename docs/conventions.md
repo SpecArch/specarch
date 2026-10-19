@@ -507,6 +507,7 @@ redefined.
 | `permissions`, `roles`, `permission` | SpecArch | OpenAPI's `security` names a scheme, not a right; SpecArch needs the right |
 | `separationOfDuties`, `cardinality` | ANSI INCITS 359 (RBAC), static separation of duty | a set and a number no holder may reach; stated over permissions, not roles, because the specification declares the duties and the roles that grant them |
 | `session`, `idleTimeout`, `absoluteTimeout` | SpecArch, after the OWASP Session Management Cheat Sheet | how a signed-in session ends; the two timeouts are the cheat sheet's |
+| `middlewares`, `refusals` | SpecArch | the steps a request passes before an operation's handler, declared once with what each checks or does and the refusals it answers, each a `status`, a `problem` and a `condition`; an operation lists the ones it runs, in order, `[]` for none. No standard names them: OpenAPI's `security` says how a caller proves who it is, not what runs (ADR-131) |
 | `dependencies`, `timeout`, `calls` | SpecArch | external systems an operation calls, each with a time limit per call |
 | `specification`, `version` (on a dependency), `name` (in `info`) | SpecArch, after JSON Schema's `$ref` as a URI reference | a dependency that is another specification, named by its `info.name` and pinned to its `info.version`; its elements are named `<dependency>#/<pointer>` |
 | `specarchEstate`, `modules`, `location` | SpecArch | an estate file: the modules' specifications by `info.name`, each with its folder and the version held |
@@ -547,6 +548,7 @@ redefined.
 | `stack`, `targets`, `deployments`, `environment` (of a deployment) | SpecArch | in implementation files: the stack, the output folders per target, and where the system really runs |
 | `ownedBy` | SpecArch | the stakeholder that owns what someone else builds: on a requirement, the one whose component fulfils it, so nothing here satisfies or verifies it (ADR-119); in implementation files, on a mapping, the one that owns an element the project describes but does not generate |
 | `permissionChecks`, `package`, `function`, `permissionArgument` | SpecArch | in implementation files: on a binding, the project's own permission checks, which `specarch extract` reads routes' permissions through (ADR-081) |
+| `middlewares` (in implementation files) | SpecArch | on the http binding, the function of the code each middleware of the design is, by its name: its `package` and `function` (ADR-131) |
 | `indexes` | SpecArch | in implementation files: on an entity's mapping, the plain indexes of its table, each its `fields` and, when the database already names it otherwise, its `name`; an index is physical design, so it stays out of the design file, and a unique index is the entity's unique constraint (ADR-121) |
 | `listRoutes`, `postSegment` | SpecArch | in implementation files: on the http binding, that every list is served two ways, by GET and by POST at its path with `postSegment` added, its parameters in a body; `generate openapi` writes the POST twin of each list (ADR-121) |
 | `bypassedFor` | SpecArch | in implementation files: on a permission check, the kind of caller it lets through whatever its roles grant, `client`, which `specarch extract go` asks about at every operation the check guards (ADR-114) |
@@ -653,6 +655,42 @@ The two are the OWASP Session Management Cheat Sheet's, which asks for
 both. Once a session is declared, every operation, command and page whose
 permission is not `public` gets the derived red case `denied with expired
 session`, so that a session that outlives its limit is a test, not a hope.
+
+### Middlewares
+
+The steps a request passes before an operation's handler runs, such as a
+session check, a permission check, a tenant, a rate limit or an audit line,
+are declared once, each with what it checks or does and the refusals it
+answers in place of the handler:
+
+    middlewares:
+      require-session:
+        description: Refuses a request that carries no session.
+        refusals:
+          - { status: 401, problem: session-missing }
+      audit-log:
+        description: Writes one audit line per request.
+
+An operation lists the ones it runs, in the order they run, and `[]` when
+it runs none:
+
+    paths:
+      /loans:
+        get:
+          middlewares: [require-session, audit-log]
+
+A name an operation lists must be declared (`middleware`). A refusal's
+problem is checked as a response's is (`problem`): under `errors`, of its
+own status, and named once the catalogue exists. Once a specification
+declares its middlewares, an operation with no `middlewares` is a warning
+(`middleware_missing`), held by a must question that blocks the operation
+or its middlewares; `[]` says it runs none. Which function of the code each
+middleware is belongs to the implementation file, under
+`bindings.http.middlewares`, since the design says what is checked and not
+how a framework chains it (ADR-131). The technical specification names
+each operation's middlewares in its table of operations and in its runtime
+view, and lists every middleware with its refusals and the operations that
+run it.
 
 ### Dependencies
 

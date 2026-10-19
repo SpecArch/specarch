@@ -249,6 +249,15 @@ schema by a script and checked current in CI, gives each fragment's
 `$schema` line something to point at without a second definition to
 maintain by hand.
 
+### Middlewares
+
+`middlewares` declares once each step a request passes before an
+operation's handler, with what it checks or does and its refusals, and an
+operation lists the ones it runs, in order (ADR-131). It is the design half
+of a chain a framework binds: the function each one is goes in the
+implementation file (`bindings.http.middlewares`). The readers write it
+from a dxlib service's registrations and from the document dxlib emits.
+
 ## Left out of 0.2
 
 | Candidate | Why it waits |

@@ -9,7 +9,6 @@ standardOutput: |
   counted 5 Go files, 4 of them importing dxlib's api package and 1 that does not parse, and left out 2: every tracked Go file under . but test files and files in a folder below it named testdata or vendor, or that the go command ignores
   dxlib: counted 9 NewEndPoint calls, 1 NewWSEndPoint call and 1 RegisterHandler call: every call by that name in a file that imports dxlib's api package
   wrote 3 operations on 3 paths, 2 permissions, 3 problems and 34 questions: one operation per endpoint NewEndPoint registers with a literal method and URI, outside a loop or a condition, one permission per privilege an endpoint names alone, one problem per literal reason a handler answers, one question per thing the source does not say, and one per thing the meta-model cannot hold
-  nothing read: api/session.go imports dxlib's api package, and the reader found no endpoint, parameter read or problem in it
   nothing read: handlers/show.go imports dxlib's api package, and the reader found no endpoint, parameter read or problem in it
   not held: api/endpoints.go:63: the endpoint HEAD /loans/list: the method HEAD has no operation in the meta-model, which holds GET, POST, PUT, PATCH and DELETE; left out; could question Q-28
   not held: api/endpoints.go:69: NewWSEndPoint registers the WebSocket endpoint /loans/feed, and the meta-model has no socket; left out; could question Q-29

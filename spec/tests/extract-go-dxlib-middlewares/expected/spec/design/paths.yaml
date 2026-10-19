@@ -1,0 +1,120 @@
+permissions:
+  desk.read:
+    origin: stated
+    cites:
+      - {source: code, clause: 'api/endpoints.go:39', says: POST /desk/audit and POST /desk/show check desk.read in its privileges.}
+  desk.write:
+    origin: stated
+    cites:
+      - {source: code, clause: 'api/endpoints.go:31', says: POST /desk/close and POST /desk/open check desk.write in its privileges.}
+middlewares:
+  log:
+    origin: stated
+    cites:
+      - {source: code, clause: 'api/endpoints.go:27', says: Runs audit.Log before the handler.}
+  require-session:
+    description: RequireSession refuses a request that carries no session.
+    refusals:
+      - {status: 401, problem: session-missing}
+    origin: stated
+    cites:
+      - {source: code, clause: 'api/middleware.go:10', says: RequireSession is a middleware; it answers 401 SESSION_MISSING.}
+      - {source: code, clause: 'api/endpoints.go:27', says: Runs RequireSession before the handler.}
+  require-staff:
+    description: RequireStaff refuses a caller who is not on the desk's staff, and one whose staff card has expired.
+    refusals:
+      - {status: 403, problem: not-staff}
+      - {status: 403, problem: card-expired}
+    origin: stated
+    cites:
+      - {source: code, clause: 'api/middleware.go:19', says: RequireStaff is a middleware; it answers 403 NOT_STAFF and 403 CARD_EXPIRED.}
+      - {source: code, clause: 'api/endpoints.go:31', says: Runs RequireStaff before the handler.}
+  throttle:
+    origin: stated
+    cites:
+      - {source: code, clause: 'api/middleware.go:29', says: Throttle is a middleware; it answers a refusal the reader cannot read.}
+      - {source: code, clause: 'api/endpoints.go:35', says: Runs Throttle before the handler.}
+paths:
+  /desk/audit:
+    post:
+      operationId: postDeskAudit
+      summary: Audit the desk
+      permission: desk.read
+      requestBody:
+        content:
+          application/json:
+            schema: {type: object}
+      responses:
+        "200":
+          description: The audit.
+      origin: stated
+      cites:
+        - {source: code, clause: 'api/endpoints.go:39', says: 'NewEndPoint registers POST /desk/audit; its handler is Show, its middlewares are not a literal list, it declares no parameter and the response 200, and it checks desk.read.'}
+        - {source: code, clause: 'api/middleware.go:36', says: The handler of POST /desk/audit reads no parameter by name.}
+  /desk/close:
+    post:
+      operationId: postDeskClose
+      summary: Close the desk
+      permission: desk.write
+      middlewares: [require-session, require-staff]
+      requestBody:
+        content:
+          application/json:
+            schema: {type: object}
+      responses:
+        "200":
+          description: The desk is closed.
+      origin: stated
+      cites:
+        - {source: code, clause: 'api/endpoints.go:31', says: 'NewEndPoint registers POST /desk/close; its handler is Show, its middlewares are RequireSession and RequireStaff, it declares no parameter and the response 200, and it checks desk.write.'}
+        - {source: code, clause: 'api/middleware.go:36', says: The handler of POST /desk/close reads no parameter by name.}
+  /desk/open:
+    post:
+      operationId: postDeskOpen
+      summary: Open the desk
+      permission: desk.write
+      middlewares: [require-session, require-staff, throttle]
+      requestBody:
+        content:
+          application/json:
+            schema: {type: object}
+      responses:
+        "200":
+          description: The desk is open.
+      origin: stated
+      cites:
+        - {source: code, clause: 'api/endpoints.go:35', says: 'NewEndPoint registers POST /desk/open; its handler is Show, its middlewares are RequireSession, RequireStaff and Throttle, it declares no parameter and the response 200, and it checks desk.write.'}
+        - {source: code, clause: 'api/middleware.go:36', says: The handler of POST /desk/open reads no parameter by name.}
+  /desk/show:
+    post:
+      operationId: postDeskShow
+      summary: Show the desk
+      permission: desk.read
+      middlewares: [require-session, log]
+      requestBody:
+        content:
+          application/json:
+            schema: {type: object}
+      responses:
+        "200":
+          description: The desk.
+      origin: stated
+      cites:
+        - {source: code, clause: 'api/endpoints.go:27', says: 'NewEndPoint registers POST /desk/show; its handler is Show, its middlewares are RequireSession and audit.Log, it declares no parameter and the response 200, and it checks desk.read.'}
+        - {source: code, clause: 'api/middleware.go:36', says: The handler of POST /desk/show reads no parameter by name.}
+errors:
+  card-expired:
+    status: 403
+    origin: stated
+    cites:
+      - {source: code, clause: 'api/middleware.go:24', says: Answers 403 with the reason CARD_EXPIRED.}
+  not-staff:
+    status: 403
+    origin: stated
+    cites:
+      - {source: code, clause: 'api/middleware.go:21', says: Answers 403 with the reason NOT_STAFF.}
+  session-missing:
+    status: 401
+    origin: stated
+    cites:
+      - {source: code, clause: 'api/middleware.go:12', says: Answers 401 with the reason SESSION_MISSING.}

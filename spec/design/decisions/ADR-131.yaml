@@ -1,0 +1,112 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
+decisions:
+  ADR-131:
+    title: The steps a request passes before an operation's handler are declared once as middlewares, and each operation lists the ones it runs
+    status: accepted
+    date: "2026-10-19"
+    context: |
+      A web framework runs a chain of functions before an endpoint's
+      handler: a session check, a permission check, a tenant, a rate
+      limit, an audit line. They decide whether a caller must sign in and
+      what a refused request is answered, and many endpoints share one
+      chain. The specification had no place for them. extract go named an
+      endpoint's middlewares only in the citation of its registration and
+      in the question on an endpoint that checks no privilege, read a
+      setting that switches one off, and, for the routers, read a
+      permission from a check the implementation file names. The
+      technical specification and every other document said nothing of
+      them, so a reader of the specification could not tell which
+      operations need a session, and an owner could not review the chain.
+    decision: |
+      The design gains middlewares, a section of named elements of the
+      design stage, keyed by kebab-case name: each declares what the step
+      checks or does (description) and the refusals it answers in place of
+      the handler (refusals), each a status from 400 to 599, the problem
+      type under errors that it names and the condition, with the usual
+      origin, cites, why and audience. An operation gains middlewares, the
+      names of the ones it runs in the order they run; an empty list says
+      it runs none. Which function of the code each middleware is belongs
+      to the implementation file, under bindings.http.middlewares, a map
+      from the middleware's name to its package and function.
+
+      The validator, in both builds, reports a name an operation lists
+      that is not declared (middleware), checks each refusal's problem as
+      a response's is (problem: declared, of its own status, and named
+      once the catalogue exists), and, once the specification declares its
+      middlewares, warns of an operation with no middlewares key
+      (middleware_missing). A must question that blocks the operation, or
+      its middlewares key, holds the warning.
+
+      extract go declares every middleware an endpoint's chain names, by
+      its function's name in kebab-case, with its doc comment as its
+      description and each refusal its body answers through its request,
+      as a handler's are read, and lists each operation's middlewares in
+      order. A chain is followed as the parameter list is (ADR-130), and
+      through a helper whose one statement returns its variadic
+      parameter. What it cannot read is a question: a chain not followed,
+      on the operation's middlewares; a middleware outside the module or
+      one a call makes, on its description and refusals; a function with
+      no doc comment, on its description; a refusal not a literal; two
+      functions of one name. extract openapi reads x-dxlib-middlewares the
+      same way, by the last name of the function the runtime gives, none
+      when the key is absent, and asks what each middleware does, which
+      the source's tree answers in the merge. The permission each reader
+      already reads from a check stays as it was.
+
+      The technical specification names each operation's middlewares in
+      its table of operations, once any operation names them, and in its
+      runtime view with their refusals, and lists every middleware under
+      the cross-cutting concepts with what it does, its refusals and the
+      operations that run it. The HTML page links each name to its
+      element.
+    why: |
+      The owner asked for the chain to be visible in the specification,
+      per operation and in order, with what each step checks and refuses,
+      each declared once and referenced. The split between design and
+      implementation is the owner's choice (2026-10-19): what a step
+      checks and refuses is what a reviewer and a test need and is the
+      same on every stack, while the function that does it, and how a
+      framework chains it, is one stack's binding, as the permission
+      checks are (ADR-081). x-middleware stays a stack-specific extension
+      key: an extension that names a function is the binding, and the
+      design's middlewares names none.
+
+      The word middleware is kept because it is the one the people who
+      write and read these systems use, in Go, Node and .NET alike, and
+      the alternatives either name something else here (guard is the
+      precondition of a data change) or a single kind of step (check,
+      filter). A middleware is declared once because one chain serves
+      many operations, and one way to say one thing is the Low IQ Tax;
+      the order is the operation's, since one middleware may run before
+      another on one operation and after it on another.
+
+      The refusals are checked as responses are because a refusal is a
+      response the handler does not write, and a client branches on its
+      problem type the same way. The warning on an operation with no
+      middlewares follows the rule of the problem catalogue: once a
+      specification starts to say it, every operation says it, and [] is
+      the way to say none, so that silence never stands for none. A
+      specification that declares no middleware is read as before.
+
+      A middleware is named by its function's last name because both the
+      source and the runtime's name give it, so the two readings meet in
+      the merge; a closure has no name of its own, so it is asked.
+
+      The compiler test holds: nothing is refused or left unread, a chain
+      not followed is a question at the operation, a middleware not found
+      is kept by its name with a question, and every gap is a problem at
+      the element. The acceptance test holds: an owner sees each
+      operation's chain early, in the technical specification, and a
+      remark on it changes one list or one middleware.
+    consequences: |
+      The design schema, its fragment schemas and the Swift embed gain
+      middlewares, and the implementation schema gains
+      bindings.http.middlewares; every list of sections in both builds and
+      the documents lists middlewares. The dxlib cases of extract go and
+      extract openapi write the chain, and new cases cover the reader, the
+      validator and the technical specification. The notice board's two
+      readings merge with the source's description answering the
+      document's question, and no key the trees disagree on. A generator
+      does not yet write the chain from the design; it reads the binding
+      when one does.
+    satisfies: [SA-44, SA-34, SA-7]

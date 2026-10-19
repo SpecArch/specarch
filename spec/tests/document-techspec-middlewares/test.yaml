@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: document
+level: system
+scenario: golden
+given: "a specification that declares three middlewares, two with a refusal each, and an operation that runs all three in order and one that runs none"
+when: document techspec is run
+then: "the table of HTTP operations names each operation's middlewares in order, or none, each operation's runtime view says what it runs before its handler, with the refusals, a section lists every middleware with what it does, its refusals and the operations that run it, and it exits 0"
+verifies: [SA-7, SA-8]

@@ -119,6 +119,8 @@ public enum Rule: String, CaseIterable, Sendable {
     case buildTask = "build_task"
     case requestBodyOpen = "request_body_open"
     case successResponseMissing = "success_response_missing"
+    case middleware = "middleware"
+    case middlewareMissing = "middleware_missing"
 }
 
 /// Whether a diagnostic makes the file invalid.

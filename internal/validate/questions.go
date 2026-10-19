@@ -309,7 +309,8 @@ func Covered(ds []Diagnostic, root *yaml.Node) (kept, covered []Diagnostic) {
 		case missing != "":
 			isCovered = b.under(d.Path) || contains(b.keys[d.Path], missing)
 		case d.Severity == Warning:
-			isCovered = b.under(d.Path) || d.Rule == RuleAcceptanceMissing && contains(b.keys[d.Path], "acceptance")
+			isCovered = b.under(d.Path) || d.Rule == RuleAcceptanceMissing && contains(b.keys[d.Path], "acceptance") ||
+				d.Rule == RuleMiddlewareMissing && contains(b.keys[d.Path], "middlewares")
 		case d.Rule == RuleProblem && strings.HasSuffix(d.Message, " names one under problem"):
 			// A response whose problem the source does not name, while
 			// the specification declares problem types: the problem is

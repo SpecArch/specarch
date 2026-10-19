@@ -210,6 +210,7 @@ extension Checker {
         checkEntities(d)
         checkLookups(d)
         checkOperations(d)
+        checkMiddlewares(d)
         checkCommands(d)
         checkDependencies(d)
         checkJobs(d)
@@ -630,6 +631,7 @@ extension Checker {
             checkLimits(o)
             checkProblems(d, o)
             checkInterface(o)
+            checkOperationMiddlewares(d, o)
             checkGuard(d, o.node.child("guard"), o.pointer("guard"))
         }
     }

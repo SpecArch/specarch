@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "a specification that declares its problem types and two middlewares, one whose refusals name a problem not under errors, one of another status and none; an operation that names a middleware not declared, one that runs none, one that names no middlewares, and one whose middlewares an open must question blocks"
+when: "validate is run"
+then: "it reports middleware for the undeclared name, problem for each of the three refusals, warns middleware_missing for the operation that names none, counts the one under the question as covered, and exits 1"
+verifies: [SA-34]

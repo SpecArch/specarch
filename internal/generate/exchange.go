@@ -67,6 +67,9 @@ func operationRequest(d *doc, root *yaml.Node, o operation, explained map[*yaml.
 		d.blank()
 		d.explainRows(rows)
 	}
+	if len(params) == 0 {
+		d.openUnder(o, told, "Takes no parameters", "parameters")
+	}
 	if body == nil {
 		if bodyMethods[o.method] {
 			d.openUnder(o, told, "Takes no request body", "requestBody")
@@ -299,28 +302,38 @@ func slug(heading string) string {
 // anything under it ("; <key> is open in <IDs>"), and then each of those
 // questions in full, so the gap and what decides it stand together. The
 // parameters key is also looked for on the path, whose parameters the
-// operation takes too. told holds the questions already written under the
-// operation.
+// operation takes too. A question that blocks the whole operation or its
+// whole path holds every key open, so it is named first, once, as on the
+// operation or on the path. told holds the questions already written
+// under the operation.
 func (d *doc) openUnder(o operation, told map[string]bool, text string, keys ...string) {
 	words := map[string]string{"parameters": "what it takes", "requestBody": "the request body", "responses": "what it answers"}
 	var asked []question
 	var labels []string
+	named := map[string]bool{}
+	name := func(label string, match func(question) bool) {
+		var ids []string
+		for _, q := range d.questions {
+			if !named[q.id] && match(q) {
+				named[q.id] = true
+				ids = append(ids, q.id)
+				asked = append(asked, q)
+				labels = append(labels, label)
+			}
+		}
+		if len(ids) > 0 {
+			text += fmt.Sprintf("; %s is open in %s", label, joinAnd(ids))
+		}
+	}
+	whole := wholeOperation(o)
+	name("the operation", func(q question) bool { return q.blocksAt(whole[:1]) })
+	name("the path", func(q question) bool { return q.blocksAt(whole[1:]) })
 	for _, key := range keys {
 		ptrs := []string{source.Pointer("paths", o.path, o.method, key)}
 		if key == "parameters" {
 			ptrs = append(ptrs, source.Pointer("paths", o.path, key))
 		}
-		var ids []string
-		for _, q := range d.questions {
-			if q.blocksUnder(ptrs) {
-				ids = append(ids, q.id)
-				asked = append(asked, q)
-				labels = append(labels, words[key])
-			}
-		}
-		if len(ids) > 0 {
-			text += fmt.Sprintf("; %s is open in %s", words[key], joinAnd(ids))
-		}
+		name(words[key], func(q question) bool { return q.blocksUnder(ptrs) })
 	}
 	d.para(text + ".")
 	for i, q := range asked {
@@ -329,6 +342,45 @@ func (d *doc) openUnder(o operation, told map[string]bool, text string, keys ...
 			d.openParagraph(q, " on "+labels[i])
 		}
 	}
+}
+
+// openOperation writes, after everything an operation declares, the open
+// questions that block the whole operation or its whole path and that no
+// sentence above has named, as a must question holds a declared
+// operation open while what it answers is not settled.
+func (d *doc) openOperation(o operation, told map[string]bool) {
+	whole := wholeOperation(o)
+	for i, on := range []string{" on the operation", " on the path"} {
+		for _, q := range d.questions {
+			if !told[q.id] && q.blocksAt(whole[i:i+1]) {
+				told[q.id] = true
+				d.openParagraph(q, on)
+			}
+		}
+	}
+}
+
+// wholeOperation is the pointer to an operation and to its path item, in
+// that order.
+func wholeOperation(o operation) []string {
+	return []string{source.Pointer("paths", o.path, o.method), source.Pointer("paths", o.path)}
+}
+
+// blocksAt reports whether the question blocks one of the pointers itself,
+// not something under it.
+func (q question) blocksAt(ptrs []string) bool {
+	for _, b := range q.blocks {
+		if !b.IsPointer() {
+			continue
+		}
+		p := source.Pointer(b.Tokens...)
+		for _, ptr := range ptrs {
+			if p == ptr {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 // blocksUnder reports whether the question blocks one of the pointers or

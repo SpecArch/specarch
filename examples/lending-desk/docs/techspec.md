@@ -204,6 +204,8 @@ Where a member lives. One that is given has its street and city.
 
 **Note:** From The lending desk service, 85f06f82a430a81cc24648d198454426a37c16c9, clause lending/routes.go:47: RegisterMember answers 201. <../sources/code>
 
+Takes no parameters.
+
 Request body, application/json, required: [Member](#member).
 
 Responses:
@@ -227,6 +229,8 @@ sequenceDiagram
 **Note:** From Lending desk manual, 2025, clause 3.1: Desk staff lend a book by scanning the member's card and the book's barcode. <../sources/manual.md>
 
 **Note:** From The lending desk service, 85f06f82a430a81cc24648d198454426a37c16c9, clause lending/routes.go:59: LendBook answers 409 when the member has MaxOpenLoans books out, and 201 otherwise. <../sources/code>
+
+Takes no parameters.
 
 Request body, application/json, required:
 

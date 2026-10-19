@@ -103,6 +103,10 @@ sequenceDiagram
 
 ### addShelf (POST /shelves)
 
+Takes no parameters; what it takes is open in Q-3.
+
+**Open question Q-3 (could, decision) on what it takes:** May a reader name the room a new shelf goes in? Decided by owner.
+
 Request body, application/json, required:
 
 | Field | Type | Required | Limits | Description |
@@ -154,6 +158,8 @@ Body of the 200 response:
 | counts.books | int32 | yes | at least 0 |   |
 | counts.lent | int32 | yes | at least 0 |   |
 
+**Open question Q-5 (could, decision) on the path:** Is a shelf read by its identifier or by its name? Decided by owner.
+
 ```mermaid
 sequenceDiagram
   participant C as Client
@@ -191,7 +197,9 @@ sequenceDiagram
 
 ### listNotices (GET /notices)
 
-Takes no parameters and no request body; what it takes is open in Q-2.
+Takes no parameters and no request body; the operation is open in Q-4; what it takes is open in Q-2.
+
+**Open question Q-4 (could, decision) on the operation:** Should notices be listed at all, or only shown on the shelves they concern? Decided by owner.
 
 **Open question Q-2 (could, decision) on what it takes:** Which notices may a reader filter by, and on what? Decided by owner.
 

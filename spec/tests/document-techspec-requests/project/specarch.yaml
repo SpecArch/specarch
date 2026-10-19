@@ -139,6 +139,24 @@ questions:
     priority: could
     blocks: ["#/paths/~1notices/parameters"]
     decidedBy: owner
+  Q-3:
+    question: May a reader name the room a new shelf goes in?
+    kind: decision
+    priority: could
+    blocks: ["#/paths/~1shelves/post/parameters"]
+    decidedBy: owner
+  Q-4:
+    question: Should notices be listed at all, or only shown on the shelves they concern?
+    kind: decision
+    priority: could
+    blocks: ["#/paths/~1notices/get"]
+    decidedBy: owner
+  Q-5:
+    question: Is a shelf read by its identifier or by its name?
+    kind: decision
+    priority: could
+    blocks: ["#/paths/~1shelves~1{shelfId}"]
+    decidedBy: owner
 tests:
   list-genres-succeeds: { operation: listGenres, level: system, scenario: golden, given: "a caller with shelves.read", when: "listGenres is called", then: "it answers 200: Every genre." }
   list-genres-denied-without-shelves-read: { operation: listGenres, level: system, scenario: red, covers: [denied without shelves.read], given: "a caller without shelves.read", when: "listGenres is called", then: "it is refused as not allowed" }

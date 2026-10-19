@@ -504,6 +504,7 @@ func runtime(d *doc, root *yaml.Node) {
 		operationRequest(d, root, o, explained, told)
 		operationDetails(d, root, o.node)
 		operationResponses(d, root, o, told)
+		d.openOperation(o, told)
 		d.block(operationSequence(root, o))
 	}
 	for _, j := range jobs {

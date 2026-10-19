@@ -356,6 +356,8 @@ Opens a session for the member or librarian the email address
 belongs to. The answer does not say whether the address or the
 password was wrong.
 
+Takes no parameters.
+
 Request body, application/json, required:
 
 | Field | Type | Required | Limits | Description |
@@ -418,6 +420,8 @@ starts when the code is right; a challenge that is wrong five
 times, or older than five minutes, is closed, and sign-in starts
 again.
 
+Takes no parameters.
+
 Request body, application/json, required:
 
 | Field | Type | Required | Limits | Description |
@@ -444,6 +448,8 @@ sequenceDiagram
 Sets the password of the member or librarian a reset code was
 sent to. The code is used once and expires; the confirmation is
 sent with the password, so the service checks it too.
+
+Takes no parameters.
 
 Request body, application/json, required:
 
@@ -493,6 +499,8 @@ sequenceDiagram
 ```
 
 ### createMember (POST /members)
+
+Takes no parameters.
 
 Request body, application/json, required:
 

@@ -92,6 +92,9 @@ func (s *goStep) node() *yaml.Node {
 	if s.parameter != "" {
 		set(n, "parameter", s.parameter)
 	}
+	if s.label != "" {
+		set(n, "label", s.label)
+	}
 	switch s.kind {
 	case "branch":
 		set(n, "then", stepNodes(s.then))

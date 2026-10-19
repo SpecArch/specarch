@@ -3,6 +3,7 @@ package lockers
 import (
 	"encoding/json"
 	"net/http"
+	"sort"
 
 	"example.com/lockers/notify"
 )
@@ -151,4 +152,41 @@ func (s *Server) serviceLocker(w http.ResponseWriter, r *http.Request) {
 // health answers that the service is up.
 func (s *Server) health(w http.ResponseWriter, r *http.Request) {
 	panic("not implemented")
+}
+
+// listParcels answers the parcels a courier stored, by code, leaving out
+// the ones collected; a lost parcel stops the list.
+func (s *Server) listParcels(w http.ResponseWriter, r *http.Request) {
+	courier := r.Header.Get("X-Courier")
+	rows, err := s.db.Query("SELECT code, state FROM parcels WHERE courier = $1", courier)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+	var items []parcel
+	lost := false
+scan:
+	for rows.Next() {
+		var p parcel
+		if err := rows.Scan(&p.code, &p.state); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		switch p.state {
+		case "lost":
+			lost = true
+			break scan
+		case "collected":
+			break
+		default:
+			items = append(items, p)
+		}
+	}
+	if lost {
+		http.Error(w, "a parcel of the courier is lost", http.StatusConflict)
+		return
+	}
+	sort.Slice(items, func(i, j int) bool { return items[i].code < items[j].code })
+	json.NewEncoder(w).Encode(items)
 }

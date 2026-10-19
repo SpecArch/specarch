@@ -581,16 +581,36 @@ func edge(from chartExit, to string) string {
 	return fmt.Sprintf("%s -->|\"%s\"| %s", from.node, mermaidText(from.label), to)
 }
 
-// chartLoop is the loop the steps drawn are inside, for a step that leaves
-// it or goes on with its next round.
-type chartLoop struct {
-	id     string
-	breaks []chartExit // the exits of the steps that leave the loop
+// chartScope is a loop or a choice the steps drawn are inside, for a step
+// that leaves it or goes on with a loop's next round: the innermost is
+// given, and each knows the one around it.
+type chartScope struct {
+	id, kind, label string      // kind is loop or choice
+	breaks          []chartExit // the exits of the steps that leave it
+	parent          *chartScope
+}
+
+// target is the scope a break or a continue goes to: the one its label
+// names, or the innermost loop for a continue or a break that leaves a
+// loop, or the innermost scope for a break that leaves a switch or a
+// select; nil when none is drawn.
+func (sc *chartScope) target(label string, loopsOnly bool) *chartScope {
+	for s := sc; s != nil; s = s.parent {
+		switch {
+		case label != "":
+			if s.label == label {
+				return s
+			}
+		case !loopsOnly || s.kind == "loop":
+			return s
+		}
+	}
+	return nil
 }
 
 // drawSteps draws steps in order, each reached from the exits of the one
 // before it, and returns the exits of the last.
-func drawSteps(b *strings.Builder, edges *[]string, steps []*yaml.Node, from []chartExit, loop *chartLoop) []chartExit {
+func drawSteps(b *strings.Builder, edges *[]string, steps []*yaml.Node, from []chartExit, scope *chartScope) []chartExit {
 	for _, st := range steps {
 		id := str(st, "id")
 		text := mermaidText(str(st, "text"))
@@ -612,42 +632,52 @@ func drawSteps(b *strings.Builder, edges *[]string, steps []*yaml.Node, from []c
 			from = nil
 		case "branch":
 			var next []chartExit
-			next = append(next, drawSteps(b, edges, items(st, "then"), []chartExit{{id, "yes"}}, loop)...)
+			next = append(next, drawSteps(b, edges, items(st, "then"), []chartExit{{id, "yes"}}, scope)...)
 			if get(st, "otherwise") != nil {
-				next = append(next, drawSteps(b, edges, items(st, "otherwise"), []chartExit{{id, "no"}}, loop)...)
+				next = append(next, drawSteps(b, edges, items(st, "otherwise"), []chartExit{{id, "no"}}, scope)...)
 			} else {
 				next = append(next, chartExit{id, "no"})
 			}
 			from = next
 		case "choice":
+			inner := &chartScope{id: id, kind: "choice", label: str(st, "label"), parent: scope}
 			var next []chartExit
 			hasOtherwise := false
 			for _, c := range items(st, "cases") {
 				when := str(c, "when")
 				hasOtherwise = hasOtherwise || when == "otherwise"
-				next = append(next, drawSteps(b, edges, items(c, "steps"), []chartExit{{id, when}}, loop)...)
+				next = append(next, drawSteps(b, edges, items(c, "steps"), []chartExit{{id, when}}, inner)...)
 			}
 			if !hasOtherwise {
 				next = append(next, chartExit{id, "otherwise"})
 			}
-			from = next
+			from = append(next, inner.breaks...)
 		case "loop":
-			inner := &chartLoop{id: id}
+			inner := &chartScope{id: id, kind: "loop", label: str(st, "label"), parent: scope}
 			for _, e := range drawSteps(b, edges, items(st, "body"), []chartExit{{id, "each time"}}, inner) {
 				*edges = append(*edges, edge(chartExit{e.node, joinLabel(e.label, "again")}, id))
 			}
 			from = append([]chartExit{{id, "done"}}, inner.breaks...)
 		case "statement":
 			text := str(st, "text")
+			label := str(st, "label")
 			switch {
 			case strings.HasPrefix(text, "panics"):
 				from = nil
-			case loop != nil && text == "goes on with the next round of the loop":
-				*edges = append(*edges, edge(chartExit{node: id}, loop.id))
-				from = nil
-			case loop != nil && text == "leaves the loop":
-				loop.breaks = append(loop.breaks, chartExit{node: id})
-				from = nil
+			case strings.HasPrefix(text, "goes on with the next round of the loop"):
+				if t := scope.target(label, true); t != nil {
+					*edges = append(*edges, edge(chartExit{node: id}, t.id))
+					from = nil
+				} else {
+					from = []chartExit{{node: id}}
+				}
+			case strings.HasPrefix(text, "leaves the "):
+				if t := scope.target(label, strings.HasPrefix(text, "leaves the loop")); t != nil {
+					t.breaks = append(t.breaks, chartExit{node: id})
+					from = nil
+				} else {
+					from = []chartExit{{node: id}}
+				}
 			default:
 				from = []chartExit{{node: id}}
 			}

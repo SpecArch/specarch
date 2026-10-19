@@ -209,9 +209,9 @@ questions:
     blocks: ['#/permissions/lockers.read', '#/permissions/lockers.service', '#/permissions/lockers.sweep', '#/permissions/parcels.store']
     decidedBy: system-owner
     why: The source names the privilege an endpoint checks and not who holds it.
-  # specarch-problem: question: open_question: (should, decision, suspected) notify/notify.go:16: the result of http.NewRequest(http.MethodPost, "https://messages.example.com/v1/send", nil) is dropped in notify.Collector, so when the call fails the handlers of POST /parcels, POST /lockers/sweep and POST /lockers/{id}/service goes on as if it had succeeded. Is the error meant to be ignored? Decided by system-owner. Answer with a decision record that names Q-25 under answers. [Q-25]
+  # specarch-problem: question: open_question: (should, decision, suspected) notify/notify.go:16: the result of http.NewRequest(http.MethodPost, "https://messages.example.com/v1/send", nil) is dropped in notify.Collector, so when the call fails each handler of POST /parcels, POST /lockers/sweep and POST /lockers/{id}/service goes on as if it had succeeded. Is the error meant to be ignored? Decided by system-owner. Answer with a decision record that names Q-25 under answers. [Q-25]
   Q-25:
-    question: 'notify/notify.go:16: the result of http.NewRequest(http.MethodPost, "https://messages.example.com/v1/send", nil) is dropped in notify.Collector, so when the call fails the handlers of POST /parcels, POST /lockers/sweep and POST /lockers/{id}/service goes on as if it had succeeded. Is the error meant to be ignored?'
+    question: 'notify/notify.go:16: the result of http.NewRequest(http.MethodPost, "https://messages.example.com/v1/send", nil) is dropped in notify.Collector, so when the call fails each handler of POST /parcels, POST /lockers/sweep and POST /lockers/{id}/service goes on as if it had succeeded. Is the error meant to be ignored?'
     kind: decision
     priority: should
     certainty: suspected

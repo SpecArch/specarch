@@ -54,7 +54,8 @@ func (g *goReader) askFaults() {
 }
 
 // handlersText names the handler of one operation, or one handler serving
-// several, or the handlers of several operations.
+// several, or each handler of several operations; always one handler, so
+// that the verb after it is singular.
 func handlersText(hs []*goHandler) string {
 	var ops []string
 	oneTarget := true
@@ -65,7 +66,7 @@ func handlersText(hs []*goHandler) string {
 	if oneTarget {
 		return "the handler " + hs[0].target + " of " + joinAnd(ops)
 	}
-	return "the handlers of " + joinAnd(ops)
+	return "each handler of " + joinAnd(ops)
 }
 
 // fault is a fault at a step.

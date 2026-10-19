@@ -610,11 +610,14 @@ changes `extract.yaml` first.
     body, database reads and writes with their table (a dxlib table's
     methods, `database/sql` calls with a literal statement), transactions,
     calls, external calls over HTTP, responses with their status and
-    problem, returns, and defers, go statements, panics, breaks and
-    continues; a call of a function of the module is followed to three
-    calls deep and at most forty functions a record, a method when the
-    receiver's type is known by syntax, and a call not followed says why
-    on its step. The record goes under the operation's mapping in the
+    problem, returns, and defers, go statements, panics, breaks (of the
+    innermost loop, switch or select, or of the statement the label
+    names), continues, gotos and fallthroughs; a call of a function of
+    the module is followed to three calls deep and at most forty
+    functions a record, a method when the receiver's type is known by
+    syntax, a function literal as a function of its own one call deeper
+    (called where it is written, passed to a call or defined for later),
+    and a call not followed says why on its step. The record goes under the operation's mapping in the
     implementation fragment `--implementation-out` writes, which go now
     takes as database does: the commit, the depth and the functions, each
     with its name, file, lines, steps and source as it was at the commit,

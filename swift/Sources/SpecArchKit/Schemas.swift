@@ -6298,7 +6298,7 @@ let implementationSchemaJSON = #"""
       "type": "object",
       "properties": {
         "name": {
-          "description": "The function's name as the code qualifies it: package.Function, or package.Type.Method.",
+          "description": "The function's name as the code qualifies it: package.Function, or package.Type.Method; a function literal is named by where it is written, 'a function literal at file:line'.",
           "type": "string",
           "minLength": 1
         },
@@ -6349,7 +6349,7 @@ let implementationSchemaJSON = #"""
           "pattern": "^s[1-9][0-9]*$"
         },
         "kind": {
-          "description": "What the step is. input: a read of the request (a parameter, the body, a header). branch: an if, with the steps taken when its condition holds under then and otherwise under otherwise. choice: a switch, with its cases. loop: a for, with the steps of its body. database: a read or a write of a table. transaction: a transaction begun, committed or rolled back. call: a call of a function of the code, followed (function) or not (stopped). external: a call of another system over HTTP. response: a response written, a success or a refusal. return: the function returns. statement: a defer, a go statement, a panic, a break or a continue.",
+          "description": "What the step is. input: a read of the request (a parameter, the body, a header). branch: an if, with the steps taken when its condition holds under then and otherwise under otherwise. choice: a switch, with its cases. loop: a for, with the steps of its body. database: a read or a write of a table. transaction: a transaction begun, committed or rolled back. call: a call of a function of the code, followed (function) or not (stopped), or a function literal called, passed or defined, followed as a function of its own. external: a call of another system over HTTP. response: a response written, a success or a refusal. return: the function returns. statement: a defer, a go statement, a panic, a break (of a loop, a switch or a select), a continue, a goto or a fallthrough.",
           "type": "string",
           "enum": [
             "input",
@@ -6387,6 +6387,11 @@ let implementationSchemaJSON = #"""
         },
         "parameter": {
           "description": "For input: the name the request is read by, as the code writes it.",
+          "type": "string",
+          "minLength": 1
+        },
+        "label": {
+          "description": "For loop and choice: the label the code gives the statement, when it has one. For a statement that leaves or goes on with a labelled loop, switch or select: that label, so the chart knows which one it leaves.",
           "type": "string",
           "minLength": 1
         },

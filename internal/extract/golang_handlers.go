@@ -40,6 +40,7 @@ type goStep struct {
 	dependency     string
 	status         int
 	problem        string
+	label          string // the label of a loop or a choice, or the one a break or a continue names
 	then           []*goStep
 	otherwise      []*goStep
 	hasOtherwise   bool
@@ -99,6 +100,50 @@ type fnScope struct {
 	writer  string            // net/http's response writer
 	context string            // gin's or echo's context
 	given   []string          // the names a call is given to count as given the request
+	// The statements a break may leave, innermost last: a loop, a switch
+	// or a select, each with its label when the code gives it one.
+	breakable []goBreakable
+	label     string // the label of the statement about to be walked
+}
+
+// goBreakable is a statement a break may leave.
+type goBreakable struct {
+	kind, label string
+}
+
+// enter notes that the walk goes into a loop, a switch or a select, with
+// the label the code gave it, and returns that label.
+func (sc *fnScope) enter(kind string) string {
+	label := sc.label
+	sc.label = ""
+	sc.breakable = append(sc.breakable, goBreakable{kind: kind, label: label})
+	return label
+}
+
+// leave notes that the walk left the innermost loop, switch or select.
+func (sc *fnScope) leave() {
+	sc.breakable = sc.breakable[:len(sc.breakable)-1]
+}
+
+// breakTarget is the statement a break leaves: the one its label names,
+// or the innermost loop, switch or select (Go spec, Break statements). A
+// continue goes to a loop alone.
+func (sc *fnScope) breakTarget(label *ast.Ident, loopsOnly bool) goBreakable {
+	for i := len(sc.breakable) - 1; i >= 0; i-- {
+		b := sc.breakable[i]
+		switch {
+		case label != nil:
+			if b.label == label.Name {
+				return b
+			}
+		case !loopsOnly || b.kind == "loop":
+			return b
+		}
+	}
+	if label != nil {
+		return goBreakable{kind: "statement", label: label.Name}
+	}
+	return goBreakable{kind: "loop"}
 }
 
 // readHandlers follows every operation's handler and records it, then
@@ -174,6 +219,13 @@ func (h *goHandler) functionName(f *goFile, fd *ast.FuncDecl, lit *ast.FuncLit) 
 // follow reads one function into the record, at the depth it was reached,
 // and returns it; a function already followed is returned as it is.
 func (h *goHandler) follow(f *goFile, fd *ast.FuncDecl, lit *ast.FuncLit, depth int) *goFunction {
+	return h.followWith(f, fd, lit, depth, nil)
+}
+
+// followWith is follow with the scope a function literal is written in,
+// whose names the literal sees: the request, the writer, a transaction
+// and the types of the locals. A declared function is given no scope.
+func (h *goHandler) followWith(f *goFile, fd *ast.FuncDecl, lit *ast.FuncLit, depth int, parent *fnScope) *goFunction {
 	var key ast.Node
 	var ft *ast.FuncType
 	var body *ast.BlockStmt
@@ -196,12 +248,27 @@ func (h *goHandler) follow(f *goFile, fd *ast.FuncDecl, lit *ast.FuncLit, depth 
 	h.byDecl[key] = fn
 	h.functions = append(h.functions, fn)
 	sc := &fnScope{h: h, fn: fn, file: f, types: map[string]string{}, outside: map[string]bool{}, tx: map[string]bool{}}
+	if parent != nil {
+		for k, v := range parent.types {
+			sc.types[k] = v
+		}
+		for k, v := range parent.outside {
+			sc.outside[k] = v
+		}
+		for k, v := range parent.tx {
+			sc.tx[k] = v
+		}
+		sc.request, sc.writer, sc.context = parent.request, parent.writer, parent.context
+	}
 	if fd != nil && fd.Recv != nil && len(fd.Recv.List) == 1 && len(fd.Recv.List[0].Names) == 1 {
 		sc.bindType(fd.Recv.List[0].Names[0].Name, fd.Recv.List[0].Type)
 	}
 	for _, p := range ft.Params.List {
 		for _, n := range p.Names {
 			sc.bindType(n.Name, p.Type)
+			if transactionType(g.typeKey(f, p.Type)) {
+				sc.tx[n.Name] = true
+			}
 			t := exprText(p.Type)
 			switch {
 			case strings.HasSuffix(t, ".DXAPIEndPointRequest") && h.dxlibType(f, p.Type):
@@ -224,6 +291,13 @@ func (h *goHandler) follow(f *goFile, fd *ast.FuncDecl, lit *ast.FuncLit, depth 
 	return fn
 }
 
+// transactionType says whether a type key is a transaction of
+// database/sql, pgx or sqlx.
+func transactionType(key string) bool {
+	ip, name := splitKey(key)
+	return name == "Tx" && (ip == "database/sql" || strings.Contains(ip, "jackc/pgx") || strings.HasSuffix(ip, "sqlx"))
+}
+
 // dxlibType says whether a type expression names a type of dxlib's api
 // package.
 func (h *goHandler) dxlibType(f *goFile, e ast.Expr) bool {
@@ -240,15 +314,21 @@ func (h *goHandler) dxlibType(f *goFile, e ast.Expr) bool {
 
 // sourceLines is the source of a file from one line to another, each line
 // without its trailing spaces and tabs, since YAML cannot keep them in a
-// readable block.
+// readable block, and without the indentation of the first line, which a
+// function literal written inside a function has and a YAML block cannot
+// begin with when it is a tab.
 func sourceLines(f *goFile, first, last int) string {
 	lines := strings.Split(string(f.src), "\n")
 	if last > len(lines) {
 		last = len(lines)
 	}
+	indent := ""
+	if first >= 1 && first <= len(lines) {
+		indent = lines[first-1][:len(lines[first-1])-len(strings.TrimLeft(lines[first-1], " \t"))]
+	}
 	var out []string
 	for i := first; i <= last; i++ {
-		out = append(out, strings.TrimRight(lines[i-1], " \t"))
+		out = append(out, strings.TrimRight(strings.TrimPrefix(lines[i-1], indent), " \t"))
 	}
 	return strings.Join(out, "\n")
 }
@@ -419,7 +499,9 @@ func (sc *fnScope) statement(st ast.Stmt) []*goStep {
 			text = "while " + sc.text(st.Cond, st.Cond)
 		}
 		s := sc.step("loop", st, text)
+		s.label = sc.enter("loop")
 		s.body = sc.block(st.Body.List)
+		sc.leave()
 		out = append(out, s)
 	case *ast.RangeStmt:
 		out = append(out, sc.expression(st.X)...)
@@ -430,7 +512,9 @@ func (sc *fnScope) statement(st ast.Stmt) []*goStep {
 			text = "for each " + exprText(st.Key) + " of " + sc.text(st.X, st.X)
 		}
 		s := sc.step("loop", st, text)
+		s.label = sc.enter("loop")
 		s.body = sc.block(st.Body.List)
+		sc.leave()
 		out = append(out, s)
 	case *ast.SwitchStmt:
 		if st.Init != nil {
@@ -442,17 +526,22 @@ func (sc *fnScope) statement(st ast.Stmt) []*goStep {
 			text = "switch on " + sc.text(st.Tag, st.Tag)
 		}
 		s := sc.step("choice", st, text)
+		s.label = sc.enter("switch")
 		s.cases = sc.caseClauses(st.Body.List)
+		sc.leave()
 		out = append(out, s)
 	case *ast.TypeSwitchStmt:
 		if st.Init != nil {
 			out = append(out, sc.statement(st.Init)...)
 		}
 		s := sc.step("choice", st, "switch on the type of "+sc.text(st.Assign, st.Assign))
+		s.label = sc.enter("switch")
 		s.cases = sc.caseClauses(st.Body.List)
+		sc.leave()
 		out = append(out, s)
 	case *ast.SelectStmt:
 		s := sc.step("choice", st, "select the first channel ready")
+		s.label = sc.enter("select")
 		for _, c := range st.Body.List {
 			cc, ok := c.(*ast.CommClause)
 			if !ok {
@@ -464,30 +553,60 @@ func (sc *fnScope) statement(st ast.Stmt) []*goStep {
 			}
 			s.cases = append(s.cases, goCase{when: when, steps: sc.block(cc.Body)})
 		}
+		sc.leave()
 		out = append(out, s)
 	case *ast.BlockStmt:
 		out = sc.block(st.List)
 	case *ast.LabeledStmt:
+		sc.label = st.Label.Name
 		out = sc.statement(st.Stmt)
+		sc.label = ""
+	case *ast.BranchStmt:
+		out = append(out, sc.branchStep(st))
 	case *ast.DeferStmt:
 		out = append(out, sc.step("statement", st, "defers "+sc.text(st.Call, st.Call)))
 	case *ast.GoStmt:
 		out = append(out, sc.step("statement", st, "starts a goroutine running "+sc.text(st.Call, st.Call)))
-	case *ast.BranchStmt:
-		switch st.Tok {
-		case gotoken.BREAK:
-			out = append(out, sc.step("statement", st, "leaves the loop"))
-		case gotoken.CONTINUE:
-			out = append(out, sc.step("statement", st, "goes on with the next round of the loop"))
-		case gotoken.GOTO:
-			out = append(out, sc.step("statement", st, "goes to "+exprText(st.Label)))
-		}
 	case *ast.IncDecStmt:
 		out = sc.expression(st.X)
 	case *ast.SendStmt:
 		out = append(sc.expression(st.Chan), sc.expression(st.Value)...)
 	}
 	return out
+}
+
+// branchStep is the step of a break, a continue, a goto or a fallthrough:
+// an unlabelled break leaves the innermost loop, switch or select, a
+// labelled one the statement its label names, and a continue goes on
+// with the innermost loop or the one named.
+func (sc *fnScope) branchStep(st *ast.BranchStmt) *goStep {
+	switch st.Tok {
+	case gotoken.BREAK:
+		target := sc.breakTarget(st.Label, false)
+		s := sc.step("statement", st, "leaves the "+target.kind+labelledText(st.Label))
+		if st.Label != nil {
+			s.label = target.label
+		}
+		return s
+	case gotoken.CONTINUE:
+		target := sc.breakTarget(st.Label, true)
+		s := sc.step("statement", st, "goes on with the next round of the loop"+labelledText(st.Label))
+		if st.Label != nil {
+			s.label = target.label
+		}
+		return s
+	case gotoken.GOTO:
+		return sc.step("statement", st, "goes to "+exprText(st.Label))
+	}
+	return sc.step("statement", st, "falls through to the next case")
+}
+
+// labelledText names the label a break or a continue gives, or is empty.
+func labelledText(label *ast.Ident) string {
+	if label == nil {
+		return ""
+	}
+	return " labelled " + label.Name
 }
 
 // returnsErrorType says whether the function's last result is an error.
@@ -657,10 +776,18 @@ func (sc *fnScope) expression(e ast.Expr) []*goStep {
 	switch e := e.(type) {
 	case nil:
 	case *ast.CallExpr:
-		if _, ok := e.Fun.(*ast.FuncLit); !ok {
-			out = append(out, sc.expression(e.Fun)...)
+		if lit, ok := e.Fun.(*ast.FuncLit); ok {
+			for _, a := range e.Args {
+				out = append(out, sc.expression(a)...)
+			}
+			return append(out, sc.literalStep(lit, "calls"))
 		}
+		out = append(out, sc.expression(e.Fun)...)
 		for _, a := range e.Args {
+			if lit, ok := a.(*ast.FuncLit); ok {
+				out = append(out, sc.literalStep(lit, "passes", sc.text(e.Fun, e.Fun)))
+				continue
+			}
 			out = append(out, sc.expression(a)...)
 		}
 		if s := sc.call(e); s != nil {
@@ -696,11 +823,42 @@ func (sc *fnScope) expression(e ast.Expr) []*goStep {
 			out = append(out, sc.expression(el)...)
 		}
 	case *ast.FuncLit:
-		// A literal is called from where it is passed, which the walk does
-		// not follow; its body is read as part of this function.
-		out = sc.block(e.Body.List)
+		out = append(out, sc.literalStep(e, "defines"))
 	}
 	return out
+}
+
+// literalStep is the call step of a function literal, followed as a
+// function of its own one call deeper, with the names of the function it
+// is written in: its returns are its own, not the enclosing function's.
+// The verb says how the literal is reached: called where it is written,
+// passed to a call (named by to), or defined for a later call.
+func (sc *fnScope) literalStep(lit *ast.FuncLit, verb string, to ...string) *goStep {
+	h := sc.h
+	name := h.functionName(sc.file, nil, lit)
+	text := verb + " " + name
+	if len(to) > 0 {
+		text += " to " + to[0]
+	}
+	s := sc.step("call", lit, text)
+	if fn := h.byDecl[lit]; fn != nil {
+		s.function = fn.name
+		return s
+	}
+	// A literal not followed sees the request and the writer, so what it
+	// reads or answers is not known, as for a call given them.
+	givenRequest := len(sc.given) > 0
+	if sc.fn.depth+1 > handlerDepth {
+		s.stopped, s.givenRequest = fmt.Sprintf("deeper than the %d calls followed from the handler", handlerDepth), givenRequest
+		return s
+	}
+	if len(h.functions) >= handlerFunctions {
+		s.stopped, s.givenRequest = fmt.Sprintf("the record already expands %d functions", handlerFunctions), givenRequest
+		return s
+	}
+	fn := h.followWith(sc.file, nil, lit, sc.fn.depth+1, sc)
+	s.function = fn.name
+	return s
 }
 
 // varsIndex is the input step of gorilla/mux's Vars(request)["name"].
@@ -1018,6 +1176,9 @@ func (sc *fnScope) call(call *ast.CallExpr) *goStep {
 			}
 		}
 		if x, ok := fn.X.(*ast.SelectorExpr); ok {
+			if sc.isRequestHeader(x) && (name == "Get" || name == "Values") && len(call.Args) == 1 {
+				return sc.input(call, "header", call.Args[0])
+			}
 			if t := g.dxTableOf(f, x); t != nil {
 				return sc.dxTableStep(call, t, name)
 			}
@@ -1446,11 +1607,6 @@ func (sc *fnScope) chained(call *ast.CallExpr, inner *ast.CallExpr, name string)
 	case name == "Get" && len(call.Args) == 1 && sc.request != "" && (exprText(inner) == sc.request+".URL.Query()" || exprText(inner.Fun) == sc.request+".URL.Query"):
 		return sc.input(call, "query parameter", call.Args[0])
 	}
-	if sel, ok := inner.Fun.(*ast.SelectorExpr); ok && sc.request != "" && exprText(sel.X) == sc.request {
-		if name == "Get" && sel.Sel.Name == "Header" {
-			return sc.input(call, "header", call.Args[0])
-		}
-	}
 	return nil
 }
 
@@ -1458,6 +1614,20 @@ func (sc *fnScope) chained(call *ast.CallExpr, inner *ast.CallExpr, name string)
 func (sc *fnScope) isRequestBody(e ast.Expr) bool {
 	t := exprText(e)
 	return sc.request != "" && (t == sc.request+".Body" || t == sc.request+".Request.Body")
+}
+
+// isRequestHeader says whether an expression is the request's headers:
+// net/http's Header field on the request, on dxlib's request through its
+// Request, or on echo's context through Request().
+func (sc *fnScope) isRequestHeader(e *ast.SelectorExpr) bool {
+	if e.Sel.Name != "Header" {
+		return false
+	}
+	t := exprText(e.X)
+	if sc.request != "" && (t == sc.request || t == sc.request+".Request") {
+		return true
+	}
+	return sc.context != "" && t == sc.context+".Request(...)"
 }
 
 // writerCall is the step of a call on net/http's response writer.

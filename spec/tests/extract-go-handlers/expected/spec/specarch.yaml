@@ -4,7 +4,7 @@ info:
   title: Go source of .
   version: 0.1.0
   description: |
-    The Go source under ., read at commit 1c42c4c517173d6d9f7741e3ce35bac6b1a39a7c by the standard library's parser, by its syntax alone. Every operation cites the line that registers it; what the source does not say as a literal, or through a call the reader knows, is a question, and so is what the meta-model cannot hold.
+    The Go source under ., read at commit 674562665a5c819a9d71e7dae0074ddc18f6a4d4 by the standard library's parser, by its syntax alone. Every operation cites the line that registers it; what the source does not say as a literal, or through a call the reader knows, is a question, and so is what the meta-model cannot hold.
   tracksOrigin: true
   wireNames: snake_case
 stages: [requirements, design]
@@ -12,7 +12,7 @@ sources:
   code:
     kind: code
     title: The code repository
-    edition: 1c42c4c517173d6d9f7741e3ce35bac6b1a39a7c
+    edition: 674562665a5c819a9d71e7dae0074ddc18f6a4d4
     url: ../testdata/service
     clauses:
       - {clause: lockers/handlers.go, title: 'Go source, read by its syntax'}

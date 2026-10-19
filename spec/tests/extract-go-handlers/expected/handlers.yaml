@@ -1,5 +1,5 @@
 # The mappings specarch extract go read from the Go source under . at commit
-# 1c42c4c517173d6d9f7741e3ce35bac6b1a39a7c: each operation's handler, and for
+# 674562665a5c819a9d71e7dae0074ddc18f6a4d4: each operation's handler, and for
 # each handler followed its logic step by step and its source, function by
 # function. They go under mappings in an implementation file of the
 # specification; each cites the source code.
@@ -7,20 +7,20 @@ mappings:
   '#/paths/~1health/get':
     target: lockers.Server.health
     handler:
-      commit: 1c42c4c517173d6d9f7741e3ce35bac6b1a39a7c
+      commit: 674562665a5c819a9d71e7dae0074ddc18f6a4d4
       depth: 3
       functions:
         - name: lockers.Server.health
           file: lockers/handlers.go
-          firstLine: 151
-          lastLine: 154
+          firstLine: 152
+          lastLine: 155
           steps:
             - id: s1
               kind: statement
               text: 'panics: "not implemented"'
               file: lockers/handlers.go
-              firstLine: 153
-              lastLine: 153
+              firstLine: 154
+              lastLine: 154
           source: |-
             // health answers that the service is up.
             func (s *Server) health(w http.ResponseWriter, r *http.Request) {
@@ -28,98 +28,98 @@ mappings:
             }
     origin: stated
     cites:
-      - {source: code, clause: 'lockers/handlers.go:151', says: 'The handler of GET /health, followed into 1 function.'}
+      - {source: code, clause: 'lockers/handlers.go:152', says: 'The handler of GET /health, followed into 1 function.'}
   '#/paths/~1lockers~1sweep/post':
     target: lockers.Server.sweepLockers
     handler:
-      commit: 1c42c4c517173d6d9f7741e3ce35bac6b1a39a7c
+      commit: 674562665a5c819a9d71e7dae0074ddc18f6a4d4
       depth: 3
       functions:
         - name: lockers.Server.sweepLockers
           file: lockers/handlers.go
-          firstLine: 65
-          lastLine: 97
+          firstLine: 66
+          lastLine: 98
           steps:
             - id: s1
               kind: database
               text: 'reads parcels: SELECT id, code, locker_id, state FROM parcels WHERE state <> ''collected'''
               file: lockers/handlers.go
-              firstLine: 67
-              lastLine: 67
+              firstLine: 68
+              lastLine: 68
               table: parcels
               access: read
             - id: s2
               kind: branch
               text: if err != nil
               file: lockers/handlers.go
-              firstLine: 68
-              lastLine: 71
+              firstLine: 69
+              lastLine: 72
               then:
                 - id: s3
                   kind: response
                   text: answers 500
                   file: lockers/handlers.go
-                  firstLine: 69
-                  lastLine: 69
+                  firstLine: 70
+                  lastLine: 70
                   status: 500
                 - id: s4
                   kind: return
                   text: returns
                   file: lockers/handlers.go
-                  firstLine: 70
-                  lastLine: 70
+                  firstLine: 71
+                  lastLine: 71
             - id: s5
               kind: statement
               text: defers rows.Close()
               file: lockers/handlers.go
-              firstLine: 72
-              lastLine: 72
+              firstLine: 73
+              lastLine: 73
             - id: s6
               kind: loop
               text: while rows.Next()
               file: lockers/handlers.go
-              firstLine: 74
-              lastLine: 95
+              firstLine: 75
+              lastLine: 96
               body:
                 - id: s7
                   kind: branch
                   text: if err != nil
                   file: lockers/handlers.go
-                  firstLine: 76
-                  lastLine: 78
+                  firstLine: 77
+                  lastLine: 79
                   then:
                     - id: s8
                       kind: statement
                       text: leaves the loop
                       file: lockers/handlers.go
-                      firstLine: 77
-                      lastLine: 77
+                      firstLine: 78
+                      lastLine: 78
                 - id: s9
                   kind: call
                   text: calls overdue(p)
                   file: lockers/handlers.go
-                  firstLine: 79
-                  lastLine: 79
+                  firstLine: 80
+                  lastLine: 80
                   function: lockers.overdue
                 - id: s10
                   kind: branch
                   text: if !overdue(p)
                   file: lockers/handlers.go
-                  firstLine: 79
-                  lastLine: 81
+                  firstLine: 80
+                  lastLine: 82
                   then:
                     - id: s11
                       kind: statement
                       text: goes on with the next round of the loop
                       file: lockers/handlers.go
-                      firstLine: 80
-                      lastLine: 80
+                      firstLine: 81
+                      lastLine: 81
                 - id: s12
                   kind: choice
                   text: switch on p.state
                   file: lockers/handlers.go
-                  firstLine: 82
-                  lastLine: 90
+                  firstLine: 83
+                  lastLine: 91
                   cases:
                     - when: '"stored"'
                       steps: []
@@ -129,8 +129,8 @@ mappings:
                           kind: call
                           text: calls notify.Collector(p.code)
                           file: lockers/handlers.go
-                          firstLine: 86
-                          lastLine: 86
+                          firstLine: 87
+                          lastLine: 87
                           function: notify.Collector
                     - when: otherwise
                       steps:
@@ -138,48 +138,48 @@ mappings:
                           kind: response
                           text: 'answers 500: a parcel in no known state'
                           file: lockers/handlers.go
-                          firstLine: 88
-                          lastLine: 88
+                          firstLine: 89
+                          lastLine: 89
                           status: 500
                         - id: s15
                           kind: return
                           text: returns
                           file: lockers/handlers.go
-                          firstLine: 89
-                          lastLine: 89
+                          firstLine: 90
+                          lastLine: 90
                 - id: s16
                   kind: call
                   text: calls s.release(p)
                   file: lockers/handlers.go
-                  firstLine: 91
-                  lastLine: 91
+                  firstLine: 92
+                  lastLine: 92
                   function: lockers.Server.release
                 - id: s17
                   kind: branch
                   text: if err != nil
                   file: lockers/handlers.go
-                  firstLine: 91
-                  lastLine: 94
+                  firstLine: 92
+                  lastLine: 95
                   then:
                     - id: s18
                       kind: response
                       text: answers 500
                       file: lockers/handlers.go
-                      firstLine: 92
-                      lastLine: 92
+                      firstLine: 93
+                      lastLine: 93
                       status: 500
                     - id: s19
                       kind: return
                       text: returns
                       file: lockers/handlers.go
-                      firstLine: 93
-                      lastLine: 93
+                      firstLine: 94
+                      lastLine: 94
             - id: s20
               kind: response
               text: answers with JSON
               file: lockers/handlers.go
-              firstLine: 96
-              lastLine: 96
+              firstLine: 97
+              lastLine: 97
           source: |-
             // sweepLockers removes every parcel stored longer than the keep time.
             func (s *Server) sweepLockers(w http.ResponseWriter, r *http.Request) {
@@ -216,15 +216,15 @@ mappings:
             }
         - name: lockers.overdue
           file: lockers/handlers.go
-          firstLine: 105
-          lastLine: 108
+          firstLine: 106
+          lastLine: 109
           steps:
             - id: s21
               kind: return
               text: returns p.state != "fresh"
               file: lockers/handlers.go
-              firstLine: 107
-              lastLine: 107
+              firstLine: 108
+              lastLine: 108
           source: |-
             // overdue says whether a parcel has waited too long.
             func overdue(p parcel) bool {
@@ -324,40 +324,40 @@ mappings:
             }
         - name: lockers.Server.release
           file: lockers/handlers.go
-          firstLine: 110
-          lastLine: 124
+          firstLine: 111
+          lastLine: 125
           steps:
             - id: s29
               kind: transaction
               text: begins a transaction
               file: lockers/handlers.go
-              firstLine: 112
-              lastLine: 112
+              firstLine: 113
+              lastLine: 113
             - id: s30
               kind: branch
               text: if err != nil
               file: lockers/handlers.go
-              firstLine: 113
-              lastLine: 115
+              firstLine: 114
+              lastLine: 116
               then:
                 - id: s31
                   kind: return
                   text: returns err
                   file: lockers/handlers.go
-                  firstLine: 114
-                  lastLine: 114
+                  firstLine: 115
+                  lastLine: 115
             - id: s32
               kind: statement
               text: defers tx.Rollback()
               file: lockers/handlers.go
-              firstLine: 116
-              lastLine: 116
+              firstLine: 117
+              lastLine: 117
             - id: s33
               kind: database
               text: 'writes parcels: DELETE FROM parcels WHERE id = $1'
               file: lockers/handlers.go
-              firstLine: 117
-              lastLine: 117
+              firstLine: 118
+              lastLine: 118
               table: parcels
               access: write
               transaction: true
@@ -365,21 +365,21 @@ mappings:
               kind: branch
               text: if err != nil
               file: lockers/handlers.go
-              firstLine: 117
-              lastLine: 119
+              firstLine: 118
+              lastLine: 120
               then:
                 - id: s35
                   kind: return
                   text: returns err
                   file: lockers/handlers.go
-                  firstLine: 118
-                  lastLine: 118
+                  firstLine: 119
+                  lastLine: 119
             - id: s36
               kind: database
               text: 'writes lockers: UPDATE lockers SET state = ''free'' WHERE id = $1'
               file: lockers/handlers.go
-              firstLine: 120
-              lastLine: 120
+              firstLine: 121
+              lastLine: 121
               table: lockers
               access: write
               transaction: true
@@ -387,27 +387,27 @@ mappings:
               kind: branch
               text: if err != nil
               file: lockers/handlers.go
-              firstLine: 120
-              lastLine: 122
+              firstLine: 121
+              lastLine: 123
               then:
                 - id: s38
                   kind: return
                   text: returns err
                   file: lockers/handlers.go
-                  firstLine: 121
-                  lastLine: 121
+                  firstLine: 122
+                  lastLine: 122
             - id: s39
               kind: transaction
               text: commits the transaction
               file: lockers/handlers.go
-              firstLine: 123
-              lastLine: 123
+              firstLine: 124
+              lastLine: 124
             - id: s40
               kind: return
               text: returns tx.Commit()
               file: lockers/handlers.go
-              firstLine: 123
-              lastLine: 123
+              firstLine: 124
+              lastLine: 124
           source: |-
             // release frees a parcel's locker and drops the parcel, in one transaction.
             func (s *Server) release(p parcel) error {
@@ -426,70 +426,70 @@ mappings:
             }
     origin: stated
     cites:
-      - {source: code, clause: 'lockers/handlers.go:65', says: 'The handler of POST /lockers/sweep, followed into 7 functions.'}
+      - {source: code, clause: 'lockers/handlers.go:66', says: 'The handler of POST /lockers/sweep, followed into 7 functions.'}
   '#/paths/~1lockers~1{id}~1report/get':
     target: lockers.Server.reportLocker
     handler:
-      commit: 1c42c4c517173d6d9f7741e3ce35bac6b1a39a7c
+      commit: 674562665a5c819a9d71e7dae0074ddc18f6a4d4
       depth: 3
       functions:
         - name: lockers.Server.reportLocker
           file: lockers/handlers.go
-          firstLine: 126
-          lastLine: 139
+          firstLine: 127
+          lastLine: 140
           steps:
             - id: s1
               kind: input
               text: reads the path parameter id
               file: lockers/handlers.go
-              firstLine: 128
-              lastLine: 128
+              firstLine: 129
+              lastLine: 129
               parameter: id
             - id: s2
               kind: external
               text: calls GET https://lockers.example.com/v1/state
               file: lockers/handlers.go
-              firstLine: 129
-              lastLine: 129
+              firstLine: 130
+              lastLine: 130
               dependency: lockersExampleCom
             - id: s3
               kind: branch
               text: if err != nil
               file: lockers/handlers.go
-              firstLine: 130
-              lastLine: 133
+              firstLine: 131
+              lastLine: 134
               then:
                 - id: s4
                   kind: response
                   text: 'answers 502: the maker did not answer'
                   file: lockers/handlers.go
-                  firstLine: 131
-                  lastLine: 131
+                  firstLine: 132
+                  lastLine: 132
                   status: 502
                 - id: s5
                   kind: return
                   text: returns
                   file: lockers/handlers.go
-                  firstLine: 132
-                  lastLine: 132
+                  firstLine: 133
+                  lastLine: 133
             - id: s6
               kind: statement
               text: defers resp.Body.Close()
               file: lockers/handlers.go
-              firstLine: 134
-              lastLine: 134
+              firstLine: 135
+              lastLine: 135
             - id: s7
               kind: response
               text: answers with JSON
               file: lockers/handlers.go
-              firstLine: 135
-              lastLine: 135
+              firstLine: 136
+              lastLine: 136
             - id: s8
               kind: return
               text: returns
               file: lockers/handlers.go
-              firstLine: 136
-              lastLine: 136
+              firstLine: 137
+              lastLine: 137
           source: |-
             // reportLocker answers a locker's state as the lockers' maker reports it.
             func (s *Server) reportLocker(w http.ResponseWriter, r *http.Request) {
@@ -507,45 +507,45 @@ mappings:
             }
     origin: stated
     cites:
-      - {source: code, clause: 'lockers/handlers.go:126', says: 'The handler of GET /lockers/{id}/report, followed into 1 function.'}
+      - {source: code, clause: 'lockers/handlers.go:127', says: 'The handler of GET /lockers/{id}/report, followed into 1 function.'}
   '#/paths/~1lockers~1{id}~1service/post':
     target: lockers.Server.serviceLocker
     handler:
-      commit: 1c42c4c517173d6d9f7741e3ce35bac6b1a39a7c
+      commit: 674562665a5c819a9d71e7dae0074ddc18f6a4d4
       depth: 3
       functions:
         - name: lockers.Server.serviceLocker
           file: lockers/handlers.go
-          firstLine: 141
-          lastLine: 149
+          firstLine: 142
+          lastLine: 150
           steps:
             - id: s1
               kind: branch
               text: if false
               file: lockers/handlers.go
-              firstLine: 144
-              lastLine: 146
+              firstLine: 145
+              lastLine: 147
               then:
                 - id: s2
                   kind: call
                   text: calls notify.Collector("serviced")
                   file: lockers/handlers.go
-                  firstLine: 145
-                  lastLine: 145
+                  firstLine: 146
+                  lastLine: 146
                   function: notify.Collector
             - id: s3
               kind: call
               text: calls hook("serviced")
               file: lockers/handlers.go
-              firstLine: 147
-              lastLine: 147
+              firstLine: 148
+              lastLine: 148
               stopped: a function value, which syntax does not follow
             - id: s4
               kind: database
               text: 'writes lockers: UPDATE lockers SET serviced = true'
               file: lockers/handlers.go
-              firstLine: 148
-              lastLine: 148
+              firstLine: 149
+              lastLine: 149
               table: lockers
               access: write
           source: |-
@@ -652,169 +652,361 @@ mappings:
             }
     origin: stated
     cites:
-      - {source: code, clause: 'lockers/handlers.go:141', says: 'The handler of POST /lockers/{id}/service, followed into 5 functions.'}
+      - {source: code, clause: 'lockers/handlers.go:142', says: 'The handler of POST /lockers/{id}/service, followed into 5 functions.'}
+  '#/paths/~1parcels/get':
+    target: lockers.Server.listParcels
+    handler:
+      commit: 674562665a5c819a9d71e7dae0074ddc18f6a4d4
+      depth: 3
+      functions:
+        - name: lockers.Server.listParcels
+          file: lockers/handlers.go
+          firstLine: 157
+          lastLine: 192
+          steps:
+            - id: s1
+              kind: input
+              text: reads the header X-Courier
+              file: lockers/handlers.go
+              firstLine: 160
+              lastLine: 160
+              parameter: X-Courier
+            - id: s2
+              kind: database
+              text: 'reads parcels: SELECT code, state FROM parcels WHERE courier = $1'
+              file: lockers/handlers.go
+              firstLine: 161
+              lastLine: 161
+              table: parcels
+              access: read
+            - id: s3
+              kind: branch
+              text: if err != nil
+              file: lockers/handlers.go
+              firstLine: 162
+              lastLine: 165
+              then:
+                - id: s4
+                  kind: response
+                  text: answers 500
+                  file: lockers/handlers.go
+                  firstLine: 163
+                  lastLine: 163
+                  status: 500
+                - id: s5
+                  kind: return
+                  text: returns
+                  file: lockers/handlers.go
+                  firstLine: 164
+                  lastLine: 164
+            - id: s6
+              kind: statement
+              text: defers rows.Close()
+              file: lockers/handlers.go
+              firstLine: 166
+              lastLine: 166
+            - id: s7
+              kind: loop
+              text: while rows.Next()
+              file: lockers/handlers.go
+              firstLine: 170
+              lastLine: 185
+              label: scan
+              body:
+                - id: s8
+                  kind: branch
+                  text: if err != nil
+                  file: lockers/handlers.go
+                  firstLine: 172
+                  lastLine: 175
+                  then:
+                    - id: s9
+                      kind: response
+                      text: answers 500
+                      file: lockers/handlers.go
+                      firstLine: 173
+                      lastLine: 173
+                      status: 500
+                    - id: s10
+                      kind: return
+                      text: returns
+                      file: lockers/handlers.go
+                      firstLine: 174
+                      lastLine: 174
+                - id: s11
+                  kind: choice
+                  text: switch on p.state
+                  file: lockers/handlers.go
+                  firstLine: 176
+                  lastLine: 184
+                  cases:
+                    - when: '"lost"'
+                      steps:
+                        - id: s12
+                          kind: statement
+                          text: leaves the loop labelled scan
+                          file: lockers/handlers.go
+                          firstLine: 179
+                          lastLine: 179
+                          label: scan
+                    - when: '"collected"'
+                      steps:
+                        - id: s13
+                          kind: statement
+                          text: leaves the switch
+                          file: lockers/handlers.go
+                          firstLine: 181
+                          lastLine: 181
+                    - when: otherwise
+                      steps: []
+            - id: s14
+              kind: branch
+              text: if lost
+              file: lockers/handlers.go
+              firstLine: 186
+              lastLine: 189
+              then:
+                - id: s15
+                  kind: response
+                  text: 'answers 409: a parcel of the courier is lost'
+                  file: lockers/handlers.go
+                  firstLine: 187
+                  lastLine: 187
+                  status: 409
+                - id: s16
+                  kind: return
+                  text: returns
+                  file: lockers/handlers.go
+                  firstLine: 188
+                  lastLine: 188
+            - id: s17
+              kind: call
+              text: passes a function literal at lockers/handlers.go:190 to sort.Slice
+              file: lockers/handlers.go
+              firstLine: 190
+              lastLine: 190
+              function: a function literal at lockers/handlers.go:190
+            - id: s18
+              kind: response
+              text: answers with JSON
+              file: lockers/handlers.go
+              firstLine: 191
+              lastLine: 191
+          source: |-
+            // listParcels answers the parcels a courier stored, by code, leaving out
+            // the ones collected; a lost parcel stops the list.
+            func (s *Server) listParcels(w http.ResponseWriter, r *http.Request) {
+            	courier := r.Header.Get("X-Courier")
+            	rows, err := s.db.Query("SELECT code, state FROM parcels WHERE courier = $1", courier)
+            	if err != nil {
+            		http.Error(w, err.Error(), http.StatusInternalServerError)
+            		return
+            	}
+            	defer rows.Close()
+            	var items []parcel
+            	lost := false
+            scan:
+            	for rows.Next() {
+            		var p parcel
+            		if err := rows.Scan(&p.code, &p.state); err != nil {
+            			http.Error(w, err.Error(), http.StatusInternalServerError)
+            			return
+            		}
+            		switch p.state {
+            		case "lost":
+            			lost = true
+            			break scan
+            		case "collected":
+            			break
+            		default:
+            			items = append(items, p)
+            		}
+            	}
+            	if lost {
+            		http.Error(w, "a parcel of the courier is lost", http.StatusConflict)
+            		return
+            	}
+            	sort.Slice(items, func(i, j int) bool { return items[i].code < items[j].code })
+            	json.NewEncoder(w).Encode(items)
+            }
+        - name: a function literal at lockers/handlers.go:190
+          file: lockers/handlers.go
+          firstLine: 190
+          lastLine: 190
+          steps:
+            - id: s19
+              kind: return
+              text: returns items[i].code < items[j].code
+              file: lockers/handlers.go
+              firstLine: 190
+              lastLine: 190
+          source: |-
+            sort.Slice(items, func(i, j int) bool { return items[i].code < items[j].code })
+    origin: stated
+    cites:
+      - {source: code, clause: 'lockers/handlers.go:157', says: 'The handler of GET /parcels, followed into 2 functions.'}
   '#/paths/~1parcels/post':
     target: lockers.Server.storeParcel
     handler:
-      commit: 1c42c4c517173d6d9f7741e3ce35bac6b1a39a7c
+      commit: 674562665a5c819a9d71e7dae0074ddc18f6a4d4
       depth: 3
       functions:
         - name: lockers.Server.storeParcel
           file: lockers/handlers.go
-          firstLine: 20
-          lastLine: 50
+          firstLine: 21
+          lastLine: 51
           steps:
             - id: s1
               kind: input
               text: decodes the request body into req
               file: lockers/handlers.go
-              firstLine: 23
-              lastLine: 23
+              firstLine: 24
+              lastLine: 24
               parameter: the body
             - id: s2
               kind: branch
               text: if err != nil
               file: lockers/handlers.go
-              firstLine: 23
-              lastLine: 26
+              firstLine: 24
+              lastLine: 27
               then:
                 - id: s3
                   kind: response
                   text: 'answers 400: the body is not a parcel'
                   file: lockers/handlers.go
-                  firstLine: 24
-                  lastLine: 24
+                  firstLine: 25
+                  lastLine: 25
                   status: 400
                 - id: s4
                   kind: return
                   text: returns
                   file: lockers/handlers.go
-                  firstLine: 25
-                  lastLine: 25
+                  firstLine: 26
+                  lastLine: 26
             - id: s5
               kind: database
               text: 'reads lockers: SELECT state FROM lockers WHERE id = $1'
               file: lockers/handlers.go
-              firstLine: 28
-              lastLine: 28
+              firstLine: 29
+              lastLine: 29
               table: lockers
               access: read
             - id: s6
               kind: branch
               text: if err != nil
               file: lockers/handlers.go
-              firstLine: 29
-              lastLine: 32
+              firstLine: 30
+              lastLine: 33
               then:
                 - id: s7
                   kind: response
                   text: 'answers 404: no such locker'
                   file: lockers/handlers.go
-                  firstLine: 30
-                  lastLine: 30
+                  firstLine: 31
+                  lastLine: 31
                   status: 404
                 - id: s8
                   kind: return
                   text: returns
                   file: lockers/handlers.go
-                  firstLine: 31
-                  lastLine: 31
+                  firstLine: 32
+                  lastLine: 32
             - id: s9
               kind: branch
               text: if state == "full"
               file: lockers/handlers.go
-              firstLine: 33
-              lastLine: 36
+              firstLine: 34
+              lastLine: 37
               then:
                 - id: s10
                   kind: response
                   text: 'answers 409: the locker is full'
                   file: lockers/handlers.go
-                  firstLine: 34
-                  lastLine: 34
+                  firstLine: 35
+                  lastLine: 35
                   status: 409
                 - id: s11
                   kind: return
                   text: returns
                   file: lockers/handlers.go
-                  firstLine: 35
-                  lastLine: 35
+                  firstLine: 36
+                  lastLine: 36
             - id: s12
               kind: database
               text: 'writes parcels: INSERT INTO parcels (code, locker_id, state) VALUES ($1, $2, ''stored'')'
               file: lockers/handlers.go
-              firstLine: 37
-              lastLine: 37
+              firstLine: 38
+              lastLine: 38
               table: parcels
               access: write
             - id: s13
               kind: branch
               text: if err != nil
               file: lockers/handlers.go
-              firstLine: 38
-              lastLine: 41
+              firstLine: 39
+              lastLine: 42
               then:
                 - id: s14
                   kind: response
                   text: answers 500
                   file: lockers/handlers.go
-                  firstLine: 39
-                  lastLine: 39
+                  firstLine: 40
+                  lastLine: 40
                   status: 500
                 - id: s15
                   kind: return
                   text: returns
                   file: lockers/handlers.go
-                  firstLine: 40
-                  lastLine: 40
+                  firstLine: 41
+                  lastLine: 41
             - id: s16
               kind: database
               text: 'writes lockers: UPDATE lockers SET state = ''full'' WHERE id = $1'
               file: lockers/handlers.go
-              firstLine: 42
-              lastLine: 42
+              firstLine: 43
+              lastLine: 43
               table: lockers
               access: write
             - id: s17
               kind: branch
               text: if err != nil
               file: lockers/handlers.go
-              firstLine: 43
-              lastLine: 46
+              firstLine: 44
+              lastLine: 47
               then:
                 - id: s18
                   kind: response
                   text: answers 500
                   file: lockers/handlers.go
-                  firstLine: 44
-                  lastLine: 44
+                  firstLine: 45
+                  lastLine: 45
                   status: 500
                 - id: s19
                   kind: return
                   text: returns
                   file: lockers/handlers.go
-                  firstLine: 45
-                  lastLine: 45
+                  firstLine: 46
+                  lastLine: 46
             - id: s20
               kind: call
               text: calls notify.Collector(req.Code)
               file: lockers/handlers.go
-              firstLine: 47
-              lastLine: 47
+              firstLine: 48
+              lastLine: 48
               function: notify.Collector
             - id: s21
               kind: response
               text: writes the status 201
               file: lockers/handlers.go
-              firstLine: 48
-              lastLine: 48
+              firstLine: 49
+              lastLine: 49
               status: 201
             - id: s22
               kind: response
               text: answers with JSON
               file: lockers/handlers.go
-              firstLine: 49
-              lastLine: 49
+              firstLine: 50
+              lastLine: 50
           source: |-
             // storeParcel puts a parcel into a locker and tells the collector.
             func (s *Server) storeParcel(w http.ResponseWriter, r *http.Request) {
@@ -941,72 +1133,72 @@ mappings:
             }
     origin: stated
     cites:
-      - {source: code, clause: 'lockers/handlers.go:20', says: 'The handler of POST /parcels, followed into 5 functions.'}
+      - {source: code, clause: 'lockers/handlers.go:21', says: 'The handler of POST /parcels, followed into 5 functions.'}
   '#/paths/~1parcels~1{code}~1collect/post':
     target: lockers.Server.collectParcel
     handler:
-      commit: 1c42c4c517173d6d9f7741e3ce35bac6b1a39a7c
+      commit: 674562665a5c819a9d71e7dae0074ddc18f6a4d4
       depth: 3
       functions:
         - name: lockers.Server.collectParcel
           file: lockers/handlers.go
-          firstLine: 52
-          lastLine: 63
+          firstLine: 53
+          lastLine: 64
           steps:
             - id: s1
               kind: input
               text: reads the path parameter code
               file: lockers/handlers.go
-              firstLine: 54
-              lastLine: 54
+              firstLine: 55
+              lastLine: 55
               parameter: code
             - id: s2
               kind: input
               text: reads the query parameter pin
               file: lockers/handlers.go
-              firstLine: 55
-              lastLine: 55
+              firstLine: 56
+              lastLine: 56
               parameter: pin
             - id: s3
               kind: database
               text: 'reads parcels: SELECT locker_id FROM parcels WHERE code = $1 AND pin = $2'
               file: lockers/handlers.go
-              firstLine: 57
-              lastLine: 57
+              firstLine: 58
+              lastLine: 58
               table: parcels
               access: read
             - id: s4
               kind: branch
               text: if err != nil
               file: lockers/handlers.go
-              firstLine: 57
-              lastLine: 60
+              firstLine: 58
+              lastLine: 61
               then:
                 - id: s5
                   kind: response
                   text: 'answers 404: no such parcel'
                   file: lockers/handlers.go
-                  firstLine: 58
-                  lastLine: 58
+                  firstLine: 59
+                  lastLine: 59
                   status: 404
                 - id: s6
                   kind: return
                   text: returns
                   file: lockers/handlers.go
-                  firstLine: 59
-                  lastLine: 59
+                  firstLine: 60
+                  lastLine: 60
             - id: s7
               kind: response
               text: answers with JSON
               file: lockers/handlers.go
-              firstLine: 61
-              lastLine: 61
+              firstLine: 62
+              lastLine: 62
             - id: s8
               kind: database
               text: 'writes parcels: UPDATE parcels SET state = ''collected'' WHERE code = $1'
               file: lockers/handlers.go
-              firstLine: 62
-              lastLine: 62
+              firstLine: 63
+              lastLine: 63
               table: parcels
               access: write
           source: |-
@@ -1024,4 +1216,4 @@ mappings:
             }
     origin: stated
     cites:
-      - {source: code, clause: 'lockers/handlers.go:52', says: 'The handler of POST /parcels/{code}/collect, followed into 1 function.'}
+      - {source: code, clause: 'lockers/handlers.go:53', says: 'The handler of POST /parcels/{code}/collect, followed into 1 function.'}

@@ -35,7 +35,17 @@ decisions:
       followed, or why the call stopped), external (a call of another
       system, with the dependency its host names), response (its status
       and the problem a refusal names), return and statement (a defer, a
-      go statement, a panic, a break or a continue). Steps nest as the
+      go statement, a panic, a break, a continue, a goto or a
+      fallthrough). A break leaves the innermost loop, switch or select,
+      or the statement its label names, as Go's own rule has it, and the
+      step says which; a labelled loop or choice carries its label, so
+      the chart draws the exit to the right statement. A function
+      literal is a function of its own, one call deeper, reached by a
+      call step that says whether it is called where it is written,
+      passed to a call or defined for later: its returns are its own,
+      so a closure passed to a sort or a transaction helper does not end
+      the handler's chart. It is read with the names of the function it
+      is written in, since a closure sees them. Steps nest as the
       code does rather than naming each other, so the record reads like
       the code, a diff of it is a diff of lines, and nobody invents node
       ids; each step's id is s and its number in the order written, the

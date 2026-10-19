@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.0-dev of the specification: 511 design tests, 228 golden and 283 red, about 16 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.0-dev of the specification: 512 design tests, 228 golden and 284 red, about 16 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.7.0-dev of the specification: 511 design tests, 228 golden and 283 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 507 |
+| system | 508 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -3650,6 +3650,14 @@ Scenario: red; level: system; covers exit 1.
 - Given: a role that grants an empty list of permissions
 - When: validate is run
 - Then: it reports the empty list with rule schema and exits 1
+
+#### validate-schema-field-name-entity-and-schema
+
+Scenario: red; level: system; verifies SA-34.
+
+- Given: an entity and a schema that each have a field named Bad-Name
+- When: validate is run
+- Then: it reports the name through the schema as not camelCase at each of the two, one error per mapping at its own entry, although the two are checked by different schema definitions, and does not stop
 
 #### validate-schema-harm-unknown
 

@@ -1,0 +1,5 @@
+arguments: [validate, .]
+exitStatus: 1
+standardOutput: |
+  specarch.yaml:12:17: error: /schemas/Settings/properties/Bad-Name: schema: the name Bad-Name is not valid: it must be camelCase, such as dueOn; rename it [schema@specarch.yaml#/schemas/Settings/properties/Bad-Name]
+  specarch.yaml:20:17: error: /entities/Holder/properties/Bad-Name: schema: the name Bad-Name is not valid: it must be camelCase, such as dueOn; rename it [schema@specarch.yaml#/entities/Holder/properties/Bad-Name]

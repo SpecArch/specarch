@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: validate
+level: system
+scenario: red
+given: "an entity and a schema that each have a field named Bad-Name"
+when: "validate is run"
+then: "it reports the name through the schema as not camelCase at each of the two, one error per mapping at its own entry, although the two are checked by different schema definitions, and does not stop"
+verifies: [SA-34]

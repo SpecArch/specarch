@@ -229,12 +229,26 @@ func (c *checker) schemaPropertyName(k Kind, ve *jsonschema.ValidationError, loc
 // sibling walked at its depth; only the length of the location it reports
 // can be trusted. The schema location says under which key the object sits
 // (".../properties/responses/propertyNames"). The mappings at that depth
-// that sit under that key and hold the property are taken in document
-// order, one per error: a name is checked against the one schema at that
-// location in the same way under every such key, so each of those mappings
-// raised an error of its own, and the k-th error of one property, schema
-// location and depth is the k-th mapping. seen counts the errors taken so
-// far, by that key.
+// that sit under that key and hold the property are listed in the order of
+// the merged specification (the root file's own keys, then the sections in
+// life-cycle order, entities before schemas whatever the file says, and
+// within a section the order written), and the k-th error of one property,
+// depth and key takes the k-th mapping. That rests on one thing: every
+// propertyNames rule the schema reaches at one key and depth gives the
+// same verdict on a name, with the same pattern, so the number of mappings
+// holding the name equals the number of errors, and the errors, which
+// arrive in the library's map order, can be given to the mappings in any
+// order. It is not the case that one key at one depth is checked by one
+// rule: properties at depth 3 is checked by the entity, valueObject and
+// view definitions, each with propertyNames memberName. The other keys
+// with two sites, inputs, checks and constraints, sit at a different
+// depth at each site, so the depth in the count keeps them apart; items
+// under a menu and properties under a field are one rule each, reached
+// again deeper down, which the depth separates in the same way.
+// So the count is keyed by property, depth and the key the mappings were
+// listed under, never by the schema location: two locations at one key
+// and depth share one count, and each takes its own mapping. seen holds
+// the count.
 func (c *checker) propertyNameObject(property string, reported []string, schemaURL string, seen map[string]bool) []string {
 	under := ""
 	if _, frag, ok := strings.Cut(schemaURL, "#"); ok {
@@ -243,16 +257,17 @@ func (c *checker) propertyNameObject(property string, reported []string, schemaU
 			under = source.UnescapeToken(tokens[n-2])
 		}
 	}
-	key := property + "|" + schemaURL + "|" + strconv.Itoa(len(reported)) + "|taken|"
+	found := c.findPropertyObjects(property, len(reported), under)
+	if len(found) == 0 && under != "" {
+		under = ""
+		found = c.findPropertyObjects(property, len(reported), under)
+	}
+	key := property + "|" + strconv.Itoa(len(reported)) + "|" + under + "|taken|"
 	taken := 0
 	for seen[key+strconv.Itoa(taken)] {
 		taken++
 	}
 	seen[key+strconv.Itoa(taken)] = true
-	found := c.findPropertyObjects(property, len(reported), under)
-	if len(found) == 0 {
-		found = c.findPropertyObjects(property, len(reported), "")
-	}
 	if taken < len(found) {
 		return found[taken]
 	}

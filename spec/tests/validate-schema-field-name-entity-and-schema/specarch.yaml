@@ -1,0 +1,21 @@
+specarch: "0.2"
+info: { title: Case, version: 1.0.0 }
+requirements:
+  CASE-1: { statement: One., kind: functional, priority: must, status: accepted, acceptance: [One.] }
+stakeholders:
+  owner: { description: The owner. }
+schemas:
+  Settings:
+    type: object
+    description: Settings.
+    properties:
+      Bad-Name: { type: string, description: Odd. }
+entities:
+  Holder:
+    type: object
+    description: A holder.
+    primaryKey: [id]
+    properties:
+      id: { type: string, description: The ID. }
+      Bad-Name: { type: string, description: Odd. }
+    satisfies: [CASE-1]

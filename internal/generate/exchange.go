@@ -76,6 +76,11 @@ func operationRequest(d *doc, root *yaml.Node, o operation, explained map[*yaml.
 		}
 		return
 	}
+	if streamDirection(o.node) == "upload" {
+		// The transport paragraph says the body is the file, streamed.
+		d.explainRows([]row{{"the request body", body}})
+		return
+	}
 	need := "optional"
 	if str(body, "required") == "true" {
 		need = "required"
@@ -103,7 +108,13 @@ func operationResponses(d *doc, root *yaml.Node, o operation, told map[string]bo
 	var rows []row
 	for _, r := range responses {
 		var bodies []string
+		if streamed := streamBodyText(o.node, r.Key.Value); streamed != "" {
+			bodies = append(bodies, streamed)
+		}
 		for _, c := range pairs(r.Value, "content") {
+			if len(bodies) > 0 && streamBodyText(o.node, r.Key.Value) != "" {
+				break
+			}
 			text := d.bodySummary(root, get(c.Value, "schema"))
 			if c.Key.Value != "application/json" || len(pairs(r.Value, "content")) > 1 {
 				text = c.Key.Value + ": " + text

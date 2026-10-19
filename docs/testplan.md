@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.1-dev of the specification: 527 design tests, 237 golden and 290 red, about 16 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.1-dev of the specification: 528 design tests, 238 golden and 290 red, about 16 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 4 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -19,7 +19,7 @@ Version 0.7.1-dev of the specification: 527 design tests, 237 golden and 290 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 523 |
+| system | 524 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -632,6 +632,14 @@ Scenario: red; level: system; covers exit 2.
 - Given: a document target of the design that this build does not offer
 - When: document manual is run
 - Then: it says which targets it has and exits 2
+
+#### document-techspec-envelope-stream
+
+Scenario: golden; level: system; verifies SA-77, SA-7.
+
+- Given: the vault: a pre-key handshake established by a plain operation, an operation in its envelope, an upload stream with a request limit, a download stream with a response limit and a refusal, and a download stream in the envelope
+- When: document techspec is run
+- Then: the runtime view lists the handshake with its key agreement, signature, cipher, establishing operation with its method and path, lifetime and envelopes, and what a client does for it in five steps; says of the encrypted operation that it travels in the envelope, naming the establishing operation, and notes the envelope in its sequence diagram with the request and the answer sealed; says of the upload that it streams the request body in as a file with its media type and bound in place of a body table; says of each download that it streams the response body out, its success response reading the file, streamed, with the bound where one is declared, and of the encrypted download that the file comes back outside the envelope; and exits 0
 
 #### document-techspec-handler
 

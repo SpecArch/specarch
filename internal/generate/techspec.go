@@ -495,12 +495,14 @@ func runtime(d *doc, root *yaml.Node, impls []Implementation) {
 		d.blank()
 		d.explainRows(rowsOf(errs))
 	}
+	handshakesSection(d, root)
 	explained := map[*yaml.Node]bool{}
 	for _, o := range ops {
 		d.heading(3, fmt.Sprintf("%s (%s %s)", o.id, strings.ToUpper(o.method), o.path))
 		d.para(str(o.node, "description"))
 		d.explain(o.node)
 		told := map[string]bool{}
+		operationTransport(d, root, o.node)
 		operationRequest(d, root, o, explained, told)
 		operationDetails(d, root, o.node)
 		operationResponses(d, root, o, told)

@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: document
+level: system
+scenario: golden
+given: "the vault: a pre-key handshake established by a plain operation, an operation in its envelope, an upload stream with a request limit, a download stream with a response limit and a refusal, and a download stream in the envelope"
+when: document techspec is run
+then: "the runtime view lists the handshake with its key agreement, signature, cipher, establishing operation with its method and path, lifetime and envelopes, and what a client does for it in five steps; says of the encrypted operation that it travels in the envelope, naming the establishing operation, and notes the envelope in its sequence diagram with the request and the answer sealed; says of the upload that it streams the request body in as a file with its media type and bound in place of a body table; says of each download that it streams the response body out, its success response reading the file, streamed, with the bound where one is declared, and of the encrypted download that the file comes back outside the envelope; and exits 0"
+verifies: [SA-77, SA-7]

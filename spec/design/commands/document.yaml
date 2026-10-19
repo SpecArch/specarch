@@ -41,7 +41,14 @@ commands:
       or on its path, and writes each below in full with who decides it;
       a question that blocks the whole operation or its whole path is
       named there too, and written after the responses of an operation
-      that declares everything. Chapter 7 comes from
+      that declares everything. When the design declares handshakes,
+      chapter 6 lists them first, each with its key agreement, signature,
+      cipher, establishing operation, lifetime and envelopes, and what a
+      client does for it in five steps; an operation that names one says
+      it travels in that envelope, its sequence diagram notes it and marks
+      the request and the answer sealed, and one that streams a file says
+      so with the media type and the bound in place of a field table, its
+      success response reading the file, streamed (ADR-145, ADR-146). Chapter 7 comes from
       the deployment and commissioning stages and from each
       implementation file, chapter 12 from the glossary, and
       chapter 13 from the needs and requirements, with the traceability

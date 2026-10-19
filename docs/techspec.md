@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.7.1-dev of the specification: 77 requirements, 5 entities, 14 commands, 7 algorithms, 527 tests, 141 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.7.1-dev of the specification: 77 requirements, 5 entities, 14 commands, 7 algorithms, 528 tests, 141 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 **Problems:** 4 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -718,7 +718,14 @@ the open questions that block what it leaves out, on the operation
 or on its path, and writes each below in full with who decides it;
 a question that blocks the whole operation or its whole path is
 named there too, and written after the responses of an operation
-that declares everything. Chapter 7 comes from
+that declares everything. When the design declares handshakes,
+chapter 6 lists them first, each with its key agreement, signature,
+cipher, establishing operation, lifetime and envelopes, and what a
+client does for it in five steps; an operation that names one says
+it travels in that envelope, its sequence diagram notes it and marks
+the request and the answer sealed, and one that streams a file says
+so with the media type and the bound in place of a field table, its
+success response reading the file, streamed (ADR-145, ADR-146). Chapter 7 comes from
 the deployment and commissioning stages and from each
 implementation file, chapter 12 from the glossary, and
 chapter 13 from the needs and requirements, with the traceability
@@ -11009,6 +11016,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | document-sequence-diagram | command document | system | golden | a hand-written document with a sequenceDiagram payOrder marker | document techspec is run | the region holds the call, the event on order.events and the 200 answer, and it exits 0 |
 | document-state-diagram | command document | system | golden | a hand-written document with a stateDiagram Order marker | document techspec is run | the region holds the states of Order with a start and an end, and it exits 0 |
 | document-target-not-offered | command document | system | red | a document target of the design that this build does not offer | document manual is run | it says which targets it has and exits 2 |
+| document-techspec-envelope-stream | command document | system | golden | the vault: a pre-key handshake established by a plain operation, an operation in its envelope, an upload stream with a request limit, a download stream with a response limit and a refusal, and a download stream in the envelope | document techspec is run | the runtime view lists the handshake with its key agreement, signature, cipher, establishing operation with its method and path, lifetime and envelopes, and what a client does for it in five steps; says of the encrypted operation that it travels in the envelope, naming the establishing operation, and notes the envelope in its sequence diagram with the request and the answer sealed; says of the upload that it streams the request body in as a file with its media type and bound in place of a body table; says of each download that it streams the response body out, its success response reading the file, streamed, with the bound where one is declared, and of the encrypted download that the file comes back outside the envelope; and exits 0 |
 | document-techspec-handler | command document | system | golden | a specification with two operations, its code beside it, and an implementation file whose mappings hold the handler record of each: the functions followed with their steps and source, one handler calling into a second package, with a branch, a loop, a switch, table reads and writes, an external call and calls not followed | document techspec is run | it writes, in each operation's runtime view after its sequence diagram, what the handler does: the handler's name, the commit and depth read, and for each function its name and lines, a Mermaid flowchart whose nodes carry the steps' ids and are shaped by kind, with yes and no edges on a branch, a case per edge on a switch and a way back on a loop, the function's source in a Go code block, and the calls not followed with why; the validator finds the records current, so no problem is marked; and exits 0 |
 | document-techspec-implies | command document | system | golden | a specification whose permission v1.all implies v1.get and another, v1.get implies a third, three roles each granting one of them, a fourth granting a permission no other implies, and a separation-of-duties set over the third and the fourth's | document techspec is run | the matrix marks a permission a role holds only by an implication as through the permission it grants, a table lists what each permission implies, the separation-of-duties set lists every role that reaches it through an implication, and it exits 0 |
 | document-techspec-middlewares | command document | system | golden | a specification that declares three middlewares, two with a refusal each, an operation that runs all three in order, one of them before and after the others, and one that runs none | document techspec is run | the table of HTTP operations names each operation's middlewares in order, or none, one run twice named twice, each operation's runtime view says what it runs before its handler, with the refusals, a section lists every middleware with what it does, its refusals and the operations that run it, each once, and it exits 0 |
@@ -11760,7 +11768,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-4 | enums Rule; commands validate; algorithms workedExampleHolds; decisions ADR-004 | tests validate-example-mismatch |
 | SA-5 | enums Rule; commands validate; algorithms permissionGranted; algorithms separationOfDuties; decisions ADR-006; decisions ADR-053; decisions ADR-054; decisions ADR-094; decisions ADR-095; decisions ADR-096; decisions ADR-097; decisions ADR-106; decisions ADR-107; decisions ADR-108; decisions ADR-109; decisions ADR-110; decisions ADR-111 | tests validate-permission-undeclared; tests validate-permission-ungranted; tests validate-permission-ungranted-without-description; tests validate-question-covers-problem; tests validate-question-covers-ungranted; tests validate-schema-operation-without-permission; tests validate-separation-of-duties |
 | SA-6 | enums Rule; enums Severity; entities Diagnostic; commands validate; algorithms exitStatus; decisions ADR-005; decisions ADR-008 | tests validate-usage-error; tests validate-yaml-syntax; tests version-prints-versions; checks installs-and-answers |
-| SA-7 | enums DocumentTarget; enums GeneratorTarget; entities GeneratedFile; commands document; commands generate; algorithms checkStatus; decisions ADR-013; decisions ADR-073; decisions ADR-131; decisions ADR-144 | tests document-check-differs; tests document-check-invalid; tests document-techspec-handler; tests document-techspec-middlewares; tests document-techspec-requests; tests document-techspec-shared-name; tests document-two-implementations; tests document-writes-techspec; tests generate-plugin-path-outside; tests generate-with-plugin; checks checks-the-examples; monitors main-stays-green |
+| SA-7 | enums DocumentTarget; enums GeneratorTarget; entities GeneratedFile; commands document; commands generate; algorithms checkStatus; decisions ADR-013; decisions ADR-073; decisions ADR-131; decisions ADR-144 | tests document-check-differs; tests document-check-invalid; tests document-techspec-envelope-stream; tests document-techspec-handler; tests document-techspec-middlewares; tests document-techspec-requests; tests document-techspec-shared-name; tests document-two-implementations; tests document-writes-techspec; tests generate-plugin-path-outside; tests generate-with-plugin; checks checks-the-examples; monitors main-stays-green |
 | SA-8 | entities GeneratedFile; commands document; commands generate; algorithms markersWellFormed | tests document-entity-diagram; tests document-techspec-middlewares; tests document-techspec-requests; tests document-two-implementations; tests document-writes-techspec |
 | SA-9 | enums DocumentKind; enums Rule; commands validate; decisions ADR-001; decisions ADR-002; decisions ADR-007; decisions ADR-133; decisions ADR-136 | tests validate-design-key; tests validate-map-values; tests validate-stack-key; tests validate-type-list |
 | SA-10 | enums Rule; commands validate | tests validate-deployment-environment-missing; tests validate-design-ref; tests validate-implements; tests validate-permission-checks; tests validate-setting; tests validate-tree-valid; tests validate-ui-components; tests validate-ui-schema-file |
@@ -11830,7 +11838,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-74 | decisions ADR-138 |   |
 | SA-75 | decisions ADR-141 |   |
 | SA-76 | decisions ADR-142; decisions ADR-143 |   |
-| SA-77 | enums Rule; decisions ADR-145; decisions ADR-146 | tests extract-go-dxlib-envelope-stream; tests generate-go-dxlib-envelope-stream; tests generate-openapi-dxlib-envelope-stream; tests validate-handshake; tests validate-stream |
+| SA-77 | enums Rule; decisions ADR-145; decisions ADR-146 | tests document-techspec-envelope-stream; tests extract-go-dxlib-envelope-stream; tests generate-go-dxlib-envelope-stream; tests generate-openapi-dxlib-envelope-stream; tests validate-handshake; tests validate-stream |
 
 ## Sources
 

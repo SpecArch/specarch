@@ -160,7 +160,15 @@ func operationSequence(root *yaml.Node, o operation) string {
 	for i, dep := range calls {
 		fmt.Fprintf(&b, "  participant D%d as %s\n", i+1, callLabel(dep))
 	}
-	fmt.Fprintf(&b, "  C->>S: %s %s\n", strings.ToUpper(o.method), o.path)
+	request := fmt.Sprintf("%s %s", strings.ToUpper(o.method), o.path)
+	if streamDirection(o.node) == "upload" {
+		request += ", the file streamed"
+	}
+	if h := str(o.node, "handshake"); h != "" {
+		fmt.Fprintf(&b, "  Note over C,S: in the envelope of handshake %s\n", mermaidText(h))
+		request += ", sealed"
+	}
+	fmt.Fprintf(&b, "  C->>S: %s\n", request)
 	for i, dep := range calls {
 		fmt.Fprintf(&b, "  S->>D%d: call, within %s\n", i+1, str(get(get(root, "dependencies"), calledDependency(dep)), "timeout"))
 		fmt.Fprintf(&b, "  D%d-->>S: answer\n", i+1)
@@ -177,7 +185,13 @@ func operationSequence(root *yaml.Node, o operation) string {
 		fmt.Fprintf(&b, "  S-->>%s: %s\n", channels[ch], msg)
 	}
 	if code, body := successResponse(o.node); code != "" {
-		fmt.Fprintf(&b, "  S-->>C: %s %s\n", code, body)
+		switch {
+		case streamDirection(o.node) == "download":
+			body = "the file, streamed"
+		case str(o.node, "handshake") != "":
+			body += ", sealed"
+		}
+		fmt.Fprintf(&b, "  S-->>C: %s %s\n", code, strings.TrimSpace(body))
 	}
 	return fence(b.String())
 }

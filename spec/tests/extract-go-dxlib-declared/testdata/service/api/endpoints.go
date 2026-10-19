@@ -77,6 +77,10 @@ func Define(a *api.DXAPI) {
 	a.NewEndPoint("Upload a scan", "", "/loans/scan", "PUT", api.EndPointTypeHTTPJSON, dxhttp.RequestContentTypeApplicationOctetStream,
 		[]api.DXAPIEndPointParameter{{NameId: "loan_id", Type: types.APIParameterTypeID, IsMustExist: true}},
 		UploadScan, nil, nil, nil, []string{"loans.write"}, 0, "")
+
+	a.NewEndPoint("Rename a loan", "", "/loans/rename", "PATCH", api.EndPointTypeHTTPJSON, dxhttp.RequestContentTypeApplicationJSON,
+		[]api.DXAPIEndPointParameter{{NameId: "name", Type: types.APIParameterTypeString, IsMustExist: true}},
+		UploadScan, nil, &api.DXAPIEndPointResponsePossibilities{"success": {StatusCode: 200, Description: "The loan is renamed."}}, nil, []string{"loans.write"}, 0, "")
 }
 
 func lookupType() types.APIParameterType { return types.APIParameterTypeString }

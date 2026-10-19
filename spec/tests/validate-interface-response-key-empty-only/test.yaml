@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: validate
+level: system
+scenario: red
+given: "an operation whose only response is keyed by the empty string"
+when: "validate is run"
+then: "it reports the empty key through the schema as not a status code, raises no success_response_missing, since no response is a status, and does not stop"
+verifies: [SA-34]

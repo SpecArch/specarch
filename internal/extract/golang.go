@@ -946,7 +946,11 @@ func (g *goReader) write() {
 					undescribed = append(undescribed, ep.at+"/responses/"+c+"/description")
 				}
 			}
+			// Responses the registration declares in a form not read are
+			// already asked for on /responses, with why.
+			asked := ep.decl != nil && ep.decl.respWhy != ""
 			switch {
+			case asked:
 			case !success:
 				blocks := undescribed
 				if len(codes) == 0 {

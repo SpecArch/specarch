@@ -111,9 +111,13 @@ extension Checker {
         var codes: [String] = []
         for r in responses {
             let code = r.key.value
-            if code == "default" || "123".contains(code.first ?? "x") { return }
+            if code == "default" { return }
+            // Not a status code: the schema reports the key.
+            if code.utf8.count != 3 { continue }
+            if "123".contains(code.first!) { return }
             codes.append(code)
         }
+        if codes.isEmpty { return }
         warn(o.node.key("responses"), o.pointer("responses"), .successResponseMissing, "\(o.id) answers \(codes.joined(separator: ", ")) and no success, so what it answers when it succeeds is not written; add its success response")
     }
 }

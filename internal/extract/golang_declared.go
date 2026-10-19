@@ -121,9 +121,13 @@ var dxContentTypes = map[string]string{
 
 var dxContentTypeValues = []string{"", "application/octet-stream", "text/plain", "application/json", "application/x-www-form-urlencoded", "multipart/form-data"}
 
-// The methods whose parameters dxlib reads from the body; every other
-// method's are read from the query (PreProcessRequest).
-var dxBodyMethods = map[string]bool{"POST": true, "PUT": true}
+// The methods whose parameters dxlib reads from the body, and those whose
+// it reads from the query; PreProcessRequest refuses every other method
+// with 422, "Request method is not supported yet".
+var (
+	dxBodyMethods  = map[string]bool{"POST": true, "PUT": true}
+	dxQueryMethods = map[string]bool{"GET": true, "DELETE": true}
+)
 
 // The keys of a parameter's declaration, as DXAPIEndPointParameter names
 // them, that the reader reads; Owner and Parent are set by dxlib.
@@ -766,6 +770,11 @@ func (w *declaredWriter) member(wire string) (string, bool) {
 // declaration, and asks for what it does not say.
 func (w *declaredWriter) request(ep *goEndpoint, op *yaml.Node, regAt, label string) {
 	g, d := w.g, ep.decl
+	if !dxBodyMethods[ep.method] && !dxQueryMethods[ep.method] {
+		g.question("must", fmt.Sprintf("%s registers %s, and dxlib reads parameters for GET and DELETE from the query and for POST and PUT from the body, and refuses every other method with 422 (\"Request method is not supported yet\") before the handler runs. Does it answer anything but 422, and which parameters does it take, with their types?", regAt, label),
+			[]string{ep.at}, "dxlib's PreProcessRequest reads parameters for four methods only, so the parameters declared here are not written where the running system would not read them.", g.at(regAt, "Registers "+label+" under "+ep.method+"."))
+		return
+	}
 	if d.paramsWhy != "" {
 		where := ep.at + "/parameters"
 		if dxBodyMethods[ep.method] {

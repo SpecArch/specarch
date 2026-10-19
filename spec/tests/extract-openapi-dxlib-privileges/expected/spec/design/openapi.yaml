@@ -112,7 +112,6 @@ paths:
       permission: everything
       middlewares: []
   /renewLoan:
-    # specarch-problem: warning: middleware_missing: the specification declares its middlewares, and renewLoan names none; list the ones it runs, in order, under middlewares, or write middlewares: [] if it runs none [middleware_missing@design/openapi.yaml#/paths/~1renewLoan/post]
     # specarch-problem: warning: test_golden_missing: operation renewLoan has no golden scenario; add one under tests, for example renew-loan-succeeds: { operation: renewLoan, scenario: golden, given: "any caller", when: "renewLoan is called", then: "it answers 200: The loan renewed." } [test_golden_missing@design/openapi.yaml#/paths/~1renewLoan/post]
     # specarch-problem: warning: test_red_missing: operation renewLoan has no red scenario; add one under tests, for example renew-loan-refused: { operation: renewLoan, scenario: red, given: "...", when: "...", then: "it is refused" } [test_red_missing@design/openapi.yaml#/paths/~1renewLoan/post]
     post:

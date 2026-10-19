@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.0-dev of the specification: 508 design tests, 228 golden and 280 red, about 16 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.0-dev of the specification: 510 design tests, 228 golden and 282 red, about 16 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.7.0-dev of the specification: 508 design tests, 228 golden and 280 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 504 |
+| system | 506 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -961,9 +961,9 @@ Scenario: golden; level: system; verifies SA-44.
 
 Scenario: golden; level: system; verifies SA-44.
 
-- Given: a repository holding a Go module on dxlib whose endpoints declare what they take and answer where NewEndPoint registers them: a JSON POST with a literal parameter list in snake_case of typed parameters (a positive int64, a non-empty string with a maximum length and a pattern given through a pointer helper, a nullable date, money, a JSON object with children, one of them of a type a function computes, an array of a JSON template, a map of strings and an array of strings) and response possibilities with a success carrying a data template and a refusal with a header; a GET whose parameters a module function returns as its one statement, with bounds and an enum; a POST whose parameters a package variable holds; a POST whose parameters and responses functions build with statements; a JSON POST that declares no parameter and whose handler decodes its body itself; and a PUT of an octet stream with a parameter
+- Given: a repository holding a Go module on dxlib whose endpoints declare what they take and answer where NewEndPoint registers them: a JSON POST with a literal parameter list in snake_case of typed parameters (a positive int64, a non-empty string with a maximum length and a pattern given through a pointer helper, a nullable date, money, a JSON object with children, one of them of a type a function computes, an array of a JSON template, a map of strings and an array of strings) and response possibilities with a success carrying a data template and a refusal with a header; a GET whose parameters a module function returns as its one statement, with bounds and an enum; a POST whose parameters a package variable holds; a POST whose parameters and responses functions build with statements; a JSON POST that declares no parameter and whose handler decodes its body itself; a PUT of an octet stream with a parameter; and a PATCH with a parameter, a method dxlib refuses with 422
 - When: extract go is run on the module
-- Then: it writes the JSON POST's body as an object of camelCase fields with their types, formats, bounds, enums, required lists, children, items and map values as dxlib's emitter writes them, the field of a computed type known by name only with a must question on it, its 200 response with its description and body, and its 409 response with its description and the problem the handler answers; the GET's parameters as query parameters; the variable's parameters as the body; a must question for the parameters and the responses functions build, naming the call; the body that declares nothing as any object with a must question on its fields; the octet stream as a binary body; one must question on the widths of the int64 fields; a could question for the header and for the parameters dxlib reads from the X-Var header; a must question for each operation with no success response and for a response with no description; sets info.wireNames snake_case; and exits 0
+- Then: it writes the JSON POST's body as an object of camelCase fields with their types, formats, bounds, enums, required lists, children, items and map values as dxlib's emitter writes them, the field of a computed type known by name only with a must question on it, its 200 response with its description and body, and its 409 response with its description and the problem the handler answers; the GET's parameters as query parameters; the variable's parameters as the body; a must question for the parameters and the responses functions build, naming the call, and none besides on the success those responses would give; the body that declares nothing as any object with a must question on its fields; the octet stream as a binary body; one must question on the widths of the int64 fields; a could question for the header and for the parameters dxlib reads from the X-Var header; no parameter for the PATCH, with a must question on the operation that says dxlib refuses that method; a must question for each operation with no success response and for a response with no description; lists no middleware on any operation, since each is registered with none; sets info.wireNames snake_case; and exits 0
 
 #### extract-go-dxlib-endpoints
 
@@ -977,9 +977,9 @@ Scenario: golden; level: system; verifies SA-44.
 
 Scenario: golden; level: system; verifies SA-44.
 
-- Given: a repository holding a Go module on dxlib whose endpoints are registered with middleware chains: a literal list naming a function of the module and one of a package outside it, a package variable holding a list, a call to a helper that returns its variadic parameter, and a function that builds the chain with statements; the middlewares are a function with a doc comment that refuses 401 with a literal reason, one with a doc comment that refuses 403 with two reasons, and one with no doc comment that refuses with a computed status
+- Given: a repository holding a Go module on dxlib whose endpoints are registered with middleware chains: a literal list naming a function of the module and one of a package outside it, a package variable holding a list, a call to a helper that returns its variadic parameter, a function that builds the chain with statements, a helper call that runs one middleware twice, and a literal list holding a function literal; the middlewares are a function with a doc comment that refuses 401 with a literal reason, one with a doc comment that refuses 403 with two reasons, and one with no doc comment that refuses with a computed status
 - When: extract go is run on the module
-- Then: it declares each middleware once under middlewares by its function's name in kebab-case, with its doc comment as its description and each refusal's status and problem, citing the function and the first registration that runs it, and declares the problems; each operation lists its middlewares in order; it asks a must question for the middleware outside the module, for the one with no doc comment and for the chain built with statements, which leaves that operation without middlewares, and a should question for the refusal whose status is computed; and exits 0
+- Then: it declares each middleware once under middlewares by its function's name in kebab-case, with its doc comment as its description and each refusal's status and problem, citing the function and the first registration that runs it, and declares the problems; each operation lists its middlewares in order; it asks a must question for the middleware outside the module, for the one with no doc comment for the chain built with statements and for the list holding a function literal, each of which leaves its operation without middlewares, lists the middleware run twice twice, and a should question for the refusal whose status is computed; and exits 0
 
 #### extract-go-dxlib-tables-seeds
 
@@ -3002,6 +3002,22 @@ Scenario: red; level: system; covers exit 1; verifies SA-34.
 - Given: a list naming a field its entity lacks, an encrypted field to sort by and one to filter by without a hash, and a default page above the maximum; a rate over no time with a burst below it; a catalogue of problem types, a response naming an unknown type, one naming a type of another status, and a 4xx response naming none
 - When: validate is run
 - Then: it reports list_of four times, limits twice and problem three times, and exits 1
+
+#### validate-interface-response-key-empty
+
+Scenario: red; level: system; verifies SA-34.
+
+- Given: an operation that answers 409 and a response keyed by the empty string
+- When: validate is run
+- Then: it reports the empty key through the schema as not a status code, warns success_response_missing naming 409 alone, and does not stop
+
+#### validate-interface-response-key-empty-only
+
+Scenario: red; level: system; verifies SA-34.
+
+- Given: an operation whose only response is keyed by the empty string
+- When: validate is run
+- Then: it reports the empty key through the schema as not a status code, raises no success_response_missing, since no response is a status, and does not stop
 
 #### validate-interface-unwritten
 

@@ -6,7 +6,7 @@ permissions:
   loans.write:
     origin: stated
     cites:
-      - {source: code, clause: 'api/endpoints.go:70', says: 'POST /loans/close, POST /loans/import, POST /loans/open and PUT /loans/scan check loans.write in its privileges.'}
+      - {source: code, clause: 'api/endpoints.go:70', says: 'POST /loans/close, POST /loans/import, POST /loans/open, PATCH /loans/rename and PUT /loans/scan check loans.write in its privileges.'}
   members.read:
     origin: stated
     cites:
@@ -108,6 +108,19 @@ paths:
       cites:
         - {source: code, clause: 'api/endpoints.go:37', says: 'NewEndPoint registers POST /loans/open; its handler is OpenLoan, it has no middleware, it declares the parameters member_id, item_code, due_date, amount, address, copies, labels and tags and the responses 200 and 409, and it checks loans.write.'}
         - {source: code, clause: 'api/handlers.go:11', says: The handler of POST /loans/open reads the parameter member_id and answers 409 ITEM_LENT_OUT.}
+  /loans/rename:
+    patch:
+      operationId: patchLoansRename
+      summary: Rename a loan
+      permission: loans.write
+      middlewares: []
+      responses:
+        "200":
+          description: The loan is renamed.
+      origin: stated
+      cites:
+        - {source: code, clause: 'api/endpoints.go:81', says: 'NewEndPoint registers PATCH /loans/rename; its handler is UploadScan, it has no middleware, it declares the parameter name and the response 200, and it checks loans.write.'}
+        - {source: code, clause: 'api/handlers.go:38', says: The handler of PATCH /loans/rename reads no parameter by name.}
   /loans/scan:
     put:
       operationId: putLoansScan

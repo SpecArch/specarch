@@ -43,14 +43,20 @@ decisions:
       as a handler's are read, and lists each operation's middlewares in
       order. A chain is followed as the parameter list is (ADR-130), and
       through a helper whose one statement returns its variadic
-      parameter. What it cannot read is a question: a chain not followed,
-      on the operation's middlewares; a middleware outside the module or
+      parameter. A chain lists a middleware as often as it runs, so one
+      that runs twice, before and after another, is named twice. What it
+      cannot read is a question: a chain not followed, or one with an
+      expression that names no function, on the operation's middlewares,
+      with no list written, since part of a chain is not the chain; a middleware outside the module or
       one a call makes, on its description and refusals; a function with
       no doc comment, on its description; a refusal not a literal; two
       functions of one name. extract openapi reads x-dxlib-middlewares the
       same way, by the last name of the function the runtime gives, none
       when the key is absent, and asks what each middleware does, which
-      the source's tree answers in the merge. The permission each reader
+      the source's tree answers in the merge; an operation without
+      x-dxlib-endpoint-type in a document whose dxlib operations run
+      middlewares says nothing of its own, so its middlewares are a must
+      question. The permission each reader
       already reads from a check stays as it was.
 
       The technical specification names each operation's middlewares in

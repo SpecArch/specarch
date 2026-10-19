@@ -5,16 +5,20 @@ repository:
     - [.]
 exitStatus: 0
 standardOutput: |
-  commit 7e1b46dcc46bfd590abeb1a542bd576180a1dafd: the last change to .
+  commit 4da08bf2ce6617ceab5ecfc048ea87ecda2b88ec: the last change to .
   counted 2 Go files, 2 of them importing dxlib's api package and 0 that do not parse, and left out 0: every tracked Go file under . but test files and files in a folder below it named testdata or vendor, or that the go command ignores
-  dxlib: counted 4 NewEndPoint calls, 0 NewWSEndPoint calls and 0 RegisterHandler calls: every call by that name in a file that imports dxlib's api package
-  wrote 4 operations on 4 paths, 2 permissions, 3 problems and 19 questions: one operation per endpoint NewEndPoint registers with a literal method and URI, outside a loop or a condition, one permission per privilege an endpoint names alone, one problem per literal reason a handler answers, one question per thing the source does not say, and one per thing the meta-model cannot hold
-  not held: api/endpoints.go:39: the endpoint POST /desk/audit: dxlib names it desk_audit from its URI, which is not camelCase, as an operationId is; it is named postDeskAudit; could question Q-16
-  not held: api/endpoints.go:31: the endpoint POST /desk/close: dxlib names it desk_close from its URI, which is not camelCase, as an operationId is; it is named postDeskClose; could question Q-17
-  not held: api/endpoints.go:35: the endpoint POST /desk/open: dxlib names it desk_open from its URI, which is not camelCase, as an operationId is; it is named postDeskOpen; could question Q-18
-  not held: api/endpoints.go:27: the endpoint POST /desk/show: dxlib names it desk_show from its URI, which is not camelCase, as an operationId is; it is named postDeskShow; could question Q-19
+  dxlib: counted 6 NewEndPoint calls, 0 NewWSEndPoint calls and 0 RegisterHandler calls: every call by that name in a file that imports dxlib's api package
+  wrote 6 operations on 6 paths, 2 permissions, 3 problems and 26 questions: one operation per endpoint NewEndPoint registers with a literal method and URI, outside a loop or a condition, one permission per privilege an endpoint names alone, one problem per literal reason a handler answers, one question per thing the source does not say, and one per thing the meta-model cannot hold
+  not held: api/endpoints.go:39: the endpoint POST /desk/audit: dxlib names it desk_audit from its URI, which is not camelCase, as an operationId is; it is named postDeskAudit; could question Q-21
+  not held: api/endpoints.go:31: the endpoint POST /desk/close: dxlib names it desk_close from its URI, which is not camelCase, as an operationId is; it is named postDeskClose; could question Q-22
+  not held: api/endpoints.go:43: the endpoint POST /desk/count: dxlib names it desk_count from its URI, which is not camelCase, as an operationId is; it is named postDeskCount; could question Q-23
+  not held: api/endpoints.go:35: the endpoint POST /desk/open: dxlib names it desk_open from its URI, which is not camelCase, as an operationId is; it is named postDeskOpen; could question Q-24
+  not held: api/endpoints.go:27: the endpoint POST /desk/show: dxlib names it desk_show from its URI, which is not camelCase, as an operationId is; it is named postDeskShow; could question Q-25
+  not held: api/endpoints.go:47: the endpoint POST /desk/sweep: dxlib names it desk_sweep from its URI, which is not camelCase, as an operationId is; it is named postDeskSweep; could question Q-26
   derived 0 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers
   not derived: 2 draft tests for operation postDeskAudit, held up by Q-1, Q-2, Q-3; the validator warns for them until the questions are answered
   not derived: 2 draft tests for operation postDeskClose, held up by Q-4, Q-5; the validator warns for them until the questions are answered
-  not derived: 2 draft tests for operation postDeskOpen, held up by Q-6, Q-7; the validator warns for them until the questions are answered
-  not derived: 2 draft tests for operation postDeskShow, held up by Q-8, Q-9; the validator warns for them until the questions are answered
+  not derived: 2 draft tests for operation postDeskCount, held up by Q-6, Q-7; the validator warns for them until the questions are answered
+  not derived: 2 draft tests for operation postDeskOpen, held up by Q-8, Q-9; the validator warns for them until the questions are answered
+  not derived: 2 draft tests for operation postDeskShow, held up by Q-10, Q-11; the validator warns for them until the questions are answered
+  not derived: 2 draft tests for operation postDeskSweep, held up by Q-12, Q-13, Q-14; the validator warns for them until the questions are answered

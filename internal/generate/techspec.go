@@ -496,8 +496,6 @@ func runtime(d *doc, root *yaml.Node) {
 	}
 }
 
-// operationDetails writes what an operation calls, how a repeat is told
-// from a new request, and its guard.
 // chainText is the middlewares an operation runs, in order: none for an
 // empty list, not stated when it has no list.
 func chainText(op *yaml.Node) string {
@@ -511,6 +509,8 @@ func chainText(op *yaml.Node) string {
 	return strings.Join(names, ", then ")
 }
 
+// operationDetails writes the middlewares an operation runs, what it
+// calls, how a repeat is told from a new request, and its guard.
 func operationDetails(d *doc, root *yaml.Node, op *yaml.Node) {
 	if get(op, "middlewares") != nil {
 		names := strs(op, "middlewares")

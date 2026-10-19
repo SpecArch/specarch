@@ -179,6 +179,7 @@ func (g *goReader) writeChain(ep *goEndpoint, op *yaml.Node, regAt, label string
 		}
 		g.question("must", fmt.Sprintf("%s registers %s with the middlewares %s, of which %s %s no function the reader can name. Which middlewares does it run, in order?", regAt, label, strings.Join(ep.chain, ", "), joinAnd(odd), doOrDo(len(odd), "names", "name")),
 			[]string{ep.at + "/middlewares"}, "A middleware is declared by the name of its function, and an expression that is not one gives none.", g.at(regAt, "Names its middlewares with "+strings.Join(ep.chain, ", ")+"."))
+		return
 	}
 	set(op, "middlewares", flow(value(names)))
 }

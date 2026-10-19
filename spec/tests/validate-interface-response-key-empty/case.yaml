@@ -1,0 +1,8 @@
+arguments: [validate, .]
+exitStatus: 1
+standardOutput: |
+  specarch.yaml:1:11: warning: /specarch: meta_model_version: the specification is written against meta-model 0.1, which is read until 1.0, and its missing tests are warnings; run specarch derive to write the tests 0.2 asks for, then change the line to specarch: "0.2" [meta_model_version@specarch.yaml#/specarch]
+  specarch.yaml:14:7: warning: /paths/~1loans~1close/post: test_case_missing: operation closeLoan has no red scenario for "denied without loans.write"; add under tests close-loan-denied-without-loans-write: { operation: closeLoan, scenario: red, covers: [denied without loans.write], given: "a caller without loans.write", when: "closeLoan is called", then: "it is refused as not allowed" } [test_case_missing@specarch.yaml#/paths/~1loans~1close/post]
+  specarch.yaml:14:7: warning: /paths/~1loans~1close/post: test_golden_missing: operation closeLoan has no golden scenario; add one under tests, for example close-loan-succeeds: { operation: closeLoan, scenario: golden, given: "a caller with loans.write", when: "closeLoan is called", then: "it succeeds" } [test_golden_missing@specarch.yaml#/paths/~1loans~1close/post]
+  specarch.yaml:17:7: warning: /paths/~1loans~1close/post/responses: success_response_missing: closeLoan answers 409 and no success, so what it answers when it succeeds is not written; add its success response [success_response_missing@specarch.yaml#/paths/~1loans~1close/post/responses]
+  specarch.yaml:18:13: error: /paths/~1loans~1close/post/responses/: schema: the name  is not valid: it must be an HTTP status code such as 200, or default; rename it [schema@specarch.yaml#/paths/~1loans~1close/post/responses/]

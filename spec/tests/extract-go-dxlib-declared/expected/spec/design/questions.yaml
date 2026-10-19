@@ -19,16 +19,8 @@ questions:
     why: The responses an endpoint declares give its success and its body, and syntax reads only a declaration it can follow to a literal.
     cites:
       - {source: code, clause: 'api/endpoints.go:70', says: Declares its responses with closeResponses(...).}
-  # specarch-problem: question: open_question: (must, decision) What does POST /loans/close answer when it succeeds, and what does each response mean? Decided by system-owner. Answer with a decision record that names Q-3 under answers. [Q-3]
+  # specarch-problem: question: open_question: (must, decision) Does the running system register POST /loans/close? It is declared at api/endpoints.go:70, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-3 under answers. [Q-3]
   Q-3:
-    question: What does POST /loans/close answer when it succeeds, and what does each response mean?
-    kind: decision
-    priority: must
-    blocks: ['#/paths/~1loans~1close/post/responses']
-    decidedBy: system-owner
-    why: The source names the refusals a handler answers with a literal status, and its registration declares no success response; the document dxlib emits declares the responses an endpoint is given.
-  # specarch-problem: question: open_question: (must, decision) Does the running system register POST /loans/close? It is declared at api/endpoints.go:70, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-4 under answers. [Q-4]
-  Q-4:
     question: Does the running system register POST /loans/close? It is declared at api/endpoints.go:70, and no list the running system printed was read with it.
     kind: decision
     priority: must
@@ -37,8 +29,8 @@ questions:
     why: Syntax shows a declaration and not what runs; the document dxlib emits, or a route table, says what the running system registers, and merging it answers this.
     cites:
       - {source: code, clause: 'api/endpoints.go:70', says: Registers POST /loans/close with NewEndPoint.}
-  # specarch-problem: question: open_question: (must, decision) POST /loans/import declares no parameter where api/endpoints.go:74 registers it, and its handler reads none by name (api/handlers.go:32), so its body is written as any object. Which fields does its body take, with their types? Decided by system-owner. Answer with a decision record that names Q-5 under answers. [Q-5]
-  Q-5:
+  # specarch-problem: question: open_question: (must, decision) POST /loans/import declares no parameter where api/endpoints.go:74 registers it, and its handler reads none by name (api/handlers.go:32), so its body is written as any object. Which fields does its body take, with their types? Decided by system-owner. Answer with a decision record that names Q-4 under answers. [Q-4]
+  Q-4:
     question: POST /loans/import declares no parameter where api/endpoints.go:74 registers it, and its handler reads none by name (api/handlers.go:32), so its body is written as any object. Which fields does its body take, with their types?
     kind: decision
     priority: must
@@ -47,16 +39,16 @@ questions:
     why: dxlib reads and checks only the parameters an endpoint declares; a handler that reads its body in another way, such as decoding it itself, gives its fields only in code syntax does not follow.
     cites:
       - {source: code, clause: 'api/endpoints.go:74', says: Declares no parameter.}
-  # specarch-problem: question: open_question: (must, decision) What does POST /loans/import answer when it succeeds, and what does each response mean? Decided by system-owner. Answer with a decision record that names Q-6 under answers. [Q-6]
-  Q-6:
+  # specarch-problem: question: open_question: (must, decision) What does POST /loans/import answer when it succeeds, and what does each response mean? Decided by system-owner. Answer with a decision record that names Q-5 under answers. [Q-5]
+  Q-5:
     question: What does POST /loans/import answer when it succeeds, and what does each response mean?
     kind: decision
     priority: must
     blocks: ['#/paths/~1loans~1import/post/responses']
     decidedBy: system-owner
     why: The source names the refusals a handler answers with a literal status, and its registration declares no success response; the document dxlib emits declares the responses an endpoint is given.
-  # specarch-problem: question: open_question: (must, decision) Does the running system register POST /loans/import? It is declared at api/endpoints.go:74, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-7 under answers. [Q-7]
-  Q-7:
+  # specarch-problem: question: open_question: (must, decision) Does the running system register POST /loans/import? It is declared at api/endpoints.go:74, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-6 under answers. [Q-6]
+  Q-6:
     question: Does the running system register POST /loans/import? It is declared at api/endpoints.go:74, and no list the running system printed was read with it.
     kind: decision
     priority: must
@@ -65,16 +57,16 @@ questions:
     why: Syntax shows a declaration and not what runs; the document dxlib emits, or a route table, says what the running system registers, and merging it answers this.
     cites:
       - {source: code, clause: 'api/endpoints.go:74', says: Registers POST /loans/import with NewEndPoint.}
-  # specarch-problem: question: open_question: (must, decision) What does GET /loans/list answer when it succeeds, and what does each response mean? Decided by system-owner. Answer with a decision record that names Q-8 under answers. [Q-8]
-  Q-8:
+  # specarch-problem: question: open_question: (must, decision) What does GET /loans/list answer when it succeeds, and what does each response mean? Decided by system-owner. Answer with a decision record that names Q-7 under answers. [Q-7]
+  Q-7:
     question: What does GET /loans/list answer when it succeeds, and what does each response mean?
     kind: decision
     priority: must
     blocks: ['#/paths/~1loans~1list/get/responses']
     decidedBy: system-owner
     why: The source names the refusals a handler answers with a literal status, and its registration declares no success response; the document dxlib emits declares the responses an endpoint is given.
-  # specarch-problem: question: open_question: (must, decision) Does the running system register GET /loans/list? It is declared at api/endpoints.go:60, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-9 under answers. [Q-9]
-  Q-9:
+  # specarch-problem: question: open_question: (must, decision) Does the running system register GET /loans/list? It is declared at api/endpoints.go:60, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-8 under answers. [Q-8]
+  Q-8:
     question: Does the running system register GET /loans/list? It is declared at api/endpoints.go:60, and no list the running system printed was read with it.
     kind: decision
     priority: must
@@ -83,8 +75,8 @@ questions:
     why: Syntax shows a declaration and not what runs; the document dxlib emits, or a route table, says what the running system registers, and merging it answers this.
     cites:
       - {source: code, clause: 'api/endpoints.go:60', says: Registers GET /loans/list with NewEndPoint.}
-  # specarch-problem: question: open_question: (must, decision) api/endpoints.go:45: the parameter address.postal_code of POST /loans/open is declared, and its Type lookupType(...) is not one of dxlib's parameter types. Which values does it take? Decided by system-owner. Answer with a decision record that names Q-10 under answers. [Q-10]
-  Q-10:
+  # specarch-problem: question: open_question: (must, decision) api/endpoints.go:45: the parameter address.postal_code of POST /loans/open is declared, and its Type lookupType(...) is not one of dxlib's parameter types. Which values does it take? Decided by system-owner. Answer with a decision record that names Q-9 under answers. [Q-9]
+  Q-9:
     question: 'api/endpoints.go:45: the parameter address.postal_code of POST /loans/open is declared, and its Type lookupType(...) is not one of dxlib''s parameter types. Which values does it take?'
     kind: decision
     priority: must
@@ -93,8 +85,8 @@ questions:
     why: A parameter's type is read from its declaration, and this one is not read.
     cites:
       - {source: code, clause: 'api/endpoints.go:45', says: Declares the parameter address.postal_code.}
-  # specarch-problem: question: open_question: (must, decision) Does the running system register POST /loans/open? It is declared at api/endpoints.go:37, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-11 under answers. [Q-11]
-  Q-11:
+  # specarch-problem: question: open_question: (must, decision) Does the running system register POST /loans/open? It is declared at api/endpoints.go:37, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-10 under answers. [Q-10]
+  Q-10:
     question: Does the running system register POST /loans/open? It is declared at api/endpoints.go:37, and no list the running system printed was read with it.
     kind: decision
     priority: must
@@ -103,16 +95,36 @@ questions:
     why: Syntax shows a declaration and not what runs; the document dxlib emits, or a route table, says what the running system registers, and merging it answers this.
     cites:
       - {source: code, clause: 'api/endpoints.go:37', says: Registers POST /loans/open with NewEndPoint.}
-  # specarch-problem: question: open_question: (must, decision) What does PUT /loans/scan answer when it succeeds, and what does each response mean? Decided by system-owner. Answer with a decision record that names Q-12 under answers. [Q-12]
+  # specarch-problem: question: open_question: (must, decision) api/endpoints.go:81 registers PATCH /loans/rename, and dxlib reads parameters for GET and DELETE from the query and for POST and PUT from the body, and refuses every other method with 422 ("Request method is not supported yet") before the handler runs. Does it answer anything but 422, and which parameters does it take, with their types? Decided by system-owner. Answer with a decision record that names Q-11 under answers. [Q-11]
+  Q-11:
+    question: api/endpoints.go:81 registers PATCH /loans/rename, and dxlib reads parameters for GET and DELETE from the query and for POST and PUT from the body, and refuses every other method with 422 ("Request method is not supported yet") before the handler runs. Does it answer anything but 422, and which parameters does it take, with their types?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1loans~1rename/patch']
+    decidedBy: system-owner
+    why: dxlib's PreProcessRequest reads parameters for four methods only, so the parameters declared here are not written where the running system would not read them.
+    cites:
+      - {source: code, clause: 'api/endpoints.go:81', says: Registers PATCH /loans/rename under PATCH.}
+  # specarch-problem: question: open_question: (must, decision) Does the running system register PATCH /loans/rename? It is declared at api/endpoints.go:81, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-12 under answers. [Q-12]
   Q-12:
+    question: Does the running system register PATCH /loans/rename? It is declared at api/endpoints.go:81, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1loans~1rename/patch']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; the document dxlib emits, or a route table, says what the running system registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'api/endpoints.go:81', says: Registers PATCH /loans/rename with NewEndPoint.}
+  # specarch-problem: question: open_question: (must, decision) What does PUT /loans/scan answer when it succeeds, and what does each response mean? Decided by system-owner. Answer with a decision record that names Q-13 under answers. [Q-13]
+  Q-13:
     question: What does PUT /loans/scan answer when it succeeds, and what does each response mean?
     kind: decision
     priority: must
     blocks: ['#/paths/~1loans~1scan/put/responses']
     decidedBy: system-owner
     why: The source names the refusals a handler answers with a literal status, and its registration declares no success response; the document dxlib emits declares the responses an endpoint is given.
-  # specarch-problem: question: open_question: (must, decision) Does the running system register PUT /loans/scan? It is declared at api/endpoints.go:77, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-13 under answers. [Q-13]
-  Q-13:
+  # specarch-problem: question: open_question: (must, decision) Does the running system register PUT /loans/scan? It is declared at api/endpoints.go:77, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-14 under answers. [Q-14]
+  Q-14:
     question: Does the running system register PUT /loans/scan? It is declared at api/endpoints.go:77, and no list the running system printed was read with it.
     kind: decision
     priority: must
@@ -121,16 +133,16 @@ questions:
     why: Syntax shows a declaration and not what runs; the document dxlib emits, or a route table, says what the running system registers, and merging it answers this.
     cites:
       - {source: code, clause: 'api/endpoints.go:77', says: Registers PUT /loans/scan with NewEndPoint.}
-  # specarch-problem: question: open_question: (must, decision) What does each response of POST /members/show mean? Its registration and its handler give no description of 200. Decided by system-owner. Answer with a decision record that names Q-14 under answers. [Q-14]
-  Q-14:
+  # specarch-problem: question: open_question: (must, decision) What does each response of POST /members/show mean? Its registration and its handler give no description of 200. Decided by system-owner. Answer with a decision record that names Q-15 under answers. [Q-15]
+  Q-15:
     question: What does each response of POST /members/show mean? Its registration and its handler give no description of 200.
     kind: decision
     priority: must
     blocks: ['#/paths/~1members~1show/post/responses/200/description']
     decidedBy: system-owner
     why: A response needs a description, and neither the registration nor the handler gives one.
-  # specarch-problem: question: open_question: (must, decision) Does the running system register POST /members/show? It is declared at api/endpoints.go:64, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-15 under answers. [Q-15]
-  Q-15:
+  # specarch-problem: question: open_question: (must, decision) Does the running system register POST /members/show? It is declared at api/endpoints.go:64, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-16 under answers. [Q-16]
+  Q-16:
     question: Does the running system register POST /members/show? It is declared at api/endpoints.go:64, and no list the running system printed was read with it.
     kind: decision
     priority: must
@@ -139,40 +151,40 @@ questions:
     why: Syntax shows a declaration and not what runs; the document dxlib emits, or a route table, says what the running system registers, and merging it answers this.
     cites:
       - {source: code, clause: 'api/endpoints.go:64', says: Registers POST /members/show with NewEndPoint.}
-  # specarch-problem: question: open_question: (must, decision) Which width does each of these numbers take: int32, int64 within 2^53 or carried as text, or a double or a decimal with its precision and scale? Decided by system-owner. Answer with a decision record that names Q-16 under answers. [Q-16]
-  Q-16:
+  # specarch-problem: question: open_question: (must, decision) Which width does each of these numbers take: int32, int64 within 2^53 or carried as text, or a double or a decimal with its precision and scale? Decided by system-owner. Answer with a decision record that names Q-17 under answers. [Q-17]
+  Q-17:
     question: 'Which width does each of these numbers take: int32, int64 within 2^53 or carried as text, or a double or a decimal with its precision and scale?'
     kind: decision
     priority: must
     blocks: ['#/paths/~1loans~1open/post/requestBody/content/application~1json/schema/properties/memberId/format', '#/paths/~1loans~1open/post/responses/200/content/application~1json/schema/properties/loanId/format', '#/paths/~1members~1show/post/requestBody/content/application~1json/schema/properties/memberId/format']
     decidedBy: system-owner
     why: The meta-model needs a number's width, and the document gives none it holds; choosing one would be a guess.
-  # specarch-problem: question: open_question: (must, decision) What does each permission allow: loans.read, loans.write, members.read? Decided by system-owner. Answer with a decision record that names Q-17 under answers. [Q-17]
-  Q-17:
+  # specarch-problem: question: open_question: (must, decision) What does each permission allow: loans.read, loans.write, members.read? Decided by system-owner. Answer with a decision record that names Q-18 under answers. [Q-18]
+  Q-18:
     question: 'What does each permission allow: loans.read, loans.write, members.read?'
     kind: decision
     priority: must
     blocks: ['#/permissions/loans.read/description', '#/permissions/loans.write/description', '#/permissions/members.read/description']
     decidedBy: system-owner
     why: The source names the privilege an endpoint checks and not what it is for.
-  # specarch-problem: question: open_question: (must, decision) Which role grants each permission: loans.read, loans.write, members.read? Decided by system-owner. Answer with a decision record that names Q-18 under answers. [Q-18]
-  Q-18:
+  # specarch-problem: question: open_question: (must, decision) Which role grants each permission: loans.read, loans.write, members.read? Decided by system-owner. Answer with a decision record that names Q-19 under answers. [Q-19]
+  Q-19:
     question: 'Which role grants each permission: loans.read, loans.write, members.read?'
     kind: decision
     priority: must
     blocks: ['#/permissions/loans.read', '#/permissions/loans.write', '#/permissions/members.read']
     decidedBy: system-owner
     why: The source names the privilege an endpoint checks and not who holds it.
-  # specarch-problem: question: open_question: (must, decision) What is each problem's title, and when is it answered: item-lent-out? Decided by system-owner. Answer with a decision record that names Q-19 under answers. [Q-19]
-  Q-19:
+  # specarch-problem: question: open_question: (must, decision) What is each problem's title, and when is it answered: item-lent-out? Decided by system-owner. Answer with a decision record that names Q-20 under answers. [Q-20]
+  Q-20:
     question: 'What is each problem''s title, and when is it answered: item-lent-out?'
     kind: decision
     priority: must
     blocks: ['#/errors/item-lent-out/title', '#/errors/item-lent-out/condition']
     decidedBy: system-owner
     why: The source gives a problem's status and reason, and not a title a person reads or the condition it is answered under.
-  # specarch-problem: question: open_question: (could, decision) Not held: api/endpoints.go:70: the endpoint POST /loans/close: dxlib names it loans_close from its URI, which is not camelCase, as an operationId is; it is named postLoansClose. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-20 under answers. [Q-20]
-  Q-20:
+  # specarch-problem: question: open_question: (could, decision) Not held: api/endpoints.go:70: the endpoint POST /loans/close: dxlib names it loans_close from its URI, which is not camelCase, as an operationId is; it is named postLoansClose. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-21 under answers. [Q-21]
+  Q-21:
     question: 'Not held: api/endpoints.go:70: the endpoint POST /loans/close: dxlib names it loans_close from its URI, which is not camelCase, as an operationId is; it is named postLoansClose. Does the specification need it, written another way or described by hand?'
     kind: decision
     priority: could
@@ -181,8 +193,8 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: code, clause: 'api/endpoints.go:70', says: 'Not held: the endpoint POST /loans/close: dxlib names it loans_close from its URI, which is not camelCase, as an operationId is; it is named postLoansClose.'}
-  # specarch-problem: question: open_question: (could, decision) Not held: api/endpoints.go:74: the endpoint POST /loans/import: dxlib names it loans_import from its URI, which is not camelCase, as an operationId is; it is named postLoansImport. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-21 under answers. [Q-21]
-  Q-21:
+  # specarch-problem: question: open_question: (could, decision) Not held: api/endpoints.go:74: the endpoint POST /loans/import: dxlib names it loans_import from its URI, which is not camelCase, as an operationId is; it is named postLoansImport. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-22 under answers. [Q-22]
+  Q-22:
     question: 'Not held: api/endpoints.go:74: the endpoint POST /loans/import: dxlib names it loans_import from its URI, which is not camelCase, as an operationId is; it is named postLoansImport. Does the specification need it, written another way or described by hand?'
     kind: decision
     priority: could
@@ -191,8 +203,8 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: code, clause: 'api/endpoints.go:74', says: 'Not held: the endpoint POST /loans/import: dxlib names it loans_import from its URI, which is not camelCase, as an operationId is; it is named postLoansImport.'}
-  # specarch-problem: question: open_question: (could, decision) Not held: api/endpoints.go:60: the endpoint GET /loans/list: dxlib names it loans_list from its URI, which is not camelCase, as an operationId is; it is named getLoansList. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-22 under answers. [Q-22]
-  Q-22:
+  # specarch-problem: question: open_question: (could, decision) Not held: api/endpoints.go:60: the endpoint GET /loans/list: dxlib names it loans_list from its URI, which is not camelCase, as an operationId is; it is named getLoansList. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-23 under answers. [Q-23]
+  Q-23:
     question: 'Not held: api/endpoints.go:60: the endpoint GET /loans/list: dxlib names it loans_list from its URI, which is not camelCase, as an operationId is; it is named getLoansList. Does the specification need it, written another way or described by hand?'
     kind: decision
     priority: could
@@ -201,8 +213,8 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: code, clause: 'api/endpoints.go:60', says: 'Not held: the endpoint GET /loans/list: dxlib names it loans_list from its URI, which is not camelCase, as an operationId is; it is named getLoansList.'}
-  # specarch-problem: question: open_question: (could, decision) Not held: api/endpoints.go:37: the endpoint POST /loans/open: dxlib names it loans_open from its URI, which is not camelCase, as an operationId is; it is named postLoansOpen. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-23 under answers. [Q-23]
-  Q-23:
+  # specarch-problem: question: open_question: (could, decision) Not held: api/endpoints.go:37: the endpoint POST /loans/open: dxlib names it loans_open from its URI, which is not camelCase, as an operationId is; it is named postLoansOpen. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-24 under answers. [Q-24]
+  Q-24:
     question: 'Not held: api/endpoints.go:37: the endpoint POST /loans/open: dxlib names it loans_open from its URI, which is not camelCase, as an operationId is; it is named postLoansOpen. Does the specification need it, written another way or described by hand?'
     kind: decision
     priority: could
@@ -211,8 +223,8 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: code, clause: 'api/endpoints.go:37', says: 'Not held: the endpoint POST /loans/open: dxlib names it loans_open from its URI, which is not camelCase, as an operationId is; it is named postLoansOpen.'}
-  # specarch-problem: question: open_question: (could, decision) Not held: api/endpoints.go:57: the response 409 of POST /loans/open declares the header Retry-After; the meta-model holds no header on a response; left out. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-24 under answers. [Q-24]
-  Q-24:
+  # specarch-problem: question: open_question: (could, decision) Not held: api/endpoints.go:57: the response 409 of POST /loans/open declares the header Retry-After; the meta-model holds no header on a response; left out. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-25 under answers. [Q-25]
+  Q-25:
     question: 'Not held: api/endpoints.go:57: the response 409 of POST /loans/open declares the header Retry-After; the meta-model holds no header on a response; left out. Does the specification need it, written another way or described by hand?'
     kind: decision
     priority: could
@@ -221,8 +233,18 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: code, clause: 'api/endpoints.go:57', says: 'Not held: the response 409 of POST /loans/open declares the header Retry-After; the meta-model holds no header on a response; left out.'}
-  # specarch-problem: question: open_question: (could, decision) Not held: api/endpoints.go:77: the endpoint PUT /loans/scan: dxlib names it loans_scan from its URI, which is not camelCase, as an operationId is; it is named putLoansScan. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-25 under answers. [Q-25]
-  Q-25:
+  # specarch-problem: question: open_question: (could, decision) Not held: api/endpoints.go:81: the endpoint PATCH /loans/rename: dxlib names it loans_rename from its URI, which is not camelCase, as an operationId is; it is named patchLoansRename. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-26 under answers. [Q-26]
+  Q-26:
+    question: 'Not held: api/endpoints.go:81: the endpoint PATCH /loans/rename: dxlib names it loans_rename from its URI, which is not camelCase, as an operationId is; it is named patchLoansRename. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/paths/~1loans~1rename/patch']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'api/endpoints.go:81', says: 'Not held: the endpoint PATCH /loans/rename: dxlib names it loans_rename from its URI, which is not camelCase, as an operationId is; it is named patchLoansRename.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: api/endpoints.go:77: the endpoint PUT /loans/scan: dxlib names it loans_scan from its URI, which is not camelCase, as an operationId is; it is named putLoansScan. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-27 under answers. [Q-27]
+  Q-27:
     question: 'Not held: api/endpoints.go:77: the endpoint PUT /loans/scan: dxlib names it loans_scan from its URI, which is not camelCase, as an operationId is; it is named putLoansScan. Does the specification need it, written another way or described by hand?'
     kind: decision
     priority: could
@@ -231,8 +253,8 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: code, clause: 'api/endpoints.go:77', says: 'Not held: the endpoint PUT /loans/scan: dxlib names it loans_scan from its URI, which is not camelCase, as an operationId is; it is named putLoansScan.'}
-  # specarch-problem: question: open_question: (could, decision) Not held: api/endpoints.go:77: the endpoint PUT /loans/scan declares the content type application/octet-stream and the parameter loan_id, which dxlib reads from the X-Var header as JSON; the meta-model holds no parameter carried in a header as JSON; left out. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-26 under answers. [Q-26]
-  Q-26:
+  # specarch-problem: question: open_question: (could, decision) Not held: api/endpoints.go:77: the endpoint PUT /loans/scan declares the content type application/octet-stream and the parameter loan_id, which dxlib reads from the X-Var header as JSON; the meta-model holds no parameter carried in a header as JSON; left out. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-28 under answers. [Q-28]
+  Q-28:
     question: 'Not held: api/endpoints.go:77: the endpoint PUT /loans/scan declares the content type application/octet-stream and the parameter loan_id, which dxlib reads from the X-Var header as JSON; the meta-model holds no parameter carried in a header as JSON; left out. Does the specification need it, written another way or described by hand?'
     kind: decision
     priority: could
@@ -241,8 +263,8 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: code, clause: 'api/endpoints.go:77', says: 'Not held: the endpoint PUT /loans/scan declares the content type application/octet-stream and the parameter loan_id, which dxlib reads from the X-Var header as JSON; the meta-model holds no parameter carried in a header as JSON; left out.'}
-  # specarch-problem: question: open_question: (could, decision) Not held: api/endpoints.go:64: the endpoint POST /members/show: dxlib names it members_show from its URI, which is not camelCase, as an operationId is; it is named postMembersShow. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-27 under answers. [Q-27]
-  Q-27:
+  # specarch-problem: question: open_question: (could, decision) Not held: api/endpoints.go:64: the endpoint POST /members/show: dxlib names it members_show from its URI, which is not camelCase, as an operationId is; it is named postMembersShow. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-29 under answers. [Q-29]
+  Q-29:
     question: 'Not held: api/endpoints.go:64: the endpoint POST /members/show: dxlib names it members_show from its URI, which is not camelCase, as an operationId is; it is named postMembersShow. Does the specification need it, written another way or described by hand?'
     kind: decision
     priority: could

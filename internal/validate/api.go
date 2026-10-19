@@ -143,10 +143,20 @@ func (c *checker) checkInterface(o operation) {
 	var codes []string
 	for _, r := range responses {
 		code := r.Key.Value
-		if code == "default" || code[0] >= '1' && code[0] <= '3' {
+		if code == "default" {
+			return
+		}
+		if len(code) != 3 {
+			// Not a status code: the schema reports the key.
+			continue
+		}
+		if code[0] >= '1' && code[0] <= '3' {
 			return
 		}
 		codes = append(codes, code)
+	}
+	if len(codes) == 0 {
+		return
 	}
 	c.warn(source.Key(o.node, "responses"), o.pointer("responses"), RuleSuccessResponseMissing, "%s answers %s and no success, so what it answers when it succeeds is not written; add its success response", o.id, strings.Join(codes, ", "))
 }

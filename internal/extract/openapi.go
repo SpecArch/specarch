@@ -217,8 +217,11 @@ type openapiReader struct {
 	middlewares     *yaml.Node
 	middlewareNames []string
 	middlewareOf    map[string][2]string
-	nextID          int
-	notHeld         []notHeld
+	// The operations outside dxlib's dialect, by label and pointer, whose
+	// middlewares are asked when the dxlib operations declare any.
+	plainOps [][2]string
+	nextID   int
+	notHeld  []notHeld
 	// The component schemas written as an entity, a schema or an enum, by
 	// name; a reference to any other is written in place.
 	written map[string]string
@@ -344,6 +347,7 @@ func (o *openapiReader) read() {
 	}
 	o.declarePermissions()
 	o.declareMiddlewares()
+	o.askPlainMiddlewares()
 	if o.dxlibOps > 0 {
 		o.res.say("dialect: dxlib: %s carry x-dxlib-endpoint-type, and each one's x-dxlib-privileges is read as its permission; %s declared, each named alone by an operation's privileges, %d of them mapped from a privilege name in capitals by the rule of ADR-076", plural(o.dxlibOps, "operation"), plural(len(o.checkedBy), "permission"), len(o.mappedFrom))
 	}
@@ -572,6 +576,7 @@ func (o *openapiReader) operation(p, method string, op *yaml.Node, params []stri
 	}
 	o.question(fmt.Sprintf("Which permission does %s check? %s", label, o.securityText(op)),
 		[]string{at + "/permission"}, "A security scheme says how a caller proves who it is, not what it may do, so the permission is asked and never written as public.")
+	o.plainOps = append(o.plainOps, [2]string{label, at})
 	return out
 }
 
@@ -706,6 +711,20 @@ func (o *openapiReader) declareMiddlewares() {
 	}
 	o.question(fmt.Sprintf("What does each middleware check or do, and what does it refuse with: %s? The document names each by its function and says nothing of what it does.", strings.Join(o.middlewareNames, ", ")),
 		blocks, "x-dxlib-middlewares names the functions a request passes before the handler, and what each checks is code; extract go reads it from the source.")
+}
+
+// askPlainMiddlewares asks which middlewares each operation outside dxlib's
+// dialect runs, once the document's dxlib operations declare any: such an
+// operation does not say, and an operation that names none under a
+// specification that declares middlewares is a gap (ADR-131).
+func (o *openapiReader) askPlainMiddlewares() {
+	if len(o.middlewareNames) == 0 {
+		return
+	}
+	for _, p := range o.plainOps {
+		o.question(fmt.Sprintf("Which middlewares does %s run, in order? It carries no x-dxlib-endpoint-type, so the document does not say, while its dxlib operations run %s.", p[0], joinAnd(o.middlewareNames)),
+			[]string{p[1] + "/middlewares"}, "Only an operation in dxlib's dialect lists its middlewares under x-dxlib-middlewares.")
+	}
 }
 
 // printed says whether every operation of the document, under any method,

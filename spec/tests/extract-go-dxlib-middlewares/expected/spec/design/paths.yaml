@@ -2,11 +2,11 @@ permissions:
   desk.read:
     origin: stated
     cites:
-      - {source: code, clause: 'api/endpoints.go:39', says: POST /desk/audit and POST /desk/show check desk.read in its privileges.}
+      - {source: code, clause: 'api/endpoints.go:39', says: 'POST /desk/audit, POST /desk/count and POST /desk/show check desk.read in its privileges.'}
   desk.write:
     origin: stated
     cites:
-      - {source: code, clause: 'api/endpoints.go:31', says: POST /desk/close and POST /desk/open check desk.write in its privileges.}
+      - {source: code, clause: 'api/endpoints.go:31', says: 'POST /desk/close, POST /desk/open and POST /desk/sweep check desk.write in its privileges.'}
 middlewares:
   log:
     origin: stated
@@ -68,6 +68,23 @@ paths:
       cites:
         - {source: code, clause: 'api/endpoints.go:31', says: 'NewEndPoint registers POST /desk/close; its handler is Show, its middlewares are RequireSession and RequireStaff, it declares no parameter and the response 200, and it checks desk.write.'}
         - {source: code, clause: 'api/middleware.go:36', says: The handler of POST /desk/close reads no parameter by name.}
+  /desk/count:
+    post:
+      operationId: postDeskCount
+      summary: Count the desk
+      permission: desk.read
+      middlewares: [throttle, require-session, throttle]
+      requestBody:
+        content:
+          application/json:
+            schema: {type: object}
+      responses:
+        "200":
+          description: The count.
+      origin: stated
+      cites:
+        - {source: code, clause: 'api/endpoints.go:43', says: 'NewEndPoint registers POST /desk/count; its handler is Show, its middlewares are Throttle, RequireSession and Throttle, it declares no parameter and the response 200, and it checks desk.read.'}
+        - {source: code, clause: 'api/middleware.go:36', says: The handler of POST /desk/count reads no parameter by name.}
   /desk/open:
     post:
       operationId: postDeskOpen
@@ -102,6 +119,22 @@ paths:
       cites:
         - {source: code, clause: 'api/endpoints.go:27', says: 'NewEndPoint registers POST /desk/show; its handler is Show, its middlewares are RequireSession and audit.Log, it declares no parameter and the response 200, and it checks desk.read.'}
         - {source: code, clause: 'api/middleware.go:36', says: The handler of POST /desk/show reads no parameter by name.}
+  /desk/sweep:
+    post:
+      operationId: postDeskSweep
+      summary: Sweep the desk
+      permission: desk.write
+      requestBody:
+        content:
+          application/json:
+            schema: {type: object}
+      responses:
+        "200":
+          description: The desk is swept.
+      origin: stated
+      cites:
+        - {source: code, clause: 'api/endpoints.go:47', says: 'NewEndPoint registers POST /desk/sweep; its handler is Show, its middlewares are RequireSession and a function literal, it declares no parameter and the response 200, and it checks desk.write.'}
+        - {source: code, clause: 'api/middleware.go:36', says: The handler of POST /desk/sweep reads no parameter by name.}
 errors:
   card-expired:
     status: 403

@@ -4,14 +4,14 @@ info:
   title: Go source of .
   version: 0.1.0
   description: |
-    The Go source under ., read at commit 7e1b46dcc46bfd590abeb1a542bd576180a1dafd by the standard library's parser, by its syntax alone. Every operation cites the line that registers it; what the source does not say as a literal, or through a call the reader knows, is a question, and so is what the meta-model cannot hold.
+    The Go source under ., read at commit 4da08bf2ce6617ceab5ecfc048ea87ecda2b88ec by the standard library's parser, by its syntax alone. Every operation cites the line that registers it; what the source does not say as a literal, or through a call the reader knows, is a question, and so is what the meta-model cannot hold.
   tracksOrigin: true
 stages: [requirements, design]
 sources:
   code:
     kind: code
     title: The code repository
-    edition: 7e1b46dcc46bfd590abeb1a542bd576180a1dafd
+    edition: 4da08bf2ce6617ceab5ecfc048ea87ecda2b88ec
     url: ../testdata/service
     clauses:
       - {clause: api/endpoints.go, title: 'Go source, read by its syntax'}

@@ -2460,13 +2460,12 @@ let designSchemaJSON = #"""
           "$ref": "#/$defs/permissionName"
         },
         "middlewares": {
-          "description": "SpecArch keyword. The middlewares the operation runs before its handler, in the order they run, by their names under middlewares; an empty list says it runs none.",
+          "description": "SpecArch keyword. The middlewares the operation runs before its handler, in the order they run, by their names under middlewares, one that runs twice named twice; an empty list says it runs none.",
           "type": "array",
           "items": {
             "type": "string",
             "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
-          },
-          "uniqueItems": true
+          }
         },
         "parameters": {
           "$ref": "#/$defs/parameters"

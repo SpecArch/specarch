@@ -253,7 +253,8 @@ maintain by hand.
 
 `middlewares` declares once each step a request passes before an
 operation's handler, with what it checks or does and its refusals, and an
-operation lists the ones it runs, in order (ADR-131). It is the design half
+operation lists the ones it runs, in order, one that runs twice named
+twice (ADR-131). It is the design half
 of a chain a framework binds: the function each one is goes in the
 implementation file (`bindings.http.middlewares`). The readers write it
 from a dxlib service's registrations and from the document dxlib emits.

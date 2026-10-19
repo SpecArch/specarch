@@ -46,9 +46,13 @@ decisions:
       that body, and with no content type it takes none; their
       parameters, which dxlib reads from the X-Var header, print a line,
       since the meta-model holds no parameter carried in a header as
-      JSON. Every other method takes them as query parameters, a name
+      JSON. A GET or DELETE takes them as query parameters, a name
       that is also a path segment included, since dxlib reads them from
-      the query and not from the path. A declared response is written
+      the query and not from the path. dxlib refuses every other method,
+      PATCH among them, with 422 before the handler runs, so such a
+      registration writes no parameter and asks a must question on the
+      operation: writing its parameters in the query would say dxlib
+      reads them where it reads nothing. A declared response is written
       under its status with its description and the object its data
       template gives, the problem the handler answers at that status
       beside it; its headers print a line. A declared success leaves

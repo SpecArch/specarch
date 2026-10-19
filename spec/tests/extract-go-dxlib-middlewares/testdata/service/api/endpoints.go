@@ -39,4 +39,12 @@ func Define(a *api.DXAPI) {
 	a.NewEndPoint("Audit the desk", "", "/desk/audit", "POST", api.EndPointTypeHTTPJSON, dxhttp.RequestContentTypeApplicationJSON, nil,
 		Show, nil, &api.DXAPIEndPointResponsePossibilities{"success": {StatusCode: 200, Description: "The audit."}},
 		chainFor(true), []string{"desk.read"}, 0, "")
+
+	a.NewEndPoint("Count the desk", "", "/desk/count", "POST", api.EndPointTypeHTTPJSON, dxhttp.RequestContentTypeApplicationJSON, nil,
+		Show, nil, &api.DXAPIEndPointResponsePossibilities{"success": {StatusCode: 200, Description: "The count."}},
+		mw(Throttle, RequireSession, Throttle), []string{"desk.read"}, 0, "")
+
+	a.NewEndPoint("Sweep the desk", "", "/desk/sweep", "POST", api.EndPointTypeHTTPJSON, dxhttp.RequestContentTypeApplicationJSON, nil,
+		Show, nil, &api.DXAPIEndPointResponsePossibilities{"success": {StatusCode: 200, Description: "The desk is swept."}},
+		[]api.DXAPIEndPointExecuteFunc{RequireSession, func(aepr *api.DXAPIEndPointRequest) error { return nil }}, []string{"desk.write"}, 0, "")
 }

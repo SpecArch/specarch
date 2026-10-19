@@ -1,0 +1,19 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0 }
+requirements:
+  CASE-1: { statement: One., kind: functional, priority: must, status: accepted, acceptance: [One.] }
+stakeholders:
+  owner: { description: The owner. }
+permissions:
+  loans.write: { description: Change loans. }
+roles:
+  desk: { description: The desk., permissions: [loans.write] }
+paths:
+  /loans/renew:
+    post:
+      operationId: renewLoan
+      summary: Renew a loan
+      permission: loans.write
+      responses:
+        "": { description: Odd. }
+      satisfies: [CASE-1]

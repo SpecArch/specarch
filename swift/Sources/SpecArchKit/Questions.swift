@@ -231,8 +231,10 @@ func blockedPointers(_ root: YNode) -> Blocked {
 /// question covers: a required key missing at or under a pointer the
 /// question blocks, the warnings about that element, the problem a response
 /// must name once problem types are declared when the question blocks that
-/// problem, and a permission no role grants when the question blocks that
-/// permission. A pointer to an element covers everything missing at or
+/// problem, a permission no role grants when the question blocks that
+/// permission, and the one-namespace error at a schema or a view named like
+/// an entity, or a schema like a view, when the question blocks that schema
+/// or view. A pointer to an element covers everything missing at or
 /// under it, whether the element is written out in part, such as a field
 /// with its width and no type, or known only by name, an empty mapping. A
 /// pointer to a key that is not there covers that one key. A wrong value

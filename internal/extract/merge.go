@@ -1937,10 +1937,8 @@ func (m *merger) namespaceQuestions() int {
 			as = append(as, fmt.Sprintf("%s %s in %s", article(word), word, by))
 		}
 		given(e, word)
-		var otherWords []string
 		for _, o := range others {
 			given(o, entryWords[o.section])
-			otherWords = append(otherWords, entryWords[o.section])
 		}
 		var options []string
 		for _, o := range others {

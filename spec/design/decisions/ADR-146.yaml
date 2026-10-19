@@ -43,8 +43,9 @@ decisions:
       pre-key handshake (ADR-145); a download's success response is
       written as application/octet-stream, the type dxlib's own sender
       sets, with a schema of a binary string, in place of what the
-      registration's data template declares, which is a should question
-      when it declares one, and never written. generate openapi in the
+      registration's data template or the handler's JSON answer declares,
+      which is left unread and is a should question when either declares
+      one. generate openapi in the
       dxlib dialect writes the upload type with a requestBody of the
       binary string as application/octet-stream, the one type dxlib
       streams an upload as, with a warning at the operation when the

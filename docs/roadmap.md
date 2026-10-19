@@ -21,7 +21,7 @@ latest, and 0.7.1 is the next.
 | 0.6.0, 2026-10-13 | meta-model 0.2 (`schema/specarch-design-0.2.schema.json`); the workflows reader; the Go reader on dxlib, `net/http` and the common routers; the Swift, JavaScript, Vue and Dart readers; `specarch-gen-ui-typescript` on Next.js and Carbon; `specarch-gen-bpmn`; the `problems` and `html` documents |
 | 0.6.1 to 0.6.4, 2026-10-14 | the plans for the estate and for meta-model 0.3; the first estate points (a dump committed outside the code's repository, role names on the wire); a request body decoded into a struct in `extract go`; fixes to `merge` and the readers |
 | 0.7.0, 2026-10-19 | the estate (`specarch-estate.yaml`, references between specifications, the module map); `specarch check`; `specarch facts`; `specarch-gen-sqlc`; indexes in `generate sql`; `implies`, `audience`, `middlewares`, the workflow table, documents in another language; the `handover` document |
-| 0.7.1, next | the techspec's parameters, request body and responses per operation; `extract go` reading a dxlib handler's decoded body and JSON answers where the registration declares none (ADR-140); every operation's handler followed into the code, recorded with its source and drawn as a flowchart (ADR-144); the designs of the diagram keywords (`docs/diagrams.md`) and of the gateway (`docs/gateway.md`), proposed; the design of dxlib's encrypted API type and of large files streamed up and down, in progress; this roadmap matched to the code |
+| 0.7.1, next | the techspec's parameters, request body and responses per operation; `extract go` reading a dxlib handler's decoded body and JSON answers where the registration declares none (ADR-140); every operation's handler followed into the code, recorded with its source and drawn as a flowchart (ADR-144); the designs of the diagram keywords (`docs/diagrams.md`) and of the gateway (`docs/gateway.md`), proposed; dxlib's encrypted API type as a handshake an operation names and large files as a stream it declares (ADR-145, ADR-146, proposed), read by `extract go`, served by the dxlib dialect and the go-dxlib target with a Go client, and shown in the techspec; this roadmap matched to the code |
 
 ## 1. Validator CLI
 
@@ -354,12 +354,24 @@ BUG-029, open). It ends with three build items in order, the reader fixes
 first and the element after 0.3's tokens and the diagram keywords'
 dependency and server kinds.
 
-In progress for 0.7.1, not built: dxlib's encrypted API type and large
-files. An endpoint whose API type makes its request and response an
-encrypted envelope after a Diffie-Hellman key exchange, and an endpoint
-that uploads or downloads a file as a stream rather than a body, have no
-keyword yet; the design records both, `extract go` reads them from a dxlib
-registration, and the documents and generators show and write them.
+Partly built, 0.7.1: dxlib's encrypted API type and large files. An
+endpoint whose API type makes its request and response an encrypted
+envelope after a Diffie-Hellman key exchange is an operation with a
+`handshake`, and one that uploads or downloads a file as a stream rather
+than a body is an operation with a `stream`; the design declares the
+handshakes in a section of their own and the streams with their direction
+and limits (ADR-145, ADR-146, proposed for the owner's approval;
+`validate-handshake`, `validate-stream`, both validators). `extract go`
+reads both from a dxlib registration's endpoint type and asks where the
+type is computed or one dxlib never finished
+(`extract-go-dxlib-envelope-stream`); the dxlib dialect writes each
+operation's type and the go-dxlib target the exchange, the envelope hooks,
+the stream helpers and a Go client that performs the handshake and streams
+a file, proved over a real dxlib service (`generate-openapi-dxlib-envelope-stream`,
+`generate-go-dxlib-envelope-stream`, `internal/gendxlib/roundtrip_test.go`);
+the technical specification shows the handshake in five steps, each
+encrypted operation's envelope and a streamed file in place of a body table
+(`document-techspec-envelope-stream`). Four parts are not built, in 5a.
 
 ## 5a. What the handshake and the streams still owe
 

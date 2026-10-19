@@ -177,7 +177,8 @@ implementation file uses and compares an override with the shipped idiom.
    users make the mistake, with the cases left out listed in the test plan;
    and structured `fixture`, `input` and `expect` on a test give the
    generator something to run. The targets: `specarch-gen-tests-go` (0.4.0,
-   `spec/tests/generate-tests-go`), `specarch-gen-tests-swift` and
+   `cmd/specarch-gen-tests-go`; its case `spec/tests/generate-tests-go`
+   came in 0.5.0), `specarch-gen-tests-swift` and
    `specarch-gen-tests-dart` (0.5.0, `spec/tests/generate-tests-swift`,
    `spec/tests/generate-tests-dart`).
 7. Not built: the user manual, the operations guide and other project

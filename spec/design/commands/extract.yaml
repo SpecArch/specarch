@@ -645,8 +645,8 @@ commands:
         commit; a call not followed says why on its step (a function
         value, an interface's method, a method of a value whose type
         syntax does not give, a function outside the module, a fourth
-        call deep), a call into the standard library is no step, and a
-        method of a value of a type outside the module is none. One line
+        call deep), any other call into the standard library is no step,
+        and a method of a value of a type outside the module is none. One line
         counts the handlers followed, the functions and the calls not
         followed. With --implementation-out, each operation's mapping goes
         into the implementation fragment with the handler as its target

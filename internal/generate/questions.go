@@ -269,9 +269,15 @@ func (d *doc) open(label string, n *yaml.Node) {
 	}
 	for _, q := range d.questions {
 		if q.about(ptr) {
-			d.para(fmt.Sprintf("**Open question %s%s:** %s Decided by %s.", q.label(), on, oneParagraph(str(q.node, "question")), str(q.node, "decidedBy")))
+			d.openParagraph(q, on)
 		}
 	}
+}
+
+// openParagraph writes one open question: its ID, priority and kind, what
+// it is on, its text and who decides it.
+func (d *doc) openParagraph(q question, on string) {
+	d.para(fmt.Sprintf("**Open question %s%s:** %s Decided by %s.", q.label(), on, oneParagraph(str(q.node, "question")), str(q.node, "decidedBy")))
 }
 
 // Questions writes the open questions document, which specarch gaps also

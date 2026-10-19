@@ -1,0 +1,4 @@
+arguments: [document, techspec, --out, docs, project]
+exitStatus: 1
+standardOutput: |
+  project/specarch.yaml:13:3: error: /schemas/Shelf: value_object: Shelf is the name of an entity too; a schema, an entity and a view are one namespace, since each becomes a schema of its own in the interface; rename the schema [value_object@specarch.yaml#/schemas/Shelf]

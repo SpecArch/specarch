@@ -1,0 +1,46 @@
+specarch: "0.2"
+info:
+  title: Reading Room
+  version: 1.0.0
+  description: A reading room that keeps shelves of books.
+stakeholders:
+  owner: { description: Runs the reading room., concerns: [What a shelf holds.] }
+permissions:
+  shelves.read: { description: See the shelves. }
+roles:
+  reader: { description: Reads at the room., permissions: [shelves.read] }
+schemas:
+  Shelf:
+    description: A shelf as a reader is shown it.
+    type: object
+    properties:
+      name: { type: string, minLength: 1, maxLength: 100 }
+    required: [name]
+entities:
+  Shelf:
+    description: A shelf of books.
+    type: object
+    primaryKey: [shelfId]
+    properties:
+      shelfId: { type: string, format: uuid, readOnly: true }
+      name: { type: string, minLength: 1, maxLength: 100 }
+    required: [shelfId, name]
+paths:
+  /shelves:
+    get:
+      operationId: listShelves
+      summary: Every shelf as a reader is shown it
+      permission: shelves.read
+      responses:
+        "200":
+          description: Every shelf.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  shown: { type: array, items: { $ref: "#/schemas/Shelf" } }
+                  stored: { type: array, items: { $ref: "#/entities/Shelf" } }
+tests:
+  list-shelves-succeeds: { operation: listShelves, level: system, scenario: golden, given: "a caller with shelves.read", when: "listShelves is called", then: "it answers 200: Every shelf." }
+  list-shelves-denied-without-shelves-read: { operation: listShelves, level: system, scenario: red, covers: [denied without shelves.read], given: "a caller without shelves.read", when: "listShelves is called", then: "it is refused as not allowed" }

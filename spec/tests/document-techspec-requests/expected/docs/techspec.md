@@ -2,7 +2,7 @@
 
 # Reading Room: technical specification
 
-Version 1.0.0 of the specification: 1 entity, 1 schema, 4 HTTP operations and 20 tests. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 1.0.0 of the specification: 1 entity, 1 schema, 5 HTTP operations and 22 tests. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 ## 1. Introduction and goals
 
@@ -26,6 +26,7 @@ The interfaces the system offers, as its clients see them.
 | POST /shelves | addShelf | Add a shelf | shelves.write |
 | GET /shelves/{shelfId} | getShelf | One shelf with its counts | shelves.read |
 | POST /shelves/{shelfId}/notes | addNote | Pin a note to a shelf | shelves.write |
+| GET /notices | listNotices | The notices pinned in the room | shelves.read |
 
 ## 5. Building blocks
 
@@ -171,6 +172,8 @@ Parameters:
 
 Takes no request body; the request body is open in Q-1.
 
+**Open question Q-1 (could, decision) on the request body:** What does a note hold, and how long may it be? Decided by owner.
+
 Responses:
 
 | Status | Meaning | Body |
@@ -184,6 +187,26 @@ sequenceDiagram
   participant S as Reading Room
   C->>S: POST /shelves/{shelfId}/notes
   S-->>C: 204 
+```
+
+### listNotices (GET /notices)
+
+Takes no parameters and no request body; what it takes is open in Q-2.
+
+**Open question Q-2 (could, decision) on what it takes:** Which notices may a reader filter by, and on what? Decided by owner.
+
+Responses:
+
+| Status | Meaning | Body |
+|---|---|---|
+| 200 | Every notice. | list of string |
+
+```mermaid
+sequenceDiagram
+  participant C as Client
+  participant S as Reading Room
+  C->>S: GET /notices
+  S-->>C: 200 list of string
 ```
 
 ## 8. Cross-cutting concepts
@@ -223,4 +246,6 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | add-note-denied-without-shelves-write | operation addNote | system | red | a caller without shelves.write | addNote is called | it is refused as not allowed |
 | add-note-not-found-shelf-id | operation addNote | system | red | no record has that shelfId | addNote is called with that shelfId | it is refused as not found |
 | add-note-shelf-id-not-a-valid-uuid | operation addNote | system | red | a caller with shelves.write | addNote is called with shelfId that is not a valid uuid | it is refused |
+| list-notices-succeeds | operation listNotices | system | golden | a caller with shelves.read | listNotices is called | it answers 200: Every notice. |
+| list-notices-denied-without-shelves-read | operation listNotices | system | red | a caller without shelves.read | listNotices is called | it is refused as not allowed |
 

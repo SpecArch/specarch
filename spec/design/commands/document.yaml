@@ -34,8 +34,11 @@ commands:
       meaning and its body, the problem document it answers with, and a
       body declared in place field by field. A reference to an entity, a
       view or a schema links to its heading and one to an enum to the
-      enums table. An operation that takes nothing says so, and names the
-      open question that blocks what it leaves out. Chapter 7 comes from
+      enums table; when two headings share a name, the later one's link
+      ends in -1, as a Markdown renderer numbers it. An operation that
+      takes nothing says so, names the open questions that block what it
+      leaves out, on the operation or on its path, and writes each below
+      in full with who decides it. Chapter 7 comes from
       the deployment and commissioning stages and from each
       implementation file, chapter 12 from the glossary, and
       chapter 13 from the needs and requirements, with the traceability

@@ -74,6 +74,8 @@ type doc struct {
 	marks     []Mark                // the errors and warnings, for Problem paragraphs
 	placing   *placing              // where the marks stand, while the document is written twice
 	withheld  *Withheld             // for a document for everyone, what it left out
+	slugs     map[string]int        // the headings written so far by anchor, to make the next one unique
+	anchors   map[string]string     // section/name -> the anchor of the heading that describes the element
 }
 
 // section starts the next numbered section of a document whose sections
@@ -108,9 +110,32 @@ func (d *doc) para(s string) {
 		d.WriteString(s + "\n\n")
 	}
 }
-func (d *doc) heading(level int, s string) {
+
+// heading writes a heading and returns its anchor, as GitHub makes it: a
+// heading whose slug an earlier one has gets -1, -2 and so on after it.
+func (d *doc) heading(level int, s string) string {
 	d.line("%s %s", strings.Repeat("#", level), s)
 	d.blank()
+	if d.slugs == nil {
+		d.slugs = map[string]int{}
+	}
+	anchor := slug(s)
+	if n := d.slugs[anchor]; n > 0 {
+		d.slugs[anchor] = n + 1
+		anchor = fmt.Sprintf("%s-%d", anchor, n)
+	} else {
+		d.slugs[anchor] = 1
+	}
+	return anchor
+}
+
+// headed records the anchor of the heading that describes an element of a
+// section, for links to it.
+func (d *doc) headed(section, name, anchor string) {
+	if d.anchors == nil {
+		d.anchors = map[string]string{}
+	}
+	d.anchors[section+"/"+name] = anchor
 }
 func (d *doc) block(s string) {
 	if s != "" {
@@ -305,7 +330,7 @@ func buildingBlocks(d *doc, root *yaml.Node) {
 	d.heading(2, "5. Building blocks")
 	d.block(entityDiagram(root))
 	for _, e := range entities {
-		d.heading(3, e.Key.Value)
+		d.headed("entities", e.Key.Value, d.heading(3, e.Key.Value))
 		d.para(str(e.Value, "description"))
 		d.explain(e.Value)
 		required := map[string]bool{}
@@ -368,7 +393,7 @@ func buildingBlocks(d *doc, root *yaml.Node) {
 		d.para("A view is a read model: one row per record of the entity it reads from, with every field of that entity and the fields below. It is never written. A path is null when a relation on it has no record; a count leaves out softly deleted records, and so do rows.")
 		for _, v := range views {
 			from := str(v.Value, "from")
-			d.heading(4, v.Key.Value)
+			d.headed("views", v.Key.Value, d.heading(4, v.Key.Value))
 			d.para(str(v.Value, "description"))
 			d.explain(v.Value)
 			d.line("| Field | Type | Read from | Description |")
@@ -397,7 +422,7 @@ func buildingBlocks(d *doc, root *yaml.Node) {
 		d.heading(3, "Schemas")
 		d.para("A schema is data passed around but not stored: it has no key and no table, and a request body, a response, a message or another schema carries it.")
 		for _, v := range schemas {
-			d.heading(4, v.Key.Value)
+			d.headed("schemas", v.Key.Value, d.heading(4, v.Key.Value))
 			d.para(str(v.Value, "description"))
 			d.explain(v.Value)
 			required := map[string]bool{}
@@ -417,7 +442,10 @@ func buildingBlocks(d *doc, root *yaml.Node) {
 		}
 	}
 	if len(enums) > 0 {
-		d.heading(3, "Enums")
+		anchor := d.heading(3, "Enums")
+		for _, e := range enums {
+			d.headed("enums", e.Key.Value, anchor)
+		}
 		d.line("| Enum | Value | Meaning |")
 		d.line("|---|---|---|")
 		for _, e := range enums {
@@ -472,9 +500,10 @@ func runtime(d *doc, root *yaml.Node) {
 		d.heading(3, fmt.Sprintf("%s (%s %s)", o.id, strings.ToUpper(o.method), o.path))
 		d.para(str(o.node, "description"))
 		d.explain(o.node)
-		operationRequest(d, root, o, explained)
+		told := map[string]bool{}
+		operationRequest(d, root, o, explained, told)
 		operationDetails(d, root, o.node)
-		operationResponses(d, root, o)
+		operationResponses(d, root, o, told)
 		d.block(operationSequence(root, o))
 	}
 	for _, j := range jobs {

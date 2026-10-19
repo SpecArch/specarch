@@ -135,8 +135,11 @@ its request body field by field, a nested field written as `label.text`
 and a list item's field as `books[].isbn`; and each response with its
 status, meaning and body, a body declared in place listed field by field.
 A referenced entity, view or schema links to its heading, an enum to the
-enums table. An operation that takes nothing says so in a sentence, with
-the open question that blocks what it leaves out. Chapter 7 comes from the
+enums table; of two headings with one name, the later one's anchor ends in
+`-1`, as GitHub numbers it. An operation that takes nothing says so in a
+sentence, naming the open questions that block what it leaves out, on the
+operation or on its path, and writes each below it in full with who
+decides it. Chapter 7 comes from the
 deployment and commissioning stages and then from each implementation file
 (stack, libraries, layout, mappings, bindings, targets, tasks, testing,
 deployments and the implementation decisions), chapter 12 from the

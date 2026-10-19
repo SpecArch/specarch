@@ -36,8 +36,7 @@ func operationParameters(o operation) []*yaml.Node {
 // request body, each field with its type, whether it is required, its
 // limits and its description. explained holds the path parameters whose
 // notes are already written under an earlier operation of the same path.
-func operationRequest(d *doc, root *yaml.Node, o operation, explained map[*yaml.Node]bool) {
-	at := []string{"paths", o.path, o.method}
+func operationRequest(d *doc, root *yaml.Node, o operation, explained map[*yaml.Node]bool, told map[string]bool) {
 	params := operationParameters(o)
 	body := get(o.node, "requestBody")
 	if len(params) == 0 && body == nil {
@@ -45,7 +44,7 @@ func operationRequest(d *doc, root *yaml.Node, o operation, explained map[*yaml.
 		if get(o.node, "listOf") != nil {
 			text = "Declares no parameter beyond those of the list below, and no request body"
 		}
-		d.para(text + d.openUnder(at, "parameters", "requestBody") + ".")
+		d.openUnder(o, told, text, "parameters", "requestBody")
 		return
 	}
 	if len(params) > 0 {
@@ -59,7 +58,7 @@ func operationRequest(d *doc, root *yaml.Node, o operation, explained map[*yaml.
 				req = "yes"
 			}
 			schema := get(p, "schema")
-			d.line("| %s | %s | %s | %s | %s | %s |", cell(str(p, "name")), str(p, "in"), cell(linkedType(root, schema)), cell(req), cell(limits(schema)), cell(fieldDescription(p, schema)))
+			d.line("| %s | %s | %s | %s | %s | %s |", cell(str(p, "name")), str(p, "in"), cell(d.linkedType(root, schema)), cell(req), cell(limits(schema)), cell(fieldDescription(p, schema)))
 			if !explained[p] {
 				explained[p] = true
 				rows = append(rows, row{"parameter " + str(p, "name"), p})
@@ -70,7 +69,7 @@ func operationRequest(d *doc, root *yaml.Node, o operation, explained map[*yaml.
 	}
 	if body == nil {
 		if bodyMethods[o.method] {
-			d.para("Takes no request body" + d.openUnder(at, "requestBody") + ".")
+			d.openUnder(o, told, "Takes no request body", "requestBody")
 		}
 		return
 	}
@@ -89,10 +88,10 @@ func operationRequest(d *doc, root *yaml.Node, o operation, explained map[*yaml.
 // operationResponses writes every response an operation declares: its
 // status, what it means and its body, then the fields of each body
 // declared in place.
-func operationResponses(d *doc, root *yaml.Node, o operation) {
+func operationResponses(d *doc, root *yaml.Node, o operation, told map[string]bool) {
 	responses := pairs(o.node, "responses")
 	if len(responses) == 0 {
-		d.para("Declares no response" + d.openUnder([]string{"paths", o.path, o.method}, "responses") + ".")
+		d.openUnder(o, told, "Declares no response", "responses")
 		return
 	}
 	d.para("Responses:")
@@ -102,7 +101,7 @@ func operationResponses(d *doc, root *yaml.Node, o operation) {
 	for _, r := range responses {
 		var bodies []string
 		for _, c := range pairs(r.Value, "content") {
-			text := bodySummary(root, get(c.Value, "schema"))
+			text := d.bodySummary(root, get(c.Value, "schema"))
 			if c.Key.Value != "application/json" || len(pairs(r.Value, "content")) > 1 {
 				text = c.Key.Value + ": " + text
 			}
@@ -136,14 +135,14 @@ func operationResponses(d *doc, root *yaml.Node, o operation) {
 
 // bodySummary is a body as a cell says it: its type, linked where it is
 // declared, or that its fields are listed below.
-func bodySummary(root *yaml.Node, schema *yaml.Node) string {
+func (d *doc) bodySummary(root *yaml.Node, schema *yaml.Node) string {
 	if len(bodyFields(schema)) > 0 {
 		if str(schema, "type") == "array" {
 			return withLimits("a list of objects, fields below", schema)
 		}
 		return "an object, fields below"
 	}
-	return withLimits(linkedType(root, schema), schema)
+	return withLimits(d.linkedType(root, schema), schema)
 }
 
 func withLimits(text string, f *yaml.Node) string {
@@ -168,7 +167,7 @@ func bodyFields(schema *yaml.Node) []fieldRow {
 func (d *doc) body(root *yaml.Node, lead, label string, schema *yaml.Node) {
 	fields := bodyFields(schema)
 	if len(fields) == 0 {
-		d.para(lead + ": " + withLimits(linkedType(root, schema), schema) + ".")
+		d.para(lead + ": " + withLimits(d.linkedType(root, schema), schema) + ".")
 		return
 	}
 	if str(schema, "type") == "array" {
@@ -184,7 +183,7 @@ func (d *doc) body(root *yaml.Node, lead, label string, schema *yaml.Node) {
 		if f.required {
 			req = "yes"
 		}
-		d.line("| %s | %s | %s | %s | %s |", cell(f.path), cell(linkedType(root, f.node)), cell(req), cell(limits(f.node)), cell(fieldDescription(f.node, f.node)))
+		d.line("| %s | %s | %s | %s | %s |", cell(f.path), cell(d.linkedType(root, f.node)), cell(req), cell(limits(f.node)), cell(fieldDescription(f.node, f.node)))
 		rows = append(rows, row{label + " field " + f.path, f.node})
 	}
 	d.blank()
@@ -232,18 +231,11 @@ func fieldDescription(n, schema *yaml.Node) string {
 	return str(schema, "title")
 }
 
-// linkSections are the sections a reference names whose elements have a
-// heading of their own in the techspec, and the section whose elements
-// share one table.
-var (
-	linkSections  = map[string]bool{"entities": true, "views": true, "schemas": true}
-	tableSections = map[string]string{"enums": "Enums"}
-)
-
 // linkedType is typeText with each reference to an entity, view, schema or
-// enum of this specification linked to where the techspec describes it,
-// and a reference into another specification named with its version.
-func linkedType(root *yaml.Node, f *yaml.Node) string {
+// enum of this specification linked to the heading the techspec describes
+// it under, when it has one, and a reference into another specification
+// named with its version.
+func (d *doc) linkedType(root *yaml.Node, f *yaml.Node) string {
 	t := typeText(f)
 	for _, ref := range references(f) {
 		name := ref[strings.LastIndex(ref, "/")+1:]
@@ -253,17 +245,8 @@ func linkedType(root *yaml.Node, f *yaml.Node) string {
 			}
 			continue
 		}
-		parts := strings.Split(strings.TrimPrefix(ref, "#/"), "/")
-		if len(parts) != 2 || get(get(root, parts[0]), name) == nil {
-			continue
-		}
-		anchor := ""
-		switch {
-		case linkSections[parts[0]]:
-			anchor = slug(name)
-		case tableSections[parts[0]] != "":
-			anchor = slug(tableSections[parts[0]])
-		default:
+		anchor, ok := d.anchors[strings.TrimPrefix(ref, "#/")]
+		if !ok {
 			continue
 		}
 		word := regexp.MustCompile(`\b` + regexp.QuoteMeta(name) + `\b`)
@@ -311,28 +294,56 @@ func slug(heading string) string {
 	return b.String()
 }
 
-// openUnder names the open questions that block a key of an element, or
-// anything under it, as "; <key> is open in <IDs>", for each key that has
-// any; "" when none does.
-func (d *doc) openUnder(at []string, keys ...string) string {
-	var out []string
+// openUnder writes the sentence that an operation declares none of some
+// keys, naming after it the open questions that block each key or
+// anything under it ("; <key> is open in <IDs>"), and then each of those
+// questions in full, so the gap and what decides it stand together. The
+// parameters key is also looked for on the path, whose parameters the
+// operation takes too. told holds the questions already written under the
+// operation.
+func (d *doc) openUnder(o operation, told map[string]bool, text string, keys ...string) {
+	words := map[string]string{"parameters": "what it takes", "requestBody": "the request body", "responses": "what it answers"}
+	var asked []question
+	var labels []string
 	for _, key := range keys {
-		ptr := source.Pointer(append(append([]string{}, at...), key)...)
+		ptrs := []string{source.Pointer("paths", o.path, o.method, key)}
+		if key == "parameters" {
+			ptrs = append(ptrs, source.Pointer("paths", o.path, key))
+		}
 		var ids []string
 		for _, q := range d.questions {
-			for _, b := range q.blocks {
-				if !b.IsPointer() {
-					continue
-				}
-				if p := source.Pointer(b.Tokens...); p == ptr || strings.HasPrefix(p, ptr+"/") {
-					ids = append(ids, q.id)
-					break
-				}
+			if q.blocksUnder(ptrs) {
+				ids = append(ids, q.id)
+				asked = append(asked, q)
+				labels = append(labels, words[key])
 			}
 		}
 		if len(ids) > 0 {
-			out = append(out, fmt.Sprintf("; %s is open in %s", map[string]string{"parameters": "what it takes", "requestBody": "the request body", "responses": "what it answers"}[key], joinAnd(ids)))
+			text += fmt.Sprintf("; %s is open in %s", words[key], joinAnd(ids))
 		}
 	}
-	return strings.Join(out, "")
+	d.para(text + ".")
+	for i, q := range asked {
+		if !told[q.id] {
+			told[q.id] = true
+			d.openParagraph(q, " on "+labels[i])
+		}
+	}
+}
+
+// blocksUnder reports whether the question blocks one of the pointers or
+// anything under one.
+func (q question) blocksUnder(ptrs []string) bool {
+	for _, b := range q.blocks {
+		if !b.IsPointer() {
+			continue
+		}
+		p := source.Pointer(b.Tokens...)
+		for _, ptr := range ptrs {
+			if p == ptr || strings.HasPrefix(p, ptr+"/") {
+				return true
+			}
+		}
+	}
+	return false
 }

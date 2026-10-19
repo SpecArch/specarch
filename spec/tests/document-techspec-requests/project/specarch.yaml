@@ -115,12 +115,29 @@ paths:
       responses:
         "204": { description: The note is pinned. }
         "404": { description: No such shelf., problem: shelf-not-found }
+  /notices:
+    get:
+      operationId: listNotices
+      summary: The notices pinned in the room
+      permission: shelves.read
+      responses:
+        "200":
+          description: Every notice.
+          content:
+            application/json:
+              schema: { type: array, items: { type: string, maxLength: 200 } }
 questions:
   Q-1:
     question: What does a note hold, and how long may it be?
     kind: decision
     priority: could
     blocks: ["#/paths/~1shelves~1{shelfId}~1notes/post/requestBody"]
+    decidedBy: owner
+  Q-2:
+    question: Which notices may a reader filter by, and on what?
+    kind: decision
+    priority: could
+    blocks: ["#/paths/~1notices/parameters"]
     decidedBy: owner
 tests:
   list-genres-succeeds: { operation: listGenres, level: system, scenario: golden, given: "a caller with shelves.read", when: "listGenres is called", then: "it answers 200: Every genre." }
@@ -143,3 +160,5 @@ tests:
   add-note-denied-without-shelves-write: { operation: addNote, level: system, scenario: red, covers: [denied without shelves.write], given: "a caller without shelves.write", when: "addNote is called", then: "it is refused as not allowed" }
   add-note-not-found-shelf-id: { operation: addNote, level: system, scenario: red, covers: [not found shelfId], given: "no record has that shelfId", when: "addNote is called with that shelfId", then: "it is refused as not found" }
   add-note-shelf-id-not-a-valid-uuid: { operation: addNote, level: system, scenario: red, covers: [shelfId not a valid uuid], given: "a caller with shelves.write", when: "addNote is called with shelfId that is not a valid uuid", then: "it is refused" }
+  list-notices-succeeds: { operation: listNotices, level: system, scenario: golden, given: "a caller with shelves.read", when: "listNotices is called", then: "it answers 200: Every notice." }
+  list-notices-denied-without-shelves-read: { operation: listNotices, level: system, scenario: red, covers: [denied without shelves.read], given: "a caller without shelves.read", when: "listNotices is called", then: "it is refused as not allowed" }

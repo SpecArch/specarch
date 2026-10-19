@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: document
+level: system
+scenario: red
+covers: [exit 1]
+given: "a schema and an entity of the same name, which the specification marks in error while they share it, and a response whose fields reference each of them"
+when: "document techspec is run"
+then: "it prints the one-namespace error, links the field that references the entity to the entity's heading and the field that references the schema to the schema's heading, which takes -1 after the entity's as a Markdown renderer gives it, and exits 1"
+verifies: [SA-7]

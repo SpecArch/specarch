@@ -1,0 +1,4 @@
+arguments: [generate, openapi, --unapproved, project]
+exitStatus: 0
+standardOutput: ""
+plugins: [openapi]

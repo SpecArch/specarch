@@ -309,6 +309,12 @@ func (g *gen) operation(path, method string, op map[string]any) *yaml.Node {
 	if l, ok := op["limits"].(map[string]any); ok {
 		add(n, "x-specarch-limits", plain(l))
 	}
+	if h := text(op["handshake"]); h != "" {
+		add(n, "x-specarch-handshake", str(h))
+	}
+	if s, ok := op["stream"].(map[string]any); ok {
+		add(n, "x-specarch-stream", plain(s))
+	}
 	if e := list(op["emits"]); len(e) > 0 {
 		add(n, "x-specarch-emits", plain(e))
 	}

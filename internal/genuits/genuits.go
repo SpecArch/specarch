@@ -398,6 +398,9 @@ func (g *gen) taskPage(pageName string, pg map[string]any) (string, string, bool
 		g.problem("error", at+"/submit", "%s submits to %s, which is not an operation of the specification that takes a request body", pageName, submit)
 		return "", "", false
 	}
+	if !g.plainOnly(at+"/submit", pageName, "submits to", submit, op) {
+		return "", "", false
+	}
 	body := g.bodySchema(op)
 	props := obj0(body["properties"])
 	required := map[string]bool{}
@@ -680,6 +683,21 @@ var pathParam = regexp.MustCompile(`\{[^{}]+\}`)
 
 // operation finds an operation by its operationId: it, its path and its
 // method.
+// plainOnly says whether an operation is one the screens can call plain: not
+// one that travels in a handshake's envelope or streams a file, which this
+// version does not perform (ADR-145, ADR-146); an error at the page otherwise.
+func (g *gen) plainOnly(at, pageName, does, id string, op map[string]any) bool {
+	if h := text(op["handshake"]); h != "" {
+		g.problem("error", at, "%s %s %s, which travels in the envelope of handshake %s, and this version of %s performs no handshake, so the screen would send plain JSON the service refuses; see docs/roadmap.md", pageName, does, id, h, name)
+		return false
+	}
+	if s := text(obj0(op["stream"])["direction"]); s != "" {
+		g.problem("error", at, "%s %s %s, which streams a file (%s), and this version of %s streams no file", pageName, does, id, s, name)
+		return false
+	}
+	return true
+}
+
 func (g *gen) operation(id string) (map[string]any, string, string) {
 	paths := obj0(g.spec["paths"])
 	for _, p := range sortedKeys(paths) {

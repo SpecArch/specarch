@@ -75,6 +75,9 @@ func goTest(w *writer, t Test) {
 		w.line("")
 		return
 	}
+	if note := c.TransportNote(); note != "" {
+		w.line("	// %s", note)
+	}
 	switch c.Kind {
 	case "request":
 		w.line("	got := h.Request(t, %q, %q, %q, %s)", c.Mapping, c.Method, c.Path, goRecord(c.Input))

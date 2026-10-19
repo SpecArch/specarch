@@ -72,7 +72,7 @@ Version 0.7.1-dev of the specification: 10 needs, 77 requirements, and 4 gaps. E
 | SA-37 | NEED-2 | decisions ADR-029; decisions ADR-061 | tests generate-sql |
 | SA-38 | NEED-2 | decisions ADR-030 | tests generate-sql-expand |
 | SA-39 | NEED-2 | decisions ADR-031 | tests generate-openapi-dxlib; tests generate-openapi-dxlib-ref-siblings; tests generate-openapi-dxlib-ref-siblings-refused |
-| SA-40 | NEED-2 | decisions ADR-032; decisions ADR-078 | tests generate-go-dxlib; tests generate-go-dxlib-value-objects |
+| SA-40 | NEED-2 | decisions ADR-032; decisions ADR-078 | tests generate-go-dxlib; tests generate-go-dxlib-envelope-stream; tests generate-go-dxlib-value-objects; tests generate-openapi-dxlib-envelope-stream |
 | SA-41 | NEED-2 | enums Rule; decisions ADR-033; decisions ADR-070 | tests validate-question-covers-namespace; tests validate-views; tests validate-views-valid |
 | SA-42 | NEED-2 | enums Rule; decisions ADR-034; decisions ADR-035; decisions ADR-036; decisions ADR-037; decisions ADR-038; decisions ADR-039; decisions ADR-056; decisions ADR-058; decisions ADR-064; decisions ADR-082 | tests derive-page-elements; tests derive-task-page-checks; tests validate-accessibility; tests validate-child-rows; tests validate-compact-columns; tests validate-flows; tests validate-page-action-with; tests validate-page-elements-unresolved; tests validate-page-events; tests validate-page-states; tests validate-sections; tests validate-task-page-checks; tests validate-task-page-checks-valid; tests validate-task-pages; tests validate-theme |
 | SA-43 | NEED-2 | decisions ADR-040 | tests generate-ui |
@@ -109,7 +109,7 @@ Version 0.7.1-dev of the specification: 10 needs, 77 requirements, and 4 gaps. E
 | SA-74 | NEED-3, NEED-7 | decisions ADR-138 |   |
 | SA-75 | NEED-1, NEED-3, NEED-9 | decisions ADR-141 |   |
 | SA-76 | NEED-8 | decisions ADR-142; decisions ADR-143 |   |
-| SA-77 | NEED-1, NEED-2, NEED-3 | enums Rule; decisions ADR-145; decisions ADR-146 | tests extract-go-dxlib-envelope-stream; tests validate-handshake; tests validate-stream |
+| SA-77 | NEED-1, NEED-2, NEED-3 | enums Rule; decisions ADR-145; decisions ADR-146 | tests extract-go-dxlib-envelope-stream; tests generate-go-dxlib-envelope-stream; tests generate-openapi-dxlib-envelope-stream; tests validate-handshake; tests validate-stream |
 
 ## 3. Gaps
 

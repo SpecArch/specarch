@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.1-dev of the specification: 525 design tests, 235 golden and 290 red, about 16 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.1-dev of the specification: 527 design tests, 237 golden and 290 red, about 16 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 4 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -19,7 +19,7 @@ Version 0.7.1-dev of the specification: 525 design tests, 235 golden and 290 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 521 |
+| system | 523 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -1721,6 +1721,14 @@ Scenario: golden; level: system; verifies SA-40.
 - When: generate go-dxlib is run with --unapproved
 - Then: it writes one Go file for dxlib: the tables, the handlers registered by operationId that read every parameter with dxlib's getters, check the constraints dxlib does not enforce, and run the standard list, create and read operations, the privilege, role and menu seeds, and the job registered as a task, and exits 0
 
+#### generate-go-dxlib-envelope-stream
+
+Scenario: golden; level: system; verifies SA-77, SA-40.
+
+- Given: the vault of generate-openapi-dxlib-envelope-stream, and an implementation file with a go-dxlib target naming the package and the database; specarch-gen-go-dxlib built from this repository on PATH
+- When: generate go-dxlib is run with --unapproved
+- Then: it writes the service file with Register binding every handler and setting dxlib's hooks that open and seal the pre-key envelope, the exchange's handler that reads a0, a1 and a2, makes the service's keys, derives the two shared keys, stores the handshake with its lifetime and answers i, b0, b1 and b2, the handshake's record, store and in-memory store, the upload handler calling its body with the request body as a stream held to the limit, the download handlers with their media type and limit as constants, and the stream helpers; and a client file with Handshake, a method per operation that seals and opens the envelope, streams an upload in and a download out as the design says; and exits 0
+
 #### generate-go-dxlib-value-objects
 
 Scenario: golden; level: system; verifies SA-40, SA-50.
@@ -1752,6 +1760,14 @@ Scenario: golden; level: system; verifies SA-39.
 - Given: a specification with a list, a create with limits, a read by id answering a problem, an audited and softly deleted entity, and an implementation file whose openapi target has the dxlib dialect; specarch-gen-openapi built from this repository on PATH
 - When: generate openapi is run with --unapproved
 - Then: it writes the document dxlib binds: one POST per operation at /<operationId> with every parameter in its JSON body, a dxlib type on every field and the constraints dxlib does not enforce listed as unenforced, privileges, dxlib's error body and list envelope, and no security scheme, and exits 0
+
+#### generate-openapi-dxlib-envelope-stream
+
+Scenario: golden; level: system; verifies SA-77, SA-40.
+
+- Given: a vault whose pre-key handshake (x25519, ed25519, aes-256-cbc, one use, five minutes) is established by a plain operation taking a0, a1 and a2 and answering i, b0, b1 and b2; an operation in its envelope; an upload stream of an octet stream with a request limit; a download stream with a response limit and a refusal; a download stream in the envelope; and an implementation file whose openapi target has dialect dxlib; specarch-gen-openapi built from this repository on PATH
+- When: generate openapi is run with --unapproved
+- Then: it writes the document dxlib binds: the encrypted operation with x-dxlib-endpoint-type EndPointTypeHTTPEndToEndEncryptionV2, the upload with EndPointTypeHTTPUploadStream, a required octet-stream request body of a binary string and x-dxlib-max-content-length, the download with EndPointTypeHTTPDownloadStream and a success response described with no content, the encrypted download with EndPointTypeHTTPDownloadStreamV2, and the exchange and every other operation with EndPointTypeHTTPJSON; and exits 0
 
 #### generate-openapi-dxlib-ref-siblings
 

@@ -572,7 +572,28 @@ func (g *gen) dxOperation(path, method string, op, item map[string]any) *yaml.No
 	if isList && !g.dxListParameters(at, l, props) {
 		return n
 	}
-	if len(props) > 0 {
+	stream := text(obj(op["stream"])["direction"])
+	endpointType := g.dxEndpointType(at, op, stream)
+	switch {
+	case stream == "upload":
+		// dxlib hands an upload stream's body to the handler unread, and
+		// reads the parameters of such a request from the X-Var header,
+		// which the meta-model does not hold (ADR-146).
+		if len(props) > 0 {
+			g.diags = append(g.diags, g.problem(at, "%s streams an upload and takes parameters (%s); dxlib reads an upload stream's parameters from the X-Var header, which the meta-model does not hold, so an upload in the dxlib dialect takes none", id, strings.Join(sortedKeys(props), ", ")))
+		}
+		body := mapping()
+		add(body, "required", boolean(true))
+		c := mapping()
+		m := mapping()
+		schema := mapping()
+		add(schema, "type", str("string"))
+		add(schema, "format", str("binary"))
+		add(m, "schema", schema)
+		add(c, "application/octet-stream", m)
+		add(body, "content", c)
+		add(n, "requestBody", body)
+	case len(props) > 0:
 		body := mapping()
 		add(body, "required", boolean(true))
 		c := mapping()
@@ -583,8 +604,8 @@ func (g *gen) dxOperation(path, method string, op, item map[string]any) *yaml.No
 		add(body, "content", c)
 		add(n, "requestBody", body)
 	}
-	add(n, "responses", g.dxResponses(at, op, l, isList))
-	add(n, "x-dxlib-endpoint-type", str("EndPointTypeHTTPJSON"))
+	add(n, "responses", g.dxResponses(at, op, l, isList, stream == "download"))
+	add(n, "x-dxlib-endpoint-type", str(endpointType))
 	if perm := text(op["permission"]); perm != "" && perm != "public" {
 		add(n, "x-dxlib-privileges", plain([]any{perm}))
 	}
@@ -675,7 +696,7 @@ func (g *gen) dxListParameters(at string, l, props map[string]any) bool {
 // dxResponses writes the responses: a success named success, a list in the
 // idiom's envelope, and a refusal as dxlib's error body named by its
 // problem type.
-func (g *gen) dxResponses(at string, op, l map[string]any, isList bool) *yaml.Node {
+func (g *gen) dxResponses(at string, op, l map[string]any, isList, download bool) *yaml.Node {
 	out := mapping()
 	rs := obj(op["responses"])
 	for _, code := range sortedKeys(rs) {
@@ -694,6 +715,10 @@ func (g *gen) dxResponses(at string, op, l map[string]any, isList bool) *yaml.No
 		switch {
 		case !strings.HasPrefix(code, "2"):
 			schema = g.dxErrorBody(at)
+		case download:
+			// A download stream writes the file's bytes; dxlib's reader takes
+			// a response's content only as a JSON object, so the success is
+			// described and carries no content (ADR-146).
 		case isList:
 			schema = g.dxEnvelope(at, obj(obj(obj(r["content"])["application/json"])["schema"]))
 		default:
@@ -717,6 +742,43 @@ func (g *gen) dxResponses(at string, op, l map[string]any, isList bool) *yaml.No
 		add(out, code, n)
 	}
 	return out
+}
+
+// dxlibEnvelope are the primitives of dxlib's pre-key envelope, which its
+// datablock fixes: the one handshake a dxlib endpoint type carries.
+var dxlibEnvelope = map[string]string{"keyAgreement": "x25519", "signature": "ed25519", "cipher": "aes-256-cbc"}
+
+// dxEndpointType is the dxlib endpoint type an operation's handshake and
+// stream give it (ADR-145, ADR-146): the pre-key envelope for a handshake
+// of dxlib's primitives, on a download the encrypted download, a stream's
+// own type otherwise, and plain JSON for the rest. A handshake of other
+// primitives is an error, since no type of dxlib's carries it.
+func (g *gen) dxEndpointType(at string, op map[string]any, stream string) string {
+	name := text(op["handshake"])
+	if name == "" {
+		switch stream {
+		case "upload":
+			return "EndPointTypeHTTPUploadStream"
+		case "download":
+			return "EndPointTypeHTTPDownloadStream"
+		}
+		return "EndPointTypeHTTPJSON"
+	}
+	h := obj(obj(g.spec["handshakes"])[name])
+	var differs []string
+	for _, k := range []string{"keyAgreement", "signature", "cipher"} {
+		if text(h[k]) != dxlibEnvelope[k] {
+			differs = append(differs, k+" "+text(h[k]))
+		}
+	}
+	if len(differs) > 0 {
+		g.diags = append(g.diags, g.problem(at+"/handshake", "%s travels in the envelope of handshake %s, whose %s is not what dxlib's envelope carries (x25519, ed25519 and aes-256-cbc, its datablock), so no endpoint type of dxlib's serves it", text(op["operationId"]), name, strings.Join(differs, " and ")))
+		return "EndPointTypeHTTPJSON"
+	}
+	if stream == "download" {
+		return "EndPointTypeHTTPDownloadStreamV2"
+	}
+	return "EndPointTypeHTTPEndToEndEncryptionV2"
 }
 
 // dxErrorBody is dxlib's error body, by the names of the error-response

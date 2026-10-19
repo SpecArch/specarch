@@ -291,6 +291,9 @@ func (g *gen) page(name string, pg map[string]any) *page {
 		g.problem("error", at+"/source", "%s reads %s, which is not a GET operation of the specification; this version reads a list by GET", name, p.source)
 		return nil
 	}
+	if !g.plainOnly(at+"/source", name, "reads", p.source, src) {
+		return nil
+	}
 	if pathParam.MatchString(srcPath) {
 		g.problem("error", at+"/source", "%s reads %s at %s, whose path takes a parameter, and this version of specarch-gen-ui reads a list whose path takes none", name, p.source, srcPath)
 		return nil
@@ -365,6 +368,9 @@ func (g *gen) page(name string, pg map[string]any) *page {
 		if op == nil {
 			continue
 		}
+		if !g.plainOnly(fmt.Sprintf("%s/actions/%d", at, i), "the action "+text(am["label"]), "runs", text(am["target"]), op) {
+			continue
+		}
 		if body := obj0(op["requestBody"]); body != nil {
 			g.problem("warning", fmt.Sprintf("%s/actions/%d", at, i), "the action %s runs %s, which takes a request body, and this version of specarch-gen-ui sends none; it is left out", text(am["label"]), text(am["target"]))
 			continue
@@ -412,6 +418,21 @@ func refusals(op, failed map[string]any) [][2]string {
 
 // operation finds an operation by its operationId: it, its path and its
 // method.
+// plainOnly says whether an operation is one the screens can call plain: not
+// one that travels in a handshake's envelope or streams a file, which this
+// version does not perform (ADR-145, ADR-146); an error at the page otherwise.
+func (g *gen) plainOnly(at, pageName, does, id string, op map[string]any) bool {
+	if h := text(op["handshake"]); h != "" {
+		g.problem("error", at, "%s %s %s, which travels in the envelope of handshake %s, and this version of specarch-gen-ui performs no handshake, so the screen would send plain JSON the service refuses; see docs/roadmap.md", pageName, does, id, h)
+		return false
+	}
+	if s := text(obj0(op["stream"])["direction"]); s != "" {
+		g.problem("error", at, "%s %s %s, which streams a file (%s), and this version of specarch-gen-ui streams no file", pageName, does, id, s)
+		return false
+	}
+	return true
+}
+
 func (g *gen) operation(id string) (map[string]any, string, string) {
 	paths := obj0(g.spec["paths"])
 	for _, p := range sortedKeys(paths) {

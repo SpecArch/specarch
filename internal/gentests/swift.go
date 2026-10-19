@@ -87,6 +87,9 @@ func swiftTest(w *writer, t Test) {
 	if !t.Expect.Checked() {
 		got = "_ = "
 	}
+	if note := c.TransportNote(); note != "" {
+		w.line(in+"    // %s", note)
+	}
 	switch c.Kind {
 	case "request":
 		w.line(in+"    %stry await h.request(%s, method: %s, path: %s, input: %s)", got, swiftString(c.Mapping), swiftString(c.Method), swiftString(c.Path), swiftRecord(c.Input))

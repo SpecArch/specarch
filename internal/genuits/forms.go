@@ -126,6 +126,9 @@ func (g *gen) load(pageName, at string, pg map[string]any) (value, bool) {
 		g.problem("error", at+"/source", "%s loads its record from %s, which is not a GET operation of the specification", pageName, sourceID)
 		return nil, false
 	}
+	if !g.plainOnly(at+"/source", pageName, "loads its record from", sourceID, op) {
+		return nil, false
+	}
 	route := map[string]bool{}
 	for _, p := range pathParam.FindAllString(text(pg["route"]), -1) {
 		route[p[1:len(p)-1]] = true
@@ -374,6 +377,8 @@ func (g *gen) lookup(in formFieldInput) ([]member, bool) {
 	case wireNames["items"] == "" || wireNames["pageSize"] == "":
 		g.problem("error", at+"/source", "the picker of %s reads a page through the paginated-list idiom, which the implementation file excludes; keep the idiom", in.name)
 		return nil, false
+	case !g.plainOnly(at+"/source", "the picker of "+in.name, "reads", sourceID, op):
+		return nil, false
 	}
 	source := []member{{"operation", str(sourceID)}, {"path", str(path)}, {"items", str(wireNames["items"])},
 		{"pageSize", object([]member{{"name", str(wireNames["pageSize"])}, {"value", raw(pageSize)}})}}
@@ -429,6 +434,9 @@ func (g *gen) formPage(pageName string, pg map[string]any, sess *session, hooks 
 	op, path, method := g.operation(submit)
 	if op == nil || method == "get" {
 		g.problem("error", at+"/submit", "%s submits to %s, which is not an operation of the specification that takes a request body", pageName, submit)
+		return pageOut{}, false
+	}
+	if !g.plainOnly(at+"/submit", pageName, "submits to", submit, op) {
 		return pageOut{}, false
 	}
 	var source value

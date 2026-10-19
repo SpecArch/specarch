@@ -76,6 +76,8 @@ type Call struct {
 	Input     []Field
 	Arguments []Argument // run
 	Options   []Field    // run
+	Handshake string     // request: the handshake whose envelope the request travels in, "" for none (ADR-145)
+	Stream    string     // request: upload or download when the operation streams a file, "" for none (ADR-146)
 }
 
 // Argument is a command's argument with its values.
@@ -282,7 +284,10 @@ func (g *walker) call(t map[string]any, input map[string]any) *Call {
 		if p == "" {
 			return nil
 		}
-		return &Call{Kind: "request", Mapping: g.mapping(pointer, id), Method: strings.ToUpper(method), Path: p, Input: g.record(input, fields)}
+		op, _ := mapAt(g.spec, "paths", p, method).(map[string]any)
+		stream, _ := op["stream"].(map[string]any)
+		return &Call{Kind: "request", Mapping: g.mapping(pointer, id), Method: strings.ToUpper(method), Path: p, Input: g.record(input, fields),
+			Handshake: str(op, "handshake"), Stream: text(stream["direction"])}
 	case str(t, "command") != "":
 		name := str(t, "command")
 		cmd, _ := mapAt(g.spec, "commands", name).(map[string]any)
@@ -582,4 +587,25 @@ func sortedKeys(m map[string]any) []string {
 	}
 	sort.Strings(out)
 	return out
+}
+
+// TransportNote says what the harness does for a request that travels in a
+// handshake's envelope or streams a file, which the test leaves to it: the
+// test names the call, the harness establishes the handshake first and
+// seals the request, or streams the body. "" for a plain call.
+func (c *Call) TransportNote() string {
+	var parts []string
+	if c.Handshake != "" {
+		parts = append(parts, "travels in the envelope of handshake "+c.Handshake+": the harness establishes it first and seals the request")
+	}
+	switch c.Stream {
+	case "upload":
+		parts = append(parts, "streams the request body as a file: the harness streams the input's body")
+	case "download":
+		parts = append(parts, "streams the response body as a file: the harness reads the stream as the body")
+	}
+	if len(parts) == 0 {
+		return ""
+	}
+	return "The request " + strings.Join(parts, "; and ") + "."
 }

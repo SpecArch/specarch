@@ -361,6 +361,23 @@ that uploads or downloads a file as a stream rather than a body, have no
 keyword yet; the design records both, `extract go` reads them from a dxlib
 registration, and the documents and generators show and write them.
 
+## 5a. The handshake in the screens
+
+The design declares the handshakes a client performs before it may call
+an encrypted operation, and the go-dxlib target writes a Go client that
+performs dxlib's pre-key exchange and seals and opens the envelope
+(ADR-145). The two UI targets, plain JavaScript and TypeScript on Next.js,
+do not: a page that submits to, loads from or picks from an encrypted
+operation is an error at the page. To build: a browser client of the
+handshake in the TypeScript screens' service module, X25519 and Ed25519
+through the Web Crypto API where the browser has them (both are in current
+browsers) and AES-256-CBC through `subtle.encrypt`, the length-prefixed
+envelope dxlib's datablock packs, a handshake established on the first
+encrypted call and renewed when the service answers `REFRESH_PREKEY`, and
+the same for a streamed upload (`fetch` with a `ReadableStream` body) and
+download. The same round trip the Go client passes, a generated screen
+against a generated service, is the acceptance test.
+
 ## 6. Changes, defects, releases and operation
 
 Built. The life after commissioning, designed in `docs/maintenance.md`:

@@ -269,7 +269,21 @@ handler decodes (ADR-125); a map's `additionalProperties` is written as the
 design has it, its keys never wire-named.
 Permissions are `x-dxlib-privileges`, no security scheme is written,
 a refusal is dxlib's error body named by its problem type, and a list uses
-the dxlib names and envelope of the paginated-list idiom. Two limits are
+the dxlib names and envelope of the paginated-list idiom. The operation's
+transport is `x-dxlib-endpoint-type` (ADR-145, ADR-146): an operation that
+travels in the envelope of a handshake of dxlib's primitives (x25519,
+ed25519, aes-256-cbc) is `EndPointTypeHTTPEndToEndEncryptionV2`, and
+`EndPointTypeHTTPDownloadStreamV2` when it also streams a download; a
+handshake of other primitives is an error at the operation, since no type
+of dxlib's carries it. An upload stream is `EndPointTypeHTTPUploadStream`
+with a required `application/octet-stream` body of a binary string, and
+takes no parameter, since dxlib reads an upload's parameters from the
+X-Var header, which the meta-model does not hold; a download stream is
+`EndPointTypeHTTPDownloadStream` with its success response described and
+carrying no content, since dxlib's reader takes a response's content only
+as a JSON object. Every other operation is `EndPointTypeHTTPJSON`. The
+standard dialect writes a handshake as `x-specarch-handshake` and a stream
+as `x-specarch-stream`. Two limits are
 dxlib's to lift: its validator does not apply JSON Schema's bounds, and its
 routes carry no method.
 
@@ -324,10 +338,53 @@ another type is refused with 422 as a value object's is; a map of any
 value stays dxlib's JSON (ADR-125). The limits of a map's values are not
 checked, as a list's items' are not.
 
+A handshake of dxlib's primitives (ADR-145) is served whole. `Register`
+sets the two hooks dxlib calls for every endpoint of the envelope's types,
+`openPreKeyEnvelope` and `sealPreKeyEnvelope`, over dxlib's datablock. The
+operation the handshake names under `establishedBy` gets its body written:
+it reads the client's keys as `a0`, `a1` and `a2`, makes the service's
+Ed25519 and two X25519 pairs, derives the two shared keys, stores the
+handshake under a fresh index with the declared lifetime, and answers `i`,
+`b0`, `b1` and `b2`; an exchange that declares other fields is an error,
+since the client and the hooks assume dxlib_module's. The handshakes live
+in `PreKeys`, a `PreKeyStore` the service replaces with one its instances
+share; the in-memory store is written beside it. A handshake past its
+lifetime or its declared `uses` is refused when its envelope is opened, which
+dxlib answers as the plain 422 that tells the client to establish a new one.
+Two handshakes of dxlib's primitives are refused, since dxlib sets one pair
+of hooks. The handler of an operation in the envelope is the same as any
+other's: dxlib opens the envelope before the parameters are read and seals
+what the handler answers.
+
+A stream (ADR-146) changes the handler's body call. An upload's body takes
+the request body as a reader, `body<Operation>(aepr, r, UploadStream(aepr,
+limit))`, held to `limits.maxRequestBytes` by `UploadStream`, since dxlib
+caps a streamed upload only by its declared Content-Length and a chunked
+upload declares none; an upload takes no parameter, as in the dialect. A
+download's body streams the file through `SendStream` with the operation's
+media type and `limits.maxResponseBytes`, written as constants beside the
+handler: the headers, the status, then the bytes, as dxlib's own sender
+does, a file above the limit refused before a byte is sent and a failed
+copy abandoning the response so a client never keeps a short file whole.
+
+A second file, `specarch_dxlib_client.go`, is the client: `NewClient` on a
+base URL, and a method per operation that calls it as the dialect serves
+it, a POST at `/<operationId>`. `Handshake` performs the exchange and holds
+the keys; an operation in the envelope is sealed and opened as the hooks
+do, the status and the answer being the ones inside, and a plain refusal
+(dxlib's `REFRESH_PREKEY`) is answered as it came; an upload streams from a
+reader with its size, a download streams into a writer and answers a
+refusal's JSON instead of the file. The round-trip test of this repository
+generates the vault fixture, binds the service to a dxlib API through the
+document the dialect writes, and drives the client through the handshake,
+an encrypted call, a refused second envelope, a 40 MiB upload and download
+hashed on both sides, and an encrypted request answered with a stream; it
+runs when `SPECARCH_DXLIB` names a dxlib checkout.
+
 The file holds no data model besides those structs, since `specarch-gen-sql`
 writes the schema.
-Encryption keys, scheduled and consuming jobs, and the seeding stay the
-service's, and the generator warns where a design asks for them.
+Scheduled and consuming jobs, and the seeding stay the service's, and the
+generator warns where a design asks for them.
 
 ## Server code on other stacks
 
@@ -710,6 +767,12 @@ idiom's (`docs/idioms.md`); a part no Carbon token takes, a token that is
 not a colour and a mode other than dark are reported, and the application's
 own styles use the file after Carbon's (ADR-074).
 
+Neither UI target performs a handshake or streams a file: a page that
+submits to, loads from, picks from or runs an operation that travels in a
+handshake's envelope or streams a file is an error at the page, since a
+plain `fetch` would send JSON the service refuses (ADR-145, ADR-146); the
+handshake in the screens is a roadmap item (`docs/roadmap.md`).
+
 ## Tests from the specification
 
 The specification says what is tested; the implementation file says with
@@ -780,6 +843,12 @@ must be a number, and both are brought to one form, digits and a power of
 ten, so the generated tests bring the project no dependency. When the
 implementation files reached by one plug-in name frameworks, each must be
 one it writes for. ADR-041 has the reasons.
+
+A test of an operation that travels in a handshake's envelope or streams a
+file says so in a comment above its call and leaves the handshake and the
+streaming to the harness, which the service writes: the test names the
+call, the harness establishes the handshake and seals the request, or
+streams the body (ADR-145, ADR-146).
 
 ## BPMN 2.0 workflows
 

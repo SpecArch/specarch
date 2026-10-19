@@ -21,6 +21,9 @@ const fixture = "../../spec/tests/generate-go-dxlib/project"
 // valueFixture is a specification whose member holds value objects.
 const valueFixture = "../../spec/tests/generate-go-dxlib-value-objects/project"
 
+// envelopeFixture is a specification with a handshake and streamed files.
+const envelopeFixture = "../../spec/tests/generate-go-dxlib-envelope-stream/project"
+
 // generate runs the generator on the fixture, with the go-dxlib target's
 // settings as specarch passes them.
 func generate(t *testing.T) genopenapi.Response {
@@ -91,8 +94,8 @@ func generateFrom(t *testing.T, fixture string, change func(specification map[st
 // the task.
 func TestParts(t *testing.T) {
 	resp := generate(t)
-	if len(resp.Files) != 1 {
-		t.Fatalf("want one file, got %d and %v", len(resp.Files), resp.Diagnostics)
+	if len(resp.Files) != 2 {
+		t.Fatalf("want the service file and the client, got %d and %v", len(resp.Files), resp.Diagnostics)
 	}
 	src := resp.Files[0].Content
 	for _, want := range []string{
@@ -120,7 +123,7 @@ func TestParts(t *testing.T) {
 	}
 }
 
-var bodyCall = regexp.MustCompile(`return (body([A-Za-z0-9]+))\(aepr, r\)`)
+var bodyCall = regexp.MustCompile(`return (body([A-Za-z0-9]+))\(aepr, r(, UploadStream\(aepr, [0-9]+\))?\)`)
 
 // TestCompiles builds the file of each fixture against dxlib, beside the
 // bodies and jobs a service writes. It needs a dxlib checkout, named by
@@ -130,20 +133,25 @@ func TestCompiles(t *testing.T) {
 	if dxlib == "" {
 		t.Skip("SPECARCH_DXLIB names no dxlib checkout, so the file cannot be compiled against dxlib here")
 	}
-	for _, f := range []string{fixture, valueFixture} {
+	for _, f := range []string{fixture, valueFixture, envelopeFixture} {
 		t.Run(filepath.Base(filepath.Dir(f)), func(t *testing.T) {
-			compiles(t, dxlib, generateFrom(t, f, func(map[string]any) {}, nil).Files[0].Content)
+			compiles(t, dxlib, generateFrom(t, f, func(map[string]any) {}, nil).Files)
 		})
 	}
 }
 
 var packageName = regexp.MustCompile(`(?m)^package (\w+)$`)
 
-func compiles(t *testing.T, dxlib, src string) {
+func compiles(t *testing.T, dxlib string, generated []genopenapi.File) {
+	src := generated[0].Content
 	pkg := packageName.FindStringSubmatch(src)[1]
 	var stub strings.Builder
-	stub.WriteString("package " + pkg + "\n\nimport (\n\t\"github.com/donnyhardyanto/dxlib/api\"\n\t\"github.com/donnyhardyanto/dxlib/task\"\n)\n\nvar _ = api.DXAPI{}\n\nvar _ = task.DXTask{}\n\n")
+	stub.WriteString("package " + pkg + "\n\nimport (\n\t\"io\"\n\n\t\"github.com/donnyhardyanto/dxlib/api\"\n\t\"github.com/donnyhardyanto/dxlib/task\"\n)\n\nvar _ = api.DXAPI{}\n\nvar _ = task.DXTask{}\n\nvar _ io.Reader\n\n")
 	for _, m := range bodyCall.FindAllStringSubmatch(src, -1) {
+		if m[3] != "" {
+			fmt.Fprintf(&stub, "func %s(aepr *api.DXAPIEndPointRequest, r %sRequest, body io.Reader) error { return nil }\n", m[1], m[2])
+			continue
+		}
 		fmt.Fprintf(&stub, "func %s(aepr *api.DXAPIEndPointRequest, r %sRequest) error { return nil }\n", m[1], m[2])
 	}
 	for _, m := range regexp.MustCompile(`(job[A-Z][A-Za-z0-9]*)\)`).FindAllStringSubmatch(src, -1) {
@@ -152,8 +160,10 @@ func compiles(t *testing.T, dxlib, src string) {
 	dir := t.TempDir()
 	files := map[string]string{
 		"go.mod":            "module " + pkg + "\n\ngo 1.27.1\n\nrequire github.com/donnyhardyanto/dxlib v0.0.0\n\nreplace github.com/donnyhardyanto/dxlib => " + dxlib + "\n",
-		FileName:            src,
 		"service_bodies.go": stub.String(),
+	}
+	for _, f := range generated {
+		files[f.Path] = f.Content
 	}
 	for name, text := range files {
 		if err := os.WriteFile(filepath.Join(dir, name), []byte(text), 0o644); err != nil {
@@ -194,7 +204,7 @@ func TestListView(t *testing.T) {
 		delete(l, "entity")
 		l["view"] = "BookRow"
 	})
-	if len(resp.Files) != 1 || !strings.Contains(resp.Files[0].Content, `"book", "book", "book_row", "", "id",`) {
+	if len(resp.Files) != 2 || !strings.Contains(resp.Files[0].Content, `"book", "book", "book_row", "", "id",`) {
 		t.Errorf("the table does not page through book_row: %v\n%v", resp.Diagnostics, resp.Files)
 	}
 	resp = generateWith(t, func(sp map[string]any) {
@@ -224,7 +234,7 @@ func TestListView(t *testing.T) {
 // job no task, while the other operations and the table handles stay.
 func TestOwned(t *testing.T) {
 	r := generateOwning(t, func(map[string]any) {}, []string{"#/paths/~1books/post", "#/jobs/sweepWithdrawn", "#/entities/Book"})
-	if len(r.Files) != 1 {
+	if len(r.Files) != 2 {
 		t.Fatalf("got %d files and %v", len(r.Files), r.Diagnostics)
 	}
 	code := r.Files[0].Content
@@ -247,8 +257,8 @@ func TestRoleNames(t *testing.T) {
 		sp["info"].(map[string]any)["roleNames"] = "upper_snake"
 		sp["roles"].(map[string]any)["desk-supervisor"] = map[string]any{"description": "Supervises the desk.", "permissions": []any{"books.read"}}
 	})
-	if len(resp.Files) != 1 {
-		t.Fatalf("want one file, got %d and %v", len(resp.Files), resp.Diagnostics)
+	if len(resp.Files) != 2 {
+		t.Fatalf("want the service file and the client, got %d and %v", len(resp.Files), resp.Diagnostics)
 	}
 	src := resp.Files[0].Content
 	for _, want := range []string{
@@ -271,8 +281,8 @@ func TestImplies(t *testing.T) {
 		perms["books.write"].(map[string]any)["implies"] = []any{"books.read"}
 		sp["roles"].(map[string]any)["desk-supervisor"] = map[string]any{"description": "Supervises the desk.", "permissions": []any{"books.all"}}
 	})
-	if len(resp.Files) != 1 {
-		t.Fatalf("want one file, got %d and %v", len(resp.Files), resp.Diagnostics)
+	if len(resp.Files) != 2 {
+		t.Fatalf("want the service file and the client, got %d and %v", len(resp.Files), resp.Diagnostics)
 	}
 	src := resp.Files[0].Content
 	for _, want := range []string{
@@ -299,8 +309,8 @@ func TestMaps(t *testing.T) {
 		props["ratings"] = map[string]any{"type": "object", "additionalProperties": map[string]any{"type": []any{"number", "null"}, "format": "double"}}
 		props["extra"] = map[string]any{"type": "object", "additionalProperties": true}
 	})
-	if len(resp.Files) != 1 {
-		t.Fatalf("want one file, got %d and %v", len(resp.Files), resp.Diagnostics)
+	if len(resp.Files) != 2 {
+		t.Fatalf("want the service file and the client, got %d and %v", len(resp.Files), resp.Diagnostics)
 	}
 	src := resp.Files[0].Content
 	for _, want := range []string{
@@ -319,6 +329,6 @@ func TestMaps(t *testing.T) {
 		}
 	}
 	if dxlib := os.Getenv("SPECARCH_DXLIB"); dxlib != "" {
-		compiles(t, dxlib, src)
+		compiles(t, dxlib, resp.Files)
 	}
 }

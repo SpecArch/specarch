@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: generate
+level: system
+scenario: golden
+given: "the vault of generate-openapi-dxlib-envelope-stream, and an implementation file with a go-dxlib target naming the package and the database; specarch-gen-go-dxlib built from this repository on PATH"
+when: "generate go-dxlib is run with --unapproved"
+then: "it writes the service file with Register binding every handler and setting dxlib's hooks that open and seal the pre-key envelope, the exchange's handler that reads a0, a1 and a2, makes the service's keys, derives the two shared keys, stores the handshake with its lifetime and answers i, b0, b1 and b2, the handshake's record, store and in-memory store, the upload handler calling its body with the request body as a stream held to the limit, the download handlers with their media type and limit as constants, and the stream helpers; and a client file with Handshake, a method per operation that seals and opens the envelope, streams an upload in and a download out as the design says; and exits 0"
+verifies: [SA-77, SA-40]

@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: generate
+level: system
+scenario: golden
+given: "a vault whose pre-key handshake (x25519, ed25519, aes-256-cbc, one use, five minutes) is established by a plain operation taking a0, a1 and a2 and answering i, b0, b1 and b2; an operation in its envelope; an upload stream of an octet stream with a request limit; a download stream with a response limit and a refusal; a download stream in the envelope; and an implementation file whose openapi target has dialect dxlib; specarch-gen-openapi built from this repository on PATH"
+when: "generate openapi is run with --unapproved"
+then: "it writes the document dxlib binds: the encrypted operation with x-dxlib-endpoint-type EndPointTypeHTTPEndToEndEncryptionV2, the upload with EndPointTypeHTTPUploadStream, a required octet-stream request body of a binary string and x-dxlib-max-content-length, the download with EndPointTypeHTTPDownloadStream and a success response described with no content, the encrypted download with EndPointTypeHTTPDownloadStreamV2, and the exchange and every other operation with EndPointTypeHTTPJSON; and exits 0"
+verifies: [SA-77, SA-40]

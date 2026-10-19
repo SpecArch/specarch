@@ -111,6 +111,9 @@ func dartTest(w *writer, t Test) {
 	if !t.Expect.Checked() {
 		got = ""
 	}
+	if note := c.TransportNote(); note != "" {
+		w.line("    // %s", note)
+	}
 	switch c.Kind {
 	case "request":
 		w.line("    %sawait h.request(%s, %s, %s, %s);", got, dartString(c.Mapping), dartString(c.Method), dartString(c.Path), dartRecord(c.Input))

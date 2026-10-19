@@ -90,7 +90,7 @@ commissioning runs and approvals). The same schema gives editors
 validation and completion through `yaml-language-server`: put this on the
 first line of a root file and most editors pick it up.
 
-    # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v0.6.2/schema/specarch-design-0.2.schema.json
+    # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v0.7.0/schema/specarch-design-0.2.schema.json
 
 ## The rules SpecArch serves
 
@@ -183,7 +183,7 @@ the program and are built once in your cache with their toolchains). It has two 
 the same design.
 The Go build has every verb. With Go 1.27.2 or later:
 
-    go install github.com/SpecArch/specarch/cmd/specarch@v0.6.4
+    go install github.com/SpecArch/specarch/cmd/specarch@v0.7.0
 
 or, from a clone of this repository:
 
@@ -210,20 +210,16 @@ generate bpmn` runs to write each workflow as a BPMN 2.0 file with its
 diagram, and the diagram as SVG. Install them at the same tag as
 `specarch`:
 
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-openapi@v0.6.4
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-sql@v0.6.4
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-tests-go@v0.6.4
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-tests-swift@v0.6.4
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-tests-dart@v0.6.4
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-go-dxlib@v0.6.4
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-ui@v0.6.4
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-ui-typescript@v0.6.4
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-bpmn@v0.6.4
-
-`specarch-gen-sqlc` is in no release yet; install it from a clone of this
-repository:
-
-    go install ./cmd/specarch-gen-sqlc
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-openapi@v0.7.0
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-sql@v0.7.0
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-sqlc@v0.7.0
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-tests-go@v0.7.0
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-tests-swift@v0.7.0
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-tests-dart@v0.7.0
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-go-dxlib@v0.7.0
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-ui@v0.7.0
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-ui-typescript@v0.7.0
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-bpmn@v0.7.0
 
 The Swift build, for macOS, has the validate and version verbs and gives
 the same output. With Swift 6:

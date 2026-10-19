@@ -145,7 +145,7 @@ func (c *checker) checkSchema(k Kind, value any) {
 // problem, in plain words. parent is the location of the enclosing error.
 func (c *checker) schemaLeaves(k Kind, ve *jsonschema.ValidationError, parent []string, seen map[string]bool) {
 	if pn, ok := ve.ErrorKind.(*kind.PropertyNames); ok {
-		c.schemaPropertyName(k, ve, c.propertyNameObject(pn.Property, ve.InstanceLocation, ve.SchemaURL, seen), pn, seen)
+		c.schemaPropertyName(k, ve, c.propertyNameObject(pn.Property, len(ve.InstanceLocation), ve.SchemaURL, parent, seen), pn, seen)
 		return
 	}
 	// A list that holds no item contains accepts fails as a whole, not item
@@ -227,42 +227,46 @@ func (c *checker) schemaPropertyName(k Kind, ve *jsonschema.ValidationError, loc
 // appending to while it walks the rest of the input, so when the errors are
 // read, every propertyNames error of one walk holds the path of the last
 // sibling walked at its depth; only the length of the location it reports
-// can be trusted. The schema location says under which key the object sits
-// (".../properties/responses/propertyNames"). The mappings at that depth
-// that sit under that key and hold the property are listed in the order of
-// the merged specification (the root file's own keys, then the sections in
-// life-cycle order, entities before schemas whatever the file says, and
-// within a section the order written), and the k-th error of one property,
-// depth and key takes the k-th mapping. That rests on one thing: every
-// propertyNames rule the schema reaches at one key and depth gives the
-// same verdict on a name, with the same pattern, so the number of mappings
-// holding the name equals the number of errors, and the errors, which
-// arrive in the library's map order, can be given to the mappings in any
-// order. It is not the case that one key at one depth is checked by one
-// rule: properties at depth 3 is checked by the entity, valueObject and
-// view definitions, each with propertyNames memberName. The other keys
-// with two sites, inputs, checks and constraints, sit at a different
-// depth at each site, so the depth in the count keeps them apart; items
-// under a menu and properties under a field are one rule each, reached
-// again deeper down, which the depth separates in the same way.
-// So the count is keyed by property, depth and the key the mappings were
-// listed under, never by the schema location: two locations at one key
-// and depth share one count, and each takes its own mapping. seen holds
-// the count.
-func (c *checker) propertyNameObject(property string, reported []string, schemaURL string, seen map[string]bool) []string {
+// can be trusted. Two other things are: the location of the enclosing
+// error, parent, which the library copies, and which is the object itself
+// or an ancestor of it (a $ref wraps the errors of the object it refers to
+// in a Reference error at that object, so a rule on a definition, or on a
+// key of one, is pinned to the object or to its parent); and the schema
+// location, which ends in properties/<key>/propertyNames when the rule
+// sits on a document key (".../properties/responses/propertyNames"), and
+// in the definition's name when it sits on a definition reached through a
+// $ref (".../$defs/statusEvents/propertyNames"), which is no key in the
+// document and is not used. The candidates are the mappings at the error's
+// depth under parent that hold the property, and, when the schema
+// location names a key, sit under that key: when parent is the object,
+// the object alone; when parent is its parent and the key is named, the
+// one child under that key; when neither, the siblings under parent that
+// hold the name, such as the media types of one content object. They are
+// listed in the order of the merged specification (the root file's own
+// keys, then the sections in life-cycle order, entities before schemas
+// whatever the file says, and within a section the order written), and
+// the k-th error of one property, depth, parent and key takes the k-th
+// candidate; the count is keyed by exactly what the candidates were
+// filtered by, so two errors never take one mapping. Where the candidates
+// are siblings, that rests on one thing: every propertyNames rule the
+// schema reaches at one depth under one parent gives the same verdict on
+// a name, with the same pattern, so the candidates holding the name equal
+// the errors, and the errors, which arrive in the library's map order, can
+// be given to the candidates in any order. In the design schema every
+// site but one is pinned to one candidate; the one is modes under theme,
+// inline two keys below the root, whose enclosing error is the root and
+// whose candidates are the depth-2 mappings named modes that hold the
+// name, one in any specification written so far. seen holds the count.
+func (c *checker) propertyNameObject(property string, depth int, schemaURL string, parent []string, seen map[string]bool) []string {
 	under := ""
 	if _, frag, ok := strings.Cut(schemaURL, "#"); ok {
 		tokens := strings.Split(strings.TrimPrefix(frag, "/"), "/")
-		if n := len(tokens); n >= 3 && tokens[n-1] == "propertyNames" && (tokens[n-3] == "properties" || tokens[n-3] == "$defs") {
+		if n := len(tokens); n >= 3 && tokens[n-1] == "propertyNames" && tokens[n-3] == "properties" {
 			under = source.UnescapeToken(tokens[n-2])
 		}
 	}
-	found := c.findPropertyObjects(property, len(reported), under)
-	if len(found) == 0 && under != "" {
-		under = ""
-		found = c.findPropertyObjects(property, len(reported), under)
-	}
-	key := property + "|" + strconv.Itoa(len(reported)) + "|" + under + "|taken|"
+	found := c.findPropertyObjects(property, depth, parent, under)
+	key := property + "|" + strconv.Itoa(depth) + "|" + source.Pointer(parent...) + "|" + under + "|taken|"
 	taken := 0
 	for seen[key+strconv.Itoa(taken)] {
 		taken++
@@ -272,21 +276,24 @@ func (c *checker) propertyNameObject(property string, reported []string, schemaU
 		return found[taken]
 	}
 	if len(found) > 0 {
-		return found[len(found)-1] // one error more than mappings: a repeat, dropped by the caller
+		return found[len(found)-1] // one error more than candidates: a repeat, dropped by the caller
 	}
-	return reported
+	return parent // nothing holds the name there: the nearest location known to be right
 }
 
 // findPropertyObjects lists, in document order, the mappings at the given
-// depth that hold the property, and, when under is given, sit under that
-// key.
-func (c *checker) findPropertyObjects(property string, depth int, under string) [][]string {
+// depth under parent that hold the property, and, when under is given, sit
+// under that key.
+func (c *checker) findPropertyObjects(property string, depth int, parent []string, under string) [][]string {
 	var out [][]string
 	walk(c.root, nil, func(n *yaml.Node, path []string) {
-		if len(path) != depth || source.Key(n, property) == nil {
+		if len(path) != depth || len(path) < len(parent) || !slices.Equal(path[:len(parent)], parent) {
 			return
 		}
 		if under != "" && (len(path) == 0 || path[len(path)-1] != under) {
+			return
+		}
+		if source.Key(n, property) == nil {
 			return
 		}
 		out = append(out, slices.Clone(path))

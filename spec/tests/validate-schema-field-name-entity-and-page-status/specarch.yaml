@@ -1,0 +1,47 @@
+specarch: "0.2"
+info: { title: Case, version: 1.0.0 }
+requirements:
+  CASE-1: { statement: One., kind: functional, priority: must, status: accepted, acceptance: [One.] }
+stakeholders:
+  owner: { description: The owner. }
+permissions:
+  public: { description: Open to everyone. }
+roles:
+  desk: { description: The desk., permissions: [public] }
+entities:
+  Holder:
+    type: object
+    description: A holder.
+    primaryKey: [id]
+    properties:
+      id: { type: string, description: The ID. }
+      Bad-Name: { type: string, description: Odd. }
+    satisfies: [CASE-1]
+paths:
+  /password-resets:
+    post:
+      operationId: resetPassword
+      summary: Set a new password
+      permission: public
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                code: { type: string, minLength: 1, maxLength: 200 }
+              required: [code]
+      responses:
+        "204": { description: The password is set. }
+pages:
+  reset-password:
+    kind: task
+    title: Set a new password
+    route: /reset-password
+    permission: public
+    submit: resetPassword
+    fields: [code]
+    onSubmitted:
+      "204": { message: Your password is set. }
+      Bad-Name: { message: Odd. }
+    satisfies: [CASE-1]

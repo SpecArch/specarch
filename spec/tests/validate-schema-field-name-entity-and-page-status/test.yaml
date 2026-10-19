@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: validate
+level: system
+scenario: red
+given: "an entity with a field named Bad-Name and a task page whose onSubmitted has a status named Bad-Name"
+when: "validate is run"
+then: "it reports the name through the schema at each of the two, one error per mapping at its own entry, with the pattern of the rule that checked it: camelCase at the entity's field and a 2xx status at the page's onSubmitted, which the schema checks through a definition reached under another key; the page rule's echo at that status is not printed, and it does not stop"
+verifies: [SA-34]

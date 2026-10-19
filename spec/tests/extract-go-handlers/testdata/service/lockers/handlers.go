@@ -190,3 +190,46 @@ scan:
 	sort.Slice(items, func(i, j int) bool { return items[i].code < items[j].code })
 	json.NewEncoder(w).Encode(items)
 }
+
+// showParcel answers one parcel by its code, saying in a header when it is
+// held; a parcel in no known state is refused. A query that fails is left
+// to the framework's default answer.
+func (s *Server) showParcel(w http.ResponseWriter, r *http.Request) {
+	refuse := func(reason string, status int) { http.Error(w, reason, status) }
+	code := r.PathValue("code")
+	if code == "" {
+		refuse("code is missing", http.StatusBadRequest)
+		return
+	}
+	rows, err := s.db.Query("SELECT state FROM parcels WHERE code = $1", code)
+	if err != nil {
+		return
+	}
+	defer rows.Close()
+	var states []string
+collect:
+	if rows.Next() {
+		var state string
+		if err := rows.Scan(&state); err != nil {
+			refuse(err.Error(), http.StatusInternalServerError)
+			return
+		}
+		for _, known := range []string{"stored", "held", "collected"} {
+			if state == known {
+				states = append(states, state)
+			}
+		}
+		goto collect
+	}
+	switch {
+	case len(states) == 0:
+		refuse("no parcel has that code", http.StatusNotFound)
+	case states[0] == "held":
+		w.Header().Set("X-Parcel-Held", "true")
+		fallthrough
+	case states[0] == "stored":
+		json.NewEncoder(w).Encode(map[string]string{"code": code, "state": states[0]})
+	default:
+		refuse("a parcel in no known state", http.StatusInternalServerError)
+	}
+}

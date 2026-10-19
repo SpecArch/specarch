@@ -519,8 +519,11 @@ func handlerLogic(d *doc, o operation, impls []Implementation) {
 
 // functionsText counts the functions of a handler record.
 func functionsText(fns []*yaml.Node) string {
-	if len(fns) == 1 {
+	switch len(fns) {
+	case 1:
 		return "the handler alone, which calls no function of the code"
+	case 2:
+		return "the handler and 1 function it reaches"
 	}
 	return fmt.Sprintf("the handler and %d functions it reaches", len(fns)-1)
 }
@@ -641,13 +644,23 @@ func drawSteps(b *strings.Builder, edges *[]string, steps []*yaml.Node, from []c
 			from = next
 		case "choice":
 			inner := &chartScope{id: id, kind: "choice", label: str(st, "label"), parent: scope}
-			var next []chartExit
+			// A case that falls through leads into the next case's first
+			// step, not past the switch.
+			var next, carried []chartExit
 			hasOtherwise := false
 			for _, c := range items(st, "cases") {
 				when := str(c, "when")
 				hasOtherwise = hasOtherwise || when == "otherwise"
-				next = append(next, drawSteps(b, edges, items(c, "steps"), []chartExit{{id, when}}, inner)...)
+				steps := items(c, "steps")
+				ends := drawSteps(b, edges, steps, append([]chartExit{{id, when}}, carried...), inner)
+				if fallsThroughNodes(steps) {
+					carried = ends
+					continue
+				}
+				next = append(next, ends...)
+				carried = nil
 			}
+			next = append(next, carried...)
 			if !hasOtherwise {
 				next = append(next, chartExit{id, "otherwise"})
 			}
@@ -686,6 +699,15 @@ func drawSteps(b *strings.Builder, edges *[]string, steps []*yaml.Node, from []c
 		}
 	}
 	return from
+}
+
+// fallsThroughNodes says whether a case's steps end in a fallthrough.
+func fallsThroughNodes(steps []*yaml.Node) bool {
+	if len(steps) == 0 {
+		return false
+	}
+	last := steps[len(steps)-1]
+	return str(last, "kind") == "statement" && str(last, "text") == "falls through to the next case"
 }
 
 // joinLabel joins an edge's label with a word, for an edge that is both a

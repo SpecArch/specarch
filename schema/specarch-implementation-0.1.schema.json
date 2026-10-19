@@ -517,7 +517,7 @@
           "pattern": "^s[1-9][0-9]*$"
         },
         "kind": {
-          "description": "What the step is. input: a read of the request (a parameter, the body, a header). branch: an if, with the steps taken when its condition holds under then and otherwise under otherwise. choice: a switch, with its cases. loop: a for, with the steps of its body. database: a read or a write of a table. transaction: a transaction begun, committed or rolled back. call: a call of a function of the code, followed (function) or not (stopped), or a function literal called, passed or defined, followed as a function of its own. external: a call of another system over HTTP. response: a response written, a success or a refusal. return: the function returns. statement: a defer, a go statement, a panic, a break (of a loop, a switch or a select), a continue, a goto or a fallthrough.",
+          "description": "What the step is. input: a read of the request (a parameter, the body, a header). branch: an if, with the steps taken when its condition holds under then and otherwise under otherwise. choice: a switch, with its cases. loop: a for, with the steps of its body. database: a read or a write of a table. transaction: a transaction begun, committed or rolled back. call: a call of a function of the code, followed (function) or not (stopped), or a function literal called, passed or defined (reached), followed as a function of its own. external: a call of another system over HTTP. response: a response written, a success or a refusal. return: the function returns. statement: a defer, a go statement, a panic, a break (of a loop, a switch or a select), a continue, a goto or a fallthrough.",
           "type": "string",
           "enum": [
             "input",
@@ -635,6 +635,15 @@
           "description": "For call: why the call was not followed, such as outside the module, deeper than the depth followed, or a function value.",
           "type": "string",
           "minLength": 1
+        },
+        "reached": {
+          "description": "For a call of a function literal: how the literal is reached. called: it runs here, where it is written or by the name it was assigned to. passed: it is given to a call, which runs it. defined: it is written for a later call and runs nothing here, so what it does counts at the call of its name, not at the definition.",
+          "type": "string",
+          "enum": [
+            "called",
+            "passed",
+            "defined"
+          ]
         },
         "dependency": {
           "description": "For external: the dependency of the design the call reaches, by its name under dependencies, when the URL names a host.",

@@ -151,32 +151,58 @@ questions:
     why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
     cites:
       - {source: code, clause: 'lockers/server.go:21', says: Registers POST /parcels.}
-  # specarch-problem: question: open_question: (must, decision) What values does each path parameter of /parcels/{code}/collect take: code? Decided by system-owner. Answer with a decision record that names Q-18 under answers. [Q-18]
+  # specarch-problem: question: open_question: (must, decision) What values does each path parameter of /parcels/{code} take: code? Decided by system-owner. Answer with a decision record that names Q-18 under answers. [Q-18]
   Q-18:
+    question: 'What values does each path parameter of /parcels/{code} take: code?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1parcels~1{code}/parameters/0/schema']
+    decidedBy: system-owner
+    why: A path names its parameters and not the values they take.
+  # specarch-problem: question: open_question: (must, decision) What does GET /parcels/{code} do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-19 under answers. [Q-19]
+  Q-19:
+    question: What does GET /parcels/{code} do, and what does it answer?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1parcels~1{code}/get/summary', '#/paths/~1parcels~1{code}/get/responses']
+    decidedBy: system-owner
+    why: The source registers a handler and does not say what it does or the responses it gives.
+  # specarch-problem: question: open_question: (must, decision) Does the running system register GET /parcels/{code}? It is declared at lockers/server.go:28, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-20 under answers. [Q-20]
+  Q-20:
+    question: Does the running system register GET /parcels/{code}? It is declared at lockers/server.go:28, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1parcels~1{code}/get']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'lockers/server.go:28', says: 'Registers GET /parcels/{code}.'}
+  # specarch-problem: question: open_question: (must, decision) What values does each path parameter of /parcels/{code}/collect take: code? Decided by system-owner. Answer with a decision record that names Q-21 under answers. [Q-21]
+  Q-21:
     question: 'What values does each path parameter of /parcels/{code}/collect take: code?'
     kind: decision
     priority: must
     blocks: ['#/paths/~1parcels~1{code}~1collect/parameters/0/schema']
     decidedBy: system-owner
     why: A path names its parameters and not the values they take.
-  # specarch-problem: question: open_question: (must, decision) POST /parcels/{code}/collect checks no permission: none of the checks the implementation file names wraps its handler, is among its middleware or is called in its handler. Is it meant to be open to everyone (public), or which permission should it check? Decided by system-owner. Answer with a decision record that names Q-19 under answers. [Q-19]
-  Q-19:
+  # specarch-problem: question: open_question: (must, decision) POST /parcels/{code}/collect checks no permission: none of the checks the implementation file names wraps its handler, is among its middleware or is called in its handler. Is it meant to be open to everyone (public), or which permission should it check? Decided by system-owner. Answer with a decision record that names Q-22 under answers. [Q-22]
+  Q-22:
     question: 'POST /parcels/{code}/collect checks no permission: none of the checks the implementation file names wraps its handler, is among its middleware or is called in its handler. Is it meant to be open to everyone (public), or which permission should it check?'
     kind: decision
     priority: must
     blocks: ['#/paths/~1parcels~1{code}~1collect/post/permission']
     decidedBy: system-owner
     why: An operation open to everyone is how an open endpoint is usually found, so it is asked, never assumed.
-  # specarch-problem: question: open_question: (must, decision) What does POST /parcels/{code}/collect do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-20 under answers. [Q-20]
-  Q-20:
+  # specarch-problem: question: open_question: (must, decision) What does POST /parcels/{code}/collect do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-23 under answers. [Q-23]
+  Q-23:
     question: What does POST /parcels/{code}/collect do, and what does it answer?
     kind: decision
     priority: must
     blocks: ['#/paths/~1parcels~1{code}~1collect/post/summary', '#/paths/~1parcels~1{code}~1collect/post/responses']
     decidedBy: system-owner
     why: The source registers a handler and does not say what it does or the responses it gives.
-  # specarch-problem: question: open_question: (must, decision) Does the running system register POST /parcels/{code}/collect? It is declared at lockers/server.go:22, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-21 under answers. [Q-21]
-  Q-21:
+  # specarch-problem: question: open_question: (must, decision) Does the running system register POST /parcels/{code}/collect? It is declared at lockers/server.go:22, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-24 under answers. [Q-24]
+  Q-24:
     question: Does the running system register POST /parcels/{code}/collect? It is declared at lockers/server.go:22, and no list the running system printed was read with it.
     kind: decision
     priority: must
@@ -185,24 +211,24 @@ questions:
     why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
     cites:
       - {source: code, clause: 'lockers/server.go:22', says: 'Registers POST /parcels/{code}/collect.'}
-  # specarch-problem: question: open_question: (must, decision) What is the system lockersExampleCom the source calls, and how long may one call to it take before the operation gives up? Decided by system-owner. Answer with a decision record that names Q-22 under answers. [Q-22]
-  Q-22:
+  # specarch-problem: question: open_question: (must, decision) What is the system lockersExampleCom the source calls, and how long may one call to it take before the operation gives up? Decided by system-owner. Answer with a decision record that names Q-25 under answers. [Q-25]
+  Q-25:
     question: What is the system lockersExampleCom the source calls, and how long may one call to it take before the operation gives up?
     kind: decision
     priority: must
     blocks: ['#/dependencies/lockersExampleCom/description', '#/dependencies/lockersExampleCom/timeout']
     decidedBy: system-owner
     why: The source names the URL it calls, and not what the system is or a time limit, which every dependency has.
-  # specarch-problem: question: open_question: (must, decision) What is the system messagesExampleCom the source calls, and how long may one call to it take before the operation gives up? Decided by system-owner. Answer with a decision record that names Q-23 under answers. [Q-23]
-  Q-23:
+  # specarch-problem: question: open_question: (must, decision) What is the system messagesExampleCom the source calls, and how long may one call to it take before the operation gives up? Decided by system-owner. Answer with a decision record that names Q-26 under answers. [Q-26]
+  Q-26:
     question: What is the system messagesExampleCom the source calls, and how long may one call to it take before the operation gives up?
     kind: decision
     priority: must
     blocks: ['#/dependencies/messagesExampleCom/description', '#/dependencies/messagesExampleCom/timeout']
     decidedBy: system-owner
     why: The source names the URL it calls, and not what the system is or a time limit, which every dependency has.
-  # specarch-problem: question: open_question: (should, decision) Which operations call messagesExampleCom? The source calls it at notify/notify.go:16, outside a handler the reader reads. Decided by system-owner. Answer with a decision record that names Q-24 under answers. [Q-24]
-  Q-24:
+  # specarch-problem: question: open_question: (should, decision) Which operations call messagesExampleCom? The source calls it at notify/notify.go:16, outside a handler the reader reads. Decided by system-owner. Answer with a decision record that names Q-27 under answers. [Q-27]
+  Q-27:
     question: Which operations call messagesExampleCom? The source calls it at notify/notify.go:16, outside a handler the reader reads.
     kind: decision
     priority: should
@@ -211,24 +237,24 @@ questions:
     why: An operation names the dependencies it calls, and syntax finds a call only in a handler's own body.
     cites:
       - {source: code, clause: 'notify/notify.go:16', says: Calls messagesExampleCom.}
-  # specarch-problem: question: open_question: (must, decision) What does each permission allow: lockers.read, lockers.service, lockers.sweep, parcels.list, parcels.store? Decided by system-owner. Answer with a decision record that names Q-25 under answers. [Q-25]
-  Q-25:
+  # specarch-problem: question: open_question: (must, decision) What does each permission allow: lockers.read, lockers.service, lockers.sweep, parcels.list, parcels.store? Decided by system-owner. Answer with a decision record that names Q-28 under answers. [Q-28]
+  Q-28:
     question: 'What does each permission allow: lockers.read, lockers.service, lockers.sweep, parcels.list, parcels.store?'
     kind: decision
     priority: must
     blocks: ['#/permissions/lockers.read/description', '#/permissions/lockers.service/description', '#/permissions/lockers.sweep/description', '#/permissions/parcels.list/description', '#/permissions/parcels.store/description']
     decidedBy: system-owner
     why: The source names the privilege an endpoint checks and not what it is for.
-  # specarch-problem: question: open_question: (must, decision) Which role grants each permission: lockers.read, lockers.service, lockers.sweep, parcels.list, parcels.store? Decided by system-owner. Answer with a decision record that names Q-26 under answers. [Q-26]
-  Q-26:
+  # specarch-problem: question: open_question: (must, decision) Which role grants each permission: lockers.read, lockers.service, lockers.sweep, parcels.list, parcels.store? Decided by system-owner. Answer with a decision record that names Q-29 under answers. [Q-29]
+  Q-29:
     question: 'Which role grants each permission: lockers.read, lockers.service, lockers.sweep, parcels.list, parcels.store?'
     kind: decision
     priority: must
     blocks: ['#/permissions/lockers.read', '#/permissions/lockers.service', '#/permissions/lockers.sweep', '#/permissions/parcels.list', '#/permissions/parcels.store']
     decidedBy: system-owner
     why: The source names the privilege an endpoint checks and not who holds it.
-  # specarch-problem: question: open_question: (should, decision, suspected) notify/notify.go:16: the result of http.NewRequest(http.MethodPost, "https://messages.example.com/v1/send", nil) is dropped in notify.Collector, so when the call fails each handler of POST /parcels, POST /lockers/sweep and POST /lockers/{id}/service goes on as if it had succeeded. Is the error meant to be ignored? Decided by system-owner. Answer with a decision record that names Q-27 under answers. [Q-27]
-  Q-27:
+  # specarch-problem: question: open_question: (should, decision, suspected) notify/notify.go:16: the result of http.NewRequest(http.MethodPost, "https://messages.example.com/v1/send", nil) is dropped in notify.Collector, so when the call fails each handler of POST /parcels, POST /lockers/sweep and POST /lockers/{id}/service goes on as if it had succeeded. Is the error meant to be ignored? Decided by system-owner. Answer with a decision record that names Q-30 under answers. [Q-30]
+  Q-30:
     question: 'notify/notify.go:16: the result of http.NewRequest(http.MethodPost, "https://messages.example.com/v1/send", nil) is dropped in notify.Collector, so when the call fails each handler of POST /parcels, POST /lockers/sweep and POST /lockers/{id}/service goes on as if it had succeeded. Is the error meant to be ignored?'
     kind: decision
     priority: should
@@ -238,8 +264,8 @@ questions:
     why: 'An error dropped is a failure nobody sees: the request is answered as a success, or with a value that is not there.'
     cites:
       - {source: code, clause: 'notify/notify.go:16', says: 'Drops the result of http.NewRequest(http.MethodPost, "https://messages.example.com/v1/send", nil).'}
-  # specarch-problem: question: open_question: (should, decision, certain) lockers/handlers.go:138: lines 138-139 of lockers/handlers.go in lockers.Server.reportLocker are never run in the handler lockers.Server.reportLocker of GET /lockers/{id}/report: they follow return at line 137. Is the code meant to be there? Decided by system-owner. Answer with a decision record that names Q-28 under answers. [Q-28]
-  Q-28:
+  # specarch-problem: question: open_question: (should, decision, certain) lockers/handlers.go:138: lines 138-139 of lockers/handlers.go in lockers.Server.reportLocker are never run in the handler lockers.Server.reportLocker of GET /lockers/{id}/report: they follow return at line 137. Is the code meant to be there? Decided by system-owner. Answer with a decision record that names Q-31 under answers. [Q-31]
+  Q-31:
     question: 'lockers/handlers.go:138: lines 138-139 of lockers/handlers.go in lockers.Server.reportLocker are never run in the handler lockers.Server.reportLocker of GET /lockers/{id}/report: they follow return at line 137. Is the code meant to be there?'
     kind: decision
     priority: should
@@ -249,8 +275,8 @@ questions:
     why: Code after a return in the same block cannot run, so what it does is not done.
     cites:
       - {source: code, clause: 'lockers/handlers.go:138', says: Follows a return in the same block.}
-  # specarch-problem: question: open_question: (should, decision, certain) lockers/handlers.go:145: the condition at line 145 of lockers/handlers.go in lockers.Server.serviceLocker, reached by the handler lockers.Server.serviceLocker of POST /lockers/{id}/service, is the constant false, so one of its branches is never run. Is the branch meant to be switched off? Decided by system-owner. Answer with a decision record that names Q-29 under answers. [Q-29]
-  Q-29:
+  # specarch-problem: question: open_question: (should, decision, certain) lockers/handlers.go:145: the condition at line 145 of lockers/handlers.go in lockers.Server.serviceLocker, reached by the handler lockers.Server.serviceLocker of POST /lockers/{id}/service, is the constant false, so one of its branches is never run. Is the branch meant to be switched off? Decided by system-owner. Answer with a decision record that names Q-32 under answers. [Q-32]
+  Q-32:
     question: 'lockers/handlers.go:145: the condition at line 145 of lockers/handlers.go in lockers.Server.serviceLocker, reached by the handler lockers.Server.serviceLocker of POST /lockers/{id}/service, is the constant false, so one of its branches is never run. Is the branch meant to be switched off?'
     kind: decision
     priority: should
@@ -260,8 +286,8 @@ questions:
     why: A constant condition leaves one branch dead, so what it does is not done.
     cites:
       - {source: code, clause: 'lockers/handlers.go:145', says: Branches on the constant false.}
-  # specarch-problem: question: open_question: (should, decision, suspected) lockers/handlers.go:149: the result of s.db.Exec("UPDATE lockers SET serviced = true") is dropped in lockers.Server.serviceLocker, so when the call fails the handler lockers.Server.serviceLocker of POST /lockers/{id}/service goes on as if it had succeeded. Is the error meant to be ignored? Decided by system-owner. Answer with a decision record that names Q-30 under answers. [Q-30]
-  Q-30:
+  # specarch-problem: question: open_question: (should, decision, suspected) lockers/handlers.go:149: the result of s.db.Exec("UPDATE lockers SET serviced = true") is dropped in lockers.Server.serviceLocker, so when the call fails the handler lockers.Server.serviceLocker of POST /lockers/{id}/service goes on as if it had succeeded. Is the error meant to be ignored? Decided by system-owner. Answer with a decision record that names Q-33 under answers. [Q-33]
+  Q-33:
     question: 'lockers/handlers.go:149: the result of s.db.Exec("UPDATE lockers SET serviced = true") is dropped in lockers.Server.serviceLocker, so when the call fails the handler lockers.Server.serviceLocker of POST /lockers/{id}/service goes on as if it had succeeded. Is the error meant to be ignored?'
     kind: decision
     priority: should
@@ -271,8 +297,8 @@ questions:
     why: 'An error dropped is a failure nobody sees: the request is answered as a success, or with a value that is not there.'
     cites:
       - {source: code, clause: 'lockers/handlers.go:149', says: Drops the result of s.db.Exec("UPDATE lockers SET serviced = true").}
-  # specarch-problem: question: open_question: (should, decision, certain) lockers/handlers.go:154: the handler lockers.Server.health of GET /health panics: "not implemented" in lockers.Server.health, so the operation is not built. When is it built? Decided by system-owner. Answer with a decision record that names Q-31 under answers. [Q-31]
-  Q-31:
+  # specarch-problem: question: open_question: (should, decision, certain) lockers/handlers.go:154: the handler lockers.Server.health of GET /health panics: "not implemented" in lockers.Server.health, so the operation is not built. When is it built? Decided by system-owner. Answer with a decision record that names Q-34 under answers. [Q-34]
+  Q-34:
     question: 'lockers/handlers.go:154: the handler lockers.Server.health of GET /health panics: "not implemented" in lockers.Server.health, so the operation is not built. When is it built?'
     kind: decision
     priority: should
@@ -282,8 +308,8 @@ questions:
     why: A handler that panics answers no request; the server answers 500 or drops the connection.
     cites:
       - {source: code, clause: 'lockers/handlers.go:154', says: 'Panics: "not implemented".'}
-  # specarch-problem: question: open_question: (should, decision, certain) lockers/handlers.go:144: the handler lockers.Server.serviceLocker of POST /lockers/{id}/service carries the note "TODO: read the locker from the request once the maker gives its id." in lockers.Server.serviceLocker, so its code is not finished. What remains to be done, and is the operation built? Decided by system-owner. Answer with a decision record that names Q-32 under answers. [Q-32]
-  Q-32:
+  # specarch-problem: question: open_question: (should, decision, certain) lockers/handlers.go:144: the handler lockers.Server.serviceLocker of POST /lockers/{id}/service carries the note "TODO: read the locker from the request once the maker gives its id." in lockers.Server.serviceLocker, so its code is not finished. What remains to be done, and is the operation built? Decided by system-owner. Answer with a decision record that names Q-35 under answers. [Q-35]
+  Q-35:
     question: 'lockers/handlers.go:144: the handler lockers.Server.serviceLocker of POST /lockers/{id}/service carries the note "TODO: read the locker from the request once the maker gives its id." in lockers.Server.serviceLocker, so its code is not finished. What remains to be done, and is the operation built?'
     kind: decision
     priority: should
@@ -293,8 +319,8 @@ questions:
     why: A note that work remains says the code does not do what the specification says yet.
     cites:
       - {source: code, clause: 'lockers/handlers.go:144', says: 'Carries the note TODO: read the locker from the request once the maker gives its id..'}
-  # specarch-problem: question: open_question: (should, decision, suspected) lockers/handlers.go:150: the handler lockers.Server.serviceLocker of POST /lockers/{id}/service reaches its end at line 150 on a path that writes no response. What does a caller get on that path? Decided by system-owner. Answer with a decision record that names Q-33 under answers. [Q-33]
-  Q-33:
+  # specarch-problem: question: open_question: (should, decision, suspected) lockers/handlers.go:150: the handler lockers.Server.serviceLocker of POST /lockers/{id}/service reaches its end at line 150 on a path that writes no response. What does a caller get on that path? Decided by system-owner. Answer with a decision record that names Q-36 under answers. [Q-36]
+  Q-36:
     question: 'lockers/handlers.go:150: the handler lockers.Server.serviceLocker of POST /lockers/{id}/service reaches its end at line 150 on a path that writes no response. What does a caller get on that path?'
     kind: decision
     priority: should
@@ -304,8 +330,8 @@ questions:
     why: A path that answers nothing leaves the caller with whatever the framework writes by default, which the specification does not say.
     cites:
       - {source: code, clause: 'lockers/handlers.go:150', says: Reaches its end with no response written.}
-  # specarch-problem: question: open_question: (should, decision, suspected) lockers/handlers.go:38: the handler lockers.Server.storeParcel of POST /parcels writes parcels: INSERT INTO parcels (code, locker_id, state) VALUES ($1, $2, 'stored') at line 38 and writes lockers: UPDATE lockers SET state = 'full' WHERE id = $1 at lockers/handlers.go:43 with no transaction around them, so a failure of the second leaves the first in place. Must they succeed together? Decided by system-owner. Answer with a decision record that names Q-34 under answers. [Q-34]
-  Q-34:
+  # specarch-problem: question: open_question: (should, decision, suspected) lockers/handlers.go:38: the handler lockers.Server.storeParcel of POST /parcels writes parcels: INSERT INTO parcels (code, locker_id, state) VALUES ($1, $2, 'stored') at line 38 and writes lockers: UPDATE lockers SET state = 'full' WHERE id = $1 at lockers/handlers.go:43 with no transaction around them, so a failure of the second leaves the first in place. Must they succeed together? Decided by system-owner. Answer with a decision record that names Q-37 under answers. [Q-37]
+  Q-37:
     question: 'lockers/handlers.go:38: the handler lockers.Server.storeParcel of POST /parcels writes parcels: INSERT INTO parcels (code, locker_id, state) VALUES ($1, $2, ''stored'') at line 38 and writes lockers: UPDATE lockers SET state = ''full'' WHERE id = $1 at lockers/handlers.go:43 with no transaction around them, so a failure of the second leaves the first in place. Must they succeed together?'
     kind: decision
     priority: should
@@ -315,8 +341,19 @@ questions:
     why: Two writes outside a transaction can leave the data half changed when the second fails.
     cites:
       - {source: code, clause: 'lockers/handlers.go:38', says: Writes twice with no transaction.}
-  # specarch-problem: question: open_question: (should, decision, certain) lockers/handlers.go:63: the handler lockers.Server.collectParcel of POST /parcels/{code}/collect writes parcels: UPDATE parcels SET state = 'collected' WHERE code = $1 at line 63 after it answers with JSON at line 62, in lockers.Server.collectParcel; a failure of the write can no longer change the answer. Is the order meant? Decided by system-owner. Answer with a decision record that names Q-35 under answers. [Q-35]
-  Q-35:
+  # specarch-problem: question: open_question: (should, decision, suspected) lockers/handlers.go:206: the handler lockers.Server.showParcel of GET /parcels/{code} returns at line 206 on a path that writes no response. What does a caller get on that path? Decided by system-owner. Answer with a decision record that names Q-38 under answers. [Q-38]
+  Q-38:
+    question: 'lockers/handlers.go:206: the handler lockers.Server.showParcel of GET /parcels/{code} returns at line 206 on a path that writes no response. What does a caller get on that path?'
+    kind: decision
+    priority: should
+    certainty: suspected
+    blocks: ['#/paths/~1parcels~1{code}/get']
+    decidedBy: system-owner
+    why: A path that answers nothing leaves the caller with whatever the framework writes by default, which the specification does not say.
+    cites:
+      - {source: code, clause: 'lockers/handlers.go:206', says: Returns with no response written.}
+  # specarch-problem: question: open_question: (should, decision, certain) lockers/handlers.go:63: the handler lockers.Server.collectParcel of POST /parcels/{code}/collect writes parcels: UPDATE parcels SET state = 'collected' WHERE code = $1 at line 63 after it answers with JSON at line 62, in lockers.Server.collectParcel; a failure of the write can no longer change the answer. Is the order meant? Decided by system-owner. Answer with a decision record that names Q-39 under answers. [Q-39]
+  Q-39:
     question: 'lockers/handlers.go:63: the handler lockers.Server.collectParcel of POST /parcels/{code}/collect writes parcels: UPDATE parcels SET state = ''collected'' WHERE code = $1 at line 63 after it answers with JSON at line 62, in lockers.Server.collectParcel; a failure of the write can no longer change the answer. Is the order meant?'
     kind: decision
     priority: should
@@ -326,8 +363,8 @@ questions:
     why: A write after the response is sent fails silently for the caller, who was already told the request succeeded.
     cites:
       - {source: code, clause: 'lockers/handlers.go:63', says: Writes after the response.}
-  # specarch-problem: question: open_question: (should, decision, suspected) lockers/handlers.go:63: the handler lockers.Server.collectParcel of POST /parcels/{code}/collect writes parcels: UPDATE parcels SET state = 'collected' WHERE code = $1 and runs no middleware and checks no permission, while other operations run s.Require. Should a caller be checked before it writes? Decided by system-owner. Answer with a decision record that names Q-36 under answers. [Q-36]
-  Q-36:
+  # specarch-problem: question: open_question: (should, decision, suspected) lockers/handlers.go:63: the handler lockers.Server.collectParcel of POST /parcels/{code}/collect writes parcels: UPDATE parcels SET state = 'collected' WHERE code = $1 and runs no middleware and checks no permission, while other operations run s.Require. Should a caller be checked before it writes? Decided by system-owner. Answer with a decision record that names Q-40 under answers. [Q-40]
+  Q-40:
     question: 'lockers/handlers.go:63: the handler lockers.Server.collectParcel of POST /parcels/{code}/collect writes parcels: UPDATE parcels SET state = ''collected'' WHERE code = $1 and runs no middleware and checks no permission, while other operations run s.Require. Should a caller be checked before it writes?'
     kind: decision
     priority: should

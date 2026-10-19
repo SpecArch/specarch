@@ -123,6 +123,9 @@ func (s *goStep) node() *yaml.Node {
 		if s.function != "" {
 			set(n, "function", s.function)
 		}
+		if s.reached != "" {
+			set(n, "reached", s.reached)
+		}
 		if s.stopped != "" {
 			set(n, "stopped", s.stopped)
 		}

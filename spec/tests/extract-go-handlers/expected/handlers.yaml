@@ -1,5 +1,5 @@
 # The mappings specarch extract go read from the Go source under . at commit
-# 674562665a5c819a9d71e7dae0074ddc18f6a4d4: each operation's handler, and for
+# 4333d50a28e2374b45920c7f352e3a77fc84f5e2: each operation's handler, and for
 # each handler followed its logic step by step and its source, function by
 # function. They go under mappings in an implementation file of the
 # specification; each cites the source code.
@@ -7,7 +7,7 @@ mappings:
   '#/paths/~1health/get':
     target: lockers.Server.health
     handler:
-      commit: 674562665a5c819a9d71e7dae0074ddc18f6a4d4
+      commit: 4333d50a28e2374b45920c7f352e3a77fc84f5e2
       depth: 3
       functions:
         - name: lockers.Server.health
@@ -32,7 +32,7 @@ mappings:
   '#/paths/~1lockers~1sweep/post':
     target: lockers.Server.sweepLockers
     handler:
-      commit: 674562665a5c819a9d71e7dae0074ddc18f6a4d4
+      commit: 4333d50a28e2374b45920c7f352e3a77fc84f5e2
       depth: 3
       functions:
         - name: lockers.Server.sweepLockers
@@ -430,7 +430,7 @@ mappings:
   '#/paths/~1lockers~1{id}~1report/get':
     target: lockers.Server.reportLocker
     handler:
-      commit: 674562665a5c819a9d71e7dae0074ddc18f6a4d4
+      commit: 4333d50a28e2374b45920c7f352e3a77fc84f5e2
       depth: 3
       functions:
         - name: lockers.Server.reportLocker
@@ -511,7 +511,7 @@ mappings:
   '#/paths/~1lockers~1{id}~1service/post':
     target: lockers.Server.serviceLocker
     handler:
-      commit: 674562665a5c819a9d71e7dae0074ddc18f6a4d4
+      commit: 4333d50a28e2374b45920c7f352e3a77fc84f5e2
       depth: 3
       functions:
         - name: lockers.Server.serviceLocker
@@ -656,7 +656,7 @@ mappings:
   '#/paths/~1parcels/get':
     target: lockers.Server.listParcels
     handler:
-      commit: 674562665a5c819a9d71e7dae0074ddc18f6a4d4
+      commit: 4333d50a28e2374b45920c7f352e3a77fc84f5e2
       depth: 3
       functions:
         - name: lockers.Server.listParcels
@@ -786,6 +786,7 @@ mappings:
               firstLine: 190
               lastLine: 190
               function: a function literal at lockers/handlers.go:190
+              reached: passed
             - id: s18
               kind: response
               text: answers with JSON
@@ -848,7 +849,7 @@ mappings:
   '#/paths/~1parcels/post':
     target: lockers.Server.storeParcel
     handler:
-      commit: 674562665a5c819a9d71e7dae0074ddc18f6a4d4
+      commit: 4333d50a28e2374b45920c7f352e3a77fc84f5e2
       depth: 3
       functions:
         - name: lockers.Server.storeParcel
@@ -1134,10 +1135,234 @@ mappings:
     origin: stated
     cites:
       - {source: code, clause: 'lockers/handlers.go:21', says: 'The handler of POST /parcels, followed into 5 functions.'}
+  '#/paths/~1parcels~1{code}/get':
+    target: lockers.Server.showParcel
+    handler:
+      commit: 4333d50a28e2374b45920c7f352e3a77fc84f5e2
+      depth: 3
+      functions:
+        - name: lockers.Server.showParcel
+          file: lockers/handlers.go
+          firstLine: 194
+          lastLine: 235
+          steps:
+            - id: s1
+              kind: call
+              text: defines a function literal at lockers/handlers.go:198
+              file: lockers/handlers.go
+              firstLine: 198
+              lastLine: 198
+              function: a function literal at lockers/handlers.go:198
+              reached: defined
+            - id: s2
+              kind: input
+              text: reads the path parameter code
+              file: lockers/handlers.go
+              firstLine: 199
+              lastLine: 199
+              parameter: code
+            - id: s3
+              kind: branch
+              text: if code == ""
+              file: lockers/handlers.go
+              firstLine: 200
+              lastLine: 203
+              then:
+                - id: s4
+                  kind: call
+                  text: calls refuse("code is missing", http.StatusBadRequest)
+                  file: lockers/handlers.go
+                  firstLine: 201
+                  lastLine: 201
+                  function: a function literal at lockers/handlers.go:198
+                  reached: called
+                - id: s5
+                  kind: return
+                  text: returns
+                  file: lockers/handlers.go
+                  firstLine: 202
+                  lastLine: 202
+            - id: s6
+              kind: database
+              text: 'reads parcels: SELECT state FROM parcels WHERE code = $1'
+              file: lockers/handlers.go
+              firstLine: 204
+              lastLine: 204
+              table: parcels
+              access: read
+            - id: s7
+              kind: branch
+              text: if err != nil
+              file: lockers/handlers.go
+              firstLine: 205
+              lastLine: 207
+              then:
+                - id: s8
+                  kind: return
+                  text: returns
+                  file: lockers/handlers.go
+                  firstLine: 206
+                  lastLine: 206
+            - id: s9
+              kind: statement
+              text: defers rows.Close()
+              file: lockers/handlers.go
+              firstLine: 208
+              lastLine: 208
+            - id: s10
+              kind: branch
+              text: if rows.Next()
+              file: lockers/handlers.go
+              firstLine: 211
+              lastLine: 223
+              then:
+                - id: s11
+                  kind: branch
+                  text: if err != nil
+                  file: lockers/handlers.go
+                  firstLine: 213
+                  lastLine: 216
+                  then:
+                    - id: s12
+                      kind: call
+                      text: calls refuse(err.Error(), http.StatusInternalServerError)
+                      file: lockers/handlers.go
+                      firstLine: 214
+                      lastLine: 214
+                      function: a function literal at lockers/handlers.go:198
+                      reached: called
+                    - id: s13
+                      kind: return
+                      text: returns
+                      file: lockers/handlers.go
+                      firstLine: 215
+                      lastLine: 215
+                - id: s14
+                  kind: loop
+                  text: for each known of []string{"stored", "held", "collected"}
+                  file: lockers/handlers.go
+                  firstLine: 217
+                  lastLine: 221
+                  body:
+                    - id: s15
+                      kind: branch
+                      text: if state == known
+                      file: lockers/handlers.go
+                      firstLine: 218
+                      lastLine: 220
+                      then: []
+                - id: s16
+                  kind: statement
+                  text: goes to collect
+                  file: lockers/handlers.go
+                  firstLine: 222
+                  lastLine: 222
+            - id: s17
+              kind: choice
+              text: switch
+              file: lockers/handlers.go
+              firstLine: 224
+              lastLine: 234
+              cases:
+                - when: len(states) == 0
+                  steps:
+                    - id: s18
+                      kind: call
+                      text: calls refuse("no parcel has that code", http.StatusNotFound)
+                      file: lockers/handlers.go
+                      firstLine: 226
+                      lastLine: 226
+                      function: a function literal at lockers/handlers.go:198
+                      reached: called
+                - when: states[0] == "held"
+                  steps:
+                    - id: s19
+                      kind: statement
+                      text: falls through to the next case
+                      file: lockers/handlers.go
+                      firstLine: 229
+                      lastLine: 229
+                - when: states[0] == "stored"
+                  steps:
+                    - id: s20
+                      kind: response
+                      text: answers with JSON
+                      file: lockers/handlers.go
+                      firstLine: 231
+                      lastLine: 231
+                - when: otherwise
+                  steps:
+                    - id: s21
+                      kind: call
+                      text: calls refuse("a parcel in no known state", http.StatusInternalServerError)
+                      file: lockers/handlers.go
+                      firstLine: 233
+                      lastLine: 233
+                      function: a function literal at lockers/handlers.go:198
+                      reached: called
+          source: |-
+            // showParcel answers one parcel by its code, saying in a header when it is
+            // held; a parcel in no known state is refused. A query that fails is left
+            // to the framework's default answer.
+            func (s *Server) showParcel(w http.ResponseWriter, r *http.Request) {
+            	refuse := func(reason string, status int) { http.Error(w, reason, status) }
+            	code := r.PathValue("code")
+            	if code == "" {
+            		refuse("code is missing", http.StatusBadRequest)
+            		return
+            	}
+            	rows, err := s.db.Query("SELECT state FROM parcels WHERE code = $1", code)
+            	if err != nil {
+            		return
+            	}
+            	defer rows.Close()
+            	var states []string
+            collect:
+            	if rows.Next() {
+            		var state string
+            		if err := rows.Scan(&state); err != nil {
+            			refuse(err.Error(), http.StatusInternalServerError)
+            			return
+            		}
+            		for _, known := range []string{"stored", "held", "collected"} {
+            			if state == known {
+            				states = append(states, state)
+            			}
+            		}
+            		goto collect
+            	}
+            	switch {
+            	case len(states) == 0:
+            		refuse("no parcel has that code", http.StatusNotFound)
+            	case states[0] == "held":
+            		w.Header().Set("X-Parcel-Held", "true")
+            		fallthrough
+            	case states[0] == "stored":
+            		json.NewEncoder(w).Encode(map[string]string{"code": code, "state": states[0]})
+            	default:
+            		refuse("a parcel in no known state", http.StatusInternalServerError)
+            	}
+            }
+        - name: a function literal at lockers/handlers.go:198
+          file: lockers/handlers.go
+          firstLine: 198
+          lastLine: 198
+          steps:
+            - id: s22
+              kind: response
+              text: answers a status that is not a literal
+              file: lockers/handlers.go
+              firstLine: 198
+              lastLine: 198
+          source: |-
+            refuse := func(reason string, status int) { http.Error(w, reason, status) }
+    origin: stated
+    cites:
+      - {source: code, clause: 'lockers/handlers.go:194', says: 'The handler of GET /parcels/{code}, followed into 2 functions.'}
   '#/paths/~1parcels~1{code}~1collect/post':
     target: lockers.Server.collectParcel
     handler:
-      commit: 674562665a5c819a9d71e7dae0074ddc18f6a4d4
+      commit: 4333d50a28e2374b45920c7f352e3a77fc84f5e2
       depth: 3
       functions:
         - name: lockers.Server.collectParcel

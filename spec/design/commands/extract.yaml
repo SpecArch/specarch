@@ -645,7 +645,9 @@ commands:
         function literal as a function of its own one call deeper, with
         the names of the function it is written in, whether it is
         called where it is written, passed to a call or defined for
-        later, and each function reached is recorded once
+        later (`reached`); a call of a local name a literal was
+        assigned to is a call of that literal, and the definition
+        itself runs nothing; and each function reached is recorded once
         with its name, file, lines, steps and source as it was at the
         commit; a call not followed says why on its step (a function
         value, an interface's method, a method of a value whose type

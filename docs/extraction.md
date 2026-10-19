@@ -616,8 +616,13 @@ changes `extract.yaml` first.
     the module is followed to three calls deep and at most forty
     functions a record, a method when the receiver's type is known by
     syntax, a function literal as a function of its own one call deeper
-    (called where it is written, passed to a call or defined for later),
-    and a call not followed says why on its step. The record goes under the operation's mapping in the
+    (called where it is written, passed to a call or defined for later,
+    which its step's `reached` says; a call of the local name a literal
+    is assigned to is a call of that literal, and the definition itself
+    runs nothing), and a call not followed says why on its step. A label
+    is a loop's or a choice's own only when it is on one; on a block or
+    an if it is a goto's target alone. A case that falls through leads
+    into the next case. The record goes under the operation's mapping in the
     implementation fragment `--implementation-out` writes, which go now
     takes as database does: the commit, the depth and the functions, each
     with its name, file, lines, steps and source as it was at the commit,

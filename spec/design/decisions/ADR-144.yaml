@@ -43,13 +43,22 @@ decisions:
       fallthrough). A break leaves the innermost loop, switch or select,
       or the statement its label names, as Go's own rule has it, and the
       step says which; a labelled loop or choice carries its label, so
-      the chart draws the exit to the right statement. A function
-      literal is a function of its own, one call deeper, reached by a
-      call step that says whether it is called where it is written,
-      passed to a call or defined for later: its returns are its own,
-      so a closure passed to a sort or a transaction helper does not end
-      the handler's chart. It is read with the names of the function it
-      is written in, since a closure sees them. Steps nest as the
+      the chart draws the exit to the right statement, and a label on a
+      block or an if is a goto's target alone, not the inner loop's. A
+      case that falls through leads into the next case, in the chart and
+      in the checks, not past the switch. A function literal is a
+      function of its own, one call deeper, reached by a call step whose
+      reached key says whether it is called where it is written, passed
+      to a call or defined for later: its returns are its own, so a
+      closure passed to a sort or a transaction helper does not end the
+      handler's chart. A literal defined for later runs nothing where it
+      is written, so the checks count what it does at the call of the
+      name it is assigned to, which is a call step of that literal; a
+      literal passed to a call counts as run by it, since a sort, a
+      transaction helper or an error group runs it before returning,
+      and a literal a go statement or a timer runs later is the named
+      exception, left as it is. It is read with the names of the
+      function it is written in, since a closure sees them. Steps nest as the
       code does rather than naming each other, so the record reads like
       the code, a diff of it is a diff of lines, and nobody invents node
       ids; each step's id is s and its number in the order written, the

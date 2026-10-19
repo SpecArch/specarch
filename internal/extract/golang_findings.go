@@ -195,7 +195,7 @@ func (f *goFunction) readsAnything() bool {
 		case "input", "database", "external":
 			reads = true
 		case "call":
-			if s.function != "" {
+			if s.function != "" && s.reached != "defined" {
 				reads = true
 			}
 		}
@@ -350,6 +350,12 @@ func (h *goHandler) flow(steps []*goStep, states []flowState, asked map[*goStep]
 			case "response":
 				st.responded = true
 			case "call":
+				// A function literal defined for a later call runs nothing
+				// here: what it does counts at the call of the name it is
+				// assigned to.
+				if s.reached == "defined" {
+					break
+				}
 				switch {
 				case s.function != "" && h.functionResponds(s.function):
 					st.responded = true
@@ -384,11 +390,21 @@ func (h *goHandler) flow(steps []*goStep, states []flowState, asked map[*goStep]
 				next = append(next, updated...)
 			}
 		case "choice":
+			// A case that falls through carries its states into the next
+			// case rather than to the end of the switch.
 			hasOtherwise := false
+			var carried []flowState
 			for _, c := range s.cases {
 				hasOtherwise = hasOtherwise || c.when == "otherwise"
-				next = append(next, h.flow(c.steps, updated, asked)...)
+				ends := h.flow(c.steps, dedupeStates(append(append([]flowState{}, updated...), carried...)), asked)
+				if fallsThrough(c.steps) {
+					carried = ends
+					continue
+				}
+				next = append(next, ends...)
+				carried = nil
 			}
+			next = append(next, carried...)
 			if !hasOtherwise {
 				next = append(next, updated...)
 			}
@@ -401,6 +417,16 @@ func (h *goHandler) flow(steps []*goStep, states []flowState, asked map[*goStep]
 		states = dedupeStates(next)
 	}
 	return states
+}
+
+// fallsThrough says whether a case's steps end in a fallthrough, which Go
+// allows only as the last statement of a case.
+func fallsThrough(steps []*goStep) bool {
+	if len(steps) == 0 {
+		return false
+	}
+	last := steps[len(steps)-1]
+	return last.kind == "statement" && last.text == "falls through to the next case"
 }
 
 func dedupeStates(states []flowState) []flowState {
@@ -431,7 +457,7 @@ func (h *goHandler) functionResponds(name string) bool {
 			}
 			found := false
 			walkSteps(f.steps, nil, func(s *goStep, _ []*goStep) {
-				if s.kind == "response" || s.kind == "call" && s.function != "" && responds(s.function) {
+				if s.kind == "response" || s.kind == "call" && s.function != "" && s.reached != "defined" && responds(s.function) {
 					found = true
 				}
 			})

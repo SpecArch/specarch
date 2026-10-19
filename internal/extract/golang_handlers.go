@@ -36,6 +36,7 @@ type goStep struct {
 	table, access  string
 	transaction    bool
 	function       string
+	reached        string // for a call of a function literal: called where it is written, passed to a call, or defined for a later call
 	stopped        string
 	dependency     string
 	status         int
@@ -96,10 +97,14 @@ type fnScope struct {
 	types   map[string]string // a local name -> its type key, importpath.Type
 	outside map[string]bool   // a local name -> it holds a value of a type outside the module
 	tx      map[string]bool   // a local name -> it holds a transaction
-	request string            // the request parameter, dxlib's or net/http's
-	writer  string            // net/http's response writer
-	context string            // gin's or echo's context
-	given   []string          // the names a call is given to count as given the request
+	// A local name -> the function literal assigned to it, so that a call
+	// of the name is a call of the literal; nil when the literal was not
+	// followed.
+	literals map[string]*goFunction
+	request  string   // the request parameter, dxlib's or net/http's
+	writer   string   // net/http's response writer
+	context  string   // gin's or echo's context
+	given    []string // the names a call is given to count as given the request
 	// The statements a break may leave, innermost last: a loop, a switch
 	// or a select, each with its label when the code gives it one.
 	breakable []goBreakable
@@ -247,10 +252,13 @@ func (h *goHandler) followWith(f *goFile, fd *ast.FuncDecl, lit *ast.FuncLit, de
 	fn.source = sourceLines(f, fn.first, fn.last)
 	h.byDecl[key] = fn
 	h.functions = append(h.functions, fn)
-	sc := &fnScope{h: h, fn: fn, file: f, types: map[string]string{}, outside: map[string]bool{}, tx: map[string]bool{}}
+	sc := &fnScope{h: h, fn: fn, file: f, types: map[string]string{}, outside: map[string]bool{}, tx: map[string]bool{}, literals: map[string]*goFunction{}}
 	if parent != nil {
 		for k, v := range parent.types {
 			sc.types[k] = v
+		}
+		for k, v := range parent.literals {
+			sc.literals[k] = v
 		}
 		for k, v := range parent.outside {
 			sc.outside[k] = v
@@ -433,8 +441,11 @@ func (sc *fnScope) statement(st ast.Stmt) []*goStep {
 		if gd, ok := st.Decl.(*ast.GenDecl); ok {
 			for _, s := range gd.Specs {
 				if vs, ok := s.(*ast.ValueSpec); ok {
-					for _, v := range vs.Values {
+					for i, v := range vs.Values {
 						out = append(out, sc.expression(v)...)
+						if lit, ok := v.(*ast.FuncLit); ok && i < len(vs.Names) {
+							sc.bindLiteral(vs.Names[i].Name, lit)
+						}
 					}
 					if vs.Type != nil {
 						for _, n := range vs.Names {
@@ -558,7 +569,13 @@ func (sc *fnScope) statement(st ast.Stmt) []*goStep {
 	case *ast.BlockStmt:
 		out = sc.block(st.List)
 	case *ast.LabeledStmt:
-		sc.label = st.Label.Name
+		// The label is the statement's own only on a loop, a switch or a
+		// select, which a break or a continue may name; on a block or an
+		// if it is a goto's target alone, and the loop inside is unlabelled.
+		switch st.Stmt.(type) {
+		case *ast.ForStmt, *ast.RangeStmt, *ast.SwitchStmt, *ast.TypeSwitchStmt, *ast.SelectStmt:
+			sc.label = st.Label.Name
+		}
 		out = sc.statement(st.Stmt)
 		sc.label = ""
 	case *ast.BranchStmt:
@@ -693,6 +710,11 @@ func (sc *fnScope) noteValue(name string, e ast.Expr, i int) {
 	if name == "_" {
 		return
 	}
+	delete(sc.literals, name)
+	if lit, ok := e.(*ast.FuncLit); ok {
+		sc.bindLiteral(name, lit)
+		return
+	}
 	g := sc.h.g
 	if t := g.valueType(sc.file, e); t != "" {
 		sc.bindKey(name, t)
@@ -739,6 +761,17 @@ func (sc *fnScope) noteValue(name string, e ast.Expr, i int) {
 	// A value a call outside the module gives, or one the reader does not
 	// place: its methods are not followed either way.
 	sc.outside[name] = true
+}
+
+// bindLiteral notes that a local name holds a function literal, read
+// already as a function of its own when its step was made, so that a call
+// of the name is a call of that function; a literal not followed is noted
+// as such.
+func (sc *fnScope) bindLiteral(name string, lit *ast.FuncLit) {
+	if name == "_" || name == "" {
+		return
+	}
+	sc.literals[name] = sc.h.byDecl[lit]
 }
 
 // bindKey notes a local name's type by its key.
@@ -841,6 +874,7 @@ func (sc *fnScope) literalStep(lit *ast.FuncLit, verb string, to ...string) *goS
 		text += " to " + to[0]
 	}
 	s := sc.step("call", lit, text)
+	s.reached = map[string]string{"calls": "called", "passes": "passed", "defines": "defined"}[verb]
 	if fn := h.byDecl[lit]; fn != nil {
 		s.function = fn.name
 		return s
@@ -1124,6 +1158,18 @@ func (sc *fnScope) call(call *ast.CallExpr) *goStep {
 			return sc.step("statement", call, "panics: "+sc.argsText(call))
 		case builtinFuncs[fn.Name]:
 			return nil
+		}
+		if lit, ok := sc.literals[fn.Name]; ok {
+			// A call of a local the code assigned a function literal: the
+			// literal runs here, so this step carries it, not the definition.
+			s := sc.step("call", call, "calls "+sc.text(call, call))
+			s.reached, s.call = "called", call
+			if lit != nil {
+				s.function = lit.name
+			} else {
+				s.stopped, s.givenRequest = "the function literal assigned to "+fn.Name+", which was not followed", len(sc.given) > 0
+			}
+			return s
 		}
 		if fd, cf := sc.callee(call); fd != nil {
 			return sc.callStep(call, fd, cf)

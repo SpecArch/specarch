@@ -5,21 +5,22 @@ repository:
     - [.]
 exitStatus: 0
 standardOutput: |
-  commit 674562665a5c819a9d71e7dae0074ddc18f6a4d4: the last change to .
+  commit 4333d50a28e2374b45920c7f352e3a77fc84f5e2: the last change to .
   counted 3 Go files, 0 of them importing dxlib's api package and 0 that do not parse, and left out 0: every tracked Go file under . but test files and files in a folder below it named testdata or vendor, or that the go command ignores
   checks: implementation/lockers.go.specarch-implementation.yaml names the permission check example.com/lockers/lockers.Server.Require
   clients: counted 2 calls: every call of net/http's Get, Head, Post, PostForm, NewRequest and NewRequestWithContext
-  routers: counted 7 registrations: every call that registers a route on a router of net/http, chi, gin, echo or gorilla/mux that the reader follows from where it is made, with its groups, mounts and subrouters
-  routes: wrote 7 operations: one operation per route a router of net/http, chi, gin, echo or gorilla/mux registers with a literal method and path, outside a loop or a condition, under a prefix the reader knows
-  wrote 5 permissions and 26 questions: one permission per name a route checks with a literal, one question per thing the source does not say, and one per thing the meta-model cannot hold
-  handlers: followed 7 of 7 handlers into 22 functions, to 3 calls deep, and left 7 calls not followed: the handler of each operation, where it is a function literal, a function of the same package or one of another package of the module, and each function of the module its steps call
-  handlers: compared with the records of implementation/lockers.go.specarch-implementation.yaml: 0 unchanged, 0 changed, 7 not recorded there, 0 recorded there and not read now
-  wrote 7 handler records into the implementation fragment, with 22 functions
+  routers: counted 8 registrations: every call that registers a route on a router of net/http, chi, gin, echo or gorilla/mux that the reader follows from where it is made, with its groups, mounts and subrouters
+  routes: wrote 8 operations: one operation per route a router of net/http, chi, gin, echo or gorilla/mux registers with a literal method and path, outside a loop or a condition, under a prefix the reader knows
+  wrote 5 permissions and 29 questions: one permission per name a route checks with a literal, one question per thing the source does not say, and one per thing the meta-model cannot hold
+  handlers: followed 8 of 8 handlers into 24 functions, to 3 calls deep, and left 7 calls not followed: the handler of each operation, where it is a function literal, a function of the same package or one of another package of the module, and each function of the module its steps call
+  handlers: compared with the records of implementation/lockers.go.specarch-implementation.yaml: 0 unchanged, 0 changed, 8 not recorded there, 0 recorded there and not read now
+  wrote 8 handler records into the implementation fragment, with 24 functions
   derived 0 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers
-  not derived: 1 draft test for operation health, held up by Q-1, Q-2, Q-3, Q-31; the validator warns for them until the questions are answered
-  not derived: 2 draft tests for operation sweepLockers, held up by Q-27, Q-4, Q-5; the validator warns for them until the questions are answered
-  not derived: 5 draft tests for operation reportLocker, held up by Q-28, Q-6, Q-7, Q-8; the validator warns for them until the questions are answered
-  not derived: 3 draft tests for operation serviceLocker, held up by Q-10, Q-11, Q-27, Q-29, Q-30, Q-32, Q-33, Q-9; the validator warns for them until the questions are answered
-  not derived: 2 draft tests for operation listParcels, held up by Q-12, Q-13, Q-14, Q-15, Q-16, Q-17, Q-27, Q-34; the validator warns for them until the questions are answered
-  not derived: 2 draft tests for operation storeParcel, held up by Q-12, Q-13, Q-14, Q-15, Q-16, Q-17, Q-27, Q-34; the validator warns for them until the questions are answered
-  not derived: 2 draft tests for operation collectParcel, held up by Q-18, Q-19, Q-20, Q-21, Q-35, Q-36; the validator warns for them until the questions are answered
+  not derived: 1 draft test for operation health, held up by Q-1, Q-2, Q-3, Q-34; the validator warns for them until the questions are answered
+  not derived: 2 draft tests for operation sweepLockers, held up by Q-30, Q-4, Q-5; the validator warns for them until the questions are answered
+  not derived: 5 draft tests for operation reportLocker, held up by Q-31, Q-6, Q-7, Q-8; the validator warns for them until the questions are answered
+  not derived: 3 draft tests for operation serviceLocker, held up by Q-10, Q-11, Q-30, Q-32, Q-33, Q-35, Q-36, Q-9; the validator warns for them until the questions are answered
+  not derived: 2 draft tests for operation listParcels, held up by Q-12, Q-13, Q-14, Q-15, Q-16, Q-17, Q-30, Q-37; the validator warns for them until the questions are answered
+  not derived: 2 draft tests for operation storeParcel, held up by Q-12, Q-13, Q-14, Q-15, Q-16, Q-17, Q-30, Q-37; the validator warns for them until the questions are answered
+  not derived: 3 draft tests for operation showParcel, held up by Q-18, Q-19, Q-20, Q-38; the validator warns for them until the questions are answered
+  not derived: 2 draft tests for operation collectParcel, held up by Q-21, Q-22, Q-23, Q-24, Q-39, Q-40; the validator warns for them until the questions are answered

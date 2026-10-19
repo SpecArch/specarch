@@ -25,6 +25,7 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("POST /lockers/{id}/service", s.Require("lockers.service", s.serviceLocker))
 	mux.HandleFunc("GET /health", s.health)
 	mux.HandleFunc("GET /parcels", s.Require("parcels.list", s.listParcels))
+	mux.HandleFunc("GET /parcels/{code}", s.Require("parcels.list", s.showParcel))
 	return mux
 }
 

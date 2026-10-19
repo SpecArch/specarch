@@ -168,6 +168,9 @@ func (d *doc) known(n *yaml.Node, key, what string, tokens ...string) string {
 }
 
 func (q question) label() string {
+	if c := str(q.node, "certainty"); c != "" {
+		return fmt.Sprintf("%s (%s, %s, %s)", q.id, q.priority, str(q.node, "kind"), c)
+	}
 	return fmt.Sprintf("%s (%s, %s)", q.id, q.priority, str(q.node, "kind"))
 }
 

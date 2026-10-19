@@ -113,3 +113,47 @@ questions:
     blocks: ['#/permissions/loans.read', '#/permissions/loans.write', '#/permissions/members.read']
     decidedBy: system-owner
     why: The source names the privilege an endpoint checks and not who holds it.
+  # specarch-problem: question: open_question: (should, decision, suspected) desk/server.go:61: the handler desk.Server.listLoans of GET /loans does nothing: its body has no step. Is it a stub, with the operation not built yet? Decided by system-owner. Answer with a decision record that names Q-14 under answers. [Q-14]
+  Q-14:
+    question: 'desk/server.go:61: the handler desk.Server.listLoans of GET /loans does nothing: its body has no step. Is it a stub, with the operation not built yet?'
+    kind: decision
+    priority: should
+    certainty: suspected
+    blocks: ['#/paths/~1loans/get']
+    decidedBy: system-owner
+    why: A handler that does nothing answers every request the same way, whatever the specification says the operation does.
+    cites:
+      - {source: code, clause: 'desk/server.go:61', says: The body holds no step but a return.}
+  # specarch-problem: question: open_question: (should, decision, suspected) desk/server.go:63: the handler desk.Server.lendBook of POST /loans does nothing: its body has no step. Is it a stub, with the operation not built yet? Decided by system-owner. Answer with a decision record that names Q-15 under answers. [Q-15]
+  Q-15:
+    question: 'desk/server.go:63: the handler desk.Server.lendBook of POST /loans does nothing: its body has no step. Is it a stub, with the operation not built yet?'
+    kind: decision
+    priority: should
+    certainty: suspected
+    blocks: ['#/paths/~1loans/post']
+    decidedBy: system-owner
+    why: A handler that does nothing answers every request the same way, whatever the specification says the operation does.
+    cites:
+      - {source: code, clause: 'desk/server.go:63', says: The body holds no step but a return.}
+  # specarch-problem: question: open_question: (should, decision, suspected) desk/server.go:67: the handler desk.Server.showMember of GET /members/{cardNumber} reaches its end at line 67 on a path that writes no response. What does a caller get on that path? Decided by system-owner. Answer with a decision record that names Q-16 under answers. [Q-16]
+  Q-16:
+    question: 'desk/server.go:67: the handler desk.Server.showMember of GET /members/{cardNumber} reaches its end at line 67 on a path that writes no response. What does a caller get on that path?'
+    kind: decision
+    priority: should
+    certainty: suspected
+    blocks: ['#/paths/~1members~1{cardNumber}/get']
+    decidedBy: system-owner
+    why: A path that answers nothing leaves the caller with whatever the framework writes by default, which the specification does not say.
+    cites:
+      - {source: code, clause: 'desk/server.go:67', says: Reaches its end with no response written.}
+  # specarch-problem: question: open_question: (should, decision, suspected) desk/server.go:69: the handler desk.Server.status of GET /status does nothing: its body has no step. Is it a stub, with the operation not built yet? Decided by system-owner. Answer with a decision record that names Q-17 under answers. [Q-17]
+  Q-17:
+    question: 'desk/server.go:69: the handler desk.Server.status of GET /status does nothing: its body has no step. Is it a stub, with the operation not built yet?'
+    kind: decision
+    priority: should
+    certainty: suspected
+    blocks: ['#/paths/~1status/get']
+    decidedBy: system-owner
+    why: A handler that does nothing answers every request the same way, whatever the specification says the operation does.
+    cites:
+      - {source: code, clause: 'desk/server.go:69', says: The body holds no step but a return.}

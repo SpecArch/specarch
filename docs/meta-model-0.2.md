@@ -228,6 +228,12 @@ a JSON column, back as the field (ADR-077).
 - A requirement's target release: `release`, a version that a release record
   exists for or is planned, so a scope split into a first and a later
   release is written in the requirement and the test plan can group by it.
+- A question's `certainty`, `certain` or `suspected`, on a question a
+  reader asks about code it checked against the specification (ADR-139),
+  so that a fault is told from a suspicion without reading the sentence.
+  The implementation file, for its part, gains the handler record under a
+  mapping: what an operation's handler does, step by step, with its
+  source.
 
 ### A name on the wire
 

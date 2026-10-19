@@ -73,7 +73,7 @@ func Show(aepr *api.DXAPIEndPointRequest) (err error) {
 }
 `,
 	})
-	res, err := Go([]string{dir}, filepath.Join(t.TempDir(), "out"), "code", "")
+	res, err := Go([]string{dir}, filepath.Join(t.TempDir(), "out"), "code", "", false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -125,7 +125,7 @@ func TestPrivilegePermission(t *testing.T) {
 func goRouterOperations(t *testing.T, files map[string]string) (string, string) {
 	t.Helper()
 	dir := goModuleRepository(t, files)
-	res, err := Go([]string{dir}, filepath.Join(t.TempDir(), "out"), "code", "")
+	res, err := Go([]string{dir}, filepath.Join(t.TempDir(), "out"), "code", "", false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -711,7 +711,7 @@ func main() {
 }
 `,
 			})
-			res, err := Go([]string{dir}, filepath.Join(t.TempDir(), "out"), "code", "")
+			res, err := Go([]string{dir}, filepath.Join(t.TempDir(), "out"), "code", "", false)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -786,7 +786,7 @@ func stray(g *gin.RouterGroup) { g.DELETE("/stray", list) }
 func list(c *gin.Context) {}
 `,
 	})
-	res, err := Go([]string{dir}, filepath.Join(t.TempDir(), "out"), "code", "")
+	res, err := Go([]string{dir}, filepath.Join(t.TempDir(), "out"), "code", "", false)
 	if err != nil {
 		t.Fatal(err)
 	}

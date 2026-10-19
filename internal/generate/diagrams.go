@@ -475,3 +475,194 @@ func callLabel(c string) string {
 	}
 	return dep + " " + strings.ToUpper(tokens[2]) + " " + strings.NewReplacer("~1", "/", "~0", "~").Replace(tokens[1])
 }
+
+// handlerLogic writes what an operation's handler does, from the handler
+// record of each implementation file that maps the operation (ADR-139):
+// per function followed, a flowchart of its steps and its source as it was
+// at the commit read, so a reader checks the chart against the code, and
+// the calls that were not followed.
+func handlerLogic(d *doc, o operation, impls []Implementation) {
+	ptr := "#/paths/" + strings.NewReplacer("~", "~0", "/", "~1").Replace(o.path) + "/" + o.method
+	var recorded []Implementation
+	for _, i := range impls {
+		if get(get(get(i.Node, "mappings"), ptr), "handler") != nil {
+			recorded = append(recorded, i)
+		}
+	}
+	for _, i := range recorded {
+		m := get(get(i.Node, "mappings"), ptr)
+		rec := get(m, "handler")
+		title := "What the handler does"
+		if len(recorded) > 1 {
+			title += " in " + str(get(i.Node, "info"), "title")
+		}
+		d.heading(4, title)
+		fns := items(rec, "functions")
+		d.para(fmt.Sprintf("The handler is %s. Read from the code at commit %s by `specarch extract go`, which followed the calls of functions of the same code up to %s deep from the handler: %s. Each chart's node carries its step's id, and the source under the chart is the function as it was at that commit, so the chart can be checked against the code.",
+			str(m, "target"), shortCommit(str(rec, "commit")), str(rec, "depth"), functionsText(fns)))
+		var stopped []string
+		for _, fn := range fns {
+			d.para(fmt.Sprintf("**%s**, %s lines %s to %s.", str(fn, "name"), str(fn, "file"), str(fn, "firstLine"), str(fn, "lastLine")))
+			d.block(handlerFlowchart(fn))
+			d.block("```go\n" + str(fn, "source") + "\n```\n")
+			walkStepNodes(items(fn, "steps"), func(st *yaml.Node) {
+				if str(st, "kind") == "call" && str(st, "stopped") != "" {
+					stopped = append(stopped, fmt.Sprintf("%s at %s:%s (%s)", str(st, "text"), str(st, "file"), str(st, "firstLine"), str(st, "stopped")))
+				}
+			})
+		}
+		if len(stopped) > 0 {
+			d.para("Not followed: " + strings.Join(stopped, "; ") + ".")
+		}
+	}
+}
+
+// functionsText counts the functions of a handler record.
+func functionsText(fns []*yaml.Node) string {
+	if len(fns) == 1 {
+		return "the handler alone, which calls no function of the code"
+	}
+	return fmt.Sprintf("the handler and %d functions it reaches", len(fns)-1)
+}
+
+// shortCommit is the first seven characters of a commit.
+func shortCommit(c string) string {
+	if len(c) > 7 {
+		return c[:7]
+	}
+	return c
+}
+
+// walkStepNodes calls fn on every step and the steps inside it.
+func walkStepNodes(steps []*yaml.Node, fn func(st *yaml.Node)) {
+	for _, st := range steps {
+		fn(st)
+		walkStepNodes(items(st, "then"), fn)
+		walkStepNodes(items(st, "otherwise"), fn)
+		for _, c := range items(st, "cases") {
+			walkStepNodes(items(c, "steps"), fn)
+		}
+		walkStepNodes(items(st, "body"), fn)
+	}
+}
+
+// chartExit is a node an edge leaves, with the label the edge carries.
+type chartExit struct {
+	node, label string
+}
+
+// handlerFlowchart draws one function of a handler record: a node per
+// step, shaped by its kind and named by the step's id, from a begin node to
+// the returns and an end node for a path that falls off the end.
+func handlerFlowchart(fn *yaml.Node) string {
+	var b strings.Builder
+	b.WriteString("flowchart TD\n")
+	name := str(fn, "name")
+	fmt.Fprintf(&b, "  begin([\"%s\"])\n", mermaidText(name))
+	var edges []string
+	exits := drawSteps(&b, &edges, items(fn, "steps"), []chartExit{{node: "begin"}}, nil)
+	if len(exits) > 0 {
+		fmt.Fprintf(&b, "  finish([\"end of %s\"])\n", mermaidText(name))
+		for _, e := range exits {
+			edges = append(edges, edge(e, "finish"))
+		}
+	}
+	for _, e := range edges {
+		b.WriteString("  " + e + "\n")
+	}
+	return fence(b.String())
+}
+
+// edge is one edge of the chart.
+func edge(from chartExit, to string) string {
+	if from.label == "" {
+		return from.node + " --> " + to
+	}
+	return fmt.Sprintf("%s -->|\"%s\"| %s", from.node, mermaidText(from.label), to)
+}
+
+// chartLoop is the loop the steps drawn are inside, for a step that leaves
+// it or goes on with its next round.
+type chartLoop struct {
+	id     string
+	breaks []chartExit // the exits of the steps that leave the loop
+}
+
+// drawSteps draws steps in order, each reached from the exits of the one
+// before it, and returns the exits of the last.
+func drawSteps(b *strings.Builder, edges *[]string, steps []*yaml.Node, from []chartExit, loop *chartLoop) []chartExit {
+	for _, st := range steps {
+		id := str(st, "id")
+		text := mermaidText(str(st, "text"))
+		kind := str(st, "kind")
+		shape := map[string]string{
+			"input": "[/\"%s\"/]", "branch": "{\"%s\"}", "choice": "{{\"%s\"}}", "loop": "[/\"%s\"\\]",
+			"database": "[(\"%s\")]", "transaction": "[(\"%s\")]", "call": "[[\"%s\"]]", "external": ">\"%s\"]",
+			"response": "([\"%s\"])", "return": "((\"%s\"))", "statement": "[\"%s\"]",
+		}[kind]
+		if shape == "" {
+			shape = "[\"%s\"]"
+		}
+		fmt.Fprintf(b, "  %s"+shape+"\n", id, text)
+		for _, e := range from {
+			*edges = append(*edges, edge(e, id))
+		}
+		switch kind {
+		case "return":
+			from = nil
+		case "branch":
+			var next []chartExit
+			next = append(next, drawSteps(b, edges, items(st, "then"), []chartExit{{id, "yes"}}, loop)...)
+			if get(st, "otherwise") != nil {
+				next = append(next, drawSteps(b, edges, items(st, "otherwise"), []chartExit{{id, "no"}}, loop)...)
+			} else {
+				next = append(next, chartExit{id, "no"})
+			}
+			from = next
+		case "choice":
+			var next []chartExit
+			hasOtherwise := false
+			for _, c := range items(st, "cases") {
+				when := str(c, "when")
+				hasOtherwise = hasOtherwise || when == "otherwise"
+				next = append(next, drawSteps(b, edges, items(c, "steps"), []chartExit{{id, when}}, loop)...)
+			}
+			if !hasOtherwise {
+				next = append(next, chartExit{id, "otherwise"})
+			}
+			from = next
+		case "loop":
+			inner := &chartLoop{id: id}
+			for _, e := range drawSteps(b, edges, items(st, "body"), []chartExit{{id, "each time"}}, inner) {
+				*edges = append(*edges, edge(chartExit{e.node, joinLabel(e.label, "again")}, id))
+			}
+			from = append([]chartExit{{id, "done"}}, inner.breaks...)
+		case "statement":
+			text := str(st, "text")
+			switch {
+			case strings.HasPrefix(text, "panics"):
+				from = nil
+			case loop != nil && text == "goes on with the next round of the loop":
+				*edges = append(*edges, edge(chartExit{node: id}, loop.id))
+				from = nil
+			case loop != nil && text == "leaves the loop":
+				loop.breaks = append(loop.breaks, chartExit{node: id})
+				from = nil
+			default:
+				from = []chartExit{{node: id}}
+			}
+		default:
+			from = []chartExit{{node: id}}
+		}
+	}
+	return from
+}
+
+// joinLabel joins an edge's label with a word, for an edge that is both a
+// branch's answer and a loop's way back.
+func joinLabel(label, word string) string {
+	if label == "" {
+		return word
+	}
+	return label + ", " + word
+}

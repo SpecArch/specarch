@@ -544,6 +544,14 @@
             "could"
           ]
         },
+        "certainty": {
+          "description": "SpecArch keyword. On a question a reader asks about code it checked against the specification: certain when the code, as written, cannot work or disagrees with the specification; suspected when the reader sees the shape of a fault that a run or a person must confirm. Left out on every other question.",
+          "type": "string",
+          "enum": [
+            "certain",
+            "suspected"
+          ]
+        },
         "blocks": {
           "description": "What cannot be final until the question is answered: a stage name, a section name, or a pointer to an element (#/entities/Loan, #/paths/~1loans/post) or to one key of it (#/requirements/BR-3/priority). A must question covers the required keys missing at or under an element pointer, and the one key of a key pointer.",
           "type": "array",

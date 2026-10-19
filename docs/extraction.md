@@ -601,6 +601,41 @@ changes `extract.yaml` first.
     dart_frog routes with the project's named check, and the settings
     `fromEnvironment` and `Platform.environment` give.
 
+22. Built. The handler of every operation, followed into the code and
+    recorded with its source (ADR-139). `extract go` reads each handler
+    it finds by syntax (a function literal, a function of the same
+    package or one of another package of the module) statement by
+    statement into steps: inputs read from the request, branches with
+    their then and otherwise, choices with their cases, loops with their
+    body, database reads and writes with their table (a dxlib table's
+    methods, `database/sql` calls with a literal statement), transactions,
+    calls, external calls over HTTP, responses with their status and
+    problem, returns, and defers, go statements, panics, breaks and
+    continues; a call of a function of the module is followed to three
+    calls deep and at most forty functions a record, a method when the
+    receiver's type is known by syntax, and a call not followed says why
+    on its step. The record goes under the operation's mapping in the
+    implementation fragment `--implementation-out` writes, which go now
+    takes as database does: the commit, the depth and the functions, each
+    with its name, file, lines, steps and source as it was at the commit,
+    every step with its id and lines so an editor can open its code from
+    the chart. Given `--implementation`, the file's records are compared
+    with the ones read and each changed handler's step lines are printed
+    added and removed. The validator warns `handler_source` when a record
+    no longer matches the code at its lines. The technical specification
+    draws each function as a Mermaid flowchart with the source under it.
+    While a handler is read, its code is checked against the operation,
+    and each fault is a should question with its certainty, certain or
+    suspected: a declared parameter never read, a declared response never
+    answered, a status answered but not declared, a path with no response,
+    a dropped error, a write after the response, an unchecked write, two
+    writes with no transaction, code never run, a constant condition, a
+    stub, a TODO note, a panic that says the code is not built, and a
+    response of fixed values. Cases: `extract-go-handlers`,
+    `extract-go-handlers-changed`, `validate-handler-source` and
+    `document-techspec-handler`. Left out: a nil or empty value used
+    without a check, which needs types the reader does not have.
+
 An estate of many modules, read from an umbrella repository by a team
 that may not commit to the code, asked for dumps committed outside the
 code's repository, which `repository` gives (ADR-098), a workflow table for definitions that are not BPMN (ADR-118), a

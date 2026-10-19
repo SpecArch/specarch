@@ -15,10 +15,11 @@ standardOutput: |
   not held: api/endpoints.go:35: the endpoint POST /desk/open: dxlib names it desk_open from its URI, which is not camelCase, as an operationId is; it is named postDeskOpen; could question Q-24
   not held: api/endpoints.go:27: the endpoint POST /desk/show: dxlib names it desk_show from its URI, which is not camelCase, as an operationId is; it is named postDeskShow; could question Q-25
   not held: api/endpoints.go:47: the endpoint POST /desk/sweep: dxlib names it desk_sweep from its URI, which is not camelCase, as an operationId is; it is named postDeskSweep; could question Q-26
+  handlers: followed 6 of 6 handlers into 6 functions, to 3 calls deep, and left 0 calls not followed: the handler of each operation, where it is a function literal, a function of the same package or one of another package of the module, and each function of the module its steps call
   derived 0 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers
-  not derived: 2 draft tests for operation postDeskAudit, held up by Q-1, Q-2, Q-3; the validator warns for them until the questions are answered
-  not derived: 2 draft tests for operation postDeskClose, held up by Q-4, Q-5; the validator warns for them until the questions are answered
-  not derived: 2 draft tests for operation postDeskCount, held up by Q-6, Q-7; the validator warns for them until the questions are answered
-  not derived: 2 draft tests for operation postDeskOpen, held up by Q-8, Q-9; the validator warns for them until the questions are answered
-  not derived: 2 draft tests for operation postDeskShow, held up by Q-10, Q-11; the validator warns for them until the questions are answered
-  not derived: 2 draft tests for operation postDeskSweep, held up by Q-12, Q-13, Q-14; the validator warns for them until the questions are answered
+  not derived: 2 draft tests for operation postDeskAudit, held up by Q-1, Q-2, Q-27, Q-3; the validator warns for them until the questions are answered
+  not derived: 2 draft tests for operation postDeskClose, held up by Q-27, Q-4, Q-5; the validator warns for them until the questions are answered
+  not derived: 2 draft tests for operation postDeskCount, held up by Q-27, Q-6, Q-7; the validator warns for them until the questions are answered
+  not derived: 2 draft tests for operation postDeskOpen, held up by Q-27, Q-8, Q-9; the validator warns for them until the questions are answered
+  not derived: 2 draft tests for operation postDeskShow, held up by Q-10, Q-11, Q-27; the validator warns for them until the questions are answered
+  not derived: 2 draft tests for operation postDeskSweep, held up by Q-12, Q-13, Q-14, Q-27; the validator warns for them until the questions are answered

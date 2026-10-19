@@ -1,0 +1,181 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
+decisions:
+  ADR-144:
+    title: An operation's handler is followed into the code and recorded under its mapping as steps with their source, drawn as a flowchart, checked against the code and against the operation
+    status: accepted
+    date: "2026-10-19"
+    context: |
+      The readers wrote what an endpoint declares and the refusals its
+      handler answers, and nothing of what the handler does between the
+      two: which tables it reads and writes, which functions and systems
+      it calls, where it branches and loops, and what each path ends in.
+      A reviewer who wanted to know had to open the code, and a
+      specification read from the code could not say whether the code
+      did what the registration declared. The owner asked for the
+      handler's logic in the specification as a flowchart with the source
+      beside it, cited to the commit, kept in a form SpecArch can validate
+      and diff, with the code checked against the operation as it is
+      read, and for every node to carry a stable id and its lines, so
+      that an editor can open a node's code from the chart.
+    decision: |
+      The record is implementation, not design: what a handler does on
+      one stack is one implementation's, as the function it is. It goes
+      under the operation's mapping in an implementation file, beside
+      the mapping's target, as handler: the commit the code was read at,
+      the depth followed, and functions, the handler first and then each
+      function of the same code its steps reach, once each. A function
+      holds its name as the code qualifies it, its file and first and
+      last line, its steps and its source, the lines from the first to
+      the last with each line's trailing spaces and tabs dropped. A step
+      is one kind of thing the code does, in plain words (text), with the
+      lines it is on: input (a parameter, the body, a header read),
+      branch (with then and otherwise), choice (with cases), loop (with
+      body), database (the table and whether it reads or writes, and
+      whether it is in a transaction), transaction, call (the function
+      followed, or why the call stopped), external (a call of another
+      system, with the dependency its host names), response (its status
+      and the problem a refusal names), return and statement (a defer, a
+      go statement, a panic, a break or a continue). Steps nest as the
+      code does rather than naming each other, so the record reads like
+      the code, a diff of it is a diff of lines, and nobody invents node
+      ids; each step's id is s and its number in the order written, the
+      handler's steps first, which the flowchart's node carries.
+
+      specarch extract go reads the record for every operation whose
+      handler is a function literal, a function of the same package or
+      one of another package of the module, from the handler's body: an
+      assignment, a declaration, a call statement, a return, an if, a
+      for, a switch, a select, a defer, a go statement, a break and a
+      continue each give their steps, a call's arguments before the
+      call. A call of a function of the module is followed to three
+      calls deep from the handler and at most forty functions a record;
+      a call of a method is followed when the receiver's type is known
+      by syntax, a parameter's, a receiver's, a composite literal's, a
+      module function's result or a package-level var's declared type.
+      A call not followed says why on its step: a function value, an
+      interface's method, a method of a value whose type syntax does not
+      give, a function outside the module, a fourth call deep. A call
+      into the standard library is no step, since it is the language and
+      not the system's logic, and a method of a value of a type outside
+      the module is none either. A dxlib table's methods are database
+      steps, their access told by the method's name; database/sql's
+      calls with a literal statement are too, the table read from the
+      statement; dxlib's request methods and net/http's, gin's and
+      echo's request and response calls are input and response steps. The
+      record is written with --implementation-out, which go now takes as
+      database does, into the fragment with each operation's mapping;
+      an operation whose handler was not followed gets its mapping with
+      the target alone and why.
+
+      Given --implementation, the file's handler records are compared
+      with the ones read: one line counts the handlers unchanged,
+      changed, not recorded and recorded for an operation the source no
+      longer registers, and each changed handler lists, per function,
+      its lines now and before and the step lines added and removed,
+      marked + and -, by a longest common subsequence of the steps
+      flattened to kind and text.
+
+      The validator, in both builds, warns handler_source when a record
+      no longer matches the code: the source it holds for a function is
+      not what the cited file holds at the function's lines, with the
+      first line that differs, or the lines it has moved to; the file is
+      not under the folder the code source names under url; or the
+      record cites no source with a folder. The working tree is read,
+      from the specification's root through the source's url, since
+      neither build runs git; the commit the record names says what the
+      source was taken from.
+
+      The technical specification writes, in each operation's runtime
+      view after its sequence diagram, what the handler does: the
+      handler, the commit and depth, and per function a Mermaid
+      flowchart whose nodes are the steps by id, shaped by kind, with yes
+      and no edges on a branch, an edge per case on a choice, a way back
+      on a loop and one to the loop's end for a break, then the function's
+      source in a Go code block, and the calls not followed with why.
+
+      While the handler is read, its code is checked against the
+      operation, and each fault is a should question on the operation
+      with a new key, certainty: certain when the code as written cannot
+      work or disagrees with the registration, suspected when a run or a
+      person must confirm it. The checks: a parameter the registration
+      declares that no function followed reads; a response declared that
+      no function followed and no middleware of the chain answers, dxlib's
+      own 400 and 422 on a declared parameter excepted; a status answered
+      that the registration does not declare; a path that returns, or
+      reaches the handler's end, with no response written, where in a
+      dxlib handler a returned error counts as answered since dxlib's
+      getters refuse a failed read themselves; a result dropped with the
+      blank identifier that is an error of a module function (certain) or
+      the last of several results of any call (suspected), and a call
+      statement that drops a module function's error; a table written
+      after the response was written in the same block; a handler that
+      writes a table and runs no middleware and checks no permission
+      while other operations do; two writes with no transaction begun;
+      code after a return or a panic in the same block, and a constant
+      condition; a handler whose body does nothing, a TODO, FIXME, XXX or
+      HACK note, a panic that says the code is not built, and a response
+      of fixed values from a function that reads nothing. A fault in a
+      function several handlers reach is one question naming every
+      operation that reaches it. The problems file and the SARIF log
+      carry the certainty; the questions document and the technical
+      specification show it in the question's label.
+    why: |
+      The owner's request, 2026-10-19, with the note from the editor's
+      diagram design that every node needs a stable id and its lines.
+      The record sits in the implementation file because the owner asked
+      that the existing implementation record be extended, not a
+      parallel structure, and because what a handler does on one stack
+      is not design: the design says what the operation answers, the
+      implementation says how this code gets there. Nested steps were
+      chosen over a node-and-edge graph because they read like the code
+      they came from, which is the Low IQ Tax, and because a diff of
+      nested steps is a diff of lines, which the extraction prints and a
+      reviewer reads without a graph tool. Ids are numbered in document
+      order because steps have no names of their own; the id is stable
+      while the code before it is, and the step's lines say where it is
+      whatever its number.
+
+      The source is kept in the record because the owner asked for the
+      code beside the chart, so that a reader checks one against the
+      other, and because a record that holds its source can be checked
+      against the code by both validator builds without git: the
+      standard library's parser is in the Go build alone, and git is in
+      neither, so the check compares lines. Trailing spaces and tabs are
+      dropped because YAML cannot write a line that ends in them in a
+      readable block, and formatted Go has none.
+
+      The faults are questions, not a new kind of problem, because the
+      owner asked that the existing mechanism be extended: a question is
+      the one licence for a specification to be unsure, it blocks the
+      operation it is about, it reaches the problems file, the questions
+      document and the technical specification already, and an owner
+      answers it with a decision. Certainty is a key of its own rather
+      than a word in the text or a priority, since a reader and a tool
+      must tell a fault from a suspicion without reading the sentence,
+      and priority already says what the answer unblocks. The checks are
+      the ones syntax decides from what the reader already holds; a nil
+      or empty value used without a check needs types, which the reader
+      does not have, and is left out rather than guessed.
+
+      The compiler test holds: a handler not followed gets its mapping
+      with why, a call not followed is a step that says why, nothing is
+      refused, and every fault is a question at the operation with its
+      certainty. The acceptance test holds: an owner sees each handler's
+      chart and its faults in the technical specification as soon as the
+      code is read, and a change to the code shows as a short diff of
+      steps at the next extraction and as one warning in validate until
+      the record is renewed.
+    consequences: |
+      The implementation schema gains handler, function and step under a
+      mapping, and the design schema certainty under a question; the
+      fragment schemas and the Swift embed are regenerated. extract go
+      takes --implementation-out and writes the records; given
+      --implementation it compares them. Both validator builds gain
+      handler_source and leave a mapping's handler out of the design-key
+      check. The technical specification draws the charts. Every Go
+      extraction case gains the questions its stub handlers deserve. A
+      record is as long as the code it holds, so an implementation file
+      with many handlers is long; the fragment is written apart so that
+      an owner puts in what they want. JavaScript and TypeScript can
+      follow with the same record: the step kinds name nothing of Go.
+    satisfies: [SA-44, SA-70, SA-34, SA-7]

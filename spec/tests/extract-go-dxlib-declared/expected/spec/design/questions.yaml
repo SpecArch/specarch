@@ -273,3 +273,69 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: code, clause: 'api/endpoints.go:64', says: 'Not held: the endpoint POST /members/show: dxlib names it members_show from its URI, which is not camelCase, as an operationId is; it is named postMembersShow.'}
+  # specarch-problem: question: open_question: (should, decision, suspected) api/handlers.go:26: the handler api.CloseLoan of POST /loans/close does nothing: its body has no step but a return. Is it a stub, with the operation not built yet? Decided by system-owner. Answer with a decision record that names Q-30 under answers. [Q-30]
+  Q-30:
+    question: 'api/handlers.go:26: the handler api.CloseLoan of POST /loans/close does nothing: its body has no step but a return. Is it a stub, with the operation not built yet?'
+    kind: decision
+    priority: should
+    certainty: suspected
+    blocks: ['#/paths/~1loans~1close/post']
+    decidedBy: system-owner
+    why: A handler that does nothing answers every request the same way, whatever the specification says the operation does.
+    cites:
+      - {source: code, clause: 'api/handlers.go:26', says: The body holds no step but a return.}
+  # specarch-problem: question: open_question: (should, decision, suspected) api/handlers.go:16: the handler api.ListLoans of GET /loans/list does nothing: its body has no step but a return. Is it a stub, with the operation not built yet? Decided by system-owner. Answer with a decision record that names Q-31 under answers. [Q-31]
+  Q-31:
+    question: 'api/handlers.go:16: the handler api.ListLoans of GET /loans/list does nothing: its body has no step but a return. Is it a stub, with the operation not built yet?'
+    kind: decision
+    priority: should
+    certainty: suspected
+    blocks: ['#/paths/~1loans~1list/get']
+    decidedBy: system-owner
+    why: A handler that does nothing answers every request the same way, whatever the specification says the operation does.
+    cites:
+      - {source: code, clause: 'api/handlers.go:16', says: The body holds no step but a return.}
+  # specarch-problem: question: open_question: (should, decision, certain) api/handlers.go:10: the registration of POST /loans/open at api/endpoints.go:37 declares the parameters address, amount, copies, due_date, item_code, labels and tags, and the handler api.OpenLoan of POST /loans/open reads them nowhere in its own body, which calls no function of the module. Are they needed, or does the handler miss reading them? Decided by system-owner. Answer with a decision record that names Q-32 under answers. [Q-32]
+  Q-32:
+    question: 'api/handlers.go:10: the registration of POST /loans/open at api/endpoints.go:37 declares the parameters address, amount, copies, due_date, item_code, labels and tags, and the handler api.OpenLoan of POST /loans/open reads them nowhere in its own body, which calls no function of the module. Are they needed, or does the handler miss reading them?'
+    kind: decision
+    priority: should
+    certainty: certain
+    blocks: ['#/paths/~1loans~1open/post']
+    decidedBy: system-owner
+    why: A parameter a handler never reads is accepted and ignored, so a caller's value has no effect, which the specification does not say.
+    cites:
+      - {source: code, clause: 'api/handlers.go:10', says: 'Reads no parameter named address, amount, copies, due_date, item_code, labels and tags.'}
+  # specarch-problem: question: open_question: (should, decision, certain) api/handlers.go:10: the registration of POST /loans/open at api/endpoints.go:37 declares the response 200, and the handler api.OpenLoan of POST /loans/open answers it nowhere in its own body, which calls no function of the module, nor does a middleware of its chain. Does the operation answer 200, or is the declaration stale? Decided by system-owner. Answer with a decision record that names Q-33 under answers. [Q-33]
+  Q-33:
+    question: 'api/handlers.go:10: the registration of POST /loans/open at api/endpoints.go:37 declares the response 200, and the handler api.OpenLoan of POST /loans/open answers it nowhere in its own body, which calls no function of the module, nor does a middleware of its chain. Does the operation answer 200, or is the declaration stale?'
+    kind: decision
+    priority: should
+    certainty: certain
+    blocks: ['#/paths/~1loans~1open/post/responses/200']
+    decidedBy: system-owner
+    why: A response declared and never answered is in the contract clients are built against, and the code cannot produce it.
+    cites:
+      - {source: code, clause: 'api/handlers.go:10', says: Answers no 200.}
+  # specarch-problem: question: open_question: (should, decision, suspected) api/handlers.go:37: the handler api.UploadScan of PATCH /loans/rename and PUT /loans/scan does nothing: its body has no step but a return. Is it a stub, with the operation not built yet? Decided by system-owner. Answer with a decision record that names Q-34 under answers. [Q-34]
+  Q-34:
+    question: 'api/handlers.go:37: the handler api.UploadScan of PATCH /loans/rename and PUT /loans/scan does nothing: its body has no step but a return. Is it a stub, with the operation not built yet?'
+    kind: decision
+    priority: should
+    certainty: suspected
+    blocks: ['#/paths/~1loans~1rename/patch', '#/paths/~1loans~1scan/put']
+    decidedBy: system-owner
+    why: A handler that does nothing answers every request the same way, whatever the specification says the operation does.
+    cites:
+      - {source: code, clause: 'api/handlers.go:37', says: The body holds no step but a return.}
+  # specarch-problem: question: open_question: (should, decision, suspected) api/handlers.go:21: the handler api.ShowMember of POST /members/show does nothing: its body has no step but a return. Is it a stub, with the operation not built yet? Decided by system-owner. Answer with a decision record that names Q-35 under answers. [Q-35]
+  Q-35:
+    question: 'api/handlers.go:21: the handler api.ShowMember of POST /members/show does nothing: its body has no step but a return. Is it a stub, with the operation not built yet?'
+    kind: decision
+    priority: should
+    certainty: suspected
+    blocks: ['#/paths/~1members~1show/post']
+    decidedBy: system-owner
+    why: A handler that does nothing answers every request the same way, whatever the specification says the operation does.
+    cites:
+      - {source: code, clause: 'api/handlers.go:21', says: The body holds no step but a return.}

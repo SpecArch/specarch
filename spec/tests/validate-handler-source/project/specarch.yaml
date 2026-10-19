@@ -1,0 +1,58 @@
+specarch: "0.2"
+info: { title: Lockers, version: 1.0.0 }
+sources:
+  code: { kind: code, title: The code repository, edition: 9f0e8d7c6b5a4f3e2d1c0b9a8f7e6d5c4b3a2f1e, url: ../testdata/code, reading: parsed, clauses: [{ clause: api/handlers.go, title: Go source }] }
+  manual: { kind: document, title: The lockers manual }
+stakeholders:
+  owner: { description: The owner. }
+permissions:
+  lockers.read: { description: See the lockers. }
+roles:
+  courier: { description: Fills and empties the lockers., permissions: [lockers.read] }
+paths:
+  /lockers/count:
+    get:
+      operationId: count
+      summary: How many lockers there are
+      permission: lockers.read
+      responses:
+        "200": { description: The count. }
+  /ping:
+    get:
+      operationId: ping
+      summary: Whether the service is up
+      permission: lockers.read
+      responses:
+        "200": { description: Up. }
+  /lockers/reset:
+    post:
+      operationId: reset
+      summary: Clears the lockers
+      permission: lockers.read
+      responses:
+        "200": { description: Cleared. }
+  /lockers/open:
+    post:
+      operationId: open
+      summary: Opens a locker
+      permission: lockers.read
+      responses:
+        "200": { description: Open. }
+tests:
+  count-denied: { operation: count, level: system, scenario: red, covers: [denied without lockers.read], given: "a caller without lockers.read", when: "count is called", then: "it is refused as not allowed" }
+  ping-denied: { operation: ping, level: system, scenario: red, covers: [denied without lockers.read], given: "a caller without lockers.read", when: "ping is called", then: "it is refused as not allowed" }
+  reset-denied: { operation: reset, level: system, scenario: red, covers: [denied without lockers.read], given: "a caller without lockers.read", when: "reset is called", then: "it is refused as not allowed" }
+  open-denied: { operation: open, level: system, scenario: red, covers: [denied without lockers.read], given: "a caller without lockers.read", when: "open is called", then: "it is refused as not allowed" }
+  count-succeeds: { operation: count, level: system, scenario: golden, given: "any caller", when: "count is called", then: "it answers 200: The count." }
+  ping-succeeds: { operation: ping, level: system, scenario: golden, given: "any caller", when: "ping is called", then: "it answers 200: Up." }
+  reset-succeeds: { operation: reset, level: system, scenario: golden, given: "any caller", when: "reset is called", then: "it answers 200: Cleared." }
+  open-succeeds: { operation: open, level: system, scenario: golden, given: "any caller", when: "open is called", then: "it answers 200: Open." }
+questions:
+  Q-1:
+    question: 'api/handlers.go:5: the handler api.Count of GET /lockers/count answers 200 with JSON with fixed values, and api.Count reads no input, no table and no other system. Is the answer mock data?'
+    kind: decision
+    priority: should
+    certainty: suspected
+    blocks: ['#/paths/~1lockers~1count/get']
+    decidedBy: owner
+    why: A response of fixed values is the same for every request, which no operation of the specification is.

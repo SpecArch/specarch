@@ -625,6 +625,62 @@ commands:
         extract openapi. A file that imports dxlib's `api` package and
         gives nothing read prints a line.
 
+        Every operation's handler is followed into the code and recorded
+        (ADR-139), for dxlib's endpoints and the routers' routes alike:
+        where it is a function literal, a function of the same package
+        or one of another package of the module, its body is read
+        statement by statement into steps, each one kind of thing the
+        code does, in plain words, with its lines: an input read from
+        the request, a branch with its then and otherwise, a choice with
+        its cases, a loop with its body, a database read or write with
+        its table (a dxlib table's methods, or database/sql's calls with
+        a literal statement), a transaction begun, committed or rolled
+        back, a call, an external call over HTTP, a response with its
+        status and the problem a refusal names, a return, and a defer, a
+        go statement, a panic, a break or a continue. A call of a
+        function of the module is followed to three calls deep and at
+        most forty functions a record, a method when the receiver's type
+        is known by syntax, and each function reached is recorded once
+        with its name, file, lines, steps and source as it was at the
+        commit; a call not followed says why on its step (a function
+        value, an interface's method, a method of a value whose type
+        syntax does not give, a function outside the module, a fourth
+        call deep), a call into the standard library is no step, and a
+        method of a value of a type outside the module is none. One line
+        counts the handlers followed, the functions and the calls not
+        followed. With --implementation-out, each operation's mapping goes
+        into the implementation fragment with the handler as its target
+        and the record under handler; a handler not followed gets its
+        mapping with the target and why. Given --implementation, the
+        file's handler records are compared with the ones read: one line
+        counts the handlers unchanged, changed, not recorded and recorded
+        for an operation the source does not register, and each changed
+        handler lists, per function, its lines now and before and the
+        step lines added and removed, marked + and -.
+
+        While a handler is read, its code is checked against the
+        operation, and each fault is a should question on the operation
+        with its certainty, certain or suspected: a parameter the
+        registration declares that no function followed reads; a response
+        declared that no function followed and no middleware of the chain
+        answers, dxlib's own 400 and 422 on a declared parameter
+        excepted; a status answered that the registration does not
+        declare; a path that returns, or reaches the end, with no
+        response written, a returned error in a dxlib handler counting as
+        answered; a result dropped with the blank identifier that is a
+        module function's error, or the last of several results of any
+        call, and a call statement that drops a module function's error;
+        a table written after the response in the same block; a handler
+        that writes a table and runs no middleware and checks no
+        permission while other operations do; two writes with no
+        transaction begun; code after a return or a panic in its block,
+        and a constant condition; a handler that does nothing, a TODO,
+        FIXME, XXX or HACK note, a panic that says the code is not built,
+        and a response of fixed values from a function that reads
+        nothing. A fault in a function several handlers reach is one
+        question naming every operation that reaches it. A suspicion
+        where a call not followed was given the request says so.
+
         In a file that imports dxlib's `databases/models` package, each
         `NewModelDBTable` call whose name is a literal and whose schema is
         a `NewModelDBSchema` call with a literal name, written there or
@@ -1392,7 +1448,7 @@ commands:
         description: For documents, marks the source givenOutside, a document the system's owners gave to parties outside, so that merge gives its promises their priority.
         schema: { type: boolean, default: false }
       implementation-out:
-        description: For database, a new YAML file the reader writes the mappings it knows into, an implementation fragment that is not a whole implementation file, since a catalogue does not say the stack's language; each entity's table as its target and its plain indexes, each citing the catalogue (ADR-121). The mappings go into an implementation file of the specification under mappings.
+        description: For database and go, a new YAML file the reader writes the mappings it knows into, an implementation fragment that is not a whole implementation file. For database, each entity's table as its target and its plain indexes, each citing the catalogue (ADR-121). For go, each operation's handler as its target and, under handler, the record of what it does, function by function with its steps and its source at the commit read (ADR-139). The mappings go into an implementation file of the specification under mappings.
         schema: { type: string }
       table:
         description: For workflows, read the file as a workflow table (ADR-118) that tools/workflows/dump-workflows.sh wrote around the project's printer, for definitions in a format of the project's own, in place of BPMN 2.0 XML.
@@ -1403,7 +1459,7 @@ commands:
     reads:
       - { path: "{paths}", description: The surface being read. }
     writes:
-      - { path: "{implementation-out}", description: "For database with --implementation-out, the implementation fragment, its first lines a comment naming the dump and the source its mappings cite." }
+      - { path: "{implementation-out}", description: "For database and go with --implementation-out, the implementation fragment, its first lines a comment naming the dump or the paths and the commit read, and the source its mappings cite." }
       - { path: "{out}/", description: "The as-built specification tree, with the draft tests derive writes for it under tests/, each problem validate finds in it and each open question marked above its entry with a `# specarch-problem:` line, as document problems marks a fragment (ADR-066)." }
     standardOutput: |
       One line naming the commit read and the paths it was the last change
@@ -1421,7 +1477,14 @@ commands:
       set of patterns whose names meet, and with --routes one naming the
       route table's commit and one per rule no route reaches; for
       database with --implementation-out, one line counting the mappings
-      and indexes written into the fragment; for go, swift, javascript, dart and
+      and indexes written into the fragment; for go, one line counting the
+      handlers followed, the functions reached and the calls not followed,
+      with --implementation-out one counting the handler records written,
+      and with --implementation one counting the handlers unchanged,
+      changed, not recorded and recorded for an operation the source does
+      not register, then per changed handler its functions' lines and
+      step lines added and removed and per record of a gone operation one
+      line (ADR-139); for go, swift, javascript, dart and
       pages with --facts, one line naming the checks the implementation file
       names; for pages given an implementation file that names a page's
       schema file, one line naming it; for pages with --facts, one line naming the dump, one per
@@ -1435,6 +1498,6 @@ commands:
     exitCodes:
       "0": the specification was written
       "1": "the surface could not be read as the source expects: a dump that does not parse or is stale, a dump whose repository is no gitlink of the repository holding it, is not checked out, pins a commit its history does not hold or whose checkout under the path is not the pinned commit's, a code-facts dump another parser version made, whose files are not the tracked files of its folder the reader reads, or, for pages, whose folder does not hold the router's folder, a route table that lists a method and path pair twice, a permission table that lists a grant, a rule or a gate twice, holds a gate with no check, with both a setting and a kind of caller or neither, or skipped for a kind other than client, names a matcher the reader does not know, or holds a rule without one of its four keys, a vocabulary that does not parse, lacks a key, holds one it does not have, gives a number, a duration or a language tag in another form, or lists one word twice in a list or in two lists of one group, a route table given with --routes from another repository or from a commit on another line of history than the permission table's, a router root that gives one route twice or holds no page, a path with changes not committed, untracked files, a shallow clone, a path outside a git repository, a document that is not Markdown, a file that is not an OpenAPI 3.0 or 3.1 document, a file that is not BPMN 2.0 XML or holds no process, a workflow table that does not parse, is stale, lacks a key of the format or holds another, names a step kind other than approval, operation or other, lists a workflow twice or gives a workflow, a step or a form field no name, or an implementation file that does not parse as YAML"
-      "2": usage error, a source this build does not offer, --implementation given to a source other than go, swift, javascript, dart or pages, --facts given to a source other than pages, --routes given to a source other than permissions, --language, --vocabulary or --given-outside given to a source other than documents, --table given to a source other than workflows, --implementation-out given to a source other than database, or naming a file that exists or whose name does not end in .yaml, a language that is not a BCP 47 tag, a language SpecArch ships no vocabulary for given without --vocabulary, a --language other than the vocabulary's own, more than one permission table, or a path that could not be read or written
+      "2": usage error, a source this build does not offer, --implementation given to a source other than go, swift, javascript, dart or pages, --facts given to a source other than pages, --routes given to a source other than permissions, --language, --vocabulary or --given-outside given to a source other than documents, --table given to a source other than workflows, --implementation-out given to a source other than database or go, or naming a file that exists or whose name does not end in .yaml, a language that is not a BCP 47 tag, a language SpecArch ships no vocabulary for given without --vocabulary, a --language other than the vocabulary's own, more than one permission table, or a path that could not be read or written
     satisfies: [SA-11, SA-44, SA-63, SA-64, SA-70]
     why: Existing systems enter SpecArch by extraction, so the verb exists from the start; it is built one reader at a time for the first real project that needs it, and every reader keeps the same rules so that the merge can trust their trees.

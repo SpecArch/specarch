@@ -400,6 +400,9 @@
           },
           "minItems": 1
         },
+        "handler": {
+          "$ref": "#/$defs/handler"
+        },
         "description": {
           "$ref": "#/$defs/markdown"
         },
@@ -426,6 +429,233 @@
       "patternProperties": {
         "^x-": {}
       },
+      "additionalProperties": false
+    },
+    "handler": {
+      "description": "SpecArch keyword. On an operation's mapping: the handler's logic as specarch extract read it from the code, function by function, each with its steps and its source at the commit named, so that the documents draw the chart beside the code and validate tells when the code has moved on.",
+      "type": "object",
+      "properties": {
+        "commit": {
+          "description": "The commit the code was read at.",
+          "type": "string",
+          "pattern": "^[0-9a-f]{7,64}$"
+        },
+        "depth": {
+          "description": "How many calls from the handler a function was followed: the handler is 0, a function it calls 1, and so on.",
+          "type": "integer",
+          "minimum": 0
+        },
+        "functions": {
+          "description": "The handler first, then each function its steps call that was followed, once each, in the order they were first reached.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/function"
+          },
+          "minItems": 1
+        }
+      },
+      "required": [
+        "commit",
+        "depth",
+        "functions"
+      ],
+      "additionalProperties": false
+    },
+    "function": {
+      "description": "SpecArch keyword. One function of the code, with its logic and its source as they were at the record's commit: the handler, or a function the handler's steps call that was followed.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "description": "The function's name as the code qualifies it: package.Function, or package.Type.Method.",
+          "type": "string",
+          "minLength": 1
+        },
+        "file": {
+          "description": "The file, from the repository's root, slash-separated, as the code source's clauses name it.",
+          "type": "string",
+          "minLength": 1
+        },
+        "firstLine": {
+          "description": "The first line, counted from 1.",
+          "type": "integer",
+          "minimum": 1
+        },
+        "lastLine": {
+          "description": "The last line, counted from 1; the first line when it is one line.",
+          "type": "integer",
+          "minimum": 1
+        },
+        "steps": {
+          "description": "The function's steps in order; an empty list for a function whose body has none.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/step"
+          }
+        },
+        "source": {
+          "description": "The function's source, from its first line to its last, each line without its trailing spaces and tabs.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "file",
+        "firstLine",
+        "lastLine",
+        "steps",
+        "source"
+      ],
+      "additionalProperties": false
+    },
+    "step": {
+      "description": "SpecArch keyword. One step of a function's logic, as specarch extract read it from the code: what it does in plain words, which lines it is, and for a branch, a choice or a loop the steps inside it. The id names the node in the flowchart the documents draw, so a viewer that shows the chart can open the step's lines.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "description": "The step's id, unique in the handler record: s and a number counted from 1 in the order the steps are written, the handler's first. The flowchart's node carries it.",
+          "type": "string",
+          "pattern": "^s[1-9][0-9]*$"
+        },
+        "kind": {
+          "description": "What the step is. input: a read of the request (a parameter, the body, a header). branch: an if, with the steps taken when its condition holds under then and otherwise under otherwise. choice: a switch, with its cases. loop: a for, with the steps of its body. database: a read or a write of a table. transaction: a transaction begun, committed or rolled back. call: a call of a function of the code, followed (function) or not (stopped). external: a call of another system over HTTP. response: a response written, a success or a refusal. return: the function returns. statement: a defer, a go statement, a panic, a break or a continue.",
+          "type": "string",
+          "enum": [
+            "input",
+            "branch",
+            "choice",
+            "loop",
+            "database",
+            "transaction",
+            "call",
+            "external",
+            "response",
+            "return",
+            "statement"
+          ]
+        },
+        "text": {
+          "description": "What the step does, in plain words, as the chart shows it: the condition of a branch, the parameter an input reads, the table a database step touches, the call as the code writes it.",
+          "type": "string",
+          "minLength": 1
+        },
+        "file": {
+          "description": "The file, from the repository's root, slash-separated, as the code source's clauses name it.",
+          "type": "string",
+          "minLength": 1
+        },
+        "firstLine": {
+          "description": "The first line, counted from 1.",
+          "type": "integer",
+          "minimum": 1
+        },
+        "lastLine": {
+          "description": "The last line, counted from 1; the first line when it is one line.",
+          "type": "integer",
+          "minimum": 1
+        },
+        "parameter": {
+          "description": "For input: the name the request is read by, as the code writes it.",
+          "type": "string",
+          "minLength": 1
+        },
+        "then": {
+          "description": "For branch: the steps taken when the condition holds.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/step"
+          }
+        },
+        "otherwise": {
+          "description": "For branch: the steps taken when the condition does not hold; left out when the code has no else.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/step"
+          }
+        },
+        "cases": {
+          "description": "For choice: each case, with when (the case's values as the code writes them, or otherwise for the default) and its steps.",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "when": {
+                "type": "string",
+                "minLength": 1
+              },
+              "steps": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/step"
+                }
+              }
+            },
+            "required": [
+              "when",
+              "steps"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 1
+        },
+        "body": {
+          "description": "For loop: the steps of the loop's body.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/step"
+          }
+        },
+        "table": {
+          "description": "For database: the table, as the code or the SQL names it; left out when the code does not say.",
+          "type": "string",
+          "minLength": 1
+        },
+        "access": {
+          "description": "For database: read, or write for an insert, an update or a delete.",
+          "type": "string",
+          "enum": [
+            "read",
+            "write"
+          ]
+        },
+        "transaction": {
+          "description": "For database: true when the read or write runs inside a transaction the function began.",
+          "type": "boolean"
+        },
+        "function": {
+          "description": "For call: the function called, as functions names it; it is one of the functions of this record when the call was followed.",
+          "type": "string",
+          "minLength": 1
+        },
+        "stopped": {
+          "description": "For call: why the call was not followed, such as outside the module, deeper than the depth followed, or a function value.",
+          "type": "string",
+          "minLength": 1
+        },
+        "dependency": {
+          "description": "For external: the dependency of the design the call reaches, by its name under dependencies, when the URL names a host.",
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "description": "For response: the HTTP status, when the code gives it as a literal.",
+          "type": "integer",
+          "minimum": 100,
+          "maximum": 599
+        },
+        "problem": {
+          "description": "For response: the problem type a refusal names, as the design declares it under errors.",
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "id",
+        "kind",
+        "text",
+        "file",
+        "firstLine",
+        "lastLine"
+      ],
       "additionalProperties": false
     },
     "binding": {
@@ -461,7 +691,10 @@
               "binds": {
                 "description": "What the component gives the page: a field it edits or shows, or a column of the list it is in.",
                 "type": "string",
-                "enum": ["field", "column"]
+                "enum": [
+                  "field",
+                  "column"
+                ]
               },
               "nameProperty": {
                 "description": "The property whose literal value names the field, such as Column's field; when it is left out, the field is the property v-model binds.",
@@ -469,7 +702,11 @@
                 "pattern": "^[A-Za-z][A-Za-z0-9-]*$"
               }
             },
-            "required": ["package", "component", "binds"],
+            "required": [
+              "package",
+              "component",
+              "binds"
+            ],
             "additionalProperties": false
           },
           "minItems": 1
@@ -506,10 +743,16 @@
               "bypassedFor": {
                 "description": "SpecArch keyword. The kind of caller the check lets through whatever its roles grant, such as a check that returns early for a machine-to-machine token: client, a caller on its own account rather than a person's. specarch extract go asks at every operation the check guards whether that kind of caller is meant to reach it (ADR-114). Left out, the check skips no caller.",
                 "type": "string",
-                "enum": ["client"]
+                "enum": [
+                  "client"
+                ]
               }
             },
-            "required": ["package", "function", "permissionArgument"],
+            "required": [
+              "package",
+              "function",
+              "permissionArgument"
+            ],
             "additionalProperties": false
           },
           "minItems": 1
@@ -517,7 +760,10 @@
         "middlewares": {
           "description": "SpecArch keyword. The function of the code each middleware of the design is, by its name under middlewares: the package that declares it and its name there. Read for the http binding.",
           "type": "object",
-          "propertyNames": { "type": "string", "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$" },
+          "propertyNames": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+          },
           "additionalProperties": {
             "type": "object",
             "properties": {
@@ -532,7 +778,10 @@
                 "pattern": "^[A-Za-z_$][A-Za-z0-9_$]*(\\.[A-Za-z_$][A-Za-z0-9_$]*)?$"
               }
             },
-            "required": ["package", "function"],
+            "required": [
+              "package",
+              "function"
+            ],
             "additionalProperties": false
           }
         },

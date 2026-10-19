@@ -1,0 +1,1027 @@
+# The mappings specarch extract go read from the Go source under . at commit
+# 1c42c4c517173d6d9f7741e3ce35bac6b1a39a7c: each operation's handler, and for
+# each handler followed its logic step by step and its source, function by
+# function. They go under mappings in an implementation file of the
+# specification; each cites the source code.
+mappings:
+  '#/paths/~1health/get':
+    target: lockers.Server.health
+    handler:
+      commit: 1c42c4c517173d6d9f7741e3ce35bac6b1a39a7c
+      depth: 3
+      functions:
+        - name: lockers.Server.health
+          file: lockers/handlers.go
+          firstLine: 151
+          lastLine: 154
+          steps:
+            - id: s1
+              kind: statement
+              text: 'panics: "not implemented"'
+              file: lockers/handlers.go
+              firstLine: 153
+              lastLine: 153
+          source: |-
+            // health answers that the service is up.
+            func (s *Server) health(w http.ResponseWriter, r *http.Request) {
+            	panic("not implemented")
+            }
+    origin: stated
+    cites:
+      - {source: code, clause: 'lockers/handlers.go:151', says: 'The handler of GET /health, followed into 1 function.'}
+  '#/paths/~1lockers~1sweep/post':
+    target: lockers.Server.sweepLockers
+    handler:
+      commit: 1c42c4c517173d6d9f7741e3ce35bac6b1a39a7c
+      depth: 3
+      functions:
+        - name: lockers.Server.sweepLockers
+          file: lockers/handlers.go
+          firstLine: 65
+          lastLine: 97
+          steps:
+            - id: s1
+              kind: database
+              text: 'reads parcels: SELECT id, code, locker_id, state FROM parcels WHERE state <> ''collected'''
+              file: lockers/handlers.go
+              firstLine: 67
+              lastLine: 67
+              table: parcels
+              access: read
+            - id: s2
+              kind: branch
+              text: if err != nil
+              file: lockers/handlers.go
+              firstLine: 68
+              lastLine: 71
+              then:
+                - id: s3
+                  kind: response
+                  text: answers 500
+                  file: lockers/handlers.go
+                  firstLine: 69
+                  lastLine: 69
+                  status: 500
+                - id: s4
+                  kind: return
+                  text: returns
+                  file: lockers/handlers.go
+                  firstLine: 70
+                  lastLine: 70
+            - id: s5
+              kind: statement
+              text: defers rows.Close()
+              file: lockers/handlers.go
+              firstLine: 72
+              lastLine: 72
+            - id: s6
+              kind: loop
+              text: while rows.Next()
+              file: lockers/handlers.go
+              firstLine: 74
+              lastLine: 95
+              body:
+                - id: s7
+                  kind: branch
+                  text: if err != nil
+                  file: lockers/handlers.go
+                  firstLine: 76
+                  lastLine: 78
+                  then:
+                    - id: s8
+                      kind: statement
+                      text: leaves the loop
+                      file: lockers/handlers.go
+                      firstLine: 77
+                      lastLine: 77
+                - id: s9
+                  kind: call
+                  text: calls overdue(p)
+                  file: lockers/handlers.go
+                  firstLine: 79
+                  lastLine: 79
+                  function: lockers.overdue
+                - id: s10
+                  kind: branch
+                  text: if !overdue(p)
+                  file: lockers/handlers.go
+                  firstLine: 79
+                  lastLine: 81
+                  then:
+                    - id: s11
+                      kind: statement
+                      text: goes on with the next round of the loop
+                      file: lockers/handlers.go
+                      firstLine: 80
+                      lastLine: 80
+                - id: s12
+                  kind: choice
+                  text: switch on p.state
+                  file: lockers/handlers.go
+                  firstLine: 82
+                  lastLine: 90
+                  cases:
+                    - when: '"stored"'
+                      steps: []
+                    - when: '"held"'
+                      steps:
+                        - id: s13
+                          kind: call
+                          text: calls notify.Collector(p.code)
+                          file: lockers/handlers.go
+                          firstLine: 86
+                          lastLine: 86
+                          function: notify.Collector
+                    - when: otherwise
+                      steps:
+                        - id: s14
+                          kind: response
+                          text: 'answers 500: a parcel in no known state'
+                          file: lockers/handlers.go
+                          firstLine: 88
+                          lastLine: 88
+                          status: 500
+                        - id: s15
+                          kind: return
+                          text: returns
+                          file: lockers/handlers.go
+                          firstLine: 89
+                          lastLine: 89
+                - id: s16
+                  kind: call
+                  text: calls s.release(p)
+                  file: lockers/handlers.go
+                  firstLine: 91
+                  lastLine: 91
+                  function: lockers.Server.release
+                - id: s17
+                  kind: branch
+                  text: if err != nil
+                  file: lockers/handlers.go
+                  firstLine: 91
+                  lastLine: 94
+                  then:
+                    - id: s18
+                      kind: response
+                      text: answers 500
+                      file: lockers/handlers.go
+                      firstLine: 92
+                      lastLine: 92
+                      status: 500
+                    - id: s19
+                      kind: return
+                      text: returns
+                      file: lockers/handlers.go
+                      firstLine: 93
+                      lastLine: 93
+            - id: s20
+              kind: response
+              text: answers with JSON
+              file: lockers/handlers.go
+              firstLine: 96
+              lastLine: 96
+          source: |-
+            // sweepLockers removes every parcel stored longer than the keep time.
+            func (s *Server) sweepLockers(w http.ResponseWriter, r *http.Request) {
+            	rows, err := s.db.Query("SELECT id, code, locker_id, state FROM parcels WHERE state <> 'collected'")
+            	if err != nil {
+            		http.Error(w, err.Error(), http.StatusInternalServerError)
+            		return
+            	}
+            	defer rows.Close()
+            	swept := 0
+            	for rows.Next() {
+            		var p parcel
+            		if err := rows.Scan(&p.id, &p.code, &p.lockerID, &p.state); err != nil {
+            			break
+            		}
+            		if !overdue(p) {
+            			continue
+            		}
+            		switch p.state {
+            		case "stored":
+            			swept++
+            		case "held":
+            			notify.Collector(p.code)
+            		default:
+            			http.Error(w, "a parcel in no known state", http.StatusInternalServerError)
+            			return
+            		}
+            		if err := s.release(p); err != nil {
+            			http.Error(w, err.Error(), http.StatusInternalServerError)
+            			return
+            		}
+            	}
+            	json.NewEncoder(w).Encode(map[string]int{"swept": swept})
+            }
+        - name: lockers.overdue
+          file: lockers/handlers.go
+          firstLine: 105
+          lastLine: 108
+          steps:
+            - id: s21
+              kind: return
+              text: returns p.state != "fresh"
+              file: lockers/handlers.go
+              firstLine: 107
+              lastLine: 107
+          source: |-
+            // overdue says whether a parcel has waited too long.
+            func overdue(p parcel) bool {
+            	return p.state != "fresh"
+            }
+        - name: notify.Collector
+          file: notify/notify.go
+          firstLine: 13
+          lastLine: 19
+          steps:
+            - id: s22
+              kind: call
+              text: calls compose(code)
+              file: notify/notify.go
+              firstLine: 15
+              lastLine: 15
+              function: notify.compose
+            - id: s23
+              kind: external
+              text: calls POST https://messages.example.com/v1/send
+              file: notify/notify.go
+              firstLine: 16
+              lastLine: 16
+              dependency: messagesExampleCom
+            - id: s24
+              kind: call
+              text: calls send(message)
+              file: notify/notify.go
+              firstLine: 18
+              lastLine: 18
+              function: notify.send
+          source: |-
+            // Collector tells a parcel's collector that it waits.
+            func Collector(code string) {
+            	message := compose(code)
+            	req, _ := http.NewRequest(http.MethodPost, "https://messages.example.com/v1/send", nil)
+            	_ = req
+            	send(message)
+            }
+        - name: notify.compose
+          file: notify/notify.go
+          firstLine: 21
+          lastLine: 24
+          steps:
+            - id: s25
+              kind: return
+              text: returns "Your parcel " + code + " waits in a locker."
+              file: notify/notify.go
+              firstLine: 23
+              lastLine: 23
+          source: |-
+            // compose is the text of the message.
+            func compose(code string) string {
+            	return "Your parcel " + code + " waits in a locker."
+            }
+        - name: notify.send
+          file: notify/notify.go
+          firstLine: 26
+          lastLine: 30
+          steps:
+            - id: s26
+              kind: call
+              text: calls deliver(message)
+              file: notify/notify.go
+              firstLine: 28
+              lastLine: 28
+              function: notify.deliver
+            - id: s27
+              kind: call
+              text: calls carrier.Send(message)
+              file: notify/notify.go
+              firstLine: 29
+              lastLine: 29
+              stopped: a method of the interface Carrier, whose implementation syntax does not pick
+          source: |-
+            // send hands the message to the carrier.
+            func send(message string) {
+            	deliver(message)
+            	carrier.Send(message)
+            }
+        - name: notify.deliver
+          file: notify/notify.go
+          firstLine: 32
+          lastLine: 35
+          steps:
+            - id: s28
+              kind: call
+              text: calls stamp(message)
+              file: notify/notify.go
+              firstLine: 34
+              lastLine: 34
+              stopped: deeper than the 3 calls followed from the handler
+          source: |-
+            // deliver is the carrier's own step.
+            func deliver(message string) {
+            	stamp(message)
+            }
+        - name: lockers.Server.release
+          file: lockers/handlers.go
+          firstLine: 110
+          lastLine: 124
+          steps:
+            - id: s29
+              kind: transaction
+              text: begins a transaction
+              file: lockers/handlers.go
+              firstLine: 112
+              lastLine: 112
+            - id: s30
+              kind: branch
+              text: if err != nil
+              file: lockers/handlers.go
+              firstLine: 113
+              lastLine: 115
+              then:
+                - id: s31
+                  kind: return
+                  text: returns err
+                  file: lockers/handlers.go
+                  firstLine: 114
+                  lastLine: 114
+            - id: s32
+              kind: statement
+              text: defers tx.Rollback()
+              file: lockers/handlers.go
+              firstLine: 116
+              lastLine: 116
+            - id: s33
+              kind: database
+              text: 'writes parcels: DELETE FROM parcels WHERE id = $1'
+              file: lockers/handlers.go
+              firstLine: 117
+              lastLine: 117
+              table: parcels
+              access: write
+              transaction: true
+            - id: s34
+              kind: branch
+              text: if err != nil
+              file: lockers/handlers.go
+              firstLine: 117
+              lastLine: 119
+              then:
+                - id: s35
+                  kind: return
+                  text: returns err
+                  file: lockers/handlers.go
+                  firstLine: 118
+                  lastLine: 118
+            - id: s36
+              kind: database
+              text: 'writes lockers: UPDATE lockers SET state = ''free'' WHERE id = $1'
+              file: lockers/handlers.go
+              firstLine: 120
+              lastLine: 120
+              table: lockers
+              access: write
+              transaction: true
+            - id: s37
+              kind: branch
+              text: if err != nil
+              file: lockers/handlers.go
+              firstLine: 120
+              lastLine: 122
+              then:
+                - id: s38
+                  kind: return
+                  text: returns err
+                  file: lockers/handlers.go
+                  firstLine: 121
+                  lastLine: 121
+            - id: s39
+              kind: transaction
+              text: commits the transaction
+              file: lockers/handlers.go
+              firstLine: 123
+              lastLine: 123
+            - id: s40
+              kind: return
+              text: returns tx.Commit()
+              file: lockers/handlers.go
+              firstLine: 123
+              lastLine: 123
+          source: |-
+            // release frees a parcel's locker and drops the parcel, in one transaction.
+            func (s *Server) release(p parcel) error {
+            	tx, err := s.db.Begin()
+            	if err != nil {
+            		return err
+            	}
+            	defer tx.Rollback()
+            	if _, err := tx.Exec("DELETE FROM parcels WHERE id = $1", p.id); err != nil {
+            		return err
+            	}
+            	if _, err := tx.Exec("UPDATE lockers SET state = 'free' WHERE id = $1", p.lockerID); err != nil {
+            		return err
+            	}
+            	return tx.Commit()
+            }
+    origin: stated
+    cites:
+      - {source: code, clause: 'lockers/handlers.go:65', says: 'The handler of POST /lockers/sweep, followed into 7 functions.'}
+  '#/paths/~1lockers~1{id}~1report/get':
+    target: lockers.Server.reportLocker
+    handler:
+      commit: 1c42c4c517173d6d9f7741e3ce35bac6b1a39a7c
+      depth: 3
+      functions:
+        - name: lockers.Server.reportLocker
+          file: lockers/handlers.go
+          firstLine: 126
+          lastLine: 139
+          steps:
+            - id: s1
+              kind: input
+              text: reads the path parameter id
+              file: lockers/handlers.go
+              firstLine: 128
+              lastLine: 128
+              parameter: id
+            - id: s2
+              kind: external
+              text: calls GET https://lockers.example.com/v1/state
+              file: lockers/handlers.go
+              firstLine: 129
+              lastLine: 129
+              dependency: lockersExampleCom
+            - id: s3
+              kind: branch
+              text: if err != nil
+              file: lockers/handlers.go
+              firstLine: 130
+              lastLine: 133
+              then:
+                - id: s4
+                  kind: response
+                  text: 'answers 502: the maker did not answer'
+                  file: lockers/handlers.go
+                  firstLine: 131
+                  lastLine: 131
+                  status: 502
+                - id: s5
+                  kind: return
+                  text: returns
+                  file: lockers/handlers.go
+                  firstLine: 132
+                  lastLine: 132
+            - id: s6
+              kind: statement
+              text: defers resp.Body.Close()
+              file: lockers/handlers.go
+              firstLine: 134
+              lastLine: 134
+            - id: s7
+              kind: response
+              text: answers with JSON
+              file: lockers/handlers.go
+              firstLine: 135
+              lastLine: 135
+            - id: s8
+              kind: return
+              text: returns
+              file: lockers/handlers.go
+              firstLine: 136
+              lastLine: 136
+          source: |-
+            // reportLocker answers a locker's state as the lockers' maker reports it.
+            func (s *Server) reportLocker(w http.ResponseWriter, r *http.Request) {
+            	id := r.PathValue("id")
+            	resp, err := http.Get("https://lockers.example.com/v1/state")
+            	if err != nil {
+            		http.Error(w, "the maker did not answer", http.StatusBadGateway)
+            		return
+            	}
+            	defer resp.Body.Close()
+            	json.NewEncoder(w).Encode(map[string]string{"locker_id": id, "state": "unknown"})
+            	return
+            	notify.Collector("report")
+            	return
+            }
+    origin: stated
+    cites:
+      - {source: code, clause: 'lockers/handlers.go:126', says: 'The handler of GET /lockers/{id}/report, followed into 1 function.'}
+  '#/paths/~1lockers~1{id}~1service/post':
+    target: lockers.Server.serviceLocker
+    handler:
+      commit: 1c42c4c517173d6d9f7741e3ce35bac6b1a39a7c
+      depth: 3
+      functions:
+        - name: lockers.Server.serviceLocker
+          file: lockers/handlers.go
+          firstLine: 141
+          lastLine: 149
+          steps:
+            - id: s1
+              kind: branch
+              text: if false
+              file: lockers/handlers.go
+              firstLine: 144
+              lastLine: 146
+              then:
+                - id: s2
+                  kind: call
+                  text: calls notify.Collector("serviced")
+                  file: lockers/handlers.go
+                  firstLine: 145
+                  lastLine: 145
+                  function: notify.Collector
+            - id: s3
+              kind: call
+              text: calls hook("serviced")
+              file: lockers/handlers.go
+              firstLine: 147
+              lastLine: 147
+              stopped: a function value, which syntax does not follow
+            - id: s4
+              kind: database
+              text: 'writes lockers: UPDATE lockers SET serviced = true'
+              file: lockers/handlers.go
+              firstLine: 148
+              lastLine: 148
+              table: lockers
+              access: write
+          source: |-
+            // serviceLocker marks a locker serviced.
+            func (s *Server) serviceLocker(w http.ResponseWriter, r *http.Request) {
+            	// TODO: read the locker from the request once the maker gives its id.
+            	if false {
+            		notify.Collector("serviced")
+            	}
+            	hook("serviced")
+            	_, _ = s.db.Exec("UPDATE lockers SET serviced = true")
+            }
+        - name: notify.Collector
+          file: notify/notify.go
+          firstLine: 13
+          lastLine: 19
+          steps:
+            - id: s5
+              kind: call
+              text: calls compose(code)
+              file: notify/notify.go
+              firstLine: 15
+              lastLine: 15
+              function: notify.compose
+            - id: s6
+              kind: external
+              text: calls POST https://messages.example.com/v1/send
+              file: notify/notify.go
+              firstLine: 16
+              lastLine: 16
+              dependency: messagesExampleCom
+            - id: s7
+              kind: call
+              text: calls send(message)
+              file: notify/notify.go
+              firstLine: 18
+              lastLine: 18
+              function: notify.send
+          source: |-
+            // Collector tells a parcel's collector that it waits.
+            func Collector(code string) {
+            	message := compose(code)
+            	req, _ := http.NewRequest(http.MethodPost, "https://messages.example.com/v1/send", nil)
+            	_ = req
+            	send(message)
+            }
+        - name: notify.compose
+          file: notify/notify.go
+          firstLine: 21
+          lastLine: 24
+          steps:
+            - id: s8
+              kind: return
+              text: returns "Your parcel " + code + " waits in a locker."
+              file: notify/notify.go
+              firstLine: 23
+              lastLine: 23
+          source: |-
+            // compose is the text of the message.
+            func compose(code string) string {
+            	return "Your parcel " + code + " waits in a locker."
+            }
+        - name: notify.send
+          file: notify/notify.go
+          firstLine: 26
+          lastLine: 30
+          steps:
+            - id: s9
+              kind: call
+              text: calls deliver(message)
+              file: notify/notify.go
+              firstLine: 28
+              lastLine: 28
+              function: notify.deliver
+            - id: s10
+              kind: call
+              text: calls carrier.Send(message)
+              file: notify/notify.go
+              firstLine: 29
+              lastLine: 29
+              stopped: a method of the interface Carrier, whose implementation syntax does not pick
+          source: |-
+            // send hands the message to the carrier.
+            func send(message string) {
+            	deliver(message)
+            	carrier.Send(message)
+            }
+        - name: notify.deliver
+          file: notify/notify.go
+          firstLine: 32
+          lastLine: 35
+          steps:
+            - id: s11
+              kind: call
+              text: calls stamp(message)
+              file: notify/notify.go
+              firstLine: 34
+              lastLine: 34
+              stopped: deeper than the 3 calls followed from the handler
+          source: |-
+            // deliver is the carrier's own step.
+            func deliver(message string) {
+            	stamp(message)
+            }
+    origin: stated
+    cites:
+      - {source: code, clause: 'lockers/handlers.go:141', says: 'The handler of POST /lockers/{id}/service, followed into 5 functions.'}
+  '#/paths/~1parcels/post':
+    target: lockers.Server.storeParcel
+    handler:
+      commit: 1c42c4c517173d6d9f7741e3ce35bac6b1a39a7c
+      depth: 3
+      functions:
+        - name: lockers.Server.storeParcel
+          file: lockers/handlers.go
+          firstLine: 20
+          lastLine: 50
+          steps:
+            - id: s1
+              kind: input
+              text: decodes the request body into req
+              file: lockers/handlers.go
+              firstLine: 23
+              lastLine: 23
+              parameter: the body
+            - id: s2
+              kind: branch
+              text: if err != nil
+              file: lockers/handlers.go
+              firstLine: 23
+              lastLine: 26
+              then:
+                - id: s3
+                  kind: response
+                  text: 'answers 400: the body is not a parcel'
+                  file: lockers/handlers.go
+                  firstLine: 24
+                  lastLine: 24
+                  status: 400
+                - id: s4
+                  kind: return
+                  text: returns
+                  file: lockers/handlers.go
+                  firstLine: 25
+                  lastLine: 25
+            - id: s5
+              kind: database
+              text: 'reads lockers: SELECT state FROM lockers WHERE id = $1'
+              file: lockers/handlers.go
+              firstLine: 28
+              lastLine: 28
+              table: lockers
+              access: read
+            - id: s6
+              kind: branch
+              text: if err != nil
+              file: lockers/handlers.go
+              firstLine: 29
+              lastLine: 32
+              then:
+                - id: s7
+                  kind: response
+                  text: 'answers 404: no such locker'
+                  file: lockers/handlers.go
+                  firstLine: 30
+                  lastLine: 30
+                  status: 404
+                - id: s8
+                  kind: return
+                  text: returns
+                  file: lockers/handlers.go
+                  firstLine: 31
+                  lastLine: 31
+            - id: s9
+              kind: branch
+              text: if state == "full"
+              file: lockers/handlers.go
+              firstLine: 33
+              lastLine: 36
+              then:
+                - id: s10
+                  kind: response
+                  text: 'answers 409: the locker is full'
+                  file: lockers/handlers.go
+                  firstLine: 34
+                  lastLine: 34
+                  status: 409
+                - id: s11
+                  kind: return
+                  text: returns
+                  file: lockers/handlers.go
+                  firstLine: 35
+                  lastLine: 35
+            - id: s12
+              kind: database
+              text: 'writes parcels: INSERT INTO parcels (code, locker_id, state) VALUES ($1, $2, ''stored'')'
+              file: lockers/handlers.go
+              firstLine: 37
+              lastLine: 37
+              table: parcels
+              access: write
+            - id: s13
+              kind: branch
+              text: if err != nil
+              file: lockers/handlers.go
+              firstLine: 38
+              lastLine: 41
+              then:
+                - id: s14
+                  kind: response
+                  text: answers 500
+                  file: lockers/handlers.go
+                  firstLine: 39
+                  lastLine: 39
+                  status: 500
+                - id: s15
+                  kind: return
+                  text: returns
+                  file: lockers/handlers.go
+                  firstLine: 40
+                  lastLine: 40
+            - id: s16
+              kind: database
+              text: 'writes lockers: UPDATE lockers SET state = ''full'' WHERE id = $1'
+              file: lockers/handlers.go
+              firstLine: 42
+              lastLine: 42
+              table: lockers
+              access: write
+            - id: s17
+              kind: branch
+              text: if err != nil
+              file: lockers/handlers.go
+              firstLine: 43
+              lastLine: 46
+              then:
+                - id: s18
+                  kind: response
+                  text: answers 500
+                  file: lockers/handlers.go
+                  firstLine: 44
+                  lastLine: 44
+                  status: 500
+                - id: s19
+                  kind: return
+                  text: returns
+                  file: lockers/handlers.go
+                  firstLine: 45
+                  lastLine: 45
+            - id: s20
+              kind: call
+              text: calls notify.Collector(req.Code)
+              file: lockers/handlers.go
+              firstLine: 47
+              lastLine: 47
+              function: notify.Collector
+            - id: s21
+              kind: response
+              text: writes the status 201
+              file: lockers/handlers.go
+              firstLine: 48
+              lastLine: 48
+              status: 201
+            - id: s22
+              kind: response
+              text: answers with JSON
+              file: lockers/handlers.go
+              firstLine: 49
+              lastLine: 49
+          source: |-
+            // storeParcel puts a parcel into a locker and tells the collector.
+            func (s *Server) storeParcel(w http.ResponseWriter, r *http.Request) {
+            	var req storeRequest
+            	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+            		http.Error(w, "the body is not a parcel", http.StatusBadRequest)
+            		return
+            	}
+            	var state string
+            	err := s.db.QueryRow("SELECT state FROM lockers WHERE id = $1", req.LockerID).Scan(&state)
+            	if err != nil {
+            		http.Error(w, "no such locker", http.StatusNotFound)
+            		return
+            	}
+            	if state == "full" {
+            		http.Error(w, "the locker is full", http.StatusConflict)
+            		return
+            	}
+            	_, err = s.db.Exec("INSERT INTO parcels (code, locker_id, state) VALUES ($1, $2, 'stored')", req.Code, req.LockerID)
+            	if err != nil {
+            		http.Error(w, err.Error(), http.StatusInternalServerError)
+            		return
+            	}
+            	_, err = s.db.Exec("UPDATE lockers SET state = 'full' WHERE id = $1", req.LockerID)
+            	if err != nil {
+            		http.Error(w, err.Error(), http.StatusInternalServerError)
+            		return
+            	}
+            	notify.Collector(req.Code)
+            	w.WriteHeader(http.StatusCreated)
+            	json.NewEncoder(w).Encode(map[string]string{"code": req.Code})
+            }
+        - name: notify.Collector
+          file: notify/notify.go
+          firstLine: 13
+          lastLine: 19
+          steps:
+            - id: s23
+              kind: call
+              text: calls compose(code)
+              file: notify/notify.go
+              firstLine: 15
+              lastLine: 15
+              function: notify.compose
+            - id: s24
+              kind: external
+              text: calls POST https://messages.example.com/v1/send
+              file: notify/notify.go
+              firstLine: 16
+              lastLine: 16
+              dependency: messagesExampleCom
+            - id: s25
+              kind: call
+              text: calls send(message)
+              file: notify/notify.go
+              firstLine: 18
+              lastLine: 18
+              function: notify.send
+          source: |-
+            // Collector tells a parcel's collector that it waits.
+            func Collector(code string) {
+            	message := compose(code)
+            	req, _ := http.NewRequest(http.MethodPost, "https://messages.example.com/v1/send", nil)
+            	_ = req
+            	send(message)
+            }
+        - name: notify.compose
+          file: notify/notify.go
+          firstLine: 21
+          lastLine: 24
+          steps:
+            - id: s26
+              kind: return
+              text: returns "Your parcel " + code + " waits in a locker."
+              file: notify/notify.go
+              firstLine: 23
+              lastLine: 23
+          source: |-
+            // compose is the text of the message.
+            func compose(code string) string {
+            	return "Your parcel " + code + " waits in a locker."
+            }
+        - name: notify.send
+          file: notify/notify.go
+          firstLine: 26
+          lastLine: 30
+          steps:
+            - id: s27
+              kind: call
+              text: calls deliver(message)
+              file: notify/notify.go
+              firstLine: 28
+              lastLine: 28
+              function: notify.deliver
+            - id: s28
+              kind: call
+              text: calls carrier.Send(message)
+              file: notify/notify.go
+              firstLine: 29
+              lastLine: 29
+              stopped: a method of the interface Carrier, whose implementation syntax does not pick
+          source: |-
+            // send hands the message to the carrier.
+            func send(message string) {
+            	deliver(message)
+            	carrier.Send(message)
+            }
+        - name: notify.deliver
+          file: notify/notify.go
+          firstLine: 32
+          lastLine: 35
+          steps:
+            - id: s29
+              kind: call
+              text: calls stamp(message)
+              file: notify/notify.go
+              firstLine: 34
+              lastLine: 34
+              stopped: deeper than the 3 calls followed from the handler
+          source: |-
+            // deliver is the carrier's own step.
+            func deliver(message string) {
+            	stamp(message)
+            }
+    origin: stated
+    cites:
+      - {source: code, clause: 'lockers/handlers.go:20', says: 'The handler of POST /parcels, followed into 5 functions.'}
+  '#/paths/~1parcels~1{code}~1collect/post':
+    target: lockers.Server.collectParcel
+    handler:
+      commit: 1c42c4c517173d6d9f7741e3ce35bac6b1a39a7c
+      depth: 3
+      functions:
+        - name: lockers.Server.collectParcel
+          file: lockers/handlers.go
+          firstLine: 52
+          lastLine: 63
+          steps:
+            - id: s1
+              kind: input
+              text: reads the path parameter code
+              file: lockers/handlers.go
+              firstLine: 54
+              lastLine: 54
+              parameter: code
+            - id: s2
+              kind: input
+              text: reads the query parameter pin
+              file: lockers/handlers.go
+              firstLine: 55
+              lastLine: 55
+              parameter: pin
+            - id: s3
+              kind: database
+              text: 'reads parcels: SELECT locker_id FROM parcels WHERE code = $1 AND pin = $2'
+              file: lockers/handlers.go
+              firstLine: 57
+              lastLine: 57
+              table: parcels
+              access: read
+            - id: s4
+              kind: branch
+              text: if err != nil
+              file: lockers/handlers.go
+              firstLine: 57
+              lastLine: 60
+              then:
+                - id: s5
+                  kind: response
+                  text: 'answers 404: no such parcel'
+                  file: lockers/handlers.go
+                  firstLine: 58
+                  lastLine: 58
+                  status: 404
+                - id: s6
+                  kind: return
+                  text: returns
+                  file: lockers/handlers.go
+                  firstLine: 59
+                  lastLine: 59
+            - id: s7
+              kind: response
+              text: answers with JSON
+              file: lockers/handlers.go
+              firstLine: 61
+              lastLine: 61
+            - id: s8
+              kind: database
+              text: 'writes parcels: UPDATE parcels SET state = ''collected'' WHERE code = $1'
+              file: lockers/handlers.go
+              firstLine: 62
+              lastLine: 62
+              table: parcels
+              access: write
+          source: |-
+            // collectParcel opens the locker for a collector who knows the pin.
+            func (s *Server) collectParcel(w http.ResponseWriter, r *http.Request) {
+            	code := r.PathValue("code")
+            	pin := r.URL.Query().Get("pin")
+            	var lockerID int64
+            	if err := s.db.QueryRow("SELECT locker_id FROM parcels WHERE code = $1 AND pin = $2", code, pin).Scan(&lockerID); err != nil {
+            		http.Error(w, "no such parcel", http.StatusNotFound)
+            		return
+            	}
+            	json.NewEncoder(w).Encode(map[string]int64{"locker_id": lockerID})
+            	s.db.Exec("UPDATE parcels SET state = 'collected' WHERE code = $1", code)
+            }
+    origin: stated
+    cites:
+      - {source: code, clause: 'lockers/handlers.go:52', says: 'The handler of POST /parcels/{code}/collect, followed into 1 function.'}

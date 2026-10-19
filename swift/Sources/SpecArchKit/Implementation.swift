@@ -75,6 +75,7 @@ extension Checker {
     func checkBoundaryImplementation() {
         walk(root, []) { n, path in
             if path.contains("settings") { return } // free-form target and framework settings
+            if path.count > 2, path[0] == "mappings", path[2] == "handler" { return } // a handler record holds the code as it was read (ADR-139)
             if let last = path.last, namedMaps.contains(last) { return }
             for p in n.pairs where designKeys.contains(p.key.value) {
                 add(p.key, pointer(path + [p.key.value]), .designKey,
@@ -131,6 +132,7 @@ extension Checker {
                 add(by, pointer("mappings", p.key.value, "ownedBy"), .stakeholder, "\(by.value) is not a stakeholder of the specification\(suggest(by.value, d.stakeholders))")
             }
             checkIndexes(d, p.key.value, p.value.child("indexes"))
+            checkHandler(d, s, p.key.value, p.value)
         }
         var decisions = d.decisions
         for p in pairs(root.child("decisions")) { decisions[p.key.value] = p.value }
@@ -144,6 +146,84 @@ extension Checker {
         checkDeployments(d)
         checkSuites(d)
         checkIdioms(s)
+    }
+
+    /// Checks a handler record against the code it was read from (ADR-139):
+    /// the source it holds for each function must still be what the cited
+    /// file holds at the function's lines, the file found through the folder
+    /// the code source names under url, from the specification's root. The
+    /// working tree is read, not the commit, since neither build runs git.
+    func checkHandler(_ d: Design, _ s: Spec, _ key: String, _ m: YNode) {
+        guard let rec = m.child("handler") else { return }
+        let ptr = pointer("mappings", key, "handler")
+        var srcKey = ""
+        for cite in items(m.child("cites")) {
+            let k = str(cite.child("source"))
+            if !k.isEmpty { srcKey = k; break }
+        }
+        if srcKey.isEmpty {
+            warn(rec, ptr, .handlerSource, "the handler record of \(key) cites no source, so the folder its functions are read from is not known; cite the code source under cites")
+            return
+        }
+        let src = d.sources[srcKey]
+        let url = str(src?.child("url"))
+        if src == nil || url.isEmpty || url.contains("://") {
+            warn(rec, ptr, .handlerSource, "the source \(srcKey) that the handler record of \(key) cites names no folder under url, so the record cannot be checked against the code")
+            return
+        }
+        let root = joinPath(s.dir, url)
+        let commit = shortCommit(str(rec.child("commit")))
+        for (i, fn) in items(rec.child("functions")).enumerated() {
+            let fptr = pointer("mappings", key, "handler", "functions", "\(i)", "source")
+            let file = str(fn.child("file"))
+            let name = str(fn.child("name"))
+            let first = Int(str(fn.child("firstLine"))) ?? 0
+            let last = Int(str(fn.child("lastLine"))) ?? 0
+            guard !file.isEmpty, let srcNode = fn.child("source"), first >= 1, last >= first else { continue }
+            guard let data = try? readFile(joinPath(root, file)), let text = String(data: data, encoding: .utf8) else {
+                warn(fn.child("file"), pointer("mappings", key, "handler", "functions", "\(i)", "file"), .handlerSource,
+                     "\(file), from which the handler record of \(key) read \(name) at commit \(commit), is not under \(url), so the record cannot be checked against the code; run specarch extract go with --implementation-out again and replace the record")
+                continue
+            }
+            let lines = trimmedLines(text)
+            let want = trimmedLines(str(srcNode))
+            if last <= lines.count, Array(lines[(first - 1)..<last]) == want { continue }
+            if let at = findLines(lines, want) {
+                warn(srcNode, fptr, .handlerSource,
+                     "the handler record of \(key) read \(name) at commit \(commit) from \(file) lines \(first)-\(last), and that source is now at lines \(at)-\(at + want.count - 1); run specarch extract go with --implementation-out again and replace the record")
+                continue
+            }
+            var differs = first
+            for j in 0..<want.count {
+                if first - 1 + j >= lines.count || lines[first - 1 + j] != want[j] { differs = first + j; break }
+            }
+            warn(srcNode, fptr, .handlerSource,
+                 "the handler record of \(key) read \(name) at commit \(commit), and \(file) lines \(first)-\(last) no longer hold that source (line \(differs) differs), so the flowchart no longer matches the code; run specarch extract go with --implementation-out again and replace the record")
+        }
+    }
+
+    /// The first seven characters of a commit.
+    func shortCommit(_ c: String) -> String { c.count > 7 ? String(c.prefix(7)) : c }
+
+    /// The lines of a text, each without its trailing spaces and tabs, as a
+    /// handler record holds them.
+    func trimmedLines(_ text: String) -> [String] {
+        text.split(separator: "\n", omittingEmptySubsequences: false).map { line in
+            var l = Substring(line)
+            while let last = l.last, last == " " || last == "\t" { l.removeLast() }
+            return String(l)
+        }
+    }
+
+    /// The line, from 1, at which want starts in lines, or nil.
+    func findLines(_ lines: [String], _ want: [String]) -> Int? {
+        if want.isEmpty { return nil }
+        var i = 0
+        while i + want.count <= lines.count {
+            if Array(lines[i..<(i + want.count)]) == want { return i + 1 }
+            i += 1
+        }
+        return nil
     }
 
     /// Checks a mapping's indexes are on an entity and hold its fields

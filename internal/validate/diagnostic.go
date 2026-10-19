@@ -130,6 +130,7 @@ const (
 	RuleSuccessResponseMissing Rule = "success_response_missing"
 	RuleMiddleware             Rule = "middleware"
 	RuleMiddlewareMissing      Rule = "middleware_missing"
+	RuleHandlerSource          Rule = "handler_source"
 )
 
 // Rules lists every rule, in the order of the design's Rule enum.
@@ -252,6 +253,7 @@ var Rules = []Rule{
 	RuleSuccessResponseMissing,
 	RuleMiddleware,
 	RuleMiddlewareMissing,
+	RuleHandlerSource,
 }
 
 // Severity says whether a diagnostic makes the file invalid.

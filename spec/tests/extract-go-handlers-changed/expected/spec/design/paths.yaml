@@ -1,0 +1,92 @@
+permissions:
+  lockers.read:
+    origin: stated
+    cites:
+      - {source: code, clause: 'lockers/server.go:24', says: 'GET /lockers/{id}/report checks lockers.read with s.Require.'}
+  lockers.service:
+    origin: stated
+    cites:
+      - {source: code, clause: 'lockers/server.go:25', says: 'POST /lockers/{id}/service checks lockers.service with s.Require.'}
+  lockers.sweep:
+    origin: stated
+    cites:
+      - {source: code, clause: 'lockers/server.go:23', says: POST /lockers/sweep checks lockers.sweep with s.Require.}
+  parcels.store:
+    origin: stated
+    cites:
+      - {source: code, clause: 'lockers/server.go:21', says: POST /parcels checks parcels.store with s.Require.}
+paths:
+  /health:
+    get:
+      operationId: health
+      origin: stated
+      cites:
+        - {source: code, clause: 'lockers/server.go:26', says: Registers GET /health on a net/http ServeMux; its handler is s.health.}
+        - {source: code, clause: 'lockers/handlers.go:152', says: The handler of GET /health reads no path parameter by name.}
+  /lockers/sweep:
+    post:
+      operationId: sweepLockers
+      permission: lockers.sweep
+      origin: stated
+      cites:
+        - {source: code, clause: 'lockers/server.go:23', says: 'Registers POST /lockers/sweep on a net/http ServeMux; its handler is s.sweepLockers, and it is checked by s.Require("lockers.sweep").'}
+        - {source: code, clause: 'lockers/handlers.go:66', says: The handler of POST /lockers/sweep reads no path parameter by name.}
+  /lockers/{id}/report:
+    parameters:
+      - {name: id, in: path, required: true}
+    get:
+      operationId: reportLocker
+      permission: lockers.read
+      calls: [lockersExampleCom]
+      origin: stated
+      cites:
+        - {source: code, clause: 'lockers/server.go:24', says: 'Registers GET /lockers/{id}/report on a net/http ServeMux; its handler is s.reportLocker, and it is checked by s.Require("lockers.read").'}
+        - {source: code, clause: 'lockers/handlers.go:127', says: 'The handler of GET /lockers/{id}/report reads the path parameter id and calls lockersExampleCom.'}
+  /lockers/{id}/service:
+    parameters:
+      - {name: id, in: path, required: true}
+    post:
+      operationId: serviceLocker
+      permission: lockers.service
+      origin: stated
+      cites:
+        - {source: code, clause: 'lockers/server.go:25', says: 'Registers POST /lockers/{id}/service on a net/http ServeMux; its handler is s.serviceLocker, and it is checked by s.Require("lockers.service").'}
+        - {source: code, clause: 'lockers/handlers.go:142', says: 'The handler of POST /lockers/{id}/service reads no path parameter by name.'}
+  /parcels:
+    post:
+      operationId: storeParcel
+      permission: parcels.store
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                code:
+                  type: string
+                lockerId:
+                  type: integer
+                weightGrams:
+                  type: integer
+      origin: stated
+      cites:
+        - {source: code, clause: 'lockers/server.go:21', says: 'Registers POST /parcels on a net/http ServeMux; its handler is s.storeParcel, and it is checked by s.Require("parcels.store").'}
+        - {source: code, clause: 'lockers/handlers.go:21', says: The handler of POST /parcels reads no path parameter by name and decodes its body into req.}
+  /parcels/{code}/collect:
+    parameters:
+      - {name: code, in: path, required: true}
+    post:
+      operationId: collectParcel
+      origin: stated
+      cites:
+        - {source: code, clause: 'lockers/server.go:22', says: 'Registers POST /parcels/{code}/collect on a net/http ServeMux; its handler is s.collectParcel.'}
+        - {source: code, clause: 'lockers/handlers.go:53', says: 'The handler of POST /parcels/{code}/collect reads the path parameter code.'}
+dependencies:
+  lockersExampleCom:
+    origin: stated
+    cites:
+      - {source: code, clause: 'lockers/handlers.go:129', says: 'Calls GET https://lockers.example.com/v1/state with Get.'}
+  messagesExampleCom:
+    origin: stated
+    cites:
+      - {source: code, clause: 'notify/notify.go:16', says: 'Calls POST https://messages.example.com/v1/send with NewRequest.'}

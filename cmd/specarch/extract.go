@@ -139,14 +139,14 @@ func runExtract(args []string, stdout, stderr io.Writer) int {
 	case implementation != "" && source != "go" && source != "swift" && source != "javascript" && source != "dart" && source != "pages":
 		fmt.Fprintf(stderr, "specarch extract %s takes no --implementation; only go, swift, javascript, dart and pages read the permission checks an implementation file names, and pages the name of its schema file\n", source)
 		return 2
-	case implementationOut != "" && source != "database":
-		fmt.Fprintf(stderr, "specarch extract %s takes no --implementation-out; only database writes an implementation fragment, the mappings of its tables and their indexes\n", source)
+	case implementationOut != "" && source != "database" && source != "go":
+		fmt.Fprintf(stderr, "specarch extract %s takes no --implementation-out; only database writes an implementation fragment, the mappings of its tables and their indexes, and go, the mappings of its operations' handlers with their logic and source\n", source)
 		return 2
 	case implementationOut != "" && !strings.HasSuffix(implementationOut, ".yaml"):
-		fmt.Fprintf(stderr, "specarch extract database: --implementation-out %s is not a YAML file's name; name a new file ending in .yaml\n", implementationOut)
+		fmt.Fprintf(stderr, "specarch extract %s: --implementation-out %s is not a YAML file's name; name a new file ending in .yaml\n", source, implementationOut)
 		return 2
 	case implementationOut != "" && exists(implementationOut):
-		fmt.Fprintf(stderr, "specarch extract database: --implementation-out %s exists; name a new file, so a fragment edited by hand is never written over\n", implementationOut)
+		fmt.Fprintf(stderr, "specarch extract %s: --implementation-out %s exists; name a new file, so a fragment edited by hand is never written over\n", source, implementationOut)
 		return 2
 	case source == "openapi" && len(paths) != 1:
 		fmt.Fprintf(stderr, "specarch extract openapi reads one OpenAPI document, and was given %d paths; one source is written per document file\n", len(paths))
@@ -186,7 +186,7 @@ func runExtract(args []string, stdout, stderr io.Writer) int {
 			res, err = extract.Workflows(paths[0], out, key)
 		}
 	case "go":
-		res, err = extract.Go(paths, out, key, implementation)
+		res, err = extract.Go(paths, out, key, implementation, implementationOut != "")
 	case "swift":
 		res, err = extract.Swift(paths[0], out, key, implementation)
 	case "javascript":

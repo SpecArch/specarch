@@ -144,6 +144,7 @@ type sarifLogicalLocation struct {
 type sarifQuestionFields struct {
 	Priority     string   `json:"priority"`
 	QuestionKind string   `json:"questionKind"`
+	Certainty    string   `json:"certainty,omitempty"`
 	DecidedBy    string   `json:"decidedBy,omitempty"`
 	Options      []string `json:"options,omitempty"`
 	Blocks       []string `json:"blocks"`
@@ -176,7 +177,7 @@ func SARIF(ps []Problem) string {
 			if blocks == nil {
 				blocks = []string{}
 			}
-			r.Properties = &sarifQuestionFields{Priority: p.Priority, QuestionKind: p.Kind, DecidedBy: p.DecidedBy, Options: p.Options, Blocks: blocks}
+			r.Properties = &sarifQuestionFields{Priority: p.Priority, QuestionKind: p.Kind, Certainty: p.Certainty, DecidedBy: p.DecidedBy, Options: p.Options, Blocks: blocks}
 		}
 		r.Locations = []sarifLocation{{
 			PhysicalLocation: physical(p.File, p.Line, p.Column),

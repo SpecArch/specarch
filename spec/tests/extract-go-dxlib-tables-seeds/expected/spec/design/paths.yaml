@@ -3,14 +3,14 @@ permissions:
     origin: inferred
     why: 'dxlib names the privilege BRANCHES.READ, and by the rule of ADR-076 a privilege named in capitals, digits and underscores, in segments joined by dots, is the permission of that name in lower case with every underscore a dot: branches.read.'
     cites:
-      - {source: code, clause: 'api/endpoints.go:13', says: POST /branches/list checks BRANCHES.READ in its privileges.}
+      - {source: code, clause: 'api/endpoints.go:16', says: POST /branches/list checks BRANCHES.READ in its privileges.}
       - {source: code, clause: 'seed/seed.go:19', says: Grants BRANCHES.READ to desk-staff.}
   loans.read:
     description: Read the loans of any member.
     origin: inferred
     why: 'dxlib names the privilege LOANS.READ, and by the rule of ADR-076 a privilege named in capitals, digits and underscores, in segments joined by dots, is the permission of that name in lower case with every underscore a dot: loans.read.'
     cites:
-      - {source: code, clause: 'api/endpoints.go:9', says: POST /loans/list checks LOANS.READ in its privileges.}
+      - {source: code, clause: 'api/endpoints.go:12', says: POST /loans/list checks LOANS.READ in its privileges.}
       - {source: code, clause: 'seed/seed.go:17', says: Grants LOANS.READ to desk-staff.}
       - {source: code, clause: 'seed/seed.go:14', says: Inserts the privilege LOANS.READ.}
   loans.renew:
@@ -19,13 +19,18 @@ permissions:
     cites:
       - {source: code, clause: 'seed/seed.go:18', says: Grants LOANS.RENEW to desk-staff.}
       - {source: code, clause: 'seed/seed.go:15', says: Inserts the privilege LOANS.RENEW.}
+  loans.write:
+    origin: inferred
+    why: 'dxlib names the privilege LOANS.WRITE, and by the rule of ADR-076 a privilege named in capitals, digits and underscores, in segments joined by dots, is the permission of that name in lower case with every underscore a dot: loans.write.'
+    cites:
+      - {source: code, clause: 'api/endpoints.go:19', says: POST /loans/open checks LOANS.WRITE in its privileges.}
 middlewares:
   require-checks:
     description: RequireChecks runs the desk's checks while they are switched on.
     origin: stated
     cites:
       - {source: code, clause: 'api/middleware.go:24', says: RequireChecks is a middleware; it answers no refusal through its request.}
-      - {source: code, clause: 'api/endpoints.go:9', says: Runs RequireChecks before the handler.}
+      - {source: code, clause: 'api/endpoints.go:12', says: Runs RequireChecks before the handler.}
   require-desk-key:
     description: RequireDeskKey refuses a request without the desk's key, and lets every request through while no key is set.
     refusals:
@@ -33,7 +38,7 @@ middlewares:
     origin: stated
     cites:
       - {source: code, clause: 'api/middleware.go:12', says: RequireDeskKey is a middleware; it answers 401 DESK_KEY_WRONG.}
-      - {source: code, clause: 'api/endpoints.go:9', says: Runs RequireDeskKey before the handler.}
+      - {source: code, clause: 'api/endpoints.go:12', says: Runs RequireDeskKey before the handler.}
 paths:
   /branches/list:
     post:
@@ -44,7 +49,7 @@ paths:
       middlewares: [require-desk-key]
       origin: stated
       cites:
-        - {source: code, clause: 'api/endpoints.go:13', says: 'NewEndPoint registers POST /branches/list; its handler is BranchList.RequestSearchPagingList, its middlewares are RequireDeskKey, it declares no parameter and no response, and it checks BRANCHES.READ.'}
+        - {source: code, clause: 'api/endpoints.go:16', says: 'NewEndPoint registers POST /branches/list; its handler is BranchList.RequestSearchPagingList, its middlewares are RequireDeskKey, it declares no parameter and no response, and it checks BRANCHES.READ.'}
         - {source: code, clause: 'api/tables.go:13', says: 'The handler of POST /branches/list is dxlib''s RequestSearchPagingList of this table. NewDXTableSimple makes the table public.branches, with whitelists that are not literal lists of names.'}
   /loans/list:
     post:
@@ -55,9 +60,28 @@ paths:
       middlewares: [require-desk-key, require-checks]
       origin: stated
       cites:
-        - {source: code, clause: 'api/endpoints.go:9', says: 'NewEndPoint registers POST /loans/list; its handler is LoanList.RequestSearchPagingList, its middlewares are RequireDeskKey and RequireChecks, it declares the parameters search_text, row_per_page and page_index and no response, and it checks LOANS.READ.'}
+        - {source: code, clause: 'api/endpoints.go:12', says: 'NewEndPoint registers POST /loans/list; its handler is LoanList.RequestSearchPagingList, its middlewares are RequireDeskKey and RequireChecks, it declares the parameters search_text, row_per_page and page_index and no response, and it checks LOANS.READ.'}
         - {source: code, clause: 'api/tables.go:5', says: 'The handler of POST /loans/list is dxlib''s RequestSearchPagingList of this table. NewDXTableSimple makes the table desk.loans: its paging list searches title, member_name; orders by due_on, title; filters by member_id, state.'}
+  /loans/open:
+    post:
+      operationId: postLoansOpen
+      summary: Open a loan
+      description: Opens a loan at a branch.
+      permission: loans.write
+      middlewares: [require-desk-key]
+      responses:
+        "404":
+          problem: branch-not-found
+      origin: stated
+      cites:
+        - {source: code, clause: 'api/endpoints.go:19', says: 'NewEndPoint registers POST /loans/open; its handler is OpenLoan, its middlewares are RequireDeskKey, it declares the parameters branch_code and title and no response, and it checks LOANS.WRITE.'}
+        - {source: code, clause: 'api/endpoints.go:25', says: The handler of POST /loans/open reads the parameter branch_code and answers 404 BRANCH_NOT_FOUND.}
 errors:
+  branch-not-found:
+    status: 404
+    origin: stated
+    cites:
+      - {source: code, clause: 'api/endpoints.go:32', says: Answers 404 with the reason BRANCH_NOT_FOUND.}
   desk-key-wrong:
     status: 401
     origin: stated

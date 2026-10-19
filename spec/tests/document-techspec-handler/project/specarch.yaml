@@ -1,0 +1,41 @@
+specarch: "0.2"
+info:
+  title: Lockers
+  version: 1.0.0
+  description: A parcel-locker service, whose handlers were followed into the code.
+sources:
+  code: { kind: code, title: The code repository, edition: 1c42c4c517173d6d9f7741e3ce35bac6b1a39a7c, url: ../testdata/code, reading: parsed, clauses: [{ clause: lockers/handlers.go, title: Go source }, { clause: notify/notify.go, title: Go source }] }
+errors:
+  locker-not-found: { status: 404, title: No such locker, condition: The locker id names no locker. }
+  locker-taken: { status: 409, title: Locker taken, condition: The locker is full. }
+permissions:
+  parcels.store: { description: Store parcels. }
+  lockers.sweep: { description: Sweep the lockers. }
+roles:
+  courier: { description: Fills and empties the lockers., permissions: [parcels.store, lockers.sweep] }
+paths:
+  /parcels:
+    post:
+      operationId: storeParcel
+      summary: Store a parcel
+      description: Puts a parcel into a free locker and tells the collector.
+      permission: parcels.store
+      responses:
+        "201": { description: The parcel is stored. }
+        "404": { description: No such locker., problem: locker-not-found }
+        "409": { description: The locker is full., problem: locker-taken }
+  /lockers/sweep:
+    post:
+      operationId: sweepLockers
+      summary: Sweep the lockers
+      description: Removes every parcel left too long.
+      permission: lockers.sweep
+      responses:
+        "200": { description: The count swept. }
+tests:
+  store-parcel-succeeds: { operation: storeParcel, level: system, scenario: golden, given: "a courier and a free locker", when: "storeParcel is called", then: "it answers 201: The parcel is stored." }
+  store-parcel-denied-without-parcels-store: { operation: storeParcel, level: system, scenario: red, covers: [denied without parcels.store], given: "a caller without parcels.store", when: "storeParcel is called", then: "it is refused as not allowed" }
+  store-parcel-locker-not-found: { operation: storeParcel, level: system, scenario: red, covers: [response 404], given: "a locker id that names no locker", when: "storeParcel is called", then: "it answers 404 locker-not-found" }
+  store-parcel-locker-taken: { operation: storeParcel, level: system, scenario: red, covers: [response 409], given: "a full locker", when: "storeParcel is called", then: "it answers 409 locker-taken" }
+  sweep-lockers-succeeds: { operation: sweepLockers, level: system, scenario: golden, given: "a courier", when: "sweepLockers is called", then: "it answers 200: The count swept." }
+  sweep-lockers-denied-without-lockers-sweep: { operation: sweepLockers, level: system, scenario: red, covers: [denied without lockers.sweep], given: "a caller without lockers.sweep", when: "sweepLockers is called", then: "it is refused as not allowed" }

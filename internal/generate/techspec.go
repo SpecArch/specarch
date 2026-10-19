@@ -50,7 +50,7 @@ func Techspec(root *yaml.Node, relRoot string, impls []Implementation, state *St
 	constraints(d, root)
 	context(d, root)
 	buildingBlocks(d, root)
-	runtime(d, root)
+	runtime(d, root, impls)
 	deployment(d, root, impls)
 	crossCutting(d, root)
 	decisions(d, "9. Architecture decisions", root)
@@ -459,7 +459,7 @@ func buildingBlocks(d *doc, root *yaml.Node) {
 	}
 }
 
-func runtime(d *doc, root *yaml.Node) {
+func runtime(d *doc, root *yaml.Node, impls []Implementation) {
 	var states []string
 	for _, e := range pairs(root, "entities") {
 		if str(e.Value, "stateField") != "" && len(items(e.Value, "transitions")) > 0 {
@@ -506,6 +506,7 @@ func runtime(d *doc, root *yaml.Node) {
 		operationResponses(d, root, o, told)
 		d.openOperation(o, told)
 		d.block(operationSequence(root, o))
+		handlerLogic(d, o, impls)
 	}
 	for _, j := range jobs {
 		d.heading(3, "Job "+j.Key.Value)

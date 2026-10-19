@@ -51,6 +51,11 @@ var httpMethods = map[string]string{
 
 // The refusal statuses net/http names as constants.
 var httpStatuses = map[string]int{
+	"StatusContinue": 100, "StatusSwitchingProtocols": 101, "StatusOK": 200, "StatusCreated": 201, "StatusAccepted": 202,
+	"StatusNonAuthoritativeInfo": 203, "StatusNoContent": 204, "StatusResetContent": 205, "StatusPartialContent": 206,
+	"StatusMultiStatus": 207, "StatusAlreadyReported": 208, "StatusIMUsed": 226, "StatusMultipleChoices": 300,
+	"StatusMovedPermanently": 301, "StatusFound": 302, "StatusSeeOther": 303, "StatusNotModified": 304, "StatusUseProxy": 305,
+	"StatusTemporaryRedirect": 307, "StatusPermanentRedirect": 308,
 	"StatusBadRequest": 400, "StatusUnauthorized": 401, "StatusPaymentRequired": 402, "StatusForbidden": 403,
 	"StatusNotFound": 404, "StatusMethodNotAllowed": 405, "StatusNotAcceptable": 406, "StatusProxyAuthRequired": 407,
 	"StatusRequestTimeout": 408, "StatusConflict": 409, "StatusGone": 410, "StatusLengthRequired": 411,
@@ -74,6 +79,7 @@ var (
 // syntax, and the names its imports give.
 type goFile struct {
 	path    string
+	src     []byte
 	ast     *ast.File
 	imports map[string]string // the name a file uses -> the import path
 	cited   bool              // something written cites it
@@ -92,6 +98,10 @@ type goEndpoint struct {
 	declared   map[string]bool // the parameters' names, nil when they are not all literal
 	decl       *dxDeclared     // what the registration declares (ADR-130)
 	handler    string          // as the code writes it
+	pos        gotoken.Pos     // the registration
+	hDecl      *ast.FuncDecl   // the handler, when it is a function of the module
+	hLit       *ast.FuncLit    // the handler, when it is a function literal
+	hFile      *goFile         // the file the handler is written in
 	chain      []string        // the middlewares, as the code writes them
 	chainExprs []ast.Expr
 	chainFile  *goFile // the file the chain's list is written in
@@ -123,7 +133,7 @@ type goProblem struct {
 // (ADR-076): each endpoint NewEndPoint registers with literal values is an
 // operation citing its file and line, with its handler's parameter reads
 // and the problems it answers.
-func Go(paths []string, out, key, implementation string) (*Result, error) {
+func Go(paths []string, out, key, implementation string, writeImplementation bool) (*Result, error) {
 	r, err := Open(paths)
 	if err != nil {
 		return nil, err
@@ -131,7 +141,7 @@ func Go(paths []string, out, key, implementation string) (*Result, error) {
 	res := &Result{Tree: newTree()}
 	commitLine(res, r)
 	g := &goReader{r: r, key: key, res: res, questions: &yaml.Node{Kind: yaml.MappingNode}, fset: gotoken.NewFileSet(),
-		funcs: map[string]map[string]*ast.FuncDecl{}, funcFile: map[*ast.FuncDecl]*goFile{}, rt: &routeState{}}
+		funcs: map[string]map[string]*ast.FuncDecl{}, funcFile: map[*ast.FuncDecl]*goFile{}, rt: &routeState{}, faultAt: map[string]*goFault{}}
 	if err := g.parse(); err != nil {
 		return nil, err
 	}
@@ -227,7 +237,36 @@ func Go(paths []string, out, key, implementation string) (*Result, error) {
 		res.say("role names: the seeds write their roles in upper snake case, so each is read by its kebab-case name and the tree says info.roleNames %s", rule)
 	}
 	res.Tree.put("specarch.yaml", root)
+	g.sayHandlers(writeImplementation)
 	return res, nil
+}
+
+// sayHandlers counts the handlers followed and, when the fragment is
+// written, puts their records into it (ADR-139).
+func (g *goReader) sayHandlers(writeImplementation bool) {
+	if len(g.handlers) == 0 {
+		return
+	}
+	followed, functions, stopped := 0, 0, 0
+	for _, h := range g.handlers {
+		if len(h.functions) > 0 {
+			followed++
+			functions += len(h.functions)
+		}
+		h.each(func(_ *goFunction, s *goStep, _ []*goStep) {
+			if s.kind == "call" && s.stopped != "" {
+				stopped++
+			}
+		})
+	}
+	g.res.say("handlers: followed %d of %s into %s, to %d calls deep, and left %s not followed: the handler of each operation, where it is a function literal, a function of the same package or one of another package of the module, and each function of the module its steps call", followed, plural(len(g.handlers), "handler"), plural(functions, "function"), handlerDepth, plural(stopped, "call"))
+	g.compareHandlers()
+	if !writeImplementation {
+		return
+	}
+	g.res.Implementation = mapping("mappings", g.handlerMappings())
+	g.res.ImplementationNote = fmt.Sprintf("The mappings specarch extract go read from the Go source under %s at commit %s: each operation's handler, and for each handler followed its logic step by step and its source, function by function. They go under mappings in an implementation file of the specification; each cites the source %s.", strings.Join(g.r.Paths, ", "), g.r.Commit, g.key)
+	g.res.say("wrote %s into the implementation fragment, with %s", plural(followed, "handler record"), plural(functions, "function"))
 }
 
 type goReader struct {
@@ -269,19 +308,33 @@ type goReader struct {
 	middlewareOf    map[string]*goMiddleware // the middlewares the chains name, by name
 	middlewareNames []string
 	middlewares     *yaml.Node
+
+	handlers []*goHandler                // every operation's handler, as read (ADR-139)
+	previous map[string]*previousHandler // the handler records the implementation file holds, by pointer
+	faults   []*goFault                  // the faults found in the handlers, in order
+	faultAt  map[string]*goFault
 }
 
 func (g *goReader) question(priority, text string, blocks []string, why string, cites ...*yaml.Node) {
+	g.questionWith(priority, "", text, blocks, why, cites...)
+}
+
+// questionWith asks a question with its certainty, for one a reader asks
+// about code it checked against the specification (ADR-139).
+func (g *goReader) questionWith(priority, certainty, text string, blocks []string, why string, cites ...*yaml.Node) {
 	into := g.questionsFor(blocks)
 	g.nextID++
 	q := mapping(
 		"question", text,
 		"kind", "decision",
 		"priority", priority,
-		"blocks", blocks,
-		"decidedBy", owner,
-		"why", why,
 	)
+	if certainty != "" {
+		set(q, "certainty", certainty)
+	}
+	set(q, "blocks", blocks)
+	set(q, "decidedBy", owner)
+	set(q, "why", why)
 	if len(cites) > 0 {
 		set(q, "cites", cites)
 	}
@@ -376,7 +429,7 @@ func (g *goReader) parse() error {
 			broken++
 			continue
 		}
-		gf := &goFile{path: f, ast: file, imports: map[string]string{}}
+		gf := &goFile{path: f, src: src, ast: file, imports: map[string]string{}}
 		for _, imp := range file.Imports {
 			p, _ := strconv.Unquote(imp.Path.Value)
 			name := importedName(p)
@@ -478,6 +531,7 @@ func (g *goReader) read() {
 		}
 	}
 	askNotHeld(g.res, g.questionsFor, &g.nextID, g.key, g.notHeld)
+	g.readHandlers()
 }
 
 // branch is the loop or condition between a call and the function it is
@@ -549,7 +603,7 @@ func (g *goReader) registration(f *goFile, call *ast.CallExpr, name string, stac
 			[]string{"paths"}, "Syntax does not run the code; only the running system's own list of endpoints, such as the document dxlib emits, says what a loop or a condition registers.", g.at(clause, "Calls NewEndPoint "+branchWord(b)+"."))
 		return
 	}
-	ep := &goEndpoint{file: f, line: g.fset.Position(call.Pos()).Line}
+	ep := &goEndpoint{file: f, line: g.fset.Position(call.Pos()).Line, pos: call.Pos()}
 	uri, uriOK := g.stringValue(f, call.Args[2])
 	method, methodOK := g.methodValue(f, call.Args[3])
 	if !uriOK || !methodOK {
@@ -644,9 +698,11 @@ func (g *goReader) handlerBody(ep *goEndpoint, h ast.Expr) {
 	case *ast.FuncLit:
 		ft, body = h.Type, h.Body
 		ep.handler = "a function literal"
+		ep.hLit = h
 	case *ast.Ident:
 		if fd := g.funcs[path.Dir(ep.file.path)][h.Name]; fd != nil {
 			ft, body, file = fd.Type, fd.Body, g.funcFile[fd]
+			ep.hDecl = fd
 		}
 	case *ast.SelectorExpr:
 		if x, ok := h.X.(*ast.Ident); ok && g.modPath != "" {
@@ -655,6 +711,7 @@ func (g *goReader) handlerBody(ep *goEndpoint, h ast.Expr) {
 				dir := path.Join(g.modRoot, strings.TrimPrefix(strings.TrimPrefix(ip, g.modPath), "/"))
 				if fd := g.funcs[dir][h.Sel.Name]; fd != nil {
 					ft, body, file = fd.Type, fd.Body, g.funcFile[fd]
+					ep.hDecl = fd
 				}
 			}
 		}
@@ -662,6 +719,7 @@ func (g *goReader) handlerBody(ep *goEndpoint, h ast.Expr) {
 	if body == nil {
 		return
 	}
+	ep.hFile = file
 	ep.handlerAt = g.clause(file, body.Pos())
 	if _, isLit := h.(*ast.FuncLit); !isLit {
 		ep.handlerAt = g.clause(file, ft.Pos())

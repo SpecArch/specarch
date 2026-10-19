@@ -121,6 +121,7 @@ public enum Rule: String, CaseIterable, Sendable {
     case successResponseMissing = "success_response_missing"
     case middleware = "middleware"
     case middlewareMissing = "middleware_missing"
+    case handlerSource = "handler_source"
 }
 
 /// Whether a diagnostic makes the file invalid.

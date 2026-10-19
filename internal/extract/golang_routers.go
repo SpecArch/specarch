@@ -167,6 +167,8 @@ type goRoute struct {
 	middleware []string
 	checks     []checkUse
 	handlerAt  string
+	hDecl      *ast.FuncDecl // the handler, when it is a function of the module
+	hLit       *ast.FuncLit  // the handler, when it is a function literal
 	reads      []paramRead
 	body       *bodyRead
 	bodies     int // calls that decode a body
@@ -1848,12 +1850,14 @@ func (sc *routeScope) handlerBody(r *goRoute, h ast.Expr) {
 	switch h := h.(type) {
 	case *ast.FuncLit:
 		ft, body = h.Type, h.Body
+		r.hLit = h
 	default:
 		fd, f := sc.funcValue(h)
 		if fd == nil || fd.Body == nil {
 			return
 		}
 		ft, body = fd.Type, fd.Body
+		r.hDecl = fd
 		hs = g.newScope(f)
 		if fd.Recv != nil && len(fd.Recv.List) == 1 && len(fd.Recv.List[0].Names) == 1 {
 			hs.types[fd.Recv.List[0].Names[0].Name] = g.typeKey(f, fd.Recv.List[0].Type)
@@ -3049,6 +3053,7 @@ func (g *goReader) loadChecks(file string) error {
 		return refuse("%s does not parse as YAML", file)
 	}
 	g.rt.checkFile = file
+	g.loadHandlers(doc.Content[0])
 	list := child(child(child(doc.Content[0], "bindings"), "http"), "permissionChecks")
 	if list == nil {
 		g.res.say("checks: %s names no permission check under bindings.http.permissionChecks", file)

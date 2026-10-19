@@ -251,3 +251,14 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: code, clause: 'api/endpoints.go:47', says: 'Not held: the endpoint POST /desk/sweep: dxlib names it desk_sweep from its URI, which is not camelCase, as an operationId is; it is named postDeskSweep.'}
+  # specarch-problem: question: open_question: (should, decision, suspected) api/middleware.go:35: the handler api.Show of POST /desk/audit, POST /desk/close, POST /desk/count, POST /desk/open, POST /desk/show and POST /desk/sweep does nothing: its body has no step but a return. Is it a stub, with the operation not built yet? Decided by system-owner. Answer with a decision record that names Q-27 under answers. [Q-27]
+  Q-27:
+    question: 'api/middleware.go:35: the handler api.Show of POST /desk/audit, POST /desk/close, POST /desk/count, POST /desk/open, POST /desk/show and POST /desk/sweep does nothing: its body has no step but a return. Is it a stub, with the operation not built yet?'
+    kind: decision
+    priority: should
+    certainty: suspected
+    blocks: ['#/paths/~1desk~1audit/post', '#/paths/~1desk~1close/post', '#/paths/~1desk~1count/post', '#/paths/~1desk~1open/post', '#/paths/~1desk~1show/post', '#/paths/~1desk~1sweep/post']
+    decidedBy: system-owner
+    why: A handler that does nothing answers every request the same way, whatever the specification says the operation does.
+    cites:
+      - {source: code, clause: 'api/middleware.go:35', says: The body holds no step but a return.}

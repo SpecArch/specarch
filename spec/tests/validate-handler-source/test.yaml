@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: validate
+level: system
+scenario: golden
+given: "a specification whose code source names the folder of the code under url, a question with its certainty, and an implementation file whose handler records hold the source of four functions: one still at its lines, one whose source has moved down by two lines, one whose source has changed at its lines and whose second function is in a file that is not there, and one that cites a source with no folder"
+when: "validate is run"
+then: "it accepts the certainty, says nothing of the function still at its lines, warns handler_source that the moved function's source is now at its new lines, that the changed function's lines no longer hold its source naming the first line that differs, that the missing file is not under the folder, and that the source cited names no folder, each saying to run extract go with --implementation-out again, counts them as warnings and exits 0"
+verifies: [SA-34]

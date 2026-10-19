@@ -185,3 +185,47 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: code, clause: 'shelf/server.go:48', says: 'Not held: the field Count of the struct written in place has no json tag, so encoding/json writes it as Count, which is neither camelCase nor snake_case; left out.'}
+  # specarch-problem: question: open_question: (should, decision, suspected) shelf/server.go:73: the handler shelf.Server.importItems of POST /imports returns at line 73 on a path that writes no response. What does a caller get on that path? Decided by system-owner. Answer with a decision record that names Q-22 under answers. [Q-22]
+  Q-22:
+    question: 'shelf/server.go:73: the handler shelf.Server.importItems of POST /imports returns at line 73 on a path that writes no response. What does a caller get on that path?'
+    kind: decision
+    priority: should
+    certainty: suspected
+    blocks: ['#/paths/~1imports/post']
+    decidedBy: system-owner
+    why: A path that answers nothing leaves the caller with whatever the framework writes by default, which the specification does not say.
+    cites:
+      - {source: code, clause: 'shelf/server.go:73', says: Returns with no response written.}
+  # specarch-problem: question: open_question: (should, decision, suspected) shelf/server.go:63: the handler shelf.Server.replace of PUT /items/{id} returns at line 63 on a path that writes no response. What does a caller get on that path? Decided by system-owner. Answer with a decision record that names Q-23 under answers. [Q-23]
+  Q-23:
+    question: 'shelf/server.go:63: the handler shelf.Server.replace of PUT /items/{id} returns at line 63 on a path that writes no response. What does a caller get on that path?'
+    kind: decision
+    priority: should
+    certainty: suspected
+    blocks: ['#/paths/~1items~1{id}/put']
+    decidedBy: system-owner
+    why: A path that answers nothing leaves the caller with whatever the framework writes by default, which the specification does not say.
+    cites:
+      - {source: code, clause: 'shelf/server.go:63', says: Returns with no response written.}
+  # specarch-problem: question: open_question: (should, decision, suspected) shelf/server.go:87: the handler shelf.Server.upsert of POST /items/{id}/policy returns at line 87 on a path that writes no response. What does a caller get on that path? Decided by system-owner. Answer with a decision record that names Q-24 under answers. [Q-24]
+  Q-24:
+    question: 'shelf/server.go:87: the handler shelf.Server.upsert of POST /items/{id}/policy returns at line 87 on a path that writes no response. What does a caller get on that path?'
+    kind: decision
+    priority: should
+    certainty: suspected
+    blocks: ['#/paths/~1items~1{id}~1policy/post']
+    decidedBy: system-owner
+    why: A path that answers nothing leaves the caller with whatever the framework writes by default, which the specification does not say.
+    cites:
+      - {source: code, clause: 'shelf/server.go:87', says: Returns with no response written.}
+  # specarch-problem: question: open_question: (should, decision, suspected) shelf/server.go:99: the handler shelf.Server.tag of POST /tags returns at line 99 on a path that writes no response. What does a caller get on that path? Decided by system-owner. Answer with a decision record that names Q-25 under answers. [Q-25]
+  Q-25:
+    question: 'shelf/server.go:99: the handler shelf.Server.tag of POST /tags returns at line 99 on a path that writes no response. What does a caller get on that path?'
+    kind: decision
+    priority: should
+    certainty: suspected
+    blocks: ['#/paths/~1tags/post']
+    decidedBy: system-owner
+    why: A path that answers nothing leaves the caller with whatever the framework writes by default, which the specification does not say.
+    cites:
+      - {source: code, clause: 'shelf/server.go:99', says: Returns with no response written.}

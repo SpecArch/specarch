@@ -1,0 +1,159 @@
+# The mappings specarch extract go read from the Go source under . at commit
+# de0d49b00149d9c35633d90f9050a5f98ce9cf7a: each operation's handler, and for
+# each handler followed its logic step by step and its source, function by
+# function. They go under mappings in an implementation file of the
+# specification; each cites the source code.
+mappings:
+  '#/paths/~1branches~1list/post':
+    target: dxlib's RequestSearchPagingList of the table public.branches
+    description: The handler is dxlib's own paging list, whose logic is dxlib's; its whitelists are cited at the operation.
+    origin: stated
+    cites:
+      - {source: code, clause: 'api/endpoints.go:16', says: Registers POST /branches/list with the handler dxlib's RequestSearchPagingList of the table public.branches.}
+  '#/paths/~1loans~1list/post':
+    target: dxlib's RequestSearchPagingList of the table desk.loans
+    description: The handler is dxlib's own paging list, whose logic is dxlib's; its whitelists are cited at the operation.
+    origin: stated
+    cites:
+      - {source: code, clause: 'api/endpoints.go:12', says: Registers POST /loans/list with the handler dxlib's RequestSearchPagingList of the table desk.loans.}
+  '#/paths/~1loans~1open/post':
+    target: api.OpenLoan
+    handler:
+      commit: de0d49b00149d9c35633d90f9050a5f98ce9cf7a
+      depth: 3
+      functions:
+        - name: api.OpenLoan
+          file: api/endpoints.go
+          firstLine: 24
+          lastLine: 44
+          steps:
+            - id: s1
+              kind: input
+              text: reads the parameter branch_code
+              file: api/endpoints.go
+              firstLine: 26
+              lastLine: 26
+              parameter: branch_code
+            - id: s2
+              kind: branch
+              text: if err != nil
+              file: api/endpoints.go
+              firstLine: 27
+              lastLine: 29
+              then:
+                - id: s3
+                  kind: return
+                  text: returns err
+                  file: api/endpoints.go
+                  firstLine: 28
+                  lastLine: 28
+            - id: s4
+              kind: database
+              text: reads public.branches with ShouldSelectOne
+              file: api/endpoints.go
+              firstLine: 30
+              lastLine: 30
+              table: public.branches
+              access: read
+            - id: s5
+              kind: branch
+              text: if err != nil
+              file: api/endpoints.go
+              firstLine: 31
+              lastLine: 33
+              then:
+                - id: s6
+                  kind: response
+                  text: refuses with 404 branch-not-found
+                  file: api/endpoints.go
+                  firstLine: 32
+                  lastLine: 32
+                  status: 404
+                  problem: branch-not-found
+                - id: s7
+                  kind: return
+                  text: returns the error the refusal gives
+                  file: api/endpoints.go
+                  firstLine: 32
+                  lastLine: 32
+            - id: s8
+              kind: database
+              text: writes desk.loans with Insert
+              file: api/endpoints.go
+              firstLine: 34
+              lastLine: 34
+              table: desk.loans
+              access: write
+            - id: s9
+              kind: branch
+              text: if err != nil
+              file: api/endpoints.go
+              firstLine: 35
+              lastLine: 37
+              then:
+                - id: s10
+                  kind: return
+                  text: returns err
+                  file: api/endpoints.go
+                  firstLine: 36
+                  lastLine: 36
+            - id: s11
+              kind: database
+              text: writes public.branches with TxUpdate
+              file: api/endpoints.go
+              firstLine: 38
+              lastLine: 38
+              table: public.branches
+              access: write
+              transaction: true
+            - id: s12
+              kind: branch
+              text: if err != nil
+              file: api/endpoints.go
+              firstLine: 39
+              lastLine: 41
+              then:
+                - id: s13
+                  kind: return
+                  text: returns err
+                  file: api/endpoints.go
+                  firstLine: 40
+                  lastLine: 40
+            - id: s14
+              kind: response
+              text: answers 200 with JSON
+              file: api/endpoints.go
+              firstLine: 42
+              lastLine: 42
+              status: 200
+            - id: s15
+              kind: return
+              text: returns nil
+              file: api/endpoints.go
+              firstLine: 43
+              lastLine: 43
+          source: |-
+            // OpenLoan opens a loan at a branch, in the desk's tables.
+            func OpenLoan(aepr *api.DXAPIEndPointRequest) (err error) {
+            	_, code, err := aepr.GetParameterValueAsString("branch_code")
+            	if err != nil {
+            		return err
+            	}
+            	_, branch, err := BranchList.ShouldSelectOne(&aepr.Log, utils.JSON{"code": code}, nil)
+            	if err != nil {
+            		return aepr.WriteResponseAndNewErrorf(http.StatusNotFound, "BRANCH_NOT_FOUND", "no branch %s", code)
+            	}
+            	_, err = LoanList.Insert(&aepr.Log, utils.JSON{"branch_id": branch["id"], "state": "open"})
+            	if err != nil {
+            		return err
+            	}
+            	_, err = BranchList.TxUpdate(&aepr.Log, utils.JSON{"open_loans": 1}, utils.JSON{"id": branch["id"]})
+            	if err != nil {
+            		return err
+            	}
+            	aepr.WriteResponseAsJSON(http.StatusOK, nil, utils.JSON{"branch": branch})
+            	return nil
+            }
+    origin: stated
+    cites:
+      - {source: code, clause: 'api/endpoints.go:24', says: 'The handler of POST /loans/open, followed into 1 function.'}

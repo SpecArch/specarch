@@ -915,3 +915,179 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: code, clause: 'gorillarouter/router.go:15', says: 'Not held: the route POST /api/holds/{holdId}: its handler cancelHold serves more than one route; the operation is named postApiHoldsByHoldId.'}
+  # specarch-problem: question: open_question: (should, decision, suspected) stdmux/mux.go:27: the handler stdmux.health of GET / does nothing: its body has no step. Is it a stub, with the operation not built yet? Decided by system-owner. Answer with a decision record that names Q-104 under answers. [Q-104]
+  Q-104:
+    question: 'stdmux/mux.go:27: the handler stdmux.health of GET / does nothing: its body has no step. Is it a stub, with the operation not built yet?'
+    kind: decision
+    priority: should
+    certainty: suspected
+    blocks: ['#/paths/~1/get']
+    decidedBy: system-owner
+    why: A handler that does nothing answers every request the same way, whatever the specification says the operation does.
+    cites:
+      - {source: code, clause: 'stdmux/mux.go:27', says: The body holds no step but a return.}
+  # specarch-problem: question: open_question: (should, decision, suspected) gorillarouter/router.go:25: the handler gorillarouter.placeHold of POST /api/holds does nothing: its body has no step. Is it a stub, with the operation not built yet? Decided by system-owner. Answer with a decision record that names Q-105 under answers. [Q-105]
+  Q-105:
+    question: 'gorillarouter/router.go:25: the handler gorillarouter.placeHold of POST /api/holds does nothing: its body has no step. Is it a stub, with the operation not built yet?'
+    kind: decision
+    priority: should
+    certainty: suspected
+    blocks: ['#/paths/~1api~1holds/post']
+    decidedBy: system-owner
+    why: A handler that does nothing answers every request the same way, whatever the specification says the operation does.
+    cites:
+      - {source: code, clause: 'gorillarouter/router.go:25', says: The body holds no step but a return.}
+  # specarch-problem: question: open_question: (should, decision, suspected) gorillarouter/router.go:23: the handler gorillarouter.showHold of GET /api/holds/{holdId} does nothing: its body has no step. Is it a stub, with the operation not built yet? Decided by system-owner. Answer with a decision record that names Q-106 under answers. [Q-106]
+  Q-106:
+    question: 'gorillarouter/router.go:23: the handler gorillarouter.showHold of GET /api/holds/{holdId} does nothing: its body has no step. Is it a stub, with the operation not built yet?'
+    kind: decision
+    priority: should
+    certainty: suspected
+    blocks: ['#/paths/~1api~1holds~1{holdId}/get']
+    decidedBy: system-owner
+    why: A handler that does nothing answers every request the same way, whatever the specification says the operation does.
+    cites:
+      - {source: code, clause: 'gorillarouter/router.go:23', says: The body holds no step but a return.}
+  # specarch-problem: question: open_question: (should, decision, suspected) chirouter/router.go:49: the handler chirouter.showBranch of GET /branches/{branchId} reaches its end at line 49 on a path that writes no response. What does a caller get on that path? Decided by system-owner. Answer with a decision record that names Q-107 under answers. [Q-107]
+  Q-107:
+    question: 'chirouter/router.go:49: the handler chirouter.showBranch of GET /branches/{branchId} reaches its end at line 49 on a path that writes no response. What does a caller get on that path?'
+    kind: decision
+    priority: should
+    certainty: suspected
+    blocks: ['#/paths/~1branches~1{branchId}/get']
+    decidedBy: system-owner
+    why: A path that answers nothing leaves the caller with whatever the framework writes by default, which the specification does not say.
+    cites:
+      - {source: code, clause: 'chirouter/router.go:49', says: Reaches its end with no response written.}
+  # specarch-problem: question: open_question: (should, decision, suspected) echorouter/router.go:19: the handler echorouter.showFine of GET /fines/{fineId} returns nil at line 19 on a path that writes no response. What does a caller get on that path? Decided by system-owner. Answer with a decision record that names Q-108 under answers. [Q-108]
+  Q-108:
+    question: 'echorouter/router.go:19: the handler echorouter.showFine of GET /fines/{fineId} returns nil at line 19 on a path that writes no response. What does a caller get on that path?'
+    kind: decision
+    priority: should
+    certainty: suspected
+    blocks: ['#/paths/~1fines~1{fineId}/get']
+    decidedBy: system-owner
+    why: A path that answers nothing leaves the caller with whatever the framework writes by default, which the specification does not say.
+    cites:
+      - {source: code, clause: 'echorouter/router.go:19', says: Returns with no response written.}
+  # specarch-problem: question: open_question: (should, decision, suspected) echorouter/router.go:20: the handler echorouter.waive of PATCH /fines/{fineId}, PUT /fines/{fineId} and POST /fines/{fineId}/waivers does nothing: its body has no step but a return. Is it a stub, with the operation not built yet? Decided by system-owner. Answer with a decision record that names Q-109 under answers. [Q-109]
+  Q-109:
+    question: 'echorouter/router.go:20: the handler echorouter.waive of PATCH /fines/{fineId}, PUT /fines/{fineId} and POST /fines/{fineId}/waivers does nothing: its body has no step but a return. Is it a stub, with the operation not built yet?'
+    kind: decision
+    priority: should
+    certainty: suspected
+    blocks: ['#/paths/~1fines~1{fineId}/patch', '#/paths/~1fines~1{fineId}/put', '#/paths/~1fines~1{fineId}~1waivers/post']
+    decidedBy: system-owner
+    why: A handler that does nothing answers every request the same way, whatever the specification says the operation does.
+    cites:
+      - {source: code, clause: 'echorouter/router.go:20', says: The body holds no step but a return.}
+  # specarch-problem: question: open_question: (should, decision, suspected) gorillarouter/router.go:22: the handler gorillarouter.listHolds of GET /holds does nothing: its body has no step. Is it a stub, with the operation not built yet? Decided by system-owner. Answer with a decision record that names Q-110 under answers. [Q-110]
+  Q-110:
+    question: 'gorillarouter/router.go:22: the handler gorillarouter.listHolds of GET /holds does nothing: its body has no step. Is it a stub, with the operation not built yet?'
+    kind: decision
+    priority: should
+    certainty: suspected
+    blocks: ['#/paths/~1holds/get']
+    decidedBy: system-owner
+    why: A handler that does nothing answers every request the same way, whatever the specification says the operation does.
+    cites:
+      - {source: code, clause: 'gorillarouter/router.go:22', says: The body holds no step but a return.}
+  # specarch-problem: question: open_question: (should, decision, suspected) stdmux/mux.go:26: the handler stdmux.lendBook of POST /loans does nothing: its body has no step. Is it a stub, with the operation not built yet? Decided by system-owner. Answer with a decision record that names Q-111 under answers. [Q-111]
+  Q-111:
+    question: 'stdmux/mux.go:26: the handler stdmux.lendBook of POST /loans does nothing: its body has no step. Is it a stub, with the operation not built yet?'
+    kind: decision
+    priority: should
+    certainty: suspected
+    blocks: ['#/paths/~1loans/post']
+    decidedBy: system-owner
+    why: A handler that does nothing answers every request the same way, whatever the specification says the operation does.
+    cites:
+      - {source: code, clause: 'stdmux/mux.go:26', says: The body holds no step but a return.}
+  # specarch-problem: question: open_question: (should, decision, suspected) stdmux/mux.go:25: the handler stdmux.showLoan of GET /loans/{loanId} reaches its end at line 25 on a path that writes no response. What does a caller get on that path? Decided by system-owner. Answer with a decision record that names Q-112 under answers. [Q-112]
+  Q-112:
+    question: 'stdmux/mux.go:25: the handler stdmux.showLoan of GET /loans/{loanId} reaches its end at line 25 on a path that writes no response. What does a caller get on that path?'
+    kind: decision
+    priority: should
+    certainty: suspected
+    blocks: ['#/paths/~1loans~1{loanId}/get']
+    decidedBy: system-owner
+    why: A path that answers nothing leaves the caller with whatever the framework writes by default, which the specification does not say.
+    cites:
+      - {source: code, clause: 'stdmux/mux.go:25', says: Reaches its end with no response written.}
+  # specarch-problem: question: open_question: (should, decision, suspected) chirouter/router.go:45: the handler chirouter.listMembers of GET /members does nothing: its body has no step. Is it a stub, with the operation not built yet? Decided by system-owner. Answer with a decision record that names Q-113 under answers. [Q-113]
+  Q-113:
+    question: 'chirouter/router.go:45: the handler chirouter.listMembers of GET /members does nothing: its body has no step. Is it a stub, with the operation not built yet?'
+    kind: decision
+    priority: should
+    certainty: suspected
+    blocks: ['#/paths/~1members/get']
+    decidedBy: system-owner
+    why: A handler that does nothing answers every request the same way, whatever the specification says the operation does.
+    cites:
+      - {source: code, clause: 'chirouter/router.go:45', says: The body holds no step but a return.}
+  # specarch-problem: question: open_question: (should, decision, suspected) chirouter/router.go:46: the handler chirouter.addMember of POST /members does nothing: its body has no step. Is it a stub, with the operation not built yet? Decided by system-owner. Answer with a decision record that names Q-114 under answers. [Q-114]
+  Q-114:
+    question: 'chirouter/router.go:46: the handler chirouter.addMember of POST /members does nothing: its body has no step. Is it a stub, with the operation not built yet?'
+    kind: decision
+    priority: should
+    certainty: suspected
+    blocks: ['#/paths/~1members/post']
+    decidedBy: system-owner
+    why: A handler that does nothing answers every request the same way, whatever the specification says the operation does.
+    cites:
+      - {source: code, clause: 'chirouter/router.go:46', says: The body holds no step but a return.}
+  # specarch-problem: question: open_question: (should, decision, suspected) chirouter/router.go:48: the handler chirouter.removeMember of DELETE /members/{cardNumber} does nothing: its body has no step. Is it a stub, with the operation not built yet? Decided by system-owner. Answer with a decision record that names Q-115 under answers. [Q-115]
+  Q-115:
+    question: 'chirouter/router.go:48: the handler chirouter.removeMember of DELETE /members/{cardNumber} does nothing: its body has no step. Is it a stub, with the operation not built yet?'
+    kind: decision
+    priority: should
+    certainty: suspected
+    blocks: ['#/paths/~1members~1{cardNumber}/delete']
+    decidedBy: system-owner
+    why: A handler that does nothing answers every request the same way, whatever the specification says the operation does.
+    cites:
+      - {source: code, clause: 'chirouter/router.go:48', says: The body holds no step but a return.}
+  # specarch-problem: question: open_question: (should, decision, suspected) chirouter/router.go:47: the handler chirouter.showMember of GET /members/{cardNumber} and PUT /members/{cardNumber}/address reaches its end at line 47 on a path that writes no response. What does a caller get on that path? Decided by system-owner. Answer with a decision record that names Q-116 under answers. [Q-116]
+  Q-116:
+    question: 'chirouter/router.go:47: the handler chirouter.showMember of GET /members/{cardNumber} and PUT /members/{cardNumber}/address reaches its end at line 47 on a path that writes no response. What does a caller get on that path?'
+    kind: decision
+    priority: should
+    certainty: suspected
+    blocks: ['#/paths/~1members~1{cardNumber}/get', '#/paths/~1members~1{cardNumber}~1address/put']
+    decidedBy: system-owner
+    why: A path that answers nothing leaves the caller with whatever the framework writes by default, which the specification does not say.
+    cites:
+      - {source: code, clause: 'chirouter/router.go:47', says: Reaches its end with no response written.}
+  # specarch-problem: question: open_question: (should, decision, suspected) stdmux/mux.go:28: the handler stdmux.daily of GET /reports/daily does nothing: its body has no step. Is it a stub, with the operation not built yet? Decided by system-owner. Answer with a decision record that names Q-117 under answers. [Q-117]
+  Q-117:
+    question: 'stdmux/mux.go:28: the handler stdmux.daily of GET /reports/daily does nothing: its body has no step. Is it a stub, with the operation not built yet?'
+    kind: decision
+    priority: should
+    certainty: suspected
+    blocks: ['#/paths/~1reports~1daily/get']
+    decidedBy: system-owner
+    why: A handler that does nothing answers every request the same way, whatever the specification says the operation does.
+    cites:
+      - {source: code, clause: 'stdmux/mux.go:28', says: The body holds no step but a return.}
+  # specarch-problem: question: open_question: (should, decision, suspected) ginrouter/router.go:19: the handler ginrouter.addBook of POST /v1/books and PATCH /v1/books/{isbn} does nothing: its body has no step. Is it a stub, with the operation not built yet? Decided by system-owner. Answer with a decision record that names Q-118 under answers. [Q-118]
+  Q-118:
+    question: 'ginrouter/router.go:19: the handler ginrouter.addBook of POST /v1/books and PATCH /v1/books/{isbn} does nothing: its body has no step. Is it a stub, with the operation not built yet?'
+    kind: decision
+    priority: should
+    certainty: suspected
+    blocks: ['#/paths/~1v1~1books/post', '#/paths/~1v1~1books~1{isbn}/patch']
+    decidedBy: system-owner
+    why: A handler that does nothing answers every request the same way, whatever the specification says the operation does.
+    cites:
+      - {source: code, clause: 'ginrouter/router.go:19', says: The body holds no step but a return.}
+  # specarch-problem: question: open_question: (should, decision, suspected) ginrouter/router.go:18: the handler ginrouter.showBook of GET /v1/books/{isbn} reaches its end at line 18 on a path that writes no response. What does a caller get on that path? Decided by system-owner. Answer with a decision record that names Q-119 under answers. [Q-119]
+  Q-119:
+    question: 'ginrouter/router.go:18: the handler ginrouter.showBook of GET /v1/books/{isbn} reaches its end at line 18 on a path that writes no response. What does a caller get on that path?'
+    kind: decision
+    priority: should
+    certainty: suspected
+    blocks: ['#/paths/~1v1~1books~1{isbn}/get']
+    decidedBy: system-owner
+    why: A path that answers nothing leaves the caller with whatever the framework writes by default, which the specification does not say.
+    cites:
+      - {source: code, clause: 'ginrouter/router.go:18', says: Reaches its end with no response written.}

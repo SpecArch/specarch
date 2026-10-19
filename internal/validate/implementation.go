@@ -2,7 +2,9 @@ package validate
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"go.yaml.in/yaml/v3"
@@ -38,9 +40,12 @@ var namedMaps = map[string]bool{
 
 func (c *checker) checkBoundaryImplementation() {
 	walk(c.root, nil, func(n *yaml.Node, path []string) {
-		for _, tok := range path {
+		for i, tok := range path {
 			if tok == "settings" {
 				return // free-form target and framework settings
+			}
+			if tok == "handler" && i == 2 && path[0] == "mappings" {
+				return // a handler record holds the code as it was read (ADR-139)
 			}
 		}
 		if len(path) > 0 && namedMaps[path[len(path)-1]] {
@@ -103,6 +108,7 @@ func (c *checker) checkImplementation(s *spec.Spec, load Loader) {
 			c.add(by, source.Pointer("mappings", p.Key.Value, "ownedBy"), RuleStakeholder, "%s is not a stakeholder of the specification%s", by.Value, suggest(by.Value, d.stakeholders))
 		}
 		c.checkIndexes(d, p.Key.Value, source.Child(p.Value, "indexes"))
+		c.checkHandler(d, s, p.Key.Value, p.Value)
 	}
 	decisions := map[string]*yaml.Node{}
 	for k, v := range d.decisions {
@@ -123,6 +129,118 @@ func (c *checker) checkImplementation(s *spec.Spec, load Loader) {
 	c.checkDeployments(d)
 	c.checkSuites(d, rel)
 	c.checkIdioms(s)
+}
+
+// checkHandler checks a handler record against the code it was read from
+// (ADR-139): the source it holds for each function must still be what the
+// cited file holds at the function's lines, the file found through the
+// folder the code source names under url, from the specification's root.
+// The working tree is read, not the commit, since neither build runs git;
+// the commit the record names tells the reader what it was taken from.
+func (c *checker) checkHandler(d *design, s *spec.Spec, key string, m *yaml.Node) {
+	rec := source.Child(m, "handler")
+	if rec == nil {
+		return
+	}
+	ptr := source.Pointer("mappings", key, "handler")
+	srcKey := ""
+	for _, cite := range source.Items(source.Child(m, "cites")) {
+		if k := source.Str(source.Child(cite, "source")); k != "" {
+			srcKey = k
+			break
+		}
+	}
+	if srcKey == "" {
+		c.warn(rec, ptr, RuleHandlerSource, "the handler record of %s cites no source, so the folder its functions are read from is not known; cite the code source under cites", key)
+		return
+	}
+	src := d.sources[srcKey]
+	url := source.Str(source.Child(src, "url"))
+	if src == nil || url == "" || strings.Contains(url, "://") {
+		c.warn(rec, ptr, RuleHandlerSource, "the source %s that the handler record of %s cites names no folder under url, so the record cannot be checked against the code", srcKey, key)
+		return
+	}
+	root := filepath.Join(s.Dir, filepath.FromSlash(url))
+	commit := shortCommit(source.Str(source.Child(rec, "commit")))
+	for i, fn := range source.Items(source.Child(rec, "functions")) {
+		fptr := source.Pointer("mappings", key, "handler", "functions", fmt.Sprint(i), "source")
+		file := source.Str(source.Child(fn, "file"))
+		name := source.Str(source.Child(fn, "name"))
+		first, _ := strconv.Atoi(source.Str(source.Child(fn, "firstLine")))
+		last, _ := strconv.Atoi(source.Str(source.Child(fn, "lastLine")))
+		srcNode := source.Child(fn, "source")
+		if file == "" || srcNode == nil || first < 1 || last < first {
+			continue // the schema reports it
+		}
+		data, err := os.ReadFile(filepath.Join(root, filepath.FromSlash(file)))
+		if err != nil {
+			c.warn(source.Child(fn, "file"), source.Pointer("mappings", key, "handler", "functions", fmt.Sprint(i), "file"), RuleHandlerSource,
+				"%s, from which the handler record of %s read %s at commit %s, is not under %s, so the record cannot be checked against the code; run specarch extract go with --implementation-out again and replace the record", file, key, name, commit, url)
+			continue
+		}
+		lines := trimmedLines(string(data))
+		want := trimmedLines(source.Str(srcNode))
+		if last <= len(lines) && equalLines(lines[first-1:last], want) {
+			continue
+		}
+		if at := findLines(lines, want); at > 0 {
+			c.warn(srcNode, fptr, RuleHandlerSource,
+				"the handler record of %s read %s at commit %s from %s lines %d-%d, and that source is now at lines %d-%d; run specarch extract go with --implementation-out again and replace the record", key, name, commit, file, first, last, at, at+len(want)-1)
+			continue
+		}
+		differs := first
+		for j := 0; j < len(want); j++ {
+			if first-1+j >= len(lines) || lines[first-1+j] != want[j] {
+				differs = first + j
+				break
+			}
+		}
+		c.warn(srcNode, fptr, RuleHandlerSource,
+			"the handler record of %s read %s at commit %s, and %s lines %d-%d no longer hold that source (line %d differs), so the flowchart no longer matches the code; run specarch extract go with --implementation-out again and replace the record", key, name, commit, file, first, last, differs)
+	}
+}
+
+// shortCommit is the first seven characters of a commit.
+func shortCommit(c string) string {
+	if len(c) > 7 {
+		return c[:7]
+	}
+	return c
+}
+
+// trimmedLines splits text into lines, each without its trailing spaces
+// and tabs, as a handler record holds them.
+func trimmedLines(text string) []string {
+	lines := strings.Split(text, "\n")
+	for i, l := range lines {
+		lines[i] = strings.TrimRight(l, " \t")
+	}
+	return lines
+}
+
+func equalLines(a, b []string) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for i := range a {
+		if a[i] != b[i] {
+			return false
+		}
+	}
+	return true
+}
+
+// findLines is the line, from 1, at which want starts in lines, or 0.
+func findLines(lines, want []string) int {
+	if len(want) == 0 {
+		return 0
+	}
+	for i := 0; i+len(want) <= len(lines); i++ {
+		if equalLines(lines[i:i+len(want)], want) {
+			return i + 1
+		}
+	}
+	return 0
 }
 
 // checkIndexes checks a mapping's indexes are on an entity and hold its

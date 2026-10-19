@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: document
+level: system
+scenario: golden
+given: "a specification with two operations, its code beside it, and an implementation file whose mappings hold the handler record of each: the functions followed with their steps and source, one handler calling into a second package, with a branch, a loop, a switch, table reads and writes, an external call and calls not followed"
+when: "document techspec is run"
+then: "it writes, in each operation's runtime view after its sequence diagram, what the handler does: the handler's name, the commit and depth read, and for each function its name and lines, a Mermaid flowchart whose nodes carry the steps' ids and are shaped by kind, with yes and no edges on a branch, a case per edge on a switch and a way back on a loop, the function's source in a Go code block, and the calls not followed with why; the validator finds the records current, so no problem is marked; and exits 0"
+verifies: [SA-7]

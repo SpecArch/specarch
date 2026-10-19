@@ -157,6 +157,29 @@ Targets read the specification for the design and the implementation file
 for the target choices: which folder a target owns, the settings of the
 code generator that follows it, the type a decimal maps to.
 
+An operation's mapping may hold what its handler does, as `specarch extract
+go` read it from the code (ADR-139), under `handler`: the commit read, the
+depth followed, and `functions`, the handler first and then each function
+of the same code its steps reach, each with its name, file, first and last
+line, its `steps` and its `source` as it was at that commit, each line
+without its trailing spaces and tabs. A step has an `id` (`s` and its
+number in the order written), a `kind` (`input`, `branch`, `choice`,
+`loop`, `database`, `transaction`, `call`, `external`, `response`,
+`return`, `statement`), its `text` in plain words, its `file`, `firstLine`
+and `lastLine`, and what its kind adds: `parameter`; `then` and
+`otherwise`; `cases` of `when` and `steps`; `body`; `table`, `access` and
+`transaction`; `function` or `stopped`; `dependency`; `status` and
+`problem`. The record is implementation because what a handler does on one
+stack is that stack's; the design says what the operation answers. The
+technical specification draws each function as a flowchart whose nodes
+carry the steps' ids, with the source under it, and the validator warns
+`handler_source` when the source a record holds is no longer what the
+cited file holds at the function's lines, read from the specification's
+root through the code source's `url`. `specarch extract go
+--implementation-out` writes the records into a fragment, and given
+`--implementation` prints how each handler's steps changed since the
+file's record.
+
 An element another stakeholder owns, such as a table another team keeps
 in the same database or a route another service answers behind the same
 gateway, is marked on its mapping with `ownedBy`, naming a stakeholder of
@@ -302,7 +325,12 @@ be provided), its `priority` (`must`: what it blocks is not defined;
 `should`: what it blocks is inferred and must be confirmed; `could`: the
 answer would help but nothing waits), what it `blocks` (a stage, a section,
 or a pointer to an element or to one key of it), who decides (`decidedBy`,
-a stakeholder key), and the `options` when the answer is a choice. The ID
+a stakeholder key), and the `options` when the answer is a choice. A
+question a reader asks about code it checked against the specification
+also says its `certainty` (ADR-139): `certain` when the code as written
+cannot work or disagrees with the specification, `suspected` when a run or
+a person must confirm it; the problems file, the SARIF log and the
+documents show it beside the priority and the kind. The ID
 is an upper-case prefix of one or more letters, a dash and a number.
 
 The question is the one licence for an element to be incomplete. A
@@ -1885,6 +1913,7 @@ edit inside the markers; edit the YAML.
 | `sequenceDiagram` of one operation: client, service, algorithm, channels, answer | `sequenceDiagram <operationId>` | `paths`, `emits`, `algorithm` | generated |
 | `sequenceDiagram` of one command: user, program, files read and written, exit statuses | `sequenceDiagram <command>` | `commands` | generated |
 | `flowchart` of pages and their `actions` | `flowchart pages` | `pages` | generated |
+| `flowchart` of one function of an operation's handler, a node per step by its id | | an implementation file's `mappings`, `handler` (ADR-139) | generated, in the technical specification only |
 | permissions matrix (a Markdown table, not a diagram) | `permissions` | `roles`, `permissions` | generated |
 | context picture | | prose | hand-drawn |
 | deployment picture | | prose | hand-drawn |

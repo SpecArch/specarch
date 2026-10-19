@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: extract
+level: system
+scenario: golden
+given: "the parcel-locker module of extract-go-handlers, and an implementation file holding handler records read at an earlier commit: one whose handler has since gained a call and grown by a line, one unchanged, and one of an operation the module no longer registers; the other operations have no record"
+when: "extract go is run on the module with --implementation naming the file and without --implementation-out"
+then: "it writes the tree as extract-go-handlers does and no fragment, compares each handler with the file's record and prints one line counting the unchanged, the changed, the operations not recorded and the records whose operation is gone, then for the changed handler the function, its lines now and before and the step lines added and removed, each step line marked + or -, and one line naming the record whose operation the source does not register, and exits 0"
+verifies: [SA-44, SA-70]

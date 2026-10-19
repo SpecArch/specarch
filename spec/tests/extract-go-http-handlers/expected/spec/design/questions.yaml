@@ -361,3 +361,102 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: code, clause: 'desk/server.go:104', says: 'Not held: Member.FullName has no json tag, so encoding/json writes it as FullName, which is neither camelCase nor snake_case; left out.'}
+  # specarch-problem: question: open_question: (should, decision, suspected) desk/server.go:93: the result of http.NewRequest(http.MethodGet, os.Getenv("DESK_UPSTREAM")+"/health", nil) is dropped in desk.Server.status, so when the call fails the handler desk.Server.status of GET /status goes on as if it had succeeded. Is the error meant to be ignored? Decided by system-owner. Answer with a decision record that names Q-44 under answers. [Q-44]
+  Q-44:
+    question: 'desk/server.go:93: the result of http.NewRequest(http.MethodGet, os.Getenv("DESK_UPSTREAM")+"/health", nil) is dropped in desk.Server.status, so when the call fails the handler desk.Server.status of GET /status goes on as if it had succeeded. Is the error meant to be ignored?'
+    kind: decision
+    priority: should
+    certainty: suspected
+    blocks: ['#/paths/~1status/get']
+    decidedBy: system-owner
+    why: 'An error dropped is a failure nobody sees: the request is answered as a success, or with a value that is not there.'
+    cites:
+      - {source: code, clause: 'desk/server.go:93', says: 'Drops the result of http.NewRequest(http.MethodGet, os.Getenv("DESK_UPSTREAM")+"/health", nil).'}
+  # specarch-problem: question: open_question: (should, decision, suspected) desk/server.go:82: the handler desk.Server.showFine of GET /fines/{fineId} does nothing: its body has no step. Is it a stub, with the operation not built yet? Decided by system-owner. Answer with a decision record that names Q-45 under answers. [Q-45]
+  Q-45:
+    question: 'desk/server.go:82: the handler desk.Server.showFine of GET /fines/{fineId} does nothing: its body has no step. Is it a stub, with the operation not built yet?'
+    kind: decision
+    priority: should
+    certainty: suspected
+    blocks: ['#/paths/~1fines~1{fineId}/get']
+    decidedBy: system-owner
+    why: A handler that does nothing answers every request the same way, whatever the specification says the operation does.
+    cites:
+      - {source: code, clause: 'desk/server.go:82', says: The body holds no step but a return.}
+  # specarch-problem: question: open_question: (should, decision, suspected) desk/server.go:88: the handler desk.Server.waiveFine of POST /fines/{fineId}/waivers reaches its end at line 88 on a path that writes no response. What does a caller get on that path? Decided by system-owner. Answer with a decision record that names Q-46 under answers. [Q-46]
+  Q-46:
+    question: 'desk/server.go:88: the handler desk.Server.waiveFine of POST /fines/{fineId}/waivers reaches its end at line 88 on a path that writes no response. What does a caller get on that path?'
+    kind: decision
+    priority: should
+    certainty: suspected
+    blocks: ['#/paths/~1fines~1{fineId}~1waivers/post']
+    decidedBy: system-owner
+    why: A path that answers nothing leaves the caller with whatever the framework writes by default, which the specification does not say.
+    cites:
+      - {source: code, clause: 'desk/server.go:88', says: Reaches its end with no response written.}
+  # specarch-problem: question: open_question: (should, decision, suspected) desk/server.go:70: the handler desk.Server.lendBook of POST /loans reaches its end at line 70 on a path that writes no response. What does a caller get on that path? Decided by system-owner. Answer with a decision record that names Q-47 under answers. [Q-47]
+  Q-47:
+    question: 'desk/server.go:70: the handler desk.Server.lendBook of POST /loans reaches its end at line 70 on a path that writes no response. What does a caller get on that path?'
+    kind: decision
+    priority: should
+    certainty: suspected
+    blocks: ['#/paths/~1loans/post']
+    decidedBy: system-owner
+    why: A path that answers nothing leaves the caller with whatever the framework writes by default, which the specification does not say.
+    cites:
+      - {source: code, clause: 'desk/server.go:70', says: Reaches its end with no response written.}
+  # specarch-problem: question: open_question: (should, decision, suspected) desk/server.go:75: the handler desk.Server.showLoan of GET /loans/{loanId} reaches its end at line 75 on a path that writes no response. What does a caller get on that path? Decided by system-owner. Answer with a decision record that names Q-48 under answers. [Q-48]
+  Q-48:
+    question: 'desk/server.go:75: the handler desk.Server.showLoan of GET /loans/{loanId} reaches its end at line 75 on a path that writes no response. What does a caller get on that path?'
+    kind: decision
+    priority: should
+    certainty: suspected
+    blocks: ['#/paths/~1loans~1{loanId}/get']
+    decidedBy: system-owner
+    why: A path that answers nothing leaves the caller with whatever the framework writes by default, which the specification does not say.
+    cites:
+      - {source: code, clause: 'desk/server.go:75', says: Reaches its end with no response written.}
+  # specarch-problem: question: open_question: (should, decision, suspected) desk/server.go:80: the handler desk.Server.showMember of GET /members/{cardNumber} reaches its end at line 80 on a path that writes no response. What does a caller get on that path? Decided by system-owner. Answer with a decision record that names Q-49 under answers. [Q-49]
+  Q-49:
+    question: 'desk/server.go:80: the handler desk.Server.showMember of GET /members/{cardNumber} reaches its end at line 80 on a path that writes no response. What does a caller get on that path?'
+    kind: decision
+    priority: should
+    certainty: suspected
+    blocks: ['#/paths/~1members~1{cardNumber}/get']
+    decidedBy: system-owner
+    why: A path that answers nothing leaves the caller with whatever the framework writes by default, which the specification does not say.
+    cites:
+      - {source: code, clause: 'desk/server.go:80', says: Reaches its end with no response written.}
+  # specarch-problem: question: open_question: (should, decision, suspected) desk/server.go:100: the handler desk.Server.updateMember of PUT /members/{cardNumber} reaches its end at line 100 on a path that writes no response. What does a caller get on that path? Decided by system-owner. Answer with a decision record that names Q-50 under answers. [Q-50]
+  Q-50:
+    question: 'desk/server.go:100: the handler desk.Server.updateMember of PUT /members/{cardNumber} reaches its end at line 100 on a path that writes no response. What does a caller get on that path?'
+    kind: decision
+    priority: should
+    certainty: suspected
+    blocks: ['#/paths/~1members~1{cardNumber}/put']
+    decidedBy: system-owner
+    why: A path that answers nothing leaves the caller with whatever the framework writes by default, which the specification does not say.
+    cites:
+      - {source: code, clause: 'desk/server.go:100', says: Reaches its end with no response written.}
+  # specarch-problem: question: open_question: (should, decision, suspected) desk/server.go:90: the handler desk.Server.reports of GET /reports does nothing: its body has no step. Is it a stub, with the operation not built yet? Decided by system-owner. Answer with a decision record that names Q-51 under answers. [Q-51]
+  Q-51:
+    question: 'desk/server.go:90: the handler desk.Server.reports of GET /reports does nothing: its body has no step. Is it a stub, with the operation not built yet?'
+    kind: decision
+    priority: should
+    certainty: suspected
+    blocks: ['#/paths/~1reports/get']
+    decidedBy: system-owner
+    why: A handler that does nothing answers every request the same way, whatever the specification says the operation does.
+    cites:
+      - {source: code, clause: 'desk/server.go:90', says: The body holds no step but a return.}
+  # specarch-problem: question: open_question: (should, decision, suspected) desk/server.go:95: the handler desk.Server.status of GET /status reaches its end at line 95 on a path that writes no response. What does a caller get on that path? Decided by system-owner. Answer with a decision record that names Q-52 under answers. [Q-52]
+  Q-52:
+    question: 'desk/server.go:95: the handler desk.Server.status of GET /status reaches its end at line 95 on a path that writes no response. What does a caller get on that path?'
+    kind: decision
+    priority: should
+    certainty: suspected
+    blocks: ['#/paths/~1status/get']
+    decidedBy: system-owner
+    why: A path that answers nothing leaves the caller with whatever the framework writes by default, which the specification does not say.
+    cites:
+      - {source: code, clause: 'desk/server.go:95', says: Reaches its end with no response written.}

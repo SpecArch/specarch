@@ -53,9 +53,9 @@ type Problem struct {
 	Message  string
 	Notes    []Note
 	// A question's own fields, for the SARIF properties.
-	Priority, Kind, DecidedBy string
-	Options, Blocks           []string
-	disk                      string // the file as read, for its marks
+	Priority, Kind, Certainty, DecidedBy string
+	Options, Blocks                      []string
+	disk                                 string // the file as read, for its marks
 }
 
 // String is the problem line: file:line:column: severity: pointer: rule:
@@ -245,6 +245,7 @@ func (c *collector) question(q source.Pair, missing map[string][]string) Problem
 		Rule:      RuleOpenQuestion,
 		Priority:  str("priority"),
 		Kind:      str("kind"),
+		Certainty: str("certainty"),
 		DecidedBy: str("decidedBy"),
 	}
 	for _, o := range source.Items(source.Child(n, "options")) {
@@ -269,7 +270,11 @@ func (c *collector) question(q source.Pair, missing map[string][]string) Problem
 		p.Notes = append(p.Notes, Note{File: c.rel(c.fileOf(start)), Line: start.Line, Column: start.Column, Message: text, disk: c.fileOf(start)})
 	}
 	var b strings.Builder
-	fmt.Fprintf(&b, "(%s, %s) %s", p.Priority, p.Kind, oneParagraph(str("question")))
+	if p.Certainty != "" {
+		fmt.Fprintf(&b, "(%s, %s, %s) %s", p.Priority, p.Kind, p.Certainty, oneParagraph(str("question")))
+	} else {
+		fmt.Fprintf(&b, "(%s, %s) %s", p.Priority, p.Kind, oneParagraph(str("question")))
+	}
 	if len(whole) > 0 {
 		fmt.Fprintf(&b, " It blocks %s.", strings.Join(whole, ", "))
 	}

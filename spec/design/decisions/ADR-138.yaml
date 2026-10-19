@@ -46,9 +46,11 @@ decisions:
       problems are included because they are found while reading, before
       any rule runs, and the model is the editor's way to show them.
 
+      The model carries no rule's result at all: a held entry is the
+      questions rule's finding and is in the problems file with the rest.
       The compiler test holds: a specification that does not validate is
-      still printed, with every layout problem in it and the held entries
-      marked, so the editor shows what SpecArch could read. The
+      still printed, with every layout problem in it, so the editor shows
+      what SpecArch could read. The
       acceptance test holds: an editor shows the specification the day
       the model exists, and what it shows is what validate checks, so a
       remark made in the editor lands on the entry validate would name.
@@ -59,4 +61,4 @@ decisions:
       through one collector in each build; RFC 8785 is implemented in
       both. The command list of the technical specification and the
       README grow by one when the item is built.
-    satisfies: [SA-51, SA-6]
+    satisfies: [SA-74]

@@ -19,8 +19,11 @@ decisions:
       service when left out; runs, with packages, keys of layout, and
       targets, keys of targets, what of this implementation runs there;
       and dependency, the key of a dependency of the design this server
-      is in this environment, which takes its kind from the dependency
-      and runs nothing of ours.
+      is in this environment. Such a server's kind is the dependency's
+      own, one of ADR-134's five, system and identityProvider among them,
+      and it is drawn as that dependency in the dependency's shape; it
+      runs nothing of ours, and the server's own kind keeps its five
+      values, since kind or runs written on such a server is the error.
 
       The validator, in both builds, reports as the rule server at the
       entry a name used twice in one deployment, a package or target the
@@ -81,5 +84,7 @@ decisions:
       is optional; the rule server is new in both builds, with cases;
       document deployment and document techspec gain the deployment
       marker; the library-lending example's three deployments are named
-      and placed. The origin table gains the rows when the item is built.
+      and placed, and its hand-drawn deployment picture is replaced; the
+      convention's hand-drawn deployment row becomes a generated one and
+      the origin table gains the rows, when the item is built.
     satisfies: [SA-73, SA-16, SA-9]

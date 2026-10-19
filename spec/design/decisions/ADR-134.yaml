@@ -1,7 +1,7 @@
 # yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
 decisions:
   ADR-134:
-    title: A dependency says what it is with kind and how it is reached with protocol, a channel names the dependencies it is available on under servers, after AsyncAPI, and the technical specification draws the context diagram from them
+    title: A dependency says what it is with kind and how it is reached with protocol, after AsyncAPI, a channel names the dependencies that carry it under carriedBy, and the technical specification draws the context diagram from them
     status: proposed
     date: "2026-10-19"
     context: |
@@ -18,33 +18,47 @@ decisions:
       when left out; and protocol, AsyncAPI's word for the protocol of a
       server, a lowercase string in the form of a URI scheme (https,
       grpc, amqp, kafka, mqtt, postgresql, sftp, smtp), not an
-      enumeration. A channel gains servers, AsyncAPI's word for the
-      servers a channel is available on, here the keys of the
-      dependencies that carry or receive it. Which way a message goes is
-      read from emits and from a job's consumes, as today.
+      enumeration. A channel gains carriedBy, SpecArch's own word: the
+      keys of the dependencies that carry the channel, the broker it
+      lives on or the system that receives its messages directly. Which
+      way a message goes is read from emits and from a job's consumes, as
+      today.
 
       The validator, in both builds, reports as the rule channel at the
-      entry a servers entry that is no declared dependency, or one whose
+      entry a carriedBy entry that is no declared dependency, or one whose
       kind is database, fileStore or identityProvider; and as the rule
-      dependency a specification on a dependency whose kind is not
-      system.
+      dependency a specification on a dependency whose kind is database,
+      messageBroker or fileStore. A specification stays allowed on a
+      system and on an identityProvider.
 
       The technical specification's chapter 3 draws the context diagram
       between the markers context: a person per role and one for anyone
       when any operation or page is public, the system named by its
       title, the dependencies grouped by kind with a shape per kind and
       their protocol, an edge per dependency labelled with the operations
-      and jobs that call it, an edge to each channel's server for every
-      channel the system emits on and one the other way for every channel
-      a job consumes from it. A channel with no servers is drawn at the
-      system's boundary with no peer. The hand-drawn context picture of
+      and jobs that call it, an edge to each dependency a channel is
+      carried by for every channel the system emits on and one the other
+      way for every channel a job consumes from it. A channel carried by
+      nothing is drawn at the system's boundary with no peer. The hand-drawn context picture of
       the convention becomes a generated one.
     why: |
       The rule for new keywords puts AsyncAPI before a word of SpecArch's
-      own, and AsyncAPI has two of the three: a server's protocol, and a
-      channel's servers. Both are taken with their meaning. AsyncAPI's
-      action (send or receive) was not taken because emits and consumes
-      say it already, and one way to say one thing is the Low IQ Tax.
+      own, and AsyncAPI has a server's protocol, taken with its meaning.
+      AsyncAPI's channel servers was not taken, although it names the
+      same place, for two reasons. An AsyncAPI server is a host with a
+      protocol, and hosts are what a design file excludes: the design
+      schema's stackSpecificKey sends servers, hosts, ports and
+      deployments to the implementation file, where deployments[].servers
+      already means hosts, so one word would mean hosts on one side of
+      the boundary the conventions keep hard and dependencies on the
+      other. And an AsyncAPI channel with no servers is available on every
+      server, where a SpecArch channel carried by nothing is this system's
+      own; the borrowed word would have been taken with another meaning,
+      which the rule forbids. carriedBy is SpecArch's own, marked so in
+      the schema and in the origin table when built, and the origin table's
+      row for channels keeps saying no servers. AsyncAPI's action (send or
+      receive) was not taken because emits and consumes say it already,
+      and one way to say one thing is the Low IQ Tax.
       C4's technology lost to protocol: it is a free sentence ("JSON over
       HTTPS") nothing can check, and the link check of the deployment
       compares a word. protocol is a string and not an enumeration because
@@ -59,7 +73,15 @@ decisions:
       kinds would age with every project. identityProvider is among them
       because the caller-context design names the token issuer at every
       hop, and the context diagram should show where the tokens come
-      from. A dependency is a system someone else runs, so this system's
+      from. A specification is allowed on an identityProvider as on a
+      system because an identity provider specified on its own is a
+      system of the estate: the identity module of docs/caller-context.md
+      is the token issuer, and every other module declares it with
+      specification and version so that identity#/clients/bff and
+      identity#/roles/invoice-manager resolve, which the reference rule
+      needs; a database, a broker and a file store have no SpecArch
+      specification, so a specification on one is the error. A dependency
+      is a system someone else runs, so this system's
       own database and broker are not dependencies; they are servers of
       its deployment (ADR-136), and the one word database is used in both
       places so that a reader meets one word for one thing.
@@ -77,7 +99,7 @@ decisions:
       sees, and a remark on it changes one key of one dependency.
     consequences: |
       The design schema, the fragment schemas and the Swift embed gain
-      kind and protocol on a dependency and servers on a channel; the
+      kind and protocol on a dependency and carriedBy on a channel; the
       rule channel is new and dependency grows, in both builds, with
       cases; document techspec gains the context marker; the
       library-lending example's dependencies and channels are keyed and

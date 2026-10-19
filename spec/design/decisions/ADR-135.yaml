@@ -18,9 +18,13 @@ decisions:
       client of kind service, labelled with the roles it holds, leaving a
       role only clients hold out of the people; an application client is
       drawn on the person's edge as the way they reach the system, not as
-      a node. Until the caller-context's first two build items land,
-      every role is drawn as a person, which is what every specification
-      means today.
+      a node. A role a job acts as, the job's role, is left out of the
+      people too, whatever else holds it; the job gets no node, since it
+      is the system's own work, and appears on the edges, where the
+      operations and jobs that call a dependency, emit on a channel or
+      consume from one label them. Until the caller-context's first two
+      build items land, every role no job acts as is drawn as a person,
+      which is what every specification means today.
     why: |
       A role is what its holders may do, a set of grants; who holds it is
       not the role's business, and clients with callers say it where the
@@ -31,7 +35,11 @@ decisions:
       kind, with one list of grants kept twice. The alternative that
       lost, the key as proposed with person as its default, would also
       have let a specification mark a role as a system while no client
-      holds it, a claim nothing could check.
+      holds it, a claim nothing could check. A job's role is left out of
+      the people because it is the grants the system gives its own work,
+      and nobody holds it; a person who needs the same grants holds a
+      role of their own, so a role both a job and a person use is not
+      told apart and is drawn as the job's.
 
       The compiler test holds: nothing changes in what is read, and a
       specification with no clients draws every role as a person. The

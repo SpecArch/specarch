@@ -34,7 +34,7 @@ writes nothing the code does not say, and the rules stay in Go.
 |---|---|---|
 | A. which package calls which | an edge per call between the packages of one implementation | `dependsOn` on a layout entry, CycloneDX's word, filled by `extract go` from the imports (ADR-133) |
 | B. a cross-system view | the modules of an estate and the dependencies between them | built: `document techspec` given an estate writes `estate.md` with the module map as a flowchart (ADR-113); nothing is added, and the editor reads it through G |
-| C. what an external system is, how it is reached, which way a message goes | a shape per kind, a protocol on the edge, the peer of a channel | `kind` and `protocol` on a dependency, `servers` on a channel after AsyncAPI, and a generated context diagram (ADR-134) |
+| C. what an external system is, how it is reached, which way a message goes | a shape per kind, a protocol on the edge, the peer of a channel | `kind` and `protocol` on a dependency, `carriedBy` on a channel, and a generated context diagram (ADR-134) |
 | D. which callers are people and which are systems | a person and a system drawn apart | no keyword: a role is held by people, a calling system is a client of kind service (ADR-106, ADR-110); the context diagram draws both (ADR-135) |
 | E. what a server is and what runs on it | a box per server with the components in it | `name`, `kind`, `runs` and `dependency` on a server, and a generated deployment diagram (ADR-136) |
 | F. zones, ports and allowed links | a zone per group of servers, a port per edge, a check that every call has a link | `zone` and `listens` on a server, `links` per deployment, the network diagram and the link check (ADR-137); the owner may keep the picture hand-drawn instead |
@@ -93,13 +93,13 @@ does. The standards of these pictures, and what each gives:
   spelling. It is what lets two builds print one JSON document byte for
   byte, which is how the conformance suite checks them.
 
-Taken: `dependsOn` (CycloneDX), `protocol` (AsyncAPI's server object)
-and `servers` on a channel (AsyncAPI's channel object), `zone` (IEC
-62443) and the form of a link (NIST SP 800-41), the words person and
-system for the context diagram (C4), and RFC 8785 for the model's bytes.
-Not taken, with the reason at the gap: C4's `uses` and `technology`,
-Structurizr's `containerInstance`, ArchiMate's `assignment` and `node`,
-AsyncAPI's `action`, IEC 62443's conduit.
+Taken: `dependsOn` (CycloneDX), `protocol` (AsyncAPI's server object),
+`zone` (IEC 62443) and the form of a link (NIST SP 800-41), the words
+person and system for the context diagram (C4), and RFC 8785 for the
+model's bytes. Not taken, with the reason at the gap: C4's `uses` and
+`technology`, Structurizr's `containerInstance`, ArchiMate's `assignment`
+and `node`, AsyncAPI's `action` and its channel's `servers`, IEC 62443's
+conduit.
 
 ## A. Which package calls which: `dependsOn`
 
@@ -133,13 +133,15 @@ Structurizr's DSL has no keyword for it, so there was no word to take
 there; `imports` is Go's and Python's word and not Java's or Swift's;
 `uses` names a relationship in UML with another meaning (a usage
 dependency between classifiers), close but not the same. The validator
-reports, as the rule `layout` at the entry, a name that is not a key of
-`layout` and a package that names itself; a cycle is not an error,
+reports, as the rule `depends_on` at the entry, a name that is not a key
+of `layout` and a package that names itself; a cycle is not an error,
 since Go forbids one and Java, Swift and TypeScript allow one, and the
-file describes the code as it is. A package that lists no `dependsOn`
-says nothing: it may depend on anything or nothing, and the diagram draws
-no arrow from it. The schema does not require the key, so every
-implementation file reads as before.
+file describes the code as it is. The rule is its own and not `layout`,
+which already means the file tree (a file or a section not where the
+tree puts it), so that one rule name keeps one meaning. A package that
+lists no `dependsOn` says nothing: it may depend on anything or nothing,
+and the diagram draws no arrow from it. The schema does not require the
+key, so every implementation file reads as before.
 
 `extract go --implementation` fills it from the imports: for each package
 of the layout, the packages of the same module its files import, by their
@@ -211,7 +213,7 @@ dependencies:
 channels:
   loans:
     description: Loan events, for the notification service and the audit log.
-    servers: [eventBus]
+    carriedBy: [eventBus]
     messages:
       LoanOverdue: { payload: { $ref: "#/schemas/LoanEvent" } }
 ```
@@ -246,19 +248,33 @@ a free sentence ("JSON over HTTPS") that nothing can check, and the
 link check of F needs a word it can compare. Left out, the edge is drawn
 without a protocol and the link check of F compares nothing.
 
-**`servers`** on a channel names, by their keys under `dependencies`, the
-dependencies the channel is available on: the broker that carries it, or
-the system that receives it directly, as a webhook does. The word and
-the meaning are AsyncAPI's channel object's. Which way a message goes is
-already said: an operation or a job that lists the channel's message
-under `emits` sends it, a job whose trigger `consumes` the message
-receives it; AsyncAPI's `action` was not taken because it would say the
-same thing a second time at the channel. A channel with no `servers` is
-this system's own, drawn at its boundary with no peer. The validator
-reports, as the rule `channel` at the entry, a server that is not a
-declared dependency, and one whose kind is `database`, `fileStore` or
-`identityProvider`, since none carries messages. The rule `dependency`
-gains a `specification` on a dependency whose kind is not `system`.
+**`carriedBy`** on a channel names, by their keys under `dependencies`,
+the dependencies that carry the channel: the broker it lives on, or the
+system that receives its messages directly, as a webhook does. The word
+is SpecArch's own. AsyncAPI's channel object has `servers` for the same
+place, and it was not taken, for two reasons. An AsyncAPI server is a
+host with a protocol, and hosts are what a design file excludes: the
+design schema sends servers, hosts, ports and deployments to the
+implementation file, where `deployments[].servers` already means hosts,
+so the one word would mean hosts on one side of the boundary and
+dependencies on the other. And an AsyncAPI channel with no `servers` is
+available on every server, where a SpecArch channel named by no
+dependency is this system's own; the borrowed word would have been taken
+with another meaning, which the rule for new keywords forbids. Which way
+a message goes is already said: an operation or a job that lists the
+channel's message under `emits` sends it, a job whose trigger `consumes`
+the message receives it; AsyncAPI's `action` was not taken because it
+would say the same thing a second time at the channel. A channel with no
+`carriedBy` is this system's own, drawn at its boundary with no peer.
+The validator reports, as the rule `channel` at the entry, a `carriedBy`
+entry that is not a declared dependency, and one whose kind is
+`database`, `fileStore` or `identityProvider`, since none carries
+messages. The rule `dependency` gains a `specification` on a dependency
+whose kind is `database`, `messageBroker` or `fileStore`: a
+specification is a system's, and an identity provider specified on its
+own is one, the identity module of `docs/caller-context.md`, which every
+other module declares with `specification` and `version` so that
+`identity#/clients/bff` and `identity#/roles/invoice-manager` resolve.
 
 **The context diagram.** The technical specification's chapter 3 gains
 it between the markers `context`, a `flowchart LR` in C4's context style
@@ -268,20 +284,22 @@ middle, named by `info.title`; the dependencies on the right, grouped by
 kind with a shape per kind (a cylinder for a database, a double box for
 a broker, a slanted box for a file store, a hexagon for an identity
 provider, a box for a system) and labelled with the protocol; an edge
-from the system to each dependency labelled with the operations and
-jobs that call it, three names and then a count; an edge from the system
-to a channel's server for each channel the system emits on, labelled
-with the channel's name, and one the other way for each channel a job
-consumes from it. The hand-drawn context picture of `specarch.md` is
-replaced by the marker; the convention's table of diagrams moves the
-context picture to the generated rows when the item is built.
+from the system to each dependency labelled with the operations and jobs
+that call it, three names and then a count; an edge from the system to
+each dependency a channel is carried by for each channel the system
+emits on, labelled with the channel's name, and one the other way for
+each channel a job consumes from it. The hand-drawn context picture of
+`specarch.md` is replaced by the marker; the convention's table of
+diagrams moves the context picture to the generated rows when the item
+is built.
 
 Acceptance test: the context diagram is the first picture a stakeholder
 sees, and a remark on it ("the ledger is reached over a queue, not
 HTTP") changes one key of one dependency. Compiler test: a dependency
-of no kind, a channel of no server and a specification of no dependency
-at all read and render as before; a wrong server is an error at the
-entry, and the diagram still draws the channel at the boundary.
+of no kind, a channel carried by nothing and a specification of no
+dependency at all read and render as before; a wrong `carriedBy` entry
+is an error at the entry, and the diagram still draws the channel at
+the boundary.
 
 ## D. People and systems: no `role.kind`
 
@@ -300,12 +318,19 @@ Decision: no keyword (ADR-135). The context diagram draws one person per
 role, and, once `clients` exists, one system per client of kind
 `service`, labelled with the roles it holds, with the roles only clients
 hold left out of the people; an application client (the desk's screens)
-is the way a person reaches the system and is drawn on the person's
-edge as the technology, not as a node. Until the caller-context's first
-two build items land, every role is a person, which is what every
-specification means today. The build item for D is therefore those two
-items, already designed and not repeated here; the context diagram of C
-reads `clients` when the section exists.
+is the way a person reaches the system and is drawn on the person's edge
+as the technology, not as a node. A role a job acts as (the job's
+`role`, the scheduler of a nightly job) is left out of the people too,
+whatever else holds it: a job's role is the grants the system gives its
+own work, and a person who needs the same grants holds a role of their
+own. The job is the system's own work and gets no node of its own; it
+appears on the edges, where the operations and jobs that call a
+dependency, emit on a channel or consume from one label them. Until the
+caller-context's first two build items land, every role no job acts as
+is a person, which is what every specification means today. The build
+item for D is therefore those two items, already designed and not
+repeated here; the context diagram of C reads `clients` when the section
+exists.
 
 ## E. What a server is and what runs on it
 
@@ -377,8 +402,11 @@ well as a service does.
 
 **`dependency`** names, by its key, a dependency of the design this
 server is in this environment: the broker's host, the registry's staging
-instance. Such a server takes its kind from the dependency and runs
-nothing of ours; `kind` or `runs` on it is the error `server`. It is how
+instance. Such a server's kind is the dependency's own, one of C's five,
+`system` and `identityProvider` among them, and it is drawn as that
+dependency, in the dependency's shape; it runs nothing of ours. The
+server's own `kind` keeps its five values, since `kind` or `runs`
+written on such a server is the error `server`. It is how
 a link of F reaches a dependency, and how the deployment diagram shows
 the real host behind a dependency in each environment. The setting that
 hands the code the dependency's address (a channel URL under
@@ -394,7 +422,10 @@ environment named on the subgraph. With F built, the servers sit in
 their zones and the edges are the links; without it, the diagram has no
 edges, and says so under it. One diagram per deployment rather than one
 for all, because the environments table already shows the promotion
-order and three deployments in one picture overrun a page.
+order and three deployments in one picture overrun a page. The
+hand-drawn deployment picture of `specarch.md` is replaced by the
+marker; the convention's table moves the deployment picture to the
+generated rows when the item is built.
 
 Acceptance test: a deployment diagram is what an operator and a
 customer's engineer ask for first, and a remark on it changes one
@@ -467,16 +498,20 @@ that is no named server of the deployment, a link from a server to
 itself, and a port the target does not listen on. It reports, as the
 warning `link_missing` at the server, a server that runs a package
 implementing an operation or a job that `calls` a dependency, or that
-emits on or consumes from a channel whose `servers` name a dependency,
-while no link leads from that server to a server that is that
-dependency in this deployment; and one that runs a package while no
-link leads from it to the deployment's server of kind `database` that
-runs the `sql` target, when the deployment has one. That is the firewall
-check: every call the design declares has a path, and nothing else has
-to. It is a warning, not an error, because a deployment is written in
-order and the links are its to-do list, as the handover's checks and
-monitors are (ADR-129); a must question that blocks the deployment or
-its `links` holds it.
+emits on or consumes from a channel carried by a dependency, while no
+link leads from that server to a server that is that dependency in this
+deployment; and one that runs a package implementing an entity
+(`implements: ["#/entities/Loan"]`, the data access) or a job that
+`reads` or `writes` an entity, while no link leads from it to the
+deployment's server of kind `database` that runs the `sql` target, when
+the deployment has one. That is the firewall check: every call and every
+data access the design declares has a path, and nothing else has to: a
+gateway package, one that only emits, or a worker that reaches only a
+dependency needs no link to the database and gets no warning for it. It
+is a warning, not an error, because a deployment is written in order and
+the links are its to-do list, as the handover's checks and monitors are
+(ADR-129); a must question that blocks the deployment or its `links`
+holds it.
 
 **The network diagram.** The deployment guide, the handover document and
 the technical specification's chapter 7 gain, per deployment that has a
@@ -494,7 +529,7 @@ links may leave `network` and `ports` out.
 **The owner's option.** The owner may decide the network picture stays
 hand-drawn. Then nothing of F is added: E's deployment diagram shows
 placement with no edges, `infrastructure` stays the only place for the
-network, and the convention keeps the hand-drawn row. The
+network, and the convention's table gains no network row. The
 recommendation is to take F in the form above, last of the keyword items,
 because the three keys are small, the firewall check is the one check in
 this file that a reviewer cannot do by reading, and a hand-drawn network
@@ -522,7 +557,8 @@ validator; the references are resolved in the validator's rules and
 kept by nothing.
 
 `specarch model <folder>...` prints one JSON document on standard output,
-in both builds, with:
+in both builds (requirement SA-74, which the case `model-writes-json`
+verifies when the item is built), with:
 
 - `specarchModel`, the version of this document's shape, `0.1`, and
   `program`, the program version;
@@ -562,11 +598,12 @@ printed with them, status 0, since the document is the editor's way to
 show them.
 
 The model is read by the editor's Swift build through the Swift
-`specarch`, which is why both builds print it. Compiler test: a
+`specarch`, which is why both builds print it. The model carries no
+rule's result at all: a held entry is the `questions` rule's finding,
+and it is in the problems file with the rest. Compiler test: a
 specification that does not validate is still printed, with every
-layout problem in it and the held entries marked. Acceptance test: an
-editor shows the specification the day the model exists, and what it
-shows is what validate checks.
+layout problem in it. Acceptance test: an editor shows the specification
+the day the model exists, and what it shows is what validate checks.
 
 ## H. A lane per approver role, and a clickable SVG
 
@@ -588,15 +625,20 @@ same way and a viewer meets one layout. The layout stays deterministic:
 a row per lane, the steps left to right as today, the same workflow the
 same bytes.
 
-Every BPMN element's id is derived from the step's name, the kind first
-and the name in kebab-case: `start`, `approval-<step>`,
-`timer-<step>`, `gateway-<step>`, `operation-<step>`, `end-approved`,
-`end-refused-<step>`, `lane-<role>`; the SVG wraps each shape in a group
-whose `id` is that element's id, with `data-step` naming the step as the
-specification spells it and `data-role` on a lane. A viewer that gets a
-click on a group has the step; an editor that gets the step has the
-entry. `extract workflows` reads the lane set as it reads the rest of the
-diagram, from the potential owners, so the round trip of ADR-085 holds.
+The BPMN XML already gives every element a stable id derived from the
+step's name: `start`, `step-<step>`, `deadline-<step>`,
+`decision-<step>`, `end-done`, `end-refused` and `flow-<n>`, beside the
+interface's `operation-<operationId>` and `message-<name>`; no id is
+renamed. Only the SVG lacks them: it wraps each shape in a group whose
+`id` is that element's id, with `data-step` naming the step as the
+specification spells it and `data-role` on a lane. The lanes are the one
+addition, with a prefix no other element uses: the lane set is `lanes`,
+the system's lane is `lane`, and a role's lane is `lane-<role>`; a
+role's lane always carries the suffix and the system's never does, so no
+role name can collide with it. A viewer that gets a click on a group has
+the step; an editor that gets the step has the entry. `extract
+workflows` reads the lane set as it reads the rest of the diagram, from
+the potential owners, so the round trip of ADR-085 holds.
 
 ## I. A note for the handler flowchart
 
@@ -613,12 +655,12 @@ item, not a record here.
 
 | Kind | On a dependency (design) | On a server (implementation) | C4 | ArchiMate | Drawn as |
 |---|---|---|---|---|---|
-| `system` | another software system this one calls | not used: a server of ours runs part of this system | software system | application component | box |
+| `system` | another software system this one calls | only through `dependency`: a server that is a dependency of this kind in that environment | software system | application component | box |
 | `service` | not used: a dependency is never ours | a host that runs this implementation's packages | container, on a deployment node | node with an artifact assigned | box |
 | `database` | a store another party keeps | the store the migrations run on | container tagged database | system software | cylinder |
 | `messageBroker` | a broker that carries channels | the broker this system runs | container tagged queue | system software | double box |
 | `fileStore` | a file exchange or object store | the store its files land in | container | artifact on a node | slanted box |
-| `identityProvider` | the issuer of the tokens accepted | not used: an identity provider is never ours here | software system | application component | hexagon |
+| `identityProvider` | the issuer of the tokens accepted | only through `dependency`: a server that is a dependency of this kind in that environment | software system | application component | hexagon |
 | `proxy` | not used: a proxy is not called, it is passed through | a reverse proxy or load balancer | infrastructure node | node | box with a bar |
 
 A person (C4's person, ArchiMate's business actor) is a role's holder
@@ -629,7 +671,7 @@ A person (C4's person, ArchiMate's business actor) is a role's holder
 | Keyword | Where | Why |
 |---|---|---|
 | `dependsOn` on a layout entry | implementation file | which package calls which is one stack's structure |
-| `kind`, `protocol` on a dependency; `servers` on a channel | design | what a system calls, how, and where its messages go are the same on every stack |
+| `kind`, `protocol` on a dependency; `carriedBy` on a channel | design | what a system calls, how, and where its messages go are the same on every stack |
 | `name`, `kind`, `runs`, `dependency`, `zone`, `listens` on a server; `links` on a deployment | implementation file, `deployments` | where one stack's build runs, and what its hosts may reach, are that deployment's facts, beside `build`, `method` and `infrastructure` (ADR-129) |
 
 ## The validator
@@ -638,21 +680,21 @@ Both builds, each with a case in `spec/tests/` and its design test:
 
 | Rule | Reports |
 |---|---|
-| `layout` (extended) | a `dependsOn` entry that is no key of `layout`, or the entry's own key |
-| `dependency` (extended) | a `specification` on a dependency whose kind is not `system` |
-| `channel` | a channel's `servers` entry that is no declared dependency, or one of kind `database`, `fileStore` or `identityProvider` |
+| `depends_on` | a `dependsOn` entry that is no key of `layout`, or the entry's own key |
+| `dependency` (extended) | a `specification` on a dependency whose kind is `database`, `messageBroker` or `fileStore` |
+| `channel` | a channel's `carriedBy` entry that is no declared dependency, or one of kind `database`, `fileStore` or `identityProvider` |
 | `server` | a server's name used twice in one deployment; a `runs` package or target the file does not have; `packages` on a server not of kind `service`; `kind` or `runs` on a server that names a `dependency`; a `dependency` that is not declared |
 | `link` | a `from` or `to` that is no named server of the deployment, a link from a server to itself, or a port the target does not listen on |
-| `link_missing` (warning) | a server whose packages call a dependency or use a channel's server with no link to a server that is that dependency, or that runs packages with no link to the deployment's database server that runs the `sql` target |
+| `link_missing` (warning) | a server whose packages call a dependency or use a channel it carries with no link to a server that is that dependency, or whose packages implement an entity or run a job that reads or writes one with no link to the deployment's database server that runs the `sql` target |
 
 ## The documents
 
 | Diagram | Marker | Source | Document |
 |---|---|---|---|
-| context, C4 style | `context` | `roles`, `clients` once built, `dependencies`, `channels`, `calls`, `emits`, `consumes` | techspec chapter 3; replaces the hand-drawn row of the convention |
+| context, C4 style | `context` | `roles`, `clients` once built, `dependencies`, `channels`, `calls`, `emits`, `consumes` | techspec chapter 3; replaces the convention's hand-drawn context row |
 | components of one implementation | `components <stack>` | `layout`, `dependsOn`, `libraries` | techspec chapter 5 |
-| deployment | `deployment <deployment>` | `servers` with `name`, `kind`, `runs`, `dependency` | techspec chapter 7, deployment guide |
-| network | `network <deployment>` | `zone`, `listens`, `links` | techspec chapter 7, deployment guide, handover document; replaces the hand-drawn row |
+| deployment | `deployment <deployment>` | `servers` with `name`, `kind`, `runs`, `dependency` | techspec chapter 7, deployment guide; replaces the convention's hand-drawn deployment row |
+| network | `network <deployment>` | `zone`, `listens`, `links` | techspec chapter 7, deployment guide, handover document; a new row of the convention's table |
 | module map | none: `estate.md` | the estate (ADR-113) | built |
 
 ## Left out
@@ -689,17 +731,18 @@ dispatcher queues them once the owner has approved this file. The order
 is the order an editor needs them in: the model first, since every
 panel reads it, then the pictures by what each gives the reader.
 
-1. **`specarch model`** (ADR-138). The command in both builds, the
+1. **`specarch model`** (ADR-138, SA-74). The command in both builds, the
    command's design in `spec/design/commands/model.yaml`, RFC 8785 in
    both builds, the positions from the readers both already keep, the
    references collected where the validator resolves them, the case
-   `model-writes-json` with its design test, and the two builds compared
+   `model-writes-json` with its design test verifying SA-74, and the two
+   builds compared
    on `spec/` and `examples/`. Done when both builds print the same
    bytes for every example and an estate, a folder with a layout problem
    is printed with it, and a reference's `to` is a pointer the problems
    file would use.
 2. **The context diagram** (ADR-134, ADR-135). `kind`, `protocol` and
-   `servers` in the design schema and its fragments, the Swift embed,
+   `carriedBy` in the design schema and its fragments, the Swift embed,
    the rules `channel` and the extended `dependency` in both builds, the
    `context` marker in `document techspec`, the library-lending
    example's dependencies and channels keyed, its hand-drawn picture
@@ -708,7 +751,7 @@ panel reads it, then the pictures by what each gives the reader.
    a wrong server is an error at the entry, and a specification without
    the keys renders byte for byte as before.
 3. **`dependsOn`** (ADR-133). The key in the implementation schema, the
-   extended `layout` rule in both builds, `extract go --implementation`
+   rule `depends_on` in both builds, `extract go --implementation`
    filling it from the imports with a case, the `components` marker in
    chapter 5, SpecArch's own Go implementation file filled by its own
    reader. Done when the Go implementation file's component diagram shows

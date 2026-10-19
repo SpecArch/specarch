@@ -15,9 +15,10 @@ decisions:
     decision: |
       A layout entry gains dependsOn, a list of keys of the same layout:
       the packages this one calls, imports or links against. The
-      validator, in both builds, reports as the rule layout at the entry
-      a name that is no key of the layout and an entry that names itself;
-      a cycle is not reported. An entry without the key says nothing of
+      validator, in both builds, reports as the rule depends_on at the
+      entry a name that is no key of the layout and an entry that names
+      itself; a cycle is not reported. The rule is its own, not layout,
+      which already means the file tree: one rule name keeps one meaning. An entry without the key says nothing of
       its dependencies, and the schema does not require it.
 
       extract go --implementation fills it for each package from the
@@ -55,7 +56,7 @@ decisions:
       reader fills them, and a wrong arrow is one entry's list to change.
     consequences: |
       The implementation schema gains dependsOn on a layout entry; the
-      layout rule grows in both builds with a case; extract go's
+      rule depends_on is new in both builds, with a case; extract go's
       implementation output gains the key with a case; document techspec
       gains the components marker; SpecArch's own Go implementation file
       is filled by its own reader. The origin table of docs/conventions.md

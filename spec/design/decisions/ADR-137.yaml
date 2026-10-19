@@ -28,11 +28,12 @@ decisions:
       link from a server to itself, and a port the target does not listen
       on; and as the warning link_missing at the server, a server that
       runs a package implementing an operation or a job that calls a
-      dependency, or that emits on or consumes from a channel whose
-      servers name a dependency, with no link from it to a server that is
-      that dependency in this deployment, and one that runs packages with
-      no link to the deployment's database server that runs the sql
-      target, when the deployment has one. A must question that blocks
+      dependency, or that emits on or consumes from a channel carried by
+      a dependency, with no link from it to a server that is that
+      dependency in this deployment, and one that runs a package
+      implementing an entity or a job that reads or writes one with no
+      link to the deployment's database server that runs the sql target,
+      when the deployment has one. A must question that blocks
       the deployment or its links holds the warning.
 
       The deployment guide, the handover document and the technical
@@ -62,8 +63,12 @@ decisions:
       handover's checks and monitors are (ADR-129); it is derived from
       calls and channels because those are the connections the design
       declares, and nothing else has to have a path. The database link is
-      derived because every service that runs packages reaches its own
-      store. The infrastructure sentences stay because the customer's
+      derived from the packages that implement an entity and the jobs
+      that read or write one, because those are the code that reaches the
+      store; a gateway package, one that only emits, or a worker that
+      reaches only a dependency needs no link to the database, and a
+      check that asked for one would make an operator open a path nothing
+      uses, the opposite of what a firewall check is for. The infrastructure sentences stay because the customer's
       engineers read them and they say what the keys cannot (bandwidth,
       DNS, the backup store); the documents print the keys first so that
       the two are not read as rivals.
@@ -89,8 +94,9 @@ decisions:
       link_missing are new in both builds, with cases; document
       deployment, handover and techspec gain the network marker; the
       library-lending example's production gets zones and links; the
-      convention's hand-drawn deployment row becomes a generated one and
-      the origin table gains the rows, when the item is built. If the
+      convention's table of diagrams gains the network row, a new one
+      beside the deployment row ADR-136 moves, and the origin table gains
+      the rows, when the item is built. If the
       owner keeps the picture hand-drawn, this record is marked
       deprecated and nothing of it is built.
     satisfies: [SA-73, SA-16]

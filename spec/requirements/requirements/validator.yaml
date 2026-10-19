@@ -103,3 +103,15 @@ requirements:
       - source: sarif
         clause: result
         says: "A result names its rule, its kind and level, its locations, and partial fingerprints that recognise it in a later run."
+  SA-74:
+    statement: specarch model shall print, in both builds, one JSON document in RFC 8785's canonical form that holds, for every specification of the folders given, the merged document, every node's file, line and column, every resolved reference with the keyword that made it, the layout problems, and each implementation file and estate, so that a program reads a specification as specarch does without a loader of its own.
+    kind: interface
+    priority: must
+    status: proposed
+    acceptance:
+      - specarch model on a folder with a valid specification prints one JSON document whose positions name, for every entry the problems file could name, the file, line and column the problems file would report, and whose references list every satisfies, verifies, $ref, target, permission, emits, calls, decidedIn and implements link with its from, to and through; the Go build and the Swift build print the same bytes.
+      - A folder with a layout problem is printed with that problem in the problems file's form and exit status 0; a folder with no specification, or one that cannot be read, is exit status 2 and the reason on standard error.
+      - The validator's errors, warnings and open questions are not in the document; the problems file is their one list.
+    verification: test
+    needs: [NEED-3, NEED-7]
+    why: An editor or any other program that draws from a specification would otherwise load the files itself, a second loader in another language that drifts from the first; one command in both builds, printing one byte form, gives it what specarch reads and lets the conformance suite hold the two builds to the same document.

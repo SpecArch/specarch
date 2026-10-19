@@ -2,9 +2,9 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.7.0 of the specification: 73 requirements, 5 entities, 14 commands, 7 algorithms, 515 tests, 134 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.7.0 of the specification: 74 requirements, 5 entities, 14 commands, 7 algorithms, 515 tests, 134 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
-**Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
+**Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
 ## 1. Introduction and goals
 
@@ -9831,9 +9831,10 @@ from the specification has nothing to draw the edges from.
 
 Decision: A layout entry gains dependsOn, a list of keys of the same layout:
 the packages this one calls, imports or links against. The
-validator, in both builds, reports as the rule layout at the entry
-a name that is no key of the layout and an entry that names itself;
-a cycle is not reported. An entry without the key says nothing of
+validator, in both builds, reports as the rule depends_on at the
+entry a name that is no key of the layout and an entry that names
+itself; a cycle is not reported. The rule is its own, not layout,
+which already means the file tree: one rule name keeps one meaning. An entry without the key says nothing of
 its dependencies, and the schema does not require it.
 
 extract go --implementation fills it for each package from the
@@ -9848,7 +9849,7 @@ key and the count of design objects it implements, an edge per
 dependsOn, and the libraries drawn apart.
 
 Consequences: The implementation schema gains dependsOn on a layout entry; the
-layout rule grows in both builds with a case; extract go's
+rule depends_on is new in both builds, with a case; extract go's
 implementation output gains the key with a case; document techspec
 gains the components marker; SpecArch's own Go implementation file
 is filled by its own reader. The origin table of docs/conventions.md
@@ -9856,7 +9857,7 @@ gains the row when the item is built.
 
 **Insight:** The word is CycloneDX's, taken with its exact meaning: in a software bill of materials each component names under dependsOn the components it depends on, which is this edge. C4 writes the verb of a relationship in prose and the Structurizr DSL has no keyword for it, so there was no word to take there; imports is Go's and Python's word and not Java's or Swift's; uses is UML's usage dependency, close but not the same, and a borrowed word is never redefined. The key is in the implementation file because what a package depends on is one stack's structure, as the layout itself is; a design that said it would say something of a stack it does not know. A cycle is not an error because Go forbids one and Java, Swift and TypeScript allow one, and the file describes the code as it is. The reader fills it from the imports because an import is what the code says and nothing more, which is the readers' test. The compiler test holds: a name not in the layout is an error at the entry and the diagram still draws every other edge, and an implementation file without the key reads, validates and renders as before. The acceptance test holds: the arrows are the first thing a reviewer of an architecture asks for, they are shown the day the reader fills them, and a wrong arrow is one entry's list to change.
 
-### ADR-134: A dependency says what it is with kind and how it is reached with protocol, a channel names the dependencies it is available on under servers, after AsyncAPI, and the technical specification draws the context diagram from them
+### ADR-134: A dependency says what it is with kind and how it is reached with protocol, after AsyncAPI, a channel names the dependencies that carry it under carriedBy, and the technical specification draws the context diagram from them
 
 Status: proposed, 2026-10-19.
 
@@ -9873,30 +9874,32 @@ database, messageBroker, fileStore and identityProvider, system
 when left out; and protocol, AsyncAPI's word for the protocol of a
 server, a lowercase string in the form of a URI scheme (https,
 grpc, amqp, kafka, mqtt, postgresql, sftp, smtp), not an
-enumeration. A channel gains servers, AsyncAPI's word for the
-servers a channel is available on, here the keys of the
-dependencies that carry or receive it. Which way a message goes is
-read from emits and from a job's consumes, as today.
+enumeration. A channel gains carriedBy, SpecArch's own word: the
+keys of the dependencies that carry the channel, the broker it
+lives on or the system that receives its messages directly. Which
+way a message goes is read from emits and from a job's consumes, as
+today.
 
 The validator, in both builds, reports as the rule channel at the
-entry a servers entry that is no declared dependency, or one whose
+entry a carriedBy entry that is no declared dependency, or one whose
 kind is database, fileStore or identityProvider; and as the rule
-dependency a specification on a dependency whose kind is not
-system.
+dependency a specification on a dependency whose kind is database,
+messageBroker or fileStore. A specification stays allowed on a
+system and on an identityProvider.
 
 The technical specification's chapter 3 draws the context diagram
 between the markers context: a person per role and one for anyone
 when any operation or page is public, the system named by its
 title, the dependencies grouped by kind with a shape per kind and
 their protocol, an edge per dependency labelled with the operations
-and jobs that call it, an edge to each channel's server for every
-channel the system emits on and one the other way for every channel
-a job consumes from it. A channel with no servers is drawn at the
-system's boundary with no peer. The hand-drawn context picture of
+and jobs that call it, an edge to each dependency a channel is
+carried by for every channel the system emits on and one the other
+way for every channel a job consumes from it. A channel carried by
+nothing is drawn at the system's boundary with no peer. The hand-drawn context picture of
 the convention becomes a generated one.
 
 Consequences: The design schema, the fragment schemas and the Swift embed gain
-kind and protocol on a dependency and servers on a channel; the
+kind and protocol on a dependency and carriedBy on a channel; the
 rule channel is new and dependency grows, in both builds, with
 cases; document techspec gains the context marker; the
 library-lending example's dependencies and channels are keyed and
@@ -9904,7 +9907,7 @@ its hand-drawn picture replaced; the convention's diagram table and
 origin table change when the item is built. The caller-context's
 clients join the diagram when they are built (ADR-135).
 
-**Insight:** The rule for new keywords puts AsyncAPI before a word of SpecArch's own, and AsyncAPI has two of the three: a server's protocol, and a channel's servers. Both are taken with their meaning. AsyncAPI's action (send or receive) was not taken because emits and consumes say it already, and one way to say one thing is the Low IQ Tax. C4's technology lost to protocol: it is a free sentence ("JSON over HTTPS") nothing can check, and the link check of the deployment compares a word. protocol is a string and not an enumeration because AsyncAPI keeps it open and a new protocol should not wait for a release of SpecArch. kind is SpecArch's own because no standard enumerates what a system calls: C4 draws a database by a tag, ArchiMate by system software. The five values are the ones that change the picture or a check; a payment gateway and a tax authority are both systems, told apart by their descriptions, and a longer list of business kinds would age with every project. identityProvider is among them because the caller-context design names the token issuer at every hop, and the context diagram should show where the tokens come from. A dependency is a system someone else runs, so this system's own database and broker are not dependencies; they are servers of its deployment (ADR-136), and the one word database is used in both places so that a reader meets one word for one thing. The keys are in the design because what a system calls, how it talks to it and where its messages go are the same on every stack; the host and port are a deployment's and stay in the implementation file. The compiler test holds: a dependency of no kind, a channel of no servers and a specification with no dependency at all read and render as before; a wrong server is an error at the entry and the diagram still draws the channel at the boundary. The acceptance test holds: the context diagram is the first picture a stakeholder sees, and a remark on it changes one key of one dependency.
+**Insight:** The rule for new keywords puts AsyncAPI before a word of SpecArch's own, and AsyncAPI has a server's protocol, taken with its meaning. AsyncAPI's channel servers was not taken, although it names the same place, for two reasons. An AsyncAPI server is a host with a protocol, and hosts are what a design file excludes: the design schema's stackSpecificKey sends servers, hosts, ports and deployments to the implementation file, where deployments[].servers already means hosts, so one word would mean hosts on one side of the boundary the conventions keep hard and dependencies on the other. And an AsyncAPI channel with no servers is available on every server, where a SpecArch channel carried by nothing is this system's own; the borrowed word would have been taken with another meaning, which the rule forbids. carriedBy is SpecArch's own, marked so in the schema and in the origin table when built, and the origin table's row for channels keeps saying no servers. AsyncAPI's action (send or receive) was not taken because emits and consumes say it already, and one way to say one thing is the Low IQ Tax. C4's technology lost to protocol: it is a free sentence ("JSON over HTTPS") nothing can check, and the link check of the deployment compares a word. protocol is a string and not an enumeration because AsyncAPI keeps it open and a new protocol should not wait for a release of SpecArch. kind is SpecArch's own because no standard enumerates what a system calls: C4 draws a database by a tag, ArchiMate by system software. The five values are the ones that change the picture or a check; a payment gateway and a tax authority are both systems, told apart by their descriptions, and a longer list of business kinds would age with every project. identityProvider is among them because the caller-context design names the token issuer at every hop, and the context diagram should show where the tokens come from. A specification is allowed on an identityProvider as on a system because an identity provider specified on its own is a system of the estate: the identity module of docs/caller-context.md is the token issuer, and every other module declares it with specification and version so that identity#/clients/bff and identity#/roles/invoice-manager resolve, which the reference rule needs; a database, a broker and a file store have no SpecArch specification, so a specification on one is the error. A dependency is a system someone else runs, so this system's own database and broker are not dependencies; they are servers of its deployment (ADR-136), and the one word database is used in both places so that a reader meets one word for one thing. The keys are in the design because what a system calls, how it talks to it and where its messages go are the same on every stack; the host and port are a deployment's and stay in the implementation file. The compiler test holds: a dependency of no kind, a channel of no servers and a specification with no dependency at all read and render as before; a wrong server is an error at the entry and the diagram still draws the channel at the boundary. The acceptance test holds: the context diagram is the first picture a stakeholder sees, and a remark on it changes one key of one dependency.
 
 ### ADR-135: A role carries no kind; the context diagram draws a person per role and a system per client of kind service, which clients and callers already say
 
@@ -9923,16 +9926,20 @@ per role and, once the clients section exists, one system per
 client of kind service, labelled with the roles it holds, leaving a
 role only clients hold out of the people; an application client is
 drawn on the person's edge as the way they reach the system, not as
-a node. Until the caller-context's first two build items land,
-every role is drawn as a person, which is what every specification
-means today.
+a node. A role a job acts as, the job's role, is left out of the
+people too, whatever else holds it; the job gets no node, since it
+is the system's own work, and appears on the edges, where the
+operations and jobs that call a dependency, emit on a channel or
+consume from one label them. Until the caller-context's first two
+build items land, every role no job acts as is drawn as a person,
+which is what every specification means today.
 
 Consequences: The context diagram reads clients when the section exists; the
 build item for this gap is the caller-context's build items 1 and 2
 (docs/caller-context.md, Building), not a new one. The gap's
 proposal is recorded here so that it is not raised again.
 
-**Insight:** A role is what its holders may do, a set of grants; who holds it is not the role's business, and clients with callers say it where the fact belongs. A kind on the role would say one fact in two places, which the Low IQ Tax forbids, and would break on the common case of a role both kinds hold: the invoice-reader role the reporting service and an auditor both hold would need two roles, one per kind, with one list of grants kept twice. The alternative that lost, the key as proposed with person as its default, would also have let a specification mark a role as a system while no client holds it, a claim nothing could check. The compiler test holds: nothing changes in what is read, and a specification with no clients draws every role as a person. The acceptance test holds: the picture tells a person from a system the day clients are written, and a remark on it ("the reporting service is a system, not a person") is a client entry, which the caller-context design already asks for.
+**Insight:** A role is what its holders may do, a set of grants; who holds it is not the role's business, and clients with callers say it where the fact belongs. A kind on the role would say one fact in two places, which the Low IQ Tax forbids, and would break on the common case of a role both kinds hold: the invoice-reader role the reporting service and an auditor both hold would need two roles, one per kind, with one list of grants kept twice. The alternative that lost, the key as proposed with person as its default, would also have let a specification mark a role as a system while no client holds it, a claim nothing could check. A job's role is left out of the people because it is the grants the system gives its own work, and nobody holds it; a person who needs the same grants holds a role of their own, so a role both a job and a person use is not told apart and is drawn as the job's. The compiler test holds: nothing changes in what is read, and a specification with no clients draws every role as a person. The acceptance test holds: the picture tells a person from a system the day clients are written, and a remark on it ("the reporting service is a system, not a person") is a client entry, which the caller-context design already asks for.
 
 ### ADR-136: A server of a deployment has a name, a kind, what of the implementation it runs, or the dependency it is in that environment, and the deployment guide and technical specification draw the deployment diagram from them
 
@@ -9952,8 +9959,11 @@ the values service, database, messageBroker, proxy and fileStore,
 service when left out; runs, with packages, keys of layout, and
 targets, keys of targets, what of this implementation runs there;
 and dependency, the key of a dependency of the design this server
-is in this environment, which takes its kind from the dependency
-and runs nothing of ours.
+is in this environment. Such a server's kind is the dependency's
+own, one of ADR-134's five, system and identityProvider among them,
+and it is drawn as that dependency in the dependency's shape; it
+runs nothing of ours, and the server's own kind keeps its five
+values, since kind or runs written on such a server is the error.
 
 The validator, in both builds, reports as the rule server at the
 entry a name used twice in one deployment, a package or target the
@@ -9975,7 +9985,9 @@ and dependency, with the schema version unchanged since every key
 is optional; the rule server is new in both builds, with cases;
 document deployment and document techspec gain the deployment
 marker; the library-lending example's three deployments are named
-and placed. The origin table gains the rows when the item is built.
+and placed, and its hand-drawn deployment picture is replaced; the
+convention's hand-drawn deployment row becomes a generated one and
+the origin table gains the rows, when the item is built.
 
 **Insight:** The keys are in the implementation file because where one stack's build runs is that implementation's choice, beside build, method and infrastructure, which ADR-129 placed there for the same reason. name is optional so that every file reads as before, and a name chosen by a person rather than derived from the URL's host because two servers can share a host and a host name is not a name. The kinds are the dependency's words (ADR-134) where the thing is the same, so that a reader meets one word for a database whether this system or another runs it; service rather than system because a server of this kind runs part of this system, never another. ArchiMate's node, device and system software lost: they tell physical from logical, which a deployment that names a URL has no need of. C4's deployment node and infrastructure node lost as keywords because C4 tells them apart by whether something of ours runs there, which runs says; C4's container instance lost as a word because it names the thing placed, not the placing. runs holds two lists because the names come from two sections of the file, so one list would need a prefix to tell the sql target from a package of the same name. A target may run on any kind of server, since a proxy serves a ui target's pages as a service does, while packages run only on a service. dependency on a server is how the network's links reach a dependency and how the diagram shows the real host behind one in each environment; the setting that hands the code the address stays what it is, and the validator does not compare the two, because the value the code reads and the host differ legitimately. One diagram per deployment rather than one for all because the environments table already shows the promotion order and three deployments in one picture overrun a page. The compiler test holds: a deployment with no named server reads and renders as before, a wrong name is an error at the entry, and the diagram still draws every other server. The acceptance test holds: a deployment diagram is what an operator and a customer's engineer ask for first, and a remark on it changes one server's runs.
 
@@ -10006,11 +10018,12 @@ entry a from or to that is no named server of the deployment, a
 link from a server to itself, and a port the target does not listen
 on; and as the warning link_missing at the server, a server that
 runs a package implementing an operation or a job that calls a
-dependency, or that emits on or consumes from a channel whose
-servers name a dependency, with no link from it to a server that is
-that dependency in this deployment, and one that runs packages with
-no link to the deployment's database server that runs the sql
-target, when the deployment has one. A must question that blocks
+dependency, or that emits on or consumes from a channel carried by
+a dependency, with no link from it to a server that is that
+dependency in this deployment, and one that runs a package
+implementing an entity or a job that reads or writes one with no
+link to the deployment's database server that runs the sql target,
+when the deployment has one. A must question that blocks
 the deployment or its links holds the warning.
 
 The deployment guide, the handover document and the technical
@@ -10029,12 +10042,13 @@ and the deployment object gains links; the rules link and
 link_missing are new in both builds, with cases; document
 deployment, handover and techspec gain the network marker; the
 library-lending example's production gets zones and links; the
-convention's hand-drawn deployment row becomes a generated one and
-the origin table gains the rows, when the item is built. If the
+convention's table of diagrams gains the network row, a new one
+beside the deployment row ADR-136 moves, and the origin table gains
+the rows, when the item is built. If the
 owner keeps the picture hand-drawn, this record is marked
 deprecated and nothing of it is built.
 
-**Insight:** zone is IEC 62443-3-2's word with its meaning, a grouping of assets that share security requirements; its conduit lost because a conduit joins zones and the check needs the host and the port. A link takes the form of a firewall rule from NIST SP 800-41, source, destination and service, because that is what the people who configure a firewall read and what the check compares. listens is SpecArch's own: Compose and Kubernetes each have a word for a published port, neither the same. The URL's port does not count because the check should compare what the file says and not what a URL implies. The missing link is a warning, not an error, because a deployment is written in order and the links are its to-do list, as the handover's checks and monitors are (ADR-129); it is derived from calls and channels because those are the connections the design declares, and nothing else has to have a path. The database link is derived because every service that runs packages reaches its own store. The infrastructure sentences stay because the customer's engineers read them and they say what the keys cannot (bandwidth, DNS, the backup store); the documents print the keys first so that the two are not read as rivals. The smallest form was chosen, three keys and one list, over a model of networks, subnets and addresses, because the picture and the check need no more and a deployment that moves a host should change one line. The recommendation to take it rests on the check: it is the one check in this file a reviewer cannot do by reading, and the hand-drawn network picture is the first to drift when a host moves. Taking it later costs nothing, since the server keys of ADR-136 do not change. The compiler test holds: a deployment with no zone, listen or link reads and renders as before; a wrong link is an error at the entry, a missing one a warning at the server, and the diagram still draws every other link. The acceptance test holds: an operator sees the zones and ports the day the deployment is written, and a link the firewall team refuses is one line to remove.
+**Insight:** zone is IEC 62443-3-2's word with its meaning, a grouping of assets that share security requirements; its conduit lost because a conduit joins zones and the check needs the host and the port. A link takes the form of a firewall rule from NIST SP 800-41, source, destination and service, because that is what the people who configure a firewall read and what the check compares. listens is SpecArch's own: Compose and Kubernetes each have a word for a published port, neither the same. The URL's port does not count because the check should compare what the file says and not what a URL implies. The missing link is a warning, not an error, because a deployment is written in order and the links are its to-do list, as the handover's checks and monitors are (ADR-129); it is derived from calls and channels because those are the connections the design declares, and nothing else has to have a path. The database link is derived from the packages that implement an entity and the jobs that read or write one, because those are the code that reaches the store; a gateway package, one that only emits, or a worker that reaches only a dependency needs no link to the database, and a check that asked for one would make an operator open a path nothing uses, the opposite of what a firewall check is for. The infrastructure sentences stay because the customer's engineers read them and they say what the keys cannot (bandwidth, DNS, the backup store); the documents print the keys first so that the two are not read as rivals. The smallest form was chosen, three keys and one list, over a model of networks, subnets and addresses, because the picture and the check need no more and a deployment that moves a host should change one line. The recommendation to take it rests on the check: it is the one check in this file a reviewer cannot do by reading, and the hand-drawn network picture is the first to drift when a host moves. Taking it later costs nothing, since the server keys of ADR-136 do not change. The compiler test holds: a deployment with no zone, listen or link reads and renders as before; a wrong link is an error at the entry, a missing one a warning at the server, and the diagram still draws every other link. The acceptance test holds: an operator sees the zones and ports the day the deployment is written, and a link the firewall team refuses is one line to remove.
 
 ### ADR-138: specarch model prints the merged document with every node's file, line and column, the resolved references and the layout problems as one JSON document in RFC 8785's canonical form, in both builds
 
@@ -10073,9 +10087,9 @@ through one collector in each build; RFC 8785 is implemented in
 both. The command list of the technical specification and the
 README grow by one when the item is built.
 
-**Insight:** One command in both builds, because the editor's Swift build reads the model through the Swift specarch and the conformance suite compares the two builds byte for byte, which RFC 8785 makes possible: a standard's rule for one byte form needs no rule of SpecArch's own, and an indented form lost because the document is for a program, not a reader; jq is there for a reader. One list of references serves both directions: a usages lookup is the list filtered by its target, one pass in an editor, and a second list would say one fact twice. The validator's errors and warnings are not repeated because the problems file and its SARIF form are their one list (ADR-065), which an editor already reads; a reference that does not resolve is among them, so it is absent here. The layout problems are included because they are found while reading, before any rule runs, and the model is the editor's way to show them. The compiler test holds: a specification that does not validate is still printed, with every layout problem in it and the held entries marked, so the editor shows what SpecArch could read. The acceptance test holds: an editor shows the specification the day the model exists, and what it shows is what validate checks, so a remark made in the editor lands on the entry validate would name.
+**Insight:** One command in both builds, because the editor's Swift build reads the model through the Swift specarch and the conformance suite compares the two builds byte for byte, which RFC 8785 makes possible: a standard's rule for one byte form needs no rule of SpecArch's own, and an indented form lost because the document is for a program, not a reader; jq is there for a reader. One list of references serves both directions: a usages lookup is the list filtered by its target, one pass in an editor, and a second list would say one fact twice. The validator's errors and warnings are not repeated because the problems file and its SARIF form are their one list (ADR-065), which an editor already reads; a reference that does not resolve is among them, so it is absent here. The layout problems are included because they are found while reading, before any rule runs, and the model is the editor's way to show them. The model carries no rule's result at all: a held entry is the questions rule's finding and is in the problems file with the rest. The compiler test holds: a specification that does not validate is still printed, with every layout problem in it, so the editor shows what SpecArch could read. The acceptance test holds: an editor shows the specification the day the model exists, and what it shows is what validate checks, so a remark made in the editor lands on the entry validate would name.
 
-### ADR-139: generate bpmn writes a lane set with the system's lane and one per approver role, and gives every shape of the SVG the BPMN element's id derived from the step's name
+### ADR-139: generate bpmn writes a lane set with the system's lane and one per approver role, and gives every shape of the SVG the id its BPMN element already has
 
 Status: proposed, 2026-10-19.
 
@@ -10094,21 +10108,24 @@ lane set is written for every workflow. The layout stays
 deterministic: a row per lane, the steps left to right, the same
 workflow the same bytes.
 
-Every BPMN element's id is derived from the step's name, the kind
-first and the name in kebab-case (start, approval-<step>,
-timer-<step>, gateway-<step>, operation-<step>, end-approved,
-end-refused-<step>, lane-<role>); the SVG wraps each shape in a
-group whose id is that element's id, with data-step naming the step
-as the specification spells it and data-role on a lane. extract
-workflows reads the lane set past, from the potential owners as
-today, so the round trip holds.
+The BPMN XML already gives every element a stable id derived from
+the step's name (start, step-<step>, deadline-<step>,
+decision-<step>, end-done, end-refused, flow-<n>, and the
+interface's operation-<operationId> and message-<name>); no id is
+renamed. The SVG, which lacks them, wraps each shape in a group
+whose id is that element's id, with data-step naming the step as
+the specification spells it and data-role on a lane. The lanes are
+the one addition, with a prefix no other element uses: lanes for
+the lane set, lane for the system's lane and lane-<role> for a
+role's. extract workflows reads the lane set past, from the
+potential owners as today, so the round trip holds.
 
-Consequences: specarch-gen-bpmn writes the lane set and the ids, the SVG the
-groups; the goldens of generate-bpmn and
+Consequences: specarch-gen-bpmn writes the lane set with its ids, the SVG the
+groups with the ids the XML already has; the goldens of generate-bpmn and
 extract-workflows-reads-generated-bpmn are regenerated; the
 workflow reader is unchanged except that lanes are read past.
 
-**Insight:** A lane is BPMN's own way to say who does a step, and the people who read a process diagram expect it. BPMN puts a flow node in exactly one lane, so an approval of several roles needs a rule; its first role was chosen over a lane per set of roles because a BPMN lane is one participant's. The lane set is written always, and not only when a workflow has several approver roles, because one layout is one thing a viewer learns, and a one-role workflow with the system's lane and the role's lane is still plain. The ids are derived from the step names because the names are stable across runs and across the XML and the SVG, so a click in a viewer and an element in a modeller name the same step; a counter would renumber every step when one is added. The compiler test holds: every workflow is still written, and a step name that cannot be an id is written with a problem at it, as every other mark is. The acceptance test holds: the picture shows who approves what the day it is drawn, and a viewer can open the step a click lands on.
+**Insight:** A lane is BPMN's own way to say who does a step, and the people who read a process diagram expect it. BPMN puts a flow node in exactly one lane, so an approval of several roles needs a rule; its first role was chosen over a lane per set of roles because a BPMN lane is one participant's. The lane set is written always, and not only when a workflow has several approver roles, because one layout is one thing a viewer learns, and a one-role workflow with the system's lane and the role's lane is still plain. The existing ids are kept because they are already derived from the step names, stable across runs and across the XML and the SVG, so a click in a viewer and an element in a modeller name the same step, and a rename would break every file that cites one. The lane ids take a prefix of their own because BPMN forbids two elements one id, and the system's lane carries no suffix while a role's always does, so no role name can collide with it. The compiler test holds: every workflow is still written, and a step name that cannot be an id is written with a problem at it, as every other mark is. The acceptance test holds: the picture shows who approves what the day it is drawn, and a viewer can open the step a click lands on.
 
 ## 10. Quality requirements
 
@@ -10741,6 +10758,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | SA-9 | A specification and its implementations shall be separate files; a specification holds no stack-specific key and an implementation file adds no design. | constraint | must | accepted | test | A stack-specific extension key in a specification is reported as stack_key. A design keyword in an implementation file is reported as design_key. | NEED-2 |
 | SA-10 | An implementation file's implements and pointers shall resolve in the specification it names, at the same version. | functional | must | accepted | test | An implementation written against an older version of its specification is reported as implements. A pointer to an object the specification does not have is reported as design_ref. | NEED-2 |
 | SA-51 | specarch shall list every problem of a specification, valid or not, in one problems file and its SARIF 2.1.0 form, each error, warning and open question with a stable id, file, line and column, JSON pointer, rule, a message saying how to fix it, and notes at the sources it came from and the entries it blocks, and every file specarch writes shall mark the entry a problem touches. | interface | must | accepted | test | specarch document problems on a specification with an error, a warning and a must question writes problems.txt with one line each in the form file:line:column: severity: pointer: rule: message [id], sorted by file and line, the question followed by a note at each source it cites and each entry it blocks, and exits 1. The same run writes problems.sarif, a SARIF 2.1.0 log with the same results, the question as kind open and level none, and each id as a partial fingerprint; a second run writes the same bytes. A specification with no problem gets a problems file that says so. A fragment with one entry that does not parse reports one yaml_syntax error at that entry's line and pointer, keeps its other entries, and reports no reference to the broken entry's name; an implementation file with a broken entry still names the problems file's folder. | NEED-1, NEED-8 |
+| SA-74 | specarch model shall print, in both builds, one JSON document in RFC 8785's canonical form that holds, for every specification of the folders given, the merged document, every node's file, line and column, every resolved reference with the keyword that made it, the layout problems, and each implementation file and estate, so that a program reads a specification as specarch does without a loader of its own. | interface | must | proposed | test | specarch model on a folder with a valid specification prints one JSON document whose positions name, for every entry the problems file could name, the file, line and column the problems file would report, and whose references list every satisfies, verifies, $ref, target, permission, emits, calls, decidedIn and implements link with its from, to and through; the Go build and the Swift build print the same bytes. A folder with a layout problem is printed with that problem in the problems file's form and exit status 0; a folder with no specification, or one that cannot be read, is exit status 2 and the reason on standard error. The validator's errors, warnings and open questions are not in the document; the problems file is their one list. | NEED-3, NEED-7 |
 
 **Insight on SA-31:** A test the specification implies is worth most when it runs; what differs between two projects in one language (how a caller signs in, how a record is stored, how a request is sent) is the harness, so the generated file needs nothing but it.
 
@@ -10896,6 +10914,10 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 
 **Note on SA-51:** From Static Analysis Results Interchange Format (SARIF) Version 2.1.0, 2020, clause result: A result names its rule, its kind and level, its locations, and partial fingerprints that recognise it in a later run. <https://docs.oasis-open.org/sarif/sarif/v2.1.0/sarif-v2.1.0.html>
 
+**Problem on SA-74:** warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SA-74; add verifies: [SA-74] to the test that shows it is met [requirement_unverified@requirements/requirements/validator.yaml#/requirements/SA-74]
+
+**Insight on SA-74:** An editor or any other program that draws from a specification would otherwise load the files itself, a second loader in another language that drifts from the first; one command in both builds, printing one byte form, gives it what specarch reads and lets the conformance suite hold the two builds to the same document.
+
 ### Traceability
 
 What satisfies and what verifies each requirement. An empty cell is a gap.
@@ -10907,7 +10929,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-3 | enums Rule; commands validate; decisions ADR-004; decisions ADR-047; decisions ADR-061; decisions ADR-094; decisions ADR-095; decisions ADR-097 | tests validate-expression-date-days; tests validate-expression-date-number; tests validate-expression-in-stage-file; tests validate-expression-syntax; tests validate-expression-type; tests validate-unique-where |
 | SA-4 | enums Rule; commands validate; algorithms workedExampleHolds; decisions ADR-004 | tests validate-example-mismatch |
 | SA-5 | enums Rule; commands validate; algorithms permissionGranted; algorithms separationOfDuties; decisions ADR-006; decisions ADR-053; decisions ADR-054; decisions ADR-094; decisions ADR-095; decisions ADR-096; decisions ADR-097; decisions ADR-106; decisions ADR-107; decisions ADR-108; decisions ADR-109; decisions ADR-110; decisions ADR-111 | tests validate-permission-undeclared; tests validate-permission-ungranted; tests validate-permission-ungranted-without-description; tests validate-question-covers-problem; tests validate-question-covers-ungranted; tests validate-schema-operation-without-permission; tests validate-separation-of-duties |
-| SA-6 | enums Rule; enums Severity; entities Diagnostic; commands validate; algorithms exitStatus; decisions ADR-005; decisions ADR-008; decisions ADR-138 | tests validate-usage-error; tests validate-yaml-syntax; tests version-prints-versions; checks installs-and-answers |
+| SA-6 | enums Rule; enums Severity; entities Diagnostic; commands validate; algorithms exitStatus; decisions ADR-005; decisions ADR-008 | tests validate-usage-error; tests validate-yaml-syntax; tests version-prints-versions; checks installs-and-answers |
 | SA-7 | enums DocumentTarget; enums GeneratorTarget; entities GeneratedFile; commands document; commands generate; algorithms checkStatus; decisions ADR-013; decisions ADR-073; decisions ADR-131 | tests document-check-differs; tests document-check-invalid; tests document-techspec-middlewares; tests document-two-implementations; tests document-writes-techspec; tests generate-plugin-path-outside; tests generate-with-plugin; checks checks-the-examples; monitors main-stays-green |
 | SA-8 | entities GeneratedFile; commands document; commands generate; algorithms markersWellFormed | tests document-entity-diagram; tests document-techspec-middlewares; tests document-two-implementations; tests document-writes-techspec |
 | SA-9 | enums DocumentKind; enums Rule; commands validate; decisions ADR-001; decisions ADR-002; decisions ADR-007; decisions ADR-133; decisions ADR-136 | tests validate-design-key; tests validate-map-values; tests validate-stack-key; tests validate-type-list |
@@ -10952,7 +10974,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-48 | enums Rule; decisions ADR-060; decisions ADR-063 | tests extract-openapi-writes-schema; tests generate-sql-value-object; tests validate-question-covers-namespace; tests validate-value-objects; tests validate-value-objects-valid |
 | SA-49 | enums Rule; decisions ADR-062 | tests extract-openapi-snake-case; tests generate-openapi-wire-names; tests validate-wire-names |
 | SA-50 | enums Rule; decisions ADR-063; decisions ADR-077; decisions ADR-078 | tests extract-database-json-column; tests generate-go-dxlib-value-objects; tests generate-sql-identifier-length; tests generate-sql-value-object-fields; tests generate-tests-value-objects; tests merge-value-object-columns; tests merge-value-object-differs; tests merge-value-object-unnamed; tests validate-value-object-fields; tests validate-value-object-fields-valid; tests validate-value-object-part-cases; tests validate-value-object-part-cases-covered |
-| SA-51 | enums DocumentTarget; enums ProblemSeverity; entities Problem; entities ProblemNote; commands document; decisions ADR-065; decisions ADR-066; decisions ADR-080; decisions ADR-086; decisions ADR-138 | tests document-check-invalid; tests document-errors-elsewhere; tests document-problem-without-element; tests document-problems-check-marks; tests document-problems-implementation-broken; tests document-problems-lists; tests document-problems-marks-current; tests document-problems-marks-fragments; tests document-problems-none; tests validate-reads-marks; tests validate-yaml-syntax-entries |
+| SA-51 | enums DocumentTarget; enums ProblemSeverity; entities Problem; entities ProblemNote; commands document; decisions ADR-065; decisions ADR-066; decisions ADR-080; decisions ADR-086 | tests document-check-invalid; tests document-errors-elsewhere; tests document-problem-without-element; tests document-problems-check-marks; tests document-problems-implementation-broken; tests document-problems-lists; tests document-problems-marks-current; tests document-problems-marks-fragments; tests document-problems-none; tests validate-reads-marks; tests validate-yaml-syntax-entries |
 | SA-52 | decisions ADR-067; decisions ADR-115 | tests generate-ui-typescript; tests generate-ui-typescript-refused |
 | SA-53 | decisions ADR-068; decisions ADR-082 | tests generate-ui-typescript; tests generate-ui-typescript-refused |
 | SA-54 | decisions ADR-069; decisions ADR-079 | tests generate-ui-typescript; tests generate-ui-typescript-refused; tests generate-ui-typescript-value-objects; tests generate-ui-typescript-value-objects-refused |
@@ -10975,6 +10997,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-71 | decisions ADR-123 | tests generate-sqlc-check-hand-written; tests generate-sqlc-dialect-refused; tests generate-sqlc-hand-written-refused; tests generate-sqlc-queries |
 | SA-72 | commands check; decisions ADR-124; decisions ADR-128 | tests check-dump-of-no-format; tests check-fails-on-a-difference; tests check-skips-a-partition; tests check-succeeds; tests check-usage-error |
 | SA-73 | enums DocumentTarget; enums Rule; commands document; decisions ADR-129; decisions ADR-136; decisions ADR-137 | tests document-handover-none; tests document-writes-handover; tests validate-build-task-unknown; tests validate-handover-build-missing; tests validate-handover-incomplete; tests validate-handover-missing; tests validate-handover-no-customer; tests validate-handover-valid |
+| SA-74 | decisions ADR-138 |   |
 
 ## Sources
 

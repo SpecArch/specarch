@@ -27,7 +27,7 @@ paths:
       operationId: showDesk
       summary: The desk
       permission: desk.read
-      middlewares: [require-session, require-staff, audit-log]
+      middlewares: [audit-log, require-session, require-staff, audit-log]
       responses:
         "200": { description: The desk. }
   /health:

@@ -16,7 +16,7 @@ The interfaces the system offers, as its clients see them.
 
 | Method and path | Operation | Summary | Permission | Middlewares, in order |
 |---|---|---|---|---|
-| GET /desk | showDesk | The desk | desk.read | require-session, then require-staff, then audit-log |
+| GET /desk | showDesk | The desk | desk.read | audit-log, then require-session, then require-staff, then audit-log |
 | GET /health | health | Whether the desk is up | desk.read | none |
 
 ## 6. Runtime view
@@ -32,7 +32,7 @@ Every refusal is an RFC 9457 problem document of one of these types; each operat
 
 ### showDesk (GET /desk)
 
-Runs before its handler, in this order: require-session (refuses with 401 session-missing), then require-staff (refuses with 403 not-staff), then audit-log.
+Runs before its handler, in this order: audit-log, then require-session (refuses with 401 session-missing), then require-staff (refuses with 403 not-staff), then audit-log.
 
 ```mermaid
 sequenceDiagram

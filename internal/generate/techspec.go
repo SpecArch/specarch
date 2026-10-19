@@ -3,6 +3,7 @@ package generate
 import (
 	"fmt"
 	"math"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -717,7 +718,10 @@ func crossCutting(d *doc, root *yaml.Node) {
 		ranBy := map[string][]string{}
 		for _, o := range operations(root) {
 			for _, n := range strs(o.node, "middlewares") {
-				ranBy[n] = append(ranBy[n], o.id)
+				// A chain may name one middleware twice; its operation is listed once.
+				if !slices.Contains(ranBy[n], o.id) {
+					ranBy[n] = append(ranBy[n], o.id)
+				}
 			}
 		}
 		d.line("| Middleware | What it checks or does | Refusals | Run by |")

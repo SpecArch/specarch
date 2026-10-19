@@ -251,6 +251,17 @@ cases and a security event for every refusal. Clients, roles and the
 trust domain live in an identity module. It amends 0.3's steps 3 and 4
 before they are built and ends with five build items in order.
 
+An editor that draws every diagram from a specification could not draw
+the system context, the components of an implementation, the deployment
+topology or the network, and `docs/diagrams.md` decides the keywords
+those pictures need, proposed on 2026-10-19 for the owner's approval
+(ADR-133 to ADR-139): which
+package depends on which, what a dependency is and how it is reached,
+what a server is and what runs on it, zones, ports and allowed links
+with a check that every declared call has a link, the model a program
+reads the specification through, and lanes and ids in the BPMN output.
+It ends with six build items in order.
+
 ## 6. Changes, defects, releases and operation
 
 The life after commissioning, designed in `docs/maintenance.md`: change

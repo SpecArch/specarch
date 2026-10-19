@@ -1,0 +1,87 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
+decisions:
+  ADR-134:
+    title: A dependency says what it is with kind and how it is reached with protocol, a channel names the dependencies it is available on under servers, after AsyncAPI, and the technical specification draws the context diagram from them
+    status: proposed
+    date: "2026-10-19"
+    context: |
+      docs/diagrams.md, gap C. A dependency is declared once with a
+      description, a time limit, and the name and version of its
+      specification when it has one. A context diagram, C4's first
+      level, would draw every dependency as the same box, with no edge
+      that says what travels over it, and could not tell a database from
+      a payment gateway or say where a channel's messages go. The
+      convention kept the context picture hand-drawn for that reason.
+    decision: |
+      A dependency gains kind, a SpecArch keyword with the values system,
+      database, messageBroker, fileStore and identityProvider, system
+      when left out; and protocol, AsyncAPI's word for the protocol of a
+      server, a lowercase string in the form of a URI scheme (https,
+      grpc, amqp, kafka, mqtt, postgresql, sftp, smtp), not an
+      enumeration. A channel gains servers, AsyncAPI's word for the
+      servers a channel is available on, here the keys of the
+      dependencies that carry or receive it. Which way a message goes is
+      read from emits and from a job's consumes, as today.
+
+      The validator, in both builds, reports as the rule channel at the
+      entry a servers entry that is no declared dependency, or one whose
+      kind is database, fileStore or identityProvider; and as the rule
+      dependency a specification on a dependency whose kind is not
+      system.
+
+      The technical specification's chapter 3 draws the context diagram
+      between the markers context: a person per role and one for anyone
+      when any operation or page is public, the system named by its
+      title, the dependencies grouped by kind with a shape per kind and
+      their protocol, an edge per dependency labelled with the operations
+      and jobs that call it, an edge to each channel's server for every
+      channel the system emits on and one the other way for every channel
+      a job consumes from it. A channel with no servers is drawn at the
+      system's boundary with no peer. The hand-drawn context picture of
+      the convention becomes a generated one.
+    why: |
+      The rule for new keywords puts AsyncAPI before a word of SpecArch's
+      own, and AsyncAPI has two of the three: a server's protocol, and a
+      channel's servers. Both are taken with their meaning. AsyncAPI's
+      action (send or receive) was not taken because emits and consumes
+      say it already, and one way to say one thing is the Low IQ Tax.
+      C4's technology lost to protocol: it is a free sentence ("JSON over
+      HTTPS") nothing can check, and the link check of the deployment
+      compares a word. protocol is a string and not an enumeration because
+      AsyncAPI keeps it open and a new protocol should not wait for a
+      release of SpecArch.
+
+      kind is SpecArch's own because no standard enumerates what a
+      system calls: C4 draws a database by a tag, ArchiMate by system
+      software. The five values are the ones that change the picture or
+      a check; a payment gateway and a tax authority are both systems,
+      told apart by their descriptions, and a longer list of business
+      kinds would age with every project. identityProvider is among them
+      because the caller-context design names the token issuer at every
+      hop, and the context diagram should show where the tokens come
+      from. A dependency is a system someone else runs, so this system's
+      own database and broker are not dependencies; they are servers of
+      its deployment (ADR-136), and the one word database is used in both
+      places so that a reader meets one word for one thing.
+
+      The keys are in the design because what a system calls, how it
+      talks to it and where its messages go are the same on every stack;
+      the host and port are a deployment's and stay in the implementation
+      file.
+
+      The compiler test holds: a dependency of no kind, a channel of no
+      servers and a specification with no dependency at all read and
+      render as before; a wrong server is an error at the entry and the
+      diagram still draws the channel at the boundary. The acceptance
+      test holds: the context diagram is the first picture a stakeholder
+      sees, and a remark on it changes one key of one dependency.
+    consequences: |
+      The design schema, the fragment schemas and the Swift embed gain
+      kind and protocol on a dependency and servers on a channel; the
+      rule channel is new and dependency grows, in both builds, with
+      cases; document techspec gains the context marker; the
+      library-lending example's dependencies and channels are keyed and
+      its hand-drawn picture replaced; the convention's diagram table and
+      origin table change when the item is built. The caller-context's
+      clients join the diagram when they are built (ADR-135).
+    satisfies: [SA-29, SA-16]

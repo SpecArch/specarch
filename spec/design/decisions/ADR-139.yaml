@@ -1,0 +1,55 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
+decisions:
+  ADR-139:
+    title: generate bpmn writes a lane set with the system's lane and one per approver role, and gives every shape of the SVG the BPMN element's id derived from the step's name
+    status: proposed
+    date: "2026-10-19"
+    context: |
+      docs/diagrams.md, point H. generate bpmn lays a workflow's steps on
+      one row and gives the SVG's shapes no identity (ADR-085), so a
+      viewer cannot map a click to a step, and a reader cannot see which
+      role approves which step without reading the labels.
+    decision: |
+      The process gains a lane set: a first lane named after the system,
+      holding the start event, the service tasks, the gateways and the
+      end events, and one lane per role that approves, in the order of
+      the roles' first approval, each holding the approvals that role
+      makes; an approval with several approvers sits in the lane of its
+      first-listed role and keeps every role as a potential owner. The
+      lane set is written for every workflow. The layout stays
+      deterministic: a row per lane, the steps left to right, the same
+      workflow the same bytes.
+
+      Every BPMN element's id is derived from the step's name, the kind
+      first and the name in kebab-case (start, approval-<step>,
+      timer-<step>, gateway-<step>, operation-<step>, end-approved,
+      end-refused-<step>, lane-<role>); the SVG wraps each shape in a
+      group whose id is that element's id, with data-step naming the step
+      as the specification spells it and data-role on a lane. extract
+      workflows reads the lane set past, from the potential owners as
+      today, so the round trip holds.
+    why: |
+      A lane is BPMN's own way to say who does a step, and the people who
+      read a process diagram expect it. BPMN puts a flow node in exactly
+      one lane, so an approval of several roles needs a rule; its first
+      role was chosen over a lane per set of roles because a BPMN lane is
+      one participant's. The lane set is written always, and not only
+      when a workflow has several approver roles, because one layout is
+      one thing a viewer learns, and a one-role workflow with the
+      system's lane and the role's lane is still plain. The ids are
+      derived from the step names because the names are stable across
+      runs and across the XML and the SVG, so a click in a viewer and an
+      element in a modeller name the same step; a counter would renumber
+      every step when one is added.
+
+      The compiler test holds: every workflow is still written, and a
+      step name that cannot be an id is written with a problem at it, as
+      every other mark is. The acceptance test holds: the picture shows
+      who approves what the day it is drawn, and a viewer can open the
+      step a click lands on.
+    consequences: |
+      specarch-gen-bpmn writes the lane set and the ids, the SVG the
+      groups; the goldens of generate-bpmn and
+      extract-workflows-reads-generated-bpmn are regenerated; the
+      workflow reader is unchanged except that lanes are read past.
+    satisfies: [SA-58]

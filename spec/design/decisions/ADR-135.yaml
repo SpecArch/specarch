@@ -1,0 +1,47 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
+decisions:
+  ADR-135:
+    title: A role carries no kind; the context diagram draws a person per role and a system per client of kind service, which clients and callers already say
+    status: proposed
+    date: "2026-10-19"
+    context: |
+      docs/diagrams.md, gap D. The gap proposed kind, person or system,
+      on a role, so that a context diagram draws people and calling
+      systems apart, a role without it being a person. A calling service
+      with a role is a fact the caller-context design already placed: a
+      client of kind service holds roles of its own, and an operation
+      that serves one lists it under callers, with people the reserved
+      word for anyone signed in (ADR-106, ADR-110).
+    decision: |
+      No keyword is added. The context diagram (ADR-134) draws one person
+      per role and, once the clients section exists, one system per
+      client of kind service, labelled with the roles it holds, leaving a
+      role only clients hold out of the people; an application client is
+      drawn on the person's edge as the way they reach the system, not as
+      a node. Until the caller-context's first two build items land,
+      every role is drawn as a person, which is what every specification
+      means today.
+    why: |
+      A role is what its holders may do, a set of grants; who holds it is
+      not the role's business, and clients with callers say it where the
+      fact belongs. A kind on the role would say one fact in two places,
+      which the Low IQ Tax forbids, and would break on the common case of
+      a role both kinds hold: the invoice-reader role the reporting
+      service and an auditor both hold would need two roles, one per
+      kind, with one list of grants kept twice. The alternative that
+      lost, the key as proposed with person as its default, would also
+      have let a specification mark a role as a system while no client
+      holds it, a claim nothing could check.
+
+      The compiler test holds: nothing changes in what is read, and a
+      specification with no clients draws every role as a person. The
+      acceptance test holds: the picture tells a person from a system
+      the day clients are written, and a remark on it ("the reporting
+      service is a system, not a person") is a client entry, which the
+      caller-context design already asks for.
+    consequences: |
+      The context diagram reads clients when the section exists; the
+      build item for this gap is the caller-context's build items 1 and 2
+      (docs/caller-context.md, Building), not a new one. The gap's
+      proposal is recorded here so that it is not raised again.
+    satisfies: [SA-16]

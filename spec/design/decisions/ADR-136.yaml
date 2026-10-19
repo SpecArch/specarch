@@ -1,0 +1,85 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
+decisions:
+  ADR-136:
+    title: A server of a deployment has a name, a kind, what of the implementation it runs, or the dependency it is in that environment, and the deployment guide and technical specification draw the deployment diagram from them
+    status: proposed
+    date: "2026-10-19"
+    context: |
+      docs/diagrams.md, gap E. An implementation file's deployments say
+      where each environment runs as a list of servers, each a URL and a
+      sentence. A deployment diagram, C4's deployment view, drawn from it
+      shows hosts with nothing on them: nothing says which package or
+      target runs on which server, that a server is the database, or
+      that a server is where a dependency is reached in this environment,
+      and nothing can refer to a server, since it has no name.
+    decision: |
+      A server gains name, a kebab-case name unique within its
+      deployment, optional, and what the other keys refer to; kind, with
+      the values service, database, messageBroker, proxy and fileStore,
+      service when left out; runs, with packages, keys of layout, and
+      targets, keys of targets, what of this implementation runs there;
+      and dependency, the key of a dependency of the design this server
+      is in this environment, which takes its kind from the dependency
+      and runs nothing of ours.
+
+      The validator, in both builds, reports as the rule server at the
+      entry a name used twice in one deployment, a package or target the
+      file does not have, packages on a server whose kind is not service,
+      kind or runs on a server that names a dependency, and a dependency
+      that is not declared.
+
+      The deployment guide and the technical specification's chapter 7
+      draw, per deployment, the deployment diagram between the markers
+      deployment <deployment>: a node per server with its name, kind,
+      host and what it runs, in the kind's shape, a server that is a
+      dependency drawn as that dependency, and the environment named on
+      the subgraph; with the network keys (ADR-137) the servers sit in
+      their zones and the edges are the links, and without them the
+      diagram has no edges and says so under it.
+    why: |
+      The keys are in the implementation file because where one stack's
+      build runs is that implementation's choice, beside build, method
+      and infrastructure, which ADR-129 placed there for the same
+      reason. name is optional so that every file reads as before, and
+      a name chosen by a person rather than derived from the URL's host
+      because two servers can share a host and a host name is not a name.
+
+      The kinds are the dependency's words (ADR-134) where the thing is
+      the same, so that a reader meets one word for a database whether
+      this system or another runs it; service rather than system because
+      a server of this kind runs part of this system, never another.
+      ArchiMate's node, device and system software lost: they tell
+      physical from logical, which a deployment that names a URL has no
+      need of. C4's deployment node and infrastructure node lost as
+      keywords because C4 tells them apart by whether something of ours
+      runs there, which runs says; C4's container instance lost as a word
+      because it names the thing placed, not the placing. runs holds two
+      lists because the names come from two sections of the file, so one
+      list would need a prefix to tell the sql target from a package of
+      the same name. A target may run on any kind of server, since a
+      proxy serves a ui target's pages as a service does, while packages
+      run only on a service.
+
+      dependency on a server is how the network's links reach a
+      dependency and how the diagram shows the real host behind one in
+      each environment; the setting that hands the code the address
+      stays what it is, and the validator does not compare the two,
+      because the value the code reads and the host differ legitimately.
+      One diagram per deployment rather than one for all because the
+      environments table already shows the promotion order and three
+      deployments in one picture overrun a page.
+
+      The compiler test holds: a deployment with no named server reads
+      and renders as before, a wrong name is an error at the entry, and
+      the diagram still draws every other server. The acceptance test
+      holds: a deployment diagram is what an operator and a customer's
+      engineer ask for first, and a remark on it changes one server's
+      runs.
+    consequences: |
+      The implementation schema's server object gains name, kind, runs
+      and dependency, with the schema version unchanged since every key
+      is optional; the rule server is new in both builds, with cases;
+      document deployment and document techspec gain the deployment
+      marker; the library-lending example's three deployments are named
+      and placed. The origin table gains the rows when the item is built.
+    satisfies: [SA-73, SA-16, SA-9]

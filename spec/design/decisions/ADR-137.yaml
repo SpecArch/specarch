@@ -1,0 +1,96 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
+decisions:
+  ADR-137:
+    title: A server says its zone and what it listens on, a deployment lists its allowed links as firewall rules, the validator checks every declared call has a link, and the documents draw the network diagram from them
+    status: proposed
+    date: "2026-10-19"
+    context: |
+      docs/diagrams.md, gap F. A network diagram shows zones, the ports
+      each host listens on and which host may reach which, and a firewall
+      check needs the same three facts. The implementation file holds
+      them as sentences under infrastructure (network, ports, services,
+      ADR-129), which a reader can follow and nothing can check, and the
+      convention keeps the picture hand-drawn. The owner may decide it
+      stays so; this record is the form it takes if not.
+    decision: |
+      A server gains zone, IEC 62443-3-2's word, the kebab-case name of
+      the network zone it is in, and listens, a list of what it accepts,
+      each a port from 1 to 65535 and a protocol in the dependency's form
+      (ADR-134). A deployment gains links, each from, a named server of
+      the deployment, to, a named server of the deployment, a
+      dependency's host among them, port, one the target listens on, and
+      a description when the reason is not plain. The URL's port does not
+      count as a listen, and a link in the other direction is another
+      link.
+
+      The validator, in both builds, reports as the rule link at the
+      entry a from or to that is no named server of the deployment, a
+      link from a server to itself, and a port the target does not listen
+      on; and as the warning link_missing at the server, a server that
+      runs a package implementing an operation or a job that calls a
+      dependency, or that emits on or consumes from a channel whose
+      servers name a dependency, with no link from it to a server that is
+      that dependency in this deployment, and one that runs packages with
+      no link to the deployment's database server that runs the sql
+      target, when the deployment has one. A must question that blocks
+      the deployment or its links holds the warning.
+
+      The deployment guide, the handover document and the technical
+      specification's chapter 7 draw, per deployment with a zone or a
+      link, the network diagram between the markers network
+      <deployment>: a subgraph per zone, a node per server, an edge per
+      link labelled with the port and the target's protocol, and the
+      deployment's dependencies without a server in it drawn apart as
+      unreached. The handover document derives its network and ports
+      paragraphs from the links and listens when a deployment has them
+      and prints the infrastructure sentences after them; a deployment
+      with links may leave network and ports out.
+    why: |
+      zone is IEC 62443-3-2's word with its meaning, a grouping of assets
+      that share security requirements; its conduit lost because a
+      conduit joins zones and the check needs the host and the port. A
+      link takes the form of a firewall rule from NIST SP 800-41, source,
+      destination and service, because that is what the people who
+      configure a firewall read and what the check compares. listens is
+      SpecArch's own: Compose and Kubernetes each have a word for a
+      published port, neither the same. The URL's port does not count
+      because the check should compare what the file says and not what a
+      URL implies.
+
+      The missing link is a warning, not an error, because a deployment
+      is written in order and the links are its to-do list, as the
+      handover's checks and monitors are (ADR-129); it is derived from
+      calls and channels because those are the connections the design
+      declares, and nothing else has to have a path. The database link is
+      derived because every service that runs packages reaches its own
+      store. The infrastructure sentences stay because the customer's
+      engineers read them and they say what the keys cannot (bandwidth,
+      DNS, the backup store); the documents print the keys first so that
+      the two are not read as rivals.
+
+      The smallest form was chosen, three keys and one list, over a
+      model of networks, subnets and addresses, because the picture and
+      the check need no more and a deployment that moves a host should
+      change one line. The recommendation to take it rests on the check:
+      it is the one check in this file a reviewer cannot do by reading,
+      and the hand-drawn network picture is the first to drift when a
+      host moves. Taking it later costs nothing, since the server keys of
+      ADR-136 do not change.
+
+      The compiler test holds: a deployment with no zone, listen or link
+      reads and renders as before; a wrong link is an error at the entry,
+      a missing one a warning at the server, and the diagram still draws
+      every other link. The acceptance test holds: an operator sees the
+      zones and ports the day the deployment is written, and a link the
+      firewall team refuses is one line to remove.
+    consequences: |
+      The implementation schema's server object gains zone and listens
+      and the deployment object gains links; the rules link and
+      link_missing are new in both builds, with cases; document
+      deployment, handover and techspec gain the network marker; the
+      library-lending example's production gets zones and links; the
+      convention's hand-drawn deployment row becomes a generated one and
+      the origin table gains the rows, when the item is built. If the
+      owner keeps the picture hand-drawn, this record is marked
+      deprecated and nothing of it is built.
+    satisfies: [SA-73, SA-16]

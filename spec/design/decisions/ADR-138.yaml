@@ -1,0 +1,62 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
+decisions:
+  ADR-138:
+    title: specarch model prints the merged document with every node's file, line and column, the resolved references and the layout problems as one JSON document in RFC 8785's canonical form, in both builds
+    status: proposed
+    date: "2026-10-19"
+    context: |
+      docs/diagrams.md, point G. An editor that shows a specification as
+      SpecArch reads it needs the merged document, where every node came
+      from, what refers to what, and the layout problems. With no command
+      that prints them it would load the files itself, a second loader
+      in another language that drifts from the first. The Go build keeps
+      the file of every node and the line and column of every value, the
+      Swift build keeps the same for its validator, and the references
+      are resolved by the validator's rules and kept by nothing.
+    decision: |
+      specarch model <folder>... prints one JSON document on standard
+      output, in both builds: specarchModel, the shape's version, and
+      program; specifications, one per root file found, each with its
+      root, name, version and metaModel, the merged document as plain
+      values, positions, a map from every node's JSON pointer to its
+      file, line and column as the problems file reports them,
+      references, a list of every resolved reference as from, to and
+      through (the keyword that made it), problems, the layout problems
+      found while reading in the problems file's form, and
+      implementations, each with its file, stack, document and positions;
+      and estates, each with its modules, their locations and versions,
+      and the specification each resolved to. The bytes are RFC 8785's
+      canonical form. The command's design is spec/design/commands/model.yaml.
+      An unreadable folder or one with no specification is exit status 2;
+      a specification with layout problems is printed with them, status
+      0.
+    why: |
+      One command in both builds, because the editor's Swift build reads
+      the model through the Swift specarch and the conformance suite
+      compares the two builds byte for byte, which RFC 8785 makes
+      possible: a standard's rule for one byte form needs no rule of
+      SpecArch's own, and an indented form lost because the document is
+      for a program, not a reader; jq is there for a reader. One list of
+      references serves both directions: a usages lookup is the list
+      filtered by its target, one pass in an editor, and a second list
+      would say one fact twice. The validator's errors and warnings are
+      not repeated because the problems file and its SARIF form are their
+      one list (ADR-065), which an editor already reads; a reference that
+      does not resolve is among them, so it is absent here. The layout
+      problems are included because they are found while reading, before
+      any rule runs, and the model is the editor's way to show them.
+
+      The compiler test holds: a specification that does not validate is
+      still printed, with every layout problem in it and the held entries
+      marked, so the editor shows what SpecArch could read. The
+      acceptance test holds: an editor shows the specification the day
+      the model exists, and what it shows is what validate checks, so a
+      remark made in the editor lands on the entry validate would name.
+    consequences: |
+      A new command in both builds, with its design under
+      spec/design/commands and the case model-writes-json; the readers
+      give up their positions and the validator its resolved references
+      through one collector in each build; RFC 8785 is implemented in
+      both. The command list of the technical specification and the
+      README grow by one when the item is built.
+    satisfies: [SA-51, SA-6]

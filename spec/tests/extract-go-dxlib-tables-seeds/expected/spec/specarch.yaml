@@ -6,6 +6,7 @@ info:
   description: |
     The Go source under ., read at commit 79de68bccce863ca415e66d6717227499cc878b0 by the standard library's parser, by its syntax alone. Every operation cites the line that registers it; what the source does not say as a literal, or through a call the reader knows, is a question, and so is what the meta-model cannot hold.
   tracksOrigin: true
+  wireNames: snake_case
 stages: [requirements, design, deployment]
 sources:
   code:

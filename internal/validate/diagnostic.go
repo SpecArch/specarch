@@ -126,6 +126,8 @@ const (
 	RuleQuestionOpened         Rule = "question_opened"
 	RuleHandover               Rule = "handover"
 	RuleBuildTask              Rule = "build_task"
+	RuleRequestBodyOpen        Rule = "request_body_open"
+	RuleSuccessResponseMissing Rule = "success_response_missing"
 )
 
 // Rules lists every rule, in the order of the design's Rule enum.
@@ -244,6 +246,8 @@ var Rules = []Rule{
 	RuleQuestionOpened,
 	RuleHandover,
 	RuleBuildTask,
+	RuleRequestBodyOpen,
+	RuleSuccessResponseMissing,
 }
 
 // Severity says whether a diagnostic makes the file invalid.

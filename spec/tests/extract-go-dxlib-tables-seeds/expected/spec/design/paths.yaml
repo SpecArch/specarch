@@ -28,7 +28,7 @@ paths:
       permission: branches.read
       origin: stated
       cites:
-        - {source: code, clause: 'api/endpoints.go:13', says: 'NewEndPoint registers POST /branches/list; its handler is BranchList.RequestSearchPagingList, its middlewares are RequireDeskKey, and it checks BRANCHES.READ.'}
+        - {source: code, clause: 'api/endpoints.go:13', says: 'NewEndPoint registers POST /branches/list; its handler is BranchList.RequestSearchPagingList, its middlewares are RequireDeskKey, it declares no parameter and no response, and it checks BRANCHES.READ.'}
         - {source: code, clause: 'api/tables.go:13', says: 'The handler of POST /branches/list is dxlib''s RequestSearchPagingList of this table. NewDXTableSimple makes the table public.branches, with whitelists that are not literal lists of names.'}
   /loans/list:
     post:
@@ -38,5 +38,5 @@ paths:
       permission: loans.read
       origin: stated
       cites:
-        - {source: code, clause: 'api/endpoints.go:9', says: 'NewEndPoint registers POST /loans/list; its handler is LoanList.RequestSearchPagingList, its middlewares are RequireDeskKey and RequireChecks, and it checks LOANS.READ.'}
+        - {source: code, clause: 'api/endpoints.go:9', says: 'NewEndPoint registers POST /loans/list; its handler is LoanList.RequestSearchPagingList, its middlewares are RequireDeskKey and RequireChecks, it declares the parameters search_text, row_per_page and page_index and no response, and it checks LOANS.READ.'}
         - {source: code, clause: 'api/tables.go:5', says: 'The handler of POST /loans/list is dxlib''s RequestSearchPagingList of this table. NewDXTableSimple makes the table desk.loans: its paging list searches title, member_name; orders by due_on, title; filters by member_id, state.'}

@@ -166,7 +166,7 @@ questions:
     priority: must
     blocks: ['#/paths/~1branches~1list/post/responses']
     decidedBy: system-owner
-    why: The source names the refusals a handler answers with a literal status, not its success response or what each response means; the document dxlib emits declares them.
+    why: The source names the refusals a handler answers with a literal status, and its registration declares no success response; the document dxlib emits declares the responses an endpoint is given.
   # specarch-problem: question: open_question: (must, decision) Does the running system register POST /branches/list? It is declared at api/endpoints.go:13, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-23 under answers. [Q-23]
   Q-23:
     question: Does the running system register POST /branches/list? It is declared at api/endpoints.go:13, and no list the running system printed was read with it.
@@ -184,7 +184,7 @@ questions:
     priority: must
     blocks: ['#/paths/~1loans~1list/post/responses']
     decidedBy: system-owner
-    why: The source names the refusals a handler answers with a literal status, not its success response or what each response means; the document dxlib emits declares them.
+    why: The source names the refusals a handler answers with a literal status, and its registration declares no success response; the document dxlib emits declares the responses an endpoint is given.
   # specarch-problem: question: open_question: (must, decision) Does the running system register POST /loans/list? It is declared at api/endpoints.go:9, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-25 under answers. [Q-25]
   Q-25:
     question: Does the running system register POST /loans/list? It is declared at api/endpoints.go:9, and no list the running system printed was read with it.
@@ -331,8 +331,18 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: code, clause: 'api/endpoints.go:9', says: 'Not held: the endpoint POST /loans/list: dxlib names it loans_list from its URI, which is not camelCase, as an operationId is; it is named postLoansList.'}
-  # specarch-problem: question: open_question: (could, decision) Not held: seed/seed.go:25: grant of LOANS.READ to "Branch_Manager": the role's name is not kebab-case, which a role name is; left out. Does the specification need it, written another way or described by hand? It blocks roles. Decided by system-owner. Answer with a decision record that names Q-40 under answers. [Q-40]
+  # specarch-problem: question: open_question: (could, decision) Not held: api/endpoints.go:9: the endpoint POST /loans/list declares no content type and the parameters search_text, row_per_page and page_index, which dxlib reads from the X-Var header as JSON; the meta-model holds no parameter carried in a header as JSON; left out. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-40 under answers. [Q-40]
   Q-40:
+    question: 'Not held: api/endpoints.go:9: the endpoint POST /loans/list declares no content type and the parameters search_text, row_per_page and page_index, which dxlib reads from the X-Var header as JSON; the meta-model holds no parameter carried in a header as JSON; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/paths/~1loans~1list/post']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'api/endpoints.go:9', says: 'Not held: the endpoint POST /loans/list declares no content type and the parameters search_text, row_per_page and page_index, which dxlib reads from the X-Var header as JSON; the meta-model holds no parameter carried in a header as JSON; left out.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: seed/seed.go:25: grant of LOANS.READ to "Branch_Manager": the role's name is not kebab-case, which a role name is; left out. Does the specification need it, written another way or described by hand? It blocks roles. Decided by system-owner. Answer with a decision record that names Q-41 under answers. [Q-41]
+  Q-41:
     question: 'Not held: seed/seed.go:25: grant of LOANS.READ to "Branch_Manager": the role''s name is not kebab-case, which a role name is; left out. Does the specification need it, written another way or described by hand?'
     kind: decision
     priority: could

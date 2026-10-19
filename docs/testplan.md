@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.0-dev of the specification: 503 design tests, 224 golden and 279 red, about 16 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.0-dev of the specification: 505 design tests, 226 golden and 279 red, about 16 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.7.0-dev of the specification: 503 design tests, 224 golden and 279 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 499 |
+| system | 501 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -948,6 +948,14 @@ Scenario: golden; level: system; verifies SA-44.
 - Given: a repository holding a Go module on chi whose server wraps two handlers in a check that lets a service's own token through without reading its roles, guards a third with a check used as middleware that holds every caller to its roles, and leaves a fourth unchecked; and an implementation file whose bindings.http.permissionChecks name both checks, the first with bypassedFor: client
 - When: extract go is run on the module with the implementation file
 - Then: it writes the four operations with the permissions the checks read, one must question on the bypassed check, named by its method's name, blocking the permission of the two operations it guards and of no other, in the words extract permissions uses, citing the first call of it, a line naming the check and counting those operations, and exits 0
+
+#### extract-go-dxlib-declared
+
+Scenario: golden; level: system; verifies SA-44.
+
+- Given: a repository holding a Go module on dxlib whose endpoints declare what they take and answer where NewEndPoint registers them: a JSON POST with a literal parameter list in snake_case of typed parameters (a positive int64, a non-empty string with a maximum length and a pattern given through a pointer helper, a nullable date, money, a JSON object with children, one of them of a type a function computes, an array of a JSON template, a map of strings and an array of strings) and response possibilities with a success carrying a data template and a refusal with a header; a GET whose parameters a module function returns as its one statement, with bounds and an enum; a POST whose parameters a package variable holds; a POST whose parameters and responses functions build with statements; a JSON POST that declares no parameter and whose handler decodes its body itself; and a PUT of an octet stream with a parameter
+- When: extract go is run on the module
+- Then: it writes the JSON POST's body as an object of camelCase fields with their types, formats, bounds, enums, required lists, children, items and map values as dxlib's emitter writes them, the field of a computed type known by name only with a must question on it, its 200 response with its description and body, and its 409 response with its description and the problem the handler answers; the GET's parameters as query parameters; the variable's parameters as the body; a must question for the parameters and the responses functions build, naming the call; the body that declares nothing as any object with a must question on its fields; the octet stream as a binary body; one must question on the widths of the int64 fields; a could question for the header and for the parameters dxlib reads from the X-Var header; a must question for each operation with no success response and for a response with no description; sets info.wireNames snake_case; and exits 0
 
 #### extract-go-dxlib-endpoints
 
@@ -2978,6 +2986,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-34.
 - Given: a list naming a field its entity lacks, an encrypted field to sort by and one to filter by without a hash, and a default page above the maximum; a rate over no time with a burst below it; a catalogue of problem types, a response naming an unknown type, one naming a type of another status, and a 4xx response naming none
 - When: validate is run
 - Then: it reports list_of four times, limits twice and problem three times, and exits 1
+
+#### validate-interface-unwritten
+
+Scenario: golden; level: system; verifies SA-34.
+
+- Given: an operation whose request body is an object that names no property, one whose body says additionalProperties: true and whose one response is default, one that answers only refusals, and one with both gaps under an open must question that blocks it
+- When: validate is run
+- Then: it warns request_body_open at the open body and success_response_missing at the responses of the operation that answers only refusals, says nothing of the body that says it takes any object or of the default response, counts the gaps under the question as covered, and exits 0, since the specification is still valid
 
 #### validate-interface-valid
 

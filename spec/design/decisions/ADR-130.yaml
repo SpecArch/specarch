@@ -1,0 +1,113 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
+decisions:
+  ADR-130:
+    title: The Go reader reads what an endpoint declares where it is registered, and an operation whose body or success is not written is a warning
+    status: accepted
+    date: "2026-10-19"
+    context: |
+      A service on dxlib registers each endpoint with one call that is
+      given, besides its method and URI, the list of parameters it takes
+      (names, types, whether each must be sent, bounds and enums, nested
+      children), the content type its body arrives in and the responses
+      it may answer. dxlib reads and checks those parameters before the
+      handler runs, and the handler then reads them through dxlib, or
+      reads its body in a way of its own. extract go read only the names
+      in a literal list, to check the handler's reads against them, and
+      wrote each operation with no parameters, no body and no responses
+      but the refusals its handler answers. The document dxlib emits has
+      them, but only when the service's own dumper is run, and a service
+      that registers through the call with no parameters declared emits
+      an object that names nothing. Either way an operation could end up
+      with an empty body or no success response, and nothing in the
+      questions or the validator said so.
+    decision: |
+      extract go reads the parameter list, the content type and the
+      response possibilities the registration call is given. Each is
+      followed when it is a literal, a pointer to one, a name assigned one
+      literal once, or a call to a function of the module whose one
+      statement returns one; anything else is a must question naming the
+      call and why it was not followed. A parameter is recognised by its
+      keys, a composite literal with NameId and Type, and a response by
+      StatusCode, whatever package declares their types, so a project's
+      own helpers are read as long as they return a literal. Each
+      parameter type is written in JSON Schema by dxlib's own table, as
+      dxlib's emitter writes it, with the declaration's description,
+      bounds, pattern, enum, const, default, annotations, children,
+      items and map values, and the result goes through extract
+      openapi's field writer: widths, wire names and every gap are
+      handled as they are for the emitted document, so merging the two
+      trees agrees. A parameter inside a list that is not read is written
+      by its name alone, with a must question on it, and the rest of the
+      list is written.
+
+      Where the parameters go follows dxlib's PreProcessRequest: a POST
+      or PUT with a JSON, form or multipart content type takes them as
+      its body's fields, one with an octet stream or plain text takes
+      that body, and with no content type it takes none; their
+      parameters, which dxlib reads from the X-Var header, print a line,
+      since the meta-model holds no parameter carried in a header as
+      JSON. Every other method takes them as query parameters, a name
+      that is also a path segment included, since dxlib reads them from
+      the query and not from the path. A declared response is written
+      under its status with its description and the object its data
+      template gives, the problem the handler answers at that status
+      beside it; its headers print a line. A declared success leaves
+      only the descriptions not given to ask. A body that declares no
+      parameter is written as any object, with a must question on its
+      fields that names the registration and the handler.
+
+      The validator, in both builds, warns under request_body_open of a
+      request body that is an object naming no property and not saying
+      additionalProperties, and under success_response_missing of
+      responses that are refusals alone, with no 1xx, 2xx or 3xx response
+      and no default. A must question that blocks the operation, its body
+      or its responses holds the warning, as it holds every other.
+    why: |
+      The registration is where a dxlib service says what an endpoint
+      takes; a handler that reads its parameters through dxlib names none
+      of them by itself, so a reader that looks only at the handler sees
+      an endpoint that takes nothing. The emitted document is the better
+      source when it exists (ADR-076), and this reading is what the
+      source gives when it does not, written the same way so that the two
+      meet in the merge rather than disagree.
+
+      Recognising a declaration by its keys and not by its type's name is
+      what lets a service's own helpers, or a fork of the library, be read
+      without a table of their names; the keys are the library's
+      contract, the package path is not. Following only a literal, a name
+      assigned once and a function that only returns is what syntax can
+      do without running the code; anything longer is a guess, and a
+      guess is never written.
+
+      A declared GET parameter whose name is also a path segment is a
+      query parameter because that is where dxlib reads it: writing it as
+      the path parameter would write a request the service does not
+      read.
+
+      JSON Schema reads an object with no properties as any object, which
+      is a valid schema, so the meta-model cannot refuse it; but written
+      by a reader, or by hand, it most often means the fields were not
+      found. additionalProperties: true is the one way to say any object
+      on purpose, as the field subset already says it (ADR-049). An
+      operation with refusals alone is valid OpenAPI too, and the same
+      reasoning holds: a generator and a test need the success. Both are
+      warnings, as the traceability gaps are, because a specification is
+      written in order; the must question a reader asks is the one
+      licence for the gap.
+
+      The compiler test holds: nothing is refused or left unread, a
+      declaration not followed is a question at the operation, a
+      parameter not read is kept by its name, and the empty body and the
+      missing success are problems at the operation. The acceptance test
+      holds: the operation's fields are there to show early, and a remark
+      on one changes one field.
+    consequences: |
+      The dxlib endpoint cases of extract go now write request bodies,
+      query parameters and declared responses; their goldens change, and
+      a new case covers the declarations. The notice board's two readings
+      still merge with no key the trees disagree on, and the Go reading's
+      question on the widths of its int64 fields is the one the document
+      asks. A service that registers with no parameters declared gets a
+      question on each body it takes, and every operation with refusals
+      alone gets a warning until its success is written or asked.
+    satisfies: [SA-44, SA-34]

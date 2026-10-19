@@ -1,0 +1,147 @@
+permissions:
+  loans.read:
+    origin: stated
+    cites:
+      - {source: code, clause: 'api/endpoints.go:60', says: GET /loans/list checks loans.read in its privileges.}
+  loans.write:
+    origin: stated
+    cites:
+      - {source: code, clause: 'api/endpoints.go:70', says: 'POST /loans/close, POST /loans/import, POST /loans/open and PUT /loans/scan check loans.write in its privileges.'}
+  members.read:
+    origin: stated
+    cites:
+      - {source: code, clause: 'api/endpoints.go:64', says: POST /members/show checks members.read in its privileges.}
+paths:
+  /loans/close:
+    post:
+      operationId: postLoansClose
+      summary: Close a loan
+      permission: loans.write
+      origin: stated
+      cites:
+        - {source: code, clause: 'api/endpoints.go:70', says: 'NewEndPoint registers POST /loans/close; its handler is CloseLoan, it has no middleware, its parameters are not a literal list, its responses are not a literal list, and it checks loans.write.'}
+        - {source: code, clause: 'api/handlers.go:27', says: The handler of POST /loans/close reads no parameter by name.}
+  /loans/import:
+    post:
+      operationId: postLoansImport
+      summary: Import loans
+      permission: loans.write
+      requestBody:
+        content:
+          application/json:
+            schema: {type: object}
+      origin: stated
+      cites:
+        - {source: code, clause: 'api/endpoints.go:74', says: 'NewEndPoint registers POST /loans/import; its handler is ImportLoans, it has no middleware, it declares no parameter and no response, and it checks loans.write.'}
+        - {source: code, clause: 'api/handlers.go:32', says: The handler of POST /loans/import reads no parameter by name.}
+  /loans/list:
+    get:
+      operationId: getLoansList
+      summary: List a member's loans
+      permission: loans.read
+      parameters:
+        - name: page_size
+          in: query
+          schema:
+            type: integer
+            format: int32
+            minimum: 1.0
+            maximum: 100.0
+        - name: order
+          in: query
+          schema: {type: string, enum: [newest, oldest]}
+      origin: stated
+      cites:
+        - {source: code, clause: 'api/endpoints.go:60', says: 'NewEndPoint registers GET /loans/list; its handler is ListLoans, it has no middleware, it declares the parameters page_size and order and no response, and it checks loans.read.'}
+        - {source: code, clause: 'api/handlers.go:17', says: The handler of GET /loans/list reads no parameter by name.}
+  /loans/open:
+    post:
+      operationId: postLoansOpen
+      summary: Open a loan
+      description: Opens a loan for a member.
+      permission: loans.write
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                memberId:
+                  type: integer
+                  description: The member who borrows.
+                  minimum: 1
+                itemCode:
+                  type: string
+                  minLength: 1
+                  maxLength: 16
+                  pattern: ^[A-Z0-9]+$
+                dueDate: {type: [string, "null"], format: date}
+                amount: {type: string}
+                address:
+                  type: object
+                  properties:
+                    city: {type: string}
+                    postalCode: {}
+                  required: [city]
+                copies: {type: array, items: {type: object, properties: {barcode: {type: string}}}}
+                labels: {type: object, additionalProperties: {type: string}}
+                tags: {type: array, items: {type: string}}
+              required: [memberId, itemCode]
+      responses:
+        "200":
+          description: The loan is open.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  loanId: {type: integer}
+                required: [loanId]
+        "409":
+          description: The item is lent out.
+          problem: item-lent-out
+      origin: stated
+      cites:
+        - {source: code, clause: 'api/endpoints.go:37', says: 'NewEndPoint registers POST /loans/open; its handler is OpenLoan, it has no middleware, it declares the parameters member_id, item_code, due_date, amount, address, copies, labels and tags and the responses 200 and 409, and it checks loans.write.'}
+        - {source: code, clause: 'api/handlers.go:11', says: The handler of POST /loans/open reads the parameter member_id and answers 409 ITEM_LENT_OUT.}
+  /loans/scan:
+    put:
+      operationId: putLoansScan
+      summary: Upload a scan
+      permission: loans.write
+      requestBody:
+        content:
+          application/octet-stream:
+            schema: {type: string, format: binary}
+      origin: stated
+      cites:
+        - {source: code, clause: 'api/endpoints.go:77', says: 'NewEndPoint registers PUT /loans/scan; its handler is UploadScan, it has no middleware, it declares the parameter loan_id and no response, and it checks loans.write.'}
+        - {source: code, clause: 'api/handlers.go:38', says: The handler of PUT /loans/scan reads no parameter by name.}
+  /members/show:
+    post:
+      operationId: postMembersShow
+      summary: Show a member
+      permission: members.read
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                memberId:
+                  type: integer
+                  description: The member.
+                  minimum: 1
+              required: [memberId]
+      responses:
+        "200": {}
+      origin: stated
+      cites:
+        - {source: code, clause: 'api/endpoints.go:64', says: 'NewEndPoint registers POST /members/show; its handler is ShowMember, it has no middleware, it declares the parameter member_id and the response 200, and it checks members.read.'}
+        - {source: code, clause: 'api/handlers.go:22', says: The handler of POST /members/show reads no parameter by name.}
+errors:
+  item-lent-out:
+    status: 409
+    origin: stated
+    cites:
+      - {source: code, clause: 'api/handlers.go:13', says: Answers 409 with the reason ITEM_LENT_OUT.}

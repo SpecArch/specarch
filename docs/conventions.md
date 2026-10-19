@@ -889,6 +889,15 @@ answered. A response names its type under `problem`, of its own status.
 Once the catalogue exists, every 4xx and 5xx response names one
 (`problem`), so a client can branch on the type without parsing a message.
 
+An operation writes what it takes and what it answers. A request body
+that is an object naming no property, without `additionalProperties`,
+takes something the specification does not write (`request_body_open`),
+and responses that are refusals alone, with no 1xx, 2xx or 3xx response
+and no `default`, leave the success unwritten (`success_response_missing`).
+Both are warnings, held by a must question that blocks the operation, its
+body or its responses, as a reader asks it when it cannot read them. A
+body that takes any object says `additionalProperties: true` (ADR-130).
+
 ### Jobs and menus
 
 Work the system does on its own is a job, under `jobs`:

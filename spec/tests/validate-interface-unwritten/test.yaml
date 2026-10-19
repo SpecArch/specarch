@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: validate
+level: system
+scenario: golden
+given: "an operation whose request body is an object that names no property, one whose body says additionalProperties: true and whose one response is default, one that answers only refusals, and one with both gaps under an open must question that blocks it"
+when: "validate is run"
+then: "it warns request_body_open at the open body and success_response_missing at the responses of the operation that answers only refusals, says nothing of the body that says it takes any object or of the default response, counts the gaps under the question as covered, and exits 0, since the specification is still valid"
+verifies: [SA-34]

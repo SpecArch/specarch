@@ -3,6 +3,7 @@ package validate
 import (
 	"fmt"
 	"strconv"
+	"strings"
 
 	"go.yaml.in/yaml/v3"
 
@@ -117,6 +118,58 @@ func (c *checker) checkProblems(d *design, o operation) {
 			c.add(p, ptr, RuleProblem, "%s is a %s problem, and this is the %s response; name a problem type of status %s", p.Value, status, code, code)
 		}
 	}
+}
+
+// checkInterface warns of a request body that takes any object, because
+// its schema is an object that names no property and does not say
+// additionalProperties, and of responses with no success among them: in
+// either, what the operation takes or answers is not written, and a
+// reader that did not find it must not leave that silent (ADR-130).
+func (c *checker) checkInterface(o operation) {
+	for _, mt := range source.Pairs(source.Child(source.Child(o.node, "requestBody"), "content")) {
+		s := source.Child(mt.Value, "schema")
+		if s == nil || !objectOnly(source.Child(s, "type")) {
+			continue
+		}
+		if source.Child(s, "properties") != nil || source.Child(s, "additionalProperties") != nil {
+			continue
+		}
+		c.warn(mt.Key, o.pointer("requestBody", "content", mt.Key.Value, "schema"), RuleRequestBodyOpen, "the %s body of %s is an object that names no property, so what it takes is not written; list its fields under properties, or say additionalProperties: true if it takes any", mt.Key.Value, o.id)
+	}
+	responses := source.Pairs(source.Child(o.node, "responses"))
+	if len(responses) == 0 {
+		return
+	}
+	var codes []string
+	for _, r := range responses {
+		code := r.Key.Value
+		if code == "default" || code[0] >= '1' && code[0] <= '3' {
+			return
+		}
+		codes = append(codes, code)
+	}
+	c.warn(source.Key(o.node, "responses"), o.pointer("responses"), RuleSuccessResponseMissing, "%s answers %s and no success, so what it answers when it succeeds is not written; add its success response", o.id, strings.Join(codes, ", "))
+}
+
+// objectOnly says whether a type is object, alone or with null.
+func objectOnly(t *yaml.Node) bool {
+	if t == nil {
+		return false
+	}
+	if t.Kind == yaml.ScalarNode {
+		return t.Value == "object"
+	}
+	object := false
+	for _, n := range t.Content {
+		switch n.Value {
+		case "object":
+			object = true
+		case "null":
+		default:
+			return false
+		}
+	}
+	return object
 }
 
 func suggestPairs(name string, n *yaml.Node) string {

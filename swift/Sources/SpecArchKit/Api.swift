@@ -94,4 +94,41 @@ extension Checker {
             }
         }
     }
+
+    /// Warns of a request body that takes any object, because its schema
+    /// is an object that names no property and does not say
+    /// additionalProperties, and of responses with no success among them:
+    /// in either, what the operation takes or answers is not written, and a
+    /// reader that did not find it must not leave that silent (ADR-130).
+    func checkInterface(_ o: Operation) {
+        for mt in pairs(o.node.child("requestBody")?.child("content")) {
+            guard let s = mt.value.child("schema"), objectOnly(s.child("type")) else { continue }
+            if s.child("properties") != nil || s.child("additionalProperties") != nil { continue }
+            warn(mt.key, o.pointer("requestBody", "content", mt.key.value, "schema"), .requestBodyOpen, "the \(mt.key.value) body of \(o.id) is an object that names no property, so what it takes is not written; list its fields under properties, or say additionalProperties: true if it takes any")
+        }
+        let responses = pairs(o.node.child("responses"))
+        if responses.isEmpty { return }
+        var codes: [String] = []
+        for r in responses {
+            let code = r.key.value
+            if code == "default" || "123".contains(code.first ?? "x") { return }
+            codes.append(code)
+        }
+        warn(o.node.key("responses"), o.pointer("responses"), .successResponseMissing, "\(o.id) answers \(codes.joined(separator: ", ")) and no success, so what it answers when it succeeds is not written; add its success response")
+    }
+}
+
+/// Says whether a type is object, alone or with null.
+func objectOnly(_ t: YNode?) -> Bool {
+    guard let t else { return false }
+    if t.kind == .scalar { return t.value == "object" }
+    var object = false
+    for n in t.items {
+        switch n.value {
+        case "object": object = true
+        case "null": break
+        default: return false
+        }
+    }
+    return object
 }

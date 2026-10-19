@@ -14,7 +14,7 @@ func archivePath() string { return "/loans/archive" }
 
 // Define registers the desk's endpoints.
 func Define(a *api.DXAPI) {
-	a.NewEndPoint("List loans", "Lists the loans.", "/loans"+"/list", http.MethodPost, api.EndPointTypeHTTPJSON, 0,
+	a.NewEndPoint("List loans", "Lists the loans.", "/loans"+"/list", http.MethodPost, api.EndPointTypeHTTPJSON, 3,
 		[]api.DXAPIEndPointParameter{{NameId: "member"}},
 		ListLoans, nil, nil, []api.DXAPIEndPointExecuteFunc{RequireSession}, []string{"LOANS.READ"}, 0, "")
 

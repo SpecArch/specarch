@@ -494,7 +494,32 @@ commands:
         the refusals it answers. The handler is read where it is a
         function literal, a function of the same package, or a function
         of another package of the module named through its import; any
-        other is a should question. In the handler, each
+        other is a should question. What the call declares is read as
+        well (ADR-130): its parameter list, its content type and its
+        response possibilities, each a literal, a pointer to one, a name
+        assigned one once, or a call to a function of the module whose one
+        statement returns one. A parameter is a composite literal with
+        `NameId` and `Type`, whatever package declares its type, and a
+        response one with `StatusCode`. Each parameter's type is written
+        in JSON Schema as dxlib's emitter writes it, with its description,
+        bounds, enum, children, items and map values, and the whole goes
+        through extract openapi's field writer, so that the operation
+        reads as the document dxlib emits reads; the names are snake_case
+        on the wire, with info.wireNames, when the declared names are. A
+        POST or PUT whose content type is JSON, a form or multipart takes
+        the parameters as the fields of its body; one of an octet stream
+        or plain text takes that body, and with no content type it takes
+        none, its parameters, which dxlib reads from the X-Var header,
+        printing a line. Any other method takes them as query parameters,
+        as dxlib reads them. A declared response is written under its
+        status with its description and the object its data template
+        gives, the problem the handler answers at that status beside it,
+        and its headers print a line. A list, a parameter or a response
+        the reader cannot follow is a must question naming the call and
+        why, and a parameter it cannot read inside a list is written by
+        its name alone with a must question on it. A body that declares
+        no parameter is any object, with a must question on its fields.
+        In the handler, each
         `GetParameterValue...` call on the request with a literal name
         is a parameter read, and one whose name the endpoint's literal
         parameter list does not declare is a must question, since dxlib
@@ -519,7 +544,8 @@ commands:
         does not hold print a line. Each operation carries a must
         question on whether the running system registers it, which a
         printed tree answers in the merge, and one on its success
-        response and what each response means; an operation with no
+        response and what each response means, or on the descriptions
+        alone when it declares a success; an operation with no
         privilege, several or one that does not map is asked as in
         extract openapi. A file that imports dxlib's `api` package and
         gives nothing read prints a line.

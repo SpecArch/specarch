@@ -369,3 +369,14 @@ The entry for the merge item in `history/2026-10-19.md`, added by commit ddde375
 Expected: the mailbox named generically, as every other history entry does ("The handoff mailbox folder was empty."), and no other private name or path anywhere in the tree.
 
 The fix rewords the sentence in a normal commit. The old text stays in the history of commit ddde375c; rewriting published history is the owner's decision.
+
+## BUG-025 — extract go: the parameters and responses an endpoint declares where it is registered are missed, leaving empty schemas silently
+
+- Reported: 2026-10-19, from converting a Go service on dxlib to SpecArch
+- Closed: 2026-10-19, completed
+- Fixed by: the commit on `main` whose message says `Fixes BUG-025`; ADR-130
+
+The service registers each endpoint with `NewEndPoint`, which is given the endpoint's parameter list (names, types, required flags, limits) and its response possibilities; the handler then reads its parameters through dxlib, not by name. `specarch extract go` read only the names in a literal parameter list, said the handler "reads no parameter by name", and wrote each operation with no body or parameters and no responses but the refusals its handler answers. The OpenAPI document the running service dumped had no schemas either, since its endpoints declared none, so `extract openapi` added nothing. Every operation of such a service ended up with empty inputs and outputs, and nothing in validate or the questions said so.
+
+Expected: the declared parameters written as the operation's body fields or query parameters with their types, required flags, bounds and enums, and the declared responses with their descriptions and bodies; what cannot be followed a question naming the operation and where to look; and an operation left with a body of any object or with no success response a validate warning.
+

@@ -1,0 +1,64 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0 }
+requirements:
+  CASE-1: { statement: One., kind: functional, priority: must, status: accepted, acceptance: [One.] }
+stakeholders:
+  owner: { description: The owner. }
+permissions:
+  loans.write: { description: Change loans. }
+roles:
+  desk: { description: The desk., permissions: [loans.write] }
+paths:
+  /imports:
+    post:
+      operationId: importLoans
+      summary: Import loans
+      permission: loans.write
+      requestBody:
+        content:
+          application/json:
+            schema: { type: object }
+      responses:
+        "202": { description: The import is queued. }
+      satisfies: [CASE-1]
+  /exports:
+    post:
+      operationId: exportLoans
+      summary: Export loans
+      permission: loans.write
+      requestBody:
+        content:
+          application/json:
+            schema: { type: object, additionalProperties: true }
+      responses:
+        default: { description: The export. }
+      satisfies: [CASE-1]
+  /loans/close:
+    post:
+      operationId: closeLoan
+      summary: Close a loan
+      permission: loans.write
+      responses:
+        "404": { description: No such loan. }
+        "409": { description: The loan is already closed. }
+      satisfies: [CASE-1]
+  /loans/renew:
+    post:
+      operationId: renewLoan
+      summary: Renew a loan
+      permission: loans.write
+      requestBody:
+        content:
+          application/json:
+            schema: { type: [object, "null"] }
+      responses:
+        "409": { description: The loan is overdue. }
+      satisfies: [CASE-1]
+questions:
+  Q-1:
+    question: Which fields does renewLoan take, and what does it answer when it succeeds?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1loans~1renew/post']
+    decidedBy: owner
+    why: The source reads neither.

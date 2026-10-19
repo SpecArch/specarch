@@ -117,6 +117,8 @@ public enum Rule: String, CaseIterable, Sendable {
     case questionOpened = "question_opened"
     case handover = "handover"
     case buildTask = "build_task"
+    case requestBodyOpen = "request_body_open"
+    case successResponseMissing = "success_response_missing"
 }
 
 /// Whether a diagnostic makes the file invalid.

@@ -555,6 +555,7 @@ func (c *checker) checkOperations(d *design) {
 		c.checkListOf(d, o)
 		c.checkLimits(o)
 		c.checkProblems(d, o)
+		c.checkInterface(o)
 		c.checkGuard(d, source.Child(o.node, "guard"), o.pointer("guard"))
 	}
 }

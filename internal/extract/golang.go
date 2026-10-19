@@ -90,6 +90,7 @@ type goEndpoint struct {
 	title      string
 	desc       string
 	declared   map[string]bool // the parameters' names, nil when they are not all literal
+	decl       *dxDeclared     // what the registration declares (ADR-130)
 	handler    string          // as the code writes it
 	chain      []string        // the middlewares, as the code writes them
 	chainExprs []ast.Expr
@@ -589,7 +590,7 @@ func (g *goReader) registration(f *goFile, call *ast.CallExpr, name string, stac
 	ep.params = params
 	ep.title, _ = g.stringValue(f, call.Args[0])
 	ep.desc, _ = g.stringValue(f, call.Args[1])
-	ep.declared = parameterNames(g, f, call.Args[6])
+	g.declare(ep, f, call)
 	ep.handler = exprText(call.Args[7])
 	ep.chain, ep.chainKnown = exprList(call.Args[10])
 	if cl, ok := call.Args[10].(*ast.CompositeLit); ok {
@@ -774,6 +775,8 @@ func (g *goReader) write() {
 		}
 	}
 	conflicts := map[string][]string{} // a problem answered at two statuses -> the responses that would name it
+	w := g.declaredWriter()
+	regAts := map[string]string{} // an operation's pointer -> where it is registered
 	checkedBy := map[string][]string{}
 	firstAt := map[string]string{}
 	firstVia := map[string]string{} // a permission a route checks first -> the check that reads it
@@ -854,35 +857,52 @@ func (g *goReader) write() {
 				}
 			}
 			set(op, "permission", nonEmpty(permission))
-			if len(ep.responses) > 0 {
-				responses := mapping()
-				for _, c := range sortedCodes(ep.responses) {
-					resp := mapping()
-					names := map[string]bool{}
-					for _, p := range ep.answered {
-						if strconv.Itoa(p.status) == c && p.reason != "" {
-							names[strings.ToLower(strings.NewReplacer("_", "-", " ", "-").Replace(p.reason))] = true
-						}
+			regAts[ep.at] = regAt
+			if ep.decl != nil {
+				w.request(ep, op, regAt, label)
+			}
+			declaredResponses := mapping()
+			codes := sortedCodes(ep.responses)
+			if ep.decl != nil {
+				for c := range w.responses(ep, declaredResponses, label, regAt) {
+					if !contains(codes, c) {
+						codes = append(codes, c)
 					}
-					var list []string
-					for n := range names {
-						list = append(list, n)
-					}
-					sort.Strings(list)
-					switch {
-					case len(list) == 1 && problemWord.MatchString(list[0]) && len(problemStatus[list[0]]) == 1:
-						set(resp, "problem", list[0])
-					case len(list) == 1 && problemWord.MatchString(list[0]):
-						conflicts[list[0]] = append(conflicts[list[0]], ep.at+"/responses/"+c+"/problem")
-					case len(list) == 1:
-						g.question("must", fmt.Sprintf("The handler of %s answers %s with a reason that gives no problem name in kebab-case. Which problem does %s answer?", label, c, c),
-							[]string{ep.at + "/responses/" + c + "/problem"}, "A problem type is named in lower-case words joined by hyphens, and the reason does not give one.")
-					case len(list) > 1:
-						g.question("must", fmt.Sprintf("The handler of %s answers %s with the reasons %s, and a response names one problem. Which problem does %s answer, or should the reasons be one?", label, c, joinAnd(list), c),
-							[]string{ep.at + "/responses/" + c + "/problem"}, "A response in the meta-model names one problem type.")
-					}
-					set(responses, c, resp)
 				}
+			}
+			sort.Strings(codes)
+			responses := mapping()
+			for _, c := range codes {
+				resp := child(declaredResponses, c)
+				if resp == nil {
+					resp = mapping()
+				}
+				names := map[string]bool{}
+				for _, p := range ep.answered {
+					if strconv.Itoa(p.status) == c && p.reason != "" {
+						names[strings.ToLower(strings.NewReplacer("_", "-", " ", "-").Replace(p.reason))] = true
+					}
+				}
+				var list []string
+				for n := range names {
+					list = append(list, n)
+				}
+				sort.Strings(list)
+				switch {
+				case len(list) == 1 && problemWord.MatchString(list[0]) && len(problemStatus[list[0]]) == 1:
+					set(resp, "problem", list[0])
+				case len(list) == 1 && problemWord.MatchString(list[0]):
+					conflicts[list[0]] = append(conflicts[list[0]], ep.at+"/responses/"+c+"/problem")
+				case len(list) == 1:
+					g.question("must", fmt.Sprintf("The handler of %s answers %s with a reason that gives no problem name in kebab-case. Which problem does %s answer?", label, c, c),
+						[]string{ep.at + "/responses/" + c + "/problem"}, "A problem type is named in lower-case words joined by hyphens, and the reason does not give one.")
+				case len(list) > 1:
+					g.question("must", fmt.Sprintf("The handler of %s answers %s with the reasons %s, and a response names one problem. Which problem does %s answer, or should the reasons be one?", label, c, joinAnd(list), c),
+						[]string{ep.at + "/responses/" + c + "/problem"}, "A response in the meta-model names one problem type.")
+				}
+				set(responses, c, resp)
+			}
+			if len(codes) > 0 {
 				set(op, "responses", responses)
 			}
 			set(op, "origin", "stated")
@@ -898,16 +918,30 @@ func (g *goReader) write() {
 			}
 			// With no response written, the responses are what is missing;
 			// with some, their descriptions, so that a tree that describes
-			// them answers it.
-			blocks := []string{ep.at + "/responses"}
-			if len(ep.responses) > 0 {
-				blocks = nil
+			// them answers it. A success the registration declares leaves
+			// only the descriptions it does not give to ask.
+			success := false
+			var undescribed []string
+			for _, c := range codes {
+				if c[0] >= '1' && c[0] <= '3' {
+					success = true
+				}
+				if child(child(responses, c), "description") == nil {
+					undescribed = append(undescribed, ep.at+"/responses/"+c+"/description")
+				}
 			}
-			for _, c := range sortedCodes(ep.responses) {
-				blocks = append(blocks, ep.at+"/responses/"+c+"/description")
+			switch {
+			case !success:
+				blocks := undescribed
+				if len(codes) == 0 {
+					blocks = []string{ep.at + "/responses"}
+				}
+				g.question("must", fmt.Sprintf("What does %s answer when it succeeds, and what does each response mean?", label),
+					blocks, "The source names the refusals a handler answers with a literal status, and its registration declares no success response; the document dxlib emits declares the responses an endpoint is given.")
+			case len(undescribed) > 0:
+				g.question("must", fmt.Sprintf("What does each response of %s mean? Its registration and its handler give no description of %s.", label, joinAnd(codesOf(undescribed))),
+					undescribed, "A response needs a description, and neither the registration nor the handler gives one.")
 			}
-			g.question("must", fmt.Sprintf("What does %s answer when it succeeds, and what does each response mean?", label),
-				blocks, "The source names the refusals a handler answers with a literal status, not its success response or what each response means; the document dxlib emits declares them.")
 			if ep.handlerAt == "" {
 				g.question("should", fmt.Sprintf("%s's handler %s is not a function the reader finds by syntax in the files read, such as a method or a function outside the module, so the parameters it reads and the problems it answers are not read. Which does it read and answer?", label, ep.handler),
 					[]string{ep.at}, "Syntax alone finds a function declared in the module and named directly, and no other.", g.at(regAt, "Its handler is "+ep.handler+"."))
@@ -917,6 +951,7 @@ func (g *goReader) write() {
 		}
 		items[uri] = item
 	}
+	w.finish(regAts)
 	endpointPaths := len(uris)
 	g.writeRoutes(items, &uris, checkedBy, firstAt, firstVia)
 	sort.Strings(uris)
@@ -981,7 +1016,50 @@ func (g *goReader) registeredSays(ep *goEndpoint) string {
 	case len(ep.privileges) > 0:
 		checks = "checks " + joinAnd(distinct(ep.privileges))
 	}
-	return fmt.Sprintf("NewEndPoint registers %s %s; its handler is %s, %s, and it %s.", ep.method, ep.uri, ep.handler, g.chainText(ep), checks)
+	return fmt.Sprintf("NewEndPoint registers %s %s; its handler is %s, %s, %s, and it %s.", ep.method, ep.uri, ep.handler, g.chainText(ep), declaredText(ep), checks)
+}
+
+// declaredText says what a registration declares of its parameters and
+// responses.
+func declaredText(ep *goEndpoint) string {
+	d := ep.decl
+	params := "its parameters are not a literal list"
+	if d.paramsWhy == "" {
+		var names []string
+		for _, p := range d.params {
+			names = append(names, nonEmptyText(p.name, "one not read"))
+		}
+		params = "it declares no parameter"
+		if len(names) > 0 {
+			params = "it declares the " + parameterOrParameters(len(names)) + " " + joinAnd(names)
+		}
+	}
+	switch {
+	case d.respWhy != "":
+		return params + ", its responses are not a literal list"
+	case len(d.responses) > 0:
+		return params + " and the " + pluralWord(len(d.responses), "response") + " " + joinAnd(sortedCodesOf(d.responses))
+	}
+	return params + " and no response"
+}
+
+func sortedCodesOf(m map[string]*dxResponse) []string {
+	var codes []string
+	for c := range m {
+		codes = append(codes, c)
+	}
+	sort.Strings(codes)
+	return codes
+}
+
+// codesOf is the status codes of pointers to responses' descriptions.
+func codesOf(ptrs []string) []string {
+	var out []string
+	for _, p := range ptrs {
+		parts := strings.Split(p, "/")
+		out = append(out, parts[len(parts)-2])
+	}
+	return out
 }
 
 func (g *goReader) handlerSays(ep *goEndpoint) string {
@@ -1194,44 +1272,6 @@ func (g *goReader) stringList(f *goFile, e ast.Expr) ([]string, bool) {
 		out = append(out, s)
 	}
 	return out, true
-}
-
-// parameterNames is the names of the parameters a literal list declares,
-// or nil when the list, or a name in it, is not a literal.
-func parameterNames(g *goReader, f *goFile, e ast.Expr) map[string]bool {
-	if id, ok := e.(*ast.Ident); ok && id.Name == "nil" {
-		return map[string]bool{}
-	}
-	cl, ok := e.(*ast.CompositeLit)
-	if !ok {
-		return nil
-	}
-	names := map[string]bool{}
-	for _, el := range cl.Elts {
-		item, ok := el.(*ast.CompositeLit)
-		if !ok {
-			return nil
-		}
-		found := false
-		for _, kv := range item.Elts {
-			kv, ok := kv.(*ast.KeyValueExpr)
-			if !ok {
-				return nil
-			}
-			if k, ok := kv.Key.(*ast.Ident); ok && k.Name == "NameId" {
-				name, ok := g.stringValue(f, kv.Value)
-				if !ok {
-					return nil
-				}
-				names[name] = true
-				found = true
-			}
-		}
-		if !found {
-			return nil
-		}
-	}
-	return names
 }
 
 // exprList is the items of a literal list as the code writes them, or

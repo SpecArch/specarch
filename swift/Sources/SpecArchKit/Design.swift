@@ -629,6 +629,7 @@ extension Checker {
             checkListOf(d, o)
             checkLimits(o)
             checkProblems(d, o)
+            checkInterface(o)
             checkGuard(d, o.node.child("guard"), o.pointer("guard"))
         }
     }

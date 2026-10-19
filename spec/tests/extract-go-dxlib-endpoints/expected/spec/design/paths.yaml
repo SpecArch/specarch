@@ -15,13 +15,20 @@ paths:
       summary: List loans
       description: Lists the loans.
       permission: loans.read
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                member: {}
       responses:
         "404":
           problem: loan-not-found
         "422": {}
       origin: stated
       cites:
-        - {source: code, clause: 'api/endpoints.go:17', says: 'NewEndPoint registers POST /loans/list; its handler is ListLoans, its middlewares are RequireSession, and it checks LOANS.READ.'}
+        - {source: code, clause: 'api/endpoints.go:17', says: 'NewEndPoint registers POST /loans/list; its handler is ListLoans, its middlewares are RequireSession, it declares the parameter member and no response, and it checks LOANS.READ.'}
         - {source: code, clause: 'api/loans.go:10', says: The handler of POST /loans/list reads the parameter member and answers 404 LOAN_NOT_FOUND and 422 LOAN_OVERDUE.}
   /loans/renew:
     post:
@@ -35,7 +42,7 @@ paths:
         "422": {}
       origin: stated
       cites:
-        - {source: code, clause: 'api/endpoints.go:38', says: 'NewEndPoint registers POST /loans/renew; its handler is a function literal, it has no middleware, and it checks loans.write.'}
+        - {source: code, clause: 'api/endpoints.go:38', says: 'NewEndPoint registers POST /loans/renew; its handler is a function literal, it has no middleware, it declares the parameter id and no response, and it checks loans.write.'}
         - {source: code, clause: 'api/endpoints.go:40', says: 'The handler of POST /loans/renew reads the parameters id and note and answers 409 LOAN_OVERDUE, 409 LOAN_ON_HOLD, 422 and 400.'}
   /loans/{id}:
     parameters:
@@ -43,9 +50,11 @@ paths:
     get:
       operationId: getLoansById
       summary: Show a loan
+      parameters:
+        - {name: id, in: query}
       origin: stated
       cites:
-        - {source: code, clause: 'api/endpoints.go:21', says: 'NewEndPoint registers GET /loans/{id}; its handler is handlers.ShowLoan, it has no middleware, and it checks no privilege.'}
+        - {source: code, clause: 'api/endpoints.go:21', says: 'NewEndPoint registers GET /loans/{id}; its handler is handlers.ShowLoan, it has no middleware, it declares the parameter id and no response, and it checks no privilege.'}
 errors:
   loan-not-found:
     status: 404

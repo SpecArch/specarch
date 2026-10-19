@@ -44,7 +44,12 @@ decisions:
       reach a gateway as they reach an operation; link_missing (ADR-137)
       gains the gateway's forwards and calls, and the implementation
       schema's designRef admits gateways so a package implements one and
-      the server that runs the package runs it.
+      the server that runs the package runs it. In the umbrella run, a
+      token a gateway forwards by aud is left out of the refusal of two
+      modules accepting one aud value, and gateway reports a forward
+      whose value is none of the aud values the module its dependency's
+      specification names accepts, when that module is given; a module
+      not given leaves the forward unresolved, no error.
 
       The derived cases, with the gateway a subject of tests: forwarded
       to <dependency> per forward; refused with no token, refused with a
@@ -98,7 +103,12 @@ decisions:
       4). Writing the enum on the claim beside the table would say one
       list twice and give the validator a disagreement to report, which
       the Low IQ Tax forbids; const or enum on that aud is refused as aud
-      on a Txn-Token is (ADR-109). The refusals are written and not
+      on a Txn-Token is (ADR-109). The umbrella's one-audience refusal
+      would otherwise refuse every gateway, since its forwards are the
+      audiences of the modules it fronts; leaving its token out and
+      checking that each value is an audience the module accepts turns
+      the false refusal into the check a reader cannot do by eye. The
+      refusals are written and not
       derived because the statuses are the project's choice, 404 or 403
       for an unknown audience. A prefix or a method list is left out
       because paths already carves the space and no system asked for a

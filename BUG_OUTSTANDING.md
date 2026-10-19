@@ -13,8 +13,8 @@ message, the entry moves to `BUG_HISTORY.md` with the fixing commit.
 A Go module registers its routes on a gin router with the paths and the method list declared at package level:
 
     const (
-        healthLivePath  = "/health/live"
-        healthReadyPath = "/health/ready"
+        healthLivePath  = "/live"
+        healthReadyPath = "/ready"
         metricsPath     = "/metrics"
     )
 
@@ -22,7 +22,7 @@ A Go module registers its routes on a gin router with the paths and the method l
 
     r.Match(healthMethods, healthLivePath, live)
     r.Match([]string{"GET", "HEAD"}, healthReadyPath, ready)
-    r.Match([]string{"GET", "HEAD"}, "/health/started", started)
+    r.Match([]string{"GET", "HEAD"}, "/started", started)
     r.GET(metricsPath, metrics)
     r.GET("/version", version)
 
@@ -37,4 +37,4 @@ Cause: `stringValue` in `internal/extract/golang.go` reads a string literal, lit
 
 The same module registers `r.NoRoute(proxy)`, the handler every request no route matches is given to, which is where the service forwards by the token's audience. `specarch extract go` (0.7.0) writes nothing for it: no operation, no question, no line, and the registration is not counted ("routers: counted 5 registrations" for five routes and the fallback). The same holds for gin's `NoMethod`, chi's `NotFound` and `MethodNotAllowed`, gorilla/mux's `NotFoundHandler` and `MethodNotAllowedHandler` and echo's `HTTPErrorHandler`, none of which `internal/extract/golang_routers.go` names.
 
-Expected: a must question citing the call, as ADR-075 asks for every registration the reader knows on a surface it reads and cannot write, blocking `gateways` once the element exists, and the call counted as a registration. A route whose path ends in a catch-all (`/*path`), which prints a line today, is the other way the same handler is written and takes the same question.
+Expected: a must question citing the call, as ADR-075 asks for every registration the reader knows on a surface it reads and cannot write, blocking the design stage until the `gateways` section exists and `gateways` after (the validator refuses a `blocks` entry that names no section), and the call counted as a registration. A route whose path ends in a catch-all (`/*path`), which prints a line today, is the other way the same handler is written and takes the same question.

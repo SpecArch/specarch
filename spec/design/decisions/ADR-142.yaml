@@ -40,8 +40,9 @@ decisions:
       environment the addresses are not written and a line says so.
 
       merge leaves the Go reader's question at a fallback handler
-      (ADR-143) out when a table's gateway answers it, by the rule for a
-      question whose every blocked key another tree gives. check compares
+      (ADR-143), which blocks gateways once the element exists, out when
+      a table's gateway answers it, by the rule for a question whose
+      every blocked key another tree gives. check compares
       a specification with its gateway table: forward_not_served at a
       forward the table does not hold, forward_not_specified at a table
       row the specification does not hold, claim_differs at the gateway,

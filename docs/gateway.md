@@ -292,6 +292,21 @@ whose `claim` is another, a tenant's name say, leaves ADR-109 as it is:
 such a gateway is the token's audience, `aud` names it with `const`, and
 an operation of this system may accept the token too.
 
+**In an estate.** The umbrella run of `docs/caller-context.md` (its
+build item 4) refuses two modules that accept one `aud` value on access
+tokens, and a gateway's forwards are exactly the audiences of the
+modules it fronts, each of which declares `aud` with `const` naming
+itself. A token a gateway forwards by `aud` is therefore left out of
+that refusal, and the positive fact is checked in its place: when a
+forward's dependency names a `specification` and that module is given
+in the run, the forward's `value` must be one of the `aud` values the
+module's access tokens declare, the error `gateway` at the row in the
+umbrella run; when the module is not given, the forward counts as an
+unresolved reference in the summary line, as every reference into a
+specification not given does (SA-65), and is no error. That turns a
+false refusal into the one check a reader cannot do by eye: that the
+gateway's table and the services' audiences agree.
+
 **The validator**, in both builds, reports as the rule `gateway` at the
 entry: a `token` that names no declared token; a `claim` the token does
 not declare; an empty `forwards`; a value written twice; a `dependency`
@@ -301,7 +316,10 @@ the token marked `default` or named by an operation. `token_audience`
 (ADR-109) treats a token a gateway forwards by `aud` as fixed by the
 forwards and refuses `const` or `enum` on its `aud`. `middleware`,
 `middleware_missing`, `dependency` and `problem` reach a gateway as they
-reach an operation.
+reach an operation. In the umbrella run, `gateway` also reports a
+forward whose value is none of the audiences the module its dependency
+names accepts, and the one-audience refusal of the caller-context's
+item 4 leaves out a token a gateway forwards by `aud`.
 
 **The derived cases** (`docs/test-generation.md`), with the gateway a
 subject of tests as a job is (SA-35): the golden `forwarded to
@@ -464,15 +482,20 @@ and `MethodNotAllowed`, gorilla/mux's `NotFoundHandler` and
 pattern of `/` alone with no method are where a gateway lives in each
 library, and where a plain 404 lives too; the reader cannot tell which,
 so each is a must question citing the call, or the assignment where the
-library's fallback is a field, blocking `gateways`, asking
-what the handler answers or forwards and by which claim, counted as a
-registration so that it shows in the coverage. A route whose path ends
+library's fallback is a field, asking what the handler answers or
+forwards and by which claim, counted as a registration so that it shows
+in the coverage. The question blocks the stage `design` until the
+element exists, because the validator refuses a `blocks` entry that is
+no section of the schema (`question_block`, checked with the 0.7.0
+build), and blocks `gateways` once the element's item has added the
+section, which is when a table can answer it. A route whose path ends
 in a catch-all (`/*path`, `{path...}`, chi's `/*`), which prints a line
 today, is the other way a gateway is written, under a prefix with `Any`
 or `Match`; it is the same must question, naming the prefix and the
-methods, in place of the line. The gateway table answers the question in
-the merge (ADR-142), and an answer that the handler answers a problem
-document is a decision that closes it with nothing written.
+methods, in place of the line. Once the question blocks `gateways`, the
+gateway table answers it in the merge (ADR-142), and an answer that the
+handler answers a problem document is a decision that closes it with
+nothing written.
 
 These are reader changes and no meta-model change: they are built before
 the element, since a specification with a question at its fallback
@@ -503,6 +526,7 @@ Both builds, each with a case in `spec/tests/` and its design test:
 |---|---|
 | `gateway` | a `token` not declared; a `claim` the token does not declare; an empty `forwards`; a value twice; a `dependency` not declared or of kind `database`, `messageBroker` or `fileStore`; a forward's dependency under `calls`; with `claim: aud`, the token marked `default` or named by an operation |
 | `token_audience` (extended, ADR-109) | `const` or `enum` on the `aud` of a token a gateway forwards by `aud`; the forwards fix it |
+| `gateway`, umbrella run | a forward whose value is none of the `aud` values the module its dependency's `specification` names accepts, when that module is given; unresolved, not an error, when it is not. The umbrella's one-audience refusal leaves out a token a gateway forwards by `aud` |
 | `middleware`, `middleware_missing`, `dependency`, `problem` | reach a gateway as they reach an operation |
 | `link_missing` (extended, ADR-137) | a server running a package that implements a gateway with no link to a server that is one of its forwarded or called dependencies |
 
@@ -570,8 +594,8 @@ read, which is the right record.
    with the fixture of section 3 and the cases around it. Done when the
    fixture gives five operations and no question on their paths or
    methods, a `var` assigned in a second place gives the question naming
-   that line, `NoRoute` and a catch-all each give the must question
-   blocking `gateways`, and `Any` and the plain registrations read as
+   that line, `NoRoute` and a catch-all each give the must question,
+   blocking `design`, and `Any` and the plain registrations read as
    today.
 2. **The element** (ADR-141, SA-75), after 0.3's step 4 and the diagram
    keywords' items 2 and 4. `gateways` in the design schema, its fragment
@@ -579,7 +603,8 @@ read, which is the right record.
    `designRef`; the rule `gateway`, the extension of `token_audience`,
    and `link_missing`'s gateway leg in both builds with cases; the
    derived cases in `derive` and the rank table of
-   `docs/test-generation.md`; the context diagram's edges and the
+   `docs/test-generation.md`; the fallback question of item 1 moved to
+   block `gateways`; the context diagram's edges and the
    chapter 6 section in `document techspec`, the test plan's rows,
    `generate openapi`'s line; the convention's section and origin rows;
    and the library estate's gateway, a third module of `examples/estate`

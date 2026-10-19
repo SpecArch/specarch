@@ -36,9 +36,11 @@ decisions:
       gorilla/mux's NotFoundHandler and MethodNotAllowedHandler, echo's
       HTTPErrorHandler and a ServeMux pattern of / alone with no method
       are each a must question citing the call, or the assignment where the
-      library's fallback is a field, blocking gateways, asking
-      what the handler answers or forwards and by which claim, and are
-      counted as registrations. A route whose path ends in a catch-all,
+      library's fallback is a field, asking what the handler answers or
+      forwards and by which claim, and are counted as registrations. The
+      question blocks the stage design until the element exists, since
+      the validator refuses a blocks entry that is no section of the
+      schema, and gateways once ADR-141's item has added the section. A route whose path ends in a catch-all,
       which prints a line today, is the same must question, naming the
       prefix and the methods, in place of the line. A gateway table
       answers the question in the merge (ADR-142); an answer that the
@@ -61,8 +63,10 @@ decisions:
       where a plain 404 lives too; the reader cannot tell which, and
       ADR-075 forbids dropping a registration the table knows on a
       surface it reads, so a must question is the one record, and
-      blocking gateways is right because a handler that takes every
-      unmatched request is the shape of a gateway or of nothing. The
+      blocking gateways, once the section exists, is right because a
+      handler that takes every unmatched request is the shape of a
+      gateway or of nothing; until then it blocks the design stage,
+      which question_block admits, checked with the 0.7.0 build. The
       catch-all is the other way the same thing is written, so it takes
       the same question in place of a line that said only that the
       meta-model does not hold it.

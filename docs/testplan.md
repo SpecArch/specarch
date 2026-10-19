@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.1-dev of the specification: 528 design tests, 238 golden and 290 red, about 16 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.1-dev of the specification: 529 design tests, 238 golden and 291 red, about 16 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 4 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -19,7 +19,7 @@ Version 0.7.1-dev of the specification: 528 design tests, 238 golden and 290 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 524 |
+| system | 525 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -4128,6 +4128,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-3.
 - Given: a unique constraint whose condition names no field, one whose condition gives a number, and a check constraint with a condition
 - When: validate is run
 - Then: it reports expression_name, expression_type and schema for each, and exits 1
+
+#### validate-unquoted-commit
+
+Scenario: red; level: system; covers exit 1.
+
+- Given: an implementation file whose two handler records give commit without quotes, one as forty digits, past what a 64-bit integer holds, and one as seven, where YAML reads each as a number
+- When: validate is run
+- Then: each is reported at its line as a number where a string is expected, in the Go build and the Swift build alike, and it exits 1
 
 #### validate-unquoted-date
 

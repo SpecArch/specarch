@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.7.1-dev of the specification: 77 requirements, 5 entities, 14 commands, 7 algorithms, 528 tests, 141 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.7.1-dev of the specification: 77 requirements, 5 entities, 14 commands, 7 algorithms, 529 tests, 141 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 **Problems:** 4 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -11457,6 +11457,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | validate-ui-components | command validate | system | red | an implementation file whose ui binding maps three components of its UI library, one binding a field, one a column by its field property, and one binding a row | validate is run on its folder | it takes the first two and reports the binding of a row as a schema error at that entry, and exits 1 |
 | validate-ui-schema-file | command validate | system | red | an implementation file with three bindings each naming a schema file, _schema.ts, layout.tsx, a file the App Router serves itself, and schemas/page.ts, a path rather than a name beside the page | validate is run on its folder | it takes _schema.ts and reports layout.tsx and schemas/page.ts each as a schema error at its entry, and exits 1 |
 | validate-unique-where | command validate | system | red | a unique constraint whose condition names no field, one whose condition gives a number, and a check constraint with a condition | validate is run | it reports expression_name, expression_type and schema for each, and exits 1 |
+| validate-unquoted-commit | command validate | system | red | an implementation file whose two handler records give commit without quotes, one as forty digits, past what a 64-bit integer holds, and one as seven, where YAML reads each as a number | validate is run | each is reported at its line as a number where a string is expected, in the Go build and the Swift build alike, and it exits 1 |
 | validate-unquoted-date | command validate | system | red | a decision date written without quotes | validate is run | it reports unquoted_date and exits 1 |
 | validate-unreadable | command validate | system | red | a path that does not exist | validate is run on it | it says it cannot read the path and exits 2 |
 | validate-unsafe-integer | command validate | system | red | an int64 field carried as a JSON number with no maximum | validate is run | it reports unsafe_integer and exits 1 |

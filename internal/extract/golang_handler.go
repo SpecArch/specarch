@@ -198,49 +198,110 @@ func declaredType(e ast.Expr) ast.Expr {
 }
 
 // handlerGuards reads the checks of the decoded variable that refuse the
-// request: an if whose condition compares a field and whose body refuses,
-// and a switch on a field whose default refuses.
+// request: an if of the handler's body whose condition compares a field
+// and whose block refuses, an else if of its chain when each branch before
+// it refuses too, and a switch of the body on a field whose default
+// refuses. Only those hold the field to a rule before the handler goes
+// on; a refusing check under another condition, a loop or a closure holds
+// it only there, and is one not read.
 func (g *goReader) handlerGuards(f *goFile, body *ast.BlockStmt, request, name string) []handlerGuard {
 	var out []handlerGuard
-	ast.Inspect(body, func(n ast.Node) bool {
-		switch s := n.(type) {
-		case *ast.IfStmt:
-			if !g.refuses(f, s.Body, request) {
-				return true
-			}
-			clause := g.clause(f, s.Pos())
-			for _, c := range disjuncts(s.Cond) {
-				gd, ok := guardOf(c, name)
-				if !ok {
-					if !mentions(c, name) {
-						continue
-					}
-					gd = handlerGuard{}
-				}
-				gd.clause, gd.text = clause, g.source(c)
-				out = append(out, gd)
-			}
-		case *ast.SwitchStmt:
-			path, ok := fieldPath(s.Tag, name)
+	read := func(s *ast.IfStmt) {
+		clause := g.clause(f, s.Pos())
+		for _, c := range disjuncts(s.Cond) {
+			gd, ok := guardOf(c, name)
 			if !ok {
-				return true
-			}
-			var values []string
-			refused, literal := false, true
-			for _, st := range s.Body.List {
-				cc := st.(*ast.CaseClause)
-				if cc.List == nil {
-					refused = g.refuses(f, &ast.BlockStmt{List: cc.Body}, request)
+				if !mentions(c, name) {
 					continue
 				}
-				for _, e := range cc.List {
-					v, ok := stringLit(e)
-					literal = literal && ok
-					values = append(values, v)
-				}
+				gd = handlerGuard{}
 			}
-			if refused && literal && len(values) > 0 {
-				out = append(out, handlerGuard{clause: g.clause(f, s.Pos()), path: path, kind: "enum", values: values})
+			gd.clause, gd.text = clause, g.source(c)
+			out = append(out, gd)
+		}
+	}
+	for _, st := range body.List {
+		switch s := st.(type) {
+		case *ast.IfStmt:
+			before, named := true, false
+			var conds []string
+			var cur ast.Stmt = s
+			for cur != nil {
+				is, ok := cur.(*ast.IfStmt)
+				if !ok {
+					out = append(out, g.nestedGuards(f, cur, request, name, "in the else of "+strings.Join(conds, " and "), named)...)
+					break
+				}
+				refusing := g.refuses(f, is.Body, request)
+				switch {
+				case refusing && before:
+					read(is)
+				case refusing && mentions(is.Cond, name):
+					out = append(out, handlerGuard{clause: g.clause(f, is.Pos()), text: g.source(is.Cond) + ", in the else of " + strings.Join(conds, " and ")})
+				}
+				named = named || mentions(is.Cond, name)
+				out = append(out, g.nestedGuards(f, is.Body, request, name, "under "+g.source(is.Cond), mentions(is.Cond, name))...)
+				before = before && refusing
+				conds = append(conds, g.source(is.Cond))
+				cur = is.Else
+			}
+		case *ast.SwitchStmt:
+			out = append(out, g.switchGuard(f, s, request, name)...)
+			where, named := "in a case of the switch at "+g.clause(f, s.Pos()), false
+			if s.Tag != nil {
+				where, named = "in a case of the switch on "+g.source(s.Tag), mentions(s.Tag, name)
+			}
+			for _, cs := range s.Body.List {
+				out = append(out, g.nestedGuards(f, cs, request, name, where, named)...)
+			}
+		default:
+			out = append(out, g.nestedGuards(f, st, request, name, "inside the statement at "+g.clause(f, st.Pos()), false)...)
+		}
+	}
+	return out
+}
+
+// switchGuard is the enum a switch on a field whose cases are strings and
+// whose default refuses gives, or nothing.
+func (g *goReader) switchGuard(f *goFile, s *ast.SwitchStmt, request, name string) []handlerGuard {
+	path, ok := fieldPath(s.Tag, name)
+	if !ok {
+		return nil
+	}
+	var values []string
+	refused, literal := false, true
+	for _, st := range s.Body.List {
+		cc := st.(*ast.CaseClause)
+		if cc.List == nil {
+			refused = g.refuses(f, &ast.BlockStmt{List: cc.Body}, request)
+			continue
+		}
+		for _, e := range cc.List {
+			v, ok := stringLit(e)
+			literal = literal && ok
+			values = append(values, v)
+		}
+	}
+	if !refused || !literal || len(values) == 0 {
+		return nil
+	}
+	return []handlerGuard{{clause: g.clause(f, s.Pos()), path: path, kind: "enum", values: values}}
+}
+
+// nestedGuards is each refusing check below a statement of the handler's
+// body that names a field, or sits under a condition that does (named), a
+// check not read, with where it sits.
+func (g *goReader) nestedGuards(f *goFile, n ast.Node, request, name, where string, named bool) []handlerGuard {
+	var out []handlerGuard
+	ast.Inspect(n, func(n ast.Node) bool {
+		switch s := n.(type) {
+		case *ast.IfStmt:
+			if g.refuses(f, s.Body, request) && (named || mentions(s.Cond, name)) {
+				out = append(out, handlerGuard{clause: g.clause(f, s.Pos()), text: g.source(s.Cond) + ", " + where})
+			}
+		case *ast.SwitchStmt:
+			if gd := g.switchGuard(f, s, request, name); gd != nil {
+				out = append(out, handlerGuard{clause: gd[0].clause, text: "a switch on " + g.source(s.Tag) + " has no case it takes, " + where})
 			}
 		}
 		return true
@@ -271,31 +332,48 @@ func (g *goReader) source(e ast.Expr) string {
 	return b.String()
 }
 
-// refuses says whether a block answers a refusal through the request: one
-// of the problem calls, or WriteResponseAsJSON with a literal status from
-// 400 up.
+// refuses says whether a block answers a refusal through the request by
+// a statement of its own: a return of, or a call to, one of the problem
+// calls, or WriteResponseAsJSON with a literal status from 400 up. A
+// refusal inside a statement of the block, an if, a switch, a loop or a
+// closure, is answered only there, so the block does not refuse.
 func (g *goReader) refuses(f *goFile, b *ast.BlockStmt, request string) bool {
-	found := false
-	ast.Inspect(b, func(n ast.Node) bool {
-		call, ok := n.(*ast.CallExpr)
-		if !ok || found {
-			return !found
+	for _, st := range b.List {
+		var calls []ast.Expr
+		switch s := st.(type) {
+		case *ast.ExprStmt:
+			calls = []ast.Expr{s.X}
+		case *ast.ReturnStmt:
+			calls = s.Results
 		}
-		sel, ok := call.Fun.(*ast.SelectorExpr)
-		if !ok || exprText(sel.X) != request {
-			return true
-		}
-		switch {
-		case problemCalls[sel.Sel.Name]:
-			found = true
-		case sel.Sel.Name == "WriteResponseAsJSON" && len(call.Args) == 3:
-			if s, ok := g.answerStatus(f, call.Args[0]); ok && s >= 400 {
-				found = true
+		for _, e := range calls {
+			if g.refusal(f, e, request) {
+				return true
 			}
 		}
-		return !found
-	})
-	return found
+	}
+	return false
+}
+
+// refusal says whether an expression is a call that answers a refusal
+// through the request.
+func (g *goReader) refusal(f *goFile, e ast.Expr, request string) bool {
+	call, ok := unparen(e).(*ast.CallExpr)
+	if !ok {
+		return false
+	}
+	sel, ok := call.Fun.(*ast.SelectorExpr)
+	if !ok || exprText(sel.X) != request {
+		return false
+	}
+	switch {
+	case problemCalls[sel.Sel.Name]:
+		return true
+	case sel.Sel.Name == "WriteResponseAsJSON" && len(call.Args) == 3:
+		s, ok := g.answerStatus(f, call.Args[0])
+		return ok && s >= 400
+	}
+	return false
 }
 
 // disjuncts splits a condition at ||.
@@ -372,7 +450,7 @@ var flipped = map[gotoken.Token]gotoken.Token{gotoken.LSS: gotoken.GTR, gotoken.
 
 // guardOf reads one condition that refuses: a field equal to "" or nil, a
 // length or a value against a literal bound, or a field unequal to each of
-// a list of strings.
+// a list of strings none of which is "".
 func guardOf(c ast.Expr, name string) (handlerGuard, bool) {
 	if parts := conjuncts(c); len(parts) > 1 {
 		var path []string
@@ -384,7 +462,7 @@ func guardOf(c ast.Expr, name string) (handlerGuard, bool) {
 			}
 			fp, ok := fieldPath(b.X, name)
 			v, lit := stringLit(b.Y)
-			if !ok || !lit || (path != nil && strings.Join(fp, ".") != strings.Join(path, ".")) {
+			if !ok || !lit || v == "" || (path != nil && strings.Join(fp, ".") != strings.Join(path, ".")) {
 				return handlerGuard{}, false
 			}
 			path = fp
@@ -426,7 +504,9 @@ func guardOf(c ast.Expr, name string) (handlerGuard, bool) {
 			return handlerGuard{path: path, kind: "nonEmpty"}, true
 		}
 	case op == gotoken.NEQ:
-		if s, lit := stringLit(y); lit {
+		// x.F != "" refusing tests that the field is there, which says
+		// nothing of the value it may hold, so it is a check not read.
+		if s, lit := stringLit(y); lit && s != "" {
 			return handlerGuard{path: path, kind: "enum", values: []string{s}}, true
 		}
 	default:
@@ -961,9 +1041,14 @@ func (g *goReader) isJSONLiteral(f *goFile, cl *ast.CompositeLit) bool {
 	return ok && exprText(m.Key) == "string" && isOpenValue(m.Value)
 }
 
+// dxlibEnvelopeKeys are the keys WriteResponseAsJSON adds to a body that
+// lacks them; dxlib's emitter leaves them out of a data template, so a
+// literal answer's are not written either.
+var dxlibEnvelopeKeys = map[string]bool{"status": true, "status_code": true, "reason": true, "reason_message": true}
+
 // literalObject is the object schema a literal map gives: each key a
 // property, required, since the handler always writes it, and of the type
-// its value gives.
+// its value gives; at the top, dxlib's envelope keys are left out.
 func (w *declaredWriter) literalObject(ep *goEndpoint, f *goFile, cl *ast.CompositeLit, at, where, clause string, depth int) (*yaml.Node, []string) {
 	g, snake := w.g, w.o.snake
 	props := mapping()
@@ -977,6 +1062,9 @@ func (w *declaredWriter) literalObject(ep *goEndpoint, f *goFile, cl *ast.Compos
 		if !lit {
 			g.question("must", fmt.Sprintf("%s: %s has the key %s, which is not a literal. Which field is it, with its type?", clause, where, exprText(kv.Key)),
 				[]string{at}, "A key held in a variable or computed is not known by syntax.", g.at(clause, where+": the key "+exprText(kv.Key)+"."))
+			continue
+		}
+		if depth == 0 && dxlibEnvelopeKeys[wire] {
 			continue
 		}
 		name, held := propertyName(wire, snake)

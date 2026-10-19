@@ -35,4 +35,18 @@ func Define(a *api.DXAPI) {
 				{NameId: "archived_at", Type: types.APIParameterTypeString, IsMustExist: true},
 			}},
 		}, nil, []string{"tasks.write"}, 0, "")
+
+	a.NewEndPoint("Assign a task", "", "/tasks/assign", http.MethodPost, api.EndPointTypeHTTPJSON, dxhttp.RequestContentTypeApplicationJSON, nil,
+		AssignTask, nil, nil, nil, []string{"tasks.write"}, 0, "")
+
+	a.NewEndPoint("Restore a task", "", "/tasks/restore", http.MethodPost, api.EndPointTypeHTTPJSON, dxhttp.RequestContentTypeApplicationJSON,
+		[]api.DXAPIEndPointParameter{
+			{NameId: "task_id", Type: types.APIParameterTypeInt32, IsMustExist: true},
+			{NameId: "reason", Type: types.APIParameterTypeString, IsMustExist: false},
+		},
+		RestoreTask, nil, &api.DXAPIEndPointResponsePossibilities{
+			"success": {StatusCode: http.StatusOK, Description: "The task is restored.", DataTemplate: []*api.DXAPIEndPointParameter{
+				{NameId: "restored_at", Type: types.APIParameterTypeString, IsMustExist: true},
+			}},
+		}, nil, []string{"tasks.write"}, 0, "")
 }

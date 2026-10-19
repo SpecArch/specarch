@@ -541,12 +541,17 @@ commands:
         encoding/json's rules with the field writer of a router's handler
         body, and its fields without omitempty or omitzero are required;
         a check of the variable's
-        field whose block refuses through the request (an `if` comparing
-        it with `""` or `nil`, its length or its value with a literal, or
-        a chain of `!=` against strings, and a `switch` on it whose
+        field in the handler's body itself whose block refuses through
+        the request by a statement of its own (an `if` comparing it with
+        `""` or `nil`, its length or its value with a literal, or a chain
+        of `!=` against strings other than `""`, an `else if` of its chain
+        when each branch before it refuses, and a `switch` on it whose
         default refuses) writes required, minLength and maxLength,
-        minItems and maxItems, the bounds or an enum, and any other check
-        of a field that refuses is a should question at its line. A
+        minItems and maxItems, the bounds or an enum; any other check of
+        a field that refuses, `!= ""` among them, is a should question at
+        its line, and so is a refusing check nested under another
+        condition, a case, a loop or a closure that names a field or
+        sits under a condition that does, naming where it sits. A
         decode into a
         list, into a map that names no field, of `Request.Body`, which
         dxlib has already read to its end, or into a variable of no

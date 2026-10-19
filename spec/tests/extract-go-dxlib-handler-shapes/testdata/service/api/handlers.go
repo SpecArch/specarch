@@ -3,6 +3,7 @@ package api
 import (
 	"encoding/json"
 	"net/http"
+	"time"
 
 	"github.com/donnyhardyanto/dxlib/api"
 	"github.com/donnyhardyanto/dxlib/utils"
@@ -110,6 +111,54 @@ func ArchiveTask(aepr *api.DXAPIEndPointRequest) (err error) {
 		return err
 	}
 	aepr.WriteResponseAsJSON(http.StatusOK, nil, utils.JSON{"archived": true})
+	return nil
+}
+
+// AssignTask checks the optional fields only when they are there, and
+// answers with dxlib's own envelope keys beside its data.
+func AssignTask(aepr *api.DXAPIEndPointRequest) (err error) {
+	var req AssignRequest
+	if err = json.Unmarshal(aepr.RequestBodyAsBytes, &req); err != nil {
+		return aepr.WriteResponseAndNewErrorf(http.StatusBadRequest, "BODY_NOT_JSON", "the body is not JSON: %v", err)
+	}
+	if req.TaskID <= 0 {
+		return aepr.WriteResponseAndNewErrorf(http.StatusBadRequest, "TASK_ID_INVALID", "task id %d", req.TaskID)
+	} else if req.TaskID > 1000000 {
+		return aepr.WriteResponseAndNewErrorf(http.StatusBadRequest, "TASK_ID_INVALID", "task id %d", req.TaskID)
+	}
+	if req.Email != "" {
+		if len(req.Email) > 254 {
+			return aepr.WriteResponseAndNewErrorf(http.StatusBadRequest, "EMAIL_TOO_LONG", "at most 254 characters")
+		}
+	}
+	if req.DueAt != "" {
+		if _, perr := time.Parse(time.RFC3339, req.DueAt); perr != nil {
+			return aepr.WriteResponseAndNewErrorf(http.StatusBadRequest, "DUE_AT_INVALID", "due at %s", req.DueAt)
+		}
+	}
+	if req.Count > 10 {
+		if req.Email == "" {
+			return aepr.WriteResponseAndNewErrorf(http.StatusBadRequest, "EMAIL_NEEDED", "an email is needed past 10")
+		}
+	}
+	aepr.WriteResponseAsJSON(http.StatusOK, nil, utils.JSON{
+		"status": "OK",
+		"reason": "assigned",
+		"data":   utils.JSON{"task_id": req.TaskID},
+	})
+	return nil
+}
+
+// RestoreTask decodes the body its registration declares, and answers the
+// response it declares.
+func RestoreTask(aepr *api.DXAPIEndPointRequest) (err error) {
+	var req RestoreRequest
+	if err = json.Unmarshal(aepr.RequestBodyAsBytes, &req); err != nil {
+		return err
+	}
+	var restoredAt string
+	restoredAt = time.Now().UTC().Format(time.RFC3339)
+	aepr.WriteResponseAsJSON(http.StatusOK, nil, utils.JSON{"restored_at": restoredAt})
 	return nil
 }
 

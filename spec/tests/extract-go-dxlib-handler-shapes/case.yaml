@@ -5,21 +5,25 @@ repository:
     - [.]
 exitStatus: 0
 standardOutput: |
-  commit 7030eda57fd0b44dd24469fd71e78919df832c5f: the last change to .
+  commit 9bad7cbda957b3a8cfb574255e9bde793ee40448: the last change to .
   counted 3 Go files, 2 of them importing dxlib's api package and 0 that do not parse, and left out 0: every tracked Go file under . but test files and files in a folder below it named testdata or vendor, or that the go command ignores
-  dxlib: counted 6 NewEndPoint calls, 0 NewWSEndPoint calls and 0 RegisterHandler calls: every call by that name in a file that imports dxlib's api package
-  wrote 6 operations on 6 paths, 2 permissions, 7 problems and 33 questions: one operation per endpoint NewEndPoint registers with a literal method and URI, outside a loop or a condition, one permission per privilege an endpoint names alone, one problem per literal reason a handler answers, one question per thing the source does not say, and one per thing the meta-model cannot hold
-  not held: api/endpoints.go:29: the endpoint POST /tasks/archive: dxlib names it tasks_archive from its URI, which is not camelCase, as an operationId is; it is named postTasksArchive; could question Q-27
-  not held: api/endpoints.go:14: the endpoint POST /tasks/create: dxlib names it tasks_create from its URI, which is not camelCase, as an operationId is; it is named postTasksCreate; could question Q-28
-  not held: api/handlers.go:36: the handler of POST /tasks/create answers 201 with the header Location; the meta-model holds no header on a response; left out; could question Q-29
-  not held: api/endpoints.go:26: the endpoint POST /tasks/import: dxlib names it tasks_import from its URI, which is not camelCase, as an operationId is; it is named postTasksImport; could question Q-30
-  not held: api/endpoints.go:17: the endpoint GET /tasks/list: dxlib names it tasks_list from its URI, which is not camelCase, as an operationId is; it is named getTasksList; could question Q-31
-  not held: api/endpoints.go:23: the endpoint POST /tasks/tag: dxlib names it tasks_tag from its URI, which is not camelCase, as an operationId is; it is named postTasksTag; could question Q-32
-  not held: api/endpoints.go:20: the endpoint POST /tasks/update: dxlib names it tasks_update from its URI, which is not camelCase, as an operationId is; it is named postTasksUpdate; could question Q-33
+  dxlib: counted 8 NewEndPoint calls, 0 NewWSEndPoint calls and 0 RegisterHandler calls: every call by that name in a file that imports dxlib's api package
+  wrote 8 operations on 8 paths, 2 permissions, 10 problems and 42 questions: one operation per endpoint NewEndPoint registers with a literal method and URI, outside a loop or a condition, one permission per privilege an endpoint names alone, one problem per literal reason a handler answers, one question per thing the source does not say, and one per thing the meta-model cannot hold
+  not held: api/endpoints.go:29: the endpoint POST /tasks/archive: dxlib names it tasks_archive from its URI, which is not camelCase, as an operationId is; it is named postTasksArchive; could question Q-34
+  not held: api/endpoints.go:39: the endpoint POST /tasks/assign: dxlib names it tasks_assign from its URI, which is not camelCase, as an operationId is; it is named postTasksAssign; could question Q-35
+  not held: api/endpoints.go:14: the endpoint POST /tasks/create: dxlib names it tasks_create from its URI, which is not camelCase, as an operationId is; it is named postTasksCreate; could question Q-36
+  not held: api/handlers.go:37: the handler of POST /tasks/create answers 201 with the header Location; the meta-model holds no header on a response; left out; could question Q-37
+  not held: api/endpoints.go:26: the endpoint POST /tasks/import: dxlib names it tasks_import from its URI, which is not camelCase, as an operationId is; it is named postTasksImport; could question Q-38
+  not held: api/endpoints.go:17: the endpoint GET /tasks/list: dxlib names it tasks_list from its URI, which is not camelCase, as an operationId is; it is named getTasksList; could question Q-39
+  not held: api/endpoints.go:42: the endpoint POST /tasks/restore: dxlib names it tasks_restore from its URI, which is not camelCase, as an operationId is; it is named postTasksRestore; could question Q-40
+  not held: api/endpoints.go:23: the endpoint POST /tasks/tag: dxlib names it tasks_tag from its URI, which is not camelCase, as an operationId is; it is named postTasksTag; could question Q-41
+  not held: api/endpoints.go:20: the endpoint POST /tasks/update: dxlib names it tasks_update from its URI, which is not camelCase, as an operationId is; it is named postTasksUpdate; could question Q-42
   derived 0 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers
   not derived: 3 draft tests for operation postTasksArchive, held up by Q-1, Q-2, Q-3; the validator warns for them until the questions are answered
-  not derived: 7 draft tests for operation postTasksCreate, held up by Q-4, Q-5, Q-6; the validator warns for them until the questions are answered
-  not derived: 2 draft tests for operation postTasksImport, held up by Q-7, Q-8, Q-9; the validator warns for them until the questions are answered
-  not derived: 2 draft tests for operation getTasksList, held up by Q-10, Q-11, Q-12; the validator warns for them until the questions are answered
-  not derived: 2 draft tests for operation postTasksTag, held up by Q-13, Q-14, Q-15, Q-16, Q-17; the validator warns for them until the questions are answered
-  not derived: 4 draft tests for operation postTasksUpdate, held up by Q-18, Q-19, Q-20, Q-21, Q-22, Q-23; the validator warns for them until the questions are answered
+  not derived: 3 draft tests for operation postTasksAssign, held up by Q-4, Q-5, Q-6, Q-7, Q-8, Q-9; the validator warns for them until the questions are answered
+  not derived: 7 draft tests for operation postTasksCreate, held up by Q-10, Q-11, Q-12; the validator warns for them until the questions are answered
+  not derived: 2 draft tests for operation postTasksImport, held up by Q-13, Q-14, Q-15; the validator warns for them until the questions are answered
+  not derived: 2 draft tests for operation getTasksList, held up by Q-16, Q-17, Q-18; the validator warns for them until the questions are answered
+  not derived: 3 draft tests for operation postTasksRestore, held up by Q-19; the validator warns for them until the question is answered
+  not derived: 2 draft tests for operation postTasksTag, held up by Q-20, Q-21, Q-22, Q-23, Q-24; the validator warns for them until the questions are answered
+  not derived: 4 draft tests for operation postTasksUpdate, held up by Q-25, Q-26, Q-27, Q-28, Q-29, Q-30; the validator warns for them until the questions are answered

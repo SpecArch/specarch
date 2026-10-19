@@ -25,3 +25,19 @@ type ArchiveRequest struct {
 	TaskID int32  `json:"task_id"`
 	Reason string `json:"reason,omitempty"`
 }
+
+// AssignRequest is what an assignment decodes; its optional fields are
+// checked only when they are there.
+type AssignRequest struct {
+	TaskID int32  `json:"task_id"`
+	Email  string `json:"email,omitempty"`
+	DueAt  string `json:"due_at,omitempty"`
+	Count  int32  `json:"count,omitempty"`
+}
+
+// RestoreRequest is what a restore decodes, by the names its registration
+// declares.
+type RestoreRequest struct {
+	TaskID int32  `json:"task_id"`
+	Reason string `json:"reason,omitempty"`
+}

@@ -1,24 +1,24 @@
 questions:
-  # specarch-problem: question: open_question: (must, decision) Two sources disagree on the body of POST /tasks/archive: api/endpoints.go:29 declares the field task_id, and its handler decodes it at api/handlers.go:109 into req, of type ArchiveRequest, with the fields reason and task_id. Which fields does the body take? Decided by system-owner. Answer with a decision record that names Q-1 under answers. [Q-1]
+  # specarch-problem: question: open_question: (must, decision) Two sources disagree on the body of POST /tasks/archive: api/endpoints.go:29 declares the field task_id, and its handler decodes it at api/handlers.go:110 into req, of type ArchiveRequest, with the fields reason and task_id. Which fields does the body take? Decided by system-owner. Answer with a decision record that names Q-1 under answers. [Q-1]
   Q-1:
-    question: 'Two sources disagree on the body of POST /tasks/archive: api/endpoints.go:29 declares the field task_id, and its handler decodes it at api/handlers.go:109 into req, of type ArchiveRequest, with the fields reason and task_id. Which fields does the body take?'
+    question: 'Two sources disagree on the body of POST /tasks/archive: api/endpoints.go:29 declares the field task_id, and its handler decodes it at api/handlers.go:110 into req, of type ArchiveRequest, with the fields reason and task_id. Which fields does the body take?'
     kind: decision
     priority: must
     blocks: ['#/paths/~1tasks~1archive/post/requestBody/content/application~1json/schema']
     decidedBy: system-owner
     why: The registration declares the parameters dxlib reads and checks, and is written; the handler decodes the body itself, and the two name other fields.
     cites:
-      - {source: code, clause: 'api/handlers.go:109', says: Decodes the body into req.}
-  # specarch-problem: question: open_question: (must, decision) Two sources disagree on the body of POST /tasks/archive's response 200: its registration declares the field archived_at, and its handler answers with the field archived at api/handlers.go:112. Which fields does the response carry? Decided by system-owner. Answer with a decision record that names Q-2 under answers. [Q-2]
+      - {source: code, clause: 'api/handlers.go:110', says: Decodes the body into req.}
+  # specarch-problem: question: open_question: (must, decision) Two sources disagree on the body of POST /tasks/archive's response 200: its registration declares the field archived_at, and its handler answers with the field archived at api/handlers.go:113. Which fields does the response carry? Decided by system-owner. Answer with a decision record that names Q-2 under answers. [Q-2]
   Q-2:
-    question: 'Two sources disagree on the body of POST /tasks/archive''s response 200: its registration declares the field archived_at, and its handler answers with the field archived at api/handlers.go:112. Which fields does the response carry?'
+    question: 'Two sources disagree on the body of POST /tasks/archive''s response 200: its registration declares the field archived_at, and its handler answers with the field archived at api/handlers.go:113. Which fields does the response carry?'
     kind: decision
     priority: must
     blocks: ['#/paths/~1tasks~1archive/post/responses/200/content']
     decidedBy: system-owner
     why: The registration declares the response and is written; the handler is what the client receives, and the two name other fields.
     cites:
-      - {source: code, clause: 'api/handlers.go:112', says: 'Answers 200 with utils.JSON{"archived"}.'}
+      - {source: code, clause: 'api/handlers.go:113', says: 'Answers 200 with utils.JSON{"archived"}.'}
   # specarch-problem: question: open_question: (must, decision) Does the running system register POST /tasks/archive? It is declared at api/endpoints.go:29, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-3 under answers. [Q-3]
   Q-3:
     question: Does the running system register POST /tasks/archive? It is declared at api/endpoints.go:29, and no list the running system printed was read with it.
@@ -29,24 +29,80 @@ questions:
     why: Syntax shows a declaration and not what runs; the document dxlib emits, or a route table, says what the running system registers, and merging it answers this.
     cites:
       - {source: code, clause: 'api/endpoints.go:29', says: Registers POST /tasks/archive with NewEndPoint.}
-  # specarch-problem: question: open_question: (must, decision) The handler of POST /tasks/create answers 400 with the reasons body-not-json, estimate-out-of-range, priority-unknown, title-invalid and too-many-labels, and a response names one problem. Which problem does 400 answer, or should the reasons be one? Decided by system-owner. Answer with a decision record that names Q-4 under answers. [Q-4]
+  # specarch-problem: question: open_question: (should, decision) api/handlers.go:130: the handler of POST /tasks/assign refuses the request when len(req.Email) > 254, under req.Email != "", a check of its body the reader does not write as a rule of the body's schema. Which rule does it hold the field to? Decided by system-owner. Answer with a decision record that names Q-4 under answers. [Q-4]
   Q-4:
+    question: 'api/handlers.go:130: the handler of POST /tasks/assign refuses the request when len(req.Email) > 254, under req.Email != "", a check of its body the reader does not write as a rule of the body''s schema. Which rule does it hold the field to?'
+    kind: decision
+    priority: should
+    blocks: ['#/paths/~1tasks~1assign/post/requestBody/content/application~1json/schema']
+    decidedBy: system-owner
+    why: The reader writes a check that compares a field with an empty value, a literal bound or a list of strings; any other is code whose rule is not read by syntax.
+    cites:
+      - {source: code, clause: 'api/handlers.go:130', says: 'Refuses the request when len(req.Email) > 254, under req.Email != "".'}
+  # specarch-problem: question: open_question: (should, decision) api/handlers.go:135: the handler of POST /tasks/assign refuses the request when perr != nil, under req.DueAt != "", a check of its body the reader does not write as a rule of the body's schema. Which rule does it hold the field to? Decided by system-owner. Answer with a decision record that names Q-5 under answers. [Q-5]
+  Q-5:
+    question: 'api/handlers.go:135: the handler of POST /tasks/assign refuses the request when perr != nil, under req.DueAt != "", a check of its body the reader does not write as a rule of the body''s schema. Which rule does it hold the field to?'
+    kind: decision
+    priority: should
+    blocks: ['#/paths/~1tasks~1assign/post/requestBody/content/application~1json/schema']
+    decidedBy: system-owner
+    why: The reader writes a check that compares a field with an empty value, a literal bound or a list of strings; any other is code whose rule is not read by syntax.
+    cites:
+      - {source: code, clause: 'api/handlers.go:135', says: 'Refuses the request when perr != nil, under req.DueAt != "".'}
+  # specarch-problem: question: open_question: (should, decision) api/handlers.go:140: the handler of POST /tasks/assign refuses the request when req.Email == "", under req.Count > 10, a check of its body the reader does not write as a rule of the body's schema. Which rule does it hold the field to? Decided by system-owner. Answer with a decision record that names Q-6 under answers. [Q-6]
+  Q-6:
+    question: 'api/handlers.go:140: the handler of POST /tasks/assign refuses the request when req.Email == "", under req.Count > 10, a check of its body the reader does not write as a rule of the body''s schema. Which rule does it hold the field to?'
+    kind: decision
+    priority: should
+    blocks: ['#/paths/~1tasks~1assign/post/requestBody/content/application~1json/schema']
+    decidedBy: system-owner
+    why: The reader writes a check that compares a field with an empty value, a literal bound or a list of strings; any other is code whose rule is not read by syntax.
+    cites:
+      - {source: code, clause: 'api/handlers.go:140', says: 'Refuses the request when req.Email == "", under req.Count > 10.'}
+  # specarch-problem: question: open_question: (must, decision) The handler of POST /tasks/assign answers 400 with the reasons body-not-json, due-at-invalid, email-needed, email-too-long and task-id-invalid, and a response names one problem. Which problem does 400 answer, or should the reasons be one? Decided by system-owner. Answer with a decision record that names Q-7 under answers. [Q-7]
+  Q-7:
+    question: The handler of POST /tasks/assign answers 400 with the reasons body-not-json, due-at-invalid, email-needed, email-too-long and task-id-invalid, and a response names one problem. Which problem does 400 answer, or should the reasons be one?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1tasks~1assign/post/responses/400/problem']
+    decidedBy: system-owner
+    why: A response in the meta-model names one problem type.
+  # specarch-problem: question: open_question: (must, decision) What does each response of POST /tasks/assign mean? Its registration and its handler give no description of 200 and 400. Decided by system-owner. Answer with a decision record that names Q-8 under answers. [Q-8]
+  Q-8:
+    question: What does each response of POST /tasks/assign mean? Its registration and its handler give no description of 200 and 400.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1tasks~1assign/post/responses/200/description', '#/paths/~1tasks~1assign/post/responses/400/description']
+    decidedBy: system-owner
+    why: A response needs a description, and neither the registration nor the handler gives one.
+  # specarch-problem: question: open_question: (must, decision) Does the running system register POST /tasks/assign? It is declared at api/endpoints.go:39, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-9 under answers. [Q-9]
+  Q-9:
+    question: Does the running system register POST /tasks/assign? It is declared at api/endpoints.go:39, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1tasks~1assign/post']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; the document dxlib emits, or a route table, says what the running system registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'api/endpoints.go:39', says: Registers POST /tasks/assign with NewEndPoint.}
+  # specarch-problem: question: open_question: (must, decision) The handler of POST /tasks/create answers 400 with the reasons body-not-json, estimate-out-of-range, priority-unknown, title-invalid and too-many-labels, and a response names one problem. Which problem does 400 answer, or should the reasons be one? Decided by system-owner. Answer with a decision record that names Q-10 under answers. [Q-10]
+  Q-10:
     question: The handler of POST /tasks/create answers 400 with the reasons body-not-json, estimate-out-of-range, priority-unknown, title-invalid and too-many-labels, and a response names one problem. Which problem does 400 answer, or should the reasons be one?
     kind: decision
     priority: must
     blocks: ['#/paths/~1tasks~1create/post/responses/400/problem']
     decidedBy: system-owner
     why: A response in the meta-model names one problem type.
-  # specarch-problem: question: open_question: (must, decision) What does each response of POST /tasks/create mean? Its registration and its handler give no description of 201 and 400. Decided by system-owner. Answer with a decision record that names Q-5 under answers. [Q-5]
-  Q-5:
+  # specarch-problem: question: open_question: (must, decision) What does each response of POST /tasks/create mean? Its registration and its handler give no description of 201 and 400. Decided by system-owner. Answer with a decision record that names Q-11 under answers. [Q-11]
+  Q-11:
     question: What does each response of POST /tasks/create mean? Its registration and its handler give no description of 201 and 400.
     kind: decision
     priority: must
     blocks: ['#/paths/~1tasks~1create/post/responses/201/description', '#/paths/~1tasks~1create/post/responses/400/description']
     decidedBy: system-owner
     why: A response needs a description, and neither the registration nor the handler gives one.
-  # specarch-problem: question: open_question: (must, decision) Does the running system register POST /tasks/create? It is declared at api/endpoints.go:14, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-6 under answers. [Q-6]
-  Q-6:
+  # specarch-problem: question: open_question: (must, decision) Does the running system register POST /tasks/create? It is declared at api/endpoints.go:14, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-12 under answers. [Q-12]
+  Q-12:
     question: Does the running system register POST /tasks/create? It is declared at api/endpoints.go:14, and no list the running system printed was read with it.
     kind: decision
     priority: must
@@ -55,26 +111,26 @@ questions:
     why: Syntax shows a declaration and not what runs; the document dxlib emits, or a route table, says what the running system registers, and merging it answers this.
     cites:
       - {source: code, clause: 'api/endpoints.go:14', says: Registers POST /tasks/create with NewEndPoint.}
-  # specarch-problem: question: open_question: (must, decision) POST /tasks/import declares no parameter where api/endpoints.go:26 registers it, and its handler decodes its body at api/handlers.go:103 into rows, of type []CreateTaskRequest, and dxlib reads a JSON body into an object and refuses any other with 422 before the handler runs, so its body is written as any object. Which fields does its body take, with their types? Decided by system-owner. Answer with a decision record that names Q-7 under answers. [Q-7]
-  Q-7:
-    question: POST /tasks/import declares no parameter where api/endpoints.go:26 registers it, and its handler decodes its body at api/handlers.go:103 into rows, of type []CreateTaskRequest, and dxlib reads a JSON body into an object and refuses any other with 422 before the handler runs, so its body is written as any object. Which fields does its body take, with their types?
+  # specarch-problem: question: open_question: (must, decision) POST /tasks/import declares no parameter where api/endpoints.go:26 registers it, and its handler decodes its body at api/handlers.go:104 into rows, of type []CreateTaskRequest, and dxlib reads a JSON body into an object and refuses any other with 422 before the handler runs, so its body is written as any object. Which fields does its body take, with their types? Decided by system-owner. Answer with a decision record that names Q-13 under answers. [Q-13]
+  Q-13:
+    question: POST /tasks/import declares no parameter where api/endpoints.go:26 registers it, and its handler decodes its body at api/handlers.go:104 into rows, of type []CreateTaskRequest, and dxlib reads a JSON body into an object and refuses any other with 422 before the handler runs, so its body is written as any object. Which fields does its body take, with their types?
     kind: decision
     priority: must
     blocks: ['#/paths/~1tasks~1import/post/requestBody/content/application~1json/schema']
     decidedBy: system-owner
     why: 'dxlib reads and checks only the parameters an endpoint declares, and the handler''s own decoding gives no fields the reader can write: it is a value of no declared type, a map that names no field, a body dxlib refuses or one the decode never sees.'
     cites:
-      - {source: code, clause: 'api/handlers.go:103', says: Decodes the body into rows.}
-  # specarch-problem: question: open_question: (must, decision) What does POST /tasks/import answer when it succeeds, and what does each response mean? Decided by system-owner. Answer with a decision record that names Q-8 under answers. [Q-8]
-  Q-8:
+      - {source: code, clause: 'api/handlers.go:104', says: Decodes the body into rows.}
+  # specarch-problem: question: open_question: (must, decision) What does POST /tasks/import answer when it succeeds, and what does each response mean? Decided by system-owner. Answer with a decision record that names Q-14 under answers. [Q-14]
+  Q-14:
     question: What does POST /tasks/import answer when it succeeds, and what does each response mean?
     kind: decision
     priority: must
     blocks: ['#/paths/~1tasks~1import/post/responses']
     decidedBy: system-owner
     why: The source names the refusals a handler answers with a literal status, and its registration declares no success response; the document dxlib emits declares the responses an endpoint is given.
-  # specarch-problem: question: open_question: (must, decision) Does the running system register POST /tasks/import? It is declared at api/endpoints.go:26, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-9 under answers. [Q-9]
-  Q-9:
+  # specarch-problem: question: open_question: (must, decision) Does the running system register POST /tasks/import? It is declared at api/endpoints.go:26, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-15 under answers. [Q-15]
+  Q-15:
     question: Does the running system register POST /tasks/import? It is declared at api/endpoints.go:26, and no list the running system printed was read with it.
     kind: decision
     priority: must
@@ -83,26 +139,26 @@ questions:
     why: Syntax shows a declaration and not what runs; the document dxlib emits, or a route table, says what the running system registers, and merging it answers this.
     cites:
       - {source: code, clause: 'api/endpoints.go:26', says: Registers POST /tasks/import with NewEndPoint.}
-  # specarch-problem: question: open_question: (must, decision) api/handlers.go:52: operation GET /tasks/list, response 200, property data, property tasks is rows, which is not a literal, nor a name the handler declares with its type. Which type does it take? Decided by system-owner. Answer with a decision record that names Q-10 under answers. [Q-10]
-  Q-10:
-    question: 'api/handlers.go:52: operation GET /tasks/list, response 200, property data, property tasks is rows, which is not a literal, nor a name the handler declares with its type. Which type does it take?'
+  # specarch-problem: question: open_question: (must, decision) api/handlers.go:53: operation GET /tasks/list, response 200, property data, property tasks is rows, which is not a literal, nor a name the handler declares with its type. Which type does it take? Decided by system-owner. Answer with a decision record that names Q-16 under answers. [Q-16]
+  Q-16:
+    question: 'api/handlers.go:53: operation GET /tasks/list, response 200, property data, property tasks is rows, which is not a literal, nor a name the handler declares with its type. Which type does it take?'
     kind: decision
     priority: must
     blocks: ['#/paths/~1tasks~1list/get/responses/200/content/application~1json/schema/properties/data/properties/tasks']
     decidedBy: system-owner
     why: A value's type is read from a literal or from a declaration the handler makes; a value a call returns is not known by syntax.
     cites:
-      - {source: code, clause: 'api/handlers.go:52', says: 'operation GET /tasks/list, response 200, property data, property tasks: rows.'}
-  # specarch-problem: question: open_question: (must, decision) What does each response of GET /tasks/list mean? Its registration and its handler give no description of 200. Decided by system-owner. Answer with a decision record that names Q-11 under answers. [Q-11]
-  Q-11:
+      - {source: code, clause: 'api/handlers.go:53', says: 'operation GET /tasks/list, response 200, property data, property tasks: rows.'}
+  # specarch-problem: question: open_question: (must, decision) What does each response of GET /tasks/list mean? Its registration and its handler give no description of 200. Decided by system-owner. Answer with a decision record that names Q-17 under answers. [Q-17]
+  Q-17:
     question: What does each response of GET /tasks/list mean? Its registration and its handler give no description of 200.
     kind: decision
     priority: must
     blocks: ['#/paths/~1tasks~1list/get/responses/200/description']
     decidedBy: system-owner
     why: A response needs a description, and neither the registration nor the handler gives one.
-  # specarch-problem: question: open_question: (must, decision) Does the running system register GET /tasks/list? It is declared at api/endpoints.go:17, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-12 under answers. [Q-12]
-  Q-12:
+  # specarch-problem: question: open_question: (must, decision) Does the running system register GET /tasks/list? It is declared at api/endpoints.go:17, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-18 under answers. [Q-18]
+  Q-18:
     question: Does the running system register GET /tasks/list? It is declared at api/endpoints.go:17, and no list the running system printed was read with it.
     kind: decision
     priority: must
@@ -111,46 +167,56 @@ questions:
     why: Syntax shows a declaration and not what runs; the document dxlib emits, or a route table, says what the running system registers, and merging it answers this.
     cites:
       - {source: code, clause: 'api/endpoints.go:17', says: Registers GET /tasks/list with NewEndPoint.}
-  # specarch-problem: question: open_question: (must, decision) POST /tasks/tag declares no parameter where api/endpoints.go:23 registers it, and its handler decodes its body at api/handlers.go:88 into req, of type utils.JSON, a map whose keys and values the code does not name, so its body is written as any object. Which fields does its body take, with their types? Decided by system-owner. Answer with a decision record that names Q-13 under answers. [Q-13]
-  Q-13:
-    question: POST /tasks/tag declares no parameter where api/endpoints.go:23 registers it, and its handler decodes its body at api/handlers.go:88 into req, of type utils.JSON, a map whose keys and values the code does not name, so its body is written as any object. Which fields does its body take, with their types?
+  # specarch-problem: question: open_question: (must, decision) Does the running system register POST /tasks/restore? It is declared at api/endpoints.go:42, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-19 under answers. [Q-19]
+  Q-19:
+    question: Does the running system register POST /tasks/restore? It is declared at api/endpoints.go:42, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1tasks~1restore/post']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; the document dxlib emits, or a route table, says what the running system registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'api/endpoints.go:42', says: Registers POST /tasks/restore with NewEndPoint.}
+  # specarch-problem: question: open_question: (must, decision) POST /tasks/tag declares no parameter where api/endpoints.go:23 registers it, and its handler decodes its body at api/handlers.go:89 into req, of type utils.JSON, a map whose keys and values the code does not name, so its body is written as any object. Which fields does its body take, with their types? Decided by system-owner. Answer with a decision record that names Q-20 under answers. [Q-20]
+  Q-20:
+    question: POST /tasks/tag declares no parameter where api/endpoints.go:23 registers it, and its handler decodes its body at api/handlers.go:89 into req, of type utils.JSON, a map whose keys and values the code does not name, so its body is written as any object. Which fields does its body take, with their types?
     kind: decision
     priority: must
     blocks: ['#/paths/~1tasks~1tag/post/requestBody/content/application~1json/schema']
     decidedBy: system-owner
     why: 'dxlib reads and checks only the parameters an endpoint declares, and the handler''s own decoding gives no fields the reader can write: it is a value of no declared type, a map that names no field, a body dxlib refuses or one the decode never sees.'
     cites:
-      - {source: code, clause: 'api/handlers.go:88', says: Decodes the body into req.}
-  # specarch-problem: question: open_question: (must, decision) api/handlers.go:93: operation POST /tasks/tag, response 409 has the key field, which is not a literal. Which field is it, with its type? Decided by system-owner. Answer with a decision record that names Q-14 under answers. [Q-14]
-  Q-14:
-    question: 'api/handlers.go:93: operation POST /tasks/tag, response 409 has the key field, which is not a literal. Which field is it, with its type?'
+      - {source: code, clause: 'api/handlers.go:89', says: Decodes the body into req.}
+  # specarch-problem: question: open_question: (must, decision) api/handlers.go:94: operation POST /tasks/tag, response 409 has the key field, which is not a literal. Which field is it, with its type? Decided by system-owner. Answer with a decision record that names Q-21 under answers. [Q-21]
+  Q-21:
+    question: 'api/handlers.go:94: operation POST /tasks/tag, response 409 has the key field, which is not a literal. Which field is it, with its type?'
     kind: decision
     priority: must
     blocks: ['#/paths/~1tasks~1tag/post/responses/409/content/application~1json/schema']
     decidedBy: system-owner
     why: A key held in a variable or computed is not known by syntax.
     cites:
-      - {source: code, clause: 'api/handlers.go:93', says: 'operation POST /tasks/tag, response 409: the key field.'}
-  # specarch-problem: question: open_question: (must, decision) api/handlers.go:96: the handler of POST /tasks/tag answers 200 with the body tagBody(...), which is not a literal map, so its fields are built elsewhere. Which fields does it carry, with their types? Decided by system-owner. Answer with a decision record that names Q-15 under answers. [Q-15]
-  Q-15:
-    question: 'api/handlers.go:96: the handler of POST /tasks/tag answers 200 with the body tagBody(...), which is not a literal map, so its fields are built elsewhere. Which fields does it carry, with their types?'
+      - {source: code, clause: 'api/handlers.go:94', says: 'operation POST /tasks/tag, response 409: the key field.'}
+  # specarch-problem: question: open_question: (must, decision) api/handlers.go:97: the handler of POST /tasks/tag answers 200 with the body tagBody(...), which is not a literal map, so its fields are built elsewhere. Which fields does it carry, with their types? Decided by system-owner. Answer with a decision record that names Q-22 under answers. [Q-22]
+  Q-22:
+    question: 'api/handlers.go:97: the handler of POST /tasks/tag answers 200 with the body tagBody(...), which is not a literal map, so its fields are built elsewhere. Which fields does it carry, with their types?'
     kind: decision
     priority: must
     blocks: ['#/paths/~1tasks~1tag/post/responses/200/content']
     decidedBy: system-owner
     why: A body built outside the call is not known by syntax; only a literal map gives its fields.
     cites:
-      - {source: code, clause: 'api/handlers.go:96', says: Answers 200 with tagBody(...).}
-  # specarch-problem: question: open_question: (must, decision) What does each response of POST /tasks/tag mean? Its registration and its handler give no description of 200 and 409. Decided by system-owner. Answer with a decision record that names Q-16 under answers. [Q-16]
-  Q-16:
+      - {source: code, clause: 'api/handlers.go:97', says: Answers 200 with tagBody(...).}
+  # specarch-problem: question: open_question: (must, decision) What does each response of POST /tasks/tag mean? Its registration and its handler give no description of 200 and 409. Decided by system-owner. Answer with a decision record that names Q-23 under answers. [Q-23]
+  Q-23:
     question: What does each response of POST /tasks/tag mean? Its registration and its handler give no description of 200 and 409.
     kind: decision
     priority: must
     blocks: ['#/paths/~1tasks~1tag/post/responses/200/description', '#/paths/~1tasks~1tag/post/responses/409/description']
     decidedBy: system-owner
     why: A response needs a description, and neither the registration nor the handler gives one.
-  # specarch-problem: question: open_question: (must, decision) Does the running system register POST /tasks/tag? It is declared at api/endpoints.go:23, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-17 under answers. [Q-17]
-  Q-17:
+  # specarch-problem: question: open_question: (must, decision) Does the running system register POST /tasks/tag? It is declared at api/endpoints.go:23, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-24 under answers. [Q-24]
+  Q-24:
     question: Does the running system register POST /tasks/tag? It is declared at api/endpoints.go:23, and no list the running system printed was read with it.
     kind: decision
     priority: must
@@ -159,54 +225,54 @@ questions:
     why: Syntax shows a declaration and not what runs; the document dxlib emits, or a route table, says what the running system registers, and merging it answers this.
     cites:
       - {source: code, clause: 'api/endpoints.go:23', says: Registers POST /tasks/tag with NewEndPoint.}
-  # specarch-problem: question: open_question: (should, decision) api/handlers.go:69: the handler of POST /tasks/update refuses the request when req.Done && req.Later, a check of its body the reader does not write as a rule of the body's schema. Which rule does it hold the field to? Decided by system-owner. Answer with a decision record that names Q-18 under answers. [Q-18]
-  Q-18:
-    question: 'api/handlers.go:69: the handler of POST /tasks/update refuses the request when req.Done && req.Later, a check of its body the reader does not write as a rule of the body''s schema. Which rule does it hold the field to?'
+  # specarch-problem: question: open_question: (should, decision) api/handlers.go:70: the handler of POST /tasks/update refuses the request when req.Done && req.Later, a check of its body the reader does not write as a rule of the body's schema. Which rule does it hold the field to? Decided by system-owner. Answer with a decision record that names Q-25 under answers. [Q-25]
+  Q-25:
+    question: 'api/handlers.go:70: the handler of POST /tasks/update refuses the request when req.Done && req.Later, a check of its body the reader does not write as a rule of the body''s schema. Which rule does it hold the field to?'
     kind: decision
     priority: should
     blocks: ['#/paths/~1tasks~1update/post/requestBody/content/application~1json/schema']
     decidedBy: system-owner
     why: The reader writes a check that compares a field with an empty value, a literal bound or a list of strings; any other is code whose rule is not read by syntax.
     cites:
-      - {source: code, clause: 'api/handlers.go:69', says: Refuses the request when req.Done && req.Later.}
-  # specarch-problem: question: open_question: (must, decision) api/handlers.go:78: the handler of POST /tasks/update answers with WriteResponseAsJSON the status status, which is not a literal status. Which status does it answer, with which body, and when? Decided by system-owner. Answer with a decision record that names Q-19 under answers. [Q-19]
-  Q-19:
-    question: 'api/handlers.go:78: the handler of POST /tasks/update answers with WriteResponseAsJSON the status status, which is not a literal status. Which status does it answer, with which body, and when?'
+      - {source: code, clause: 'api/handlers.go:70', says: Refuses the request when req.Done && req.Later.}
+  # specarch-problem: question: open_question: (must, decision) api/handlers.go:79: the handler of POST /tasks/update answers with WriteResponseAsJSON the status status, which is not a literal status. Which status does it answer, with which body, and when? Decided by system-owner. Answer with a decision record that names Q-26 under answers. [Q-26]
+  Q-26:
+    question: 'api/handlers.go:79: the handler of POST /tasks/update answers with WriteResponseAsJSON the status status, which is not a literal status. Which status does it answer, with which body, and when?'
     kind: decision
     priority: must
     blocks: ['#/paths/~1tasks~1update/post/responses']
     decidedBy: system-owner
     why: A status held in a variable or computed is not known by syntax, and a response is keyed by its status.
     cites:
-      - {source: code, clause: 'api/handlers.go:78', says: Answers with WriteResponseAsJSON and the status status.}
-  # specarch-problem: question: open_question: (must, decision) The handler of POST /tasks/update answers 200 at api/handlers.go:73 and api/handlers.go:81 with bodies the reader cannot tell are one: utils.JSON{"task_id", "done"} and utils.JSON{"task_id"}. Which body does the response carry, or are they two outcomes that should have two statuses? Decided by system-owner. Answer with a decision record that names Q-20 under answers. [Q-20]
-  Q-20:
-    question: 'The handler of POST /tasks/update answers 200 at api/handlers.go:73 and api/handlers.go:81 with bodies the reader cannot tell are one: utils.JSON{"task_id", "done"} and utils.JSON{"task_id"}. Which body does the response carry, or are they two outcomes that should have two statuses?'
+      - {source: code, clause: 'api/handlers.go:79', says: Answers with WriteResponseAsJSON and the status status.}
+  # specarch-problem: question: open_question: (must, decision) The handler of POST /tasks/update answers 200 at api/handlers.go:74 and api/handlers.go:82 with bodies the reader cannot tell are one: utils.JSON{"task_id", "done"} and utils.JSON{"task_id"}. Which body does the response carry, or are they two outcomes that should have two statuses? Decided by system-owner. Answer with a decision record that names Q-27 under answers. [Q-27]
+  Q-27:
+    question: 'The handler of POST /tasks/update answers 200 at api/handlers.go:74 and api/handlers.go:82 with bodies the reader cannot tell are one: utils.JSON{"task_id", "done"} and utils.JSON{"task_id"}. Which body does the response carry, or are they two outcomes that should have two statuses?'
     kind: decision
     priority: must
     blocks: ['#/paths/~1tasks~1update/post/responses/200/content']
     decidedBy: system-owner
     why: A response carries one body, and the handler answers the status with more than one.
     cites:
-      - {source: code, clause: 'api/handlers.go:73', says: Answers 200 with more than one body.}
-  # specarch-problem: question: open_question: (must, decision) The handler of POST /tasks/update answers 400 with the reasons body-not-json, done-and-later and task-id-invalid, and a response names one problem. Which problem does 400 answer, or should the reasons be one? Decided by system-owner. Answer with a decision record that names Q-21 under answers. [Q-21]
-  Q-21:
+      - {source: code, clause: 'api/handlers.go:74', says: Answers 200 with more than one body.}
+  # specarch-problem: question: open_question: (must, decision) The handler of POST /tasks/update answers 400 with the reasons body-not-json, done-and-later and task-id-invalid, and a response names one problem. Which problem does 400 answer, or should the reasons be one? Decided by system-owner. Answer with a decision record that names Q-28 under answers. [Q-28]
+  Q-28:
     question: The handler of POST /tasks/update answers 400 with the reasons body-not-json, done-and-later and task-id-invalid, and a response names one problem. Which problem does 400 answer, or should the reasons be one?
     kind: decision
     priority: must
     blocks: ['#/paths/~1tasks~1update/post/responses/400/problem']
     decidedBy: system-owner
     why: A response in the meta-model names one problem type.
-  # specarch-problem: question: open_question: (must, decision) What does each response of POST /tasks/update mean? Its registration and its handler give no description of 200 and 400. Decided by system-owner. Answer with a decision record that names Q-22 under answers. [Q-22]
-  Q-22:
+  # specarch-problem: question: open_question: (must, decision) What does each response of POST /tasks/update mean? Its registration and its handler give no description of 200 and 400. Decided by system-owner. Answer with a decision record that names Q-29 under answers. [Q-29]
+  Q-29:
     question: What does each response of POST /tasks/update mean? Its registration and its handler give no description of 200 and 400.
     kind: decision
     priority: must
     blocks: ['#/paths/~1tasks~1update/post/responses/200/description', '#/paths/~1tasks~1update/post/responses/400/description']
     decidedBy: system-owner
     why: A response needs a description, and neither the registration nor the handler gives one.
-  # specarch-problem: question: open_question: (must, decision) Does the running system register POST /tasks/update? It is declared at api/endpoints.go:20, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-23 under answers. [Q-23]
-  Q-23:
+  # specarch-problem: question: open_question: (must, decision) Does the running system register POST /tasks/update? It is declared at api/endpoints.go:20, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-30 under answers. [Q-30]
+  Q-30:
     question: Does the running system register POST /tasks/update? It is declared at api/endpoints.go:20, and no list the running system printed was read with it.
     kind: decision
     priority: must
@@ -215,32 +281,32 @@ questions:
     why: Syntax shows a declaration and not what runs; the document dxlib emits, or a route table, says what the running system registers, and merging it answers this.
     cites:
       - {source: code, clause: 'api/endpoints.go:20', says: Registers POST /tasks/update with NewEndPoint.}
-  # specarch-problem: question: open_question: (must, decision) What does each permission allow: tasks.read, tasks.write? Decided by system-owner. Answer with a decision record that names Q-24 under answers. [Q-24]
-  Q-24:
+  # specarch-problem: question: open_question: (must, decision) What does each permission allow: tasks.read, tasks.write? Decided by system-owner. Answer with a decision record that names Q-31 under answers. [Q-31]
+  Q-31:
     question: 'What does each permission allow: tasks.read, tasks.write?'
     kind: decision
     priority: must
     blocks: ['#/permissions/tasks.read/description', '#/permissions/tasks.write/description']
     decidedBy: system-owner
     why: The source names the privilege an endpoint checks and not what it is for.
-  # specarch-problem: question: open_question: (must, decision) Which role grants each permission: tasks.read, tasks.write? Decided by system-owner. Answer with a decision record that names Q-25 under answers. [Q-25]
-  Q-25:
+  # specarch-problem: question: open_question: (must, decision) Which role grants each permission: tasks.read, tasks.write? Decided by system-owner. Answer with a decision record that names Q-32 under answers. [Q-32]
+  Q-32:
     question: 'Which role grants each permission: tasks.read, tasks.write?'
     kind: decision
     priority: must
     blocks: ['#/permissions/tasks.read', '#/permissions/tasks.write']
     decidedBy: system-owner
     why: The source names the privilege an endpoint checks and not who holds it.
-  # specarch-problem: question: open_question: (must, decision) What is each problem's title, and when is it answered: body-not-json, done-and-later, estimate-out-of-range, priority-unknown, task-id-invalid, title-invalid, too-many-labels? Decided by system-owner. Answer with a decision record that names Q-26 under answers. [Q-26]
-  Q-26:
-    question: 'What is each problem''s title, and when is it answered: body-not-json, done-and-later, estimate-out-of-range, priority-unknown, task-id-invalid, title-invalid, too-many-labels?'
+  # specarch-problem: question: open_question: (must, decision) What is each problem's title, and when is it answered: body-not-json, done-and-later, due-at-invalid, email-needed, email-too-long, estimate-out-of-range, priority-unknown, task-id-invalid, title-invalid, too-many-labels? Decided by system-owner. Answer with a decision record that names Q-33 under answers. [Q-33]
+  Q-33:
+    question: 'What is each problem''s title, and when is it answered: body-not-json, done-and-later, due-at-invalid, email-needed, email-too-long, estimate-out-of-range, priority-unknown, task-id-invalid, title-invalid, too-many-labels?'
     kind: decision
     priority: must
-    blocks: ['#/errors/body-not-json/title', '#/errors/body-not-json/condition', '#/errors/done-and-later/title', '#/errors/done-and-later/condition', '#/errors/estimate-out-of-range/title', '#/errors/estimate-out-of-range/condition', '#/errors/priority-unknown/title', '#/errors/priority-unknown/condition', '#/errors/task-id-invalid/title', '#/errors/task-id-invalid/condition', '#/errors/title-invalid/title', '#/errors/title-invalid/condition', '#/errors/too-many-labels/title', '#/errors/too-many-labels/condition']
+    blocks: ['#/errors/body-not-json/title', '#/errors/body-not-json/condition', '#/errors/done-and-later/title', '#/errors/done-and-later/condition', '#/errors/due-at-invalid/title', '#/errors/due-at-invalid/condition', '#/errors/email-needed/title', '#/errors/email-needed/condition', '#/errors/email-too-long/title', '#/errors/email-too-long/condition', '#/errors/estimate-out-of-range/title', '#/errors/estimate-out-of-range/condition', '#/errors/priority-unknown/title', '#/errors/priority-unknown/condition', '#/errors/task-id-invalid/title', '#/errors/task-id-invalid/condition', '#/errors/title-invalid/title', '#/errors/title-invalid/condition', '#/errors/too-many-labels/title', '#/errors/too-many-labels/condition']
     decidedBy: system-owner
     why: The source gives a problem's status and reason, and not a title a person reads or the condition it is answered under.
-  # specarch-problem: question: open_question: (could, decision) Not held: api/endpoints.go:29: the endpoint POST /tasks/archive: dxlib names it tasks_archive from its URI, which is not camelCase, as an operationId is; it is named postTasksArchive. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-27 under answers. [Q-27]
-  Q-27:
+  # specarch-problem: question: open_question: (could, decision) Not held: api/endpoints.go:29: the endpoint POST /tasks/archive: dxlib names it tasks_archive from its URI, which is not camelCase, as an operationId is; it is named postTasksArchive. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-34 under answers. [Q-34]
+  Q-34:
     question: 'Not held: api/endpoints.go:29: the endpoint POST /tasks/archive: dxlib names it tasks_archive from its URI, which is not camelCase, as an operationId is; it is named postTasksArchive. Does the specification need it, written another way or described by hand?'
     kind: decision
     priority: could
@@ -249,8 +315,18 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: code, clause: 'api/endpoints.go:29', says: 'Not held: the endpoint POST /tasks/archive: dxlib names it tasks_archive from its URI, which is not camelCase, as an operationId is; it is named postTasksArchive.'}
-  # specarch-problem: question: open_question: (could, decision) Not held: api/endpoints.go:14: the endpoint POST /tasks/create: dxlib names it tasks_create from its URI, which is not camelCase, as an operationId is; it is named postTasksCreate. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-28 under answers. [Q-28]
-  Q-28:
+  # specarch-problem: question: open_question: (could, decision) Not held: api/endpoints.go:39: the endpoint POST /tasks/assign: dxlib names it tasks_assign from its URI, which is not camelCase, as an operationId is; it is named postTasksAssign. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-35 under answers. [Q-35]
+  Q-35:
+    question: 'Not held: api/endpoints.go:39: the endpoint POST /tasks/assign: dxlib names it tasks_assign from its URI, which is not camelCase, as an operationId is; it is named postTasksAssign. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/paths/~1tasks~1assign/post']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'api/endpoints.go:39', says: 'Not held: the endpoint POST /tasks/assign: dxlib names it tasks_assign from its URI, which is not camelCase, as an operationId is; it is named postTasksAssign.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: api/endpoints.go:14: the endpoint POST /tasks/create: dxlib names it tasks_create from its URI, which is not camelCase, as an operationId is; it is named postTasksCreate. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-36 under answers. [Q-36]
+  Q-36:
     question: 'Not held: api/endpoints.go:14: the endpoint POST /tasks/create: dxlib names it tasks_create from its URI, which is not camelCase, as an operationId is; it is named postTasksCreate. Does the specification need it, written another way or described by hand?'
     kind: decision
     priority: could
@@ -259,18 +335,18 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: code, clause: 'api/endpoints.go:14', says: 'Not held: the endpoint POST /tasks/create: dxlib names it tasks_create from its URI, which is not camelCase, as an operationId is; it is named postTasksCreate.'}
-  # specarch-problem: question: open_question: (could, decision) Not held: api/handlers.go:36: the handler of POST /tasks/create answers 201 with the header Location; the meta-model holds no header on a response; left out. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-29 under answers. [Q-29]
-  Q-29:
-    question: 'Not held: api/handlers.go:36: the handler of POST /tasks/create answers 201 with the header Location; the meta-model holds no header on a response; left out. Does the specification need it, written another way or described by hand?'
+  # specarch-problem: question: open_question: (could, decision) Not held: api/handlers.go:37: the handler of POST /tasks/create answers 201 with the header Location; the meta-model holds no header on a response; left out. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-37 under answers. [Q-37]
+  Q-37:
+    question: 'Not held: api/handlers.go:37: the handler of POST /tasks/create answers 201 with the header Location; the meta-model holds no header on a response; left out. Does the specification need it, written another way or described by hand?'
     kind: decision
     priority: could
     blocks: ['#/paths/~1tasks~1create/post/responses/201']
     decidedBy: system-owner
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
-      - {source: code, clause: 'api/handlers.go:36', says: 'Not held: the handler of POST /tasks/create answers 201 with the header Location; the meta-model holds no header on a response; left out.'}
-  # specarch-problem: question: open_question: (could, decision) Not held: api/endpoints.go:26: the endpoint POST /tasks/import: dxlib names it tasks_import from its URI, which is not camelCase, as an operationId is; it is named postTasksImport. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-30 under answers. [Q-30]
-  Q-30:
+      - {source: code, clause: 'api/handlers.go:37', says: 'Not held: the handler of POST /tasks/create answers 201 with the header Location; the meta-model holds no header on a response; left out.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: api/endpoints.go:26: the endpoint POST /tasks/import: dxlib names it tasks_import from its URI, which is not camelCase, as an operationId is; it is named postTasksImport. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-38 under answers. [Q-38]
+  Q-38:
     question: 'Not held: api/endpoints.go:26: the endpoint POST /tasks/import: dxlib names it tasks_import from its URI, which is not camelCase, as an operationId is; it is named postTasksImport. Does the specification need it, written another way or described by hand?'
     kind: decision
     priority: could
@@ -279,8 +355,8 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: code, clause: 'api/endpoints.go:26', says: 'Not held: the endpoint POST /tasks/import: dxlib names it tasks_import from its URI, which is not camelCase, as an operationId is; it is named postTasksImport.'}
-  # specarch-problem: question: open_question: (could, decision) Not held: api/endpoints.go:17: the endpoint GET /tasks/list: dxlib names it tasks_list from its URI, which is not camelCase, as an operationId is; it is named getTasksList. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-31 under answers. [Q-31]
-  Q-31:
+  # specarch-problem: question: open_question: (could, decision) Not held: api/endpoints.go:17: the endpoint GET /tasks/list: dxlib names it tasks_list from its URI, which is not camelCase, as an operationId is; it is named getTasksList. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-39 under answers. [Q-39]
+  Q-39:
     question: 'Not held: api/endpoints.go:17: the endpoint GET /tasks/list: dxlib names it tasks_list from its URI, which is not camelCase, as an operationId is; it is named getTasksList. Does the specification need it, written another way or described by hand?'
     kind: decision
     priority: could
@@ -289,8 +365,18 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: code, clause: 'api/endpoints.go:17', says: 'Not held: the endpoint GET /tasks/list: dxlib names it tasks_list from its URI, which is not camelCase, as an operationId is; it is named getTasksList.'}
-  # specarch-problem: question: open_question: (could, decision) Not held: api/endpoints.go:23: the endpoint POST /tasks/tag: dxlib names it tasks_tag from its URI, which is not camelCase, as an operationId is; it is named postTasksTag. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-32 under answers. [Q-32]
-  Q-32:
+  # specarch-problem: question: open_question: (could, decision) Not held: api/endpoints.go:42: the endpoint POST /tasks/restore: dxlib names it tasks_restore from its URI, which is not camelCase, as an operationId is; it is named postTasksRestore. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-40 under answers. [Q-40]
+  Q-40:
+    question: 'Not held: api/endpoints.go:42: the endpoint POST /tasks/restore: dxlib names it tasks_restore from its URI, which is not camelCase, as an operationId is; it is named postTasksRestore. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/paths/~1tasks~1restore/post']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'api/endpoints.go:42', says: 'Not held: the endpoint POST /tasks/restore: dxlib names it tasks_restore from its URI, which is not camelCase, as an operationId is; it is named postTasksRestore.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: api/endpoints.go:23: the endpoint POST /tasks/tag: dxlib names it tasks_tag from its URI, which is not camelCase, as an operationId is; it is named postTasksTag. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-41 under answers. [Q-41]
+  Q-41:
     question: 'Not held: api/endpoints.go:23: the endpoint POST /tasks/tag: dxlib names it tasks_tag from its URI, which is not camelCase, as an operationId is; it is named postTasksTag. Does the specification need it, written another way or described by hand?'
     kind: decision
     priority: could
@@ -299,8 +385,8 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: code, clause: 'api/endpoints.go:23', says: 'Not held: the endpoint POST /tasks/tag: dxlib names it tasks_tag from its URI, which is not camelCase, as an operationId is; it is named postTasksTag.'}
-  # specarch-problem: question: open_question: (could, decision) Not held: api/endpoints.go:20: the endpoint POST /tasks/update: dxlib names it tasks_update from its URI, which is not camelCase, as an operationId is; it is named postTasksUpdate. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-33 under answers. [Q-33]
-  Q-33:
+  # specarch-problem: question: open_question: (could, decision) Not held: api/endpoints.go:20: the endpoint POST /tasks/update: dxlib names it tasks_update from its URI, which is not camelCase, as an operationId is; it is named postTasksUpdate. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-42 under answers. [Q-42]
+  Q-42:
     question: 'Not held: api/endpoints.go:20: the endpoint POST /tasks/update: dxlib names it tasks_update from its URI, which is not camelCase, as an operationId is; it is named postTasksUpdate. Does the specification need it, written another way or described by hand?'
     kind: decision
     priority: could

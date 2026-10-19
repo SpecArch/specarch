@@ -27,20 +27,32 @@ decisions:
       a struct of the module in place, a field tagged "-" left out. A field
       without omitempty or omitzero is required.
 
-      A check of the variable's field whose block refuses through the
-      request, with one of the problem calls or WriteResponseAsJSON of a
-      literal status from 400, writes what it checks: x.F == "" as
+      An if of the handler's body itself, not one nested in another
+      statement, that checks the variable's field and whose block refuses
+      through the request by a statement of its own, a return of or a
+      call to one of the problem calls or WriteResponseAsJSON of a literal
+      status from 400, writes what it checks; so does an else if of its
+      chain when every branch before it refuses too. Such a check x.F == "" as
       required with minLength 1, x.F == nil as required, len(x.F) == 0 as
       required with minLength or minItems 1, len(x.F) against a literal as
       minLength, maxLength, minItems or maxItems, x.F against a literal
       number as minimum, maximum, exclusiveMinimum or exclusiveMaximum,
-      x.F != "a" && x.F != "b" as an enum, and a switch on x.F whose cases
-      are strings and whose default refuses as an enum. Each part of an ||
-      is a check of its own. Any other check that names a field of the
-      variable and refuses, such as x.A && x.B, is a should question at
-      its line on the body's schema, as is a check of one of these shapes
-      on a field of another type; a check that names no field of the
-      variable, such as err != nil, is not a check of the body.
+      x.F != "a" && x.F != "b" as an enum, and a switch of the body on x.F
+      whose cases are strings and whose default refuses as an enum. Each
+      part of an || is a check of its own. Any other check that names a
+      field of the variable and refuses, such as x.A && x.B or x.F != "",
+      which tests that the field is there and not what it holds, is a
+      should question at its line on the body's schema, as is a check of
+      one of these shapes on a field of another type. A refusing check
+      nested in another statement of the body, under an if, in an else
+      after a branch that does not refuse, in a case, a loop or a
+      closure, is a should question at its line that names where it
+      sits, when it names a field of the variable or sits under a
+      condition that does, such as a parse of x.F under x.F != "". A
+      block that refuses only inside a statement of its own does not
+      refuse. A check that names no field of the variable, such as
+      err != nil, and sits under no condition that does, is not a check
+      of the body.
 
       A decode the reader cannot write from is the must question on the
       body's fields, saying why: a list, which dxlib's own pre-processing
@@ -100,7 +112,16 @@ decisions:
       Only checks of the decoded variable's fields that refuse are read,
       because those are the ones that hold the field to a value before the
       handler goes on; a check that branches without refusing says
-      nothing of what the body may hold. One that refuses in a shape the
+      nothing of what the body may hold. Only the checks of the handler's
+      body itself are rules: a check under another condition holds the
+      field only when that condition holds, and most often that is an
+      optional field checked only when it is there, so writing it as a
+      rule of the whole body would make the field required or bounded
+      where the code is not. Reading a refusal as the block's only when a
+      statement of the block makes it keeps a refusal under an inner
+      condition from turning the outer one into a rule. x.F != "" that
+      refuses is not an enum of "", which no handler means, but a test
+      that the field is there. One that refuses in a shape the
       reader does not write is asked about rather than passed over, since
       it holds the body to a rule the schema would otherwise not show.
 
@@ -117,6 +138,8 @@ decisions:
       handler decodes Request.Body, which dxlib has already read. A service
       whose handlers answer literal maps gets success responses, so its
       operations' questions ask for the responses' descriptions rather
-      than for the success itself. The router reader's rule for required
+      than for the success itself. Its POST /tasks/assign covers the
+      checks nested under a presence test and the envelope keys, and
+      POST /tasks/restore a registration and a handler that agree. The router reader's rule for required
       is unchanged.
     satisfies: [SA-44, SA-34]

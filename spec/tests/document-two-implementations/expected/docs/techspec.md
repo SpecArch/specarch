@@ -102,6 +102,14 @@ stateDiagram-v2
 
 **Problem:** warning: test_red_missing: operation listOrders has no red scenario; add one under tests, for example list-orders-refused: { operation: listOrders, scenario: red, given: "...", when: "...", then: "it is refused" } [test_red_missing@specarch.yaml#/paths/~1orders/get]
 
+Takes no parameters and no request body.
+
+Responses:
+
+| Status | Meaning | Body |
+|---|---|---|
+| 200 | The orders. | list of [Order](#order) |
+
 ```mermaid
 sequenceDiagram
   participant C as Client
@@ -121,6 +129,21 @@ sequenceDiagram
 **Problem:** warning: test_case_missing: operation payOrder has no red scenario for "orderId not a valid uuid"; add under tests pay-order-order-id-not-a-valid-uuid: { operation: payOrder, scenario: red, covers: [orderId not a valid uuid], given: "...", when: "payOrder is called with orderId that is not a valid uuid", then: "it is refused" } [test_case_missing.a9006714@specarch.yaml#/paths/~1orders~1{orderId}~1pay/post]
 
 **Problem:** warning: test_golden_missing: operation payOrder has no golden scenario; add one under tests, for example pay-order-succeeds: { operation: payOrder, scenario: golden, given: "a caller with orders.pay", when: "payOrder is called with values inside every limit", then: "it answers 200: The paid order." } [test_golden_missing@specarch.yaml#/paths/~1orders~1{orderId}~1pay/post]
+
+Parameters:
+
+| Parameter | In | Type | Required | Limits | Description |
+|---|---|---|---|---|---|
+| orderId | path | uuid | yes |   |   |
+
+Takes no request body.
+
+Responses:
+
+| Status | Meaning | Body |
+|---|---|---|
+| 200 | The paid order. | [Order](#order) |
+| 409 | The order is already paid. | none |
 
 ```mermaid
 sequenceDiagram

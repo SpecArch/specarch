@@ -222,7 +222,7 @@ A person with a library card.
 | email | string | yes | at most 320 characters, a valid email | Encrypted at rest, and found by a salted hash of it, since it must stay unique. |
 | tier | MembershipTier | yes |   |   |
 | address | PostalAddress |   |   |   |
-| phones | list of PhoneNumber |   |   |   |
+| phones | list of PhoneNumber |   | at most 3 items |   |
 | status | MemberStatus | yes |   |   |
 | joinedOn | date | yes | set by the system |   |
 | membershipEndsOn | date | yes | set by the system | The last day the card is valid; set a year after joining and moved on by each renewal. |
@@ -328,7 +328,19 @@ Every refusal is an RFC 9457 problem document of one of these types; each operat
 
 ### listBooks (GET /books)
 
+Parameters:
+
+| Parameter | In | Type | Required | Limits | Description |
+|---|---|---|---|---|---|
+| q | query | string |   | at most 200 characters | Free-text search over title and author. |
+
 Lists Book a page at a time, 20 records by default, at most 100 a page. A request outside these is refused, not ignored (the paginated-list idiom).
+
+Responses:
+
+| Status | Meaning | Body |
+|---|---|---|
+| 200 | Matching books. | list of [Book](#book) |
 
 ```mermaid
 sequenceDiagram
@@ -344,7 +356,20 @@ Opens a session for the member or librarian the email address
 belongs to. The answer does not say whether the address or the
 password was wrong.
 
-Refuses with 401 sign-in-refused.
+Request body, application/json, required:
+
+| Field | Type | Required | Limits | Description |
+|---|---|---|---|---|
+| email | string | yes | a valid email | Email address |
+| password | string | yes | at least 8 characters, at most 200 characters, never answered | Password |
+
+Responses:
+
+| Status | Meaning | Body |
+|---|---|---|
+| 200 | Signed in; the session starts. | none |
+| 201 | The password is right, and the account confirms each sign-in with a second factor: a sign-in challenge is opened for five minutes and kept with the browser, and the session starts once confirmSecondFactor accepts its code. | none |
+| 401 | The email address or the password is wrong. | the problem document sign-in-refused (RFC 9457) |
 
 ```mermaid
 sequenceDiagram
@@ -362,6 +387,21 @@ pages the caller may open. A caller without a session is answered
 too, signed out and with no permission; the service still checks
 each operation's permission itself.
 
+Takes no parameters and no request body.
+
+Responses:
+
+| Status | Meaning | Body |
+|---|---|---|
+| 200 | The caller's session. | an object, fields below |
+
+Body of the 200 response:
+
+| Field | Type | Required | Limits | Description |
+|---|---|---|---|---|
+| signedIn | bool | yes |   | Signed in |
+| permissions | list of string | yes | at most 100 items, no item twice | Permissions |
+
 ```mermaid
 sequenceDiagram
   participant C as Client
@@ -378,7 +418,18 @@ starts when the code is right; a challenge that is wrong five
 times, or older than five minutes, is closed, and sign-in starts
 again.
 
-Refuses with 401 second-factor-refused.
+Request body, application/json, required:
+
+| Field | Type | Required | Limits | Description |
+|---|---|---|---|---|
+| code | string | yes | at most 6 characters, matches `^[0-9]{6}$` | Code from the authenticator app |
+
+Responses:
+
+| Status | Meaning | Body |
+|---|---|---|
+| 200 | Signed in; the session starts. | none |
+| 401 | The code is wrong, or the sign-in challenge is closed. | the problem document second-factor-refused (RFC 9457) |
 
 ```mermaid
 sequenceDiagram
@@ -394,7 +445,20 @@ Sets the password of the member or librarian a reset code was
 sent to. The code is used once and expires; the confirmation is
 sent with the password, so the service checks it too.
 
-Refuses with 409 reset-code-refused.
+Request body, application/json, required:
+
+| Field | Type | Required | Limits | Description |
+|---|---|---|---|---|
+| code | string | yes | at least 1 character, at most 200 characters | Reset code |
+| newPassword | string | yes | at least 8 characters, at most 200 characters, never answered | New password |
+| confirmPassword | string | yes | at least 8 characters, at most 200 characters, never answered | New password again |
+
+Responses:
+
+| Status | Meaning | Body |
+|---|---|---|
+| 204 | The password is set; sign in with it. | none |
+| 409 | The reset code is wrong, used or expired. | the problem document reset-code-refused (RFC 9457) |
 
 ```mermaid
 sequenceDiagram
@@ -406,7 +470,19 @@ sequenceDiagram
 
 ### listMembers (GET /members)
 
+Parameters:
+
+| Parameter | In | Type | Required | Limits | Description |
+|---|---|---|---|---|---|
+| tier | query | [MembershipTier](#enums) |   |   |   |
+
 Lists Member a page at a time, 20 records by default, at most 100 a page. A search matches cardNumber and fullName. It may be sorted by fullName and joinedOn. A request outside these is refused, not ignored (the paginated-list idiom).
+
+Responses:
+
+| Status | Meaning | Body |
+|---|---|---|
+| 200 | All members. | list of [Member](#member) |
 
 ```mermaid
 sequenceDiagram
@@ -418,7 +494,22 @@ sequenceDiagram
 
 ### createMember (POST /members)
 
-Refuses with 409 email-taken.
+Request body, application/json, required:
+
+| Field | Type | Required | Limits | Description |
+|---|---|---|---|---|
+| fullName | string | yes | at least 1 character, at most 200 characters |   |
+| email | string | yes | a valid email |   |
+| tier | [MembershipTier](#enums) | yes |   |   |
+| address | [PostalAddress](#postaladdress) |   |   |   |
+| phones | list of [PhoneNumber](#phonenumber) |   | at most 3 items |   |
+
+Responses:
+
+| Status | Meaning | Body |
+|---|---|---|
+| 201 | The member, with card number assigned. | [Member](#member) |
+| 409 | Email address already registered. | the problem document email-taken (RFC 9457) |
 
 ```mermaid
 sequenceDiagram
@@ -430,7 +521,18 @@ sequenceDiagram
 
 ### getMember (GET /members/{memberId})
 
-Refuses with 404 member-not-found.
+Parameters:
+
+| Parameter | In | Type | Required | Limits | Description |
+|---|---|---|---|---|---|
+| memberId | path | uuid | yes |   |   |
+
+Responses:
+
+| Status | Meaning | Body |
+|---|---|---|
+| 200 | The member, with their loans. | [MemberWithLoans](#memberwithloans) |
+| 404 | No such member. | the problem document member-not-found (RFC 9457) |
 
 ```mermaid
 sequenceDiagram
@@ -446,9 +548,35 @@ Lends every copy asked for, or none: refused when the loans would take
 the member past the open loans their tier allows, the member has
 outstanding fees, or a book has no copy available.
 
-Refuses with 404 member-not-found and 409 lending-refused.
+Parameters:
+
+| Parameter | In | Type | Required | Limits | Description |
+|---|---|---|---|---|---|
+| memberId | path | uuid | yes |   |   |
+| Idempotency-Key | header | uuid | yes |   | Chosen by the client for each new set of loans, so that a lost answer can be retried without lending twice. |
+
+Request body, application/json, required:
+
+| Field | Type | Required | Limits | Description |
+|---|---|---|---|---|
+| loans | list of object | yes | at least 1 item, at most 6 items |   |
+| loans[].bookId | uuid | yes |   |   |
 
 Idempotent by the Idempotency-Key header: a request repeated with the same key is answered as the first was and has no second effect; a different request with a key already used is refused.
+
+Responses:
+
+| Status | Meaning | Body |
+|---|---|---|
+| 201 | The new loans, each with its due date set from the member's tier. | an object, fields below |
+| 404 | No such member. | the problem document member-not-found (RFC 9457) |
+| 409 | Loan limit reached, fees outstanding, no copy available, or due too late. | the problem document lending-refused (RFC 9457) |
+
+Body of the 201 response:
+
+| Field | Type | Required | Limits | Description |
+|---|---|---|---|---|
+| loans | list of [Loan](#loan) | yes |   |   |
 
 ```mermaid
 sequenceDiagram
@@ -460,7 +588,24 @@ sequenceDiagram
 
 ### deactivateMember (POST /members/{memberId}/deactivate)
 
-Refuses with 404 member-not-found.
+Parameters:
+
+| Parameter | In | Type | Required | Limits | Description |
+|---|---|---|---|---|---|
+| memberId | path | uuid | yes |   |   |
+
+Request body, application/json, required:
+
+| Field | Type | Required | Limits | Description |
+|---|---|---|---|---|
+| reason | string | yes | at least 1 character, at most 500 characters | Why the member is deactivated, kept with the record. |
+
+Responses:
+
+| Status | Meaning | Body |
+|---|---|---|
+| 200 | The member, inactive. | [Member](#member) |
+| 404 | No such member. | the problem document member-not-found (RFC 9457) |
 
 ```mermaid
 sequenceDiagram
@@ -472,7 +617,20 @@ sequenceDiagram
 
 ### listLoans (GET /loans)
 
+Parameters:
+
+| Parameter | In | Type | Required | Limits | Description |
+|---|---|---|---|---|---|
+| status | query | [LoanStatus](#enums) |   |   |   |
+| memberId | query | uuid |   |   |   |
+
 Lists Loan a page at a time, 20 records by default, at most 100 a page. It may be sorted by dueOn and loanedAt. A request outside these is refused, not ignored (the paginated-list idiom).
+
+Responses:
+
+| Status | Meaning | Body |
+|---|---|---|
+| 200 | Matching loans. | list of [Loan](#loan) |
 
 ```mermaid
 sequenceDiagram
@@ -488,11 +646,31 @@ Refused when the member already holds the maximum open loans for their
 tier, has outstanding fees, or the book has no copy available, or when
 the copy is due later than the member's tier allows.
 
-Refuses with 409 lending-refused.
+Parameters:
+
+| Parameter | In | Type | Required | Limits | Description |
+|---|---|---|---|---|---|
+| Idempotency-Key | header | uuid | yes |   | Chosen by the client for each new loan, so that a lost answer can be retried without lending twice. |
+
+Request body, application/json, required:
+
+| Field | Type | Required | Limits | Description |
+|---|---|---|---|---|
+| memberId | uuid | yes |   |   |
+| bookId | uuid | yes |   |   |
+| lentOn | date | yes |   |   |
+| dueOn | date | yes |   |   |
 
 Limits: a request body of at most 1024 bytes; 30 requests per PT1M, with bursts of up to 60.
 
 Idempotent by the Idempotency-Key header: a request repeated with the same key is answered as the first was and has no second effect; a different request with a key already used is refused.
+
+Responses:
+
+| Status | Meaning | Body |
+|---|---|---|
+| 201 | The new loan. | [Loan](#loan) |
+| 409 | Loan limit reached, fees outstanding, or no copy available. | the problem document lending-refused (RFC 9457) |
 
 ```mermaid
 sequenceDiagram
@@ -506,11 +684,25 @@ sequenceDiagram
 
 ### returnLoan (POST /loans/{loanId}/return)
 
+Parameters:
+
+| Parameter | In | Type | Required | Limits | Description |
+|---|---|---|---|---|---|
+| loanId | path | uuid | yes |   |   |
+
+Takes no request body.
+
 Calls feeLedger (within PT5S).
 
-Refuses with 409 loan-closed and 503 fee-ledger-unavailable.
-
 Guard: the change writes 1 Loan record, and `status == "open" || status == "overdue"` must hold on each as it is at the moment of the change; a change that finds otherwise is refused and changes nothing, so a second writer on the same record is refused rather than overwriting the first.
+
+Responses:
+
+| Status | Meaning | Body |
+|---|---|---|
+| 200 | The closed loan, with the late fee computed. | [Loan](#loan) |
+| 409 | The loan is already closed. | the problem document loan-closed (RFC 9457) |
+| 503 | The fee ledger is unavailable, and the loan stays as it was. | the problem document fee-ledger-unavailable (RFC 9457) |
 
 ```mermaid
 sequenceDiagram
@@ -528,11 +720,25 @@ sequenceDiagram
 
 ### reportLost (POST /loans/{loanId}/lost)
 
+Parameters:
+
+| Parameter | In | Type | Required | Limits | Description |
+|---|---|---|---|---|---|
+| loanId | path | uuid | yes |   |   |
+
+Takes no request body.
+
 Calls feeLedger (within PT5S).
 
-Refuses with 409 loan-closed and 503 fee-ledger-unavailable.
-
 Guard: the change writes 1 Loan record, and `status == "open" || status == "overdue"` must hold on each as it is at the moment of the change; a change that finds otherwise is refused and changes nothing, so a second writer on the same record is refused rather than overwriting the first.
+
+Responses:
+
+| Status | Meaning | Body |
+|---|---|---|
+| 200 | The closed loan. | [Loan](#loan) |
+| 409 | The loan is already closed. | the problem document loan-closed (RFC 9457) |
+| 503 | The fee ledger is unavailable, and the loan stays as it was. | the problem document fee-ledger-unavailable (RFC 9457) |
 
 ```mermaid
 sequenceDiagram
@@ -552,6 +758,25 @@ sequenceDiagram
 Starts the fee-waiver workflow. The fee stands until a desk supervisor
 approves the request.
 
+Parameters:
+
+| Parameter | In | Type | Required | Limits | Description |
+|---|---|---|---|---|---|
+| loanId | path | uuid | yes |   |   |
+
+Request body, application/json, required:
+
+| Field | Type | Required | Limits | Description |
+|---|---|---|---|---|
+| amount | decimal(10, 2) | yes |   |   |
+| reason | string | yes | at least 1 character, at most 500 characters |   |
+
+Responses:
+
+| Status | Meaning | Body |
+|---|---|---|
+| 202 | The request is accepted and waits for a desk supervisor. | [FeeWaiverRequest](#feewaiverrequest) |
+
 ```mermaid
 sequenceDiagram
   participant C as Client
@@ -562,7 +787,15 @@ sequenceDiagram
 
 ### listFeeWaivers (GET /fee-waivers)
 
+Declares no parameter beyond those of the list below, and no request body.
+
 Lists FeeWaiverRequest a page at a time, 20 records by default, at most 100 a page. A request outside these is refused, not ignored (the paginated-list idiom).
+
+Responses:
+
+| Status | Meaning | Body |
+|---|---|---|
+| 200 | The waiting requests. | list of [FeeWaiverRequest](#feewaiverrequest) |
 
 ```mermaid
 sequenceDiagram
@@ -573,6 +806,20 @@ sequenceDiagram
 ```
 
 ### waiveFee (POST /fee-waivers/{waiverId}/waive)
+
+Parameters:
+
+| Parameter | In | Type | Required | Limits | Description |
+|---|---|---|---|---|---|
+| waiverId | path | uuid | yes |   |   |
+
+Takes no request body.
+
+Responses:
+
+| Status | Meaning | Body |
+|---|---|---|
+| 200 | The fee is waived. | [FeeWaiverRequest](#feewaiverrequest) |
 
 ```mermaid
 sequenceDiagram
@@ -587,6 +834,20 @@ sequenceDiagram
 Answers the approve step of the fee-waiver workflow. The fee is
 waived once the request is approved.
 
+Parameters:
+
+| Parameter | In | Type | Required | Limits | Description |
+|---|---|---|---|---|---|
+| waiverId | path | uuid | yes |   |   |
+
+Takes no request body.
+
+Responses:
+
+| Status | Meaning | Body |
+|---|---|---|
+| 200 | The request is approved. | [FeeWaiverRequest](#feewaiverrequest) |
+
 ```mermaid
 sequenceDiagram
   participant C as Client
@@ -600,6 +861,24 @@ sequenceDiagram
 Answers the approve step of the fee-waiver workflow. The request
 ends refused and the fee stands; the reason is kept with it for the
 librarian who asked.
+
+Parameters:
+
+| Parameter | In | Type | Required | Limits | Description |
+|---|---|---|---|---|---|
+| waiverId | path | uuid | yes |   |   |
+
+Request body, application/json, required:
+
+| Field | Type | Required | Limits | Description |
+|---|---|---|---|---|
+| reason | string | yes | at least 1 character, at most 500 characters | Why the request is refused, kept with it. |
+
+Responses:
+
+| Status | Meaning | Body |
+|---|---|---|
+| 200 | The request is refused. | [FeeWaiverRequest](#feewaiverrequest) |
 
 ```mermaid
 sequenceDiagram

@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.8.0-dev of the specification: 515 design tests, 228 golden and 287 red, about 16 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.8.0-dev of the specification: 516 design tests, 229 golden and 287 red, about 16 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 4 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -19,7 +19,7 @@ Version 0.8.0-dev of the specification: 515 design tests, 228 golden and 287 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 511 |
+| system | 512 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -656,6 +656,14 @@ Scenario: golden; level: system; verifies SA-47.
 - Given: the tree extract workflows wrote for a BPMN file, whose workflow's trigger, subject, approval permission and step operation are held open by must questions, two of them naming an operation
 - When: document techspec is run
 - Then: the workflow's text and flowchart write each open key as what it is, the question that holds it and the name it gives, and it exits 0
+
+#### document-techspec-requests
+
+Scenario: golden; level: system; verifies SA-7, SA-8.
+
+- Given: a specification whose operations declare parameters on the path and on the operation, one of the operation's replacing the path's of the same name, a request body with a nested list of objects and references to a schema and an enum, responses with a body declared in place, a referenced body, a list body and problem documents, a GET with nothing to take, and a POST with no request body that an open question blocks
+- When: document techspec is run
+- Then: each operation's runtime view lists its parameters with where each goes, its type, whether it is required, its limits and its description, the operation's own replacing the path's; its request body's fields, a nested field by its path and a field of each list item after [], with a reference to a schema or an entity linked to its heading and one to an enum linked to the enums table; and each response with its status, meaning and body, a body declared in place listed field by field below; an operation that takes nothing says so, one with no request body that an open question blocks names the question, and it exits 0
 
 #### document-techspec-role-names
 

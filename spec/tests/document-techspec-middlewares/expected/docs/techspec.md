@@ -32,7 +32,15 @@ Every refusal is an RFC 9457 problem document of one of these types; each operat
 
 ### showDesk (GET /desk)
 
+Takes no parameters and no request body.
+
 Runs before its handler, in this order: audit-log, then require-session (refuses with 401 session-missing), then require-staff (refuses with 403 not-staff), then audit-log.
+
+Responses:
+
+| Status | Meaning | Body |
+|---|---|---|
+| 200 | The desk. | none |
 
 ```mermaid
 sequenceDiagram
@@ -44,7 +52,15 @@ sequenceDiagram
 
 ### health (GET /health)
 
+Takes no parameters and no request body.
+
 Runs no middleware before its handler.
+
+Responses:
+
+| Status | Meaning | Body |
+|---|---|---|
+| 200 | Up. | none |
 
 ```mermaid
 sequenceDiagram

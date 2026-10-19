@@ -164,11 +164,29 @@ func limits(f *yaml.Node) string {
 	if v := str(f, "pattern"); v != "" {
 		out = append(out, "matches `"+v+"`")
 	}
+	if v := strs(f, "enum"); len(v) > 0 {
+		out = append(out, "one of "+strings.Join(v, ", "))
+	}
+	if v := str(f, "const"); v != "" {
+		out = append(out, "always "+v)
+	}
+	if v := str(f, "minItems"); v != "" {
+		out = append(out, "at least "+itemCount(v))
+	}
+	if v := str(f, "maxItems"); v != "" {
+		out = append(out, "at most "+itemCount(v))
+	}
+	if str(f, "uniqueItems") == "true" {
+		out = append(out, "no item twice")
+	}
 	if f := str(f, "format"); f == "email" || f == "uri" || f == "hostname" || f == "ipv4" || f == "ipv6" {
 		out = append(out, "a valid "+f)
 	}
 	if str(f, "readOnly") == "true" {
 		out = append(out, "set by the system")
+	}
+	if str(f, "writeOnly") == "true" {
+		out = append(out, "never answered")
 	}
 	switch str(f, "generatedDefault") {
 	case "identifier":
@@ -192,6 +210,13 @@ func characters(n string) string {
 		return "1 character"
 	}
 	return n + " characters"
+}
+
+func itemCount(n string) string {
+	if n == "1" {
+		return "1 item"
+	}
+	return n + " items"
 }
 
 // cell makes text safe inside a Markdown table cell.

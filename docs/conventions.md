@@ -1846,7 +1846,8 @@ know where to look.
    pointing at its ADR.
 5. Building blocks: generated entity diagram, then prose on each entity
    group.
-6. Runtime view: generated sequence diagrams for the main operations,
+6. Runtime view: for each operation, generated tables of its parameters,
+   its request body and its responses, and a generated sequence diagram;
    generated state diagram for each entity with a `stateField`.
 7. Deployment: hand-drawn picture; the environments, release and
    commissioning checks are in their stages.

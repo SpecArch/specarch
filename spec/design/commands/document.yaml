@@ -25,8 +25,19 @@ commands:
       of each workflow's steps with each deadline on the edge it takes,
       beside the pages that ask for it, its inbox and the messages it
       publishes when it ends, and a permissions table. Chapter 2 comes from the constraints and
-      assumptions, chapter 7 from the deployment and commissioning stages
-      and from each implementation file, chapter 12 from the glossary, and
+      assumptions, chapter 6 gives each operation what it takes and what
+      it answers: its parameters, the path's and its own, its own
+      replacing one of the same name and place, each with where it goes,
+      its type, whether it is required, its limits and its description;
+      its request body field by field, a nested field by its path and a
+      list item's field after []; and each response with its status, its
+      meaning and its body, the problem document it answers with, and a
+      body declared in place field by field. A reference to an entity, a
+      view or a schema links to its heading and one to an enum to the
+      enums table. An operation that takes nothing says so, and names the
+      open question that blocks what it leaves out. Chapter 7 comes from
+      the deployment and commissioning stages and from each
+      implementation file, chapter 12 from the glossary, and
       chapter 13 from the needs and requirements, with the traceability
       matrix of what satisfies and what verifies each requirement, and its
       harm once a requirement names one. A marker

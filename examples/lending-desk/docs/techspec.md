@@ -204,6 +204,14 @@ Where a member lives. One that is given has its street and city.
 
 **Note:** From The lending desk service, 85f06f82a430a81cc24648d198454426a37c16c9, clause lending/routes.go:47: RegisterMember answers 201. <../sources/code>
 
+Request body, application/json, required: [Member](#member).
+
+Responses:
+
+| Status | Meaning | Body |
+|---|---|---|
+| 201 | The member is registered. | none |
+
 ```mermaid
 sequenceDiagram
   participant C as Client
@@ -219,6 +227,20 @@ sequenceDiagram
 **Note:** From Lending desk manual, 2025, clause 3.1: Desk staff lend a book by scanning the member's card and the book's barcode. <../sources/manual.md>
 
 **Note:** From The lending desk service, 85f06f82a430a81cc24648d198454426a37c16c9, clause lending/routes.go:59: LendBook answers 409 when the member has MaxOpenLoans books out, and 201 otherwise. <../sources/code>
+
+Request body, application/json, required:
+
+| Field | Type | Required | Limits | Description |
+|---|---|---|---|---|
+| cardNumber | string | yes | at most 10 characters, matches `^[0-9]{10}$` |   |
+| barcode | string | yes | at least 1 character, at most 20 characters |   |
+
+Responses:
+
+| Status | Meaning | Body |
+|---|---|---|
+| 201 | The loan. | [Loan](#loan) |
+| 409 | The member already has five books on loan. | none |
 
 ```mermaid
 sequenceDiagram
@@ -236,6 +258,20 @@ sequenceDiagram
 
 **Note:** From The lending desk service, 85f06f82a430a81cc24648d198454426a37c16c9, clause lending/routes.go:73: ReturnBook closes the loan and answers 200. <../sources/code>
 
+Parameters:
+
+| Parameter | In | Type | Required | Limits | Description |
+|---|---|---|---|---|---|
+| loanId | path | int64 | yes | at least 1, at most 9007199254740991 |   |
+
+Takes no request body.
+
+Responses:
+
+| Status | Meaning | Body |
+|---|---|---|
+| 200 | The loan is closed. | none |
+
 ```mermaid
 sequenceDiagram
   participant C as Client
@@ -252,6 +288,20 @@ sequenceDiagram
 
 **Note:** From Lending desk manual, 2025, clause 4.1: A member may renew a loan once, for one more loan period, by asking at the desk before the due date. <../sources/manual.md>
 
+Parameters:
+
+| Parameter | In | Type | Required | Limits | Description |
+|---|---|---|---|---|---|
+| loanId | path | int64 | yes | at least 1, at most 9007199254740991 |   |
+
+Takes no request body.
+
+Responses:
+
+| Status | Meaning | Body |
+|---|---|---|
+| 200 | The loan, with its new due date. | none |
+
 ```mermaid
 sequenceDiagram
   participant C as Client
@@ -267,6 +317,18 @@ sequenceDiagram
 **Insight:** Undocumented, from code; Q-2 asks whether it is wanted.
 
 **Note:** From The lending desk service, 85f06f82a430a81cc24648d198454426a37c16c9, clause lending/routes.go:91: ListMemberLoans answers 200 with the member's loans. <../sources/code>
+
+Parameters:
+
+| Parameter | In | Type | Required | Limits | Description |
+|---|---|---|---|---|---|
+| cardNumber | path | string | yes | matches `^[0-9]{10}$` |   |
+
+Responses:
+
+| Status | Meaning | Body |
+|---|---|---|
+| 200 | The member's loans. | list of [Loan](#loan) |
 
 ```mermaid
 sequenceDiagram

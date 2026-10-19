@@ -128,7 +128,15 @@ rather than building it.
 `specarch document techspec` writes `techspec.md` for a specification: the
 arc42 chapters of `docs/conventions.md`, each only when the specification
 has something for it, with the generated Mermaid diagrams and tables.
-Chapter 2 comes from the constraints and assumptions, chapter 7 from the
+Chapter 2 comes from the constraints and assumptions. Chapter 6 gives
+each operation its parameters, the path's and its own, with where each
+goes, its type, whether it is required, its limits and its description;
+its request body field by field, a nested field written as `label.text`
+and a list item's field as `books[].isbn`; and each response with its
+status, meaning and body, a body declared in place listed field by field.
+A referenced entity, view or schema links to its heading, an enum to the
+enums table. An operation that takes nothing says so in a sentence, with
+the open question that blocks what it leaves out. Chapter 7 comes from the
 deployment and commissioning stages and then from each implementation file
 (stack, libraries, layout, mappings, bindings, targets, tasks, testing,
 deployments and the implementation decisions), chapter 12 from the

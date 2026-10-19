@@ -467,11 +467,14 @@ func runtime(d *doc, root *yaml.Node) {
 		d.blank()
 		d.explainRows(rowsOf(errs))
 	}
+	explained := map[*yaml.Node]bool{}
 	for _, o := range ops {
 		d.heading(3, fmt.Sprintf("%s (%s %s)", o.id, strings.ToUpper(o.method), o.path))
 		d.para(str(o.node, "description"))
 		d.explain(o.node)
+		operationRequest(d, root, o, explained)
 		operationDetails(d, root, o.node)
+		operationResponses(d, root, o)
 		d.block(operationSequence(root, o))
 	}
 	for _, j := range jobs {
@@ -511,7 +514,8 @@ func chainText(op *yaml.Node) string {
 }
 
 // operationDetails writes the middlewares an operation runs, what it
-// calls, how a repeat is told from a new request, and its guard.
+// calls, how it lists, its limits, how a repeat is told from a new
+// request, and its guard; its refusals are in its responses.
 func operationDetails(d *doc, root *yaml.Node, op *yaml.Node) {
 	if get(op, "middlewares") != nil {
 		names := strs(op, "middlewares")
@@ -552,15 +556,6 @@ func operationDetails(d *doc, root *yaml.Node, op *yaml.Node) {
 			}
 		}
 		d.para(text + " A request outside these is refused, not ignored (the paginated-list idiom).")
-	}
-	var refusals []string
-	for _, r := range pairs(op, "responses") {
-		if p := str(r.Value, "problem"); p != "" {
-			refusals = append(refusals, r.Key.Value+" "+p)
-		}
-	}
-	if len(refusals) > 0 {
-		d.para("Refuses with " + joinAnd(refusals) + ".")
 	}
 	if l := get(op, "limits"); l != nil {
 		var parts []string

@@ -1,0 +1,145 @@
+specarch: "0.2"
+info:
+  title: Reading Room
+  version: 1.0.0
+  description: A reading room that lends shelves of books to readers and keeps their notes.
+stakeholders:
+  owner: { description: Runs the reading room., concerns: [What readers may pin to a shelf.] }
+errors:
+  shelf-not-found: { status: 404, title: No such shelf, condition: No shelf has the identifier asked for. }
+  shelf-full: { status: 409, title: Shelf full, condition: The shelf holds as many books as it may. }
+permissions:
+  shelves.read: { description: See the shelves. }
+  shelves.write: { description: Change the shelves. }
+roles:
+  reader: { description: Reads at the room., permissions: [shelves.read, shelves.write] }
+enums:
+  Genre:
+    type: string
+    enum: [fiction, history, science]
+schemas:
+  Label:
+    description: The label on a shelf's edge.
+    type: object
+    properties:
+      text: { type: string, minLength: 1, maxLength: 40 }
+      colour: { type: string, enum: [red, green, blue] }
+    required: [text]
+entities:
+  Shelf:
+    description: A shelf of books.
+    type: object
+    primaryKey: [shelfId]
+    properties:
+      shelfId: { type: string, format: uuid, readOnly: true }
+      name: { type: string, minLength: 1, maxLength: 100 }
+      genre: { $ref: "#/enums/Genre" }
+    required: [shelfId, name, genre]
+paths:
+  /shelves:
+    get:
+      operationId: listGenres
+      summary: The genres the room shelves
+      permission: shelves.read
+      responses:
+        "200":
+          description: Every genre.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/enums/Genre" }, uniqueItems: true }
+    post:
+      operationId: addShelf
+      summary: Add a shelf
+      permission: shelves.write
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string, minLength: 1, maxLength: 100, description: What readers call the shelf. }
+                genre: { $ref: "#/enums/Genre" }
+                label: { $ref: "#/schemas/Label" }
+                books:
+                  type: array
+                  maxItems: 50
+                  items:
+                    type: object
+                    properties:
+                      isbn: { type: string, pattern: "^[0-9]{13}$" }
+                      copies: { type: integer, format: int32, minimum: 1, maximum: 5 }
+                    required: [isbn]
+              required: [name, genre]
+      responses:
+        "201":
+          description: The new shelf.
+          content:
+            application/json:
+              schema: { $ref: "#/entities/Shelf" }
+        "409": { description: The room has no space for another shelf., problem: shelf-full }
+  /shelves/{shelfId}:
+    parameters:
+      - { name: shelfId, in: path, required: true, schema: { type: string, format: uuid } }
+      - { name: view, in: query, description: How much of the shelf to answer., schema: { type: string, enum: [short, full] } }
+    get:
+      operationId: getShelf
+      summary: One shelf with its counts
+      permission: shelves.read
+      parameters:
+        - { name: view, in: query, required: true, description: How much of the shelf to answer; the counts need full., schema: { type: string, enum: [full] } }
+      responses:
+        "200":
+          description: The shelf and how many books it holds.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  shelf: { $ref: "#/entities/Shelf" }
+                  counts:
+                    type: object
+                    properties:
+                      books: { type: integer, format: int32, minimum: 0 }
+                      lent: { type: integer, format: int32, minimum: 0 }
+                    required: [books, lent]
+                required: [shelf, counts]
+        "404": { description: No such shelf., problem: shelf-not-found }
+  /shelves/{shelfId}/notes:
+    parameters:
+      - { name: shelfId, in: path, required: true, schema: { type: string, format: uuid } }
+    post:
+      operationId: addNote
+      summary: Pin a note to a shelf
+      permission: shelves.write
+      responses:
+        "204": { description: The note is pinned. }
+        "404": { description: No such shelf., problem: shelf-not-found }
+questions:
+  Q-1:
+    question: What does a note hold, and how long may it be?
+    kind: decision
+    priority: could
+    blocks: ["#/paths/~1shelves~1{shelfId}~1notes/post/requestBody"]
+    decidedBy: owner
+tests:
+  list-genres-succeeds: { operation: listGenres, level: system, scenario: golden, given: "a caller with shelves.read", when: "listGenres is called", then: "it answers 200: Every genre." }
+  list-genres-denied-without-shelves-read: { operation: listGenres, level: system, scenario: red, covers: [denied without shelves.read], given: "a caller without shelves.read", when: "listGenres is called", then: "it is refused as not allowed" }
+  add-shelf-succeeds: { operation: addShelf, level: system, scenario: golden, given: "a caller with shelves.write", when: "addShelf is called with a name and a genre", then: "it answers 201: The new shelf." }
+  add-shelf-refused-when-full: { operation: addShelf, level: system, scenario: red, given: "a room with no space", when: "addShelf is called", then: "it is refused with 409 shelf-full" }
+  get-shelf-succeeds: { operation: getShelf, level: system, scenario: golden, given: "a shelf", when: "getShelf is called with view full", then: "it answers 200: The shelf and how many books it holds." }
+  get-shelf-refused-when-missing: { operation: getShelf, level: system, scenario: red, given: "no shelf of that identifier", when: "getShelf is called", then: "it is refused with 404 shelf-not-found" }
+  add-note-succeeds: { operation: addNote, level: system, scenario: golden, given: "a shelf", when: "addNote is called", then: "it answers 204: The note is pinned." }
+  add-note-refused-when-missing: { operation: addNote, level: system, scenario: red, given: "no shelf of that identifier", when: "addNote is called", then: "it is refused with 404 shelf-not-found" }
+  add-shelf-denied-without-shelves-write: { operation: addShelf, level: system, scenario: red, covers: [denied without shelves.write], given: "a caller without shelves.write", when: "addShelf is called", then: "it is refused as not allowed" }
+  add-shelf-genre-not-one-of-its-values: { operation: addShelf, level: system, scenario: red, covers: [genre not one of its values], given: "a caller with shelves.write", when: "addShelf is called with genre set to a value it does not allow", then: "it is refused" }
+  add-shelf-missing-genre: { operation: addShelf, level: system, scenario: red, covers: [missing genre], given: "a caller with shelves.write", when: "addShelf is called without genre", then: "it is refused" }
+  add-shelf-missing-label-text: { operation: addShelf, level: system, scenario: red, covers: [missing label.text], given: "a caller with shelves.write", when: "addShelf is called with label without its text", then: "it is refused" }
+  add-shelf-missing-name: { operation: addShelf, level: system, scenario: red, covers: [missing name], given: "a caller with shelves.write", when: "addShelf is called without name", then: "it is refused" }
+  get-shelf-denied-without-shelves-read: { operation: getShelf, level: system, scenario: red, covers: [denied without shelves.read], given: "a caller without shelves.read", when: "getShelf is called", then: "it is refused as not allowed" }
+  get-shelf-not-found-shelf-id: { operation: getShelf, level: system, scenario: red, covers: [not found shelfId], given: "no record has that shelfId", when: "getShelf is called with that shelfId", then: "it is refused as not found" }
+  get-shelf-shelf-id-not-a-valid-uuid: { operation: getShelf, level: system, scenario: red, covers: [shelfId not a valid uuid], given: "a caller with shelves.read", when: "getShelf is called with shelfId that is not a valid uuid", then: "it is refused" }
+  get-shelf-view-not-one-of-its-values: { operation: getShelf, level: system, scenario: red, covers: [view not one of its values], given: "a caller with shelves.read", when: "getShelf is called with view set to a value it does not allow", then: "it is refused" }
+  add-note-denied-without-shelves-write: { operation: addNote, level: system, scenario: red, covers: [denied without shelves.write], given: "a caller without shelves.write", when: "addNote is called", then: "it is refused as not allowed" }
+  add-note-not-found-shelf-id: { operation: addNote, level: system, scenario: red, covers: [not found shelfId], given: "no record has that shelfId", when: "addNote is called with that shelfId", then: "it is refused as not found" }
+  add-note-shelf-id-not-a-valid-uuid: { operation: addNote, level: system, scenario: red, covers: [shelfId not a valid uuid], given: "a caller with shelves.write", when: "addNote is called with shelfId that is not a valid uuid", then: "it is refused" }

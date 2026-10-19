@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.7.1-dev of the specification: 76 requirements, 5 entities, 14 commands, 7 algorithms, 523 tests, 139 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.7.1-dev of the specification: 77 requirements, 5 entities, 14 commands, 7 algorithms, 524 tests, 141 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 **Problems:** 4 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -372,6 +372,8 @@ Primary key: path.
 | Rule | middleware | an operation names under middlewares a middleware the specification does not declare (ADR-131) |
 | Rule | middleware_missing | as a warning, the specification declares its middlewares and an operation names none, not even an empty list; a must question that blocks the operation or its middlewares holds it (ADR-131) |
 | Rule | handler_source | as a warning, a handler record of an implementation file no longer matches the code: the source it holds for a function is not what the cited file holds at the function's lines (whether the source moved or changed), the file is not under the folder the code source names, or the record cites no source with a folder (ADR-144) |
+| Rule | handshake | an operation names under handshake a handshake the specification does not declare, a handshake's establishedBy names no operation or one that itself travels in a handshake's envelope, or an operation travels in an envelope and streams an upload, whose body is the file and not a JSON body the envelope carries (ADR-145) |
+| Rule | stream | an upload stream is on a method other than post or put or its request body is not one media type whose schema is a string of format binary, a download stream's success responses are not each one such media type, or limits.maxResponseBytes is on an operation that streams no download (ADR-146) |
 | Severity | error | the file is invalid |
 | Severity | warning | printed, but the file stays valid; missing test scenarios, change-log phrases, traceability gaps and elements without origin |
 
@@ -10736,6 +10738,181 @@ follow with the same record: the step kinds name nothing of Go.
 
 **Insight:** The owner's request, 2026-10-19, with the note from the editor's diagram design that every node needs a stable id and its lines. The record sits in the implementation file because the owner asked that the existing implementation record be extended, not a parallel structure, and because what a handler does on one stack is not design: the design says what the operation answers, the implementation says how this code gets there. Nested steps were chosen over a node-and-edge graph because they read like the code they came from, which is the Low IQ Tax, and because a diff of nested steps is a diff of lines, which the extraction prints and a reviewer reads without a graph tool. Ids are numbered in document order because steps have no names of their own; the id is stable while the code before it is, and the step's lines say where it is whatever its number. The source is kept in the record because the owner asked for the code beside the chart, so that a reader checks one against the other, and because a record that holds its source can be checked against the code by both validator builds without git: the standard library's parser is in the Go build alone, and git is in neither, so the check compares lines. Trailing spaces and tabs are dropped because YAML cannot write a line that ends in them in a readable block, and formatted Go has none. The faults are questions, not a new kind of problem, because the owner asked that the existing mechanism be extended: a question is the one licence for a specification to be unsure, it blocks the operation it is about, it reaches the problems file, the questions document and the technical specification already, and an owner answers it with a decision. Certainty is a key of its own rather than a word in the text or a priority, since a reader and a tool must tell a fault from a suspicion without reading the sentence, and priority already says what the answer unblocks. The checks are the ones syntax decides from what the reader already holds; a nil or empty value used without a check needs types, which the reader does not have, and is left out rather than guessed. The compiler test holds: a handler not followed gets its mapping with why, a call not followed is a step that says why, nothing is refused, and every fault is a question at the operation with its certainty. The acceptance test holds: an owner sees each handler's chart and its faults in the technical specification as soon as the code is read, and a change to the code shows as a short diff of steps at the next extraction and as one warning in validate until the record is renewed.
 
+### ADR-145: A handshake is declared once with its key agreement, signature, cipher, establishing operation, lifetime and uses, and an operation names the one whose envelope its request and response travel in
+
+Status: accepted, 2026-10-20.
+
+Context: Services on dxlib register most endpoints with an end-to-end
+encryption type: a client first calls a pre-key operation with its
+Ed25519 and two X25519 public keys, receives the service's and an
+index, derives two shared secrets, and from then on sends each
+request as one JSON member holding the index and one holding a hex
+envelope, an AES-256-CBC encryption of the length-prefixed header
+and body signed with its Ed25519 key, and reads each answer from
+the same kind of envelope under the second secret and the service's
+key. A browser or a mobile app does exactly that before it may call
+anything. The specification had no word for it: an operation read
+from such a service showed a JSON body and JSON responses, so a
+client built from it would have sent plain JSON to an endpoint that
+refuses it, the technical specification showed a field table where
+an envelope travels, and docs/dxlib-lessons.md had set the session
+key mechanism aside as implementation. What a client must do to
+call an operation is the interface, which is design; which bytes
+the envelope is made of belongs to the stack.
+
+Decision: handshakes is a section of the design keyed by camelCase name. Each
+declares the key agreement both sides run (keyAgreement, x25519 or
+x448, RFC 7748), the signature each puts on what it sends
+(signature, ed25519 or ed448, RFC 8032), the cipher the envelope is
+encrypted with (cipher, by its OpenSSL name: aes-256-cbc,
+aes-256-gcm or chacha20-poly1305), the operation a client calls to
+perform the exchange (establishedBy, an operationId), how long one
+is accepted (lifetime, a duration; left out, it does not expire by
+time) and how many envelopes one carries (uses; left out, any
+number within its lifetime). An operation names under handshake the
+handshake whose envelope its request travels in; its response
+travels in the same envelope unless the operation streams a
+download (ADR-146), which leaves the envelope and answers the bytes
+plain. The establishing operation travels in no envelope: it is
+called before one exists. An upload stream cannot name a handshake:
+its request body is the file, and the envelope carries a JSON body.
+
+The validator refuses, as handshake, an operation naming a
+handshake that is not declared, an establishedBy that names no
+operation or one that itself names a handshake, and a handshake on
+an upload stream. Every operation that names a handshake derives
+the red case expired handshake <name>, as an operation accepting a
+token derives its expired case: a caller whose handshake has
+expired, or has carried its uses envelopes, is refused and
+establishes a new one. The technical specification lists each
+handshake with what a client does, in order, and says of each
+operation which handshake it travels in.
+
+The bytes on the wire are the stack's. For dxlib they are fixed by
+the library: an endpoint whose type is EndPointTypeHTTPEndToEndEncryptionV2
+carries the pre-key envelope, a request of {i, d} and a response of
+{d}, the envelope dxlib's datablock packs; the exchange is
+dxlib_module's pre-login, a request of a0, a1 and a2 answered with
+i, b0, b1 and b2. extract go writes such an endpoint under a
+handshake named preKey with keyAgreement x25519, signature ed25519
+and cipher aes-256-cbc, inferred from the type, and asks as a must
+question which operation establishes it unless a registration of
+the module declares exactly the parameters a0, a1 and a2, which it
+then names; the lifetime is the service's configuration, so it is
+left out with a should question. EndPointTypeHTTPDownloadStreamV2
+is the same handshake on a download stream. The V1 type dxlib
+itself refuses as not implemented, so it is a line and a could
+question; the V3 and V4 types are envelopes whose exchange, cipher
+and session store the host supplies and dxlib does not read, so
+each is a must question on the operation's handshake, as is a type
+the reader cannot read. generate openapi in the dxlib dialect
+writes the V2 type for a handshake of those three primitives, the
+DownloadStreamV2 type when the operation also streams a download,
+and an error at the operation for any other primitives, since no
+dxlib type carries them. generate go-dxlib writes the exchange's
+handler for the establishing operation, whose body must declare
+a0, a1 and a2 and whose success must declare i, b0, b1 and b2, the
+hooks dxlib calls to open and seal an envelope over a store of
+handshakes the service supplies (an in-memory store is written
+beside it), and a client that performs the exchange and the
+encrypted call, so a generated client and a generated server agree
+by construction. The other generators refuse an operation that
+names a handshake rather than write a plain call: the tests target
+says so in the test and leaves the call to the harness, the ui
+targets report an error at the page, and the plain openapi target
+writes x-specarch-handshake.
+
+Consequences: A client built from the specification knows which operations it may
+call plain, which only through an envelope and which operation gives
+it the envelope; a reviewer sees the same in the technical
+specification; and a service read from dxlib keeps its encryption in
+its specification instead of losing it to a JSON body. A handshake
+is a fact of the interface boundary like a token, so a service that
+moves from dxlib to another stack keeps the same declaration and
+changes only how the stack makes the bytes. The front-end targets do
+not yet perform a handshake: a page that submits to or loads from an
+encrypted operation is an error at the page until they do, listed in
+docs/roadmap.md.
+
+**Insight:** The primitives are named by the standards that define them, RFC 7748 for the curves and RFC 8032 for the signatures, and by OpenSSL's names for the ciphers, which every library spells the same, so that a client on any stack reads the declaration without a dictionary. The declaration stops at what a client must do and leaves the byte layout to the stack, because the layout is dxlib's datablock today and would be another library's tomorrow, while the exchange, the keys and the cipher are what both ends must agree on; writing the layout in the design would be the stack-specific key the design refuses. A handshake is declared once and named by operations, as middlewares are, because a service encrypts nearly everything the same way and the exceptions are what is worth writing. The establishing operation is an operation like any other, with its body and responses, so that a client sees its parameters where it sees every other, and the generator checks them against the exchange it writes rather than inventing a second declaration. uses is declared rather than assumed single, because dxlib's own code lets a pre-key serve until its time runs out while a consumer may delete it after one envelope, and the client must know which. The reader infers the primitives from the endpoint type because dxlib fixes them for that type, as it fixes a parameter type's JSON schema, and asks for what the type does not fix.
+
+**Note:** From RFC 7748, Elliptic Curves for Security, 2016: X25519 and X448 are Diffie-Hellman functions over Curve25519 and Curve448: each party sends its public key and both compute the same shared secret. <https://www.rfc-editor.org/rfc/rfc7748>
+
+**Note:** From RFC 8032, Edwards-Curve Digital Signature Algorithm (EdDSA), 2017: Ed25519 and Ed448 are EdDSA signature schemes; a signature is verified with the signer's public key. <https://www.rfc-editor.org/rfc/rfc8032>
+
+### ADR-146: An operation that carries a file says so with stream and its direction, the media type and the binary string stay where OpenAPI puts them, and the largest download is a limit
+
+Status: accepted, 2026-10-20.
+
+Context: dxlib serves very large files: an upload endpoint hands the handler
+the request body as it arrives, from the first byte to the last, and
+a download endpoint writes the response body the same way, with the
+file's media type, length and name in the headers, and neither is
+ever held whole in memory. The reader wrote an upload's body as a
+binary string from its content type and a download as a JSON
+response, so nothing told a client, a generator or a reader of the
+technical specification that the body is a file streamed through,
+how large it may be, or that the download answers no JSON at all.
+OpenAPI describes a binary body as a string of format binary under
+its media type and has no word for streaming, since to the document
+a body is a body however it is read.
+
+Decision: stream is an operation keyword with one key, direction: upload says
+the request body is the file, download says the success response's
+body is. OpenAPI's own words keep saying what the body is: an
+upload's requestBody has one media type whose schema is a string of
+format binary, and a download's every 2xx response has one such
+media type; stream adds that the body is passed through as it
+arrives and bounded as a file. The largest upload is
+limits.maxRequestBytes, as for any body; the largest download is
+limits.maxResponseBytes, a limit added for it, the largest answer a
+client must be ready for, allowed only beside a download stream.
+
+The validator refuses, as stream, an upload on a method other than
+post or put, an upload without that request body or with another, a
+download without a success response or whose success response
+carries another body, and maxResponseBytes beside no download. The
+technical specification says of such an operation that it streams
+the file in or out, with its media type and bound, in place of a
+field table and JSON responses.
+
+For dxlib, extract go writes EndPointTypeHTTPUploadStream as an
+upload stream, EndPointTypeHTTPDownloadStream as a download stream,
+and EndPointTypeHTTPDownloadStreamV2 as a download stream under the
+pre-key handshake (ADR-145); a download's success response is
+written as application/octet-stream, the type dxlib's own sender
+sets, with a schema of a binary string, in place of what the
+registration's data template declares, which is a should question
+when it declares one. generate openapi in the dxlib dialect writes
+the upload type with a requestBody of the binary string, as dxlib's
+reader asks, and the download type with its success response
+described but carrying no content, since dxlib's reader takes a
+response's content only as a JSON object. generate go-dxlib writes
+an upload helper that hands the body to the service's own code as a
+reader held to maxRequestBytes, since dxlib caps a streamed upload
+only by the declared Content-Length and a chunked upload declares
+none, and a download helper that writes the headers, the status and
+the bytes from a reader as dxlib's own sender does, refusing a file
+above maxResponseBytes before a byte is sent and abandoning the
+response on a failed copy so a client never keeps a short file as a
+whole one; the client it writes uploads from and downloads to a
+stream. The tests target leaves a stream's call to the harness, the
+ui targets report an error at a page that submits to or loads from
+a stream, and the plain openapi target writes x-specarch-stream.
+
+Consequences: A reader of the specification tells a file endpoint from a JSON one
+without opening the code, a client knows which bodies to stream and
+how large they may be, and a generated service streams a file
+larger than memory in both directions, which the round trip's test
+exercises with a generated client against a generated server. A
+body of format binary without stream is still allowed: a small
+image read whole is one, and the two differ in how the body is
+handled, which is what stream says.
+
+**Insight:** OpenAPI's media type and binary string already say what the body is, so stream says only what they cannot: the direction and that the body is passed through, bounded as a file. Repeating the media type under stream would be a second way to say it, which the one way rule refuses; so the validator checks stream against the body rather than letting stream carry its own. The bound of a download goes under limits beside the bound of a request because both are sizes a client plans for, and a new key beside stream for one of them would split one idea in two places. The reader writes the download's media type as octet-stream from dxlib's own sender rather than asking, because the registration's data template is a JSON object dxlib never sends on a stream, and a stream is bytes unless the handler names another type; when the registration declares a template anyway the two sources disagree, which is a question.
+
+**Note:** From RFC 9110, HTTP Semantics, 2022: A representation's media type is given by Content-Type and its size by Content-Length; a message body may be of any length, transferred as it is produced. <https://www.rfc-editor.org/rfc/rfc9110>
+
 ## 10. Quality requirements
 
 The design tests: what must hold on every implementation. Golden scenarios succeed; red scenarios are refused.
@@ -11107,6 +11284,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | validate-handover-missing | command validate | system | red | an environment the customer runs, with release, rollback, backup, restore, a check and a monitor, and no handover | validate is run | it reports handover at the environment's runBy, saying what to add, and exits 1 |
 | validate-handover-no-customer | command validate | system | red | a handover whose to names no stakeholder, in a specification where no environment is run by the customer | validate is run | it reports handover at the handover and stakeholder at its to, and exits 1 |
 | validate-handover-valid | command validate | system | golden | an environment the customer runs with a handover to a stakeholder, release, rollback, backup and restore steps, a check and a monitor in it, and an implementation deployment of it with build (task, base images by digest, reproducible, sbom), method and infrastructure | validate is run | it reports no error and no handover warning, and exits 0 |
+| validate-handshake | command validate | system | red | a handshake established by the operation that itself names the handshake, a second handshake whose establishedBy names no operation, an operation naming a handshake the specification does not declare, and an upload stream that names a handshake | validate is run | it reports handshake for each, saying that the establishing operation travels in the envelope, that the operationId does not exist with the nearest ones, that the handshake is not declared with the nearest name, and that an upload cannot travel in an envelope, derives the expired handshake case for each operation that names one, and exits 1 |
 | validate-idempotency-key | command validate | system | red | an idempotency key on a GET, and one on a POST that names a query parameter rather than a header | validate is run | it reports idempotency_key for both, saying that GET is idempotent by itself and that the key is not a header parameter, and exits 1 |
 | validate-idiom-override | command validate | system | golden | an implementation file in Go with an Oracle sql target, whose override of type-rendering replaces the Oracle rows of its types part for MAX_STRING_SIZE = EXTENDED, with the reason, and an entity with a UUID and a 5000-character text field | validate is run | it reports nothing and exits 0: the override's rows cover every field on Oracle, and the shipped Go rows cover them on Go |
 | validate-idiom-problems | command validate | system | red | an implementation file in Go with an Oracle sql target, which names an idiom SpecArch does not ship, excludes the project's own idiom without why, and overrides type-rendering with a file that has no why, lists an unknown part, defines a part it does not list, renders swift, changes a shipped contract statement and was copied from an older version; a decimal field is wider than Oracle holds, and a stray file sits in the idioms folder | validate is run | it reports idiom_unknown, idiom_override_reason, idiom_part_unknown, idiom_stack, idiom_contract on the statement and on the decimal's missing Oracle row, idiom_version_behind as a warning, and the stray file under layout, and exits 1 |
@@ -11224,6 +11402,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | validate-state-value | command validate | system | red | a transition to a value the enum does not have | validate is run | it reports state_value and exits 1 |
 | validate-stored-data | command validate | system | red | an audited entity with soft deletion that declares createdAt and deleted, an encrypted primary key without lookup hash, a lookup on a field that is not encrypted, an operation whose response carries a credential that is not writeOnly, and a public operation whose response carries a personal field | validate is run | it reports audited twice, at_rest twice and sensitivity_exposed for the credential, warns sensitivity_exposed for the personal field, and exits 1 |
 | validate-stored-data-valid | command validate | system | golden | an audited entity with soft deletion that declares neither the audit fields nor deleted, an encrypted key looked up by hash, a credential that is writeOnly, a personal field shown only behind a permission, and a requirement with a harm that the list and the read satisfy | validate is run | it reports no error and warns that no test covers the derived cases deleted Member not listed and deleted Member read, among the others, and exits 0 |
+| validate-stream | command validate | system | red | an upload stream on a GET with no request body, one on a POST whose body is a JSON object, a download stream whose success response carries two media types, a maxResponseBytes on an operation that streams nothing, and a download stream with no success response | validate is run | it reports stream for each, naming the method, the missing body, the body declared, the two media types, the limit that bounds nothing and the missing success response, and exits 1 |
 | validate-suite | command validate | system | red | an implementation suite that names a design test that does not exist | validate is run | it reports suite and exits 1 |
 | validate-task-page-checks | command validate | system | red | a task page whose check names a property its operation's body does not have, beside a field the page does not show, whose other check is not true or false with a message that is not a sentence, and which has a field entered twice that the page does not show; a task page that submits to an operation taking no body, with a check whose message is not a sentence; and a list with a check | validate is run | it reports form_field five times, an expression error twice and the task without a body once, lists a case for each way the task's checks break and for the field entered twice, and exits 1 |
 | validate-task-page-checks-valid | command validate | system | golden | a task page that checks that the confirmation equals the new password, checks that two of its fields are given and has the new password entered twice, with a test for each way its checks break | validate is run | it reports nothing and exits 0 |
@@ -11242,7 +11421,6 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | validate-ui-components | command validate | system | red | an implementation file whose ui binding maps three components of its UI library, one binding a field, one a column by its field property, and one binding a row | validate is run on its folder | it takes the first two and reports the binding of a row as a schema error at that entry, and exits 1 |
 | validate-ui-schema-file | command validate | system | red | an implementation file with three bindings each naming a schema file, _schema.ts, layout.tsx, a file the App Router serves itself, and schemas/page.ts, a path rather than a name beside the page | validate is run on its folder | it takes _schema.ts and reports layout.tsx and schemas/page.ts each as a schema error at its entry, and exits 1 |
 | validate-unique-where | command validate | system | red | a unique constraint whose condition names no field, one whose condition gives a number, and a check constraint with a condition | validate is run | it reports expression_name, expression_type and schema for each, and exits 1 |
-| validate-unquoted-commit | command validate | system | red | an implementation file whose two handler records give commit without quotes, one as forty digits, past what a 64-bit integer holds, and one as seven, where YAML reads each as a number | validate is run | each is reported at its line as a number where a string is expected, in the Go build and the Swift build alike, and it exits 1 |
 | validate-unquoted-date | command validate | system | red | a decision date written without quotes | validate is run | it reports unquoted_date and exits 1 |
 | validate-unreadable | command validate | system | red | a path that does not exist | validate is run on it | it says it cannot read the path and exits 2 |
 | validate-unsafe-integer | command validate | system | red | an int64 field carried as a JSON number with no maximum | validate is run | it reports unsafe_integer and exits 1 |
@@ -11337,6 +11515,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | SA-69 | specarch gaps and the questions document shall set the material a stakeholder must provide apart from the decisions a stakeholder must take, show a decision that answered a question only in part with the questions it opened, and show per stage what holds each output up. | functional | must | accepted | test | A question of kind material is listed in a group of its own, worded as what is needed and from whom, and the count of decisions each stakeholder must take leaves it out. A decision may name under opens the questions it raised; one that is neither open nor answered by a decision, or one the decision answers itself, is refused as question_opened, the same in both builds. An open question that a decision opened names that decision and the questions it answered, and so on back along the chain. The outputs table gives, per stage, how many questions hold an output up and the first of them, rather than every one. | NEED-8 |
 | SA-70 | specarch shall carry a column default the database computes, a table's plain indexes and a list served two ways from the sources into the specification and back into the generated SQL and OpenAPI, with no question for any of them. | functional | should | accepted | test | A field's generatedDefault, identifier or currentTime, is written by generate sql as the expression the type-rendering idiom names for the dialect; a dialect with none for it is an error at the field. A default beside generatedDefault, or generatedDefault on a field of another format, is refused by the schema in both builds. specarch extract database writes generatedDefault where the catalogue's default is the expression the idiom names for PostgreSQL, and keeps the could question for any other expression. An entity's mapping lists the plain indexes of its table under indexes; generate sql writes each, and the next migration creates an index added and drops one removed. A field an index names that the entity lacks, or indexes under a mapping that is not an entity's, is refused as field in both builds. specarch extract database writes each plain index of the catalogue into the implementation fragment that --implementation-out names, with no question for it; an index the mapping cannot hold stays a could question. specarch extract router reads a handler that serves a GET on a path and a POST on that path with a literal last segment as two operations named after the handler, the POST's with Post added, each citing both routes, with no question about the name. With bindings.http.listRoutes, generate openapi writes that POST twin of each list operation served by GET. | NEED-2, NEED-8 |
 | SA-75 | A specification shall be able to declare a gateway, a service that verifies a token, reads one claim of it and forwards every request no operation answers, as received, to the dependency the claim's value selects, with the refusals it answers itself and no permission of its own; specarch validate shall check it against the design, the forwards shall fix the audience of the token it forwards by, and a gateway shall be a subject of tests with the cases it implies. | functional | should | proposed | test | A gateway naming a token the specification lacks, a claim the token does not declare, an empty forwards, a value twice, a dependency not declared or of kind database, messageBroker or fileStore, or a forward's dependency under calls is reported as gateway in both builds; with claim aud, so is the token marked default or named by an operation, and const or enum on that token's aud is reported as token_audience. In an umbrella run, a forward whose value is none of the aud values the module its dependency names accepts is reported as gateway, and that token is left out of the refusal of two modules accepting one aud value. A test may name a gateway as its subject, and a gateway gets the cases forwarded to each dependency, no token, a bad signature, an expired token, an unknown claim value, a claim naming two forwarded services, and a dependency failing or timing out for each it forwards to or calls. The technical specification draws each forward in the context diagram and writes a section per gateway with its token, claim, forwards, middlewares, refusals and cases; generate openapi writes nothing for a gateway and prints a line naming it; a specification without one renders byte for byte as before. | NEED-1, NEED-3, NEED-9 |
+| SA-77 | A specification shall be able to declare the handshakes a client performs before calling an encrypted operation, with the key agreement, the signature, the cipher, the operation that establishes one, its lifetime and how many envelopes it carries, to name on an operation the handshake whose envelope it travels in, and to say that an operation streams a file as an upload or a download rather than reading a body whole; specarch validate shall check each against the design, the readers shall read them from code, the generators shall produce a server and a client that perform them, and the documents shall show them. | functional | must | accepted | test | An operation naming a handshake the specification does not declare, a handshake whose establishedBy names no operation or an operation that itself travels in an envelope, and an upload stream that names a handshake are each reported as handshake in both builds, with the same words. An upload stream on a method other than post or put, or whose request body is not one media type of a binary string, a download stream whose success response is not one such media type, and a maxResponseBytes beside no download are each reported as stream in both builds, with the same words. Every operation that names a handshake derives the red case expired handshake <name>, which names the lifetime's end and, when the handshake declares uses, the envelopes it has carried. extract go writes a dxlib endpoint registered with an end-to-end-encryption type as an operation under a handshake of dxlib's pre-key exchange, asking which operation establishes it, an upload or download stream type as a stream, and asks at a type it does not read. generate openapi with the dxlib dialect writes the endpoint type each operation's handshake and stream give; generate go-dxlib writes the exchange's handler, the hooks that seal and open the envelope, the helpers that stream a body in and out, and a client that performs the handshake, the encrypted call and both streams; a generated client calls a generated server over the encrypted API and streams a file larger than its buffers both ways. The technical specification lists each handshake with what a client does and marks each operation that travels in one or streams a file, in place of a request body and JSON responses. | NEED-1, NEED-2, NEED-3 |
 | SA-7 | specarch document and specarch generate shall write only into the folder the target owns, and with --check shall fail when the committed output differs. | functional | must | accepted | test | A run writes the target's files into its folder and nothing elsewhere. A run with --check on output edited by hand names the file and exits 1, writing nothing. | NEED-3 |
 | SA-8 | Every generated file shall name its source specification, version and meta-model, and a hand-written Markdown document shall change only between its markers. | functional | must | accepted | test | The first line of a generated document names the root file, its version and the meta-model. A marked region is rewritten and every other line of the document is unchanged. | NEED-3 |
 | SA-26 | specarch document shall write the change and defect register and the release notes from the records beside a specification, kept current with --check like the other documents. | functional | should | accepted | test | The register lists open change requests and defects before the closed ones, each with its status, what it affects and its decision. The release notes list the releases newest first, each with its changes and fixes grouped as added, changed, removed and fixed. | NEED-3, NEED-5 |
@@ -11463,6 +11642,8 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 
 **Insight on SA-75:** A service that forwards by the token's audience had no place in its own specification, so the one behaviour it exists for was recorded as a surface not read; written as an element, its token, its table and its refusals are checked, drawn and tested like an operation's.
 
+**Insight on SA-77:** A service whose operations travel in an encrypted envelope, or that streams large files, could not say so in its specification, so a client built from it would send plain JSON to an endpoint that expects an envelope, and a document would show a field table where a stream of bytes travels.
+
 **Insight on SA-26:** Reviewers and operators read what changed and why in documents; kept apart from the specification, the history stays out of it and still reaches them.
 
 **Note on SA-14:** From Protocol buffers compiler plug-in protocol, plugin.proto, 2024: A plug-in reads a CodeGeneratorRequest from standard input and writes a CodeGeneratorResponse to standard output; protoc writes the files, so a plug-in never touches the disk. <https://github.com/protocolbuffers/protobuf/blob/main/src/google/protobuf/compiler/plugin.proto>
@@ -11553,7 +11734,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 |---|---|---|
 | SA-1 | enums DocumentKind; entities SpecFile; commands validate; decisions ADR-003; decisions ADR-006; decisions ADR-007; decisions ADR-009; decisions ADR-052; decisions ADR-055; decisions ADR-060; decisions ADR-063; decisions ADR-072; decisions ADR-094; decisions ADR-125 | tests validate-meta-model-0-1-missing-test; tests validate-meta-model-0-2-missing-test; tests validate-schema-name-form; tests validate-schema-untyped-integer; tests validate-valid-design; checks checks-the-examples; monitors main-stays-green |
 | SA-2 | enums Rule; commands validate; algorithms referenceResolves; decisions ADR-061 | tests validate-duplicate-name-across-files; tests validate-enabled-by; tests validate-environment; tests validate-need; tests validate-ref-type; tests validate-relation-target; tests validate-requirement-set; tests validate-stakeholder |
-| SA-3 | enums Rule; commands validate; decisions ADR-004; decisions ADR-047; decisions ADR-061; decisions ADR-094; decisions ADR-095; decisions ADR-097 | tests validate-expression-date-days; tests validate-expression-date-number; tests validate-expression-in-stage-file; tests validate-expression-syntax; tests validate-expression-type; tests validate-unique-where |
+| SA-3 | enums Rule; commands validate; decisions ADR-004; decisions ADR-047; decisions ADR-061; decisions ADR-094; decisions ADR-095; decisions ADR-097; decisions ADR-145; decisions ADR-146 | tests validate-expression-date-days; tests validate-expression-date-number; tests validate-expression-in-stage-file; tests validate-expression-syntax; tests validate-expression-type; tests validate-unique-where |
 | SA-4 | enums Rule; commands validate; algorithms workedExampleHolds; decisions ADR-004 | tests validate-example-mismatch |
 | SA-5 | enums Rule; commands validate; algorithms permissionGranted; algorithms separationOfDuties; decisions ADR-006; decisions ADR-053; decisions ADR-054; decisions ADR-094; decisions ADR-095; decisions ADR-096; decisions ADR-097; decisions ADR-106; decisions ADR-107; decisions ADR-108; decisions ADR-109; decisions ADR-110; decisions ADR-111 | tests validate-permission-undeclared; tests validate-permission-ungranted; tests validate-permission-ungranted-without-description; tests validate-question-covers-problem; tests validate-question-covers-ungranted; tests validate-schema-operation-without-permission; tests validate-separation-of-duties |
 | SA-6 | enums Rule; enums Severity; entities Diagnostic; commands validate; algorithms exitStatus; decisions ADR-005; decisions ADR-008 | tests validate-usage-error; tests validate-yaml-syntax; tests version-prints-versions; checks installs-and-answers |
@@ -11579,7 +11760,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-26 | enums DocumentTarget; commands document | tests document-writes-changes; tests document-writes-releases |
 | SA-27 | enums Rule; commands validate | tests validate-test-data; tests validate-test-data-folder; tests validate-test-data-valid |
 | SA-28 | commands derive; decisions ADR-055 | tests derive-invalid-spec; tests derive-keeps-existing; tests derive-meta-model-0-2; tests derive-meta-model-0-2-other-error; tests derive-name-taken; tests derive-names-from-ids; tests derive-page-elements; tests derive-page-named-after-operation; tests derive-root-tests; tests derive-skips-blocked; tests derive-task-page-checks; tests derive-usage-error; tests derive-writes-drafts; tests merge-takes-derived-drafts |
-| SA-29 | enums Rule; commands validate; decisions ADR-021; decisions ADR-097; decisions ADR-108; decisions ADR-109; decisions ADR-111; decisions ADR-134 | tests validate-concept-cases-listed; tests validate-dependency; tests validate-guard; tests validate-idempotency-key; tests validate-session; tests validate-validity |
+| SA-29 | enums Rule; commands validate; decisions ADR-021; decisions ADR-097; decisions ADR-108; decisions ADR-109; decisions ADR-111; decisions ADR-134; decisions ADR-145 | tests validate-concept-cases-listed; tests validate-dependency; tests validate-guard; tests validate-idempotency-key; tests validate-session; tests validate-validity |
 | SA-30 | commands gaps; decisions ADR-022 | tests gaps-coverage; tests gaps-outline-not-read; tests validate-mapping-origin; tests validate-source-clause |
 | SA-31 | commands generate; decisions ADR-041; decisions ADR-078 | tests generate-stack-fallback; tests generate-stack-plugin; tests generate-tests-dart; tests generate-tests-framework-refused; tests generate-tests-go; tests generate-tests-swift; tests generate-tests-value-objects |
 | SA-32 | commands idioms; commands idioms diff; decisions ADR-023; decisions ADR-028 | tests idioms-diff; tests idioms-diff-unknown; tests idioms-diff-usage-error; tests idioms-lists; tests idioms-lists-ui-framework; tests idioms-usage-error; tests validate-idiom-override; tests validate-idiom-problems; tests validate-idiom-stack-framework |
@@ -11627,6 +11808,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-74 | decisions ADR-138 |   |
 | SA-75 | decisions ADR-141 |   |
 | SA-76 | decisions ADR-142; decisions ADR-143 |   |
+| SA-77 | enums Rule; decisions ADR-145; decisions ADR-146 | tests validate-handshake; tests validate-stream |
 
 ## Sources
 
@@ -11667,6 +11849,8 @@ Every source a Note in this document cites.
 | rfc-6901 | RFC 6901, JavaScript Object Notation (JSON) Pointer | 2013 | IETF | https://www.rfc-editor.org/rfc/rfc6901 |
 | rfc-7519 | RFC 7519, JSON Web Token (JWT) | 2015 | IETF | https://www.rfc-editor.org/rfc/rfc7519 |
 | rfc-7591 | RFC 7591, OAuth 2.0 Dynamic Client Registration Protocol | 2015 | IETF | https://www.rfc-editor.org/rfc/rfc7591 |
+| rfc-7748 | RFC 7748, Elliptic Curves for Security | 2016 | IETF | https://www.rfc-editor.org/rfc/rfc7748 |
+| rfc-8032 | RFC 8032, Edwards-Curve Digital Signature Algorithm (EdDSA) | 2017 | IETF | https://www.rfc-editor.org/rfc/rfc8032 |
 | rfc-8252 | RFC 8252, OAuth 2.0 for Native Apps | 2017 | IETF | https://www.rfc-editor.org/rfc/rfc8252 |
 | rfc-8417 | RFC 8417, Security Event Token (SET) | 2018 | IETF | https://www.rfc-editor.org/rfc/rfc8417 |
 | rfc-8693 | RFC 8693, OAuth 2.0 Token Exchange | 2020 | IETF | https://www.rfc-editor.org/rfc/rfc8693 |

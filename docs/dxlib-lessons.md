@@ -459,9 +459,12 @@ with a validator rule or a generator that reads it.
 Not adopted into the design, because they are implementation: indexes
 (they go into the `sql` target's settings under the entity's mapping),
 triggers, functions and materialized views, transparent encryption of a
-table, the session key mechanism, the multipart and octet-stream request
-shapes, the secure-memory and Vault path, the language dictionaries, the
-application lifecycle.
+table, the multipart request shape, the secure-memory and Vault path,
+the language dictionaries, the application lifecycle. The pre-key
+envelope and the streamed upload and download are design, since a
+client must know them to call the service: `handshakes` and `handshake`
+(ADR-145) and `stream` (ADR-146), with the bytes of dxlib's envelope and
+its endpoint types left to the dxlib dialect and the go-dxlib target.
 
 ## 3. A Go implementation that targets dxlib
 

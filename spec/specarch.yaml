@@ -204,6 +204,18 @@ sources:
     edition: "2020"
     author: IETF
     url: https://www.rfc-editor.org/rfc/rfc8725
+  rfc-7748:
+    kind: standard
+    title: RFC 7748, Elliptic Curves for Security
+    edition: "2016"
+    author: IETF
+    url: https://www.rfc-editor.org/rfc/rfc7748
+  rfc-8032:
+    kind: standard
+    title: RFC 8032, Edwards-Curve Digital Signature Algorithm (EdDSA)
+    edition: "2017"
+    author: IETF
+    url: https://www.rfc-editor.org/rfc/rfc8032
   rfc-9421:
     kind: standard
     title: RFC 9421, HTTP Message Signatures

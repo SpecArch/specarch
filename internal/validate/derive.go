@@ -517,6 +517,16 @@ func (d *design) operationSubject(o operation) *subject {
 		s.fieldCase("golden", "repeated with the same "+key, frequent, key, schema, given, o.id+" is called again with the same "+key+" and the same request", "it answers as the first call did and nothing changes a second time")
 		s.fieldCase("red", key+" reused for another request", occasional, key, schema, given, o.id+" is called with the same "+key+" and a different request", "it is refused")
 	}
+	if h := source.Str(source.Child(o.node, "handshake")); h != "" {
+		given := "a caller whose handshake " + h + " has expired"
+		if uses := source.Str(source.Child(d.handshakes[h], "uses")); uses != "" {
+			given += " or has carried its " + uses + " envelope"
+			if uses != "1" {
+				given += "s"
+			}
+		}
+		s.red("expired handshake "+h, frequent, given, call+" through that handshake", "it is refused and the caller establishes a new handshake")
+	}
 	guardCases(s, source.Child(o.node, "guard"), call)
 	pageCases(s, o, call)
 	limitsCases(s, o, call)

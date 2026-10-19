@@ -131,6 +131,8 @@ const (
 	RuleMiddleware             Rule = "middleware"
 	RuleMiddlewareMissing      Rule = "middleware_missing"
 	RuleHandlerSource          Rule = "handler_source"
+	RuleHandshake              Rule = "handshake"
+	RuleStream                 Rule = "stream"
 )
 
 // Rules lists every rule, in the order of the design's Rule enum.
@@ -254,6 +256,8 @@ var Rules = []Rule{
 	RuleMiddleware,
 	RuleMiddlewareMissing,
 	RuleHandlerSource,
+	RuleHandshake,
+	RuleStream,
 }
 
 // Severity says whether a diagnostic makes the file invalid.

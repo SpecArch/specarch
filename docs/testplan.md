@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.1-dev of the specification: 523 design tests, 234 golden and 289 red, about 16 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.1-dev of the specification: 524 design tests, 234 golden and 290 red, about 16 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 4 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -19,7 +19,7 @@ Version 0.7.1-dev of the specification: 523 design tests, 234 golden and 289 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 519 |
+| system | 520 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -3001,6 +3001,14 @@ Scenario: golden; level: system; verifies SA-73.
 - When: validate is run
 - Then: it reports no error and no handover warning, and exits 0
 
+#### validate-handshake
+
+Scenario: red; level: system; covers exit 1; verifies SA-77.
+
+- Given: a handshake established by the operation that itself names the handshake, a second handshake whose establishedBy names no operation, an operation naming a handshake the specification does not declare, and an upload stream that names a handshake
+- When: validate is run
+- Then: it reports handshake for each, saying that the establishing operation travels in the envelope, that the operationId does not exist with the nearest ones, that the handshake is not declared with the nearest name, and that an upload cannot travel in an envelope, derives the expired handshake case for each operation that names one, and exits 1
+
 #### validate-idempotency-key
 
 Scenario: red; level: system; covers exit 1; verifies SA-29.
@@ -3937,6 +3945,14 @@ Scenario: golden; level: system; verifies SA-33.
 - When: validate is run
 - Then: it reports no error and warns that no test covers the derived cases deleted Member not listed and deleted Member read, among the others, and exits 0
 
+#### validate-stream
+
+Scenario: red; level: system; covers exit 1; verifies SA-77.
+
+- Given: an upload stream on a GET with no request body, one on a POST whose body is a JSON object, a download stream whose success response carries two media types, a maxResponseBytes on an operation that streams nothing, and a download stream with no success response
+- When: validate is run
+- Then: it reports stream for each, naming the method, the missing body, the body declared, the two media types, the limit that bounds nothing and the missing success response, and exits 1
+
 #### validate-suite
 
 Scenario: red; level: system; covers exit 1.
@@ -4080,14 +4096,6 @@ Scenario: red; level: system; covers exit 1; verifies SA-3.
 - Given: a unique constraint whose condition names no field, one whose condition gives a number, and a check constraint with a condition
 - When: validate is run
 - Then: it reports expression_name, expression_type and schema for each, and exits 1
-
-#### validate-unquoted-commit
-
-Scenario: red; level: system; covers exit 1.
-
-- Given: an implementation file whose two handler records give commit without quotes, one as forty digits, past what a 64-bit integer holds, and one as seven, where YAML reads each as a number
-- When: validate is run
-- Then: each is reported at its line as a number where a string is expected, in the Go build and the Swift build alike, and it exits 1
 
 #### validate-unquoted-date
 
@@ -4269,7 +4277,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-308 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+314 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -4437,6 +4445,12 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-75 | acceptance 1 | golden | SA-75 names no harm |
 | requirement SA-75 | acceptance 2 | golden | SA-75 names no harm |
 | requirement SA-75 | acceptance 3 | golden | SA-75 names no harm |
+| requirement SA-77 | acceptance 1 | golden | SA-77 names no harm |
+| requirement SA-77 | acceptance 2 | golden | SA-77 names no harm |
+| requirement SA-77 | acceptance 3 | golden | SA-77 names no harm |
+| requirement SA-77 | acceptance 4 | golden | SA-77 names no harm |
+| requirement SA-77 | acceptance 5 | golden | SA-77 names no harm |
+| requirement SA-77 | acceptance 6 | golden | SA-77 names no harm |
 | requirement SA-7 | acceptance 1 | golden | SA-7 names no harm |
 | requirement SA-7 | acceptance 2 | golden | SA-7 names no harm |
 | requirement SA-8 | acceptance 1 | golden | SA-8 names no harm |

@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: requirements specification
 
-Version 0.7.1-dev of the specification: 5 stakeholders, 10 needs and 76 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
+Version 0.7.1-dev of the specification: 5 stakeholders, 10 needs and 77 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
 
 **Problems:** 4 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -33,9 +33,9 @@ What the stakeholders said they need, before it was shaped into requirements, an
 
 | Need | Statement | Stakeholders | Status | Refined by |
 |---|---|---|---|---|
-| NEED-1 | I want a specification that cannot quietly be wrong, so that the code built from it is right. | specification-author, implementer | accepted | SA-33, SA-34, SA-35, SA-47, SA-48, SA-50, SA-75, SA-72, SA-1, SA-2, SA-3, SA-4, SA-5, SA-6, SA-51 |
-| NEED-2 | I want to write a design once and build it in more than one language. | implementer | accepted | SA-33, SA-34, SA-36, SA-37, SA-38, SA-39, SA-40, SA-41, SA-42, SA-43, SA-52, SA-53, SA-54, SA-55, SA-56, SA-49, SA-62, SA-63, SA-65, SA-66, SA-70, SA-46, SA-61, SA-71, SA-32, SA-9, SA-10 |
-| NEED-3 | I want the documents and diagrams to come from the specification, so they never drift from it. | reviewer, specification-author | accepted | SA-22, SA-36, SA-67, SA-75, SA-7, SA-8, SA-26, SA-16, SA-58, SA-59, SA-60, SA-19, SA-74 |
+| NEED-1 | I want a specification that cannot quietly be wrong, so that the code built from it is right. | specification-author, implementer | accepted | SA-33, SA-34, SA-35, SA-47, SA-48, SA-50, SA-75, SA-77, SA-72, SA-1, SA-2, SA-3, SA-4, SA-5, SA-6, SA-51 |
+| NEED-2 | I want to write a design once and build it in more than one language. | implementer | accepted | SA-33, SA-34, SA-36, SA-37, SA-38, SA-39, SA-40, SA-41, SA-42, SA-43, SA-52, SA-53, SA-54, SA-55, SA-56, SA-49, SA-62, SA-63, SA-65, SA-66, SA-70, SA-77, SA-46, SA-61, SA-71, SA-32, SA-9, SA-10 |
+| NEED-3 | I want the documents and diagrams to come from the specification, so they never drift from it. | reviewer, specification-author | accepted | SA-22, SA-36, SA-67, SA-75, SA-77, SA-7, SA-8, SA-26, SA-16, SA-58, SA-59, SA-60, SA-19, SA-74 |
 | NEED-4 | I want a big specification split over many files, each about one thing, so I can find what I am looking for. | specification-author, reviewer | accepted | SA-11, SA-2 |
 | NEED-5 | I want the whole life of the system in one place, from the first requirement to the day it is accepted. | reviewer, operator | accepted | SA-35, SA-47, SA-68, SA-26, SA-16, SA-12, SA-23, SA-24, SA-25, SA-73 |
 | NEED-6 | I want to see why something is the way it is, and which standard asks for it. | reviewer | accepted | SA-15, SA-13 |
@@ -83,6 +83,7 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | SA-69 | functional | must | accepted | specarch gaps and the questions document shall set the material a stakeholder must provide apart from the decisions a stakeholder must take, show a decision that answered a question only in part with the questions it opened, and show per stage what holds each output up. |
 | SA-70 | functional | should | accepted | specarch shall carry a column default the database computes, a table's plain indexes and a list served two ways from the sources into the specification and back into the generated SQL and OpenAPI, with no question for any of them. |
 | SA-75 | functional | should | proposed | A specification shall be able to declare a gateway, a service that verifies a token, reads one claim of it and forwards every request no operation answers, as received, to the dependency the claim's value selects, with the refusals it answers itself and no permission of its own; specarch validate shall check it against the design, the forwards shall fix the audience of the token it forwards by, and a gateway shall be a subject of tests with the cases it implies. |
+| SA-77 | functional | must | accepted | A specification shall be able to declare the handshakes a client performs before calling an encrypted operation, with the key agreement, the signature, the cipher, the operation that establishes one, its lifetime and how many envelopes it carries, to name on an operation the handshake whose envelope it travels in, and to say that an operation streams a file as an upload or a download rather than reading a body whole; specarch validate shall check each against the design, the readers shall read them from code, the generators shall produce a server and a client that perform them, and the documents shall show them. |
 | SA-7 | functional | must | accepted | specarch document and specarch generate shall write only into the folder the target owns, and with --check shall fail when the committed output differs. |
 | SA-8 | functional | must | accepted | Every generated file shall name its source specification, version and meta-model, and a hand-written Markdown document shall change only between its markers. |
 | SA-26 | functional | should | accepted | specarch document shall write the change and defect register and the release notes from the records beside a specification, kept current with --check like the other documents. |
@@ -687,6 +688,23 @@ Acceptance criteria:
 **Problem:** warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SA-75; add verifies: [SA-75] to the test that shows it is met [requirement_unverified@requirements/requirements/design-keywords.yaml#/requirements/SA-75]
 
 **Insight:** A service that forwards by the token's audience had no place in its own specification, so the one behaviour it exists for was recorded as a surface not read; written as an element, its token, its table and its refusals are checked, drawn and tested like an operation's.
+
+### SA-77
+
+A specification shall be able to declare the handshakes a client performs before calling an encrypted operation, with the key agreement, the signature, the cipher, the operation that establishes one, its lifetime and how many envelopes it carries, to name on an operation the handshake whose envelope it travels in, and to say that an operation streams a file as an upload or a download rather than reading a body whole; specarch validate shall check each against the design, the readers shall read them from code, the generators shall produce a server and a client that perform them, and the documents shall show them.
+
+Kind: functional; priority: must; status: accepted; verified by test; refines NEED-1, NEED-2, NEED-3.
+
+Acceptance criteria:
+
+- An operation naming a handshake the specification does not declare, a handshake whose establishedBy names no operation or an operation that itself travels in an envelope, and an upload stream that names a handshake are each reported as handshake in both builds, with the same words.
+- An upload stream on a method other than post or put, or whose request body is not one media type of a binary string, a download stream whose success response is not one such media type, and a maxResponseBytes beside no download are each reported as stream in both builds, with the same words.
+- Every operation that names a handshake derives the red case expired handshake <name>, which names the lifetime's end and, when the handshake declares uses, the envelopes it has carried.
+- extract go writes a dxlib endpoint registered with an end-to-end-encryption type as an operation under a handshake of dxlib's pre-key exchange, asking which operation establishes it, an upload or download stream type as a stream, and asks at a type it does not read.
+- generate openapi with the dxlib dialect writes the endpoint type each operation's handshake and stream give; generate go-dxlib writes the exchange's handler, the hooks that seal and open the envelope, the helpers that stream a body in and out, and a client that performs the handshake, the encrypted call and both streams; a generated client calls a generated server over the encrypted API and streams a file larger than its buffers both ways.
+- The technical specification lists each handshake with what a client does and marks each operation that travels in one or streams a file, in place of a request body and JSON responses.
+
+**Insight:** A service whose operations travel in an encrypted envelope, or that streams large files, could not say so in its specification, so a client built from it would send plain JSON to an endpoint that expects an envelope, and a document would show a field table where a stream of bytes travels.
 
 ### SA-7
 

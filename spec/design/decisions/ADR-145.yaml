@@ -1,0 +1,127 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
+decisions:
+  ADR-145:
+    title: A handshake is declared once with its key agreement, signature, cipher, establishing operation, lifetime and uses, and an operation names the one whose envelope its request and response travel in
+    status: accepted
+    date: "2026-10-20"
+    context: |
+      Services on dxlib register most endpoints with an end-to-end
+      encryption type: a client first calls a pre-key operation with its
+      Ed25519 and two X25519 public keys, receives the service's and an
+      index, derives two shared secrets, and from then on sends each
+      request as one JSON member holding the index and one holding a hex
+      envelope, an AES-256-CBC encryption of the length-prefixed header
+      and body signed with its Ed25519 key, and reads each answer from
+      the same kind of envelope under the second secret and the service's
+      key. A browser or a mobile app does exactly that before it may call
+      anything. The specification had no word for it: an operation read
+      from such a service showed a JSON body and JSON responses, so a
+      client built from it would have sent plain JSON to an endpoint that
+      refuses it, the technical specification showed a field table where
+      an envelope travels, and docs/dxlib-lessons.md had set the session
+      key mechanism aside as implementation. What a client must do to
+      call an operation is the interface, which is design; which bytes
+      the envelope is made of belongs to the stack.
+    decision: |
+      handshakes is a section of the design keyed by camelCase name. Each
+      declares the key agreement both sides run (keyAgreement, x25519 or
+      x448, RFC 7748), the signature each puts on what it sends
+      (signature, ed25519 or ed448, RFC 8032), the cipher the envelope is
+      encrypted with (cipher, by its OpenSSL name: aes-256-cbc,
+      aes-256-gcm or chacha20-poly1305), the operation a client calls to
+      perform the exchange (establishedBy, an operationId), how long one
+      is accepted (lifetime, a duration; left out, it does not expire by
+      time) and how many envelopes one carries (uses; left out, any
+      number within its lifetime). An operation names under handshake the
+      handshake whose envelope its request travels in; its response
+      travels in the same envelope unless the operation streams a
+      download (ADR-146), which leaves the envelope and answers the bytes
+      plain. The establishing operation travels in no envelope: it is
+      called before one exists. An upload stream cannot name a handshake:
+      its request body is the file, and the envelope carries a JSON body.
+
+      The validator refuses, as handshake, an operation naming a
+      handshake that is not declared, an establishedBy that names no
+      operation or one that itself names a handshake, and a handshake on
+      an upload stream. Every operation that names a handshake derives
+      the red case expired handshake <name>, as an operation accepting a
+      token derives its expired case: a caller whose handshake has
+      expired, or has carried its uses envelopes, is refused and
+      establishes a new one. The technical specification lists each
+      handshake with what a client does, in order, and says of each
+      operation which handshake it travels in.
+
+      The bytes on the wire are the stack's. For dxlib they are fixed by
+      the library: an endpoint whose type is EndPointTypeHTTPEndToEndEncryptionV2
+      carries the pre-key envelope, a request of {i, d} and a response of
+      {d}, the envelope dxlib's datablock packs; the exchange is
+      dxlib_module's pre-login, a request of a0, a1 and a2 answered with
+      i, b0, b1 and b2. extract go writes such an endpoint under a
+      handshake named preKey with keyAgreement x25519, signature ed25519
+      and cipher aes-256-cbc, inferred from the type, and asks as a must
+      question which operation establishes it unless a registration of
+      the module declares exactly the parameters a0, a1 and a2, which it
+      then names; the lifetime is the service's configuration, so it is
+      left out with a should question. EndPointTypeHTTPDownloadStreamV2
+      is the same handshake on a download stream. The V1 type dxlib
+      itself refuses as not implemented, so it is a line and a could
+      question; the V3 and V4 types are envelopes whose exchange, cipher
+      and session store the host supplies and dxlib does not read, so
+      each is a must question on the operation's handshake, as is a type
+      the reader cannot read. generate openapi in the dxlib dialect
+      writes the V2 type for a handshake of those three primitives, the
+      DownloadStreamV2 type when the operation also streams a download,
+      and an error at the operation for any other primitives, since no
+      dxlib type carries them. generate go-dxlib writes the exchange's
+      handler for the establishing operation, whose body must declare
+      a0, a1 and a2 and whose success must declare i, b0, b1 and b2, the
+      hooks dxlib calls to open and seal an envelope over a store of
+      handshakes the service supplies (an in-memory store is written
+      beside it), and a client that performs the exchange and the
+      encrypted call, so a generated client and a generated server agree
+      by construction. The other generators refuse an operation that
+      names a handshake rather than write a plain call: the tests target
+      says so in the test and leaves the call to the harness, the ui
+      targets report an error at the page, and the plain openapi target
+      writes x-specarch-handshake.
+    consequences: |
+      A client built from the specification knows which operations it may
+      call plain, which only through an envelope and which operation gives
+      it the envelope; a reviewer sees the same in the technical
+      specification; and a service read from dxlib keeps its encryption in
+      its specification instead of losing it to a JSON body. A handshake
+      is a fact of the interface boundary like a token, so a service that
+      moves from dxlib to another stack keeps the same declaration and
+      changes only how the stack makes the bytes. The front-end targets do
+      not yet perform a handshake: a page that submits to or loads from an
+      encrypted operation is an error at the page until they do, listed in
+      docs/roadmap.md.
+    why: |
+      The primitives are named by the standards that define them, RFC 7748
+      for the curves and RFC 8032 for the signatures, and by OpenSSL's
+      names for the ciphers, which every library spells the same, so that
+      a client on any stack reads the declaration without a dictionary.
+      The declaration stops at what a client must do and leaves the byte
+      layout to the stack, because the layout is dxlib's datablock today
+      and would be another library's tomorrow, while the exchange, the
+      keys and the cipher are what both ends must agree on; writing the
+      layout in the design would be the stack-specific key the design
+      refuses. A handshake is declared once and named by operations, as
+      middlewares are, because a service encrypts nearly everything the
+      same way and the exceptions are what is worth writing. The
+      establishing operation is an operation like any other, with its
+      body and responses, so that a client sees its parameters where it
+      sees every other, and the generator checks them against the
+      exchange it writes rather than inventing a second declaration. uses
+      is declared rather than assumed single, because dxlib's own code
+      lets a pre-key serve until its time runs out while a consumer may
+      delete it after one envelope, and the client must know which. The
+      reader infers the primitives from the endpoint type because dxlib
+      fixes them for that type, as it fixes a parameter type's JSON
+      schema, and asks for what the type does not fix.
+    cites:
+      - source: rfc-7748
+        says: "X25519 and X448 are Diffie-Hellman functions over Curve25519 and Curve448: each party sends its public key and both compute the same shared secret."
+      - source: rfc-8032
+        says: "Ed25519 and Ed448 are EdDSA signature schemes; a signature is verified with the signer's public key."
+    satisfies: [SA-77, SA-3, SA-29]

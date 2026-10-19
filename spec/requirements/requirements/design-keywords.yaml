@@ -411,3 +411,18 @@ requirements:
     verification: test
     needs: [NEED-1, NEED-3, NEED-9]
     why: A service that forwards by the token's audience had no place in its own specification, so the one behaviour it exists for was recorded as a surface not read; written as an element, its token, its table and its refusals are checked, drawn and tested like an operation's.
+  SA-77:
+    statement: A specification shall be able to declare the handshakes a client performs before calling an encrypted operation, with the key agreement, the signature, the cipher, the operation that establishes one, its lifetime and how many envelopes it carries, to name on an operation the handshake whose envelope it travels in, and to say that an operation streams a file as an upload or a download rather than reading a body whole; specarch validate shall check each against the design, the readers shall read them from code, the generators shall produce a server and a client that perform them, and the documents shall show them.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance:
+      - An operation naming a handshake the specification does not declare, a handshake whose establishedBy names no operation or an operation that itself travels in an envelope, and an upload stream that names a handshake are each reported as handshake in both builds, with the same words.
+      - An upload stream on a method other than post or put, or whose request body is not one media type of a binary string, a download stream whose success response is not one such media type, and a maxResponseBytes beside no download are each reported as stream in both builds, with the same words.
+      - Every operation that names a handshake derives the red case expired handshake <name>, which names the lifetime's end and, when the handshake declares uses, the envelopes it has carried.
+      - extract go writes a dxlib endpoint registered with an end-to-end-encryption type as an operation under a handshake of dxlib's pre-key exchange, asking which operation establishes it, an upload or download stream type as a stream, and asks at a type it does not read.
+      - generate openapi with the dxlib dialect writes the endpoint type each operation's handshake and stream give; generate go-dxlib writes the exchange's handler, the hooks that seal and open the envelope, the helpers that stream a body in and out, and a client that performs the handshake, the encrypted call and both streams; a generated client calls a generated server over the encrypted API and streams a file larger than its buffers both ways.
+      - The technical specification lists each handshake with what a client does and marks each operation that travels in one or streams a file, in place of a request body and JSON responses.
+    verification: test
+    needs: [NEED-1, NEED-2, NEED-3]
+    why: A service whose operations travel in an encrypted envelope, or that streams large files, could not say so in its specification, so a client built from it would send plain JSON to an endpoint that expects an envelope, and a document would show a field table where a stream of bytes travels.

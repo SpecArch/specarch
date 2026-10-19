@@ -1,0 +1,49 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0 }
+permissions:
+  public: { description: Open to everyone. }
+handshakes:
+  preKey:
+    description: A one-use pre-key exchange.
+    keyAgreement: x25519
+    signature: ed25519
+    cipher: aes-256-cbc
+    establishedBy: issuePreKey
+    lifetime: PT5M
+    uses: 1
+  session:
+    description: A handshake nobody establishes.
+    keyAgreement: x25519
+    signature: ed25519
+    cipher: aes-256-gcm
+    establishedBy: openSesion
+paths:
+  /prekey:
+    post:
+      operationId: issuePreKey
+      summary: Issue a pre-key
+      permission: public
+      handshake: preKey
+      responses:
+        "200": { description: The pre-key. }
+  /notes:
+    post:
+      operationId: addNote
+      summary: Add a note
+      permission: public
+      handshake: prekey
+      responses:
+        "200": { description: Added. }
+  /files:
+    post:
+      operationId: uploadFile
+      summary: Upload a file
+      permission: public
+      handshake: preKey
+      stream: { direction: upload }
+      requestBody:
+        content:
+          application/octet-stream:
+            schema: { type: string, format: binary }
+      responses:
+        "200": { description: Stored. }

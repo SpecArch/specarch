@@ -550,7 +550,9 @@ redefined.
 | `guard`, `precondition`, `recordsChanged` | SpecArch | what is checked together with a data change |
 | `sensitivity`, `atRest`, `lookup`, `audited`, `deletion` | SpecArch | how sensitive a field is and how it is stored, and what the system keeps about each record of an entity |
 | `listOf`, `searchable`, `filterable`, `sortable`, `pageSize` | SpecArch | a list's whitelists and page size, which a client must know |
-| `limits`, `maxRequestBytes`, `rate`, `requests`, `per`, `burst` | SpecArch | the request size and rate a client keeps to |
+| `limits`, `maxRequestBytes`, `maxResponseBytes`, `rate`, `requests`, `per`, `burst` | SpecArch | the request size and rate a client keeps to, and the largest download it must be ready for |
+| `handshakes`, `keyAgreement`, `signature`, `cipher`, `establishedBy`, `lifetime`, `uses`, `handshake` | SpecArch, after RFC 7748 (the key agreements), RFC 8032 (the signatures) and OpenSSL's cipher names | a key exchange a client performs once, after which the operations that name it travel in an encrypted, signed envelope; declared once, named by each operation that travels in it (ADR-145) |
+| `stream`, `direction` | SpecArch | an operation whose request body (`upload`) or success response (`download`) is a file passed through as it arrives, never read whole; the media type and the binary string stay in OpenAPI's `requestBody` and `responses` (ADR-146) |
 | `jobs`, `trigger`, `schedule`, `every`, `consumes`, `role`, `retries`, `limit`, `then` | SpecArch | work the system does on its own; a schedule is the five fields of cron, in UTC |
 | `menus`, `title`, `page`, `items` | SpecArch | the navigation: a tree whose leaves open pages |
 | `workflows`, `trigger`, `subject`, `steps`, `approvers`, `deadline`, `onDeadline`, `escalateTo` | BPMN 2.0, a sequential subset | a request that finishes after people approve it: an approval is a user task with its potential owners and a timer, an operation step a service task |
@@ -1705,6 +1707,7 @@ mistake:
 | a dependency the operation `calls` | `dependency fails <dependency>`, `dependency times out <dependency>` | red | rare |
 | an `idempotencyKey` | `repeated with the same <key>` | golden | frequent |
 | | `<key> reused for another request` | red | occasional |
+| a `handshake` on an operation | `expired handshake <name>` | red | frequent |
 | a body field that is the `via` of a relation to an entity with `validity` | `expired <field>`, and with `from` `not yet valid <field>` | red | occasional |
 | a GET answering a list of an entity with `deletion: soft` | `deleted <Entity> not listed` | golden | occasional |
 | a GET by a path parameter answering an entity with `deletion: soft` | `deleted <Entity> read` | red | occasional |

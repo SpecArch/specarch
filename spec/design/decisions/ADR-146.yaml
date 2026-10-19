@@ -1,0 +1,91 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
+decisions:
+  ADR-146:
+    title: An operation that carries a file says so with stream and its direction, the media type and the binary string stay where OpenAPI puts them, and the largest download is a limit
+    status: accepted
+    date: "2026-10-20"
+    context: |
+      dxlib serves very large files: an upload endpoint hands the handler
+      the request body as it arrives, from the first byte to the last, and
+      a download endpoint writes the response body the same way, with the
+      file's media type, length and name in the headers, and neither is
+      ever held whole in memory. The reader wrote an upload's body as a
+      binary string from its content type and a download as a JSON
+      response, so nothing told a client, a generator or a reader of the
+      technical specification that the body is a file streamed through,
+      how large it may be, or that the download answers no JSON at all.
+      OpenAPI describes a binary body as a string of format binary under
+      its media type and has no word for streaming, since to the document
+      a body is a body however it is read.
+    decision: |
+      stream is an operation keyword with one key, direction: upload says
+      the request body is the file, download says the success response's
+      body is. OpenAPI's own words keep saying what the body is: an
+      upload's requestBody has one media type whose schema is a string of
+      format binary, and a download's every 2xx response has one such
+      media type; stream adds that the body is passed through as it
+      arrives and bounded as a file. The largest upload is
+      limits.maxRequestBytes, as for any body; the largest download is
+      limits.maxResponseBytes, a limit added for it, the largest answer a
+      client must be ready for, allowed only beside a download stream.
+
+      The validator refuses, as stream, an upload on a method other than
+      post or put, an upload without that request body or with another, a
+      download without a success response or whose success response
+      carries another body, and maxResponseBytes beside no download. The
+      technical specification says of such an operation that it streams
+      the file in or out, with its media type and bound, in place of a
+      field table and JSON responses.
+
+      For dxlib, extract go writes EndPointTypeHTTPUploadStream as an
+      upload stream, EndPointTypeHTTPDownloadStream as a download stream,
+      and EndPointTypeHTTPDownloadStreamV2 as a download stream under the
+      pre-key handshake (ADR-145); a download's success response is
+      written as application/octet-stream, the type dxlib's own sender
+      sets, with a schema of a binary string, in place of what the
+      registration's data template declares, which is a should question
+      when it declares one. generate openapi in the dxlib dialect writes
+      the upload type with a requestBody of the binary string, as dxlib's
+      reader asks, and the download type with its success response
+      described but carrying no content, since dxlib's reader takes a
+      response's content only as a JSON object. generate go-dxlib writes
+      an upload helper that hands the body to the service's own code as a
+      reader held to maxRequestBytes, since dxlib caps a streamed upload
+      only by the declared Content-Length and a chunked upload declares
+      none, and a download helper that writes the headers, the status and
+      the bytes from a reader as dxlib's own sender does, refusing a file
+      above maxResponseBytes before a byte is sent and abandoning the
+      response on a failed copy so a client never keeps a short file as a
+      whole one; the client it writes uploads from and downloads to a
+      stream. The tests target leaves a stream's call to the harness, the
+      ui targets report an error at a page that submits to or loads from
+      a stream, and the plain openapi target writes x-specarch-stream.
+    consequences: |
+      A reader of the specification tells a file endpoint from a JSON one
+      without opening the code, a client knows which bodies to stream and
+      how large they may be, and a generated service streams a file
+      larger than memory in both directions, which the round trip's test
+      exercises with a generated client against a generated server. A
+      body of format binary without stream is still allowed: a small
+      image read whole is one, and the two differ in how the body is
+      handled, which is what stream says.
+    why: |
+      OpenAPI's media type and binary string already say what the body
+      is, so stream says only what they cannot: the direction and that
+      the body is passed through, bounded as a file. Repeating the media
+      type under stream would be a second way to say it, which the one
+      way rule refuses; so the validator checks stream against the body
+      rather than letting stream carry its own. The bound of a download
+      goes under limits beside the bound of a request because both are
+      sizes a client plans for, and a new key beside stream for one of
+      them would split one idea in two places. The reader writes the
+      download's media type as octet-stream from dxlib's own sender
+      rather than asking, because the registration's data template is a
+      JSON object dxlib never sends on a stream, and a stream is bytes
+      unless the handler names another type; when the registration
+      declares a template anyway the two sources disagree, which is a
+      question.
+    cites:
+      - source: rfc-9110
+        says: "A representation's media type is given by Content-Type and its size by Content-Length; a message body may be of any length, transferred as it is produced."
+    satisfies: [SA-77, SA-3]

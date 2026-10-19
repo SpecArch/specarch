@@ -191,6 +191,16 @@ let designSchemaJSON = #"""
         "$ref": "#/$defs/middleware"
       }
     },
+    "handshakes": {
+      "description": "SpecArch keyword. The key exchanges a client performs before it may call the operations that travel in an encrypted envelope, keyed by camelCase name and declared once: the key agreement, the signature and the cipher the envelope uses, the operation that establishes one, how long one lives and how many envelopes it carries. An operation names the one it travels in under handshake. The bytes of the envelope on the wire belong to the implementation file's stack.",
+      "type": "object",
+      "propertyNames": {
+        "$ref": "#/$defs/memberName"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/handshake"
+      }
+    },
     "paths": {
       "description": "OpenAPI keyword. HTTP endpoints keyed by path template.",
       "type": "object",
@@ -2504,6 +2514,36 @@ let designSchemaJSON = #"""
           "description": "SpecArch keyword. The name of a header parameter of this operation by which a repeated request is told from a new one: a request repeated with the same key is answered as the first was and has no second effect, and a different request with a key already used is refused. Only on a method that is not idempotent by itself (RFC 9110, 9.2.2): post or patch.",
           "type": "string",
           "minLength": 1
+        },
+        "handshake": {
+          "description": "SpecArch keyword. The handshake, by its name under handshakes, whose envelope this operation's request travels in, and its response too unless the operation streams a download, which leaves the envelope. A client establishes the handshake first, through the operation the handshake names under establishedBy.",
+          "$ref": "#/$defs/memberName"
+        },
+        "stream": {
+          "description": "SpecArch keyword. The operation carries a file as a stream rather than a body read whole: an upload reads the request body from its first byte to its last as it arrives, a download writes the response body the same way. The media type and that it is binary stay where OpenAPI puts them, in the request body of an upload and the success response of a download, as a string of format binary. The largest upload is limits.maxRequestBytes, the largest download limits.maxResponseBytes.",
+          "type": "object",
+          "properties": {
+            "direction": {
+              "description": "upload: the request body is the file. download: the success response's body is the file.",
+              "type": "string",
+              "enum": [
+                "upload",
+                "download"
+              ]
+            }
+          },
+          "required": [
+            "direction"
+          ],
+          "propertyNames": {
+            "not": {
+              "$ref": "#/$defs/stackSpecificKey"
+            }
+          },
+          "patternProperties": {
+            "^x-": {}
+          },
+          "additionalProperties": false
         },
         "guard": {
           "$ref": "#/$defs/guard"
@@ -5327,11 +5367,17 @@ let designSchemaJSON = #"""
       ]
     },
     "limits": {
-      "description": "SpecArch keyword. Limits a client must keep to: the largest request body, and how many requests are taken in a time. The runtime side is the rate-limit idiom.",
+      "description": "SpecArch keyword. Limits a client must keep to, and the largest answer it must be ready for: the largest request body, the largest response body of a download stream, and how many requests are taken in a time. The runtime side is the rate-limit idiom.",
       "type": "object",
       "properties": {
         "maxRequestBytes": {
           "description": "The largest request body, in bytes; a larger one is refused.",
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "maxResponseBytes": {
+          "description": "The largest response body, in bytes, of an operation that streams a download; the system answers no larger file, and a client need be ready for no more. Only beside stream: {direction: download}.",
           "type": "integer",
           "minimum": 1,
           "maximum": 9007199254740991
@@ -5482,6 +5528,88 @@ let designSchemaJSON = #"""
       },
       "required": [
         "description"
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "handshake": {
+      "description": "SpecArch keyword. One key exchange between a client and the system, after which the client's requests and the system's answers on the operations that name it travel in an envelope: encrypted with the cipher under a key both derive by the key agreement, and signed by each side's signature key, so that neither a proxy nor the transport sees or alters a body. What a client must do is what this declares; the bytes on the wire belong to the stack.",
+      "type": "object",
+      "properties": {
+        "description": {
+          "$ref": "#/$defs/markdown"
+        },
+        "keyAgreement": {
+          "description": "The key agreement both sides run, by its name in RFC 7748: x25519 or x448. Each side sends its public key, and both derive the same shared secret.",
+          "type": "string",
+          "enum": [
+            "x25519",
+            "x448"
+          ]
+        },
+        "signature": {
+          "description": "The signature each side puts on the envelope it sends, by its name in RFC 8032: ed25519 or ed448. The public key travels with the key agreement's, so the receiver verifies who sealed the envelope.",
+          "type": "string",
+          "enum": [
+            "ed25519",
+            "ed448"
+          ]
+        },
+        "cipher": {
+          "description": "The cipher the envelope is encrypted with, under the key the key agreement gives, by its OpenSSL name: aes-256-cbc, aes-256-gcm or chacha20-poly1305.",
+          "type": "string",
+          "enum": [
+            "aes-256-cbc",
+            "aes-256-gcm",
+            "chacha20-poly1305"
+          ]
+        },
+        "establishedBy": {
+          "description": "The operationId of the operation a client calls to perform the exchange: it sends its public keys in the request and receives the system's, with an index that names the handshake in every envelope after. That operation travels in no envelope itself.",
+          "$ref": "#/$defs/memberName"
+        },
+        "lifetime": {
+          "description": "How long a handshake is accepted after it is established; an envelope under one older than this is refused and the client establishes a new one. Left out, a handshake does not expire by time.",
+          "$ref": "#/$defs/duration"
+        },
+        "uses": {
+          "description": "How many envelopes one handshake carries before the client must establish a new one: 1 for a handshake used once, as a pre-key is. Left out, a handshake carries any number within its lifetime.",
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2147483647
+        },
+        "satisfies": {
+          "$ref": "#/$defs/satisfies"
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
+        },
+        "audience": {
+          "$ref": "#/$defs/audience"
+        }
+      },
+      "required": [
+        "description",
+        "keyAgreement",
+        "signature",
+        "cipher",
+        "establishedBy"
       ],
       "propertyNames": {
         "not": {

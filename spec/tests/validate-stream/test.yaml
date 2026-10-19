@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: an upload stream on a GET with no request body, one on a POST whose body is a JSON object, a download stream whose success response carries two media types, a maxResponseBytes on an operation that streams nothing, and a download stream with no success response
+when: validate is run
+then: it reports stream for each, naming the method, the missing body, the body declared, the two media types, the limit that bounds nothing and the missing success response, and exits 1
+verifies: [SA-77]

@@ -25,6 +25,7 @@ type design struct {
 	commands     map[string]*yaml.Node
 	channels     map[string]*yaml.Node
 	dependencies map[string]*yaml.Node
+	handshakes   map[string]*yaml.Node
 	pages        map[string]*yaml.Node
 	algorithms   map[string]*yaml.Node
 	decisions    map[string]*yaml.Node
@@ -71,6 +72,7 @@ func newDesign(root *yaml.Node) *design {
 		commands:     topMap(root, "commands"),
 		channels:     topMap(root, "channels"),
 		dependencies: topMap(root, "dependencies"),
+		handshakes:   topMap(root, "handshakes"),
 		pages:        topMap(root, "pages"),
 		algorithms:   topMap(root, "algorithms"),
 		decisions:    topMap(root, "decisions"),
@@ -182,6 +184,7 @@ func (c *checker) checkDesign(d *design) {
 	c.checkLookups(d)
 	c.checkOperations(d)
 	c.checkMiddlewares(d)
+	c.checkHandshakes(d)
 	c.checkCommands(d)
 	c.checkDependencies(d)
 	c.checkJobs(d)
@@ -555,6 +558,8 @@ func (c *checker) checkOperations(d *design) {
 		c.checkExposed(d, o)
 		c.checkListOf(d, o)
 		c.checkLimits(o)
+		c.checkHandshake(d, o)
+		c.checkStream(o)
 		c.checkProblems(d, o)
 		c.checkInterface(o)
 		c.checkOperationMiddlewares(d, o)

@@ -1,0 +1,59 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0 }
+permissions:
+  public: { description: Open to everyone. }
+paths:
+  /files:
+    get:
+      operationId: uploadByGet
+      summary: Upload by GET
+      permission: public
+      stream: { direction: upload }
+      responses:
+        "200": { description: Stored. }
+    post:
+      operationId: uploadObject
+      summary: Upload a JSON body
+      permission: public
+      stream: { direction: upload }
+      requestBody:
+        content:
+          application/json:
+            schema: { type: object, properties: { name: { type: string } } }
+      responses:
+        "200": { description: Stored. }
+  /files/{name}:
+    parameters:
+      - { name: name, in: path, required: true, schema: { type: string } }
+    get:
+      operationId: downloadFile
+      summary: Download a file
+      permission: public
+      stream: { direction: download }
+      limits: { maxResponseBytes: 1073741824 }
+      responses:
+        "200":
+          description: The file.
+          content:
+            application/json:
+              schema: { type: object }
+            application/octet-stream:
+              schema: { type: string, format: binary }
+        "404": { description: No such file. }
+    delete:
+      operationId: removeFile
+      summary: Remove a file
+      permission: public
+      limits: { maxResponseBytes: 1024 }
+      responses:
+        "204": { description: Removed. }
+  /files/{name}/thumbnail:
+    parameters:
+      - { name: name, in: path, required: true, schema: { type: string } }
+    get:
+      operationId: thumbnail
+      summary: The thumbnail
+      permission: public
+      stream: { direction: download }
+      responses:
+        "404": { description: No such file. }

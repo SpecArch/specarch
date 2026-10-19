@@ -434,6 +434,15 @@ extension Design {
             s.fieldCase("golden", "repeated with the same " + key, frequent, key, schema, given, o.id + " is called again with the same " + key + " and the same request", "it answers as the first call did and nothing changes a second time")
             s.fieldCase("red", key + " reused for another request", occasional, key, schema, given, o.id + " is called with the same " + key + " and a different request", "it is refused")
         }
+        let handshake = str(o.node.child("handshake"))
+        if !handshake.isEmpty {
+            var given = "a caller whose handshake " + handshake + " has expired"
+            let uses = str(handshakes[handshake]?.child("uses"))
+            if !uses.isEmpty {
+                given += " or has carried its " + uses + " " + (uses == "1" ? "envelope" : "envelopes")
+            }
+            s.red("expired handshake " + handshake, frequent, given, call + " through that handshake", "it is refused and the caller establishes a new handshake")
+        }
         guardCases(s, o.node.child("guard"), call)
         pageCases(s, o, call)
         limitsCases(s, o, call)

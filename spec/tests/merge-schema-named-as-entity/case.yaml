@@ -1,0 +1,10 @@
+arguments: [merge, --out, spec, trees/api, trees/database]
+exitStatus: 0
+standardOutput: |
+  tree trees/api: Notes API, on the documents side: 4 elements and 1 question
+  tree trees/database: Database of migrations, on the code, printed side: 2 elements and 0 questions
+  merged 5 elements, each an entry of a section or an operation: 1 in more than one tree, and 0 keys the trees disagree on
+  wrote 2 questions: 1 from the trees, numbered again in the order the trees are given, and 1 the merge asked
+  question Q-2 (must): #/schemas/Note: Note is a schema in Notes API and an entity in Database of migrations; a schema, an entity and a view are one namespace
+  derived 0 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers
+  not derived: 1 draft test for operation listNotes, held up by Q-1; the validator warns for them until the question is answered

@@ -260,6 +260,13 @@ func coveredByQuestions(_ ds: [Diagnostic], _ root: YNode) -> (kept: [Diagnostic
             // not under the permission; a question on the permission
             // itself is the one place that can say it is not known.
             isCovered = b.under(d.path)
+        } else if (d.rule == .valueObject || d.rule == .view) && d.message.contains(" are one namespace") {
+            // A schema or a view named like an entity, or a schema like a
+            // view: merge writes both, from trees that each pass on their
+            // own, and asks whether they are one element; the question on
+            // the schema or the view is the one place that can say it is
+            // not known (ADR-132).
+            isCovered = b.under(d.path)
         }
         if isCovered { covered.append(d) } else { kept.append(d) }
     }

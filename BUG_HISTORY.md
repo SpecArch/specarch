@@ -391,3 +391,13 @@ When two operations each have a response keyed by the empty string, the Go build
 Expected: one schema error at each operation's empty key (`/paths/~1loans~1close/post/responses/` and `/paths/~1loans~1open/post/responses/`), from both builds.
 
 To repeat: copy `spec/tests/validate-interface-response-key-empty/specarch.yaml`, add a second operation (`openLoan` on `/loans/open`, post) whose responses are `"": { description: Odd. }` and `"200": { description: Opened. }`, and run `specarch validate` on it. The Go build prints 1 error, at `closeLoan`; `swift run --package-path swift specarch validate` prints 2.
+
+## BUG-027 — merge: a schema and an entity of one name are written side by side, and validate refuses the merged tree
+
+- Reported: 2026-10-19, from merging a service's OpenAPI document with its database
+- Closed: 2026-10-19, completed
+- Fixed by: the commit on `main` whose message says `Fixes BUG-027`; ADR-132
+
+An OpenAPI document declares a schema that no operation creates, so `extract openapi` writes it under schemas; the database holds a table of the same name, which `extract database` writes under entities. Each tree passes `validate` alone. `specarch merge` wrote `/schemas/Note` beside `/entities/Note`, asked no question and reported no disagreement, and `validate` refused the merged tree: "Note is the name of an entity too; a schema, an entity and a view are one namespace". A merged tree is not edited by hand, so the extraction stopped there. Seen with 0.6.4.
+
+Expected: the merge keeps both entries and asks a must question at the schema whether the name is one element or two, citing both, and the merged tree passes `validate` with the question open. The same for a view named like an entity, and a schema like a view.

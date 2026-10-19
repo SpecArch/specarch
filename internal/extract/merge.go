@@ -116,6 +116,7 @@ func Merge(specs []*spec.Spec, out string, vocabularies []*vocabulary.Vocabulary
 	m.removeDisputed()
 	m.treeQuestions()
 	asked := m.disputeQuestions()
+	asked += m.namespaceQuestions()
 	asked += m.referenceQuestions()
 	asked += m.valueObjectQuestions()
 	asked += m.sideQuestions()
@@ -1868,6 +1869,110 @@ func (m *merger) disputeQuestions() int {
 		m.res.say("%s", line)
 	}
 	return len(m.disputeOrd)
+}
+
+// namespaceQuestions asks one must question per schema or view whose name
+// another tree gives to an entity, or, for a schema, to a view (ADR-132).
+// A schema, an entity and a view are one namespace, since each becomes a
+// schema of its own in the interface, and the validator refuses the two
+// side by side; each tree passes on its own, so only the merge sees both.
+// Neither is left out, since what refers to the entry would then point at
+// nothing, and the schema is not joined into the entity, since the merge
+// does not know that the shape is the record; the question blocks the
+// entry the validator reports, the schema or the view, and the validator
+// holds that error while the question is open.
+func (m *merger) namespaceQuestions() int {
+	asked := 0
+	for _, ptr := range m.order {
+		e := m.elements[ptr]
+		if e.parent != "" || len(e.tokens) != 2 {
+			continue
+		}
+		var sections []string
+		switch e.section {
+		case "schemas":
+			sections = []string{"entities", "views"}
+		case "views":
+			sections = []string{"entities"}
+		default:
+			continue
+		}
+		name := e.tokens[1]
+		var others []*element
+		for _, section := range sections {
+			if o := m.elements[source.Pointer(section, name)]; o != nil {
+				others = append(others, o)
+			}
+		}
+		if len(others) == 0 {
+			continue
+		}
+		word := entryWords[e.section]
+		if word == "" {
+			word = "schema"
+		}
+		cites := &yaml.Node{Kind: yaml.SequenceNode}
+		givers := func(el *element) string {
+			var titles []string
+			for _, ti := range el.trees {
+				t := m.trees[ti]
+				titles = append(titles, t.title)
+				for _, c := range citesAt(t.s.Root, []mergeStep{{key: el.section}, {key: name}}) {
+					if !containsNode(cites, c) {
+						cites.Content = append(cites.Content, copyNode(c))
+					}
+				}
+			}
+			return joinAnd(titles)
+		}
+		var said []string // "Notes API gives as a schema"
+		var as []string   // "a schema in Notes API"
+		given := func(el *element, word string) {
+			by := givers(el)
+			verb := "give"
+			if len(el.trees) == 1 {
+				verb = "gives"
+			}
+			said = append(said, fmt.Sprintf("%s %s it as %s %s", by, verb, article(word), word))
+			as = append(as, fmt.Sprintf("%s %s in %s", article(word), word, by))
+		}
+		given(e, word)
+		var otherWords []string
+		for _, o := range others {
+			given(o, entryWords[o.section])
+			otherWords = append(otherWords, entryWords[o.section])
+		}
+		var options []string
+		for _, o := range others {
+			options = append(options, fmt.Sprintf("One element: the %s %s is the %s %s, as %s has it, and what refers to #%s refers to #%s", word, name, entryWords[o.section], name, givers(o), ptr, source.Pointer(o.section, name)))
+		}
+		options = append(options, fmt.Sprintf("Two elements: the %s %s takes another name, since a schema, an entity and a view are one namespace", word, name))
+		q := mapping(
+			"question", fmt.Sprintf("Is %s, %s, one element or two?", name, joinAnd(as)),
+			"kind", "decision",
+			"priority", "must",
+			"blocks", []string{"#" + ptr},
+			"decidedBy", owner,
+			"options", options,
+			"why", fmt.Sprintf("The sources give one name to two things: %s. A schema, an entity and a view are one namespace, since each becomes a schema of its own in the interface. The merge keeps both rather than join them or rename one, and the validator holds the error at the %s while the question is open.", strings.Join(said, ", and "), word),
+		)
+		if len(cites.Content) > 0 {
+			set(q, "cites", cites)
+		}
+		m.addQuestion(q, questionFile(q))
+		m.res.say("question Q-%d (must): #%s: %s is %s; a schema, an entity and a view are one namespace", len(m.questions), ptr, name, joinAnd(as))
+		asked++
+	}
+	return asked
+}
+
+// article is the indefinite article of a word.
+func article(word string) string {
+	switch word[0] {
+	case 'a', 'e', 'i', 'o', 'u':
+		return "an"
+	}
+	return "a"
 }
 
 // inline writes a value on one line, as YAML's flow style does.

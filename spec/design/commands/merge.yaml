@@ -63,6 +63,18 @@ commands:
         one below it follows the reference to the named entry, or moves
         up to the position where the key is left out. An entity's field
         left out so leaves the entity's `required` list too.
+      - A name one tree gives to a schema and another to an entity or a
+        view, or one to a view and another to an entity, is kept in both
+        entries, each as its trees give it, since a schema, an entity and
+        a view are one namespace and the merge does not know whether the
+        shape is the record (ADR-132). One must question per such schema
+        or view asks whether the name is one element or two, with an
+        option that makes it the entity or the view it is named like,
+        where what refers to the one refers to the other, and an option
+        that gives it another name; its why names the trees that give the
+        name each way, it cites both entries, and it blocks the schema or
+        the view, where the validator reports the error it holds while
+        the question is open. A line names the question.
       - An entity's field holding a schema in columns is written out as
         `specarch generate sql` writes it, every part's column and the
         check that an optional value is wholly absent or has its required

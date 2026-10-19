@@ -1,0 +1,21 @@
+questions:
+  # specarch-problem: question: open_question: (must, decision) Which permission does GET /notes check? The document gives it no security. Decided by system-owner. Answer with a decision record that names Q-1 under answers. [Q-1]
+  Q-1:
+    question: Which permission does GET /notes check? The document gives it no security.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1notes/get/permission']
+    decidedBy: system-owner
+    why: A security scheme says how a caller proves who it is, not what it may do, so the permission is asked and never written as public.
+  # specarch-problem: question: open_question: (must, decision) Is Note, a schema in Notes API and an entity in Database of migrations, one element or two? Decided by system-owner. Answer with a decision record that names Q-2 under answers. [Q-2]
+  Q-2:
+    question: Is Note, a schema in Notes API and an entity in Database of migrations, one element or two?
+    kind: decision
+    priority: must
+    blocks: ['#/schemas/Note']
+    decidedBy: system-owner
+    options: ['One element: the schema Note is the entity Note, as Database of migrations has it, and what refers to #/schemas/Note refers to #/entities/Note', 'Two elements: the schema Note takes another name, since a schema, an entity and a view are one namespace']
+    why: 'The sources give one name to two things: Notes API gives it as a schema, and Database of migrations gives it as an entity. A schema, an entity and a view are one namespace, since each becomes a schema of its own in the interface. The merge keeps both rather than join them or rename one, and the validator holds the error at the schema while the question is open.'
+    cites:
+      - {source: openapi, clause: /components/schemas/Note, says: 'The schema Note, with the properties id and title.'}
+      - {source: code, clause: migrations public.note, says: 'Table public.note: id uuid not null, title character varying(200) not null. note_pkey PRIMARY KEY (id).'}

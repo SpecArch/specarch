@@ -1,0 +1,19 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v0.6.2/schema/specarch-design-0.2.schema.json
+specarch: "0.2"
+info:
+  title: Notes API
+  version: 0.1.0
+  description: |
+    The OpenAPI document docs-openapi.yaml, read at commit 7a1b2c3d4e5f60718293a4b5c6d7e8f901234567: every operation and component schema is a clause, every operation is written under its path citing it, every component schema of type object that an operation creates or a path with a parameter answers is an entity, and every other one a schema. What the document does not say is a question, and so is what the meta-model cannot hold.
+  tracksOrigin: true
+stages: [requirements, design]
+sources:
+  openapi:
+    kind: document
+    title: Notes API
+    edition: 7a1b2c3d4e5f60718293a4b5c6d7e8f901234567
+    url: https://example.invalid/notes/docs-openapi.yaml
+    clauses:
+      - {clause: /paths/~1notes/get, title: GET /notes}
+      - {clause: /components/schemas/Note, title: schema Note}
+      - {clause: /components/schemas/NoteList, title: schema NoteList}

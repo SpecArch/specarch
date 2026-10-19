@@ -198,7 +198,12 @@ tree's citation; a permission one tree grants that another tree, which
 has the role, declares and does not grant is a disagreement, left out
 with a `must` question naming it (ADR-127). A role's grants left out
 can leave a permission no role grants, and the question on the grants
-blocks that permission too. The merged tree always passes `validate`. Where one tree refers to a named schema and another
+blocks that permission too. A name one tree gives to a schema and
+another to an entity or a view, or one to a view and another to an
+entity, is kept in both entries, and a `must` question blocking the
+schema or the view asks whether they are one element or two, citing
+both; the validator holds the one-namespace error at that entry while
+the question is open (ADR-132). The merged tree always passes `validate`. Where one tree refers to a named schema and another
 writes the shape in place, as an OpenAPI document and a Go handler do
 for one request body, the reference is kept when the shapes agree in all
 both say; a key both give that differs is left out with a `must`

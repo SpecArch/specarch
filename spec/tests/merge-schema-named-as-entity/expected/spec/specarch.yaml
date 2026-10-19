@@ -1,0 +1,27 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v0.6.2/schema/specarch-design-0.2.schema.json
+specarch: "0.2"
+info:
+  title: Merge of 2 trees
+  version: 0.1.0
+  description: |
+    The elements of these trees, merged in this order: Notes API; Database of migrations. Every element cites where it was read; where the trees disagree, or the documents and the code do, a question asks which is right.
+  tracksOrigin: true
+stages: [requirements, design]
+sources:
+  openapi:
+    kind: document
+    title: Notes API
+    edition: 7a1b2c3d4e5f60718293a4b5c6d7e8f901234567
+    url: https://example.invalid/notes/docs-openapi.yaml
+    clauses:
+      - {clause: /components/schemas/Note, title: schema Note}
+      - {clause: /components/schemas/NoteList, title: schema NoteList}
+      - {clause: /paths/~1notes/get, title: GET /notes}
+  code:
+    kind: code
+    title: The notes service
+    edition: 7a1b2c3d4e5f60718293a4b5c6d7e8f901234567
+    url: https://example.invalid/notes.git
+    clauses:
+      - {clause: migrations, title: The database catalogue after every migration here is applied}
+    reading: printed

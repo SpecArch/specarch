@@ -1,0 +1,8 @@
+questions:
+  Q-1:
+    question: Which permission does GET /notes check? The document gives it no security.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1notes/get/permission']
+    decidedBy: system-owner
+    why: A security scheme says how a caller proves who it is, not what it may do, so the permission is asked and never written as public.

@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.0-dev of the specification: 513 design tests, 228 golden and 285 red, about 16 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.0-dev of the specification: 512 design tests, 228 golden and 284 red, about 16 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.7.0-dev of the specification: 513 design tests, 228 golden and 285 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 509 |
+| system | 508 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -2297,6 +2297,14 @@ Scenario: red; level: system; verifies SA-62.
 - When: merge is run on the two trees
 - Then: it asks one must question on the roles naming both ways and the tree that says each, leaves info.roleNames out of the merged specification, and exits 0
 
+#### merge-schema-named-as-entity
+
+Scenario: red; level: system; verifies SA-45.
+
+- Given: an OpenAPI tree whose schema Note, which no operation creates, is listed by the schema NoteList that GET /notes answers, and a database tree whose table note is the entity Note
+- When: merge is run on the two trees
+- Then: both entries are written as their trees give them, a must question blocking #/schemas/Note asks whether Note is one element or two, with both options and both citations, a line names the question, and the merged specification validates with no error; it exits 0
+
 #### merge-schema-reference-agrees
 
 Scenario: golden; level: system; verifies SA-45.
@@ -3411,6 +3419,14 @@ Scenario: golden; level: system; verifies SA-17.
 - When: validate is run
 - Then: the missing keys and the warnings about the blocked elements are covered by the questions; it prints nothing and exits 0
 
+#### validate-question-covers-namespace
+
+Scenario: red; level: system; verifies SA-17, SA-48, SA-41.
+
+- Given: a schema and a view each named like an entity, each with a must question that blocks it, and a schema named like a view with only a should question blocking it
+- When: validate is run
+- Then: the one-namespace errors at the schema and the view the must questions block are covered, the one at the schema the should question blocks is reported, and it exits 1
+
 #### validate-question-covers-problem
 
 Scenario: red; level: system; covers exit 1; verifies SA-5, SA-17.
@@ -4183,7 +4199,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-297 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+298 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -4447,6 +4463,7 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-45 | acceptance 7 | golden | SA-45 names no harm |
 | requirement SA-45 | acceptance 8 | golden | SA-45 names no harm |
 | requirement SA-45 | acceptance 9 | golden | SA-45 names no harm |
+| requirement SA-45 | acceptance 10 | golden | SA-45 names no harm |
 | requirement SA-57 | acceptance 1 | golden | SA-57 names no harm |
 | requirement SA-57 | acceptance 2 | golden | SA-57 names no harm |
 | requirement SA-57 | acceptance 3 | golden | SA-57 names no harm |

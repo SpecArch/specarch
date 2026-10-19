@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: merge
+level: system
+scenario: red
+given: "an OpenAPI tree whose schema Note, which no operation creates, is listed by the schema NoteList that GET /notes answers, and a database tree whose table note is the entity Note"
+when: "merge is run on the two trees"
+then: "both entries are written as their trees give them, a must question blocking #/schemas/Note asks whether Note is one element or two, with both options and both citations, a line names the question, and the merged specification validates with no error; it exits 0"
+verifies: [SA-45]

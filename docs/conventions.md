@@ -316,9 +316,14 @@ by name, such as an entity or one of its fields, is written as an empty
 mapping and blocked by pointer. A pointer to one key that is not there,
 such as `#/workflows/<name>/trigger`, covers that key alone; when the key's
 value decides what else the element needs, such as a field's `type` or a
-constraint's `kind`, block the element. Nothing else is covered: a wrong
-value beside the gap is still an error, and a `should` question covers no
-missing key.
+constraint's `kind`, block the element. Covered too are a permission no
+role grants when the question blocks that permission, a response that
+names no problem while problem types are declared when the question
+blocks its problem, and a schema or a view named like an entity, or a
+schema like a view, when the question blocks that schema or view, as
+`specarch merge` writes and asks it (ADR-132). Nothing else is covered: a
+wrong value beside the gap is still an error, and a `should` question
+covers no missing key.
 
 The validator checks that every `blocks` entry resolves (`question_block`),
 that a question sits in the stage of what it blocks and blocks one stage

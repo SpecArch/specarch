@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: validate
+level: system
+scenario: red
+given: "a schema and a view each named like an entity, each with a must question that blocks it, and a schema named like a view with only a should question blocking it"
+when: validate is run
+then: "the one-namespace errors at the schema and the view the must questions block are covered, the one at the schema the should question blocks is reported, and it exits 1"
+verifies: [SA-17, SA-48, SA-41]

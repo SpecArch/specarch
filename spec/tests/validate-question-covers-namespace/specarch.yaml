@@ -1,0 +1,63 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0 }
+stakeholders:
+  owner: { description: The product owner. }
+entities:
+  Branch:
+    type: object
+    properties:
+      code: { type: string, maxLength: 10 }
+    required: [code]
+    primaryKey: [code]
+    relations:
+      notes: { target: Note, kind: one-to-many, via: branchCode }
+  Note:
+    type: object
+    properties:
+      id: { type: string, format: uuid }
+      title: { type: string, maxLength: 200 }
+      branchCode: { type: string, maxLength: 10 }
+    required: [id, title, branchCode]
+    primaryKey: [id]
+    relations:
+      branch: { target: Branch, kind: many-to-one, via: branchCode, onDelete: restrict }
+schemas:
+  Note:
+    type: object
+    properties:
+      id: { type: string, maxLength: 36 }
+      title: { type: string, maxLength: 200 }
+    required: [id, title]
+  Pick:
+    type: object
+    properties:
+      code: { type: string, maxLength: 10 }
+    required: [code]
+views:
+  Branch:
+    from: Branch
+    properties:
+      noteCount: { count: notes }
+  Pick:
+    from: Branch
+    properties:
+      noteCount: { count: notes }
+questions:
+  Q-1:
+    question: Is Note, a schema in the API document and an entity in the database, one element or two?
+    kind: decision
+    priority: must
+    blocks: ["#/schemas/Note"]
+    decidedBy: owner
+  Q-2:
+    question: Is Branch, a view in the reporting module and an entity in the database, one element or two?
+    kind: decision
+    priority: must
+    blocks: ["#/views/Branch"]
+    decidedBy: owner
+  Q-3:
+    question: Is Pick, a schema in the API document and a view in the reporting module, one element or two?
+    kind: decision
+    priority: should
+    blocks: ["#/schemas/Pick"]
+    decidedBy: owner

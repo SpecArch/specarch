@@ -1,0 +1,36 @@
+schemas:
+  Note:
+    type: object
+    properties:
+      id: {type: string, maxLength: 36}
+      title: {type: string, maxLength: 200}
+    required: [id, title]
+    origin: stated
+    cites:
+      - {source: openapi, clause: /components/schemas/Note, says: 'The schema Note, with the properties id and title.'}
+  NoteList:
+    type: object
+    properties:
+      items:
+        type: array
+        items: {$ref: '#/schemas/Note'}
+    required: [items]
+    origin: stated
+    cites:
+      - {source: openapi, clause: /components/schemas/NoteList, says: 'The schema NoteList, with the properties items.'}
+paths:
+  /notes:
+    # specarch-problem: warning: test_golden_missing: operation listNotes has no golden scenario; add one under tests, for example list-notes-succeeds: { operation: listNotes, scenario: golden, given: "any caller", when: "listNotes is called", then: "it answers 200: The notes." } [test_golden_missing@design/openapi.yaml#/paths/~1notes/get]
+    # specarch-problem: warning: test_red_missing: operation listNotes has no red scenario; add one under tests, for example list-notes-refused: { operation: listNotes, scenario: red, given: "...", when: "...", then: "it is refused" } [test_red_missing@design/openapi.yaml#/paths/~1notes/get]
+    get:
+      operationId: listNotes
+      summary: List the notes
+      responses:
+        "200":
+          description: The notes.
+          content:
+            application/json:
+              schema: {$ref: '#/schemas/NoteList'}
+      origin: stated
+      cites:
+        - {source: openapi, clause: /paths/~1notes/get, says: 'GET /notes: List the notes.'}

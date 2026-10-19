@@ -1,0 +1,83 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
+decisions:
+  ADR-132:
+    title: merge keeps a schema or a view named like an entity beside it and asks whether they are one element, and the validator holds the one-namespace error while that question is open
+    status: accepted
+    date: "2026-10-19"
+    context: |
+      A service's OpenAPI document declares a component schema that no
+      operation creates and no path with a parameter answers, so extract
+      openapi writes it under schemas, a shape with no identity it saw
+      (ADR-060). The service's database holds a table of the same name,
+      which extract database writes under entities. Each tree passes
+      validate on its own. merge joined the trees section by section, so
+      the merged tree held /schemas/Note beside /entities/Note, and
+      validate refused it: a schema, an entity and a view are one
+      namespace, since each becomes a schema of its own in the interface
+      (value_object). merge asked no question and reported no
+      disagreement, so the one place that says what is wrong was the
+      error on a tree the readers wrote, which no one edits by hand, and
+      the extraction stopped there. The usual case is a document left
+      from a service template that documents a schema which happens to
+      share a name with one of the module's tables; whether the shape is
+      the record is exactly what the merge cannot tell.
+    decision: |
+      A name one tree gives to a schema and another to an entity or a
+      view, or one to a view and another to an entity, is kept in both
+      entries, each as its trees give it, and merge asks one must
+      question per schema or view so named: whether the name is one
+      element or two, with an option that makes the schema or the view
+      the entity it is named like, where what refers to the one refers to
+      the other, and an option that gives it another name; the why names
+      the trees that give it each way, and the question cites both
+      entries and blocks the schema or the view, the entry the validator
+      reports. A schema named like a view is asked the same way, at the
+      schema. A line names the question. The validator, in both builds,
+      covers the value_object or view error that says the two are one
+      namespace when a must question blocks the schema or the view it is
+      reported at; this extends the list of ADR-017, and a should
+      question covers nothing, as before.
+    why: |
+      Neither entry is left out, because what refers to the schema, a
+      list that carries it or a response, would then point at nothing,
+      and the entity is the record the code side has: leaving either out
+      drops a definition, which the compiler principle forbids. The
+      schema is not joined into the entity, because the merge does not
+      know that the shape is the record; the owner chose, in ADR-060,
+      that merge never turns a schema into an entity, and a template's
+      schema that happens to share a table's name is the common case.
+      Neither is renamed, because a name the merge makes up is a
+      placeholder, and the next merge of the same sources would make it
+      again. So the merge asks, as it does for every disagreement
+      (ADR-045): the two trees say two things of one name.
+      The validator holds the error while the question is open, because
+      the merged tree must pass validate for gaps and the documents to
+      read it, and the question is the one place that can say the
+      standing of the name is not known, as a question on a permission
+      no role grants is (ADR-017). The collision is a wrong value only
+      once the owner has said the two are two; until then it is a gap,
+      what the name means. With no must question blocking the entry the
+      error is reported as before, so a specification written by hand is
+      held to the one namespace. The question blocks the schema or the
+      view and not the entity, because the entity is what the operations
+      list and the pages show, and a question on it would hold up every
+      one of them while only the schema's or the view's standing is in
+      doubt; and because the error is reported there, so the question
+      sits where the reader of the problems file is sent.
+      The compiler test holds: both definitions are read and written,
+      the problem is in the problems file as the question and marked at
+      the schema or the view, and no entry is refused. The acceptance
+      test holds: the first merge of a document and a database with a
+      shared name validates and the techspec shows both entries with the
+      question beside them, and the owner's answer is one decision, after
+      which the schema is removed or renamed, or made the entity, at the
+      one entry the question names.
+    consequences: |
+      merge-schema-named-as-entity covers the merge, and
+      validate-question-covers-namespace both builds of the validator. A
+      merged tree with such a name validates with the question counted
+      and no error; gaps lists the question with what it holds up, and
+      the OpenAPI generator, which writes both entries as components,
+      waits with every other generator on the open must question. A
+      specification with no such question is checked as before.
+    satisfies: [SA-45, SA-17]

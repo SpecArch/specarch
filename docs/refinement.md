@@ -136,8 +136,11 @@ its pointer is an ordinary error.
   covers what is missing at or under it; a pointer to a key that is not
   there covers that key alone. So is a
   warning about the blocked element (its acceptance criteria, its
-  traceability, its missing test cases). A wrong value next to the gap is
-  still an error.
+  traceability, its missing test cases), a permission no role grants when
+  the question blocks that permission, and a schema or a view named like
+  an entity when the question blocks that schema or view, as `merge`
+  writes and asks it (ADR-132). A wrong value next to the gap is still an
+  error.
 - The rules: `question_block` (every `blocks` entry is a stage, a section,
   or a pointer that resolves as described), `stakeholder` (`decidedBy` is a
   stakeholder of the specification), `question_stage` (the question sits in

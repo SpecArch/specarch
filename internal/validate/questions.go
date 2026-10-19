@@ -321,6 +321,13 @@ func Covered(ds []Diagnostic, root *yaml.Node) (kept, covered []Diagnostic) {
 			// not under the permission; a question on the permission
 			// itself is the one place that can say it is not known.
 			isCovered = b.under(d.Path)
+		case (d.Rule == RuleValueObject || d.Rule == RuleView) && strings.Contains(d.Message, " are one namespace"):
+			// A schema or a view named like an entity, or a schema like
+			// a view: merge writes both, from trees that each pass on
+			// their own, and asks whether they are one element; the
+			// question on the schema or the view is the one place that
+			// can say it is not known (ADR-132).
+			isCovered = b.under(d.Path)
 		}
 		if isCovered {
 			covered = append(covered, d)

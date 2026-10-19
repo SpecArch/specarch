@@ -70,12 +70,21 @@ paths:
       permission: loans.write
       middlewares: [require-desk-key]
       responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  branch: {}
+                required: [branch]
         "404":
           problem: branch-not-found
       origin: stated
       cites:
         - {source: code, clause: 'api/endpoints.go:19', says: 'NewEndPoint registers POST /loans/open; its handler is OpenLoan, its middlewares are RequireDeskKey, it declares the parameters branch_code and title and no response, and it checks LOANS.WRITE.'}
         - {source: code, clause: 'api/endpoints.go:25', says: The handler of POST /loans/open reads the parameter branch_code and answers 404 BRANCH_NOT_FOUND.}
+        - {source: code, clause: 'api/endpoints.go:42', says: 'The handler of POST /loans/open answers with WriteResponseAsJSON(http.StatusOK, nil, utils.JSON{"branch"}).'}
 errors:
   branch-not-found:
     status: 404

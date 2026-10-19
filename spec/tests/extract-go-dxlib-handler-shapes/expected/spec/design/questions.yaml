@@ -461,3 +461,47 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: code, clause: 'api/endpoints.go:20', says: 'Not held: the endpoint POST /tasks/update: dxlib names it tasks_update from its URI, which is not camelCase, as an operationId is; it is named postTasksUpdate.'}
+  # specarch-problem: question: open_question: (should, decision, suspected) api/handlers.go:113: the handler api.ArchiveTask of POST /tasks/archive answers 200 with JSON with fixed values, and api.ArchiveTask reads no input, no table and no other system. Is the answer mock data? Decided by system-owner. Answer with a decision record that names Q-50 under answers. [Q-50]
+  Q-50:
+    question: 'api/handlers.go:113: the handler api.ArchiveTask of POST /tasks/archive answers 200 with JSON with fixed values, and api.ArchiveTask reads no input, no table and no other system. Is the answer mock data?'
+    kind: decision
+    priority: should
+    certainty: suspected
+    blocks: ['#/paths/~1tasks~1archive/post']
+    decidedBy: system-owner
+    why: A response of fixed values is the same for every request, which no operation of the specification is.
+    cites:
+      - {source: code, clause: 'api/handlers.go:113', says: Answers fixed values.}
+  # specarch-problem: question: open_question: (should, decision, certain) api/handlers.go:107: the registration of POST /tasks/archive at api/endpoints.go:29 declares the parameter task_id, and the handler api.ArchiveTask of POST /tasks/archive reads it nowhere in its own body, which calls no function of the module. Are they needed, or does the handler miss reading them? Decided by system-owner. Answer with a decision record that names Q-51 under answers. [Q-51]
+  Q-51:
+    question: 'api/handlers.go:107: the registration of POST /tasks/archive at api/endpoints.go:29 declares the parameter task_id, and the handler api.ArchiveTask of POST /tasks/archive reads it nowhere in its own body, which calls no function of the module. Are they needed, or does the handler miss reading them?'
+    kind: decision
+    priority: should
+    certainty: certain
+    blocks: ['#/paths/~1tasks~1archive/post']
+    decidedBy: system-owner
+    why: A parameter a handler never reads is accepted and ignored, so a caller's value has no effect, which the specification does not say.
+    cites:
+      - {source: code, clause: 'api/handlers.go:107', says: Reads no parameter named task_id.}
+  # specarch-problem: question: open_question: (should, decision, suspected) api/handlers.go:168: the handler api.LabelTask of POST /tasks/label answers 200 with JSON with fixed values, and api.LabelTask reads no input, no table and no other system. Is the answer mock data? Decided by system-owner. Answer with a decision record that names Q-52 under answers. [Q-52]
+  Q-52:
+    question: 'api/handlers.go:168: the handler api.LabelTask of POST /tasks/label answers 200 with JSON with fixed values, and api.LabelTask reads no input, no table and no other system. Is the answer mock data?'
+    kind: decision
+    priority: should
+    certainty: suspected
+    blocks: ['#/paths/~1tasks~1label/post']
+    decidedBy: system-owner
+    why: A response of fixed values is the same for every request, which no operation of the specification is.
+    cites:
+      - {source: code, clause: 'api/handlers.go:168', says: Answers fixed values.}
+  # specarch-problem: question: open_question: (should, decision, certain) api/handlers.go:172: the registration of POST /tasks/restore at api/endpoints.go:45 declares the parameters reason and task_id, and the handler api.RestoreTask of POST /tasks/restore reads them nowhere in its own body, which calls no function of the module. Are they needed, or does the handler miss reading them? Decided by system-owner. Answer with a decision record that names Q-53 under answers. [Q-53]
+  Q-53:
+    question: 'api/handlers.go:172: the registration of POST /tasks/restore at api/endpoints.go:45 declares the parameters reason and task_id, and the handler api.RestoreTask of POST /tasks/restore reads them nowhere in its own body, which calls no function of the module. Are they needed, or does the handler miss reading them?'
+    kind: decision
+    priority: should
+    certainty: certain
+    blocks: ['#/paths/~1tasks~1restore/post']
+    decidedBy: system-owner
+    why: A parameter a handler never reads is accepted and ignored, so a caller's value has no effect, which the specification does not say.
+    cites:
+      - {source: code, clause: 'api/handlers.go:172', says: Reads no parameter named reason and task_id.}

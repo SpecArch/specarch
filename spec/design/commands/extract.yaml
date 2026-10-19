@@ -626,7 +626,7 @@ commands:
         gives nothing read prints a line.
 
         Every operation's handler is followed into the code and recorded
-        (ADR-140), for dxlib's endpoints and the routers' routes alike:
+        (ADR-144), for dxlib's endpoints and the routers' routes alike:
         where it is a function literal, a function of the same package
         or one of another package of the module, its body is read
         statement by statement into steps, each one kind of thing the
@@ -1455,7 +1455,7 @@ commands:
         description: For documents, marks the source givenOutside, a document the system's owners gave to parties outside, so that merge gives its promises their priority.
         schema: { type: boolean, default: false }
       implementation-out:
-        description: For database and go, a new YAML file the reader writes the mappings it knows into, an implementation fragment that is not a whole implementation file. For database, each entity's table as its target and its plain indexes, each citing the catalogue (ADR-121). For go, each operation's handler as its target and, under handler, the record of what it does, function by function with its steps and its source at the commit read (ADR-140). The mappings go into an implementation file of the specification under mappings.
+        description: For database and go, a new YAML file the reader writes the mappings it knows into, an implementation fragment that is not a whole implementation file. For database, each entity's table as its target and its plain indexes, each citing the catalogue (ADR-121). For go, each operation's handler as its target and, under handler, the record of what it does, function by function with its steps and its source at the commit read (ADR-144). The mappings go into an implementation file of the specification under mappings.
         schema: { type: string }
       table:
         description: For workflows, read the file as a workflow table (ADR-118) that tools/workflows/dump-workflows.sh wrote around the project's printer, for definitions in a format of the project's own, in place of BPMN 2.0 XML.
@@ -1491,7 +1491,7 @@ commands:
       changed, not recorded and recorded for an operation the source does
       not register, then per changed handler its functions' lines and
       step lines added and removed and per record of a gone operation one
-      line (ADR-140); for go, swift, javascript, dart and
+      line (ADR-144); for go, swift, javascript, dart and
       pages with --facts, one line naming the checks the implementation file
       names; for pages given an implementation file that names a page's
       schema file, one line naming it; for pages with --facts, one line naming the dump, one per

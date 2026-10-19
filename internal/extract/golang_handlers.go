@@ -12,7 +12,7 @@ import (
 
 // An operation's handler is followed into the code and recorded as its
 // logic, step by step, with the source of every function followed
-// (ADR-140): the record goes under the operation's mapping in the
+// (ADR-144): the record goes under the operation's mapping in the
 // implementation fragment --implementation-out writes, the documents draw
 // it as a flowchart beside the source, and validate tells when the code
 // has moved on. While the handler is read, its code is checked against

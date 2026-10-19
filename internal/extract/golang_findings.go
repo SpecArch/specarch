@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-// The handler's code checked against what the operation declares (ADR-140).
+// The handler's code checked against what the operation declares (ADR-144).
 // Each fault is a question on the operation, with its certainty: certain
 // when the code as written cannot work or disagrees with the
 // specification, suspected when a run or a person must confirm it. The

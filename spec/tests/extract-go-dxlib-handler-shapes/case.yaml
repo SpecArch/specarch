@@ -21,13 +21,14 @@ standardOutput: |
   not held: api/endpoints.go:45: the endpoint POST /tasks/restore: dxlib names it tasks_restore from its URI, which is not camelCase, as an operationId is; it is named postTasksRestore; could question Q-47
   not held: api/endpoints.go:23: the endpoint POST /tasks/tag: dxlib names it tasks_tag from its URI, which is not camelCase, as an operationId is; it is named postTasksTag; could question Q-48
   not held: api/endpoints.go:20: the endpoint POST /tasks/update: dxlib names it tasks_update from its URI, which is not camelCase, as an operationId is; it is named postTasksUpdate; could question Q-49
+  handlers: followed 9 of 9 handlers into 13 functions, to 3 calls deep, and left 0 calls not followed: the handler of each operation, where it is a function literal, a function of the same package or one of another package of the module, and each function of the module its steps call
   derived 0 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers
-  not derived: 3 draft tests for operation postTasksArchive, held up by Q-1, Q-2, Q-3; the validator warns for them until the questions are answered
+  not derived: 3 draft tests for operation postTasksArchive, held up by Q-1, Q-2, Q-3, Q-50, Q-51; the validator warns for them until the questions are answered
   not derived: 3 draft tests for operation postTasksAssign, held up by Q-4, Q-5, Q-6, Q-7, Q-8, Q-9; the validator warns for them until the questions are answered
   not derived: 7 draft tests for operation postTasksCreate, held up by Q-10, Q-11, Q-12; the validator warns for them until the questions are answered
   not derived: 2 draft tests for operation postTasksImport, held up by Q-13, Q-14, Q-15; the validator warns for them until the questions are answered
-  not derived: 4 draft tests for operation postTasksLabel, held up by Q-16, Q-17, Q-18, Q-19; the validator warns for them until the questions are answered
+  not derived: 4 draft tests for operation postTasksLabel, held up by Q-16, Q-17, Q-18, Q-19, Q-52; the validator warns for them until the questions are answered
   not derived: 2 draft tests for operation getTasksList, held up by Q-20, Q-21, Q-22; the validator warns for them until the questions are answered
-  not derived: 3 draft tests for operation postTasksRestore, held up by Q-23; the validator warns for them until the question is answered
+  not derived: 3 draft tests for operation postTasksRestore, held up by Q-23, Q-53; the validator warns for them until the questions are answered
   not derived: 2 draft tests for operation postTasksTag, held up by Q-24, Q-25, Q-26, Q-27, Q-28; the validator warns for them until the questions are answered
   not derived: 4 draft tests for operation postTasksUpdate, held up by Q-29, Q-30, Q-31, Q-32, Q-33, Q-34; the validator warns for them until the questions are answered

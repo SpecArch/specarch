@@ -34,7 +34,15 @@ Every refusal is an RFC 9457 problem document of one of these types; each operat
 
 Puts a parcel into a free locker and tells the collector.
 
-Refuses with 404 locker-not-found and 409 locker-taken.
+Takes no parameters and no request body.
+
+Responses:
+
+| Status | Meaning | Body |
+|---|---|---|
+| 201 | The parcel is stored. | none |
+| 404 | No such locker. | the problem document locker-not-found (RFC 9457) |
+| 409 | The locker is full. | the problem document locker-taken (RFC 9457) |
 
 ```mermaid
 sequenceDiagram
@@ -220,6 +228,14 @@ Not followed: calls carrier.Send(message) at notify/notify.go:29 (a method of th
 ### sweepLockers (POST /lockers/sweep)
 
 Removes every parcel left too long.
+
+Takes no parameters and no request body.
+
+Responses:
+
+| Status | Meaning | Body |
+|---|---|---|
+| 200 | The count swept. | none |
 
 ```mermaid
 sequenceDiagram

@@ -477,7 +477,7 @@ func callLabel(c string) string {
 }
 
 // handlerLogic writes what an operation's handler does, from the handler
-// record of each implementation file that maps the operation (ADR-140):
+// record of each implementation file that maps the operation (ADR-144):
 // per function followed, a flowchart of its steps and its source as it was
 // at the commit read, so a reader checks the chart against the code, and
 // the calls that were not followed.

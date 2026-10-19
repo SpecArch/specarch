@@ -45,7 +45,7 @@ func (c *checker) checkBoundaryImplementation() {
 				return // free-form target and framework settings
 			}
 			if tok == "handler" && i == 2 && path[0] == "mappings" {
-				return // a handler record holds the code as it was read (ADR-140)
+				return // a handler record holds the code as it was read (ADR-144)
 			}
 		}
 		if len(path) > 0 && namedMaps[path[len(path)-1]] {
@@ -132,7 +132,7 @@ func (c *checker) checkImplementation(s *spec.Spec, load Loader) {
 }
 
 // checkHandler checks a handler record against the code it was read from
-// (ADR-140): the source it holds for each function must still be what the
+// (ADR-144): the source it holds for each function must still be what the
 // cited file holds at the function's lines, the file found through the
 // folder the code source names under url, from the specification's root.
 // The working tree is read, not the commit, since neither build runs git;

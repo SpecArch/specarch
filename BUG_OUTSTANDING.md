@@ -10,21 +10,46 @@ message, the entry moves to `BUG_HISTORY.md` with the fixing commit.
 - Reported: 2026-10-19, from reading a gateway service whose routes are registered through the module's own constants
 - Design: `docs/gateway.md`, section 3; ADR-143
 
-A Go module registers its routes on a gin router with the paths and the method list declared at package level:
+A Go module registers its routes on a gin router with the paths and the method list declared at package level. The fixture is this one file, `main.go`, complete, as the only file of a module committed in a repository of its own and read with `specarch extract go --out <folder> <repository>`; the line numbers cited here and in BUG-029 are its:
+
+    package main
+
+    import (
+    	"net/http"
+
+    	"github.com/gin-gonic/gin"
+    )
 
     const (
-        healthLivePath  = "/live"
-        healthReadyPath = "/ready"
-        metricsPath     = "/metrics"
+    	healthLivePath  = "/live"
+    	healthReadyPath = "/ready"
+    	metricsPath     = "/metrics"
     )
 
     var healthMethods = []string{http.MethodGet, http.MethodHead}
 
-    r.Match(healthMethods, healthLivePath, live)
-    r.Match([]string{"GET", "HEAD"}, healthReadyPath, ready)
-    r.Match([]string{"GET", "HEAD"}, "/started", started)
-    r.GET(metricsPath, metrics)
-    r.GET("/version", version)
+    func main() {
+    	r := gin.New()
+    	r.Match(healthMethods, healthLivePath, live)
+    	r.Match([]string{"GET", "HEAD"}, healthReadyPath, ready)
+    	r.Match([]string{"GET", "HEAD"}, "/started", started)
+    	r.GET(metricsPath, metrics)
+    	r.GET("/version", version)
+    	r.NoRoute(proxy)
+    	r.Run(":8080")
+    }
+
+    func live(c *gin.Context)    { c.Status(204) }
+    func ready(c *gin.Context)   { c.Status(204) }
+    func started(c *gin.Context) { c.Status(204) }
+    func metrics(c *gin.Context) { c.String(200, "") }
+    func version(c *gin.Context) { c.String(200, "") }
+
+    // proxy forwards every request no route answers to the service the
+    // token's audience names.
+    func proxy(c *gin.Context) {
+    	c.Status(502)
+    }
 
 Expected 5 operations. `specarch extract go` (0.7.0) writes 2, the two whose path is a literal, and asks a must question for each of the other three: "registers a route with Match on methods healthMethods, which is not a literal list" and "registers a route whose path healthReadyPath the reader does not read as a literal", at `main.go:19`, `main.go:20` and `main.go:22`.
 
@@ -35,6 +60,6 @@ Cause: `stringValue` in `internal/extract/golang.go` reads a string literal, lit
 - Reported: 2026-10-19, from reading a gateway service whose forwarding lives in gin's NoRoute handler
 - Design: `docs/gateway.md`, section 3; ADR-143
 
-The same module registers `r.NoRoute(proxy)`, the handler every request no route matches is given to, which is where the service forwards by the token's audience. `specarch extract go` (0.7.0) writes nothing for it: no operation, no question, no line, and the registration is not counted ("routers: counted 5 registrations" for five routes and the fallback). The same holds for gin's `NoMethod`, chi's `NotFound` and `MethodNotAllowed`, gorilla/mux's `NotFoundHandler` and `MethodNotAllowedHandler` and echo's `HTTPErrorHandler`, none of which `internal/extract/golang_routers.go` names.
+The same module registers `r.NoRoute(proxy)` (`main.go:24` of the fixture listed in BUG-028), the handler every request no route matches is given to, which is where the service forwards by the token's audience. `specarch extract go` (0.7.0) writes nothing for it: no operation, no question, no line, and the registration is not counted ("routers: counted 5 registrations" for five routes and the fallback). The same holds for gin's `NoMethod`, chi's `NotFound` and `MethodNotAllowed`, gorilla/mux's `NotFoundHandler` and `MethodNotAllowedHandler` and echo's `HTTPErrorHandler`, none of which `internal/extract/golang_routers.go` names.
 
 Expected: a must question citing the call, as ADR-075 asks for every registration the reader knows on a surface it reads and cannot write, blocking the design stage until the `gateways` section exists and `gateways` after (the validator refuses a `blocks` entry that names no section), and the call counted as a registration. A route whose path ends in a catch-all (`/*path`), which prints a line today, is the other way the same handler is written and takes the same question.

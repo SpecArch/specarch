@@ -119,7 +119,7 @@ A gateway is a design element because every client of the interface must
 know it: which token to present, which audience to ask the issuer for
 (RFC 8707's `resource` parameter), and what the gateway answers when the
 token or the audience is wrong. It is declared once, under `gateways`,
-keyed by a camelCase name as a middleware or a job is:
+keyed by a camelCase name as a job or a token is:
 
 ```yaml
 gateways:
@@ -285,7 +285,17 @@ gateway whose `claim` is `aud`, and `const` or `enum` written on that
 `aud` on a Txn-Token is (ADR-109). Such a token is the services' and not
 this system's: it is not marked `default`, no operation of this
 specification names it with `token`, and the rule `gateway` reports
-either. The alternative, writing the `enum` on the claim and checking
+either. ADR-097's one default, which every operation accepts unless
+it names another, is therefore counted among the tokens no gateway
+forwards by `aud`. A gateway module whose only routes are its health
+and its metrics declares the forwarded token alone and no default: its
+operations accept no token, as those of a specification with no
+`tokens` do, none derives `denied with expired`, and `generate openapi`
+writes no bearer scheme for it. A second token declared only to carry
+`default` would be a placeholder (`docs/principles.md`). A gateway
+module whose own operations do accept a token declares it and marks it
+`default`, and ADR-097 counts as it does, over the tokens that are not
+forwarded. The alternative, writing the `enum` on the claim and checking
 that it and the table agree, would write one list twice and give the
 validator a disagreement to report instead of a fact to read. A gateway
 whose `claim` is another, a tenant's name say, leaves ADR-109 as it is:
@@ -314,7 +324,10 @@ not declared, or of kind `database`, `messageBroker` or `fileStore`; a
 forward's dependency listed under `calls`; and, when the claim is `aud`,
 the token marked `default` or named by an operation. `token_audience`
 (ADR-109) treats a token a gateway forwards by `aud` as fixed by the
-forwards and refuses `const` or `enum` on its `aud`. `middleware`,
+forwards and refuses `const` or `enum` on its `aud`; ADR-097's one
+default, as 0.3's step 4 builds it, is counted among the tokens no
+gateway forwards by `aud`, so a specification whose every token is
+forwarded has no default and nothing reported for it. `middleware`,
 `middleware_missing`, `dependency` and `problem` reach a gateway as they
 reach an operation. In the umbrella run, `gateway` also reports a
 forward whose value is none of the audiences the module its dependency
@@ -348,7 +361,9 @@ to gateway to identity provider for the keys to the service and back.
 The test plan lists the gateway's cases with the operations'. `generate
 openapi` writes nothing for a gateway, since OpenAPI has no catch-all,
 and prints a line naming it, so the document stays the operations' and
-nobody looks for the forwarding in it. The deployment guide and the
+nobody looks for the forwarding in it; when every token of the
+specification is one a gateway forwards, no operation accepts a token
+and it writes no bearer scheme. The deployment guide and the
 handover document say nothing new: each forwarded service's host is a
 server of the deployment (ADR-136), and the setting whose value the code
 reads is a setting as any other.
@@ -443,7 +458,8 @@ reason.
 
 ## 3. The Go reader: the constants it does not resolve, and the fallback it drops
 
-Read with the 0.7.0 build, a Go module whose router registers `Match`
+Read with the 0.7.0 build, a Go module (the fixture, listed in full in
+BUG-028) whose router registers `Match`
 with a package-level `var` holding a literal list of `net/http` method
 constants and a path from a package-level `const`, a `Match` with a
 literal list and a constant path, a `Match` with both literal, a `GET`
@@ -486,9 +502,12 @@ library's fallback is a field, asking what the handler answers or
 forwards and by which claim, counted as a registration so that it shows
 in the coverage. The question blocks the stage `design` until the
 element exists, because the validator refuses a `blocks` entry that is
-no section of the schema (`question_block`, checked with the 0.7.0
-build), and blocks `gateways` once the element's item has added the
-section, which is when a table can answer it. A route whose path ends
+no section of the schema (`question_block`), and is written in
+`design/questions.yaml` beside the tree's other design questions, where
+`question_stage` wants a question about the design stage, since the
+extracted tree lists the stages `requirements` and `design`; both
+checked with the 0.7.0 build. It blocks `gateways` once the element's
+item has added the section, which is when a table can answer it. A route whose path ends
 in a catch-all (`/*path`, `{path...}`, chi's `/*`), which prints a line
 today, is the other way a gateway is written, under a prefix with `Any`
 or `Match`; it is the same must question, naming the prefix and the
@@ -526,6 +545,7 @@ Both builds, each with a case in `spec/tests/` and its design test:
 |---|---|
 | `gateway` | a `token` not declared; a `claim` the token does not declare; an empty `forwards`; a value twice; a `dependency` not declared or of kind `database`, `messageBroker` or `fileStore`; a forward's dependency under `calls`; with `claim: aud`, the token marked `default` or named by an operation |
 | `token_audience` (extended, ADR-109) | `const` or `enum` on the `aud` of a token a gateway forwards by `aud`; the forwards fix it |
+| ADR-097's one default (extended) | counted among the tokens no gateway forwards by `aud`; a specification whose every token is forwarded has no default, and nothing is reported for it |
 | `gateway`, umbrella run | a forward whose value is none of the `aud` values the module its dependency's `specification` names accepts, when that module is given; unresolved, not an error, when it is not. The umbrella's one-audience refusal leaves out a token a gateway forwards by `aud` |
 | `middleware`, `middleware_missing`, `dependency`, `problem` | reach a gateway as they reach an operation |
 | `link_missing` (extended, ADR-137) | a server running a package that implements a gateway with no link to a server that is one of its forwarded or called dependencies |
@@ -537,7 +557,7 @@ Both builds, each with a case in `spec/tests/` and its design test:
 | techspec, chapter 3 | the context diagram's edges to each forwarded dependency, labelled with the gateway and its claim; the gateway among the identity provider's callers |
 | techspec, chapter 6 | a section per gateway: token, claim, forwards, middlewares, refusals, derived cases, and the sequence of one forwarded request |
 | test plan | the gateway's derived cases, with the operations' |
-| `generate openapi` | nothing, and a line naming the gateway |
+| `generate openapi` | nothing, and a line naming the gateway; no bearer scheme when every token is one a gateway forwards |
 | `generate tests` | a test per written case |
 | deployment guide, handover | nothing new: the servers and settings carry it |
 | `extract gateway`, `check` | the tree of section 2; the three differences |
@@ -591,11 +611,14 @@ read, which is the right record.
    BUG-029). The two rules of section 3 in `internal/extract`, the walk
    paragraph of `spec/design/commands/extract.yaml`, the Go table of
    `docs/reading-code.md` and step 15 of `docs/extraction.md`, a test
-   with the fixture of section 3 and the cases around it. Done when the
+   with the fixture listed in BUG-028 and the cases around it. Done when the
    fixture gives five operations and no question on their paths or
    methods, a `var` assigned in a second place gives the question naming
    that line, `NoRoute` and a catch-all each give the must question,
-   blocking `design`, and `Any` and the plain registrations read as
+   blocking `design` and written in `design/questions.yaml` beside the
+   paths' questions, so that the extracted tree, which lists the stages
+   `requirements` and `design`, validates with no `question_block` or
+   `question_stage` error, and `Any` and the plain registrations read as
    today.
 2. **The element** (ADR-141, SA-75), after 0.3's step 4 and the diagram
    keywords' items 2 and 4. `gateways` in the design schema, its fragment
@@ -639,8 +662,10 @@ read, which is the right record.
    the implementation file, lost: a client must know the audiences (RFC
    8707), and what the gateway fronts is the same on every stack.
 3. **The forwards fix the token's `aud`** (ADR-109 extended), and the
-   `enum` is not written beside them. The alternative, both written and
-   compared, says one list twice.
+   `enum` is not written beside them; ADR-097's one default is counted
+   among the tokens no gateway forwards, so a module whose only token is
+   the forwarded one declares no default and no placeholder token. The
+   alternative, both written and compared, says one list twice.
 4. **`calls` for the identity provider and `iss` for the issuer**, no
    `issuer` or `keys` key: the keys' URL is a deployment's fact.
 5. **No `prefix` and no method list**: `paths` and `nobody` carve the

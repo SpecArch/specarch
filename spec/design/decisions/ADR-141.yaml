@@ -40,7 +40,14 @@ decisions:
       calls, and, when the claim is aud, the token marked default or named
       by an operation. token_audience (ADR-109) treats the aud of a token
       a gateway forwards by aud as fixed by the forwards and refuses const
-      or enum on it. middleware, middleware_missing, dependency and problem
+      or enum on it. ADR-097's one default is counted among the tokens no
+      gateway forwards by aud: a specification whose every token is
+      forwarded, as a gateway module with only its health and its metrics
+      is, declares no default, its operations accept no token, as those of
+      a specification with no tokens do, and generate openapi writes no
+      bearer scheme for it; a gateway module whose own operations accept a
+      token declares and defaults that token as ADR-097 has it.
+      middleware, middleware_missing, dependency and problem
       reach a gateway as they reach an operation; link_missing (ADR-137)
       gains the gateway's forwards and calls, and the implementation
       schema's designRef admits gateways so a package implements one and
@@ -103,9 +110,14 @@ decisions:
       4). Writing the enum on the claim beside the table would say one
       list twice and give the validator a disagreement to report, which
       the Low IQ Tax forbids; const or enum on that aud is refused as aud
-      on a Txn-Token is (ADR-109). The umbrella's one-audience refusal
-      would otherwise refuse every gateway, since its forwards are the
-      audiences of the modules it fronts; leaving its token out and
+      on a Txn-Token is (ADR-109). The one-default rule leaves the
+      forwarded token out because ADR-097's reason for it, that a service
+      accepts one token nearly everywhere, does not hold for a gateway
+      whose own operations accept none, and a second token declared only
+      to carry default would be a placeholder. The umbrella's
+      one-audience refusal would otherwise refuse every gateway, since
+      its forwards are the audiences of the modules it fronts; leaving
+      its token out and
       checking that each value is an audience the module accepts turns
       the false refusal into the check a reader cannot do by eye. The
       refusals are written and not

@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.1-dev of the specification: 524 design tests, 234 golden and 290 red, about 16 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.1-dev of the specification: 525 design tests, 235 golden and 290 red, about 16 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 4 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -19,7 +19,7 @@ Version 0.7.1-dev of the specification: 524 design tests, 234 golden and 290 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 520 |
+| system | 521 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -1002,6 +1002,14 @@ Scenario: golden; level: system; verifies SA-44.
 - Given: a repository holding a Go module on dxlib whose files register endpoints with NewEndPoint: one with a URI joined from literals, a net/http method constant and a privilege in dxlib_module's capitals, whose handler reads a declared parameter and answers two refusals; one with a path parameter whose handler is in another package, which the reader cannot find with no go.mod read, and that checks no privilege; one in a loop, one behind a condition and one with a computed URI; one whose handler is a function literal that reads a declared parameter, one whose name is computed and one the endpoint does not declare, and answers two reasons at one status, an empty reason, a status alone and a computed status; the same method and URI a second time; a HEAD endpoint; a call with too few arguments; a WebSocket endpoint and a RegisterHandler call; a reason answered at two statuses; a file that does not parse, a test file, a file under testdata and a file that imports dxlib and registers nothing
 - When: extract go is run on the module
 - Then: it writes each endpoint registered with literal values outside a loop or a condition as an operation citing its registration line and its handler's first line, with its summary, description, path parameters, permission (mapped from capitals by the rule of ADR-076 and declared inferred), its middlewares in order, or none, the parameters its registration declares as its body or its query, and the refusal statuses its handler answers, each naming the problem its literal reason gives; it declares each problem answered at one status, and asks a must question for the loop, the condition, the computed URI, the undeclared parameter, the empty reason, the status alone, two reasons at one status, a reason at two statuses, the second registration, the short call, the file that does not parse, the open endpoint, each operation's success response and whether the running system registers it; a should question for the computed parameter name and status and for the handler it cannot find; prints a line and asks a could question for the HEAD endpoint, the WebSocket endpoint, the RegisterHandler call and each operationId dxlib derives that is not camelCase; leaves out the test file and the testdata file; names the file that registers nothing; declares its code source reading: parsed; and exits 0
+
+#### extract-go-dxlib-envelope-stream
+
+Scenario: golden; level: system; verifies SA-77, SA-44.
+
+- Given: a repository holding a Go module on dxlib whose endpoints are registered with every endpoint type: a plain JSON POST that declares the parameters a0, a1 and a2 of the pre-key exchange and answers i, b0, b1 and b2; a POST of type EndPointTypeHTTPEndToEndEncryptionV2 with parameters; an upload stream of an octet stream with a content-length ceiling; a download stream with a parameter whose handler answers 404; a download stream of type EndPointTypeHTTPDownloadStreamV2 whose registration declares a data template on its 200; a POST of type EndPointTypeHTTPEndToEndEncryptionV3; a POST of type EndPointTypeHTTPEndToEndEncryptionV1; a GET whose type is a package variable; and an upload stream with a JSON content type
+- When: extract go is run on the module
+- Then: it writes the handshake preKey under handshakes with keyAgreement x25519, signature ed25519 and cipher aes-256-cbc, inferred from the type, established by the pre-key operation found by its parameters, citing the first encrypted registration and the exchange's, with a should question on its lifetime and uses; names the handshake on the encrypted POST and on the DownloadStreamV2 operation; writes stream upload on the octet-stream upload with its binary body, and stream download on both downloads with a 200 response of application/octet-stream and a binary string, asking a should question where the registration declared a data template; asks a must question on the handshake of the V3 operation naming dxlib's hooks, on the handshake and stream of the operation whose type is a variable, and on the stream and body of the upload with a JSON content type, writing neither for those; prints a line and a could question for the V1 type and writes that operation plain; says in each operation's citation that it travels in the pre-key envelope or streams its body; and exits 0
 
 #### extract-go-dxlib-handler-shapes
 

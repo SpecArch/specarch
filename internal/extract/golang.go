@@ -119,6 +119,10 @@ type goEndpoint struct {
 	paging     *dxTable     // the dxlib table whose paging list the handler is
 	pagingCall string       // that method's name
 	shapes     *handlerRead // the body the handler decodes and the JSON it answers (ADR-140)
+	typeName   string       // the endpoint type's constant, "" when the argument is not a selector
+	typeText   string       // the endpoint type's argument, as the code writes it
+	handshake  string       // the handshake the operation travels in (ADR-145)
+	stream     string       // upload or download when it streams a file (ADR-146)
 }
 
 // goProblem is one refusal a handler answers.
@@ -183,6 +187,9 @@ func Go(paths []string, out, key, implementation string, writeImplementation boo
 	}
 	if g.middlewares != nil {
 		set(design, "middlewares", g.middlewares)
+	}
+	if g.handshakes != nil {
+		set(design, "handshakes", g.handshakes)
 	}
 	if len(g.paths.Content) > 0 {
 		set(design, "paths", g.paths)
@@ -308,6 +315,8 @@ type goReader struct {
 	middlewareOf    map[string]*goMiddleware // the middlewares the chains name, by name
 	middlewareNames []string
 	middlewares     *yaml.Node
+	handshakes      *yaml.Node        // the handshakes the endpoints travel in (ADR-145)
+	handshakeAt     map[string]string // a handshake -> the registration that first names its envelope
 
 	handlers []*goHandler                // every operation's handler, as read (ADR-144)
 	previous map[string]*previousHandler // the handler records the implementation file holds, by pointer
@@ -644,6 +653,7 @@ func (g *goReader) registration(f *goFile, call *ast.CallExpr, name string, stac
 		g.notHeld = append(g.notHeld, notHeld{text: fmt.Sprintf("%s: NewEndPoint registers %s as a WebSocket endpoint, and the meta-model has no socket; left out", clause, label), clause: clause, blocks: []string{"paths"}})
 		return
 	}
+	g.endpointType(ep, call.Args[4])
 	for _, other := range g.endpoints {
 		if other.method == ep.method && other.uri == ep.uri {
 			g.question("must", fmt.Sprintf("%s registers %s, which %s:%d registers too; dxlib stops the service at the second. Which one does the running system serve?", clause, label, other.file.path, other.line),
@@ -934,6 +944,7 @@ func (g *goReader) write() {
 			set(op, "permission", nonEmpty(permission))
 			regAts[ep.at] = regAt
 			g.writeChain(ep, op, regAt, label)
+			g.writeTransport(ep, op, regAt, label)
 			if ep.decl != nil {
 				w.request(ep, op, regAt, label)
 			}
@@ -952,6 +963,7 @@ func (g *goReader) write() {
 					}
 				}
 			}
+			g.streamResponses(ep, declaredResponses, &codes, label, regAt)
 			sort.Strings(codes)
 			responses := mapping()
 			for _, c := range codes {
@@ -1064,6 +1076,7 @@ func (g *goReader) write() {
 		s.cites = append(s.cites, g.at(clause, says))
 	})
 	g.declarePermissions(checkedBy, firstAt, firstVia, mappedFrom, seeded)
+	g.writeHandshakes()
 	g.writeMiddlewares(problemStatus, conflicts)
 	g.declareProblems(problemOrder, problemAt, problemStatus, conflicts)
 	permissions := len(checkedBy)
@@ -1104,7 +1117,7 @@ func (g *goReader) registeredSays(ep *goEndpoint) string {
 	case len(ep.privileges) > 0:
 		checks = "checks " + joinAnd(distinct(ep.privileges))
 	}
-	return fmt.Sprintf("NewEndPoint registers %s %s; its handler is %s, %s, %s, and it %s.", ep.method, ep.uri, ep.handler, g.chainText(ep), declaredText(ep), checks)
+	return fmt.Sprintf("NewEndPoint registers %s %s; its handler is %s, %s, %s, and it %s%s.", ep.method, ep.uri, ep.handler, g.chainText(ep), declaredText(ep), checks, transportSays(ep))
 }
 
 // declaredText says what a registration declares of its parameters and

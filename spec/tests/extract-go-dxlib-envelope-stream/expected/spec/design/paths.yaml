@@ -1,0 +1,239 @@
+permissions:
+  notes.read:
+    origin: inferred
+    why: 'dxlib names the privilege NOTES.READ, and by the rule of ADR-076 a privilege named in capitals, digits and underscores, in segments joined by dots, is the permission of that name in lower case with every underscore a dot: notes.read.'
+    cites:
+      - {source: code, clause: 'api/endpoints.go:48', says: POST /attachments/download and POST /vault/export check NOTES.READ in its privileges.}
+  notes.write:
+    origin: inferred
+    why: 'dxlib names the privilege NOTES.WRITE, and by the rule of ADR-076 a privilege named in capitals, digits and underscores, in segments joined by dots, is the permission of that name in lower case with every underscore a dot: notes.write.'
+    cites:
+      - {source: code, clause: 'api/endpoints.go:43', says: 'POST /attachments/upload, POST /forms/upload and POST /notes/add check NOTES.WRITE in its privileges.'}
+handshakes:
+  preKey:
+    description: 'dxlib''s pre-key exchange: the client sends its Ed25519 signing key and two X25519 agreement keys, receives the service''s three and the pre-key''s index, and both derive one shared key for requests and one for answers; every envelope after names the index.'
+    keyAgreement: x25519
+    signature: ed25519
+    cipher: aes-256-cbc
+    establishedBy: prekey
+    origin: inferred
+    why: The endpoint type EndPointTypeHTTPEndToEndEncryptionV2 is dxlib's pre-key envelope, packed by its datablock with X25519 shared keys, an Ed25519 signature and AES-256-CBC; the type fixes the primitives, and the registration that declares the exchange's parameters establishes it.
+    cites:
+      - {source: code, clause: 'api/endpoints.go:32', says: 'Registers an endpoint with dxlib''s pre-key envelope, EndPointTypeHTTPEndToEndEncryptionV2 or EndPointTypeHTTPDownloadStreamV2, whose type fixes X25519, Ed25519 and AES-256-CBC.'}
+      - {source: code, clause: 'api/endpoints.go:17', says: 'Registers POST /prekey with the parameters a0, a1 and a2, the client''s keys of the pre-key exchange, so it establishes the handshake.'}
+paths:
+  /attachments/download:
+    post:
+      operationId: postAttachmentsDownload
+      summary: Download an attachment
+      description: Streams a file out of the vault.
+      permission: notes.read
+      middlewares: []
+      stream: {direction: download}
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                attachmentId: {type: string, minLength: 1}
+              required: [attachmentId]
+      responses:
+        "200":
+          description: The attachment's bytes.
+          content:
+            application/octet-stream:
+              schema: {type: string, format: binary}
+        "404":
+          description: No attachment has this id.
+          problem: attachment-not-found
+      origin: stated
+      cites:
+        - {source: code, clause: 'api/endpoints.go:48', says: 'NewEndPoint registers POST /attachments/download; its handler is DownloadAttachment, it has no middleware, it declares the parameter attachment_id and the responses 200 and 404, and it checks NOTES.READ; it streams its response body as a file.'}
+        - {source: code, clause: 'api/handlers.go:28', says: The handler of POST /attachments/download reads the parameter attachment_id and answers 404 ATTACHMENT_NOT_FOUND.}
+  /attachments/upload:
+    post:
+      operationId: postAttachmentsUpload
+      summary: Upload an attachment
+      description: Streams a file into the vault.
+      permission: notes.write
+      middlewares: []
+      stream: {direction: upload}
+      requestBody:
+        content:
+          application/octet-stream:
+            schema: {type: string, format: binary}
+      responses:
+        "200":
+          description: The attachment is stored.
+      origin: stated
+      cites:
+        - {source: code, clause: 'api/endpoints.go:43', says: 'NewEndPoint registers POST /attachments/upload; its handler is UploadAttachment, it has no middleware, it declares no parameter and the response 200, and it checks NOTES.WRITE; it streams its request body as a file.'}
+        - {source: code, clause: 'api/handlers.go:22', says: The handler of POST /attachments/upload reads no parameter by name.}
+  /forms/upload:
+    post:
+      operationId: postFormsUpload
+      summary: Upload a form
+      description: An upload stream with a JSON content type.
+      permission: notes.write
+      middlewares: []
+      requestBody:
+        content:
+          application/json:
+            schema: {type: object}
+      responses:
+        "200":
+          description: Stored.
+      origin: stated
+      cites:
+        - {source: code, clause: 'api/endpoints.go:82', says: 'NewEndPoint registers POST /forms/upload; its handler is UploadAttachment, it has no middleware, it declares no parameter and the response 200, and it checks NOTES.WRITE.'}
+        - {source: code, clause: 'api/handlers.go:22', says: The handler of POST /forms/upload reads no parameter by name.}
+  /health:
+    get:
+      operationId: health
+      summary: Health
+      description: Registered with a type the code computes.
+      middlewares: []
+      responses:
+        "200":
+          description: Up.
+      origin: stated
+      cites:
+        - {source: code, clause: 'api/endpoints.go:77', says: 'NewEndPoint registers GET /health; its handler is Ping, it has no middleware, it declares no parameter and the response 200, and it checks no privilege.'}
+        - {source: code, clause: 'api/handlers.go:47', says: The handler of GET /health reads no parameter by name.}
+  /notes/add:
+    post:
+      operationId: postNotesAdd
+      summary: Add a note
+      description: Stores a note in the vault.
+      permission: notes.write
+      middlewares: []
+      handshake: preKey
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title: {type: string, minLength: 1}
+                text: {type: string}
+              required: [title]
+      responses:
+        "200":
+          description: The note is stored.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  noteId: {type: string, minLength: 1}
+                required: [noteId]
+      origin: stated
+      cites:
+        - {source: code, clause: 'api/endpoints.go:32', says: 'NewEndPoint registers POST /notes/add; its handler is AddNote, it has no middleware, it declares the parameters title and text and the response 200, and it checks NOTES.WRITE; it travels in the pre-key envelope.'}
+        - {source: code, clause: 'api/handlers.go:16', says: The handler of POST /notes/add reads the parameter title.}
+  /ping:
+    post:
+      operationId: ping
+      summary: Ping
+      description: Answers in the first envelope dxlib never finished.
+      middlewares: []
+      requestBody:
+        content:
+          application/json:
+            schema: {type: object}
+      responses:
+        "200":
+          description: Pong.
+      origin: stated
+      cites:
+        - {source: code, clause: 'api/endpoints.go:72', says: 'NewEndPoint registers POST /ping; its handler is Ping, it has no middleware, it declares no parameter and the response 200, and it checks no privilege.'}
+        - {source: code, clause: 'api/handlers.go:47', says: The handler of POST /ping reads no parameter by name.}
+  /prekey:
+    post:
+      operationId: prekey
+      summary: Issue a pre-key
+      description: Performs the key exchange a client calls before anything else.
+      middlewares: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                a0:
+                  type: string
+                  description: The client's Ed25519 public key, hex.
+                  minLength: 1
+                a1:
+                  type: string
+                  description: The client's first X25519 public key, hex.
+                  minLength: 1
+                a2:
+                  type: string
+                  description: The client's second X25519 public key, hex.
+                  minLength: 1
+              required: [a0, a1, a2]
+      responses:
+        "200":
+          description: The service's keys and the pre-key's index.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  i: {type: string, minLength: 1}
+                  b0: {type: string, minLength: 1}
+                  b1: {type: string, minLength: 1}
+                  b2: {type: string, minLength: 1}
+                required: [i, b0, b1, b2]
+      origin: stated
+      cites:
+        - {source: code, clause: 'api/endpoints.go:17', says: 'NewEndPoint registers POST /prekey; its handler is IssuePreKey, it has no middleware, it declares the parameters a0, a1 and a2 and the response 200, and it checks no privilege.'}
+        - {source: code, clause: 'api/handlers.go:11', says: The handler of POST /prekey reads no parameter by name.}
+  /session/open:
+    post:
+      operationId: postSessionOpen
+      summary: Open a session
+      description: Travels in the persistent-session envelope.
+      middlewares: []
+      requestBody:
+        content:
+          application/json:
+            schema: {type: object}
+      responses:
+        "200":
+          description: The session is open.
+      origin: stated
+      cites:
+        - {source: code, clause: 'api/endpoints.go:67', says: 'NewEndPoint registers POST /session/open; its handler is OpenSession, it has no middleware, it declares no parameter and the response 200, and it checks no privilege.'}
+        - {source: code, clause: 'api/handlers.go:42', says: The handler of POST /session/open reads no parameter by name.}
+  /vault/export:
+    post:
+      operationId: postVaultExport
+      summary: Export the vault
+      description: Streams an archive, asked for in the envelope.
+      permission: notes.read
+      middlewares: []
+      handshake: preKey
+      stream: {direction: download}
+      requestBody:
+        content:
+          application/json:
+            schema: {type: object, properties: {format: {type: string, enum: [zip, tar]}}}
+      responses:
+        "200":
+          description: The archive.
+          content:
+            application/octet-stream:
+              schema: {type: string, format: binary}
+      origin: stated
+      cites:
+        - {source: code, clause: 'api/endpoints.go:57', says: 'NewEndPoint registers POST /vault/export; its handler is ExportVault, it has no middleware, it declares the parameter format and the response 200, and it checks NOTES.READ; its request travels in the pre-key envelope, and it streams its response body as a file.'}
+        - {source: code, clause: 'api/handlers.go:37', says: The handler of POST /vault/export reads no parameter by name.}
+errors:
+  attachment-not-found:
+    status: 404
+    origin: stated
+    cites:
+      - {source: code, clause: 'api/handlers.go:33', says: Answers 404 with the reason ATTACHMENT_NOT_FOUND.}

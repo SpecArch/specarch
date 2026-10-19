@@ -1,0 +1,404 @@
+questions:
+  # specarch-problem: question: open_question: (must, decision) Does the running system register POST /attachments/download? It is declared at api/endpoints.go:48, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-1 under answers. [Q-1]
+  Q-1:
+    question: Does the running system register POST /attachments/download? It is declared at api/endpoints.go:48, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1attachments~1download/post']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; the document dxlib emits, or a route table, says what the running system registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'api/endpoints.go:48', says: Registers POST /attachments/download with NewEndPoint.}
+  # specarch-problem: question: open_question: (must, decision) Does the running system register POST /attachments/upload? It is declared at api/endpoints.go:43, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-2 under answers. [Q-2]
+  Q-2:
+    question: Does the running system register POST /attachments/upload? It is declared at api/endpoints.go:43, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1attachments~1upload/post']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; the document dxlib emits, or a route table, says what the running system registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'api/endpoints.go:43', says: Registers POST /attachments/upload with NewEndPoint.}
+  # specarch-problem: question: open_question: (must, decision) api/endpoints.go:82 registers POST /forms/upload as an upload stream with the content type application/json, and dxlib hands a handler the body unread, as a stream, only for application/octet-stream. Which media type does the upload take, and is it streamed? Decided by system-owner. Answer with a decision record that names Q-3 under answers. [Q-3]
+  Q-3:
+    question: api/endpoints.go:82 registers POST /forms/upload as an upload stream with the content type application/json, and dxlib hands a handler the body unread, as a stream, only for application/octet-stream. Which media type does the upload take, and is it streamed?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1forms~1upload/post/stream', '#/paths/~1forms~1upload/post/requestBody']
+    decidedBy: system-owner
+    why: An upload stream is the request body passed through as it arrives, and dxlib does that for one content type; with another the type and the content type disagree.
+    cites:
+      - {source: code, clause: 'api/endpoints.go:82', says: Registers POST /forms/upload as an upload stream with the content type application/json.}
+  # specarch-problem: question: open_question: (must, decision) POST /forms/upload declares no parameter where api/endpoints.go:82 registers it, and its handler reads none by name (api/handlers.go:22), so its body is written as any object. Which fields does its body take, with their types? Decided by system-owner. Answer with a decision record that names Q-4 under answers. [Q-4]
+  Q-4:
+    question: POST /forms/upload declares no parameter where api/endpoints.go:82 registers it, and its handler reads none by name (api/handlers.go:22), so its body is written as any object. Which fields does its body take, with their types?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1forms~1upload/post/requestBody/content/application~1json/schema']
+    decidedBy: system-owner
+    why: dxlib reads and checks only the parameters an endpoint declares; a handler that reads its body in another way, such as decoding it itself, gives its fields only in code syntax does not follow.
+    cites:
+      - {source: code, clause: 'api/endpoints.go:82', says: Declares no parameter.}
+  # specarch-problem: question: open_question: (must, decision) Does the running system register POST /forms/upload? It is declared at api/endpoints.go:82, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-5 under answers. [Q-5]
+  Q-5:
+    question: Does the running system register POST /forms/upload? It is declared at api/endpoints.go:82, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1forms~1upload/post']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; the document dxlib emits, or a route table, says what the running system registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'api/endpoints.go:82', says: Registers POST /forms/upload with NewEndPoint.}
+  # specarch-problem: question: open_question: (must, decision) GET /health checks no privilege: it registers it with none, so dxlib lets through every caller its middlewares admit (it has no middleware). Is it meant to be open to everyone (public), or which permission should it check? Decided by system-owner. Answer with a decision record that names Q-6 under answers. [Q-6]
+  Q-6:
+    question: 'GET /health checks no privilege: it registers it with none, so dxlib lets through every caller its middlewares admit (it has no middleware). Is it meant to be open to everyone (public), or which permission should it check?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1health/get/permission']
+    decidedBy: system-owner
+    why: dxlib checks no privilege on an endpoint that names none, and whether a caller must sign in is decided by its middlewares, which are code; an open endpoint is never written as public without the owner's word.
+  # specarch-problem: question: open_question: (must, decision) api/endpoints.go:77 registers GET /health with the endpoint type sessionType, which is not one of dxlib's constants the reader knows. Does it carry a JSON body, travel in an envelope, or stream a file, and which way? Decided by system-owner. Answer with a decision record that names Q-7 under answers. [Q-7]
+  Q-7:
+    question: api/endpoints.go:77 registers GET /health with the endpoint type sessionType, which is not one of dxlib's constants the reader knows. Does it carry a JSON body, travel in an envelope, or stream a file, and which way?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1health/get/handshake', '#/paths/~1health/get/stream']
+    decidedBy: system-owner
+    why: The endpoint type decides whether a request is plain JSON, an envelope or a stream, and only a constant of dxlib's names one.
+    cites:
+      - {source: code, clause: 'api/endpoints.go:77', says: Registers GET /health with the endpoint type sessionType.}
+  # specarch-problem: question: open_question: (must, decision) Does the running system register GET /health? It is declared at api/endpoints.go:77, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-8 under answers. [Q-8]
+  Q-8:
+    question: Does the running system register GET /health? It is declared at api/endpoints.go:77, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1health/get']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; the document dxlib emits, or a route table, says what the running system registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'api/endpoints.go:77', says: Registers GET /health with NewEndPoint.}
+  # specarch-problem: question: open_question: (must, decision) Does the running system register POST /notes/add? It is declared at api/endpoints.go:32, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-9 under answers. [Q-9]
+  Q-9:
+    question: Does the running system register POST /notes/add? It is declared at api/endpoints.go:32, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1notes~1add/post']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; the document dxlib emits, or a route table, says what the running system registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'api/endpoints.go:32', says: Registers POST /notes/add with NewEndPoint.}
+  # specarch-problem: question: open_question: (must, decision) POST /ping checks no privilege: it registers it with none, so dxlib lets through every caller its middlewares admit (it has no middleware). Is it meant to be open to everyone (public), or which permission should it check? Decided by system-owner. Answer with a decision record that names Q-10 under answers. [Q-10]
+  Q-10:
+    question: 'POST /ping checks no privilege: it registers it with none, so dxlib lets through every caller its middlewares admit (it has no middleware). Is it meant to be open to everyone (public), or which permission should it check?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1ping/post/permission']
+    decidedBy: system-owner
+    why: dxlib checks no privilege on an endpoint that names none, and whether a caller must sign in is decided by its middlewares, which are code; an open endpoint is never written as public without the owner's word.
+  # specarch-problem: question: open_question: (must, decision) POST /ping declares no parameter where api/endpoints.go:72 registers it, and its handler reads none by name (api/handlers.go:47), so its body is written as any object. Which fields does its body take, with their types? Decided by system-owner. Answer with a decision record that names Q-11 under answers. [Q-11]
+  Q-11:
+    question: POST /ping declares no parameter where api/endpoints.go:72 registers it, and its handler reads none by name (api/handlers.go:47), so its body is written as any object. Which fields does its body take, with their types?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1ping/post/requestBody/content/application~1json/schema']
+    decidedBy: system-owner
+    why: dxlib reads and checks only the parameters an endpoint declares; a handler that reads its body in another way, such as decoding it itself, gives its fields only in code syntax does not follow.
+    cites:
+      - {source: code, clause: 'api/endpoints.go:72', says: Declares no parameter.}
+  # specarch-problem: question: open_question: (must, decision) Does the running system register POST /ping? It is declared at api/endpoints.go:72, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-12 under answers. [Q-12]
+  Q-12:
+    question: Does the running system register POST /ping? It is declared at api/endpoints.go:72, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1ping/post']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; the document dxlib emits, or a route table, says what the running system registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'api/endpoints.go:72', says: Registers POST /ping with NewEndPoint.}
+  # specarch-problem: question: open_question: (must, decision) POST /prekey checks no privilege: it registers it with none, so dxlib lets through every caller its middlewares admit (it has no middleware). Is it meant to be open to everyone (public), or which permission should it check? Decided by system-owner. Answer with a decision record that names Q-13 under answers. [Q-13]
+  Q-13:
+    question: 'POST /prekey checks no privilege: it registers it with none, so dxlib lets through every caller its middlewares admit (it has no middleware). Is it meant to be open to everyone (public), or which permission should it check?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1prekey/post/permission']
+    decidedBy: system-owner
+    why: dxlib checks no privilege on an endpoint that names none, and whether a caller must sign in is decided by its middlewares, which are code; an open endpoint is never written as public without the owner's word.
+  # specarch-problem: question: open_question: (must, decision) Does the running system register POST /prekey? It is declared at api/endpoints.go:17, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-14 under answers. [Q-14]
+  Q-14:
+    question: Does the running system register POST /prekey? It is declared at api/endpoints.go:17, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1prekey/post']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; the document dxlib emits, or a route table, says what the running system registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'api/endpoints.go:17', says: Registers POST /prekey with NewEndPoint.}
+  # specarch-problem: question: open_question: (must, decision) POST /session/open checks no privilege: it registers it with none, so dxlib lets through every caller its middlewares admit (it has no middleware). Is it meant to be open to everyone (public), or which permission should it check? Decided by system-owner. Answer with a decision record that names Q-15 under answers. [Q-15]
+  Q-15:
+    question: 'POST /session/open checks no privilege: it registers it with none, so dxlib lets through every caller its middlewares admit (it has no middleware). Is it meant to be open to everyone (public), or which permission should it check?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1session~1open/post/permission']
+    decidedBy: system-owner
+    why: dxlib checks no privilege on an endpoint that names none, and whether a caller must sign in is decided by its middlewares, which are code; an open endpoint is never written as public without the owner's word.
+  # specarch-problem: question: open_question: (must, decision) api/endpoints.go:67 registers POST /session/open with EndPointTypeHTTPEndToEndEncryptionV3, a persistent-session envelope whose key exchange, cipher and session store the service supplies through dxlib's OnE2EEV3Unpack and OnE2EEV3Pack hooks. Which handshake does it travel in, with its key agreement, signature, cipher and the operation that establishes it? Decided by system-owner. Answer with a decision record that names Q-16 under answers. [Q-16]
+  Q-16:
+    question: api/endpoints.go:67 registers POST /session/open with EndPointTypeHTTPEndToEndEncryptionV3, a persistent-session envelope whose key exchange, cipher and session store the service supplies through dxlib's OnE2EEV3Unpack and OnE2EEV3Pack hooks. Which handshake does it travel in, with its key agreement, signature, cipher and the operation that establishes it?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1session~1open/post/handshake']
+    decidedBy: system-owner
+    why: dxlib routes a V3 body to the host's hooks and fixes nothing of the envelope, so the reader cannot write the handshake from the type.
+    cites:
+      - {source: code, clause: 'api/endpoints.go:67', says: Registers POST /session/open with EndPointTypeHTTPEndToEndEncryptionV3.}
+  # specarch-problem: question: open_question: (must, decision) POST /session/open declares no parameter where api/endpoints.go:67 registers it, and its handler reads none by name (api/handlers.go:42), so its body is written as any object. Which fields does its body take, with their types? Decided by system-owner. Answer with a decision record that names Q-17 under answers. [Q-17]
+  Q-17:
+    question: POST /session/open declares no parameter where api/endpoints.go:67 registers it, and its handler reads none by name (api/handlers.go:42), so its body is written as any object. Which fields does its body take, with their types?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1session~1open/post/requestBody/content/application~1json/schema']
+    decidedBy: system-owner
+    why: dxlib reads and checks only the parameters an endpoint declares; a handler that reads its body in another way, such as decoding it itself, gives its fields only in code syntax does not follow.
+    cites:
+      - {source: code, clause: 'api/endpoints.go:67', says: Declares no parameter.}
+  # specarch-problem: question: open_question: (must, decision) Does the running system register POST /session/open? It is declared at api/endpoints.go:67, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-18 under answers. [Q-18]
+  Q-18:
+    question: Does the running system register POST /session/open? It is declared at api/endpoints.go:67, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1session~1open/post']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; the document dxlib emits, or a route table, says what the running system registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'api/endpoints.go:67', says: Registers POST /session/open with NewEndPoint.}
+  # specarch-problem: question: open_question: (should, decision) api/endpoints.go:57 registers POST /vault/export as a download stream, whose 200 response is the file's bytes, and its registration or handler gives that response a JSON body. Which does it answer? Decided by system-owner. Answer with a decision record that names Q-19 under answers. [Q-19]
+  Q-19:
+    question: api/endpoints.go:57 registers POST /vault/export as a download stream, whose 200 response is the file's bytes, and its registration or handler gives that response a JSON body. Which does it answer?
+    kind: decision
+    priority: should
+    blocks: ['#/paths/~1vault~1export/post/responses/200/content']
+    decidedBy: system-owner
+    why: A download stream writes the file to the response as dxlib's sender does, with no JSON body, so a body declared for it is what the running system does not send.
+    cites:
+      - {source: code, clause: 'api/endpoints.go:57', says: Registers POST /vault/export as a download stream with a body on its 200 response.}
+  # specarch-problem: question: open_question: (must, decision) Does the running system register POST /vault/export? It is declared at api/endpoints.go:57, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-20 under answers. [Q-20]
+  Q-20:
+    question: Does the running system register POST /vault/export? It is declared at api/endpoints.go:57, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1vault~1export/post']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; the document dxlib emits, or a route table, says what the running system registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'api/endpoints.go:57', says: Registers POST /vault/export with NewEndPoint.}
+  # specarch-problem: question: open_question: (must, decision) Which width does each of these numbers take: int32, int64 within 2^53 or carried as text, or a double or a decimal with its precision and scale? Decided by system-owner. Answer with a decision record that names Q-21 under answers. [Q-21]
+  Q-21:
+    question: 'Which width does each of these numbers take: int32, int64 within 2^53 or carried as text, or a double or a decimal with its precision and scale?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1vault~1export/post/responses/200/content/application~1json']
+    decidedBy: system-owner
+    why: The meta-model needs a number's width, and the document gives none it holds; choosing one would be a guess.
+  # specarch-problem: question: open_question: (must, decision) What does each permission allow: notes.read, notes.write? Decided by system-owner. Answer with a decision record that names Q-22 under answers. [Q-22]
+  Q-22:
+    question: 'What does each permission allow: notes.read, notes.write?'
+    kind: decision
+    priority: must
+    blocks: ['#/permissions/notes.read/description', '#/permissions/notes.write/description']
+    decidedBy: system-owner
+    why: The source names the privilege an endpoint checks and not what it is for.
+  # specarch-problem: question: open_question: (must, decision) Which role grants each permission: notes.read, notes.write? Decided by system-owner. Answer with a decision record that names Q-23 under answers. [Q-23]
+  Q-23:
+    question: 'Which role grants each permission: notes.read, notes.write?'
+    kind: decision
+    priority: must
+    blocks: ['#/permissions/notes.read', '#/permissions/notes.write']
+    decidedBy: system-owner
+    why: The source names the privilege an endpoint checks and not who holds it.
+  # specarch-problem: question: open_question: (should, decision) How long is a pre-key of handshake preKey accepted, and how many envelopes does one carry? The lifetime is the service's configuration (sessions.prekey_ttl_in_seconds in dxlib_module), and whether a pre-key is deleted after its first envelope is the service's own code. Decided by system-owner. Answer with a decision record that names Q-24 under answers. [Q-24]
+  Q-24:
+    question: How long is a pre-key of handshake preKey accepted, and how many envelopes does one carry? The lifetime is the service's configuration (sessions.prekey_ttl_in_seconds in dxlib_module), and whether a pre-key is deleted after its first envelope is the service's own code.
+    kind: decision
+    priority: should
+    blocks: ['#/handshakes/preKey/lifetime', '#/handshakes/preKey/uses']
+    decidedBy: system-owner
+    why: dxlib's type fixes the exchange and the cipher, not how long a pre-key lives or how often it is used, and a client must know both.
+    cites:
+      - {source: code, clause: 'api/endpoints.go:32', says: Registers an endpoint with dxlib's pre-key envelope.}
+  # specarch-problem: question: open_question: (must, decision) What is each problem's title, and when is it answered: attachment-not-found? Decided by system-owner. Answer with a decision record that names Q-25 under answers. [Q-25]
+  Q-25:
+    question: 'What is each problem''s title, and when is it answered: attachment-not-found?'
+    kind: decision
+    priority: must
+    blocks: ['#/errors/attachment-not-found/title', '#/errors/attachment-not-found/condition']
+    decidedBy: system-owner
+    why: The source gives a problem's status and reason, and not a title a person reads or the condition it is answered under.
+  # specarch-problem: question: open_question: (could, decision) Not held: api/endpoints.go:48: the endpoint POST /attachments/download: dxlib names it attachments_download from its URI, which is not camelCase, as an operationId is; it is named postAttachmentsDownload. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-26 under answers. [Q-26]
+  Q-26:
+    question: 'Not held: api/endpoints.go:48: the endpoint POST /attachments/download: dxlib names it attachments_download from its URI, which is not camelCase, as an operationId is; it is named postAttachmentsDownload. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/paths/~1attachments~1download/post']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'api/endpoints.go:48', says: 'Not held: the endpoint POST /attachments/download: dxlib names it attachments_download from its URI, which is not camelCase, as an operationId is; it is named postAttachmentsDownload.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: api/endpoints.go:43: the endpoint POST /attachments/upload: dxlib names it attachments_upload from its URI, which is not camelCase, as an operationId is; it is named postAttachmentsUpload. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-27 under answers. [Q-27]
+  Q-27:
+    question: 'Not held: api/endpoints.go:43: the endpoint POST /attachments/upload: dxlib names it attachments_upload from its URI, which is not camelCase, as an operationId is; it is named postAttachmentsUpload. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/paths/~1attachments~1upload/post']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'api/endpoints.go:43', says: 'Not held: the endpoint POST /attachments/upload: dxlib names it attachments_upload from its URI, which is not camelCase, as an operationId is; it is named postAttachmentsUpload.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: api/endpoints.go:82: the endpoint POST /forms/upload: dxlib names it forms_upload from its URI, which is not camelCase, as an operationId is; it is named postFormsUpload. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-28 under answers. [Q-28]
+  Q-28:
+    question: 'Not held: api/endpoints.go:82: the endpoint POST /forms/upload: dxlib names it forms_upload from its URI, which is not camelCase, as an operationId is; it is named postFormsUpload. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/paths/~1forms~1upload/post']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'api/endpoints.go:82', says: 'Not held: the endpoint POST /forms/upload: dxlib names it forms_upload from its URI, which is not camelCase, as an operationId is; it is named postFormsUpload.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: api/endpoints.go:32: the endpoint POST /notes/add: dxlib names it notes_add from its URI, which is not camelCase, as an operationId is; it is named postNotesAdd. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-29 under answers. [Q-29]
+  Q-29:
+    question: 'Not held: api/endpoints.go:32: the endpoint POST /notes/add: dxlib names it notes_add from its URI, which is not camelCase, as an operationId is; it is named postNotesAdd. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/paths/~1notes~1add/post']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'api/endpoints.go:32', says: 'Not held: the endpoint POST /notes/add: dxlib names it notes_add from its URI, which is not camelCase, as an operationId is; it is named postNotesAdd.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: api/endpoints.go:72: NewEndPoint registers POST /ping with EndPointTypeHTTPEndToEndEncryptionV1, which dxlib itself refuses with 422 as not implemented; written as a plain operation. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-30 under answers. [Q-30]
+  Q-30:
+    question: 'Not held: api/endpoints.go:72: NewEndPoint registers POST /ping with EndPointTypeHTTPEndToEndEncryptionV1, which dxlib itself refuses with 422 as not implemented; written as a plain operation. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/paths/~1ping/post']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'api/endpoints.go:72', says: 'Not held: NewEndPoint registers POST /ping with EndPointTypeHTTPEndToEndEncryptionV1, which dxlib itself refuses with 422 as not implemented; written as a plain operation.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: api/endpoints.go:67: the endpoint POST /session/open: dxlib names it session_open from its URI, which is not camelCase, as an operationId is; it is named postSessionOpen. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-31 under answers. [Q-31]
+  Q-31:
+    question: 'Not held: api/endpoints.go:67: the endpoint POST /session/open: dxlib names it session_open from its URI, which is not camelCase, as an operationId is; it is named postSessionOpen. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/paths/~1session~1open/post']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'api/endpoints.go:67', says: 'Not held: the endpoint POST /session/open: dxlib names it session_open from its URI, which is not camelCase, as an operationId is; it is named postSessionOpen.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: api/endpoints.go:57: the endpoint POST /vault/export: dxlib names it vault_export from its URI, which is not camelCase, as an operationId is; it is named postVaultExport. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-32 under answers. [Q-32]
+  Q-32:
+    question: 'Not held: api/endpoints.go:57: the endpoint POST /vault/export: dxlib names it vault_export from its URI, which is not camelCase, as an operationId is; it is named postVaultExport. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/paths/~1vault~1export/post']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'api/endpoints.go:57', says: 'Not held: the endpoint POST /vault/export: dxlib names it vault_export from its URI, which is not camelCase, as an operationId is; it is named postVaultExport.'}
+  # specarch-problem: question: open_question: (should, decision, certain) api/handlers.go:27: the registration of POST /attachments/download at api/endpoints.go:48 declares the response 200, and the handler api.DownloadAttachment of POST /attachments/download answers it nowhere in its own body, which calls no function of the module, nor does a middleware of its chain. Does the operation answer 200, or is the declaration stale? Decided by system-owner. Answer with a decision record that names Q-33 under answers. [Q-33]
+  Q-33:
+    question: 'api/handlers.go:27: the registration of POST /attachments/download at api/endpoints.go:48 declares the response 200, and the handler api.DownloadAttachment of POST /attachments/download answers it nowhere in its own body, which calls no function of the module, nor does a middleware of its chain. Does the operation answer 200, or is the declaration stale?'
+    kind: decision
+    priority: should
+    certainty: certain
+    blocks: ['#/paths/~1attachments~1download/post/responses/200']
+    decidedBy: system-owner
+    why: A response declared and never answered is in the contract clients are built against, and the code cannot produce it.
+    cites:
+      - {source: code, clause: 'api/handlers.go:27', says: Answers no 200.}
+  # specarch-problem: question: open_question: (should, decision, certain) api/handlers.go:21: the registration of POST /attachments/upload at api/endpoints.go:43 declares the response 200, and the handler api.UploadAttachment of POST /attachments/upload answers it nowhere in its own body, which calls no function of the module, nor does a middleware of its chain. Does the operation answer 200, or is the declaration stale? Decided by system-owner. Answer with a decision record that names Q-34 under answers. [Q-34]
+  Q-34:
+    question: 'api/handlers.go:21: the registration of POST /attachments/upload at api/endpoints.go:43 declares the response 200, and the handler api.UploadAttachment of POST /attachments/upload answers it nowhere in its own body, which calls no function of the module, nor does a middleware of its chain. Does the operation answer 200, or is the declaration stale?'
+    kind: decision
+    priority: should
+    certainty: certain
+    blocks: ['#/paths/~1attachments~1upload/post/responses/200']
+    decidedBy: system-owner
+    why: A response declared and never answered is in the contract clients are built against, and the code cannot produce it.
+    cites:
+      - {source: code, clause: 'api/handlers.go:21', says: Answers no 200.}
+  # specarch-problem: question: open_question: (should, decision, certain) api/handlers.go:21: the registration of POST /forms/upload at api/endpoints.go:82 declares the response 200, and the handler api.UploadAttachment of POST /forms/upload answers it nowhere in its own body, which calls no function of the module, nor does a middleware of its chain. Does the operation answer 200, or is the declaration stale? Decided by system-owner. Answer with a decision record that names Q-35 under answers. [Q-35]
+  Q-35:
+    question: 'api/handlers.go:21: the registration of POST /forms/upload at api/endpoints.go:82 declares the response 200, and the handler api.UploadAttachment of POST /forms/upload answers it nowhere in its own body, which calls no function of the module, nor does a middleware of its chain. Does the operation answer 200, or is the declaration stale?'
+    kind: decision
+    priority: should
+    certainty: certain
+    blocks: ['#/paths/~1forms~1upload/post/responses/200']
+    decidedBy: system-owner
+    why: A response declared and never answered is in the contract clients are built against, and the code cannot produce it.
+    cites:
+      - {source: code, clause: 'api/handlers.go:21', says: Answers no 200.}
+  # specarch-problem: question: open_question: (should, decision, suspected) api/handlers.go:46: the handler api.Ping of GET /health and POST /ping does nothing: its body has no step but a return. Is it a stub, with the operation not built yet? Decided by system-owner. Answer with a decision record that names Q-36 under answers. [Q-36]
+  Q-36:
+    question: 'api/handlers.go:46: the handler api.Ping of GET /health and POST /ping does nothing: its body has no step but a return. Is it a stub, with the operation not built yet?'
+    kind: decision
+    priority: should
+    certainty: suspected
+    blocks: ['#/paths/~1health/get', '#/paths/~1ping/post']
+    decidedBy: system-owner
+    why: A handler that does nothing answers every request the same way, whatever the specification says the operation does.
+    cites:
+      - {source: code, clause: 'api/handlers.go:46', says: The body holds no step but a return.}
+  # specarch-problem: question: open_question: (should, decision, certain) api/handlers.go:15: the registration of POST /notes/add at api/endpoints.go:32 declares the parameter text, and the handler api.AddNote of POST /notes/add reads it nowhere in its own body, which calls no function of the module. Are they needed, or does the handler miss reading them? Decided by system-owner. Answer with a decision record that names Q-37 under answers. [Q-37]
+  Q-37:
+    question: 'api/handlers.go:15: the registration of POST /notes/add at api/endpoints.go:32 declares the parameter text, and the handler api.AddNote of POST /notes/add reads it nowhere in its own body, which calls no function of the module. Are they needed, or does the handler miss reading them?'
+    kind: decision
+    priority: should
+    certainty: certain
+    blocks: ['#/paths/~1notes~1add/post']
+    decidedBy: system-owner
+    why: A parameter a handler never reads is accepted and ignored, so a caller's value has no effect, which the specification does not say.
+    cites:
+      - {source: code, clause: 'api/handlers.go:15', says: Reads no parameter named text.}
+  # specarch-problem: question: open_question: (should, decision, certain) api/handlers.go:15: the registration of POST /notes/add at api/endpoints.go:32 declares the response 200, and the handler api.AddNote of POST /notes/add answers it nowhere in its own body, which calls no function of the module, nor does a middleware of its chain. Does the operation answer 200, or is the declaration stale? Decided by system-owner. Answer with a decision record that names Q-38 under answers. [Q-38]
+  Q-38:
+    question: 'api/handlers.go:15: the registration of POST /notes/add at api/endpoints.go:32 declares the response 200, and the handler api.AddNote of POST /notes/add answers it nowhere in its own body, which calls no function of the module, nor does a middleware of its chain. Does the operation answer 200, or is the declaration stale?'
+    kind: decision
+    priority: should
+    certainty: certain
+    blocks: ['#/paths/~1notes~1add/post/responses/200']
+    decidedBy: system-owner
+    why: A response declared and never answered is in the contract clients are built against, and the code cannot produce it.
+    cites:
+      - {source: code, clause: 'api/handlers.go:15', says: Answers no 200.}
+  # specarch-problem: question: open_question: (should, decision, suspected) api/handlers.go:10: the handler api.IssuePreKey of POST /prekey does nothing: its body has no step but a return. Is it a stub, with the operation not built yet? Decided by system-owner. Answer with a decision record that names Q-39 under answers. [Q-39]
+  Q-39:
+    question: 'api/handlers.go:10: the handler api.IssuePreKey of POST /prekey does nothing: its body has no step but a return. Is it a stub, with the operation not built yet?'
+    kind: decision
+    priority: should
+    certainty: suspected
+    blocks: ['#/paths/~1prekey/post']
+    decidedBy: system-owner
+    why: A handler that does nothing answers every request the same way, whatever the specification says the operation does.
+    cites:
+      - {source: code, clause: 'api/handlers.go:10', says: The body holds no step but a return.}
+  # specarch-problem: question: open_question: (should, decision, suspected) api/handlers.go:41: the handler api.OpenSession of POST /session/open does nothing: its body has no step but a return. Is it a stub, with the operation not built yet? Decided by system-owner. Answer with a decision record that names Q-40 under answers. [Q-40]
+  Q-40:
+    question: 'api/handlers.go:41: the handler api.OpenSession of POST /session/open does nothing: its body has no step but a return. Is it a stub, with the operation not built yet?'
+    kind: decision
+    priority: should
+    certainty: suspected
+    blocks: ['#/paths/~1session~1open/post']
+    decidedBy: system-owner
+    why: A handler that does nothing answers every request the same way, whatever the specification says the operation does.
+    cites:
+      - {source: code, clause: 'api/handlers.go:41', says: The body holds no step but a return.}
+  # specarch-problem: question: open_question: (should, decision, suspected) api/handlers.go:36: the handler api.ExportVault of POST /vault/export does nothing: its body has no step but a return. Is it a stub, with the operation not built yet? Decided by system-owner. Answer with a decision record that names Q-41 under answers. [Q-41]
+  Q-41:
+    question: 'api/handlers.go:36: the handler api.ExportVault of POST /vault/export does nothing: its body has no step but a return. Is it a stub, with the operation not built yet?'
+    kind: decision
+    priority: should
+    certainty: suspected
+    blocks: ['#/paths/~1vault~1export/post']
+    decidedBy: system-owner
+    why: A handler that does nothing answers every request the same way, whatever the specification says the operation does.
+    cites:
+      - {source: code, clause: 'api/handlers.go:36', says: The body holds no step but a return.}

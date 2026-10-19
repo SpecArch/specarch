@@ -616,7 +616,26 @@ commands:
         endpoint (`NewWSEndPoint`, or `NewEndPoint` with
         `EndPointTypeWS`), a `RegisterHandler` call, whose operation the
         document the service loads declares, and a method the meta-model
-        does not hold print a line. Each operation carries a must
+        does not hold print a line. The endpoint type decides the
+        operation's transport (ADR-145, ADR-146):
+        `EndPointTypeHTTPEndToEndEncryptionV2` names the handshake
+        `preKey` on the operation and declares it once under `handshakes`,
+        inferred, with X25519, Ed25519 and AES-256-CBC, which the type
+        fixes, established by the registration that declares exactly the
+        parameters `a0`, `a1` and `a2`, a must question when none or two
+        do, and a should question on its lifetime and uses;
+        `EndPointTypeHTTPUploadStream` with an octet-stream content type
+        is `stream: {direction: upload}`, and with another content type a
+        must question on the stream and the body;
+        `EndPointTypeHTTPDownloadStream` is `stream: {direction:
+        download}` with a 200 response of `application/octet-stream` and
+        a binary string, a data template declared for it a should
+        question; `EndPointTypeHTTPDownloadStreamV2` is both the
+        handshake and the download; the V1 type, which dxlib refuses as
+        not implemented, prints a line and is written plain; the V3 and V4
+        types, whose envelope the host's hooks make, and a type that is
+        not one of dxlib's constants are must questions on the
+        operation's handshake, the latter on its stream too. Each operation carries a must
         question on whether the running system registers it, which a
         printed tree answers in the merge, and one on its success
         response and what each response means, or on the descriptions

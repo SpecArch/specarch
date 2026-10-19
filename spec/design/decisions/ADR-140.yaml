@@ -29,9 +29,10 @@ decisions:
 
       An if of the handler's body itself, not one nested in another
       statement, that checks the variable's field and whose block refuses
-      through the request by a statement of its own, a return of or a
-      call to one of the problem calls or WriteResponseAsJSON of a literal
-      status from 400, writes what it checks; so does an else if of its
+      through the request by a statement of its own, a return of, a call
+      to, or an assignment or declaration from one of the problem calls
+      or WriteResponseAsJSON of a literal status from 400, writes what it
+      checks; so does an else if of its
       chain when every branch before it refuses too. Such a check x.F == "" as
       required with minLength 1, x.F == nil as required, len(x.F) == 0 as
       required with minLength or minItems 1, len(x.F) against a literal as
@@ -48,7 +49,8 @@ decisions:
       after a branch that does not refuse, in a case, a loop or a
       closure, is a should question at its line that names where it
       sits, when it names a field of the variable or sits under a
-      condition that does, such as a parse of x.F under x.F != "". A
+      condition or in a loop over a field that does, such as a parse of
+      x.F under x.F != "" or a check of each item of a range over x.F. A
       block that refuses only inside a statement of its own does not
       refuse. A check that names no field of the variable, such as
       err != nil, and sits under no condition that does, is not a check
@@ -107,7 +109,10 @@ decisions:
 
       dxlib's envelope keys are left out because its emitter leaves them
       out of a data template; writing them would make the Go reading and
-      the emitted document disagree in the merge on every response.
+      the emitted document disagree in the merge on every response. The
+      keys left out print a not-held line, so a handler that means one
+      as a field of its own data is asked about, and an answer of
+      envelope keys alone is no body of its own, as a nil body is.
 
       Only checks of the decoded variable's fields that refuse are read,
       because those are the ones that hold the field to a value before the
@@ -139,7 +144,9 @@ decisions:
       whose handlers answer literal maps gets success responses, so its
       operations' questions ask for the responses' descriptions rather
       than for the success itself. Its POST /tasks/assign covers the
-      checks nested under a presence test and the envelope keys, and
+      checks nested under a presence test and the envelope keys,
+      POST /tasks/label a refusal kept in err and returned, a check in a
+      loop over a field and an answer of envelope keys alone, and
       POST /tasks/restore a registration and a handler that agree. The router reader's rule for required
       is unchanged.
     satisfies: [SA-44, SA-34]

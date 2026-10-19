@@ -41,3 +41,9 @@ type RestoreRequest struct {
 	TaskID int32  `json:"task_id"`
 	Reason string `json:"reason,omitempty"`
 }
+
+// LabelRequest is what a labelling decodes.
+type LabelRequest struct {
+	Title  string   `json:"title"`
+	Labels []string `json:"labels"`
+}

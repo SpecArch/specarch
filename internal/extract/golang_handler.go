@@ -289,12 +289,17 @@ func (g *goReader) switchGuard(f *goFile, s *ast.SwitchStmt, request, name strin
 }
 
 // nestedGuards is each refusing check below a statement of the handler's
-// body that names a field, or sits under a condition that does (named), a
-// check not read, with where it sits.
+// body that names a field, or sits under a condition or in a loop over a
+// field that does (named), a check not read, with where it sits.
 func (g *goReader) nestedGuards(f *goFile, n ast.Node, request, name, where string, named bool) []handlerGuard {
 	var out []handlerGuard
 	ast.Inspect(n, func(n ast.Node) bool {
 		switch s := n.(type) {
+		case *ast.RangeStmt:
+			if !named && mentions(s.X, name) {
+				out = append(out, g.nestedGuards(f, s.Body, request, name, where+", in a loop over "+g.source(s.X), true)...)
+				return false
+			}
 		case *ast.IfStmt:
 			if g.refuses(f, s.Body, request) && (named || mentions(s.Cond, name)) {
 				out = append(out, handlerGuard{clause: g.clause(f, s.Pos()), text: g.source(s.Cond) + ", " + where})
@@ -333,8 +338,9 @@ func (g *goReader) source(e ast.Expr) string {
 }
 
 // refuses says whether a block answers a refusal through the request by
-// a statement of its own: a return of, or a call to, one of the problem
-// calls, or WriteResponseAsJSON with a literal status from 400 up. A
+// a statement of its own: a return of, a call to, or an assignment or
+// declaration from one of the problem calls, or WriteResponseAsJSON with
+// a literal status from 400 up. A
 // refusal inside a statement of the block, an if, a switch, a loop or a
 // closure, is answered only there, so the block does not refuse.
 func (g *goReader) refuses(f *goFile, b *ast.BlockStmt, request string) bool {
@@ -345,6 +351,16 @@ func (g *goReader) refuses(f *goFile, b *ast.BlockStmt, request string) bool {
 			calls = []ast.Expr{s.X}
 		case *ast.ReturnStmt:
 			calls = s.Results
+		case *ast.AssignStmt:
+			calls = s.Rhs
+		case *ast.DeclStmt:
+			if gd, ok := s.Decl.(*ast.GenDecl); ok {
+				for _, sp := range gd.Specs {
+					if vs, ok := sp.(*ast.ValueSpec); ok {
+						calls = append(calls, vs.Values...)
+					}
+				}
+			}
 		}
 		for _, e := range calls {
 			if g.refusal(f, e, request) {
@@ -1027,6 +1043,21 @@ func (w *declaredWriter) answerBody(ep *goEndpoint, a handlerAnswer, label, at s
 		return out
 	}
 	where := "operation " + label + ", response " + at[strings.LastIndex(at, "/")+1:]
+	var envelope []string
+	for _, el := range cl.Elts {
+		if kv, ok := el.(*ast.KeyValueExpr); ok {
+			if wire, lit := stringLit(kv.Key); lit && dxlibEnvelopeKeys[wire] {
+				envelope = append(envelope, wire)
+			}
+		}
+	}
+	if len(envelope) > 0 {
+		w.g.notHeld = append(w.g.notHeld, notHeld{text: fmt.Sprintf("%s: %s: the %s %s, which WriteResponseAsJSON writes itself as dxlib's envelope, not as a field of the answer; left out", a.clause, where, pluralWord(len(envelope), "key"), joinAnd(envelope)), clause: a.clause, blocks: []string{at}})
+	}
+	if len(envelope) > 0 && len(envelope) == len(cl.Elts) {
+		out.text = "no body of its own"
+		return out
+	}
 	out.content, out.keys = w.literalObject(ep, a.file, cl, at+"/content/application~1json/schema", where, a.clause, 0)
 	return out
 }

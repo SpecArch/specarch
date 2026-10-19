@@ -39,6 +39,9 @@ func Define(a *api.DXAPI) {
 	a.NewEndPoint("Assign a task", "", "/tasks/assign", http.MethodPost, api.EndPointTypeHTTPJSON, dxhttp.RequestContentTypeApplicationJSON, nil,
 		AssignTask, nil, nil, nil, []string{"tasks.write"}, 0, "")
 
+	a.NewEndPoint("Label a task", "", "/tasks/label", http.MethodPost, api.EndPointTypeHTTPJSON, dxhttp.RequestContentTypeApplicationJSON, nil,
+		LabelTask, nil, nil, nil, []string{"tasks.write"}, 0, "")
+
 	a.NewEndPoint("Restore a task", "", "/tasks/restore", http.MethodPost, api.EndPointTypeHTTPJSON, dxhttp.RequestContentTypeApplicationJSON,
 		[]api.DXAPIEndPointParameter{
 			{NameId: "task_id", Type: types.APIParameterTypeInt32, IsMustExist: true},

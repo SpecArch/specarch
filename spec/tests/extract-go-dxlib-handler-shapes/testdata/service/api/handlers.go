@@ -149,6 +149,26 @@ func AssignTask(aepr *api.DXAPIEndPointRequest) (err error) {
 	return nil
 }
 
+// LabelTask refuses through an error it keeps and returns, checks each
+// label in a loop, and answers with dxlib's envelope alone.
+func LabelTask(aepr *api.DXAPIEndPointRequest) (err error) {
+	var req LabelRequest
+	if err = json.Unmarshal(aepr.RequestBodyAsBytes, &req); err != nil {
+		return aepr.WriteResponseAndNewErrorf(http.StatusBadRequest, "BODY_NOT_JSON", "the body is not JSON: %v", err)
+	}
+	if req.Title == "" {
+		err = aepr.WriteResponseAndNewErrorf(http.StatusBadRequest, "TITLE_EMPTY", "a title is needed")
+		return err
+	}
+	for _, l := range req.Labels {
+		if l == "" {
+			return aepr.WriteResponseAndNewErrorf(http.StatusBadRequest, "LABEL_EMPTY", "a label is empty")
+		}
+	}
+	aepr.WriteResponseAsJSON(http.StatusOK, nil, utils.JSON{"status": "OK"})
+	return nil
+}
+
 // RestoreTask decodes the body its registration declares, and answers the
 // response it declares.
 func RestoreTask(aepr *api.DXAPIEndPointRequest) (err error) {

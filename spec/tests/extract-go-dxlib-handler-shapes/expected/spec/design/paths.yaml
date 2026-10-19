@@ -6,7 +6,7 @@ permissions:
   tasks.write:
     origin: stated
     cites:
-      - {source: code, clause: 'api/endpoints.go:29', says: 'POST /tasks/archive, POST /tasks/assign, POST /tasks/create, POST /tasks/import, POST /tasks/restore, POST /tasks/tag and POST /tasks/update check tasks.write in its privileges.'}
+      - {source: code, clause: 'api/endpoints.go:29', says: 'POST /tasks/archive, POST /tasks/assign, POST /tasks/create, POST /tasks/import, POST /tasks/label, POST /tasks/restore, POST /tasks/tag and POST /tasks/update check tasks.write in its privileges.'}
 paths:
   /tasks/archive:
     post:
@@ -170,6 +170,35 @@ paths:
         - {source: code, clause: 'api/endpoints.go:26', says: 'NewEndPoint registers POST /tasks/import; its handler is ImportTasks, it has no middleware, it declares no parameter and no response, and it checks tasks.write.'}
         - {source: code, clause: 'api/handlers.go:102', says: The handler of POST /tasks/import reads no parameter by name.}
         - {source: code, clause: 'api/handlers.go:104', says: 'The handler of POST /tasks/import decodes its body from RequestBodyAsBytes into rows, of type []CreateTaskRequest.'}
+  /tasks/label:
+    post:
+      operationId: postTasksLabel
+      summary: Label a task
+      permission: tasks.write
+      middlewares: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  minLength: 1
+                labels:
+                  type: array
+                  items:
+                    type: string
+              required: [title, labels]
+      responses:
+        "200": {}
+        "400": {}
+      origin: stated
+      cites:
+        - {source: code, clause: 'api/endpoints.go:42', says: 'NewEndPoint registers POST /tasks/label; its handler is LabelTask, it has no middleware, it declares no parameter and no response, and it checks tasks.write.'}
+        - {source: code, clause: 'api/handlers.go:154', says: 'The handler of POST /tasks/label reads no parameter by name and answers 400 BODY_NOT_JSON, 400 TITLE_EMPTY and 400 LABEL_EMPTY.'}
+        - {source: code, clause: 'api/handlers.go:156', says: 'The handler of POST /tasks/label decodes its body from RequestBodyAsBytes into req, of type LabelRequest; the checks at api/handlers.go:159 that refuse it give its required fields, bounds and enums.'}
+        - {source: code, clause: 'api/handlers.go:168', says: 'The handler of POST /tasks/label answers with WriteResponseAsJSON(http.StatusOK, nil, utils.JSON{"status"}).'}
   /tasks/list:
     get:
       operationId: getTasksList
@@ -221,10 +250,10 @@ paths:
                 required: [restoredAt]
       origin: stated
       cites:
-        - {source: code, clause: 'api/endpoints.go:42', says: 'NewEndPoint registers POST /tasks/restore; its handler is RestoreTask, it has no middleware, it declares the parameters task_id and reason and the response 200, and it checks tasks.write.'}
-        - {source: code, clause: 'api/handlers.go:154', says: The handler of POST /tasks/restore reads no parameter by name.}
-        - {source: code, clause: 'api/handlers.go:156', says: 'The handler of POST /tasks/restore decodes its body from RequestBodyAsBytes into req, of type RestoreRequest.'}
-        - {source: code, clause: 'api/handlers.go:161', says: 'The handler of POST /tasks/restore answers with WriteResponseAsJSON(http.StatusOK, nil, utils.JSON{"restored_at"}).'}
+        - {source: code, clause: 'api/endpoints.go:45', says: 'NewEndPoint registers POST /tasks/restore; its handler is RestoreTask, it has no middleware, it declares the parameters task_id and reason and the response 200, and it checks tasks.write.'}
+        - {source: code, clause: 'api/handlers.go:174', says: The handler of POST /tasks/restore reads no parameter by name.}
+        - {source: code, clause: 'api/handlers.go:176', says: 'The handler of POST /tasks/restore decodes its body from RequestBodyAsBytes into req, of type RestoreRequest.'}
+        - {source: code, clause: 'api/handlers.go:181', says: 'The handler of POST /tasks/restore answers with WriteResponseAsJSON(http.StatusOK, nil, utils.JSON{"restored_at"}).'}
   /tasks/tag:
     post:
       operationId: postTasksTag
@@ -312,6 +341,11 @@ errors:
     origin: stated
     cites:
       - {source: code, clause: 'api/handlers.go:27', says: Answers 400 with the reason ESTIMATE_OUT_OF_RANGE.}
+  label-empty:
+    status: 400
+    origin: stated
+    cites:
+      - {source: code, clause: 'api/handlers.go:165', says: Answers 400 with the reason LABEL_EMPTY.}
   priority-unknown:
     status: 400
     origin: stated
@@ -322,6 +356,11 @@ errors:
     origin: stated
     cites:
       - {source: code, clause: 'api/handlers.go:68', says: Answers 400 with the reason TASK_ID_INVALID.}
+  title-empty:
+    status: 400
+    origin: stated
+    cites:
+      - {source: code, clause: 'api/handlers.go:160', says: Answers 400 with the reason TITLE_EMPTY.}
   title-invalid:
     status: 400
     origin: stated

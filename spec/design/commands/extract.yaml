@@ -551,7 +551,9 @@ commands:
         a field that refuses, `!= ""` among them, is a should question at
         its line, and so is a refusing check nested under another
         condition, a case, a loop or a closure that names a field or
-        sits under a condition that does, naming where it sits. A
+        sits under a condition or in a loop over a field that does,
+        naming where it sits; a refusal assigned or declared from a
+        problem call and then returned refuses as a returned one does. A
         decode into a
         list, into a map that names no field, of `Request.Body`, which
         dxlib has already read to its end, or into a variable of no
@@ -565,7 +567,8 @@ commands:
         literal's type, a name the handler declares with its type, or a
         field of one), and dxlib's own status, status_code, reason and
         reason_message keys are not written, as its emitter leaves them
-        out of a data template. A status that is not a literal, a body
+        out of a data template, each left out printing a line, and an
+        answer of those keys alone is no body of its own. A status that is not a literal, a body
         that is not a literal map, a key that is not a literal, a value
         of a type the handler does not declare and one status answered
         with bodies of other fields are must questions; a header prints

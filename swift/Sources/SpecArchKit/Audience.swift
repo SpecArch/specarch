@@ -14,12 +14,12 @@ private let keyedElements: Set<String> = [
 
 /// Whether the path of the merged document names an element that may carry
 /// audience: an entry of a section of named elements, the session,
-/// release, rollback or sign-off, an operation, an entity's relation or
-/// unique constraint, or a channel's message.
+/// release, rollback, backup, restore or sign-off, an operation, an
+/// entity's relation or unique constraint, or a channel's message.
 func isElement(_ path: [String]) -> Bool {
     switch path.count {
     case 1:
-        return ["session", "release", "rollback", "signoff"].contains(path[0])
+        return ["session", "release", "rollback", "signoff", "backup", "restore"].contains(path[0])
     case 2:
         return keyedElements.contains(path[0])
     case 3:

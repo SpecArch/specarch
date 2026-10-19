@@ -1,0 +1,4 @@
+arguments: [document, handover, project]
+exitStatus: 2
+standardOutput: |
+  project/specarch.yaml:4:3: warning: /environments: handover: the specification has no handover, so it has no handover document; add runBy: customer to the environment the customer runs, and a handover saying what they receive [handover@specarch.yaml#/environments]

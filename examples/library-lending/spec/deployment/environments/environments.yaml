@@ -7,4 +7,6 @@ environments:
     description: A copy of production the librarians try a release on before it goes live.
     promotesTo: production
   production:
-    description: The live system at the desk.
+    description: The live system at the desk, on the library's own hosts.
+    runBy: customer
+    why: The library's board keeps member data on hosts it controls, so its IT staff build each release from the source and run production themselves; the vendor runs development and staging.

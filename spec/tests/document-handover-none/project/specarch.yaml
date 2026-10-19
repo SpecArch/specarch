@@ -1,0 +1,4 @@
+specarch: "0.1"
+info: { title: Shop, version: 1.0.0 }
+environments:
+  production: { description: The till in the shop. }

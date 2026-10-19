@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.0-dev of the specification: 495 design tests, 222 golden and 273 red, about 16 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.0-dev of the specification: 503 design tests, 224 golden and 279 red, about 16 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.7.0-dev of the specification: 495 design tests, 222 golden and 273 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 491 |
+| system | 499 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -467,6 +467,14 @@ Scenario: golden; level: system; verifies SA-66.
 - When: document techspec is run on the estate file
 - Then: it writes docs/estate.md beside the estate file, the modules with their versions and links and the references between them drawn as a flowchart, the unlisted specification apart, passes over each module with a warning, and exits 0
 
+#### document-handover-none
+
+Scenario: red; level: system; covers exit 2; verifies SA-73.
+
+- Given: a specification whose implementation file names an output folder for handover, and that has no handover and no environment the customer runs
+- When: document handover is run on it alone
+- Then: it prints a handover warning at the environments saying the specification has no handover document, writes nothing, and exits 2 since every specification given was passed over
+
 #### document-html-marks-problems
 
 Scenario: red; level: system; verifies SA-60.
@@ -730,6 +738,14 @@ Scenario: golden; level: system; verifies SA-16.
 - Given: two environments, a plain and a secret setting, release and rollback steps (one with a why and a citation), a migration that cannot be reversed, and an implementation file with two installations
 - When: document deployment is run
 - Then: it writes deployment.md with the path a release takes, each installation's servers and setting values with the secret only named and an unset value marked, the steps, and exits 0
+
+#### document-writes-handover
+
+Scenario: golden; level: system; verifies SA-73.
+
+- Given: an environment the customer runs with a handover (with a why and a citation) to a stakeholder, settings including one internal, a migration, release, rollback, backup and restore steps, checks in both environments, a monitor, an acceptance and a system test, a sign-off, and an implementation file whose deployment of that environment has build, method, infrastructure, values and a monitor
+- When: document handover is run
+- Then: it writes handover.md for the customer's engineers: what they receive, the responsibilities, the build with its toolchain, base image and licences, what the hosts must provide, every setting with the internal one marked, the migration, the release with the vendor's install method, rollback, backup, restore, the monitor and how the vendor watches it, only the check in that environment with a Result column, only the acceptance test, and the sign-off sheet, and exits 0
 
 #### document-writes-html
 
@@ -2395,6 +2411,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-67.
 - When: validate is run
 - Then: it reports the error audience at each name an element for everyone gives, and none inside the internal elements, and exits 1
 
+#### validate-build-task-unknown
+
+Scenario: red; level: system; covers exit 1; verifies SA-73.
+
+- Given: a deployment whose build names a misspelt task and an sbom task the implementation file does not have
+- When: validate is run
+- Then: it reports build_task at each, suggesting the close name, and exits 1
+
 #### validate-change-applied
 
 Scenario: red; level: system; covers exit 1; verifies SA-23.
@@ -2842,6 +2866,46 @@ Scenario: red; level: system; covers exit 1; verifies SA-29.
 - Given: a guard naming an entity that does not exist, and a guard whose precondition compares a string with a number
 - When: validate is run
 - Then: it reports guard for the entity and expression_type for the precondition, and exits 1
+
+#### validate-handover-build-missing
+
+Scenario: red; level: system; covers exit 1; verifies SA-73.
+
+- Given: an implementation deployment of an environment the customer runs, with no build, method or infrastructure
+- When: validate is run
+- Then: it reports handover three times at the deployment, naming build, method and infrastructure, and exits 1
+
+#### validate-handover-incomplete
+
+Scenario: red; level: system; covers exit 1; verifies SA-73.
+
+- Given: an environment the customer runs with a handover, no release, rollback, backup, restore or check, and a must question that blocks the monitors section
+- When: validate is run
+- Then: it reports handover errors for the missing release and rollback and handover warnings for the missing check and the missing backup and restore at the environment's runBy, nothing for the monitors the question holds, and exits 1
+
+#### validate-handover-missing
+
+Scenario: red; level: system; covers exit 1; verifies SA-73.
+
+- Given: an environment the customer runs, with release, rollback, backup, restore, a check and a monitor, and no handover
+- When: validate is run
+- Then: it reports handover at the environment's runBy, saying what to add, and exits 1
+
+#### validate-handover-no-customer
+
+Scenario: red; level: system; covers exit 1; verifies SA-73.
+
+- Given: a handover whose to names no stakeholder, in a specification where no environment is run by the customer
+- When: validate is run
+- Then: it reports handover at the handover and stakeholder at its to, and exits 1
+
+#### validate-handover-valid
+
+Scenario: golden; level: system; verifies SA-73.
+
+- Given: an environment the customer runs with a handover to a stakeholder, release, rollback, backup and restore steps, a check and a monitor in it, and an implementation deployment of it with build (task, base images by digest, reproducible, sbom), method and infrastructure
+- When: validate is run
+- Then: it reports no error and no handover warning, and exits 0
 
 #### validate-idempotency-key
 
@@ -4039,7 +4103,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-292 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+297 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -4265,6 +4329,11 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-25 | acceptance 2 | golden | SA-25 names no harm |
 | requirement SA-25 | acceptance 3 | golden | SA-25 names no harm |
 | requirement SA-13 | acceptance 1 | golden | SA-13 names no harm |
+| requirement SA-73 | acceptance 1 | golden | SA-73 names no harm |
+| requirement SA-73 | acceptance 2 | golden | SA-73 names no harm |
+| requirement SA-73 | acceptance 3 | golden | SA-73 names no harm |
+| requirement SA-73 | acceptance 4 | golden | SA-73 names no harm |
+| requirement SA-73 | acceptance 5 | golden | SA-73 names no harm |
 | requirement SA-17 | acceptance 1 | golden | SA-17 names no harm |
 | requirement SA-17 | acceptance 2 | golden | SA-17 names no harm |
 | requirement SA-17 | acceptance 3 | golden | SA-17 names no harm |

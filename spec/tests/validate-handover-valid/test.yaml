@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: validate
+level: system
+scenario: golden
+given: "an environment the customer runs with a handover to a stakeholder, release, rollback, backup and restore steps, a check and a monitor in it, and an implementation deployment of it with build (task, base images by digest, reproducible, sbom), method and infrastructure"
+when: "validate is run"
+then: "it reports no error and no handover warning, and exits 0"
+verifies: [SA-73]

@@ -258,7 +258,7 @@ tasks:
     description: The validator checks its own specification and every example.
     ci: true
   documents-current:
-    run: for target in techspec requirements testplan traceability deployment commissioning questions; do go run ./cmd/specarch document $target --check spec examples || exit 1; done
+    run: for target in techspec requirements testplan traceability deployment commissioning handover questions; do go run ./cmd/specarch document $target --check spec examples || exit 1; done
     description: The committed technical specifications match their specifications.
     ci: true
   install: { run: go install ./cmd/specarch }

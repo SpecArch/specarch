@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-fragment-operation-0.2.schema.json",
   "title": "SpecArch operation file, meta-model 0.2",
-  "description": "One file under the operation/ folder of a SpecArch specification: a mapping of that stage's sections (monitors, questions). A file under a sub-folder named after a section holds only that section. The validator merges every file of a tree into one document, which specarch-design-0.2.schema.json describes, and checks what spans files, such as references and names defined twice; this schema checks one file alone. Written by tools/fragment-schemas from that schema; do not edit, run it.",
+  "description": "One file under the operation/ folder of a SpecArch specification: a mapping of that stage's sections (monitors, backup, restore, questions). A file under a sub-folder named after a section holds only that section. The validator merges every file of a tree into one document, which specarch-design-0.2.schema.json describes, and checks what spans files, such as references and names defined twice; this schema checks one file alone. Written by tools/fragment-schemas from that schema; do not edit, run it.",
   "type": "object",
   "properties": {
     "monitors": {
@@ -14,6 +14,14 @@
       "additionalProperties": {
         "$ref": "#/$defs/monitor"
       }
+    },
+    "backup": {
+      "$ref": "#/$defs/procedure",
+      "description": "SpecArch keyword. How the data of the live system is saved, as ordered steps with a check for each (ISO/IEC/IEEE 12207:2017, 6.4.12 Operation process)."
+    },
+    "restore": {
+      "$ref": "#/$defs/procedure",
+      "description": "SpecArch keyword. How saved data is put back on the live system, as ordered steps with a check for each (ISO/IEC/IEEE 12207:2017, 6.4.12 Operation process)."
     },
     "questions": {
       "description": "SpecArch keyword. The open questions: what the sources do not say and a stakeholder must decide or provide, keyed by ID such as Q-12. A question is written in the folder of the stage it is about, so every stage folder may hold questions; the validator merges them into one section and checks each sits in the stage of what it blocks. A question leaves the specification when it is answered; the decision that answered it names it under answers.",
@@ -37,6 +45,14 @@
       "description": "SpecArch keyword. The ID of a requirement: one defined under 'requirements' in this specification, or one in an external requirement set declared under 'sources' with kind requirement-set, whose prefix is the set's prefix.",
       "type": "string",
       "pattern": "^[A-Z][A-Z0-9]{1,15}-[A-Za-z0-9._]+$"
+    },
+    "satisfies": {
+      "description": "SpecArch keyword. The requirements this element satisfies, by ID (the satisfy relation of ISO/IEC/IEEE 29148:2018, 6.5.1, and SysML). Every named design and deployment element carries it; fields, parameters, responses, actions and worked examples trace through the object that holds them. A requirement no element satisfies is reported by the validator.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/requirementLink"
+      },
+      "uniqueItems": true
     },
     "verifies": {
       "description": "SpecArch keyword. The requirements this test, commissioning check or monitor verifies, by ID (the verify relation of ISO/IEC/IEEE 29148:2018, 6.5.2). A requirement no test verifies is reported by the validator.",
@@ -113,6 +129,10 @@
       "enum": [
         "internal"
       ]
+    },
+    "markdown": {
+      "description": "Prose in Markdown.",
+      "type": "string"
     },
     "question": {
       "description": "SpecArch keyword. One open question: something the sources do not say and a stakeholder must decide or provide. ISO/IEC/IEEE 29148:2018 (5.2.6) says a complete set of requirements holds no 'to be defined' clause and that resolving them is iterative within a time set by risk; IEEE Std 830-1998 (4.3.3) says such an item carries why it is open, what must be done, who is responsible and by when. A question is the one licence for an element to be incomplete: a required key may be missing exactly where a must question says it is unknown.",
@@ -197,6 +217,101 @@
       "description": "Extension keys that belong to one implementation, not to the design: code-generator settings, a language or framework binding, servers, hosts, ports and deployments. They go in a SpecArch Implementation File (*.specarch-implementation.yaml), never in a design file. See 'Design and implementation' in docs/conventions.md.",
       "type": "string",
       "pattern": "^x-(oapi-codegen|ogen|openapi-generator|codegen|protoc|grpc|go|java|kotlin|python|typescript|javascript|rust|swift|dotnet|csharp|php|ruby|framework|router|middleware|cli-library|server|servers|host|port|deploy|deployment|environment)(-|$)"
+    },
+    "step": {
+      "description": "SpecArch keyword. One step of a procedure or a check.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "description": "A short name for the step, such as 'Tag the release'.",
+          "type": "string",
+          "minLength": 1
+        },
+        "action": {
+          "description": "What is done, in plain words. The exact command belongs to the implementation file.",
+          "type": "string",
+          "minLength": 1
+        },
+        "check": {
+          "description": "How the person running it knows the step worked.",
+          "type": "string",
+          "minLength": 1
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
+        }
+      },
+      "required": [
+        "name",
+        "action"
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "steps": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/step"
+      },
+      "minItems": 1
+    },
+    "procedure": {
+      "description": "SpecArch keyword. An ordered procedure: a release or a rollback.",
+      "type": "object",
+      "properties": {
+        "description": {
+          "$ref": "#/$defs/markdown"
+        },
+        "steps": {
+          "$ref": "#/$defs/steps"
+        },
+        "satisfies": {
+          "$ref": "#/$defs/satisfies"
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
+        },
+        "audience": {
+          "$ref": "#/$defs/audience"
+        }
+      },
+      "required": [
+        "steps"
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
     },
     "monitor": {
       "description": "SpecArch keyword. One monitor of the live system.",

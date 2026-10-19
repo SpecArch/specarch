@@ -31,6 +31,8 @@ func Document(target string, root *yaml.Node, relRoot string, impls []Implementa
 		write = func() string { return DeploymentGuide(root, relRoot, impls, state) }
 	case "commissioning":
 		write = func() string { return Commissioning(root, relRoot, impls, state) }
+	case "handover":
+		write = func() string { return Handover(root, relRoot, impls, state) }
 	case "questions":
 		return Questions(root, relRoot, impls, state), true
 	case "changes":
@@ -569,13 +571,10 @@ func DeploymentGuide(root *yaml.Node, relRoot string, impls []Implementation, st
 		if path := promotionPath(envs); path != "" {
 			d.para("A release goes " + path + ".")
 		}
-		d.line("| Environment | Purpose | Promotes to |")
-		d.line("|---|---|---|")
-		for _, e := range envs {
-			d.line("| %s | %s | %s |", e.Key.Value, cell(str(e.Value, "description")), cell(str(e.Value, "promotesTo")))
+		environmentsTable(d, envs)
+		if names := customerRun(envs); len(names) > 0 {
+			d.para(fmt.Sprintf("The customer builds, installs and runs %s from the source; what the customer receives is in the handover document.", strings.Join(names, " and ")))
 		}
-		d.blank()
-		d.explainRows(rowsOf(envs))
 	}
 
 	if len(cfg) > 0 {
@@ -602,8 +601,13 @@ func DeploymentGuide(root *yaml.Node, relRoot string, impls []Implementation, st
 		for _, dep := range deps {
 			d.heading(3, dep.Key.Value)
 			line := strings.TrimSpace(str(dep.Value, "description"))
+			byCustomer := false
 			if e := str(dep.Value, "environment"); e != "" {
 				line += " Environment: " + e + "."
+				byCustomer = str(get(get(root, "environments"), e), "runBy") == "customer"
+			}
+			if byCustomer {
+				line += " Run by the customer, who builds and installs it from the source; the handover document says what they receive."
 			}
 			d.para(line)
 			if servers := items(dep.Value, "servers"); len(servers) > 0 {
@@ -614,7 +618,10 @@ func DeploymentGuide(root *yaml.Node, relRoot string, impls []Implementation, st
 				}
 				d.blank()
 			}
-			if values := pairs(dep.Value, "configuration"); len(values) > 0 || len(cfg) > 0 {
+			buildDetails(d, i.Node, get(dep.Value, "build"), 4)
+			methodPara(d, get(dep.Value, "method"))
+			infrastructureTable(d, get(dep.Value, "infrastructure"))
+			if values := pairs(dep.Value, "configuration"); len(values) > 0 || len(cfg) > 0 && !byCustomer {
 				given := map[string]string{}
 				for _, v := range values {
 					given[v.Key.Value] = v.Value.Value
@@ -649,6 +656,18 @@ func DeploymentGuide(root *yaml.Node, relRoot string, impls []Implementation, st
 		d.para(str(rollback, "description"))
 		d.explain(rollback)
 		stepsTable(d, get(rollback, "steps"))
+	}
+	for _, p := range [][2]string{{"backup", "Backup"}, {"restore", "Restore"}} {
+		if proc := get(root, p[0]); proc != nil {
+			d.section(p[1])
+			d.para(str(proc, "description"))
+			d.explain(proc)
+			stepsTable(d, get(proc, "steps"))
+		}
+	}
+	if h := get(root, "handover"); h != nil {
+		d.section("Handover")
+		handoverText(d, root, h)
 	}
 	if mons := pairs(root, "monitors"); len(mons) > 0 {
 		d.section("Monitors")

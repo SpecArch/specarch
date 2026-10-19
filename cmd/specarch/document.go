@@ -179,11 +179,17 @@ func runDocument(args []string, stdout, stderr io.Writer) int {
 		}
 	}
 	failed := false
-	skipped := 0
+	skipped, noHandovers := 0, 0
 	for _, l := range specs {
 		if out == "" && !namesOutput(l, target) {
 			fmt.Fprintln(stdout, noOutputFolder(l, target, "document").String())
 			skipped++
+			continue
+		}
+		if target == "handover" && source.Child(l.spec.Root, "handover") == nil {
+			fmt.Fprintln(stdout, noHandover(l).String())
+			skipped++
+			noHandovers++
 			continue
 		}
 		folder, status := outputFolder(l, target, out, stderr)
@@ -231,7 +237,14 @@ func runDocument(args []string, stdout, stderr io.Writer) int {
 		return 1
 	}
 	if skipped == len(specs) && len(plan) == 0 {
-		fmt.Fprintf(stderr, "specarch: no output folder for %s in any specification given; give --out, or an implementation file whose targets name %s and its output\n", target, target)
+		switch {
+		case noHandovers == len(specs):
+			fmt.Fprintln(stderr, "specarch: no specification given has a handover, so there is no handover document to write; add runBy: customer to the environment the customer runs, and a handover saying what they receive")
+		case noHandovers > 0:
+			fmt.Fprintf(stderr, "specarch: every specification given was passed over for %s, with no output folder or no handover, as the warnings say; nothing was written\n", target)
+		default:
+			fmt.Fprintf(stderr, "specarch: no output folder for %s in any specification given; give --out, or an implementation file whose targets name %s and its output\n", target, target)
+		}
 		return 2
 	}
 	if check {
@@ -442,6 +455,23 @@ func noOutputFolder(l loaded, target, kind string) validate.Diagnostic {
 		if k := source.Key(i.Node, "targets"); k != nil {
 			d.File, d.Line, d.Path = i.Path, k.Line, "/targets"
 			break
+		}
+	}
+	ds := []validate.Diagnostic{d}
+	validate.SpecPlacer(l.spec).Place(ds)
+	return ds[0]
+}
+
+// noHandover is the warning for a specification that has no handover, so
+// that it has no handover document (ADR-129): at the environments of the
+// root file, or at the root file, placed and given its id as validate's are.
+func noHandover(l loaded) validate.Diagnostic {
+	d := validate.Diagnostic{File: l.spec.RootFile, Line: 1, Severity: validate.Warning, Path: "/", Rule: validate.RuleHandover,
+		Message: "the specification has no handover, so it has no handover document; add runBy: customer to the environment the customer runs, and a handover saying what they receive"}
+	if k := source.Key(l.spec.Root, "environments"); k != nil {
+		d.Line, d.Path = k.Line, "/environments"
+		if f := l.spec.Files[k]; f != "" {
+			d.File = f
 		}
 	}
 	ds := []validate.Diagnostic{d}

@@ -7,8 +7,8 @@ let designKeys: Set<String> = [
     "stakeholders", "needs", "requirements", "glossary", "assumptions",
     "enums", "entities", "permissions", "roles", "paths", "commands",
     "channels", "dependencies", "session", "pages", "algorithms", "tests",
-    "environments", "release", "rollback", "migrations", "checks", "signoff",
-    "relations", "constraints", "transitions", "operationId", "responses",
+    "environments", "release", "rollback", "migrations", "handover", "checks", "signoff",
+    "backup", "restore", "relations", "constraints", "transitions", "operationId", "responses",
     "requestBody", "parameters", "permission", "formula", "examples",
     "properties", "primaryKey", "stateField", "messages", "payload",
     "calls", "idempotencyKey", "guard", "validity",
@@ -163,9 +163,14 @@ extension Checker {
     }
 
     /// Checks each deployment names an environment of the specification
-    /// when it declares any, and gives values only to settings the
-    /// specification declares and that are not secret.
+    /// when it declares any, gives values only to settings the
+    /// specification declares and that are not secret, names tasks of this
+    /// file in its build, and, when the customer runs the environment, says
+    /// how the build is made, how it is installed and what the hosts must
+    /// provide (ADR-129).
     func checkDeployments(_ d: Design) {
+        var tasks: [String: YNode] = [:]
+        for p in pairs(root.child("tasks")) { tasks[p.key.value] = p.value }
         for p in pairs(root.child("deployments")) {
             let base = ["deployments", p.key.value]
             let envNode = p.value.child("environment")
@@ -174,6 +179,21 @@ extension Checker {
                 add(envNode, pointer(base + ["environment"]), .environment, "\(env) is not an environment of the specification\(suggest(env, d.environments))")
             } else if env.isEmpty && !d.environments.isEmpty {
                 add(p.key, pointer(base), .environment, "the specification declares environments, so this deployment must say which one it installs; add environment with one of \(d.environments.keys.sorted(by: byteLess).joined(separator: ", "))")
+            }
+            let build = p.value.child("build")
+            for k in ["task", "sbom"] {
+                if let t = child(build, k), !t.value.isEmpty, tasks[t.value] == nil {
+                    add(t, pointer(base + ["build", k]), .buildTask, "\(t.value) is not a task of this implementation file\(suggest(t.value, tasks))")
+                }
+            }
+            if !env.isEmpty && str(child(d.environments[env], "runBy")) == "customer" {
+                for (key, what) in [
+                    ("build", "how the artifact is made from the source"),
+                    ("method", "how the build is put on the hosts"),
+                    ("infrastructure", "what the hosts must provide"),
+                ] where p.value.child(key) == nil {
+                    add(p.key, pointer(base), .handover, "\(env) is run by the customer, who builds and installs it from this file, and this deployment has no \(key) saying \(what); add \(key)")
+                }
             }
             for m in pairs(p.value.child("monitors")) where d.monitors[m.key.value] == nil {
                 add(m.key, pointer(base + ["monitors", m.key.value]), .monitor, "\(m.key.value) is not a monitor of the specification\(suggest(m.key.value, d.monitors))")

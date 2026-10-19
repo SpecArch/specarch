@@ -625,7 +625,10 @@
               "migrations",
               "checks",
               "signoff",
-              "monitors"
+              "monitors",
+              "handover",
+              "backup",
+              "restore"
             ]
           },
           "minItems": 1,
@@ -799,6 +802,138 @@
             },
             "additionalProperties": false
           }
+        },
+        "build": {
+          "description": "How the artifact of a release is made from the source, so that the customer who builds it, or the vendor on another machine, makes the same build: the steps in plain words, the task that runs them, the base images it starts from, how a build of the same source is compared with the vendor's, and the task that writes its software bill of materials and scans it (ADR-129).",
+          "type": "object",
+          "properties": {
+            "description": {
+              "$ref": "#/$defs/markdown"
+            },
+            "task": {
+              "description": "The task of this file that builds the artifact from the source, by key of tasks.",
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+            },
+            "baseImages": {
+              "description": "Every image the build starts from, each pinned by its digest, since a tag moves.",
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "description": "The image as the registry names it, with its tag, such as docker.io/library/golang:1.26-bookworm.",
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "digest": {
+                    "description": "The image's digest: sha256: and 64 hexadecimal digits.",
+                    "type": "string",
+                    "pattern": "^sha256:[0-9a-f]{64}$"
+                  },
+                  "purpose": {
+                    "description": "What the image is for: the build, or the runtime the artifact runs on.",
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "name",
+                  "digest",
+                  "purpose"
+                ],
+                "patternProperties": {
+                  "^x-": {}
+                },
+                "additionalProperties": false
+              },
+              "minItems": 1
+            },
+            "reproducible": {
+              "description": "How a build of the same source on another machine is compared with the vendor's: what is fixed (the toolchain, the flags, the timestamp) and what is compared (a checksum, an image digest).",
+              "$ref": "#/$defs/markdown"
+            },
+            "sbom": {
+              "description": "The task of this file that writes the software bill of materials of the build and scans it for known vulnerabilities, by key of tasks.",
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+            }
+          },
+          "required": [
+            "description",
+            "task"
+          ],
+          "patternProperties": {
+            "^x-": {}
+          },
+          "additionalProperties": false
+        },
+        "method": {
+          "description": "How the build is put on the hosts of this deployment: the tool that installs it, such as a compose tool, Quadlet or a Kubernetes client, the files it reads, and the steps in plain words (ADR-129).",
+          "type": "object",
+          "properties": {
+            "tool": {
+              "description": "The tool that installs the build, with its version.",
+              "type": "string",
+              "minLength": 1
+            },
+            "files": {
+              "description": "What the tool reads, such as a compose file, unit files or manifests: a path relative to this implementation file.",
+              "type": "string",
+              "minLength": 1
+            },
+            "description": {
+              "$ref": "#/$defs/markdown"
+            }
+          },
+          "required": [
+            "tool"
+          ],
+          "patternProperties": {
+            "^x-": {}
+          },
+          "additionalProperties": false
+        },
+        "infrastructure": {
+          "description": "What the hosts of this deployment must provide, one plain sentence each. Required for an environment the customer runs, since the hosts are theirs (ADR-129).",
+          "type": "object",
+          "properties": {
+            "cpu": {
+              "description": "Processor cores, per host.",
+              "type": "string",
+              "minLength": 1
+            },
+            "memory": {
+              "description": "Memory, per host.",
+              "type": "string",
+              "minLength": 1
+            },
+            "storage": {
+              "description": "Disk, and how it grows.",
+              "type": "string",
+              "minLength": 1
+            },
+            "network": {
+              "description": "What must reach what: the clients, the hosts, the services called.",
+              "type": "string",
+              "minLength": 1
+            },
+            "ports": {
+              "description": "The ports each host listens on, and the setting that changes a port when one does.",
+              "type": "string",
+              "minLength": 1
+            },
+            "services": {
+              "description": "The services the hosts must provide or reach, with their versions: the database engine, a message broker, the systems the design's dependencies name.",
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "minProperties": 1,
+          "patternProperties": {
+            "^x-": {}
+          },
+          "additionalProperties": false
         },
         "why": {
           "$ref": "#/$defs/why"

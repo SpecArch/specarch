@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "a deployment whose build names a misspelt task and an sbom task the implementation file does not have"
+when: "validate is run"
+then: "it reports build_task at each, suggesting the close name, and exits 1"
+verifies: [SA-73]

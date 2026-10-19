@@ -162,7 +162,7 @@ extension Checker {
             let name = p.key.value
             guard sections[name] != nil else { continue }
             switch name {
-            case "release", "rollback", "signoff":
+            case "release", "rollback", "handover", "signoff", "backup", "restore":
                 if p.value.child("origin") == nil {
                     warn(p.key, pointer(name), .originMissing, "\(name) carries no origin, and the specification tracks origin; add origin: stated, inferred or decided")
                 }

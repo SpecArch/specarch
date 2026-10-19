@@ -21,6 +21,7 @@ Owners: example-maintainers.
 | librarian | Staff at the desk who register members, lend copies and take returns. | Every desk task fits in one screen and takes under a minute; A fee is never wrong by a cent |
 | member | A card holder who borrows books. | Only their own loans and fees are shown to them; They are told when a loan is overdue |
 | library-board | The board that sets the lending policy and answers to the regulator. | The policy sheet and the system agree; Member data is kept as the rules allow and no longer |
+| library-it | The library's IT staff, who build each release from the source and run production on the library's hosts. | A release can be built from the source alone, and the build compared with the vendor's; Every setting, port and host the system needs is written down before a release is installed |
 
 ## 2. Constraints
 
@@ -642,11 +643,13 @@ flowchart LR
 
 ### Environments
 
-| Environment | Purpose | Promotes to |
-|---|---|---|
-| development | A developer's machine, with a throwaway database. | staging |
-| staging | A copy of production the librarians try a release on before it goes live. | production |
-| production | The live system at the desk. |   |
+| Environment | Purpose | Run by | Promotes to |
+|---|---|---|---|
+| development | A developer's machine, with a throwaway database. | vendor | staging |
+| staging | A copy of production the librarians try a release on before it goes live. | vendor | production |
+| production | The live system at the desk, on the library's own hosts. | customer |   |
+
+**Insight on production:** The library's board keeps member data on hosts it controls, so its IT staff build each release from the source and run production themselves; the vendor runs development and staging.
 
 ### Configuration
 
@@ -675,6 +678,51 @@ The previous build is kept installed beside the new one, so a rollback is a swit
 |---|---|---|
 | 1. Switch back | Point the service at the previous build and restart it. | The smoke check passes and the version shown is the previous one. |
 | 2. Reverse the migrations | Run the rollback steps of every migration the release carried, newest first. | The schema gate against the previous entities passes. |
+
+### Backup
+
+The database is the only state; a nightly dump of it, kept for ninety days, is the backup.
+
+| Step | Action | Check |
+|---|---|---|
+| 1. Dump the database | Every night after closing, dump the whole database to the backup store with the date in the file name. | The dump of the night is in the store and restores on a scratch server without error. |
+| 2. Keep ninety days | Remove dumps older than ninety days. | The store holds ninety dumps, the newest from last night. |
+
+### Restore
+
+A restore puts one night's dump back in place of the live database; the loans since that night are re-entered from the desk's paper slips.
+
+| Step | Action | Check |
+|---|---|---|
+| 1. Stop the service | Stop the service so that nothing writes while the database is replaced. | The desk screens show the service as down. |
+| 2. Load the dump | Drop the live database and load the chosen night's dump into a new one of the same name. | The member and loan counts match the night's counts in the backup log. |
+| 3. Start and check | Start the service and run the smoke check. | The catalogue answers and the loans list shows the restored loans. |
+
+### Handover
+
+Each release is handed to the library's IT staff as source: they build
+it, apply its migrations and install it on the library's hosts, and
+the vendor never reaches production. The vendor runs development and
+staging, where a librarian tries each release first.
+
+Received by library-it: The library's IT staff, who build each release from the source and run production on the library's hosts.
+
+The source: A tagged release of the repository, which the library imports into a repository of its own; the release notes name the tag and the commit it was built from.
+
+The customer is responsible for:
+
+- Building each release from the tag and comparing the build with the vendor's.
+- The hosts, their operating system and patching, the PostgreSQL server and the network.
+- Applying the migrations and installing the build, with the commissioning checks after each install.
+- Backups, restore drills, monitoring and the on-call rota.
+
+The vendor stays responsible for:
+
+- The source of each release, tagged, with its software bill of materials and vulnerability scan.
+- A fix for every defect the library reports, in the next release.
+- Staging, where each release is tried before it is handed over.
+
+**Insight:** The library's auditors ask who can reach member data; a production the vendor never touches is the shortest answer.
 
 ### Migration add-membership-tier
 
@@ -812,6 +860,7 @@ storage: github.com/jackc/pgx/v5. Money columns are `numeric(10,2)`.
 | traceability | ../../../docs |   |
 | deployment | ../../../docs |   |
 | commissioning | ../../../docs |   |
+| handover | ../../../docs |   |
 | questions | ../../../docs |   |
 | problems | ../../../docs |   |
 | changes | ../../../docs |   |
@@ -830,6 +879,8 @@ storage: github.com/jackc/pgx/v5. Money columns are `numeric(10,2)`.
 |---|---|---|
 | generate | `go generate ./...` |   |
 | test | `go test ./...` | yes |
+| build | `podman build --platform linux/amd64 -f Containerfile -t library-lending-api .` |   |
+| sbom | `syft dir:. -o syft-json=sbom.json && grype sbom:sbom.json` |   |
 
 #### Idioms
 
@@ -859,7 +910,16 @@ local: A developer's machine. Environment: development. Servers: http://localhos
 
 staging: The staging host the librarians try a release on. Environment: staging. Servers: https://staging.library.example. Settings: dailyRate 0.50, notificationChannelUrl https://notify-staging.library.example/events.
 
-production: The live host. Environment: production. Servers: https://library.example. Settings: dailyRate 0.50, notificationChannelUrl https://notify.library.example/events.
+production: The library's own hosts, which its IT staff build for and run. Environment: production. Servers: https://library.example. Settings: dailyRate 0.50, notificationChannelUrl https://notify.library.example/events. Built by the task build from 2 base images pinned by digest. Installed with podman-compose 1.4 from ../../../deploy/compose.
+
+| Resource | What the hosts must provide |
+|---|---|
+| Processor | Two cores for the API host; four for the database host. |
+| Memory | One gigabyte for the API host; four gigabytes for the database host. |
+| Storage | Twenty gigabytes for the database at the start, growing by about one gigabyte a year, and ninety nights of dumps in the backup store. |
+| Network | The desk's screens reach the API host over HTTPS; the API host reaches the database host and the notification service; nothing reaches the database host but the API host and the backup job. |
+| Ports | The API host listens on 8080 behind the library's HTTPS proxy; the database host on 5432. |
+| Services | PostgreSQL 16 and the library's notification service, which notificationChannelUrl names. |
 
 | Monitor | Tool | How | Alert |
 |---|---|---|---|

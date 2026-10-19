@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "an environment the customer runs with a handover, no release, rollback, backup, restore or check, and a must question that blocks the monitors section"
+when: "validate is run"
+then: "it reports handover errors for the missing release and rollback and handover warnings for the missing check and the missing backup and restore at the environment's runBy, nothing for the monitors the question holds, and exits 1"
+verifies: [SA-73]

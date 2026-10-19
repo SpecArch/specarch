@@ -1,0 +1,156 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
+decisions:
+  ADR-129:
+    title: An environment says who runs it, and one the customer runs is handed over as source, with a handover section and a handover document
+    status: accepted
+    date: "2026-10-19"
+    context: |
+      The deployment stage said what each environment is for and which
+      one a release goes to next, and the implementation file said where
+      each is installed and with which setting values. Every environment
+      was read as one the team that builds the system installs and runs.
+      A customer that takes the source into a repository of its own,
+      builds it and runs production itself, as regulated customers such
+      as banks do, had no place: the deployment guide described hosts
+      the vendor does not have, and nothing said what the customer
+      receives to build and run the system, nor what stays whose
+      responsibility. How a release is built (the pinned toolchain, the
+      base images, a reproducible build and its software bill of
+      materials), how a build is put on a host, and what the hosts must
+      provide had no keys either, so the deployment guide could not say
+      them for the vendor's own environments.
+    decision: |
+      An environment carries runBy, a SpecArch keyword with two values:
+      vendor, the team that builds the system installs and runs it;
+      customer, the party that takes the system builds, installs and
+      runs it on hosts of its own, from the handover. An environment
+      without runBy is run by the vendor, which is the one meaning every
+      environment had.
+
+      A specification with an environment the customer runs holds
+      handover, one object of the deployment stage, kept in
+      deployment/handover.yaml: description, the handover in plain
+      words; to, the stakeholder who receives it, by key; source, how
+      the source of a release reaches them; and responsibilities, two
+      lists of sentences, customer and vendor, saying what stays whose.
+      It holds nothing another section already says: the settings and
+      their secrets, the migrations, the release and rollback steps, the
+      checks and the sign-off, the monitors, the libraries with their
+      licences and the build are read from where they are.
+
+      backup and restore are two more procedures, one object each of the
+      operation stage (operation/backup.yaml, operation/restore.yaml),
+      with the steps of release and rollback: how the data of the live
+      system is saved, and how saved data is put back.
+
+      An implementation file's deployment gains three keys. build says
+      how the artifact of a release is made from the source: description;
+      task, the task of the file that builds it, by key; baseImages, each
+      image the build starts from, by name and digest, with its purpose;
+      reproducible, how a build of the same source on another machine is
+      compared with the vendor's; and sbom, the task that writes the
+      software bill of materials of the build and scans it, by key. method
+      says how the build is put on the hosts: tool, files (what the tool
+      reads, relative to the implementation file) and description.
+      infrastructure says what the hosts must provide: cpu, memory,
+      storage, network, ports and services, one sentence each.
+
+      The validator, in both builds, reports under the rule handover: an
+      environment the customer runs while the specification has no
+      handover, no release or no rollback (errors at runBy); a handover
+      while no environment is run by the customer (an error at handover);
+      and, as warnings at runBy, an environment the customer runs with no
+      commissioning check in it, no monitor in it, or no backup and
+      restore. A handover whose to names no stakeholder is the error
+      stakeholder. An open must question that blocks the stage or the
+      section holds the error or warning about that section. In an
+      implementation file, a deployment that installs an environment the
+      customer runs without build, method or infrastructure is an error
+      at the deployment (handover), and a build whose task or sbom names
+      no task of the file is the error build_task.
+
+      specarch document handover writes handover.md for the customer's
+      engineers, who know nothing of SpecArch: what they receive, the
+      responsibilities, how each implementation builds a release and the
+      licences of its dependencies, what the hosts must provide, every
+      setting, the migrations in order, how a release is installed and
+      rolled back, backup and restore, what is watched, the checks to run
+      after installing, the acceptance tests and the sign-off sheet. A
+      specification whose implementation files name an output folder for
+      it but that has no handover is passed over with a warning of rule
+      handover, as ADR-073 passes over one that names no folder.
+      --audience external applies to it as to every other document. The
+      deployment guide and the technical specification show who runs each
+      environment once any environment says so, each installation's
+      build, method and infrastructure, backup and restore after
+      rollback, and the handover; a specification without the new keys
+      gets the same documents as before.
+    why: |
+      ISO/IEC/IEEE 12207 names the two parties acquirer and supplier
+      (6.1.1 and 6.1.2), and its transition process (6.4.10) installs the
+      system in its operational environment without saying who does it.
+      SpecArch writes customer and vendor because those are the words the
+      people who read the documents use. The keyword is on the
+      environment because that is where the question arises: a staging
+      the vendor runs and a production the customer runs differ in
+      nothing but who runs them, and one customer may run a staging of
+      its own as well.
+
+      The handover is a section of its own, and small, because almost
+      all of what the customer receives is what the specification already
+      holds for the vendor's own deployments; a second copy would drift,
+      and one way to say one thing is the Low IQ Tax. What has no home is
+      who receives it, how the source reaches them and what stays whose
+      responsibility, so those are its keys. The receiver is a
+      stakeholder because a handover goes to a role, never to a person,
+      and the validator then checks the name as it checks every other.
+
+      Backup and restore are procedures of the operation stage because
+      they run on the live system through its life, like a monitor, not
+      once at a release; they serve the vendor's own production as much
+      as the customer's, which is why they are not keys of the handover.
+
+      How a release is built and what the hosts must provide depend on
+      the stack, so they are implementation: a Go service and a Java one
+      of the same design need different memory and start from different
+      base images. A base image is pinned by its digest because a tag
+      moves, and a customer comparing a build with the vendor's needs
+      the same input. The build names a task rather than carrying a
+      command because the tasks are where the file keeps its commands.
+
+      A missing handover, release or rollback is an error because the
+      customer builds and installs the system from them, and a
+      specification that marks an environment customer-run without them
+      promises a handover it cannot make. The checks, the monitors, and
+      backup with restore are warnings, as the traceability gaps are: a
+      specification is written in order, and they are its to-do list for
+      that environment. A must question that blocks the section is the
+      one licence for the gap, as everywhere else.
+
+      The handover document is a document like any other, so that
+      --audience external stays the one way to leave internal elements
+      out and the folder the implementation file names holds the
+      document with every element, as ADR-119 decided.
+
+      The compiler test holds: nothing is refused or left unread, every
+      gap is a problem at the environment's runBy or at the deployment,
+      and a specification without the keys reads and renders as before.
+      The acceptance test holds: the customer's engineers see the
+      handover document early, and a remark on it changes one key of the
+      handover, one step of a procedure or one line of a deployment.
+    consequences: |
+      The design and implementation schemas change, and with them the
+      fragment schemas and the Swift embed; every map of sections in both
+      builds lists handover, backup and restore. The library-lending
+      example's production is run by the library's IT staff, with a
+      handover, backup and restore procedures, and the Go
+      implementation's build, method and infrastructure; its documents
+      are regenerated, and CI checks its handover.md. The open questions
+      document and gaps list the handover document among the outputs only
+      for a specification that has a handover. A base image cannot be
+      named without its digest.
+    satisfies: [SA-12, SA-16, SA-73]
+    cites:
+      - source: iso-12207
+        clause: "6.4.10"
+        says: "The transition process establishes the capability to provide the service in its operational environment."

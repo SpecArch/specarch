@@ -65,6 +65,26 @@ commands:
       order a release reaches them, each step with a Result column, and
       the sign-off sheet.
 
+      The handover target writes `handover.md` for the engineers of the
+      customer who runs an environment (`runBy: customer`), who know
+      nothing of SpecArch (ADR-129): what they receive and how the source
+      reaches them, what stays whose responsibility, how each
+      implementation that installs such an environment builds a release
+      (its toolchain, the build's steps and task, its base images by
+      digest, how a build is compared with the vendor's, and the task
+      that writes the software bill of materials), the licences of its
+      dependencies, what the hosts must provide, every setting with its
+      type and where a secret's value comes from, and the values the
+      vendor gives, the migrations in the order they are applied, how a
+      release is installed (with the tool and files the vendor installs
+      with) and rolled back, how data is backed up and restored, what is
+      watched in that environment and how the vendor watches it, the
+      checks to run after installing, each step with a Result column,
+      the acceptance tests, and the sign-off sheet. A specification whose
+      implementation files name an output folder for it but that has no
+      handover is passed over with a warning of rule handover, as one
+      with no output folder is.
+
       The questions target writes `questions.md`: the open questions by
       stage with what each blocks and who decides, the references into
       other specifications that are not resolved, and which outputs are
@@ -233,15 +253,16 @@ commands:
     standardOutput: |
       The errors of an invalid specification and the errors of a
       marker, one line each; a warning for each specification with no
-      output folder for the target. With `--check`, one line per file that
-      differs or is missing.
+      output folder for the target, or, for the handover target, with no
+      handover. With `--check`, one line per file that differs or is
+      missing.
     standardError: A usage message on a usage error, the reason a file cannot be read or written, for html the reason a workflow diagram or screen preview could not be made, and a one-line count at the end.
     exitCodes:
       "0": written, or with `--check` the output is current
       "1": a specification has an error (after its files are written, or with `--check` compared), a marker is wrong, or with `--check` the output differs
-      "2": usage error, a target this build does not offer, --audience with a value other than external, without --out or for the problems target, no output folder in any specification given, the implementation files of one naming different output folders, or a file that could not be read or written
+      "2": usage error, a target this build does not offer, --audience with a value other than external, without --out or for the problems target, no output folder in any specification given (or, for the handover target, no handover in any), the implementation files of one naming different output folders, or a file that could not be read or written
     algorithm: checkStatus
-    satisfies: [SA-7, SA-8, SA-15, SA-16, SA-19, SA-22, SA-26, SA-51, SA-60, SA-66, SA-67, SA-68]
+    satisfies: [SA-7, SA-8, SA-15, SA-16, SA-19, SA-22, SA-26, SA-51, SA-60, SA-66, SA-67, SA-68, SA-73]
     why: Documents are read by more people than the YAML, so they come first among the targets and are made from the specification rather than kept beside it.
     cites:
       - source: arc42

@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: traceability matrix
 
-Version 0.7.0-dev of the specification: 10 needs, 72 requirements, and 1 gap. Each requirement is traced back to the needs it refines and forward to what satisfies it in the design and what verifies it in the tests and commissioning checks.
+Version 0.7.0-dev of the specification: 10 needs, 73 requirements, and 1 gap. Each requirement is traced back to the needs it refines and forward to what satisfies it in the design and what verifies it in the tests and commissioning checks.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -16,7 +16,7 @@ Version 0.7.0-dev of the specification: 10 needs, 72 requirements, and 1 gap. Ea
 | NEED-2 | accepted | SA-33, SA-34, SA-36, SA-37, SA-38, SA-39, SA-40, SA-41, SA-42, SA-43, SA-52, SA-53, SA-54, SA-55, SA-56, SA-49, SA-62, SA-63, SA-65, SA-66, SA-70, SA-46, SA-61, SA-71, SA-32, SA-9, SA-10 |
 | NEED-3 | accepted | SA-22, SA-36, SA-67, SA-7, SA-8, SA-26, SA-16, SA-58, SA-59, SA-60, SA-19 |
 | NEED-4 | accepted | SA-11, SA-2 |
-| NEED-5 | accepted | SA-35, SA-47, SA-68, SA-26, SA-16, SA-12, SA-23, SA-24, SA-25 |
+| NEED-5 | accepted | SA-35, SA-47, SA-68, SA-26, SA-16, SA-12, SA-23, SA-24, SA-25, SA-73 |
 | NEED-6 | accepted | SA-15, SA-13 |
 | NEED-7 | accepted | SA-14 |
 | NEED-8 | accepted | SA-69, SA-70, SA-46, SA-59, SA-71, SA-17, SA-18, SA-19, SA-20, SA-30, SA-44, SA-45, SA-64, SA-72, SA-51 |
@@ -38,11 +38,11 @@ Version 0.7.0-dev of the specification: 10 needs, 72 requirements, and 1 gap. Ea
 | SA-9 | NEED-2 | enums DocumentKind; enums Rule; commands validate; decisions ADR-001; decisions ADR-002; decisions ADR-007 | tests validate-design-key; tests validate-map-values; tests validate-stack-key; tests validate-type-list |
 | SA-10 | NEED-2 | enums Rule; commands validate | tests validate-deployment-environment-missing; tests validate-design-ref; tests validate-implements; tests validate-permission-checks; tests validate-setting; tests validate-tree-valid; tests validate-ui-components; tests validate-ui-schema-file |
 | SA-11 | NEED-4 | enums Rule; entities SpecFile; commands extract; commands validate; decisions ADR-010; decisions ADR-042; decisions ADR-048; decisions ADR-049; decisions ADR-050; decisions ADR-057 | tests merge-documents-days; tests merge-openapi-placeholder; tests merge-openapi-unserved; tests merge-refuses-edited-test; tests merge-takes-derived-drafts; tests validate-duplicate-name-across-files; tests validate-layout-folder-missing; tests validate-layout-not-a-stage; tests validate-layout-section-folder-in-root; tests validate-layout-section-in-root; tests validate-layout-section-in-wrong-stage; tests validate-layout-stack-mismatch; tests validate-layout-stage-not-listed; tests validate-layout-subfolder-section; tests validate-layout-test-file-unreadable; tests validate-layout-test-without-file; tests validate-tree-valid; checks checks-the-examples |
-| SA-12 | NEED-5 | enums Rule; commands validate; decisions ADR-011; decisions ADR-014; decisions ADR-052 | tests validate-deployment-valid; tests validate-monitor-environment; tests validate-monitor-not-declared; tests validate-monitor-valid; tests validate-need-rejected; tests validate-requirements-only; tests validate-secret-in-deployment; tests validate-secret-value; tests validate-traceability-warnings |
+| SA-12 | NEED-5 | enums Rule; commands validate; decisions ADR-011; decisions ADR-014; decisions ADR-052; decisions ADR-129 | tests validate-deployment-valid; tests validate-monitor-environment; tests validate-monitor-not-declared; tests validate-monitor-valid; tests validate-need-rejected; tests validate-requirements-only; tests validate-secret-in-deployment; tests validate-secret-value; tests validate-traceability-warnings |
 | SA-13 | NEED-6 | enums Rule; commands validate; decisions ADR-012 | tests document-citation-unknown-source; tests validate-cites; tests validate-source; tests validate-source-clause |
 | SA-14 | NEED-7 | enums GeneratorTarget; commands generate; decisions ADR-013; decisions ADR-051 | tests generate-no-plugin; tests generate-plugin-path-outside; tests generate-with-plugin |
 | SA-15 | NEED-6 | commands document; decisions ADR-015 | tests document-writes-requirements |
-| SA-16 | NEED-3, NEED-5 | enums DocumentTarget; commands document; decisions ADR-016 | tests document-testplan-by-release; tests document-testplan-state-machine; tests document-writes-commissioning; tests document-writes-deployment; tests document-writes-requirements; tests document-writes-testplan; tests document-writes-traceability |
+| SA-16 | NEED-3, NEED-5 | enums DocumentTarget; commands document; decisions ADR-016; decisions ADR-129 | tests document-testplan-by-release; tests document-testplan-state-machine; tests document-writes-commissioning; tests document-writes-deployment; tests document-writes-requirements; tests document-writes-testplan; tests document-writes-traceability |
 | SA-17 | NEED-8 | enums Rule; commands validate; decisions ADR-017 | tests validate-question-answered; tests validate-question-block; tests validate-question-covers-element-with-content; tests validate-question-covers-field-by-name; tests validate-question-covers-idiom-field; tests validate-question-covers-missing; tests validate-question-covers-problem; tests validate-question-covers-ungranted; tests validate-question-names; tests validate-question-should-not-covering; tests validate-question-stage |
 | SA-18 | NEED-8 | enums Rule; commands validate; decisions ADR-018 | tests document-draft-notice; tests validate-origin; tests validate-origin-tracked |
 | SA-19 | NEED-8, NEED-3 | enums DocumentTarget; commands document; commands gaps | tests document-draft-notice; tests document-writes-questions; tests gaps-lists-questions; tests gaps-names-question; tests gaps-none |
@@ -99,6 +99,7 @@ Version 0.7.0-dev of the specification: 10 needs, 72 requirements, and 1 gap. Ea
 | SA-70 | NEED-2, NEED-8 | commands extract; decisions ADR-121 | tests extract-database-generated-default; tests extract-database-implementation-out; tests extract-router-list-twin; tests generate-openapi-list-twin; tests generate-sql-generated-default; tests generate-sql-generated-default-refused; tests generate-sql-index-changed; tests validate-generated-default; tests validate-index-field |
 | SA-71 | NEED-2, NEED-8 | decisions ADR-123 | tests generate-sqlc-check-hand-written; tests generate-sqlc-dialect-refused; tests generate-sqlc-hand-written-refused; tests generate-sqlc-queries |
 | SA-72 | NEED-1, NEED-8 | commands check; decisions ADR-124; decisions ADR-128 | tests check-dump-of-no-format; tests check-fails-on-a-difference; tests check-skips-a-partition; tests check-succeeds; tests check-usage-error |
+| SA-73 | NEED-5 | enums DocumentTarget; enums Rule; commands document; decisions ADR-129 | tests document-handover-none; tests document-writes-handover; tests validate-build-task-unknown; tests validate-handover-build-missing; tests validate-handover-incomplete; tests validate-handover-missing; tests validate-handover-no-customer; tests validate-handover-valid |
 
 ## 3. Gaps
 

@@ -16,9 +16,9 @@ file `specarch.yaml`, and one folder per life-cycle stage it keeps.
       design/                        enums, entities, permissions, roles, paths, commands, channels, pages, algorithms, decisions
       implementation/<stack>/        <name>.<stack>.specarch-implementation.yaml, and its .md when it needs one
       tests/<name>/                  test.yaml, and the scenario's own input and expected-output files
-      deployment/                    environments, configuration, release, rollback, migrations
+      deployment/                    environments, configuration, release, rollback, migrations, handover
       commissioning/                 checks, signoff
-      operation/                     monitors
+      operation/                     monitors, backup, restore
       <stage>/questions.yaml         the open questions about that stage, in any stage folder
 
 The rules, each of which the validator checks under the rule `layout`:
@@ -37,8 +37,8 @@ The rules, each of which the validator checks under the rule `layout`:
   sub-folder per section and one object per file, named after the object
   in kebab-case (`design/entities/loan.yaml`, `design/decisions/ADR-001.yaml`),
   with the small sections (`permissions`, `roles`) in one file each. The
-  single-object sections (`release`, `rollback`, `signoff`) are one file
-  each, `deployment/release.yaml`.
+  single-object sections (`release`, `rollback`, `handover`, `signoff`,
+  `backup`, `restore`) are one file each, `deployment/release.yaml`.
 - Each test is a folder `tests/<name>/` holding `test.yaml`, the test
   itself, beside any input and expected-output files the scenario needs;
   the validator reads nothing in a test folder but `test.yaml`. A file
@@ -114,10 +114,11 @@ The **SpecArch Definition** (SDF) is the design side: the root file and
 every stage folder but `implementation/`. It is neutral about language,
 compiler and framework: stakeholders, needs and requirements; entities,
 enums, operations, commands, events, pages, permissions and roles,
-algorithms with formula, worked examples and pseudocode; tests; environments,
-settings, release, rollback and migration steps; commissioning checks and
-sign-off; monitors of the live system; and the decisions that hold whatever
-the stack.
+algorithms with formula, worked examples and pseudocode; tests; environments
+and who runs each, settings, release, rollback and migration steps, and the
+handover to a customer who runs an environment; commissioning checks and
+sign-off; monitors of the live system, backup and restore; and the
+decisions that hold whatever the stack.
 
 A **SpecArch Implementation File** (SIF, `<name>.<stack>.specarch-implementation.yaml`,
 root key `specarchImplementation`) is one stack's implementation of one
@@ -132,8 +133,9 @@ object maps onto the stack (`mappings`, each of which may carry `why`,
 (`targets`), build, test and CI commands (`tasks`), the test suites with
 their levels (`testing`), the shipped idioms it excludes or overrides, each
 with the reason (`idioms`), real servers, hosts, ports and the values of
-non-secret settings per environment (`deployments`), and implementation
-decisions (`decisions`). The idioms SpecArch ships, under `idioms/`, apply
+non-secret settings per environment, with how a release is built, how it
+is installed and what the hosts must provide (`deployments`), and
+implementation decisions (`decisions`). The idioms SpecArch ships, under `idioms/`, apply
 to every implementation file by default; an override or a project's own
 idiom is a file in the `idioms/` folder beside the implementation file,
 checked against `schema/specarch-idiom-0.1.schema.json`. `docs/idioms.md`
@@ -192,7 +194,7 @@ implementation file.
 | channels and messages | the messaging client and its settings |
 | commands, arguments, options and exit codes | |
 | the permission each operation, command and page needs; roles | |
-| environments and what each is for; the settings and which are secret; release, rollback and migration steps | servers, hosts, ports and the values of the non-secret settings per deployment; the exact commands |
+| environments, what each is for and who runs it; the settings and which are secret; release, rollback, backup, restore and migration steps; the handover to a customer who runs an environment | servers, hosts, ports and the values of the non-secret settings per deployment; the exact commands; how a release is built (the task, the base images by digest, the software bill of materials), how it is installed and what the hosts must provide |
 | the commissioning checks and the sign-off | |
 | the monitors: what is measured, in which environment, and the objective | the tool that measures, how, and where an alert goes, per monitor in each deployment |
 
@@ -537,8 +539,10 @@ redefined.
 | `opens` (of a decision) | SpecArch | the questions a decision raised, by ID, the open half of an answer given in part; each is open or answered by a later decision (ADR-120) |
 | `tests`, `scenario`, `level`, `given`, `when`, `then`, `covers`, `notApplicable` | SpecArch, after ISO/IEC/IEEE 29119 and Gherkin | design tests; the levels are 29119-1's; given, when and then are the Gherkin words, without Gherkin's file format |
 | `environments`, `promotesTo`, `configuration`, `secret`, `release`, `rollback`, `migrations`, `steps`, `action`, `check` | SpecArch, after ISO/IEC/IEEE 12207 6.4.10 | the deployment stage: the transition process, written as environments, settings and steps |
+| `runBy`, `handover`, `to`, `source` (of a handover), `responsibilities` | SpecArch, after ISO/IEC/IEEE 12207 6.1.1 and 6.1.2 | who runs an environment, the vendor or the customer (12207's supplier and acquirer), and what a customer who runs one receives (ADR-129) |
 | `checks`, `signoff`, `criteria`, `signers` | SpecArch, after ISO/IEC/IEEE 12207 6.4.11 and IEC 62381 | the commissioning stage: validation on the installed system, the site acceptance test |
 | `monitors`, `objective` | SpecArch, after ISO/IEC/IEEE 12207 6.4.12 | the operation stage: what is watched on the live system |
+| `backup`, `restore` | SpecArch, after ISO/IEC/IEEE 12207 6.4.12 | the operation stage: how the live system's data is saved and put back, as procedures (ADR-129) |
 | `testing`, `suites`, `designTests`, `designTestsOf`, `implementationOnly` | SpecArch | in implementation files: how one stack runs the design tests |
 | `stack`, `targets`, `deployments`, `environment` (of a deployment) | SpecArch | in implementation files: the stack, the output folders per target, and where the system really runs |
 | `ownedBy` | SpecArch | the stakeholder that owns what someone else builds: on a requirement, the one whose component fulfils it, so nothing here satisfies or verifies it (ADR-119); in implementation files, on a mapping, the one that owns an element the project describes but does not generate |

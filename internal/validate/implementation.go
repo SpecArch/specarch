@@ -18,8 +18,8 @@ var designKeys = map[string]bool{
 	"stakeholders": true, "needs": true, "requirements": true, "glossary": true, "assumptions": true,
 	"enums": true, "entities": true, "permissions": true, "roles": true, "paths": true, "commands": true,
 	"channels": true, "dependencies": true, "session": true, "pages": true, "algorithms": true, "tests": true,
-	"environments": true, "release": true, "rollback": true, "migrations": true, "checks": true, "signoff": true,
-	"relations": true, "constraints": true, "transitions": true, "operationId": true, "responses": true,
+	"environments": true, "release": true, "rollback": true, "migrations": true, "handover": true, "checks": true, "signoff": true,
+	"backup": true, "restore": true, "relations": true, "constraints": true, "transitions": true, "operationId": true, "responses": true,
 	"requestBody": true, "parameters": true, "permission": true, "formula": true, "examples": true,
 	"properties": true, "primaryKey": true, "stateField": true, "messages": true, "payload": true,
 	"calls": true, "idempotencyKey": true, "guard": true, "validity": true,
@@ -145,9 +145,13 @@ func (c *checker) checkIndexes(d *design, key string, indexes *yaml.Node) {
 }
 
 // checkDeployments checks each deployment names an environment of the
-// specification when it declares any, and gives values only to settings
-// the specification declares and that are not secret.
+// specification when it declares any, gives values only to settings the
+// specification declares and that are not secret, names tasks of this file
+// in its build, and, when the customer runs the environment, says how the
+// build is made, how it is installed and what the hosts must provide
+// (ADR-129).
 func (c *checker) checkDeployments(d *design) {
+	tasks := topMap(c.root, "tasks")
 	for _, p := range source.Pairs(source.Child(c.root, "deployments")) {
 		base := []string{"deployments", p.Key.Value}
 		envNode := source.Child(p.Value, "environment")
@@ -157,6 +161,23 @@ func (c *checker) checkDeployments(d *design) {
 			c.add(envNode, source.Pointer(append(base, "environment")...), RuleEnvironment, "%s is not an environment of the specification%s", env, suggest(env, d.environments))
 		case env == "" && len(d.environments) > 0:
 			c.add(p.Key, source.Pointer(base...), RuleEnvironment, "the specification declares environments, so this deployment must say which one it installs; add environment with one of %s", strings.Join(sortedKeys(d.environments), ", "))
+		}
+		build := source.Child(p.Value, "build")
+		for _, k := range []string{"task", "sbom"} {
+			if t := source.Child(build, k); t != nil && t.Value != "" && tasks[t.Value] == nil {
+				c.add(t, source.Pointer(append(base, "build", k)...), RuleBuildTask, "%s is not a task of this implementation file%s", t.Value, suggest(t.Value, tasks))
+			}
+		}
+		if env != "" && source.Str(source.Child(d.environments[env], "runBy")) == "customer" {
+			for _, k := range [][2]string{
+				{"build", "how the artifact is made from the source"},
+				{"method", "how the build is put on the hosts"},
+				{"infrastructure", "what the hosts must provide"},
+			} {
+				if source.Child(p.Value, k[0]) == nil {
+					c.add(p.Key, source.Pointer(base...), RuleHandover, "%s is run by the customer, who builds and installs it from this file, and this deployment has no %s saying %s; add %s", env, k[0], k[1], k[0])
+				}
+			}
 		}
 		for _, m := range source.Pairs(source.Child(p.Value, "monitors")) {
 			if d.monitors[m.Key.Value] == nil {

@@ -1,0 +1,17 @@
+specarchImplementation: "0.1"
+info: { title: Case in Go, version: 1.0.0 }
+implements: { file: specarch.yaml, version: 1.0.0 }
+stack: { language: { name: Go, version: "1.26" } }
+tasks:
+  build: { run: podman build -t till . }
+deployments:
+  production:
+    description: The shop's host.
+    environment: production
+    build:
+      description: The image is built from the tagged commit.
+      task: buidl
+      sbom: scan
+    method: { tool: podman-compose 1.4 }
+    infrastructure:
+      cpu: Two cores.

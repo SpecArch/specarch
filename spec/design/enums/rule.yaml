@@ -118,6 +118,8 @@ enums:
       - meta_model_version
       - audience
       - question_opened
+      - handover
+      - build_task
     valueDescriptions:
       file_kind: a file given by name is neither `specarch.yaml` nor `*.specarch-implementation.yaml`, is part of a specification that should be checked as a whole, or its root key does not match its name
       yaml_syntax: an entry of the file, or the file as a whole, is not well-formed YAML; the entries that parse are still read (ADR-080)
@@ -173,7 +175,7 @@ enums:
       suite: an implementation's test suite names a design test or subject that does not exist
       layout: a file or a section is not where the tree layout puts it; the root file's `stages` and the folders disagree, a test folder has no `test.yaml`, or a folder is not a stage
       need: a requirement's `needs` names a need that does not exist
-      stakeholder: a need's `stakeholders`, a question's `decidedBy`, a requirement's `ownedBy` or a mapping's `ownedBy` names a stakeholder that does not exist
+      stakeholder: a need's `stakeholders`, a question's `decidedBy`, a requirement's `ownedBy`, a mapping's `ownedBy` or the handover's `to` names a stakeholder that does not exist
       source: a citation names a source that is not declared under `sources`
       source_clause: a citation of a source that lists its `clauses` names no clause, or one that is neither a listed clause nor a part of one, such as section 3.3.1 under 3.3 or file.go:14 under file.go (a warning)
       environment: a check, an environment's `promotesTo` or an implementation's deployment names an environment that does not exist, or a deployment names none when the specification declares them
@@ -231,4 +233,6 @@ enums:
       output_folder: "document or generate is given no --out, and no implementation file of a specification names an output folder for the target under targets, so that specification has no such output (a warning, ADR-073, ADR-086)"
       audience: "an element for everyone (no `audience`) names an element whose audience is internal through a `$ref`, a relation's `target`, a page's `entity` or a requirement's `needs`, so a document for everyone would name what it may not show (ADR-119)"
       question_opened: "a decision names under `opens` a question that is neither open in the specification nor answered by a decision, or one it answers itself (ADR-120)"
-    satisfies: [SA-2, SA-3, SA-4, SA-5, SA-6, SA-9, SA-10, SA-11, SA-12, SA-13, SA-17, SA-18, SA-23, SA-24, SA-27, SA-29, SA-41, SA-42, SA-47, SA-48, SA-49, SA-50, SA-62, SA-63, SA-67, SA-68, SA-69]
+      handover: "an environment the customer runs (`runBy: customer`) while the specification has no `handover`, `release` or `rollback`, a `handover` while no environment is run by the customer, or an implementation's deployment of such an environment without `build`, `method` or `infrastructure`; as warnings, such an environment with no commissioning check in it, no monitor in it, or no `backup` and `restore`, and a specification named to document handover with an output folder for it and no `handover`; a must question that blocks the stage or the section holds the problem (ADR-129)"
+      build_task: "a deployment's `build` names under `task` or `sbom` a task the implementation file does not have under `tasks` (ADR-129)"
+    satisfies: [SA-2, SA-3, SA-4, SA-5, SA-6, SA-9, SA-10, SA-11, SA-12, SA-13, SA-17, SA-18, SA-23, SA-24, SA-27, SA-29, SA-41, SA-42, SA-47, SA-48, SA-49, SA-50, SA-62, SA-63, SA-67, SA-68, SA-69, SA-73]

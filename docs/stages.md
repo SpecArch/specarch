@@ -87,13 +87,35 @@ by subject, not by outcome.
 ## Deployment
 
 Sections: `environments`, `configuration`, `release`, `rollback`,
-`migrations`. Standard: the transition process of ISO/IEC/IEEE 12207:2017
-(6.4.10).
+`migrations`, `handover`. Standard: the transition process of ISO/IEC/IEEE
+12207:2017 (6.4.10).
 
 - An environment says what it is for and which environment a release goes
   to next, so the promotion path is written once. Hosts, URLs and ports are
   implementation; they go in the implementation file's deployments, each of
   which names its environment.
+- An environment also says who runs it (`runBy`): the vendor, the team
+  that builds the system, which is what every environment without the key
+  is; or the customer, who takes the source, builds it and runs the
+  environment on hosts of their own, as regulated customers do. 12207
+  calls the parties acquirer and supplier; SpecArch writes customer and
+  vendor, the words the readers use (ADR-129).
+- A handover (`handover`, one object) says what a customer who runs an
+  environment receives and what stays whose responsibility: who receives
+  it, a stakeholder; how the source of a release reaches them; and the
+  responsibilities of each side. Everything else they receive, the
+  settings, the migrations, the release, rollback, backup and restore
+  steps, the checks, the sign-off and the monitors, is what the
+  specification already holds, and the implementation file says how a
+  release is built (`build`: the task, the base images by digest, how a
+  build is compared with the vendor's, the software bill of materials),
+  how it is installed (`method`) and what the hosts must provide
+  (`infrastructure`). The validator refuses an environment the customer
+  runs without a handover, release and rollback, and an implementation
+  deployment of it without build, method and infrastructure; it warns when
+  no check or monitor is in that environment and when backup and restore
+  are missing. `specarch document handover` writes the handover document
+  for the customer's engineers.
 - A setting is named once, with its type and whether it is a secret. A
   secret's value is never written in a specification, as a default or in a
   deployment; the setting's description says where the value comes from.
@@ -127,8 +149,14 @@ as `docs/maintenance.md` describes.
 
 ## Operation
 
-Section: `monitors`. Standard: the operation process of ISO/IEC/IEEE
-12207:2017 (6.4.12).
+Sections: `monitors`, `backup`, `restore`. Standard: the operation process
+of ISO/IEC/IEEE 12207:2017 (6.4.12).
+
+Backup and restore are procedures with the steps of a release and a
+rollback: how the data of the live system is saved, and how saved data is
+put back. They are of the operation stage because they run through the
+system's life, not once at a release, and they serve the vendor's own
+production as much as a customer's (ADR-129).
 
 A monitor says what is measured on the live system, in which environment,
 the objective it must meet as one verifiable sentence, and the requirements

@@ -115,6 +115,8 @@ public enum Rule: String, CaseIterable, Sendable {
     case metaModelVersion = "meta_model_version"
     case audience = "audience"
     case questionOpened = "question_opened"
+    case handover = "handover"
+    case buildTask = "build_task"
 }
 
 /// Whether a diagnostic makes the file invalid.

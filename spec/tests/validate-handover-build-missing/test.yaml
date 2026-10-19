@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "an implementation deployment of an environment the customer runs, with no build, method or infrastructure"
+when: "validate is run"
+then: "it reports handover three times at the deployment, naming build, method and infrastructure, and exits 1"
+verifies: [SA-73]

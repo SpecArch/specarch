@@ -412,6 +412,10 @@ let designSchemaJSON = #"""
         "$ref": "#/$defs/migration"
       }
     },
+    "handover": {
+      "$ref": "#/$defs/handover",
+      "description": "SpecArch keyword. What the customer who runs an environment (runBy customer) receives to build, install and run it, and what stays whose responsibility. What another section already says, the settings, migrations, release, rollback, backup, restore, checks, sign-off and monitors, is read from there, never repeated here (ADR-129)."
+    },
     "checks": {
       "description": "SpecArch keyword. The checks run on the real installed system before it is handed over (the site acceptance test of IEC 62381:2024; ISO/IEC/IEEE 12207:2017, 6.4.11 Validation process), keyed by kebab-case name. Each names its kind, the environment it runs in and its steps. The results of each run are records, kept outside the specification; see 'Commissioning records' in docs/conventions.md.",
       "type": "object",
@@ -435,6 +439,14 @@ let designSchemaJSON = #"""
       "additionalProperties": {
         "$ref": "#/$defs/monitor"
       }
+    },
+    "backup": {
+      "$ref": "#/$defs/procedure",
+      "description": "SpecArch keyword. How the data of the live system is saved, as ordered steps with a check for each (ISO/IEC/IEEE 12207:2017, 6.4.12 Operation process)."
+    },
+    "restore": {
+      "$ref": "#/$defs/procedure",
+      "description": "SpecArch keyword. How saved data is put back on the live system, as ordered steps with a check for each (ISO/IEC/IEEE 12207:2017, 6.4.12 Operation process)."
     },
     "questions": {
       "description": "SpecArch keyword. The open questions: what the sources do not say and a stakeholder must decide or provide, keyed by ID such as Q-12. A question is written in the folder of the stage it is about, so every stage folder may hold questions; the validator merges them into one section and checks each sits in the stage of what it blocks. A question leaves the specification when it is answered; the decision that answered it names it under answers.",
@@ -4774,6 +4786,14 @@ let designSchemaJSON = #"""
           "type": "string",
           "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
         },
+        "runBy": {
+          "description": "SpecArch keyword. Who installs and runs the environment. vendor: the team that builds the system. customer: the party that takes the system builds, installs and runs it on hosts of its own, from the handover; the specification then needs handover, release and rollback, and the implementation file's deployment of it needs build, method and infrastructure. Left out, the vendor runs it (ADR-129).",
+          "type": "string",
+          "enum": [
+            "vendor",
+            "customer"
+          ]
+        },
         "satisfies": {
           "$ref": "#/$defs/satisfies"
         },
@@ -4795,6 +4815,93 @@ let designSchemaJSON = #"""
       },
       "required": [
         "description"
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "handover": {
+      "description": "SpecArch keyword. What the customer who runs an environment receives to build, install and run it, and what stays whose responsibility.",
+      "type": "object",
+      "properties": {
+        "description": {
+          "description": "The handover in plain words: what is handed over, when, and how the customer takes it.",
+          "$ref": "#/$defs/markdown"
+        },
+        "to": {
+          "description": "The stakeholder who receives the handover, by key; a role, never a person.",
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+        },
+        "source": {
+          "description": "How the source of a release reaches the customer, such as a tagged release of the repository that the customer imports into a repository of its own.",
+          "type": "string",
+          "minLength": 1
+        },
+        "responsibilities": {
+          "description": "What stays whose responsibility once the system is handed over, one plain sentence each.",
+          "type": "object",
+          "properties": {
+            "customer": {
+              "description": "What the customer is responsible for: the hosts, their patching, backups, monitoring, and so on.",
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "minItems": 1
+            },
+            "vendor": {
+              "description": "What the vendor stays responsible for: the source of each release, fixes for reported defects, and so on.",
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "minItems": 1
+            }
+          },
+          "required": [
+            "customer",
+            "vendor"
+          ],
+          "propertyNames": {
+            "not": {
+              "$ref": "#/$defs/stackSpecificKey"
+            }
+          },
+          "patternProperties": {
+            "^x-": {}
+          },
+          "additionalProperties": false
+        },
+        "satisfies": {
+          "$ref": "#/$defs/satisfies"
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
+        }
+      },
+      "required": [
+        "description",
+        "to",
+        "source",
+        "responsibilities"
       ],
       "propertyNames": {
         "not": {
@@ -6257,7 +6364,10 @@ let implementationSchemaJSON = #"""
               "migrations",
               "checks",
               "signoff",
-              "monitors"
+              "monitors",
+              "handover",
+              "backup",
+              "restore"
             ]
           },
           "minItems": 1,
@@ -6431,6 +6541,138 @@ let implementationSchemaJSON = #"""
             },
             "additionalProperties": false
           }
+        },
+        "build": {
+          "description": "How the artifact of a release is made from the source, so that the customer who builds it, or the vendor on another machine, makes the same build: the steps in plain words, the task that runs them, the base images it starts from, how a build of the same source is compared with the vendor's, and the task that writes its software bill of materials and scans it (ADR-129).",
+          "type": "object",
+          "properties": {
+            "description": {
+              "$ref": "#/$defs/markdown"
+            },
+            "task": {
+              "description": "The task of this file that builds the artifact from the source, by key of tasks.",
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+            },
+            "baseImages": {
+              "description": "Every image the build starts from, each pinned by its digest, since a tag moves.",
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "description": "The image as the registry names it, with its tag, such as docker.io/library/golang:1.26-bookworm.",
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "digest": {
+                    "description": "The image's digest: sha256: and 64 hexadecimal digits.",
+                    "type": "string",
+                    "pattern": "^sha256:[0-9a-f]{64}$"
+                  },
+                  "purpose": {
+                    "description": "What the image is for: the build, or the runtime the artifact runs on.",
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "name",
+                  "digest",
+                  "purpose"
+                ],
+                "patternProperties": {
+                  "^x-": {}
+                },
+                "additionalProperties": false
+              },
+              "minItems": 1
+            },
+            "reproducible": {
+              "description": "How a build of the same source on another machine is compared with the vendor's: what is fixed (the toolchain, the flags, the timestamp) and what is compared (a checksum, an image digest).",
+              "$ref": "#/$defs/markdown"
+            },
+            "sbom": {
+              "description": "The task of this file that writes the software bill of materials of the build and scans it for known vulnerabilities, by key of tasks.",
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+            }
+          },
+          "required": [
+            "description",
+            "task"
+          ],
+          "patternProperties": {
+            "^x-": {}
+          },
+          "additionalProperties": false
+        },
+        "method": {
+          "description": "How the build is put on the hosts of this deployment: the tool that installs it, such as a compose tool, Quadlet or a Kubernetes client, the files it reads, and the steps in plain words (ADR-129).",
+          "type": "object",
+          "properties": {
+            "tool": {
+              "description": "The tool that installs the build, with its version.",
+              "type": "string",
+              "minLength": 1
+            },
+            "files": {
+              "description": "What the tool reads, such as a compose file, unit files or manifests: a path relative to this implementation file.",
+              "type": "string",
+              "minLength": 1
+            },
+            "description": {
+              "$ref": "#/$defs/markdown"
+            }
+          },
+          "required": [
+            "tool"
+          ],
+          "patternProperties": {
+            "^x-": {}
+          },
+          "additionalProperties": false
+        },
+        "infrastructure": {
+          "description": "What the hosts of this deployment must provide, one plain sentence each. Required for an environment the customer runs, since the hosts are theirs (ADR-129).",
+          "type": "object",
+          "properties": {
+            "cpu": {
+              "description": "Processor cores, per host.",
+              "type": "string",
+              "minLength": 1
+            },
+            "memory": {
+              "description": "Memory, per host.",
+              "type": "string",
+              "minLength": 1
+            },
+            "storage": {
+              "description": "Disk, and how it grows.",
+              "type": "string",
+              "minLength": 1
+            },
+            "network": {
+              "description": "What must reach what: the clients, the hosts, the services called.",
+              "type": "string",
+              "minLength": 1
+            },
+            "ports": {
+              "description": "The ports each host listens on, and the setting that changes a port when one does.",
+              "type": "string",
+              "minLength": 1
+            },
+            "services": {
+              "description": "The services the hosts must provide or reach, with their versions: the database engine, a message broker, the systems the design's dependencies name.",
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "minProperties": 1,
+          "patternProperties": {
+            "^x-": {}
+          },
+          "additionalProperties": false
         },
         "why": {
           "$ref": "#/$defs/why"

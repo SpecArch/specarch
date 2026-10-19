@@ -76,6 +76,9 @@ targets:
     output: ../../../docs
   commissioning:
     output: ../../../docs
+  handover:
+    output: ../../../docs
+    description: What the library's IT staff receive to build and run production, kept current by CI.
   questions:
     output: ../../../docs
   problems:
@@ -120,6 +123,12 @@ targets:
 tasks:
   generate: { run: go generate ./... }
   test: { run: go test ./..., ci: true }
+  build:
+    run: podman build --platform linux/amd64 -f Containerfile -t library-lending-api .
+    description: Builds the service's image from the tagged commit; the Containerfile pins the toolchain and the base images by digest.
+  sbom:
+    run: syft dir:. -o syft-json=sbom.json && grype sbom:sbom.json
+    description: Writes the software bill of materials of the build and scans it; both files go with the release.
 
 deployments:
   local:
@@ -139,10 +148,33 @@ deployments:
       dailyRate: "0.50"
       notificationChannelUrl: "https://notify-staging.library.example/events"
   production:
-    description: The live host.
+    description: The library's own hosts, which its IT staff build for and run.
     environment: production
     servers:
       - { url: "https://library.example", description: The API behind the desk screens. }
+    build:
+      description: The image is built from the tagged commit with the build task, on any machine with the pinned toolchain; the binary is built with -trimpath and the module cache verified against go.sum, so the image's layers do not depend on the machine.
+      task: build
+      baseImages:
+        - name: docker.io/library/golang:1.26-bookworm
+          digest: "sha256:7d0d0ab5bcb7b2e4b9c9c0f6a1b5a4e2d3c4b5a6978879a0b1c2d3e4f5a6b7c8"
+          purpose: Builds the binary.
+        - name: gcr.io/distroless/static-debian12:nonroot
+          digest: "sha256:3f6a5d4c3b2a19087f6e5d4c3b2a1908f7e6d5c4b3a291807f6e5d4c3b2a1908"
+          purpose: Runs the binary, with no shell and no package manager.
+      reproducible: The build is bit-for-bit reproducible, so the digest of the library's image equals the digest in the release notes when the same tag, toolchain and base images are used; a different digest means a different input, and the library compares the two software bills of materials to find it.
+      sbom: sbom
+    method:
+      tool: podman-compose 1.4
+      files: ../../../deploy/compose
+      description: The compose file runs the API image by digest beside a PostgreSQL 16 container; the image digest and the settings are the only lines that change between releases.
+    infrastructure:
+      cpu: Two cores for the API host; four for the database host.
+      memory: One gigabyte for the API host; four gigabytes for the database host.
+      storage: Twenty gigabytes for the database at the start, growing by about one gigabyte a year, and ninety nights of dumps in the backup store.
+      network: The desk's screens reach the API host over HTTPS; the API host reaches the database host and the notification service; nothing reaches the database host but the API host and the backup job.
+      ports: The API host listens on 8080 behind the library's HTTPS proxy; the database host on 5432.
+      services: PostgreSQL 16 and the library's notification service, which notificationChannelUrl names.
     configuration:
       dailyRate: "0.50"
       notificationChannelUrl: "https://notify.library.example/events"

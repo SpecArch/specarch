@@ -42,7 +42,7 @@ These are the checks CI runs on every change:
     go test ./...
     govulncheck ./...
     go run ./cmd/specarch validate spec examples
-    for target in techspec requirements testplan traceability deployment commissioning; do go run ./cmd/specarch document $target --check spec examples || exit 1; done
+    for target in techspec requirements testplan traceability deployment commissioning handover; do go run ./cmd/specarch document $target --check spec examples || exit 1; done
     swift build --package-path swift && swift test --package-path swift
 
 `go test` runs the conformance suite, which is the tests stage of SpecArch's

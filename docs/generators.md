@@ -146,11 +146,22 @@ run them, and every design test as a test case under its subject.
 `traceability` writes `traceability.md`: needs to requirements,
 requirements to what satisfies and verifies them, and the gaps.
 `deployment` writes `deployment.md`: the environments and the path a
-release takes, the settings, each installation of each implementation with
-its servers and setting values, a secret only named, then release, rollback
-and migrations. `commissioning` writes `commissioning.md`: the checks by
-environment in the order a release reaches them, a Result column for every
-step, and the sign-off sheet. `questions` writes `questions.md`: the open
+release takes, with who runs each once any environment says so, the
+settings, each installation of each implementation with its servers,
+how it is built, installed and what its hosts must provide, and its
+setting values, a secret only named, then release, rollback, backup,
+restore, the handover and migrations. `commissioning` writes
+`commissioning.md`: the checks by environment in the order a release
+reaches them, a Result column for every step, and the sign-off sheet.
+`handover` writes `handover.md` for the engineers of a customer who runs
+an environment, who know nothing of SpecArch: what they receive, the
+responsibilities, how each implementation builds a release with its
+toolchain, base images and the licences of its dependencies, what the
+hosts must provide, every setting, the migrations in order, how a release
+is installed and rolled back, backup and restore, what is watched, the
+checks to run after installing, the acceptance tests and the sign-off
+sheet; a specification with no handover is passed over with a warning
+(ADR-129). `questions` writes `questions.md`: the open
 questions by stage with what each blocks and who decides, and a table of
 the outputs, each ready, a draft or waiting; `specarch gaps` prints the
 same text and exits 1 while a must or should question is open. `manual`

@@ -52,9 +52,9 @@ var Sections = map[string]string{
 	"commands": "design", "channels": "design", "dependencies": "design", "jobs": "design", "workflows": "design", "errors": "design", "pages": "design", "menus": "design", "flows": "design", "accessibility": "design", "theme": "design", "algorithms": "design", "decisions": "design",
 	"tests":        "tests",
 	"environments": "deployment", "configuration": "deployment", "release": "deployment",
-	"rollback": "deployment", "migrations": "deployment",
+	"rollback": "deployment", "migrations": "deployment", "handover": "deployment",
 	"checks": "commissioning", "signoff": "commissioning",
-	"monitors": "operation",
+	"monitors": "operation", "backup": "operation", "restore": "operation",
 }
 
 // sectionOrder is the order sections appear in the merged document and in
@@ -63,15 +63,15 @@ var sectionOrder = []string{
 	"stakeholders", "needs", "requirements", "glossary", "assumptions", "constraints",
 	"enums", "entities", "views", "schemas", "permissions", "roles", "separationOfDuties", "session", "paths", "commands", "channels", "dependencies", "jobs", "workflows", "errors", "pages", "menus", "flows", "accessibility", "theme", "algorithms",
 	"tests", "decisions",
-	"environments", "configuration", "release", "rollback", "migrations",
+	"environments", "configuration", "release", "rollback", "migrations", "handover",
 	"checks", "signoff",
-	"monitors",
+	"monitors", "backup", "restore",
 	QuestionsSection,
 }
 
 // singleSections hold one object, not a map of named objects, so they
 // cannot be split across files.
-var singleSections = map[string]bool{"release": true, "rollback": true, "signoff": true, "accessibility": true, "theme": true}
+var singleSections = map[string]bool{"release": true, "rollback": true, "handover": true, "signoff": true, "backup": true, "restore": true, "accessibility": true, "theme": true}
 
 // rootOnly are the keys that live only in the root file.
 var rootOnly = map[string]bool{"specarch": true, "info": true, "stages": true, "sources": true}
@@ -88,12 +88,13 @@ var keyedElements = map[string]bool{
 
 // IsElement reports whether the path of the merged document names an
 // element that may carry audience: an entry of a section of named
-// elements, the session, release, rollback or sign-off, an operation, an
-// entity's relation or unique constraint, or a channel's message.
+// elements, the session, release, rollback, backup, restore or sign-off, an
+// operation, an entity's relation or unique constraint, or a channel's
+// message.
 func IsElement(path []string) bool {
 	switch len(path) {
 	case 1:
-		return path[0] == "session" || path[0] == "release" || path[0] == "rollback" || path[0] == "signoff"
+		return path[0] == "session" || path[0] == "release" || path[0] == "rollback" || path[0] == "signoff" || path[0] == "backup" || path[0] == "restore"
 	case 2:
 		return keyedElements[path[0]]
 	case 3:

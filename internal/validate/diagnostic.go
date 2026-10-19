@@ -124,6 +124,8 @@ const (
 	RuleMetaModelVersion       Rule = "meta_model_version"
 	RuleAudience               Rule = "audience"
 	RuleQuestionOpened         Rule = "question_opened"
+	RuleHandover               Rule = "handover"
+	RuleBuildTask              Rule = "build_task"
 )
 
 // Rules lists every rule, in the order of the design's Rule enum.
@@ -240,6 +242,8 @@ var Rules = []Rule{
 	RuleMetaModelVersion,
 	RuleAudience,
 	RuleQuestionOpened,
+	RuleHandover,
+	RuleBuildTask,
 }
 
 // Severity says whether a diagnostic makes the file invalid.

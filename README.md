@@ -31,8 +31,9 @@ stage is a folder of its name beside the root, in life-cycle order:
 | `design/` | enums, entities, permissions, roles, session, endpoints, commands, channels, dependencies, jobs, workflows, problem types, pages, menus, algorithms, decisions |
 | `implementation/<stack>/` | one implementation file per stack: how that stack builds the design |
 | `tests/<name>/` | one folder per test: `test.yaml` with given, when and then, beside the scenario's own input and expected-output files |
-| `deployment/` | environments, configuration, release and rollback steps, data migrations |
+| `deployment/` | environments and who runs each, configuration, release and rollback steps, data migrations, and the handover to a customer who runs an environment |
 | `commissioning/` | the checks run on the installed system before handover, and the sign-off |
+| `operation/` | monitors of the live system, backup and restore |
 
 A file under a stage folder holds one or a few objects of one section, and
 the folder names say what is inside, so a reader walks to a thing. A stage a
@@ -274,9 +275,10 @@ the committed output differs, which is how CI keeps the documents current.
 The other document targets work the same way: `requirements` (the
 requirements specification), `testplan` (the test plan and test cases),
 `traceability` (the matrix and its gaps), `deployment` (the deployment
-guide), `commissioning` (the commissioning procedure and sign-off sheet)
-and `questions` (the open questions and what they hold up), each as
-`<target>.md`. Wherever the specification says why an element is so, or
+guide), `commissioning` (the commissioning procedure and sign-off sheet),
+`handover` (what a customer who builds and runs an environment from the
+source receives) and `questions` (the open questions and what they hold
+up), each as `<target>.md`. Wherever the specification says why an element is so, or
 cites a standard for it, the document shows an Insight or a Note next to
 the element; wherever it says how an element is known, an Origin line; and
 wherever an open question blocks an element, the question.

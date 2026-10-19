@@ -27,9 +27,9 @@ public let sections: [String: String] = [
     "commands": "design", "channels": "design", "dependencies": "design", "jobs": "design", "workflows": "design", "errors": "design", "pages": "design", "menus": "design", "flows": "design", "accessibility": "design", "theme": "design", "algorithms": "design", "decisions": "design",
     "tests": "tests",
     "environments": "deployment", "configuration": "deployment", "release": "deployment",
-    "rollback": "deployment", "migrations": "deployment",
+    "rollback": "deployment", "migrations": "deployment", "handover": "deployment",
     "checks": "commissioning", "signoff": "commissioning",
-    "monitors": "operation",
+    "monitors": "operation", "backup": "operation", "restore": "operation",
 ]
 
 /// The order sections take in the merged document: life-cycle order, the
@@ -38,15 +38,15 @@ let sectionOrder = [
     "stakeholders", "needs", "requirements", "glossary", "assumptions", "constraints",
     "enums", "entities", "views", "schemas", "permissions", "roles", "separationOfDuties", "session", "paths", "commands", "channels", "dependencies", "jobs", "workflows", "errors", "pages", "menus", "flows", "accessibility", "theme", "algorithms",
     "tests", "decisions",
-    "environments", "configuration", "release", "rollback", "migrations",
+    "environments", "configuration", "release", "rollback", "migrations", "handover",
     "checks", "signoff",
-    "monitors",
+    "monitors", "backup", "restore",
     questionsSection,
 ]
 
 /// Sections that hold one object, not a map of named objects, so they
 /// cannot be split across files.
-let singleSections: Set<String> = ["release", "rollback", "signoff", "accessibility", "theme"]
+let singleSections: Set<String> = ["release", "rollback", "handover", "signoff", "backup", "restore", "accessibility", "theme"]
 
 /// The keys that live only in the root file.
 let rootOnly: Set<String> = ["specarch", "info", "stages", "sources"]

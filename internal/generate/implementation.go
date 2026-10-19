@@ -45,22 +45,19 @@ func deployment(d *doc, root *yaml.Node, impls []Implementation) {
 	cfg := pairs(root, "configuration")
 	release := get(root, "release")
 	rollback := get(root, "rollback")
+	handover := get(root, "handover")
+	backup := get(root, "backup")
+	restore := get(root, "restore")
 	migs := pairs(root, "migrations")
 	checks := pairs(root, "checks")
 	signoff := get(root, "signoff")
-	if len(envs)+len(cfg)+len(migs)+len(checks)+len(impls)+len(pairs(root, "monitors")) == 0 && release == nil && rollback == nil && signoff == nil {
+	if len(envs)+len(cfg)+len(migs)+len(checks)+len(impls)+len(pairs(root, "monitors")) == 0 && release == nil && rollback == nil && signoff == nil && handover == nil && backup == nil && restore == nil {
 		return
 	}
 	d.heading(2, "7. Deployment and implementation")
 	if len(envs) > 0 {
 		d.heading(3, "Environments")
-		d.line("| Environment | Purpose | Promotes to |")
-		d.line("|---|---|---|")
-		for _, e := range envs {
-			d.line("| %s | %s | %s |", e.Key.Value, cell(str(e.Value, "description")), cell(str(e.Value, "promotesTo")))
-		}
-		d.blank()
-		d.explainRows(rowsOf(envs))
+		environmentsTable(d, envs)
 	}
 	if len(cfg) > 0 {
 		d.heading(3, "Configuration")
@@ -87,6 +84,21 @@ func deployment(d *doc, root *yaml.Node, impls []Implementation) {
 		d.para(str(rollback, "description"))
 		d.explain(rollback)
 		stepsTable(d, get(rollback, "steps"))
+	}
+	for _, p := range []struct {
+		node  *yaml.Node
+		title string
+	}{{backup, "Backup"}, {restore, "Restore"}} {
+		if p.node != nil {
+			d.heading(3, p.title)
+			d.para(str(p.node, "description"))
+			d.explain(p.node)
+			stepsTable(d, get(p.node, "steps"))
+		}
+	}
+	if handover != nil {
+		d.heading(3, "Handover")
+		handoverText(d, root, handover)
 	}
 	for _, m := range migs {
 		d.heading(3, "Migration "+m.Key.Value)
@@ -352,7 +364,22 @@ func implementation(d *doc, impl *yaml.Node, idioms []IdiomUse) {
 			if len(settings) > 0 {
 				line += " Settings: " + strings.Join(settings, ", ") + "."
 			}
+			if b := get(dep.Value, "build"); b != nil {
+				line += fmt.Sprintf(" Built by the task %s", str(b, "task"))
+				if n := len(items(b, "baseImages")); n > 0 {
+					line += fmt.Sprintf(" from %s pinned by digest", countText(n, "base image", "base images"))
+				}
+				line += "."
+			}
+			if m := get(dep.Value, "method"); m != nil {
+				line += " Installed with " + str(m, "tool")
+				if f := str(m, "files"); f != "" {
+					line += " from " + f
+				}
+				line += "."
+			}
 			d.para(line)
+			infrastructureTable(d, get(dep.Value, "infrastructure"))
 			deploymentMonitors(d, dep.Value)
 		}
 		d.explainRows(rowsOf(deps))

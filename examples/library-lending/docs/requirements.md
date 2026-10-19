@@ -2,7 +2,7 @@
 
 # Library Lending: requirements specification
 
-Version 0.1.0 of the specification: 3 stakeholders, 4 needs and 8 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
+Version 0.1.0 of the specification: 4 stakeholders, 4 needs and 8 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
 
 ## 1. Purpose and scope
 
@@ -21,6 +21,7 @@ Owners: example-maintainers.
 | librarian | Staff at the desk who register members, lend copies and take returns. | Every desk task fits in one screen and takes under a minute; A fee is never wrong by a cent |
 | member | A card holder who borrows books. | Only their own loans and fees are shown to them; They are told when a loan is overdue |
 | library-board | The board that sets the lending policy and answers to the regulator. | The policy sheet and the system agree; Member data is kept as the rules allow and no longer |
+| library-it | The library's IT staff, who build each release from the source and run production on the library's hosts. | A release can be built from the source alone, and the build compared with the vendor's; Every setting, port and host the system needs is written down before a release is installed |
 
 ## 3. Needs
 

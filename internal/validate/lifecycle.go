@@ -2,6 +2,7 @@ package validate
 
 import (
 	"fmt"
+	"strings"
 
 	"go.yaml.in/yaml/v3"
 
@@ -67,6 +68,86 @@ func (c *checker) checkDeploymentStage(d *design) {
 				"%s is a secret, and a secret's value is never written in a specification; remove the default and say in the description where the value comes from", name)
 		}
 	}
+	c.checkHandover(d)
+}
+
+// checkHandover checks who runs each environment (ADR-129): one the
+// customer runs needs the handover, release and rollback, and should have
+// a commissioning check and a monitor in it and the backup and restore
+// procedures; a handover needs an environment the customer runs, and goes
+// to a stakeholder. An open must question that blocks the stage or the
+// section holds the problem about what that section lacks.
+func (c *checker) checkHandover(d *design) {
+	handover := source.Child(d.root, "handover")
+	var customerRun []string
+	for _, name := range sortedKeys(d.environments) {
+		if source.Str(source.Child(d.environments[name], "runBy")) == "customer" {
+			customerRun = append(customerRun, name)
+		}
+	}
+	for _, name := range customerRun {
+		runBy := source.Child(d.environments[name], "runBy")
+		ptr := source.Pointer("environments", name, "runBy")
+		if handover == nil && !d.mustBlocked("handover") {
+			c.add(runBy, ptr, RuleHandover, "%s is run by the customer, and the specification has no handover saying what they receive; add handover with description, to, source and responsibilities", name)
+		}
+		for _, proc := range []string{"release", "rollback"} {
+			if source.Child(d.root, proc) == nil && !d.mustBlocked(proc) {
+				c.add(runBy, ptr, RuleHandover, "%s is run by the customer from the %s steps, and the specification has none; add %s with its steps", name, proc, proc)
+			}
+		}
+		if !d.mustBlocked("checks") && !d.anyIn(d.checks, name) {
+			c.warn(runBy, ptr, RuleHandover, "no commissioning check runs in %s, so the customer has nothing to run after installing it; add a check with environment: %s", name, name)
+		}
+		if !d.mustBlocked("monitors") && !d.anyIn(d.monitors, name) {
+			c.warn(runBy, ptr, RuleHandover, "no monitor watches %s, so the customer is not told what to watch; add a monitor with environment: %s", name, name)
+		}
+		var missing []string
+		for _, proc := range []string{"backup", "restore"} {
+			if source.Child(d.root, proc) == nil && !d.mustBlocked(proc) {
+				missing = append(missing, proc)
+			}
+		}
+		if len(missing) > 0 {
+			c.warn(runBy, ptr, RuleHandover, "%s is run by the customer, and the specification has no %s procedure to hand them; add %s under operation", name, strings.Join(missing, " and "), strings.Join(missing, " and "))
+		}
+	}
+	if handover != nil && len(customerRun) == 0 {
+		c.add(handover, "/handover", RuleHandover, "no environment is run by the customer, so there is nobody to hand over to; add runBy: customer to the environment the customer runs, or remove handover")
+	}
+	if to := source.Child(handover, "to"); to != nil && to.Value != "" && d.stakeholders[to.Value] == nil {
+		c.add(to, "/handover/to", RuleStakeholder, "%s is not a stakeholder of the specification%s", to.Value, suggest(to.Value, d.stakeholders))
+	}
+}
+
+// anyIn reports whether any element of a section (checks or monitors) names
+// the environment.
+func (d *design) anyIn(section map[string]*yaml.Node, env string) bool {
+	for _, n := range section {
+		if source.Str(source.Child(n, "environment")) == env {
+			return true
+		}
+	}
+	return false
+}
+
+// mustBlocked reports whether an open must question blocks a section by
+// name, or the stage it is in: the one licence for the section to be
+// missing.
+func (d *design) mustBlocked(section string) bool {
+	stage := spec.Sections[section]
+	for _, q := range d.questions {
+		if source.Str(source.Child(q, "priority")) != "must" {
+			continue
+		}
+		for _, item := range source.Items(source.Child(q, "blocks")) {
+			b, ok := spec.ParseBlock(item.Value)
+			if ok && !b.IsPointer() && (b.Section == section || b.Section == "" && b.Stage == stage) {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 // checkTraceability reports what the stages a specification covers leave

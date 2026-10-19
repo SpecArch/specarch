@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: document
+level: system
+scenario: red
+covers: [exit 2]
+given: "a specification whose implementation file names an output folder for handover, and that has no handover and no environment the customer runs"
+when: "document handover is run on it alone"
+then: "it prints a handover warning at the environments saying the specification has no handover document, writes nothing, and exits 2 since every specification given was passed over"
+verifies: [SA-73]

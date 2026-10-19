@@ -14,8 +14,8 @@ import (
 // DocumentTargets are the document targets of the design, in the order
 // they are listed; BuiltDocuments says which this program has.
 var (
-	DocumentTargets = []string{"techspec", "requirements", "testplan", "traceability", "deployment", "commissioning", "questions", "problems", "changes", "releases", "html", "manual", "operations"}
-	BuiltDocuments  = map[string]bool{"techspec": true, "requirements": true, "testplan": true, "traceability": true, "deployment": true, "commissioning": true, "questions": true, "problems": true, "changes": true, "releases": true, "html": true}
+	DocumentTargets = []string{"techspec", "requirements", "testplan", "traceability", "deployment", "commissioning", "handover", "questions", "problems", "changes", "releases", "html", "manual", "operations"}
+	BuiltDocuments  = map[string]bool{"techspec": true, "requirements": true, "testplan": true, "traceability": true, "deployment": true, "commissioning": true, "handover": true, "questions": true, "problems": true, "changes": true, "releases": true, "html": true}
 )
 
 // documentReads says which sections each document reads, so that a
@@ -26,8 +26,9 @@ var documentReads = map[string][]string{
 	"requirements":  {"stakeholders", "needs", "requirements", "glossary", "assumptions", "constraints"},
 	"testplan":      {"tests", "requirements"},
 	"traceability":  {"needs", "requirements", "tests", "checks", "monitors", "enums", "entities", "views", "permissions", "roles", "separationOfDuties", "session", "paths", "commands", "channels", "dependencies", "jobs", "workflows", "errors", "pages", "menus", "algorithms", "decisions"},
-	"deployment":    {"environments", "configuration", "release", "rollback", "migrations", "monitors"},
+	"deployment":    {"environments", "configuration", "release", "rollback", "migrations", "handover", "monitors", "backup", "restore"},
 	"commissioning": {"checks", "signoff"},
+	"handover":      {"environments", "configuration", "release", "rollback", "migrations", "handover", "checks", "signoff", "monitors", "backup", "restore", "tests"},
 	"html":          {"*"},
 }
 
@@ -409,6 +410,9 @@ func Questions(root *yaml.Node, relRoot string, impls []Implementation, state *S
 	for _, t := range DocumentTargets {
 		if !BuiltDocuments[t] || t == "questions" || t == "problems" || recordDocuments[t] {
 			continue
+		}
+		if t == "handover" && get(root, "handover") == nil {
+			continue // a specification with no handover has no handover document (ADR-129)
 		}
 		var waits []string
 		if ids := holding(qs, documentReads[t]); len(ids) > 0 {

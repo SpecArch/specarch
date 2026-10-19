@@ -1,0 +1,28 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0 }
+environments:
+  production: { description: "The till in the shop, on the shop's host.", runBy: customer }
+release:
+  steps:
+    - { name: Install, action: Install the build., check: The till opens. }
+rollback:
+  steps:
+    - { name: Switch back, action: Start the previous build., check: The till opens. }
+backup:
+  steps:
+    - { name: Dump, action: Dump the database nightly., check: The dump restores on a scratch host. }
+restore:
+  steps:
+    - { name: Load, action: Load the chosen dump., check: The till shows the restored sales. }
+checks:
+  till-opens:
+    kind: smoke
+    description: The installed till opens.
+    environment: production
+    steps:
+      - { name: Open, action: Open the till., check: It shows the catalogue. }
+monitors:
+  till-answers:
+    description: Whether the till answers.
+    environment: production
+    objective: The till answers every minute of opening hours.

@@ -1,0 +1,20 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0 }
+stakeholders:
+  shop-it: { description: "The shop's IT staff, who build and run the till." }
+environments:
+  production: { description: "The till in the shop, on the shop's host.", runBy: customer }
+handover:
+  description: Each release is handed to the shop's IT staff as source.
+  to: shop-it
+  source: A tagged release of the repository.
+  responsibilities:
+    customer: [The host and its patching.]
+    vendor: [The source of each release.]
+questions:
+  Q-1:
+    question: What does the shop watch on the live till?
+    kind: decision
+    priority: must
+    blocks: [monitors]
+    decidedBy: shop-it

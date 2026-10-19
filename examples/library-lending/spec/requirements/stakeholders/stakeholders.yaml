@@ -15,3 +15,8 @@ stakeholders:
     concerns:
       - The policy sheet and the system agree.
       - Member data is kept as the rules allow and no longer.
+  library-it:
+    description: The library's IT staff, who build each release from the source and run production on the library's hosts.
+    concerns:
+      - A release can be built from the source alone, and the build compared with the vendor's.
+      - Every setting, port and host the system needs is written down before a release is installed.

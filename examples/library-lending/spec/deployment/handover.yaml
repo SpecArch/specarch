@@ -1,0 +1,20 @@
+# yaml-language-server: $schema=../../../../schema/specarch-fragment-deployment-0.2.schema.json
+handover:
+  description: |
+    Each release is handed to the library's IT staff as source: they build
+    it, apply its migrations and install it on the library's hosts, and
+    the vendor never reaches production. The vendor runs development and
+    staging, where a librarian tries each release first.
+  to: library-it
+  source: A tagged release of the repository, which the library imports into a repository of its own; the release notes name the tag and the commit it was built from.
+  responsibilities:
+    customer:
+      - Building each release from the tag and comparing the build with the vendor's.
+      - The hosts, their operating system and patching, the PostgreSQL server and the network.
+      - Applying the migrations and installing the build, with the commissioning checks after each install.
+      - Backups, restore drills, monitoring and the on-call rota.
+    vendor:
+      - The source of each release, tagged, with its software bill of materials and vulnerability scan.
+      - A fix for every defect the library reports, in the next release.
+      - Staging, where each release is tried before it is handed over.
+  why: The library's auditors ask who can reach member data; a production the vendor never touches is the shortest answer.

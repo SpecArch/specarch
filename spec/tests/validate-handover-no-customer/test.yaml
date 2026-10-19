@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "a handover whose to names no stakeholder, in a specification where no environment is run by the customer"
+when: "validate is run"
+then: "it reports handover at the handover and stakeholder at its to, and exits 1"
+verifies: [SA-73]

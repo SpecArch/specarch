@@ -1,0 +1,13 @@
+# yaml-language-server: $schema=../../../../schema/specarch-fragment-operation-0.2.schema.json
+restore:
+  description: A restore puts one night's dump back in place of the live database; the loans since that night are re-entered from the desk's paper slips.
+  steps:
+    - name: Stop the service
+      action: Stop the service so that nothing writes while the database is replaced.
+      check: The desk screens show the service as down.
+    - name: Load the dump
+      action: Drop the live database and load the chosen night's dump into a new one of the same name.
+      check: The member and loan counts match the night's counts in the backup log.
+    - name: Start and check
+      action: Start the service and run the smoke check.
+      check: The catalogue answers and the loans list shows the restored loans.

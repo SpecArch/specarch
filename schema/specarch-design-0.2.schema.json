@@ -409,6 +409,10 @@
         "$ref": "#/$defs/migration"
       }
     },
+    "handover": {
+      "$ref": "#/$defs/handover",
+      "description": "SpecArch keyword. What the customer who runs an environment (runBy customer) receives to build, install and run it, and what stays whose responsibility. What another section already says, the settings, migrations, release, rollback, backup, restore, checks, sign-off and monitors, is read from there, never repeated here (ADR-129)."
+    },
     "checks": {
       "description": "SpecArch keyword. The checks run on the real installed system before it is handed over (the site acceptance test of IEC 62381:2024; ISO/IEC/IEEE 12207:2017, 6.4.11 Validation process), keyed by kebab-case name. Each names its kind, the environment it runs in and its steps. The results of each run are records, kept outside the specification; see 'Commissioning records' in docs/conventions.md.",
       "type": "object",
@@ -432,6 +436,14 @@
       "additionalProperties": {
         "$ref": "#/$defs/monitor"
       }
+    },
+    "backup": {
+      "$ref": "#/$defs/procedure",
+      "description": "SpecArch keyword. How the data of the live system is saved, as ordered steps with a check for each (ISO/IEC/IEEE 12207:2017, 6.4.12 Operation process)."
+    },
+    "restore": {
+      "$ref": "#/$defs/procedure",
+      "description": "SpecArch keyword. How saved data is put back on the live system, as ordered steps with a check for each (ISO/IEC/IEEE 12207:2017, 6.4.12 Operation process)."
     },
     "questions": {
       "description": "SpecArch keyword. The open questions: what the sources do not say and a stakeholder must decide or provide, keyed by ID such as Q-12. A question is written in the folder of the stage it is about, so every stage folder may hold questions; the validator merges them into one section and checks each sits in the stage of what it blocks. A question leaves the specification when it is answered; the decision that answered it names it under answers.",
@@ -4771,6 +4783,14 @@
           "type": "string",
           "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
         },
+        "runBy": {
+          "description": "SpecArch keyword. Who installs and runs the environment. vendor: the team that builds the system. customer: the party that takes the system builds, installs and runs it on hosts of its own, from the handover; the specification then needs handover, release and rollback, and the implementation file's deployment of it needs build, method and infrastructure. Left out, the vendor runs it (ADR-129).",
+          "type": "string",
+          "enum": [
+            "vendor",
+            "customer"
+          ]
+        },
         "satisfies": {
           "$ref": "#/$defs/satisfies"
         },
@@ -4792,6 +4812,93 @@
       },
       "required": [
         "description"
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "handover": {
+      "description": "SpecArch keyword. What the customer who runs an environment receives to build, install and run it, and what stays whose responsibility.",
+      "type": "object",
+      "properties": {
+        "description": {
+          "description": "The handover in plain words: what is handed over, when, and how the customer takes it.",
+          "$ref": "#/$defs/markdown"
+        },
+        "to": {
+          "description": "The stakeholder who receives the handover, by key; a role, never a person.",
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+        },
+        "source": {
+          "description": "How the source of a release reaches the customer, such as a tagged release of the repository that the customer imports into a repository of its own.",
+          "type": "string",
+          "minLength": 1
+        },
+        "responsibilities": {
+          "description": "What stays whose responsibility once the system is handed over, one plain sentence each.",
+          "type": "object",
+          "properties": {
+            "customer": {
+              "description": "What the customer is responsible for: the hosts, their patching, backups, monitoring, and so on.",
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "minItems": 1
+            },
+            "vendor": {
+              "description": "What the vendor stays responsible for: the source of each release, fixes for reported defects, and so on.",
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "minItems": 1
+            }
+          },
+          "required": [
+            "customer",
+            "vendor"
+          ],
+          "propertyNames": {
+            "not": {
+              "$ref": "#/$defs/stackSpecificKey"
+            }
+          },
+          "patternProperties": {
+            "^x-": {}
+          },
+          "additionalProperties": false
+        },
+        "satisfies": {
+          "$ref": "#/$defs/satisfies"
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
+        }
+      },
+      "required": [
+        "description",
+        "to",
+        "source",
+        "responsibilities"
       ],
       "propertyNames": {
         "not": {

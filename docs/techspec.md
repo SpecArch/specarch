@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.7.0-dev of the specification: 72 requirements, 5 entities, 14 commands, 7 algorithms, 495 tests, 123 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.7.0-dev of the specification: 73 requirements, 5 entities, 14 commands, 7 algorithms, 503 tests, 124 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -63,7 +63,7 @@ The interfaces the system offers, as its clients see them.
 | check | Compare a specification with the dumps of the running code, for a CI gate | public | 0: every difference is one the allowlist names or a report, and every line of the allowlist names a difference and was there at --since; 1: a difference the allowlist does not name, a line of the allowlist that names none, repeats one or was added since --since, or a specification validate reports an error in; 2: usage error; a dump, the specification or the allowlist that could not be read; a dump of no format check reads, or one its reader refuses; a catalogue dump with no implementation file to compare it through, or with one whose tables cannot be written for PostgreSQL; or a revision git does not know |
 | derive | Write a draft test for every derived case no test covers | public | 0: the tests were written, or there was nothing to write; 1: a specification has errors other than the missing tests it writes, or a draft's name is taken by another draft or by a test of another subject; 2: usage error, a path that could not be read or written, or a specification that keeps its tests in the root file |
 | diff | Compare two versions of a specification and check the release between them | public | 0: every check passes; 1: a check fails, there is no release record for the new version, or a specification has errors; 2: usage error, or a path that could not be read |
-| document | Write a document from a specification | public | 0: written, or with `--check` the output is current; 1: a specification has an error (after its files are written, or with `--check` compared), a marker is wrong, or with `--check` the output differs; 2: usage error, a target this build does not offer, --audience with a value other than external, without --out or for the problems target, no output folder in any specification given, the implementation files of one naming different output folders, or a file that could not be read or written |
+| document | Write a document from a specification | public | 0: written, or with `--check` the output is current; 1: a specification has an error (after its files are written, or with `--check` compared), a marker is wrong, or with `--check` the output differs; 2: usage error, a target this build does not offer, --audience with a value other than external, without --out or for the problems target, no output folder in any specification given (or, for the handover target, no handover in any), the implementation files of one naming different output folders, or a file that could not be read or written |
 | extract | Write a specification from existing code or documents | public | 0: the specification was written; 1: the surface could not be read as the source expects: a dump that does not parse or is stale, a dump whose repository is no gitlink of the repository holding it, is not checked out, pins a commit its history does not hold or whose checkout under the path is not the pinned commit's, a code-facts dump another parser version made, whose files are not the tracked files of its folder the reader reads, or, for pages, whose folder does not hold the router's folder, a route table that lists a method and path pair twice, a permission table that lists a grant, a rule or a gate twice, holds a gate with no check, with both a setting and a kind of caller or neither, or skipped for a kind other than client, names a matcher the reader does not know, or holds a rule without one of its four keys, a vocabulary that does not parse, lacks a key, holds one it does not have, gives a number, a duration or a language tag in another form, or lists one word twice in a list or in two lists of one group, a route table given with --routes from another repository or from a commit on another line of history than the permission table's, a router root that gives one route twice or holds no page, a path with changes not committed, untracked files, a shallow clone, a path outside a git repository, a document that is not Markdown, a file that is not an OpenAPI 3.0 or 3.1 document, a file that is not BPMN 2.0 XML or holds no process, a workflow table that does not parse, is stale, lacks a key of the format or holds another, names a step kind other than approval, operation or other, lists a workflow twice or gives a workflow, a step or a form field no name, or an implementation file that does not parse as YAML; 2: usage error, a source this build does not offer, --implementation given to a source other than go, swift, javascript, dart or pages, --facts given to a source other than pages, --routes given to a source other than permissions, --language, --vocabulary or --given-outside given to a source other than documents, --table given to a source other than workflows, --implementation-out given to a source other than database, or naming a file that exists or whose name does not end in .yaml, a language that is not a BCP 47 tag, a language SpecArch ships no vocabulary for given without --vocabulary, a --language other than the vocabulary's own, more than one permission table, or a path that could not be read or written |
 | facts | Write the code-facts dump extract reads of a committed folder | public | 0: the dump was written; 1: the folder could not be read as committed code: it is in no git repository, it has changes not committed or files not tracked, no commit has changed it, the dump file is in a repository that does not hold the code's, or the reader's toolchain failed to build or to run it; 2: usage error, a language this build does not read, a folder that does not exist, a dump file whose folder does not exist or that could not be written, or a submodule folder with a quote or a backslash |
 | gaps | List the open questions and what they hold up | public | 0: no must or should question is open and no specification has an error; 1: at least one must or should question is open, or a specification or an estate has an error; 2: usage error, or a path that could not be read |
@@ -237,6 +237,7 @@ Primary key: path.
 | DocumentTarget | traceability | the traceability matrix from needs through requirements to design elements, tests and checks |
 | DocumentTarget | deployment | deployment guide, from the deployment stage and the implementation's deployments |
 | DocumentTarget | commissioning | commissioning test procedure and sign-off sheet |
+| DocumentTarget | handover | handover document for the engineers of the customer who runs an environment from the source: what they receive, the responsibilities, how each implementation builds a release and the licences of its dependencies, what the hosts must provide, the settings, the migrations, the release, rollback, backup and restore steps, the monitors, the checks and acceptance tests in that environment and the sign-off sheet (ADR-129) |
 | DocumentTarget | questions | the open questions by stage, what each blocks and who decides, and which outputs are ready, drafts or waiting |
 | DocumentTarget | problems | problems.txt, every error, warning and open question one line each with its notes, and problems.sarif, the same as a SARIF 2.1.0 log; written for an invalid specification too |
 | DocumentTarget | changes | the change and defect register, open items first, from the records beside the specification |
@@ -306,7 +307,7 @@ Primary key: path.
 | Rule | test_data | a test's fixture, input or expect names what the design does not have, carries a value of the wrong type, holds a record a check constraint refuses, or says the same thing as a data folder beside it |
 | Rule | layout | a file or a section is not where the tree layout puts it; the root file's `stages` and the folders disagree, a test folder has no `test.yaml`, or a folder is not a stage |
 | Rule | need | a requirement's `needs` names a need that does not exist |
-| Rule | stakeholder | a need's `stakeholders`, a question's `decidedBy`, a requirement's `ownedBy` or a mapping's `ownedBy` names a stakeholder that does not exist |
+| Rule | stakeholder | a need's `stakeholders`, a question's `decidedBy`, a requirement's `ownedBy`, a mapping's `ownedBy` or the handover's `to` names a stakeholder that does not exist |
 | Rule | source | a citation names a source that is not declared under `sources` |
 | Rule | source_clause | a citation of a source that lists its `clauses` names no clause, or one that is neither a listed clause nor a part of one, such as section 3.3.1 under 3.3 or file.go:14 under file.go (a warning) |
 | Rule | environment | a check, an environment's `promotesTo` or an implementation's deployment names an environment that does not exist, or a deployment names none when the specification declares them |
@@ -364,6 +365,8 @@ Primary key: path.
 | Rule | meta_model_version | the file says `specarch: "0.1"`, which is read until 1.0; run `specarch derive` and change the line to "0.2" (a warning) |
 | Rule | audience | an element for everyone (no `audience`) names an element whose audience is internal through a `$ref`, a relation's `target`, a page's `entity` or a requirement's `needs`, so a document for everyone would name what it may not show (ADR-119) |
 | Rule | question_opened | a decision names under `opens` a question that is neither open in the specification nor answered by a decision, or one it answers itself (ADR-120) |
+| Rule | handover | an environment the customer runs (`runBy: customer`) while the specification has no `handover`, `release` or `rollback`, a `handover` while no environment is run by the customer, or an implementation's deployment of such an environment without `build`, `method` or `infrastructure`; as warnings, such an environment with no commissioning check in it, no monitor in it, or no `backup` and `restore`, and a specification named to document handover with an output folder for it and no `handover`; a must question that blocks the stage or the section holds the problem (ADR-129) |
+| Rule | build_task | a deployment's `build` names under `task` or `sbom` a task the implementation file does not have under `tasks` (ADR-129) |
 | Severity | error | the file is invalid |
 | Severity | warning | printed, but the file stays valid; missing test scenarios, change-log phrases, traceability gaps and elements without origin |
 
@@ -732,6 +735,26 @@ target writes `commissioning.md`: the checks by environment in the
 order a release reaches them, each step with a Result column, and
 the sign-off sheet.
 
+The handover target writes `handover.md` for the engineers of the
+customer who runs an environment (`runBy: customer`), who know
+nothing of SpecArch (ADR-129): what they receive and how the source
+reaches them, what stays whose responsibility, how each
+implementation that installs such an environment builds a release
+(its toolchain, the build's steps and task, its base images by
+digest, how a build is compared with the vendor's, and the task
+that writes the software bill of materials), the licences of its
+dependencies, what the hosts must provide, every setting with its
+type and where a secret's value comes from, and the values the
+vendor gives, the migrations in the order they are applied, how a
+release is installed (with the tool and files the vendor installs
+with) and rolled back, how data is backed up and restored, what is
+watched in that environment and how the vendor watches it, the
+checks to run after installing, each step with a Result column,
+the acceptance tests, and the sign-off sheet. A specification whose
+implementation files name an output folder for it but that has no
+handover is passed over with a warning of rule handover, as one
+with no output folder is.
+
 The questions target writes `questions.md`: the open questions by
 stage with what each blocks and who decides, the references into
 other specifications that are not resolved, and which outputs are
@@ -884,8 +907,9 @@ Writes `{out}/<target>.md`: The document. Nothing is written with `--check`; `{o
 
 Standard output: The errors of an invalid specification and the errors of a
 marker, one line each; a warning for each specification with no
-output folder for the target. With `--check`, one line per file that
-differs or is missing.
+output folder for the target, or, for the handover target, with no
+handover. With `--check`, one line per file that differs or is
+missing.
 
 Standard error: A usage message on a usage error, the reason a file cannot be read or written, for html the reason a workflow diagram or screen preview could not be made, and a one-line count at the end.
 
@@ -3127,7 +3151,7 @@ cli: standard library. Hand-written argument handling over `os.Args`; three comm
 | vet | `go vet ./...` | yes |
 | vulncheck | `go run golang.org/x/vuln/cmd/govulncheck@v1.8.0 ./...` | yes |
 | validate-specs | `go run ./cmd/specarch validate spec examples` | yes |
-| documents-current | `for target in techspec requirements testplan traceability deployment commissioning questions; do go run ./cmd/specarch document $target --check spec examples \|\| exit 1; done` | yes |
+| documents-current | `for target in techspec requirements testplan traceability deployment commissioning handover questions; do go run ./cmd/specarch document $target --check spec examples \|\| exit 1; done` | yes |
 | install | `go install ./cmd/specarch` |   |
 | sbom | `syft dir:. -o syft-json=sbom.json && grype sbom:sbom.json && osv-scanner scan source -r .` |   |
 
@@ -9413,6 +9437,106 @@ it; the could question goes then.
 
 **Insight:** ISO SQL has no partitioning. It is each database's way of storing a table's rows, physical design like an index (ADR-121), and PostgreSQL says so itself: a query on a partitioned table reaches the rows of every partition, and a partition exists to hold some of the table's rows. The meta-model says what a record is and how it is kept, not where; an entity for a partition would be a second entity for the same records, and every question of the table asked once more for each partition. The table is what the migrations mean, so the partition is read as it. Partitioning is a could question and not a line in the implementation fragment because the mapping has no key for it. Writing one would take generate sql writing PARTITION BY and each partition's bound, the next migration attaching and detaching partitions, and the database gate comparing them: a design of its own, taken when a project needs the generated SQL to partition, as ADR-121 left the twin to the other readers. Until then the question keeps the partitions read and marked at the entity, which is the compiler test, and the answer to it is where the keyword's design starts. A partition's own constraint, index or column setting is a question and not an error, and not read as the table's, because the meta-model says a constraint for every record of the entity and the source says it for the rows of one partition. Reading it as the table's would claim more than the source says; leaving it out silently would lose it; so it is left out with a question citing the partition, where the reviewer sees what the source has. An inherited constraint or index is told from the partition's own by the catalogue, not by its name: PostgreSQL names an inherited index after the partition and the columns, and a user may name an index of their own the same way. A relation points at an entity, and a partition has none; its rows are the table's, so the relation to the table is what the source says, less narrowly, and the question says so rather than leaving the key out as a reference to a table that was never read. pg_get_indexdef prints ON ONLY for a partitioned table's index to say that the statement makes the index on the table alone, each partition having its own attached to it. The index is the table's, the mapping lists the table's indexes, and the partitions' copies are inherited, so ONLY is part of the dialect's spelling and not a difference. check skips a partition because generate sql writes one table per entity and the specification has no place for a partition until partitioning is a keyword; reporting each as not specified would be a difference the owner cannot settle in the specification. The table's columns and keys are compared through the table, and PostgreSQL holds a partition to its table's columns and gives it the table's constraints and indexes, so the comparison of the table covers them. A partition's own index or constraint is not compared, since the specification cannot hold it; extract's question is where it surfaces. The compiler test holds: nothing is refused or left unread, a dump of the earlier query reads as before, and every problem is a question at the entity, in the problems file and at the entry. The acceptance test holds: the tree shows one entity for the table at once, and a constraint a reviewer wants for every row is one constraint to add to the entity.
 
+### ADR-129: An environment says who runs it, and one the customer runs is handed over as source, with a handover section and a handover document
+
+Status: accepted, 2026-10-19.
+
+Context: The deployment stage said what each environment is for and which
+one a release goes to next, and the implementation file said where
+each is installed and with which setting values. Every environment
+was read as one the team that builds the system installs and runs.
+A customer that takes the source into a repository of its own,
+builds it and runs production itself, as regulated customers such
+as banks do, had no place: the deployment guide described hosts
+the vendor does not have, and nothing said what the customer
+receives to build and run the system, nor what stays whose
+responsibility. How a release is built (the pinned toolchain, the
+base images, a reproducible build and its software bill of
+materials), how a build is put on a host, and what the hosts must
+provide had no keys either, so the deployment guide could not say
+them for the vendor's own environments.
+
+Decision: An environment carries runBy, a SpecArch keyword with two values:
+vendor, the team that builds the system installs and runs it;
+customer, the party that takes the system builds, installs and
+runs it on hosts of its own, from the handover. An environment
+without runBy is run by the vendor, which is the one meaning every
+environment had.
+
+A specification with an environment the customer runs holds
+handover, one object of the deployment stage, kept in
+deployment/handover.yaml: description, the handover in plain
+words; to, the stakeholder who receives it, by key; source, how
+the source of a release reaches them; and responsibilities, two
+lists of sentences, customer and vendor, saying what stays whose.
+It holds nothing another section already says: the settings and
+their secrets, the migrations, the release and rollback steps, the
+checks and the sign-off, the monitors, the libraries with their
+licences and the build are read from where they are.
+
+backup and restore are two more procedures, one object each of the
+operation stage (operation/backup.yaml, operation/restore.yaml),
+with the steps of release and rollback: how the data of the live
+system is saved, and how saved data is put back.
+
+An implementation file's deployment gains three keys. build says
+how the artifact of a release is made from the source: description;
+task, the task of the file that builds it, by key; baseImages, each
+image the build starts from, by name and digest, with its purpose;
+reproducible, how a build of the same source on another machine is
+compared with the vendor's; and sbom, the task that writes the
+software bill of materials of the build and scans it, by key. method
+says how the build is put on the hosts: tool, files (what the tool
+reads, relative to the implementation file) and description.
+infrastructure says what the hosts must provide: cpu, memory,
+storage, network, ports and services, one sentence each.
+
+The validator, in both builds, reports under the rule handover: an
+environment the customer runs while the specification has no
+handover, no release or no rollback (errors at runBy); a handover
+while no environment is run by the customer (an error at handover);
+and, as warnings at runBy, an environment the customer runs with no
+commissioning check in it, no monitor in it, or no backup and
+restore. A handover whose to names no stakeholder is the error
+stakeholder. An open must question that blocks the stage or the
+section holds the error or warning about that section. In an
+implementation file, a deployment that installs an environment the
+customer runs without build, method or infrastructure is an error
+at the deployment (handover), and a build whose task or sbom names
+no task of the file is the error build_task.
+
+specarch document handover writes handover.md for the customer's
+engineers, who know nothing of SpecArch: what they receive, the
+responsibilities, how each implementation builds a release and the
+licences of its dependencies, what the hosts must provide, every
+setting, the migrations in order, how a release is installed and
+rolled back, backup and restore, what is watched, the checks to run
+after installing, the acceptance tests and the sign-off sheet. A
+specification whose implementation files name an output folder for
+it but that has no handover is passed over with a warning of rule
+handover, as ADR-073 passes over one that names no folder.
+--audience external applies to it as to every other document. The
+deployment guide and the technical specification show who runs each
+environment once any environment says so, each installation's
+build, method and infrastructure, backup and restore after
+rollback, and the handover; a specification without the new keys
+gets the same documents as before.
+
+Consequences: The design and implementation schemas change, and with them the
+fragment schemas and the Swift embed; every map of sections in both
+builds lists handover, backup and restore. The library-lending
+example's production is run by the library's IT staff, with a
+handover, backup and restore procedures, and the Go
+implementation's build, method and infrastructure; its documents
+are regenerated, and CI checks its handover.md. The open questions
+document and gaps list the handover document among the outputs only
+for a specification that has a handover. A base image cannot be
+named without its digest.
+
+**Insight:** ISO/IEC/IEEE 12207 names the two parties acquirer and supplier (6.1.1 and 6.1.2), and its transition process (6.4.10) installs the system in its operational environment without saying who does it. SpecArch writes customer and vendor because those are the words the people who read the documents use. The keyword is on the environment because that is where the question arises: a staging the vendor runs and a production the customer runs differ in nothing but who runs them, and one customer may run a staging of its own as well. The handover is a section of its own, and small, because almost all of what the customer receives is what the specification already holds for the vendor's own deployments; a second copy would drift, and one way to say one thing is the Low IQ Tax. What has no home is who receives it, how the source reaches them and what stays whose responsibility, so those are its keys. The receiver is a stakeholder because a handover goes to a role, never to a person, and the validator then checks the name as it checks every other. Backup and restore are procedures of the operation stage because they run on the live system through its life, like a monitor, not once at a release; they serve the vendor's own production as much as the customer's, which is why they are not keys of the handover. How a release is built and what the hosts must provide depend on the stack, so they are implementation: a Go service and a Java one of the same design need different memory and start from different base images. A base image is pinned by its digest because a tag moves, and a customer comparing a build with the vendor's needs the same input. The build names a task rather than carrying a command because the tasks are where the file keeps its commands. A missing handover, release or rollback is an error because the customer builds and installs the system from them, and a specification that marks an environment customer-run without them promises a handover it cannot make. The checks, the monitors, and backup with restore are warnings, as the traceability gaps are: a specification is written in order, and they are its to-do list for that environment. A must question that blocks the section is the one licence for the gap, as everywhere else. The handover document is a document like any other, so that --audience external stays the one way to leave internal elements out and the folder the implementation file names holds the document with every element, as ADR-119 decided. The compiler test holds: nothing is refused or left unread, every gap is a problem at the environment's runBy or at the deployment, and a specification without the keys reads and renders as before. The acceptance test holds: the customer's engineers see the handover document early, and a remark on it changes one key of the handover, one step of a procedure or one line of a deployment.
+
+**Note:** From ISO/IEC/IEEE 12207, Systems and software engineering, Software life cycle processes, 2017, clause 6.4.10: The transition process establishes the capability to provide the service in its operational environment. <https://www.iso.org/standard/63712.html>
+
 ## 10. Quality requirements
 
 The design tests: what must hold on every implementation. Golden scenarios succeed; red scenarios are refused.
@@ -9470,6 +9594,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | document-entity-diagram | command document | system | golden | a hand-written document with an erDiagram marker | document techspec is run | the region holds the entity diagram, every other line is unchanged, and it exits 0 |
 | document-errors-elsewhere | command document | system | red | a specification with errors only under info and entities, which the requirements document does not read | document requirements is run | it prints both errors, writes requirements.md with a Problems notice saying the specification is invalid and that none of its errors is in what the document covers, and exits 1 |
 | document-estate-map | command document | system | golden | an estate file listing two modules, one of which depends on the other and on a specification the estate does not list, and no implementation file naming a techspec folder | document techspec is run on the estate file | it writes docs/estate.md beside the estate file, the modules with their versions and links and the references between them drawn as a flowchart, the unlisted specification apart, passes over each module with a warning, and exits 0 |
+| document-handover-none | command document | system | red | a specification whose implementation file names an output folder for handover, and that has no handover and no environment the customer runs | document handover is run on it alone | it prints a handover warning at the environments saying the specification has no handover document, writes nothing, and exits 2 since every specification given was passed over |
 | document-html-marks-problems | command document | system | red | the same specification with a permission no role grants, which is an error | document html is run | it prints the error, writes site/index.html all the same with an Invalid notice, the error listed under Problems with a link to the permission, and the permission's row marked with a link back to the problem, and exits 1 |
 | document-invalid-input | command document | system | red | a design file with a relation to an entity that does not exist | document techspec is run | it prints the error, writes the technical specification with a Problems notice and a Problem paragraph at the relation, and exits 1 |
 | document-marker-unclosed | command document | system | red | a marker with no end marker | document techspec is run | it reports the marker's line, writes nothing and exits 1 |
@@ -9503,6 +9628,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | document-writes-changes | command document | system | golden | a specification with an approved and a released change request and a confirmed defect in the records beside it | document changes is run | it writes changes.md with the open change first, each item's affects and decision, the defect with what it violates, and exits 0 |
 | document-writes-commissioning | command document | system | golden | checks in two environments, one with a why and a citation, and a sign-off with one criterion and one signer | document commissioning is run | it writes commissioning.md with the staging checks before the production ones, a Result column for every step, the sign-off sheet, and exits 0 |
 | document-writes-deployment | command document | system | golden | two environments, a plain and a secret setting, release and rollback steps (one with a why and a citation), a migration that cannot be reversed, and an implementation file with two installations | document deployment is run | it writes deployment.md with the path a release takes, each installation's servers and setting values with the secret only named and an unset value marked, the steps, and exits 0 |
+| document-writes-handover | command document | system | golden | an environment the customer runs with a handover (with a why and a citation) to a stakeholder, settings including one internal, a migration, release, rollback, backup and restore steps, checks in both environments, a monitor, an acceptance and a system test, a sign-off, and an implementation file whose deployment of that environment has build, method, infrastructure, values and a monitor | document handover is run | it writes handover.md for the customer's engineers: what they receive, the responsibilities, the build with its toolchain, base image and licences, what the hosts must provide, every setting with the internal one marked, the migration, the release with the vendor's install method, rollback, backup, restore, the monitor and how the vendor watches it, only the check in that environment with a Result column, only the acceptance test, and the sign-off sheet, and exits 0 |
 | document-writes-html | command document | system | golden | a specification with a requirement, three entities, two of them related, a decision, a permission a role grants, and must and could questions that block an entity, a field and a requirement's keys | document html is run | it writes site/index.html, one page with the overview first, the entity diagram as SVG, every element under an id that is its pointer, a mark at each element a question blocks linking to the question, and each question in the problems linked to its entry, and exits 0 |
 | document-writes-questions | command document | system | golden | a specification with two must questions in two stages, one of them a material question, and a could question, and no implementation file | document questions is run | it writes questions.md with the decisions by stage, the material question in a group of its own, and the outputs, where code generation waits on the questions and the approval, and exits 0 |
 | document-writes-releases | command document | system | golden | a released 1.0.0 that includes a change, and a planned 1.1.0 that includes a change and a defect | document releases is run | it writes releases.md with 1.1.0 first, each release's items grouped as changed and fixed, and exits 0 |
@@ -9709,6 +9835,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | validate-accessibility | command validate | system | red | a specification that names WCAG 2.2 at level AA, whose pages show or filter by a field with a title and two without one, and a page with two actions of the same label | validate is run | it reports accessibility for each field without a title, naming the pages that show it or filter by it, and for the second action, and exits 1 |
 | validate-algorithm | command validate | system | red | an operation that names an algorithm that does not exist | validate is run | it reports algorithm and exits 1 |
 | validate-audience | command validate | system | red | an internal need, enum and entity, named by a requirement, an entity's field, a relation and a page that are for everyone, and by an internal relation and an internal operation | validate is run | it reports the error audience at each name an element for everyone gives, and none inside the internal elements, and exits 1 |
+| validate-build-task-unknown | command validate | system | red | a deployment whose build names a misspelt task and an sbom task the implementation file does not have | validate is run | it reports build_task at each, suggesting the close name, and exits 1 |
 | validate-change-applied | command validate | system | red | an implemented change whose addition is missing and whose removal is still there, and an approved change that changes a missing requirement and adds a test that already exists | validate is run | it reports change_applied errors for the first and the missing requirement, a change_applied warning for the test, and exits 1 |
 | validate-change-decision | command validate | system | red | an approved change without a decision, and a rejected change whose decision's outcome is approved | validate is run | it reports change_decision for each and exits 1 |
 | validate-change-log-warning | command validate | system | golden | a description that says how the file changed | validate is run | it warns with change_log and exits 0, since the file is still valid |
@@ -9765,6 +9892,11 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | validate-fragment-given-by-name | command validate | system | red | a file of a tree given by name instead of the tree's folder | validate is run on it | it reports file_kind naming the folder to run on and exits 1 |
 | validate-generated-default | command validate | system | red | a specification whose Note entity has an identifier the database generates on a uuid field, the current time on a date field, an identifier on a text field with no format, and a field with both a default and a generated default | validate is run | it reports schema for the date field's format, the text field's missing format and the field with both, accepts the uuid field, and exits 1, the same in both builds |
 | validate-guard | command validate | system | red | a guard naming an entity that does not exist, and a guard whose precondition compares a string with a number | validate is run | it reports guard for the entity and expression_type for the precondition, and exits 1 |
+| validate-handover-build-missing | command validate | system | red | an implementation deployment of an environment the customer runs, with no build, method or infrastructure | validate is run | it reports handover three times at the deployment, naming build, method and infrastructure, and exits 1 |
+| validate-handover-incomplete | command validate | system | red | an environment the customer runs with a handover, no release, rollback, backup, restore or check, and a must question that blocks the monitors section | validate is run | it reports handover errors for the missing release and rollback and handover warnings for the missing check and the missing backup and restore at the environment's runBy, nothing for the monitors the question holds, and exits 1 |
+| validate-handover-missing | command validate | system | red | an environment the customer runs, with release, rollback, backup, restore, a check and a monitor, and no handover | validate is run | it reports handover at the environment's runBy, saying what to add, and exits 1 |
+| validate-handover-no-customer | command validate | system | red | a handover whose to names no stakeholder, in a specification where no environment is run by the customer | validate is run | it reports handover at the handover and stakeholder at its to, and exits 1 |
+| validate-handover-valid | command validate | system | golden | an environment the customer runs with a handover to a stakeholder, release, rollback, backup and restore steps, a check and a monitor in it, and an implementation deployment of it with build (task, base images by digest, reproducible, sbom), method and infrastructure | validate is run | it reports no error and no handover warning, and exits 0 |
 | validate-idempotency-key | command validate | system | red | an idempotency key on a GET, and one on a POST that names a query parameter rather than a header | validate is run | it reports idempotency_key for both, saying that GET is idempotent by itself and that the key is not a header parameter, and exits 1 |
 | validate-idiom-override | command validate | system | golden | an implementation file in Go with an Oracle sql target, whose override of type-rendering replaces the Oracle rows of its types part for MAX_STRING_SIZE = EXTENDED, with the reason, and an entity with a UUID and a 5000-character text field | validate is run | it reports nothing and exits 0: the override's rows cover every field on Oracle, and the shipped Go rows cover them on Go |
 | validate-idiom-problems | command validate | system | red | an implementation file in Go with an Oracle sql target, which names an idiom SpecArch does not ship, excludes the project's own idiom without why, and overrides type-rendering with a file that has no why, lists an unknown part, defines a part it does not list, renders swift, changes a shipped contract statement and was copied from an older version; a decimal field is wider than Oracle holds, and a stray file sits in the idioms folder | validate is run | it reports idiom_unknown, idiom_override_reason, idiom_part_unknown, idiom_stack, idiom_contract on the statement and on the decimal's missing Oracle row, idiom_version_behind as a warning, and the stray file under layout, and exits 1 |
@@ -10004,6 +10136,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | SA-24 | The system's version shall be the specification's info.version under Semantic Versioning 2.0.0, and the validator shall check each released version against the release before it and against what it includes. | functional | must | accepted | test | A released release that includes a change still approved, or a released change whose release does not include it, is reported as release_contents. A release that includes a major change but steps only the minor number after 1.0.0, or only the patch number before it, is reported as release_bump. An info.version that is not the newest released version, and not a later pre-release whose release is planned, is reported as release_version. A requirement's release that is not a release record, or names a withdrawn one, is reported as record_ref, and the test plan groups the requirements by release. | NEED-5 |
 | SA-25 | The toolchain shall compare two versions of a specification, list what was added, changed and removed with the version step each needs, and check the release of the later version against that list. | functional | must | accepted | test | Two versions that differ in one operation, one entity and one requirement are listed as three lines, each with its impact. A release that steps less than the largest change, or that includes no change request or defect naming a changed element, is reported and the command exits 1. An invalid specification on either side is compared as far as it can be read, its errors are printed, and the command exits 1. | NEED-5 |
 | SA-13 | Every element of a specification, at every stage, may carry a rationale (why) and citations of declared sources (cites), and the validator shall check that every citation names a declared source. | functional | must | accepted | test | An element with why and cites validates, and a citation of a source that is not declared is reported as source. | NEED-6 |
+| SA-73 | A specification shall say who runs each environment, the team that builds the system or the customer, and for an environment the customer runs it shall hold a handover, what the customer receives to build, install and run it and what stays whose responsibility, which specarch document shall write for the customer's engineers. | functional | must | accepted | test | An environment marked runBy customer in a specification with no handover, no release or no rollback is reported as handover at the environment, a handover in a specification with no environment the customer runs is reported as handover, and a handover whose to names no stakeholder is reported as stakeholder, the same in both builds. An environment the customer runs with no commissioning check in it, no monitor in it, or no backup and restore procedure is a warning at the environment, held by a must question that blocks the section. An implementation's deployment of an environment the customer runs without build, method or infrastructure is reported as handover at the deployment, and a build naming a task the file does not have is reported as build_task. specarch document handover writes handover.md with what the customer receives, the responsibilities, each implementation's build with its toolchain, base images and the licences of its dependencies, what the hosts must provide, every setting, the migrations, the release, rollback, backup and restore steps, the monitors, the checks and acceptance tests in that environment and the sign-off sheet, in plain words a reader with no SpecArch knowledge follows; a specification with an output folder for it and no handover is passed over with a warning. A specification without runBy, handover, backup, restore, build, method or infrastructure gets the same deployment guide and technical specification as before. | NEED-5 |
 | SA-17 | A specification shall be able to say what it does not yet know as an open question that names what is asked, who decides, what it blocks and how urgent it is; and the validator shall accept a required key missing exactly where a must question says it is unknown, and nowhere else. | functional | must | accepted | test | An entity written as an empty mapping and blocked by a must question validates with no error, and its missing keys are listed under the question by specarch gaps. The same entity without the question is reported with the missing keys. A question whose blocks names nothing in the specification, whose decider is not a stakeholder, or which sits in another stage's folder, is reported. An accepted decision that answers a question still present is reported. | NEED-8 |
 | SA-18 | Every element of a specification may say how it is known, stated, inferred or decided, and the validator shall check that a stated element cites a source, an inferred one says why, and a decided one names an accepted decision. | functional | must | accepted | test | An element with origin stated and no citation, one with origin inferred and no why, and one with origin decided naming no decision or a proposed one, are each reported. When the root file says the specification tracks origin, every element of a section without one is reported as a warning. | NEED-8 |
 | SA-19 | specarch gaps shall list the open questions by stage with what each blocks and who decides, and shall say for every document and code target whether it is ready, a draft or waiting; the same text shall be the document target questions, and every other document shall mark the open questions about its elements. | functional | must | accepted | test | A specification with two must questions in two stages prints them under their stages, lists the missing keys of a blocked element, and exits 1. A specification without open questions prints that it has none and exits 0. A requirements document whose requirement a question blocks starts with a Draft notice and shows the question under the requirement. | NEED-8, NEED-3 |
@@ -10144,6 +10277,10 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 
 **Note on SA-13:** From ISO/IEC/IEEE 29148, Systems and software engineering, Life cycle processes, Requirements engineering, 2018, clause 5.2.8: Rationale and source are attributes every requirement should carry. <https://www.iso.org/standard/72089.html>
 
+**Insight on SA-73:** Regulated customers take the source into a repository of their own and build and run production themselves; a deployment guide written for the vendor's hosts says nothing to them, and a handover written by hand drifts from the specification.
+
+**Note on SA-73:** From ISO/IEC/IEEE 12207, Systems and software engineering, Software life cycle processes, 2017, clause 6.4.10: The transition process establishes the capability to provide the service in its operational environment. <https://www.iso.org/standard/63712.html>
+
 **Insight on SA-17:** A placeholder looks like data and every tool downstream treats it as data; a question says in the specification itself that something is not known, so nothing can be built on it unseen.
 
 **Note on SA-17:** From ISO/IEC/IEEE 29148, Systems and software engineering, Life cycle processes, Requirements engineering, 2018, clause 5.2.6: A complete set of requirements holds no to-be-defined, to-be-specified or to-be-resolved clause; resolving them is iterative, within a time set by risk and dependency. <https://www.iso.org/standard/72089.html>
@@ -10191,11 +10328,11 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-9 | enums DocumentKind; enums Rule; commands validate; decisions ADR-001; decisions ADR-002; decisions ADR-007 | tests validate-design-key; tests validate-map-values; tests validate-stack-key; tests validate-type-list |
 | SA-10 | enums Rule; commands validate | tests validate-deployment-environment-missing; tests validate-design-ref; tests validate-implements; tests validate-permission-checks; tests validate-setting; tests validate-tree-valid; tests validate-ui-components; tests validate-ui-schema-file |
 | SA-11 | enums Rule; entities SpecFile; commands extract; commands validate; decisions ADR-010; decisions ADR-042; decisions ADR-048; decisions ADR-049; decisions ADR-050; decisions ADR-057 | tests merge-documents-days; tests merge-openapi-placeholder; tests merge-openapi-unserved; tests merge-refuses-edited-test; tests merge-takes-derived-drafts; tests validate-duplicate-name-across-files; tests validate-layout-folder-missing; tests validate-layout-not-a-stage; tests validate-layout-section-folder-in-root; tests validate-layout-section-in-root; tests validate-layout-section-in-wrong-stage; tests validate-layout-stack-mismatch; tests validate-layout-stage-not-listed; tests validate-layout-subfolder-section; tests validate-layout-test-file-unreadable; tests validate-layout-test-without-file; tests validate-tree-valid; checks checks-the-examples |
-| SA-12 | enums Rule; commands validate; decisions ADR-011; decisions ADR-014; decisions ADR-052 | tests validate-deployment-valid; tests validate-monitor-environment; tests validate-monitor-not-declared; tests validate-monitor-valid; tests validate-need-rejected; tests validate-requirements-only; tests validate-secret-in-deployment; tests validate-secret-value; tests validate-traceability-warnings |
+| SA-12 | enums Rule; commands validate; decisions ADR-011; decisions ADR-014; decisions ADR-052; decisions ADR-129 | tests validate-deployment-valid; tests validate-monitor-environment; tests validate-monitor-not-declared; tests validate-monitor-valid; tests validate-need-rejected; tests validate-requirements-only; tests validate-secret-in-deployment; tests validate-secret-value; tests validate-traceability-warnings |
 | SA-13 | enums Rule; commands validate; decisions ADR-012 | tests document-citation-unknown-source; tests validate-cites; tests validate-source; tests validate-source-clause |
 | SA-14 | enums GeneratorTarget; commands generate; decisions ADR-013; decisions ADR-051 | tests generate-no-plugin; tests generate-plugin-path-outside; tests generate-with-plugin |
 | SA-15 | commands document; decisions ADR-015 | tests document-writes-requirements |
-| SA-16 | enums DocumentTarget; commands document; decisions ADR-016 | tests document-testplan-by-release; tests document-testplan-state-machine; tests document-writes-commissioning; tests document-writes-deployment; tests document-writes-requirements; tests document-writes-testplan; tests document-writes-traceability |
+| SA-16 | enums DocumentTarget; commands document; decisions ADR-016; decisions ADR-129 | tests document-testplan-by-release; tests document-testplan-state-machine; tests document-writes-commissioning; tests document-writes-deployment; tests document-writes-requirements; tests document-writes-testplan; tests document-writes-traceability |
 | SA-17 | enums Rule; commands validate; decisions ADR-017 | tests validate-question-answered; tests validate-question-block; tests validate-question-covers-element-with-content; tests validate-question-covers-field-by-name; tests validate-question-covers-idiom-field; tests validate-question-covers-missing; tests validate-question-covers-problem; tests validate-question-covers-ungranted; tests validate-question-names; tests validate-question-should-not-covering; tests validate-question-stage |
 | SA-18 | enums Rule; commands validate; decisions ADR-018 | tests document-draft-notice; tests validate-origin; tests validate-origin-tracked |
 | SA-19 | enums DocumentTarget; commands document; commands gaps | tests document-draft-notice; tests document-writes-questions; tests gaps-lists-questions; tests gaps-names-question; tests gaps-none |
@@ -10252,6 +10389,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-70 | commands extract; decisions ADR-121 | tests extract-database-generated-default; tests extract-database-implementation-out; tests extract-router-list-twin; tests generate-openapi-list-twin; tests generate-sql-generated-default; tests generate-sql-generated-default-refused; tests generate-sql-index-changed; tests validate-generated-default; tests validate-index-field |
 | SA-71 | decisions ADR-123 | tests generate-sqlc-check-hand-written; tests generate-sqlc-dialect-refused; tests generate-sqlc-hand-written-refused; tests generate-sqlc-queries |
 | SA-72 | commands check; decisions ADR-124; decisions ADR-128 | tests check-dump-of-no-format; tests check-fails-on-a-difference; tests check-skips-a-partition; tests check-succeeds; tests check-usage-error |
+| SA-73 | enums DocumentTarget; enums Rule; commands document; decisions ADR-129 | tests document-handover-none; tests document-writes-handover; tests validate-build-task-unknown; tests validate-handover-build-missing; tests validate-handover-incomplete; tests validate-handover-missing; tests validate-handover-no-customer; tests validate-handover-valid |
 
 ## Sources
 

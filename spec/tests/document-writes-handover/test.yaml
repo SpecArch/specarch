@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: document
+level: system
+scenario: golden
+given: "an environment the customer runs with a handover (with a why and a citation) to a stakeholder, settings including one internal, a migration, release, rollback, backup and restore steps, checks in both environments, a monitor, an acceptance and a system test, a sign-off, and an implementation file whose deployment of that environment has build, method, infrastructure, values and a monitor"
+when: "document handover is run"
+then: "it writes handover.md for the customer's engineers: what they receive, the responsibilities, the build with its toolchain, base image and licences, what the hosts must provide, every setting with the internal one marked, the migration, the release with the vendor's install method, rollback, backup, restore, the monitor and how the vendor watches it, only the check in that environment with a Result column, only the acceptance test, and the sign-off sheet, and exits 0"
+verifies: [SA-73]

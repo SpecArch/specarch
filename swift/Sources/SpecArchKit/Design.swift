@@ -69,6 +69,25 @@ final class Design {
         }
     }
 
+    /// Reports whether any element of a section (checks or monitors) names
+    /// the environment.
+    func anyIn(_ section: [String: YNode], _ env: String) -> Bool {
+        section.values.contains { str($0.child("environment")) == env }
+    }
+
+    /// Reports whether an open must question blocks a section by name, or
+    /// the stage it is in: the one licence for the section to be missing.
+    func mustBlocked(_ section: String) -> Bool {
+        let stage = sections[section] ?? ""
+        for (_, q) in questions where str(q.child("priority")) == "must" {
+            for item in items(q.child("blocks")) {
+                guard let b = parseBlock(item.value), !b.isPointer else { continue }
+                if b.section == section || b.section.isEmpty && b.stage == stage { return true }
+            }
+        }
+        return false
+    }
+
     /// A channel's message node for "channel/Message", or nil.
     func message(_ ref: String) -> YNode? {
         guard let slash = ref.firstIndex(of: "/") else { return nil }
@@ -381,6 +400,45 @@ extension Checker {
                 add(def, pointer("configuration", name, "schema", "default"), .secretValue,
                     "\(name) is a secret, and a secret's value is never written in a specification; remove the default and say in the description where the value comes from")
             }
+        }
+        checkHandover(d)
+    }
+
+    /// Checks who runs each environment (ADR-129): one the customer runs
+    /// needs the handover, release and rollback, and should have a
+    /// commissioning check and a monitor in it and the backup and restore
+    /// procedures; a handover needs an environment the customer runs, and
+    /// goes to a stakeholder. An open must question that blocks the stage
+    /// or the section holds the problem about what that section lacks.
+    func checkHandover(_ d: Design) {
+        let handover = d.root.child("handover")
+        let customerRun = d.environments.keys.sorted(by: byteLess).filter { str(child(d.environments[$0], "runBy")) == "customer" }
+        for name in customerRun {
+            let runBy = child(d.environments[name], "runBy")
+            let ptr = pointer("environments", name, "runBy")
+            if handover == nil && !d.mustBlocked("handover") {
+                add(runBy, ptr, .handover, "\(name) is run by the customer, and the specification has no handover saying what they receive; add handover with description, to, source and responsibilities")
+            }
+            for proc in ["release", "rollback"] where d.root.child(proc) == nil && !d.mustBlocked(proc) {
+                add(runBy, ptr, .handover, "\(name) is run by the customer from the \(proc) steps, and the specification has none; add \(proc) with its steps")
+            }
+            if !d.mustBlocked("checks") && !d.anyIn(d.checks, name) {
+                warn(runBy, ptr, .handover, "no commissioning check runs in \(name), so the customer has nothing to run after installing it; add a check with environment: \(name)")
+            }
+            if !d.mustBlocked("monitors") && !d.anyIn(d.monitors, name) {
+                warn(runBy, ptr, .handover, "no monitor watches \(name), so the customer is not told what to watch; add a monitor with environment: \(name)")
+            }
+            let missing = ["backup", "restore"].filter { d.root.child($0) == nil && !d.mustBlocked($0) }
+            if !missing.isEmpty {
+                let what = missing.joined(separator: " and ")
+                warn(runBy, ptr, .handover, "\(name) is run by the customer, and the specification has no \(what) procedure to hand them; add \(what) under operation")
+            }
+        }
+        if let handover, customerRun.isEmpty {
+            add(handover, "/handover", .handover, "no environment is run by the customer, so there is nobody to hand over to; add runBy: customer to the environment the customer runs, or remove handover")
+        }
+        if let to = child(handover, "to"), !to.value.isEmpty, d.stakeholders[to.value] == nil {
+            add(to, "/handover/to", .stakeholder, "\(to.value) is not a stakeholder of the specification\(suggest(to.value, d.stakeholders))")
         }
     }
 

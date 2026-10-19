@@ -62,14 +62,14 @@ var siteGroups = []struct {
 	{"Workflows", []string{"workflows"}},
 	{"Algorithms and decisions", []string{"algorithms", "decisions"}},
 	{"Tests and traceability", []string{"tests"}},
-	{"Deployment, commissioning and operation", []string{"environments", "configuration", "release", "rollback", "migrations", "checks", "signoff", "monitors"}},
+	{"Deployment, commissioning and operation", []string{"environments", "configuration", "release", "rollback", "migrations", "handover", "checks", "signoff", "monitors", "backup", "restore"}},
 	{"Open questions", []string{"questions"}},
 }
 
 // oneObject are the sections that hold one object rather than named
 // elements; the overview shows the keys of the root file.
 var (
-	oneObject   = map[string]bool{"session": true, "release": true, "rollback": true, "signoff": true, "accessibility": true, "theme": true}
+	oneObject   = map[string]bool{"session": true, "release": true, "rollback": true, "handover": true, "signoff": true, "backup": true, "restore": true, "accessibility": true, "theme": true}
 	overviewKey = map[string]bool{"specarch": true, "info": true, "stages": true}
 )
 
@@ -88,7 +88,7 @@ var linkTo = map[string][]string{
 	"entity": {"entities", "views"}, "subject": {"entities", "operations"}, "target": {"entities", "pages", "operations"},
 	"page": {"pages"}, "navigate": {"pages"}, "pages": {"pages"},
 	"source": {"operations", "sources"}, "operation": {"operations"}, "trigger": {"operations"}, "operations": {"operations"}, "submit": {"operations"},
-	"decidedIn": {"decisions"}, "algorithm": {"algorithms"}, "workflow": {"workflows"}, "job": {"jobs"},
+	"decidedIn": {"decisions"}, "algorithm": {"algorithms"}, "workflow": {"workflows"}, "job": {"jobs"}, "to": {"stakeholders"},
 	"environment": {"environments"}, "environments": {"environments"}, "problem": {"errors"},
 }
 

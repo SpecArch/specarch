@@ -1,0 +1,6 @@
+arguments: [validate, .]
+exitStatus: 1
+standardOutput: |
+  case.go.specarch-implementation.yaml:13:13: error: /deployments/production/build/task: build_task: buidl is not a task of this implementation file; did you mean build? [build_task@case.go.specarch-implementation.yaml#/deployments/production/build/task]
+  case.go.specarch-implementation.yaml:14:13: error: /deployments/production/build/sbom: build_task: scan is not a task of this implementation file; use one of build [build_task@case.go.specarch-implementation.yaml#/deployments/production/build/sbom]
+  specarch.yaml:1:11: warning: /specarch: meta_model_version: the specification is written against meta-model 0.1, which is read until 1.0, and its missing tests are warnings; run specarch derive to write the tests 0.2 asks for, then change the line to specarch: "0.2" [meta_model_version@specarch.yaml#/specarch]

@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: requirements specification
 
-Version 0.7.0-dev of the specification: 5 stakeholders, 10 needs and 72 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
+Version 0.7.0-dev of the specification: 5 stakeholders, 10 needs and 73 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -37,7 +37,7 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | NEED-2 | I want to write a design once and build it in more than one language. | implementer | accepted | SA-33, SA-34, SA-36, SA-37, SA-38, SA-39, SA-40, SA-41, SA-42, SA-43, SA-52, SA-53, SA-54, SA-55, SA-56, SA-49, SA-62, SA-63, SA-65, SA-66, SA-70, SA-46, SA-61, SA-71, SA-32, SA-9, SA-10 |
 | NEED-3 | I want the documents and diagrams to come from the specification, so they never drift from it. | reviewer, specification-author | accepted | SA-22, SA-36, SA-67, SA-7, SA-8, SA-26, SA-16, SA-58, SA-59, SA-60, SA-19 |
 | NEED-4 | I want a big specification split over many files, each about one thing, so I can find what I am looking for. | specification-author, reviewer | accepted | SA-11, SA-2 |
-| NEED-5 | I want the whole life of the system in one place, from the first requirement to the day it is accepted. | reviewer, operator | accepted | SA-35, SA-47, SA-68, SA-26, SA-16, SA-12, SA-23, SA-24, SA-25 |
+| NEED-5 | I want the whole life of the system in one place, from the first requirement to the day it is accepted. | reviewer, operator | accepted | SA-35, SA-47, SA-68, SA-26, SA-16, SA-12, SA-23, SA-24, SA-25, SA-73 |
 | NEED-6 | I want to see why something is the way it is, and which standard asks for it. | reviewer | accepted | SA-15, SA-13 |
 | NEED-7 | I want one tool to learn and install, not one program per task. | specification-author, ci-job | accepted | SA-14 |
 | NEED-8 | I want to build a specification from the documents and code that exist, without inventing what they do not say, and to see at every step what is still missing and what can already be made. | specification-author, reviewer | accepted | SA-69, SA-70, SA-46, SA-59, SA-71, SA-17, SA-18, SA-19, SA-20, SA-30, SA-44, SA-45, SA-64, SA-72, SA-51 |
@@ -101,6 +101,7 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | SA-24 | functional | must | accepted | The system's version shall be the specification's info.version under Semantic Versioning 2.0.0, and the validator shall check each released version against the release before it and against what it includes. |
 | SA-25 | functional | must | accepted | The toolchain shall compare two versions of a specification, list what was added, changed and removed with the version step each needs, and check the release of the later version against that list. |
 | SA-13 | functional | must | accepted | Every element of a specification, at every stage, may carry a rationale (why) and citations of declared sources (cites), and the validator shall check that every citation names a declared source. |
+| SA-73 | functional | must | accepted | A specification shall say who runs each environment, the team that builds the system or the customer, and for an environment the customer runs it shall hold a handover, what the customer receives to build, install and run it and what stays whose responsibility, which specarch document shall write for the customer's engineers. |
 | SA-17 | functional | must | accepted | A specification shall be able to say what it does not yet know as an open question that names what is asked, who decides, what it blocks and how urgent it is; and the validator shall accept a required key missing exactly where a must question says it is unknown, and nowhere else. |
 | SA-18 | functional | must | accepted | Every element of a specification may say how it is known, stated, inferred or decided, and the validator shall check that a stated element cites a source, an inferred one says why, and a decided one names an accepted decision. |
 | SA-19 | functional | must | accepted | specarch gaps shall list the open questions by stage with what each blocks and who decides, and shall say for every document and code target whether it is ready, a draft or waiting; the same text shall be the document target questions, and every other document shall mark the open questions about its elements. |
@@ -939,6 +940,24 @@ Acceptance criteria:
 - An element with why and cites validates, and a citation of a source that is not declared is reported as source.
 
 **Note:** From ISO/IEC/IEEE 29148, Systems and software engineering, Life cycle processes, Requirements engineering, 2018, clause 5.2.8: Rationale and source are attributes every requirement should carry. <https://www.iso.org/standard/72089.html>
+
+### SA-73
+
+A specification shall say who runs each environment, the team that builds the system or the customer, and for an environment the customer runs it shall hold a handover, what the customer receives to build, install and run it and what stays whose responsibility, which specarch document shall write for the customer's engineers.
+
+Kind: functional; priority: must; status: accepted; verified by test; refines NEED-5.
+
+Acceptance criteria:
+
+- An environment marked runBy customer in a specification with no handover, no release or no rollback is reported as handover at the environment, a handover in a specification with no environment the customer runs is reported as handover, and a handover whose to names no stakeholder is reported as stakeholder, the same in both builds.
+- An environment the customer runs with no commissioning check in it, no monitor in it, or no backup and restore procedure is a warning at the environment, held by a must question that blocks the section.
+- An implementation's deployment of an environment the customer runs without build, method or infrastructure is reported as handover at the deployment, and a build naming a task the file does not have is reported as build_task.
+- specarch document handover writes handover.md with what the customer receives, the responsibilities, each implementation's build with its toolchain, base images and the licences of its dependencies, what the hosts must provide, every setting, the migrations, the release, rollback, backup and restore steps, the monitors, the checks and acceptance tests in that environment and the sign-off sheet, in plain words a reader with no SpecArch knowledge follows; a specification with an output folder for it and no handover is passed over with a warning.
+- A specification without runBy, handover, backup, restore, build, method or infrastructure gets the same deployment guide and technical specification as before.
+
+**Insight:** Regulated customers take the source into a repository of their own and build and run production themselves; a deployment guide written for the vendor's hosts says nothing to them, and a handover written by hand drifts from the specification.
+
+**Note:** From ISO/IEC/IEEE 12207, Systems and software engineering, Software life cycle processes, 2017, clause 6.4.10: The transition process establishes the capability to provide the service in its operational environment. <https://www.iso.org/standard/63712.html>
 
 ### SA-17
 

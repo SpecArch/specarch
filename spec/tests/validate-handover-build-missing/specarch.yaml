@@ -1,0 +1,40 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0 }
+stakeholders:
+  shop-it: { description: "The shop's IT staff, who build and run the till." }
+environments:
+  staging: { description: Where a release is tried., promotesTo: production }
+  production: { description: "The till in the shop, on the shop's host.", runBy: customer }
+configuration:
+  taxRate: { description: The sales tax rate., secret: false, schema: { type: string, format: decimal, precision: 4, scale: 2 } }
+handover:
+  description: Each release is handed to the shop's IT staff as source.
+  to: shop-it
+  source: A tagged release of the repository.
+  responsibilities:
+    customer: [The host and its patching.]
+    vendor: [The source of each release.]
+release:
+  steps:
+    - { name: Install, action: Install the build., check: The till opens. }
+rollback:
+  steps:
+    - { name: Switch back, action: Start the previous build., check: The till opens. }
+backup:
+  steps:
+    - { name: Dump, action: Dump the database nightly., check: The dump restores on a scratch host. }
+restore:
+  steps:
+    - { name: Load, action: Load the chosen dump., check: The till shows the restored sales. }
+checks:
+  till-opens:
+    kind: smoke
+    description: The installed till opens.
+    environment: production
+    steps:
+      - { name: Open, action: Open the till., check: It shows the catalogue. }
+monitors:
+  till-answers:
+    description: Whether the till answers.
+    environment: production
+    objective: The till answers every minute of opening hours.

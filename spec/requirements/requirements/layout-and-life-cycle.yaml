@@ -87,3 +87,21 @@ requirements:
       - source: iso-29148
         clause: "5.2.8"
         says: "Rationale and source are attributes every requirement should carry."
+  SA-73:
+    statement: A specification shall say who runs each environment, the team that builds the system or the customer, and for an environment the customer runs it shall hold a handover, what the customer receives to build, install and run it and what stays whose responsibility, which specarch document shall write for the customer's engineers.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance:
+      - An environment marked runBy customer in a specification with no handover, no release or no rollback is reported as handover at the environment, a handover in a specification with no environment the customer runs is reported as handover, and a handover whose to names no stakeholder is reported as stakeholder, the same in both builds.
+      - An environment the customer runs with no commissioning check in it, no monitor in it, or no backup and restore procedure is a warning at the environment, held by a must question that blocks the section.
+      - An implementation's deployment of an environment the customer runs without build, method or infrastructure is reported as handover at the deployment, and a build naming a task the file does not have is reported as build_task.
+      - specarch document handover writes handover.md with what the customer receives, the responsibilities, each implementation's build with its toolchain, base images and the licences of its dependencies, what the hosts must provide, every setting, the migrations, the release, rollback, backup and restore steps, the monitors, the checks and acceptance tests in that environment and the sign-off sheet, in plain words a reader with no SpecArch knowledge follows; a specification with an output folder for it and no handover is passed over with a warning.
+      - A specification without runBy, handover, backup, restore, build, method or infrastructure gets the same deployment guide and technical specification as before.
+    verification: test
+    needs: [NEED-5]
+    why: Regulated customers take the source into a repository of their own and build and run production themselves; a deployment guide written for the vendor's hosts says nothing to them, and a handover written by hand drifts from the specification.
+    cites:
+      - source: iso-12207
+        clause: "6.4.10"
+        says: "The transition process establishes the capability to provide the service in its operational environment."

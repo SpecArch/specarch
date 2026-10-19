@@ -37,7 +37,7 @@ mappings:
   '#/paths/~1parcels/post':
     target: lockers.Server.storeParcel
     handler:
-      commit: 1111111111111111111111111111111111111111
+      commit: "1111111111111111111111111111111111111111"
       depth: 3
       functions:
         - name: lockers.Server.storeParcel
@@ -319,7 +319,7 @@ mappings:
   '#/paths/~1lockers~1open/post':
     target: lockers.Server.openLocker
     handler:
-      commit: 1111111111111111111111111111111111111111
+      commit: "1111111111111111111111111111111111111111"
       depth: 3
       functions:
         - name: lockers.Server.openLocker

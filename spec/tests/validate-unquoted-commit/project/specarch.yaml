@@ -1,0 +1,30 @@
+specarch: "0.2"
+info: { title: Lockers, version: 1.0.0 }
+sources:
+  code: { kind: code, title: The code repository, edition: "1111111111111111111111111111111111111111", url: ../testdata/code, reading: parsed, clauses: [{ clause: api/handlers.go, title: Go source }] }
+stakeholders:
+  owner: { description: The owner. }
+permissions:
+  lockers.read: { description: See the lockers. }
+roles:
+  courier: { description: Fills and empties the lockers., permissions: [lockers.read] }
+paths:
+  /lockers/count:
+    get:
+      operationId: count
+      summary: How many lockers there are
+      permission: lockers.read
+      responses:
+        "200": { description: The count. }
+  /ping:
+    get:
+      operationId: ping
+      summary: Whether the service is up
+      permission: lockers.read
+      responses:
+        "200": { description: Up. }
+tests:
+  count-denied: { operation: count, level: system, scenario: red, covers: [denied without lockers.read], given: "a caller without lockers.read", when: "count is called", then: "it is refused as not allowed" }
+  ping-denied: { operation: ping, level: system, scenario: red, covers: [denied without lockers.read], given: "a caller without lockers.read", when: "ping is called", then: "it is refused as not allowed" }
+  count-succeeds: { operation: count, level: system, scenario: golden, given: "any caller", when: "count is called", then: "it answers 200: The count." }
+  ping-succeeds: { operation: ping, level: system, scenario: golden, given: "any caller", when: "ping is called", then: "it answers 200: Up." }

@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "an implementation file whose two handler records give commit without quotes, one as forty digits, past what a 64-bit integer holds, and one as seven, where YAML reads each as a number"
+when: "validate is run"
+then: "each is reported at its line as a number where a string is expected, in the Go build and the Swift build alike, and it exits 1"

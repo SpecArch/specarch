@@ -285,7 +285,17 @@ private func resolveTag(_ v: String, explicit: String, style: YNode.Style) -> St
     case ".inf", ".Inf", ".INF", "+.inf", "+.Inf", "+.INF", "-.inf", "-.Inf", "-.INF", ".nan", ".NaN", ".NAN": return "!!float"
     default: break
     }
-    if matches(intPattern, v) { return "!!int" }
+    if matches(intPattern, v) {
+        // An integer past 64 bits is still a number: a decimal one is read
+        // as a float, as yaml.v3 reads it, so a 40-digit value where a
+        // string is expected is reported as a number in both builds; a
+        // 0x, 0o or 0b form past 64 bits stays text there and here.
+        let clean = v.replacingOccurrences(of: "_", with: "")
+        if Int64(clean) == nil, UInt64(clean) == nil, matches(floatPattern, clean), let d = Double(clean), d.isFinite {
+            return "!!float"
+        }
+        return "!!int"
+    }
     if matches(floatPattern, v) { return "!!float" }
     if matches(timestampPattern, v) { return "!!timestamp" }
     return "!!str"

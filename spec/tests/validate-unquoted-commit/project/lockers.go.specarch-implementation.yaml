@@ -1,0 +1,49 @@
+specarchImplementation: "0.1"
+info: { title: Lockers in Go, version: 1.0.0 }
+implements: { file: specarch.yaml, version: 1.0.0 }
+stack: { language: { name: Go, version: "1.27" } }
+mappings:
+  '#/paths/~1lockers~1count/get':
+    target: api.Count
+    handler:
+      commit: 1111111111111111111111111111111111111111
+      depth: 3
+      functions:
+        - name: api.Count
+          file: api/handlers.go
+          firstLine: 3
+          lastLine: 7
+          steps:
+            - { id: s1, kind: response, text: answers 200 with JSON, file: api/handlers.go, firstLine: 5, lastLine: 5, status: 200 }
+            - { id: s2, kind: return, text: returns nil, file: api/handlers.go, firstLine: 6, lastLine: 6 }
+          source: |-
+            // Count answers how many lockers there are.
+            func Count(aepr *Request) error {
+            	aepr.WriteResponseAsJSON(200, nil, map[string]any{"count": 12})
+            	return nil
+            }
+    origin: stated
+    cites:
+      - { source: code, clause: 'api/handlers.go:3', says: 'The handler of GET /lockers/count, followed into 1 function.' }
+  '#/paths/~1ping/get':
+    target: api.Ping
+    handler:
+      commit: 1234567
+      depth: 3
+      functions:
+        - name: api.Ping
+          file: api/handlers.go
+          firstLine: 9
+          lastLine: 13
+          steps:
+            - { id: s1, kind: response, text: answers 200 with JSON, file: api/handlers.go, firstLine: 11, lastLine: 11, status: 200 }
+            - { id: s2, kind: return, text: returns nil, file: api/handlers.go, firstLine: 12, lastLine: 12 }
+          source: |-
+            // Ping answers that the service is up.
+            func Ping(aepr *Request) error {
+            	aepr.WriteResponseAsJSON(200, nil, nil)
+            	return nil
+            }
+    origin: stated
+    cites:
+      - { source: code, clause: 'api/handlers.go:9', says: 'The handler of GET /ping, followed into 1 function.' }

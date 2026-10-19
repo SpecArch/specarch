@@ -401,3 +401,15 @@ To repeat: copy `spec/tests/validate-interface-response-key-empty/specarch.yaml`
 An OpenAPI document declares a schema that no operation creates, so `extract openapi` writes it under schemas; the database holds a table of the same name, which `extract database` writes under entities. Each tree passes `validate` alone. `specarch merge` wrote `/schemas/Note` beside `/entities/Note`, asked no question and reported no disagreement, and `validate` refused the merged tree: "Note is the name of an entity too; a schema, an entity and a view are one namespace". A merged tree is not edited by hand, so the extraction stopped there. Seen with 0.6.4.
 
 Expected: the merge keeps both entries and asks a must question at the schema whether the name is one element or two, citing both, and the merged tree passes `validate` with the question open. The same for a view named like an entity, and a schema like a view.
+
+## BUG-032 — validate (Swift build): an all-digit commit past 64 bits, written without quotes, passes as a string, and no check reads the fixture that holds one
+
+- Reported: 2026-10-20, found by an outside schema check of this repository's own specifications
+- Closed: 2026-10-20, completed
+- Fixed by: the commit on `main` whose message says `Fixes BUG-032`
+
+`spec/tests/extract-go-handlers-changed/implementation/lockers.go.specarch-implementation.yaml` gave two handler records `commit: 1111111111111111111111111111111111111111` without quotes. YAML reads an all-digit plain scalar as a number, and the implementation schema asks for a string that matches `^[0-9a-f]{7,64}$`, so a strict schema check refuses the value. Neither build of `validate` reported it, for two reasons. No check reads the file: `spec.Find` stops at a folder that holds `specarch.yaml`, so `validate spec examples` never descends into `spec/tests`, and the case runs `extract go` alone, which takes `commit` as raw text. And when the Swift build is pointed at the file it accepts the value: its resolver tags the forty digits `!!int`, `scalarValue` finds they fit neither `Int64` nor `UInt64` and returns them as a string, which matches the pattern. The Go build reports it, as yaml.v3 reads an integer past `uint64` as a float, a number; the two builds printed different output for the same input. A commit of seven digits was a number in both builds already.
+
+Expected: the two values quoted; both builds report an all-digit `commit` of any width, written without quotes, as the schema type error at its line, "this is a number, but a string is expected here"; a case shows it.
+
+To repeat: run either build's `validate` on a copy of the file as it was. The Go build printed the type error at lines 40 and 322; `swift/.build/release/specarch validate` printed only the `implements` error of the copied file.

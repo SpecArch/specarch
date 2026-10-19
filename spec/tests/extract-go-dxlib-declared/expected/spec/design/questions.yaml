@@ -29,16 +29,16 @@ questions:
     why: Syntax shows a declaration and not what runs; the document dxlib emits, or a route table, says what the running system registers, and merging it answers this.
     cites:
       - {source: code, clause: 'api/endpoints.go:70', says: Registers POST /loans/close with NewEndPoint.}
-  # specarch-problem: question: open_question: (must, decision) POST /loans/import declares no parameter where api/endpoints.go:74 registers it, and its handler reads none by name (api/handlers.go:32), so its body is written as any object. Which fields does its body take, with their types? Decided by system-owner. Answer with a decision record that names Q-4 under answers. [Q-4]
+  # specarch-problem: question: open_question: (must, decision) POST /loans/import declares no parameter where api/endpoints.go:74 registers it, and its handler decodes aepr.Request.Body at api/handlers.go:34 into rows, a stream dxlib has already read to its end into RequestBodyAsBytes for a JSON endpoint, and finds no data there, so its body is written as any object. Which fields does its body take, with their types? Decided by system-owner. Answer with a decision record that names Q-4 under answers. [Q-4]
   Q-4:
-    question: POST /loans/import declares no parameter where api/endpoints.go:74 registers it, and its handler reads none by name (api/handlers.go:32), so its body is written as any object. Which fields does its body take, with their types?
+    question: POST /loans/import declares no parameter where api/endpoints.go:74 registers it, and its handler decodes aepr.Request.Body at api/handlers.go:34 into rows, a stream dxlib has already read to its end into RequestBodyAsBytes for a JSON endpoint, and finds no data there, so its body is written as any object. Which fields does its body take, with their types?
     kind: decision
     priority: must
     blocks: ['#/paths/~1loans~1import/post/requestBody/content/application~1json/schema']
     decidedBy: system-owner
-    why: dxlib reads and checks only the parameters an endpoint declares; a handler that reads its body in another way, such as decoding it itself, gives its fields only in code syntax does not follow.
+    why: 'dxlib reads and checks only the parameters an endpoint declares, and the handler''s own decoding gives no fields the reader can write: it is a value of no declared type, a map that names no field, a body dxlib refuses or one the decode never sees.'
     cites:
-      - {source: code, clause: 'api/endpoints.go:74', says: Declares no parameter.}
+      - {source: code, clause: 'api/handlers.go:34', says: Decodes the body into rows.}
   # specarch-problem: question: open_question: (must, decision) What does POST /loans/import answer when it succeeds, and what does each response mean? Decided by system-owner. Answer with a decision record that names Q-5 under answers. [Q-5]
   Q-5:
     question: What does POST /loans/import answer when it succeeds, and what does each response mean?

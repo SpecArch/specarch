@@ -721,6 +721,7 @@ func (g *goReader) declaredSnake() bool {
 		}
 	}
 	for _, ep := range g.endpoints {
+		g.handlerWires(ep, note)
 		if ep.decl == nil {
 			continue
 		}
@@ -848,6 +849,37 @@ func (w *declaredWriter) request(ep *goEndpoint, op *yaml.Node, regAt, label str
 		}
 		return
 	}
+	at := ep.at + "/requestBody"
+	schemaAt := at + "/content/" + escapeToken(d.contentType) + "/schema"
+	decode := (*handlerDecode)(nil)
+	if ep.shapes != nil && d.contentType == "application/json" {
+		decode = ep.shapes.decode
+	}
+	if decode != nil && ep.shapes.decodes > 1 {
+		g.question("should", fmt.Sprintf("%s: the handler of %s decodes its body %d times; the reader writes the first, into %s. Do the others read the same shape?", decode.clause, label, ep.shapes.decodes, decode.text),
+			[]string{at}, "A request body has one shape, and a second decoding may read another.", g.at(decode.clause, "Decodes the body into "+decode.text+"."))
+	}
+	decodeWhy := ""
+	if decode != nil && len(d.params) == 0 {
+		schema, why := w.handlerBodySchema(ep, label, schemaAt)
+		if schema != nil {
+			set(op, "requestBody", mapping("content", mapping(d.contentType, mapping("schema", schema))))
+			return
+		}
+		decodeWhy = why
+	}
+	if decode != nil && decode.typ != nil && decode.from == "RequestBodyAsBytes" && len(d.params) > 0 {
+		var declared []string
+		for _, p := range d.params {
+			if p.name != "" {
+				declared = append(declared, p.name)
+			}
+		}
+		if wires, ok := g.topWires(decode.file, decode.typ); ok && strings.Join(sortedCopy(wires), ",") != strings.Join(sortedCopy(declared), ",") {
+			g.question("must", fmt.Sprintf("Two sources disagree on the body of %s: %s declares %s, and its handler decodes it at %s into %s, of type %s, with %s. Which fields does the body take?", label, regAt, fieldsText(sortedCopy(declared)), decode.clause, decode.text, typeText(decode.typ), fieldsText(sortedCopy(wires))),
+				[]string{schemaAt}, "The registration declares the parameters dxlib reads and checks, and is written; the handler decodes the body itself, and the two name other fields.", g.at(decode.clause, "Decodes the body into "+decode.text+"."))
+		}
+	}
 	obj := mapping("type", "object")
 	props := mapping()
 	var required []string
@@ -874,8 +906,6 @@ func (w *declaredWriter) request(ep *goEndpoint, op *yaml.Node, regAt, label str
 	if len(required) > 0 {
 		set(obj, "required", required)
 	}
-	at := ep.at + "/requestBody"
-	schemaAt := at + "/content/" + escapeToken(d.contentType) + "/schema"
 	rb := w.o.requestBody(mapping("content", mapping(d.contentType, mapping("schema", obj))), label, at)
 	if rb == nil {
 		return
@@ -883,7 +913,14 @@ func (w *declaredWriter) request(ep *goEndpoint, op *yaml.Node, regAt, label str
 	set(op, "requestBody", rb)
 	schema := child(child(child(rb, "content"), d.contentType), "schema")
 	w.askUnread(unread, label, schemaAt, schema)
-	if len(d.params) == 0 {
+	switch {
+	case len(d.params) > 0, decode != nil && decodeWhy == "":
+		// A struct the reader could not write is asked about where its
+		// type is.
+	case decodeWhy != "":
+		g.question("must", fmt.Sprintf("%s declares no parameter where %s registers it, and %s, so its body is written as any object. Which fields does its body take, with their types?", label, regAt, decodeWhy),
+			[]string{schemaAt}, "dxlib reads and checks only the parameters an endpoint declares, and the handler's own decoding gives no fields the reader can write: it is a value of no declared type, a map that names no field, a body dxlib refuses or one the decode never sees.", g.at(decode.clause, "Decodes the body into "+decode.text+"."))
+	default:
 		g.question("must", fmt.Sprintf("%s declares no parameter where %s registers it, and its handler reads none by name (%s), so its body is written as any object. Which fields does its body take, with their types?", label, regAt, nonEmptyText(ep.handlerAt, "its handler is not found")),
 			[]string{schemaAt}, "dxlib reads and checks only the parameters an endpoint declares; a handler that reads its body in another way, such as decoding it itself, gives its fields only in code syntax does not follow.", g.at(regAt, "Declares no parameter."))
 	}

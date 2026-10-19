@@ -104,10 +104,11 @@ type goEndpoint struct {
 	reads      []string // the parameters the handler reads, in order, each once
 	responses  map[string]string
 	answered   []goProblem
-	at         string   // the operation's pointer in the tree
-	handlerAt  string   // the handler's path:line, "" when it was not found
-	paging     *dxTable // the dxlib table whose paging list the handler is
-	pagingCall string   // that method's name
+	at         string       // the operation's pointer in the tree
+	handlerAt  string       // the handler's path:line, "" when it was not found
+	paging     *dxTable     // the dxlib table whose paging list the handler is
+	pagingCall string       // that method's name
+	shapes     *handlerRead // the body the handler decodes and the JSON it answers (ADR-140)
 }
 
 // goProblem is one refusal a handler answers.
@@ -673,6 +674,7 @@ func (g *goReader) handlerBody(ep *goEndpoint, h ast.Expr) {
 	if request == "" || request == "_" {
 		return
 	}
+	g.readHandlerShapes(ep, file, body, request)
 	seen := map[string]bool{}
 	ast.Inspect(body, func(n ast.Node) bool {
 		call, ok := n.(*ast.CallExpr)
@@ -880,7 +882,13 @@ func (g *goReader) write() {
 			declaredResponses := mapping()
 			codes := sortedCodes(ep.responses)
 			if ep.decl != nil {
-				for c := range w.responses(ep, declaredResponses, label, regAt) {
+				declared := w.responses(ep, declaredResponses, label, regAt)
+				for c := range declared {
+					if !contains(codes, c) {
+						codes = append(codes, c)
+					}
+				}
+				for _, c := range w.handlerResponses(ep, declaredResponses, declared, label) {
 					if !contains(codes, c) {
 						codes = append(codes, c)
 					}
@@ -926,6 +934,7 @@ func (g *goReader) write() {
 			if ep.handlerAt != "" {
 				cites = append(cites, g.at(ep.handlerAt, g.handlerSays(ep)))
 			}
+			cites = append(cites, g.handlerCites(ep, label)...)
 			set(op, "cites", cites)
 			set(item, ep.key, op)
 			if ep.title == "" {

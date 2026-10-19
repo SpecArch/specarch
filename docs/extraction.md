@@ -445,7 +445,10 @@ changes `extract.yaml` first.
     the privileges in the citation, the middlewares it runs in order, each
     declared once with its doc comment and refusals (ADR-131), the
     parameters, content type and responses the call declares (ADR-130),
-    the parameters the handler
+    and, where it declares none, the body from the struct the handler
+    decodes `RequestBodyAsBytes` into, with the checks that refuse it,
+    and the responses from the literal maps it answers with
+    `WriteResponseAsJSON` (ADR-140), the parameters the handler
     reads and the problems it answers; a registration in a loop, behind a
     condition or computed, a parameter read the endpoint does not
     declare and a reason that names no problem are must questions;

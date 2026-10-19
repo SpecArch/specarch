@@ -532,7 +532,42 @@ commands:
         the reader cannot follow is a must question naming the call and
         why, and a parameter it cannot read inside a list is written by
         its name alone with a must question on it. A body that declares
-        no parameter is any object, with a must question on its fields.
+        no parameter is any object, with a must question on its fields,
+        unless its handler gives them (ADR-140): a JSON body the
+        registration declares no parameter for, and that the handler
+        decodes with `json.Unmarshal` of the request's
+        `RequestBodyAsBytes` (or a `json.NewDecoder` over it) into a
+        variable whose type it declares, is written from that type by
+        encoding/json's rules with the field writer of a router's handler
+        body, and its fields without omitempty or omitzero are required;
+        a check of the variable's
+        field whose block refuses through the request (an `if` comparing
+        it with `""` or `nil`, its length or its value with a literal, or
+        a chain of `!=` against strings, and a `switch` on it whose
+        default refuses) writes required, minLength and maxLength,
+        minItems and maxItems, the bounds or an enum, and any other check
+        of a field that refuses is a should question at its line. A
+        decode into a
+        list, into a map that names no field, of `Request.Body`, which
+        dxlib has already read to its end, or into a variable of no
+        declared type is the must question on the fields, saying which;
+        a body decoded twice is a should question. Each
+        `WriteResponseAsJSON(status, header, body)` call on the request
+        is a response under its status when the registration's responses
+        are read: a literal map's keys are its properties, all required,
+        each of the type its value gives (a literal, a nested literal
+        map, a list of literal maps with one set of keys, a composite
+        literal's type, a name the handler declares with its type, or a
+        field of one), and dxlib's own status, status_code, reason and
+        reason_message keys are not written, as its emitter leaves them
+        out of a data template. A status that is not a literal, a body
+        that is not a literal map, a key that is not a literal, a value
+        of a type the handler does not declare and one status answered
+        with bodies of other fields are must questions; a header prints
+        a line. Where the registration declares a body or a response
+        too, the declaration is written, and a handler that names other
+        fields than it is a must question that says the two sources
+        disagree.
         The middleware chain is followed as the parameter list is, and
         through a call to a function of the module whose one statement
         returns its variadic parameter, such as `mw(a, b)` (ADR-131): the

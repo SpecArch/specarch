@@ -2546,54 +2546,58 @@ func jsonTag(fl *ast.Field, name string) (wire string, skip, tagged bool) {
 // at least joins words with an underscore, and none has a capital.
 func (g *goReader) bodiesSnake(routes []*goRoute) bool {
 	underscore, capital := false, false
-	seen := map[*ast.TypeSpec]bool{}
-	var walk func(f *goFile, e ast.Expr)
-	walk = func(f *goFile, e ast.Expr) {
-		for {
-			switch t := e.(type) {
-			case *ast.StarExpr:
-				e = t.X
-				continue
-			case *ast.ArrayType:
-				e = t.Elt
-				continue
-			}
-			break
-		}
-		var stt *ast.StructType
-		tf := f
-		if inPlace, ok := e.(*ast.StructType); ok {
-			stt = inPlace
-		} else {
-			ts, found := g.structOf(f, e)
-			if ts == nil || seen[ts] {
-				return
-			}
-			seen[ts] = true
-			stt, _ = ts.Type.(*ast.StructType)
-			tf = found
-			if stt == nil {
-				return
-			}
-		}
-		for _, fl := range stt.Fields.List {
-			for _, n := range fl.Names {
-				wire, skip, tagged := jsonTag(fl, n.Name)
-				if skip || !tagged || !n.IsExported() {
-					continue
-				}
-				underscore = underscore || strings.Contains(wire, "_")
-				capital = capital || strings.ToLower(wire) != wire
-			}
-			walk(tf, fl.Type)
-		}
+	note := func(wire string) {
+		underscore = underscore || strings.Contains(wire, "_")
+		capital = capital || strings.ToLower(wire) != wire
 	}
 	for _, r := range routes {
 		if r.body != nil && r.body.typ != nil {
-			walk(r.body.file, r.body.typ)
+			g.structWires(r.body.file, r.body.typ, note, map[*ast.TypeSpec]bool{})
 		}
 	}
 	return underscore && !capital
+}
+
+// structWires notes the name each tagged field of a struct, and of the
+// structs it holds, has on the wire.
+func (g *goReader) structWires(f *goFile, e ast.Expr, note func(string), seen map[*ast.TypeSpec]bool) {
+	for {
+		switch t := e.(type) {
+		case *ast.StarExpr:
+			e = t.X
+			continue
+		case *ast.ArrayType:
+			e = t.Elt
+			continue
+		}
+		break
+	}
+	var stt *ast.StructType
+	tf := f
+	if inPlace, ok := e.(*ast.StructType); ok {
+		stt = inPlace
+	} else {
+		ts, found := g.structOf(f, e)
+		if ts == nil || seen[ts] {
+			return
+		}
+		seen[ts] = true
+		stt, _ = ts.Type.(*ast.StructType)
+		tf = found
+		if stt == nil {
+			return
+		}
+	}
+	for _, fl := range stt.Fields.List {
+		for _, n := range fl.Names {
+			wire, skip, tagged := jsonTag(fl, n.Name)
+			if skip || !tagged || !n.IsExported() {
+				continue
+			}
+			note(wire)
+		}
+		g.structWires(tf, fl.Type, note, seen)
+	}
 }
 
 // requestBody writes the body a handler decodes from the struct it decodes

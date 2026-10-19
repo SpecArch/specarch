@@ -36,6 +36,7 @@ paths:
       cites:
         - {source: code, clause: 'api/endpoints.go:74', says: 'NewEndPoint registers POST /loans/import; its handler is ImportLoans, it has no middleware, it declares no parameter and no response, and it checks loans.write.'}
         - {source: code, clause: 'api/handlers.go:32', says: The handler of POST /loans/import reads no parameter by name.}
+        - {source: code, clause: 'api/handlers.go:34', says: 'The handler of POST /loans/import decodes its body from Request.Body into rows, of type []map[string]any.'}
   /loans/list:
     get:
       operationId: getLoansList

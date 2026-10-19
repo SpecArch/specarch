@@ -1,0 +1,122 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
+decisions:
+  ADR-140:
+    title: Where a dxlib registration declares nothing, the Go reader takes the body from the struct the handler decodes and the responses from the maps it answers
+    status: accepted
+    date: "2026-10-19"
+    context: |
+      extract go reads the parameters and the responses a dxlib endpoint
+      declares where NewEndPoint registers it (ADR-130). Many services on
+      dxlib pass nil for both on every registration. Their handlers decode
+      the body themselves, json.Unmarshal(aepr.RequestBodyAsBytes, &req),
+      check the fields they need with an if that refuses, and answer each
+      outcome with aepr.WriteResponseAsJSON(status, header,
+      utils.JSON{...}). For such a service the reader wrote every body as
+      any object with a must question, and every operation's responses as
+      the refusals alone, so the specification held no request or
+      response schema the code gives plainly.
+    decision: |
+      When the registration's parameter list is read and empty, the
+      endpoint's body is JSON and the handler decodes the request's
+      RequestBodyAsBytes, through json.Unmarshal or a json.NewDecoder over
+      bytes.NewReader or bytes.NewBuffer of it, into a variable it declares
+      with its type (var x T, x := T{}, x := &T{}, x := new(T)), the body
+      is written from T by encoding/json's rules with the field writer of
+      a router's handler body: its json names, its types and widths, a
+      pointer as nullable, a slice as items, a map as additionalProperties,
+      a struct of the module in place, a field tagged "-" left out. A field
+      without omitempty or omitzero is required.
+
+      A check of the variable's field whose block refuses through the
+      request, with one of the problem calls or WriteResponseAsJSON of a
+      literal status from 400, writes what it checks: x.F == "" as
+      required with minLength 1, x.F == nil as required, len(x.F) == 0 as
+      required with minLength or minItems 1, len(x.F) against a literal as
+      minLength, maxLength, minItems or maxItems, x.F against a literal
+      number as minimum, maximum, exclusiveMinimum or exclusiveMaximum,
+      x.F != "a" && x.F != "b" as an enum, and a switch on x.F whose cases
+      are strings and whose default refuses as an enum. Each part of an ||
+      is a check of its own. Any other check that names a field of the
+      variable and refuses, such as x.A && x.B, is a should question at
+      its line on the body's schema, as is a check of one of these shapes
+      on a field of another type; a check that names no field of the
+      variable, such as err != nil, is not a check of the body.
+
+      A decode the reader cannot write from is the must question on the
+      body's fields, saying why: a list, which dxlib's own pre-processing
+      refuses with 422 because it reads a JSON body into an object; a map
+      that names no field; Request.Body, which dxlib has already read to
+      its end into RequestBodyAsBytes for a JSON endpoint; a variable of no
+      type the handler declares. A body decoded twice is a should question.
+
+      When the registration's responses are read, each
+      WriteResponseAsJSON(status, header, body) call on the request is a
+      response under its status. A literal map (utils.JSON, or a map of
+      strings to any value) gives an object whose keys are its properties,
+      each required, since the handler always writes it, and of the type
+      its value gives: a string, number or boolean literal, a nested
+      literal map, a list of literal maps that name one set of keys, a
+      composite literal's type, a name the handler declares with its type,
+      or a field of such a name. An integer literal is Go's int, whose
+      width is asked as every int's is. dxlib's own keys, status,
+      status_code, reason and reason_message, which it adds when the map
+      lacks them, are not written. A status that is not a literal, a body
+      that is not a literal map, a key that is not a literal, a value whose
+      type the handler does not declare, and one status answered with
+      bodies that name other fields are each a must question at the place
+      they block; a header prints a line, as a declared one does. Nothing
+      is written for a response the reader cannot read.
+
+      The registration wins. When it declares parameters and the handler
+      decodes a struct too, the declared body is written, and when the
+      struct's json names are not the declared names a must question says
+      the two sources disagree, naming both places. When it declares a
+      response at a status the handler answers too, the declared response
+      is written, and a literal map whose keys are not the declared
+      template's names is a must question of the same kind. A status the
+      handler answers that the registration does not declare is written
+      beside the declared ones, as a refusal the handler answers is.
+      Responses the registration declares in a form not read are asked
+      about already, and the handler's answers are not added to them.
+    why: |
+      The registration is what dxlib reads and checks, so where it says
+      something it is the stronger source; where it says nothing, the
+      handler is the only place the code says what the endpoint takes and
+      answers, and a decode into a declared struct and a literal map
+      answer are as plain in syntax as a literal parameter list.
+
+      Required follows omitempty, while a router's body takes required
+      from a validator's tag alone. encoding/json enforces neither when it
+      decodes, and a dxlib handler has no validator: the tag is the one
+      place the author says a field may be left out, and the checks that
+      refuse are what enforces the rest. A field the author wants optional
+      is marked so in the code, and an owner reviewing the extracted body
+      can drop a required name with one change.
+
+      dxlib's envelope keys are left out because its emitter leaves them
+      out of a data template; writing them would make the Go reading and
+      the emitted document disagree in the merge on every response.
+
+      Only checks of the decoded variable's fields that refuse are read,
+      because those are the ones that hold the field to a value before the
+      handler goes on; a check that branches without refusing says
+      nothing of what the body may hold. One that refuses in a shape the
+      reader does not write is asked about rather than passed over, since
+      it holds the body to a rule the schema would otherwise not show.
+
+      The compiler test holds: nothing is refused or dropped; a decode or
+      an answer the reader cannot write from is a question at the
+      operation, a value it cannot type is kept by its name with a
+      question, and a disagreement keeps the declared form and asks. The
+      acceptance test holds: a dxlib service shows its bodies and its
+      success responses at the first extraction, and a remark on a field
+      changes one field.
+    consequences: |
+      extract-go-dxlib-handler-shapes covers the shapes. The body question
+      of extract-go-dxlib-declared's POST /loans/import now says that its
+      handler decodes Request.Body, which dxlib has already read. A service
+      whose handlers answer literal maps gets success responses, so its
+      operations' questions ask for the responses' descriptions rather
+      than for the success itself. The router reader's rule for required
+      is unchanged.
+    satisfies: [SA-44, SA-34]

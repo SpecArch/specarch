@@ -171,8 +171,11 @@ goes from the specification to a document, `approve` records that the
 documents were read and the specification is approved, `generate` from
 the approved specification to code, `extract` from one surface of
 existing code or documents to a specification (its outline, database,
-router, Markdown documents, OpenAPI, permissions, pages and BPMN workflows readers are built; the others follow, as `docs/extraction.md` lists), `merge` joins the
-trees extract writes into one, and `diff` compares two versions of a
+router, Markdown documents, OpenAPI, permissions, pages, workflows, Go,
+Swift, JavaScript and Dart readers, as `docs/extraction.md` lists), `merge` joins the
+trees extract writes into one, `check` compares a specification with the
+dumps of its code and fails on a difference its allowlist does not name,
+and `diff` compares two versions of a
 specification and checks the release between them, and `derive` writes a
 draft test for every derived case no test covers, `idioms` lists the
 idioms each implementation file uses, and `facts` writes the code-facts
@@ -318,11 +321,15 @@ answers with. `docs/generators.md` has the protocol.
 ## Status
 
 Version 0.2 of the meta-model, October 2026; a file written against 0.1
-is read until 1.0, with its missing tests as warnings. The two schemas, the tree
-layout and the seven stages, one example, SpecArch's own specification, the
-validator in Go and in Swift, seven documents, open questions with the
-gaps report, and the approval gate on generation exist; the manual, the
-operations guide and the code targets are on the roadmap. The meta-model will change: the first real
+is read until 1.0, with its missing tests as warnings. Release 0.7.0 is the
+latest. The schemas, the tree layout and the seven stages, SpecArch's own
+specification, six examples, the validator in Go and in Swift, twelve
+documents, open questions with the gaps report, the approval gate on
+generation, the extract readers with `merge`, `check`, `diff`, `derive`
+and the ten code targets exist; the manual, the operations guide, SwiftUI
+screens, forms and views in plain JavaScript, the guarded scripts and
+meta-model 0.3 are on the roadmap (`docs/roadmap.md`, which says where
+each entry stands). The meta-model will change: the first real
 projects written in SpecArch are expected to find concepts it cannot
 express, and those gaps define the next version.
 

@@ -26,7 +26,11 @@ decisions:
       function of the same code its steps reach, once each. A function
       holds its name as the code qualifies it, its file and first and
       last line, its steps and its source, the lines from the first to
-      the last with each line's trailing spaces and tabs dropped. A step
+      the last with each line's trailing spaces and tabs dropped, and
+      the first line's indentation dropped from every line, since a
+      function literal written inside a function begins indented and a
+      YAML block cannot begin with a tab; the validator drops the same
+      before it compares. A step
       is one kind of thing the code does, in plain words (text), with the
       lines it is on: input (a parameter, the body, a header read),
       branch (with then and otherwise), choice (with cases), loop (with

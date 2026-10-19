@@ -6325,7 +6325,7 @@ let implementationSchemaJSON = #"""
           }
         },
         "source": {
-          "description": "The function's source, from its first line to its last, each line without its trailing spaces and tabs.",
+          "description": "The function's source, from its first line to its last, each line without its trailing spaces and tabs and without the indentation of the first line, which a function literal written inside a function has.",
           "type": "string"
         }
       },

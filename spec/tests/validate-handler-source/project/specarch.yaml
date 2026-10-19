@@ -38,6 +38,13 @@ paths:
       permission: lockers.read
       responses:
         "200": { description: Open. }
+  /lockers/sorted:
+    get:
+      operationId: sorted
+      summary: The lockers by name
+      permission: lockers.read
+      responses:
+        "200": { description: The names. }
 tests:
   count-denied: { operation: count, level: system, scenario: red, covers: [denied without lockers.read], given: "a caller without lockers.read", when: "count is called", then: "it is refused as not allowed" }
   ping-denied: { operation: ping, level: system, scenario: red, covers: [denied without lockers.read], given: "a caller without lockers.read", when: "ping is called", then: "it is refused as not allowed" }
@@ -47,6 +54,8 @@ tests:
   ping-succeeds: { operation: ping, level: system, scenario: golden, given: "any caller", when: "ping is called", then: "it answers 200: Up." }
   reset-succeeds: { operation: reset, level: system, scenario: golden, given: "any caller", when: "reset is called", then: "it answers 200: Cleared." }
   open-succeeds: { operation: open, level: system, scenario: golden, given: "any caller", when: "open is called", then: "it answers 200: Open." }
+  sorted-denied: { operation: sorted, level: system, scenario: red, covers: [denied without lockers.read], given: "a caller without lockers.read", when: "sorted is called", then: "it is refused as not allowed" }
+  sorted-succeeds: { operation: sorted, level: system, scenario: golden, given: "any caller", when: "sorted is called", then: "it answers 200: The names." }
 questions:
   Q-1:
     question: 'api/handlers.go:5: the handler api.Count of GET /lockers/count answers 200 with JSON with fixed values, and api.Count reads no input, no table and no other system. Is the answer mock data?'

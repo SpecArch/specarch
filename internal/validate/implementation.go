@@ -180,7 +180,7 @@ func (c *checker) checkHandler(d *design, s *spec.Spec, key string, m *yaml.Node
 		}
 		lines := trimmedLines(string(data))
 		want := trimmedLines(source.Str(srcNode))
-		if last <= len(lines) && equalLines(lines[first-1:last], want) {
+		if last <= len(lines) && equalLines(dedented(lines[first-1:last]), want) {
 			continue
 		}
 		if at := findLines(lines, want); at > 0 {
@@ -189,8 +189,12 @@ func (c *checker) checkHandler(d *design, s *spec.Spec, key string, m *yaml.Node
 			continue
 		}
 		differs := first
+		var held []string
+		if first-1 < len(lines) {
+			held = dedented(lines[first-1:])
+		}
 		for j := 0; j < len(want); j++ {
-			if first-1+j >= len(lines) || lines[first-1+j] != want[j] {
+			if j >= len(held) || held[j] != want[j] {
 				differs = first + j
 				break
 			}
@@ -218,6 +222,24 @@ func trimmedLines(text string) []string {
 	return lines
 }
 
+// dedented is lines without the indentation of the first one, as a handler
+// record holds a function's source: a function literal written inside a
+// function begins indented, and a YAML block cannot begin with a tab.
+func dedented(lines []string) []string {
+	if len(lines) == 0 {
+		return lines
+	}
+	indent := lines[0][:len(lines[0])-len(strings.TrimLeft(lines[0], " \t"))]
+	if indent == "" {
+		return lines
+	}
+	out := make([]string, len(lines))
+	for i, l := range lines {
+		out[i] = strings.TrimPrefix(l, indent)
+	}
+	return out
+}
+
 func equalLines(a, b []string) bool {
 	if len(a) != len(b) {
 		return false
@@ -236,7 +258,7 @@ func findLines(lines, want []string) int {
 		return 0
 	}
 	for i := 0; i+len(want) <= len(lines); i++ {
-		if equalLines(lines[i:i+len(want)], want) {
+		if equalLines(dedented(lines[i:i+len(want)]), want) {
 			return i + 1
 		}
 	}

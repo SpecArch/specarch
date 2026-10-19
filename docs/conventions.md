@@ -162,7 +162,8 @@ go` read it from the code (ADR-139), under `handler`: the commit read, the
 depth followed, and `functions`, the handler first and then each function
 of the same code its steps reach, each with its name, file, first and last
 line, its `steps` and its `source` as it was at that commit, each line
-without its trailing spaces and tabs. A step has an `id` (`s` and its
+without its trailing spaces and tabs and without the first line's
+indentation. A step has an `id` (`s` and its
 number in the order written), a `kind` (`input`, `branch`, `choice`,
 `loop`, `database`, `transaction`, `call`, `external`, `response`,
 `return`, `statement`), its `text` in plain words, its `file`, `firstLine`

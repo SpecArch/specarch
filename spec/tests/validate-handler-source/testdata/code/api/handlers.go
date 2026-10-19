@@ -21,3 +21,11 @@ func Reset(aepr *Request) error {
 	}
 	return nil
 }
+
+// Sorted answers the lockers by name, sorted with a function literal.
+func Sorted(aepr *Request) error {
+	names := []string{"b", "a"}
+	sort(names, func(i, j int) bool { return names[i] < names[j] })
+	aepr.WriteResponseAsJSON(200, nil, names)
+	return nil
+}

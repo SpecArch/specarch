@@ -187,15 +187,16 @@ extension Checker {
             }
             let lines = trimmedLines(text)
             let want = trimmedLines(str(srcNode))
-            if last <= lines.count, Array(lines[(first - 1)..<last]) == want { continue }
+            if last <= lines.count, dedented(Array(lines[(first - 1)..<last])) == want { continue }
             if let at = findLines(lines, want) {
                 warn(srcNode, fptr, .handlerSource,
                      "the handler record of \(key) read \(name) at commit \(commit) from \(file) lines \(first)-\(last), and that source is now at lines \(at)-\(at + want.count - 1); run specarch extract go with --implementation-out again and replace the record")
                 continue
             }
             var differs = first
+            let held = first - 1 < lines.count ? dedented(Array(lines[(first - 1)...])) : []
             for j in 0..<want.count {
-                if first - 1 + j >= lines.count || lines[first - 1 + j] != want[j] { differs = first + j; break }
+                if j >= held.count || held[j] != want[j] { differs = first + j; break }
             }
             warn(srcNode, fptr, .handlerSource,
                  "the handler record of \(key) read \(name) at commit \(commit), and \(file) lines \(first)-\(last) no longer hold that source (line \(differs) differs), so the flowchart no longer matches the code; run specarch extract go with --implementation-out again and replace the record")
@@ -215,12 +216,22 @@ extension Checker {
         }
     }
 
+    /// Lines without the indentation of the first one, as a handler record
+    /// holds a function's source: a function literal written inside a
+    /// function begins indented, and a YAML block cannot begin with a tab.
+    func dedented(_ lines: [String]) -> [String] {
+        guard let firstLine = lines.first else { return lines }
+        let indent = String(firstLine.prefix { $0 == " " || $0 == "\t" })
+        if indent.isEmpty { return lines }
+        return lines.map { $0.hasPrefix(indent) ? String($0.dropFirst(indent.count)) : $0 }
+    }
+
     /// The line, from 1, at which want starts in lines, or nil.
     func findLines(_ lines: [String], _ want: [String]) -> Int? {
         if want.isEmpty { return nil }
         var i = 0
         while i + want.count <= lines.count {
-            if Array(lines[i..<(i + want.count)]) == want { return i + 1 }
+            if dedented(Array(lines[i..<(i + want.count)])) == want { return i + 1 }
             i += 1
         }
         return nil

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"slices"
 	"sort"
+	"strconv"
 	"strings"
 	"sync"
 
@@ -144,7 +145,7 @@ func (c *checker) checkSchema(k Kind, value any) {
 // problem, in plain words. parent is the location of the enclosing error.
 func (c *checker) schemaLeaves(k Kind, ve *jsonschema.ValidationError, parent []string, seen map[string]bool) {
 	if pn, ok := ve.ErrorKind.(*kind.PropertyNames); ok {
-		c.schemaPropertyName(k, ve, c.propertyNameObject(pn.Property, ve.InstanceLocation, ve.SchemaURL), pn, seen)
+		c.schemaPropertyName(k, ve, c.propertyNameObject(pn.Property, ve.InstanceLocation, ve.SchemaURL, seen), pn, seen)
 		return
 	}
 	// A list that holds no item contains accepts fails as a whole, not item
@@ -222,13 +223,19 @@ func (c *checker) schemaPropertyName(k Kind, ve *jsonschema.ValidationError, loc
 }
 
 // propertyNameObject finds the object a propertyNames error is about. The
-// schema library stores that error's location in a slice it goes on
-// changing, so only the length of the location it reports can be trusted.
-// The schema location says under which key the object sits
-// (".../properties/responses/propertyNames"). Of the mappings at that depth
-// that sit under that key and hold the property, the one whose path agrees
-// most with the reported location is taken.
-func (c *checker) propertyNameObject(property string, reported []string, schemaURL string) []string {
+// schema library stores that error's location in the slice it goes on
+// appending to while it walks the rest of the input, so when the errors are
+// read, every propertyNames error of one walk holds the path of the last
+// sibling walked at its depth; only the length of the location it reports
+// can be trusted. The schema location says under which key the object sits
+// (".../properties/responses/propertyNames"). The mappings at that depth
+// that sit under that key and hold the property are taken in document
+// order, one per error: a name is checked against the one schema at that
+// location in the same way under every such key, so each of those mappings
+// raised an error of its own, and the k-th error of one property, schema
+// location and depth is the k-th mapping. seen counts the errors taken so
+// far, by that key.
+func (c *checker) propertyNameObject(property string, reported []string, schemaURL string, seen map[string]bool) []string {
 	under := ""
 	if _, frag, ok := strings.Cut(schemaURL, "#"); ok {
 		tokens := strings.Split(strings.TrimPrefix(frag, "/"), "/")
@@ -236,36 +243,40 @@ func (c *checker) propertyNameObject(property string, reported []string, schemaU
 			under = source.UnescapeToken(tokens[n-2])
 		}
 	}
-	if found := c.findPropertyObject(property, reported, under); found != nil {
-		return found
+	key := property + "|" + schemaURL + "|" + strconv.Itoa(len(reported)) + "|taken|"
+	taken := 0
+	for seen[key+strconv.Itoa(taken)] {
+		taken++
 	}
-	if found := c.findPropertyObject(property, reported, ""); found != nil {
-		return found
+	seen[key+strconv.Itoa(taken)] = true
+	found := c.findPropertyObjects(property, len(reported), under)
+	if len(found) == 0 {
+		found = c.findPropertyObjects(property, len(reported), "")
+	}
+	if taken < len(found) {
+		return found[taken]
+	}
+	if len(found) > 0 {
+		return found[len(found)-1] // one error more than mappings: a repeat, dropped by the caller
 	}
 	return reported
 }
 
-func (c *checker) findPropertyObject(property string, reported []string, under string) []string {
-	var best []string
-	bestScore := -1
+// findPropertyObjects lists, in document order, the mappings at the given
+// depth that hold the property, and, when under is given, sit under that
+// key.
+func (c *checker) findPropertyObjects(property string, depth int, under string) [][]string {
+	var out [][]string
 	walk(c.root, nil, func(n *yaml.Node, path []string) {
-		if len(path) != len(reported) || source.Key(n, property) == nil {
+		if len(path) != depth || source.Key(n, property) == nil {
 			return
 		}
 		if under != "" && (len(path) == 0 || path[len(path)-1] != under) {
 			return
 		}
-		score := 0
-		for i := range path {
-			if path[i] == reported[i] {
-				score++
-			}
-		}
-		if score > bestScore {
-			best, bestScore = slices.Clone(path), score
-		}
+		out = append(out, slices.Clone(path))
 	})
-	return best
+	return out
 }
 
 func leaves(ve *jsonschema.ValidationError) []*jsonschema.ValidationError {

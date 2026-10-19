@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.0-dev of the specification: 510 design tests, 228 golden and 282 red, about 16 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.0-dev of the specification: 511 design tests, 228 golden and 283 red, about 16 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.7.0-dev of the specification: 510 design tests, 228 golden and 282 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 506 |
+| system | 507 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -3018,6 +3018,14 @@ Scenario: red; level: system; verifies SA-34.
 - Given: an operation whose only response is keyed by the empty string
 - When: validate is run
 - Then: it reports the empty key through the schema as not a status code, raises no success_response_missing, since no response is a status, and does not stop
+
+#### validate-interface-response-key-empty-two-operations
+
+Scenario: red; level: system; verifies SA-34.
+
+- Given: two operations that each have a response keyed by the empty string
+- When: validate is run
+- Then: it reports the empty key through the schema as not a status code at each of the two operations, one error per operation at its own entry, and does not stop
 
 #### validate-interface-unwritten
 

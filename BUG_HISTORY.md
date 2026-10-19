@@ -380,3 +380,14 @@ The service registers each endpoint with `NewEndPoint`, which is given the endpo
 
 Expected: the declared parameters written as the operation's body fields or query parameters with their types, required flags, bounds and enums, and the declared responses with their descriptions and bodies; what cannot be followed a question naming the operation and where to look; and an operation left with a body of any object or with no success response a validate warning.
 
+## BUG-026 — validate (Go build): only one of two empty response keys is reported
+
+- Reported: 2026-10-19, found while reviewing the response key checks
+- Closed: 2026-10-19, completed
+- Fixed by: the commit on `main` whose message says `Fixes BUG-026`
+
+When two operations each have a response keyed by the empty string, the Go build of `validate` reports the schema error of only one of them. `propertyNameObject` in `internal/validate/schema.go` resolves the location of both `propertyNames` errors to the same object, because the schema library reuses the location slice it reports, so the `seen[path|name]` check takes the second error for the first and drops it. The Swift build reports both, so the two builds print different output for the same input.
+
+Expected: one schema error at each operation's empty key (`/paths/~1loans~1close/post/responses/` and `/paths/~1loans~1open/post/responses/`), from both builds.
+
+To repeat: copy `spec/tests/validate-interface-response-key-empty/specarch.yaml`, add a second operation (`openLoan` on `/loans/open`, post) whose responses are `"": { description: Odd. }` and `"200": { description: Opened. }`, and run `specarch validate` on it. The Go build prints 1 error, at `closeLoan`; `swift run --package-path swift specarch validate` prints 2.

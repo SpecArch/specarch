@@ -158,7 +158,7 @@ for the target choices: which folder a target owns, the settings of the
 code generator that follows it, the type a decimal maps to.
 
 An operation's mapping may hold what its handler does, as `specarch extract
-go` read it from the code (ADR-139), under `handler`: the commit read, the
+go` read it from the code (ADR-140), under `handler`: the commit read, the
 depth followed, and `functions`, the handler first and then each function
 of the same code its steps reach, each with its name, file, first and last
 line, its `steps` and its `source` as it was at that commit, each line
@@ -328,7 +328,7 @@ answer would help but nothing waits), what it `blocks` (a stage, a section,
 or a pointer to an element or to one key of it), who decides (`decidedBy`,
 a stakeholder key), and the `options` when the answer is a choice. A
 question a reader asks about code it checked against the specification
-also says its `certainty` (ADR-139): `certain` when the code as written
+also says its `certainty` (ADR-140): `certain` when the code as written
 cannot work or disagrees with the specification, `suspected` when a run or
 a person must confirm it; the problems file, the SARIF log and the
 documents show it beside the priority and the kind. The ID
@@ -1914,7 +1914,7 @@ edit inside the markers; edit the YAML.
 | `sequenceDiagram` of one operation: client, service, algorithm, channels, answer | `sequenceDiagram <operationId>` | `paths`, `emits`, `algorithm` | generated |
 | `sequenceDiagram` of one command: user, program, files read and written, exit statuses | `sequenceDiagram <command>` | `commands` | generated |
 | `flowchart` of pages and their `actions` | `flowchart pages` | `pages` | generated |
-| `flowchart` of one function of an operation's handler, a node per step by its id | | an implementation file's `mappings`, `handler` (ADR-139) | generated, in the technical specification only |
+| `flowchart` of one function of an operation's handler, a node per step by its id | | an implementation file's `mappings`, `handler` (ADR-140) | generated, in the technical specification only |
 | permissions matrix (a Markdown table, not a diagram) | `permissions` | `roles`, `permissions` | generated |
 | context picture | | prose | hand-drawn |
 | deployment picture | | prose | hand-drawn |

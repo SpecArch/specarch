@@ -602,7 +602,7 @@ changes `extract.yaml` first.
     `fromEnvironment` and `Platform.environment` give.
 
 22. Built. The handler of every operation, followed into the code and
-    recorded with its source (ADR-139). `extract go` reads each handler
+    recorded with its source (ADR-140). `extract go` reads each handler
     it finds by syntax (a function literal, a function of the same
     package or one of another package of the module) statement by
     statement into steps: inputs read from the request, branches with

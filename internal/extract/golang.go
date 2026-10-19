@@ -242,7 +242,7 @@ func Go(paths []string, out, key, implementation string, writeImplementation boo
 }
 
 // sayHandlers counts the handlers followed and, when the fragment is
-// written, puts their records into it (ADR-139).
+// written, puts their records into it (ADR-140).
 func (g *goReader) sayHandlers(writeImplementation bool) {
 	if len(g.handlers) == 0 {
 		return
@@ -309,7 +309,7 @@ type goReader struct {
 	middlewareNames []string
 	middlewares     *yaml.Node
 
-	handlers []*goHandler                // every operation's handler, as read (ADR-139)
+	handlers []*goHandler                // every operation's handler, as read (ADR-140)
 	previous map[string]*previousHandler // the handler records the implementation file holds, by pointer
 	faults   []*goFault                  // the faults found in the handlers, in order
 	faultAt  map[string]*goFault
@@ -320,7 +320,7 @@ func (g *goReader) question(priority, text string, blocks []string, why string, 
 }
 
 // questionWith asks a question with its certainty, for one a reader asks
-// about code it checked against the specification (ADR-139).
+// about code it checked against the specification (ADR-140).
 func (g *goReader) questionWith(priority, certainty, text string, blocks []string, why string, cites ...*yaml.Node) {
 	into := g.questionsFor(blocks)
 	g.nextID++

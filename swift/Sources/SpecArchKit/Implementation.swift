@@ -75,7 +75,7 @@ extension Checker {
     func checkBoundaryImplementation() {
         walk(root, []) { n, path in
             if path.contains("settings") { return } // free-form target and framework settings
-            if path.count > 2, path[0] == "mappings", path[2] == "handler" { return } // a handler record holds the code as it was read (ADR-139)
+            if path.count > 2, path[0] == "mappings", path[2] == "handler" { return } // a handler record holds the code as it was read (ADR-140)
             if let last = path.last, namedMaps.contains(last) { return }
             for p in n.pairs where designKeys.contains(p.key.value) {
                 add(p.key, pointer(path + [p.key.value]), .designKey,
@@ -148,7 +148,7 @@ extension Checker {
         checkIdioms(s)
     }
 
-    /// Checks a handler record against the code it was read from (ADR-139):
+    /// Checks a handler record against the code it was read from (ADR-140):
     /// the source it holds for each function must still be what the cited
     /// file holds at the function's lines, the file found through the folder
     /// the code source names under url, from the specification's root. The

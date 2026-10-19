@@ -50,7 +50,7 @@ paths:
       origin: stated
       cites:
         - {source: code, clause: 'api/endpoints.go:48', says: 'NewEndPoint registers POST /attachments/download; its handler is DownloadAttachment, it has no middleware, it declares the parameter attachment_id and the responses 200 and 404, and it checks NOTES.READ; it streams its response body as a file.'}
-        - {source: code, clause: 'api/handlers.go:28', says: The handler of POST /attachments/download reads the parameter attachment_id and answers 404 ATTACHMENT_NOT_FOUND.}
+        - {source: code, clause: 'api/handlers.go:29', says: The handler of POST /attachments/download reads the parameter attachment_id and answers 404 ATTACHMENT_NOT_FOUND.}
   /attachments/upload:
     post:
       operationId: postAttachmentsUpload
@@ -69,7 +69,7 @@ paths:
       origin: stated
       cites:
         - {source: code, clause: 'api/endpoints.go:43', says: 'NewEndPoint registers POST /attachments/upload; its handler is UploadAttachment, it has no middleware, it declares no parameter and the response 200, and it checks NOTES.WRITE; it streams its request body as a file.'}
-        - {source: code, clause: 'api/handlers.go:22', says: The handler of POST /attachments/upload reads no parameter by name.}
+        - {source: code, clause: 'api/handlers.go:23', says: The handler of POST /attachments/upload reads no parameter by name.}
   /forms/upload:
     post:
       operationId: postFormsUpload
@@ -87,7 +87,7 @@ paths:
       origin: stated
       cites:
         - {source: code, clause: 'api/endpoints.go:82', says: 'NewEndPoint registers POST /forms/upload; its handler is UploadAttachment, it has no middleware, it declares no parameter and the response 200, and it checks NOTES.WRITE.'}
-        - {source: code, clause: 'api/handlers.go:22', says: The handler of POST /forms/upload reads no parameter by name.}
+        - {source: code, clause: 'api/handlers.go:23', says: The handler of POST /forms/upload reads no parameter by name.}
   /health:
     get:
       operationId: health
@@ -100,7 +100,7 @@ paths:
       origin: stated
       cites:
         - {source: code, clause: 'api/endpoints.go:77', says: 'NewEndPoint registers GET /health; its handler is Ping, it has no middleware, it declares no parameter and the response 200, and it checks no privilege.'}
-        - {source: code, clause: 'api/handlers.go:47', says: The handler of GET /health reads no parameter by name.}
+        - {source: code, clause: 'api/handlers.go:54', says: The handler of GET /health reads no parameter by name.}
   /notes/add:
     post:
       operationId: postNotesAdd
@@ -131,7 +131,7 @@ paths:
       origin: stated
       cites:
         - {source: code, clause: 'api/endpoints.go:32', says: 'NewEndPoint registers POST /notes/add; its handler is AddNote, it has no middleware, it declares the parameters title and text and the response 200, and it checks NOTES.WRITE; it travels in the pre-key envelope.'}
-        - {source: code, clause: 'api/handlers.go:16', says: The handler of POST /notes/add reads the parameter title.}
+        - {source: code, clause: 'api/handlers.go:17', says: The handler of POST /notes/add reads the parameter title.}
   /ping:
     post:
       operationId: ping
@@ -148,7 +148,7 @@ paths:
       origin: stated
       cites:
         - {source: code, clause: 'api/endpoints.go:72', says: 'NewEndPoint registers POST /ping; its handler is Ping, it has no middleware, it declares no parameter and the response 200, and it checks no privilege.'}
-        - {source: code, clause: 'api/handlers.go:47', says: The handler of POST /ping reads no parameter by name.}
+        - {source: code, clause: 'api/handlers.go:54', says: The handler of POST /ping reads no parameter by name.}
   /prekey:
     post:
       operationId: prekey
@@ -190,7 +190,7 @@ paths:
       origin: stated
       cites:
         - {source: code, clause: 'api/endpoints.go:17', says: 'NewEndPoint registers POST /prekey; its handler is IssuePreKey, it has no middleware, it declares the parameters a0, a1 and a2 and the response 200, and it checks no privilege.'}
-        - {source: code, clause: 'api/handlers.go:11', says: The handler of POST /prekey reads no parameter by name.}
+        - {source: code, clause: 'api/handlers.go:12', says: The handler of POST /prekey reads no parameter by name.}
   /session/open:
     post:
       operationId: postSessionOpen
@@ -207,7 +207,7 @@ paths:
       origin: stated
       cites:
         - {source: code, clause: 'api/endpoints.go:67', says: 'NewEndPoint registers POST /session/open; its handler is OpenSession, it has no middleware, it declares no parameter and the response 200, and it checks no privilege.'}
-        - {source: code, clause: 'api/handlers.go:42', says: The handler of POST /session/open reads no parameter by name.}
+        - {source: code, clause: 'api/handlers.go:49', says: The handler of POST /session/open reads no parameter by name.}
   /vault/export:
     post:
       operationId: postVaultExport
@@ -230,10 +230,11 @@ paths:
       origin: stated
       cites:
         - {source: code, clause: 'api/endpoints.go:57', says: 'NewEndPoint registers POST /vault/export; its handler is ExportVault, it has no middleware, it declares the parameter format and the response 200, and it checks NOTES.READ; its request travels in the pre-key envelope, and it streams its response body as a file.'}
-        - {source: code, clause: 'api/handlers.go:37', says: The handler of POST /vault/export reads no parameter by name.}
+        - {source: code, clause: 'api/handlers.go:39', says: The handler of POST /vault/export reads the parameter format.}
+        - {source: code, clause: 'api/handlers.go:44', says: 'The handler of POST /vault/export answers with WriteResponseAsJSON(http.StatusOK, nil, utils.JSON{"archive_id"}).'}
 errors:
   attachment-not-found:
     status: 404
     origin: stated
     cites:
-      - {source: code, clause: 'api/handlers.go:33', says: Answers 404 with the reason ATTACHMENT_NOT_FOUND.}
+      - {source: code, clause: 'api/handlers.go:34', says: Answers 404 with the reason ATTACHMENT_NOT_FOUND.}

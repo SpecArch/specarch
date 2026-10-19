@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/donnyhardyanto/dxlib/api"
+	"github.com/donnyhardyanto/dxlib/utils"
 )
 
 // IssuePreKey performs the exchange.
@@ -33,8 +34,14 @@ func DownloadAttachment(aepr *api.DXAPIEndPointRequest) (err error) {
 	return aepr.WriteResponseAndNewErrorf(http.StatusNotFound, "ATTACHMENT_NOT_FOUND", "no attachment")
 }
 
-// ExportVault streams the archive.
+// ExportVault streams the archive, and answers a receipt where the
+// registration declares a size.
 func ExportVault(aepr *api.DXAPIEndPointRequest) (err error) {
+	_, format, err := aepr.GetParameterValueAsString("format")
+	if err != nil {
+		return err
+	}
+	aepr.WriteResponseAsJSON(http.StatusOK, nil, utils.JSON{"archive_id": format})
 	return nil
 }
 

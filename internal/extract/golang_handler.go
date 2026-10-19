@@ -942,7 +942,12 @@ func (w *declaredWriter) handlerResponses(ep *goEndpoint, responses *yaml.Node, 
 		a := byCode[code]
 		at := ep.at + "/responses/" + code
 		if declared[code] {
-			if a.why == "" {
+			// A download stream's success response is the file's bytes,
+			// so a template the registration declares and a body the
+			// handler answers are both what the running system never
+			// sends, and neither was read; they are not compared, and
+			// streamResponses asks the one should question (ADR-146).
+			if a.why == "" && !ep.templated[code] {
 				names := declaredKeys(ep.decl.responses[code])
 				if strings.Join(names, ",") != strings.Join(sortedCopy(a.keys), ",") {
 					g.question("must", fmt.Sprintf("Two sources disagree on the body of %s's response %s: its registration declares %s, and its handler answers with %s at %s. Which fields does the response carry?", label, code, fieldsText(names), fieldsText(sortedCopy(a.keys)), joinAnd(a.clauses)),
@@ -959,8 +964,6 @@ func (w *declaredWriter) handlerResponses(ep *goEndpoint, responses *yaml.Node, 
 		case a.why != "":
 			g.question("must", fmt.Sprintf("%s: the handler of %s answers %s with the body %s, %s. Which fields does it carry, with their types?", a.clauses[0], label, code, a.text, a.why),
 				[]string{at + "/content"}, "A body built outside the call is not known by syntax; only a literal map gives its fields.", g.at(a.clauses[0], "Answers "+code+" with "+a.text+"."))
-		case a.content != nil && ep.streamsOut(code):
-			ep.templated[code] = true
 		case a.content != nil:
 			set(resp, "content", mapping("application/json", mapping("schema", a.content)))
 		}
@@ -1037,6 +1040,14 @@ func (w *declaredWriter) answerBody(ep *goEndpoint, a handlerAnswer, label, at s
 	out := &handlerAnswered{clauses: []string{a.clause}, text: shortText(body)}
 	if exprText(body) == "nil" {
 		out.text = "no body of its own"
+		return out
+	}
+	if ep.streamsOut(at[strings.LastIndex(at, "/")+1:]) {
+		// A download stream's success response is the file's bytes, so a
+		// JSON body the handler answers on it is what the running system
+		// never sends: it is not read, and streamResponses asks whether
+		// the operation answers the file or the JSON (ADR-146).
+		ep.templated[at[strings.LastIndex(at, "/")+1:]] = true
 		return out
 	}
 	cl, ok := unparen(body).(*ast.CompositeLit)

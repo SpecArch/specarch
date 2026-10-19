@@ -5,7 +5,7 @@ repository:
     - [.]
 exitStatus: 0
 standardOutput: |
-  commit b6cba32caeca6d90d7070e5548af4240793048c8: the last change to .
+  commit 5ad336c001eeb879aa50f1dcde9ff53eea4b7636: the last change to .
   counted 2 Go files, 2 of them importing dxlib's api package and 0 that do not parse, and left out 0: every tracked Go file under . but test files and files in a folder below it named testdata or vendor, or that the go command ignores
   dxlib: counted 9 NewEndPoint calls, 0 NewWSEndPoint calls and 0 RegisterHandler calls: every call by that name in a file that imports dxlib's api package
   wrote 9 operations on 9 paths, 2 permissions, 1 problem and 31 questions: one operation per endpoint NewEndPoint registers with a literal method and URI, outside a loop or a condition, one permission per privilege an endpoint names alone, one problem per literal reason a handler answers, one question per thing the source does not say, and one per thing the meta-model cannot hold
@@ -26,4 +26,4 @@ standardOutput: |
   not derived: 1 draft test for operation ping, held up by Q-10, Q-11, Q-12, Q-35; the validator warns for them until the questions are answered
   not derived: 4 draft tests for operation prekey, held up by Q-13, Q-14, Q-38; the validator warns for them until the questions are answered
   not derived: 1 draft test for operation postSessionOpen, held up by Q-15, Q-16, Q-17, Q-18, Q-39; the validator warns for them until the questions are answered
-  not derived: 4 draft tests for operation postVaultExport, held up by Q-19, Q-20, Q-40; the validator warns for them until the questions are answered
+  not derived: 4 draft tests for operation postVaultExport, held up by Q-19, Q-20; the validator warns for them until the questions are answered

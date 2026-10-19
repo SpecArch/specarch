@@ -29,9 +29,9 @@ questions:
     why: An upload stream is the request body passed through as it arrives, and dxlib does that for one content type; with another the type and the content type disagree.
     cites:
       - {source: code, clause: 'api/endpoints.go:82', says: Registers POST /forms/upload as an upload stream with the content type application/json.}
-  # specarch-problem: question: open_question: (must, decision) POST /forms/upload declares no parameter where api/endpoints.go:82 registers it, and its handler reads none by name (api/handlers.go:22), so its body is written as any object. Which fields does its body take, with their types? Decided by system-owner. Answer with a decision record that names Q-4 under answers. [Q-4]
+  # specarch-problem: question: open_question: (must, decision) POST /forms/upload declares no parameter where api/endpoints.go:82 registers it, and its handler reads none by name (api/handlers.go:23), so its body is written as any object. Which fields does its body take, with their types? Decided by system-owner. Answer with a decision record that names Q-4 under answers. [Q-4]
   Q-4:
-    question: POST /forms/upload declares no parameter where api/endpoints.go:82 registers it, and its handler reads none by name (api/handlers.go:22), so its body is written as any object. Which fields does its body take, with their types?
+    question: POST /forms/upload declares no parameter where api/endpoints.go:82 registers it, and its handler reads none by name (api/handlers.go:23), so its body is written as any object. Which fields does its body take, with their types?
     kind: decision
     priority: must
     blocks: ['#/paths/~1forms~1upload/post/requestBody/content/application~1json/schema']
@@ -95,9 +95,9 @@ questions:
     blocks: ['#/paths/~1ping/post/permission']
     decidedBy: system-owner
     why: dxlib checks no privilege on an endpoint that names none, and whether a caller must sign in is decided by its middlewares, which are code; an open endpoint is never written as public without the owner's word.
-  # specarch-problem: question: open_question: (must, decision) POST /ping declares no parameter where api/endpoints.go:72 registers it, and its handler reads none by name (api/handlers.go:47), so its body is written as any object. Which fields does its body take, with their types? Decided by system-owner. Answer with a decision record that names Q-11 under answers. [Q-11]
+  # specarch-problem: question: open_question: (must, decision) POST /ping declares no parameter where api/endpoints.go:72 registers it, and its handler reads none by name (api/handlers.go:54), so its body is written as any object. Which fields does its body take, with their types? Decided by system-owner. Answer with a decision record that names Q-11 under answers. [Q-11]
   Q-11:
-    question: POST /ping declares no parameter where api/endpoints.go:72 registers it, and its handler reads none by name (api/handlers.go:47), so its body is written as any object. Which fields does its body take, with their types?
+    question: POST /ping declares no parameter where api/endpoints.go:72 registers it, and its handler reads none by name (api/handlers.go:54), so its body is written as any object. Which fields does its body take, with their types?
     kind: decision
     priority: must
     blocks: ['#/paths/~1ping/post/requestBody/content/application~1json/schema']
@@ -151,9 +151,9 @@ questions:
     why: dxlib routes a V3 body to the host's hooks and fixes nothing of the envelope, so the reader cannot write the handshake from the type.
     cites:
       - {source: code, clause: 'api/endpoints.go:67', says: Registers POST /session/open with EndPointTypeHTTPEndToEndEncryptionV3.}
-  # specarch-problem: question: open_question: (must, decision) POST /session/open declares no parameter where api/endpoints.go:67 registers it, and its handler reads none by name (api/handlers.go:42), so its body is written as any object. Which fields does its body take, with their types? Decided by system-owner. Answer with a decision record that names Q-17 under answers. [Q-17]
+  # specarch-problem: question: open_question: (must, decision) POST /session/open declares no parameter where api/endpoints.go:67 registers it, and its handler reads none by name (api/handlers.go:49), so its body is written as any object. Which fields does its body take, with their types? Decided by system-owner. Answer with a decision record that names Q-17 under answers. [Q-17]
   Q-17:
-    question: POST /session/open declares no parameter where api/endpoints.go:67 registers it, and its handler reads none by name (api/handlers.go:42), so its body is written as any object. Which fields does its body take, with their types?
+    question: POST /session/open declares no parameter where api/endpoints.go:67 registers it, and its handler reads none by name (api/handlers.go:49), so its body is written as any object. Which fields does its body take, with their types?
     kind: decision
     priority: must
     blocks: ['#/paths/~1session~1open/post/requestBody/content/application~1json/schema']
@@ -295,9 +295,9 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: code, clause: 'api/endpoints.go:57', says: 'Not held: the endpoint POST /vault/export: dxlib names it vault_export from its URI, which is not camelCase, as an operationId is; it is named postVaultExport.'}
-  # specarch-problem: question: open_question: (should, decision, certain) api/handlers.go:27: the registration of POST /attachments/download at api/endpoints.go:48 declares the response 200, and the handler api.DownloadAttachment of POST /attachments/download answers it nowhere in its own body, which calls no function of the module, nor does a middleware of its chain. Does the operation answer 200, or is the declaration stale? Decided by system-owner. Answer with a decision record that names Q-32 under answers. [Q-32]
+  # specarch-problem: question: open_question: (should, decision, certain) api/handlers.go:28: the registration of POST /attachments/download at api/endpoints.go:48 declares the response 200, and the handler api.DownloadAttachment of POST /attachments/download answers it nowhere in its own body, which calls no function of the module, nor does a middleware of its chain. Does the operation answer 200, or is the declaration stale? Decided by system-owner. Answer with a decision record that names Q-32 under answers. [Q-32]
   Q-32:
-    question: 'api/handlers.go:27: the registration of POST /attachments/download at api/endpoints.go:48 declares the response 200, and the handler api.DownloadAttachment of POST /attachments/download answers it nowhere in its own body, which calls no function of the module, nor does a middleware of its chain. Does the operation answer 200, or is the declaration stale?'
+    question: 'api/handlers.go:28: the registration of POST /attachments/download at api/endpoints.go:48 declares the response 200, and the handler api.DownloadAttachment of POST /attachments/download answers it nowhere in its own body, which calls no function of the module, nor does a middleware of its chain. Does the operation answer 200, or is the declaration stale?'
     kind: decision
     priority: should
     certainty: certain
@@ -305,10 +305,10 @@ questions:
     decidedBy: system-owner
     why: A response declared and never answered is in the contract clients are built against, and the code cannot produce it.
     cites:
-      - {source: code, clause: 'api/handlers.go:27', says: Answers no 200.}
-  # specarch-problem: question: open_question: (should, decision, certain) api/handlers.go:21: the registration of POST /attachments/upload at api/endpoints.go:43 declares the response 200, and the handler api.UploadAttachment of POST /attachments/upload answers it nowhere in its own body, which calls no function of the module, nor does a middleware of its chain. Does the operation answer 200, or is the declaration stale? Decided by system-owner. Answer with a decision record that names Q-33 under answers. [Q-33]
+      - {source: code, clause: 'api/handlers.go:28', says: Answers no 200.}
+  # specarch-problem: question: open_question: (should, decision, certain) api/handlers.go:22: the registration of POST /attachments/upload at api/endpoints.go:43 declares the response 200, and the handler api.UploadAttachment of POST /attachments/upload answers it nowhere in its own body, which calls no function of the module, nor does a middleware of its chain. Does the operation answer 200, or is the declaration stale? Decided by system-owner. Answer with a decision record that names Q-33 under answers. [Q-33]
   Q-33:
-    question: 'api/handlers.go:21: the registration of POST /attachments/upload at api/endpoints.go:43 declares the response 200, and the handler api.UploadAttachment of POST /attachments/upload answers it nowhere in its own body, which calls no function of the module, nor does a middleware of its chain. Does the operation answer 200, or is the declaration stale?'
+    question: 'api/handlers.go:22: the registration of POST /attachments/upload at api/endpoints.go:43 declares the response 200, and the handler api.UploadAttachment of POST /attachments/upload answers it nowhere in its own body, which calls no function of the module, nor does a middleware of its chain. Does the operation answer 200, or is the declaration stale?'
     kind: decision
     priority: should
     certainty: certain
@@ -316,10 +316,10 @@ questions:
     decidedBy: system-owner
     why: A response declared and never answered is in the contract clients are built against, and the code cannot produce it.
     cites:
-      - {source: code, clause: 'api/handlers.go:21', says: Answers no 200.}
-  # specarch-problem: question: open_question: (should, decision, certain) api/handlers.go:21: the registration of POST /forms/upload at api/endpoints.go:82 declares the response 200, and the handler api.UploadAttachment of POST /forms/upload answers it nowhere in its own body, which calls no function of the module, nor does a middleware of its chain. Does the operation answer 200, or is the declaration stale? Decided by system-owner. Answer with a decision record that names Q-34 under answers. [Q-34]
+      - {source: code, clause: 'api/handlers.go:22', says: Answers no 200.}
+  # specarch-problem: question: open_question: (should, decision, certain) api/handlers.go:22: the registration of POST /forms/upload at api/endpoints.go:82 declares the response 200, and the handler api.UploadAttachment of POST /forms/upload answers it nowhere in its own body, which calls no function of the module, nor does a middleware of its chain. Does the operation answer 200, or is the declaration stale? Decided by system-owner. Answer with a decision record that names Q-34 under answers. [Q-34]
   Q-34:
-    question: 'api/handlers.go:21: the registration of POST /forms/upload at api/endpoints.go:82 declares the response 200, and the handler api.UploadAttachment of POST /forms/upload answers it nowhere in its own body, which calls no function of the module, nor does a middleware of its chain. Does the operation answer 200, or is the declaration stale?'
+    question: 'api/handlers.go:22: the registration of POST /forms/upload at api/endpoints.go:82 declares the response 200, and the handler api.UploadAttachment of POST /forms/upload answers it nowhere in its own body, which calls no function of the module, nor does a middleware of its chain. Does the operation answer 200, or is the declaration stale?'
     kind: decision
     priority: should
     certainty: certain
@@ -327,10 +327,10 @@ questions:
     decidedBy: system-owner
     why: A response declared and never answered is in the contract clients are built against, and the code cannot produce it.
     cites:
-      - {source: code, clause: 'api/handlers.go:21', says: Answers no 200.}
-  # specarch-problem: question: open_question: (should, decision, suspected) api/handlers.go:46: the handler api.Ping of GET /health and POST /ping does nothing: its body has no step but a return. Is it a stub, with the operation not built yet? Decided by system-owner. Answer with a decision record that names Q-35 under answers. [Q-35]
+      - {source: code, clause: 'api/handlers.go:22', says: Answers no 200.}
+  # specarch-problem: question: open_question: (should, decision, suspected) api/handlers.go:53: the handler api.Ping of GET /health and POST /ping does nothing: its body has no step but a return. Is it a stub, with the operation not built yet? Decided by system-owner. Answer with a decision record that names Q-35 under answers. [Q-35]
   Q-35:
-    question: 'api/handlers.go:46: the handler api.Ping of GET /health and POST /ping does nothing: its body has no step but a return. Is it a stub, with the operation not built yet?'
+    question: 'api/handlers.go:53: the handler api.Ping of GET /health and POST /ping does nothing: its body has no step but a return. Is it a stub, with the operation not built yet?'
     kind: decision
     priority: should
     certainty: suspected
@@ -338,10 +338,10 @@ questions:
     decidedBy: system-owner
     why: A handler that does nothing answers every request the same way, whatever the specification says the operation does.
     cites:
-      - {source: code, clause: 'api/handlers.go:46', says: The body holds no step but a return.}
-  # specarch-problem: question: open_question: (should, decision, certain) api/handlers.go:15: the registration of POST /notes/add at api/endpoints.go:32 declares the parameter text, and the handler api.AddNote of POST /notes/add reads it nowhere in its own body, which calls no function of the module. Are they needed, or does the handler miss reading them? Decided by system-owner. Answer with a decision record that names Q-36 under answers. [Q-36]
+      - {source: code, clause: 'api/handlers.go:53', says: The body holds no step but a return.}
+  # specarch-problem: question: open_question: (should, decision, certain) api/handlers.go:16: the registration of POST /notes/add at api/endpoints.go:32 declares the parameter text, and the handler api.AddNote of POST /notes/add reads it nowhere in its own body, which calls no function of the module. Are they needed, or does the handler miss reading them? Decided by system-owner. Answer with a decision record that names Q-36 under answers. [Q-36]
   Q-36:
-    question: 'api/handlers.go:15: the registration of POST /notes/add at api/endpoints.go:32 declares the parameter text, and the handler api.AddNote of POST /notes/add reads it nowhere in its own body, which calls no function of the module. Are they needed, or does the handler miss reading them?'
+    question: 'api/handlers.go:16: the registration of POST /notes/add at api/endpoints.go:32 declares the parameter text, and the handler api.AddNote of POST /notes/add reads it nowhere in its own body, which calls no function of the module. Are they needed, or does the handler miss reading them?'
     kind: decision
     priority: should
     certainty: certain
@@ -349,10 +349,10 @@ questions:
     decidedBy: system-owner
     why: A parameter a handler never reads is accepted and ignored, so a caller's value has no effect, which the specification does not say.
     cites:
-      - {source: code, clause: 'api/handlers.go:15', says: Reads no parameter named text.}
-  # specarch-problem: question: open_question: (should, decision, certain) api/handlers.go:15: the registration of POST /notes/add at api/endpoints.go:32 declares the response 200, and the handler api.AddNote of POST /notes/add answers it nowhere in its own body, which calls no function of the module, nor does a middleware of its chain. Does the operation answer 200, or is the declaration stale? Decided by system-owner. Answer with a decision record that names Q-37 under answers. [Q-37]
+      - {source: code, clause: 'api/handlers.go:16', says: Reads no parameter named text.}
+  # specarch-problem: question: open_question: (should, decision, certain) api/handlers.go:16: the registration of POST /notes/add at api/endpoints.go:32 declares the response 200, and the handler api.AddNote of POST /notes/add answers it nowhere in its own body, which calls no function of the module, nor does a middleware of its chain. Does the operation answer 200, or is the declaration stale? Decided by system-owner. Answer with a decision record that names Q-37 under answers. [Q-37]
   Q-37:
-    question: 'api/handlers.go:15: the registration of POST /notes/add at api/endpoints.go:32 declares the response 200, and the handler api.AddNote of POST /notes/add answers it nowhere in its own body, which calls no function of the module, nor does a middleware of its chain. Does the operation answer 200, or is the declaration stale?'
+    question: 'api/handlers.go:16: the registration of POST /notes/add at api/endpoints.go:32 declares the response 200, and the handler api.AddNote of POST /notes/add answers it nowhere in its own body, which calls no function of the module, nor does a middleware of its chain. Does the operation answer 200, or is the declaration stale?'
     kind: decision
     priority: should
     certainty: certain
@@ -360,10 +360,10 @@ questions:
     decidedBy: system-owner
     why: A response declared and never answered is in the contract clients are built against, and the code cannot produce it.
     cites:
-      - {source: code, clause: 'api/handlers.go:15', says: Answers no 200.}
-  # specarch-problem: question: open_question: (should, decision, suspected) api/handlers.go:10: the handler api.IssuePreKey of POST /prekey does nothing: its body has no step but a return. Is it a stub, with the operation not built yet? Decided by system-owner. Answer with a decision record that names Q-38 under answers. [Q-38]
+      - {source: code, clause: 'api/handlers.go:16', says: Answers no 200.}
+  # specarch-problem: question: open_question: (should, decision, suspected) api/handlers.go:11: the handler api.IssuePreKey of POST /prekey does nothing: its body has no step but a return. Is it a stub, with the operation not built yet? Decided by system-owner. Answer with a decision record that names Q-38 under answers. [Q-38]
   Q-38:
-    question: 'api/handlers.go:10: the handler api.IssuePreKey of POST /prekey does nothing: its body has no step but a return. Is it a stub, with the operation not built yet?'
+    question: 'api/handlers.go:11: the handler api.IssuePreKey of POST /prekey does nothing: its body has no step but a return. Is it a stub, with the operation not built yet?'
     kind: decision
     priority: should
     certainty: suspected
@@ -371,10 +371,10 @@ questions:
     decidedBy: system-owner
     why: A handler that does nothing answers every request the same way, whatever the specification says the operation does.
     cites:
-      - {source: code, clause: 'api/handlers.go:10', says: The body holds no step but a return.}
-  # specarch-problem: question: open_question: (should, decision, suspected) api/handlers.go:41: the handler api.OpenSession of POST /session/open does nothing: its body has no step but a return. Is it a stub, with the operation not built yet? Decided by system-owner. Answer with a decision record that names Q-39 under answers. [Q-39]
+      - {source: code, clause: 'api/handlers.go:11', says: The body holds no step but a return.}
+  # specarch-problem: question: open_question: (should, decision, suspected) api/handlers.go:48: the handler api.OpenSession of POST /session/open does nothing: its body has no step but a return. Is it a stub, with the operation not built yet? Decided by system-owner. Answer with a decision record that names Q-39 under answers. [Q-39]
   Q-39:
-    question: 'api/handlers.go:41: the handler api.OpenSession of POST /session/open does nothing: its body has no step but a return. Is it a stub, with the operation not built yet?'
+    question: 'api/handlers.go:48: the handler api.OpenSession of POST /session/open does nothing: its body has no step but a return. Is it a stub, with the operation not built yet?'
     kind: decision
     priority: should
     certainty: suspected
@@ -382,15 +382,4 @@ questions:
     decidedBy: system-owner
     why: A handler that does nothing answers every request the same way, whatever the specification says the operation does.
     cites:
-      - {source: code, clause: 'api/handlers.go:41', says: The body holds no step but a return.}
-  # specarch-problem: question: open_question: (should, decision, suspected) api/handlers.go:36: the handler api.ExportVault of POST /vault/export does nothing: its body has no step but a return. Is it a stub, with the operation not built yet? Decided by system-owner. Answer with a decision record that names Q-40 under answers. [Q-40]
-  Q-40:
-    question: 'api/handlers.go:36: the handler api.ExportVault of POST /vault/export does nothing: its body has no step but a return. Is it a stub, with the operation not built yet?'
-    kind: decision
-    priority: should
-    certainty: suspected
-    blocks: ['#/paths/~1vault~1export/post']
-    decidedBy: system-owner
-    why: A handler that does nothing answers every request the same way, whatever the specification says the operation does.
-    cites:
-      - {source: code, clause: 'api/handlers.go:36', says: The body holds no step but a return.}
+      - {source: code, clause: 'api/handlers.go:48', says: The body holds no step but a return.}

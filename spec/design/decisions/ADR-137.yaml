@@ -23,6 +23,11 @@ decisions:
       count as a listen, and a link in the other direction is another
       link.
 
+      A package says it runs a job under implements, with the pointer
+      #/jobs/<name>, so the implementation schema's designRef admits
+      jobs beside the design objects it names today; the server that
+      runs the package runs the job.
+
       The validator, in both builds, reports as the rule link at the
       entry a from or to that is no named server of the deployment, a
       link from a server to itself, and a port the target does not listen
@@ -62,7 +67,13 @@ decisions:
       is written in order and the links are its to-do list, as the
       handover's checks and monitors are (ADR-129); it is derived from
       calls and channels because those are the connections the design
-      declares, and nothing else has to have a path. The database link is
+      declares, and nothing else has to have a path. A job is placed
+      through implements, as an operation is, because a job is code that
+      calls, reads and writes like an operation, and a worker server that
+      runs only jobs is the host the check would otherwise not see; a
+      key of its own on the server (jobs beside packages) lost because
+      runs names what of the implementation is on the server, and the
+      job is in a package. The database link is
       derived from the packages that implement an entity and the jobs
       that read or write one, because those are the code that reaches the
       store; a gateway package, one that only emits, or a worker that
@@ -89,8 +100,10 @@ decisions:
       zones and ports the day the deployment is written, and a link the
       firewall team refuses is one line to remove.
     consequences: |
-      The implementation schema's server object gains zone and listens
-      and the deployment object gains links; the rules link and
+      The implementation schema's server object gains zone and listens,
+      the deployment object gains links, and designRef admits jobs, so
+      that implements can name a job and the resolver of implements in
+      both builds reads it; the rules link and
       link_missing are new in both builds, with cases; document
       deployment, handover and techspec gain the network marker; the
       library-lending example's production gets zones and links; the

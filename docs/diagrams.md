@@ -493,6 +493,15 @@ reason is not plain. IEC 62443's conduit lost: a conduit joins zones,
 and the check needs the host and the port. A link in the other
 direction is another link, since a firewall rule is directed.
 
+A job is placed the way an operation is: the package that runs it says
+so under `implements` (`implements: ["#/jobs/markOverdue"]`), and
+the server that runs the package runs the job. The implementation
+schema's `designRef`, the pointer `implements` and `mappings` take,
+admits entities, enums, permissions, roles, paths, commands, channels,
+pages, menus, algorithms and decisions today and no jobs, so it gains
+`jobs`; without it nothing in the file puts a job on a server, and a
+worker that only runs jobs would be a host the check cannot see.
+
 The validator reports, as the rule `link` at the entry, a `from` or `to`
 that is no named server of the deployment, a link from a server to
 itself, and a port the target does not listen on. It reports, as the
@@ -685,7 +694,7 @@ Both builds, each with a case in `spec/tests/` and its design test:
 | `channel` | a channel's `carriedBy` entry that is no declared dependency, or one of kind `database`, `fileStore` or `identityProvider` |
 | `server` | a server's name used twice in one deployment; a `runs` package or target the file does not have; `packages` on a server not of kind `service`; `kind` or `runs` on a server that names a `dependency`; a `dependency` that is not declared |
 | `link` | a `from` or `to` that is no named server of the deployment, a link from a server to itself, or a port the target does not listen on |
-| `link_missing` (warning) | a server whose packages call a dependency or use a channel it carries with no link to a server that is that dependency, or whose packages implement an entity or run a job that reads or writes one with no link to the deployment's database server that runs the `sql` target |
+| `link_missing` (warning) | a server whose packages call a dependency or use a channel it carries with no link to a server that is that dependency, or whose packages implement an entity or a job that reads or writes one with no link to the deployment's database server that runs the `sql` target |
 
 ## The documents
 
@@ -748,7 +757,7 @@ panel reads it, then the pictures by what each gives the reader.
    example's dependencies and channels keyed, its hand-drawn picture
    replaced, and the convention's rows moved. Done when the example's
    techspec draws its registry, ledger, broker and people, a channel with
-   a wrong server is an error at the entry, and a specification without
+   a wrong `carriedBy` entry is an error at the entry, and a specification without
    the keys renders byte for byte as before.
 3. **`dependsOn`** (ADR-133). The key in the implementation schema, the
    rule `depends_on` in both builds, `extract go --implementation`
@@ -765,14 +774,19 @@ panel reads it, then the pictures by what each gives the reader.
    broker with what each runs, and a `runs` naming a target the file
    lacks is an error at the entry.
 5. **The network diagram and the link check** (ADR-137), unless the
-   owner keeps it hand-drawn. `zone`, `listens` and `links`, the rules
-   `link` and `link_missing` in both builds, the `network` marker in
-   chapter 7, the deployment guide and the handover document, the
-   handover's paragraphs derived, the example's production with zones
-   and links. Done when removing the API's link to the database warns at
-   the API server, a link on a port the database does not listen on is
-   an error at the link, and the handover document prints the links
-   before the infrastructure sentences.
+   owner keeps it hand-drawn. `zone`, `listens` and `links`, `jobs` in
+   the implementation schema's `designRef` and in the resolver of
+   `implements` in both builds, the rules `link` and `link_missing` in
+   both builds, the `network` marker in chapter 7, the deployment guide
+   and the handover document, the handover's paragraphs derived, the
+   example's production with zones and links, and a worker package in
+   its layout, which the item adds, implementing `markOverdue` (the
+   layout has `internal/api` and `internal/lending` today and no package
+   runs the job). Done when removing the API's link to the database
+   warns at the API server, removing the worker's link to the broker
+   `markOverdue` emits on warns at the worker, a link on a port the database does
+   not listen on is an error at the link, and the handover document
+   prints the links before the infrastructure sentences.
 6. **BPMN lanes and ids** (ADR-139). The lane set and the ids in
    `specarch-gen-bpmn`, the SVG's groups, `extract workflows` reading the
    lanes past, the goldens of `generate-bpmn` and

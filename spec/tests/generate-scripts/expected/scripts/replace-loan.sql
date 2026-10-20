@@ -10,8 +10,9 @@
 -- specarch-problem: warning: test_golden_missing: operation replaceLoan has no golden scenario; add one under tests, for example replace-loan-succeeds: { operation: replaceLoan, scenario: golden, given: "any caller", when: "replaceLoan is called with values inside every limit", then: "it answers 200: The loan is replaced." } [test_golden_missing@specarch.yaml#/paths/~1loans~1{loanId}/put]
 -- replaceLoan: Replace a loan
 -- Changes exactly 1 Loan record of table loans: sets note, renewals, status, title, by id, where status != "returned".
--- Dry run: psql -v ON_ERROR_STOP=1 -v id=... -v note=... -v renewals=... -v status=... -v title=... -v last_modified_by_user_id=... -v last_modified_by_user_nameid=... -f replace-loan.sql
+-- Dry run: psql -v ON_ERROR_STOP=1 -v id=... [-v note=...] -v renewals=... -v status=... -v title=... -v last_modified_by_user_id=... -v last_modified_by_user_nameid=... -f replace-loan.sql
 -- Apply: the same with -v apply=true. Without it every check runs against the data and the change is rolled back.
+-- A variable in brackets may be left out: its column is set to NULL.
 \set ON_ERROR_STOP on
 \set QUIET on
 \if :{?apply}

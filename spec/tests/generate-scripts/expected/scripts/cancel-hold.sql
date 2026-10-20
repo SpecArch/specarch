@@ -26,23 +26,23 @@ DECLARE
   found bigint;
   changed bigint;
 BEGIN
-  -- 2. Precondition: exactly 1 Hold record to change, locked until the end.
+  -- 1. Precondition: exactly 1 Hold record to change, locked until the end.
   SELECT count(*) INTO found FROM (SELECT 1 FROM hold WHERE id = current_setting('specarch.id', true)::UUID FOR UPDATE) AS records;
   IF found <> 1 THEN
     RAISE EXCEPTION 'operation cancelHold: % Hold records hold id %, and the change expects exactly 1; nothing was changed', found, current_setting('specarch.id', true)::UUID;
   END IF;
-  -- 3. The change, under the same condition.
+  -- 2. The change, under the same condition.
   DELETE FROM hold
   WHERE id = current_setting('specarch.id', true)::UUID;
   GET DIAGNOSTICS changed = ROW_COUNT;
-  -- 4. Postcondition: the exact count, and the record holds what was written.
+  -- 3. Postcondition: the exact count, and the record holds what was written.
   IF changed <> 1 THEN
     RAISE EXCEPTION 'operation cancelHold: the change wrote % Hold records, and exactly 1 was expected; another writer may have changed them after they were counted; nothing was changed', changed;
   END IF;
   IF EXISTS (SELECT 1 FROM hold WHERE id = current_setting('specarch.id', true)::UUID) THEN
     RAISE EXCEPTION 'operation cancelHold: after the change the Hold with id % is still there; nothing was changed', current_setting('specarch.id', true)::UUID;
   END IF;
-  -- 5. Dry run unless apply is true.
+  -- 4. Dry run unless apply is true.
   IF current_setting('specarch.apply')::boolean THEN
     RAISE NOTICE 'operation cancelHold: 1 Hold record changed; committing';
   ELSE

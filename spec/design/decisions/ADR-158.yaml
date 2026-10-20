@@ -51,7 +51,10 @@ decisions:
       column (-v id=...), passed into the change with set_config and read
       back with current_setting, since psql does not substitute a
       variable inside the dollar-quoted body of a DO block; a variable
-      that is not set is refused by name before anything is read. A
+      that is not set is refused by name before anything is read, except
+      the variable of a column that may be null, which left out sets the
+      column to NULL and is shown in brackets in the script's usage
+      line. A
       change's audit columns are set too: a timestamp to now(), any other
       from its variable. The script runs in one transaction:
       1. already applied: when the record by the key already holds what

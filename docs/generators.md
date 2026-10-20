@@ -1059,7 +1059,9 @@ check constraint.
 
 Every value is a psql variable named after its column, given as
 `psql -v id=... -f <script>.sql`; a variable that is not set is refused by
-name before anything is read. The change's audit columns are set as well:
+name before anything is read, except that of a column that may be null,
+which left out sets the column to NULL and is shown in brackets in the
+script's usage line. The change's audit columns are set as well:
 a timestamp to `now()`, any other from its variable. The script runs in one
 transaction, in five steps:
 

@@ -208,7 +208,7 @@ implementation file uses and compares an override with the shipped idiom.
    preconditions, dry run by default, postconditions with exact counts,
    idempotent. The `guard` on an operation or a command they are emitted
    from came in 0.3.0 (`spec/tests/validate-guard`); `specarch-gen-scripts`
-   (0.7.2, ADR-158, `spec/tests/generate-scripts`) writes a psql script for
+   (0.7.2, ADR-158 proposed, `spec/tests/generate-scripts`) writes a psql script for
    PostgreSQL per guarded entry whose change a transition it triggers, a PUT
    by its key or a DELETE by its key says, and warns at the guard for every
    other change, left to be written by hand. Not built: another dialect, and

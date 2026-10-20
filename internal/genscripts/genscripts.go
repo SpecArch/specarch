@@ -321,10 +321,17 @@ func (g *gen) write(e entry, entity string, t gensql.Table, c change, path strin
 	}
 	var usage []string
 	for _, v := range vars {
+		if v.Nullable && !v.Key {
+			usage = append(usage, fmt.Sprintf("[-v %s=...]", v.Name))
+			continue
+		}
 		usage = append(usage, fmt.Sprintf("-v %s=...", v.Name))
 	}
 	fmt.Fprintf(&b, "-- Dry run: psql -v ON_ERROR_STOP=1 %s-f %s\n", strings.Join(append(usage, ""), " "), path)
 	b.WriteString("-- Apply: the same with -v apply=true. Without it every check runs against the data and the change is rolled back.\n")
+	if len(usage) > 0 && strings.Contains(strings.Join(usage, " "), "[") {
+		b.WriteString("-- A variable in brackets may be left out: its column is set to NULL.\n")
+	}
 	b.WriteString("\\set ON_ERROR_STOP on\n\\set QUIET on\n")
 	b.WriteString("\\if :{?apply}\n\\else\n\\set apply false\n\\endif\n")
 	for _, v := range vars {
@@ -346,13 +353,15 @@ func (g *gen) write(e entry, entity string, t gensql.Table, c change, path strin
 	where := g.where(c)
 	holds := g.holds(c)
 	b.WriteString("DO $script$\nDECLARE\n  found bigint;\n  changed bigint;\nBEGIN\n")
+	step := 0
+	next := func() int { step++; return step }
 	if c.keyed && holds != "" {
-		fmt.Fprintf(&b, "  -- 1. Already applied: the record already holds what the change writes.\n")
+		fmt.Fprintf(&b, "  -- %d. Already applied: the record already holds what the change writes.\n", next())
 		fmt.Fprintf(&b, "  IF EXISTS (SELECT 1 FROM %s WHERE %s AND %s) THEN\n", t.Name, keyEquals(c.key), holds)
 		fmt.Fprintf(&b, "    RAISE NOTICE %s, %s;\n", quote(fmt.Sprintf("%s: the %s with %s %% already holds %s; nothing to change", e.what, entity, c.key.Name, g.describeHolds(c))), value(c.key))
 		b.WriteString("    RETURN;\n  END IF;\n")
 	}
-	fmt.Fprintf(&b, "  -- 2. Precondition: exactly %s to change, locked until the end.\n", records(c.count, entity))
+	fmt.Fprintf(&b, "  -- %d. Precondition: exactly %s to change, locked until the end.\n", next(), records(c.count, entity))
 	fmt.Fprintf(&b, "  SELECT count(*) INTO found FROM (SELECT 1 FROM %s WHERE %s FOR UPDATE) AS records;\n", t.Name, where)
 	fmt.Fprintf(&b, "  IF found <> %d THEN\n", c.count)
 	found := "found"
@@ -360,7 +369,7 @@ func (g *gen) write(e entry, entity string, t gensql.Table, c change, path strin
 		found += ", " + value(c.key)
 	}
 	fmt.Fprintf(&b, "    RAISE EXCEPTION %s, %s;\n  END IF;\n", quote(fmt.Sprintf("%s: %% %s records hold %s, and the change expects exactly %d; nothing was changed", e.what, entity, g.condText(c), c.count)), found)
-	b.WriteString("  -- 3. The change, under the same condition.\n")
+	fmt.Fprintf(&b, "  -- %d. The change, under the same condition.\n", next())
 	switch {
 	case c.kind == "delete" && c.soft.Name == "":
 		fmt.Fprintf(&b, "  DELETE FROM %s\n  WHERE %s;\n", t.Name, where)
@@ -386,7 +395,11 @@ func (g *gen) write(e entry, entity string, t gensql.Table, c change, path strin
 		fmt.Fprintf(&b, "  UPDATE %s\n  SET %s\n  WHERE %s;\n", t.Name, strings.Join(sets, ",\n      "), where)
 	}
 	b.WriteString("  GET DIAGNOSTICS changed = ROW_COUNT;\n")
-	b.WriteString("  -- 4. Postcondition: the exact count, and the record holds what was written.\n")
+	post := "the exact count"
+	if c.keyed {
+		post += ", and the record holds what was written"
+	}
+	fmt.Fprintf(&b, "  -- %d. Postcondition: %s.\n", next(), post)
 	fmt.Fprintf(&b, "  IF changed <> %d THEN\n", c.count)
 	fmt.Fprintf(&b, "    RAISE EXCEPTION %s, changed;\n  END IF;\n", quote(fmt.Sprintf("%s: the change wrote %% %s records, and exactly %d was expected; another writer may have changed them after they were counted; nothing was changed", e.what, entity, c.count)))
 	if c.keyed {
@@ -397,7 +410,7 @@ func (g *gen) write(e entry, entity string, t gensql.Table, c change, path strin
 		fmt.Fprintf(&b, "  IF %s THEN\n", check)
 		fmt.Fprintf(&b, "    RAISE EXCEPTION %s, %s;\n  END IF;\n", quote(fmt.Sprintf("%s: after the change the %s with %s %% %s; nothing was changed", e.what, entity, c.key.Name, says)), value(c.key))
 	}
-	b.WriteString("  -- 5. Dry run unless apply is true.\n")
+	fmt.Fprintf(&b, "  -- %d. Dry run unless apply is true.\n", next())
 	b.WriteString("  IF current_setting('specarch.apply')::boolean THEN\n")
 	fmt.Fprintf(&b, "    RAISE NOTICE %s;\n", quote(fmt.Sprintf("%s: %s changed; committing", e.what, records(c.count, entity))))
 	b.WriteString("  ELSE\n")

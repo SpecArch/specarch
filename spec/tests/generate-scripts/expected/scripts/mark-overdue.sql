@@ -30,14 +30,14 @@ DECLARE
   found bigint;
   changed bigint;
 BEGIN
-  -- 2. Precondition: exactly 2 Loan records to change, locked until the end.
+  -- 1. Precondition: exactly 2 Loan records to change, locked until the end.
   SELECT count(*) INTO found FROM (SELECT 1 FROM loans WHERE status IN ('open')
     AND (renewals = 3)
     AND is_deleted = false FOR UPDATE) AS records;
   IF found <> 2 THEN
     RAISE EXCEPTION 'command mark overdue: % Loan records hold status open, renewals == 3, not deleted, and the change expects exactly 2; nothing was changed', found;
   END IF;
-  -- 3. The change, under the same condition.
+  -- 2. The change, under the same condition.
   UPDATE loans
   SET status = 'overdue',
       last_modified_at = now(),
@@ -47,11 +47,11 @@ BEGIN
     AND (renewals = 3)
     AND is_deleted = false;
   GET DIAGNOSTICS changed = ROW_COUNT;
-  -- 4. Postcondition: the exact count, and the record holds what was written.
+  -- 3. Postcondition: the exact count.
   IF changed <> 2 THEN
     RAISE EXCEPTION 'command mark overdue: the change wrote % Loan records, and exactly 2 was expected; another writer may have changed them after they were counted; nothing was changed', changed;
   END IF;
-  -- 5. Dry run unless apply is true.
+  -- 4. Dry run unless apply is true.
   IF current_setting('specarch.apply')::boolean THEN
     RAISE NOTICE 'command mark overdue: 2 Loan records changed; committing';
   ELSE

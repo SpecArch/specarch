@@ -90,7 +90,7 @@ commissioning runs and approvals). The same schema gives editors
 validation and completion through `yaml-language-server`: put this on the
 first line of a root file and most editors pick it up.
 
-    # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v0.7.1/schema/specarch-design-0.3.schema.json
+    # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v0.7.2/schema/specarch-design-0.3.schema.json
 
 ## The rules SpecArch serves
 
@@ -192,13 +192,13 @@ the program and are built once in your cache with their toolchains). It has two 
 the same design.
 The Go build has every verb. With Go 1.27.2 or later:
 
-    go install github.com/SpecArch/specarch/cmd/specarch@v0.7.1
+    go install github.com/SpecArch/specarch/cmd/specarch@v0.7.2
 
 or, from a clone of this repository:
 
     go install ./cmd/specarch
 
-Code targets are plug-ins on PATH. This repository has eleven:
+Code targets are plug-ins on PATH. This repository has twelve:
 `specarch-gen-openapi`, which `specarch generate openapi` runs to write the
 OpenAPI 3.1 document of a specification, `specarch-gen-sql`, which
 `specarch generate sql` runs to write its migrations in PostgreSQL, SQL
@@ -223,22 +223,18 @@ generate bpmn` runs to write each workflow as a BPMN 2.0 file with its
 diagram, and the diagram as SVG. Install them at the same tag as
 `specarch`:
 
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-openapi@v0.7.1
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-sql@v0.7.1
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-sqlc@v0.7.1
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-tests-go@v0.7.1
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-tests-swift@v0.7.1
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-tests-dart@v0.7.1
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-go-dxlib@v0.7.1
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-ui@v0.7.1
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-ui-typescript@v0.7.1
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-bpmn@v0.7.1
-
-The SwiftUI plug-in and `specarch-gen-scripts` are part of 0.7.2, which is
-not tagged yet, so they are built from main:
-
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-ui-swiftui@main
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-scripts@main
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-openapi@v0.7.2
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-sql@v0.7.2
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-sqlc@v0.7.2
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-tests-go@v0.7.2
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-tests-swift@v0.7.2
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-tests-dart@v0.7.2
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-go-dxlib@v0.7.2
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-ui@v0.7.2
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-ui-typescript@v0.7.2
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-bpmn@v0.7.2
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-ui-swiftui@v0.7.2
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-scripts@v0.7.2
 
 The Swift build, for macOS, has the validate, model and version verbs and
 gives the same output. With Swift 6:
@@ -341,12 +337,12 @@ answers with. `docs/generators.md` has the protocol.
 ## Status
 
 Version 0.3 of the meta-model, October 2026; a file written against 0.2
-or 0.1 is read until 1.0, a 0.1 file with its missing tests as warnings. Release 0.7.1 is the
+or 0.1 is read until 1.0, a 0.1 file with its missing tests as warnings. Release 0.7.2 is the
 latest. The schemas, the tree layout and the seven stages, SpecArch's own
 specification, six examples, the validator in Go and in Swift, fifteen
 documents, open questions with the gaps report, `decide` and the
 comparison, the approval gate on generation, the extract readers with `merge`, `check`, `diff`, `derive`
-and the eleven code targets exist; the guarded scripts and meta-model 0.3 are on the roadmap (`docs/roadmap.md`, which says where
+and the twelve code plug-ins, the guarded scripts among them, exist; the rest is on the roadmap (`docs/roadmap.md`, which says where
 each entry stands). The meta-model will change: the first real
 projects written in SpecArch are expected to find concepts it cannot
 express, and those gaps define the next version.

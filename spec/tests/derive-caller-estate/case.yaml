@@ -1,11 +1,23 @@
 arguments: [derive, specarch-estate.yaml]
 exitStatus: 0
 standardOutput: |
+  core/tests/list-invoices-succeeds/test.yaml
+  core/tests/list-invoices-denied-without-invoices-read/test.yaml
+  core/tests/list-invoices-refused-for-every-caller-not-listed/test.yaml
+  core/tests/list-invoices-refused-with-a-bad-signature-from-identity-clients-reporting/test.yaml
+  core/tests/list-invoices-refused-with-identity-clients-reporting-at-a-version-outside-its-admitted-range/test.yaml
+  core/tests/list-invoices-refused-for-a-service-s-own-token/test.yaml
+  core/tests/list-invoices-denied-with-expired-access/test.yaml
+  core/tests/list-invoices-refused-with-a-token-for-another-audience/test.yaml
+  core/tests/list-invoices-refused-for-a-person-s-token-requested-by-a-service-with-no-actor/test.yaml
   core/tests/delete-invoice-invoice-id-longer-than-36-characters/test.yaml
   core/tests/delete-invoice-invoice-id-of-36-characters/test.yaml
   core/tests/delete-invoice-not-found-invoice-id/test.yaml
   core/tests/delete-invoice-denied-without-invoices-delete/test.yaml
   core/tests/delete-invoice-refused-through-a-client-not-listed-for-invoice-manager-of-identity/test.yaml
+  core/tests/delete-invoice-refused-for-a-service-s-own-token/test.yaml
   core/tests/delete-invoice-denied-with-expired-access/test.yaml
   core/tests/delete-invoice-refused-with-a-token-for-another-audience/test.yaml
+  core/tests/delete-invoice-refused-for-a-person-s-token-requested-by-a-service-with-no-actor/test.yaml
   core/tests/inv-1-acceptance-1/test.yaml
+  core/tests/inv-2-acceptance-1/test.yaml

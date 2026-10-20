@@ -2,7 +2,7 @@ operation: deleteInvoice
 level: system
 scenario: red
 covers: [refused with a token for another audience]
-given: "a access token minted for another service, whose aud does not name this one"
+given: "an access token minted for another service, whose aud does not name this one"
 when: "deleteInvoice is called"
 then: "it is refused as not allowed, and the security event token_audience (high), https://estate.example.org/events/token_audience, is written"
 verifies: [INV-1]

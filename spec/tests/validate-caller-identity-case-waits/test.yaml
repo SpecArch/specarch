@@ -2,7 +2,7 @@
 command: validate
 level: system
 scenario: golden
-given: "the core of derive-caller-estate with every test derive wrote, among them the one for a caller through a client a role of the identity module does not list, and the identity module not given"
+given: "the core of derive-caller-estate with every test derive wrote, among them the ones for a caller through a client a role of the identity module does not list, for the bad signature and the version of a client of the identity module named in callers, and for the confused deputy, whom that client makes a service; and the identity module not given"
 when: "validate is run on the core alone"
-then: "it takes the test's case as waiting for the identity module, as a reference to it waits, reports nothing, and exits 0"
+then: "it takes each of those tests' cases as waiting for the identity module, as a reference to it waits, reports nothing, and exits 0"
 verifies: [SA-88]

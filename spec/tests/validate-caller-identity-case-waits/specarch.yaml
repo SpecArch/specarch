@@ -11,6 +11,13 @@ requirements:
     status: accepted
     acceptance: [A deleted invoice is gone from the list.]
     harm: [money]
+  INV-2:
+    statement: The reporting service shall read the invoices every night only with a request it signed, since a forged read would show what every customer owes.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance: [The night's report lists every invoice.]
+    harm: [privacy]
 entities:
   Invoice:
     type: object
@@ -35,6 +42,15 @@ tokens:
       client_id: { description: The application the person signed in through. }
     default: true
 paths:
+  /invoices:
+    get:
+      operationId: listInvoices
+      summary: List invoices, for people and for the reporting service on its own account
+      permission: invoices.read
+      callers: [people, "identity#/clients/reporting"]
+      satisfies: [INV-2]
+      responses:
+        "200": { description: The invoices. }
   /invoices/{invoiceId}:
     parameters:
       - { name: invoiceId, in: path, required: true, schema: { type: string, maxLength: 36 } }

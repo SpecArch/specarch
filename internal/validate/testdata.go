@@ -341,10 +341,15 @@ func (d *design) statusEntity(op *yaml.Node, status string) string {
 	return ""
 }
 
-// indefinite is "a" or "an" before a word.
+// indefinite is "a" or "an" before a word, by its first sound: "an"
+// before a vowel, except a "u" said as "you" (user, unit), which is a
+// "u" before one consonant and a vowel.
 func indefinite(word string) string {
-	if strings.ContainsRune("aeiou", rune(word[0])) {
-		return "an"
+	if word == "" || !strings.ContainsRune("aeiou", rune(word[0])) {
+		return "a"
 	}
-	return "a"
+	if word[0] == 'u' && len(word) > 2 && !strings.ContainsRune("aeiou", rune(word[1])) && strings.ContainsRune("aeiou", rune(word[2])) {
+		return "a"
+	}
+	return "an"
 }

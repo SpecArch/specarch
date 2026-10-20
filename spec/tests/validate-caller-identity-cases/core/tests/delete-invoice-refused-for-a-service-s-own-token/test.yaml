@@ -1,0 +1,10 @@
+operation: deleteInvoice
+level: system
+scenario: red
+covers: ["refused for a service's own token"]
+given: "a service calling with its own proof or token and no person's token, so that the call carries the service and not the person"
+when: "deleteInvoice is called"
+then: "it is refused as not allowed: the person, with their rows, roles and through, would be lost, and the security event deputy (high), https://estate.example.org/events/deputy, is written"
+verifies: [INV-1]
+origin: inferred
+why: "Written by specarch derive: operation deleteInvoice is at stake in a requirement that names a harm, so its cases are written. A draft: complete the given, when and then, and remove what does not hold."

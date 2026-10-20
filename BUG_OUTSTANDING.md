@@ -45,26 +45,6 @@ Expected: an earlier `use` without a path, on the router a mount is made on, is 
 
 To repeat: run `specarch extract javascript` on `spec/tests/extract-javascript-caller-checks` as its `case.yaml` does. `app.use(requireAudience(...))` at `server/src/app.ts:9` guards 5 operations, and `POST /admin/invoices/{invoiceId}/restore`, whose router is mounted at line 16, is not among them. The case's golden records this until the fix.
 
-## BUG-046 — derive: a client named in callers by reference to the identity module gets no signature, version or deputy case
-
-- Reported: 2026-10-21, found while building the through cases across the identity module (ADR-171)
-
-`callerCases` in `internal/validate/clients.go` (and its Swift twin) resolves each client in `callers` with `d.client(name)`, which looks only at the module's own clients, so a reference such as `identity#/clients/reporting` gives nil and the client is skipped. Three cases are then never derived for it, although the identity module given in the same run holds the client: "refused with a bad signature from <client>" when its proof is `signedRequest`, the version case at the edge, and the deputy case for a service's own token, since `hasService` looks at the module's clients and at `via` references, not at `callers`.
-
-Expected: a client named in `callers` by reference resolves through the identity module given in the same run, as the roles' `through` does since ADR-171, and gets the same cases as a client of the module's own; checked alone, the module keeps a test of such a case as waiting.
-
-To repeat: give an estate whose core names `identity#/clients/<name>` in an operation's `callers`, the identity module's client being a service with `proof: { kind: signedRequest }`, and no `via` in the core; `specarch derive` on the estate lists no bad-signature and no service's-own-token case for that operation, while the same client declared in the core gets both.
-
-## BUG-047 — derive: the token cases put "a" before the token's name with no article check
-
-- Reported: 2026-10-21, found while recording the derive-caller-estate golden
-
-`tokenCases` in `internal/validate/tokens.go` and `Tokens.swift` build the given text as `"a " + name + " token ..."`, so a token named `access` reads "a access token minted for another service, whose aud does not name this one". The same pattern is used in the other token cases of both builds.
-
-Expected: "an" before a name that starts with a vowel sound, in both builds, the same text from each.
-
-To repeat: run `specarch derive` on `spec/tests/derive-caller-estate` as its `case.yaml` does. The golden `expected/core/tests/delete-invoice-refused-with-a-token-for-another-audience/test.yaml`, and the same test in `validate-caller-identity-cases` and `validate-caller-identity-case-waits`, record this until the fix; those three goldens move with it.
-
 ## BUG-048 — model (Swift): a hexadecimal integer in the document is printed as text
 
 - Reported: 2026-10-21, found while comparing the two builds' `specarch model` on every specification in `spec/tests` and `examples`

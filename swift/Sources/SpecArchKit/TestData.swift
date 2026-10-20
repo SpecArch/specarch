@@ -6,9 +6,15 @@ private func mapOf(_ n: YNode?) -> [String: YNode] {
     return m
 }
 
-/// "a" or "an" before a word.
-private func indefinite(_ word: String) -> String {
-    "aeiou".contains(word.first ?? "x") ? "an" : "a"
+/// "a" or "an" before a word, by its first sound: "an" before a vowel,
+/// except a "u" said as "you" (user, unit), which is a "u" before one
+/// consonant and a vowel.
+func indefinite(_ word: String) -> String {
+    let c = Array(word)
+    let vowel: (Character) -> Bool = { "aeiou".contains($0) }
+    guard let first = c.first, vowel(first) else { return "a" }
+    if first == "u" && c.count > 2 && !vowel(c[1]) && vowel(c[2]) { return "a" }
+    return "an"
 }
 
 /// The kind of subject a test names, and how a message names it.

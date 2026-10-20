@@ -2,7 +2,7 @@
 command: derive
 level: system
 scenario: golden
-given: "an estate of two modules: an identity module with the trust domain, the security events, the clients and a role that grants the core's delete by reference and narrows it to the administration application; and the core, which declares no roles and no security events, whose delete satisfies a requirement with a harm"
+given: "an estate of two modules: an identity module with the trust domain, the security events, the clients, among them a reporting service that signs each request and has an admitted version range, a role that grants the core's delete by reference and narrows it to the administration application, and a role that grants the core's list to the reporting service; and the core, which declares no roles, no clients and no security events, whose list names the reporting service in callers by reference and whose list and delete each satisfy a requirement with a harm"
 when: "derive is run on the estate file"
-then: "it writes the core's drafts with the case of a caller through a client the identity module's role does not list, each refusal's then naming its security event with the identifier under the identity module's trust domain, marks no problem in them, and exits 0"
+then: "it writes the core's drafts with the case of a caller through a client the identity module's role does not list, the reporting service's bad signature and version outside its range at the list, the confused deputy's cases of a service's own token and a person's token with no actor, the token cases' given saying an access token, each refusal's then naming its security event with the identifier under the identity module's trust domain, marks no problem in them, and exits 0"
 verifies: [SA-83, SA-88]

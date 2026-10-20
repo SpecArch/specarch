@@ -42,10 +42,12 @@ extension Design {
     }
 
     /// Whether any client is a service, or a client of the identity module
-    /// is named in via, which makes it one by the via rule.
+    /// is named in via, which makes it one by the via rule, or in callers
+    /// while the module given with the design says it is one.
     var hasService: Bool {
         clientList.contains { str($0.value.child("kind")) == "service" }
             || opList.contains { items($0.node.child("via")).contains { isCross($0.value) } }
+            || opList.contains { items($0.node.child("callers")).contains { str(identityClient($0.value)?.child("kind")) == "service" } }
     }
 
     /// Whether any declared token carries the claim.
@@ -80,7 +82,7 @@ extension Design {
             }
             s.red("refused for every caller not listed", occasional, "a client not listed in callers, whatever its roles grant", what, "it is refused as not allowed" + event("callers"))
             for item in callers {
-                guard let cl = client(item.value) else { continue }
+                guard let cl = callerClient(item.value) else { continue }
                 if let proof = cl.child("proof"), str(proof.child("kind")) == "signedRequest" {
                     s.red("refused with a bad signature from " + item.value, rare, item.value + " calls with a signature that does not verify over " + joinAnd(items(proof.child("covers")).map { $0.value }), what, "it is refused as not signed, and nothing changes" + event("callers"))
                 }

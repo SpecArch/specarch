@@ -397,12 +397,50 @@ extension Design {
 
     /// Whether a case a test covers is one the identity module derives
     /// while that module is not given: the through case of one of its
-    /// roles, which a run with the module checks, as a reference waits for
-    /// the specification it names (ADR-107, ADR-171).
+    /// roles, and the cases of one of its clients named in callers, which a
+    /// run with the module checks, as a reference waits for the
+    /// specification it names (ADR-107, ADR-171).
     func identityCaseWaits(_ name: String) -> Bool {
         let dep = identityDependency
         if dep.isEmpty || identity != nil { return false }
-        return name.hasPrefix("refused through a client not listed for ") && name.hasSuffix(" of " + specificationOf(dep))
+        if name.hasPrefix("refused through a client not listed for ") && name.hasSuffix(" of " + specificationOf(dep)) {
+            return true
+        }
+        // The cases of a client of the identity module named in callers: its
+        // signature, its version, and the deputy's cases once it is a service
+        // (BUG-046).
+        let signature = "refused with a bad signature from "
+        if name.hasPrefix(signature) {
+            return name.dropFirst(signature.count).hasPrefix(dep + "#")
+        }
+        let version = " at a version outside its admitted range"
+        if name.hasPrefix("refused with ") && name.hasSuffix(version) {
+            return name.dropFirst("refused with ".count).hasPrefix(dep + "#")
+        }
+        return serviceCases.contains(name) && !hasService && namesIdentityCaller
+    }
+
+    /// The client a reference names in the identity module given with the
+    /// design, <dependency>#/clients/<name>; nil when the reference names
+    /// another dependency or the module is not given (ADR-107, ADR-171).
+    func identityClient(_ text: String) -> YNode? {
+        guard let (dep, ptr) = crossRef(text), let identity, dep == identityDependency else { return nil }
+        let tokens = pointerTokens(ptr)
+        guard tokens.count == 2, tokens[0] == "clients" else { return nil }
+        return identity.design.client(tokens[1])
+    }
+
+    /// The client an entry of callers names: one of the design's own, or
+    /// one of the identity module's by reference.
+    func callerClient(_ name: String) -> YNode? {
+        isCross(name) ? identityClient(name) : client(name)
+    }
+
+    /// Whether an operation names a client of the identity module in
+    /// callers.
+    var namesIdentityCaller: Bool {
+        let dep = identityDependency
+        return opList.contains { items($0.node.child("callers")).contains { crossRef($0.value)?.dep == dep } }
     }
 
     /// The trust domain of the design, or of the identity module given with
@@ -607,3 +645,12 @@ func viaEntry(_ d: Design, _ o: Operation, _ client: String) -> String {
     let dep = d.identityDependency
     return dep.isEmpty ? client : dep + "#/clients/" + client
 }
+
+/// The confused deputy's cases, derived once a service exists (ADR-108).
+let serviceCases: Set<String> = [
+    "refused for a service's own token",
+    "refused with a req_wl that is not an edge",
+    "refused with a txn differing from the one received",
+    "refused with a scope no edge of its chain checked",
+    "refused for a person's token requested by a service with no actor",
+]

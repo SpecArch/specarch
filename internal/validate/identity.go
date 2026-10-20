@@ -46,14 +46,76 @@ func (d *design) withIdentity(given Given) *design {
 
 // identityCaseWaits says whether a case a test covers is one the identity
 // module derives while that module is not given: the through case of one
-// of its roles, which a run with the module checks, as a reference waits
-// for the specification it names (ADR-107, ADR-171).
+// of its roles, and the cases of one of its clients named in callers,
+// which a run with the module checks, as a reference waits for the
+// specification it names (ADR-107, ADR-171).
 func (d *design) identityCaseWaits(name string) bool {
 	dep := d.identityDependency()
 	if dep == "" || d.identity != nil {
 		return false
 	}
-	return strings.HasPrefix(name, "refused through a client not listed for ") && strings.HasSuffix(name, " of "+d.specificationOf(dep))
+	if strings.HasPrefix(name, "refused through a client not listed for ") && strings.HasSuffix(name, " of "+d.specificationOf(dep)) {
+		return true
+	}
+	// The cases of a client of the identity module named in callers: its
+	// signature, its version, and the deputy's cases once it is a service
+	// (BUG-046).
+	if ref, ok := strings.CutPrefix(name, "refused with a bad signature from "); ok {
+		return strings.HasPrefix(ref, dep+"#")
+	}
+	if ref, ok := strings.CutSuffix(strings.TrimPrefix(name, "refused with "), " at a version outside its admitted range"); ok && strings.HasPrefix(name, "refused with ") {
+		return strings.HasPrefix(ref, dep+"#")
+	}
+	return serviceCases[name] && !d.hasService() && d.namesIdentityCaller()
+}
+
+// serviceCases are the confused deputy's cases, derived once a service
+// exists (ADR-108).
+var serviceCases = map[string]bool{
+	"refused for a service's own token":                                 true,
+	"refused with a req_wl that is not an edge":                         true,
+	"refused with a txn differing from the one received":                true,
+	"refused with a scope no edge of its chain checked":                 true,
+	"refused for a person's token requested by a service with no actor": true,
+}
+
+// identityClient is the client a reference names in the identity module
+// given with the design, <dependency>#/clients/<name>; nil when the
+// reference names another dependency or the module is not given (ADR-107,
+// ADR-171).
+func (d *design) identityClient(text string) *yaml.Node {
+	dep, ptr, ok := crossRef(text)
+	if !ok || d.identity == nil || dep != d.identityDependency() {
+		return nil
+	}
+	tokens := pointerTokens(ptr)
+	if len(tokens) != 2 || tokens[0] != "clients" {
+		return nil
+	}
+	return d.identity.design.client(tokens[1])
+}
+
+// callerClient is the client an entry of callers names: one of the
+// design's own, or one of the identity module's by reference.
+func (d *design) callerClient(name string) *yaml.Node {
+	if isCross(name) {
+		return d.identityClient(name)
+	}
+	return d.client(name)
+}
+
+// namesIdentityCaller reports whether an operation names a client of the
+// identity module in callers.
+func (d *design) namesIdentityCaller() bool {
+	dep := d.identityDependency()
+	for _, o := range d.opList {
+		for _, c := range source.Items(source.Child(o.node, "callers")) {
+			if from, _, ok := crossRef(c.Value); ok && from == dep {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 // trustDomain is the trust domain of the design, or of the identity

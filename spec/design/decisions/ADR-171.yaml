@@ -24,6 +24,12 @@ decisions:
       <dependency>#/permissions/<name>, derives at each route or command
       that permission guards the case refused through a client not listed
       for <role> of <identity module>, as a role of the module's own does.
+      A client of the identity module named in callers by reference,
+      <dependency>#/clients/<name>, resolves there and gets the cases a
+      client of the module's own gets: the bad signature when its proof
+      is signedRequest, the version outside its admitted range at the
+      edge, and, when it is a service, the confused deputy's cases
+      (ADR-108).
       A refusal's then names its security event when the module or the
       identity module declares securityEvents, and the event's identifier,
       the trust domain with /events/<rule> after it, when the module or
@@ -33,8 +39,10 @@ decisions:
       validate, derive, the documents' cases left out and the problems
       target read the cases so; validate does in both builds. A module checked alone,
       without the identity module, accepts a test that covers a through
-      case of a role of the identity module named so, as waiting for that
-      module, as a reference into it waits.
+      case of a role of the identity module named so, the bad signature or
+      the version of one of its clients named in callers, or the confused
+      deputy's case while only such a client could be the service, as
+      waiting for that module, as a reference into it waits.
     consequences: |
       derive over an estate, or over the folders of a module and its
       identity module, writes the through cases of the identity module's

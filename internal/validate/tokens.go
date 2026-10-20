@@ -433,25 +433,25 @@ func (d *design) tokenCases(s *subject, o operation, perm, call string) {
 		s.red("denied with expired "+name, frequent, "a caller whose "+name+" token has expired after "+source.Str(source.Child(tok, "lifetime")), call, "it is refused as not signed in"+d.event("token"))
 	}
 	for _, ch := range source.Pairs(source.Child(tok, "checks")) {
-		s.red(ch.Key.Value+" fails on "+name, occasional, "a "+name+" token for which "+source.Str(source.Child(ch.Value, "expression"))+" does not hold", call, "it is refused: "+source.Str(source.Child(ch.Value, "message"))+d.event("token"))
+		s.red(ch.Key.Value+" fails on "+name, occasional, indefinite(name)+" "+name+" token for which "+source.Str(source.Child(ch.Value, "expression"))+" does not hold", call, "it is refused: "+source.Str(source.Child(ch.Value, "message"))+d.event("token"))
 	}
 	if source.Child(claims, "act") != nil {
-		s.red("refused when the actor is the subject", rare, "a "+name+" token whose act names its own sub", call, "it is refused as not allowed: a client may not act for itself (RFC 8693)"+d.event("deputy"))
+		s.red("refused when the actor is the subject", rare, indefinite(name)+" "+name+" token whose act names its own sub", call, "it is refused as not allowed: a client may not act for itself (RFC 8693)"+d.event("deputy"))
 	}
 	txn := tokenType(tok) == "txn_token"
 	if !txn {
-		s.red("refused with a token for another audience", occasional, "a "+name+" token minted for another service, whose aud does not name this one", call, "it is refused as not allowed"+d.event("token_audience"))
+		s.red("refused with a token for another audience", occasional, indefinite(name)+" "+name+" token minted for another service, whose aud does not name this one", call, "it is refused as not allowed"+d.event("token_audience"))
 	}
 	if source.Child(o.node, "via") != nil {
 		s.red("refused with a caller not listed in via", rare, "the edge calling this operation directly with the transaction token, a caller via does not list", call, "it is refused as not allowed"+d.event("via"))
 	}
 	if d.hasService() && d.admitsPeople(o.node) {
 		if txn {
-			s.red("refused with a req_wl that is not an edge", rare, "a "+name+" token whose req_wl names a later hop, which requested a transaction of its own", call, "it is refused as not allowed"+d.event("deputy"))
-			s.red("refused with a txn differing from the one received", rare, "a "+name+" token whose txn is not the one the hop received, minted anew instead of passed on unmodified", call, "it is refused as not allowed"+d.event("deputy"))
-			s.red("refused with a scope no edge of its chain checked", rare, "a "+name+" token whose scope is not the permission of an edge operation whose chain reaches this one, a transaction minted for another purpose", call, "it is refused as not allowed"+d.event("deputy"))
+			s.red("refused with a req_wl that is not an edge", rare, indefinite(name)+" "+name+" token whose req_wl names a later hop, which requested a transaction of its own", call, "it is refused as not allowed"+d.event("deputy"))
+			s.red("refused with a txn differing from the one received", rare, indefinite(name)+" "+name+" token whose txn is not the one the hop received, minted anew instead of passed on unmodified", call, "it is refused as not allowed"+d.event("deputy"))
+			s.red("refused with a scope no edge of its chain checked", rare, indefinite(name)+" "+name+" token whose scope is not the permission of an edge operation whose chain reaches this one, a transaction minted for another purpose", call, "it is refused as not allowed"+d.event("deputy"))
 		} else {
-			s.red("refused for a person's token requested by a service with no actor", rare, "a "+name+" token whose client_id names a service and which declares no act, impersonation rather than delegation (RFC 8693, section 1.1)", call, "it is refused as not allowed"+d.event("deputy"))
+			s.red("refused for a person's token requested by a service with no actor", rare, indefinite(name)+" "+name+" token whose client_id names a service and which declares no act, impersonation rather than delegation (RFC 8693, section 1.1)", call, "it is refused as not allowed"+d.event("deputy"))
 		}
 	}
 }

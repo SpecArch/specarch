@@ -9,12 +9,24 @@ clients:
   member-app:
     description: The application on a member's phone.
     kind: application
+  reporting:
+    description: The reporting service, which reads invoices on its own account every night and signs each request.
+    kind: service
+    roles: [invoice-reader]
+    softwareVersion: ">=2.0.0 <3.0.0"
+    proof:
+      kind: signedRequest
+      algorithm: hmac-sha256
+      covers: ["@method", "@path", content-digest, date]
 roles:
   invoice-manager:
     description: Staff who manage invoices, who may delete them only from the administration application.
     permissions: [core#/permissions/invoices.read, core#/permissions/invoices.delete]
     through:
       core#/permissions/invoices.delete: [admin-web]
+  invoice-reader:
+    description: What the reporting service reads on its own account.
+    permissions: [core#/permissions/invoices.read]
 permissions:
   public: { description: Open to everyone. }
 dependencies:
@@ -34,6 +46,7 @@ tokens:
       sub: { description: The person's identifier. }
       aud: { const: "https://identity.estate.example.org" }
       client_id: { description: The application the person signed in through. }
+      softwareVersion: { type: string, maxLength: 20, description: "The client's version, as the issuer registered it." }
     default: true
 paths:
   /status:

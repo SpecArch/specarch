@@ -624,3 +624,31 @@ Expected: the next expand migration sets the column's default to the new express
 To repeat: run `generate sql` on the project of `generate-sql-generated-default-mariadb` with that case's expected `0001_expand.sql` and `snapshot.yaml` turned back to 1.4.0 (`DEFAULT CURRENT_TIMESTAMP`, `typeRendering: 1.4.0`) in its output folder: it wrote only `snapshot.yaml`.
 
 Fix: when the snapshot is of a type-rendering version before 1.4.1 and the dialect is MariaDB, each field still holding `generatedDefault: currentTime` gets `ALTER TABLE ... ALTER COLUMN ... SET DEFAULT (DATE_FORMAT(...))` in the next expand migration, and a warning at the field, marked above the statement, says the rows written before keep the engine's own form, in the session's time zone, and are converted in a migration a person writes. The case `generate-sql-generated-default-mariadb-upgrade` pins it; ADR-167 gives the reason. Tried on MariaDB 11.4.4: a row inserted before the step kept `2026-10-20 21:19:07`, one inserted after it filled `2026-10-20T21:19:08.005756000Z`.
+
+## BUG-046 — derive: a client named in callers by reference to the identity module gets no signature, version or deputy case
+
+- Reported: 2026-10-21, found while building the through cases across the identity module (ADR-171)
+- Closed: 2026-10-21, completed
+- Fixed by: the commit on `main` whose message says `Fixes BUG-046`
+
+`callerCases` in `internal/validate/clients.go` (and its Swift twin) resolves each client in `callers` with `d.client(name)`, which looks only at the module's own clients, so a reference such as `identity#/clients/reporting` gives nil and the client is skipped. Three cases are then never derived for it, although the identity module given in the same run holds the client: "refused with a bad signature from <client>" when its proof is `signedRequest`, the version case at the edge, and the deputy case for a service's own token, since `hasService` looks at the module's clients and at `via` references, not at `callers`.
+
+Expected: a client named in `callers` by reference resolves through the identity module given in the same run, as the roles' `through` does since ADR-171, and gets the same cases as a client of the module's own; checked alone, the module keeps a test of such a case as waiting.
+
+To repeat: give an estate whose core names `identity#/clients/<name>` in an operation's `callers`, the identity module's client being a service with `proof: { kind: signedRequest }`, and no `via` in the core; `specarch derive` on the estate lists no bad-signature and no service's-own-token case for that operation, while the same client declared in the core gets both.
+
+Fix: `callerCases` resolves each entry of `callers` through the identity module given in the same run when it is a reference, `<dependency>#/clients/<name>`, so such a client gets the bad-signature case, the version case at the edge, and, when the identity module says it is a service, `hasService` holds and the deputy's cases follow. Checked alone, the module keeps a test of those cases as waiting for the identity module. Both builds; ADR-171 says it. The cases `derive-caller-estate`, `validate-caller-identity-cases` and `validate-caller-identity-case-waits` give the core a list operation whose `callers` names `identity#/clients/reporting`, a service that signs each request and has an admitted version range.
+
+## BUG-047 — derive: the token cases put "a" before the token's name with no article check
+
+- Reported: 2026-10-21, found while recording the derive-caller-estate golden
+- Closed: 2026-10-21, completed
+- Fixed by: the commit on `main` whose message says `Fixes BUG-047`
+
+`tokenCases` in `internal/validate/tokens.go` and `Tokens.swift` build the given text as `"a " + name + " token ..."`, so a token named `access` reads "a access token minted for another service, whose aud does not name this one". The same pattern is used in the other token cases of both builds.
+
+Expected: "an" before a name that starts with a vowel sound, in both builds, the same text from each.
+
+To repeat: run `specarch derive` on `spec/tests/derive-caller-estate` as its `case.yaml` does. The golden `expected/core/tests/delete-invoice-refused-with-a-token-for-another-audience/test.yaml`, and the same test in `validate-caller-identity-cases` and `validate-caller-identity-case-waits`, record this until the fix; those three goldens move with it.
+
+Fix: the token cases put `indefinite(name)` before the token's name in both builds: "an" before a vowel, "a" before a consonant and before a "u" said as "you" ("a user token"). The three goldens now say "an access token minted for another service".

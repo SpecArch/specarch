@@ -61,7 +61,8 @@ func (d *design) clientHolds(client *yaml.Node) map[string]bool {
 	return out
 }
 
-// hasService reports whether any client is a service.
+// hasService reports whether any client is a service, the design's own
+// or one of the identity module's it names.
 func (d *design) hasService() bool {
 	for _, c := range d.clients() {
 		if source.Str(source.Child(c.Value, "kind")) == "service" {
@@ -69,10 +70,16 @@ func (d *design) hasService() bool {
 		}
 	}
 	// A client of the identity module named in via is a service, by the
-	// via rule.
+	// via rule; one named in callers is when the module given with the
+	// design says so.
 	for _, o := range d.opList {
 		for _, v := range source.Items(source.Child(o.node, "via")) {
 			if isCross(v.Value) {
+				return true
+			}
+		}
+		for _, c := range source.Items(source.Child(o.node, "callers")) {
+			if source.Str(source.Child(d.identityClient(c.Value), "kind")) == "service" {
 				return true
 			}
 		}
@@ -319,7 +326,7 @@ func (d *design) callerCases(s *subject, n *yaml.Node, perm, what string, atEdge
 		}
 		s.red("refused for every caller not listed", occasional, "a client not listed in callers, whatever its roles grant", what, "it is refused as not allowed"+d.event("callers"))
 		for _, item := range callers {
-			cl := d.client(item.Value)
+			cl := d.callerClient(item.Value)
 			if cl == nil {
 				continue
 			}

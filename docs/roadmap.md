@@ -22,7 +22,7 @@ latest.
 | 0.6.1 to 0.6.4, 2026-10-14 | the plans for the estate and for meta-model 0.3; the first estate points (a dump committed outside the code's repository, role names on the wire); a request body decoded into a struct in `extract go`; fixes to `merge` and the readers |
 | 0.7.0, 2026-10-19 | the estate (`specarch-estate.yaml`, references between specifications, the module map); `specarch check`; `specarch facts`; `specarch-gen-sqlc`; indexes in `generate sql`; `implies`, `audience`, `middlewares`, the workflow table, documents in another language; the `handover` document |
 | 0.7.1, 2026-10-20 | the techspec's parameters, request body and responses per operation; `extract go` reading a dxlib handler's decoded body and JSON answers where the registration declares none (ADR-140); every operation's handler followed into the code, recorded with its source and drawn as a flowchart (ADR-144); the designs of the diagram keywords (`docs/diagrams.md`) and of the gateway (`docs/gateway.md`), proposed; dxlib's encrypted API type as a handshake an operation names and large files as a stream it declares (ADR-145, ADR-146), read by `extract go`, served by the dxlib dialect and the go-dxlib target with a Go client, and shown in the techspec; this roadmap matched to the code |
-| 0.7.2, open | `specarch-gen-ui-swiftui`, the screens for the iPhone in SwiftUI (ADR-147), with `generate` finding a plug-in by the target's framework before the file's language, and the pages read once for both UI generators that write a page as data (`internal/genscreens`); the diagram keywords (ADR-133 to ADR-139): `specarch model`, the context, component, deployment and network diagrams with their markers, the rules `channel`, `depends_on`, `server`, `link` and `link_missing`, and lanes and ids in the BPMN output; caller context (ADR-106 to ADR-111, ADR-159): the identity module and the references into it, the chain by induction through `calls`, one audience per module, the scope case, the identity module's matrix and the chains in the techspec, and the readers of the client, application, caller and audience checks and of a grant's `client` and `through` |
+| 0.7.2, open | `specarch-gen-ui-swiftui`, the screens for the iPhone in SwiftUI (ADR-147), with `generate` finding a plug-in by the target's framework before the file's language, and the pages read once for both UI generators that write a page as data (`internal/genscreens`); the diagram keywords (ADR-133 to ADR-139): `specarch model`, the context, component, deployment and network diagrams with their markers, the rules `channel`, `depends_on`, `server`, `link` and `link_missing`, and lanes and ids in the BPMN output; caller context (ADR-106 to ADR-111, ADR-159): the identity module and the references into it, the chain by induction through `calls`, one audience per module, the scope case, the identity module's matrix and the chains in the techspec, and the readers of the client, application, caller and audience checks and of a grant's `client` and `through`; the user manual and the operations guide, with `remedy` on a problem type and `response` on a monitor (ADR-160) |
 
 ## 1. Validator CLI
 
@@ -77,8 +77,7 @@ program. Built: techspec, requirements, test plan, traceability, deployment
 guide and commissioning procedure (0.1.0), questions (0.2.0), changes and
 releases (0.3.0), problems and the HTML site (0.6.0), and the handover
 (0.7.0); `document --audience external` leaves out the internal elements
-(0.7.0). Not built: the manual and the operations guide, which wait for the
-specification to hold the task-by-task and operational content they need.
+(0.7.0); the user manual and the operations guide (0.7.2, ADR-160).
 Code is `specarch generate <target> <folders>`, each
 target a plug-in `specarch-gen-<target>` found on PATH (`docs/generators.md`
 has the protocol). Every target writes into a folder it owns. It reads the
@@ -192,11 +191,19 @@ implementation file uses and compares an override with the shipped idiom.
    came in 0.5.0), `specarch-gen-tests-swift` and
    `specarch-gen-tests-dart` (0.5.0, `spec/tests/generate-tests-swift`,
    `spec/tests/generate-tests-dart`).
-7. Not built: the user manual, the operations guide and other project
-   documents. Pages and permissions give the manual its structure;
-   endpoints, channels and deployment notes give the operations guide its
-   checklist. The handover document (0.7.0) says what a customer who runs
-   the system receives.
+7. Built, 0.7.2: the user manual and the operations guide (ADR-160).
+   The manual is written from the flows, menus, pages, roles and problem
+   types, with a problem type's `remedy` saying what the person does
+   next; the operations guide from the environments and deployments,
+   monitors with their `response`, jobs, channels, dependencies,
+   endpoints, settings and the backup, restore and rollback steps. Both
+   are written for any specification that names their folder, an empty
+   section said in one sentence naming its key (`spec/tests/document-writes-manual`,
+   `document-manual-none`, `document-writes-operations`,
+   `document-operations-none`). Not built: a command-line tool's commands
+   in the manual, the handling of a dead-letter item in the operations
+   guide, and other project documents. The handover document (0.7.0) says
+   what a customer who runs the system receives.
 8. Partly built: guarded operational scripts for data changes on live
    systems: preconditions, dry run by default, postconditions with exact
    counts, idempotent. Built, 0.3.0: the `guard` on an operation or a

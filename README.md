@@ -335,12 +335,11 @@ answers with. `docs/generators.md` has the protocol.
 Version 0.3 of the meta-model, October 2026; a file written against 0.2
 or 0.1 is read until 1.0, a 0.1 file with its missing tests as warnings. Release 0.7.1 is the
 latest. The schemas, the tree layout and the seven stages, SpecArch's own
-specification, six examples, the validator in Go and in Swift, twelve
+specification, six examples, the validator in Go and in Swift, fourteen
 documents, open questions with the gaps report, the approval gate on
 generation, the extract readers with `merge`, `check`, `diff`, `derive`
-and the eleven code targets exist; the manual, the operations guide,
-forms and views in plain JavaScript, the guarded scripts and
-meta-model 0.3 are on the roadmap (`docs/roadmap.md`, which says where
+and the eleven code targets exist; forms and views in plain
+JavaScript, the guarded scripts and meta-model 0.3 are on the roadmap (`docs/roadmap.md`, which says where
 each entry stands). The meta-model will change: the first real
 projects written in SpecArch are expected to find concepts it cannot
 express, and those gaps define the next version.

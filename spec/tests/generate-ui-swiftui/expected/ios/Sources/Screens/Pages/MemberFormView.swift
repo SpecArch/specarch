@@ -13,7 +13,7 @@ public struct MemberFormView: View {
 
     public var body: some View {
         Guard(permission: memberFormSchema.permission, route: .memberForm) {
-            FormPage(schema: memberFormSchema, parameters: [:], hooks: MemberFormHooks.hooks, routes: [
+            FormPage(schema: memberFormSchema, parameters: [:], hooks: ["joinedOn": MemberFormHooks.joinedOn], routes: [
                 "member-view": { parameters in .memberView(memberId: parameters["memberId"] ?? "") }
             ])
         }

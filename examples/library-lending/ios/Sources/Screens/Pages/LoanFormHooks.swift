@@ -4,7 +4,5 @@ import Foundation
 /// names under hooks: a copy is lent today, by the device's own calendar,
 /// unless the desk records an earlier day.
 enum LoanFormHooks {
-    static let hooks: [String: FieldHook] = [
-        "lentOn": { _ in Date().formatted(.iso8601.year().month().day()) },
-    ]
+    static let lentOn: FieldHook = { _ in Date().formatted(.iso8601.year().month().day()) }
 }

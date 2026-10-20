@@ -9,7 +9,7 @@ public struct LoanFormView: View {
 
     public var body: some View {
         Guard(permission: loanFormSchema.permission, route: .loanForm) {
-            FormPage(schema: loanFormSchema, parameters: [:], hooks: LoanFormHooks.hooks, routes: [
+            FormPage(schema: loanFormSchema, parameters: [:], hooks: ["lentOn": LoanFormHooks.lentOn], routes: [
                 "member-view": { parameters in .memberView(memberId: parameters["memberId"] ?? "") }
             ])
         }

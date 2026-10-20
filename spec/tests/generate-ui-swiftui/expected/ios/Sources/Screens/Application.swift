@@ -19,6 +19,7 @@ public enum Application {
             title: "menu.people.title",
             items: [
                 .init(title: "menu.people.items.all", route: .membersList, permission: "members.read"),
+                .init(title: "menu.people.items.branches", route: .branchList, permission: "members.read"),
                 .init(title: "menu.people.items.invite", route: .invitation, permission: "public"),
                 .init(title: "menu.people.items.removals", route: .removalsInbox, permission: "members.approve")
             ]

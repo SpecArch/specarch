@@ -68,9 +68,9 @@ arrays the web evaluates. The compiler checks the literal against the
 component's type, which is Swift's `satisfies`. `Pages/<Page>View.swift`
 is the view: it reads the route's parameters, hands the schema and its
 texts to the component behind the guard, and gives it the routes its
-events lead to. A form whose fields take hooks reads them from
-`<Page>Hooks`, a type the project writes beside the page, so a missing
-hook fails the build, as a missing `page.hooks.ts` fails `tsc`.
+events lead to. A form whose fields take hooks reads each from
+a static member of `<Page>Hooks` named as the field, a type the project
+writes beside the page, so a missing hook fails the build, as a missing `page.hooks.ts` fails `tsc`.
 
 **Navigation.** Pages are an enum, `Route`, one case per page written,
 with the route's parameters as associated values, and `Routes.swift`

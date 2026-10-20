@@ -141,8 +141,11 @@ func Generate(r *Request) genui.Response {
 			pageOf[tests+pascal+"Tests.swift"] = p.Name
 		}
 	}
+	// The menu adds the routes of the pages only it reaches, so the
+	// application is written before the routes.
+	application := g.applicationFile(sess, groups)
 	add(sources+"Routes.swift", g.routesFile())
-	add(sources+"Application.swift", g.applicationFile(sess, groups))
+	add(sources+"Application.swift", application)
 	if len(permissions) > 0 {
 		add(tests+"MenuTests.swift", g.menuTest())
 	}
@@ -247,7 +250,13 @@ func (g *gen) componentCall(p *genscreens.Page, component, schema string, params
 		}
 	}
 	if len(p.Hooks) > 0 {
-		args = append(args, "hooks: "+pascalCase(p.Name)+"Hooks.hooks")
+		// One member per hooked field, so a hook the project has not
+		// written is a compile error, not a field that starts empty.
+		var hs []string
+		for _, f := range p.Hooks {
+			hs = append(hs, quote(f)+": "+pascalCase(p.Name)+"Hooks."+camelCase(f))
+		}
+		args = append(args, "hooks: ["+strings.Join(hs, ", ")+"]")
 	}
 	targets := sortedKeys(anyMap(p.Routes))
 	if len(targets) == 0 {

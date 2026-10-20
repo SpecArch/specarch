@@ -96,6 +96,7 @@ public struct ListPage: View {
         .searchable(text: $search, prompt: say(texts, "screens.search"))
         .refreshable { reload += 1 }
         .navigationTitle(say(texts, schema.title))
+        .sortable(by: schema.columns.filter(\.sortable), sort: $sort, texts: texts, page: $page)
         .toolbar {
             ToolbarItem {
                 Menu(say(texts, "screens.actions")) {
@@ -104,12 +105,14 @@ public struct ListPage: View {
                             Button(say(texts, action.label)) { router.go(to: make([:])) }
                         }
                     }
-                    ForEach(schema.columns, id: \.field) { column in
-                        Toggle(say(texts, column.title), isOn: Binding(get: { shown.contains(column.field) }, set: { on in
-                            if on { shown.insert(column.field) } else { shown.remove(column.field) }
-                        }))
+                    Menu(say(texts, "screens.columns")) {
+                        ForEach(schema.columns, id: \.field) { column in
+                            Toggle(say(texts, column.title), isOn: Binding(get: { shown.contains(column.field) }, set: { on in
+                                if on { shown.insert(column.field) } else { shown.remove(column.field) }
+                            }))
+                        }
                     }
-                    Picker(say(texts, "screens.columns"), selection: $pageSize) {
+                    Picker(say(texts, "screens.pageSize"), selection: $pageSize) {
                         ForEach(schema.pageSizes, id: \.self) { size in
                             Text(String(size)).tag(size)
                         }
@@ -171,7 +174,6 @@ public struct ListPage: View {
                 actionButton(action, row, texts)
             }
         }
-        .sortable(by: schema.columns.filter(\.sortable), sort: $sort, texts: texts, page: $page)
     }
 
     @ViewBuilder private func actionButton(_ action: RowActionSchema, _ row: Fields, _ texts: Texts) -> some View {
@@ -254,7 +256,7 @@ private struct Sortable: ViewModifier {
         content.toolbar {
             if !columns.isEmpty {
                 ToolbarItem {
-                    Menu(say(texts, "screens.columns") + " ↕") {
+                    Menu(say(texts, "screens.sort") + " ↕") {
                         ForEach(columns, id: \.field) { column in
                             Button(say(texts, column.title) + (sort?.field == column.field ? (sort?.descending == true ? " ↓" : " ↑") : "")) {
                                 if sort?.field != column.field {

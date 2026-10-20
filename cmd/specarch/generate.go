@@ -18,6 +18,7 @@ import (
 
 	"github.com/SpecArch/specarch/internal/approval"
 	"github.com/SpecArch/specarch/internal/generate"
+	"github.com/SpecArch/specarch/internal/genscreens"
 	"github.com/SpecArch/specarch/internal/literal"
 	"github.com/SpecArch/specarch/internal/mark"
 	"github.com/SpecArch/specarch/internal/problems"
@@ -387,12 +388,8 @@ func frameworkName(impl *yaml.Node, target string) string {
 	if f := strings.TrimSpace(source.Str(source.Child(t, "framework"))); f != "" {
 		return strings.ToLower(f)
 	}
-	return defaultFramework[strings.TrimSpace(source.Str(source.Child(t, "platform")))]
+	return genscreens.DefaultFramework[strings.TrimSpace(source.Str(source.Child(t, "platform")))]
 }
-
-// defaultFramework is a ui target's framework when it names none, by its
-// platform, as the implementation schema's defaults give it.
-var defaultFramework = map[string]string{"web": "plain-javascript", "iphone": "swiftui"}
 
 // pluginProblems are the warnings and open questions of a specification in
 // the order of its problems file, each with the pointer a mark is placed by.

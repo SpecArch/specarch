@@ -7,6 +7,6 @@ standardOutput: |
   project/specarch.yaml:1:1: warning: /: generator: strings.en-GB.json has an entry for branch-list.filteredEmpty, which no screen uses; it is left out [generator.2f82b74e@specarch.yaml#/]
   project/specarch.yaml:1:1: warning: /: generator: strings.en-GB.json has an entry for branch-list.title, which no screen uses; it is left out [generator.923f70ac@specarch.yaml#/]
   project/specarch.yaml:1:1: warning: /: generator: strings.en-GB.json has an entry for members-list.retired, which no screen uses; it is left out [generator.8db6760a@specarch.yaml#/]
-  project/specarch.yaml:541:5: warning: /theme/modes/print: generator: the mode print is not a colour scheme the system asks for, and specarch-gen-ui-swiftui writes the dark mode only; it is left out [generator@specarch.yaml#/theme/modes/print]
+  project/specarch.yaml:542:5: warning: /theme/modes/print: generator: the mode print is not a colour scheme the system asks for, and specarch-gen-ui-swiftui writes the dark mode only; it is left out [generator@specarch.yaml#/theme/modes/print]
   project/specarch.yaml:1:1: warning: /: generator: the ui target's settings.tokens gives space a token, and no token of the design-tokens idiom takes space on swiftui, whose own spacing and type scale apply; it is left out [generator.24213ab5@specarch.yaml#/]
 plugins: [ui-swiftui]

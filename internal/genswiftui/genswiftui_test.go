@@ -21,7 +21,8 @@ func TestScreenStringsCoverComponents(t *testing.T) {
 			return err
 		}
 		for _, m := range key.FindAllStringSubmatch(string(data), -1) {
-			if _, ok := genscreens.ScreenStrings[m[1]]; !ok {
+			_, shared := genscreens.ScreenStrings[m[1]]
+			if _, own := swiftStrings[m[1]]; !shared && !own {
 				t.Errorf("%s names %s, which the screens' strings do not hold", path, m[1])
 			}
 		}

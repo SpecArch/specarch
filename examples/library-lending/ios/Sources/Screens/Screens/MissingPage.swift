@@ -6,12 +6,13 @@ import SwiftUI
 /// one another stakeholder writes, or one this version does not write.
 public struct MissingPage: View {
     let name: String
+    @AppStorage(Strings.languageKey) private var language = Strings.languages[0]
 
     public init(name: String) {
         self.name = name
     }
 
     public var body: some View {
-        Text("The page \(name) is not part of this package.").foregroundStyle(.secondary).padding()
+        Text(say(Strings.texts(language), "screens.missingPage").replacingOccurrences(of: "{name}", with: name)).foregroundStyle(.secondary).padding()
     }
 }

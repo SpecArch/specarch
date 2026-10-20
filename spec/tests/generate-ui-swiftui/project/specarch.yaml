@@ -517,6 +517,7 @@ menus:
       all: { title: All members, page: members-list }
       invite: { title: Invite someone, page: invitation }
       removals: { title: Removals to approve, page: removals-inbox }
+      branches: { title: Branches, page: branch-list }
   admin:
     title: Administration
     items:

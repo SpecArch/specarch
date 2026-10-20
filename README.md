@@ -225,8 +225,12 @@ diagram, and the diagram as SVG. Install them at the same tag as
     go install github.com/SpecArch/specarch/cmd/specarch-gen-go-dxlib@v0.7.1
     go install github.com/SpecArch/specarch/cmd/specarch-gen-ui@v0.7.1
     go install github.com/SpecArch/specarch/cmd/specarch-gen-ui-typescript@v0.7.1
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-ui-swiftui@v0.7.1
     go install github.com/SpecArch/specarch/cmd/specarch-gen-bpmn@v0.7.1
+
+The SwiftUI plug-in is part of 0.7.2, which is not tagged yet, so it is
+built from main:
+
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-ui-swiftui@main
 
 The Swift build, for macOS, has the validate and version verbs and gives
 the same output. With Swift 6:

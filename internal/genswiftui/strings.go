@@ -9,12 +9,23 @@ import (
 	"github.com/SpecArch/specarch/internal/genui"
 )
 
+// swiftStrings are the texts only the SwiftUI screens show, beside the
+// screens' own texts both generators share; a translation gives each too.
+var swiftStrings = map[string]string{
+	"screens.pageSize":    "Rows per page",
+	"screens.sort":        "Sort",
+	"screens.missingPage": "The page {name} is not part of this package.",
+}
+
 // stringsFile is Strings.swift: every text the written pages and the
 // screens show, by key, in the target's language and in each translation,
 // and the key the language a person chose is kept under.
 func (g *gen) stringsFile(existing []genui.File) (string, bool) {
 	all := map[string]string{}
 	for k, v := range genscreens.ScreenStrings {
+		all[k] = v
+	}
+	for k, v := range swiftStrings {
 		all[k] = v
 	}
 	for k, v := range g.Strings {

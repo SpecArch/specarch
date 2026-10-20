@@ -10100,8 +10100,9 @@ parts:
           refusal shows under the field it names or above the form, and a
           success leads where onSubmitted says. A field the settings name
           under hooks starts with the value of the hook of its name, which
-          the page's view reads from <Page>Hooks beside it, a type the
-          project writes, so a missing hook fails the build.
+          the page's view reads from the member of its name of
+          <Page>Hooks beside it, a type the project writes, so a missing
+          hook fails the build.
 
           Child rows follow the sections, each set in a Section under its
           title: the loaded rows read-only, and the rows added on the form

@@ -53,8 +53,9 @@ decisions:
       Swift Testing. The page sign-in was asked for from is kept by the
       router, not a query, so returnTo is a route; a message crosses a
       navigation in the router too. A form's hooks are read from
-      <Page>Hooks, a type the project writes beside the page, so a missing
-      hook fails the build. The language chosen is kept under a key in
+      <Page>Hooks, a type the project writes beside the page, one static
+      member per field named as the field, so a missing hook fails the
+      build. The language chosen is kept under a key in
       the app's defaults. The server routes of settings.server are refused
       for swiftui, since an app calls the service directly, and a schema
       built by hand is compared byte for byte, the object-literal

@@ -2,6 +2,7 @@ package extract
 
 import (
 	"fmt"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -161,6 +162,9 @@ func (w *gateWriter) route(label, at string, uses []checkUse) (callers, via []st
 			b.at = append(b.at, block)
 		}
 		b.labels = append(b.labels, label)
+		if !slices.ContainsFunc(b.uses, func(u checkUse) bool { return u.clause == c.clause }) {
+			b.uses = append(b.uses, c)
+		}
 		for _, n := range c.names {
 			if !contains(b.names, n) {
 				b.names = append(b.names, n)
@@ -304,7 +308,7 @@ func (w *gateWriter) writeGated(checkedBy map[string][]string) {
 			h.say("gate: %s names %s.%s as a client check, and it guards %s, whose callers are the clients it names", h.file, c.pkg, c.function, guards)
 			h.question("must", fmt.Sprintf("The check %s admits only the %s %s, written as the callers of %s. Declare each under clients with its kind, the roles that grant the permissions it calls with and its proof, here or in the identity module. Do people call any of them?", c.name(), pluralWord(len(b.names), "client"), joinAnd(b.names), guards),
 				b.at, "The code names the clients and not what each is: its kind, its roles and its proof are the registration's, never in syntax. callers names who may call one by one (ADR-110).",
-				h.at(b.clause, fmt.Sprintf("Calls %s with %s, which the implementation file names as a client check.", c.function, joinAnd(goQuoted(b.names)))))
+				w.namedCites(b, "a client check")...)
 		case c.gate == "client":
 			h.say("gate: %s names %s.%s as a client check, and it guards %s", h.file, c.pkg, c.function, guards)
 			h.question("must", fmt.Sprintf("The check %s admits only a client, a caller on its own account rather than a person's, and it guards %s. Which clients call each of them, and do people call any?", c.name(), guards),
@@ -319,7 +323,7 @@ func (w *gateWriter) writeGated(checkedBy map[string][]string) {
 			h.say("gate: %s names %s.%s as a caller check, and it guards %s, whose via are the services it names", h.file, c.pkg, c.function, guards)
 			h.question("must", fmt.Sprintf("The check %s admits only the %s %s as the immediate caller on a person's behalf, written as the via of %s. Declare each as a client of kind service with its workload-identity proof, mutualTls, spiffe or wimse, here or in the identity module, and the transaction token the operations accept with it.", c.name(), pluralWord(len(b.names), "service"), joinAnd(b.names), guards),
 				b.at, "The code names the services and not how each proves itself, which is the deployment's; via names the immediate callers one by one, each with a workload-identity proof, and needs the transaction token it is checked with (ADR-111).",
-				h.at(b.clause, fmt.Sprintf("Calls %s with %s, which the implementation file names as a caller check.", c.function, joinAnd(goQuoted(b.names)))))
+				w.namedCites(b, "a caller check")...)
 		case c.gate == "caller":
 			h.say("gate: %s names %s.%s as a caller check, and it guards %s", h.file, c.pkg, c.function, guards)
 			h.question("must", fmt.Sprintf("The check %s compares the immediate caller's workload identity with the services %s gives, and it guards %s. Which services call each of them on a person's behalf: its via?", c.name(), gateSource(b.setting), guards),
@@ -359,6 +363,17 @@ func (w *gateWriter) writeGated(checkedBy map[string][]string) {
 			h.say("gate: %s names %s.%s as an event writer, and it guards %s; every security event is derived from the refusal that writes it, so the reader writes nothing from it", h.file, c.pkg, c.function, guards)
 		}
 	}
+}
+
+// namedCites cites each call of a gate that names as literals at its own
+// clause, with the names that call gives, so no line is cited for a name
+// another line passes.
+func (w *gateWriter) namedCites(b *bypassedCheck, word string) []*yaml.Node {
+	var cites []*yaml.Node
+	for _, u := range b.uses {
+		cites = append(cites, w.h.at(u.clause, fmt.Sprintf("Calls %s with %s, which the implementation file names as %s.", b.check.function, joinAnd(goQuoted(u.names)), word)))
+	}
+	return cites
 }
 
 // gateSource says where a gate's names come from when they are not

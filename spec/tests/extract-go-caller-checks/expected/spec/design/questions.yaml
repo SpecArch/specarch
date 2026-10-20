@@ -201,7 +201,8 @@ questions:
     decidedBy: system-owner
     why: 'The code names the clients and not what each is: its kind, its roles and its proof are the registration''s, never in syntax. callers names who may call one by one (ADR-110).'
     cites:
-      - {source: code, clause: 'core/server.go:25', says: 'Calls Server.RequireClients with "reporting", "archive" and "mailer", which the implementation file names as a client check.'}
+      - {source: code, clause: 'core/server.go:25', says: 'Calls Server.RequireClients with "reporting" and "archive", which the implementation file names as a client check.'}
+      - {source: code, clause: 'core/server.go:29', says: 'Calls Server.RequireClients with "reporting" and "mailer", which the implementation file names as a client check.'}
   # specarch-problem: question: open_question: (must, decision) What does each permission allow: invoices.delete, invoices.read? Decided by system-owner. Answer with a decision record that names Q-23 under answers. [Q-23]
   Q-23:
     question: 'What does each permission allow: invoices.delete, invoices.read?'

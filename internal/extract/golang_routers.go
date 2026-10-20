@@ -2715,6 +2715,7 @@ type bypassedCheck struct {
 	names   []string
 	setting string
 	perms   []string
+	uses    []checkUse // each call of it at a clause of its own
 }
 
 // writeBypassed asks about every check one kind of caller skips, at each

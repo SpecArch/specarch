@@ -12727,7 +12727,9 @@ ADR-159 word for word: callers and via from literals, the questions
 for declarations, the names from a setting, the through, the
 audience, the strings after the named argument and two checks of
 one kind in turn; the four readers share the one code that writes
-them.
+them. The question for a client or caller check whose argument
+gives literals cites each call of it at its own line with the names
+that call passes.
 
 Consequences: An implementation file without the gate keys reads as before in
 every reader. The Txn-Token header read stays with extract go: the
@@ -12738,7 +12740,7 @@ array and list literals. The cases extract-swift-caller-checks,
 extract-javascript-caller-checks and extract-dart-caller-checks hold
 the readings.
 
-**Insight:** One meaning per key: a check named under clientChecks admits only clients whatever the language it is written in, so each reader reads it and writes the same callers and the same questions, and a specification extracted from a service in Swift, TypeScript or Dart shows who may call it as one in Go does. Found where the permission checks are found, because a project writes its gates the way it writes its permission checks, and a reader that looked elsewhere would read one and miss the other. Shared code for the writing, because two copies of the same questions drift apart in wording, and the merge joins questions by their words. Compiler test: a gate named in part or twice is a must question at the paths in every reader, and every name read is written or asked at its entry. Acceptance test: the first techspec of a service in any of the four languages shows who may call each route and which question names the clients still to declare.
+**Insight:** One meaning per key: a check named under clientChecks admits only clients whatever the language it is written in, so each reader reads it and writes the same callers and the same questions, and a specification extracted from a service in Swift, TypeScript or Dart shows who may call it as one in Go does. Found where the permission checks are found, because a project writes its gates the way it writes its permission checks, and a reader that looked elsewhere would read one and miss the other. Shared code for the writing, because two copies of the same questions drift apart in wording, and the merge joins questions by their words. A citation is read as what that line says, so one line cited for the names of every call would send the reader to a line that does not pass them. Compiler test: a gate named in part or twice is a must question at the paths in every reader, and every name read is written or asked at its entry. Acceptance test: the first techspec of a service in any of the four languages shows who may call each route and which question names the clients still to declare.
 
 ## 10. Quality requirements
 

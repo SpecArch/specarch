@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.7.3-dev of the specification: 90 requirements, 5 entities, 16 commands, 7 algorithms, 644 tests, 163 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.7.3-dev of the specification: 90 requirements, 5 entities, 16 commands, 7 algorithms, 645 tests, 163 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -1056,17 +1056,19 @@ implementation that installs such an environment builds a release
 (its toolchain, the build's steps and task, its base images by
 digest, how a build is compared with the vendor's, and the task
 that writes the software bill of materials), the licences of its
-dependencies, what the hosts must provide, every setting with its
-type and where a secret's value comes from, and the values the
-vendor gives, the migrations in the order they are applied, how a
-release is installed (with the tool and files the vendor installs
-with) and rolled back, how data is backed up and restored, what is
-watched in that environment and how the vendor watches it, the
-checks to run after installing, each step with a Result column,
-the acceptance tests, and the sign-off sheet. A specification whose
-implementation files name an output folder for it but that has no
-handover is passed over with a warning of rule handover, as one
-with no output folder is.
+dependencies, what the hosts must provide (a deployment's
+infrastructure, and its links, ports and network diagram when it
+has links or listens, with or without an infrastructure), every
+setting with its type and where a secret's value comes from, and
+the values the vendor gives, the migrations in the order they are
+applied, how a release is installed (with the tool and files the
+vendor installs with) and rolled back, how data is backed up and
+restored, what is watched in that environment and how the vendor
+watches it, the checks to run after installing, each step with a
+Result column, the acceptance tests, and the sign-off sheet. A
+specification whose implementation files name an output folder for
+it but that has no handover is passed over with a warning of rule
+handover, as one with no output folder is.
 
 The questions target writes `questions.md`: the open questions by
 stage with what each blocks and who decides, the references into
@@ -12935,6 +12937,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | document-entity-diagram | command document | system | golden | a hand-written document with an erDiagram marker | document techspec is run | the region holds the entity diagram, every other line is unchanged, and it exits 0 |
 | document-errors-elsewhere | command document | system | red | a specification with errors only under info and entities, which the requirements document does not read | document requirements is run | it prints both errors, writes requirements.md with a Problems notice saying the specification is invalid and that none of its errors is in what the document covers, and exits 1 |
 | document-estate-map | command document | system | golden | an estate file listing two modules, one of which depends on the other and on a specification the estate does not list, and no implementation file naming a techspec folder | document techspec is run on the estate file | it writes docs/estate.md beside the estate file, the modules with their versions and links and the references between them drawn as a flowchart, the unlisted specification apart, passes over each module with a warning, and exits 0 |
+| document-handover-links-without-infrastructure | command document | system | red | an environment the customer runs with a handover, and an implementation file whose deployment of that environment has build, method, named servers that listen and a link between them, and no infrastructure | document handover is run | it prints the handover error that the deployment has no infrastructure, and still writes handover.md with the deployment under what the hosts must provide: its allowed connections, the ports its servers listen on and its network diagram; it exits 1 |
 | document-handover-none | command document | system | red | a specification whose implementation file names an output folder for handover, and that has no handover and no environment the customer runs | document handover is run on it alone | it prints a handover warning at the environments saying the specification has no handover document, writes nothing, and exits 2 since every specification given was passed over |
 | document-html-marks-problems | command document | system | red | the same specification with a permission no role grants, which is an error | document html is run | it prints the error, writes site/index.html all the same with an Invalid notice, the error listed under Problems with a link to the permission, and the permission's row marked with a link back to the problem, and exits 1 |
 | document-invalid-input | command document | system | red | a design file with a relation to an entity that does not exist | document techspec is run | it prints the error, writes the technical specification with a Problems notice and a Problem paragraph at the relation, and exits 1 |
@@ -13915,7 +13918,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-70 | commands extract; decisions ADR-121; decisions ADR-144 | tests extract-database-generated-default; tests extract-database-implementation-out; tests extract-go-handlers; tests extract-go-handlers-changed; tests extract-router-list-twin; tests generate-openapi-list-twin; tests generate-sql-generated-default; tests generate-sql-generated-default-refused; tests generate-sql-index-changed; tests validate-generated-default; tests validate-index-field |
 | SA-71 | decisions ADR-123 | tests generate-sqlc-check-hand-written; tests generate-sqlc-dialect-refused; tests generate-sqlc-hand-written-refused; tests generate-sqlc-queries |
 | SA-72 | commands check; decisions ADR-124; decisions ADR-128 | tests check-dump-of-no-format; tests check-fails-on-a-difference; tests check-skips-a-partition; tests check-succeeds; tests check-usage-error |
-| SA-73 | enums DocumentTarget; enums Rule; commands document; decisions ADR-129; decisions ADR-136; decisions ADR-137; decisions ADR-172 | tests document-handover-none; tests document-writes-handover; tests validate-build-task-unknown; tests validate-handover-build-missing; tests validate-handover-incomplete; tests validate-handover-missing; tests validate-handover-no-customer; tests validate-handover-valid |
+| SA-73 | enums DocumentTarget; enums Rule; commands document; decisions ADR-129; decisions ADR-136; decisions ADR-137; decisions ADR-172 | tests document-handover-links-without-infrastructure; tests document-handover-none; tests document-writes-handover; tests validate-build-task-unknown; tests validate-handover-build-missing; tests validate-handover-incomplete; tests validate-handover-missing; tests validate-handover-no-customer; tests validate-handover-valid |
 | SA-74 | commands model; decisions ADR-138 | tests model-exit-2; tests model-lists-via-and-through; tests model-usage-error; tests model-writes-json |
 | SA-75 | decisions ADR-141 | tests document-techspec-gateway; tests document-testplan-gateway; tests generate-openapi-gateway; tests validate-gateway; tests validate-gateway-estate-wrong; tests validate-gateway-wrong |
 | SA-76 | commands check; commands extract; decisions ADR-142 | tests check-gateway-forward-moved; tests check-gateway-forward-removed; tests extract-gateway; tests extract-gateway-value-twice; tests merge-gateway-catch-all-kept; tests merge-gateway-fallback; tests merge-gateway-fallback-across-trees; tests merge-gateway-two-trees |

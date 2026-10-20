@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.3-dev of the specification: 644 design tests, 305 golden and 339 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.3-dev of the specification: 645 design tests, 305 golden and 340 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.7.3-dev of the specification: 644 design tests, 305 golden and 339 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 640 |
+| system | 641 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -572,6 +572,14 @@ Scenario: golden; level: system; verifies SA-66.
 - Given: an estate file listing two modules, one of which depends on the other and on a specification the estate does not list, and no implementation file naming a techspec folder
 - When: document techspec is run on the estate file
 - Then: it writes docs/estate.md beside the estate file, the modules with their versions and links and the references between them drawn as a flowchart, the unlisted specification apart, passes over each module with a warning, and exits 0
+
+#### document-handover-links-without-infrastructure
+
+Scenario: red; level: system; verifies SA-73.
+
+- Given: an environment the customer runs with a handover, and an implementation file whose deployment of that environment has build, method, named servers that listen and a link between them, and no infrastructure
+- When: document handover is run
+- Then: it prints the handover error that the deployment has no infrastructure, and still writes handover.md with the deployment under what the hosts must provide: its allowed connections, the ports its servers listen on and its network diagram; it exits 1
 
 #### document-handover-none
 

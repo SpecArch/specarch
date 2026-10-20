@@ -564,17 +564,19 @@ implementation that installs such an environment builds a release
 (its toolchain, the build's steps and task, its base images by
 digest, how a build is compared with the vendor's, and the task
 that writes the software bill of materials), the licences of its
-dependencies, what the hosts must provide, every setting with its
-type and where a secret's value comes from, and the values the
-vendor gives, the migrations in the order they are applied, how a
-release is installed (with the tool and files the vendor installs
-with) and rolled back, how data is backed up and restored, what is
-watched in that environment and how the vendor watches it, the
-checks to run after installing, each step with a Result column,
-the acceptance tests, and the sign-off sheet. A specification whose
-implementation files name an output folder for it but that has no
-handover is passed over with a warning of rule handover, as one
-with no output folder is.
+dependencies, what the hosts must provide (a deployment's
+infrastructure, and its links, ports and network diagram when it
+has links or listens, with or without an infrastructure), every
+setting with its type and where a secret's value comes from, and
+the values the vendor gives, the migrations in the order they are
+applied, how a release is installed (with the tool and files the
+vendor installs with) and rolled back, how data is backed up and
+restored, what is watched in that environment and how the vendor
+watches it, the checks to run after installing, each step with a
+Result column, the acceptance tests, and the sign-off sheet. A
+specification whose implementation files name an output folder for
+it but that has no handover is passed over with a warning of rule
+handover, as one with no output folder is.
 
 The questions target writes `questions.md`: the open questions by
 stage with what each blocks and who decides, the references into

@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: document
+level: system
+scenario: red
+given: "an environment the customer runs with a handover, and an implementation file whose deployment of that environment has build, method, named servers that listen and a link between them, and no infrastructure"
+when: "document handover is run"
+then: "it prints the handover error that the deployment has no infrastructure, and still writes handover.md with the deployment under what the hosts must provide: its allowed connections, the ports its servers listen on and its network diagram; it exits 1"
+verifies: [SA-73]

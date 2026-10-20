@@ -431,8 +431,7 @@ Every diagram has its marker (`context`, `components <stack>`,
 `deployment <deployment>`, `network <deployment>`), and a file without the
 keys renders as before. Of its gaps, the cross-system view was built
 before (the estate's module map, ADR-113). The library-lending example
-uses every key. Left to build: the handover's links for a deployment
-with no `infrastructure` (BUG-035).
+uses every key.
 
 Built, 0.7.2: the gateway (`docs/gateway.md`, ADR-141 to ADR-143). A
 gateway in front of an estate's services, which verifies the token, reads

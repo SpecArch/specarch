@@ -1,0 +1,112 @@
+specarch: "0.1"
+info: { title: Shop, version: 1.0.0 }
+sources:
+  ops-manual: { kind: document, title: The shop's operations manual, edition: "3" }
+stakeholders:
+  shop-it: { description: "The shop's IT staff, who build each release from the source and run the till on the shop's host." }
+environments:
+  staging: { description: Where a release is tried., promotesTo: production }
+  production: { description: "The till in the shop, on the shop's host.", runBy: customer }
+configuration:
+  taxRate:
+    description: The sales tax rate.
+    secret: false
+    schema: { type: string, format: decimal, precision: 4, scale: 2 }
+  databaseUrl:
+    description: Where the database is; it comes from the host's secret store.
+    secret: true
+    schema: { type: string, format: uri }
+  auditNote:
+    description: A note the vendor's own build writes into the audit log.
+    secret: false
+    schema: { type: string }
+    audience: internal
+handover:
+  description: Each release is handed to the shop's IT staff as source; the vendor runs staging and never reaches the shop's host.
+  to: shop-it
+  source: A tagged release of the repository, which the shop imports into a repository of its own.
+  responsibilities:
+    customer:
+      - The host, its patching and the PostgreSQL server.
+      - Backups and the restore drill each quarter.
+    vendor:
+      - The source of each release, tagged, with its software bill of materials.
+      - A fix for every defect the shop reports, in the next release.
+  why: The shop's accountant asks who can reach the sales ledger.
+  cites:
+    - { source: ops-manual, clause: "1.4", says: The till runs on the shop's own host. }
+release:
+  description: A release goes to staging first, then to production after closing time.
+  steps:
+    - name: Install on staging
+      action: Install the build on staging.
+      check: The till opens on staging.
+    - name: Install on production
+      action: After closing time, install the build on production.
+      check: The till opens in the shop.
+rollback:
+  description: The previous build stays installed beside the new one.
+  steps:
+    - { name: Switch back, action: Start the previous build., check: The till opens and shows the previous version. }
+backup:
+  description: The sales ledger is dumped every night after closing.
+  steps:
+    - { name: Dump the ledger, action: Dump the database to the backup store., check: The dump restores on a scratch host. }
+restore:
+  description: A restore loads one night's dump in place of the live ledger.
+  steps:
+    - { name: Load the dump, action: "Stop the till, load the chosen dump and start the till.", check: The till shows the sales up to that night. }
+migrations:
+  add-tax:
+    description: Every order gets a tax amount, zero for old orders.
+    steps:
+      - { name: Add the column, action: Add tax to orders with a default of zero., check: Every order has a tax amount. }
+checks:
+  till-opens:
+    kind: smoke
+    description: The installed till opens and shows the catalogue.
+    environment: production
+    steps:
+      - { name: Open the till, action: Open the till on the shop's host., check: It shows the catalogue. }
+  till-tried:
+    kind: end-to-end
+    description: A sale goes through on staging.
+    environment: staging
+    steps:
+      - { name: Sell, action: Sell one item., check: The ledger shows the sale. }
+signoff:
+  criteria: [The smoke check passed on production.]
+  signers:
+    - { role: shop-owner, description: Accepts for the shop. }
+monitors:
+  till-answers:
+    description: Whether the till answers.
+    environment: production
+    objective: The till answers every minute of opening hours.
+requirements:
+  SHOP-1:
+    statement: A sale shall be recorded in the ledger with its tax.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance:
+      - Selling an item on the shelf records the sale with its tax.
+      - Selling an item not on the shelf is refused.
+    verification: test
+tests:
+  sell-an-item:
+    requirement: SHOP-1
+    scenario: golden
+    level: acceptance
+    given: an item on the shelf
+    when: the clerk sells it
+    then: the ledger shows the sale with its tax
+    verifies: [SHOP-1]
+  refuse-unknown-item:
+    requirement: SHOP-1
+    scenario: red
+    level: system
+    given: an item not on the shelf
+    when: the clerk sells it
+    then: the till refuses the sale
+    verifies: [SHOP-1]

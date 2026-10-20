@@ -158,6 +158,17 @@ func infrastructureTable(d *doc, infra *yaml.Node) {
 	d.blank()
 }
 
+// hostNeeds reports whether a deployment says what its hosts must
+// provide: an infrastructure, or links or listens, which the handover
+// writes with or without an infrastructure (ADR-137).
+func hostNeeds(dep *yaml.Node) bool {
+	if get(dep, "infrastructure") != nil {
+		return true
+	}
+	links, ports := linkSentences(dep)
+	return links != "" || ports != ""
+}
+
 // customerDeployments are the deployments of an implementation file that
 // install an environment the customer runs, in document order.
 func customerDeployments(impl *yaml.Node, envs map[string]bool) []sourcePair {
@@ -216,7 +227,7 @@ func Handover(root *yaml.Node, relRoot string, impls []Implementation, state *St
 		deps []sourcePair
 	}
 	var installs []installation
-	hasBuild, hasSBOM, hasLibraries, hasInfrastructure := false, false, false, false
+	hasBuild, hasSBOM, hasLibraries, hasHosts := false, false, false, false
 	for _, i := range impls {
 		deps := customerDeployments(i.Node, inEnv)
 		if len(deps) == 0 {
@@ -233,8 +244,8 @@ func Handover(root *yaml.Node, relRoot string, impls []Implementation, state *St
 					hasSBOM = true
 				}
 			}
-			if get(dep.Value, "infrastructure") != nil {
-				hasInfrastructure = true
+			if hostNeeds(dep.Value) {
+				hasHosts = true
 			}
 		}
 	}
@@ -268,7 +279,7 @@ func Handover(root *yaml.Node, relRoot string, impls []Implementation, state *St
 	if hasLibraries {
 		d.line("- Every dependency with its version and licence (Building a release).")
 	}
-	if hasInfrastructure {
+	if hasHosts {
 		d.line("- What the hosts must provide (What the hosts must provide).")
 	}
 	if len(cfg) > 0 {
@@ -356,12 +367,11 @@ func Handover(root *yaml.Node, relRoot string, impls []Implementation, state *St
 		}
 	}
 
-	if hasInfrastructure {
+	if hasHosts {
 		d.section("What the hosts must provide")
 		for _, in := range installs {
 			for _, dep := range in.deps {
-				infra := get(dep.Value, "infrastructure")
-				if infra == nil {
+				if !hostNeeds(dep.Value) {
 					continue
 				}
 				d.heading(3, fmt.Sprintf("%s: %s", str(get(in.impl.Node, "info"), "title"), dep.Key.Value))
@@ -378,7 +388,7 @@ func Handover(root *yaml.Node, relRoot string, impls []Implementation, state *St
 					d.para(ports)
 					d.block(networkDiagram(root, dep.Key.Value, dep.Value))
 				}
-				infrastructureTable(d, infra)
+				infrastructureTable(d, get(dep.Value, "infrastructure"))
 				if servers := items(dep.Value, "servers"); len(servers) > 0 {
 					d.line("| Server | Description |")
 					d.line("|---|---|")

@@ -2,7 +2,7 @@
 
 Open bugs, one entry per bug, each as `BUG-NNN — <title>` with what was
 seen, what was expected and how to repeat it. The next free number is
-BUG-049. When the fix is on `main`, with `Fixes BUG-NNN` in its commit
+BUG-050. When the fix is on `main`, with `Fixes BUG-NNN` in its commit
 message, the entry moves to `BUG_HISTORY.md` with the fixing commit.
 
 ## BUG-030 — derive: a question that blocks one method of a path holds up the drafts of every method of that path
@@ -34,16 +34,6 @@ For an operation `uploadJSON` with no golden test, the Go build's `test_golden_m
 Expected: one rule in both builds. `docs/conventions.md` says a test is named kebab-case after its subject; the derive command's design says a run of other characters is one hyphen and says nothing of a run of capitals, so the design decides which of the two is right and the other build follows.
 
 To repeat: validate a specification with `operationId: uploadJSON` and no tests with both builds and compare the `test_golden_missing` lines.
-
-## BUG-035 — document handover: a deployment with links and no infrastructure gets no links, ports or network diagram
-
-- Reported: 2026-10-20, found while building the network diagram (ADR-137)
-
-ADR-137 says the handover document derives its network and ports paragraphs from a deployment's `links` and `listens` whenever it has them, and prints the infrastructure sentences after them. The handover writes them only inside "What the hosts must provide", which lists only deployments with `infrastructure` (`internal/generate/handover.go`), so a deployment with links and no `infrastructure` gets neither the paragraphs nor its network diagram.
-
-Expected: every deployment with links or listens has its links, ports and network diagram in the handover, with or without `infrastructure`.
-
-To repeat: copy `examples/library-lending/spec`, delete the `infrastructure` block of the production deployment in `implementation/go/library-lending.go.specarch-implementation.yaml`, and run `specarch document handover --out out spec`. `out/handover.md` has no "allowed connections" sentence and no port 5671, where the example's own handover has both.
 
 ## BUG-044 — generate sql: a date-time field with generatedDefault currentTime gets the server's own text form on MariaDB
 
@@ -94,3 +84,13 @@ YAML 1.2's core schema reads `0x1` as the integer 1. The Go build's `specarch mo
 Expected: both builds print `1`, as YAML 1.2 reads it, or the same text from each with the reason written next to the choice.
 
 To repeat: run `specarch model spec/tests/validate-theme` with each build and compare `/tokens/color/hexInt/$value/components/0`.
+
+## BUG-049 — document: a problem in an implementation file is never marked at the entry a document shows
+
+- Reported: 2026-10-21, found while fixing BUG-035
+
+A document marks each problem by a Problem paragraph at the element its pointer leads to (ADR-065), but a `Mark`'s pointer leads only into the merged specification and is empty for a problem in an implementation file (`internal/generate/problems.go`). The handover, the deployment guide and the technical specification show deployments of the implementation files, yet a problem at one of them is counted in the notice under the summary and never marked at the deployment. The handover of a deployment the customer runs without `infrastructure` says of its `handover` error "None of them is in what this document covers", although the error is at the deployment its "What the hosts must provide" section describes.
+
+Expected: a problem in an implementation file is marked at the entry of that file a document shows, and the notice counts it as concerning the document.
+
+To repeat: run `specarch document handover --out docs project` in a copy of `spec/tests/document-handover-links-without-infrastructure`; `docs/handover.md` has the notice "None of them is in what this document covers" and no Problem paragraph at "Shop in Go: production".

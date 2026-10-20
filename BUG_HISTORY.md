@@ -568,3 +568,17 @@ Expected: `paths/*/*/via` listed as references to clients, and `roles/*/through`
 To repeat: run `specarch model spec/tests/validate-0-3-tokens-valid` and look at `references`: `/paths/~1invoices~1{invoiceId}/delete/via/0` (naming `middleware`) and `/roles/invoice-manager/through` (naming `invoices.delete` and `admin-web`) are absent.
 
 Fix: the table of reference places has `paths/*/*/via` and `roles/*/through/*`, both naming clients, and a table of key places has `roles/*/through/*`, whose key names a permission; a place's keyword is its last key that is not `*`, so all three are listed with `via` or `through` as their keyword, in both builds. A client or permission of the identity module (`identity#/clients/<name>`) is a reference into another specification and is left out, as `callers` leaves it out. The case `model-lists-via-and-through` pins it.
+
+## BUG-035 — document handover: a deployment with links and no infrastructure gets no links, ports or network diagram
+
+- Reported: 2026-10-20, found while building the network diagram (ADR-137)
+- Closed: 2026-10-21, completed
+- Fixed by: the commit on `main` whose message says `Fixes BUG-035`
+
+ADR-137 says the handover document derives its network and ports paragraphs from a deployment's `links` and `listens` whenever it has them, and prints the infrastructure sentences after them. The handover writes them only inside "What the hosts must provide", which lists only deployments with `infrastructure` (`internal/generate/handover.go`), so a deployment with links and no `infrastructure` gets neither the paragraphs nor its network diagram.
+
+Expected: every deployment with links or listens has its links, ports and network diagram in the handover, with or without `infrastructure`.
+
+To repeat: copy `examples/library-lending/spec`, delete the `infrastructure` block of the production deployment in `implementation/go/library-lending.go.specarch-implementation.yaml`, and run `specarch document handover --out out spec`. `out/handover.md` has no "allowed connections" sentence and no port 5671, where the example's own handover has both.
+
+Fix: "What the hosts must provide" lists every deployment with an `infrastructure`, `links` or `listens` (`hostNeeds` in `internal/generate/handover.go`), each with its links, ports and network diagram first and its infrastructure table when it has one. A deployment the customer runs without `infrastructure` is still a `handover` error. The case `document-handover-links-without-infrastructure` pins it.

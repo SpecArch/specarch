@@ -1,0 +1,6 @@
+configuration:
+  shadow:
+    schema: {type: string}
+    origin: stated
+    cites:
+      - {source: code, clause: 'more.go:36', says: Reads SHADOW from the environment with Getenv.}

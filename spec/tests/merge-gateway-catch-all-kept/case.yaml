@@ -3,7 +3,7 @@ exitStatus: 0
 standardOutput: |
   tree go: Go source of ., on the code, parsed side: 8 elements and 29 questions
   tree gateway: Gateway api of gateway, on the code, printed side: 8 elements and 10 questions
-  kept: Q-29 of go, on gateways, stays open; Gateway api of gateway gives 1 gateway, each gateway answers one question, one at a fallback handler before one at a catch-all route, and none is left for it
+  kept: Q-29 of go, on gateways, stays open; Gateway api of gateway gives 1 gateway, each gateway answers one question in the whole merge, one at a fallback handler before one at a catch-all route, and none is left for it
   answered: Q-1 of go, on gateways, is left out; Gateway api of gateway gives the gateway api
   merged 15 elements, each an entry of a section or an operation: 1 in more than one tree, and 0 keys the trees disagree on
   wrote 38 questions: 38 from the trees, numbered again in the order the trees are given, and 0 the merge asked

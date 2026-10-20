@@ -222,11 +222,12 @@ commands:
         gateway for it, as the tree `specarch extract gateway` writes
         from a gateway table does: that tree says what the handler
         forwards and by which claim, and the line names the trees and the
-        gateway (ADR-142, ADR-143). Each gateway the other trees declare
-        answers one such question of a tree, in the order the trees give
-        them: the questions at a fallback handler first, then those at a
-        catch-all route, which may as well be a file server, each in the
-        order the tree asks them. A question no gateway is left for stays
+        gateway (ADR-142, ADR-143). Each gateway answers one such question
+        over the whole merge, never one of its own tree, since one gateway
+        table describes one gateway in front of one tree: the trees in the
+        order given, and in each the questions at a fallback handler
+        first, then those at a catch-all route, which may as well be a
+        file server, each in the order the tree asks them. A question no gateway is left for stays
         open, with a line that says so, rather than being answered by a
         gateway that has nothing to do with it.
       - A map one tree writes open, `additionalProperties: true`, with a

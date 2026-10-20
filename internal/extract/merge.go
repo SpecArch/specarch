@@ -82,7 +82,7 @@ type merger struct {
 	gatesAsked        map[string]bool           // the checks whose gate questions are joined
 	bypassAsked       map[string]bool           // the checks whose bypassed-gate questions are joined
 	readBack          map[string]*readBack      // a pointer read back as a value object -> what answers the questions on it
-	gatewayPicks      map[int]map[string]string // a tree -> its questions on gateways alone a gateway answers -> that gateway
+	gatewayPicks      map[int]map[string]string // a tree -> its questions on gateways alone a gateway answers -> that gateway, made once for the whole merge
 
 	vocabularies []*vocabulary.Vocabulary // given with --vocabulary
 	dayWords     map[string]*dayWords     // language tag in lower case -> its matchers, nil for one with no vocabulary
@@ -1179,23 +1179,20 @@ func itemNamed(n *yaml.Node, name string) *yaml.Node {
 // gateways, the question a code reader asks at a fallback handler or a
 // catch-all route, when another tree declares a gateway for it: the
 // gateway table's tree says what that handler forwards and by which
-// claim (ADR-142, ADR-143). Each gateway the other trees declare answers
-// one question, in the order the trees give them: a question at a
-// fallback handler before one at a catch-all route, which may as well be
-// a file server, and each kind in the order it is asked. A question no
-// gateway is left for stays open, with a line that says so.
+// claim (ADR-142, ADR-143). Each gateway answers one question over the
+// whole merge, since one gateway table describes one gateway in front of
+// one tree: the trees are taken in the order given, and in each a
+// question at a fallback handler before one at a catch-all route, which
+// may as well be a file server, each kind in the order it is asked. A
+// question no gateway is left for stays open, with a line that says so.
 func (m *merger) gatewayAnswers(asking int, t *mergeTree, id string, blocks []*yaml.Node) bool {
 	if !gatewaysOnly(blocks) {
 		return false
 	}
 	if m.gatewayPicks == nil {
-		m.gatewayPicks = map[int]map[string]string{}
+		m.gatewayPicks = m.pickGatewayAnswers()
 	}
-	picks, ok := m.gatewayPicks[asking]
-	if !ok {
-		picks = m.pickGatewayAnswers(asking, t)
-		m.gatewayPicks[asking] = picks
-	}
+	picks := m.gatewayPicks[asking]
 	var givers, names []string
 	for ti, o := range m.trees {
 		if ti == asking {
@@ -1217,7 +1214,7 @@ func (m *merger) gatewayAnswers(asking int, t *mergeTree, id string, blocks []*y
 	}
 	gw := picks[id]
 	if gw == "" {
-		m.res.say("kept: %s of %s, on gateways, stays open; %s %s %s, each gateway answers one question, one at a fallback handler before one at a catch-all route, and none is left for it", id, t.s.Dir, joinAnd(givers), giveOrGives(len(givers)), plural(len(names), "gateway"))
+		m.res.say("kept: %s of %s, on gateways, stays open; %s %s %s, each gateway answers one question in the whole merge, one at a fallback handler before one at a catch-all route, and none is left for it", id, t.s.Dir, joinAnd(givers), giveOrGives(len(givers)), plural(len(names), "gateway"))
 		return false
 	}
 	m.res.say("answered: %s of %s, on gateways, is left out; %s %s the gateway %s", id, t.s.Dir, joinAnd(givers), giveOrGives(len(givers)), gw)
@@ -1238,42 +1235,50 @@ func gatewaysOnly(blocks []*yaml.Node) bool {
 	return true
 }
 
-// pickGatewayAnswers pairs the questions of a tree that block gateways
-// alone with the gateways the other trees declare, one gateway to one
-// question: the questions at a fallback handler first, then those at a
-// catch-all route and any other, each in the order the tree asks them.
-// It gives the question's id -> the gateway that answers it.
-func (m *merger) pickGatewayAnswers(asking int, t *mergeTree) map[string]string {
-	var names []string
-	for ti, o := range m.trees {
-		if ti == asking {
-			continue
-		}
-		for _, g := range source.Pairs(source.Child(o.s.Root, "gateways")) {
-			if !contains(names, g.Key.Value) {
-				names = append(names, g.Key.Value)
+// pickGatewayAnswers pairs the questions that block gateways alone with
+// the gateways the trees declare, one gateway to one question over the
+// whole merge, never a tree's own gateway to its own question: the trees
+// in the order given, and in each the questions at a fallback handler
+// first, then those at a catch-all route and any other, each in the order
+// the tree asks them. It gives each tree's question ids -> the gateway
+// that answers it.
+func (m *merger) pickGatewayAnswers() map[int]map[string]string {
+	used := map[string]bool{}
+	all := map[int]map[string]string{}
+	for asking, t := range m.trees {
+		var names []string
+		for ti, o := range m.trees {
+			if ti == asking {
+				continue
+			}
+			for _, g := range source.Pairs(source.Child(o.s.Root, "gateways")) {
+				if !used[g.Key.Value] && !contains(names, g.Key.Value) {
+					names = append(names, g.Key.Value)
+				}
 			}
 		}
-	}
-	var fallback, other []string
-	for _, p := range source.Pairs(source.Child(t.s.Root, spec.QuestionsSection)) {
-		if !gatewaysOnly(source.Items(source.Child(p.Value, "blocks"))) {
-			continue
+		var fallback, other []string
+		for _, p := range source.Pairs(source.Child(t.s.Root, spec.QuestionsSection)) {
+			if !gatewaysOnly(source.Items(source.Child(p.Value, "blocks"))) {
+				continue
+			}
+			if source.Str(source.Child(p.Value, "why")) == fallbackWhy {
+				fallback = append(fallback, p.Key.Value)
+			} else {
+				other = append(other, p.Key.Value)
+			}
 		}
-		if source.Str(source.Child(p.Value, "why")) == fallbackWhy {
-			fallback = append(fallback, p.Key.Value)
-		} else {
-			other = append(other, p.Key.Value)
+		picks := map[string]string{}
+		for i, id := range append(fallback, other...) {
+			if i >= len(names) {
+				break
+			}
+			picks[id] = names[i]
+			used[names[i]] = true
 		}
+		all[asking] = picks
 	}
-	picks := map[string]string{}
-	for i, id := range append(fallback, other...) {
-		if i >= len(names) {
-			break
-		}
-		picks[id] = names[i]
-	}
-	return picks
+	return all
 }
 
 // treeQuestions takes every tree's questions, in the order the trees are

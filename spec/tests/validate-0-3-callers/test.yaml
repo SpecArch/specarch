@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "an operation whose callers is empty, one listing people twice, a client none of whose roles grants its permission, a service with no roles and a name that is no client, and a route closed with nobody that lists callers"
+when: validate is run
+then: "it reports callers for the empty list, the client without a granting role, the service without roles, the unknown name with the nearest client, the repeated people, and the closed route, and exits 1"
+verifies: [SA-79]

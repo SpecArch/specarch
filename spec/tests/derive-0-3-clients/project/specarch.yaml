@@ -1,0 +1,64 @@
+specarch: "0.3"
+info: { title: Case, version: 1.0.0 }
+stages: [tests]
+permissions:
+  loans.read: { description: See loans. }
+  returns.import: { description: Import the day's returns. }
+  public: { description: Open to everyone. }
+  nobody: { description: "Closed on purpose, kept in the contract for clients still calling it." }
+roles:
+  librarian:
+    description: Staff at the desk.
+    permissions: [loans.read]
+  auditor:
+    description: The finance system's batch; no person holds it.
+    permissions: [loans.read, returns.import]
+clients:
+  nightly-reconciliation:
+    description: The finance system's batch, which reads the day's returns.
+    kind: service
+    roles: [auditor]
+    proof:
+      kind: signedRequest
+      algorithm: hmac-sha256
+      covers: ["@method", "@path", content-digest, date]
+  gateway:
+    description: The gateway in front of the service, which forwards a person's call with its client certificate.
+    kind: service
+    roles: [auditor]
+    proof:
+      kind: mutualTls
+  mobile:
+    description: The application on a member's phone, a public client.
+    kind: application
+paths:
+  /loans:
+    get:
+      operationId: listLoans
+      summary: List loans
+      permission: loans.read
+      callers: [people, nightly-reconciliation]
+      responses:
+        "200": { description: The loans. }
+  /returns:
+    post:
+      operationId: importReturns
+      summary: Import the day's returns
+      permission: returns.import
+      callers: [nightly-reconciliation, gateway]
+      responses:
+        "202": { description: Accepted. }
+  /legacy:
+    get:
+      operationId: legacyList
+      summary: The old list, closed
+      permission: nobody
+      responses:
+        "403": { description: Closed. }
+  /status:
+    get:
+      operationId: status
+      summary: Whether the service is up
+      permission: public
+      responses:
+        "200": { description: Up. }

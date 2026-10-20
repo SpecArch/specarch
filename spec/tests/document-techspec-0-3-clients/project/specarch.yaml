@@ -1,0 +1,77 @@
+specarch: "0.3"
+info: { title: Case, version: 1.0.0 }
+permissions:
+  loans.read: { description: See loans. }
+  returns.import: { description: Import the day's returns. }
+  public: { description: Open to everyone. }
+  nobody: { description: "Closed on purpose, kept in the contract for clients still calling it." }
+roles:
+  librarian:
+    description: Staff at the desk.
+    permissions: [loans.read]
+  auditor:
+    description: The finance system's batch; no person holds it.
+    permissions: [loans.read, returns.import]
+clients:
+  nightly-reconciliation:
+    description: The finance system's batch, which reads the day's returns.
+    kind: service
+    roles: [auditor]
+    proof:
+      kind: signedRequest
+      algorithm: hmac-sha256
+      covers: ["@method", "@path", content-digest, date]
+  gateway:
+    description: The gateway in front of the service, which forwards a person's call with its client certificate.
+    kind: service
+    roles: [auditor]
+    proof:
+      kind: mutualTls
+  mobile:
+    description: The application on a member's phone, a public client.
+    kind: application
+paths:
+  /loans:
+    get:
+      operationId: listLoans
+      summary: List loans
+      permission: loans.read
+      callers: [people, nightly-reconciliation]
+      responses:
+        "200": { description: The loans. }
+  /returns:
+    post:
+      operationId: importReturns
+      summary: Import the day's returns
+      permission: returns.import
+      callers: [nightly-reconciliation, gateway]
+      responses:
+        "202": { description: Accepted. }
+  /legacy:
+    get:
+      operationId: legacyList
+      summary: The old list, closed
+      permission: nobody
+      responses:
+        "403": { description: Closed. }
+  /status:
+    get:
+      operationId: status
+      summary: Whether the service is up
+      permission: public
+      responses:
+        "200": { description: Up. }
+tests:
+  list-loans-succeeds: { operation: listLoans, level: system, scenario: golden, given: a caller with loans.read, when: listLoans is called, then: it answers 200 }
+  list-loans-denied: { operation: listLoans, level: system, scenario: red, covers: [denied without loans.read], given: a caller without loans.read, when: listLoans is called, then: it is refused }
+  list-loans-not-listed: { operation: listLoans, level: system, scenario: red, covers: [refused for every caller not listed], given: the gateway calling on its own account, when: listLoans is called, then: it is refused }
+  list-loans-bad-signature: { operation: listLoans, level: system, scenario: red, covers: [refused with a bad signature from nightly-reconciliation], given: the batch with a signature that does not verify, when: listLoans is called, then: it is refused }
+  list-loans-service-token: { operation: listLoans, level: system, scenario: red, covers: [refused for a service's own token], given: the gateway calling with its own certificate and no person, when: listLoans is called, then: it is refused }
+  import-returns-succeeds: { operation: importReturns, level: system, scenario: golden, given: the batch with a good signature, when: importReturns is called, then: it answers 202 }
+  import-returns-person: { operation: importReturns, level: system, scenario: red, covers: [refused for a signed-in person], given: a librarian signed in, when: importReturns is called, then: it is refused }
+  import-returns-denied: { operation: importReturns, level: system, scenario: red, covers: [denied without returns.import], given: a client without returns.import, when: importReturns is called, then: it is refused }
+  import-returns-not-listed: { operation: importReturns, level: system, scenario: red, covers: [refused for every caller not listed], given: a client not listed, when: importReturns is called, then: it is refused }
+  import-returns-bad-signature: { operation: importReturns, level: system, scenario: red, covers: [refused with a bad signature from nightly-reconciliation], given: the batch with a bad signature, when: importReturns is called, then: it is refused }
+  legacy-list-closed: { operation: legacyList, level: system, scenario: red, covers: [refused for every caller], given: any caller, when: legacyList is called, then: it is refused as closed }
+  status-succeeds: { operation: status, level: system, scenario: golden, given: anyone, when: status is called, then: it answers 200 }
+  status-service-token: { operation: status, level: system, scenario: red, covers: [refused for a service's own token], given: a service with its own certificate, when: status is called, then: it is refused }

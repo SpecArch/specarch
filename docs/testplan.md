@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.2-dev of the specification: 538 design tests, 244 golden and 294 red, about 16 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.2-dev of the specification: 545 design tests, 247 golden and 298 red, about 16 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 4 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -19,7 +19,7 @@ Version 0.7.2-dev of the specification: 538 design tests, 244 golden and 294 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 534 |
+| system | 541 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -128,6 +128,14 @@ Scenario: red; level: system; covers usage error; verifies SA-72.
 - Then: it prints how to use it and exits 2
 
 ### Command derive
+
+#### derive-0-3-clients
+
+Scenario: golden; level: system; verifies SA-79.
+
+- Given: the specification of validate-0-3-clients-valid with only the list's golden test
+- When: derive is run
+- Then: it writes the drafts of the callers, signature, closed-route and service's-own-token cases of each operation beside the permission ones, none for the closed route's success, and exits 0
 
 #### derive-0-3-rows
 
@@ -640,6 +648,14 @@ Scenario: red; level: system; covers exit 2.
 - Given: a document target of the design that this build does not offer
 - When: document manual is run
 - Then: it says which targets it has and exits 2
+
+#### document-techspec-0-3-clients
+
+Scenario: golden; level: system; verifies SA-79.
+
+- Given: the specification of validate-0-3-clients-valid
+- When: document techspec is run with --out
+- Then: it writes the technical specification whose permissions matrix has a column per client with roles and marks the closed permission, a table of the clients with their kind, versions, roles and proof, and a table of who may call each route, and exits 0
 
 #### document-techspec-envelope-stream
 
@@ -2569,6 +2585,30 @@ Scenario: red; level: system; covers exit 1; verifies SA-78.
 - When: validate is run
 - Then: it reports caller_property for each of the four, naming the one place a dot may appear, the rows rule as the one place the caller is named, the property's right case and the properties the caller has, and exits 1
 
+#### validate-0-3-callers
+
+Scenario: red; level: system; covers exit 1; verifies SA-79.
+
+- Given: an operation whose callers is empty, one listing people twice, a client none of whose roles grants its permission, a service with no roles and a name that is no client, and a route closed with nobody that lists callers
+- When: validate is run
+- Then: it reports callers for the empty list, the client without a granting role, the service without roles, the unknown name with the nearest client, the repeated people, and the closed route, and exits 1
+
+#### validate-0-3-clients
+
+Scenario: red; level: system; covers exit 1; verifies SA-79.
+
+- Given: clients named people, of a kind that is neither application nor service, holding roles with no proof and naming an undeclared role, a service with no proof and no roles, a version range that does not parse, a version with no claim to be checked against, a signed request with an unregistered algorithm and a covered component that is not a request part, one with no algorithm and nothing covered, and a client certificate naming an algorithm
+- When: validate is run
+- Then: it reports reserved_name for the name, client for the kind, the missing proofs, the undeclared role and the range, software_version for the version with no claim, proof for the algorithm, the component, the missing algorithm, the empty covers and the certificate's algorithm, warns client_unused for the service with neither roles nor proof, and exits 1
+
+#### validate-0-3-clients-valid
+
+Scenario: golden; level: system; verifies SA-79.
+
+- Given: a specification on 0.3 with a service that signs its requests, a service with a client certificate, a public application, a route people and the signing service share, a machine route for the two services, a route closed with nobody, a public route, and a test of each derived case
+- When: validate is run
+- Then: it reports nothing and exits 0
+
 #### validate-0-3-meta-model-0-2
 
 Scenario: golden; level: system; verifies SA-78.
@@ -2576,6 +2616,14 @@ Scenario: golden; level: system; verifies SA-78.
 - Given: the same specification on 0.2: a field, a view's property, a schema's property and an algorithm's input each named caller
 - When: validate is run
 - Then: it reads the file, warns once at the specarch line that 0.2 is read until 1.0 and that 0.3 reserves the name caller, reports no error and exits 0
+
+#### validate-0-3-nobody
+
+Scenario: red; level: system; covers exit 1; verifies SA-79.
+
+- Given: a role that grants nobody, and an operation and a command closed with nobody that a setting switches on
+- When: validate is run
+- Then: it reports reserved_name at the role's grant and setting at each enabledBy, asks no golden scenario of the closed route and the closed command, and exits 1
 
 #### validate-0-3-reserved-name
 
@@ -2600,6 +2648,14 @@ Scenario: golden; level: system; verifies SA-78.
 - Given: a specification on 0.3 with a caller of two properties, one allowing null, two roles whose rows rules name the entity's fields and the caller's properties, a list, a read by key, a write and a job over the entity, and a test of each derived case, one with the caller's object form in its fixture
 - When: validate is run
 - Then: it reports nothing and exits 0
+
+#### validate-0-3-through
+
+Scenario: red; level: system; covers exit 1; verifies SA-79.
+
+- Given: a specification whose only sign-in is a session, with a role whose through names a permission another role grants and a client that is not declared, and another whose through lists no client
+- When: validate is run
+- Then: it reports through at each role for the session carrying no application, at the permission not granted, at the undeclared client with the nearest name, and at the empty list, and exits 1
 
 #### validate-accessibility
 
@@ -4413,7 +4469,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-320 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+326 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -4593,6 +4649,12 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-78 | acceptance 4 | golden | SA-78 names no harm |
 | requirement SA-78 | acceptance 5 | golden | SA-78 names no harm |
 | requirement SA-78 | acceptance 6 | golden | SA-78 names no harm |
+| requirement SA-79 | acceptance 1 | golden | SA-79 names no harm |
+| requirement SA-79 | acceptance 2 | golden | SA-79 names no harm |
+| requirement SA-79 | acceptance 3 | golden | SA-79 names no harm |
+| requirement SA-79 | acceptance 4 | golden | SA-79 names no harm |
+| requirement SA-79 | acceptance 5 | golden | SA-79 names no harm |
+| requirement SA-79 | acceptance 6 | golden | SA-79 names no harm |
 | requirement SA-7 | acceptance 1 | golden | SA-7 names no harm |
 | requirement SA-7 | acceptance 2 | golden | SA-7 names no harm |
 | requirement SA-8 | acceptance 1 | golden | SA-8 names no harm |

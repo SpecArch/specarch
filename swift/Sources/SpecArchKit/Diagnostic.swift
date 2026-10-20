@@ -127,6 +127,12 @@ public enum Rule: String, CaseIterable, Sendable {
     case callerProperty = "caller_property"
     case rows = "rows"
     case reservedName = "reserved_name"
+    case client = "client"
+    case clientUnused = "client_unused"
+    case softwareVersion = "software_version"
+    case through = "through"
+    case callers = "callers"
+    case proof = "proof"
 }
 
 /// Whether a diagnostic makes the file invalid.

@@ -1,0 +1,54 @@
+specarch: "0.3"
+info: { title: Case, version: 1.0.0 }
+permissions:
+  loans.read: { description: See loans. }
+roles:
+  auditor:
+    description: The finance system's batch.
+    permissions: [loans.read]
+clients:
+  people:
+    description: A client that takes the reserved word.
+    kind: application
+  batch:
+    description: A client of a kind that is neither word.
+    kind: robot
+    roles: [auditor]
+    proof: { kind: mutualTls }
+  reporter:
+    description: A client with roles and no proof, naming a role that is not declared.
+    kind: service
+    roles: [auditor, accountant]
+  relay:
+    description: A service with no proof and no roles.
+    kind: service
+  phone:
+    description: An application whose version range does not parse, and one whose version has no claim to be checked.
+    kind: application
+    softwareVersion: "1.2 to 2.0"
+  browser:
+    description: An application admitted at a range of versions, with no token declaring the claim.
+    kind: application
+    softwareVersion: ">=1.2.0 <2.0.0"
+    softwareStatement: true
+  signer:
+    description: A signed request with an algorithm the RFC does not register and a covered component that is not a request part.
+    kind: service
+    roles: [auditor]
+    proof:
+      kind: signedRequest
+      algorithm: hmac-md5
+      covers: ["@method", "Body Text"]
+  unsigned:
+    description: A signed request with no algorithm and nothing covered.
+    kind: service
+    roles: [auditor]
+    proof:
+      kind: signedRequest
+  certified:
+    description: A client certificate that names an algorithm.
+    kind: service
+    roles: [auditor]
+    proof:
+      kind: mutualTls
+      algorithm: ed25519

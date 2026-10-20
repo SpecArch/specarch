@@ -136,6 +136,12 @@ const (
 	RuleCallerProperty         Rule = "caller_property"
 	RuleRows                   Rule = "rows"
 	RuleReservedName           Rule = "reserved_name"
+	RuleClient                 Rule = "client"
+	RuleClientUnused           Rule = "client_unused"
+	RuleSoftwareVersion        Rule = "software_version"
+	RuleThrough                Rule = "through"
+	RuleCallers                Rule = "callers"
+	RuleProof                  Rule = "proof"
 )
 
 // Rules lists every rule, in the order of the design's Rule enum.
@@ -264,6 +270,12 @@ var Rules = []Rule{
 	RuleCallerProperty,
 	RuleRows,
 	RuleReservedName,
+	RuleClient,
+	RuleClientUnused,
+	RuleSoftwareVersion,
+	RuleThrough,
+	RuleCallers,
+	RuleProof,
 }
 
 // Severity says whether a diagnostic makes the file invalid.

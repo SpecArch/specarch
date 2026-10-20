@@ -35,6 +35,9 @@ type subject struct {
 	// critical is true when a requirement the subject satisfies names a
 	// harm.
 	critical bool
+	// closed marks a route with permission nobody, which never succeeds, so
+	// no golden scenario is asked of it.
+	closed bool
 }
 
 // A derived case is a scenario the rest of the file says a subject needs.
@@ -364,8 +367,11 @@ func (d *design) withHarm(s *subject, n *yaml.Node) *subject {
 
 // caller is who may do something that needs a permission.
 func caller(perm string) string {
-	if perm == "" || perm == "public" {
+	if perm == "" || perm == permissionPublic {
 		return "any caller"
+	}
+	if perm == permissionNobody {
+		return "no caller"
 	}
 	return "a caller with " + perm
 }
@@ -378,7 +384,7 @@ func golden(given, when, then string) derivedCase {
 // without it, and, once the specification declares a session, a caller
 // whose session has expired.
 func (d *design) denied(s *subject, perm, what string) {
-	if perm == "" || perm == "public" {
+	if perm == "" || perm == permissionPublic || perm == permissionNobody {
 		return
 	}
 	s.red("denied without "+perm, frequent, "a caller without "+perm, what, "it is refused as not allowed")
@@ -493,7 +499,10 @@ func (d *design) operationSubject(o operation) *subject {
 			}
 		}
 	}
-	d.denied(s, source.Str(source.Child(o.node, "permission")), call)
+	perm := source.Str(source.Child(o.node, "permission"))
+	s.closed = perm == permissionNobody
+	d.denied(s, perm, call)
+	d.callerCases(s, o.node, perm, call, true)
 	d.rowsCases(s, o, call)
 	d.disabled(s, o.node, call)
 	seenChannel := map[string]bool{}
@@ -791,7 +800,10 @@ func (d *design) commandSubject(p source.Pair) *subject {
 			s.red("exit "+c.Key.Value, frequent, "...", run, "it exits "+c.Key.Value+": "+source.Str(c.Value))
 		}
 	}
-	d.denied(s, source.Str(source.Child(p.Value, "permission")), run)
+	perm := source.Str(source.Child(p.Value, "permission"))
+	s.closed = perm == permissionNobody
+	d.denied(s, perm, run)
+	d.callerCases(s, p.Value, perm, run, false)
 	d.disabled(s, p.Value, run)
 	guardCases(s, source.Child(p.Value, "guard"), run)
 	return s
@@ -807,6 +819,7 @@ func (d *design) pageSubject(p source.Pair) *subject {
 		s.success.when = open + " for a record that exists"
 	}
 	d.denied(s, source.Str(source.Child(p.Value, "permission")), open)
+	d.throughCases(s, source.Str(source.Child(p.Value, "permission")), open)
 	d.disabled(s, p.Value, open)
 	if source.Str(source.Child(p.Value, "kind")) == "task" {
 		d.answerCases(s, p.Value)

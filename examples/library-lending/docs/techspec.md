@@ -2,7 +2,7 @@
 
 # Library Lending: technical specification
 
-Version 0.1.0 of the specification: 8 requirements, 4 entities, 1 view, 2 schemas, 19 HTTP operations, 3 channels, 1 dependency, 11 pages, 1 flow, 1 workflow, 1 algorithm, 183 tests, 2 decisions, 3 environments and 5 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.1.0 of the specification: 8 requirements, 4 entities, 1 view, 2 schemas, 19 HTTP operations, 3 channels, 1 dependency, 11 pages, 1 flow, 1 workflow, 1 algorithm, 185 tests, 2 decisions, 3 environments and 5 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 ## 1. Introduction and goals
 
@@ -1450,18 +1450,18 @@ The entity fields that are not public, and the ones encrypted at rest. A persona
 
 Access is fail-closed: every operation, command and page names the one permission it needs, and only the roles below grant one.
 
-| Permission | librarian | head-librarian | member | scheduler | desk-supervisor | public |
-|---|---|---|---|---|---|---|
-| members.read | yes | | | | | |
-| members.write | yes | | | | | |
-| catalogue.read | yes | | yes | | | |
-| loans.read | yes | yes | yes | yes | yes | |
-| loans.create | yes | | | | | |
-| loans.return | yes | | | | | |
-| loans.writeoff | | yes | | | | |
-| fees.request | yes | | | | | |
-| fees.approve | | | | | yes | |
-| public | | | | | | everyone |
+| Permission | librarian | head-librarian | member | scheduler | desk-supervisor | auditor | fee-ledger-batch (service) | public |
+|---|---|---|---|---|---|---|---|---|
+| members.read | yes | | | | | | | |
+| members.write | yes | | | | | | | |
+| catalogue.read | yes | | yes | | | | | |
+| loans.read | yes | yes | yes | yes | yes | yes | yes | |
+| loans.create | yes | | | | | | | |
+| loans.return | yes | | | | | | | |
+| loans.writeoff | | yes | | | | | | |
+| fees.request | yes | | | | | | | |
+| fees.approve | | | | | yes | | | |
+| public | | | | | | | | everyone |
 
 The caller is who is making the call, as the service knows it once the session or token has been checked: one record with the properties below, which a role's rows rule names as caller.<property>. A property the caller may lack allows null, and a comparison with it is false then.
 
@@ -1474,6 +1474,20 @@ A role with a rows rule reaches only the records of the entity the rule holds fo
 | Role | Entity | Rows |
 |---|---|---|
 | member | Loan | `memberId == caller.memberId` |
+
+The clients: the programs that call the system, each by its software_id. An application is where a person signs in; a service calls on its own account with the roles it holds and a proof of its identity on each request, or carries a person's call. A client with roles is a column of the matrix above. A client is admitted only where an operation's callers lists it; a public client, one with no proof, has a name that is the issuer's word and no proof of origin.
+
+| Client | Kind | Admitted versions | Roles | Proof |
+|---|---|---|---|---|
+| fee-ledger-batch | service | any | auditor | a signed request (RFC 9421), hmac-sha256 over @method, @path, content-digest, date |
+
+**Insight on fee-ledger-batch:** The batch is a program with a key of its own, not a person with a card, so it calls on its own account with a signed request and holds the one role that reads loans and nothing else.
+
+Who may call: an operation or command that lists its callers admits exactly them, people (anyone signed in, whose roles decide the rest) and the clients named; one that lists none admits people and refuses every client; one closed with nobody refuses everyone.
+
+| Operation or command | Callers |
+|---|---|
+| operation listLoans | people, fee-ledger-batch |
 
 **Insight on member:** A member reads only the loans whose memberId is their own; the rule is written here once and holds for every operation, page and job that reads a loan, and a caller with no member identifier reaches no loan through it.
 
@@ -1755,6 +1769,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | create-loan-idempotency-key-reused-for-another-request | operation createLoan | system | red | a loan was created under an Idempotency-Key | createLoan is called with the same Idempotency-Key for another book | it is refused and no loan is created |
 | create-loan-not-yet-valid-member-id | operation createLoan | system | red | a member registered with a joinedOn of tomorrow, and a book with a copy available | createLoan is called for them | it is refused as not yet valid and no loan is created |
 | create-loan-rate-exceeded | operation createLoan | system | red | a librarian who has made 60 lending requests within the last minute, the burst the rate of 30 a minute allows | createLoan is called once more within that minute | it is refused as too many requests and no loan is created |
+| create-loan-refused-for-a-service-s-own-token | operation createLoan | system | red | the fee-ledger-batch service, calling with its own signed request and no librarian's session | createLoan is called | it is refused as not allowed, since no person is behind the call, and no loan is made |
 | create-loan-repeated-with-the-same-idempotency-key | operation createLoan | system | golden | a loan was created for a member and a book under an Idempotency-Key, and the client never saw the answer | createLoan is called again with the same Idempotency-Key, member and book | it answers 201 with the loan already created, no second loan exists, and the book's copies available are unchanged |
 | create-loan-request-larger-than-1024-bytes | operation createLoan | system | red | a librarian at the desk | createLoan is called with a body larger than 1024 bytes | it is refused as too large and no loan is created |
 | create-member-denied-with-expired-session | operation createMember | system | red | a librarian whose session expired after half an hour without a request | createMember is called | it is refused as not signed in, and nothing changes |
@@ -1794,6 +1809,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | lend-copies-idempotency-key-not-a-valid-uuid | operation lendCopies | system | red | a member and two books that exist | lendCopies is called with an Idempotency-Key that is not a UUID | it is refused and no loan is created |
 | lend-copies-idempotency-key-reused-for-another-request | operation lendCopies | system | red | loans were lent to a member under an Idempotency-Key | lendCopies is called with the same Idempotency-Key for other books | it is refused and no loan is created |
 | lend-copies-limit-reached | operation lendCopies | system | red | a standard-tier member with two open loans | lendCopies is called for two more books | it answers 409 and neither loan is created |
+| lend-copies-refused-for-a-service-s-own-token | operation lendCopies | system | red | the fee-ledger-batch service, calling with its own signed request and no librarian's session | lendCopies is called | it is refused as not allowed, since no person is behind the call, and no loan is made |
 | lend-copies-repeated-with-the-same-idempotency-key | operation lendCopies | system | golden | two loans were lent to a member under an Idempotency-Key, and the client never saw the answer | lendCopies is called again with the same Idempotency-Key, member and books | it answers 201 with the loans already created, no further loan exists, and the books' copies available are unchanged |
 | lend-copies-unknown-member | operation lendCopies | system | red | a librarian | lendCopies is called with a memberId no member has | it answers 404 and no loan is created |
 | lend-denied | operation createLoan | system | red | a caller holding only the member role | createLoan is called | it is refused as not allowed |

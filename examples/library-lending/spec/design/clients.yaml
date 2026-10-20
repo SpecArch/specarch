@@ -1,0 +1,11 @@
+# yaml-language-server: $schema=../../../../schema/specarch-fragment-design-0.3.schema.json
+clients:
+  fee-ledger-batch:
+    description: The finance system's nightly batch, which reads the day's loans to reconcile the fee ledger against the late fees.
+    kind: service
+    roles: [auditor]
+    proof:
+      kind: signedRequest
+      algorithm: hmac-sha256
+      covers: ["@method", "@path", content-digest, date]
+    why: The batch is a program with a key of its own, not a person with a card, so it calls on its own account with a signed request and holds the one role that reads loans and nothing else.

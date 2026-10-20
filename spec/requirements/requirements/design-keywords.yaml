@@ -441,3 +441,18 @@ requirements:
     verification: test
     needs: [NEED-1, NEED-2, NEED-3]
     why: A member sees only their own loans, and a tenant's staff only their organisation's records, and the meta-model could say neither, so the rule lived in prose beside the role and the service enforced what no test derived and no policy carried.
+  SA-79:
+    statement: A specification shall be able to declare its machine clients, each by its software_id with its kind, the versions it is admitted at, the roles it holds and how it proves its identity on each request; to say on an operation or command the explicit subset of who may call it, people and clients by name; to close a route on purpose with the reserved permission nobody; and to narrow a role's grant to the clients it holds through; specarch validate shall check each in both builds, the derived cases shall cover every refusal, and the technical specification shall show the clients beside the roles, the callers of each route and the grants narrowed by client.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance:
+      - A client whose kind is neither application nor service, one with roles and no proof, a service with no proof, one naming an undeclared role, one whose version range does not parse, and one whose version has no claim to be checked against are each refused in both builds, with the same words.
+      - A signed request naming an algorithm RFC 9421 does not register or covering a component that is not a request part is refused as proof in both builds.
+      - A callers list that is empty, names what is neither people nor a client, lists a client twice, lists a service with no roles, or lists a client none of whose roles grants the permission is refused as callers in both builds; a route closed with nobody that lists callers or is switched on by a setting, and a role granting nobody, are refused.
+      - A through naming a permission the role does not grant, a client not declared or an empty list, or written where no token carries the application the caller signed in through, is refused as through in both builds.
+      - specarch derive writes refused for every caller for a closed route, refused for a signed-in person where people is absent, refused for every caller not listed, refused with a bad signature from each client that signs, refused through a client not listed for each role whose through narrows the permission, the version case for each client with an admitted range, and refused for a service's own token at every route for people once a service exists.
+      - The technical specification's matrix has a column per client with roles, a cell that names the clients a grant holds through, a table of the clients with their kind, admitted versions, roles and proof, and a table of the callers of each route.
+    verification: test
+    needs: [NEED-1, NEED-2, NEED-3]
+    why: An identity service served routes open only to named machine clients, routes that also required a signed request, and a route closed to everyone, and each had to be written as a permission with prose, which lost the default-deny caller list and the signature, and a closed route needed a placeholder role, since a permission no role grants is a fail-closed error.

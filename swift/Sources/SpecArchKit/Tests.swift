@@ -15,6 +15,9 @@ final class Subject {
     var success: DerivedCase?
     /// True when a requirement the subject satisfies names a harm.
     var critical = false
+    /// A route with permission nobody, which never succeeds, so no golden
+    /// scenario is asked of it.
+    var closed = false
     /// True for a requirement or a state machine: every case is golden and
     /// asked for on its own, so neither needs a scenario of each kind.
     var whole = false
@@ -135,7 +138,9 @@ private let validatingFormats: Set<String> = ["date", "date-time", "time", "dura
 
 /// Who may do something that needs a permission.
 private func caller(_ perm: String) -> String {
-    perm.isEmpty || perm == "public" ? "any caller" : "a caller with " + perm
+    if perm.isEmpty || perm == permissionPublic { return "any caller" }
+    if perm == permissionNobody { return "no caller" }
+    return "a caller with " + perm
 }
 
 private func golden(_ given: String, _ when: String, _ then: String) -> DerivedCase {
@@ -208,7 +213,7 @@ extension Design {
     /// and, once the specification declares a session, a caller whose session
     /// has expired.
     func denied(_ s: Subject, _ perm: String, _ what: String) {
-        if perm.isEmpty || perm == "public" { return }
+        if perm.isEmpty || perm == permissionPublic || perm == permissionNobody { return }
         s.red("denied without " + perm, frequent, "a caller without " + perm, what, "it is refused as not allowed")
         if root.child("session") != nil {
             s.red("denied with expired session", frequent, "a caller whose session has expired", what, "it is refused as not signed in")
@@ -412,7 +417,10 @@ extension Design {
                 }
             }
         }
-        denied(s, str(o.node.child("permission")), call)
+        let perm = str(o.node.child("permission"))
+        s.closed = perm == permissionNobody
+        denied(s, perm, call)
+        callerCases(s, o.node, perm, call, atEdge: true)
         rowsCases(s, o, call)
         disabled(s, o.node, call)
         var seenChannel = Set<String>()
@@ -622,7 +630,10 @@ extension Design {
         for c in pairs(p.value.child("exitCodes")) where c.key.value != "0" {
             s.red("exit " + c.key.value, frequent, "...", run, "it exits " + c.key.value + ": " + str(c.value))
         }
-        denied(s, str(p.value.child("permission")), run)
+        let perm = str(p.value.child("permission"))
+        s.closed = perm == permissionNobody
+        denied(s, perm, run)
+        callerCases(s, p.value, perm, run, atEdge: false)
         disabled(s, p.value, run)
         guardCases(s, p.value.child("guard"), run)
         return s
@@ -674,6 +685,7 @@ extension Design {
         if !pathParameters(str(p.value.child("route"))).isEmpty { success.when = open + " for a record that exists" }
         s.success = success
         denied(s, str(p.value.child("permission")), open)
+        throughCases(s, str(p.value.child("permission")), open)
         disabled(s, p.value, open)
         if str(p.value.child("kind")) == "task" {
             answerCases(s, p.value)
@@ -948,7 +960,7 @@ extension Checker {
         for s in subjects {
             let id = ObjectIdentifier(s)
             let missing: (YNode?, String, Rule, String) -> Void = strict && !heldUp(blocking, s.path) ? add : warn
-            if !golden.contains(id) && !s.whole {
+            if !golden.contains(id) && !s.whole && !s.closed {
                 // Any golden test of the subject is its success case, so the
                 // skeleton names no case. Derive writes the success the
                 // design gives.

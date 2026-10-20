@@ -1,0 +1,54 @@
+specarch: "0.3"
+info: { title: Case, version: 1.0.0 }
+permissions:
+  loans.read: { description: See loans. }
+  returns.import: { description: Import the day's returns. }
+  nobody: { description: Closed on purpose. }
+roles:
+  librarian:
+    description: Staff at the desk.
+    permissions: [loans.read, returns.import]
+  auditor:
+    description: The finance system's batch.
+    permissions: [loans.read]
+clients:
+  batch:
+    description: The finance system's batch.
+    kind: service
+    roles: [auditor]
+    proof: { kind: mutualTls }
+  relay:
+    description: A service that only carries a person's call.
+    kind: service
+    proof: { kind: mutualTls }
+paths:
+  /loans:
+    get:
+      operationId: listLoans
+      summary: List loans
+      permission: loans.read
+      callers: []
+      responses:
+        "200": { description: The loans. }
+  /returns:
+    post:
+      operationId: importReturns
+      summary: Import returns
+      permission: returns.import
+      callers: [people, batch, relay, bach, people]
+      responses:
+        "202": { description: Accepted. }
+  /legacy:
+    get:
+      operationId: legacyList
+      summary: Closed
+      permission: nobody
+      callers: [people]
+      responses:
+        "403": { description: Closed. }
+tests:
+  list-loans-succeeds: { operation: listLoans, level: system, scenario: golden, given: a caller with loans.read, when: listLoans is called, then: it answers 200 }
+  list-loans-denied: { operation: listLoans, level: system, scenario: red, covers: [denied without loans.read], given: a caller without loans.read, when: listLoans is called, then: it is refused }
+  import-returns-succeeds: { operation: importReturns, level: system, scenario: golden, given: a caller with returns.import, when: importReturns is called, then: it answers 202 }
+  import-returns-denied: { operation: importReturns, level: system, scenario: red, covers: [denied without returns.import], given: a caller without returns.import, when: importReturns is called, then: it is refused }
+  legacy-list-closed: { operation: legacyList, level: system, scenario: red, covers: [refused for every caller], given: any caller, when: legacyList is called, then: it is refused as closed }

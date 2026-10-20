@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-test-0.3.schema.json
+operation: createLoan
+level: system
+scenario: red
+covers: [refused for a service's own token]
+given: the fee-ledger-batch service, calling with its own signed request and no librarian's session
+when: createLoan is called
+then: it is refused as not allowed, since no person is behind the call, and no loan is made

@@ -543,6 +543,11 @@ redefined.
 | `commands`, `arguments`, `options`, `reads`, `writes`, `standardOutput`, `standardError`, `exitCodes`, `repeatable` | SpecArch | command-line interfaces; no standard describes one |
 | `permissions`, `roles`, `permission` | SpecArch | OpenAPI's `security` names a scheme, not a right; SpecArch needs the right |
 | `caller` | SpecArch | the one record of who is making the call, with properties as JSON Schema has them; `caller.<property>` in an expression is CEL's own field access, kept to this one record so that every name is still a declared column of one record and a generator renders a rule without a join (ADR-095) |
+| `clients`, `kind` (of a client), `softwareVersion`, `softwareStatement`, `roles` (of a client) | SpecArch, after RFC 7591 and RFC 6749 | a client keyed by its `software_id`, with the RFC's `software_version` as an admitted range and its `software_statement` as whether the version is the publisher's; `client_id` is a deployment value (ADR-096, ADR-106) |
+| `proof`, `signedRequest`, `algorithm`, `covers`, `mutualTls` | SpecArch, after RFC 9421 (HTTP Message Signatures) and RFC 8705 | how a client proves its identity on each request; the algorithm names and covered components are the RFC's (ADR-096) |
+| `callers`, `people` | SpecArch | the explicit subset of who may call an operation or command; `people` reserved for anyone signed in (ADR-110) |
+| `nobody` | SpecArch | the reserved permission of a route closed on purpose, beside `public` (ADR-096) |
+| `through` (of a role) | SpecArch, after RFC 8693's `client_id` claim | the clients a grant holds through, checked against the application the token carries (ADR-106, ADR-108) |
 | `rows` (of a role) | SpecArch, after PostgreSQL's `CREATE POLICY ... USING (...)` | the rows a role reaches in an entity, one bool expression per entity, permissive across roles as the policies are; ISO SQL has no row security, so the one engine that models it names it (ADR-095) |
 | `separationOfDuties`, `cardinality` | ANSI INCITS 359 (RBAC), static separation of duty | a set and a number no holder may reach; stated over permissions, not roles, because the specification declares the duties and the roles that grant them |
 | `session`, `idleTimeout`, `absoluteTimeout` | SpecArch, after the OWASP Session Management Cheat Sheet | how a signed-in session ends; the two timeouts are the cheat sheet's |
@@ -707,6 +712,100 @@ with the version warning in a file on 0.2 (ADR-094). The roles a caller
 holds are not a property: a rule is written per role. A test's fixture
 names the caller as a role, or as an object with `role` and a value for
 each property the test needs.
+
+### Machine clients, callers, a route closed on purpose, and the clients a grant holds through
+
+A program that calls the system is a client (ADR-096, ADR-106, ADR-110),
+keyed by its `software_id` of RFC 7591, the publisher's name for the
+software across its versions, in kebab-case. An `application` is where a
+person signs in; a `service` calls on its own account, with the `roles`
+it holds and a `proof` of its identity on each request, or carries a
+person's call:
+
+    clients:
+      fee-ledger-batch:
+        description: The finance system's batch, which reads the day's loans to reconcile the fee ledger.
+        kind: service
+        roles: [auditor]
+        proof:
+          kind: signedRequest
+          algorithm: hmac-sha256
+          covers: ["@method", "@path", content-digest, date]
+
+A client holds roles as a person does, so what it may do is said once,
+through permissions, and the fail-closed rule stays one rule. `proof` is
+`signedRequest`, a signature over the named parts of the request after
+RFC 9421, with the `algorithm` the two sides agree on from the ones the
+RFC registers and the `covers` it signs (`@method`, `@path` and the other
+derived components, or a header field by its name in lower case), or
+`mutualTls`, the client certificate of RFC 8705. The algorithm is design,
+not stack, because the client cannot sign without knowing it; the key is
+a secret and is never in a specification. A client with roles must have a
+proof, and so must a service (`client`); an application without one is a
+public client, whose name in a token is the issuer's word and no proof of
+origin. `softwareVersion` is the range the client is admitted at, a lower
+bound included and an upper bound excluded, each a Semantic Versioning
+2.0.0 version, written `>=1.2.0 <2.0.0`, checked once at the edge against
+the `softwareVersion` claim of the token the issuer fills from the
+registration, so a specification whose tokens declare no such claim is
+refused (`software_version`); `softwareStatement: true` says the version
+is the publisher's, from the signed statement the issuer verified, which
+makes the check a security check rather than a compatibility one. The
+`client_id` the authorisation server issues differs per environment, so
+it is a deployment value of the implementation file
+(`deployments.<environment>.clients.<name>.clientId`), never a design key.
+
+An operation or command says who may call it with `callers`, the
+explicit subset: `people`, the reserved word for anyone signed in (which
+people is the roles' business), and clients by name:
+
+    get:
+      operationId: listLoans
+      permission: loans.read
+      callers: [people, fee-ledger-batch]
+
+Left out, `callers` is `[people]`: a client is refused. There is no
+`all`: a client added later is admitted only once someone writes it on
+the route, which is the fail-open the estate declined. The validator
+refuses an empty list, a name that is neither `people` nor a declared
+client, a client twice, a service with no roles (it only carries a
+person's call) and a client none of whose roles grants the permission,
+directly or by `implies` (`callers`). A route that exists and is open to
+nobody is written with the reserved permission `nobody`, declared under
+`permissions` beside `public`: no role is asked to grant it, a role that
+grants it and `enabledBy` on such a route are refused, and the route stays
+in the OpenAPI document and the techspec, marked closed, so that a client
+still calling it gets the problem the design declares rather than a 404
+that looks like a wrong path.
+
+A role may narrow a grant to the clients it holds through, keyed by
+permission beside `rows`:
+
+    roles:
+      invoice-manager:
+        permissions: [invoices.read, invoices.delete]
+        through:
+          invoices.delete: [admin-web]
+
+The check is at every hop against the application the token carries,
+`client_id` on an access token and `tctx.application` on a transaction
+token, so `through` needs a token that declares one of them; a session
+carries none, and a specification with neither is refused (`through`), as
+are a permission the role does not grant, a client not declared and an
+empty list. Listing nobody is not written: to close the grant, drop the
+permission.
+
+The derived cases: `refused for every caller` for a closed route;
+`refused for a signed-in person` where `people` is absent and `refused
+for every caller not listed` where `callers` is written; `refused with a
+bad signature from <client>` for every route a client that signs may
+call; `refused through a client not listed for <role>` at every
+operation, command and page naming a permission the role narrows;
+`refused with <client> at a version outside its admitted range` at the
+edge; and, once any service is declared, `refused for a service's own
+token` at every operation for people, the confused deputy: a service
+calling with its own proof or token in place of the person's, so that the
+person, with their rows, roles and `through`, would be lost (ADR-108).
 
 ### Separation of duties
 

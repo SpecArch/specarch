@@ -1,0 +1,8 @@
+arguments: [validate, .]
+exitStatus: 1
+standardOutput: |
+  specarch.yaml:14:7: error: /roles/invoice-manager/through: through: through needs the application the caller signed in through, which a session does not carry and no token declares: declare a token with the client_id claim, or a transaction token with tctx, or take through away [through@specarch.yaml#/roles/invoice-manager/through]
+  specarch.yaml:14:24: error: /roles/invoice-manager/through/invoices.delete: through: invoices.delete is not a permission invoice-manager grants, directly or by implies, so through has no grant to narrow; add it to the role's permissions, or remove it here [through@specarch.yaml#/roles/invoice-manager/through/invoices.delete]
+  specarch.yaml:15:34: error: /roles/invoice-manager/through/invoices.read/1: through: phone is not a client of the specification; use one of admin-web [through@specarch.yaml#/roles/invoice-manager/through/invoices.read/1]
+  specarch.yaml:20:7: error: /roles/invoice-reader/through: through: through needs the application the caller signed in through, which a session does not carry and no token declares: declare a token with the client_id claim, or a transaction token with tctx, or take through away [through@specarch.yaml#/roles/invoice-reader/through]
+  specarch.yaml:20:22: error: /roles/invoice-reader/through/invoices.read: through: through names no client for invoices.read, which would close the grant; list the clients it holds through, or drop the permission from the role [through@specarch.yaml#/roles/invoice-reader/through/invoices.read]

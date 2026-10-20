@@ -238,6 +238,9 @@ extension Checker {
         checkAccess(d)
         checkCaller(d)
         checkRoleRows(d)
+        checkClients(d)
+        checkThrough(d)
+        checkCallers(d)
         checkImplies(d)
         checkSeparationOfDuties(d)
         checkExpressions(d)
@@ -740,11 +743,18 @@ extension Checker {
                 add(n, ptr, .setting, "\(name) is not a boolean setting, so it cannot switch this on or off; name a setting whose schema is type: boolean")
             }
         }
+        func closed(_ n: YNode, _ ptr: String, _ who: String) {
+            if str(n.child("permission")) == permissionNobody, let e = n.child("enabledBy") {
+                add(e, ptr, .setting, "\(who) is closed with permission nobody, so \(str(e)) would switch on nothing; remove enabledBy, or give it a permission a role grants")
+            }
+        }
         for o in d.opList {
             check(o.node.child("enabledBy"), o.pointer("enabledBy"))
+            closed(o.node, o.pointer("enabledBy"), "operation " + o.id)
         }
         for (name, cmd) in d.commands {
             check(cmd.child("enabledBy"), pointer("commands", name, "enabledBy"))
+            closed(cmd, pointer("commands", name, "enabledBy"), "command " + name)
         }
         for (name, pg) in d.pages {
             check(pg.child("enabledBy"), pointer("pages", name, "enabledBy"))
@@ -786,11 +796,15 @@ extension Checker {
         var granted = Set<String>()
         for (name, r) in d.roles {
             for (i, p) in items(r.child("permissions")).enumerated() {
+                if p.value == permissionNobody {
+                    add(p, pointer("roles", name, "permissions", "\(i)"), .reservedName, "nobody is the reserved permission of a route closed on purpose, which no role grants; remove it from role \(name)")
+                    continue
+                }
                 use(p, pointer("roles", name, "permissions", "\(i)"), "role " + name)
             }
             granted.formUnion(d.roleHolds(r))
         }
-        for p in pairs(d.root.child("permissions")) where p.key.value != "public" && !granted.contains(p.key.value) {
+        for p in pairs(d.root.child("permissions")) where p.key.value != permissionPublic && p.key.value != permissionNobody && !granted.contains(p.key.value) {
             add(p.key, pointer("permissions", p.key.value), .permissionUngranted,
                 "no role grants \(p.key.value), so nobody can use what it guards; add it to a role, or use public if it is meant for everyone")
         }

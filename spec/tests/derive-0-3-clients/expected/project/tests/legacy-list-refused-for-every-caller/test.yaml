@@ -1,0 +1,9 @@
+operation: legacyList
+level: system
+scenario: red
+covers: [refused for every caller]
+given: "any caller, signed in or not, with any roles"
+when: "legacyList is called"
+then: "it is refused: the route is closed on purpose, with the problem the design declares"
+origin: inferred
+why: "Written by specarch derive: users get this wrong often, so the case is written. A draft: complete the given, when and then, and remove what does not hold."

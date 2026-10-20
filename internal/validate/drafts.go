@@ -54,7 +54,7 @@ func Drafts(root *yaml.Node) []Draft {
 	for _, s := range subjects {
 		whole := s.kind == "requirement" || s.kind == "flow"
 		blocked := blockedBy(blocking, s.path)
-		if !golden[s.yamlKey] && !whole && s.success.scenario != "" {
+		if !golden[s.yamlKey] && !whole && !s.closed && s.success.scenario != "" {
 			success := s.success
 			success.name = ""
 			out = append(out, Draft{Name: s.name + "-succeeds", Subject: s.label, BlockedBy: blocked, Renamed: s.renamed,

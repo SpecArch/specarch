@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: derive
+level: system
+scenario: golden
+given: "the specification of validate-0-3-clients-valid with only the list's golden test"
+when: derive is run
+then: "it writes the drafts of the callers, signature, closed-route and service's-own-token cases of each operation beside the permission ones, none for the closed route's success, and exits 0"
+verifies: [SA-79]

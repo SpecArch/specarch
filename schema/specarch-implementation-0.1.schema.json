@@ -1052,6 +1052,28 @@
             ]
           }
         },
+        "clients": {
+          "description": "SpecArch keyword. The client_id the authorisation server issued to each client of the design in this environment, keyed by the client's name under clients (its software_id): issued per registration and differing per environment, so a deployment value and never a design key (ADR-106).",
+          "type": "object",
+          "propertyNames": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+          },
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "clientId": {
+                "description": "The client_id of RFC 6749, as the authorisation server issued it for this environment.",
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "clientId"
+            ],
+            "additionalProperties": false
+          }
+        },
         "monitors": {
           "description": "How this deployment watches each monitor of the specification, keyed by monitor name: the tool that measures, how, and where an alert goes.",
           "type": "object",

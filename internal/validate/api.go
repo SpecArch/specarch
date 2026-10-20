@@ -155,7 +155,8 @@ func (c *checker) checkInterface(o operation) {
 		}
 		codes = append(codes, code)
 	}
-	if len(codes) == 0 {
+	// A route closed on purpose never succeeds: its refusal is its answer.
+	if len(codes) == 0 || source.Str(source.Child(o.node, "permission")) == permissionNobody {
 		return
 	}
 	c.warn(source.Key(o.node, "responses"), o.pointer("responses"), RuleSuccessResponseMissing, "%s answers %s and no success, so what it answers when it succeeds is not written; add its success response", o.id, strings.Join(codes, ", "))

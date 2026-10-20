@@ -8,6 +8,7 @@ import (
 	"go.yaml.in/yaml/v3"
 
 	"github.com/SpecArch/specarch/internal/implies"
+	"github.com/SpecArch/specarch/internal/source"
 )
 
 func fence(body string) string {
@@ -309,17 +310,28 @@ func permissionsTable(root *yaml.Node) string {
 	for _, r := range roles {
 		grants[r.Key.Value] = roleHolds(root, r.Value)
 	}
+	// A client with roles is a column of its own, named with its kind,
+	// so the callers are the rows' holders beside the roles (ADR-110).
+	var clients []source.Pair
+	for _, c := range pairs(root, "clients") {
+		if len(strs(c.Value, "roles")) > 0 {
+			clients = append(clients, c)
+		}
+	}
 	hasPublic := get(get(root, "permissions"), "public") != nil
 	var b strings.Builder
 	b.WriteString("| Permission |")
 	for _, r := range roles {
 		b.WriteString(" " + r.Key.Value + " |")
 	}
+	for _, c := range clients {
+		b.WriteString(" " + c.Key.Value + " (" + str(c.Value, "kind") + ") |")
+	}
 	if hasPublic {
 		b.WriteString(" public |")
 	}
 	b.WriteString("\n|---|")
-	b.WriteString(strings.Repeat("---|", len(roles)))
+	b.WriteString(strings.Repeat("---|", len(roles)+len(clients)))
 	if hasPublic {
 		b.WriteString("---|")
 	}
@@ -327,7 +339,10 @@ func permissionsTable(root *yaml.Node) string {
 	for _, p := range perms {
 		fmt.Fprintf(&b, "| %s |", p.Key.Value)
 		for _, r := range roles {
-			if through := implies.Through(strs(r.Value, "permissions"), p.Key.Value, impliedBy(root)); through != "" {
+			if list := strs(get(r.Value, "through"), p.Key.Value); len(list) > 0 && grants[r.Key.Value][p.Key.Value] {
+				// A grant narrowed to the clients it holds through (ADR-106).
+				b.WriteString(" " + strings.Join(list, ", ") + " only |")
+			} else if through := implies.Through(strs(r.Value, "permissions"), p.Key.Value, impliedBy(root)); through != "" {
 				b.WriteString(" through " + through + " |")
 			} else if grants[r.Key.Value][p.Key.Value] {
 				b.WriteString(" yes |")
@@ -335,10 +350,24 @@ func permissionsTable(root *yaml.Node) string {
 				b.WriteString(" |")
 			}
 		}
-		if hasPublic {
-			if p.Key.Value == "public" {
-				b.WriteString(" everyone |")
+		for _, c := range clients {
+			held := false
+			for _, role := range strs(c.Value, "roles") {
+				held = held || grants[role][p.Key.Value]
+			}
+			if held {
+				b.WriteString(" yes |")
 			} else {
+				b.WriteString(" |")
+			}
+		}
+		if hasPublic {
+			switch p.Key.Value {
+			case "public":
+				b.WriteString(" everyone |")
+			case "nobody":
+				b.WriteString(" closed |")
+			default:
 				b.WriteString(" |")
 			}
 		}

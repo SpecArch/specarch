@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: document
+level: system
+scenario: golden
+given: "the specification of validate-0-3-clients-valid"
+when: "document techspec is run with --out"
+then: "it writes the technical specification whose permissions matrix has a column per client with roles and marks the closed permission, a table of the clients with their kind, versions, roles and proof, and a table of who may call each route, and exits 0"
+verifies: [SA-79]

@@ -1,0 +1,9 @@
+arguments: [derive, project]
+exitStatus: 0
+standardOutput: |
+  project/tests/list-loans-denied-without-loans-read/test.yaml
+  project/tests/import-returns-succeeds/test.yaml
+  project/tests/import-returns-denied-without-returns-import/test.yaml
+  project/tests/import-returns-refused-for-a-signed-in-person/test.yaml
+  project/tests/legacy-list-refused-for-every-caller/test.yaml
+  project/tests/status-succeeds/test.yaml

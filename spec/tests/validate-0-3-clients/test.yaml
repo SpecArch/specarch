@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "clients named people, of a kind that is neither application nor service, holding roles with no proof and naming an undeclared role, a service with no proof and no roles, a version range that does not parse, a version with no claim to be checked against, a signed request with an unregistered algorithm and a covered component that is not a request part, one with no algorithm and nothing covered, and a client certificate naming an algorithm"
+when: validate is run
+then: "it reports reserved_name for the name, client for the kind, the missing proofs, the undeclared role and the range, software_version for the version with no claim, proof for the algorithm, the component, the missing algorithm, the empty covers and the certificate's algorithm, warns client_unused for the service with neither roles nor proof, and exits 1"
+verifies: [SA-79]

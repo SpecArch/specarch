@@ -258,6 +258,7 @@ paths:
       operationId: listLoans
       summary: List loans
       permission: loans.read
+      callers: [people, fee-ledger-batch]
       parameters:
         - { name: status, in: query, schema: { $ref: "#/enums/LoanStatus" } }
         - { name: memberId, in: query, schema: { type: string, format: uuid } }

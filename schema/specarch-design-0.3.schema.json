@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-design-0.3.schema.json",
   "title": "SpecArch specification, meta-model 0.3",
-  "description": "A SpecArch specification describes one system through its whole life cycle: the sources it rests on, the requirements (stakeholders, needs, requirements, glossary, assumptions, constraints), the design (enums, entities, permissions, roles, caller, session, endpoints, commands, channels, dependencies, pages, algorithms, decisions), the tests, the deployment (environments, configuration, release, rollback, migrations) and the commissioning (checks, sign-off). On disk it is a folder whose root file is specarch.yaml; each stage listed under 'stages' lives in a folder of that name, and a stage not listed may be written inside specarch.yaml itself. The validator merges the tree into one document that this schema describes. Field keywords come from JSON Schema, endpoint keywords from OpenAPI 3, event keywords from AsyncAPI. Keywords with no standard origin are marked 'SpecArch keyword' in their description. Every object rejects unknown keys; keys starting with 'x-' are allowed everywhere as extensions.",
+  "description": "A SpecArch specification describes one system through its whole life cycle: the sources it rests on, the requirements (stakeholders, needs, requirements, glossary, assumptions, constraints), the design (enums, entities, permissions, roles, caller, clients, session, endpoints, commands, channels, dependencies, pages, algorithms, decisions), the tests, the deployment (environments, configuration, release, rollback, migrations) and the commissioning (checks, sign-off). On disk it is a folder whose root file is specarch.yaml; each stage listed under 'stages' lives in a folder of that name, and a stage not listed may be written inside specarch.yaml itself. The validator merges the tree into one document that this schema describes. Field keywords come from JSON Schema, endpoint keywords from OpenAPI 3, event keywords from AsyncAPI. Keywords with no standard origin are marked 'SpecArch keyword' in their description. Every object rejects unknown keys; keys starting with 'x-' are allowed everywhere as extensions.",
   "type": "object",
   "properties": {
     "specarch": {
@@ -145,7 +145,7 @@
       }
     },
     "permissions": {
-      "description": "SpecArch keyword. Named rights, keyed by dotted lower-case name such as 'loans.create'. The name 'public' is reserved: an operation or page that grants it is open to everyone, including unauthenticated callers.",
+      "description": "SpecArch keyword. Named rights, keyed by dotted lower-case name such as 'loans.create'. Two names are reserved and declared here like any other, so that each says why: 'public', which an operation or page grants to everyone, including unauthenticated callers, and 'nobody', which closes a route on purpose, so that it stays in the contract and refuses every caller; no role grants either (ADR-096).",
       "type": "object",
       "propertyNames": {
         "$ref": "#/$defs/permissionName"
@@ -167,6 +167,16 @@
     "caller": {
       "description": "SpecArch keyword. Who is making the call, as the service knows it once the session or token has been checked: one record with the properties of a value object, which a role's rows rule names as caller.<property>. A token's claims fill the properties of their names, and a session fills them at sign-in; how a running service carries them from the request to the query is the implementation file's (ADR-095).",
       "$ref": "#/$defs/caller"
+    },
+    "clients": {
+      "description": "SpecArch keyword. The programs that call the system, keyed by the software_id of RFC 7591, the publisher's name for the software across its versions, in kebab-case: an application, where a person signs in, or a service, which calls on its own account with the roles it holds and a proof of its identity on each request, or carries a person's call. A client holds roles as a person does, so what it may do is said once, through permissions (ADR-096, ADR-106, ADR-110).",
+      "type": "object",
+      "propertyNames": {
+        "$ref": "#/$defs/clientName"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/client"
+      }
     },
     "separationOfDuties": {
       "description": "SpecArch keyword. Sets of permissions one holder must never have together, after the static separation of duty of ANSI INCITS 359, keyed by kebab-case name. No role may grant cardinality or more of a set's permissions; the techspec lists the combinations of roles that together reach a set, as roles never to be given to one person.",
@@ -2196,6 +2206,21 @@
           },
           "minProperties": 1
         },
+        "through": {
+          "description": "SpecArch keyword. The clients a grant holds through, keyed by a permission the role grants, directly or by implies: the application the caller signed in through, or the client calling on its own account, must be one listed, checked at every hop against the token's client_id or tctx.application. A permission not listed holds through every client. Listing nobody is not written: to close the grant, drop the permission (ADR-106, ADR-108).",
+          "type": "object",
+          "propertyNames": {
+            "$ref": "#/$defs/permissionName"
+          },
+          "additionalProperties": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/clientName"
+            },
+            "uniqueItems": true
+          },
+          "minProperties": 1
+        },
         "satisfies": {
           "$ref": "#/$defs/satisfies"
         },
@@ -2480,8 +2505,16 @@
           "$ref": "#/$defs/markdown"
         },
         "permission": {
-          "description": "SpecArch keyword. The one permission a caller must hold. Use 'public' for an endpoint open to everyone.",
+          "description": "SpecArch keyword. The one permission a caller must hold. Use 'public' for an endpoint open to everyone, and 'nobody' for a route that exists and is closed to everyone on purpose, which stays in the contract and refuses every caller (ADR-096).",
           "$ref": "#/$defs/permissionName"
+        },
+        "callers": {
+          "description": "SpecArch keyword. Who may call: the explicit subset, people (anyone signed in; which people is the roles' business) and clients by name, in any order. Left out, it is [people]: a client is refused. A client listed must hold a role that grants the permission, and a service with no roles cannot be listed (ADR-110). There is no all: a client added later is admitted only once someone writes it here.",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+          }
         },
         "middlewares": {
           "description": "SpecArch keyword. The middlewares the operation runs before its handler, in the order they run, by their names under middlewares, one that runs twice named twice; an empty list says it runs none.",
@@ -4224,8 +4257,16 @@
           "$ref": "#/$defs/markdown"
         },
         "permission": {
-          "description": "SpecArch keyword. The one permission a caller must hold. A local tool that anyone may run uses 'public'.",
+          "description": "SpecArch keyword. The one permission a caller must hold. Use 'public' for an endpoint open to everyone, and 'nobody' for a route that exists and is closed to everyone on purpose, which stays in the contract and refuses every caller (ADR-096).",
           "$ref": "#/$defs/permissionName"
+        },
+        "callers": {
+          "description": "SpecArch keyword. Who may call: the explicit subset, people (anyone signed in; which people is the roles' business) and clients by name, in any order. Left out, it is [people]: a client is refused. A client listed must hold a role that grants the permission, and a service with no roles cannot be listed (ADR-110). There is no all: a client added later is admitted only once someone writes it here.",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+          }
         },
         "arguments": {
           "description": "Positional arguments, in order.",
@@ -6035,6 +6076,116 @@
       "required": [
         "description",
         "properties"
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "clientName": {
+      "description": "kebab-case software_id of a client; people, nobody and public are reserved.",
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+    },
+    "proof": {
+      "description": "SpecArch keyword. How a client proves its identity on each request: signedRequest, a signature over named parts of the request after RFC 9421 with the algorithm the two sides agree on and the components it covers; or mutualTls, the client certificate of RFC 8705. The key itself is a secret and is never in a specification.",
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "signedRequest",
+            "mutualTls"
+          ]
+        },
+        "algorithm": {
+          "description": "For signedRequest: an algorithm RFC 9421 registers, such as hmac-sha256, ecdsa-p256-sha256 or ed25519; design, not stack, because the client cannot sign without knowing it.",
+          "type": "string",
+          "minLength": 1
+        },
+        "covers": {
+          "description": "For signedRequest: the covered components, as RFC 9421 names them: @method, @path and the other derived components, or a header field by its name in lower case, such as content-digest or date.",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "client": {
+      "description": "SpecArch keyword. One client: its kind, the versions it is admitted at, the roles it holds and its proof.",
+      "type": "object",
+      "properties": {
+        "description": {
+          "$ref": "#/$defs/markdown"
+        },
+        "kind": {
+          "description": "application, where a person signs in, or service, a program that calls on its own account or carries a person's call. Neither word is a role: what a client may do is its roles' permissions.",
+          "type": "string",
+          "minLength": 1
+        },
+        "softwareVersion": {
+          "description": "SpecArch keyword. The versions the client is admitted at: a lower bound included and an upper bound excluded, each a Semantic Versioning 2.0.0 version, written \">=1.2.0 <2.0.0\". Checked once, at the edge, against the softwareVersion claim of the token the issuer fills from the registration; a specification whose tokens declare no such claim is refused (software_version). A refusal is 403 with the problem the design declares, never 426 (ADR-106).",
+          "type": "string",
+          "minLength": 1
+        },
+        "softwareStatement": {
+          "description": "SpecArch keyword. True when the version is the publisher's, asserted in the signed software statement of RFC 7591, section 2.3, that the issuer verified at registration, so that the version check is a security check; false or left out, the version is self-asserted (section 5) and the check is a compatibility check, which is what a browser or a phone can offer.",
+          "type": "boolean"
+        },
+        "roles": {
+          "description": "The roles the client holds when it calls on its own account; a client with roles must have a proof. A service with neither only carries a person's call.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/roleName"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "proof": {
+          "$ref": "#/$defs/proof"
+        },
+        "satisfies": {
+          "$ref": "#/$defs/satisfies"
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
+        },
+        "audience": {
+          "$ref": "#/$defs/audience"
+        }
+      },
+      "required": [
+        "description",
+        "kind"
       ],
       "propertyNames": {
         "not": {

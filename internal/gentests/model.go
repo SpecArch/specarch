@@ -34,12 +34,22 @@ type Test struct {
 	Then          string
 	NotApplicable string // the reason, when the test does not apply
 	Caller        string // the role signed in, or "" for none or public
+	// CallerProperties are the caller's properties the fixture gives, by
+	// name, for a harness that fills the caller (meta-model 0.3).
+	CallerProperties []CallerProperty
 	Inserts       []Stored
 	Call          *Call // nil when the design gives no call to make
 	Expect        Expect
 }
 
 // Stored is a record of an entity, through the entity's mapping.
+// CallerProperty is one property of the caller a fixture gives, as the
+// test wrote it.
+type CallerProperty struct {
+	Name  string
+	Value any
+}
+
 type Stored struct {
 	Mapping string
 	Record  []Field
@@ -219,8 +229,22 @@ func (g *walker) test(name string, t map[string]any) Test {
 	out.Subject, out.Scenario = subjectOf(t), str(t, "scenario")
 	out.Given, out.When, out.Then = oneLine(str(t, "given")), oneLine(str(t, "when")), oneLine(str(t, "then"))
 	fixture, _ := t["fixture"].(map[string]any)
-	if caller := str(fixture, "caller"); caller != "public" {
-		out.Caller = caller
+	// The caller is a role or public as a word, or an object with the
+	// role and values for the caller's properties (meta-model 0.3).
+	switch c := fixture["caller"].(type) {
+	case string:
+		if c != "public" {
+			out.Caller = c
+		}
+	case map[string]any:
+		if role := str(c, "role"); role != "public" {
+			out.Caller = role
+		}
+		for _, name := range sortedKeys(c) {
+			if name != "role" && !strings.HasPrefix(name, "x-") {
+				out.CallerProperties = append(out.CallerProperties, CallerProperty{Name: name, Value: c[name]})
+			}
+		}
 	}
 	for _, ent := range sortedKeys(fixture) {
 		if ent == "caller" || strings.HasPrefix(ent, "x-") {

@@ -1,0 +1,6 @@
+arguments: [validate, .]
+exitStatus: 1
+standardOutput: |
+  specarch.yaml:14:31: error: /roles/librarian/permissions/1: reserved_name: nobody is the reserved permission of a route closed on purpose, which no role grants; remove it from role librarian [reserved_name@specarch.yaml#/roles/librarian/permissions/1]
+  specarch.yaml:21:18: error: /paths/~1legacy/get/enabledBy: setting: operation legacyList is closed with permission nobody, so legacyOn would switch on nothing; remove enabledBy, or give it a permission a role grants [setting@specarch.yaml#/paths/~1legacy/get/enabledBy]
+  specarch.yaml:28:16: error: /commands/purge/enabledBy: setting: command purge is closed with permission nobody, so legacyOn would switch on nothing; remove enabledBy, or give it a permission a role grants [setting@specarch.yaml#/commands/purge/enabledBy]

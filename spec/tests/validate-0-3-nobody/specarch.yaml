@@ -1,0 +1,34 @@
+specarch: "0.3"
+info: { title: Case, version: 1.0.0 }
+configuration:
+  legacyOn:
+    description: Whether the old list is served.
+    secret: false
+    schema: { type: boolean, default: false }
+permissions:
+  loans.read: { description: See loans. }
+  nobody: { description: Closed on purpose. }
+roles:
+  librarian:
+    description: Staff at the desk.
+    permissions: [loans.read, nobody]
+paths:
+  /legacy:
+    get:
+      operationId: legacyList
+      summary: The old list, closed
+      permission: nobody
+      enabledBy: legacyOn
+      responses:
+        "403": { description: Closed. }
+commands:
+  purge:
+    summary: Purge the old records, closed
+    permission: nobody
+    enabledBy: legacyOn
+    exitCodes:
+      "0": purged
+tests:
+  legacy-list-closed: { operation: legacyList, level: system, scenario: red, covers: [refused for every caller, disabled by legacyOn], given: any caller, when: legacyList is called, then: it is refused as closed }
+  purge-closed: { command: purge, level: system, scenario: red, covers: [refused for every caller, disabled by legacyOn], given: any caller, when: purge is run, then: it is refused as closed }
+  purge-usage-error: { command: purge, level: system, scenario: red, covers: [usage error], given: any caller, when: purge is run with an argument it does not accept, then: it prints how to use it and exits with the usage status }

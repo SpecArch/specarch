@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: requirements specification
 
-Version 0.7.2-dev of the specification: 5 stakeholders, 10 needs and 78 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
+Version 0.7.2-dev of the specification: 5 stakeholders, 10 needs and 79 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
 
 **Problems:** 4 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -33,9 +33,9 @@ What the stakeholders said they need, before it was shaped into requirements, an
 
 | Need | Statement | Stakeholders | Status | Refined by |
 |---|---|---|---|---|
-| NEED-1 | I want a specification that cannot quietly be wrong, so that the code built from it is right. | specification-author, implementer | accepted | SA-33, SA-34, SA-35, SA-47, SA-48, SA-50, SA-75, SA-77, SA-78, SA-72, SA-1, SA-2, SA-3, SA-4, SA-5, SA-6, SA-51 |
-| NEED-2 | I want to write a design once and build it in more than one language. | implementer | accepted | SA-33, SA-34, SA-36, SA-37, SA-38, SA-39, SA-40, SA-41, SA-42, SA-43, SA-52, SA-53, SA-54, SA-55, SA-56, SA-49, SA-62, SA-63, SA-65, SA-66, SA-70, SA-77, SA-78, SA-46, SA-61, SA-71, SA-32, SA-9, SA-10 |
-| NEED-3 | I want the documents and diagrams to come from the specification, so they never drift from it. | reviewer, specification-author | accepted | SA-22, SA-36, SA-67, SA-75, SA-77, SA-78, SA-7, SA-8, SA-26, SA-16, SA-58, SA-59, SA-60, SA-19, SA-74 |
+| NEED-1 | I want a specification that cannot quietly be wrong, so that the code built from it is right. | specification-author, implementer | accepted | SA-33, SA-34, SA-35, SA-47, SA-48, SA-50, SA-75, SA-77, SA-78, SA-79, SA-72, SA-1, SA-2, SA-3, SA-4, SA-5, SA-6, SA-51 |
+| NEED-2 | I want to write a design once and build it in more than one language. | implementer | accepted | SA-33, SA-34, SA-36, SA-37, SA-38, SA-39, SA-40, SA-41, SA-42, SA-43, SA-52, SA-53, SA-54, SA-55, SA-56, SA-49, SA-62, SA-63, SA-65, SA-66, SA-70, SA-77, SA-78, SA-79, SA-46, SA-61, SA-71, SA-32, SA-9, SA-10 |
+| NEED-3 | I want the documents and diagrams to come from the specification, so they never drift from it. | reviewer, specification-author | accepted | SA-22, SA-36, SA-67, SA-75, SA-77, SA-78, SA-79, SA-7, SA-8, SA-26, SA-16, SA-58, SA-59, SA-60, SA-19, SA-74 |
 | NEED-4 | I want a big specification split over many files, each about one thing, so I can find what I am looking for. | specification-author, reviewer | accepted | SA-11, SA-2 |
 | NEED-5 | I want the whole life of the system in one place, from the first requirement to the day it is accepted. | reviewer, operator | accepted | SA-35, SA-47, SA-68, SA-26, SA-16, SA-12, SA-23, SA-24, SA-25, SA-73 |
 | NEED-6 | I want to see why something is the way it is, and which standard asks for it. | reviewer | accepted | SA-15, SA-13 |
@@ -85,6 +85,7 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | SA-75 | functional | should | proposed | A specification shall be able to declare a gateway, a service that verifies a token, reads one claim of it and forwards every request no operation answers, as received, to the dependency the claim's value selects, with the refusals it answers itself and no permission of its own; specarch validate shall check it against the design, the forwards shall fix the audience of the token it forwards by, and a gateway shall be a subject of tests with the cases it implies. |
 | SA-77 | functional | must | accepted | A specification shall be able to declare the handshakes a client performs before calling an encrypted operation, with the key agreement, the signature, the cipher, the operation that establishes one, its lifetime and how many envelopes it carries, to name on an operation the handshake whose envelope it travels in, and to say that an operation streams a file as an upload or a download rather than reading a body whole; specarch validate shall check each against the design, the readers shall read them from code, the generators shall produce a server and a client that perform them, and the documents shall show them. |
 | SA-78 | functional | must | accepted | A specification shall be able to declare the caller, one record of who is making the call with properties typed as fields, and on a role the rows it reaches in an entity, one expression over the entity's fields and the caller's properties written caller.<property>; specarch validate shall check both in both builds and reserve the name caller in a file on meta-model 0.3, reading a 0.2 file with a warning, the derived cases shall cover what a caller sees outside their rows, generate sql shall write each rule as a row security policy where the engine has one, and the technical specification shall show the caller and the rows each role reaches. |
+| SA-79 | functional | must | accepted | A specification shall be able to declare its machine clients, each by its software_id with its kind, the versions it is admitted at, the roles it holds and how it proves its identity on each request; to say on an operation or command the explicit subset of who may call it, people and clients by name; to close a route on purpose with the reserved permission nobody; and to narrow a role's grant to the clients it holds through; specarch validate shall check each in both builds, the derived cases shall cover every refusal, and the technical specification shall show the clients beside the roles, the callers of each route and the grants narrowed by client. |
 | SA-7 | functional | must | accepted | specarch document and specarch generate shall write only into the folder the target owns, and with --check shall fail when the committed output differs. |
 | SA-8 | functional | must | accepted | Every generated file shall name its source specification, version and meta-model, and a hand-written Markdown document shall change only between its markers. |
 | SA-26 | functional | should | accepted | specarch document shall write the change and defect register and the release notes from the records beside a specification, kept current with --check like the other documents. |
@@ -723,6 +724,23 @@ Acceptance criteria:
 - The technical specification lists the caller's properties and, beside the permissions matrix, the rows each role reaches.
 
 **Insight:** A member sees only their own loans, and a tenant's staff only their organisation's records, and the meta-model could say neither, so the rule lived in prose beside the role and the service enforced what no test derived and no policy carried.
+
+### SA-79
+
+A specification shall be able to declare its machine clients, each by its software_id with its kind, the versions it is admitted at, the roles it holds and how it proves its identity on each request; to say on an operation or command the explicit subset of who may call it, people and clients by name; to close a route on purpose with the reserved permission nobody; and to narrow a role's grant to the clients it holds through; specarch validate shall check each in both builds, the derived cases shall cover every refusal, and the technical specification shall show the clients beside the roles, the callers of each route and the grants narrowed by client.
+
+Kind: functional; priority: must; status: accepted; verified by test; refines NEED-1, NEED-2, NEED-3.
+
+Acceptance criteria:
+
+- A client whose kind is neither application nor service, one with roles and no proof, a service with no proof, one naming an undeclared role, one whose version range does not parse, and one whose version has no claim to be checked against are each refused in both builds, with the same words.
+- A signed request naming an algorithm RFC 9421 does not register or covering a component that is not a request part is refused as proof in both builds.
+- A callers list that is empty, names what is neither people nor a client, lists a client twice, lists a service with no roles, or lists a client none of whose roles grants the permission is refused as callers in both builds; a route closed with nobody that lists callers or is switched on by a setting, and a role granting nobody, are refused.
+- A through naming a permission the role does not grant, a client not declared or an empty list, or written where no token carries the application the caller signed in through, is refused as through in both builds.
+- specarch derive writes refused for every caller for a closed route, refused for a signed-in person where people is absent, refused for every caller not listed, refused with a bad signature from each client that signs, refused through a client not listed for each role whose through narrows the permission, the version case for each client with an admitted range, and refused for a service's own token at every route for people once a service exists.
+- The technical specification's matrix has a column per client with roles, a cell that names the clients a grant holds through, a table of the clients with their kind, admitted versions, roles and proof, and a table of the callers of each route.
+
+**Insight:** An identity service served routes open only to named machine clients, routes that also required a signed request, and a route closed to everyone, and each had to be written as a permission with prose, which lost the default-deny caller list and the signature, and a closed route needed a placeholder role, since a permission no role grants is a fail-closed error.
 
 ### SA-7
 

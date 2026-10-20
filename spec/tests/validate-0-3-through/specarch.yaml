@@ -1,0 +1,24 @@
+specarch: "0.3"
+info: { title: Case, version: 1.0.0 }
+session:
+  description: A person signs in once.
+  idleTimeout: PT30M
+permissions:
+  invoices.read: { description: See invoices. }
+  invoices.delete: { description: Delete invoices. }
+roles:
+  invoice-manager:
+    description: Staff who manage invoices.
+    permissions: [invoices.read]
+    through:
+      invoices.delete: [admin-web]
+      invoices.read: [admin-web, phone]
+  invoice-reader:
+    description: Staff who read and delete invoices.
+    permissions: [invoices.read, invoices.delete]
+    through:
+      invoices.read: []
+clients:
+  admin-web:
+    description: The administration application in the browser.
+    kind: application

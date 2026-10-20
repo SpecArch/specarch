@@ -130,6 +130,12 @@ enums:
       - caller_property
       - rows
       - reserved_name
+      - client
+      - client_unused
+      - software_version
+      - through
+      - callers
+      - proof
     valueDescriptions:
       file_kind: a file given by name is neither `specarch.yaml` nor `*.specarch-implementation.yaml`, is part of a specification that should be checked as a whole, or its root key does not match its name
       yaml_syntax: an entry of the file, or the file as a whole, is not well-formed YAML; the entries that parse are still read (ADR-080)
@@ -254,5 +260,11 @@ enums:
       stream: "an upload stream is on a method other than post or put or its request body is not one media type whose schema is a string of format binary, a download stream's success responses are not each one such media type, or limits.maxResponseBytes is on an operation that streams no download (ADR-146)"
       caller_property: "an expression uses a dot outside caller.<property>, or names a property the caller does not declare, or names the caller where only a role's rows rule may (ADR-095)"
       rows: "a role's rows rule names an entity the specification does not have, names something that is neither a field of that entity nor a property of the caller, or does not give true or false (ADR-095)"
-      reserved_name: "a file on meta-model 0.3 names a field, a schema's or a view's property or an algorithm's input caller, which 0.3 reserves for the caller record, since an expression naming it could mean either (ADR-094)"
-    satisfies: [SA-2, SA-3, SA-4, SA-5, SA-6, SA-9, SA-10, SA-11, SA-12, SA-13, SA-17, SA-18, SA-23, SA-24, SA-27, SA-29, SA-41, SA-42, SA-47, SA-48, SA-49, SA-50, SA-62, SA-63, SA-67, SA-68, SA-69, SA-73, SA-77, SA-78]
+      reserved_name: "a file on meta-model 0.3 names a field, a schema's or a view's property or an algorithm's input caller, which 0.3 reserves for the caller record, since an expression naming it could mean either (ADR-094); a client is named people, nobody or public, or a role grants nobody, the reserved permission of a route closed on purpose (ADR-096, ADR-110)"
+      client: "a client's kind is neither application nor service, it names a role the specification does not have, it holds roles with no proof or is a service with no proof, or its softwareVersion is not a range of two Semantic Versioning 2.0.0 versions written >=lower <upper (ADR-096, ADR-106)"
+      client_unused: "as a warning, a service with no roles that no operation names in via, so nothing reaches it (ADR-106)"
+      software_version: "a client says softwareVersion while no token declares a softwareVersion claim, so the edge has nothing to check the version against (ADR-106)"
+      through: "a role's through names a permission the role does not grant, directly or by implies, a client the specification does not declare, or an empty list, or the specification carries no application a caller signed in through: no token declares client_id or tctx and a session carries none (ADR-106, ADR-108)"
+      callers: "an operation's or command's callers is empty, is on a route closed with nobody, names what is neither people nor a declared client, lists a name twice, lists a service with no roles, or lists a client none of whose roles grants the permission (ADR-110)"
+      proof: "a signedRequest proof names no algorithm, an algorithm RFC 9421 does not register or a covered component that is neither a derived component nor a header field name, or a mutualTls proof names an algorithm or covered components (ADR-096)"
+    satisfies: [SA-2, SA-3, SA-4, SA-5, SA-6, SA-9, SA-10, SA-11, SA-12, SA-13, SA-17, SA-18, SA-23, SA-24, SA-27, SA-29, SA-41, SA-42, SA-47, SA-48, SA-49, SA-50, SA-62, SA-63, SA-67, SA-68, SA-69, SA-73, SA-77, SA-78, SA-79]

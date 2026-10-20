@@ -1,0 +1,9 @@
+operation: importReturns
+level: system
+scenario: red
+covers: [refused for a signed-in person]
+given: "a person signed in, whatever roles they hold"
+when: "importReturns is called"
+then: "it is refused: only the clients listed may call it"
+origin: inferred
+why: "Written by specarch derive: users get this wrong often, so the case is written. A draft: complete the given, when and then, and remove what does not hold."

@@ -1,0 +1,10 @@
+arguments: [validate, .]
+exitStatus: 1
+standardOutput: |
+  specarch.yaml:20:3: warning: /clients/relay: client_unused: relay is a service with no roles that no operation names in via, so nothing reaches it; give it roles, name it in via, or remove it [client_unused@specarch.yaml#/clients/relay]
+  specarch.yaml:30:16: error: /paths/~1loans/get/callers: callers: callers names nobody, which would make operation listLoans a route nobody calls; list people or the clients, or close it with permission: nobody [callers@specarch.yaml#/paths/~1loans/get/callers]
+  specarch.yaml:38:25: error: /paths/~1returns/post/callers/1: callers: batch holds no role that grants returns.import, so it could never call operation importReturns; add the permission to one of its roles, or take the client out of callers [callers@specarch.yaml#/paths/~1returns/post/callers/1]
+  specarch.yaml:38:32: error: /paths/~1returns/post/callers/2: callers: relay is a service with no roles, which only carries a person's call and never calls on its own account; list people, whose calls it carries, or give it roles [callers@specarch.yaml#/paths/~1returns/post/callers/2]
+  specarch.yaml:38:39: error: /paths/~1returns/post/callers/3: callers: bach is neither people nor a client of the specification; did you mean batch? [callers@specarch.yaml#/paths/~1returns/post/callers/3]
+  specarch.yaml:38:45: error: /paths/~1returns/post/callers/4: callers: people is listed twice; list it once [callers@specarch.yaml#/paths/~1returns/post/callers/4]
+  specarch.yaml:46:16: error: /paths/~1legacy/get/callers: callers: operation legacyList is closed with permission nobody, so callers has nobody to list; remove callers [callers@specarch.yaml#/paths/~1legacy/get/callers]

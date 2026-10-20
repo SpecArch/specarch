@@ -210,6 +210,9 @@ func (c *checker) checkDesign(d *design) {
 	c.checkAccess(d)
 	c.checkCaller(d)
 	c.checkRoleRows(d)
+	c.checkClients(d)
+	c.checkThrough(d)
+	c.checkCallers(d)
 	c.checkImplies(d)
 	c.checkSeparationOfDuties(d)
 	c.checkExpressions(d)
@@ -684,11 +687,18 @@ func (c *checker) checkEnabledBy(d *design) {
 			c.add(n, ptr, RuleSetting, "%s is not a boolean setting, so it cannot switch this on or off; name a setting whose schema is type: boolean", name)
 		}
 	}
+	closed := func(n *yaml.Node, ptr, who string) {
+		if source.Str(source.Child(n, "permission")) == permissionNobody && source.Child(n, "enabledBy") != nil {
+			c.add(source.Child(n, "enabledBy"), ptr, RuleSetting, "%s is closed with permission nobody, so %s would switch on nothing; remove enabledBy, or give it a permission a role grants", who, source.Str(source.Child(n, "enabledBy")))
+		}
+	}
 	for _, o := range d.opList {
 		check(source.Child(o.node, "enabledBy"), o.pointer("enabledBy"))
+		closed(o.node, o.pointer("enabledBy"), "operation "+o.id)
 	}
 	for name, cmd := range d.commands {
 		check(source.Child(cmd, "enabledBy"), source.Pointer("commands", name, "enabledBy"))
+		closed(cmd, source.Pointer("commands", name, "enabledBy"), "command "+name)
 	}
 	for name, pg := range d.pages {
 		check(source.Child(pg, "enabledBy"), source.Pointer("pages", name, "enabledBy"))
@@ -733,6 +743,10 @@ func (c *checker) checkAccess(d *design) {
 	granted := map[string]bool{}
 	for name, r := range d.roles {
 		for i, p := range source.Items(source.Child(r, "permissions")) {
+			if p.Value == permissionNobody {
+				c.add(p, source.Pointer("roles", name, "permissions", fmt.Sprint(i)), RuleReservedName, "nobody is the reserved permission of a route closed on purpose, which no role grants; remove it from role %s", name)
+				continue
+			}
 			use(p, source.Pointer("roles", name, "permissions", fmt.Sprint(i)), "role "+name)
 		}
 		for p := range d.roleHolds(r) {
@@ -740,7 +754,7 @@ func (c *checker) checkAccess(d *design) {
 		}
 	}
 	for _, p := range source.Pairs(source.Child(d.root, "permissions")) {
-		if p.Key.Value != "public" && !granted[p.Key.Value] {
+		if p.Key.Value != permissionPublic && p.Key.Value != permissionNobody && !granted[p.Key.Value] {
 			c.add(p.Key, source.Pointer("permissions", p.Key.Value), RulePermissionUngranted,
 				"no role grants %s, so nobody can use what it guards; add it to a role, or use public if it is meant for everyone", p.Key.Value)
 		}

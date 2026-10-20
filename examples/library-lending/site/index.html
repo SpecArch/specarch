@@ -106,7 +106,7 @@ ol.problems p{margin:2px 0}
 </ol></li>
 <li><a href="#roles-and-permissions">Roles and permissions</a><ol>
 <li><a href="#/permissions">Permissions</a> <span class="count">10</span></li>
-<li><a href="#/roles">Roles</a> <span class="count">5</span></li>
+<li><a href="#/roles">Roles</a> <span class="count">6</span></li>
 <li><a href="#/separationOfDuties">Separation of duties</a> <span class="count">1</span></li>
 <li><a href="#/session">Session</a> <span class="count"></span></li>
 </ol></li>
@@ -132,7 +132,7 @@ ol.problems p{margin:2px 0}
 <li><a href="#/decisions">Decisions</a> <span class="count">2</span></li>
 </ol></li>
 <li><a href="#tests-and-traceability">Tests and traceability</a><ol>
-<li><a href="#/tests">Tests</a> <span class="count">183</span></li>
+<li><a href="#/tests">Tests</a> <span class="count">185</span></li>
 <li><a href="#traceability">Traceability</a></li>
 </ol></li>
 <li><a href="#deployment-commissioning-and-operation">Deployment, commissioning and operation</a><ol>
@@ -170,7 +170,7 @@ ol.problems p{margin:2px 0}
 <tr><td><a href="#/views">Views</a></td><td>1</td></tr>
 <tr><td><a href="#/schemas">Schemas</a></td><td>2</td></tr>
 <tr><td><a href="#/permissions">Permissions</a></td><td>10</td></tr>
-<tr><td><a href="#/roles">Roles</a></td><td>5</td></tr>
+<tr><td><a href="#/roles">Roles</a></td><td>6</td></tr>
 <tr><td><a href="#/separationOfDuties">Separation of duties</a></td><td>1</td></tr>
 <tr><td><a href="#/session">Session</a></td><td>one</td></tr>
 <tr><td><a href="#/paths">HTTP operations</a></td><td>19</td></tr>
@@ -186,7 +186,7 @@ ol.problems p{margin:2px 0}
 <tr><td><a href="#/workflows">Workflows</a></td><td>1</td></tr>
 <tr><td><a href="#/algorithms">Algorithms</a></td><td>1</td></tr>
 <tr><td><a href="#/decisions">Decisions</a></td><td>2</td></tr>
-<tr><td><a href="#/tests">Tests</a></td><td>183</td></tr>
+<tr><td><a href="#/tests">Tests</a></td><td>185</td></tr>
 <tr><td><a href="#/environments">Environments</a></td><td>3</td></tr>
 <tr><td><a href="#/configuration">Configuration</a></td><td>3</td></tr>
 <tr><td><a href="#/release">Release</a></td><td>one</td></tr>
@@ -1196,9 +1196,11 @@ ol.problems p{margin:2px 0}
 <th scope="col"><a href="#/roles/member">member</a></th>
 <th scope="col"><a href="#/roles/scheduler">scheduler</a></th>
 <th scope="col"><a href="#/roles/desk-supervisor">desk-supervisor</a></th>
+<th scope="col"><a href="#/roles/auditor">auditor</a></th>
 </tr></thead><tbody>
 <tr><th scope="row"><a href="#/permissions/members.read">members.read</a></th>
 <td class="yes">yes</td>
+<td></td>
 <td></td>
 <td></td>
 <td></td>
@@ -1210,6 +1212,7 @@ ol.problems p{margin:2px 0}
 <td></td>
 <td></td>
 <td></td>
+<td></td>
 </tr>
 <tr><th scope="row"><a href="#/permissions/catalogue.read">catalogue.read</a></th>
 <td class="yes">yes</td>
@@ -1217,8 +1220,10 @@ ol.problems p{margin:2px 0}
 <td class="yes">yes</td>
 <td></td>
 <td></td>
+<td></td>
 </tr>
 <tr><th scope="row"><a href="#/permissions/loans.read">loans.read</a></th>
+<td class="yes">yes</td>
 <td class="yes">yes</td>
 <td class="yes">yes</td>
 <td class="yes">yes</td>
@@ -1231,9 +1236,11 @@ ol.problems p{margin:2px 0}
 <td></td>
 <td></td>
 <td></td>
+<td></td>
 </tr>
 <tr><th scope="row"><a href="#/permissions/loans.return">loans.return</a></th>
 <td class="yes">yes</td>
+<td></td>
 <td></td>
 <td></td>
 <td></td>
@@ -1245,9 +1252,11 @@ ol.problems p{margin:2px 0}
 <td></td>
 <td></td>
 <td></td>
+<td></td>
 </tr>
 <tr><th scope="row"><a href="#/permissions/fees.request">fees.request</a></th>
 <td class="yes">yes</td>
+<td></td>
 <td></td>
 <td></td>
 <td></td>
@@ -1259,8 +1268,10 @@ ol.problems p{margin:2px 0}
 <td></td>
 <td></td>
 <td class="yes">yes</td>
+<td></td>
 </tr>
 <tr><th scope="row"><a href="#/permissions/public">public</a></th>
+<td></td>
 <td></td>
 <td></td>
 <td></td>
@@ -1396,6 +1407,17 @@ ol.problems p{margin:2px 0}
 <dt>satisfies</dt>
 <dd>
 <p><a href="#/requirements/LIB-8">LIB-8</a></p>
+</dd>
+</dl>
+</article>
+<article class="element" data-search id="/roles/auditor">
+<h4>auditor <a class="ptr" href="#/roles/auditor">/roles/auditor</a></h4>
+<dl>
+<dt>description</dt>
+<dd>The finance system&#39;s reconciliation, which reads the day&#39;s loans to settle the fee ledger; no person holds it.</dd>
+<dt>permissions</dt>
+<dd>
+<p><a href="#/permissions/loans.read">loans.read</a></p>
 </dd>
 </dl>
 </article>
@@ -2308,6 +2330,10 @@ ol.problems p{margin:2px 0}
 <dd>List loans</dd>
 <dt>permission</dt>
 <dd><a href="#/permissions/loans.read">loans.read</a></dd>
+<dt>callers</dt>
+<dd>
+<p>people, fee-ledger-batch</p>
+</dd>
 <dt>parameters</dt>
 <dd>
 <ol class="items">
@@ -5551,6 +5577,27 @@ transports it as a string.
 </dd>
 </dl>
 </article>
+<article class="element" data-search id="/tests/create-loan-refused-for-a-service-s-own-token">
+<h4>create-loan-refused-for-a-service-s-own-token <a class="ptr" href="#/tests/create-loan-refused-for-a-service-s-own-token">/tests/create-loan-refused-for-a-service-s-own-token</a></h4>
+<dl>
+<dt>operation</dt>
+<dd><a href="#/paths/~1loans/post">createLoan</a></dd>
+<dt>level</dt>
+<dd>system</dd>
+<dt>scenario</dt>
+<dd>red</dd>
+<dt>covers</dt>
+<dd>
+<p>refused for a service&#39;s own token</p>
+</dd>
+<dt>given</dt>
+<dd>the fee-ledger-batch service, calling with its own signed request and no librarian&#39;s session</dd>
+<dt>when</dt>
+<dd>createLoan is called</dd>
+<dt>then</dt>
+<dd>it is refused as not allowed, since no person is behind the call, and no loan is made</dd>
+</dl>
+</article>
 <article class="element" data-search id="/tests/create-loan-repeated-with-the-same-idempotency-key">
 <h4>create-loan-repeated-with-the-same-idempotency-key <a class="ptr" href="#/tests/create-loan-repeated-with-the-same-idempotency-key">/tests/create-loan-repeated-with-the-same-idempotency-key</a></h4>
 <dl>
@@ -6543,6 +6590,27 @@ transports it as a string.
 <dd>409</dd>
 </dl>
 </dd>
+</dl>
+</article>
+<article class="element" data-search id="/tests/lend-copies-refused-for-a-service-s-own-token">
+<h4>lend-copies-refused-for-a-service-s-own-token <a class="ptr" href="#/tests/lend-copies-refused-for-a-service-s-own-token">/tests/lend-copies-refused-for-a-service-s-own-token</a></h4>
+<dl>
+<dt>operation</dt>
+<dd><a href="#/paths/~1members~1%7BmemberId%7D~1loans/post">lendCopies</a></dd>
+<dt>level</dt>
+<dd>system</dd>
+<dt>scenario</dt>
+<dd>red</dd>
+<dt>covers</dt>
+<dd>
+<p>refused for a service&#39;s own token</p>
+</dd>
+<dt>given</dt>
+<dd>the fee-ledger-batch service, calling with its own signed request and no librarian&#39;s session</dd>
+<dt>when</dt>
+<dd>lendCopies is called</dd>
+<dt>then</dt>
+<dd>it is refused as not allowed, since no person is behind the call, and no loan is made</dd>
 </dl>
 </article>
 <article class="element" data-search id="/tests/lend-copies-repeated-with-the-same-idempotency-key">
@@ -9906,6 +9974,36 @@ transports it as a string.
 <article class="element" data-search id="/caller/why">
 <h4>why <a class="ptr" href="#/caller/why">/caller/why</a></h4>
 <p>A role&#39;s rows rule names the caller&#39;s properties, and the session fills them at sign-in; how the service carries them from the request to the query is the implementation file&#39;s.</p>
+</article>
+</section>
+<section class="section" id="/clients">
+<h3>Clients <a class="ptr" href="#/clients">/clients</a></h3>
+<article class="element" data-search id="/clients/fee-ledger-batch">
+<h4>fee-ledger-batch <a class="ptr" href="#/clients/fee-ledger-batch">/clients/fee-ledger-batch</a></h4>
+<p class="insight"><strong>Insight:</strong> The batch is a program with a key of its own, not a person with a card, so it calls on its own account with a signed request and holds the one role that reads loans and nothing else.</p>
+<dl>
+<dt>description</dt>
+<dd>The finance system&#39;s nightly batch, which reads the day&#39;s loans to reconcile the fee ledger against the late fees.</dd>
+<dt>kind</dt>
+<dd>service</dd>
+<dt>roles</dt>
+<dd>
+<p><a href="#/roles/auditor">auditor</a></p>
+</dd>
+<dt>proof</dt>
+<dd id="/clients/fee-ledger-batch/proof">
+<dl>
+<dt>kind</dt>
+<dd>signedRequest</dd>
+<dt>algorithm</dt>
+<dd>hmac-sha256</dd>
+<dt>covers</dt>
+<dd>
+<p>@method, @path, content-digest, date</p>
+</dd>
+</dl>
+</dd>
+</dl>
 </article>
 </section>
 </section>

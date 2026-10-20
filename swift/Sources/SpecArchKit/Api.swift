@@ -117,7 +117,8 @@ extension Checker {
             if "123".contains(code.first!) { return }
             codes.append(code)
         }
-        if codes.isEmpty { return }
+        // A route closed on purpose never succeeds: its refusal is its answer.
+        if codes.isEmpty || str(o.node.child("permission")) == permissionNobody { return }
         warn(o.node.key("responses"), o.pointer("responses"), .successResponseMissing, "\(o.id) answers \(codes.joined(separator: ", ")) and no success, so what it answers when it succeeds is not written; add its success response")
     }
 }

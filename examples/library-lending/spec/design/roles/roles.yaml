@@ -20,3 +20,6 @@ roles:
     description: The supervisor of the desk, who approves what one librarian may not do alone.
     permissions: [loans.read, fees.approve]
     satisfies: [LIB-8]
+  auditor:
+    description: The finance system's reconciliation, which reads the day's loans to settle the fee ledger; no person holds it.
+    permissions: [loans.read]

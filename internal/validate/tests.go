@@ -123,7 +123,7 @@ func (c *checker) checkTests(d *design) {
 		// each is asked for on its own, so neither needs a scenario of each
 		// kind.
 		whole := s.kind == "requirement" || s.kind == "flow"
-		if !cv.golden && !whole {
+		if !cv.golden && !whole && !s.closed {
 			success := s.success
 			report := c.warn
 			if success.scenario != "" {

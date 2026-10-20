@@ -730,6 +730,55 @@ func crossCutting(d *doc, root *yaml.Node) {
 			}
 			d.blank()
 		}
+		if get(get(root, "permissions"), "nobody") != nil {
+			d.para("The permission nobody closes a route on purpose: it stays in the contract and refuses every caller with the problem the design declares, so that a client still calling it is told, not given a 404 that looks like a wrong path. No role grants it.")
+		}
+		if clients := pairs(root, "clients"); len(clients) > 0 {
+			d.para("The clients: the programs that call the system, each by its software_id. An application is where a person signs in; a service calls on its own account with the roles it holds and a proof of its identity on each request, or carries a person's call. A client with roles is a column of the matrix above. A client is admitted only where an operation's callers lists it; a public client, one with no proof, has a name that is the issuer's word and no proof of origin.")
+			d.line("| Client | Kind | Admitted versions | Roles | Proof |")
+			d.line("|---|---|---|---|---|")
+			for _, c := range clients {
+				versions := "any"
+				if v := str(c.Value, "softwareVersion"); v != "" {
+					if str(c.Value, "softwareStatement") == "true" {
+						versions = v + ", a security check: the publisher's version, in its signed software statement"
+					} else {
+						versions = v + ", a compatibility check: self-asserted"
+					}
+				}
+				roles := strings.Join(strs(c.Value, "roles"), ", ")
+				if roles == "" {
+					roles = "none"
+				}
+				d.line("| %s | %s | %s | %s | %s |", c.Key.Value, str(c.Value, "kind"), cell(versions), cell(roles), cell(proofText(get(c.Value, "proof"))))
+			}
+			d.blank()
+			d.explainRows(pairRows(root, "clients"))
+		}
+		var callers [][2]string
+		for _, o := range operations(root) {
+			if list := strs(o.node, "callers"); len(list) > 0 {
+				callers = append(callers, [2]string{"operation " + o.id, strings.Join(list, ", ")})
+			} else if str(o.node, "permission") == "nobody" {
+				callers = append(callers, [2]string{"operation " + o.id, "closed: nobody"})
+			}
+		}
+		for _, c := range pairs(root, "commands") {
+			if list := strs(c.Value, "callers"); len(list) > 0 {
+				callers = append(callers, [2]string{"command " + c.Key.Value, strings.Join(list, ", ")})
+			} else if str(c.Value, "permission") == "nobody" {
+				callers = append(callers, [2]string{"command " + c.Key.Value, "closed: nobody"})
+			}
+		}
+		if len(callers) > 0 {
+			d.para("Who may call: an operation or command that lists its callers admits exactly them, people (anyone signed in, whose roles decide the rest) and the clients named; one that lists none admits people and refuses every client; one closed with nobody refuses everyone.")
+			d.line("| Operation or command | Callers |")
+			d.line("|---|---|")
+			for _, row := range callers {
+				d.line("| %s | %s |", row[0], cell(row[1]))
+			}
+			d.blank()
+		}
 		if rule := str(source.Child(root, "info"), "roleNames"); rule == wirename.UpperSnake {
 			d.para("Every role goes on the wire in upper snake case (info.roleNames): in a token's roles claim and in the tables the permission check reads, a role is its name in capitals with each hyphen an underscore.")
 			d.line("| Role | On the wire |")
@@ -1605,4 +1654,17 @@ func callText(root *yaml.Node, c string) string {
 		within = of + ", " + within
 	}
 	return fmt.Sprintf("%s (%s)", c, within)
+}
+
+// proofText says how a client proves its identity, in words.
+func proofText(proof *yaml.Node) string {
+	switch str(proof, "kind") {
+	case "signedRequest":
+		return "a signed request (RFC 9421), " + str(proof, "algorithm") + " over " + strings.Join(strs(proof, "covers"), ", ")
+	case "mutualTls":
+		return "its client certificate (RFC 8705)"
+	case "":
+		return "none: a public client, whose name in a token is the issuer's word"
+	}
+	return str(proof, "kind")
 }

@@ -1305,7 +1305,7 @@ soft-delete flag when the entity is deleted softly):
 Each value of `set` is one expression: `given`, the value the operator
 gives when running the change, or a literal of the field's type, a string
 in double quotes (one of an enum's values), a number, `true`, `false`, or
-`null` for a field that is not required. A value worked out from the
+`null` for a field that is not required or whose type allows null. A value worked out from the
 record (`renewals + 1`) is refused, since a record already changed could
 not be told from one not yet changed, and a second run would change it
 again. A field with no literal (a date, a timestamp) takes `given`. The

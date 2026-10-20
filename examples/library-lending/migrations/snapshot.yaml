@@ -243,9 +243,24 @@ mappings:
   '#/entities/Member': table members
 rows:
   '#/entities/Loan':
+    auditor:
+      role: auditor
+      using: "true"
+    desk-supervisor:
+      role: desk_supervisor
+      using: "true"
+    head-librarian:
+      role: head_librarian
+      using: "true"
+    librarian:
+      role: librarian
+      using: "true"
     member:
       role: member
-      using: (member_id = CAST(current_setting('library.member_id', true) AS UUID))
+      using: (member_id = CAST(NULLIF(current_setting('library.member_id', true), '') AS UUID))
+    scheduler:
+      role: scheduler
+      using: "true"
 typeRendering: 1.4.0
 views:
   MemberWithLoans:

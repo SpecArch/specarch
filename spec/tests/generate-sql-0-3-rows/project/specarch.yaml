@@ -29,3 +29,6 @@ roles:
     permissions: [loans.read]
     rows:
       Loan: organisationId == caller.organisationId && !archived
+  auditor:
+    description: Reads every loan, with no rule, so it reaches the table whole.
+    permissions: [loans.read]

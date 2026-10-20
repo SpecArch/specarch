@@ -12,9 +12,13 @@ import (
 // The rows a role reaches (meta-model 0.3, ADR-095): a role's rows rule
 // over an entity becomes a row security policy on PostgreSQL, one per
 // role and table, permissive, so a caller holding several roles reaches
-// the union. The caller's properties are read from the connection as the
-// implementation file maps them (#/caller/properties/<name>, a SQL
-// expression), by default from a setting named after the property; the
+// the union. Once a table has a rule, every other role gets a policy
+// that holds for every row, so that a role with no rule reaches the
+// table whole, as it did before; the table's owner is not bound, so the
+// service's own connection reaches it whole too. The caller's properties
+// are read from the connection as the implementation file maps them
+// (#/caller/properties/<name>, a SQL expression), by default from a
+// setting named after the property, an empty setting read as NULL; the
 // role is the database role the mapping of #/roles/<name> names, by
 // default the role's name with underscores. An engine with no row
 // security policy this version writes gets nothing for the rule, a
@@ -52,9 +56,9 @@ func (g *gen) callerColumns() map[string]callerColumn {
 		if target := text(obj0(mappings["#/caller/properties/"+name])["target"]); target != "" {
 			col.sql = target
 		} else if typ, _, ok := g.render(field, snake(name)); ok {
-			col.sql = fmt.Sprintf("CAST(current_setting(%s, true) AS %s)", quote(callerSetting+snake(name)), typ)
+			col.sql = fmt.Sprintf("CAST(NULLIF(current_setting(%s, true), '') AS %s)", quote(callerSetting+snake(name)), typ)
 		} else {
-			col.sql = fmt.Sprintf("current_setting(%s, true)", quote(callerSetting+snake(name)))
+			col.sql = fmt.Sprintf("NULLIF(current_setting(%s, true), '')", quote(callerSetting+snake(name)))
 		}
 		out[expr.CallerName+"."+name] = col
 	}
@@ -72,23 +76,29 @@ func (g *gen) dbRole(role string) string {
 }
 
 // rowsRules are the roles with a rows rule over the entity, in name order,
-// each with its rule.
-func (g *gen) rowsRules(entity string) [][2]string {
+// each with its rule, and the roles without one.
+func (g *gen) rowsRules(entity string) ([][2]string, []string) {
 	var out [][2]string
+	var whole []string
 	roles := obj0(g.spec["roles"])
 	for _, role := range sortedKeys(roles) {
 		if rule := text(obj0(obj0(roles[role])["rows"])[entity]); rule != "" {
 			out = append(out, [2]string{role, rule})
+		} else {
+			whole = append(whole, role)
 		}
 	}
-	return out
+	return out, whole
 }
+
+// everyRow is the condition of the policy of a role with no rule.
+const everyRow = "true"
 
 // policies are the row security policies of an entity's table, on
 // PostgreSQL; on another dialect each rule is a warning and a comment,
 // and no policy.
 func (g *gen) policies(entity, tableName string, props map[string]any) ([]policy, []string) {
-	rules := g.rowsRules(entity)
+	rules, whole := g.rowsRules(entity)
 	if len(rules) == 0 {
 		return nil, nil
 	}
@@ -112,6 +122,10 @@ func (g *gen) policies(entity, tableName string, props map[string]any) ([]policy
 		}
 		out = append(out, policy{Role: role, Name: "rls_" + tableName + "_" + strings.ReplaceAll(role, "-", "_"), DBRole: g.dbRole(role), Using: using})
 	}
+	for _, role := range whole {
+		out = append(out, policy{Role: role, Name: "rls_" + tableName + "_" + strings.ReplaceAll(role, "-", "_"), DBRole: g.dbRole(role), Using: everyRow})
+	}
+	sort.Slice(out, func(i, j int) bool { return out[i].Role < out[j].Role })
 	return out, nil
 }
 
@@ -127,19 +141,20 @@ func (g *gen) rowsCondition(src string, props map[string]any, caller map[string]
 	return out, t.err
 }
 
-// statements are the statements that put the policies on a table: row
-// security switched on and forced, so that the table's owner is bound
-// too, then one policy per role.
+// create is the statement of one policy.
 func (p policy) create(tableName string) string {
 	return fmt.Sprintf("CREATE POLICY %s ON %s FOR ALL TO %s USING (%s) WITH CHECK (%s)", p.Name, tableName, p.DBRole, p.Using, p.Using)
 }
 
+// Row security is switched on and not forced: the table's owner, the
+// service's own connection, reaches every row, and a request reaches the
+// rows of the roles it takes with SET LOCAL ROLE.
 func enableRowSecurity(tableName string) []string {
-	return []string{"ALTER TABLE " + tableName + " ENABLE ROW LEVEL SECURITY", "ALTER TABLE " + tableName + " FORCE ROW LEVEL SECURITY"}
+	return []string{"ALTER TABLE " + tableName + " ENABLE ROW LEVEL SECURITY"}
 }
 
 func disableRowSecurity(tableName string) []string {
-	return []string{"ALTER TABLE " + tableName + " NO FORCE ROW LEVEL SECURITY", "ALTER TABLE " + tableName + " DISABLE ROW LEVEL SECURITY"}
+	return []string{"ALTER TABLE " + tableName + " DISABLE ROW LEVEL SECURITY"}
 }
 
 // policyStatements are the statements after a table that put its

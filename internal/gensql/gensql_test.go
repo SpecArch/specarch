@@ -133,17 +133,22 @@ func errorsOf(resp Response) []Diagnostic {
 
 // TestRows writes the library's member rule as a row security policy on
 // PostgreSQL, with the caller's property read as the implementation file
-// maps it, and on the other dialects writes nothing for it, warns at the
-// rule and comments at the table.
+// maps it, gives every other role a policy holding for every row, leaves
+// the owner unbound, and on the other dialects writes nothing for it,
+// warns at the rule and comments at the table.
 func TestRows(t *testing.T) {
 	sql := migration(t, request(t, "postgresql"))
 	for _, want := range []string{
-		"ALTER TABLE loans ENABLE ROW LEVEL SECURITY;", "ALTER TABLE loans FORCE ROW LEVEL SECURITY;",
-		"CREATE POLICY rls_loans_member ON loans FOR ALL TO member USING ((member_id = CAST(current_setting('library.member_id', true) AS UUID))) WITH CHECK ((member_id = CAST(current_setting('library.member_id', true) AS UUID)));",
+		"ALTER TABLE loans ENABLE ROW LEVEL SECURITY;",
+		"CREATE POLICY rls_loans_member ON loans FOR ALL TO member USING ((member_id = CAST(NULLIF(current_setting('library.member_id', true), '') AS UUID))) WITH CHECK ((member_id = CAST(NULLIF(current_setting('library.member_id', true), '') AS UUID)));",
+		"CREATE POLICY rls_loans_librarian ON loans FOR ALL TO librarian USING (true) WITH CHECK (true);",
 	} {
 		if !strings.Contains(sql, want) {
 			t.Errorf("postgresql: the migration has no %q", want)
 		}
+	}
+	if strings.Contains(sql, "FORCE ROW LEVEL SECURITY") {
+		t.Errorf("postgresql: row security is forced, which binds the table's owner:\n%s", sql)
 	}
 	for _, dialect := range []string{"sqlserver", "oracle", "mariadb"} {
 		r := request(t, dialect)

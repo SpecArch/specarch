@@ -68,11 +68,24 @@ func (d *design) defaultToken() string {
 	return ""
 }
 
-// acceptedToken is the token an operation accepts: the one it names, or
-// the default, or "".
+// acceptedToken is the token an operation accepts: the one it names; on
+// an operation only clients call, the token the first listed client with
+// a token proof presents, or "" when every one proves itself otherwise
+// (a signed request, a certificate); else the default, or "".
 func (d *design) acceptedToken(op *yaml.Node) string {
 	if name := source.Str(source.Child(op, "token")); name != "" {
 		return name
+	}
+	if !d.admitsPeople(op) {
+		for _, item := range source.Items(source.Child(op, "callers")) {
+			proof := source.Child(d.client(item.Value), "proof")
+			if source.Str(source.Child(proof, "kind")) == "token" {
+				if name := source.Str(source.Child(proof, "token")); name != "" {
+					return name
+				}
+			}
+		}
+		return ""
 	}
 	return d.defaultToken()
 }

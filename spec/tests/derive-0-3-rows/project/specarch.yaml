@@ -15,10 +15,11 @@ caller:
     memberId: { type: [string, "null"], format: uuid, description: The member signed in; null for staff. }
 permissions:
   loans.read: { description: See loans. }
+  loans.return: { description: Return a loan. }
 roles:
   member:
     description: A card holder, who sees only their own loans.
-    permissions: [loans.read]
+    permissions: [loans.read, loans.return]
     rows:
       Loan: memberId == caller.memberId
 paths:
@@ -46,6 +47,12 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/entities/Loan" }
+    delete:
+      operationId: returnLoan
+      summary: Return a loan
+      permission: loans.return
+      responses:
+        "204": { description: Returned. }
 jobs:
   remind:
     description: Reminds members of loans falling due.

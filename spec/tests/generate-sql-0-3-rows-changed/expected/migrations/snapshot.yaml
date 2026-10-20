@@ -26,7 +26,10 @@ mappings:
   '#/entities/Loan': table loans
 rows:
   '#/entities/Loan':
+    desk-staff:
+      role: desk
+      using: "true"
     member:
       role: member
-      using: ((member_id = CAST(current_setting('app.member_id', true) AS UUID)) AND NOT archived)
+      using: ((member_id = CAST(NULLIF(current_setting('app.member_id', true), '') AS UUID)) AND NOT archived)
 typeRendering: 1.4.0

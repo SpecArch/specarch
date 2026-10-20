@@ -36,9 +36,22 @@ extension Design {
         return out
     }
     var defaultToken: String { tokenList.first { str($0.value.child("default")) == "true" }?.key.value ?? "" }
+    /// The token an operation accepts: the one it names; on an operation
+    /// only clients call, the token the first listed client with a token
+    /// proof presents, or "" when none does; else the default, or "".
     func acceptedToken(_ op: YNode) -> String {
         let name = str(op.child("token"))
-        return name.isEmpty ? defaultToken : name
+        if !name.isEmpty { return name }
+        if !admitsPeople(op) {
+            for item in items(op.child("callers")) {
+                let proof = client(item.value)?.child("proof")
+                if str(proof?.child("kind")) == "token", !str(proof?.child("token")).isEmpty {
+                    return str(proof?.child("token"))
+                }
+            }
+            return ""
+        }
+        return defaultToken
     }
     var acceptedTokens: Set<String> { Set(opList.map { acceptedToken($0.node) }.filter { !$0.isEmpty }) }
 

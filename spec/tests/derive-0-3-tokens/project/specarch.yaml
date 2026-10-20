@@ -16,12 +16,16 @@ caller:
 permissions:
   invoices.read: { description: See invoices. }
   invoices.delete: { description: Delete invoices. }
+  invoices.import: { description: Import invoices from the bank. }
 roles:
   invoice-manager:
     description: Staff who manage invoices, who may delete them only from the administration application.
     permissions: [invoices.read, invoices.delete]
     through:
       invoices.delete: [admin-web]
+  importer:
+    description: The reconciliation job's own role.
+    permissions: [invoices.import]
 clients:
   admin-web:
     description: The administration application in the browser, where staff sign in.
@@ -32,6 +36,14 @@ clients:
     description: The service between the front ends' backend and this one, which calls on the person's behalf.
     kind: service
     proof: { kind: spiffe }
+  recon:
+    description: The nightly reconciliation, which signs each request and presents no token.
+    kind: service
+    roles: [importer]
+    proof:
+      kind: signedRequest
+      algorithm: hmac-sha256
+      covers: ["@method", "@path", content-digest, date]
 dependencies:
   securityLog:
     description: The append-only store of security events.
@@ -90,3 +102,11 @@ paths:
       via: [middleware]
       responses:
         "204": { description: Deleted. }
+  /invoices/imports:
+    post:
+      operationId: importInvoices
+      summary: Import the bank's invoices, called only by the reconciliation
+      permission: invoices.import
+      callers: [recon]
+      responses:
+        "202": { description: Accepted. }

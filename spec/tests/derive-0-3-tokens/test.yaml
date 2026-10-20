@@ -2,7 +2,7 @@
 command: derive
 level: system
 scenario: golden
-given: "the specification of validate-0-3-tokens-valid with only the list's golden test"
+given: "the specification of validate-0-3-tokens-valid with only the list's golden test, and an import only the reconciliation service calls, which proves itself with a signed request and presents no token"
 when: derive is run
-then: "it writes denied with expired access on the list and denied with expired transaction on the delete, each ending with the event token (low), beside the permission and key drafts, and exits 0"
+then: "it writes denied with expired access on the list and denied with expired transaction on the delete, each ending with the event token (low), beside the permission and key drafts, and no token case on the import, since the default token is a person's and its only caller presents none; and exits 0"
 verifies: [SA-84]

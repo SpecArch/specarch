@@ -3,6 +3,14 @@
 
 ALTER TABLE loans ENABLE ROW LEVEL SECURITY;
 
-ALTER TABLE loans FORCE ROW LEVEL SECURITY;
+CREATE POLICY rls_loans_auditor ON loans FOR ALL TO auditor USING (true) WITH CHECK (true);
 
-CREATE POLICY rls_loans_member ON loans FOR ALL TO member USING ((member_id = CAST(current_setting('library.member_id', true) AS UUID))) WITH CHECK ((member_id = CAST(current_setting('library.member_id', true) AS UUID)));
+CREATE POLICY rls_loans_desk_supervisor ON loans FOR ALL TO desk_supervisor USING (true) WITH CHECK (true);
+
+CREATE POLICY rls_loans_head_librarian ON loans FOR ALL TO head_librarian USING (true) WITH CHECK (true);
+
+CREATE POLICY rls_loans_librarian ON loans FOR ALL TO librarian USING (true) WITH CHECK (true);
+
+CREATE POLICY rls_loans_member ON loans FOR ALL TO member USING ((member_id = CAST(NULLIF(current_setting('library.member_id', true), '') AS UUID))) WITH CHECK ((member_id = CAST(NULLIF(current_setting('library.member_id', true), '') AS UUID)));
+
+CREATE POLICY rls_loans_scheduler ON loans FOR ALL TO scheduler USING (true) WITH CHECK (true);

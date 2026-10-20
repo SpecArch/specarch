@@ -141,17 +141,17 @@ Scenario: golden; level: system; verifies SA-83.
 
 Scenario: golden; level: system; verifies SA-82.
 
-- Given: a specification on 0.3 with a member role whose rows rule limits Loan, a list and a read by key of loans, and a job acting as member over loans, with no tests
+- Given: a specification on 0.3 with a member role whose rows rule limits Loan, a list, a read by key and a delete by key with no body of loans, and a job acting as member over loans, with no tests
 - When: derive is run
-- Then: it writes a draft for the list showing only the member's rows, for the read by key answering not found outside them, and for the job acting on them only, beside the drafts of the permission and the key, and exits 0
+- Then: it writes a draft for the list showing only the member's rows, for the read by key answering not found outside them, for the delete, which names Loan only by its path key, refusing a change outside them, and for the job acting on them only, beside the drafts of the permission and the key, and exits 0
 
 #### derive-0-3-tokens
 
 Scenario: golden; level: system; verifies SA-84.
 
-- Given: the specification of validate-0-3-tokens-valid with only the list's golden test
+- Given: the specification of validate-0-3-tokens-valid with only the list's golden test, and an import only the reconciliation service calls, which proves itself with a signed request and presents no token
 - When: derive is run
-- Then: it writes denied with expired access on the list and denied with expired transaction on the delete, each ending with the event token (low), beside the permission and key drafts, and exits 0
+- Then: it writes denied with expired access on the list and denied with expired transaction on the delete, each ending with the event token (low), beside the permission and key drafts, and no token case on the import, since the default token is a person's and its only caller presents none; and exits 0
 
 #### derive-invalid-spec
 
@@ -1957,9 +1957,9 @@ Scenario: golden; level: system; verifies SA-37.
 
 Scenario: golden; level: system; verifies SA-82.
 
-- Given: a specification on 0.3 with a caller of two properties and two roles whose rows rules limit Loan, one by the member's identifier and one by the organisation and a boolean field; an implementation file in Go with a PostgreSQL sql target that maps one caller property to its own expression and one role to its own database role; specarch-gen-sql built from this repository on PATH
+- Given: a specification on 0.3 with a caller of two properties, two roles whose rows rules limit Loan, one by the member's identifier and one by the organisation and a boolean field, and a third role holding loans.read with no rule; an implementation file in Go with a PostgreSQL sql target that maps one caller property to its own expression and one role to its own database role; specarch-gen-sql built from this repository on PATH
 - When: generate sql is run with --unapproved
-- Then: it writes 0001_expand.sql with the loans table, row security enabled and forced on it, and one policy per role, the mapped property read as mapped and the other from the setting named after it, the mapped role under its database role and the other under its own name with underscores; writes the snapshot with the policies, and exits 0
+- Then: it writes 0001_expand.sql with the loans table, row security enabled and not forced, so that the owner reaches every row, and one policy per role: the rules with the mapped property read as mapped and the other from the setting named after it, an empty setting read as NULL, and the role with no rule under a policy holding for every row, so that it reaches the table whole; the mapped role under its database role and the other under its own name with underscores; writes the snapshot with the policies, and exits 0
 
 #### generate-sql-0-3-rows-changed
 
@@ -1967,7 +1967,7 @@ Scenario: golden; level: system; verifies SA-82.
 
 - Given: the specification of generate-sql-0-3-rows with its first migration and snapshot in the output folder, the member's rule now also keeping archived loans out and the desk staff's rule gone; specarch-gen-sql built from this repository on PATH
 - When: generate sql is run with --unapproved
-- Then: it writes 0002_expand.sql, which drops and creates the member's policy with the new condition and drops the desk staff's policy, leaves row security on since a policy remains, writes the snapshot again, and exits 0
+- Then: it writes 0002_expand.sql, which drops and creates the member's policy with the new condition and replaces the desk staff's policy with one holding for every row, since a role with no rule reaches the table whole, leaves row security on since a rule remains, writes the snapshot again, and exits 0
 
 #### generate-sql-0-3-rows-mariadb
 

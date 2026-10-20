@@ -51,7 +51,7 @@ mappings:
   "#/entities/Member": { target: table members }
   "#/entities/Book": { target: table books }
   "#/caller/properties/memberId":
-    target: "CAST(current_setting('library.member_id', true) AS UUID)"
+    target: "CAST(NULLIF(current_setting('library.member_id', true), '') AS UUID)"
     description: "The service sets library.member_id on the connection for a signed-in member with SET LOCAL, and sets nothing for staff, so the setting reads NULL and the member's row security policy holds for no row."
   "#/algorithms/lateFee": { target: lending.LateFee, description: "Takes and returns `decimal.Decimal` values with scale 2." }
   "#/paths/~1loans/post":

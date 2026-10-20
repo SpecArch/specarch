@@ -9,6 +9,5 @@ CREATE TABLE loans (
     CONSTRAINT pk_loans PRIMARY KEY (id)
 );
 ALTER TABLE loans ENABLE ROW LEVEL SECURITY;
-ALTER TABLE loans FORCE ROW LEVEL SECURITY;
-CREATE POLICY rls_loans_desk_staff ON loans FOR ALL TO desk USING (((organisation_id = CAST(current_setting('specarch.caller.organisation_id', true) AS UUID)) AND NOT archived)) WITH CHECK (((organisation_id = CAST(current_setting('specarch.caller.organisation_id', true) AS UUID)) AND NOT archived));
-CREATE POLICY rls_loans_member ON loans FOR ALL TO member USING ((member_id = CAST(current_setting('app.member_id', true) AS UUID))) WITH CHECK ((member_id = CAST(current_setting('app.member_id', true) AS UUID)));
+CREATE POLICY rls_loans_desk_staff ON loans FOR ALL TO desk USING (((organisation_id = CAST(NULLIF(current_setting('specarch.caller.organisation_id', true), '') AS UUID)) AND NOT archived)) WITH CHECK (((organisation_id = CAST(NULLIF(current_setting('specarch.caller.organisation_id', true), '') AS UUID)) AND NOT archived));
+CREATE POLICY rls_loans_member ON loans FOR ALL TO member USING ((member_id = CAST(NULLIF(current_setting('app.member_id', true), '') AS UUID))) WITH CHECK ((member_id = CAST(NULLIF(current_setting('app.member_id', true), '') AS UUID)));

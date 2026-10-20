@@ -706,7 +706,11 @@ their rows is settled once: a list shows only the rows, a read of one
 record by its key answers not found, never forbidden, so that an identifier
 does not reveal whether a record exists, and a change that would leave the
 rows is refused. Each is a derived case for every operation over the
-entity whose permission the role holds (`shows only the rows of <role>`,
+entity whose permission the role holds, the entity being the one its
+answer or request body is, its `guard` or `listOf` names, or, for an
+operation that reaches it by its key alone (a delete with no body, an
+action on one record), the one its path parameter is the key of, named
+`<entity>Id` (`shows only the rows of <role>`,
 `a record outside the rows of <role> is not found`, `a change outside the
 rows of <role> is refused`), and a job acting as the role gets `acts only
 on the rows of <role> in <entity>`. The validator refuses a rule keyed by a
@@ -869,7 +873,11 @@ null when the token carried has no such claim, and a claim and a caller
 property of one name and different types are refused. `checks` are bool
 expressions over the claims, each a derived red case wherever the token
 is accepted. The one token marked `default` is what every operation
-accepts unless it names another with `token`; a specification with a
+accepts unless it names another with `token`, except an operation only
+clients call (`callers` without `people`): it accepts the token the
+first listed client with a `token` proof presents, or none when every
+listed client proves itself otherwise (a signed request, a certificate),
+since the default is the token a person presents. A specification with a
 session and no tokens writes none of this.
 
 `tokenType` is `access_token`, the default, or `txn_token`, a transaction

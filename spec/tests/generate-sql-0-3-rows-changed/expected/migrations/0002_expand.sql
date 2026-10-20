@@ -3,6 +3,8 @@
 
 DROP POLICY rls_loans_desk_staff ON loans;
 
+CREATE POLICY rls_loans_desk_staff ON loans FOR ALL TO desk USING (true) WITH CHECK (true);
+
 DROP POLICY rls_loans_member ON loans;
 
-CREATE POLICY rls_loans_member ON loans FOR ALL TO member USING (((member_id = CAST(current_setting('app.member_id', true) AS UUID)) AND NOT archived)) WITH CHECK (((member_id = CAST(current_setting('app.member_id', true) AS UUID)) AND NOT archived));
+CREATE POLICY rls_loans_member ON loans FOR ALL TO member USING (((member_id = CAST(NULLIF(current_setting('app.member_id', true), '') AS UUID)) AND NOT archived)) WITH CHECK (((member_id = CAST(NULLIF(current_setting('app.member_id', true), '') AS UUID)) AND NOT archived));

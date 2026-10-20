@@ -150,14 +150,62 @@ func (d *design) requestEntity(op *yaml.Node) string {
 	return ""
 }
 
+// keyEntity is the entity a path parameter is the key of: the last path
+// parameter named after an entity with Id after it (loanId, loan_id), or
+// "".
+func (d *design) keyEntity(o operation) string {
+	byKey := map[string]string{}
+	names := make([]string, 0, len(d.entities))
+	for name := range d.entities {
+		names = append(names, name)
+	}
+	sort.Strings(names)
+	for _, name := range names {
+		if k := keyName(name + "Id"); byKey[k] == "" {
+			byKey[k] = name
+		}
+	}
+	found := ""
+	for _, p := range append(source.Items(source.Child(o.pathItem, "parameters")), source.Items(source.Child(o.node, "parameters"))...) {
+		if source.Str(source.Child(p, "in")) != "path" {
+			continue
+		}
+		if e := byKey[keyName(source.Str(source.Child(p, "name")))]; e != "" {
+			found = e
+		}
+	}
+	return found
+}
+
+// keyName is a name with case, underscores and hyphens ignored.
+func keyName(s string) string {
+	return strings.ToLower(strings.NewReplacer("_", "", "-", "").Replace(s))
+}
+
+// rowsEntity is the entity an operation reads or writes: its answer's,
+// its request body's, its guard's, its list's, or the one a path
+// parameter is the key of, in that order.
+func (d *design) rowsEntity(o operation) string {
+	if e := d.responseEntity(o.node); e != "" {
+		return e
+	}
+	if e := d.requestEntity(o.node); e != "" {
+		return e
+	}
+	if e := source.Str(source.Child(source.Child(o.node, "guard"), "entity")); e != "" {
+		return e
+	}
+	if e := source.Str(source.Child(source.Child(o.node, "listOf"), "entity")); e != "" {
+		return e
+	}
+	return d.keyEntity(o)
+}
+
 // rowsCases adds the cases of every rows rule over the entity an operation
 // reads or writes: a list shows only the rows, a read by key outside them
 // is not found, and a change that would leave them is refused (ADR-095).
 func (d *design) rowsCases(s *subject, o operation, call string) {
-	entity := d.responseEntity(o.node)
-	if entity == "" {
-		entity = d.requestEntity(o.node)
-	}
+	entity := d.rowsEntity(o)
 	perm := source.Str(source.Child(o.node, "permission"))
 	for _, r := range d.rowsOf(entity) {
 		role, rule := r.Key.Value, r.Value.Value

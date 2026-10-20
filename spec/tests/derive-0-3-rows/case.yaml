@@ -8,6 +8,11 @@ standardOutput: |
   project/tests/get-loan-not-found-loan-id/test.yaml
   project/tests/get-loan-denied-without-loans-read/test.yaml
   project/tests/get-loan-a-record-outside-the-rows-of-member-is-not-found/test.yaml
+  project/tests/return-loan-succeeds/test.yaml
+  project/tests/return-loan-loan-id-not-a-valid-uuid/test.yaml
+  project/tests/return-loan-not-found-loan-id/test.yaml
+  project/tests/return-loan-denied-without-loans-return/test.yaml
+  project/tests/return-loan-a-change-outside-the-rows-of-member-is-refused/test.yaml
   project/tests/remind-succeeds/test.yaml
   project/tests/remind-runs-twice/test.yaml
   project/tests/remind-acts-only-on-the-rows-of-member-in-loan/test.yaml

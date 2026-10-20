@@ -26,10 +26,13 @@ mappings:
   '#/entities/Loan': table loans
 rows:
   '#/entities/Loan':
+    auditor:
+      role: auditor
+      using: "true"
     desk-staff:
       role: desk
-      using: ((organisation_id = CAST(current_setting('specarch.caller.organisation_id', true) AS UUID)) AND NOT archived)
+      using: ((organisation_id = CAST(NULLIF(current_setting('specarch.caller.organisation_id', true), '') AS UUID)) AND NOT archived)
     member:
       role: member
-      using: (member_id = CAST(current_setting('app.member_id', true) AS UUID))
+      using: (member_id = CAST(NULLIF(current_setting('app.member_id', true), '') AS UUID))
 typeRendering: 1.4.0

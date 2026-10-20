@@ -46,12 +46,35 @@ extension Design {
         return ""
     }
 
+    /// The entity a path parameter is the key of: the last path parameter
+    /// named after an entity with Id after it (loanId, loan_id), or "".
+    func keyEntity(_ o: Operation) -> String {
+        var byKey: [String: String] = [:]
+        for name in entities.keys.sorted() where byKey[keyName(name + "Id")] == nil {
+            byKey[keyName(name + "Id")] = name
+        }
+        var found = ""
+        for p in items(o.pathItem.child("parameters")) + items(o.node.child("parameters")) where str(p.child("in")) == "path" {
+            if let e = byKey[keyName(str(p.child("name")))] { found = e }
+        }
+        return found
+    }
+
+    /// The entity an operation reads or writes: its answer's, its request
+    /// body's, its guard's, its list's, or the one a path parameter is the
+    /// key of, in that order.
+    func rowsEntity(_ o: Operation) -> String {
+        for e in [responseEntity(o.node), requestEntity(o.node), str(o.node.child("guard")?.child("entity")), str(o.node.child("listOf")?.child("entity"))] where !e.isEmpty {
+            return e
+        }
+        return keyEntity(o)
+    }
+
     /// Adds the cases of every rows rule over the entity an operation reads
     /// or writes: a list shows only the rows, a read by key outside them is
     /// not found, and a change that would leave them is refused (ADR-095).
     func rowsCases(_ s: Subject, _ o: Operation, _ call: String) {
-        var entity = responseEntity(o.node)
-        if entity.isEmpty { entity = requestEntity(o.node) }
+        let entity = rowsEntity(o)
         let perm = str(o.node.child("permission"))
         for r in rowsOf(entity) {
             let role = r.key.value, rule = r.value.value
@@ -206,4 +229,9 @@ extension Checker {
             }
         }
     }
+}
+
+/// A name with case, underscores and hyphens ignored.
+func keyName(_ s: String) -> String {
+    s.replacingOccurrences(of: "_", with: "").replacingOccurrences(of: "-", with: "").lowercased()
 }

@@ -1734,11 +1734,21 @@ func proofText(proof *yaml.Node) string {
 	return str(proof, "kind")
 }
 
-// acceptedTokenOf is the token an operation accepts: the one it names, or
-// the default, or "".
+// acceptedTokenOf is the token an operation accepts: the one it names; on
+// an operation only clients call, the token the first listed client with
+// a token proof presents, or "" when none does; else the default, or "".
 func acceptedTokenOf(root, op *yaml.Node) string {
 	if name := str(op, "token"); name != "" {
 		return name
+	}
+	if callers := strs(op, "callers"); len(callers) > 0 && !slices.Contains(callers, "people") {
+		for _, c := range callers {
+			proof := source.Child(source.Child(source.Child(root, "clients"), c), "proof")
+			if str(proof, "kind") == "token" && str(proof, "token") != "" {
+				return str(proof, "token")
+			}
+		}
+		return ""
 	}
 	for _, t := range pairs(root, "tokens") {
 		if str(t.Value, "default") == "true" {

@@ -450,7 +450,7 @@ requirements:
       - A dot outside caller.<property>, a property the caller does not declare, and the caller named in a check constraint are each reported as caller_property in both builds, with the same words.
       - A field, a schema's or a view's property or an algorithm's input named caller is reported as reserved_name in a file that says 0.3, and the same file that says 0.2 is read with one meta_model_version warning and no error.
       - For every role with a rule and every operation over the entity whose permission the role holds, specarch derive writes the case of the list showing only the rows, of a read by key outside them answering not found, and of a change that would leave them being refused; a job acting as the role gets the case of acting on those rows only.
-      - generate sql writes the rule as a row security policy on PostgreSQL, with the caller's properties read as the implementation file maps them, and marks the role's rule on an engine with no row security without dropping it.
+      - generate sql writes the rule as a row security policy on PostgreSQL, with the caller's properties read as the implementation file maps them and an unset or empty one read as NULL, gives every role with no rule on that table a policy holding for every row, and marks the role's rule on an engine with no row security without dropping it.
       - The technical specification lists the caller's properties and, beside the permissions matrix, the rows each role reaches.
     verification: test
     needs: [NEED-1, NEED-2, NEED-3]

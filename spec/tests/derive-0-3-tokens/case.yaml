@@ -7,3 +7,6 @@ standardOutput: |
   project/tests/delete-invoice-not-found-invoice-id/test.yaml
   project/tests/delete-invoice-denied-without-invoices-delete/test.yaml
   project/tests/delete-invoice-denied-with-expired-transaction/test.yaml
+  project/tests/import-invoices-succeeds/test.yaml
+  project/tests/import-invoices-denied-without-invoices-import/test.yaml
+  project/tests/import-invoices-refused-for-a-signed-in-person/test.yaml

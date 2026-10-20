@@ -407,6 +407,18 @@ Steps, in order:
     the table's write-off with the BPMN file's. A standard workflow
     format gets a reader of its own, as BPMN 2.0 has; a format of a
     project's own gets this table.
+    A gateway's table of services, which it loads from a file of the
+    project's own, is read the same way (ADR-142): SpecArch defines the
+    gateway table, the gateway's name, the claim it reads, the
+    environment its addresses were resolved in and a row per forward
+    with the claim's value, the service's name, the setting its address
+    is read from and the address; `tools/gateways/dump-gateway.sh` wraps
+    the project's printer, `extract gateway` writes the gateway, a
+    dependency per service and a setting per address, with the
+    deployment's servers under `--implementation-out`, and `merge`
+    leaves out the Go reader's question at the fallback handler that
+    the table's gateway answers. The library estate's gateway is the
+    example (`examples/estate/sources/gateway`).
 
 The steps from 12 read source code itself, by a parser of each language,
 for what no running system prints (ADR-075). `docs/reading-code.md` sets

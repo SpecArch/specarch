@@ -20,9 +20,8 @@ fixed as the literal it stands for.
 This file is the design: the standards consulted, the decision for each
 of the three with its decision record, what stays out and why, and the
 build items in order. The three decision records, ADR-141 to ADR-143,
-are accepted. Of the three, the Go reader's rules of section 3 are
-built; the element and the table are built by the items below. The
-words follow the
+are accepted, and the three build items below are built. The words
+follow the
 diagram keywords of `docs/diagrams.md`: a forwarded service is a
 dependency with ADR-134's `kind` and `protocol`, the issuer of the tokens
 is a dependency of kind `identityProvider`, and the host of each in an
@@ -605,9 +604,7 @@ since they need no decision of the meta-model and remove two defects,
 and the element after the designs it stacks on: 0.3's step 4 (`tokens`,
 `token` on an operation, as `docs/caller-context.md` amends it) and the
 diagram keywords' items 2 and 4 (ADR-134's `kind` and `protocol` on a
-dependency, ADR-136's `dependency` on a server). Until the element is
-built, the table stays in `extract outline` and under `gaps` as a
-surface not read, which is the right record.
+dependency, ADR-136's `dependency` on a server).
 
 1. **The Go reader's constants and fallbacks** (ADR-143, SA-79, BUG-028,
    BUG-029). The two rules of section 3 in `internal/extract`, the walk

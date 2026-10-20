@@ -22,7 +22,7 @@ latest.
 | 0.6.1 to 0.6.4, 2026-10-14 | the plans for the estate and for meta-model 0.3; the first estate points (a dump committed outside the code's repository, role names on the wire); a request body decoded into a struct in `extract go`; fixes to `merge` and the readers |
 | 0.7.0, 2026-10-19 | the estate (`specarch-estate.yaml`, references between specifications, the module map); `specarch check`; `specarch facts`; `specarch-gen-sqlc`; indexes in `generate sql`; `implies`, `audience`, `middlewares`, the workflow table, documents in another language; the `handover` document |
 | 0.7.1, 2026-10-20 | the techspec's parameters, request body and responses per operation; `extract go` reading a dxlib handler's decoded body and JSON answers where the registration declares none (ADR-140); every operation's handler followed into the code, recorded with its source and drawn as a flowchart (ADR-144); the designs of the diagram keywords (`docs/diagrams.md`) and of the gateway (`docs/gateway.md`), proposed; dxlib's encrypted API type as a handshake an operation names and large files as a stream it declares (ADR-145, ADR-146), read by `extract go`, served by the dxlib dialect and the go-dxlib target with a Go client, and shown in the techspec; this roadmap matched to the code |
-| 0.7.2, open | `specarch-gen-ui-swiftui`, the screens for the iPhone in SwiftUI (ADR-147), with `generate` finding a plug-in by the target's framework before the file's language, and the pages read once for both UI generators that write a page as data (`internal/genscreens`); the diagram keywords (ADR-133 to ADR-139): `specarch model`, the context, component, deployment and network diagrams with their markers, the rules `channel`, `depends_on`, `server`, `link` and `link_missing`, and lanes and ids in the BPMN output; caller context (ADR-106 to ADR-111, ADR-159): the identity module and the references into it, the chain by induction through `calls`, one audience per module, the scope case, the identity module's matrix and the chains in the techspec, and the readers of the client, application, caller and audience checks and of a grant's `client` and `through`; the user manual and the operations guide, with `remedy` on a problem type and `response` on a monitor (ADR-160) |
+| 0.7.2, open | `specarch-gen-ui-swiftui`, the screens for the iPhone in SwiftUI (ADR-147), with `generate` finding a plug-in by the target's framework before the file's language, and the pages read once for both UI generators that write a page as data (`internal/genscreens`); the diagram keywords (ADR-133 to ADR-139): `specarch model`, the context, component, deployment and network diagrams with their markers, the rules `channel`, `depends_on`, `server`, `link` and `link_missing`, and lanes and ids in the BPMN output; caller context (ADR-106 to ADR-111, ADR-159): the identity module and the references into it, the chain by induction through `calls`, one audience per module, the scope case, the identity module's matrix and the chains in the techspec, and the readers of the client, application, caller and audience checks and of a grant's `client` and `through`; the user manual and the operations guide, with `remedy` on a problem type and `response` on a monitor (ADR-160); the gateway (ADR-141 to ADR-143): `gateways` with the rule `gateway`, its documents, the estate's gateway module, and the gateway table read by `extract gateway` and compared by `check` |
 
 ## 1. Validator CLI
 
@@ -394,25 +394,36 @@ or its `links` holding the `link_missing` warning, as ADR-137 says; and
 the handover's links for a deployment with no `infrastructure`
 (BUG-035).
 
-Partly built, 0.7.2: the gateway. A gateway in front of an estate's
-services, which verifies the token, reads its audience and forwards every
-other request to the service the audience names, has no element and no
-reader for its table of services; `docs/gateway.md` decides the three
-(ADR-141 to ADR-143): `gateways` in the design with the token, the claim,
-the forwards and the refusals and no permission, the forwards fixing the
-token's audience; a printed gateway table read by `extract gateway` and
-compared by `check`; and the Go reader reading a package-level constant as
-a literal and asking at every fallback handler and catch-all. The reader
-fixes are built (ADR-143 accepted; BUG-028 and BUG-029 fixed;
-`spec/tests/extract-go-routes-constants` and
-`spec/tests/extract-go-routes-fallbacks`): `extract go` reads a
-package-level string constant as the literal it names and a package-level
-list assigned once as a literal list, and asks a must question blocking the
-design stage at every fallback handler and catch-all route, counted as a
-registration. The element (ADR-141) and the table (ADR-142) are not built,
-each after 0.3's tokens and the diagram keywords' dependency and server
-kinds; until then the fallback question blocks the design stage and the
-table stays under `gaps` as a surface not read.
+Built, 0.7.2: the gateway (`docs/gateway.md`, ADR-141 to ADR-143). A
+gateway in front of an estate's services, which verifies the token, reads
+one claim and forwards every request no operation answers to the service
+the claim's value names, is `gateways` in the design: the token, the
+claim, the forwards, the calls, the middlewares and the refusals, and no
+permission, checked as the rule `gateway` in both builds, the forwards by
+`aud` fixing the token's audience (`token_audience`), a gateway's link to
+each forwarded server warned of by `link_missing`, and in an estate run
+each forward checked against the audiences the module it names accepts
+(`spec/tests/validate-gateway`, `validate-gateway-wrong`,
+`validate-gateway-estate-wrong`). A gateway is a subject of tests with its
+derived cases, drawn in the context diagram, given a section in chapter 6
+of the technical specification and in the test plan, and named, not
+described, by `generate openapi` (`document-techspec-gateway`,
+`document-testplan-gateway`, `generate-openapi-gateway`). Its table of
+services is printed by the project around `tools/gateways/dump-gateway.sh`
+and read by `extract gateway`, with the deployment's servers under
+`--implementation-out`; `check` compares it and `merge` leaves out the Go
+reader's fallback question a tree with a gateway answers
+(`extract-gateway`, `extract-gateway-value-twice`, `check-gateway-forward-removed`,
+`merge-gateway-fallback`). `extract go` reads a package-level string
+constant as the literal it names and a package-level list assigned once as
+a literal list, and asks a must question blocking `gateways` at every
+fallback handler and catch-all route (BUG-028 and BUG-029 fixed;
+`extract-go-routes-constants`, `extract-go-routes-fallbacks`). The library
+estate's third module, `library-gateway`, forwards to the lending desk and
+the catalogue service, its table extracted and checked in CI. Left out by
+design: a prefix or a method list on a gateway, routing by a header,
+rewriting the request, and a code reader of the forwarding, which waits
+for an http binding that names the verifier and the lookup.
 
 Partly built, 0.7.1: dxlib's encrypted API type and large files. An
 endpoint whose API type makes its request and response an encrypted

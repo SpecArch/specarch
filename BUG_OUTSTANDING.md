@@ -35,16 +35,6 @@ Expected: one rule in both builds. `docs/conventions.md` says a test is named ke
 
 To repeat: validate a specification with `operationId: uploadJSON` and no tests with both builds and compare the `test_golden_missing` lines.
 
-## BUG-034 — version: both builds name meta-model 0.2 for specifications though 0.3 is built
-
-- Reported: 2026-10-20, found while accepting ADR-133 to ADR-139
-
-`specarch version` prints `specifications: meta-model 0.2, and 0.1 until 1.0` in both builds (`runVersion` in `cmd/specarch/main.go`, the `version` case in `swift/Sources/SpecArchKit/Command.swift`), and the case `spec/tests/version-prints-versions` expects that line. The validator reads meta-model 0.3 (`schema/specarch-design-0.3.schema.json`, `specarch: "0.3"` in SpecArch's own specification and the examples), and `specarch model` says `"metaModel":"0.3"`.
-
-Expected: the line names 0.3 as the meta-model a specification is written in, and the older versions the validator still reads, in both builds and the case.
-
-To repeat: run `specarch version` with either build.
-
 ## BUG-035 — document handover: a deployment with links and no infrastructure gets no links, ports or network diagram
 
 - Reported: 2026-10-20, found while building the network diagram (ADR-137)

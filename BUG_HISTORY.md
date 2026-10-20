@@ -488,3 +488,17 @@ dxlib's `NewEndPoint` takes the request's largest content length as its thirteen
 Expected: an integer literal above 0 is the operation's `limits.maxRequestBytes`; 0 is no limit and writes nothing; any other expression is a should question at `limits/maxRequestBytes`. `writeLimits` in `internal/extract/golang_transport.go` does this, and the cases extract-go-dxlib-envelope-stream and extract-go-dxlib-vault show the limit.
 
 To repeat: run `specarch extract go` on `spec/tests/extract-go-dxlib-envelope-stream/testdata/service` as its `case.yaml` does, before the fix: `POST /attachments/upload` has no `limits`.
+
+## BUG-034 — version: both builds name meta-model 0.2 for specifications though 0.3 is built
+
+- Reported: 2026-10-20, found while accepting ADR-133 to ADR-139
+- Closed: 2026-10-20, completed
+- Fixed by: the commit on `main` whose message says `Fixes BUG-034`
+
+`specarch version` prints `specifications: meta-model 0.2, and 0.1 until 1.0` in both builds (`runVersion` in `cmd/specarch/main.go`, the `version` case in `swift/Sources/SpecArchKit/Command.swift`), and the case `spec/tests/version-prints-versions` expects that line. The validator reads meta-model 0.3 (`schema/specarch-design-0.3.schema.json`, `specarch: "0.3"` in SpecArch's own specification and the examples), and `specarch model` says `"metaModel":"0.3"`.
+
+Expected: the line names 0.3 as the meta-model a specification is written in, and the older versions the validator still reads, in both builds and the case.
+
+To repeat: run `specarch version` with either build.
+
+Fix: both builds build the two lines from the schemas they embed, the `specarch` enum of the specification schema and the `specarchImplementation` value of the implementation schema, the last version being the current one and the earlier ones read until 1.0 with a warning. The Swift copy of the schemas is checked against `schema/` by its own test, so one file sets the line for both builds, and the case `version-prints-versions` pins it for both.

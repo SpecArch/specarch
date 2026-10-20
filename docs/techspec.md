@@ -3655,7 +3655,7 @@ sequenceDiagram
 
 **Insight:** One version answers which SpecArch made a file; every generated file's header names it.
 
-Standard output: The program version, then one line per meta-model version it supports.
+Standard output: The program version, then one line for specifications and one for implementation files. Each line names the meta-model version a file is written in and, when there are any, the earlier versions still read until 1.0, each with a warning that the file is on an earlier version: `specifications: meta-model 0.3, and 0.2 and 0.1 until 1.0, with a warning`. The versions come from the schema the build embeds, the `specarch` enum of the specification schema and the `specarchImplementation` value of the implementation schema, the last being the current one, so the line cannot name a version the validator does not read.
 
 ```mermaid
 sequenceDiagram

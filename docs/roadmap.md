@@ -252,9 +252,14 @@ each operation's handler into the code and records its steps with the
 source (ADR-144, `spec/tests/extract-go-handlers`). What the extraction
 cannot settle becomes open questions, and the path from there to approved
 code is `docs/refinement.md`: `gaps`, the decisions that answer questions,
-`approve` and the gate on `generate` are built (0.2.0). Not built:
-`specarch decide`, the dispatcher reading `problems.sarif` for the agent
-queue, and the comparison of the old document with the refined one. A
+`approve` and the gate on `generate` are built (0.2.0); `specarch decide`,
+which answers a question with the decision record and takes the question
+out (ADR-155, `spec/tests/decide-*`), SpecArch's side of the dispatcher
+reading `problems.sarif`, the log carrying what the agent queue needs of
+each question (ADR-156), and the document target `comparison`, the old
+documents against the refined specification (ADR-157,
+`document-writes-comparison`), are built (0.7.2). The dispatcher's own
+reading of the log is the agent queue's item. A
 system with both documents and code is written by the procedure in
 `docs/from-sources.md`, and `gaps` shows which section of each source
 produced which elements.

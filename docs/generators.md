@@ -407,7 +407,8 @@ base URL, and a method per operation that calls it as the dialect serves
 it, a POST at `/<operationId>`. `Handshake` performs the exchange and holds
 the keys; an operation in the envelope is sealed and opened as the hooks
 do, the status and the answer being the ones inside, and a plain refusal
-(dxlib's `REFRESH_PREKEY`) is answered as it came; an upload streams from a
+(dxlib's `REFRESH_PREKEY`, or `REFRESH_SESSION` under V3 and V4) is
+answered as it came, for the caller to call `Handshake` again; an upload streams from a
 reader with its size as the media type the design gives it, its parameters
 sent as one JSON object in X-Var, a download
 streams into a writer and answers a refusal's JSON instead of the file. The round-trip test of this repository

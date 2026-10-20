@@ -12087,8 +12087,9 @@ dxlib's own bootstrap path through the hook, an unpack that answers
 no element, is never used. The hooks keep the handshake in the same
 store, so lifetime and uses hold as they do under V2. A client
 cannot tell the three apart but by the reason of the plain refusal,
-REFRESH_PREKEY or REFRESH_SESSION, and the Go client and the
-TypeScript screens' transport establish a new handshake on either.
+REFRESH_PREKEY or REFRESH_SESSION: the TypeScript screens'
+transport establishes a new handshake on either, and the Go client
+answers either as it came, for its caller to call Handshake again.
 
 The dxlib dialect writes EndPointTypeHTTPEndToEndEncryptionV3 or V4
 for an operation under such a handshake. A download stream under

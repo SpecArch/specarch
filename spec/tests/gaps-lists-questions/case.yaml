@@ -57,6 +57,7 @@ standardOutput: |+
   | commissioning document | ready | |
   | html document | draft | 1 in requirements (Q-1), 1 in design (Q-2) |
   | manual document | ready | |
+  | operations document | ready | |
   | code target echo | waits | 1 in requirements (Q-1); not approved: there is no records/approvals/1.0.0.yaml beside the specification |
   | code target sql | waits | 1 in requirements (Q-1), 1 in design (Q-2); not approved: there is no records/approvals/1.0.0.yaml beside the specification |
 

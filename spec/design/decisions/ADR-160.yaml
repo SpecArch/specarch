@@ -51,9 +51,9 @@ decisions:
       fills it.
     consequences: |
       An existing specification reads as before: the new keys are
-      optional and no rule refuses their absence. specarch document
-      manual and operations no longer answer with status 2; every
-      document target of the design is built. A command-line tool's
+      optional and no rule refuses their absence. Every document target
+      of the design is built, the manual and the operations guide among
+      them. A command-line tool's
       commands are not in the manual, and a dead-letter item's handling
       is not in the operations guide: both are left to build. The library
       lending example gains remedies, a monitor's response and both

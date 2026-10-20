@@ -1,0 +1,97 @@
+specarch: "0.1"
+info: { title: Shop, version: 1.0.0, description: A small shop that takes orders. }
+environments:
+  staging: { description: Where a release is tried., promotesTo: production }
+  production: { description: The shop's host. }
+entities:
+  Order:
+    type: object
+    properties:
+      id: { type: string, format: uuid, readOnly: true }
+      total: { type: string, format: decimal, precision: 10, scale: 2 }
+    required: [id, total]
+    primaryKey: [id]
+permissions:
+  orders.write: { description: Take an order. }
+  orders.read: { description: See orders. }
+roles:
+  clerk: { description: Staff at the till., permissions: [orders.write] }
+  night-batch: { description: The nightly jobs., permissions: [orders.read] }
+dependencies:
+  broker:
+    description: The shop's message broker.
+    kind: messageBroker
+    protocol: amqp
+    timeout: PT1S
+  payments:
+    description: The card payment provider.
+    protocol: https
+    timeout: PT5S
+    why: A customer waits at the till, so a slow provider is given up after five seconds.
+channels:
+  order.events:
+    description: What happens to an order.
+    carriedBy: [broker]
+    messages:
+      OrderTaken: { summary: An order was taken., payload: { $ref: "#/entities/Order" } }
+  till.local:
+    description: The till's own queue.
+    messages:
+      ReceiptPrinted: { summary: A receipt was printed., payload: { $ref: "#/entities/Order" } }
+paths:
+  /orders:
+    post:
+      operationId: createOrder
+      summary: Take an order
+      permission: orders.write
+      emits: [order.events/OrderTaken]
+      calls: [payments]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: "#/entities/Order" } } }
+      responses:
+        "201":
+          description: The order.
+          content: { application/json: { schema: { $ref: "#/entities/Order" } } }
+jobs:
+  settleDay:
+    description: Every night, settles the day's card payments.
+    trigger: { schedule: "0 1 * * *" }
+    role: night-batch
+    calls: [payments]
+    retries: { limit: 3, then: deadLetter }
+  printReceipt:
+    description: Prints a receipt for each order taken.
+    trigger: { consumes: order.events/OrderTaken }
+    role: night-batch
+    emits: [till.local/ReceiptPrinted]
+    retries: { limit: 2, then: discard }
+  sweep:
+    description: Removes stale sessions.
+    trigger: { every: PT1H }
+    role: night-batch
+configuration:
+  taxRate:
+    description: The sales tax rate.
+    secret: false
+    schema: { type: string, format: decimal, precision: 4, scale: 2 }
+  databaseUrl:
+    description: Where the database is; it comes from the host's secret store.
+    secret: true
+    schema: { type: string, format: uri }
+monitors:
+  till-latency:
+    description: How long taking an order takes.
+    environment: production
+    objective: Nine orders in ten are taken within a second over each day.
+    response:
+      - { name: Look at the provider, action: Open the payment provider's status page., check: The provider's state is known. }
+      - { name: Tell the shop, action: "If the provider is slow, tell the staff to take cash.", check: The staff know. }
+  receipts-printed:
+    description: Whether every order taken has its receipt.
+    environment: production
+    objective: Every order taken in a day has a printed receipt by closing.
+backup:
+  description: The orders are dumped every night.
+  steps:
+    - { name: Dump, action: Dump the database to the backup store., check: The dump restores on a scratch host. }

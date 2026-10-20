@@ -90,6 +90,9 @@ targets:
   manual:
     output: ../../../docs
     description: The desk's manual, from the flows, menus and pages, kept current by CI.
+  operations:
+    output: ../../../docs
+    description: What the library's IT staff look at and do each day to keep the system running, kept current by CI.
   questions:
     output: ../../../docs
   problems:

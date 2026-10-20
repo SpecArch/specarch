@@ -305,7 +305,7 @@ jobs:
         # testplan, deployment and commissioning and goes on (ADR-073).
         run: |
           for target in techspec requirements testplan traceability deployment commissioning handover; do go run ./cmd/specarch document $target --check spec examples || exit 1; done
-          for target in techspec requirements testplan traceability deployment commissioning handover manual questions problems changes releases html; do go run ./cmd/specarch document $target --check spec examples/library-lending || exit 1; done
+          for target in techspec requirements testplan traceability deployment commissioning handover manual operations questions problems changes releases html; do go run ./cmd/specarch document $target --check spec examples/library-lending || exit 1; done
           for target in techspec requirements traceability questions problems html; do go run ./cmd/specarch document $target --check examples/lending-desk || exit 1; done
       - name: specarch facts remakes the examples' JavaScript dumps byte for byte, with no Node
         # The JavaScript reader is inside the binary, on the TypeScript

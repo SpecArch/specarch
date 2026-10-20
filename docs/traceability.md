@@ -115,7 +115,7 @@ Version 0.7.2-dev of the specification: 10 needs, 85 requirements, and 3 gaps. E
 | SA-84 | NEED-1, NEED-2, NEED-3 | enums Rule | tests derive-0-3-tokens; tests document-techspec-0-3-tokens; tests generate-openapi-0-3-tokens; tests validate-0-3-claims; tests validate-0-3-security-events; tests validate-0-3-token-audience; tests validate-0-3-tokens; tests validate-0-3-tokens-valid; tests validate-0-3-txn-token; tests validate-0-3-via |
 | SA-88 | NEED-2, NEED-3 | enums Rule | tests document-techspec-caller-estate; tests gaps-caller-alone; tests validate-caller-chain-gap; tests validate-caller-chain-wrong; tests validate-caller-estate; tests validate-caller-estate-wrong |
 | SA-89 | NEED-2 | decisions ADR-159 | tests extract-go-caller-checks; tests extract-permissions-client-through |
-| SA-90 | NEED-3, NEED-5 | enums DocumentTarget; decisions ADR-160 | tests document-manual-none; tests document-writes-manual; tests validate-remedy-and-response |
+| SA-90 | NEED-3, NEED-5 | enums DocumentTarget; decisions ADR-160 | tests document-manual-none; tests document-operations-none; tests document-writes-manual; tests document-writes-operations; tests validate-remedy-and-response |
 
 ## 3. Gaps
 

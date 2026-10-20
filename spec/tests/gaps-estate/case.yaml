@@ -21,6 +21,7 @@ standardOutput: |+
   | commissioning document | ready | |
   | html document | ready | |
   | manual document | ready | |
+  | operations document | ready | |
   | code generation | waits | not approved: there is no records/approvals/1.0.0.yaml beside the specification |
 
   # Customer registry: open questions
@@ -41,5 +42,6 @@ standardOutput: |+
   | commissioning document | ready | |
   | html document | ready | |
   | manual document | ready | |
+  | operations document | ready | |
   | code generation | waits | not approved: there is no records/approvals/2.4.0.yaml beside the specification |
 

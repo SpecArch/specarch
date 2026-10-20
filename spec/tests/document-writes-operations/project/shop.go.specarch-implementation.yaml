@@ -1,0 +1,20 @@
+specarchImplementation: "0.1"
+info: { title: Shop in Go, version: 1.0.0 }
+implements: { file: specarch.yaml, version: 1.0.0 }
+stack: { language: { name: Go, version: "1.26" } }
+layout:
+  internal/api:
+    description: The handlers.
+    implements: ["#/paths/~1orders/post"]
+targets:
+  operations: { output: docs }
+  sql: { output: migrations }
+deployments:
+  production:
+    description: The shop's host.
+    environment: production
+    servers:
+      - { name: api, url: "https://shop.example", runs: { packages: [internal/api] }, description: The till's API. }
+      - { url: "postgresql://db.shop.internal:5432", kind: database, runs: { targets: [sql] }, description: The orders database. }
+    monitors:
+      till-latency: { tool: Prometheus, description: The request histogram of createOrder., alert: The shop's phone }

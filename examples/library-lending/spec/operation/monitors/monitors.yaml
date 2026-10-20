@@ -6,6 +6,13 @@ monitors:
     objective: Nine calls in ten answer within 200 milliseconds over each opening day.
     verifies: [LIB-7]
     why: A slow catalogue is the first thing a librarian notices, and the commissioning check measured it only once.
+    response:
+      - name: Find the slow query
+        action: Open the database's slow query log for the hour the objective was missed.
+        check: The slowest statement and its plan are named.
+      - name: Rebuild the search index
+        action: If the slow statement is the catalogue search, rebuild the index on title and author after closing.
+        check: The catalogue answers within 200 milliseconds again on the next opening day.
   overdue-notices-sent:
     description: Whether the nightly job published LoanOverdue for every loan that became overdue.
     environment: production

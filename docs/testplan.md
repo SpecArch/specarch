@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.2-dev of the specification: 583 design tests, 269 golden and 314 red, about 17 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.2-dev of the specification: 584 design tests, 271 golden and 313 red, about 17 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 3 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -17,7 +17,7 @@ Version 0.7.2-dev of the specification: 583 design tests, 269 golden and 314 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 579 |
+| system | 580 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -559,6 +559,14 @@ Scenario: red; level: system; covers exit 2.
 - When: document techspec is run with --check
 - Then: it warns at the file's targets, writes nothing and exits 2, since no specification given has a techspec
 
+#### document-operations-none
+
+Scenario: golden; level: system; verifies SA-90.
+
+- Given: a specification with no environment, monitor, job, channel, dependency, endpoint, setting or procedure, and an implementation file naming an output folder for operations
+- When: document operations is run
+- Then: it writes operations.md all the same, each empty section one sentence naming the key that fills it, and exits 0
+
 #### document-pages-flowchart
 
 Scenario: golden; level: system.
@@ -654,14 +662,6 @@ Scenario: golden; level: system.
 - Given: a hand-written document with a stateDiagram Order marker
 - When: document techspec is run
 - Then: the region holds the states of Order with a start and an end, and it exits 0
-
-#### document-target-not-offered
-
-Scenario: red; level: system; covers exit 2.
-
-- Given: a document target of the design that this build does not offer
-- When: document operations is run
-- Then: it says which targets it has and exits 2
 
 #### document-techspec-0-3-clients
 
@@ -870,6 +870,14 @@ Scenario: golden; level: system; verifies SA-90.
 - Given: people's roles, a role a job acts as and one a client holds, a menu, a flow, a list with a filter and a row that opens a view, a view in sections with an operation action under a confirmation and a condition, a form with a required field and a check, a public task answering two ways, and problem types, one with a remedy
 - When: document manual is run
 - Then: it writes manual.md with the people's roles and the pages each opens, the job's and the client's roles left out, the public page, the menu, the flow as numbered steps starting from the menu, and each page with how it is reached, who opens it, its columns or fields, its actions, what follows a submission and, per problem it names, the message, the condition and the remedy, and exits 0
+
+#### document-writes-operations
+
+Scenario: golden; level: system; verifies SA-90.
+
+- Given: two environments, a deployment with a named and an unnamed host and a watched monitor, a monitor with a response and one without, jobs on a schedule with dead letters, on a channel dropping after its retries and every hour with none, a carried channel and the system's own, a dependency an operation and a job call and one that carries a channel, a setting and a secret, and a backup with no restore or rollback
+- When: document operations is run
+- Then: it writes operations.md with the environments and the deployment's hosts, a checklist row per monitor, job and dependency, each monitor with how it is watched and its response or a sentence naming response, the jobs' triggers, roles and retries, each message's carrier, publishers and consumers, each dependency's users, the endpoints with their warnings under them, the settings, the backup, and a sentence each for restore and rollback, and exits 0
 
 #### document-writes-questions
 

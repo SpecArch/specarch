@@ -18,5 +18,6 @@ What can be made from the specification now. A document is a draft while a must 
 | commissioning document | ready | |
 | html document | ready | |
 | manual document | ready | |
+| operations document | ready | |
 | code generation | waits | not approved: there is no records/approvals/0.7.2-dev.yaml beside the specification |
 

@@ -15,7 +15,7 @@ import (
 // they are listed; BuiltDocuments says which this program has.
 var (
 	DocumentTargets = []string{"techspec", "requirements", "testplan", "traceability", "deployment", "commissioning", "handover", "questions", "problems", "changes", "releases", "html", "manual", "operations"}
-	BuiltDocuments  = map[string]bool{"techspec": true, "requirements": true, "testplan": true, "traceability": true, "deployment": true, "commissioning": true, "handover": true, "questions": true, "problems": true, "changes": true, "releases": true, "html": true, "manual": true}
+	BuiltDocuments  = map[string]bool{"techspec": true, "requirements": true, "testplan": true, "traceability": true, "deployment": true, "commissioning": true, "handover": true, "questions": true, "problems": true, "changes": true, "releases": true, "html": true, "manual": true, "operations": true}
 )
 
 // documentReads says which sections each document reads, so that a
@@ -31,6 +31,7 @@ var documentReads = map[string][]string{
 	"handover":      {"environments", "configuration", "release", "rollback", "migrations", "handover", "checks", "signoff", "monitors", "backup", "restore", "tests"},
 	"html":          {"*"},
 	"manual":        {"flows", "menus", "pages", "roles", "permissions", "errors"},
+	"operations":    {"environments", "monitors", "jobs", "channels", "dependencies", "paths", "configuration", "backup", "restore", "rollback"},
 }
 
 // IsDocumentTarget reports whether a target name is a document's.

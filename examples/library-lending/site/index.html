@@ -9882,6 +9882,31 @@ transports it as a string.
 <dd>
 <p><a href="#/requirements/LIB-7">LIB-7</a></p>
 </dd>
+<dt>response</dt>
+<dd>
+<ol class="items">
+<li id="/monitors/catalogue-latency/response/0">
+<dl>
+<dt>name</dt>
+<dd>Find the slow query</dd>
+<dt>action</dt>
+<dd>Open the database&#39;s slow query log for the hour the objective was missed.</dd>
+<dt>check</dt>
+<dd>The slowest statement and its plan are named.</dd>
+</dl>
+</li>
+<li id="/monitors/catalogue-latency/response/1">
+<dl>
+<dt>name</dt>
+<dd>Rebuild the search index</dd>
+<dt>action</dt>
+<dd>If the slow statement is the catalogue search, rebuild the index on title and author after closing.</dd>
+<dt>check</dt>
+<dd>The catalogue answers within 200 milliseconds again on the next opening day.</dd>
+</dl>
+</li>
+</ol>
+</dd>
 </dl>
 </article>
 <article class="element" data-search id="/monitors/overdue-notices-sent">

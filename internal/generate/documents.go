@@ -35,6 +35,8 @@ func Document(target string, root *yaml.Node, relRoot string, impls []Implementa
 		write = func() string { return Handover(root, relRoot, impls, state) }
 	case "manual":
 		write = func() string { return Manual(root, relRoot, impls, state) }
+	case "operations":
+		write = func() string { return Operations(root, relRoot, impls, state) }
 	case "questions":
 		return Questions(root, relRoot, impls, state), true
 	case "changes":

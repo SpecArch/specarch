@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/SpecArch/specarch/internal/genscreens"
 	"github.com/SpecArch/specarch/internal/genui"
 	"github.com/SpecArch/specarch/internal/ownership"
 )
@@ -37,10 +38,10 @@ var (
 // readServer reads settings.server; nil when the settings name none, and
 // the screens then call the service directly.
 func (g *gen) readServer() *server {
-	s, ok := obj(g.settings["server"])
+	s, ok := genscreens.Obj(g.Settings["server"])
 	if !ok {
-		if _, named := g.settings["server"]; named {
-			g.problem("error", "/", "the ui target's settings.server is not an object; give routes, service and token under it")
+		if _, named := g.Settings["server"]; named {
+			g.Problem("error", "/", "the ui target's settings.server is not an object; give routes, service and token under it")
 		}
 		return nil
 	}
@@ -48,25 +49,25 @@ func (g *gen) readServer() *server {
 	out := &server{routes: text(s["routes"]), service: text(s["service"]), pages: map[string]paging{}}
 	ok = true
 	if !routesPath.MatchString(out.routes) {
-		g.problem("error", at, "the ui target's settings.server.routes is %q, and the server routes answer under a path of lower-case segments, such as /api", out.routes)
+		g.Problem("error", at, "the ui target's settings.server.routes is %q, and the server routes answer under a path of lower-case segments, such as /api", out.routes)
 		ok = false
 	}
 	switch {
 	case !environmentName.MatchString(out.service):
-		g.problem("error", at, "the ui target's settings.server.service is %q, and it names the environment variable that says where the service is, such as SERVICE_URL", out.service)
+		g.Problem("error", at, "the ui target's settings.server.service is %q, and it names the environment variable that says where the service is, such as SERVICE_URL", out.service)
 		ok = false
 	case strings.HasPrefix(out.service, "NEXT_PUBLIC_"):
-		g.problem("error", at, "the ui target's settings.server.service is %s, and Next.js writes a NEXT_PUBLIC_ variable into the pages it sends the browser; name one the server alone reads", out.service)
+		g.Problem("error", at, "the ui target's settings.server.service is %s, and Next.js writes a NEXT_PUBLIC_ variable into the pages it sends the browser; name one the server alone reads", out.service)
 		ok = false
 	}
-	token, _ := obj(s["token"])
+	token, _ := genscreens.Obj(s["token"])
 	out.cookie, out.header, out.scheme = text(token["cookie"]), text(token["header"]), text(token["scheme"])
 	if !cookieName.MatchString(out.cookie) || !headerName.MatchString(out.header) {
-		g.problem("error", at, "the ui target's settings.server.token names no cookie and header, the cookie that holds the session's token and the header that carries it to the service; give both, such as { cookie: session, header: Authorization, scheme: Bearer }")
+		g.Problem("error", at, "the ui target's settings.server.token names no cookie and header, the cookie that holds the session's token and the header that carries it to the service; give both, such as { cookie: session, header: Authorization, scheme: Bearer }")
 		ok = false
 	}
 	if out.scheme != "" && !headerName.MatchString(out.scheme) {
-		g.problem("error", at, "the ui target's settings.server.token.scheme is %q, which is not one word, such as Bearer", out.scheme)
+		g.Problem("error", at, "the ui target's settings.server.token.scheme is %q, which is not one word, such as Bearer", out.scheme)
 		ok = false
 	}
 	pages := obj0(s["pages"])
@@ -75,7 +76,7 @@ func (g *gen) readServer() *server {
 		size, err1 := strconv.Atoi(text(p["pageSize"]))
 		maximum, err2 := strconv.Atoi(text(p["maximum"]))
 		if err1 != nil || err2 != nil || size < 1 || size > maximum {
-			g.problem("error", at, "the ui target's settings.server.pages gives %s no pageSize and maximum, whole numbers with the page size at most the maximum, such as { pageSize: 20, maximum: 100 }", id)
+			g.Problem("error", at, "the ui target's settings.server.pages gives %s no pageSize and maximum, whole numbers with the page size at most the maximum, such as { pageSize: 20, maximum: 100 }", id)
 			continue
 		}
 		out.pages[id] = paging{pageSize: size, maximum: maximum}
@@ -83,11 +84,11 @@ func (g *gen) readServer() *server {
 	if !ok {
 		return nil
 	}
-	pagesOf := obj0(g.spec["pages"])
+	pagesOf := obj0(g.Spec["pages"])
 	for _, pageName := range sortedKeys(pagesOf) {
 		route := text(obj0(pagesOf[pageName])["route"])
 		if route == out.routes || strings.HasPrefix(route, out.routes+"/") {
-			g.problem("error", "/pages/"+pageName+"/route", "%s is at %s, under %s, where the server routes answer; move the page, or the routes in the ui target's settings.server", pageName, route, out.routes)
+			g.Problem("error", "/pages/"+pageName+"/route", "%s is at %s, under %s, where the server routes answer; move the page, or the routes in the ui target's settings.server", pageName, route, out.routes)
 		}
 	}
 	return out
@@ -101,17 +102,17 @@ func (g *gen) checkPaged(srv *server, listed map[string]bool) {
 		return
 	}
 	for _, id := range sortedKeys(anyPaging(srv.pages)) {
-		op, _, method := g.operation(id)
+		op, _, method := g.Operation(id)
 		schema := obj0(obj0(obj0(obj0(obj0(obj0(op["responses"])["200"])["content"])["application/json"])["schema"]))
 		switch {
 		case op == nil || method != "get":
-			g.problem("error", "/", "the ui target's settings.server.pages names %s, which is not a GET operation of the specification", id)
+			g.Problem("error", "/", "the ui target's settings.server.pages names %s, which is not a GET operation of the specification", id)
 		case op["listOf"] != nil:
-			g.problem("error", "/", "the ui target's settings.server.pages names %s, which pages itself through its listOf; take it out of the settings", id)
+			g.Problem("error", "/", "the ui target's settings.server.pages names %s, which pages itself through its listOf; take it out of the settings", id)
 		case text(schema["type"]) != "array":
-			g.problem("error", "/", "the ui target's settings.server.pages names %s, whose 200 answer is not an array a route can page", id)
+			g.Problem("error", "/", "the ui target's settings.server.pages names %s, whose 200 answer is not an array a route can page", id)
 		case !listed[id]:
-			g.problem("warning", "/", "the ui target's settings.server.pages names %s, which no list page reads; its route forwards it whole", id)
+			g.Problem("warning", "/", "the ui target's settings.server.pages names %s, which no list page reads; its route forwards it whole", id)
 		}
 	}
 }
@@ -128,23 +129,23 @@ func anyPaging(m map[string]paging) map[string]any {
 // with a handler per method that forwards it, its settings, and their
 // derived test. An operation another stakeholder owns gets no handler.
 func (g *gen) serverFiles(srv *server, header string) []genui.File {
-	owned := ownership.Of(g.impl.Content)
+	owned := ownership.Of(g.Impl.Content)
 	var files []genui.File
 	slugs := map[string]string{} // a dynamic segment's folder, by the folder above it
 	headers := map[string]bool{"accept": true, "content-type": true}
-	paths := make([]string, 0, len(g.calls))
-	for p := range g.calls {
+	paths := make([]string, 0, len(g.Calls))
+	for p := range g.Calls {
 		paths = append(paths, p)
 	}
 	sort.Strings(paths)
 	for _, p := range paths {
 		var handlers strings.Builder
 		for _, m := range []string{"get", "post", "put", "patch", "delete"} {
-			id, ok := g.calls[p][m]
+			id, ok := g.Calls[p][m]
 			if !ok || owned.Covers(ownership.Operation(p, m)) {
 				continue
 			}
-			op, _, _ := g.operation(id)
+			op, _, _ := g.Operation(id)
 			if key := text(op["idempotencyKey"]); key != "" {
 				headers[strings.ToLower(key)] = true
 			}
@@ -165,7 +166,7 @@ func (g *gen) serverFiles(srv *server, header string) []genui.File {
 			if pathParam.MatchString(segment) {
 				slug := routeFolder(segment)
 				if other, ok := slugs[folder]; ok && other != slug {
-					g.problem("error", "/paths/"+ownership.Escape(p), "%s takes %s where another path a page calls takes %s, and Next.js routes one folder by one name; name the parameter alike in both", p, segment, other)
+					g.Problem("error", "/paths/"+ownership.Escape(p), "%s takes %s where another path a page calls takes %s, and Next.js routes one folder by one name; name the parameter alike in both", p, segment, other)
 				}
 				slugs[folder] = slug
 				segment = slug
@@ -178,17 +179,17 @@ func (g *gen) serverFiles(srv *server, header string) []genui.File {
 	for _, h := range sortedKeys(anyBool(headers)) {
 		names = append(names, str(h))
 	}
-	wire := g.listNames()
+	wire := g.ListNames()
 	settings := object([]member{
-		{"routes", str(srv.routes)},
-		{"service", raw("process.env." + srv.service + " ?? \"\"")},
-		{"cookie", str(srv.cookie)},
-		{"header", str(srv.header)},
-		{"scheme", str(srv.scheme)},
-		{"headers", array(names)},
-		{"wire", object([]member{
-			{"page", str(wire["page"])}, {"pageSize", str(wire["pageSize"])},
-			{"items", str(wire["items"])}, {"totalItems", str(wire["totalItems"])}, {"totalPages", str(wire["totalPages"])},
+		{Key: "routes", Val: str(srv.routes)},
+		{Key: "service", Val: raw("process.env." + srv.service + " ?? \"\"")},
+		{Key: "cookie", Val: str(srv.cookie)},
+		{Key: "header", Val: str(srv.header)},
+		{Key: "scheme", Val: str(srv.scheme)},
+		{Key: "headers", Val: array(names)},
+		{Key: "wire", Val: object([]member{
+			{Key: "page", Val: str(wire["page"])}, {Key: "pageSize", Val: str(wire["pageSize"])},
+			{Key: "items", Val: str(wire["items"])}, {Key: "totalItems", Val: str(wire["totalItems"])}, {Key: "totalPages", Val: str(wire["totalPages"])},
 		})},
 	})
 	var b strings.Builder
@@ -312,12 +313,12 @@ test("a route refuses a page size above the maximum without calling the service"
 
 // pagedByServer is how a server route pages an operation's list, when the
 // settings say one does.
-func (g *gen) pagedByServer(id string) (paging, bool) {
+func (g *gen) pagedByServer(id string) (string, string, bool) {
 	if g.server == nil {
-		return paging{}, false
+		return "", "", false
 	}
 	p, ok := g.server.pages[id]
-	return p, ok
+	return strconv.Itoa(p.pageSize), strconv.Itoa(p.maximum), ok
 }
 
 // serviceValue is where the screens call the service: the server routes,

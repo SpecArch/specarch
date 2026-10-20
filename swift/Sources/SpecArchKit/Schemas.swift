@@ -7403,7 +7403,7 @@ let implementationSchemaJSON = #"""
                 "pattern": "^[A-Za-z_$][A-Za-z0-9_$]*(\\.[A-Za-z_$][A-Za-z0-9_$]*)?$"
               },
               "clientArgument": {
-                "description": "The argument that carries the names of the clients admitted, counted from 1: a string, a list of strings, or the first of several strings.",
+                "description": "The argument that carries the names of the clients admitted, counted from 1: a string or a list of strings. Strings the call passes after it are asked about, never read as names.",
                 "type": "integer",
                 "minimum": 1
               }
@@ -7441,7 +7441,7 @@ let implementationSchemaJSON = #"""
                 "pattern": "^[A-Za-z_$][A-Za-z0-9_$]*(\\.[A-Za-z_$][A-Za-z0-9_$]*)?$"
               },
               "applicationArgument": {
-                "description": "The argument that carries the names of the applications admitted, counted from 1: a string, a list of strings, or the first of several strings.",
+                "description": "The argument that carries the names of the applications admitted, counted from 1: a string or a list of strings. Strings the call passes after it are asked about, never read as names.",
                 "type": "integer",
                 "minimum": 1
               }
@@ -7471,7 +7471,7 @@ let implementationSchemaJSON = #"""
                 "pattern": "^[A-Za-z_$][A-Za-z0-9_$]*(\\.[A-Za-z_$][A-Za-z0-9_$]*)?$"
               },
               "callerArgument": {
-                "description": "The argument that carries the names of the services admitted as the immediate caller, counted from 1: a string, a list of strings, or the first of several strings.",
+                "description": "The argument that carries the names of the services admitted as the immediate caller, counted from 1: a string or a list of strings. Strings the call passes after it are asked about, never read as names.",
                 "type": "integer",
                 "minimum": 1
               }
@@ -7501,7 +7501,7 @@ let implementationSchemaJSON = #"""
                 "pattern": "^[A-Za-z_$][A-Za-z0-9_$]*(\\.[A-Za-z_$][A-Za-z0-9_$]*)?$"
               },
               "audienceArgument": {
-                "description": "The argument that carries the audience the check compares aud with, counted from 1.",
+                "description": "The argument that carries the audience the check compares aud with, counted from 1: a string or a list of strings. Strings the call passes after it are asked about, never read as names.",
                 "type": "integer",
                 "minimum": 1
               }

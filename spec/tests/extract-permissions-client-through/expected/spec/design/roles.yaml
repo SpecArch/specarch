@@ -2,7 +2,7 @@ permissions:
   invoices.delete:
     origin: stated
     cites:
-      - {source: code, clause: access role clerk, says: clerk and invoice-manager grant invoices.delete.}
+      - {source: code, clause: access role clerk, says: 'clerk, invoice-manager and reporting grant invoices.delete.'}
   invoices.read:
     origin: stated
     cites:
@@ -26,6 +26,11 @@ roles:
     cites:
       - {source: code, clause: access role invoice-manager, says: invoice-manager grants invoices.delete and invoices.read.}
   reporting:
+    permissions: [invoices.delete]
+    origin: stated
+    cites:
+      - {source: code, clause: access role reporting, says: reporting grants invoices.delete.}
+  reporting-client:
     permissions: [invoices.read]
     origin: stated
     cites:
@@ -44,7 +49,7 @@ clients:
       - {source: code, clause: access client mobile, says: The table narrows a grant to mobile.}
   reporting:
     kind: service
-    roles: [reporting]
+    roles: [reporting-client]
     origin: stated
     cites:
       - {source: code, clause: access client reporting, says: The table grants reporting permissions directly.}

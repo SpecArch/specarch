@@ -671,7 +671,12 @@ compares against is a question unless it is a literal.
   and a `must` question for its description; a role granted one
   permission in two rows, one with `through` and one without, is a
   `must` question at the role, since the rows disagree on whether the
-  grant is narrowed. With `rules` (pattern rows, `docs/estate.md`, point
+  grant is narrowed. A row whose subject is a client gives a role named
+  after the client, held by the client declared as a service; where a
+  role of the table has that name, the client's role takes the name
+  with `-client` added, so that neither holds the other's grants, and
+  a `must` question asks whether the client was meant to hold the
+  table's role. With `rules` (pattern rows, `docs/estate.md`, point
   5) the same field on a pattern row narrows the permissions the row
   yields.
 - `extract go`. The implementation file's binding names the project's
@@ -689,7 +694,12 @@ compares against is a question unless it is a literal.
   or a caller check with literal names writes them as the operation's
   `callers` or `via`, with a `must` question for their declarations;
   one reading its names from a setting is a `must` question naming the
-  setting. An application check is a `must` question for the `through`
+  setting. The names are the one argument the binding names, a string
+  or a list; strings the call passes after it are a `must` question,
+  since they may be more names or a reason, and are written nowhere.
+  Two or more literal checks of one kind on a route run in turn, so
+  the operation gets the names every one lists, with a `must` question
+  where the lists differ. An application check is a `must` question for the `through`
   of every role granting the operation's permission, naming the routes
   that check that permission without it, since the condition would
   narrow a grant there too; an audience check is a `must` question at

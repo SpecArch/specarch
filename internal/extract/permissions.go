@@ -285,14 +285,39 @@ func (pr *permissionReader) read(dumpName string) error {
 	grants := make([]dumpGrant, len(pr.t.Grants))
 	isRole := map[string]bool{}
 	// A client that is a row's subject holds a role named after it, so
-	// the matrix shows it beside the roles (ADR-110).
-	clientRole := map[string]bool{}
+	// the matrix shows it beside the roles (ADR-110). Where a role of the
+	// table already has that name, the client's role takes the name with
+	// -client added, so neither holds the other's grants, and writeClients
+	// asks about it.
+	taken := map[string]bool{}
+	for _, r := range roles {
+		if n, ok := pr.roleNames.name(r); ok {
+			taken[n] = true
+		}
+	}
+	var clientNames []string
+	for _, g := range pr.t.Grants {
+		if g.Client != "" && !contains(clientNames, g.Client) {
+			clientNames = append(clientNames, g.Client)
+		}
+	}
+	sort.Strings(clientNames)
+	clientRole := map[string]string{} // client -> the role it holds
+	isClientRole := map[string]bool{}
+	for _, c := range clientNames {
+		n := c
+		for taken[n] {
+			n += "-client"
+		}
+		taken[n] = true
+		clientRole[c] = n
+		isClientRole[n] = true
+	}
 	for i, g := range pr.t.Grants {
 		if g.Client != "" {
-			g.Role = g.Client
+			g.Role = clientRole[g.Client]
 			isRole[g.Role] = true
 			pr.wireOf[g.Role] = g.Client
-			clientRole[g.Client] = true
 		} else if n, ok := pr.roleNames.name(g.Role); ok {
 			g.Role = n
 			isRole[n] = true
@@ -311,7 +336,7 @@ func (pr *permissionReader) read(dumpName string) error {
 	privileges := newPrivilegeNames(names)
 	byRole := map[string][]string{}
 	through := map[string]map[string][]string{} // role -> permission -> the clients a row holds it through
-	plain := map[string]bool{}                   // "role permission" granted by a row with no through
+	plain := map[string]bool{}                  // "role permission" granted by a row with no through
 	type asked struct{ role, question, why string }
 	var problems []asked
 	pr.mappedFrom = map[string]string{}
@@ -440,7 +465,7 @@ func (pr *permissionReader) read(dumpName string) error {
 			if len(granted) > 0 {
 				says = append(says, fmt.Sprintf("%s grants %s.", wire, joinAnd(granted)))
 			}
-			if reach := pr.roleRows(wire); reach != "" {
+			if reach := pr.roleRows(wire); reach != "" && !isClientRole[name] {
 				says = append(says, reach)
 			}
 			set(role, "cites", []*yaml.Node{citation(pr.key, pr.t.Path+" role "+wire, strings.Join(says, " "))})
@@ -470,9 +495,11 @@ func (pr *permissionReader) read(dumpName string) error {
 			}
 			var wires []string
 			for _, r := range roles {
-				wires = append(wires, pr.wireOf[r])
+				if !contains(wires, pr.wireOf[r]) {
+					wires = append(wires, pr.wireOf[r])
+				}
 			}
-			cites := []*yaml.Node{citation(pr.key, pr.t.Path+" role "+wires[0], fmt.Sprintf("%s %s %s.", joinAnd(wires), grantOrGrants(len(roles)), named))}
+			cites := []*yaml.Node{citation(pr.key, pr.t.Path+" role "+wires[0], fmt.Sprintf("%s %s %s.", joinAnd(wires), grantOrGrants(len(wires)), named))}
 			if rp := pr.rulePermission(n); rp != nil {
 				set(pr.permissions, n, pr.rulePermissionEntry(rp))
 			} else if pr.mappedFrom[n] != "" {
@@ -616,7 +643,7 @@ func (pr *permissionReader) throughOf(role string, by map[string][]string, plain
 // proof and a could question to rename the role; and every client a grant
 // holds through as an application, with a must question for what it is.
 // One name used as both is a must question (ADR-106, ADR-110).
-func (pr *permissionReader) writeClients(roleNames []string, clientRole map[string]bool, through map[string]map[string][]string) {
+func (pr *permissionReader) writeClients(roleNames []string, clientRole map[string]string, through map[string]map[string][]string) {
 	apps := map[string]bool{}
 	var narrowed []string
 	for _, r := range roleNames {
@@ -634,7 +661,7 @@ func (pr *permissionReader) writeClients(roleNames []string, clientRole map[stri
 		names = append(names, c)
 	}
 	for c := range apps {
-		if !clientRole[c] {
+		if clientRole[c] == "" {
 			names = append(names, c)
 		}
 	}
@@ -647,9 +674,9 @@ func (pr *permissionReader) writeClients(roleNames []string, clientRole map[stri
 	for _, c := range names {
 		cl := mapping()
 		switch {
-		case clientRole[c]:
+		case clientRole[c] != "":
 			set(cl, "kind", "service")
-			set(cl, "roles", flow(value([]string{c})))
+			set(cl, "roles", flow(value([]string{clientRole[c]})))
 			services = append(services, c)
 		default:
 			set(cl, "kind", "application")
@@ -659,12 +686,17 @@ func (pr *permissionReader) writeClients(roleNames []string, clientRole map[stri
 		}
 		set(cl, "origin", "stated")
 		says := fmt.Sprintf("The table grants %s permissions directly.", c)
-		if !clientRole[c] {
+		if clientRole[c] == "" {
 			says = fmt.Sprintf("The table narrows a grant to %s.", c)
 		}
 		set(cl, "cites", []*yaml.Node{citation(pr.key, pr.t.Path+" client "+c, says)})
 		set(pr.clients, c, cl)
-		if clientRole[c] && apps[c] {
+		if r := clientRole[c]; r != "" && r != c {
+			pr.question(fmt.Sprintf("The table grants the client %s permissions directly and names a role %s too. Is the client meant to hold the role %s, or only the grants the table gives the client, which the reader writes as the role %s?", c, c, c, r),
+				[]string{"#/roles/" + escapeToken(r), "#/clients/" + escapeToken(c) + "/roles"},
+				fmt.Sprintf("A client and a role of one name are two subjects in the table; read as one, the client would hold every grant of the role. The reader keeps them apart, and the role %s is named for this.", r))
+		}
+		if clientRole[c] != "" && apps[c] {
 			pr.question(fmt.Sprintf("The table names %s as the subject of its own grants, a caller on its own account, and as the client a grant holds through, the application a person signs in through. Which is it?", c),
 				[]string{"#/clients/" + escapeToken(c)},
 				"One name is used as a caller and as a condition; a client is an application or a service, and the reader writes it as the service its own grants make it.")
@@ -676,11 +708,12 @@ func (pr *permissionReader) writeClients(roleNames []string, clientRole map[stri
 			"A client that calls on its own account must prove itself on each request (RFC 6749, section 4.4), and the table names its grants, not its credential.")
 	}
 	if len(services) > 0 {
-		var blocks []string
+		var blocks, held []string
 		for _, c := range services {
-			blocks = append(blocks, "#/roles/"+escapeToken(c))
+			blocks = append(blocks, "#/roles/"+escapeToken(clientRole[c]))
+			held = append(held, clientRole[c])
 		}
-		pr.couldQuestion(fmt.Sprintf("The roles %s are named after the clients the table grants permissions directly. Should any be renamed to say what it allows?", joinAnd(services)),
+		pr.couldQuestion(fmt.Sprintf("The roles %s are named after the clients the table grants permissions directly. Should any be renamed to say what it allows?", joinAnd(held)),
 			blocks, "A role is a set of grants a reviewer reads in the matrix; the table gives the client's grants, not a role's name. Nothing waits for the answer.")
 	}
 	var blocks []string

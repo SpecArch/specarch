@@ -21,15 +21,22 @@ decisions:
       audienceChecks, each item a package, a function and the argument
       that carries the names (applicationArgument, callerArgument,
       audienceArgument), eventWriters, and an optional clientArgument on
-      clientChecks. An argument gives the names as a string, a list of
-      strings or several strings from it on; anything else is read as
-      where the code reads them, such as a setting, and named. extract go
+      clientChecks. An argument gives the names as a string or a list of
+      strings; anything else is read as where the code reads them, such
+      as a setting, and named. String literals the call passes after that
+      argument are one must question at the blocks of the operations it
+      guards, asking whether they are names too or something else, such
+      as a reason; they are written nowhere. extract go
       finds each where it finds a permission check. A client check whose
       argument gives literals writes them as the callers of each
       operation it guards, a caller check as its via, each with one must
       question per check asking for the clients' declarations, which
       holds the errors of the names not yet declared; given otherwise,
-      each is one must question naming where the code reads them. An
+      each is one must question naming where the code reads them. Two or
+      more literal checks of one kind on a route run in turn, so the
+      operation's callers or via are the names every one lists; where
+      their lists differ, that set is written, or none when it is empty,
+      with a must question at callers or via naming each check's list. An
       application check is one must question for the through of every
       role granting the operations' permission, naming any operation that
       checks the same permission without it, since the reader writes no
@@ -41,7 +48,11 @@ decisions:
       operation's transaction token and its via. extract permissions
       reads a grant's client as a role named after the client, held by
       the client declared as a service, with a must question for its
-      proof and a could question to rename the role, and a grant's
+      proof and a could question to rename the role; where a role of the
+      table has the client's name, the client's role takes the name with
+      -client added, so neither holds the other's grants, with a must
+      question at that role and the client's roles asking whether the
+      client was meant to hold the table's role; and a grant's
       through as the role's through, the client declared as an
       application; two rows that disagree on the narrowing, a name used
       as subject and as through, what each client is and which token
@@ -67,6 +78,12 @@ decisions:
       to hang a literal on. The questions hold the errors of the names
       written before they are declared, because the compiler principle
       keeps the tree readable with every gap marked once at its entry.
+      Two gates in sequence written as their common names, and strings
+      after the names asked rather than read, because a list silently
+      replaced by another drops a definition and a reason read as a name
+      admits a caller nobody wrote. A client kept apart from a role of
+      its name, because read as one the client would hold every grant of
+      the role, a grant the table never gives it.
       Compiler test: a check named in part or twice is a must question
       at the paths, and every name read is written or asked at its entry.
       Acceptance test: the first techspec shows who may call each route

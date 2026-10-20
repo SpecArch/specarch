@@ -26,6 +26,7 @@ func (s *Server) routes() {
 	s.router.Delete("/invoices/{invoiceId}", s.RequireCaller([]string{"middleware"}, s.RequireApplication("admin-web", s.Audit(s.Require("invoices.delete", s.deleteInvoice)))))
 	s.router.Post("/invoices/{invoiceId}/void", s.RequireCaller(s.callers, s.Require("invoices.delete", s.voidInvoice)))
 	s.router.Post("/invoices/{invoiceId}/archive", s.Require("invoices.delete", s.archiveInvoice))
+	s.router.Post("/invoices/{invoiceId}/send", s.RequireClients([]string{"reporting", "mailer"}, s.RequireClient("mailer", "only the mailer sends invoices", s.Require("invoices.read", s.sendInvoice))))
 }
 
 // Require runs h only for a caller whose role grants permission.
@@ -33,6 +34,10 @@ func (s *Server) Require(permission string, h http.HandlerFunc) http.HandlerFunc
 
 // RequireClients runs h only for one of the clients named.
 func (s *Server) RequireClients(clients []string, h http.HandlerFunc) http.HandlerFunc { return h }
+
+// RequireClient runs h only for the client named, and logs reason when
+// it refuses.
+func (s *Server) RequireClient(client, reason string, h http.HandlerFunc) http.HandlerFunc { return h }
 
 // RequireApplication runs h only when the person signed in through the
 // application named.
@@ -61,3 +66,5 @@ func (s *Server) deleteInvoice(w http.ResponseWriter, r *http.Request) {
 func (s *Server) voidInvoice(w http.ResponseWriter, r *http.Request) {}
 
 func (s *Server) archiveInvoice(w http.ResponseWriter, r *http.Request) {}
+
+func (s *Server) sendInvoice(w http.ResponseWriter, r *http.Request) {}

@@ -143,6 +143,9 @@ type checkUse struct {
 	// applications, services or an audience; nil when it gives them
 	// otherwise, as argument says.
 	names []string
+	// trailing are the string literals a gate's call passes after the
+	// argument that names, which may be more names or something else.
+	trailing []string
 }
 
 // permissionCheck is one check the implementation file names.
@@ -1818,7 +1821,7 @@ func (sc *routeScope) checkCall(call *ast.CallExpr) (checkUse, bool) {
 		use := checkUse{clause: clause, check: exprText(call.Fun), bound: &sc.g.rt.checks[i]}
 		if c.gate != "" {
 			if c.argument > 0 {
-				use.names, use.argument = sc.gateNames(call, c.argument)
+				use.names, use.argument, use.trailing = sc.gateNames(call, c.argument)
 			}
 			sc.g.citeFile(sc.file)
 			return use, true
@@ -1838,38 +1841,38 @@ func (sc *routeScope) checkCall(call *ast.CallExpr) (checkUse, bool) {
 	return checkUse{}, false
 }
 
-// gateNames reads the names a gate's argument n, from 1, gives: a string,
-// a list of strings, or several strings from n on. A name that is not a
-// literal, such as a setting, gives no names and the argument as the code
-// writes it.
-func (sc *routeScope) gateNames(call *ast.CallExpr, n int) ([]string, string) {
+// gateNames reads the names a gate's argument n, from 1, gives: a string
+// or a list of strings. A name that is not a literal, such as a setting,
+// gives no names and the argument as the code writes it. The string
+// literals after argument n are returned apart: syntax does not say
+// whether they are more names of a variadic check or something else,
+// such as a reason, so they are asked, never written.
+func (sc *routeScope) gateNames(call *ast.CallExpr, n int) ([]string, string, []string) {
 	if n > len(call.Args) {
-		return nil, "nothing"
+		return nil, "nothing", nil
 	}
 	arg := call.Args[n-1]
+	var trailing []string
+	for _, e := range call.Args[n:] {
+		if s, ok := sc.stringValue(e); ok {
+			trailing = append(trailing, s)
+		}
+	}
 	if lit, ok := arg.(*ast.CompositeLit); ok {
 		var names []string
 		for _, e := range lit.Elts {
 			s, ok := sc.stringValue(e)
 			if !ok {
-				return nil, exprText(arg)
+				return nil, exprText(arg), trailing
 			}
 			names = append(names, s)
 		}
-		return names, exprText(arg)
+		return names, exprText(arg), trailing
 	}
-	var names []string
-	for _, e := range call.Args[n-1:] {
-		s, ok := sc.stringValue(e)
-		if !ok {
-			break
-		}
-		names = append(names, s)
+	if s, ok := sc.stringValue(arg); ok {
+		return []string{s}, exprText(arg), trailing
 	}
-	if len(names) == 0 {
-		return nil, exprText(arg)
-	}
-	return names, exprText(arg)
+	return nil, exprText(arg), trailing
 }
 
 // checkArgument is the place of a check call's permission, from 0.
@@ -2381,6 +2384,8 @@ func (g *goReader) writeRoutes(items map[string]*yaml.Node, uris *[]string, chec
 	})
 	bypassed := map[*permissionCheck]*bypassedCheck{}
 	gated := map[gateKey]*bypassedCheck{}
+	trailing := map[string]*trailingNames{} // by the call's clause
+	var trailingOrder []string
 	for _, r := range held {
 		at := "#/paths/" + escapeToken(r.full)
 		r.at = at + "/" + r.key
@@ -2408,7 +2413,7 @@ func (g *goReader) writeRoutes(items map[string]*yaml.Node, uris *[]string, chec
 					[]string{r.at, r.at + "/parameters"}, "A path parameter the route's path does not name is always empty, so the code cannot work as written.", g.at(p.clause, "Reads the path parameter "+p.name+"."))
 			}
 		}
-		var opCallers, opVia []string
+		var clientUses, callerUses []checkUse
 		for _, c := range r.checks {
 			if c.bound.gate != "" {
 				k := gateKey{c.bound, c.names != nil}
@@ -2438,9 +2443,20 @@ func (g *goReader) writeRoutes(items map[string]*yaml.Node, uris *[]string, chec
 				}
 				switch {
 				case c.bound.gate == "client" && c.names != nil:
-					opCallers = c.names
+					clientUses = append(clientUses, c)
 				case c.bound.gate == "caller" && c.names != nil:
-					opVia = c.names
+					callerUses = append(callerUses, c)
+				}
+				if len(c.trailing) > 0 {
+					t := trailing[c.clause]
+					if t == nil {
+						t = &trailingNames{use: c}
+						trailing[c.clause] = t
+						trailingOrder = append(trailingOrder, c.clause)
+					}
+					if !contains(t.at, block) {
+						t.at = append(t.at, block)
+					}
 				}
 				continue
 			}
@@ -2455,6 +2471,8 @@ func (g *goReader) writeRoutes(items map[string]*yaml.Node, uris *[]string, chec
 				}
 			}
 		}
+		opCallers := g.sequencedNames(label, r.at+"/callers", "a", "caller", clientUses)
+		opVia := g.sequencedNames(label, r.at+"/via", "an", "immediate caller", callerUses)
 		op := mapping("operationId", r.id)
 		permission := g.routePermission(r, label)
 		for _, c := range r.checks {
@@ -2505,10 +2523,77 @@ func (g *goReader) writeRoutes(items map[string]*yaml.Node, uris *[]string, chec
 	if snake {
 		g.wireSnake = true
 	}
+	for _, clause := range trailingOrder {
+		t := trailing[clause]
+		c := t.use
+		names := c.argument
+		if c.names != nil {
+			names = joinAnd(goQuoted(c.names))
+		}
+		ask := "Are they names the check admits too, or something else, such as a reason?"
+		if len(c.trailing) == 1 {
+			ask = "Is it a name the check admits too, or something else, such as a reason?"
+		}
+		g.question("must", fmt.Sprintf("%s: %s passes %s after %s, the argument the implementation file names as the check's. %s", clause, c.check, joinAnd(goQuoted(c.trailing)), names, ask),
+			t.at, "Syntax does not say whether a check takes its names as one argument or as every argument from it on; the reader writes the named argument alone and asks about the rest, so neither a name is dropped nor a reason admitted as a caller.",
+			g.at(clause, fmt.Sprintf("Calls %s with %s, then %s.", c.check, c.argument, joinAnd(goQuoted(c.trailing)))))
+	}
 	g.writeBypassed(bypassed)
 	g.writeGated(gated, checkedBy)
 	g.writeDependencies(held)
 	g.res.say("routes: wrote %s: one operation per route a router of net/http, chi, gin, echo or gorilla/mux registers with a literal method and path, outside a loop or a condition, under a prefix the reader knows", plural(len(held), "operation"))
+}
+
+// trailingNames is one gate call that passes string literals after the
+// argument that names, and the blocks of the operations it guards.
+type trailingNames struct {
+	use checkUse
+	at  []string
+}
+
+// sequencedNames is what the literal gates of one kind on a route admit
+// together. Each runs in turn and refuses a name it does not list, so
+// only the names every one lists pass; where the lists differ, that set
+// is written and asked at the block, and none is written when it is
+// empty, since a list that silently replaced another would drop a
+// definition.
+func (g *goReader) sequencedNames(label, block, article, who string, uses []checkUse) []string {
+	if len(uses) == 0 {
+		return nil
+	}
+	out := append([]string(nil), uses[0].names...)
+	differ := false
+	for _, u := range uses[1:] {
+		var kept []string
+		for _, n := range out {
+			if contains(u.names, n) {
+				kept = append(kept, n)
+			}
+		}
+		if len(kept) != len(out) || len(u.names) != len(uses[0].names) {
+			differ = true
+		}
+		out = kept
+	}
+	if !differ {
+		return out
+	}
+	var calls []string
+	var cites []*yaml.Node
+	for _, u := range uses {
+		calls = append(calls, fmt.Sprintf("%s with %s", u.check, joinAnd(goQuoted(u.names))))
+		cites = append(cites, g.at(u.clause, fmt.Sprintf("Calls %s with %s.", u.check, joinAnd(goQuoted(u.names)))))
+	}
+	passes := "only " + joinAnd(out) + map[bool]string{true: " passes", false: " pass"}[len(out) == 1] + " every one, written as its " + block[strings.LastIndex(block, "/")+1:]
+	if len(out) == 0 {
+		passes = "no " + who + " passes every one, and none is written"
+	}
+	g.question("must", fmt.Sprintf("%s calls %s in turn, and each refuses %s %s it does not list, so %s. Which %ss is it meant to admit?", label, joinAnd(calls), article, who, passes, who),
+		[]string{block}, "Checks in sequence admit only the names every one lists; lists that disagree are as often a mistake as a narrowing, so the set the code admits is written and asked, never one list chosen.", cites...)
+	if len(out) == 0 {
+		return nil
+	}
+	return out
 }
 
 // gateKey is a gate and whether its argument gave names as literals: the

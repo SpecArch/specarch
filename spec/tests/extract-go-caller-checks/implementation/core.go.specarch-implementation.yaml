@@ -22,6 +22,9 @@ bindings:
       - package: core
         function: Server.RequireClients
         clientArgument: 1
+      - package: core
+        function: Server.RequireClient
+        clientArgument: 1
     applicationChecks:
       - package: core
         function: Server.RequireApplication

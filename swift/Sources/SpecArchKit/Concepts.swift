@@ -133,12 +133,48 @@ extension Checker {
         }
     }
 
-    /// Checks that a guard's entity exists. Its precondition is checked with
-    /// the expressions.
-    func checkGuard(_ d: Design, _ g: YNode?, _ ptr: String) {
+    /// Checks that a guard's entity exists, and that what its writes says is
+    /// a change no keyword of the entry already says, of fields the entity
+    /// has other than its key and its state field (ADR-168). Its
+    /// precondition and the values writes sets are checked with the
+    /// expressions. trigger is the operationId or the command's words;
+    /// method, path and body (its request body's $ref) are the operation's,
+    /// or "" for a command.
+    func checkGuard(_ d: Design, _ g: YNode?, _ ptr: String, _ trigger: String, _ method: String, _ path: String, _ body: String) {
         guard let g, let n = g.child("entity") else { return }
         if d.entities[n.value] == nil {
             add(n, ptr + "/entity", .guardRule, "\(n.value) is not an entity of the specification\(suggest(n.value, d.entities))")
+        }
+        guard let w = g.child("writes"), let ent = d.entities[n.value] else { return }
+        let name = n.value
+        let keyed = path.filter { $0 == "{" }.count == 1
+        if method == "put" && keyed && body == "#/entities/" + name {
+            add(w, ptr + "/writes", .guardRule, "a PUT of \(name) by its key already says what it writes, every field a caller may set; take writes out")
+            return
+        }
+        if method == "delete" && keyed {
+            add(w, ptr + "/writes", .guardRule, "a DELETE by its key already says what it writes, that the \(name) goes; take writes out")
+            return
+        }
+        if let del = w.child("delete") {
+            for t in items(ent.child("transitions")) where str(t.child("trigger")) == trigger {
+                add(del, ptr + "/writes/delete", .guardRule, "\(trigger) triggers a transition of \(name) to \(str(t.child("to"))), and writes says it deletes the records; say one change: take delete out, or the transition")
+                break
+            }
+        }
+        let fields = fieldsOf(ent)
+        let state = str(ent.child("stateField"))
+        let key = items(ent.child("primaryKey")).map { $0.value }
+        for p in pairs(w.child("set")) {
+            let f = p.key.value
+            let at = ptr + "/writes/set/" + escapeToken(f)
+            if fields[f] == nil {
+                add(p.key, at, .guardRule, "writes sets \(f), which is not a field of \(name)\(suggest(f, fields))")
+            } else if key.contains(f) {
+                add(p.key, at, .guardRule, "writes sets \(f), part of the key of \(name); the key names the records the change writes, so it is not set")
+            } else if f == state {
+                add(p.key, at, .guardRule, "writes sets \(f), the state field of \(name); a state is moved by a transition whose trigger is this entry, so name it in transitions instead")
+            }
         }
     }
 }

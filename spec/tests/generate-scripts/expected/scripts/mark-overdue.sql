@@ -4,7 +4,7 @@
 -- specarch-problem: warning: test_case_missing: command mark overdue has no red scenario for "concurrent write"; add under tests mark-overdue-concurrent-write: { command: mark overdue, scenario: red, covers: [concurrent write], given: "another caller changed the Loan after this caller read it", when: "mark overdue is run", then: "it is refused and the other caller's change stands" } [test_case_missing.ffc72294@specarch.yaml#/commands/mark overdue]
 -- specarch-problem: warning: test_golden_missing: command mark overdue has no golden scenario; add one under tests, for example mark-overdue-succeeds: { command: mark overdue, scenario: golden, given: "...", when: "mark overdue is run with arguments it accepts", then: "it exits 0: Marked." } [test_golden_missing@specarch.yaml#/commands/mark overdue]
 -- mark overdue: Mark the open loans renewed three times as overdue
--- Changes exactly 2 Loan records of table loans: sets status to overdue, from open, where renewals == 3.
+-- Changes exactly 2 Loan records of table loans: sets status to overdue, from open, and sets note to "Renewed three times", where renewals == 3.
 -- Dry run: psql -v ON_ERROR_STOP=1 -v last_modified_by_user_id=... -v last_modified_by_user_nameid=... -f mark-overdue.sql
 -- Apply: the same with -v apply=true. Without it every check runs against the data and the change is rolled back.
 \set ON_ERROR_STOP on
@@ -40,6 +40,7 @@ BEGIN
   -- 2. The change, under the same condition.
   UPDATE loans
   SET status = 'overdue',
+      note = 'Renewed three times',
       last_modified_at = now(),
       last_modified_by_user_id = current_setting('specarch.last_modified_by_user_id', true)::VARCHAR,
       last_modified_by_user_nameid = current_setting('specarch.last_modified_by_user_nameid', true)::VARCHAR

@@ -263,6 +263,7 @@ extension Checker {
         }
         for g in d.guards() {
             checkPrecondition(d, g)
+            checkWrites(d, g)
         }
         for a in pairs(d.root.child("algorithms")) {
             checkAlgorithm(d, a.key.value, a.value)
@@ -285,6 +286,31 @@ extension Checker {
         exprErrors(n, ptr, "the precondition", errs)
         if errs.isEmpty && (t.kind != .bool || t.nullable) {
             addFile(fileOf(n), exprLine(n, 1), ptr, .expressionType, "the precondition gives \(t), but a precondition must give true or false; compare the values with ==, <, > or similar")
+        }
+    }
+
+    /// Checks each value a guard's writes sets: given, the value the
+    /// operator gives, or a literal of the field's type, since a value
+    /// worked out from the record's own fields cannot be told already
+    /// written and would change the record again on a second run (ADR-168).
+    func checkWrites(_ d: Design, _ g: Guard) {
+        guard let ent = d.entities[str(g.node.child("entity"))] else { return }
+        let fields = fieldsOf(ent)
+        let required = items(ent.child("required")).map { $0.value }
+        for p in pairs(g.node.child("writes")?.child("set")) {
+            let f = p.key.value, n = p.value
+            guard let field = fields[f], n.kind == .scalar else { continue }
+            let ptr = g.ptr + "/writes/set/" + escapeToken(f)
+            let what = "the value of " + f
+            let (tree, perrs) = parseExpr(n.value)
+            guard let tree, perrs.isEmpty else {
+                exprErrors(n, ptr, what, perrs)
+                continue
+            }
+            let msg = writable(tree, n.value.trimmingCharacters(in: .whitespacesAndNewlines), f, d.fieldType(field), required.contains(f))
+            if !msg.isEmpty {
+                addFile(fileOf(n), exprLine(n, 1), ptr, .guardRule, "\(what): \(msg)")
+            }
         }
     }
 
@@ -370,5 +396,79 @@ extension Checker {
             add(expNode, pointer(base + ["expected"]), .exampleMismatch,
                 "the formula gives \(show(got, want)) for \(quote(label)), but the example expects \(show(expected, want)); correct the example or the formula")
         }
+    }
+}
+
+/// Says why a value cannot be written to a field, or "". src is the value
+/// as written, which keeps a literal's digits.
+func writable(_ node: ExprNode, _ src: String, _ field: String, _ t: ExprType, _ required: Bool) -> String {
+    if node.op == .name && node.text == "given" { return "" }
+    var n = node
+    let neg = n.op == .neg && n.args.count == 1 && (n.args[0].op == .int || n.args[0].op == .double)
+    if neg { n = n.args[0] }
+    var isText = ""
+    switch n.op {
+    case .null:
+        if required && !t.nullable {
+            return "it is null, and \(field) is required; write a value, or given"
+        }
+        return ""
+    case .text:
+        switch t.kind {
+        case .string: return ""
+        case .enumValue:
+            if t.values.contains(n.text) { return "" }
+            return "it is \"\(n.text)\", which is not \(t); write one of \(t.values.joined(separator: ", "))"
+        default: break
+        }
+        isText = "a string"
+    case .int:
+        let v = neg ? -n.intValue : n.intValue
+        switch t.kind {
+        case .int:
+            if t.bits == 32 && (v > Decimal(Int32.max) || v < Decimal(Int32.min)) {
+                return "it is \(src), and \(field) is an int32, which cannot hold it"
+            }
+            return ""
+        case .uint:
+            if v < 0 {
+                return "it is \(src), and \(field) is a uint, which is zero or more"
+            }
+            return ""
+        case .double, .decimal: return ""
+        default: break
+        }
+        isText = "an int"
+    case .uint:
+        if t.kind == .uint { return "" }
+        isText = "a uint"
+    case .double:
+        switch t.kind {
+        case .double: return ""
+        case .decimal:
+            if src.contains("e") || src.contains("E") {
+                return "it is \(src), and \(field) is \(t); write it with its digits, as 12.50"
+            }
+            if let dot = src.firstIndex(of: ".") {
+                let frac = src[src.index(after: dot)...]
+                if frac.count > t.scale {
+                    return "it is \(src), with \(frac.count) digits after the point, and \(field) keeps \(t.scale)"
+                }
+            }
+            return ""
+        default: break
+        }
+        isText = "a double"
+    case .bool:
+        if t.kind == .bool { return "" }
+        isText = "a bool"
+    default:
+        return "it is \(src), which is neither a literal nor given; a value worked out when the change runs cannot be told already written, so write a literal, or given for the value the operator gives"
+    }
+    switch t.kind {
+    case .int, .uint, .double, .decimal, .string, .enumValue, .bool:
+        return "it is \(isText), and \(field) is \(t); write a literal of that type, or given"
+    default:
+        return "it is \(isText), and \(field) is \(t), which has no literal; write given, the value the operator gives"
     }
 }

@@ -1,7 +1,8 @@
 // Package genscripts writes the guarded operational scripts a
 // specification derives: one script per operation or command that
 // carries a guard and whose change the design says, by a transition it
-// triggers, a PUT of the entity by its key or a DELETE by its key. Each
+// triggers, a PUT of the entity by its key, a DELETE by its key or the
+// guard's writes (ADR-168). Each
 // script counts and locks the records the change would write and refuses
 // unless their number is the guard's recordsChanged, makes the change with
 // the same condition, checks the count it wrote, and commits only when the
@@ -17,12 +18,14 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"math/big"
 	"slices"
 	"sort"
 	"strconv"
 	"strings"
 	"unicode"
 
+	"github.com/SpecArch/specarch/internal/expr"
 	"github.com/SpecArch/specarch/internal/gensql"
 	"github.com/SpecArch/specarch/internal/mark"
 	"github.com/SpecArch/specarch/internal/ownership"
@@ -77,17 +80,25 @@ type entry struct {
 
 // change is what a script writes, derived from the entry.
 type change struct {
-	kind   string // "transition", "put" or "delete"
+	kind   string // "transition", "put", "set" or "delete"
 	state  gensql.Column
 	to     string
 	froms  []string
-	sets   []gensql.Column // the columns a PUT sets from variables
+	sets   []gensql.Column // the columns set from variables, by a PUT or writes
+	fixed  []fixed         // the columns writes sets to a literal
 	soft   gensql.Column   // the soft-delete flag, when the entity has one
 	keyed  bool
 	key    gensql.Column
 	count  int
 	cond   string // the precondition in SQL, or ""
 	source string // the precondition as the specification writes it
+}
+
+// fixed is a column writes sets to a literal.
+type fixed struct {
+	col  gensql.Column
+	node *expr.Node
+	src  string // the literal as the specification writes it
 }
 
 // Generate writes the scripts of a request.
@@ -214,8 +225,8 @@ func (g *gen) script(e entry) {
 	g.files = append(g.files, gensql.File{Path: path, Content: g.header + g.marks(e.at) + write(e, entity, t, c, path)})
 }
 
-// derive is the change an entry makes, by keyword only, or why the
-// design does not say it.
+// derive is the change an entry makes, by keyword or by the guard's
+// writes, or why the design does not say it.
 func (g *gen) derive(e entry, entity string, t gensql.Table) (change, string) {
 	c := change{}
 	n, err := strconv.Atoi(fmt.Sprint(e.guard["recordsChanged"]))
@@ -242,6 +253,7 @@ func (g *gen) derive(e entry, entity string, t gensql.Table) (change, string) {
 			c.froms = append(c.froms, from)
 		}
 	}
+	writes := obj0(e.guard["writes"])
 	switch {
 	case len(tos) > 1:
 		return c, fmt.Sprintf("the transitions of %s it triggers end in %s, so which state it writes depends on more than the design says", entity, strings.Join(tos, " and "))
@@ -255,6 +267,13 @@ func (g *gen) derive(e entry, entity string, t gensql.Table) (change, string) {
 			return c, fmt.Sprintf("the state field %s of %s is not one column of %s", state, entity, t.Name)
 		}
 		c.state = col
+		if writes["delete"] != nil {
+			return c, fmt.Sprintf("it triggers a transition of %s and its writes deletes the records, which say two changes", entity)
+		}
+	case len(writes) > 0 && writes["delete"] != nil:
+		c.kind = "delete"
+	case len(writes) > 0:
+		c.kind = "set"
 	case e.method == "put" && e.body == entity && e.keys == 1:
 		c.kind = "put"
 		for _, col := range t.Columns {
@@ -272,13 +291,16 @@ func (g *gen) derive(e entry, entity string, t gensql.Table) (change, string) {
 	case e.method == "delete" && e.keys == 1:
 		c.kind = "delete"
 	case e.method == "post":
-		return c, "a POST makes a record from the values its caller sends, which the design does not give a script"
+		return c, "a POST makes a record from the values its caller sends, which the design does not give a script; a POST that changes records already there says what it writes with the guard's writes"
 	case e.method == "patch":
-		return c, "a PATCH changes the fields its caller sends, which the design does not give a script"
+		return c, "a PATCH changes the fields its caller sends, which the design does not give a script; say which with the guard's writes"
 	case e.method == "":
-		return c, fmt.Sprintf("no transition of %s names it as its trigger, so the design does not say what it writes", entity)
+		return c, fmt.Sprintf("no transition of %s names it as its trigger, so the design does not say what it writes; say it with the guard's writes", entity)
 	default:
 		return c, fmt.Sprintf("a %s %s does not say what it writes: only a transition it triggers, a PUT of %s by one path parameter or a DELETE by one path parameter does", strings.ToUpper(e.method), keyed(e.keys), entity)
+	}
+	if why := g.written(entity, t, obj0(writes["set"]), &c); why != "" {
+		return c, why
 	}
 	if e.keys > 1 {
 		return c, fmt.Sprintf("its path has %d parameters, and a script changes a record by one key", e.keys)
@@ -294,6 +316,56 @@ func (g *gen) derive(e entry, entity string, t gensql.Table) (change, string) {
 		c.keyed, c.key = true, k
 	}
 	return c, ""
+}
+
+// written adds the columns writes sets to a change, or says why a script
+// cannot set one.
+func (g *gen) written(entity string, t gensql.Table, set map[string]any, c *change) string {
+	for _, f := range sortedKeys(set) {
+		col, ok := column(t, f)
+		if !ok {
+			return fmt.Sprintf("its writes sets %s, which is not one column of %s", f, t.Name)
+		}
+		if g.encrypted(entity, col) {
+			return fmt.Sprintf("its writes sets %s, which is stored encrypted, and a script cannot encrypt the value it writes", f)
+		}
+		src := strings.TrimSpace(text(set[f]))
+		n, errs := expr.Parse(src)
+		switch {
+		case len(errs) > 0:
+			return fmt.Sprintf("its writes sets %s to %s, which is not an expression", f, src)
+		case n.Op == expr.OpName && n.Text == "given":
+			c.sets = append(c.sets, col)
+		default:
+			if n.Op == expr.OpNeg && n.Args[0].Op == expr.OpInt {
+				n = &expr.Node{Op: expr.OpInt, Int: new(big.Int).Neg(n.Args[0].Int)}
+			} else if n.Op == expr.OpNeg {
+				n = n.Args[0]
+			}
+			c.fixed = append(c.fixed, fixed{col: col, node: n, src: src})
+		}
+	}
+	return ""
+}
+
+// literal is a literal writes sets, in the target's dialect. A number
+// keeps the digits the specification writes, so a decimal is not passed
+// through a double.
+func (g *gen) literal(f fixed) string {
+	switch f.node.Op {
+	case expr.OpNull:
+		return "NULL"
+	case expr.OpText:
+		return g.quote(f.node.Text)
+	case expr.OpBool:
+		if f.node.Bool {
+			return "true"
+		}
+		return "false"
+	case expr.OpInt, expr.OpUint:
+		return f.node.Int.String()
+	}
+	return strings.TrimSuffix(strings.TrimSuffix(f.src, "u"), "U")
 }
 
 // encrypted says a column holds a field stored encrypted.
@@ -389,12 +461,14 @@ func (g *gen) write(e entry, entity string, t gensql.Table, c change, path strin
 		switch c.kind {
 		case "transition":
 			sets = append(sets, fmt.Sprintf("%s = %s", c.state.Name, quote(c.to)))
-		case "put":
-			for _, col := range c.sets {
-				sets = append(sets, fmt.Sprintf("%s = %s", col.Name, value(col)))
-			}
 		case "delete":
 			sets = append(sets, c.soft.Name+" = true")
+		}
+		for _, col := range c.sets {
+			sets = append(sets, fmt.Sprintf("%s = %s", col.Name, value(col)))
+		}
+		for _, f := range c.fixed {
+			sets = append(sets, fmt.Sprintf("%s = %s", f.col.Name, g.literal(f)))
 		}
 		for _, col := range audit {
 			if isTime(col) {
@@ -450,31 +524,43 @@ func (g *gen) where(c change) string {
 	if c.soft.Name != "" {
 		parts = append(parts, c.soft.Name+" = false")
 	}
+	if c.kind == "set" && !c.keyed {
+		parts = append(parts, "NOT ("+g.holds(c)+")")
+	}
 	return strings.Join(parts, "\n    AND ")
 }
 
 // holds is the condition that a record holds what the change writes, or
 // "" for a delete that removes it.
 func (g *gen) holds(c change) string {
+	var parts []string
 	switch c.kind {
 	case "transition":
-		return fmt.Sprintf("%s = %s", c.state.Name, g.quote(c.to))
-	case "put":
-		var parts []string
-		for _, col := range c.sets {
-			if g.dialect == "mariadb" {
-				parts = append(parts, mariaSame(col))
-				continue
-			}
-			parts = append(parts, fmt.Sprintf("%s IS NOT DISTINCT FROM %s", col.Name, g.value(col)))
-		}
-		return strings.Join(parts, " AND ")
+		parts = append(parts, fmt.Sprintf("%s = %s", c.state.Name, g.quote(c.to)))
 	case "delete":
 		if c.soft.Name != "" {
 			return c.soft.Name + " = true"
 		}
+		return ""
 	}
-	return ""
+	for _, col := range c.sets {
+		if g.dialect == "mariadb" {
+			parts = append(parts, mariaSame(col))
+			continue
+		}
+		parts = append(parts, fmt.Sprintf("%s IS NOT DISTINCT FROM %s", col.Name, g.value(col)))
+	}
+	for _, f := range c.fixed {
+		switch {
+		case f.node.Op == expr.OpNull:
+			parts = append(parts, f.col.Name+" IS NULL")
+		case g.dialect == "mariadb":
+			parts = append(parts, mariaHolds(f.col, g.literal(f)))
+		default:
+			parts = append(parts, fmt.Sprintf("%s IS NOT DISTINCT FROM %s", f.col.Name, g.literal(f)))
+		}
+	}
+	return strings.Join(parts, " AND ")
 }
 
 // describe says in words what a change writes.
@@ -483,12 +569,11 @@ func (g *gen) describe(c change) string {
 	switch c.kind {
 	case "transition":
 		s = fmt.Sprintf("sets %s to %s, from %s", c.state.Name, c.to, strings.Join(c.froms, " or "))
-	case "put":
-		var cols []string
-		for _, col := range c.sets {
-			cols = append(cols, col.Name)
+		if cols := c.columns(); len(cols) > 0 {
+			s += ", and sets " + strings.Join(cols, ", ")
 		}
-		s = "sets " + strings.Join(cols, ", ")
+	case "put", "set":
+		s = "sets " + strings.Join(c.columns(), ", ")
 	case "delete":
 		s = "deletes the record"
 		if c.soft.Name != "" {
@@ -508,11 +593,29 @@ func (g *gen) describe(c change) string {
 func (g *gen) describeHolds(c change) string {
 	switch c.kind {
 	case "transition":
+		if len(c.sets)+len(c.fixed) > 0 {
+			return c.state.Name + " " + percent(c.to) + " and the values written"
+		}
 		return c.state.Name + " " + percent(c.to)
 	case "delete":
 		return c.soft.Name + " true"
+	case "set":
+		return "the values written"
 	}
 	return "the values given"
+}
+
+// columns are the columns a change sets besides its state, each it sets
+// to a literal with the literal.
+func (c change) columns() []string {
+	var cols []string
+	for _, col := range c.sets {
+		cols = append(cols, col.Name)
+	}
+	for _, f := range c.fixed {
+		cols = append(cols, f.col.Name+" to "+f.src)
+	}
+	return cols
 }
 
 // condText is the condition of the records a change writes, in words.
@@ -529,6 +632,9 @@ func (g *gen) condText(c change) string {
 	}
 	if c.soft.Name != "" {
 		parts = append(parts, "not deleted")
+	}
+	if c.kind == "set" && !c.keyed {
+		parts = append(parts, "not already holding the values written")
 	}
 	if len(parts) == 0 {
 		return "no condition"

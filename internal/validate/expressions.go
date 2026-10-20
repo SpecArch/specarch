@@ -2,8 +2,10 @@ package validate
 
 import (
 	"fmt"
+	"math"
 	"math/big"
 	"regexp"
+	"slices"
 	"sort"
 	"strings"
 	"time"
@@ -172,6 +174,7 @@ func (c *checker) checkExpressions(d *design) {
 	}
 	for _, g := range d.guards() {
 		c.checkPrecondition(d, g)
+		c.checkWrites(d, g)
 	}
 	for _, a := range source.Pairs(source.Child(d.root, "algorithms")) {
 		c.checkAlgorithm(d, a.Key.Value, a.Value)
@@ -202,6 +205,117 @@ func (c *checker) checkPrecondition(d *design, g guard) {
 	if len(errs) == 0 && (t.Kind != expr.Bool || t.Nullable) {
 		c.addFile(c.fileOf(n), exprLine(n, 1), ptr, RuleExpressionType, "the precondition gives %s, but a precondition must give true or false; compare the values with ==, <, > or similar", t)
 	}
+}
+
+// checkWrites checks each value a guard's writes sets: given, the value
+// the operator gives, or a literal of the field's type, since a value
+// worked out from the record's own fields cannot be told already written
+// and would change the record again on a second run (ADR-168).
+func (c *checker) checkWrites(d *design, g guard) {
+	ent := d.entities[source.Str(source.Child(g.node, "entity"))]
+	if ent == nil {
+		return
+	}
+	fields := fieldsOf(ent)
+	required := itemValues(source.Child(ent, "required"))
+	for _, p := range source.Pairs(source.Child(source.Child(g.node, "writes"), "set")) {
+		f, n := p.Key.Value, p.Value
+		if fields[f] == nil || !source.IsScalar(n) {
+			continue
+		}
+		ptr := g.ptr + "/writes/set/" + source.EscapeToken(f)
+		what := "the value of " + f
+		tree, errs := expr.Parse(n.Value)
+		if len(errs) > 0 {
+			c.exprErrors(n, ptr, what, errs)
+			continue
+		}
+		if msg := writable(tree, strings.TrimSpace(n.Value), f, d.fieldType(fields[f]), slices.Contains(required, f)); msg != "" {
+			c.addFile(c.fileOf(n), exprLine(n, 1), ptr, RuleGuard, "%s: %s", what, msg)
+		}
+	}
+}
+
+// writable says why a value cannot be written to a field, or "". src is
+// the value as written, which keeps a literal's digits.
+func writable(n *expr.Node, src, field string, t expr.Type, required bool) string {
+	if n.Op == expr.OpName && n.Text == "given" {
+		return ""
+	}
+	neg := n.Op == expr.OpNeg && len(n.Args) == 1 && (n.Args[0].Op == expr.OpInt || n.Args[0].Op == expr.OpDouble)
+	if neg {
+		n = n.Args[0]
+	}
+	is := ""
+	switch n.Op {
+	case expr.OpNull:
+		if required && !t.Nullable {
+			return fmt.Sprintf("it is null, and %s is required; write a value, or given", field)
+		}
+		return ""
+	case expr.OpText:
+		switch t.Kind {
+		case expr.String:
+			return ""
+		case expr.Enum:
+			if slices.Contains(t.Values, n.Text) {
+				return ""
+			}
+			return fmt.Sprintf("it is \"%s\", which is not %s; write one of %s", n.Text, t, strings.Join(t.Values, ", "))
+		}
+		is = "a string"
+	case expr.OpInt:
+		v := new(big.Int).Set(n.Int)
+		if neg {
+			v.Neg(v)
+		}
+		switch t.Kind {
+		case expr.Int:
+			if t.Bits == 32 && (v.Cmp(big.NewInt(math.MaxInt32)) > 0 || v.Cmp(big.NewInt(math.MinInt32)) < 0) {
+				return fmt.Sprintf("it is %s, and %s is an int32, which cannot hold it", src, field)
+			}
+			return ""
+		case expr.Uint:
+			if v.Sign() < 0 {
+				return fmt.Sprintf("it is %s, and %s is a uint, which is zero or more", src, field)
+			}
+			return ""
+		case expr.Double, expr.Decimal:
+			return ""
+		}
+		is = "an int"
+	case expr.OpUint:
+		if t.Kind == expr.Uint {
+			return ""
+		}
+		is = "a uint"
+	case expr.OpDouble:
+		switch t.Kind {
+		case expr.Double:
+			return ""
+		case expr.Decimal:
+			if strings.ContainsAny(src, "eE") {
+				return fmt.Sprintf("it is %s, and %s is %s; write it with its digits, as 12.50", src, field, t)
+			}
+			if _, frac, _ := strings.Cut(src, "."); len(frac) > t.Scale {
+				return fmt.Sprintf("it is %s, with %d digits after the point, and %s keeps %d", src, len(frac), field, t.Scale)
+			}
+			return ""
+		}
+		is = "a double"
+	case expr.OpBool:
+		if t.Kind == expr.Bool {
+			return ""
+		}
+		is = "a bool"
+	default:
+		return fmt.Sprintf("it is %s, which is neither a literal nor given; a value worked out when the change runs cannot be told already written, so write a literal, or given for the value the operator gives", src)
+	}
+	switch t.Kind {
+	case expr.Int, expr.Uint, expr.Double, expr.Decimal, expr.String, expr.Enum, expr.Bool:
+		return fmt.Sprintf("it is %s, and %s is %s; write a literal of that type, or given", is, field, t)
+	}
+	return fmt.Sprintf("it is %s, and %s is %s, which has no literal; write given, the value the operator gives", is, field, t)
 }
 
 func (c *checker) checkAlgorithm(d *design, name string, alg *yaml.Node) {

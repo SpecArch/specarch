@@ -4,7 +4,7 @@
 -- specarch-problem: warning: test_case_missing: command mark overdue has no red scenario for "concurrent write"; add under tests mark-overdue-concurrent-write: { command: mark overdue, scenario: red, covers: [concurrent write], given: "another caller changed the Loan after this caller read it", when: "mark overdue is run", then: "it is refused and the other caller's change stands" } [test_case_missing.ffc72294@specarch.yaml#/commands/mark overdue]
 -- specarch-problem: warning: test_golden_missing: command mark overdue has no golden scenario; add one under tests, for example mark-overdue-succeeds: { command: mark overdue, scenario: golden, given: "...", when: "mark overdue is run with arguments it accepts", then: "it exits 0: Marked." } [test_golden_missing@specarch.yaml#/commands/mark overdue]
 -- mark overdue: Mark the open loans renewed three times as overdue
--- Changes exactly 2 Loan records of table loans: sets status to overdue, from open, where renewals == 3.
+-- Changes exactly 2 Loan records of table loans: sets status to overdue, from open, and sets note to "Renewed three times", where renewals == 3.
 -- Dry run: mariadb --init-command="SET @last_modified_by_user_id = '...', @last_modified_by_user_nameid = '...'" <database> < mark-overdue.sql
 -- Apply: the same with @apply = true in the SET. Without it every check runs against the data and the change is rolled back.
 SET SESSION sql_mode = CONCAT_WS(',', NULLIF(REPLACE(@@SESSION.sql_mode, 'NO_BACKSLASH_ESCAPES', ''), ''), 'STRICT_ALL_TABLES');
@@ -40,6 +40,7 @@ BEGIN NOT ATOMIC
     -- 2. The change, under the same condition.
     UPDATE loans
       SET status = 'overdue',
+        note = 'Renewed three times',
         last_modified_at = DATE_FORMAT(UTC_TIMESTAMP(6), '%Y-%m-%dT%H:%i:%s.%f000Z'),
         last_modified_by_user_id = CAST(@last_modified_by_user_id AS CHAR),
         last_modified_by_user_nameid = CAST(@last_modified_by_user_nameid AS CHAR)

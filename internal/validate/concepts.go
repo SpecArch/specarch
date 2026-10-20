@@ -2,7 +2,9 @@ package validate
 
 import (
 	"fmt"
+	"slices"
 	"sort"
+	"strings"
 
 	"go.yaml.in/yaml/v3"
 
@@ -143,15 +145,57 @@ func (c *checker) checkValidity(name string, e *yaml.Node, fields map[string]*ya
 	}
 }
 
-// checkGuard checks that a guard's entity exists. Its precondition is
-// checked with the expressions.
-func (c *checker) checkGuard(d *design, g *yaml.Node, ptr string) {
+// checkGuard checks that a guard's entity exists, and that what its writes
+// says is a change no keyword of the entry already says, of fields the
+// entity has other than its key and its state field (ADR-168). Its
+// precondition and the values writes sets are checked with the
+// expressions. trigger is the operationId or the command's words; method,
+// path and body (its request body's $ref) are the operation's, or "" for a
+// command.
+func (c *checker) checkGuard(d *design, g *yaml.Node, ptr, trigger, method, path, body string) {
 	if g == nil {
 		return
 	}
 	n := source.Child(g, "entity")
 	if n != nil && d.entities[n.Value] == nil {
 		c.add(n, ptr+"/entity", RuleGuard, "%s is not an entity of the specification%s", n.Value, suggest(n.Value, d.entities))
+	}
+	w := source.Child(g, "writes")
+	ent := d.entities[source.Str(n)]
+	if w == nil || ent == nil {
+		return
+	}
+	name := n.Value
+	keyed := strings.Count(path, "{") == 1
+	switch {
+	case method == "put" && keyed && body == "#/entities/"+name:
+		c.add(w, ptr+"/writes", RuleGuard, "a PUT of %s by its key already says what it writes, every field a caller may set; take writes out", name)
+		return
+	case method == "delete" && keyed:
+		c.add(w, ptr+"/writes", RuleGuard, "a DELETE by its key already says what it writes, that the %s goes; take writes out", name)
+		return
+	}
+	if del := source.Child(w, "delete"); del != nil {
+		for _, t := range source.Items(source.Child(ent, "transitions")) {
+			if source.Str(source.Child(t, "trigger")) == trigger {
+				c.add(del, ptr+"/writes/delete", RuleGuard, "%s triggers a transition of %s to %s, and writes says it deletes the records; say one change: take delete out, or the transition", trigger, name, source.Str(source.Child(t, "to")))
+				break
+			}
+		}
+	}
+	fields := fieldsOf(ent)
+	state := source.Str(source.Child(ent, "stateField"))
+	for _, p := range source.Pairs(source.Child(w, "set")) {
+		f := p.Key.Value
+		at := ptr + "/writes/set/" + source.EscapeToken(f)
+		switch {
+		case fields[f] == nil:
+			c.add(p.Key, at, RuleGuard, "writes sets %s, which is not a field of %s%s", f, name, suggest(f, fields))
+		case slices.Contains(itemValues(source.Child(ent, "primaryKey")), f):
+			c.add(p.Key, at, RuleGuard, "writes sets %s, part of the key of %s; the key names the records the change writes, so it is not set", f, name)
+		case f == state:
+			c.add(p.Key, at, RuleGuard, "writes sets %s, the state field of %s; a state is moved by a transition whose trigger is this entry, so name it in transitions instead", f, name)
+		}
 	}
 }
 

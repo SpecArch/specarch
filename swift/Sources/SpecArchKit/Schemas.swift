@@ -2827,6 +2827,31 @@ let designSchemaJSON = #"""
           "description": "The exact number of records of the entity the change writes.",
           "type": "integer",
           "minimum": 0
+        },
+        "writes": {
+          "description": "SpecArch keyword. What the change writes, when no keyword of the entry says it: set, the fields it sets, or delete, that it deletes the records (sets the soft-delete flag of an entity deleted softly). A transition the entry triggers still moves the state field, and set adds to it; a PUT of the entity by one path parameter and a DELETE by one path parameter already say what they write, so writes on one is an error. specarch-gen-scripts writes the guarded script from it (ADR-168).",
+          "type": "object",
+          "properties": {
+            "set": {
+              "description": "The fields the change sets, each with its value: one expression in SpecArch's subset of CEL (docs/conventions.md) that is a literal of the field's type (a string in double quotes, a number, true, false or null for a field that is not required) or given, the value the operator gives when running the change. Neither the key nor the state field is set here: a key names the record, and a state is moved by a transition.",
+              "type": "object",
+              "propertyNames": {
+                "$ref": "#/$defs/memberName"
+              },
+              "additionalProperties": {
+                "type": "string",
+                "minLength": 1
+              },
+              "minProperties": 1
+            },
+            "delete": {
+              "description": "The change deletes the records, or sets their soft-delete flag when the entity is deleted softly.",
+              "const": true
+            }
+          },
+          "minProperties": 1,
+          "maxProperties": 1,
+          "additionalProperties": false
         }
       },
       "required": [

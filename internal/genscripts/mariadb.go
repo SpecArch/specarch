@@ -124,12 +124,14 @@ func (g *gen) writeMariaDB(e entry, entity string, t gensql.Table, c change, pat
 		switch c.kind {
 		case "transition":
 			sets = append(sets, fmt.Sprintf("%s = %s", c.state.Name, mariaQuote(c.to)))
-		case "put":
-			for _, col := range c.sets {
-				sets = append(sets, fmt.Sprintf("%s = %s", col.Name, mariaValue(col)))
-			}
 		case "delete":
 			sets = append(sets, c.soft.Name+" = true")
+		}
+		for _, col := range c.sets {
+			sets = append(sets, fmt.Sprintf("%s = %s", col.Name, mariaValue(col)))
+		}
+		for _, f := range c.fixed {
+			sets = append(sets, fmt.Sprintf("%s = %s", f.col.Name, g.literal(f)))
 		}
 		for _, col := range audit {
 			if isTime(col) {
@@ -209,6 +211,15 @@ func mariaSame(col gensql.Column) string {
 		v = "CONVERT(@" + col.Name + " USING utf8mb4) COLLATE utf8mb4_nopad_bin"
 	}
 	return col.Name + " <=> " + v
+}
+
+// mariaHolds is the condition that column col holds a literal, compared
+// as mariaSame compares a variable's value: a text column byte for byte.
+func mariaHolds(col gensql.Column, literal string) string {
+	if mariaValue(col) == "CAST(@"+col.Name+" AS CHAR)" {
+		literal = "CONVERT(" + literal + " USING utf8mb4) COLLATE utf8mb4_nopad_bin"
+	}
+	return col.Name + " <=> " + literal
 }
 
 // mariaForm is the condition a variable's text must meet to be a value of

@@ -1,0 +1,104 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0 }
+permissions:
+  public: { description: Open to everyone. }
+enums:
+  LoanStatus:
+    type: string
+    enum: [open, closed]
+  LoanKind:
+    type: string
+    enum: [book, film]
+entities:
+  Loan:
+    type: object
+    properties:
+      id: { type: string, format: uuid }
+      holder: { type: string, maxLength: 80 }
+      note: { type: string, maxLength: 400 }
+      renewals: { type: integer, format: int32 }
+      copies: { type: integer, format: int32 }
+      fee: { type: string, format: decimal, precision: 10, scale: 2 }
+      dueOn: { type: string, format: date }
+      kind: { $ref: "#/enums/LoanKind" }
+      status: { $ref: "#/enums/LoanStatus" }
+    required: [id, holder, renewals, copies, fee, kind, status]
+    primaryKey: [id]
+    stateField: status
+    transitions:
+      - { from: open, to: closed, trigger: closeLoan }
+paths:
+  /loans/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    put:
+      operationId: replaceLoan
+      summary: Replace a loan
+      permission: public
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/entities/Loan" }
+      responses:
+        "200": { description: Replaced. }
+      guard:
+        entity: Loan
+        recordsChanged: 1
+        writes:
+          set: { note: given }
+    patch:
+      operationId: amendLoan
+      summary: Amend a loan
+      permission: public
+      responses:
+        "200": { description: Amended. }
+      guard:
+        entity: Loan
+        recordsChanged: 1
+        writes:
+          set: { note: given, fee: "0", kind: '"film"', renewals: "-1", dueOn: given }
+    delete:
+      operationId: removeLoan
+      summary: Remove a loan
+      permission: public
+      responses:
+        "204": { description: Removed. }
+      guard:
+        entity: Loan
+        recordsChanged: 1
+        writes: { delete: true }
+  /loans/{id}/close:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    post:
+      operationId: closeLoan
+      summary: Close a loan
+      permission: public
+      responses:
+        "200": { description: Closed. }
+      guard:
+        entity: Loan
+        recordsChanged: 1
+        writes: { delete: true }
+commands:
+  fix loans:
+    summary: Fix the loans
+    permission: public
+    exitCodes: { "0": done }
+    guard:
+      entity: Loan
+      precondition: 'status == "open"'
+      recordsChanged: 2
+      writes:
+        set:
+          idd: given
+          id: given
+          status: '"closed"'
+          renewals: renewals + 1
+          holder: "null"
+          note: "3"
+          kind: '"magazine"'
+          fee: "1.234"
+          dueOn: '"2026-01-01"'
+          copies: "3000000000"

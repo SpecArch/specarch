@@ -572,7 +572,8 @@ func (c *checker) checkOperations(d *design) {
 		c.checkProblems(d, o)
 		c.checkInterface(o)
 		c.checkOperationMiddlewares(d, o)
-		c.checkGuard(d, source.Child(o.node, "guard"), o.pointer("guard"))
+		c.checkGuard(d, source.Child(o.node, "guard"), o.pointer("guard"), o.id, o.method, o.path,
+			source.Str(source.Child(source.Child(source.Child(source.Child(source.Child(o.node, "requestBody"), "content"), "application/json"), "schema"), "$ref")))
 	}
 }
 
@@ -621,7 +622,7 @@ func (c *checker) checkCommands(d *design) {
 					"only the last argument may be repeatable; move this argument to the end or make it a single value")
 			}
 		}
-		c.checkGuard(d, source.Child(cmd, "guard"), source.Pointer("commands", name, "guard"))
+		c.checkGuard(d, source.Child(cmd, "guard"), source.Pointer("commands", name, "guard"), name, "", "", "")
 		codes := source.Child(cmd, "exitCodes")
 		for _, r := range source.Pairs(source.Child(cmd, "remedies")) {
 			ptr := source.Pointer("commands", name, "remedies", r.Key.Value)

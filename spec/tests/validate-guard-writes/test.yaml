@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "a guarded PUT of the entity by its key and a guarded DELETE by its key that also say writes, an entry that triggers a transition and writes delete, a command whose writes sets a field the entity lacks, its key, its state field, a value worked out from a field, null on a required field, a number on a string, a value no enum has, a decimal with more digits than its scale, a string on a date and a number an int32 cannot hold, and a PATCH whose writes sets given values and literals of each field's type"
+when: "validate is run"
+then: "it reports guard at the PUT's and the DELETE's writes, at the delete beside the transition, and at each of the command's ten fields, nothing for the PATCH, and exits 1"
+verifies: [SA-29]

@@ -1135,22 +1135,28 @@ writes one script per operation or command that carries a `guard`
 command's words in kebab case, as a psql script for PostgreSQL or a script
 for the mariadb client on MariaDB, as the target's dialect says. The guard
 gives the entity, the precondition and the exact count; the change itself
-is derived by keyword only (ADR-158):
+is derived by keyword (ADR-158), or said by the guard's `writes` when no
+keyword says it (ADR-168):
 
 | The guarded entry | The change |
 |---|---|
 | the trigger of transitions of the guard's entity, all with one `to` that is none of their `from` states | sets the `stateField` to `to`, on the records in one of their `from` states |
 | a PUT whose request body is the guard's entity, on a path with one parameter | sets every column a caller may set, by the key |
 | a DELETE on a path with one parameter | deletes the record by the key, or sets its soft-delete flag |
+| any other entry whose guard has `writes: { set: ... }` | sets each field named to the value the operator gives (`given`) or to the literal written, beside the transition the entry triggers when there is one |
+| any other entry whose guard has `writes: { delete: true }` | deletes the records, or sets their soft-delete flag |
 
 On a path with one parameter the change writes the record with the key the
 operator gives: the entity's key must be one field and `recordsChanged`
 must be 1. A transition triggered by a command, or by an operation on a
 path with no parameter, writes every record in a `from` state for which the
-precondition holds, and their number must be `recordsChanged`. A guarded
-POST, a guarded PATCH and a command no transition names say no more than
-that something is written, so each is a warning at its guard and its script
-is left to be written by hand; so are transitions of one trigger with two
+precondition holds, and their number must be `recordsChanged`; a `set`
+there also leaves out the records that already hold every value it writes,
+so a second run finds none and is refused by the count. A guarded POST, a
+guarded PATCH and a command no transition names say no more than that
+something is written, so with no `writes` each is a warning at its guard
+and its script is left to be written by hand; so are a `writes` that sets a
+field stored encrypted, transitions of one trigger with two
 `to` states, a transition back to the state it leaves (a record already
 moved cannot be told from one not yet moved, so a second run would move it
 again), a keyed change whose `recordsChanged` is not 1, an entity
@@ -1170,7 +1176,7 @@ a timestamp to `now()`, any other from its variable. The script runs in one
 transaction, in five steps:
 
 1. Already applied: a record by its key that already holds what the change
-   writes (the `to` state, the values put, the soft-delete flag) is
+   writes (the `to` state, the values put or set, the soft-delete flag) is
    reported and left as it is, and the script ends without a change.
 2. Precondition: the records the change would write (the key, the `from`
    states, the precondition, not softly deleted) are counted and locked,

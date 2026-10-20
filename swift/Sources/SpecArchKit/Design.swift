@@ -645,7 +645,8 @@ extension Checker {
             checkProblems(d, o)
             checkInterface(o)
             checkOperationMiddlewares(d, o)
-            checkGuard(d, o.node.child("guard"), o.pointer("guard"))
+            checkGuard(d, o.node.child("guard"), o.pointer("guard"), o.id, o.method, o.path,
+                       str(o.node.child("requestBody")?.child("content")?.child("application/json")?.child("schema")?.child("$ref")))
         }
     }
 
@@ -679,7 +680,7 @@ extension Checker {
                 add(a.child("repeatable"), pointer("commands", name, "arguments", "\(i)", "repeatable"), .schema,
                     "only the last argument may be repeatable; move this argument to the end or make it a single value")
             }
-            checkGuard(d, cmd.child("guard"), pointer("commands", name, "guard"))
+            checkGuard(d, cmd.child("guard"), pointer("commands", name, "guard"), name, "", "", "")
             let codes = cmd.child("exitCodes")
             for r in pairs(cmd.child("remedies")) {
                 let ptr = pointer("commands", name, "remedies", r.key.value)

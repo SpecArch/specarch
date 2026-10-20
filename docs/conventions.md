@@ -641,6 +641,7 @@ redefined.
 | `idempotencyKey` | SpecArch, after RFC 9110 9.2.2 and the IETF Idempotency-Key header draft | a header that tells a repeated request from a new one, on a method that is not idempotent by itself |
 | `validity`, `from`, `until` | SpecArch | the fields that bound when a record is current |
 | `guard`, `precondition`, `recordsChanged` | SpecArch | what is checked together with a data change |
+| `writes`, `set`, `delete`, `given` | SpecArch | what a guarded change writes when no keyword of its entry says it: the fields it sets, each to the value the operator gives or a literal, or that it deletes the records; no standard says what an operator's correction writes (ADR-168) |
 | `sensitivity`, `atRest`, `lookup`, `audited`, `deletion` | SpecArch | how sensitive a field is and how it is stored, and what the system keeps about each record of an entity |
 | `listOf`, `searchable`, `filterable`, `sortable`, `pageSize` | SpecArch | a list's whitelists and page size, which a client must know |
 | `limits`, `maxRequestBytes`, `maxResponseBytes`, `rate`, `requests`, `per`, `burst` | SpecArch | the request size and rate a client keeps to, and the largest download it must be ready for |
@@ -1285,6 +1286,35 @@ fields, and gives true or false (`expression_syntax`, `expression_name`,
 there is a precondition, and `concurrent write`, which is critical whatever
 the subject's harm. The guard is also what the guarded operational scripts
 of `docs/generators.md` are emitted from.
+
+A transition the entry triggers, a PUT of the entity by one path parameter
+and a DELETE by one path parameter say what the change writes. For any
+other entry, the guard's `writes` says it (ADR-168): `set`, the fields it
+sets, or `delete: true`, that it deletes the records (sets their
+soft-delete flag when the entity is deleted softly):
+
+    commands:
+      clear notes:
+        guard:
+          entity: Loan
+          precondition: 'status == "returned"'
+          recordsChanged: 2
+          writes:
+            set: { note: "null" }
+
+Each value of `set` is one expression: `given`, the value the operator
+gives when running the change, or a literal of the field's type, a string
+in double quotes (one of an enum's values), a number, `true`, `false`, or
+`null` for a field that is not required. A value worked out from the
+record (`renewals + 1`) is refused, since a record already changed could
+not be told from one not yet changed, and a second run would change it
+again. A field with no literal (a date, a timestamp) takes `given`. The
+rule is `guard`: `writes` on a PUT by its key or a DELETE by its key, which
+already say what they write; `delete` beside a transition the entry
+triggers; a field the entity lacks, a field of its key or its state field
+in `set`, which a transition moves; and a value that is neither `given`
+nor a literal of the field's type. A transition the entry triggers still
+moves the state, and `set` adds its fields to that change.
 
 ### Sensitive data, encryption at rest, audit fields and soft delete
 

@@ -24,7 +24,8 @@ decisions:
       It reads the tables and columns through specarch-gen-sql's model
       (gensql.Schema) and writes the precondition as specarch-gen-sql
       writes a check constraint, so the script names only columns the
-      migrations create. The change is derived by keyword only:
+      migrations create. The change is derived by keyword, or said by the
+      guard's writes (ADR-168) when no keyword says it:
       - the guard's entity has transitions whose trigger is the entry: the
         change sets the stateField to their to, on the records in one of
         their from states; every transition with that trigger must have
@@ -42,9 +43,9 @@ decisions:
       recordsChanged must be 1. A transition triggered by a command, or
       by an operation on a path with no parameter, changes every record
       in a from state for which the precondition holds, and their number
-      must be recordsChanged. Every other guarded entry (a POST, a PATCH,
-      a command no transition names, a transition back to the state it
-      leaves, a PUT that sets a field stored encrypted or sets no column
+      must be recordsChanged. Every other guarded entry (a POST, a PATCH
+      or a command no transition names whose guard has no writes, a
+      transition back to the state it leaves, a PUT that sets a field stored encrypted or sets no column
       a caller may set) is a warning at its guard, and its
       script is left to be written by hand. An entity another stakeholder
       owns gets no script.
@@ -116,6 +117,5 @@ decisions:
       scripts are run against a real PostgreSQL only by hand; a project
       with guards on its live data changes decides whether CI runs them in
       a disposable database. A change the design does not say stays a
-      warning until the meta-model has a word for what a change writes,
-      which no project has asked for yet.
+      warning at its guard; the guard's writes says one (ADR-168).
     satisfies: [SA-87]

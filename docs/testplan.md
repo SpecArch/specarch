@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.3-dev of the specification: 633 design tests, 296 golden and 337 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.3-dev of the specification: 634 design tests, 296 golden and 338 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.7.3-dev of the specification: 633 design tests, 296 golden and 337 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 629 |
+| system | 630 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -2209,9 +2209,9 @@ Scenario: red; level: system; covers exit 1; verifies SA-20.
 
 Scenario: golden; level: system; verifies SA-87.
 
-- Given: a specification whose loans, audited and deleted softly, move from open or overdue to returned by returnLoan, from open to overdue by the command mark overdue and from overdue or open to open by renewLoan, each guarded; a guarded replacement and removal of a loan by its key, a guarded insert and amendment, a guarded command no transition names, a guarded replacement of a hold by its key with recordsChanged 2, a guarded settlement of a reservation whose transitions end in confirmed or cancelled, a guarded removal of a copy whose key is two fields, a guarded replacement of a member whose email is stored encrypted, a guarded replacement of a tag whose every field is read-only, a guarded removal of a fine whose key is a uint64, and a guarded removal of a shelf another team owns; specarch-gen-scripts built from this repository on PATH
+- Given: a specification whose loans, audited and deleted softly, move from open or overdue to returned by returnLoan, from open to overdue by the command mark overdue, whose guard's writes also sets the note to a literal, and from overdue or open to open by renewLoan, each guarded; a guarded replacement and removal of a loan by its key, a guarded insert, a guarded amendment whose writes sets the note to a given value and the renewals to 0, a guarded command whose writes deletes the returned loans, one whose writes sets their note to null and one whose writes sets it to a string, a guarded replacement of a hold by its key with recordsChanged 2, a guarded settlement of a reservation whose transitions end in confirmed or cancelled, a guarded removal of a copy whose key is two fields, a guarded replacement of a member whose email is stored encrypted, a guarded replacement of a tag whose every field is read-only, a guarded removal of a fine whose key is a uint64, and a guarded removal of a shelf another team owns; specarch-gen-scripts built from this repository on PATH
 - When: generate scripts is run with --unapproved
-- Then: it writes return-loan.sql, which changes the loan by its key from open or overdue to returned, mark-overdue.sql, which changes exactly the two open loans renewed three times, replace-loan.sql, remove-loan.sql, which sets the soft-delete flag, cancel-hold.sql, which deletes the hold, and waive-fine.sql, which deletes the fine by its key compared as NUMERIC without precision or scale, so a fractional key matches no fine; each refuses an unset variable by name, reports a loan already changed as already applied, counts and locks the loans its condition names and refuses unless their number is recordsChanged, makes the change under the same condition, checks the count it wrote and commits only with apply true; it warns that the insert, the amendment, the renewal from open to open, the command no transition names, the hold replaced with recordsChanged 2, the settlement with two to states, the copy keyed by two fields, the member with an encrypted email and the tag with nothing to set are left to be written by hand, writes nothing for the shelves, and exits 0
+- Then: it writes return-loan.sql, which changes the loan by its key from open or overdue to returned, mark-overdue.sql, which changes exactly the two open loans renewed three times and sets their note, replace-loan.sql, amend-loan.sql, which sets the note from its variable and the renewals to 0 by the key, purge-returned.sql, which sets the soft-delete flag of the four returned loans, clear-notes.sql and label-returned.sql, which leave out the loans that already hold the value they write, comparing a null note as not holding a string, remove-loan.sql, which sets the soft-delete flag, cancel-hold.sql, which deletes the hold, and waive-fine.sql, which deletes the fine by its key compared as NUMERIC without precision or scale, so a fractional key matches no fine; each refuses an unset variable by name, reports a loan already changed as already applied, counts and locks the loans its condition names and refuses unless their number is recordsChanged, makes the change under the same condition, checks the count it wrote and commits only with apply true; it warns that the insert, the renewal from open to open, the hold replaced with recordsChanged 2, the settlement with two to states, the copy keyed by two fields, the member with an encrypted email and the tag with nothing to set are left to be written by hand, writes nothing for the shelves, and exits 0
 
 #### generate-scripts-dialect-refused
 
@@ -2235,7 +2235,7 @@ Scenario: golden; level: system; verifies SA-87.
 
 - Given: the specification of generate-scripts, whose implementation file names mariadb as the scripts target's dialect; specarch-gen-scripts built from this repository on PATH
 - When: generate scripts is run with --unapproved
-- Then: it writes the six scripts of generate-scripts for the mariadb client, each a strict session and one compound statement: every value a user variable given in --init-command, refused by name when unset, and refused before anything is read when its text is not of its column's form (a uuid for a loan's key, a whole number of zero or more for the fine's uint64 key, so a fractional key names no fine, a whole number for renewals), each pattern ending in \z so a trailing newline does not pass; it reports a loan already changed as already applied, comparing text byte for byte so a change of case alone is a change, counts with COUNT(*) FOR UPDATE and refuses unless the count is recordsChanged, makes the change under the same condition, writes the audit instant as UTC text with nine fractional digits, checks ROW_COUNT() and commits only with @apply true; it gives the warnings of generate-scripts, writes nothing for the shelves, and exits 0
+- Then: it writes the ten scripts of generate-scripts for the mariadb client, each a strict session and one compound statement: every value a user variable given in --init-command, refused by name when unset, and refused before anything is read when its text is not of its column's form (a uuid for a loan's key, a whole number of zero or more for the fine's uint64 key, so a fractional key names no fine, a whole number for renewals), each pattern ending in \z so a trailing newline does not pass; it reports a loan already changed as already applied, comparing text byte for byte so a change of case alone is a change, a literal string as well, counts with COUNT(*) FOR UPDATE and refuses unless the count is recordsChanged, makes the change under the same condition, writes the audit instant as UTC text with nine fractional digits, checks ROW_COUNT() and commits only with @apply true; it gives the warnings of generate-scripts, writes nothing for the shelves, and exits 0
 
 #### generate-skips-no-output-folder
 
@@ -3783,6 +3783,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-29.
 - When: validate is run
 - Then: it reports guard for the entity and expression_type for the precondition, and exits 1
 
+#### validate-guard-writes
+
+Scenario: red; level: system; covers exit 1; verifies SA-29.
+
+- Given: a guarded PUT of the entity by its key and a guarded DELETE by its key that also say writes, an entry that triggers a transition and writes delete, a command whose writes sets a field the entity lacks, its key, its state field, a value worked out from a field, null on a required field, a number on a string, a value no enum has, a decimal with more digits than its scale, a string on a date and a number an int32 cannot hold, and a PATCH whose writes sets given values and literals of each field's type
+- When: validate is run
+- Then: it reports guard at the PUT's and the DELETE's writes, at the delete beside the transition, and at each of the command's ten fields, nothing for the PATCH, and exits 1
+
 #### validate-handler-source
 
 Scenario: golden; level: system; verifies SA-34.
@@ -5147,7 +5155,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-382 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+383 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -5157,6 +5165,7 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-31 | acceptance 4 | golden | SA-31 names no harm |
 | requirement SA-29 | acceptance 1 | golden | SA-29 names no harm |
 | requirement SA-29 | acceptance 2 | golden | SA-29 names no harm |
+| requirement SA-29 | acceptance 3 | golden | SA-29 names no harm |
 | requirement SA-28 | acceptance 1 | golden | SA-28 names no harm |
 | requirement SA-28 | acceptance 2 | golden | SA-28 names no harm |
 | requirement SA-28 | acceptance 3 | golden | SA-28 names no harm |

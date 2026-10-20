@@ -117,9 +117,14 @@ paths:
         "200": { description: The loan is replaced. }
     patch:
       operationId: amendLoan
-      summary: Amend a loan.
+      summary: Amend a loan's note, starting its renewals again.
       permission: public
-      guard: { entity: Loan, recordsChanged: 1 }
+      guard:
+        entity: Loan
+        precondition: 'status != "returned"'
+        recordsChanged: 1
+        writes:
+          set: { note: given, renewals: "0" }
       requestBody:
         required: true
         content:
@@ -250,12 +255,43 @@ commands:
   mark overdue:
     summary: Mark the open loans renewed three times as overdue
     permission: public
-    guard: { entity: Loan, precondition: renewals == 3, recordsChanged: 2 }
+    guard:
+      entity: Loan
+      precondition: renewals == 3
+      recordsChanged: 2
+      writes:
+        set: { note: '"Renewed three times"' }
     exitCodes:
       "0": Marked.
   purge returned:
     summary: Delete the returned loans
     permission: public
-    guard: { entity: Loan, precondition: 'status == "returned"', recordsChanged: 4 }
+    guard:
+      entity: Loan
+      precondition: 'status == "returned"'
+      recordsChanged: 4
+      writes: { delete: true }
     exitCodes:
       "0": Purged.
+  clear notes:
+    summary: Clear the notes of the returned loans
+    permission: public
+    guard:
+      entity: Loan
+      precondition: 'status == "returned"'
+      recordsChanged: 2
+      writes:
+        set: { note: "null" }
+    exitCodes:
+      "0": Cleared.
+  label returned:
+    summary: Note on each returned loan that it is returned
+    permission: public
+    guard:
+      entity: Loan
+      precondition: 'status == "returned"'
+      recordsChanged: 3
+      writes:
+        set: { note: '"Returned"' }
+    exitCodes:
+      "0": Labelled.

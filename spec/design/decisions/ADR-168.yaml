@@ -1,0 +1,113 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.3.schema.json
+decisions:
+  ADR-168:
+    title: A guard's writes says what a change writes when no keyword of its entry does, set with given or a literal for each field, or delete, and specarch-gen-scripts writes the guarded script from it
+    status: proposed
+    date: "2026-10-21"
+    context: |
+      Target 8 of the roadmap. ADR-158 derives what a guarded change
+      writes by keyword only: a transition its entry triggers, a PUT of the
+      entity by one path parameter, a DELETE by one path parameter. Every
+      other guarded entry (a PATCH, a POST that changes records already
+      there, a command no transition names) is a warning at its guard and
+      its script is written by hand, since the guard says the entity, the
+      precondition and the count but not what the change writes. The
+      corrections an operator runs on a live system are mostly of that
+      kind: clear a field on the records that hold some state, put a value
+      back on one record, delete the records left over by a job.
+    decision: |
+      A guard takes writes, one of:
+      - set: the fields the change sets, each with its value, one
+        expression in SpecArch's subset of CEL: given, the value the
+        operator gives when running the change, or a literal of the
+        field's type: a string in double quotes (for an enum field, one of
+        its values), a whole number, a number with a point (for a decimal
+        field, with no more digits after the point than its scale, and no
+        exponent), true or false, or null for a field that is not required
+        or whose type allows null. A field with no literal (a date, a time,
+        a timestamp, a duration, bytes, an object) takes given.
+      - delete: true: the change deletes the records, or sets their
+        soft-delete flag when the entity is deleted softly.
+      Both validators check it with the rule guard, at the entry it is
+      wrong in:
+      - writes on a PUT whose request body is the guard's entity on a path
+        with one parameter, or on a DELETE on a path with one parameter, is
+        an error: the keyword already says what the change writes;
+      - delete on an entry that triggers a transition of the entity is an
+        error: the transition moves the records the delete removes;
+      - set naming a field the entity lacks, a field of its primary key, or
+        its stateField is an error: the key names the records the change
+        writes, and a state is moved by a transition, whose from states
+        the script checks;
+      - a value that is not given or a literal of the field's type is an
+        error, which says why.
+      A transition the entry triggers still moves the state field, and set
+      adds its fields to that change. specarch-gen-scripts reads writes
+      when no keyword says the change, keyed as ADR-158 says: on a path
+      with one parameter the change writes the record by its key and
+      recordsChanged must be 1; on a command or a path with no parameter
+      it writes every record for which the precondition holds. A value
+      given is a variable named after its column, as a PUT's is, and a
+      literal is written into the script as the specification writes it.
+      A set with no key also leaves out the records that already hold
+      every value it writes, so its count is of the records it would
+      change. What writes leaves a warning at the guard is what no word
+      says: a POST that makes a record, a PUT that sets a field stored
+      encrypted or no column a caller may set, transitions of one trigger
+      with two to states, a transition back to the state it leaves, a
+      keyed change whose recordsChanged is not 1, and an entity whose key
+      is not one field; writes setting a field stored encrypted is a
+      warning too, since a script cannot encrypt the value it writes.
+    why: |
+      One way to say one thing: a PUT by its key and a DELETE by its key
+      already say what they write, so writes on them would be a second way
+      that could disagree with the first, and an error keeps one. A
+      transition is said on the entity, where every caller reads it, so
+      writes cannot move the state field around it; it can set other fields
+      beside it, which a transition does not say.
+      The values are kept to given and literals because a guarded script
+      must change nothing when it is run again (ADR-158). A record that
+      already holds every value a set writes is one the change has made,
+      so the script can say so and stop; a value worked out from the
+      record when the change runs (renewals + 1, a field copied from
+      another) gives a different value on each run, so a record changed
+      cannot be told from one not yet changed. A literal is written as the
+      specification writes it, so a decimal keeps its digits rather than
+      passing through a double, and a decimal with more digits than its
+      scale is refused at the guard, since the column would round it and
+      the check that the record holds what was written would then refuse
+      every run. A string is not taken for a date or a timestamp: the
+      subset's comparison does not take one for the other either, and on
+      MariaDB a date-time field is text in the type-rendering idiom's
+      form, which a literal would have to repeat.
+      Without a key a set has no record to find already changed, so the
+      condition leaves out the records that hold every value written: a
+      second run finds none and is refused by the count, as a transition
+      of many records is when none is left in a from state, and nothing
+      changes. The comparison treats two nulls as equal (IS NOT DISTINCT
+      FROM on PostgreSQL, <=> on MariaDB, with text byte for byte as
+      ADR-167 compares it), so a record whose field is null is counted as
+      not yet holding a string: with = the comparison would be null and
+      the record would be left out of the change without a word.
+      A delete with no key needs nothing more: the records it deleted no
+      longer meet its condition, or carry the soft-delete flag the
+      condition excludes.
+      A POST that makes a record has no record to count before the change
+      or to find already made, so it stays the project's own script; the
+      warning at its guard says that a POST that changes records already
+      there says what it writes with writes.
+    consequences: |
+      The conformance cases generate-scripts and generate-scripts-mariadb
+      carry a keyed set of a given value and a literal (amendLoan), a set
+      of null and a set of a string on many records (clear notes, label
+      returned), a set beside a transition (mark overdue) and a delete of
+      many records deleted softly (purge returned); validate-guard-writes
+      shows each error in both builds. The scripts were run by hand
+      against PostgreSQL 16 and MariaDB 11.4.4: a dry run, an applied run,
+      a second keyed run reported as already applied, a change of case
+      alone applied, a value left out set to NULL, a record whose note was
+      null labelled, and a second run of a set or a transition on many
+      records refused by its count with nothing changed. A change the
+      design does not say stays a warning at its guard, which names writes
+      where writes would say the change.
+    satisfies: [SA-87, SA-29]

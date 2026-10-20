@@ -20,6 +20,7 @@ requirements:
     status: accepted
     acceptance:
       - A calls entry naming no declared dependency, an idempotency key naming no header parameter or sitting on a GET, a validity naming a field that is not a date, a timeout of zero, and a guard naming no entity are each reported under their rule.
+      - A guard's writes on a PUT of its entity by its key or on a DELETE by its key, a delete beside a transition the entry triggers, a set of a field the entity lacks, of its key or of its state field, and a value that is neither given nor a literal of the field's type are each reported under guard.
       - An operation that calls a dependency gets the cases dependency fails and dependency times out, one with an idempotency key the repeated and reused cases, one taking a record of an entity with validity the expired case, one with a guard the concurrent write case, and every non-public subject the expired session case once a session is declared.
     verification: test
     needs: [NEED-9]

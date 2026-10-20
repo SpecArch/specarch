@@ -22,6 +22,7 @@ latest.
 | 0.6.1 to 0.6.4, 2026-10-14 | the plans for the estate and for meta-model 0.3; the first estate points (a dump committed outside the code's repository, role names on the wire); a request body decoded into a struct in `extract go`; fixes to `merge` and the readers |
 | 0.7.0, 2026-10-19 | the estate (`specarch-estate.yaml`, references between specifications, the module map); `specarch check`; `specarch facts`; `specarch-gen-sqlc`; indexes in `generate sql`; `implies`, `audience`, `middlewares`, the workflow table, documents in another language; the `handover` document |
 | 0.7.1, 2026-10-20 | the techspec's parameters, request body and responses per operation; `extract go` reading a dxlib handler's decoded body and JSON answers where the registration declares none (ADR-140); every operation's handler followed into the code, recorded with its source and drawn as a flowchart (ADR-144); the designs of the diagram keywords (`docs/diagrams.md`) and of the gateway (`docs/gateway.md`), proposed; dxlib's encrypted API type as a handshake an operation names and large files as a stream it declares (ADR-145, ADR-146), read by `extract go`, served by the dxlib dialect and the go-dxlib target with a Go client, and shown in the techspec; this roadmap matched to the code |
+| 0.7.2, open | `specarch-gen-ui-swiftui`, the screens for the iPhone in SwiftUI (ADR-147), with `generate` finding a plug-in by the target's framework before the file's language, and the pages read once for both UI generators that write a page as data (`internal/genscreens`) |
 
 ## 1. Validator CLI
 
@@ -159,7 +160,17 @@ implementation file uses and compares an override with the shipped idiom.
      `docs/ui-nextjs-carbon.md` (`spec/tests/generate-ui-typescript`,
      `spec/tests/generate-ui-typescript-hand-built`,
      `examples/library-lending/web-nextjs/`).
-   - Not built: SwiftUI.
+   - Built, 0.7.2, for the iPhone in SwiftUI: `specarch-gen-ui-swiftui`
+     writes the same task pages, lists, forms, views, navigation (one
+     `Route` enum the app's stack follows), strings and theme into a Swift
+     package the project writes the `Package.swift` of, each page a Swift
+     literal typed by its component's schema type, with the components as
+     the idiom's `swiftui` rendering a project overrides, found by the
+     target's framework before the file's language; the pages are read by
+     the one analysis the TypeScript generator reads them through
+     (ADR-147, `docs/ui-swiftui.md`, `spec/tests/generate-ui-swiftui`,
+     `spec/tests/generate-ui-swiftui-refused`,
+     `examples/library-lending/ios/`).
 5. Other DSL formats on request, limited to what that DSL can execute:
    a concept the target cannot represent is reported, not silently omitted.
    Built, 0.6.0: `specarch-gen-bpmn` writes each workflow as a BPMN 2.0

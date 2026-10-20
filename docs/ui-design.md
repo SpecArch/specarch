@@ -324,8 +324,8 @@ being the default.
 `use`: text, large text, or the parts of a control. That is what the
 contrast check reads. The design file holds values and names
 only; a token is used by a stack as that stack's generator writes it (CSS
-custom properties for the web, an asset catalogue and a `Color` extension
-for SwiftUI), through the `design-tokens` idiom on Next.js and Carbon
+custom properties for the web, a `Color` per part for SwiftUI), through
+the `design-tokens` idiom on Next.js and Carbon and on SwiftUI
 (`docs/idioms.md`). A
 specification without a theme is valid: the stack's own
 look applies, and the contrast check has nothing to read.

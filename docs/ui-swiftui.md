@@ -121,33 +121,33 @@ through its override, outside this repository.
 
 ## Building the generator
 
-Each step is a commit of its own: the specification first, the
+Each step was a commit of its own: the specification first, the
 conformance cases, `docs/`, the history and both validator builds
-current (the validator itself does not change; the framework and the
-idiom's stacks are strings it reads already).
+current (the validator itself did not change; the framework and the
+idiom's stacks are strings it reads already). All six are built.
 
-1. **The analysis shared, and the plug-in found by its framework.**
+1. **Built: The analysis shared, and the plug-in found by its framework.**
    `internal/genscreens` reads the pages for both generators, with the
    TypeScript goldens unchanged; `specarch generate` tries
    `specarch-gen-<target>-<framework>` first (`generate-framework-plugin`).
-2. **The design.** ADR-147, this document, SA-78, the `swiftui`
+2. **Built: The design.** ADR-147, this document, SA-78, the `swiftui`
    renderings of `ui-components` and `design-tokens`, and the idioms
    listing for a Swift file whose `ui` target is platform iphone
    (`idioms-lists-ui-framework`).
-3. **The reference screens by hand.** `examples/library-lending/ios/`, a
+3. **Built: The reference screens by hand.** `examples/library-lending/ios/`, a
    Swift package with its `Package.swift`, the app, and the sign-in and
    second-factor screens written by hand on plain SwiftUI; CI builds
    and tests it on the macOS job.
-4. **Task pages.** `specarch-gen-ui-swiftui` writes the task pages, the
+4. **Built: Task pages.** `specarch-gen-ui-swiftui` writes the task pages, the
    components, the routes, the application and the strings; generated
    over the reference, the two screens differ only by the header
    (`generate-ui-swiftui`).
-5. **Lists, forms and views.** With the guard, the menu, the derived
+5. **Built: Lists, forms and views.** With the guard, the menu, the derived
    tests, child rows, reasons, approvals, lookups and value objects, the
    same refusals as the web (`generate-ui-swiftui-refused`).
-6. **Translations and the theme.** `Strings.swift` in every language
-   and `Theme.swift`; the roadmap, the generated documents and the
-   history.
+6. **Built: Translations and the theme.** `Strings.swift` in every
+   language and `Theme.swift`, which came with the task pages; the
+   roadmap, the README, the generated documents and the history.
 
 ## Left out
 

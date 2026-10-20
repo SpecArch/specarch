@@ -149,6 +149,7 @@ a defect in the roadmap, not an accepted state.
 | `docs/idioms.md` | idioms: how each recurring implementation concern is done the same way everywhere, shipped with SpecArch and overridable per project |
 | `docs/ui-design.md` | what an analyst writes about a user interface: page states, events and screen flows, sections, compact screens, accessibility to WCAG 2.2 and a theme of design tokens, and the first UI generator |
 | `docs/ui-nextjs-carbon.md` | the second web generator, TypeScript on Next.js and Carbon, with a project's own components as an idiom override: its design, the libraries checked, and the steps that build it |
+| `docs/ui-swiftui.md` | the third UI generator, SwiftUI for the iPhone: the same pages as data in a Swift package, read by the one analysis both generators share |
 | `docs/authoring-layer-evaluation.md` | TypeSpec, CUE and Pkl as an optional authoring layer |
 | `docs/generators.md` | the rules every document and code target follows, and the plug-in protocol |
 | `docs/sync-gates.md` | the CI checks that keep a spec and its code equal |
@@ -206,9 +207,11 @@ the Go one for an implementation file in Swift (Swift Testing) or in Dart
 `specarch-gen-go-dxlib`, which `specarch generate go-dxlib` runs to write
 the tables, handlers, seeds and tasks of a Go service on dxlib, and
 `specarch-gen-ui`, which `specarch generate ui` runs to write list pages
-for the web in plain JavaScript, and `specarch-gen-ui-typescript`, which
-it runs instead for an implementation file in TypeScript to write task
-pages on Next.js and Carbon, and `specarch-gen-bpmn`, which `specarch
+for the web in plain JavaScript, `specarch-gen-ui-typescript`, which it
+runs instead for an implementation file in TypeScript to write the
+screens on Next.js and Carbon, `specarch-gen-ui-swiftui`, which it runs
+for a `ui` target of platform iphone to write the same screens in SwiftUI
+into a Swift package, and `specarch-gen-bpmn`, which `specarch
 generate bpmn` runs to write each workflow as a BPMN 2.0 file with its
 diagram, and the diagram as SVG. Install them at the same tag as
 `specarch`:
@@ -222,6 +225,7 @@ diagram, and the diagram as SVG. Install them at the same tag as
     go install github.com/SpecArch/specarch/cmd/specarch-gen-go-dxlib@v0.7.1
     go install github.com/SpecArch/specarch/cmd/specarch-gen-ui@v0.7.1
     go install github.com/SpecArch/specarch/cmd/specarch-gen-ui-typescript@v0.7.1
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-ui-swiftui@v0.7.1
     go install github.com/SpecArch/specarch/cmd/specarch-gen-bpmn@v0.7.1
 
 The Swift build, for macOS, has the validate and version verbs and gives
@@ -326,8 +330,8 @@ latest. The schemas, the tree layout and the seven stages, SpecArch's own
 specification, six examples, the validator in Go and in Swift, twelve
 documents, open questions with the gaps report, the approval gate on
 generation, the extract readers with `merge`, `check`, `diff`, `derive`
-and the ten code targets exist; the manual, the operations guide, SwiftUI
-screens, forms and views in plain JavaScript, the guarded scripts and
+and the eleven code targets exist; the manual, the operations guide,
+forms and views in plain JavaScript, the guarded scripts and
 meta-model 0.3 are on the roadmap (`docs/roadmap.md`, which says where
 each entry stands). The meta-model will change: the first real
 projects written in SpecArch are expected to find concepts it cannot

@@ -219,10 +219,16 @@ commands:
       - A question whose every block is the section `gateways`, the
         question a code reader asks at a fallback handler or a catch-all
         route, is left out as answered when another tree declares a
-        gateway, as the tree `specarch extract gateway` writes from a
-        gateway table does: that tree says what the handler forwards and
-        by which claim, and the line names the trees and the gateways
-        (ADR-142, ADR-143).
+        gateway for it, as the tree `specarch extract gateway` writes
+        from a gateway table does: that tree says what the handler
+        forwards and by which claim, and the line names the trees and the
+        gateway (ADR-142, ADR-143). Each gateway the other trees declare
+        answers one such question of a tree, in the order the trees give
+        them: the questions at a fallback handler first, then those at a
+        catch-all route, which may as well be a file server, each in the
+        order the tree asks them. A question no gateway is left for stays
+        open, with a line that says so, rather than being answered by a
+        gateway that has nothing to do with it.
       - A map one tree writes open, `additionalProperties: true`, with a
         question of that tree blocking that key, and another tree writes
         with a value type, takes the value type with no disagreement, in

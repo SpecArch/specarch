@@ -100,7 +100,8 @@ func DumpFormat(path string) (string, error) {
 }
 
 // CheckGateway compares a gateway table with the specification's gateway
-// of its name: each forward by its value, and the claim (ADR-142).
+// of its name: each forward by its value and the dependency it goes to,
+// and the claim (ADR-142).
 func CheckGateway(dumpPath string, root *yaml.Node) ([]Difference, error) {
 	t, _, name, err := openGatewayTable(dumpPath)
 	if err != nil {
@@ -114,19 +115,41 @@ func CheckGateway(dumpPath string, root *yaml.Node) ([]Difference, error) {
 	specified := map[string]bool{}
 	if gw != nil {
 		if claim := source.Str(source.Child(gw, "claim")); claim != t.Claim {
+			says := "reads the claim " + claim
+			if claim == "" {
+				says = "names no claim"
+			}
 			out = append(out, Difference{Rule: "claim_differs", Subject: gwName, Pointer: at + "/claim",
-				Message: fmt.Sprintf("gateway %s reads the claim %s in the specification, and the gateway table %s says it reads %s", gwName, claim, name, t.Claim)})
+				Message: fmt.Sprintf("gateway %s %s in the specification, and the gateway table %s says it reads %s", gwName, says, name, t.Claim)})
 		}
-		served := map[string]bool{}
-		for _, f := range t.Forwards {
-			served[f.Value] = true
+		served := map[string]int{}
+		for i, f := range t.Forwards {
+			if _, ok := served[f.Value]; !ok {
+				served[f.Value] = i
+			}
 		}
 		for i, row := range source.Items(source.Child(gw, "forwards")) {
 			v := source.Str(source.Child(row, "value"))
+			dep := source.Str(source.Child(row, "dependency"))
 			specified[v] = true
-			if !served[v] {
+			r, ok := served[v]
+			if !ok {
 				out = append(out, Difference{Rule: "forward_not_served", Subject: gwName + " " + v, Pointer: fmt.Sprintf("%s/forwards/%d", at, i),
-					Message: fmt.Sprintf("gateway %s forwards %s to %s in the specification, and the gateway table %s holds no row for it", gwName, v, source.Str(source.Child(row, "dependency")), name)})
+					Message: fmt.Sprintf("gateway %s forwards %s to %s in the specification, and the gateway table %s holds no row for it", gwName, v, dep, name)})
+				continue
+			}
+			// The row's dependency is its name, as extract gateway writes
+			// it; a row with no name gives one made from its value, a
+			// guess, so a difference by it is a report.
+			f := t.Forwards[r]
+			if got := dependencyName(f); got != dep {
+				d := Difference{Rule: "forward_differs", Subject: gwName + " " + v, Pointer: fmt.Sprintf("%s/forwards/%d", at, i),
+					Message: fmt.Sprintf("gateway %s forwards %s to %s in the specification, and row %d of the gateway table %s forwards it to %s", gwName, v, dep, r+1, name, got)}
+				if f.Name == nil || *f.Name == "" {
+					d.Report = true
+					d.Message += ", a name made from the value, since the row names no service"
+				}
+				out = append(out, d)
 			}
 		}
 	}

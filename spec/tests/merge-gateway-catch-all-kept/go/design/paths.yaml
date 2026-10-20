@@ -1,0 +1,43 @@
+paths:
+  /api/local:
+    delete:
+      operationId: h
+      origin: stated
+      cites:
+        - {source: code, clause: 'more.go:32', says: Registers DELETE /api/local on a gin router; its handler is h.}
+        - {source: code, clause: 'more.go:41', says: The handler of DELETE /api/local reads no path parameter by name.}
+  /live:
+    get:
+      operationId: live
+      origin: stated
+      cites:
+        - {source: code, clause: 'main.go:19', says: Registers GET /live on a gin router; its handler is live.}
+        - {source: code, clause: 'main.go:28', says: The handler of GET /live reads no path parameter by name.}
+  /metrics:
+    get:
+      operationId: metrics
+      origin: stated
+      cites:
+        - {source: code, clause: 'main.go:22', says: Registers GET /metrics on a gin router; its handler is metrics.}
+        - {source: code, clause: 'main.go:31', says: The handler of GET /metrics reads no path parameter by name.}
+  /ready:
+    get:
+      operationId: ready
+      origin: stated
+      cites:
+        - {source: code, clause: 'main.go:20', says: Registers GET /ready on a gin router; its handler is ready.}
+        - {source: code, clause: 'main.go:29', says: The handler of GET /ready reads no path parameter by name.}
+  /started:
+    get:
+      operationId: started
+      origin: stated
+      cites:
+        - {source: code, clause: 'main.go:21', says: Registers GET /started on a gin router; its handler is started.}
+        - {source: code, clause: 'main.go:30', says: The handler of GET /started reads no path parameter by name.}
+  /version:
+    get:
+      operationId: version
+      origin: stated
+      cites:
+        - {source: code, clause: 'main.go:23', says: Registers GET /version on a gin router; its handler is version.}
+        - {source: code, clause: 'main.go:32', says: The handler of GET /version reads no path parameter by name.}

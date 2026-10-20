@@ -1,0 +1,12 @@
+{
+    "gatewayTable": 1,
+    "path": "gateway",
+    "commit": "b39155f1617ff17d47fb694d304f73e7aeac26e9",
+    "gateway": "api",
+    "claim": "aud",
+    "environment": "production",
+    "forwards": [
+        {"value": "https://loans.library.example", "name": "reports", "setting": "REPORTS_URL", "url": "https://reports.internal.library.example"},
+        {"value": "https://archive.library.example", "name": null, "setting": "ARCHIVE_URL", "url": "https://archive.internal.library.example"}
+    ]
+}

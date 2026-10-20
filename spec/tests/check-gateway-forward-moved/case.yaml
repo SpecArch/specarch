@@ -1,0 +1,11 @@
+arguments: [check, project, repo/gateway-table.json]
+repository:
+  folder: repo
+  commits:
+    - [gateway]
+    - [gateway-table.json]
+exitStatus: 1
+standardOutput: |
+  specarch check: 1 dump compared: 1 difference, 0 allowed by the allowlist, 1 report, 0 allowlist lines that fail
+  project/specarch.yaml:49:9: error: /gateways/api/forwards/0: forward_differs: gateway api forwards https://loans.library.example to loans in the specification, and row 1 of the gateway table gateway-table.json forwards it to reports [forward_differs api https://loans.library.example]
+  project/specarch.yaml:50:9: warning: /gateways/api/forwards/1: forward_differs: gateway api forwards https://archive.library.example to reports in the specification, and row 2 of the gateway table gateway-table.json forwards it to archive, a name made from the value, since the row names no service [forward_differs api https://archive.library.example]

@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: check
+level: system
+scenario: red
+covers: [exit 1]
+given: "a specification whose gateway api forwards the loans audience to loans and the archive audience to reports, and a committed gateway table whose row for the loans audience names the service reports and whose row for the archive audience names none"
+when: "check is run with the table"
+then: "it reports forward_differs at the forward of the loans audience as an error and at the forward of the archive audience as a report, the name made from the value being a guess, and exits 1"
+verifies: [SA-76]

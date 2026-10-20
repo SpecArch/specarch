@@ -79,8 +79,14 @@ commands:
         the table does not hold is `forward_not_served` at the forward,
         a row of the table the specification does not hold is
         `forward_not_specified` at the row in the dump, every row when
-        the specification declares no gateway of that name, and a claim
-        that differs is `claim_differs` at the gateway's claim.
+        the specification declares no gateway of that name, a forward
+        whose value the table holds and whose dependency differs from
+        the row's is `forward_differs` at the forward, and a claim that
+        differs is `claim_differs` at the gateway's claim. The row's
+        dependency is its name, as `specarch extract gateway` writes it;
+        a row with no name gives one made from its value, a guess, so a
+        forward that differs by it is a report, a warning that never
+        fails, as the extract asks a could question for that name.
 
       Each problem is printed in validate's form, the file, line and
       column of the entry, the severity, the pointer, the rule and the

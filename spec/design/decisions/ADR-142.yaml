@@ -42,10 +42,15 @@ decisions:
       merge leaves the Go reader's question at a fallback handler
       (ADR-143), which blocks gateways once the element exists, out when
       a table's gateway answers it, by the rule for a question whose
-      every blocked key another tree gives. check compares
+      every blocked key another tree gives, one gateway to one question,
+      a fallback handler's before a catch-all route's; a question no
+      gateway is left for stays open. check compares
       a specification with its gateway table: forward_not_served at a
       forward the table does not hold, forward_not_specified at a table
-      row the specification does not hold, claim_differs at the gateway,
+      row the specification does not hold, forward_differs at a forward
+      whose value the table sends to another dependency (a report when
+      the row names none, since a name made from the value is a guess),
+      claim_differs at the gateway,
       each an error the allowlist may name.
     why: |
       A reader of the project's own file would put the rules of extract

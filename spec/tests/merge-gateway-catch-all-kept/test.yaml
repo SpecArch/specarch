@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: merge
+level: system
+scenario: golden
+given: "the tree extract go wrote of a router with a catch-all route under /static/ and a NoRoute handler, two questions that block gateways alone, the catch-all's asked first, and the tree extract gateway wrote of a gateway table with one gateway"
+when: "merge is run on both"
+then: "the one gateway answers the fallback question, which is left out with a line naming the gateway api, and the catch-all question stays open with a line saying no gateway is left for it"
+verifies: [SA-76]

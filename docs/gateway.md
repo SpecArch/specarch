@@ -441,13 +441,18 @@ A value written twice is refused, as the schema refuses it in the tree.
 
 **`merge`** answers the Go reader's question at the fallback handler
 (ADR-143) with the table's gateway, by the rule that a question of one
-tree whose every blocked key another tree gives is left out. **`check`**
+tree whose every blocked key another tree gives is left out. One gateway
+answers one question: a question at a fallback handler first, then one at
+a catch-all route, which may as well be a file server. A question no
+gateway is left for stays open, with a line that says so. **`check`**
 (SA-72) compares a specification with its gateway table as it compares
 the route table: a forward in the specification the table does not hold
 is `forward_not_served` at the row, one in the table the specification
-does not hold is `forward_not_specified` at the table's row, and a claim
-that differs is `claim_differs` at the gateway, each an error the
-allowlist may name.
+does not hold is `forward_not_specified` at the table's row, a forward
+the table sends to another dependency is `forward_differs` at the
+forward, and a claim that differs is `claim_differs` at the gateway, each
+an error the allowlist may name. A row with no name gives a dependency
+made from its value, a guess, so `forward_differs` by it is a report.
 
 The alternative, a second version of the route table with a catch-all
 entry (`"method": "*"`, `"path": "/*"`, the handler and the claim), lost:
@@ -640,7 +645,7 @@ dependency, ADR-136's `dependency` on a server).
 3. **The gateway table** (ADR-142, SA-76). `tools/gateways/dump-gateway.sh`,
    `extract gateway` with `--implementation-out`, the reader's rules of
    section 2 in `spec/design/commands/extract.yaml`, `merge` leaving the
-   fallback question out when a table answers it, `check` with the three
+   fallback question out when a table answers it, `check` with the four
    differences, a dump for the estate's gateway under its sources and a
    CI step that extracts it twice and checks it. Done when the estate's
    dump gives the gateway, two dependencies, two settings and the

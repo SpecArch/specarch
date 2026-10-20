@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.2-dev of the specification: 594 design tests, 277 golden and 317 red, about 17 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.2-dev of the specification: 596 design tests, 278 golden and 318 red, about 17 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.7.2-dev of the specification: 594 design tests, 277 golden and 317 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 590 |
+| system | 592 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -96,6 +96,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-72.
 - Given: the branches and copies of the golden case, where the route table's GET /copies/{copyId} checks no permission, the permission table grants nothing to the visitor and grants a role the specification does not declare, and the allowlist repeats a line and holds a line for a difference there is not, a line for a report and a line that is no id
 - When: check is run with the allowlist on the three dumps
 - Then: it prints the CHAR column the allowlist no longer names, the permission that differs, the visitor's grant the code does not hold and the undeclared role's grant at its line of the dump as errors, the two reports as warnings, and each of the five lines of the allowlist that allow nothing as allowlist_stale at its line, and exits 1
+
+#### check-gateway-forward-moved
+
+Scenario: red; level: system; covers exit 1; verifies SA-76.
+
+- Given: a specification whose gateway api forwards the loans audience to loans and the archive audience to reports, and a committed gateway table whose row for the loans audience names the service reports and whose row for the archive audience names none
+- When: check is run with the table
+- Then: it reports forward_differs at the forward of the loans audience as an error and at the forward of the archive audience as a report, the name made from the value being a guess, and exits 1
 
 #### check-gateway-forward-removed
 
@@ -2472,6 +2480,14 @@ Scenario: golden; level: system; verifies SA-64.
 - Given: the trees of merge-documents-days-vocabulary, whose handbook is in language de, and no vocabulary for it
 - When: merge is run on the two trees without --vocabulary
 - Then: it prints that the handbook's requirements are not compared, naming the language and the option, keeps every statement as it is, asks nothing about days, and exits 0
+
+#### merge-gateway-catch-all-kept
+
+Scenario: golden; level: system; verifies SA-76.
+
+- Given: the tree extract go wrote of a router with a catch-all route under /static/ and a NoRoute handler, two questions that block gateways alone, the catch-all's asked first, and the tree extract gateway wrote of a gateway table with one gateway
+- When: merge is run on both
+- Then: the one gateway answers the fallback question, which is left out with a line naming the gateway api, and the catch-all question stays open with a line saying no gateway is left for it
 
 #### merge-gateway-fallback
 

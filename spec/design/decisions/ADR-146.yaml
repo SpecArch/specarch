@@ -2,7 +2,7 @@
 decisions:
   ADR-146:
     title: An operation that carries a file says so with stream and its direction, the media type and the binary string stay where OpenAPI puts them, and the largest download is a limit
-    status: proposed
+    status: accepted
     date: "2026-10-20"
     context: |
       dxlib serves very large files: an upload endpoint hands the handler

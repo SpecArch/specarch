@@ -10766,7 +10766,7 @@ follow with the same record: the step kinds name nothing of Go.
 
 ### ADR-145: A handshake is declared once with its key agreement, signature, cipher, establishing operation, lifetime and uses, and an operation names the one whose envelope its request and response travel in
 
-Status: proposed, 2026-10-20.
+Status: accepted, 2026-10-20.
 
 Context: Services on dxlib register most endpoints with an end-to-end
 encryption type: a client first calls a pre-key operation with its
@@ -10868,7 +10868,7 @@ docs/roadmap.md.
 
 ### ADR-146: An operation that carries a file says so with stream and its direction, the media type and the binary string stay where OpenAPI puts them, and the largest download is a limit
 
-Status: proposed, 2026-10-20.
+Status: accepted, 2026-10-20.
 
 Context: dxlib serves very large files: an upload endpoint hands the handler
 the request body as it arrives, from the first byte to the last, and

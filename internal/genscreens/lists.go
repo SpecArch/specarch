@@ -158,8 +158,10 @@ func (g *Gen) ListPage(pageName string, pg map[string]any, sess *Session) (*Page
 	}
 	wireNames := g.ListNames()
 	switch {
-	case !ok:
+	case !ok && g.Profile.PagedByServer != nil:
 		g.Problem("error", at+"/source", "%s pages through its list, and %s has no listOf, so it does not page; give it listOf, or name it under the ui target's settings.server.pages for a server route to page it", pageName, sourceID)
+	case !ok:
+		g.Problem("error", at+"/source", "%s pages through its list, and %s has no listOf, so it does not page; give it listOf", pageName, sourceID)
 	case defaultSize == "":
 		g.Problem("error", at+"/source", "%s pages through its list, and the listOf of %s gives no page size; give pageSize a default", pageName, sourceID)
 	case wireNames["page"] == "" || wireNames["items"] == "":

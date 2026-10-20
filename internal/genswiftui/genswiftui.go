@@ -78,11 +78,10 @@ func Generate(r *Request) genui.Response {
 		g.module = defaultModule
 	} else if !identifier(g.module) {
 		g.Problem("error", "/", "the ui target's settings.module is %q, and a Swift module is one word of letters, digits and underscores starting with a letter, such as Screens", g.module)
-		return g.Response(nil)
+		g.module = defaultModule
 	}
 	if _, named := g.Settings["server"]; named {
 		g.Problem("error", "/", "the ui target's settings name a server, and %s writes an app, which calls the service directly at the URL the app sets; take settings.server out", name)
-		return g.Response(nil)
 	}
 	header := "// " + g.Header(r) + "\n"
 	sources := "Sources/" + g.module + "/"
@@ -96,7 +95,7 @@ func Generate(r *Request) genui.Response {
 	pages := obj0(g.Spec["pages"])
 	owned := g.Owned()
 	drawn := map[string]bool{}
-	g.FormSettings()
+	hooks, layouts := g.FormSettings()
 	var written []*genscreens.Page
 	for _, pageName := range sortedKeys(pages) {
 		pg := obj0(pages[pageName])
@@ -108,6 +107,12 @@ func Generate(r *Request) genui.Response {
 		switch text(pg["kind"]) {
 		case "task":
 			page, ok = g.TaskPage(pageName, pg)
+		case "list":
+			page, ok = g.ListPage(pageName, pg, sess)
+		case "form":
+			page, ok = g.FormPage(pageName, pg, sess, hooks[pageName], layouts[pageName])
+		case "view":
+			page, ok = g.ViewPage(pageName, pg, sess)
 		default:
 			g.Problem("warning", "/pages/"+pageName, "%s is a %s, which this version of %s does not write; it is left out", pageName, text(pg["kind"]), name)
 			continue

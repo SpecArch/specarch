@@ -5,6 +5,13 @@ import SwiftUI
 /// The pages, one case each with the parameters of its route; the app's
 /// NavigationStack opens each through destination.
 public enum Route: Hashable, Sendable {
+    case feeWaiverForm(loanId: String)
+    case feeWaiversInbox
+    case loanForm
+    case loansList
+    case memberForm
+    case memberLoans(memberId: String)
+    case memberView(memberId: String)
     case membersList
     case resetPassword
     case secondFactor
@@ -15,7 +22,14 @@ extension Route {
     /// The view the route opens.
     @MainActor @ViewBuilder public var destination: some View {
         switch self {
-        case .membersList: MissingPage(name: "members-list")
+        case .feeWaiverForm(let loanId): FeeWaiverFormView(loanId: loanId)
+        case .feeWaiversInbox: FeeWaiversInboxView()
+        case .loanForm: LoanFormView()
+        case .loansList: LoansListView()
+        case .memberForm: MemberFormView()
+        case .memberLoans(let memberId): MemberLoansView(memberId: memberId)
+        case .memberView(let memberId): MemberViewView(memberId: memberId)
+        case .membersList: MembersListView()
         case .resetPassword: ResetPasswordView()
         case .secondFactor: SecondFactorView()
         case .signIn: SignInView()

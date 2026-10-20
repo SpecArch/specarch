@@ -19,7 +19,7 @@ func TestStep2ReferenceComparesEqual(t *testing.T) {
 	work := t.TempDir()
 	copyTree(t, "../../examples/library-lending/spec", filepath.Join(work, "spec"))
 	// Only the Carbon application's file, so the run has one output folder.
-	for _, p := range []string{"implementation/go", "implementation/typescript/library-lending-acme.typescript.specarch-implementation.yaml"} {
+	for _, p := range []string{"implementation/go", "implementation/swift", "implementation/typescript/library-lending-acme.typescript.specarch-implementation.yaml"} {
 		if err := os.RemoveAll(filepath.Join(work, "spec", p)); err != nil {
 			t.Fatal(err)
 		}

@@ -1,0 +1,337 @@
+specarch: "0.1"
+info: { title: Members, version: 1.0.0 }
+stages: [implementation]
+stakeholders:
+  owner: { description: The product owner. }
+  administration: { description: The team that builds the administration's screens. }
+entities:
+  Member:
+    type: object
+    properties:
+      id: { type: string, format: uuid, readOnly: true }
+      name: { type: string, title: Name, minLength: 1, maxLength: 100 }
+      status: { type: string, enum: [active, inactive], title: Status }
+      joinedOn: { type: string, format: date, title: Joined on }
+      fee: { type: string, format: decimal, precision: 6, scale: 2, title: Fee }
+    required: [id, name, status, joinedOn, fee]
+    primaryKey: [id]
+    relations:
+      visitLog: { target: Visit, kind: one-to-many, via: memberId }
+  Visit:
+    type: object
+    properties:
+      id: { type: string, format: uuid, readOnly: true }
+      memberId: { type: string, format: uuid }
+      visitedOn: { type: string, format: date, title: Visited on }
+    required: [id, memberId, visitedOn]
+    primaryKey: [id]
+errors:
+  sign-in-refused: { status: 401, title: Sign-in refused, condition: The email address or the password is wrong. }
+  invitation-used: { status: 409, title: Invitation used, condition: The invitation was used before. }
+  member-gone: { status: 404, title: Member gone, condition: No member has that id. }
+permissions:
+  members.read: { description: See the members. }
+  members.write: { description: Change the members. }
+  public: { description: Open to everyone. }
+roles:
+  member: { description: A member., permissions: [members.read] }
+  clerk: { description: Keeps the members., permissions: [members.read, members.write] }
+session: { description: A member signs in once and works in a session., idleTimeout: PT30M, absoluteTimeout: PT12H }
+paths:
+  /members:
+    get:
+      operationId: listMembers
+      summary: The members
+      permission: members.read
+      parameters:
+        - { name: status, in: query, schema: { type: string, enum: [active, inactive] } }
+      listOf:
+        entity: Member
+        sortable: [name, joinedOn]
+        searchable: [name]
+        filterable: [joinedOn]
+        pageSize: { default: 25, maximum: 50 }
+      responses:
+        "200":
+          description: The members.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/entities/Member" } }
+    post:
+      operationId: createMember
+      summary: Register a member
+      permission: members.write
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string, minLength: 1, maxLength: 100 }
+                status: { type: string, enum: [active, inactive] }
+                joinedOn: { type: string, format: date }
+              required: [name, status, joinedOn]
+      responses:
+        "201":
+          description: The member.
+          content:
+            application/json:
+              schema: { $ref: "#/entities/Member" }
+  /members/{memberId}:
+    parameters:
+      - { name: memberId, in: path, required: true, schema: { type: string, format: uuid } }
+    get:
+      operationId: getMember
+      summary: One member
+      permission: members.read
+      responses:
+        "200":
+          description: The member.
+          content:
+            application/json:
+              schema: { $ref: "#/entities/Member" }
+  /members/{memberId}/suspend:
+    parameters:
+      - { name: memberId, in: path, required: true, schema: { type: string, format: uuid } }
+    post:
+      operationId: suspendMember
+      summary: Suspend a member
+      permission: members.write
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                why: { type: string, minLength: 1, maxLength: 200, title: Why }
+              required: [why]
+      responses:
+        "204": { description: Suspended. }
+        "404": { description: No such member., problem: member-gone }
+  /members/{memberId}/visits:
+    parameters:
+      - { name: memberId, in: path, required: true, schema: { type: string, format: uuid } }
+    post:
+      operationId: recordVisits
+      summary: Record a member's visits
+      permission: members.write
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                visits: { type: array, items: { type: object, properties: { visitedOn: { type: string, format: date } } } }
+                visitLog: { type: array, items: { type: object, properties: { visitedOn: { type: string, format: date } } } }
+      responses:
+        "201": { description: Recorded. }
+  /visits:
+    post:
+      operationId: recordVisitsAnywhere
+      summary: Record visits
+      permission: members.write
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                visits: { type: array, items: { type: object, properties: { visitedOn: { type: string, format: date } } } }
+      responses:
+        "201": { description: Recorded. }
+  /sessions/current:
+    get:
+      operationId: getSession
+      summary: Who is signed in
+      permission: public
+      responses:
+        "200":
+          description: The session.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  open: { type: boolean }
+                  granted: { type: array, items: { type: string, maxLength: 100 }, maxItems: 50 }
+                required: [open, granted]
+  /sessions:
+    post:
+      operationId: signIn
+      summary: Sign in
+      permission: public
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email: { type: string, format: email, title: Email address, maxLength: 254 }
+                password: { type: string, format: password, minLength: 12, maxLength: 128, pattern: "[0-9]", title: Password, writeOnly: true }
+              required: [email, password]
+      responses:
+        "200":
+          description: Signed in.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  memberId: { type: string, format: uuid }
+                required: [memberId]
+        "401": { description: Refused., problem: sign-in-refused }
+  /invitations:
+    post:
+      operationId: acceptInvitation
+      summary: Accept an invitation
+      permission: public
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                invitation: { type: string, pattern: "^[A-Z]{8}$", maxLength: 8, title: Invitation }
+                password: { type: string, format: password, minLength: 12, maxLength: 128, title: Password, writeOnly: true }
+                repeat: { type: string, format: password, maxLength: 128, title: Password again, writeOnly: true }
+                nickname: { type: string, maxLength: 30 }
+                age: { type: integer, format: int32, minimum: 16, maximum: 150, title: Age }
+              required: [invitation, password, repeat]
+      responses:
+        "201": { description: "Accepted, and the account waits for a librarian." }
+        "204": { description: Accepted. }
+        "409": { description: Used before., problem: invitation-used }
+pages:
+  sign-in:
+    kind: task
+    title: Sign in
+    route: /sign-in
+    permission: public
+    submit: signIn
+    fields: [email, password]
+    states:
+      failed:
+        sign-in-refused: { message: The email address or the password is wrong. }
+        default: { message: Signing in does not work right now. Try again later. }
+    onSubmitted:
+      "200": { navigate: member-view, with: { memberId: memberId }, message: You are signed in. }
+  invitation:
+    kind: task
+    title: Accept your invitation
+    route: /invitations
+    permission: public
+    submit: acceptInvitation
+    fields: [invitation, password, repeat, nickname, age]
+    checks:
+      repeated: { expression: repeat == password, message: The two passwords differ., field: repeat }
+      not-the-invitation: { expression: "!(password == invitation) && size(password) >= 12", message: Choose a password of your own. }
+      old-enough: { expression: age + 0 >= 16, message: You are too young., field: age }
+    states:
+      failed:
+        invitation-used: { message: This invitation was used before., field: invitation }
+    onSubmitted:
+      "204": { navigate: sign-in, message: Your account is ready. Sign in. }
+  members-list:
+    kind: list
+    title: Members
+    route: /members
+    entity: Member
+    permission: members.read
+    source: listMembers
+    columns: [name, status, joinedOn]
+    compactColumns: [name]
+    filters: [status, joinedOn]
+    states:
+      empty: { message: No member yet. }
+      filteredEmpty: { message: No member matches. }
+      failed:
+        member-gone: { message: That member is gone. }
+        default: { message: The members cannot be shown now. }
+    onSelect: { navigate: member-view, with: { memberId: id } }
+    actions:
+      - { label: Invite, kind: navigate, target: invitation }
+      - { label: Suspend, kind: operation, target: suspendMember, permission: members.write, when: 'status == "active"', confirm: "Suspend this member?", reason: why, then: { message: The member is suspended. } }
+      - { label: Open, kind: navigate, target: member-view, confirm: "Open this member?", with: { memberId: id } }
+  member-form:
+    kind: form
+    title: Register a member
+    route: /members/new
+    entity: Member
+    permission: members.write
+    submit: createMember
+    fields: [name, status]
+    checks:
+      long-enough: { expression: 'size(name) >= int("2")', message: The name is too short., field: name }
+    onSubmitted: { navigate: members-list, message: The member is registered. }
+  member-view:
+    kind: view
+    title: Member
+    route: /members/{memberId}
+    entity: Member
+    permission: members.read
+    source: getMember
+    fields: [name, fee]
+    fieldConditions:
+      fee: { hiddenWhen: 'fee > decimal("0.00", 2)' }
+    actions:
+      - { label: Suspend, kind: operation, target: suspendMember, permission: members.write, confirm: "Suspend this member?", reason: why, then: { navigate: members-list } }
+  visits-form:
+    kind: form
+    title: Record visits
+    route: /members/{memberId}/visits
+    entity: Member
+    permission: members.write
+    source: getMember
+    submit: recordVisits
+    fields: [name]
+    fieldConditions:
+      name: { readOnly: true }
+    childRows:
+      - { relation: visitLog, title: Visits, fields: [visitedOn], lockLoadedRows: true }
+    onSubmitted: { message: The visits are recorded. }
+  visits-unlocked:
+    kind: form
+    title: Change visits
+    route: /members/{memberId}/visits/edit
+    entity: Member
+    permission: members.write
+    source: getMember
+    submit: recordVisits
+    fields: [name]
+    fieldConditions:
+      name: { readOnly: true }
+    childRows:
+      - { relation: visitLog, title: Visits, fields: [visitedOn] }
+    onSubmitted: { message: The visits are recorded. }
+  visits-new:
+    kind: form
+    title: Record visits anywhere
+    route: /visits/new
+    entity: Member
+    permission: members.write
+    submit: recordVisitsAnywhere
+    fields: [name]
+    fieldConditions:
+      name: { readOnly: true }
+    childRows:
+      - { relation: visitLog, title: Visits, fields: [visitedOn] }
+    onSubmitted: { message: The visits are recorded. }
+menus:
+  people:
+    title: People
+    items:
+      all: { title: All members, page: members-list }
+      invite: { title: Invite someone, page: invitation }
+      more: { title: More, items: { deep: { title: Deep, page: members-list } } }
+      one: { title: One member, page: member-view }
+  admin:
+    title: Administration
+    items:
+      members: { title: Members, page: members-list }
+accessibility: { standard: WCAG 2.2, level: AA }

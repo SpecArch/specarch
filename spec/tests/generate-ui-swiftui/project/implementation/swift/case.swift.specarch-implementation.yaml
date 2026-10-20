@@ -5,6 +5,7 @@ stack: { language: { name: Swift, version: "6.0" } }
 mappings:
   "#/menus/admin": { target: the administration's own menu, ownedBy: administration }
   "#/paths/~1sessions/post": { target: the administration's own sign-in route, ownedBy: administration }
+  "#/pages/branch-list": { target: the branch directory's own screen, ownedBy: administration }
 targets:
   ui:
     output: ../../../ios

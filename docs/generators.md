@@ -809,12 +809,19 @@ page sign-in was asked for from is kept by the router, so there is no
 `returnTo` to check. `settings.server` is refused, since an app calls
 the service directly at the URL it sets; a file is compared byte for
 byte, and one built by hand without the header, as every generated file
-is. This version writes the task pages; the lists, forms and views are
-reported and left out, and come with the next steps of
-`docs/ui-swiftui.md`. The reference is the library lending example's
-sign-in and second-factor screens, written by hand first
-(`examples/library-lending/ios`), which `generate --check` reports as
-matching but for the header.
+is. The lists, forms and views take the same design keywords, settings,
+hooks, checks, refusals and events as on the web, with the same
+refusals (`generate-ui-swiftui-refused`), but a rule that orders a
+decimal, which the app compares exactly; a form's hooks come from
+`<Page>Hooks`, a type the project writes beside the page; a list's row
+actions are in its swipe and context menus, its sort a toolbar menu of
+the sortable columns, and its page turned under the rows; a view's
+actions that open a page are in its toolbar; an action's confirmation
+is a sheet with the reason it requires. The reference is the library
+lending example's sign-in and second-factor screens, written by hand
+first (`examples/library-lending/ios`), which `generate --check` reports
+as matching but for the header; its lists, forms and views build and
+pass their derived tests there.
 
 ## Tests from the specification
 

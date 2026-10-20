@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.2-dev of the specification: 531 design tests, 240 golden and 291 red, about 16 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.2-dev of the specification: 532 design tests, 240 golden and 292 red, about 16 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 4 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -19,7 +19,7 @@ Version 0.7.2-dev of the specification: 531 design tests, 240 golden and 291 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 527 |
+| system | 528 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -2085,9 +2085,17 @@ Scenario: golden; level: system; verifies SA-43.
 
 Scenario: golden; level: system; verifies SA-78.
 
-- Given: the specification of the generate-ui-typescript case, with two task pages, lists, forms, views, two menus and a theme with a dark mode, a print mode and a dimension; one implementation file in Swift with a ui target of platform iphone and no framework, its output a package folder, the session's operation in its settings, a hook and tabs for the registration form, a translation into en-GB whose file in the package keeps an entry no screen uses, its theme's parts mapped to tokens with a space among them, and the administration menu and the sign-in operation owned by another stakeholder; and specarch-gen-ui-swiftui built from this repository on PATH
+- Given: the specification of the generate-ui-typescript case, with two task pages, a list that filters, searches, sorts, opens pages from its toolbar and its rows and runs an operation on a row after a confirmation with a reason, a public list, a form that registers a member in two sections with every field type, a picker, a field entered twice, conditions and a check, a form that loads and changes a member, a view that hides a field by a rule and runs an operation with a reason, a form with child rows locked when loaded, a form that starts an approval, its inbox, two menus and a theme with a dark mode, a print mode and a dimension; one implementation file in Swift with a ui target of platform iphone and no framework, its output a package folder, the session's operation in its settings, a hook for the registration's date and its sections as tabs, a translation into en-GB whose file in the package keeps an entry no screen uses, its theme's parts mapped to tokens with a space among them, and the administration menu, the sign-in operation and the branch list, which reads an operation that does not page, owned by another stakeholder; and specarch-gen-ui-swiftui built from this repository on PATH
 - When: generate ui is run with --unapproved
-- Then: it runs the plug-in once; it writes the two task pages, each a schema of data as one Swift literal and a view that hands it to the task page component with the routes its events lead to, Routes.swift with a case per page written and per page an event leads to, Application.swift with the session, the sign-in page and the menu without the owned one and with the entry that opens a task page, the menu's derived test, the components under Screens, the texts in Strings.swift with the en-GB translation, and Theme.swift with the parts' colours in light and dark; it warns that each list, form and view is left out with the menu entries that open them, that the field with no title is labelled by its name, that the translation's unused entries, the print mode and the space are left out, and exits 0
+- Then: it runs the plug-in once; it writes each page as a schema of data, one Swift literal typed by its part's schema type with rules as array literals and the route's parameters and the fields a picker fills as dictionaries, and a view that hands it to the part's component, the task pages plain and the rest behind the guard with the route's parameters, the registration form taking its hooks from a type the project writes, each guarded page with its derived test that it is refused, sent to sign in or opened by the permission held; Routes.swift with a case per page and the view each opens, Application.swift with the session, the sign-in page and the menu without the owned one, the menu's derived test, the components under Screens, the texts in Strings.swift with the en-GB translation, and Theme.swift with the parts' colours in light and dark; it warns that the field with no title is labelled by its name and that the translation's unused entries, the print mode and the space are left out, and exits 0
+
+#### generate-ui-swiftui-refused
+
+Scenario: red; level: system; verifies SA-78.
+
+- Given: the specification of the generate-ui-typescript-refused case: an invitation page that shows a field of type integer, checks with an expression that adds, and whose operation answers a 201 the page has no event for; a form that leaves out a field its request body requires and checks with an expression that calls int; a view that checks with a call to decimal and offers an action that runs an operation and then opens another page; a list whose row opens a page after a confirmation; a form whose loaded child rows its source's answer does not carry, one whose loaded rows are not locked, and one whose relation the body has no array for; a menu with a group inside a group and an entry that opens a page whose route takes a parameter; and one implementation file in Swift whose ui target names a module of two words, a server, a hook for a view and for a field the form does not show, a layout that is not page, tabs or steps, and a translation whose file drops a placeholder and misses a key
+- When: generate ui is run with --unapproved
+- Then: it reports the module's name and the server under the settings, the two hooks and the layout, the integer field at the page's field, the addition at the check's expression and the 201 at the page's onSubmitted, the required field left out at the form, the calls at the checks' expressions, the page opened at the action's then, the confirmation at the row's action, the rows at each child row, the group and the parameter at the menu's entries, and the dropped placeholder and the missing key under the settings, each marked at its entry, writes the files it could make with each problem marked at its place, and exits 1; a view that orders a decimal is not refused, since the app compares one exactly
 
 #### generate-ui-typescript
 

@@ -5,18 +5,32 @@ import SwiftUI
 /// The pages, one case each with the parameters of its route; the app's
 /// NavigationStack opens each through destination.
 public enum Route: Hashable, Sendable {
+    case directory
     case invitation
+    case memberEdit(memberId: String)
+    case memberForm
     case memberView(memberId: String)
+    case membersList
+    case removalForm(memberId: String)
+    case removalsInbox
     case signIn
+    case visitsForm(memberId: String)
 }
 
 extension Route {
     /// The view the route opens.
     @MainActor @ViewBuilder public var destination: some View {
         switch self {
+        case .directory: DirectoryView()
         case .invitation: InvitationView()
-        case .memberView(let memberId): MissingPage(name: "member-view")
+        case .memberEdit(let memberId): MemberEditView(memberId: memberId)
+        case .memberForm: MemberFormView()
+        case .memberView(let memberId): MemberViewView(memberId: memberId)
+        case .membersList: MembersListView()
+        case .removalForm(let memberId): RemovalFormView(memberId: memberId)
+        case .removalsInbox: RemovalsInboxView()
         case .signIn: SignInView()
+        case .visitsForm(let memberId): VisitsFormView(memberId: memberId)
         }
     }
 }

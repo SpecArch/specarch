@@ -1,0 +1,173 @@
+import Foundation
+
+// Values on forms: a form holds every value as text under the path to it,
+// a field by its name, a part of a value as address.street, and a part of
+// a list's item as phones.0.number, with the number of items under
+// phones#items.
+
+/// A form's values held by path, and what a value of a schema or a list of
+/// them becomes on the wire.
+public enum HeldValues {
+    /// Whether a field holds a value of a schema or a list of them.
+    public static func holdsValue(_ field: FieldSchema) -> Bool {
+        field.type == .value || field.type == .valueList
+    }
+
+    /// The key a list keeps its number of items under.
+    public static func itemsOf(_ path: String) -> String {
+        path + "#items"
+    }
+
+    /// The number of items a list at path holds.
+    public static func countOf(_ values: Values, _ path: String) -> Int {
+        Int(values[itemsOf(path)] ?? "0") ?? 0
+    }
+
+    /// The text a field starts with from what the record holds, written into
+    /// out by path: a value part by part, a list item by item, or on a form
+    /// that creates one as many empty items as its minimum.
+    public static func startValue(_ field: FieldSchema, _ held: JSON?, _ path: String, _ out: inout Values) {
+        switch field.type {
+        case .value:
+            for part in field.parts ?? [] {
+                startValue(part, held?[part.name], path + "." + part.name, &out)
+            }
+        case .valueList:
+            let items: [JSON]? = {
+                if case .array(let a)? = held { return a }
+                return nil
+            }()
+            let count = items?.count ?? field.minimum.map { Int($0) } ?? 0
+            out[itemsOf(path)] = String(count)
+            for index in 0..<count {
+                let item = items.flatMap { index < $0.count ? $0[index] : nil }
+                for part in field.parts ?? [] {
+                    startValue(part, item?[part.name], path + "." + String(index) + "." + part.name, &out)
+                }
+            }
+        case .checkbox:
+            out[path] = held == .bool(true) ? "true" : "false"
+        default:
+            out[path] = held.map { $0 == .null ? "" : $0.text } ?? ""
+        }
+    }
+
+    /// Whether a person gave any part of the value at path: a text typed, a box ticked or an item added.
+    public static func given(_ field: FieldSchema, _ values: Values, _ path: String) -> Bool {
+        switch field.type {
+        case .value:
+            return (field.parts ?? []).contains { given($0, values, path + "." + $0.name) }
+        case .valueList:
+            return countOf(values, path) > 0
+        case .checkbox:
+            return values[path] == "true"
+        default:
+            return !(values[path] ?? "").isEmpty
+        }
+    }
+
+    /// A field's value as the service takes it: a value as an object of the
+    /// parts given, null while an optional one has none; a list as an array of
+    /// its items; anything else typed as the field is.
+    public static func sentValue(_ field: FieldSchema, _ values: Values, _ path: String) -> JSON {
+        switch field.type {
+        case .value:
+            if !field.required, !given(field, values, path) {
+                return .null
+            }
+            return partsSent(field.parts ?? [], values, path)
+        case .valueList:
+            return .array((0..<countOf(values, path)).map { partsSent(field.parts ?? [], values, path + "." + String($0)) })
+        default:
+            return Rules.typed(field, values[path] ?? "")
+        }
+    }
+
+    static func partsSent(_ parts: [FieldSchema], _ values: Values, _ path: String) -> JSON {
+        var value: [String: JSON] = [:]
+        for part in parts {
+            let sent = sentValue(part, values, path + "." + part.name)
+            if sent != .null {
+                value[part.name] = sent
+            }
+        }
+        return .object(value)
+    }
+
+    /// What stops a value being sent, by path: each part by its keywords, its
+    /// required parts once an optional value has one given, and a list's
+    /// number of items.
+    public static func valueProblems(_ field: FieldSchema, _ values: Values, _ path: String, _ texts: Texts, _ problems: inout [String: String]) {
+        switch field.type {
+        case .value:
+            if field.required || given(field, values, path) {
+                for part in field.parts ?? [] {
+                    valueProblems(part, values, path + "." + part.name, texts, &problems)
+                }
+            }
+        case .valueList:
+            let count = countOf(values, path)
+            if let minimum = field.minimum, Double(count) < minimum {
+                problems[path] = say(texts, Message(text: "screens.itemsAtLeast", count: minimum))
+            } else if let maximum = field.maximum, Double(count) > maximum {
+                problems[path] = say(texts, Message(text: "screens.itemsAtMost", count: maximum))
+            }
+            for index in 0..<count {
+                for part in field.parts ?? [] {
+                    valueProblems(part, values, path + "." + String(index) + "." + part.name, texts, &problems)
+                }
+            }
+        default:
+            if field.readOnly == true {
+                return
+            }
+            if let problem = Rules.fieldProblem(field, values[path] ?? "", texts) {
+                problems[path] = problem
+            }
+        }
+    }
+
+    /// The values with an empty item added at the end of the list at path.
+    public static func addItem(_ field: FieldSchema, _ values: Values, _ path: String) -> Values {
+        let count = countOf(values, path)
+        var next = values
+        next[itemsOf(path)] = String(count + 1)
+        for part in field.parts ?? [] {
+            startValue(part, nil, path + "." + String(count) + "." + part.name, &next)
+        }
+        return next
+    }
+
+    /// The values with the item at index taken out of the list at path, the later items moved up.
+    public static func removeItem(_ values: Values, _ path: String, _ index: Int) -> Values {
+        let prefix = path + "."
+        var next: Values = [:]
+        for (key, value) in values {
+            guard key.hasPrefix(prefix) else {
+                next[key] = value
+                continue
+            }
+            let rest = key.dropFirst(prefix.count)
+            let digits = rest.prefix { $0.isNumber }
+            guard !digits.isEmpty, let item = Int(digits), let after = rest.dropFirst(digits.count).first, after == "." || after == "#" else {
+                next[key] = value
+                continue
+            }
+            if item != index {
+                next[prefix + String(item > index ? item - 1 : item) + rest.dropFirst(digits.count)] = value
+            }
+        }
+        next[itemsOf(path)] = String(max(0, countOf(values, path) - 1))
+        return next
+    }
+
+    /// The first path under a field that has a problem; nil when none has.
+    public static func firstProblem(_ field: FieldSchema, _ problems: [String: String]) -> String? {
+        problems.keys.sorted().first { $0 == field.name || $0.hasPrefix(field.name + ".") || $0.hasPrefix(field.name + "#") }
+    }
+
+    /// The scalar fields of a list of form fields.
+    public static func scalars(_ fields: [FieldSchema]) -> [FieldSchema] {
+        fields.filter { !holdsValue($0) }
+    }
+}

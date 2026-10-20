@@ -651,7 +651,7 @@ redefined.
 | `workflows`, `trigger`, `subject`, `steps`, `approvers`, `deadline`, `onDeadline`, `escalateTo` | BPMN 2.0, a sequential subset | a request that finishes after people approve it: an approval is a user task with its potential owners and a timer, an operation step a service task |
 | `views`, `from`, `path`, `count`, `rows` | SpecArch, after the SQL view of ISO/IEC 9075 | a read model: an entity's row with fields read through its relations, counts and the rows of a one-to-many relation added, never written |
 | `schemas` | OpenAPI 3, `components.schemas` | value objects: named object schemas with no key and no table, data passed around but not stored |
-| `errors`, `status`, `title`, `condition`, `type`, `problem` | RFC 9457, Problem Details for HTTP APIs | the catalogue of problem types; `condition` is SpecArch's, the standard's other members are the document's own at run time |
+| `errors`, `status`, `title`, `condition`, `remedy`, `type`, `problem` | RFC 9457, Problem Details for HTTP APIs | the catalogue of problem types; `condition` and `remedy`, what the person who meets the problem does next (ADR-160), are SpecArch's, the standard's other members are the document's own at run time |
 | a duration (`timeout`, `idleTimeout`, `absoluteTimeout`) | ISO 8601, the form JSON Schema's `format: duration` names | days, hours, minutes and seconds only (`PT5S`, `P1DT12H`): weeks, months and years depend on the calendar, so a limit written in them would not mean the same every day |
 | `emits`, `algorithm` | SpecArch | links from an operation to its events and its computation |
 | `pages`, `kind`, `route`, `entity`, `source`, `submit`, `columns`, `fields`, `filters`, `actions` | SpecArch | UI page definitions; a page of kind `task` submits to an operation without loading a record |
@@ -671,7 +671,7 @@ redefined.
 | `environments`, `promotesTo`, `configuration`, `secret`, `release`, `rollback`, `migrations`, `steps`, `action`, `check` | SpecArch, after ISO/IEC/IEEE 12207 6.4.10 | the deployment stage: the transition process, written as environments, settings and steps |
 | `runBy`, `handover`, `to`, `source` (of a handover), `responsibilities` | SpecArch, after ISO/IEC/IEEE 12207 6.1.1 and 6.1.2 | who runs an environment, the vendor or the customer (12207's supplier and acquirer), and what a customer who runs one receives (ADR-129) |
 | `checks`, `signoff`, `criteria`, `signers` | SpecArch, after ISO/IEC/IEEE 12207 6.4.11 and IEC 62381 | the commissioning stage: validation on the installed system, the site acceptance test |
-| `monitors`, `objective` | SpecArch, after ISO/IEC/IEEE 12207 6.4.12 | the operation stage: what is watched on the live system |
+| `monitors`, `objective`, `response` | SpecArch, after ISO/IEC/IEEE 12207 6.4.12 | the operation stage: what is watched on the live system, and the steps the operator takes when the objective is missed (ADR-160) |
 | `backup`, `restore` | SpecArch, after ISO/IEC/IEEE 12207 6.4.12 | the operation stage: how the live system's data is saved and put back, as procedures (ADR-129) |
 | `testing`, `suites`, `designTests`, `designTestsOf`, `implementationOnly` | SpecArch | in implementation files: how one stack runs the design tests |
 | `stack`, `targets`, `deployments`, `environment` (of a deployment) | SpecArch | in implementation files: the stack, the output folders per target, and where the system really runs |

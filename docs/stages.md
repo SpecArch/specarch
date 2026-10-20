@@ -159,8 +159,9 @@ system's life, not once at a release, and they serve the vendor's own
 production as much as a customer's (ADR-129).
 
 A monitor says what is measured on the live system, in which environment,
-the objective it must meet as one verifiable sentence, and the requirements
-it verifies. A monitor is a promise about the live system, the way a
+the objective it must meet as one verifiable sentence, the requirements
+it verifies, and in `response` the steps the operator takes when the
+objective is missed, which the operations guide writes under it. A monitor is a promise about the live system, the way a
 requirement is, so it belongs in the specification; an incident that
 breaks one is a record, as `docs/maintenance.md` designs. The tool that
 measures, how, and where an alert goes are implementation: each deployment

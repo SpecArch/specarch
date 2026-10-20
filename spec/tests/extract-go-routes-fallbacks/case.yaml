@@ -5,26 +5,28 @@ repository:
     - [.]
 exitStatus: 0
 standardOutput: |
-  commit 7d63d2a277ab3006ef543c311568badcab303b76: the last change to .
+  commit 9b9cc6449b2d2fb5a81008e9773f585aa67dc57f: the last change to .
   counted 5 Go files, 0 of them importing dxlib's api package and 0 that do not parse, and left out 0: every tracked Go file under . but test files and files in a folder below it named testdata or vendor, or that the go command ignores
-  routers: counted 28 registrations: every call that registers a route on a router of net/http, chi, gin, echo or gorilla/mux that the reader follows from where it is made, with its groups, mounts and subrouters
-  routes: wrote 9 operations: one operation per route a router of net/http, chi, gin, echo or gorilla/mux registers with a literal method and path, outside a loop or a condition, under a prefix the reader knows
-  wrote 0 permissions and 50 questions: one permission per name a route checks with a literal, one question per thing the source does not say, and one per thing the meta-model cannot hold
-  not held: gorillafallback/router.go:27: the router mounted under PathPrefix /v2 matches by Methods as well as by path, which the meta-model does not hold; its routes are written without it; could question Q-44
-  not held: chifallback/router.go:12: the route GET /ready: its handler health serves more than one route; the operation is named getReady; could question Q-45
-  not held: echofallback/router.go:8: the route GET /version: its handler health serves more than one route; the operation is named getVersion; could question Q-46
-  not held: ginfallback/router.go:8: the route GET /health: its handler health serves more than one route; the operation is named getHealth; could question Q-47
-  not held: gorillafallback/router.go:18: the route GET /started: its handler health serves more than one route; the operation is named getStarted; could question Q-48
-  not held: muxfallback/mux.go:9: the route GET /metrics: its handler health serves more than one route; the operation is named getMetrics; could question Q-49
-  not held: muxfallback/mux.go:15: the route GET /status: its handler health serves more than one route; the operation is named getStatus; could question Q-50
-  handlers: followed 9 of 9 handlers into 9 functions, to 3 calls deep, and left 0 calls not followed: the handler of each operation, where it is a function literal, a function of the same package or one of another package of the module, and each function of the module its steps call
+  routers: counted 32 registrations: every call that registers a route on a router of net/http, chi, gin, echo or gorilla/mux that the reader follows from where it is made, with its groups, mounts and subrouters
+  routes: wrote 10 operations: one operation per route a router of net/http, chi, gin, echo or gorilla/mux registers with a literal method and path, outside a loop or a condition, under a prefix the reader knows
+  wrote 0 permissions and 58 questions: one permission per name a route checks with a literal, one question per thing the source does not say, and one per thing the meta-model cannot hold
+  not held: gorillafallback/router.go:28: the route /codes/{id:[0-9]{3}}: the parameter id matches the pattern [0-9]{3}, which is not written as its schema, since the router's pattern syntax is not JSON Schema's; could question Q-51
+  not held: gorillafallback/router.go:31: the router mounted under PathPrefix /v2 matches by Methods as well as by path, which the meta-model does not hold; its routes are written without it; could question Q-52
+  not held: chifallback/router.go:12: the route GET /ready: its handler health serves more than one route; the operation is named getReady; could question Q-53
+  not held: echofallback/router.go:8: the route GET /version: its handler health serves more than one route; the operation is named getVersion; could question Q-54
+  not held: ginfallback/router.go:8: the route GET /health: its handler health serves more than one route; the operation is named getHealth; could question Q-55
+  not held: gorillafallback/router.go:18: the route GET /started: its handler health serves more than one route; the operation is named getStarted; could question Q-56
+  not held: muxfallback/mux.go:9: the route GET /metrics: its handler health serves more than one route; the operation is named getMetrics; could question Q-57
+  not held: muxfallback/mux.go:15: the route GET /status: its handler health serves more than one route; the operation is named getStatus; could question Q-58
+  handlers: followed 10 of 10 handlers into 10 functions, to 3 calls deep, and left 0 calls not followed: the handler of each operation, where it is a function literal, a function of the same package or one of another package of the module, and each function of the module its steps call
   derived 0 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers
-  not derived: 1 draft test for operation items, held up by Q-1, Q-10, Q-11, Q-12, Q-13, Q-14, Q-15, Q-16, Q-17, Q-18, Q-19, Q-2, Q-3, Q-4, Q-5, Q-51, Q-6, Q-7, Q-8, Q-9; the validator warns for them until the questions are answered
-  not derived: 1 draft test for operation getHealth, held up by Q-1, Q-10, Q-11, Q-12, Q-13, Q-14, Q-15, Q-16, Q-2, Q-20, Q-21, Q-22, Q-3, Q-4, Q-5, Q-6, Q-7, Q-8, Q-9; the validator warns for them until the questions are answered
-  not derived: 1 draft test for operation loans, held up by Q-1, Q-10, Q-11, Q-12, Q-13, Q-14, Q-15, Q-16, Q-2, Q-23, Q-24, Q-25, Q-3, Q-4, Q-5, Q-52, Q-6, Q-7, Q-8, Q-9; the validator warns for them until the questions are answered
-  not derived: 1 draft test for operation getMetrics, held up by Q-1, Q-10, Q-11, Q-12, Q-13, Q-14, Q-15, Q-16, Q-2, Q-26, Q-27, Q-28, Q-3, Q-4, Q-5, Q-53, Q-6, Q-7, Q-8, Q-9; the validator warns for them until the questions are answered
-  not derived: 1 draft test for operation getReady, held up by Q-1, Q-10, Q-11, Q-12, Q-13, Q-14, Q-15, Q-16, Q-2, Q-29, Q-3, Q-30, Q-31, Q-4, Q-5, Q-54, Q-6, Q-7, Q-8, Q-9; the validator warns for them until the questions are answered
-  not derived: 1 draft test for operation getStarted, held up by Q-1, Q-10, Q-11, Q-12, Q-13, Q-14, Q-15, Q-16, Q-2, Q-3, Q-32, Q-33, Q-34, Q-4, Q-5, Q-55, Q-6, Q-7, Q-8, Q-9; the validator warns for them until the questions are answered
-  not derived: 1 draft test for operation getStatus, held up by Q-1, Q-10, Q-11, Q-12, Q-13, Q-14, Q-15, Q-16, Q-2, Q-3, Q-35, Q-36, Q-37, Q-4, Q-5, Q-53, Q-6, Q-7, Q-8, Q-9; the validator warns for them until the questions are answered
-  not derived: 1 draft test for operation itemsV2, held up by Q-1, Q-10, Q-11, Q-12, Q-13, Q-14, Q-15, Q-16, Q-2, Q-3, Q-38, Q-39, Q-4, Q-40, Q-5, Q-56, Q-6, Q-7, Q-8, Q-9; the validator warns for them until the questions are answered
-  not derived: 1 draft test for operation getVersion, held up by Q-1, Q-10, Q-11, Q-12, Q-13, Q-14, Q-15, Q-16, Q-2, Q-3, Q-4, Q-41, Q-42, Q-43, Q-5, Q-57, Q-6, Q-7, Q-8, Q-9; the validator warns for them until the questions are answered
+  not derived: 1 draft test for operation items, held up by Q-1, Q-10, Q-11, Q-12, Q-13, Q-14, Q-15, Q-16, Q-17, Q-18, Q-19, Q-2, Q-20, Q-21, Q-22, Q-3, Q-4, Q-5, Q-59, Q-6, Q-7, Q-8, Q-9; the validator warns for them until the questions are answered
+  not derived: 2 draft tests for operation code, held up by Q-1, Q-10, Q-11, Q-12, Q-13, Q-14, Q-15, Q-16, Q-17, Q-18, Q-19, Q-2, Q-23, Q-24, Q-25, Q-26, Q-3, Q-4, Q-5, Q-6, Q-60, Q-7, Q-8, Q-9; the validator warns for them until the questions are answered
+  not derived: 1 draft test for operation getHealth, held up by Q-1, Q-10, Q-11, Q-12, Q-13, Q-14, Q-15, Q-16, Q-17, Q-18, Q-19, Q-2, Q-27, Q-28, Q-29, Q-3, Q-4, Q-5, Q-6, Q-7, Q-8, Q-9; the validator warns for them until the questions are answered
+  not derived: 1 draft test for operation loans, held up by Q-1, Q-10, Q-11, Q-12, Q-13, Q-14, Q-15, Q-16, Q-17, Q-18, Q-19, Q-2, Q-3, Q-30, Q-31, Q-32, Q-4, Q-5, Q-6, Q-61, Q-7, Q-8, Q-9; the validator warns for them until the questions are answered
+  not derived: 1 draft test for operation getMetrics, held up by Q-1, Q-10, Q-11, Q-12, Q-13, Q-14, Q-15, Q-16, Q-17, Q-18, Q-19, Q-2, Q-3, Q-33, Q-34, Q-35, Q-4, Q-5, Q-6, Q-62, Q-7, Q-8, Q-9; the validator warns for them until the questions are answered
+  not derived: 1 draft test for operation getReady, held up by Q-1, Q-10, Q-11, Q-12, Q-13, Q-14, Q-15, Q-16, Q-17, Q-18, Q-19, Q-2, Q-3, Q-36, Q-37, Q-38, Q-4, Q-5, Q-6, Q-63, Q-7, Q-8, Q-9; the validator warns for them until the questions are answered
+  not derived: 1 draft test for operation getStarted, held up by Q-1, Q-10, Q-11, Q-12, Q-13, Q-14, Q-15, Q-16, Q-17, Q-18, Q-19, Q-2, Q-3, Q-39, Q-4, Q-40, Q-41, Q-5, Q-6, Q-64, Q-7, Q-8, Q-9; the validator warns for them until the questions are answered
+  not derived: 1 draft test for operation getStatus, held up by Q-1, Q-10, Q-11, Q-12, Q-13, Q-14, Q-15, Q-16, Q-17, Q-18, Q-19, Q-2, Q-3, Q-4, Q-42, Q-43, Q-44, Q-5, Q-6, Q-62, Q-7, Q-8, Q-9; the validator warns for them until the questions are answered
+  not derived: 1 draft test for operation itemsV2, held up by Q-1, Q-10, Q-11, Q-12, Q-13, Q-14, Q-15, Q-16, Q-17, Q-18, Q-19, Q-2, Q-3, Q-4, Q-45, Q-46, Q-47, Q-5, Q-6, Q-65, Q-7, Q-8, Q-9; the validator warns for them until the questions are answered
+  not derived: 1 draft test for operation getVersion, held up by Q-1, Q-10, Q-11, Q-12, Q-13, Q-14, Q-15, Q-16, Q-17, Q-18, Q-19, Q-2, Q-3, Q-4, Q-48, Q-49, Q-5, Q-50, Q-6, Q-66, Q-7, Q-8, Q-9; the validator warns for them until the questions are answered

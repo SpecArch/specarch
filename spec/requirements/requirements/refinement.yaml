@@ -157,11 +157,11 @@ requirements:
     acceptance:
       - extract gateway on a table with two rows writes the gateway with its claim and two forwards, two dependencies of kind system with their protocol from the addresses, two settings, and must questions for the gateway's description and token and for each dependency's description and timeout, byte-identical twice; a table with a repeated value or a key the format lacks is refused with the reason; with --implementation-out and an environment it writes that deployment's servers with name, url and dependency.
       - check reports a forward only the specification holds as forward_not_served, one only the table holds as forward_not_specified and a claim that differs as claim_differs, each an error the allowlist may name.
-      - merge leaves the fallback question of SA-78 out when a gateway table's tree answers it.
+      - merge leaves the fallback question of SA-79 out when a gateway table's tree answers it.
     verification: test
     needs: [NEED-8]
     why: The table a gateway forwards by was readable by nothing, and a gateway no check compares with its table drifts as every other part of a specification nobody compares with its code does.
-  SA-78:
+  SA-79:
     statement: specarch extract go shall read a route whose path is a package-level constant of the module or whose method list is a package-level list no statement of the module changes as it reads a literal one, and shall ask a must question at every fallback handler and catch-all route, in place of silence or a line.
     kind: functional
     priority: should

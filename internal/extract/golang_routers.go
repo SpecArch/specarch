@@ -93,9 +93,9 @@ var clientCalls = map[string]struct {
 }
 
 var (
-	routeWildcard = regexp.MustCompile(`\{([A-Za-z_][A-Za-z0-9_]*)(:[^}]*)?\}`)
-	colonParam    = regexp.MustCompile(`^:([A-Za-z_][A-Za-z0-9_]*)$`)
-	hostWord      = regexp.MustCompile(`[^A-Za-z0-9]+`)
+	variableName = regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_]*$`)
+	colonParam   = regexp.MustCompile(`^:([A-Za-z_][A-Za-z0-9_]*)$`)
+	hostWord     = regexp.MustCompile(`[^A-Za-z0-9]+`)
 )
 
 // routerNode is one router value: made by a library's call, a group or a
@@ -2341,11 +2341,11 @@ func (g *goReader) routePathNotes(lib, p string) (string, string, []string) {
 			if lib == "gorilla/mux" && gorillaCatchAll(s) {
 				return "", "the variable " + s + " matches a slash, so it takes the rest of the path, and a path parameter holds one segment", nil
 			}
-			if m := routeWildcard.FindStringSubmatch(s); m != nil && m[0] == s {
-				if m[2] != "" {
-					notes = append(notes, "the parameter "+m[1]+" matches the pattern "+strings.TrimPrefix(m[2], ":")+", which is not written as its schema, since the router's pattern syntax is not JSON Schema's")
+			if v, ok := wholeVariable(s); ok {
+				if v.pattern != "" {
+					notes = append(notes, "the parameter "+v.name+" matches the pattern "+v.pattern+", which is not written as its schema, since the router's pattern syntax is not JSON Schema's")
 				}
-				segs[i] = "{" + m[1] + "}"
+				segs[i] = "{" + v.name + "}"
 			}
 		}
 	}

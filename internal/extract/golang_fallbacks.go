@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"go/ast"
 	gotoken "go/token"
-	"regexp"
+	"regexp/syntax"
 	"strings"
 )
 
@@ -167,18 +167,92 @@ func pathSegments(p string) []string {
 	return append(segs, p[start:])
 }
 
-// gorillaCatchAll says whether a segment is a gorilla/mux variable whose
-// pattern can match a slash, so that it takes the rest of the path: the
-// pattern is compiled as gorilla/mux compiles it, anchored at both ends,
-// and tried on a/b. A pattern that does not compile is no catch-all,
-// since gorilla/mux refuses the route.
+// gorillaCatchAll says whether a segment holds a gorilla/mux variable
+// whose pattern can match a slash, so that it takes the rest of the
+// path. The pattern is parsed as gorilla/mux compiles it and read for a
+// slash anywhere in it: a literal holding one, a class whose ranges
+// cover it, or any character. A pattern that does not parse is no
+// catch-all, since gorilla/mux refuses the route.
 func gorillaCatchAll(s string) bool {
-	m := routeWildcard.FindStringSubmatch(s)
-	if m == nil || m[0] != s || m[2] == "" {
-		return false
+	for _, v := range routeVariables(s) {
+		if v.pattern == "" {
+			continue
+		}
+		re, err := syntax.Parse(v.pattern, syntax.Perl)
+		if err == nil && matchesSlash(re) {
+			return true
+		}
 	}
-	re, err := regexp.Compile("^(?:" + strings.TrimPrefix(m[2], ":") + ")$")
-	return err == nil && re.MatchString("a/b")
+	return false
+}
+
+// matchesSlash says whether a parsed pattern can match a slash.
+func matchesSlash(re *syntax.Regexp) bool {
+	switch re.Op {
+	case syntax.OpAnyChar, syntax.OpAnyCharNotNL:
+		return true
+	case syntax.OpLiteral:
+		for _, r := range re.Rune {
+			if r == '/' {
+				return true
+			}
+		}
+	case syntax.OpCharClass:
+		for i := 0; i+1 < len(re.Rune); i += 2 {
+			if re.Rune[i] <= '/' && '/' <= re.Rune[i+1] {
+				return true
+			}
+		}
+	}
+	for _, sub := range re.Sub {
+		if matchesSlash(sub) {
+			return true
+		}
+	}
+	return false
+}
+
+// routeVariable is a {name} or {name:pattern} variable of a route path.
+type routeVariable struct {
+	text, name, pattern string
+}
+
+// routeVariables are the variables of a path segment, each closed at
+// its matching brace by counting depth, as chi and gorilla/mux read
+// them, so a pattern holding braces such as [0-9]{3} stays whole.
+func routeVariables(s string) []routeVariable {
+	var vars []routeVariable
+	depth, start := 0, 0
+	for i, c := range s {
+		switch c {
+		case '{':
+			if depth == 0 {
+				start = i
+			}
+			depth++
+		case '}':
+			if depth == 0 {
+				continue
+			}
+			depth--
+			if depth == 0 {
+				inner := s[start+1 : i]
+				name, pattern, _ := strings.Cut(inner, ":")
+				vars = append(vars, routeVariable{text: s[start : i+1], name: name, pattern: pattern})
+			}
+		}
+	}
+	return vars
+}
+
+// wholeVariable is the variable a segment is, when it is one variable
+// and nothing else and its name is a word.
+func wholeVariable(s string) (routeVariable, bool) {
+	vars := routeVariables(s)
+	if len(vars) != 1 || vars[0].text != s || !variableName.MatchString(vars[0].name) {
+		return routeVariable{}, false
+	}
+	return vars[0], true
 }
 
 // catchAll asks about a route whose path ends in a catch-all, naming

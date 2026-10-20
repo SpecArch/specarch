@@ -616,7 +616,7 @@ and 4 (ADR-134's `kind` and `protocol` on a dependency, ADR-136's
 table stays in `extract outline` and under `gaps` as a surface not
 read, which is the right record.
 
-1. **The Go reader's constants and fallbacks** (ADR-143, SA-78, BUG-028,
+1. **The Go reader's constants and fallbacks** (ADR-143, SA-79, BUG-028,
    BUG-029). The two rules of section 3 in `internal/extract`, the walk
    paragraph of `spec/design/commands/extract.yaml`, the Go table of
    `docs/reading-code.md` and step 15 of `docs/extraction.md`, a test

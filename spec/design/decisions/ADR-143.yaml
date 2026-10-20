@@ -51,8 +51,14 @@ decisions:
       the same must question, naming the prefix and the methods, in place
       of a line. gorilla/mux has two catch-alls, and both take the
       question: a route variable whose pattern can match a slash
-      ({rest:.*}), which gorilla/mux compiles anchored at both ends, so
-      the reader compiles the pattern the same way and tries it on a/b;
+      ({rest:.*}), which the reader finds by parsing the pattern as Go's
+      regexp package parses it and reading it for a slash anywhere in it:
+      a literal holding one, a class whose ranges cover it, or any
+      character, since a pattern can match a slash only in a string of
+      its own shape ({file:.+\.png} matches a/b.png and not a/b), so no
+      one sample string finds them all; each variable is closed at its
+      matching brace by counting depth, as gorilla/mux reads it, so a
+      pattern holding braces ({rest:.{1,}}, {id:[0-9]{3}}) stays whole;
       and PathPrefix given a handler that is no router. PathPrefix given
       a router of the module mounts it under no prefix, as a ServeMux
       pattern of / does, since gorilla/mux hands the whole path on, and
@@ -99,4 +105,4 @@ decisions:
       docs/reading-code.md and step 15 of docs/extraction.md say so; a
       test with the fixture listed in BUG-028; BUG-028 and
       BUG-029 move to BUG_HISTORY.md with the fixing commit.
-    satisfies: [SA-78]
+    satisfies: [SA-79]

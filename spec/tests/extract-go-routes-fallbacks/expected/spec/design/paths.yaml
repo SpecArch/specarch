@@ -5,7 +5,16 @@ paths:
       origin: stated
       cites:
         - {source: code, clause: 'gorillafallback/router.go:20', says: Registers GET /api/items on a gorilla/mux router; its handler is items.}
-        - {source: code, clause: 'gorillafallback/router.go:37', says: The handler of GET /api/items reads no path parameter by name.}
+        - {source: code, clause: 'gorillafallback/router.go:41', says: The handler of GET /api/items reads no path parameter by name.}
+  /codes/{id}:
+    parameters:
+      - {name: id, in: path, required: true}
+    get:
+      operationId: code
+      origin: stated
+      cites:
+        - {source: code, clause: 'gorillafallback/router.go:28', says: 'Registers GET /codes/{id} on a gorilla/mux router; its handler is code.'}
+        - {source: code, clause: 'gorillafallback/router.go:43', says: 'The handler of GET /codes/{id} reads no path parameter by name.'}
   /health:
     get:
       operationId: getHealth
@@ -40,7 +49,7 @@ paths:
       origin: stated
       cites:
         - {source: code, clause: 'gorillafallback/router.go:18', says: Registers GET /started on a gorilla/mux router; its handler is health.}
-        - {source: code, clause: 'gorillafallback/router.go:36', says: The handler of GET /started reads no path parameter by name.}
+        - {source: code, clause: 'gorillafallback/router.go:40', says: The handler of GET /started reads no path parameter by name.}
   /status:
     get:
       operationId: getStatus
@@ -53,8 +62,8 @@ paths:
       operationId: itemsV2
       origin: stated
       cites:
-        - {source: code, clause: 'gorillafallback/router.go:26', says: Registers GET /v2/items on a gorilla/mux router; its handler is itemsV2.}
-        - {source: code, clause: 'gorillafallback/router.go:38', says: The handler of GET /v2/items reads no path parameter by name.}
+        - {source: code, clause: 'gorillafallback/router.go:30', says: Registers GET /v2/items on a gorilla/mux router; its handler is itemsV2.}
+        - {source: code, clause: 'gorillafallback/router.go:42', says: The handler of GET /v2/items reads no path parameter by name.}
   /version:
     get:
       operationId: getVersion

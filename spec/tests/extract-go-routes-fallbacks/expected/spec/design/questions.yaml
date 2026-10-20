@@ -119,28 +119,58 @@ questions:
     why: A route whose path ends in a catch-all takes every request under its prefix, as a fallback handler takes every request no route answers; a path parameter holds one segment, so no operation is written, and syntax cannot tell a gateway from a file server.
     cites:
       - {source: code, clause: 'gorillafallback/router.go:24', says: 'Registers GET /blobs/{key:[a-z/]+}.'}
-  # specarch-problem: question: open_question: (must, decision) gorillafallback/router.go:29 sets proxy with NotFoundHandler as the handler of every request no route answers. What does it answer or forward, and by which claim of the token does it pick the service? It blocks design. Decided by system-owner. Answer with a decision record that names Q-13 under answers. [Q-13]
+  # specarch-problem: question: open_question: (must, decision) gorillafallback/router.go:25 registers GET under /images with the rest of the path matched by {file:.+\.png}, a catch-all that takes every request under the prefix. What does its handler answer or forward, and by which claim of the token does it pick the service? It blocks design. Decided by system-owner. Answer with a decision record that names Q-13 under answers. [Q-13]
   Q-13:
-    question: gorillafallback/router.go:29 sets proxy with NotFoundHandler as the handler of every request no route answers. What does it answer or forward, and by which claim of the token does it pick the service?
+    question: gorillafallback/router.go:25 registers GET under /images with the rest of the path matched by {file:.+\.png}, a catch-all that takes every request under the prefix. What does its handler answer or forward, and by which claim of the token does it pick the service?
+    kind: decision
+    priority: must
+    blocks: [design]
+    decidedBy: system-owner
+    why: A route whose path ends in a catch-all takes every request under its prefix, as a fallback handler takes every request no route answers; a path parameter holds one segment, so no operation is written, and syntax cannot tell a gateway from a file server.
+    cites:
+      - {source: code, clause: 'gorillafallback/router.go:25', says: 'Registers GET /images/{file:.+\.png}.'}
+  # specarch-problem: question: open_question: (must, decision) gorillafallback/router.go:26 registers GET under /repos with the rest of the path matched by {p:[a-z]+/raw}, a catch-all that takes every request under the prefix. What does its handler answer or forward, and by which claim of the token does it pick the service? It blocks design. Decided by system-owner. Answer with a decision record that names Q-14 under answers. [Q-14]
+  Q-14:
+    question: gorillafallback/router.go:26 registers GET under /repos with the rest of the path matched by {p:[a-z]+/raw}, a catch-all that takes every request under the prefix. What does its handler answer or forward, and by which claim of the token does it pick the service?
+    kind: decision
+    priority: must
+    blocks: [design]
+    decidedBy: system-owner
+    why: A route whose path ends in a catch-all takes every request under its prefix, as a fallback handler takes every request no route answers; a path parameter holds one segment, so no operation is written, and syntax cannot tell a gateway from a file server.
+    cites:
+      - {source: code, clause: 'gorillafallback/router.go:26', says: 'Registers GET /repos/{p:[a-z]+/raw}.'}
+  # specarch-problem: question: open_question: (must, decision) gorillafallback/router.go:27 registers GET under /tail with the rest of the path matched by {rest:.{1,}}, a catch-all that takes every request under the prefix. What does its handler answer or forward, and by which claim of the token does it pick the service? It blocks design. Decided by system-owner. Answer with a decision record that names Q-15 under answers. [Q-15]
+  Q-15:
+    question: gorillafallback/router.go:27 registers GET under /tail with the rest of the path matched by {rest:.{1,}}, a catch-all that takes every request under the prefix. What does its handler answer or forward, and by which claim of the token does it pick the service?
+    kind: decision
+    priority: must
+    blocks: [design]
+    decidedBy: system-owner
+    why: A route whose path ends in a catch-all takes every request under its prefix, as a fallback handler takes every request no route answers; a path parameter holds one segment, so no operation is written, and syntax cannot tell a gateway from a file server.
+    cites:
+      - {source: code, clause: 'gorillafallback/router.go:27', says: 'Registers GET /tail/{rest:.{1,}}.'}
+  # specarch-problem: question: open_question: (must, decision) gorillafallback/router.go:33 sets proxy with NotFoundHandler as the handler of every request no route answers. What does it answer or forward, and by which claim of the token does it pick the service? It blocks design. Decided by system-owner. Answer with a decision record that names Q-16 under answers. [Q-16]
+  Q-16:
+    question: gorillafallback/router.go:33 sets proxy with NotFoundHandler as the handler of every request no route answers. What does it answer or forward, and by which claim of the token does it pick the service?
     kind: decision
     priority: must
     blocks: [design]
     decidedBy: system-owner
     why: A handler that takes every request no route answers is where a gateway lives, and where a plain 404 lives too; syntax cannot tell which, and a registration the reader knows is written or asked about, never dropped.
     cites:
-      - {source: code, clause: 'gorillafallback/router.go:29', says: Sets proxy with NotFoundHandler.}
-  # specarch-problem: question: open_question: (must, decision) gorillafallback/router.go:31 registers a route behind a condition at gorillafallback/router.go:30, so the reader cannot tell how many routes it registers, or whether it registers one. Which routes does the running system register here? It blocks paths. Decided by system-owner. Answer with a decision record that names Q-14 under answers. [Q-14]
-  Q-14:
-    question: gorillafallback/router.go:31 registers a route behind a condition at gorillafallback/router.go:30, so the reader cannot tell how many routes it registers, or whether it registers one. Which routes does the running system register here?
+      - {source: code, clause: 'gorillafallback/router.go:33', says: Sets proxy with NotFoundHandler.}
+  # specarch-problem: question: open_question: (must, decision) gorillafallback/router.go:35 registers a route behind a condition at gorillafallback/router.go:34, so the reader cannot tell how many routes it registers, or whether it registers one. Which routes does the running system register here? It blocks paths. Decided by system-owner. Answer with a decision record that names Q-17 under answers. [Q-17]
+  Q-17:
+    question: gorillafallback/router.go:35 registers a route behind a condition at gorillafallback/router.go:34, so the reader cannot tell how many routes it registers, or whether it registers one. Which routes does the running system register here?
     kind: decision
     priority: must
     blocks: [paths]
     decidedBy: system-owner
     why: Syntax does not run the code; only the running system's own list of routes, such as a route table, says what a loop or a condition registers.
     cites:
-      - {source: code, clause: 'gorillafallback/router.go:31', says: Registers a route behind a condition.}
-  # specarch-problem: question: open_question: (must, decision) muxfallback/mux.go:10 registers GET under /files with the rest of the path matched by {path...}, a catch-all that takes every request under the prefix. What does its handler answer or forward, and by which claim of the token does it pick the service? It blocks design. Decided by system-owner. Answer with a decision record that names Q-15 under answers. [Q-15]
-  Q-15:
+      - {source: code, clause: 'gorillafallback/router.go:35', says: Registers a route behind a condition.}
+  # specarch-problem: question: open_question: (must, decision) muxfallback/mux.go:10 registers GET under /files with the rest of the path matched by {path...}, a catch-all that takes every request under the prefix. What does its handler answer or forward, and by which claim of the token does it pick the service? It blocks design. Decided by system-owner. Answer with a decision record that names Q-18 under answers. [Q-18]
+  Q-18:
     question: muxfallback/mux.go:10 registers GET under /files with the rest of the path matched by {path...}, a catch-all that takes every request under the prefix. What does its handler answer or forward, and by which claim of the token does it pick the service?
     kind: decision
     priority: must
@@ -149,8 +179,8 @@ questions:
     why: A route whose path ends in a catch-all takes every request under its prefix, as a fallback handler takes every request no route answers; a path parameter holds one segment, so no operation is written, and syntax cannot tell a gateway from a file server.
     cites:
       - {source: code, clause: 'muxfallback/mux.go:10', says: 'Registers GET /files/{path...}.'}
-  # specarch-problem: question: open_question: (must, decision) muxfallback/mux.go:16 registers proxy for the pattern / with no method, which matches every request no other pattern answers. What does it answer or forward, and by which claim of the token does it pick the service? It blocks design. Decided by system-owner. Answer with a decision record that names Q-16 under answers. [Q-16]
-  Q-16:
+  # specarch-problem: question: open_question: (must, decision) muxfallback/mux.go:16 registers proxy for the pattern / with no method, which matches every request no other pattern answers. What does it answer or forward, and by which claim of the token does it pick the service? It blocks design. Decided by system-owner. Answer with a decision record that names Q-19 under answers. [Q-19]
+  Q-19:
     question: muxfallback/mux.go:16 registers proxy for the pattern / with no method, which matches every request no other pattern answers. What does it answer or forward, and by which claim of the token does it pick the service?
     kind: decision
     priority: must
@@ -159,24 +189,24 @@ questions:
     why: A handler that takes every request no route answers is where a gateway lives, and where a plain 404 lives too; syntax cannot tell which, and a registration the reader knows is written or asked about, never dropped.
     cites:
       - {source: code, clause: 'muxfallback/mux.go:16', says: Registers proxy for the pattern /.}
-  # specarch-problem: question: open_question: (must, decision) gorillafallback/router.go:20: no implementation file names the project's permission check, so the reader does not know which permission GET /api/items checks. Which permission does it check, or is it meant to be open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-17 under answers. [Q-17]
-  Q-17:
+  # specarch-problem: question: open_question: (must, decision) gorillafallback/router.go:20: no implementation file names the project's permission check, so the reader does not know which permission GET /api/items checks. Which permission does it check, or is it meant to be open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-20 under answers. [Q-20]
+  Q-20:
     question: 'gorillafallback/router.go:20: no implementation file names the project''s permission check, so the reader does not know which permission GET /api/items checks. Which permission does it check, or is it meant to be open to everyone (public)?'
     kind: decision
     priority: must
     blocks: ['#/paths/~1api~1items/get/permission']
     decidedBy: system-owner
     why: A check is a call the project writes its own way; the implementation file names it (bindings.http.permissionChecks), and without it no permission is read.
-  # specarch-problem: question: open_question: (must, decision) What does GET /api/items do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-18 under answers. [Q-18]
-  Q-18:
+  # specarch-problem: question: open_question: (must, decision) What does GET /api/items do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-21 under answers. [Q-21]
+  Q-21:
     question: What does GET /api/items do, and what does it answer?
     kind: decision
     priority: must
     blocks: ['#/paths/~1api~1items/get/summary', '#/paths/~1api~1items/get/responses']
     decidedBy: system-owner
     why: The source registers a handler and does not say what it does or the responses it gives.
-  # specarch-problem: question: open_question: (must, decision) Does the running system register GET /api/items? It is declared at gorillafallback/router.go:20, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-19 under answers. [Q-19]
-  Q-19:
+  # specarch-problem: question: open_question: (must, decision) Does the running system register GET /api/items? It is declared at gorillafallback/router.go:20, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-22 under answers. [Q-22]
+  Q-22:
     question: Does the running system register GET /api/items? It is declared at gorillafallback/router.go:20, and no list the running system printed was read with it.
     kind: decision
     priority: must
@@ -185,24 +215,58 @@ questions:
     why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
     cites:
       - {source: code, clause: 'gorillafallback/router.go:20', says: Registers GET /api/items.}
-  # specarch-problem: question: open_question: (must, decision) ginfallback/router.go:8: no implementation file names the project's permission check, so the reader does not know which permission GET /health checks. Which permission does it check, or is it meant to be open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-20 under answers. [Q-20]
-  Q-20:
+  # specarch-problem: question: open_question: (must, decision) What values does each path parameter of /codes/{id} take: id? Decided by system-owner. Answer with a decision record that names Q-23 under answers. [Q-23]
+  Q-23:
+    question: 'What values does each path parameter of /codes/{id} take: id?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1codes~1{id}/parameters/0/schema']
+    decidedBy: system-owner
+    why: A path names its parameters and not the values they take.
+  # specarch-problem: question: open_question: (must, decision) gorillafallback/router.go:28: no implementation file names the project's permission check, so the reader does not know which permission GET /codes/{id} checks. Which permission does it check, or is it meant to be open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-24 under answers. [Q-24]
+  Q-24:
+    question: 'gorillafallback/router.go:28: no implementation file names the project''s permission check, so the reader does not know which permission GET /codes/{id} checks. Which permission does it check, or is it meant to be open to everyone (public)?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1codes~1{id}/get/permission']
+    decidedBy: system-owner
+    why: A check is a call the project writes its own way; the implementation file names it (bindings.http.permissionChecks), and without it no permission is read.
+  # specarch-problem: question: open_question: (must, decision) What does GET /codes/{id} do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-25 under answers. [Q-25]
+  Q-25:
+    question: What does GET /codes/{id} do, and what does it answer?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1codes~1{id}/get/summary', '#/paths/~1codes~1{id}/get/responses']
+    decidedBy: system-owner
+    why: The source registers a handler and does not say what it does or the responses it gives.
+  # specarch-problem: question: open_question: (must, decision) Does the running system register GET /codes/{id}? It is declared at gorillafallback/router.go:28, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-26 under answers. [Q-26]
+  Q-26:
+    question: Does the running system register GET /codes/{id}? It is declared at gorillafallback/router.go:28, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1codes~1{id}/get']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'gorillafallback/router.go:28', says: 'Registers GET /codes/{id}.'}
+  # specarch-problem: question: open_question: (must, decision) ginfallback/router.go:8: no implementation file names the project's permission check, so the reader does not know which permission GET /health checks. Which permission does it check, or is it meant to be open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-27 under answers. [Q-27]
+  Q-27:
     question: 'ginfallback/router.go:8: no implementation file names the project''s permission check, so the reader does not know which permission GET /health checks. Which permission does it check, or is it meant to be open to everyone (public)?'
     kind: decision
     priority: must
     blocks: ['#/paths/~1health/get/permission']
     decidedBy: system-owner
     why: A check is a call the project writes its own way; the implementation file names it (bindings.http.permissionChecks), and without it no permission is read.
-  # specarch-problem: question: open_question: (must, decision) What does GET /health do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-21 under answers. [Q-21]
-  Q-21:
+  # specarch-problem: question: open_question: (must, decision) What does GET /health do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-28 under answers. [Q-28]
+  Q-28:
     question: What does GET /health do, and what does it answer?
     kind: decision
     priority: must
     blocks: ['#/paths/~1health/get/summary', '#/paths/~1health/get/responses']
     decidedBy: system-owner
     why: The source registers a handler and does not say what it does or the responses it gives.
-  # specarch-problem: question: open_question: (must, decision) Does the running system register GET /health? It is declared at ginfallback/router.go:8, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-22 under answers. [Q-22]
-  Q-22:
+  # specarch-problem: question: open_question: (must, decision) Does the running system register GET /health? It is declared at ginfallback/router.go:8, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-29 under answers. [Q-29]
+  Q-29:
     question: Does the running system register GET /health? It is declared at ginfallback/router.go:8, and no list the running system printed was read with it.
     kind: decision
     priority: must
@@ -211,24 +275,24 @@ questions:
     why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
     cites:
       - {source: code, clause: 'ginfallback/router.go:8', says: Registers GET /health.}
-  # specarch-problem: question: open_question: (must, decision) muxfallback/mux.go:12: no implementation file names the project's permission check, so the reader does not know which permission GET /loans checks. Which permission does it check, or is it meant to be open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-23 under answers. [Q-23]
-  Q-23:
+  # specarch-problem: question: open_question: (must, decision) muxfallback/mux.go:12: no implementation file names the project's permission check, so the reader does not know which permission GET /loans checks. Which permission does it check, or is it meant to be open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-30 under answers. [Q-30]
+  Q-30:
     question: 'muxfallback/mux.go:12: no implementation file names the project''s permission check, so the reader does not know which permission GET /loans checks. Which permission does it check, or is it meant to be open to everyone (public)?'
     kind: decision
     priority: must
     blocks: ['#/paths/~1loans/get/permission']
     decidedBy: system-owner
     why: A check is a call the project writes its own way; the implementation file names it (bindings.http.permissionChecks), and without it no permission is read.
-  # specarch-problem: question: open_question: (must, decision) What does GET /loans do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-24 under answers. [Q-24]
-  Q-24:
+  # specarch-problem: question: open_question: (must, decision) What does GET /loans do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-31 under answers. [Q-31]
+  Q-31:
     question: What does GET /loans do, and what does it answer?
     kind: decision
     priority: must
     blocks: ['#/paths/~1loans/get/summary', '#/paths/~1loans/get/responses']
     decidedBy: system-owner
     why: The source registers a handler and does not say what it does or the responses it gives.
-  # specarch-problem: question: open_question: (must, decision) Does the running system register GET /loans? It is declared at muxfallback/mux.go:12, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-25 under answers. [Q-25]
-  Q-25:
+  # specarch-problem: question: open_question: (must, decision) Does the running system register GET /loans? It is declared at muxfallback/mux.go:12, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-32 under answers. [Q-32]
+  Q-32:
     question: Does the running system register GET /loans? It is declared at muxfallback/mux.go:12, and no list the running system printed was read with it.
     kind: decision
     priority: must
@@ -237,24 +301,24 @@ questions:
     why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
     cites:
       - {source: code, clause: 'muxfallback/mux.go:12', says: Registers GET /loans.}
-  # specarch-problem: question: open_question: (must, decision) muxfallback/mux.go:9: no implementation file names the project's permission check, so the reader does not know which permission GET /metrics checks. Which permission does it check, or is it meant to be open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-26 under answers. [Q-26]
-  Q-26:
+  # specarch-problem: question: open_question: (must, decision) muxfallback/mux.go:9: no implementation file names the project's permission check, so the reader does not know which permission GET /metrics checks. Which permission does it check, or is it meant to be open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-33 under answers. [Q-33]
+  Q-33:
     question: 'muxfallback/mux.go:9: no implementation file names the project''s permission check, so the reader does not know which permission GET /metrics checks. Which permission does it check, or is it meant to be open to everyone (public)?'
     kind: decision
     priority: must
     blocks: ['#/paths/~1metrics/get/permission']
     decidedBy: system-owner
     why: A check is a call the project writes its own way; the implementation file names it (bindings.http.permissionChecks), and without it no permission is read.
-  # specarch-problem: question: open_question: (must, decision) What does GET /metrics do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-27 under answers. [Q-27]
-  Q-27:
+  # specarch-problem: question: open_question: (must, decision) What does GET /metrics do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-34 under answers. [Q-34]
+  Q-34:
     question: What does GET /metrics do, and what does it answer?
     kind: decision
     priority: must
     blocks: ['#/paths/~1metrics/get/summary', '#/paths/~1metrics/get/responses']
     decidedBy: system-owner
     why: The source registers a handler and does not say what it does or the responses it gives.
-  # specarch-problem: question: open_question: (must, decision) Does the running system register GET /metrics? It is declared at muxfallback/mux.go:9, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-28 under answers. [Q-28]
-  Q-28:
+  # specarch-problem: question: open_question: (must, decision) Does the running system register GET /metrics? It is declared at muxfallback/mux.go:9, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-35 under answers. [Q-35]
+  Q-35:
     question: Does the running system register GET /metrics? It is declared at muxfallback/mux.go:9, and no list the running system printed was read with it.
     kind: decision
     priority: must
@@ -263,24 +327,24 @@ questions:
     why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
     cites:
       - {source: code, clause: 'muxfallback/mux.go:9', says: Registers GET /metrics.}
-  # specarch-problem: question: open_question: (must, decision) chifallback/router.go:12: no implementation file names the project's permission check, so the reader does not know which permission GET /ready checks. Which permission does it check, or is it meant to be open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-29 under answers. [Q-29]
-  Q-29:
+  # specarch-problem: question: open_question: (must, decision) chifallback/router.go:12: no implementation file names the project's permission check, so the reader does not know which permission GET /ready checks. Which permission does it check, or is it meant to be open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-36 under answers. [Q-36]
+  Q-36:
     question: 'chifallback/router.go:12: no implementation file names the project''s permission check, so the reader does not know which permission GET /ready checks. Which permission does it check, or is it meant to be open to everyone (public)?'
     kind: decision
     priority: must
     blocks: ['#/paths/~1ready/get/permission']
     decidedBy: system-owner
     why: A check is a call the project writes its own way; the implementation file names it (bindings.http.permissionChecks), and without it no permission is read.
-  # specarch-problem: question: open_question: (must, decision) What does GET /ready do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-30 under answers. [Q-30]
-  Q-30:
+  # specarch-problem: question: open_question: (must, decision) What does GET /ready do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-37 under answers. [Q-37]
+  Q-37:
     question: What does GET /ready do, and what does it answer?
     kind: decision
     priority: must
     blocks: ['#/paths/~1ready/get/summary', '#/paths/~1ready/get/responses']
     decidedBy: system-owner
     why: The source registers a handler and does not say what it does or the responses it gives.
-  # specarch-problem: question: open_question: (must, decision) Does the running system register GET /ready? It is declared at chifallback/router.go:12, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-31 under answers. [Q-31]
-  Q-31:
+  # specarch-problem: question: open_question: (must, decision) Does the running system register GET /ready? It is declared at chifallback/router.go:12, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-38 under answers. [Q-38]
+  Q-38:
     question: Does the running system register GET /ready? It is declared at chifallback/router.go:12, and no list the running system printed was read with it.
     kind: decision
     priority: must
@@ -289,24 +353,24 @@ questions:
     why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
     cites:
       - {source: code, clause: 'chifallback/router.go:12', says: Registers GET /ready.}
-  # specarch-problem: question: open_question: (must, decision) gorillafallback/router.go:18: no implementation file names the project's permission check, so the reader does not know which permission GET /started checks. Which permission does it check, or is it meant to be open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-32 under answers. [Q-32]
-  Q-32:
+  # specarch-problem: question: open_question: (must, decision) gorillafallback/router.go:18: no implementation file names the project's permission check, so the reader does not know which permission GET /started checks. Which permission does it check, or is it meant to be open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-39 under answers. [Q-39]
+  Q-39:
     question: 'gorillafallback/router.go:18: no implementation file names the project''s permission check, so the reader does not know which permission GET /started checks. Which permission does it check, or is it meant to be open to everyone (public)?'
     kind: decision
     priority: must
     blocks: ['#/paths/~1started/get/permission']
     decidedBy: system-owner
     why: A check is a call the project writes its own way; the implementation file names it (bindings.http.permissionChecks), and without it no permission is read.
-  # specarch-problem: question: open_question: (must, decision) What does GET /started do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-33 under answers. [Q-33]
-  Q-33:
+  # specarch-problem: question: open_question: (must, decision) What does GET /started do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-40 under answers. [Q-40]
+  Q-40:
     question: What does GET /started do, and what does it answer?
     kind: decision
     priority: must
     blocks: ['#/paths/~1started/get/summary', '#/paths/~1started/get/responses']
     decidedBy: system-owner
     why: The source registers a handler and does not say what it does or the responses it gives.
-  # specarch-problem: question: open_question: (must, decision) Does the running system register GET /started? It is declared at gorillafallback/router.go:18, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-34 under answers. [Q-34]
-  Q-34:
+  # specarch-problem: question: open_question: (must, decision) Does the running system register GET /started? It is declared at gorillafallback/router.go:18, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-41 under answers. [Q-41]
+  Q-41:
     question: Does the running system register GET /started? It is declared at gorillafallback/router.go:18, and no list the running system printed was read with it.
     kind: decision
     priority: must
@@ -315,24 +379,24 @@ questions:
     why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
     cites:
       - {source: code, clause: 'gorillafallback/router.go:18', says: Registers GET /started.}
-  # specarch-problem: question: open_question: (must, decision) muxfallback/mux.go:15: no implementation file names the project's permission check, so the reader does not know which permission GET /status checks. Which permission does it check, or is it meant to be open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-35 under answers. [Q-35]
-  Q-35:
+  # specarch-problem: question: open_question: (must, decision) muxfallback/mux.go:15: no implementation file names the project's permission check, so the reader does not know which permission GET /status checks. Which permission does it check, or is it meant to be open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-42 under answers. [Q-42]
+  Q-42:
     question: 'muxfallback/mux.go:15: no implementation file names the project''s permission check, so the reader does not know which permission GET /status checks. Which permission does it check, or is it meant to be open to everyone (public)?'
     kind: decision
     priority: must
     blocks: ['#/paths/~1status/get/permission']
     decidedBy: system-owner
     why: A check is a call the project writes its own way; the implementation file names it (bindings.http.permissionChecks), and without it no permission is read.
-  # specarch-problem: question: open_question: (must, decision) What does GET /status do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-36 under answers. [Q-36]
-  Q-36:
+  # specarch-problem: question: open_question: (must, decision) What does GET /status do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-43 under answers. [Q-43]
+  Q-43:
     question: What does GET /status do, and what does it answer?
     kind: decision
     priority: must
     blocks: ['#/paths/~1status/get/summary', '#/paths/~1status/get/responses']
     decidedBy: system-owner
     why: The source registers a handler and does not say what it does or the responses it gives.
-  # specarch-problem: question: open_question: (must, decision) Does the running system register GET /status? It is declared at muxfallback/mux.go:15, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-37 under answers. [Q-37]
-  Q-37:
+  # specarch-problem: question: open_question: (must, decision) Does the running system register GET /status? It is declared at muxfallback/mux.go:15, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-44 under answers. [Q-44]
+  Q-44:
     question: Does the running system register GET /status? It is declared at muxfallback/mux.go:15, and no list the running system printed was read with it.
     kind: decision
     priority: must
@@ -341,50 +405,50 @@ questions:
     why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
     cites:
       - {source: code, clause: 'muxfallback/mux.go:15', says: Registers GET /status.}
-  # specarch-problem: question: open_question: (must, decision) gorillafallback/router.go:26: no implementation file names the project's permission check, so the reader does not know which permission GET /v2/items checks. Which permission does it check, or is it meant to be open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-38 under answers. [Q-38]
-  Q-38:
-    question: 'gorillafallback/router.go:26: no implementation file names the project''s permission check, so the reader does not know which permission GET /v2/items checks. Which permission does it check, or is it meant to be open to everyone (public)?'
+  # specarch-problem: question: open_question: (must, decision) gorillafallback/router.go:30: no implementation file names the project's permission check, so the reader does not know which permission GET /v2/items checks. Which permission does it check, or is it meant to be open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-45 under answers. [Q-45]
+  Q-45:
+    question: 'gorillafallback/router.go:30: no implementation file names the project''s permission check, so the reader does not know which permission GET /v2/items checks. Which permission does it check, or is it meant to be open to everyone (public)?'
     kind: decision
     priority: must
     blocks: ['#/paths/~1v2~1items/get/permission']
     decidedBy: system-owner
     why: A check is a call the project writes its own way; the implementation file names it (bindings.http.permissionChecks), and without it no permission is read.
-  # specarch-problem: question: open_question: (must, decision) What does GET /v2/items do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-39 under answers. [Q-39]
-  Q-39:
+  # specarch-problem: question: open_question: (must, decision) What does GET /v2/items do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-46 under answers. [Q-46]
+  Q-46:
     question: What does GET /v2/items do, and what does it answer?
     kind: decision
     priority: must
     blocks: ['#/paths/~1v2~1items/get/summary', '#/paths/~1v2~1items/get/responses']
     decidedBy: system-owner
     why: The source registers a handler and does not say what it does or the responses it gives.
-  # specarch-problem: question: open_question: (must, decision) Does the running system register GET /v2/items? It is declared at gorillafallback/router.go:26, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-40 under answers. [Q-40]
-  Q-40:
-    question: Does the running system register GET /v2/items? It is declared at gorillafallback/router.go:26, and no list the running system printed was read with it.
+  # specarch-problem: question: open_question: (must, decision) Does the running system register GET /v2/items? It is declared at gorillafallback/router.go:30, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-47 under answers. [Q-47]
+  Q-47:
+    question: Does the running system register GET /v2/items? It is declared at gorillafallback/router.go:30, and no list the running system printed was read with it.
     kind: decision
     priority: must
     blocks: ['#/paths/~1v2~1items/get']
     decidedBy: system-owner
     why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
     cites:
-      - {source: code, clause: 'gorillafallback/router.go:26', says: Registers GET /v2/items.}
-  # specarch-problem: question: open_question: (must, decision) echofallback/router.go:8: no implementation file names the project's permission check, so the reader does not know which permission GET /version checks. Which permission does it check, or is it meant to be open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-41 under answers. [Q-41]
-  Q-41:
+      - {source: code, clause: 'gorillafallback/router.go:30', says: Registers GET /v2/items.}
+  # specarch-problem: question: open_question: (must, decision) echofallback/router.go:8: no implementation file names the project's permission check, so the reader does not know which permission GET /version checks. Which permission does it check, or is it meant to be open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-48 under answers. [Q-48]
+  Q-48:
     question: 'echofallback/router.go:8: no implementation file names the project''s permission check, so the reader does not know which permission GET /version checks. Which permission does it check, or is it meant to be open to everyone (public)?'
     kind: decision
     priority: must
     blocks: ['#/paths/~1version/get/permission']
     decidedBy: system-owner
     why: A check is a call the project writes its own way; the implementation file names it (bindings.http.permissionChecks), and without it no permission is read.
-  # specarch-problem: question: open_question: (must, decision) What does GET /version do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-42 under answers. [Q-42]
-  Q-42:
+  # specarch-problem: question: open_question: (must, decision) What does GET /version do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-49 under answers. [Q-49]
+  Q-49:
     question: What does GET /version do, and what does it answer?
     kind: decision
     priority: must
     blocks: ['#/paths/~1version/get/summary', '#/paths/~1version/get/responses']
     decidedBy: system-owner
     why: The source registers a handler and does not say what it does or the responses it gives.
-  # specarch-problem: question: open_question: (must, decision) Does the running system register GET /version? It is declared at echofallback/router.go:8, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-43 under answers. [Q-43]
-  Q-43:
+  # specarch-problem: question: open_question: (must, decision) Does the running system register GET /version? It is declared at echofallback/router.go:8, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-50 under answers. [Q-50]
+  Q-50:
     question: Does the running system register GET /version? It is declared at echofallback/router.go:8, and no list the running system printed was read with it.
     kind: decision
     priority: must
@@ -393,18 +457,28 @@ questions:
     why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
     cites:
       - {source: code, clause: 'echofallback/router.go:8', says: Registers GET /version.}
-  # specarch-problem: question: open_question: (could, decision) Not held: gorillafallback/router.go:27: the router mounted under PathPrefix /v2 matches by Methods as well as by path, which the meta-model does not hold; its routes are written without it. Does the specification need it, written another way or described by hand? It blocks paths. Decided by system-owner. Answer with a decision record that names Q-44 under answers. [Q-44]
-  Q-44:
-    question: 'Not held: gorillafallback/router.go:27: the router mounted under PathPrefix /v2 matches by Methods as well as by path, which the meta-model does not hold; its routes are written without it. Does the specification need it, written another way or described by hand?'
+  # specarch-problem: question: open_question: (could, decision) Not held: gorillafallback/router.go:28: the route /codes/{id:[0-9]{3}}: the parameter id matches the pattern [0-9]{3}, which is not written as its schema, since the router's pattern syntax is not JSON Schema's. Does the specification need it, written another way or described by hand? It blocks paths. Decided by system-owner. Answer with a decision record that names Q-51 under answers. [Q-51]
+  Q-51:
+    question: 'Not held: gorillafallback/router.go:28: the route /codes/{id:[0-9]{3}}: the parameter id matches the pattern [0-9]{3}, which is not written as its schema, since the router''s pattern syntax is not JSON Schema''s. Does the specification need it, written another way or described by hand?'
     kind: decision
     priority: could
     blocks: [paths]
     decidedBy: system-owner
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
-      - {source: code, clause: 'gorillafallback/router.go:27', says: 'Not held: the router mounted under PathPrefix /v2 matches by Methods as well as by path, which the meta-model does not hold; its routes are written without it.'}
-  # specarch-problem: question: open_question: (could, decision) Not held: chifallback/router.go:12: the route GET /ready: its handler health serves more than one route; the operation is named getReady. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-45 under answers. [Q-45]
-  Q-45:
+      - {source: code, clause: 'gorillafallback/router.go:28', says: 'Not held: the route /codes/{id:[0-9]{3}}: the parameter id matches the pattern [0-9]{3}, which is not written as its schema, since the router''s pattern syntax is not JSON Schema''s.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: gorillafallback/router.go:31: the router mounted under PathPrefix /v2 matches by Methods as well as by path, which the meta-model does not hold; its routes are written without it. Does the specification need it, written another way or described by hand? It blocks paths. Decided by system-owner. Answer with a decision record that names Q-52 under answers. [Q-52]
+  Q-52:
+    question: 'Not held: gorillafallback/router.go:31: the router mounted under PathPrefix /v2 matches by Methods as well as by path, which the meta-model does not hold; its routes are written without it. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: [paths]
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'gorillafallback/router.go:31', says: 'Not held: the router mounted under PathPrefix /v2 matches by Methods as well as by path, which the meta-model does not hold; its routes are written without it.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: chifallback/router.go:12: the route GET /ready: its handler health serves more than one route; the operation is named getReady. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-53 under answers. [Q-53]
+  Q-53:
     question: 'Not held: chifallback/router.go:12: the route GET /ready: its handler health serves more than one route; the operation is named getReady. Does the specification need it, written another way or described by hand?'
     kind: decision
     priority: could
@@ -413,8 +487,8 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: code, clause: 'chifallback/router.go:12', says: 'Not held: the route GET /ready: its handler health serves more than one route; the operation is named getReady.'}
-  # specarch-problem: question: open_question: (could, decision) Not held: echofallback/router.go:8: the route GET /version: its handler health serves more than one route; the operation is named getVersion. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-46 under answers. [Q-46]
-  Q-46:
+  # specarch-problem: question: open_question: (could, decision) Not held: echofallback/router.go:8: the route GET /version: its handler health serves more than one route; the operation is named getVersion. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-54 under answers. [Q-54]
+  Q-54:
     question: 'Not held: echofallback/router.go:8: the route GET /version: its handler health serves more than one route; the operation is named getVersion. Does the specification need it, written another way or described by hand?'
     kind: decision
     priority: could
@@ -423,8 +497,8 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: code, clause: 'echofallback/router.go:8', says: 'Not held: the route GET /version: its handler health serves more than one route; the operation is named getVersion.'}
-  # specarch-problem: question: open_question: (could, decision) Not held: ginfallback/router.go:8: the route GET /health: its handler health serves more than one route; the operation is named getHealth. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-47 under answers. [Q-47]
-  Q-47:
+  # specarch-problem: question: open_question: (could, decision) Not held: ginfallback/router.go:8: the route GET /health: its handler health serves more than one route; the operation is named getHealth. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-55 under answers. [Q-55]
+  Q-55:
     question: 'Not held: ginfallback/router.go:8: the route GET /health: its handler health serves more than one route; the operation is named getHealth. Does the specification need it, written another way or described by hand?'
     kind: decision
     priority: could
@@ -433,8 +507,8 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: code, clause: 'ginfallback/router.go:8', says: 'Not held: the route GET /health: its handler health serves more than one route; the operation is named getHealth.'}
-  # specarch-problem: question: open_question: (could, decision) Not held: gorillafallback/router.go:18: the route GET /started: its handler health serves more than one route; the operation is named getStarted. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-48 under answers. [Q-48]
-  Q-48:
+  # specarch-problem: question: open_question: (could, decision) Not held: gorillafallback/router.go:18: the route GET /started: its handler health serves more than one route; the operation is named getStarted. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-56 under answers. [Q-56]
+  Q-56:
     question: 'Not held: gorillafallback/router.go:18: the route GET /started: its handler health serves more than one route; the operation is named getStarted. Does the specification need it, written another way or described by hand?'
     kind: decision
     priority: could
@@ -443,8 +517,8 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: code, clause: 'gorillafallback/router.go:18', says: 'Not held: the route GET /started: its handler health serves more than one route; the operation is named getStarted.'}
-  # specarch-problem: question: open_question: (could, decision) Not held: muxfallback/mux.go:9: the route GET /metrics: its handler health serves more than one route; the operation is named getMetrics. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-49 under answers. [Q-49]
-  Q-49:
+  # specarch-problem: question: open_question: (could, decision) Not held: muxfallback/mux.go:9: the route GET /metrics: its handler health serves more than one route; the operation is named getMetrics. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-57 under answers. [Q-57]
+  Q-57:
     question: 'Not held: muxfallback/mux.go:9: the route GET /metrics: its handler health serves more than one route; the operation is named getMetrics. Does the specification need it, written another way or described by hand?'
     kind: decision
     priority: could
@@ -453,8 +527,8 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: code, clause: 'muxfallback/mux.go:9', says: 'Not held: the route GET /metrics: its handler health serves more than one route; the operation is named getMetrics.'}
-  # specarch-problem: question: open_question: (could, decision) Not held: muxfallback/mux.go:15: the route GET /status: its handler health serves more than one route; the operation is named getStatus. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-50 under answers. [Q-50]
-  Q-50:
+  # specarch-problem: question: open_question: (could, decision) Not held: muxfallback/mux.go:15: the route GET /status: its handler health serves more than one route; the operation is named getStatus. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-58 under answers. [Q-58]
+  Q-58:
     question: 'Not held: muxfallback/mux.go:15: the route GET /status: its handler health serves more than one route; the operation is named getStatus. Does the specification need it, written another way or described by hand?'
     kind: decision
     priority: could
@@ -463,9 +537,9 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: code, clause: 'muxfallback/mux.go:15', says: 'Not held: the route GET /status: its handler health serves more than one route; the operation is named getStatus.'}
-  # specarch-problem: question: open_question: (should, decision, suspected) gorillafallback/router.go:37: the handler gorillafallback.items of GET /api/items does nothing: its body has no step. Is it a stub, with the operation not built yet? Decided by system-owner. Answer with a decision record that names Q-51 under answers. [Q-51]
-  Q-51:
-    question: 'gorillafallback/router.go:37: the handler gorillafallback.items of GET /api/items does nothing: its body has no step. Is it a stub, with the operation not built yet?'
+  # specarch-problem: question: open_question: (should, decision, suspected) gorillafallback/router.go:41: the handler gorillafallback.items of GET /api/items does nothing: its body has no step. Is it a stub, with the operation not built yet? Decided by system-owner. Answer with a decision record that names Q-59 under answers. [Q-59]
+  Q-59:
+    question: 'gorillafallback/router.go:41: the handler gorillafallback.items of GET /api/items does nothing: its body has no step. Is it a stub, with the operation not built yet?'
     kind: decision
     priority: should
     certainty: suspected
@@ -473,9 +547,20 @@ questions:
     decidedBy: system-owner
     why: A handler that does nothing answers every request the same way, whatever the specification says the operation does.
     cites:
-      - {source: code, clause: 'gorillafallback/router.go:37', says: The body holds no step but a return.}
-  # specarch-problem: question: open_question: (should, decision, suspected) muxfallback/mux.go:22: the handler muxfallback.loans of GET /loans does nothing: its body has no step. Is it a stub, with the operation not built yet? Decided by system-owner. Answer with a decision record that names Q-52 under answers. [Q-52]
-  Q-52:
+      - {source: code, clause: 'gorillafallback/router.go:41', says: The body holds no step but a return.}
+  # specarch-problem: question: open_question: (should, decision, suspected) gorillafallback/router.go:43: the handler gorillafallback.code of GET /codes/{id} does nothing: its body has no step. Is it a stub, with the operation not built yet? Decided by system-owner. Answer with a decision record that names Q-60 under answers. [Q-60]
+  Q-60:
+    question: 'gorillafallback/router.go:43: the handler gorillafallback.code of GET /codes/{id} does nothing: its body has no step. Is it a stub, with the operation not built yet?'
+    kind: decision
+    priority: should
+    certainty: suspected
+    blocks: ['#/paths/~1codes~1{id}/get']
+    decidedBy: system-owner
+    why: A handler that does nothing answers every request the same way, whatever the specification says the operation does.
+    cites:
+      - {source: code, clause: 'gorillafallback/router.go:43', says: The body holds no step but a return.}
+  # specarch-problem: question: open_question: (should, decision, suspected) muxfallback/mux.go:22: the handler muxfallback.loans of GET /loans does nothing: its body has no step. Is it a stub, with the operation not built yet? Decided by system-owner. Answer with a decision record that names Q-61 under answers. [Q-61]
+  Q-61:
     question: 'muxfallback/mux.go:22: the handler muxfallback.loans of GET /loans does nothing: its body has no step. Is it a stub, with the operation not built yet?'
     kind: decision
     priority: should
@@ -485,8 +570,8 @@ questions:
     why: A handler that does nothing answers every request the same way, whatever the specification says the operation does.
     cites:
       - {source: code, clause: 'muxfallback/mux.go:22', says: The body holds no step but a return.}
-  # specarch-problem: question: open_question: (should, decision, suspected) muxfallback/mux.go:20: the handler muxfallback.health of GET /metrics and GET /status does nothing: its body has no step. Is it a stub, with the operation not built yet? Decided by system-owner. Answer with a decision record that names Q-53 under answers. [Q-53]
-  Q-53:
+  # specarch-problem: question: open_question: (should, decision, suspected) muxfallback/mux.go:20: the handler muxfallback.health of GET /metrics and GET /status does nothing: its body has no step. Is it a stub, with the operation not built yet? Decided by system-owner. Answer with a decision record that names Q-62 under answers. [Q-62]
+  Q-62:
     question: 'muxfallback/mux.go:20: the handler muxfallback.health of GET /metrics and GET /status does nothing: its body has no step. Is it a stub, with the operation not built yet?'
     kind: decision
     priority: should
@@ -496,8 +581,8 @@ questions:
     why: A handler that does nothing answers every request the same way, whatever the specification says the operation does.
     cites:
       - {source: code, clause: 'muxfallback/mux.go:20', says: The body holds no step but a return.}
-  # specarch-problem: question: open_question: (should, decision, suspected) chifallback/router.go:19: the handler chifallback.health of GET /ready does nothing: its body has no step. Is it a stub, with the operation not built yet? Decided by system-owner. Answer with a decision record that names Q-54 under answers. [Q-54]
-  Q-54:
+  # specarch-problem: question: open_question: (should, decision, suspected) chifallback/router.go:19: the handler chifallback.health of GET /ready does nothing: its body has no step. Is it a stub, with the operation not built yet? Decided by system-owner. Answer with a decision record that names Q-63 under answers. [Q-63]
+  Q-63:
     question: 'chifallback/router.go:19: the handler chifallback.health of GET /ready does nothing: its body has no step. Is it a stub, with the operation not built yet?'
     kind: decision
     priority: should
@@ -507,9 +592,9 @@ questions:
     why: A handler that does nothing answers every request the same way, whatever the specification says the operation does.
     cites:
       - {source: code, clause: 'chifallback/router.go:19', says: The body holds no step but a return.}
-  # specarch-problem: question: open_question: (should, decision, suspected) gorillafallback/router.go:36: the handler gorillafallback.health of GET /started does nothing: its body has no step. Is it a stub, with the operation not built yet? Decided by system-owner. Answer with a decision record that names Q-55 under answers. [Q-55]
-  Q-55:
-    question: 'gorillafallback/router.go:36: the handler gorillafallback.health of GET /started does nothing: its body has no step. Is it a stub, with the operation not built yet?'
+  # specarch-problem: question: open_question: (should, decision, suspected) gorillafallback/router.go:40: the handler gorillafallback.health of GET /started does nothing: its body has no step. Is it a stub, with the operation not built yet? Decided by system-owner. Answer with a decision record that names Q-64 under answers. [Q-64]
+  Q-64:
+    question: 'gorillafallback/router.go:40: the handler gorillafallback.health of GET /started does nothing: its body has no step. Is it a stub, with the operation not built yet?'
     kind: decision
     priority: should
     certainty: suspected
@@ -517,10 +602,10 @@ questions:
     decidedBy: system-owner
     why: A handler that does nothing answers every request the same way, whatever the specification says the operation does.
     cites:
-      - {source: code, clause: 'gorillafallback/router.go:36', says: The body holds no step but a return.}
-  # specarch-problem: question: open_question: (should, decision, suspected) gorillafallback/router.go:38: the handler gorillafallback.itemsV2 of GET /v2/items does nothing: its body has no step. Is it a stub, with the operation not built yet? Decided by system-owner. Answer with a decision record that names Q-56 under answers. [Q-56]
-  Q-56:
-    question: 'gorillafallback/router.go:38: the handler gorillafallback.itemsV2 of GET /v2/items does nothing: its body has no step. Is it a stub, with the operation not built yet?'
+      - {source: code, clause: 'gorillafallback/router.go:40', says: The body holds no step but a return.}
+  # specarch-problem: question: open_question: (should, decision, suspected) gorillafallback/router.go:42: the handler gorillafallback.itemsV2 of GET /v2/items does nothing: its body has no step. Is it a stub, with the operation not built yet? Decided by system-owner. Answer with a decision record that names Q-65 under answers. [Q-65]
+  Q-65:
+    question: 'gorillafallback/router.go:42: the handler gorillafallback.itemsV2 of GET /v2/items does nothing: its body has no step. Is it a stub, with the operation not built yet?'
     kind: decision
     priority: should
     certainty: suspected
@@ -528,9 +613,9 @@ questions:
     decidedBy: system-owner
     why: A handler that does nothing answers every request the same way, whatever the specification says the operation does.
     cites:
-      - {source: code, clause: 'gorillafallback/router.go:38', says: The body holds no step but a return.}
-  # specarch-problem: question: open_question: (should, decision, suspected) echofallback/router.go:13: the handler echofallback.health of GET /version does nothing: its body has no step but a return. Is it a stub, with the operation not built yet? Decided by system-owner. Answer with a decision record that names Q-57 under answers. [Q-57]
-  Q-57:
+      - {source: code, clause: 'gorillafallback/router.go:42', says: The body holds no step but a return.}
+  # specarch-problem: question: open_question: (should, decision, suspected) echofallback/router.go:13: the handler echofallback.health of GET /version does nothing: its body has no step but a return. Is it a stub, with the operation not built yet? Decided by system-owner. Answer with a decision record that names Q-66 under answers. [Q-66]
+  Q-66:
     question: 'echofallback/router.go:13: the handler echofallback.health of GET /version does nothing: its body has no step but a return. Is it a stub, with the operation not built yet?'
     kind: decision
     priority: should

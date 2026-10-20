@@ -128,6 +128,7 @@ var referencePlaces = []struct {
 	{[]string{"jobs", "*", "trigger", "consumes"}, toMessage},
 	{[]string{"paths", "*", "*", "calls"}, toDependency},
 	{[]string{"jobs", "*", "calls"}, toDependency},
+	{[]string{"channels", "*", "carriedBy"}, toDependency},
 	{[]string{"menus", "*", "page"}, toPage},
 	{[]string{"menus", "*", "items", "*", "page"}, toPage},
 	{[]string{"menus", "*", "items", "*", "items", "*", "page"}, toPage},
@@ -273,8 +274,9 @@ func ModelReferences(root *yaml.Node) []ModelReference {
 
 // ImplementationReferences lists the references of an implementation file
 // that resolve in the specification it implements: each design pointer
-// under a layout entry's implements and a mapping's design, with the
-// keyword that holds it.
+// under a layout entry's implements and a mapping's design, and each
+// dependency of the design a server or an external step names by its key,
+// with the keyword that holds it.
 func ImplementationReferences(impl, design *yaml.Node) []ModelReference {
 	if impl == nil || design == nil {
 		return nil
@@ -283,10 +285,20 @@ func ImplementationReferences(impl, design *yaml.Node) []ModelReference {
 	walk(impl, nil, func(n *yaml.Node, path []string) {
 		for _, p := range source.Pairs(n) {
 			key := p.Key.Value
+			at := append(append([]string{}, path...), key)
+			if key == "dependency" {
+				// A server that is a dependency of the design, or an
+				// external step that reaches one, names it by its key.
+				if name := source.Str(source.Deref(p.Value)); name != "" {
+					if _, ok := source.Resolve(design, []string{"dependencies", name}); ok {
+						out = append(out, ModelReference{From: source.Pointer(at...), To: source.Pointer("dependencies", name), Through: key})
+					}
+				}
+				continue
+			}
 			if key != "implements" && !(key == "design" && len(path) >= 1 && path[0] == "mappings") {
 				continue
 			}
-			at := append(append([]string{}, path...), key)
 			add := func(item *yaml.Node, ptr []string) {
 				ref := source.Str(item)
 				if !strings.HasPrefix(ref, "#/") {

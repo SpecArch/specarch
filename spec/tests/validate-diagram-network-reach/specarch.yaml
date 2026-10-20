@@ -1,0 +1,75 @@
+specarch: "0.3"
+info: { title: Case, version: 1.0.0 }
+dependencies:
+  eventBus:
+    description: The broker.
+    timeout: PT1S
+    kind: messageBroker
+  ledger:
+    description: The finance system's ledger.
+    timeout: PT5S
+channels:
+  loan.overdue:
+    description: One message per overdue loan.
+    carriedBy: [eventBus]
+    messages:
+      LoanOverdue:
+        summary: A loan became overdue.
+        payload:
+          type: object
+          properties:
+            loanId: { type: string, format: uuid }
+          required: [loanId]
+  loan.returned:
+    description: One message per returned loan.
+    carriedBy: [eventBus]
+    messages:
+      LoanReturned:
+        summary: A loan was returned.
+        payload:
+          type: object
+          properties:
+            loanId: { type: string, format: uuid }
+          required: [loanId]
+permissions:
+  loans.write: { description: Open and return loans. }
+roles:
+  clerk:
+    description: Staff at the desk.
+    permissions: [loans.write]
+  scheduler:
+    description: The system itself.
+    permissions: [loans.write]
+paths:
+  /loans:
+    post:
+      operationId: openLoan
+      summary: Open a loan
+      permission: loans.write
+      calls: [ledger]
+      responses:
+        "201": { description: The loan is open. }
+  /returns:
+    post:
+      operationId: returnLoan
+      summary: Return a loan
+      permission: loans.write
+      emits: [loan.returned/LoanReturned]
+      responses:
+        "204": { description: The loan is returned. }
+jobs:
+  notifyOverdue:
+    description: Tells the member of each overdue loan.
+    trigger: { consumes: loan.overdue/LoanOverdue }
+    role: scheduler
+    retries: { limit: 3, then: deadLetter }
+tests:
+  open-loan-succeeds: { level: system, operation: openLoan, scenario: golden, given: "a caller with loans.write", when: "openLoan is called", then: "it answers 201" }
+  open-loan-denied: { level: system, operation: openLoan, scenario: red, covers: [denied without loans.write], given: "a caller without loans.write", when: "openLoan is called", then: "it is refused as not allowed" }
+  open-loan-ledger-fails: { level: system, operation: openLoan, scenario: red, covers: [dependency fails ledger], given: "ledger answers with an error", when: "openLoan is called", then: "it answers 502" }
+  open-loan-ledger-times-out: { level: system, operation: openLoan, scenario: red, covers: [dependency times out ledger], given: "ledger does not answer within PT5S", when: "openLoan is called", then: "it answers 504" }
+  return-loan-succeeds: { level: system, operation: returnLoan, scenario: golden, given: "a caller with loans.write", when: "returnLoan is called", then: "it answers 204" }
+  return-loan-denied: { level: system, operation: returnLoan, scenario: red, covers: [denied without loans.write], given: "a caller without loans.write", when: "returnLoan is called", then: "it is refused as not allowed" }
+  return-loan-bus-fails: { level: system, operation: returnLoan, scenario: red, covers: [dependency fails loan.returned], given: "loan.returned cannot take the message", when: "returnLoan is called", then: "it answers 503" }
+  notify-overdue-succeeds: { level: system, job: notifyOverdue, scenario: golden, given: "an overdue loan", when: "a loan.overdue/LoanOverdue arrives for the job notifyOverdue", then: "it completes" }
+  notify-overdue-runs-twice: { level: system, job: notifyOverdue, scenario: golden, covers: [runs twice], given: "the job notifyOverdue has run", when: "the same loan.overdue/LoanOverdue arrives again", then: "nothing changes a second time" }

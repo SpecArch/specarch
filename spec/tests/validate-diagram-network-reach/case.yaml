@@ -1,0 +1,6 @@
+arguments: [validate, .]
+exitStatus: 0
+standardOutput: |
+  case.go.specarch-implementation.yaml:19:9: warning: /deployments/production/servers/0: link_missing: loans runs the packages implementing openLoan, which reach the dependency ledger, and no link leads from loans to ledger, the server that is ledger here; add a link from loans to ledger on a port it listens on [link_missing@case.go.specarch-implementation.yaml#/deployments/production/servers/0]
+  case.go.specarch-implementation.yaml:20:9: warning: /deployments/production/servers/1: link_missing: returns runs the packages implementing returnLoan, which reach the dependency eventBus, and no link leads from returns to bus, the server that is eventBus here; add a link from returns to bus on a port it listens on [link_missing@case.go.specarch-implementation.yaml#/deployments/production/servers/1]
+  case.go.specarch-implementation.yaml:21:9: warning: /deployments/production/servers/2: link_missing: notifier runs the packages implementing notifyOverdue, which reach the dependency eventBus, and no link leads from notifier to bus, the server that is eventBus here; add a link from notifier to bus on a port it listens on [link_missing@case.go.specarch-implementation.yaml#/deployments/production/servers/2]

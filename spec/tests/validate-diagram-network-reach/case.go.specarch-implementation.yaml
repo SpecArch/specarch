@@ -1,0 +1,25 @@
+specarchImplementation: "0.1"
+info: { title: Case in Go, version: 1.0.0 }
+implements: { file: specarch.yaml, version: 1.0.0 }
+stack: { language: { name: Go, version: "1.26" } }
+layout:
+  internal/loans:
+    description: Opens loans, through the whole path.
+    implements: ["#/paths/~1loans"]
+  internal/returns:
+    description: Returns loans, through the one method.
+    implements: ["#/paths/~1returns/post"]
+  internal/notifier:
+    description: The job that consumes the overdue loans.
+    implements: ["#/jobs/notifyOverdue"]
+deployments:
+  production:
+    description: The hosts.
+    servers:
+      - { name: loans, url: "https://loans.library.example", zone: application, listens: [{ port: 8080, protocol: http }], runs: { packages: [internal/loans] } }
+      - { name: returns, url: "https://returns.library.example", zone: application, listens: [{ port: 8081, protocol: http }], runs: { packages: [internal/returns] } }
+      - { name: notifier, url: "http://notifier", zone: application, runs: { packages: [internal/notifier] } }
+      - { name: ledger, dependency: ledger, url: "https://ledger.finance.example", zone: data, listens: [{ port: 443, protocol: https }] }
+      - { name: bus, dependency: eventBus, url: "amqps://bus:5671", zone: data, listens: [{ port: 5671, protocol: amqp }] }
+    links:
+      - { from: loans, to: returns, port: 8081 }

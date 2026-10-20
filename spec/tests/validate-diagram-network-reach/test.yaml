@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: validate
+level: system
+scenario: golden
+given: "a deployment with one link that stands, whose loans server implements a whole path whose operation calls the ledger, whose returns server implements one operation that emits on a channel the broker carries, and whose notifier runs a job triggered by a message from a channel the broker carries; no link leads to the ledger or the broker"
+when: validate is run
+then: "it warns as link_missing at loans for the ledger, at returns for the broker and at notifier for the broker, reports nothing else, and exits 0"
+verifies: [SA-10]

@@ -6,3 +6,10 @@ layout:
   internal/api:
     description: The HTTP server.
     implements: ["#/paths/~1loans/get", "#/entities/Missing"]
+deployments:
+  production:
+    description: The live system.
+    environment: production
+    servers:
+      - { name: api, url: "https://lending.example", runs: { packages: [internal/api] }, description: The API. }
+      - { name: bus, dependency: eventBus, url: "amqps://bus.lending.example:5671", description: The broker. }

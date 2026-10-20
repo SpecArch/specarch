@@ -2,7 +2,7 @@
 
 Open bugs, one entry per bug, each as `BUG-NNN — <title>` with what was
 seen, what was expected and how to repeat it. The next free number is
-BUG-034. When the fix is on `main`, with `Fixes BUG-NNN` in its commit
+BUG-036. When the fix is on `main`, with `Fixes BUG-NNN` in its commit
 message, the entry moves to `BUG_HISTORY.md` with the fixing commit.
 
 ## BUG-028 — extract go: a route whose path is a package-level constant, or whose Match method list is a package-level list, is a question instead of an operation
@@ -93,3 +93,23 @@ For an operation `uploadJSON` with no golden test, the Go build's `test_golden_m
 Expected: one rule in both builds. `docs/conventions.md` says a test is named kebab-case after its subject; the derive command's design says a run of other characters is one hyphen and says nothing of a run of capitals, so the design decides which of the two is right and the other build follows.
 
 To repeat: validate a specification with `operationId: uploadJSON` and no tests with both builds and compare the `test_golden_missing` lines.
+
+## BUG-034 — version: both builds name meta-model 0.2 for specifications though 0.3 is built
+
+- Reported: 2026-10-20, found while accepting ADR-133 to ADR-139
+
+`specarch version` prints `specifications: meta-model 0.2, and 0.1 until 1.0` in both builds (`runVersion` in `cmd/specarch/main.go`, the `version` case in `swift/Sources/SpecArchKit/Command.swift`), and the case `spec/tests/version-prints-versions` expects that line. The validator reads meta-model 0.3 (`schema/specarch-design-0.3.schema.json`, `specarch: "0.3"` in SpecArch's own specification and the examples), and `specarch model` says `"metaModel":"0.3"`.
+
+Expected: the line names 0.3 as the meta-model a specification is written in, and the older versions the validator still reads, in both builds and the case.
+
+To repeat: run `specarch version` with either build.
+
+## BUG-035 — document handover: a deployment with links and no infrastructure gets no links, ports or network diagram
+
+- Reported: 2026-10-20, found while building the network diagram (ADR-137)
+
+ADR-137 says the handover document derives its network and ports paragraphs from a deployment's `links` and `listens` whenever it has them, and prints the infrastructure sentences after them. The handover writes them only inside "What the hosts must provide", which lists only deployments with `infrastructure` (`internal/generate/handover.go`), so a deployment with links and no `infrastructure` gets neither the paragraphs nor its network diagram.
+
+Expected: every deployment with links or listens has its links, ports and network diagram in the handover, with or without `infrastructure`.
+
+To repeat: copy `examples/library-lending/spec`, delete the `infrastructure` block of the production deployment in `implementation/go/library-lending.go.specarch-implementation.yaml`, and run `specarch document handover --out out spec`. `out/handover.md` has no "allowed connections" sentence and no port 5671, where the example's own handover has both.

@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.2-dev of the specification: 569 design tests, 258 golden and 311 red, about 17 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.2-dev of the specification: 570 design tests, 259 golden and 311 red, about 17 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 3 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -17,7 +17,7 @@ Version 0.7.2-dev of the specification: 569 design tests, 258 golden and 311 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 565 |
+| system | 566 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -2643,9 +2643,9 @@ Scenario: red; level: system; covers usage error; verifies SA-74.
 
 Scenario: golden; level: system; verifies SA-74.
 
-- Given: a specification with a requirement, an entity, a permission, a role, an operation, two tests, an implementation file that names an operation and an element the specification lacks, and a folder that is not a stage
+- Given: a specification with a requirement, an entity, a permission, a role, an operation, a channel carried by a dependency, two tests, an implementation file that names an operation, an element the specification lacks and a server that is the dependency, and a folder that is not a stage
 - When: model is run on it
-- Then: it prints one JSON document in canonical form with the merged document, the position of every node, the references that resolve and the keyword of each, the layout problem of the folder, and the implementation file with its one resolved reference, and exits 0
+- Then: it prints one JSON document in canonical form with the merged document, the position of every node, the references that resolve and the keyword of each, the layout problem of the folder, and the implementation file with its two resolved references, and exits 0
 
 ### Command validate
 
@@ -3048,6 +3048,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-10.
 - Given: a deployment whose links name a port the database does not listen on, a server it does not have, a server reaching itself and a broker that listens on nothing, whose API implements an entity with no link to the database, and whose worker runs a job that reads the entity and emits on a channel the broker carries with no link that stands; and a second deployment with no links
 - When: validate is run
 - Then: it reports each wrong link as link at the entry, with the server it may mean, warns as link_missing at the API for the database and at the worker for the broker, names no ledger since no server is it, warns nothing for the deployment with no links, and exits 1
+
+#### validate-diagram-network-reach
+
+Scenario: golden; level: system; verifies SA-10.
+
+- Given: a deployment with one link that stands, whose loans server implements a whole path whose operation calls the ledger, whose returns server implements one operation that emits on a channel the broker carries, and whose notifier runs a job triggered by a message from a channel the broker carries; no link leads to the ledger or the broker
+- When: validate is run
+- Then: it warns as link_missing at loans for the ledger, at returns for the broker and at notifier for the broker, reports nothing else, and exits 0
 
 #### validate-diagram-server
 

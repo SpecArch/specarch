@@ -14,3 +14,13 @@ paths:
           content:
             application/json:
               schema: { type: array, items: { $ref: "#/entities/Loan" } }
+dependencies:
+  eventBus: { description: The broker that carries the loan events., timeout: PT1S, kind: messageBroker, protocol: amqp }
+channels:
+  loan.lifecycle:
+    description: Published when a loan opens.
+    carriedBy: [eventBus]
+    messages:
+      LoanOpened:
+        summary: A loan opened.
+        payload: { type: object, properties: { loanId: { type: string, maxLength: 36 } }, required: [loanId] }

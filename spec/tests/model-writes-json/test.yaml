@@ -2,7 +2,7 @@
 command: model
 level: system
 scenario: golden
-given: "a specification with a requirement, an entity, a permission, a role, an operation, two tests, an implementation file that names an operation and an element the specification lacks, and a folder that is not a stage"
+given: "a specification with a requirement, an entity, a permission, a role, an operation, a channel carried by a dependency, two tests, an implementation file that names an operation, an element the specification lacks and a server that is the dependency, and a folder that is not a stage"
 when: model is run on it
-then: "it prints one JSON document in canonical form with the merged document, the position of every node, the references that resolve and the keyword of each, the layout problem of the folder, and the implementation file with its one resolved reference, and exits 0"
+then: "it prints one JSON document in canonical form with the merged document, the position of every node, the references that resolve and the keyword of each, the layout problem of the folder, and the implementation file with its two resolved references, and exits 0"
 verifies: [SA-74]

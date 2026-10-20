@@ -78,6 +78,7 @@ private let referencePlaces: [(path: [String], kind: String)] = [
     (["jobs", "*", "trigger", "consumes"], "message"),
     (["paths", "*", "*", "calls"], "dependency"),
     (["jobs", "*", "calls"], "dependency"),
+    (["channels", "*", "carriedBy"], "dependency"),
     (["menus", "*", "page"], "page"),
     (["menus", "*", "items", "*", "page"], "page"),
     (["menus", "*", "items", "*", "items", "*", "page"], "page"),
@@ -179,15 +180,26 @@ func modelReferences(_ root: YNode?) -> [ModelReference] {
 
 /// Lists the references of an implementation file that resolve in the
 /// specification it implements: each design pointer under a layout entry's
-/// implements and a mapping's design, with the keyword that holds it.
+/// implements and a mapping's design, and each dependency of the design a
+/// server or an external step names by its key, with the keyword that holds
+/// it.
 func implementationReferences(_ impl: YNode?, _ design: YNode?) -> [ModelReference] {
     guard let impl, let design else { return [] }
     var out: [ModelReference] = []
     walk(impl, []) { n, path in
         for p in n.pairs {
             let key = p.key.value
-            guard key == "implements" || key == "design" && path.first == "mappings" else { continue }
             let at = path + [key]
+            if key == "dependency" {
+                // A server that is a dependency of the design, or an external
+                // step that reaches one, names it by its key.
+                let name = p.value.str
+                if !name.isEmpty, resolve(design, ["dependencies", name]).1 {
+                    out.append(ModelReference(from: pointer(at), to: pointer("dependencies", name), through: key))
+                }
+                continue
+            }
+            guard key == "implements" || key == "design" && path.first == "mappings" else { continue }
             func add(_ item: YNode, _ ptr: [String]) {
                 let ref = item.str
                 if ref.hasPrefix("#/"), resolve(design, pointerTokens(String(ref.dropFirst()))).1 {

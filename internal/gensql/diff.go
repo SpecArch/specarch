@@ -50,6 +50,7 @@ func (g *gen) diff(prevText string) *steps {
 		g.cannot("/", "the folder holds %s migrations and the target is %s now; a new dialect starts in a new folder", d, g.dialect)
 		return nil
 	}
+	g.previous = text(prev["typeRendering"])
 	s := &steps{}
 	pe, ce := obj0(prev["entities"]), obj0(cur["entities"])
 	pm, cm := obj0(prev["mappings"]), obj0(cur["mappings"])
@@ -258,6 +259,18 @@ func (g *gen) diffField(s *steps, tn, at, f string, prev, specField map[string]a
 	if !same("default", "generatedDefault") {
 		g.cannot(at+"/properties/"+f, "the default of %s changed, which this version does not write; change it by hand in a migration of its own", f)
 		return
+	}
+	// The snapshot keeps a generated default by its name, so a change of
+	// the expression type-rendering names for it is no change to the
+	// compare above. MariaDB's currentTime is the one such change: before
+	// 1.4.1 it was CURRENT_TIMESTAMP, which writes the engine's own form
+	// into the VARCHAR(35) of an instant (BUG-044, BUG-051).
+	// A project that stays behind at an older version, or names
+	// CURRENT_TIMESTAMP in an override, gets no step.
+	if now := g.defaults["currentTime"]; g.dialect == "mariadb" && text(cur["generatedDefault"]) == "currentTime" &&
+		versionBefore(g.previous, "1.4.1") && !versionBefore(g.version, "1.4.1") && now != "" && now != "CURRENT_TIMESTAMP" {
+		s.add("ALTER TABLE " + tn + " ALTER COLUMN " + col + " SET DEFAULT " + now)
+		g.warn(at+"/properties/"+f, "the last migration's snapshot is of type-rendering %s, whose currentTime on mariadb is CURRENT_TIMESTAMP, so a row whose %s it filled holds '2006-01-02 15:04:05' in the session's time zone rather than the instant's UTC text; this migration sets the default to %s, and the rows written before it are converted in a migration a person writes", orUnknown(g.previous), col, now)
 	}
 	if text(cur["atRest"]) == "encrypted" {
 		return // the ciphertext type does not follow the field's width
@@ -488,4 +501,27 @@ func (g *gen) dropForeignKey(t, name string) string {
 func elsewhere(rel map[string]any) bool {
 	dep, _, ok := strings.Cut(text(rel["target"]), "#")
 	return ok && dep != ""
+}
+
+// versionBefore reports whether version a comes before b, by their dotted
+// numbers; a version that cannot be read comes before every other.
+func versionBefore(a, b string) bool {
+	var x, y [3]int
+	if n, _ := fmt.Sscanf(a, "%d.%d.%d", &x[0], &x[1], &x[2]); n != 3 {
+		return true
+	}
+	fmt.Sscanf(b, "%d.%d.%d", &y[0], &y[1], &y[2])
+	for i := range x {
+		if x[i] != y[i] {
+			return x[i] < y[i]
+		}
+	}
+	return false
+}
+
+func orUnknown(v string) string {
+	if v == "" {
+		return "unknown"
+	}
+	return v
 }

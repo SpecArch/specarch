@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.3-dev of the specification: 648 design tests, 308 golden and 340 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.3-dev of the specification: 649 design tests, 309 golden and 340 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.7.3-dev of the specification: 648 design tests, 308 golden and 340 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 644 |
+| system | 645 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -2356,6 +2356,14 @@ Scenario: golden; level: system; verifies SA-70.
 - Given: a specification whose Note entity has an identifier the database generates and a time it writes, and whose implementation file targets MariaDB; specarch-gen-sql built from this repository on PATH
 - When: generate sql is run with --unapproved
 - Then: it writes the id column with DEFAULT (UUID()) and written_at as VARCHAR(35) with DEFAULT (DATE_FORMAT(UTC_TIMESTAMP(6), '%Y-%m-%dT%H:%i:%s.%f000Z')), the type-rendering idiom's UTC text with nine fractional digits, both NOT NULL, and exits 0
+
+#### generate-sql-generated-default-mariadb-upgrade
+
+Scenario: golden; level: system; verifies SA-38, SA-70.
+
+- Given: the specification of generate-sql-generated-default-mariadb with its first migration and snapshot in the output folder, both of type-rendering 1.4.0, whose written_at default is CURRENT_TIMESTAMP; specarch-gen-sql built from this repository on PATH
+- When: generate sql is run with --unapproved
+- Then: it writes 0002_expand.sql, which sets the default of written_at to (DATE_FORMAT(UTC_TIMESTAMP(6), '%Y-%m-%dT%H:%i:%s.%f000Z')) with the warning marked above it, warns at the field that the rows written before keep the engine's own form and are converted by hand, writes the snapshot again at type-rendering 1.4.1, and exits 0
 
 #### generate-sql-generated-default-refused
 

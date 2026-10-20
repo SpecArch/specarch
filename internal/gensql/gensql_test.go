@@ -734,3 +734,23 @@ func TestValueObjectEdges(t *testing.T) {
 		t.Errorf("want one diagnostic about home_spot_latitude, got %v", resp.Diagnostics)
 	}
 }
+
+// The MariaDB currentTime step is keyed on the snapshot's version, so the
+// compare must order versions by number, not as text.
+func TestVersionBefore(t *testing.T) {
+	for _, c := range []struct {
+		a, b string
+		want bool
+	}{
+		{"1.4.0", "1.4.1", true},
+		{"1.4.1", "1.4.1", false},
+		{"1.10.0", "1.4.1", false},
+		{"1.3.9", "1.4.1", true},
+		{"2.0.0", "1.4.1", false},
+		{"", "1.4.1", true},
+	} {
+		if got := versionBefore(c.a, c.b); got != c.want {
+			t.Errorf("versionBefore(%q, %q) = %v, want %v", c.a, c.b, got, c.want)
+		}
+	}
+}

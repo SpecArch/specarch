@@ -58,7 +58,15 @@ decisions:
       in parentheses, as currentTime on MariaDB, so a date-time column
       filled by its generatedDefault holds the instant in the form the
       scripts write and every other value of the column has (BUG-044); a
-      test of the scripts' package keeps the two equal.
+      test of the scripts' package keeps the two equal. When the last
+      migration's snapshot on MariaDB is of a type-rendering version
+      before 1.4.1, generate sql writes, for each field still holding
+      generatedDefault currentTime, ALTER TABLE ... ALTER COLUMN ... SET
+      DEFAULT with that expression in the next expand migration, and warns
+      at the field that the rows written before keep the engine's own form
+      and are converted in a migration a person writes (BUG-051). A
+      project whose type-rendering is still before 1.4.1, or whose
+      override names CURRENT_TIMESTAMP, gets no such step.
     why: |
       The mariadb client has no variables of its own and no conditional
       lines, so the values come in as user variables and every decision is
@@ -119,6 +127,20 @@ decisions:
       agree. The audit instant is written in the idiom's text form, whose
       byte order is time order; MariaDB keeps microseconds, so the last
       three of the nine digits are zeros.
+      The snapshot of the last migration keeps a generated default by its
+      name, so the differ, which compares the snapshot with the schema
+      now, sees no change when the idiom names a new expression for the
+      same name; without a step of its own the next run rewrites the
+      snapshot at the new version and nothing on disk shows the column
+      still fills CURRENT_TIMESTAMP. The step is keyed on the snapshot's
+      type-rendering version rather than on a rendered expression kept in
+      the snapshot, because a snapshot written before 1.4.1 holds no
+      expression to compare, and this is the one default whose expression
+      changed. Setting the default only adds: it rewrites no row. The rows
+      already written are not converted by the generator: their text is
+      in the session's time zone, which the row does not record, so only
+      a person who knows the zone the writers ran in can turn them into
+      UTC; the warning says so at the field.
     consequences: |
       The scripts run through the mariadb client, not through a driver or
       another client that does not read DELIMITER.
@@ -134,7 +156,11 @@ decisions:
       and one changed only by a trailing space was a change; a value with
       a trailing newline, for an integer, a uuid key or an unsigned key,
       was refused before reading, with NO_BACKSLASH_ESCAPES set in the
-      session too.
+      session too. Compiler test: generate-sql-generated-default-mariadb-upgrade
+      writes the SET DEFAULT step from a 1.4.0 snapshot, with the warning;
+      tried on MariaDB 11.4.4, a row inserted before it kept
+      2026-10-20 21:19:07 and one inserted after it filled
+      2026-10-20T21:19:08.005756000Z.
     satisfies: [SA-87]
     cites:
       - source: mariadb-compound-statements

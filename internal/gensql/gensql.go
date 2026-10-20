@@ -111,6 +111,7 @@ type gen struct {
 	rows     []typerows.Row
 	defaults map[string]string
 	version  string         // of type-rendering
+	previous string         // the type-rendering version of the last migration's snapshot, while diffing
 	original map[string]any // the entities as the design writes them, before their value objects are written out
 	problems []mark.Problem
 	placed   map[string][]mark.Problem // the problems marked at each table, column and view, by pointer

@@ -1,0 +1,5 @@
+arguments: [generate, sql, --unapproved, project]
+exitStatus: 0
+standardOutput: |
+  project/specarch.yaml:13:18: warning: /entities/Note/properties/writtenAt: generator: the last migration's snapshot is of type-rendering 1.4.0, whose currentTime on mariadb is CURRENT_TIMESTAMP, so a row whose written_at it filled holds '2006-01-02 15:04:05' in the session's time zone rather than the instant's UTC text; this migration sets the default to (DATE_FORMAT(UTC_TIMESTAMP(6), '%Y-%m-%dT%H:%i:%s.%f000Z')), and the rows written before it are converted in a migration a person writes [generator@specarch.yaml#/entities/Note/properties/writtenAt]
+plugins: [sql]

@@ -610,3 +610,17 @@ Expected: the default writes the idiom's form, for instance `(DATE_FORMAT(UTC_TI
 To repeat: on MariaDB 11.4, `CREATE TABLE dt (id INT PRIMARY KEY, at VARCHAR(35) DEFAULT CURRENT_TIMESTAMP NOT NULL); INSERT INTO dt (id) VALUES (1); SELECT * FROM dt`.
 
 Fix: the type-rendering idiom, version 1.4.1, names `(DATE_FORMAT(UTC_TIMESTAMP(6), '%Y-%m-%dT%H:%i:%s.%f000Z'))` as `currentTime` on MariaDB, with the reason beside it, so `generate sql` writes that default and the column fills `2026-10-20T21:07:05.301287000Z`, UTC whatever the session's time zone. The case `generate-sql-generated-default-mariadb` pins it, and a test of `internal/genscripts` keeps the scripts' audit instant equal to the idiom's expression. Tried on MariaDB 11.4.4.
+
+## BUG-051 — generate sql: a MariaDB snapshot of type-rendering 1.4.0 gets no migration to the new currentTime default
+
+- Reported: 2026-10-21, found in the review of the BUG-044 fix
+- Closed: 2026-10-21, completed
+- Fixed by: the commit on `main` whose message says `Fixes BUG-051`
+
+The BUG-044 fix moved MariaDB's `currentTime` to `(DATE_FORMAT(UTC_TIMESTAMP(6), '%Y-%m-%dT%H:%i:%s.%f000Z'))` in type-rendering 1.4.1. The snapshot of the last migration keeps a generated default by its name, and `diffField` in `internal/gensql/diff.go` compares `generatedDefault` by that name, so a project whose snapshot was written at 1.4.0 got no migration and no problem on the next `generate sql`, and the snapshot was rewritten at 1.4.1. After that one run nothing on disk showed that the column still filled `CURRENT_TIMESTAMP`.
+
+Expected: the next expand migration sets the column's default to the new expression, or a problem at the field says it does not.
+
+To repeat: run `generate sql` on the project of `generate-sql-generated-default-mariadb` with that case's expected `0001_expand.sql` and `snapshot.yaml` turned back to 1.4.0 (`DEFAULT CURRENT_TIMESTAMP`, `typeRendering: 1.4.0`) in its output folder: it wrote only `snapshot.yaml`.
+
+Fix: when the snapshot is of a type-rendering version before 1.4.1 and the dialect is MariaDB, each field still holding `generatedDefault: currentTime` gets `ALTER TABLE ... ALTER COLUMN ... SET DEFAULT (DATE_FORMAT(...))` in the next expand migration, and a warning at the field, marked above the statement, says the rows written before keep the engine's own form, in the session's time zone, and are converted in a migration a person writes. The case `generate-sql-generated-default-mariadb-upgrade` pins it; ADR-167 gives the reason. Tried on MariaDB 11.4.4: a row inserted before the step kept `2026-10-20 21:19:07`, one inserted after it filled `2026-10-20T21:19:08.005756000Z`.

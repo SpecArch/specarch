@@ -72,6 +72,32 @@ type State struct {
 	// Withheld is, for a document for everyone, the internal elements it
 	// left out (ADR-119); nil for a document that holds every element.
 	Withheld *Withheld
+	// Chains are the delegation chains that reach the operations with a
+	// via, as the induction through calls finds them across the modules
+	// given in the run; nil when none is given (ADR-111).
+	Chains []Chain
+	// Grants are the roles and clients of the identity module that reach
+	// this specification's permissions, columns of its matrix (ADR-107).
+	Grants []RoleColumn
+}
+
+// Chain is one way a call reaches an operation, from the edge on.
+type Chain struct {
+	Operation string
+	Hops      []Hop
+}
+
+// Hop is one operation of a chain: its module, the token it accepts, and
+// the proof its module presents to the next hop.
+type Hop struct {
+	Module, Operation, Token, Proof string
+}
+
+// RoleColumn is one holder of the specification's permissions held in
+// another module, with its cell per permission.
+type RoleColumn struct {
+	Name  string
+	Cells map[string]string
 }
 
 // Reference is one reference into another specification that waits: the

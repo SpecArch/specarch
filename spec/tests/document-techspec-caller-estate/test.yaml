@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: document
+level: system
+scenario: golden
+given: "the estate of validate-caller-estate, with an implementation file naming the techspec's folder for the core and the identity module"
+when: "document techspec is run on the estate file"
+then: "the identity module's techspec shows the estate's one matrix, the permissions of each module by its roles and its client with roles, with the grants through narrows, the trust domain, the clients, the tokens and the security events; the core's matrix has a column per role and client of the identity module that reaches its permissions, and it draws the chain bff, middleware, core the induction found, with the token and the workload identity on each arrow"
+verifies: [SA-88]

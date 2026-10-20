@@ -52,7 +52,7 @@ func Techspec(root *yaml.Node, relRoot string, impls []Implementation, state *St
 	buildingBlocks(d, root, impls)
 	runtime(d, root, impls)
 	deployment(d, root, impls)
-	crossCutting(d, root)
+	crossCutting(d, root, state)
 	decisions(d, "9. Architecture decisions", root)
 	qualityTests(d, root)
 	glossary(d, root)
@@ -687,8 +687,13 @@ func commandDetails(d *doc, c *yaml.Node) {
 	}
 }
 
-func crossCutting(d *doc, root *yaml.Node) {
-	perms := permissionsTable(root)
+func crossCutting(d *doc, root *yaml.Node, state *State) {
+	var held []RoleColumn
+	var chains []Chain
+	if state != nil {
+		held, chains = state.Grants, state.Chains
+	}
+	perms := permissionsMatrix(root, held)
 	pages := pairs(root, "pages")
 	algs := pairs(root, "algorithms")
 	session := get(root, "session")
@@ -711,7 +716,15 @@ func crossCutting(d *doc, root *yaml.Node) {
 	if perms != "" {
 		d.heading(3, "Permissions")
 		d.para("Access is fail-closed: every operation, command and page names the one permission it needs, and only the roles below grant one.")
+		if len(pairs(root, "permissions")) == 0 {
+			d.para("The roles grant the permissions of the modules that enforce them, each named with its module: this is the estate's one matrix, and each module's technical specification shows the roles that reach its own permissions.")
+		} else if len(held) > 0 {
+			d.para("A column named with another module is a role or a client of the identity module, which grants this module's permissions by reference.")
+		}
 		d.block(perms)
+		if td := str(root, "trustDomain"); td != "" {
+			d.para(fmt.Sprintf("The trust domain is %s: the audience of every transaction token across the estate, and the base of every security event's identifier, %s/events/<rule>.", td, td))
+		}
 		var implying []source.Pair
 		for _, p := range pairs(root, "permissions") {
 			if len(strs(p.Value, "implies")) > 0 {
@@ -845,7 +858,10 @@ func crossCutting(d *doc, root *yaml.Node) {
 			}
 			d.blank()
 			d.explainRows(pairRows(root, "tokens"))
-			if chain := callChain(root); chain != "" {
+			if chain := chainsDiagram(chains); chain != "" {
+				d.para("The delegation chains that reach the operations with a via, as the induction through calls finds them across the modules given with this one: from the person's application at the edge, hop by hop, with the token each hop accepts and the workload identity the caller presents on each arrow.")
+				d.block(fence(chain))
+			} else if chain := callChain(root); chain != "" {
 				d.para("The delegation chain each operation accepts, hop by hop, with the token on each arrow: the services via names call the operation on the person's behalf, each presenting its workload identity.")
 				d.block(fence(chain))
 			}
@@ -1780,12 +1796,50 @@ func acceptedTokenOf(root, op *yaml.Node) string {
 }
 
 // callChain draws every operation's via as a flowchart: each service
-// that calls it on a person's behalf, with the token on the arrow.
+// that calls it on a person's behalf, with the token on the arrow; a
+// client of the identity module is drawn by its name.
 func callChain(root *yaml.Node) string {
 	var b strings.Builder
 	for _, o := range operations(root) {
 		for _, caller := range strs(o.node, "via") {
+			if _, ptr, ok := strings.Cut(caller, "#"); ok {
+				caller = strings.TrimPrefix(ptr, "/clients/")
+			}
 			fmt.Fprintf(&b, "    %s -->|%s| %s\n", mermaidID(caller), acceptedTokenOf(root, o.node), o.id)
+		}
+	}
+	if b.Len() == 0 {
+		return ""
+	}
+	return "flowchart LR\n" + b.String()
+}
+
+// chainsDiagram draws the chains the induction found: the person at the
+// edge, then each hop as module and operation, each arrow with the token
+// the next hop accepts and the proof the caller presents.
+func chainsDiagram(chains []Chain) string {
+	var b strings.Builder
+	seen := map[string]bool{}
+	line := func(s string) {
+		if !seen[s] {
+			seen[s] = true
+			b.WriteString(s)
+		}
+	}
+	for _, c := range chains {
+		if len(c.Hops) < 2 {
+			continue
+		}
+		node := func(h Hop) string {
+			return fmt.Sprintf("%s[\"%s %s\"]", mermaidID(h.Module+"_"+h.Operation), h.Module, h.Operation)
+		}
+		line(fmt.Sprintf("    person([\"a person\"]) -->|%s| %s\n", c.Hops[0].Token, node(c.Hops[0])))
+		for i := 1; i < len(c.Hops); i++ {
+			label := c.Hops[i].Token
+			if p := c.Hops[i-1].Proof; p != "" {
+				label += ", " + p
+			}
+			line(fmt.Sprintf("    %s -->|%s| %s\n", node(c.Hops[i-1]), label, node(c.Hops[i])))
 		}
 	}
 	if b.Len() == 0 {

@@ -1,0 +1,36 @@
+specarch: "0.3"
+info: { title: Front ends' backend, version: 1.0.0, name: bff }
+permissions:
+  invoices.delete: { description: Delete invoices. }
+dependencies:
+  identity: { description: Issues the estate's tokens and holds its clients and roles., timeout: PT2S, kind: identityProvider, specification: identity, version: 1.0.0 }
+  middleware: { description: Sits between this backend and the core., timeout: PT2S, kind: system, specification: middleware, version: 1.0.0 }
+tokens:
+  access:
+    description: What a signed-in person presents on every call.
+    format: jwt
+    lifetime: PT15M
+    signature: ES256
+    claims:
+      sub: { description: The person's identifier. }
+      aud: { const: "https://bff.estate.example.org" }
+      client_id: { description: The application the person signed in through. }
+    default: true
+paths:
+  /invoices/{invoiceId}:
+    parameters:
+      - { name: invoiceId, in: path, required: true, schema: { type: string, maxLength: 36 } }
+    delete:
+      operationId: deleteInvoice
+      summary: Delete an invoice, the edge of the call
+      permission: invoices.delete
+      calls: ["middleware#/paths/~1invoices~1{invoiceId}/delete"]
+      responses:
+        "204": { description: Deleted. }
+tests:
+  delete-invoice-succeeds: { operation: deleteInvoice, level: system, scenario: golden, given: an invoice manager signed in through admin-web, when: deleteInvoice is called, then: it answers 204, fixture: { caller: "identity#/roles/invoice-manager" } }
+  delete-invoice-denied: { operation: deleteInvoice, level: system, scenario: red, covers: [denied without invoices.delete], given: a caller without invoices.delete, when: deleteInvoice is called, then: it is refused }
+  delete-invoice-expired: { operation: deleteInvoice, level: system, scenario: red, covers: [denied with expired access], given: an access token expired after 15 minutes, when: deleteInvoice is called, then: it is refused as not signed in }
+  delete-invoice-middleware-fails: { operation: deleteInvoice, level: system, scenario: red, covers: [dependency fails middleware], given: the middleware answers with an error, when: deleteInvoice is called, then: it is refused }
+  delete-invoice-middleware-times-out: { operation: deleteInvoice, level: system, scenario: red, covers: [dependency times out middleware], given: the middleware does not answer in 2 seconds, when: deleteInvoice is called, then: it is refused }
+  delete-invoice-not-found: { operation: deleteInvoice, level: system, scenario: red, covers: [not found invoiceId], given: no invoice with that invoiceId, when: deleteInvoice is called, then: it is refused as not found }

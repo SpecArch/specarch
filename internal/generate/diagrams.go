@@ -305,7 +305,19 @@ func pagesFlowchart(root *yaml.Node) string {
 // them: yes where a role grants it, and through the permission that
 // implies it where the role holds it only by an implication.
 func permissionsTable(root *yaml.Node) string {
+	return permissionsMatrix(root, nil)
+}
+
+// permissionsMatrix is the matrix of permissions by roles and clients,
+// with a column for each role or client of the identity module that
+// reaches a permission (ADR-107). In the identity module, whose roles
+// grant the permissions of the modules that enforce them, the rows are
+// those permissions, each named with its module.
+func permissionsMatrix(root *yaml.Node, held []RoleColumn) string {
 	perms := pairs(root, "permissions")
+	if len(perms) == 0 {
+		perms = referencedPermissions(root)
+	}
 	if len(perms) == 0 {
 		return ""
 	}
@@ -331,17 +343,20 @@ func permissionsTable(root *yaml.Node) string {
 	for _, c := range clients {
 		b.WriteString(" " + c.Key.Value + " (" + str(c.Value, "kind") + ") |")
 	}
+	for _, h := range held {
+		b.WriteString(" " + h.Name + " |")
+	}
 	if hasPublic {
 		b.WriteString(" public |")
 	}
 	b.WriteString("\n|---|")
-	b.WriteString(strings.Repeat("---|", len(roles)+len(clients)))
+	b.WriteString(strings.Repeat("---|", len(roles)+len(clients)+len(held)))
 	if hasPublic {
 		b.WriteString("---|")
 	}
 	b.WriteString("\n")
 	for _, p := range perms {
-		fmt.Fprintf(&b, "| %s |", p.Key.Value)
+		fmt.Fprintf(&b, "| %s |", permissionLabel(root, p.Key.Value))
 		for _, r := range roles {
 			if list := strs(get(r.Value, "through"), p.Key.Value); len(list) > 0 && grants[r.Key.Value][p.Key.Value] {
 				// A grant narrowed to the clients it holds through (ADR-106).
@@ -364,6 +379,9 @@ func permissionsTable(root *yaml.Node) string {
 			} else {
 				b.WriteString(" |")
 			}
+		}
+		for _, h := range held {
+			b.WriteString(" " + h.Cells[p.Key.Value] + " |")
 		}
 		if hasPublic {
 			switch p.Key.Value {
@@ -1361,4 +1379,35 @@ func deploymentPicture(d *doc, root *yaml.Node, name string, dep *yaml.Node) {
 		return
 	}
 	d.para("The deployment declares no links between its servers, so the diagram draws none.")
+}
+
+// referencedPermissions are the permissions of other modules the roles
+// grant by reference, each once, in the order the roles name them, as
+// pairs whose key is the reference.
+func referencedPermissions(root *yaml.Node) []source.Pair {
+	var out []source.Pair
+	seen := map[string]bool{}
+	for _, r := range pairs(root, "roles") {
+		for _, p := range strs(r.Value, "permissions") {
+			if dep, ptr, ok := strings.Cut(p, "#"); ok && dep != "" && strings.HasPrefix(ptr, "/permissions/") && !seen[p] {
+				seen[p] = true
+				out = append(out, source.Pair{Key: &yaml.Node{Kind: yaml.ScalarNode, Value: p}, Value: &yaml.Node{Kind: yaml.MappingNode}})
+			}
+		}
+	}
+	return out
+}
+
+// permissionLabel names a permission in the matrix: its name, or for one
+// of another module the module's specification and its name.
+func permissionLabel(root *yaml.Node, p string) string {
+	dep, ptr, ok := strings.Cut(p, "#")
+	if !ok || dep == "" {
+		return p
+	}
+	module := str(get(get(root, "dependencies"), dep), "specification")
+	if module == "" {
+		module = dep
+	}
+	return module + " " + strings.TrimPrefix(ptr, "/permissions/")
 }

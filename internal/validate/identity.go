@@ -8,6 +8,7 @@ import (
 	"go.yaml.in/yaml/v3"
 
 	"github.com/SpecArch/specarch/internal/source"
+	"github.com/SpecArch/specarch/internal/spec"
 )
 
 // The identity module holds the estate's clients, roles and trust domain,
@@ -301,5 +302,153 @@ func (d *design) acceptedAudiences() []string {
 		out = append(out, v)
 	}
 	sort.Strings(out)
+	return out
+}
+
+// A Hop is one operation of a delegation chain: the module and the
+// operation, the token it accepts, and the proof kind its module presents
+// to the next hop as the client the next hop's via names ("" for the
+// last).
+type Hop struct {
+	Module, Operation, Token, Proof string
+}
+
+// A Chain is one way a call reaches an operation, from the edge on, as
+// the induction through calls finds it across the modules given together.
+type Chain struct {
+	Operation string
+	Hops      []Hop
+}
+
+// Chains are the chains that reach each operation of a specification
+// with a via, found across the specifications given with it; nil when no
+// module that a via names is given (ADR-111).
+func Chains(s *spec.Spec, given Given) []Chain {
+	if s.Root == nil || s.Root.Kind != yaml.MappingNode {
+		return nil
+	}
+	c := &checker{given: given}
+	d := newDesign(s.Root)
+	module := SpecName(d.root)
+	if module == "" {
+		return nil
+	}
+	var out []Chain
+	found := false
+	for _, o := range d.opList {
+		if source.Child(o.node, "via") == nil {
+			continue
+		}
+		paths := c.back(d, module, o, map[string]bool{})
+		for _, p := range paths {
+			if len(p) > 1 {
+				found = true
+			}
+			out = append(out, Chain{Operation: o.id, Hops: p})
+		}
+	}
+	if !found {
+		return nil
+	}
+	return out
+}
+
+// back is every path of hops that ends at operation o of module, the
+// edge first; a caller module not given ends the path at o.
+func (c *checker) back(d *design, module string, o operation, seen map[string]bool) [][]Hop {
+	here := Hop{Module: module, Operation: o.id, Token: d.acceptedToken(o.node)}
+	key := module + " " + o.id
+	via := source.Items(source.Child(o.node, "via"))
+	if seen[key] || len(via) == 0 {
+		return [][]Hop{{here}}
+	}
+	seen[key] = true
+	defer delete(seen, key)
+	rv := newResolver(d, c.given)
+	var out [][]Hop
+	for _, item := range via {
+		name := clientKey(item.Value)
+		cd := c.givenOne(name)
+		if cd == nil || name == module {
+			continue
+		}
+		cl := d.client(item.Value)
+		if isCross(item.Value) {
+			_, cl = rv.referencedClient(item.Value)
+		}
+		proof := source.Str(source.Child(source.Child(cl, "proof"), "kind"))
+		for _, x := range callersOf(cd, module, o) {
+			for _, p := range c.back(cd, name, x, seen) {
+				p[len(p)-1].Proof = proof
+				out = append(out, append(p, here))
+			}
+		}
+	}
+	if len(out) == 0 {
+		return [][]Hop{{here}}
+	}
+	return out
+}
+
+// A RoleColumn is one holder of a module's permissions in the identity
+// module: a role, or a client with roles named with its kind, and the
+// cell for each permission it reaches, yes or the clients a through
+// narrows it to.
+type RoleColumn struct {
+	Name  string
+	Cells map[string]string
+}
+
+// ReferencedGrants are the roles and clients with roles of the identity
+// module that reach a permission of this specification, in the identity
+// module's order; nil when the identity module is not given (ADR-107).
+func ReferencedGrants(s *spec.Spec, given Given) []RoleColumn {
+	if s.Root == nil || s.Root.Kind != yaml.MappingNode {
+		return nil
+	}
+	d := newDesign(s.Root)
+	module := SpecName(d.root)
+	dep := d.identityDependency()
+	if module == "" || dep == "" {
+		return nil
+	}
+	o, problem := newResolver(d, given).otherOf(d.specificationOf(dep))
+	if o == nil || problem != "" {
+		return nil
+	}
+	cellsOf := func(role *yaml.Node) map[string]string {
+		cells := map[string]string{}
+		holds := o.design.roleHolds(role)
+		for _, p := range source.Pairs(source.Child(d.root, "permissions")) {
+			for held := range holds {
+				hdep, ptr, ok := crossRef(held)
+				if !ok || o.design.specificationOf(hdep) != module || ptr != "/permissions/"+p.Key.Value {
+					continue
+				}
+				cells[p.Key.Value] = "yes"
+				if list := itemValues(source.Child(source.Child(role, "through"), held)); len(list) > 0 {
+					cells[p.Key.Value] = strings.Join(list, ", ") + " only"
+				}
+			}
+		}
+		return cells
+	}
+	var out []RoleColumn
+	for _, r := range source.Pairs(source.Child(o.design.root, "roles")) {
+		if cells := cellsOf(r.Value); len(cells) > 0 {
+			out = append(out, RoleColumn{Name: o.name + " " + r.Key.Value, Cells: cells})
+		}
+	}
+	for _, cl := range source.Pairs(source.Child(o.design.root, "clients")) {
+		cells := map[string]string{}
+		for _, r := range source.Items(source.Child(cl.Value, "roles")) {
+			for p := range cellsOf(o.design.roles[r.Value]) {
+				cells[p] = "yes"
+			}
+		}
+		if len(cells) > 0 {
+			out = append(out, RoleColumn{Name: o.name + " " + cl.Key.Value + " (" + source.Str(source.Child(cl.Value, "kind")) + ")", Cells: cells})
+		}
+	}
 	return out
 }

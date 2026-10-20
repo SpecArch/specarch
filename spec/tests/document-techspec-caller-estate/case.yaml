@@ -1,0 +1,5 @@
+arguments: [document, techspec, specarch-estate.yaml]
+exitStatus: 0
+standardOutput: |
+  bff/specarch.yaml:1:1: warning: /: output_folder: no implementation file names an output folder for techspec under targets, so this specification has no techspec document; name one, or give --out [output_folder@specarch.yaml#/]
+  middleware/specarch.yaml:1:1: warning: /: output_folder: no implementation file names an output folder for techspec under targets, so this specification has no techspec document; name one, or give --out [output_folder@specarch.yaml#/]

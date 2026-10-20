@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.2-dev of the specification: 575 design tests, 261 golden and 314 red, about 17 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.2-dev of the specification: 576 design tests, 262 golden and 314 red, about 17 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 3 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -17,7 +17,7 @@ Version 0.7.2-dev of the specification: 575 design tests, 261 golden and 314 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 571 |
+| system | 572 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -670,6 +670,14 @@ Scenario: golden; level: system; verifies SA-84.
 - Given: the specification of validate-0-3-tokens-valid
 - When: document techspec is run with --out
 - Then: it writes the technical specification with the tokens table, the access token's audience and the transaction token's header and trust domain, the delete's via in the accepted-by column, the chain drawn as a flowchart, and the security events table with the store and the alarm, and exits 0
+
+#### document-techspec-caller-estate
+
+Scenario: golden; level: system; verifies SA-88.
+
+- Given: the estate of validate-caller-estate, with an implementation file naming the techspec's folder for the core and the identity module
+- When: document techspec is run on the estate file
+- Then: the identity module's techspec shows the estate's one matrix, the permissions of each module by its roles and its client with roles, with the grants through narrows, the trust domain, the clients, the tokens and the security events; the core's matrix has a column per role and client of the identity module that reaches its permissions, and it draws the chain bff, middleware, core the induction found, with the token and the workload identity on each arrow
 
 #### document-techspec-context
 
@@ -4685,7 +4693,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-342 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+343 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -4887,6 +4895,7 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-88 | acceptance 4 | golden | SA-88 names no harm |
 | requirement SA-88 | acceptance 5 | golden | SA-88 names no harm |
 | requirement SA-88 | acceptance 6 | golden | SA-88 names no harm |
+| requirement SA-88 | acceptance 7 | golden | SA-88 names no harm |
 | requirement SA-7 | acceptance 1 | golden | SA-7 names no harm |
 | requirement SA-7 | acceptance 2 | golden | SA-7 names no harm |
 | requirement SA-8 | acceptance 1 | golden | SA-8 names no harm |

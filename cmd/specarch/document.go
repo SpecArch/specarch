@@ -43,6 +43,11 @@ type loaded struct {
 	// unresolved are the references into other specifications the run
 	// could not resolve.
 	unresolved []validate.Reference
+	// chains and grants are what the modules given with this one say of
+	// it: the delegation chains that reach it and the identity module's
+	// roles that reach its permissions.
+	chains []validate.Chain
+	grants []validate.RoleColumn
 }
 
 // marks are the errors and warnings of the specification as the documents
@@ -89,6 +94,16 @@ func (l loaded) state() *generate.State {
 	st.Places = l.namedPlaces()
 	for _, r := range l.unresolved {
 		st.References = append(st.References, generate.Reference{Path: r.Path, Text: r.Text, Specification: r.Specification, Version: r.Version, Waits: r.Waits})
+	}
+	for _, c := range l.chains {
+		ch := generate.Chain{Operation: c.Operation}
+		for _, h := range c.Hops {
+			ch.Hops = append(ch.Hops, generate.Hop(h))
+		}
+		st.Chains = append(st.Chains, ch)
+	}
+	for _, g := range l.grants {
+		st.Grants = append(st.Grants, generate.RoleColumn(g))
 	}
 	for _, c := range validate.LeftOutCases(l.spec.Root) {
 		st.LeftOut = append(st.LeftOut, generate.LeftOut{Subject: c.Subject, Case: c.Case, Scenario: c.Scenario, Reason: c.Reason})
@@ -413,7 +428,7 @@ func readInputs(paths []string, verb string, stdout, stderr io.Writer, settles f
 				invalid = true
 			}
 		}
-		l := loaded{spec: s, diags: diags, covered: covered, unresolved: validate.References(s, given)}
+		l := loaded{spec: s, diags: diags, covered: covered, unresolved: validate.References(s, given), chains: validate.Chains(s, given), grants: validate.ReferencedGrants(s, given)}
 		for _, impl := range s.Implementations {
 			doc := source.Parse(impl.Data)
 			if doc.Root == nil {

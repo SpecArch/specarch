@@ -43,9 +43,13 @@
 #   for every one) and the path matcher that reads the pattern, "colon"
 #   (a segment :name is one segment) or "brace" (a segment {name} is):
 #       {"role": "desk-staff", "pattern": "/v1/*", "methods": ["GET"], "matcher": "colon"}
+#   A row that holds through one client only, the application the
+#   person signed in through, adds it under through, as a grant does:
+#       {"role": "desk-staff", "pattern": "/v1/*", "methods": ["GET"], "matcher": "colon", "through": "desk-web"}
 #   specarch extract permissions names one permission per pattern and
-#   method by a fixed rule, and gives each route of a route table given
-#   with --routes its permission.
+#   method by a fixed rule, writes a row's through on the role's grant
+#   of it, and gives each route of a route table given with --routes its
+#   permission.
 #
 # The keys named here are all there is; a permission table with any other
 # key, or without grants or gates, is refused.

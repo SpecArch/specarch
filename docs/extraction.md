@@ -298,9 +298,11 @@ Steps, in order:
    or one that would not go back on the wire unchanged, is left out with
    a line that says why. A check that reads a policy of path patterns is
    printed as the table's `rules`, each a role, a pattern, the methods and
-   the path matcher (ADR-100): the reader writes one permission per
+   the path matcher (ADR-100), and `through` for a row that holds through
+   one client only (ADR-170): the reader writes one permission per
    distinct pattern and method pair, named by a fixed rule, each implying
-   the ones its pattern covers, and given the route table with `--routes`
+   the ones its pattern covers, a row's through on the role as a grant's
+   is, and given the route table with `--routes`
    writes the routes too, each with the one permission every other match
    implies; an ambiguous route and a route no rule reaches are `must`
    questions, and a rule no route reaches a `could` one. `specarch merge` asks a question two trees ask only once, and

@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: extract
+level: system
+scenario: golden
+given: "a repository whose first commit holds a policy's folder, whose second holds a router's folder, and whose third holds the permission table printed from the first, with no grant and seven rules, and the route table printed from the second; three rules of two roles hold through one application each, and one role reaches /v1/reports/* with GET by one row through an application and by another with no client"
+when: "extract permissions is run on the permission table with the route table given by --routes"
+then: "it writes each permission the rules give as without through, the roles whose rows hold through one application with that permission's through, each such application declared as one, every row's citation naming the application it holds through; asks which holds where two rows of one role disagree on the narrowing, leaving that permission out of through, what each client is and which token carries the application; the tree validates with no error, and it exits 0"
+verifies: [SA-63, SA-89]

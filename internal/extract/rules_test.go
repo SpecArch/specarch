@@ -54,7 +54,7 @@ func TestRuleNames(t *testing.T) {
 		}},
 		key: "code", res: &Result{}, questions: &yaml.Node{Kind: yaml.MappingNode}, wireOf: map[string]string{},
 	}
-	byRole, err := pr.readRules("permissions.json", map[string]bool{})
+	byRole, err := pr.readRules("permissions.json", map[string]bool{}, map[string]map[string][]string{}, map[string]bool{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -71,7 +71,10 @@ func TestRuleNames(t *testing.T) {
 	if len(pr.notHeld) != 1 || !strings.Contains(pr.notHeld[0].text, "the word 2fa does not start with a letter") {
 		t.Errorf("not held: %v", pr.notHeld)
 	}
-	if _, err := (&permissionReader{t: &permissionTable{Rules: []dumpRule{{Role: "a", Pattern: "/x", Methods: json.RawMessage(`"*"`), Matcher: "glob"}}}, res: &Result{}, wireOf: map[string]string{}}).readRules("p.json", map[string]bool{}); err == nil || !strings.Contains(err.Error(), "glob") {
+	if _, err := (&permissionReader{t: &permissionTable{Rules: []dumpRule{{Role: "a", Pattern: "/x", Methods: json.RawMessage(`"*"`), Matcher: "glob"}}}, res: &Result{}, wireOf: map[string]string{}}).readRules("p.json", map[string]bool{}, map[string]map[string][]string{}, map[string]bool{}); err == nil || !strings.Contains(err.Error(), "glob") {
 		t.Errorf("an unknown matcher: %v", err)
+	}
+	if _, err := (&permissionReader{t: &permissionTable{Rules: []dumpRule{{Role: "a", Pattern: "/x", Methods: json.RawMessage(`"*"`), Matcher: "colon", Through: "Admin_Web"}}}, res: &Result{}, wireOf: map[string]string{}}).readRules("p.json", map[string]bool{}, map[string]map[string][]string{}, map[string]bool{}); err == nil || !strings.Contains(err.Error(), "p.json, rule 1") || !strings.Contains(err.Error(), "Admin_Web") {
+		t.Errorf("a through not in kebab-case: %v", err)
 	}
 }

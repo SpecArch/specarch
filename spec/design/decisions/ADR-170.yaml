@@ -1,0 +1,46 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.3.schema.json
+decisions:
+  ADR-170:
+    title: A rule of the permission table may name through, the one client its row holds through, and extract permissions writes it on the role's grant as it writes a grant's
+    status: accepted
+    date: "2026-10-21"
+    context: |
+      Roadmap 5, caller context. ADR-106 lets a grant hold through one
+      application, and the permission table's grants carry it as
+      through; a check that reads a policy of path patterns prints rules
+      (ADR-100), and a rule had no way to say it, so a policy whose rows
+      admit a role only from one application was read as admitting it
+      from every client.
+    decision: |
+      A rule of the permission table may name through: the software_id
+      of the one client its row holds through, in kebab-case, as a
+      grant's through is; a rule without it reads as before. Each
+      permission the rules give is granted to the row's role through
+      that client, and written under the role's through, the client
+      declared as an application, with the questions a grant's through
+      gives: what each client is, which token carries the application,
+      and, where one row of a role holds a permission through a client
+      and another holds it with none, a must question at the role's
+      through, the permission left out of it. Two rows that differ only
+      in through are two rows; a row listed twice with the same through
+      is refused, and so is a through that is not kebab-case, naming the
+      rule. A row's citation names the client it holds through.
+    consequences: |
+      A policy of path patterns says who may call from where as a table
+      of grants does, and the matrix shows it. The operations a route
+      table gives are unchanged: through is the role's, never the
+      operation's (ADR-106). The case extract-permissions-pattern-through
+      holds the reading.
+    why: |
+      One meaning per key: through is the one client a grant holds
+      through whatever row gives the grant, so a rule says it with the
+      same key and the reader writes it with the same code, and the
+      questions read the same in both. A row with no through beside one
+      with it is asked, never read as either, because the check reads
+      them in an order the table does not show and through is never
+      guessed. Compiler test: a rule through a client is written on the
+      role, a disagreeing pair is a must question at the role's through,
+      and a malformed through is refused naming the rule. Acceptance
+      test: the first techspec of a service whose policy narrows rows to
+      one application shows the narrowing in the matrix.
+    satisfies: [SA-89]

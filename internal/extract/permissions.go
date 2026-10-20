@@ -420,12 +420,16 @@ func (pr *permissionReader) read(dumpName string) error {
 	} else {
 		pr.res.say("counted %s and %s: every entry of the permission table's lists, which hold every grant the check reads and every check the printer declares a setting switches off or a kind of caller skips", plural(len(pr.t.Grants), "grant"), plural(len(pr.t.Gates), "gate"))
 	}
-	ruled, err := pr.readRules(dumpName, isRole)
+	ruled, err := pr.readRules(dumpName, isRole, through, plain)
 	if err != nil {
 		return err
 	}
 	for role, perms := range ruled {
-		byRole[role] = append(byRole[role], perms...)
+		for _, p := range perms {
+			if !contains(byRole[role], p) {
+				byRole[role] = append(byRole[role], p)
+			}
+		}
 	}
 
 	var roleNames []string
@@ -624,10 +628,20 @@ func (pr *permissionReader) throughOf(role string, by map[string][]string, plain
 		clients := append([]string(nil), by[p]...)
 		sort.Strings(clients)
 		if plain[role+" "+p] {
+			says := fmt.Sprintf("%s grants %s through %s, and grants it with no client too.", pr.wireOf[role], p, joinAnd(clients))
+			if rp := pr.rulePermission(p); rp != nil {
+				var rows []string
+				for _, r := range rp.rows {
+					if r.role == pr.wireOf[role] {
+						rows = append(rows, r.says())
+					}
+				}
+				says = strings.Join(rows, "; ") + "."
+			}
 			pr.question(fmt.Sprintf("Role %s is granted %s by one row through %s and by another through any client. Is the grant narrowed to %s, or does it hold through every client?", pr.wireOf[role], p, joinAnd(clients), joinAnd(clients)),
 				[]string{"#/roles/" + escapeToken(role) + "/through"},
 				"Two rows of the table disagree on whether the grant is narrowed, and the check reads one of them in an order the table does not show; through is never guessed.",
-				citation(pr.key, pr.t.Path+" role "+pr.wireOf[role], fmt.Sprintf("%s grants %s through %s, and grants it with no client too.", pr.wireOf[role], p, joinAnd(clients))))
+				citation(pr.key, pr.t.Path+" role "+pr.wireOf[role], says))
 			continue
 		}
 		set(out, p, flow(value(clients)))

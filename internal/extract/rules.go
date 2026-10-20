@@ -11,13 +11,15 @@ import (
 
 // dumpRule is one row of a policy that checks a role against a path
 // pattern and a method, as the permission table's rules hold it (ADR-100):
-// the role, the pattern, the methods (a list, or "*" for every one) and
-// the name of the path matcher that reads the pattern.
+// the role, the pattern, the methods (a list, or "*" for every one), the
+// name of the path matcher that reads the pattern and, for a row that
+// holds through one client only, that client (ADR-170).
 type dumpRule struct {
 	Role    string          `json:"role"`
 	Pattern string          `json:"pattern"`
 	Methods json.RawMessage `json:"methods"`
 	Matcher string          `json:"matcher"`
+	Through string          `json:"through"`
 }
 
 // The path matchers a rule may name. Both read `*` as the last segment as
@@ -122,6 +124,7 @@ type ruleRow struct {
 	role    string // the role's name as the table writes it
 	pattern string
 	methods string // as the table writes them: "every method", or GET and POST
+	through string // the one client the row holds through, or ""
 }
 
 // covers reports whether a holder of p may call everything q guards.
@@ -192,10 +195,11 @@ func methodWord(m string) string {
 
 // readRules reads the table's rules into one permission per distinct
 // pattern and method pair, named by the fixed rule, each with the ones it
-// implies, and the permissions each role's rows give it. A rule whose role
-// cannot be read, or whose pattern or name the meta-model cannot hold, is
-// left out with a line.
-func (pr *permissionReader) readRules(dumpName string, isRole map[string]bool) (map[string][]string, error) {
+// implies, and the permissions each role's rows give it. A row that holds
+// through one client adds to through, and one that does not to plain, as
+// a grant's row does. A rule whose role cannot be read, or whose pattern
+// or name the meta-model cannot hold, is left out with a line.
+func (pr *permissionReader) readRules(dumpName string, isRole map[string]bool, through map[string]map[string][]string, plain map[string]bool) (map[string][]string, error) {
 	byRole := map[string][]string{}
 	if len(pr.t.Rules) == 0 {
 		return byRole, nil
@@ -204,7 +208,8 @@ func (pr *permissionReader) readRules(dumpName string, isRole map[string]bool) (
 	found := map[at]*rulePermission{}
 	var order []*rulePermission
 	seen := map[string]bool{}
-	roleOf := map[*rulePermission][]string{}
+	type holder struct{ role, through string }
+	roleOf := map[*rulePermission][]holder{}
 	for i, r := range pr.t.Rules {
 		where := fmt.Sprintf("%s, rule %d", dumpName, i+1)
 		if r.Role == "" || r.Pattern == "" || r.Matcher == "" || len(r.Methods) == 0 {
@@ -220,13 +225,16 @@ func (pr *permissionReader) readRules(dumpName string, isRole map[string]bool) (
 		if !ok {
 			return nil, refuse("%s: the methods are neither \"*\" nor a list of HTTP methods in capitals, each once", where)
 		}
-		row := ruleRow{role: r.Role, pattern: r.Pattern, methods: "every method"}
+		if r.Through != "" && !roleWord.MatchString(r.Through) {
+			return nil, refuse("%s: the client %q it holds through is not kebab-case; a client is named by its software_id in kebab-case", where, r.Through)
+		}
+		row := ruleRow{role: r.Role, pattern: r.Pattern, methods: "every method", through: r.Through}
 		if methods[0] != "*" {
 			row.methods = joinAnd(methods)
 		}
-		dup := r.Role + " " + r.Matcher + " " + r.Pattern + " " + row.methods
+		dup := r.Role + " " + r.Matcher + " " + r.Pattern + " " + row.methods + " " + r.Through
 		if seen[dup] {
-			return nil, refuse("%s: %s reaching %s with %s is listed twice", where, r.Role, r.Pattern, row.methods)
+			return nil, refuse("%s: %s is listed twice", where, row.says())
 		}
 		seen[dup] = true
 		pat, reason := readPattern(r.Pattern, r.Matcher)
@@ -248,7 +256,7 @@ func (pr *permissionReader) readRules(dumpName string, isRole map[string]bool) (
 				order = append(order, p)
 			}
 			p.rows = append(p.rows, row)
-			roleOf[p] = append(roleOf[p], role)
+			roleOf[p] = append(roleOf[p], holder{role, r.Through})
 		}
 		isRole[role] = true
 		pr.wireOf[role] = r.Role
@@ -308,8 +316,20 @@ func (pr *permissionReader) readRules(dumpName string, isRole map[string]bool) (
 				p.implies = append(p.implies, q.name)
 			}
 		}
-		for _, role := range roleOf[p] {
-			byRole[role] = append(byRole[role], p.name)
+		for _, h := range roleOf[p] {
+			if !contains(byRole[h.role], p.name) {
+				byRole[h.role] = append(byRole[h.role], p.name)
+			}
+			if h.through == "" {
+				plain[h.role+" "+p.name] = true
+				continue
+			}
+			if through[h.role] == nil {
+				through[h.role] = map[string][]string{}
+			}
+			if !contains(through[h.role][p.name], h.through) {
+				through[h.role][p.name] = append(through[h.role][p.name], h.through)
+			}
 		}
 	}
 	implications := 0
@@ -350,9 +370,19 @@ func (pr *permissionReader) rulePermission(name string) *rulePermission {
 func ruleSays(p *rulePermission) string {
 	var parts []string
 	for _, r := range p.rows {
-		parts = append(parts, fmt.Sprintf("%s reaches %s with %s", r.role, r.pattern, r.methods))
+		parts = append(parts, r.says())
 	}
 	return strings.Join(parts, "; ") + "."
+}
+
+// says is what the row says: the role, the pattern and the methods, and
+// the client it holds through when it names one.
+func (r ruleRow) says() string {
+	s := fmt.Sprintf("%s reaches %s with %s", r.role, r.pattern, r.methods)
+	if r.through != "" {
+		s += " through " + r.through
+	}
+	return s
 }
 
 // rulePermissionEntry is a permission the rules give, as the tree writes
@@ -433,6 +463,9 @@ func (pr *permissionReader) roleRows(wire string) string {
 		text := "every method"
 		if ok && methods[0] != "*" {
 			text = joinAnd(methods)
+		}
+		if r.Through != "" {
+			text += " through " + r.Through
 		}
 		parts = append(parts, fmt.Sprintf("%s with %s", r.Pattern, text))
 	}

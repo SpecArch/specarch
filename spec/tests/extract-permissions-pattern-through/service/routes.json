@@ -1,0 +1,14 @@
+{
+    "routeTable": 1,
+    "path": "api",
+    "commit": "4738214b4d72506210afa1e6e9882f60ec7b7677",
+    "routes": [
+        {"method": "GET", "path": "/v1/loans", "permission": null, "handler": "ListLoans"},
+        {"method": "POST", "path": "/v1/loans", "permission": null, "handler": "LendBook"},
+        {"method": "GET", "path": "/v1/loans/{id}", "permission": null, "handler": "GetLoan"},
+        {"method": "POST", "path": "/v1/loans/{id}/renew", "permission": null, "handler": "RenewLoan"},
+        {"method": "GET", "path": "/v1/reports/daily", "permission": null, "handler": "DailyReport"},
+        {"method": "GET", "path": "/v1/reports/export", "permission": null, "handler": "ExportReports"},
+        {"method": "GET", "path": "/health", "permission": null, "handler": "Health"}
+    ]
+}

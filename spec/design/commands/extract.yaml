@@ -241,7 +241,11 @@ commands:
         has `*` other than as its last segment. A permission implies each
         one its pattern and methods cover with none between them, each
         role is granted the permissions of its rows, and a could question
-        offers to rename the inferred names. Given the route table too,
+        offers to rename the inferred names. A rule may name `through`,
+        the one client its row holds through, as a grant may (ADR-170):
+        the role's permission is written under its through and the client
+        declared, with the same questions a grant's through gives, and a
+        through that is not kebab-case is refused, naming the rule. Given the route table too,
         with `--routes`, the routes are read as extract router reads them
         and written in the same tree, under one code source read at the
         later of the two tables' commits; each route that checks no

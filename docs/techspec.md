@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.7.3-dev of the specification: 90 requirements, 5 entities, 16 commands, 7 algorithms, 637 tests, 160 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.7.3-dev of the specification: 90 requirements, 5 entities, 16 commands, 7 algorithms, 638 tests, 161 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -1499,7 +1499,11 @@ The sources this build reads:
   has `*` other than as its last segment. A permission implies each
   one its pattern and methods cover with none between them, each
   role is granted the permissions of its rows, and a could question
-  offers to rename the inferred names. Given the route table too,
+  offers to rename the inferred names. A rule may name `through`,
+  the one client its row holds through, as a grant may (ADR-170):
+  the role's permission is written under its through and the client
+  declared, with the same questions a grant's through gives, and a
+  through that is not kebab-case is refused, naming the rule. Given the route table too,
   with `--routes`, the routes are read as extract router reads them
   and written in the same tree, under one code source read at the
   later of the two tables' commits; each route that checks no
@@ -12742,6 +12746,39 @@ the readings.
 
 **Insight:** One meaning per key: a check named under clientChecks admits only clients whatever the language it is written in, so each reader reads it and writes the same callers and the same questions, and a specification extracted from a service in Swift, TypeScript or Dart shows who may call it as one in Go does. Found where the permission checks are found, because a project writes its gates the way it writes its permission checks, and a reader that looked elsewhere would read one and miss the other. Shared code for the writing, because two copies of the same questions drift apart in wording, and the merge joins questions by their words. A citation is read as what that line says, so one line cited for the names of every call would send the reader to a line that does not pass them. Compiler test: a gate named in part or twice is a must question at the paths in every reader, and every name read is written or asked at its entry. Acceptance test: the first techspec of a service in any of the four languages shows who may call each route and which question names the clients still to declare.
 
+### ADR-170: A rule of the permission table may name through, the one client its row holds through, and extract permissions writes it on the role's grant as it writes a grant's
+
+Status: accepted, 2026-10-21.
+
+Context: Roadmap 5, caller context. ADR-106 lets a grant hold through one
+application, and the permission table's grants carry it as
+through; a check that reads a policy of path patterns prints rules
+(ADR-100), and a rule had no way to say it, so a policy whose rows
+admit a role only from one application was read as admitting it
+from every client.
+
+Decision: A rule of the permission table may name through: the software_id
+of the one client its row holds through, in kebab-case, as a
+grant's through is; a rule without it reads as before. Each
+permission the rules give is granted to the row's role through
+that client, and written under the role's through, the client
+declared as an application, with the questions a grant's through
+gives: what each client is, which token carries the application,
+and, where one row of a role holds a permission through a client
+and another holds it with none, a must question at the role's
+through, the permission left out of it. Two rows that differ only
+in through are two rows; a row listed twice with the same through
+is refused, and so is a through that is not kebab-case, naming the
+rule. A row's citation names the client it holds through.
+
+Consequences: A policy of path patterns says who may call from where as a table
+of grants does, and the matrix shows it. The operations a route
+table gives are unchanged: through is the role's, never the
+operation's (ADR-106). The case extract-permissions-pattern-through
+holds the reading.
+
+**Insight:** One meaning per key: through is the one client a grant holds through whatever row gives the grant, so a rule says it with the same key and the reader writes it with the same code, and the questions read the same in both. A row with no through beside one with it is asked, never read as either, because the check reads them in an order the table does not show and through is never guessed. Compiler test: a rule through a client is written on the role, a disagreeing pair is a must question at the role's through, and a malformed through is refused naming the rule. Acceptance test: the first techspec of a service whose policy narrows rows to one application shows the narrowing in the matrix.
+
 ## 10. Quality requirements
 
 The design tests: what must hold on every implementation. Golden scenarios succeed; red scenarios are refused.
@@ -12949,6 +12986,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | extract-permissions-grant-twice | command extract | system | red | a permission table that lists one role granting one permission twice | extract permissions is run on the permission table | it refuses the table, naming the grant listed twice, writes nothing and exits 1 |
 | extract-permissions-mixed-role-names | command extract | system | golden | a repository whose first commit holds the folder a permission check is built from and whose second holds the permission table printed from it; the table names one role in kebab-case and one in upper snake case | extract permissions is run on the permission table | it writes the kebab-case role and no info.roleNames, prints a line and writes a could question for the upper snake role saying the table names its roles both ways, and exits 0 |
 | extract-permissions-pattern-rules | command extract | system | golden | a repository whose first commit holds a policy's folder, whose second holds a router's folder, and whose third holds the permission table printed from the first, with no grant and six rules, and the route table printed from the second, with seven routes that check no permission; one role reaches /v1/* with every method and another /v1/* with GET, a /v2/* rule reaches no route, two rules reach one route with neither covering the other, and no rule reaches /health | extract permissions is run on the permission table with the route table given by --routes | it writes one permission per distinct pattern and method pair, named by the fixed rule, v1.all implying v1.get and the narrower ones, each role granted the permissions of its rows, every route's operation with the one permission every other match implies, a must question at the route two permissions reach with neither implying the other and at the route no rule reaches, a could question for the dead rule and one offering to rename the inferred names, reads the tree at the later of the two commits, and exits 0 |
+| extract-permissions-pattern-through | command extract | system | golden | a repository whose first commit holds a policy's folder, whose second holds a router's folder, and whose third holds the permission table printed from the first, with no grant and seven rules, and the route table printed from the second; three rules of two roles hold through one application each, and one role reaches /v1/reports/* with GET by one row through an application and by another with no client | extract permissions is run on the permission table with the route table given by --routes | it writes each permission the rules give as without through, the roles whose rows hold through one application with that permission's through, each such application declared as one, every row's citation naming the application it holds through; asks which holds where two rows of one role disagree on the narrowing, leaving that permission out of through, what each client is and which token carries the application; the tree validates with no error, and it exits 0 |
 | extract-permissions-upper-snake-roles | command extract | system | golden | a repository whose first commit holds the folder a permission check is built from and whose second holds the permission table printed from it; the table writes every role in upper snake case, one of them with a digit, one granting public, one with two underscores in a row and one in mixed case | extract permissions is run on the permission table | it writes info.roleNames upper_snake and each upper snake role by its kebab-case name with the permissions it grants, each role and permission citing the table's own names; prints a line and writes a could question for the grant of public, for the name with two underscores, which would not go back on the wire unchanged, and for the name in mixed case, each saying why, and exits 0 |
 | extract-permissions-writes-tree | command extract | system | golden | a repository whose first commit holds the folder a permission check is built from and whose second holds the permission table printed from it, naming the first; the table has two roles sharing a permission, a privilege in dxlib_module's capitals, a grant of EVERYTHING, two privileges that give one permission granted to two roles, a grant of public, a role whose name is not kebab-case, a role whose permissions are not a permission name and a privilege that gives another's permission, and a check that runs only when a setting is present | extract permissions is run on the permission table | it writes each role with the permissions it grants in the order of their names and every permission granted, the privilege in capitals mapped by the rule of ADR-076 and declared inferred; a must question on the grant of EVERYTHING, which it does not expand, on each of the two privileges that give one permission and on the name that is not a permission name, each blocking the role's permissions, with the role written with the grants it can read; a question for the roles' and the permissions' descriptions and one for the check a setting switches off, citing the table; names the commit, counts the grants and gates, prints a line for the gate, prints a line and writes a could question citing the role for the grant of public and the role's name, and exits 0 |
 | extract-router-dump-repository-not-gitlink | command extract | system | red | a repository holding a router's folder inside a plain folder, committed as files and not as a gitlink, and a route table that names that plain folder as the code's repository | extract router is run on the route table | it refuses the route table because the folder it names is not a gitlink, so nothing pins the commit of the code read, writes nothing and exits 1 |
@@ -13775,7 +13813,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-60 | enums DocumentTarget; commands document; decisions ADR-088 | tests document-html-marks-problems; tests document-writes-html |
 | SA-61 | commands generate; decisions ADR-093 | tests generate-ui-typescript-hand-built; tests generate-ui-typescript-hand-built-differs |
 | SA-62 | enums Rule; decisions ADR-099; decisions ADR-112 | tests document-techspec-role-names; tests extract-go-dxlib-upper-snake-roles; tests extract-permissions-mixed-role-names; tests extract-permissions-upper-snake-roles; tests merge-role-names-disagree; tests validate-role-names |
-| SA-63 | enums Rule; commands extract; decisions ADR-100 | tests document-techspec-implies; tests extract-permissions-pattern-rules; tests validate-implies |
+| SA-63 | enums Rule; commands extract; decisions ADR-100 | tests document-techspec-implies; tests extract-permissions-pattern-rules; tests extract-permissions-pattern-through; tests validate-implies |
 | SA-64 | commands extract; commands merge; decisions ADR-105 | tests extract-documents-language-not-shipped; tests extract-documents-vocabulary; tests extract-documents-vocabulary-word-twice; tests merge-documents-days-vocabulary; tests merge-documents-language-not-given; tests validate-schema-language-tag |
 | SA-65 | commands gaps; commands validate; decisions ADR-112 | tests gaps-references-blocked; tests gaps-references-unresolved; tests generate-openapi-reference-refused; tests generate-sql-reference; tests validate-references; tests validate-references-wrong |
 | SA-66 | commands document; commands gaps; commands validate; decisions ADR-113 | tests document-estate-map; tests gaps-estate; tests validate-estate; tests validate-estate-cycle; tests validate-estate-modules-wrong |
@@ -13801,7 +13839,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-86 | enums DocumentTarget; commands document; decisions ADR-157 | tests document-writes-comparison; tests document-writes-comparison-citation-without-source |
 | SA-87 | decisions ADR-158; decisions ADR-167; decisions ADR-168 | tests generate-scripts; tests generate-scripts-dialect-refused; tests generate-scripts-hand-written-refused; tests generate-scripts-mariadb |
 | SA-88 | enums Rule | tests document-techspec-caller-estate; tests gaps-caller-alone; tests validate-caller-chain-gap; tests validate-caller-chain-wrong; tests validate-caller-estate; tests validate-caller-estate-wrong |
-| SA-89 | decisions ADR-159; decisions ADR-169 | tests extract-dart-caller-checks; tests extract-go-caller-checks; tests extract-javascript-caller-checks; tests extract-permissions-client-through; tests extract-swift-caller-checks |
+| SA-89 | decisions ADR-159; decisions ADR-169; decisions ADR-170 | tests extract-dart-caller-checks; tests extract-go-caller-checks; tests extract-javascript-caller-checks; tests extract-permissions-client-through; tests extract-permissions-pattern-through; tests extract-swift-caller-checks |
 | SA-90 | enums DocumentTarget; decisions ADR-160; decisions ADR-165; decisions ADR-166 | tests document-manual-none; tests document-operations-none; tests document-writes-manual; tests document-writes-manual-cli; tests document-writes-manual-cli-unnamed; tests document-writes-operations; tests validate-command-remedies; tests validate-jobs-dead-letter; tests validate-remedy-and-response |
 
 ## Sources

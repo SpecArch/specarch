@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.3-dev of the specification: 637 design tests, 299 golden and 338 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.3-dev of the specification: 638 design tests, 300 golden and 338 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.7.3-dev of the specification: 637 design tests, 299 golden and 338 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 633 |
+| system | 634 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -1670,6 +1670,14 @@ Scenario: golden; level: system; verifies SA-63.
 - Given: a repository whose first commit holds a policy's folder, whose second holds a router's folder, and whose third holds the permission table printed from the first, with no grant and six rules, and the route table printed from the second, with seven routes that check no permission; one role reaches /v1/* with every method and another /v1/* with GET, a /v2/* rule reaches no route, two rules reach one route with neither covering the other, and no rule reaches /health
 - When: extract permissions is run on the permission table with the route table given by --routes
 - Then: it writes one permission per distinct pattern and method pair, named by the fixed rule, v1.all implying v1.get and the narrower ones, each role granted the permissions of its rows, every route's operation with the one permission every other match implies, a must question at the route two permissions reach with neither implying the other and at the route no rule reaches, a could question for the dead rule and one offering to rename the inferred names, reads the tree at the later of the two commits, and exits 0
+
+#### extract-permissions-pattern-through
+
+Scenario: golden; level: system; verifies SA-63, SA-89.
+
+- Given: a repository whose first commit holds a policy's folder, whose second holds a router's folder, and whose third holds the permission table printed from the first, with no grant and seven rules, and the route table printed from the second; three rules of two roles hold through one application each, and one role reaches /v1/reports/* with GET by one row through an application and by another with no client
+- When: extract permissions is run on the permission table with the route table given by --routes
+- Then: it writes each permission the rules give as without through, the roles whose rows hold through one application with that permission's through, each such application declared as one, every row's citation naming the application it holds through; asks which holds where two rows of one role disagree on the narrowing, leaving that permission out of through, what each client is and which token carries the application; the tree validates with no error, and it exits 0
 
 #### extract-permissions-upper-snake-roles
 

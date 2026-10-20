@@ -1,0 +1,149 @@
+questions:
+  # specarch-problem: question: open_question: (must, decision) Role auditor is granted v1.reports.get by one row through admin-web and by another through any client. Is the grant narrowed to admin-web, or does it hold through every client? Decided by system-owner. Answer with a decision record that names Q-1 under answers. [Q-1]
+  Q-1:
+    question: Role auditor is granted v1.reports.get by one row through admin-web and by another through any client. Is the grant narrowed to admin-web, or does it hold through every client?
+    kind: decision
+    priority: must
+    blocks: ['#/roles/auditor/through']
+    decidedBy: system-owner
+    why: Two rows of the table disagree on whether the grant is narrowed, and the check reads one of them in an order the table does not show; through is never guessed.
+    cites:
+      - {source: code, clause: access role auditor, says: auditor reaches /v1/reports/* with GET through admin-web; auditor reaches /v1/reports/* with GET.}
+  # specarch-problem: question: open_question: (must, decision) What is each role for, and who holds it: auditor, desk-staff, desk-supervisor? Decided by system-owner. Answer with a decision record that names Q-2 under answers. [Q-2]
+  Q-2:
+    question: 'What is each role for, and who holds it: auditor, desk-staff, desk-supervisor?'
+    kind: decision
+    priority: must
+    blocks: ['#/roles/auditor/description', '#/roles/desk-staff/description', '#/roles/desk-supervisor/description']
+    decidedBy: system-owner
+    why: A permission table names a role and what it grants, not who holds it.
+  # specarch-problem: question: open_question: (must, decision) What does each permission allow: v1.all, v1.export.get, v1.get, v1.loans.renew.post, v1.reports.get, v2.get? Decided by system-owner. Answer with a decision record that names Q-3 under answers. [Q-3]
+  Q-3:
+    question: 'What does each permission allow: v1.all, v1.export.get, v1.get, v1.loans.renew.post, v1.reports.get, v2.get?'
+    kind: decision
+    priority: must
+    blocks: ['#/permissions/v1.all/description', '#/permissions/v1.export.get/description', '#/permissions/v1.get/description', '#/permissions/v1.loans.renew.post/description', '#/permissions/v1.reports.get/description', '#/permissions/v2.get/description']
+    decidedBy: system-owner
+    why: A permission table names the permissions a role grants and not what they are for.
+  # specarch-problem: question: open_question: (could, decision) The permissions the rules give are named from their patterns' words and their methods: v1.all, v1.export.get, v1.get, v1.loans.renew.post, v1.reports.get, v2.get. Should any be renamed to say what it allows? Decided by system-owner. Answer with a decision record that names Q-4 under answers. [Q-4]
+  Q-4:
+    question: 'The permissions the rules give are named from their patterns'' words and their methods: v1.all, v1.export.get, v1.get, v1.loans.renew.post, v1.reports.get, v2.get. Should any be renamed to say what it allows?'
+    kind: decision
+    priority: could
+    blocks: ['#/permissions/v1.all', '#/permissions/v1.export.get', '#/permissions/v1.get', '#/permissions/v1.loans.renew.post', '#/permissions/v1.reports.get', '#/permissions/v2.get']
+    decidedBy: system-owner
+    why: The names come from paths and not from a person, and a name is what a reviewer reads in the matrix. Nothing waits for the answer.
+  # specarch-problem: question: open_question: (must, decision) What is each client the table names: admin-web and desk-web? Decided by system-owner. Answer with a decision record that names Q-5 under answers. [Q-5]
+  Q-5:
+    question: 'What is each client the table names: admin-web and desk-web?'
+    kind: decision
+    priority: must
+    blocks: ['#/clients/admin-web/description', '#/clients/desk-web/description']
+    decidedBy: system-owner
+    why: The table names a client by the grants it holds or narrows, not what it is, who runs it or who signs in through it.
+  # specarch-problem: question: open_question: (must, decision) The table narrows grants to the applications admin-web and desk-web. Which token carries the application the person signed in through: the client_id of an access token, or tctx.application of a transaction token? It blocks tokens. Decided by system-owner. Answer with a decision record that names Q-6 under answers. [Q-6]
+  Q-6:
+    question: 'The table narrows grants to the applications admin-web and desk-web. Which token carries the application the person signed in through: the client_id of an access token, or tctx.application of a transaction token?'
+    kind: decision
+    priority: must
+    blocks: ['#/roles/desk-staff/through', '#/roles/desk-supervisor/through', tokens]
+    decidedBy: system-owner
+    why: through is checked against the application a token carries, which a session does not; the table names the condition, not the token (ADR-106, ADR-108).
+  # specarch-problem: question: open_question: (must, decision) What does GET /health do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-7 under answers. [Q-7]
+  Q-7:
+    question: What does GET /health do, and what does it answer?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1health/get/summary', '#/paths/~1health/get/responses']
+    decidedBy: system-owner
+    why: A route table names the handler and not what it does or the responses it gives.
+  # specarch-problem: question: open_question: (must, decision) No rule of the permission table reaches GET /health. Is it closed on purpose, so that nobody may call it, or should a rule reach it? Decided by system-owner. Answer with a decision record that names Q-8 under answers. [Q-8]
+  Q-8:
+    question: No rule of the permission table reaches GET /health. Is it closed on purpose, so that nobody may call it, or should a rule reach it?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1health/get/permission']
+    decidedBy: system-owner
+    why: A route no rule reaches refuses every caller, and so does a route a rule was forgotten for, so it is asked, never assumed.
+  # specarch-problem: question: open_question: (must, decision) What does GET /v1/loans do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-9 under answers. [Q-9]
+  Q-9:
+    question: What does GET /v1/loans do, and what does it answer?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1v1~1loans/get/summary', '#/paths/~1v1~1loans/get/responses']
+    decidedBy: system-owner
+    why: A route table names the handler and not what it does or the responses it gives.
+  # specarch-problem: question: open_question: (must, decision) What does POST /v1/loans do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-10 under answers. [Q-10]
+  Q-10:
+    question: What does POST /v1/loans do, and what does it answer?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1v1~1loans/post/summary', '#/paths/~1v1~1loans/post/responses']
+    decidedBy: system-owner
+    why: A route table names the handler and not what it does or the responses it gives.
+  # specarch-problem: question: open_question: (must, decision) What values does each path parameter of /v1/loans/{id} take: id? Decided by system-owner. Answer with a decision record that names Q-11 under answers. [Q-11]
+  Q-11:
+    question: 'What values does each path parameter of /v1/loans/{id} take: id?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1v1~1loans~1{id}/parameters/0/schema']
+    decidedBy: system-owner
+    why: A route table names a path's parameters and not the values they take.
+  # specarch-problem: question: open_question: (must, decision) What does GET /v1/loans/{id} do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-12 under answers. [Q-12]
+  Q-12:
+    question: What does GET /v1/loans/{id} do, and what does it answer?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1v1~1loans~1{id}/get/summary', '#/paths/~1v1~1loans~1{id}/get/responses']
+    decidedBy: system-owner
+    why: A route table names the handler and not what it does or the responses it gives.
+  # specarch-problem: question: open_question: (must, decision) What values does each path parameter of /v1/loans/{id}/renew take: id? Decided by system-owner. Answer with a decision record that names Q-13 under answers. [Q-13]
+  Q-13:
+    question: 'What values does each path parameter of /v1/loans/{id}/renew take: id?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1v1~1loans~1{id}~1renew/parameters/0/schema']
+    decidedBy: system-owner
+    why: A route table names a path's parameters and not the values they take.
+  # specarch-problem: question: open_question: (must, decision) What does POST /v1/loans/{id}/renew do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-14 under answers. [Q-14]
+  Q-14:
+    question: What does POST /v1/loans/{id}/renew do, and what does it answer?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1v1~1loans~1{id}~1renew/post/summary', '#/paths/~1v1~1loans~1{id}~1renew/post/responses']
+    decidedBy: system-owner
+    why: A route table names the handler and not what it does or the responses it gives.
+  # specarch-problem: question: open_question: (must, decision) What does GET /v1/reports/daily do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-15 under answers. [Q-15]
+  Q-15:
+    question: What does GET /v1/reports/daily do, and what does it answer?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1v1~1reports~1daily/get/summary', '#/paths/~1v1~1reports~1daily/get/responses']
+    decidedBy: system-owner
+    why: A route table names the handler and not what it does or the responses it gives.
+  # specarch-problem: question: open_question: (must, decision) What does GET /v1/reports/export do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-16 under answers. [Q-16]
+  Q-16:
+    question: What does GET /v1/reports/export do, and what does it answer?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1v1~1reports~1export/get/summary', '#/paths/~1v1~1reports~1export/get/responses']
+    decidedBy: system-owner
+    why: A route table names the handler and not what it does or the responses it gives.
+  # specarch-problem: question: open_question: (must, decision) GET /v1/reports/export is reached by v1.export.get and v1.reports.get, and neither implies the other. Which one is its permission? Decided by system-owner. Answer with a decision record that names Q-17 under answers. [Q-17]
+  Q-17:
+    question: GET /v1/reports/export is reached by v1.export.get and v1.reports.get, and neither implies the other. Which one is its permission?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1v1~1reports~1export/get/permission']
+    decidedBy: system-owner
+    why: An operation needs exactly one permission, and rules that reach it with none covering the others leave it ambiguous.
+  # specarch-problem: question: open_question: (could, decision) v2.get reaches no route of the route table (auditor reaches /v2/* with GET). Is it left from a route that was removed, or does it guard a route the table does not show? Decided by system-owner. Answer with a decision record that names Q-18 under answers. [Q-18]
+  Q-18:
+    question: v2.get reaches no route of the route table (auditor reaches /v2/* with GET). Is it left from a route that was removed, or does it guard a route the table does not show?
+    kind: decision
+    priority: could
+    blocks: ['#/permissions/v2.get']
+    decidedBy: system-owner
+    why: A rule no route matches grants nothing today, and would grant a route added later that matches it without anyone writing it.
+    cites:
+      - {source: code, clause: access role auditor, says: auditor reaches /v2/* with GET.}

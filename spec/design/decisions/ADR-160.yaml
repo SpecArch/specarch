@@ -1,0 +1,84 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.3.schema.json
+decisions:
+  ADR-160:
+    title: The user manual is written from the flows, menus, pages, roles and errors, and the operations guide from the endpoints, jobs, channels, dependencies, monitors, procedures and deployments; a problem type gains remedy and a monitor gains response
+    status: accepted
+    date: "2026-10-20"
+    context: |
+      ADR-016 left the manual and the operations guide unbuilt until the
+      specification could say what they need. It can now say most of it.
+      A flow is a task: who does it and each page on the way with what
+      the person does there. A menu says how a page is reached, a page
+      what it shows, which fields a person fills in, the actions offered
+      and the message shown for each problem, and the roles who may open
+      it. The operations side has the endpoints with their permissions,
+      the jobs with their schedules and retries, the channels with what
+      carries them, the dependencies with their protocol and time limit,
+      the monitors with their objectives, the backup, restore, release
+      and rollback procedures, the settings, and in the implementation
+      files the hosts of each environment. Two sentences have no home:
+      what a person does after the system refuses them, and what the
+      operator does when a monitor's objective is missed.
+    decision: |
+      A problem type gains remedy, what the person who meets the problem
+      does next, in their words; a monitor gains response, the steps the
+      operator takes when the objective is missed, in the shape of a
+      procedure's steps. Both are optional plain text with no reference
+      in them.
+      specarch document manual writes manual.md: who uses the system,
+      the roles holding a permission some page needs, each with the pages
+      it opens; the menus as the way to every page; a section per flow
+      with its steps as numbered instructions written from the page, the
+      event and the action; and a section per page with what it is for,
+      who opens it, the fields to fill in or the columns shown, the
+      actions with their confirmation, and for each problem the page
+      names its message, the problem's condition and its remedy. A role
+      only a job acts as, and one only a client holds, is a program, not
+      a person, and is left out of who uses the system.
+      specarch document operations writes operations.md: the
+      environments and the hosts each implementation file deploys there;
+      a checklist of what to look at on the live system, one row per
+      monitor, job and dependency; the monitors with their responses;
+      the jobs with their triggers, roles, retries and what becomes of
+      an item after the last try; the channels with what carries them,
+      who publishes and who consumes each message; the dependencies with
+      what calls them; the endpoints with their permissions; the
+      settings; and the backup, restore and rollback steps.
+      Both are written for every specification whose implementation file
+      names an output folder for them, and a section the specification
+      has nothing for is one sentence saying so, naming the key that
+      fills it.
+    consequences: |
+      An existing specification reads as before: the new keys are
+      optional and no rule refuses their absence. specarch document
+      manual and operations no longer answer with status 2; every
+      document target of the design is built. A command-line tool's
+      commands are not in the manual, and a dead-letter item's handling
+      is not in the operations guide: both are left to build. The library
+      lending example gains remedies, a monitor's response and both
+      documents, kept current by CI.
+    why: |
+      remedy and response as plain text rather than a structure, because
+      both are advice to a person and nothing checks or generates from
+      them; a key with references would need a rule in both validators
+      for no gain in either document. Optional rather than required with
+      a warning, because a condition often already says what to do, and a
+      warning on every problem type and monitor of every specification
+      would bury the problems that matter. Written always rather than
+      passed over with a warning as the handover is, because the target
+      is asked for by name under targets, a missing section said in a
+      sentence is the early result an owner looks at and asks to change,
+      and a handover is passed over only because a vendor-run system has
+      no customer to receive one. Programs left out of who uses the
+      system, because a manual addresses people, and jobs and clients
+      are in the operations guide and the technical specification.
+      Compiler test: an incomplete specification gets both documents,
+      with each gap named at its section, and the errors marked as in
+      every document. Acceptance test: a page reviewer reads the manual
+      before any screen is built, and a remark on a step or a message
+      names the page and the key to change.
+    satisfies: [SA-90]
+    cites:
+      - source: iso-12207
+        clause: "6.4.12"
+        says: "The operation process uses the system in its intended environment and supports its users."

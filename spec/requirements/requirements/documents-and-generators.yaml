@@ -151,3 +151,20 @@ requirements:
     verification: test
     needs: [NEED-2, NEED-8]
     why: A project on sqlc writes its queries by hand, and most of them are the same few shapes of every entity; writing those from the design keeps them in step with the tables, and a comparison with the file written by hand shows where the two disagree before the generated one replaces it.
+  SA-90:
+    statement: specarch document shall write the user manual from the flows, menus, pages, roles and problem types, and the operations guide from the endpoints, jobs, channels, dependencies, monitors, procedures, settings and deployments, and a problem type shall say what the person who meets it does next and a monitor what the operator does when its objective is missed.
+    kind: functional
+    priority: should
+    status: accepted
+    acceptance:
+      - specarch document manual writes manual.md with the roles that open a page, each with the pages it opens, a role only a job acts as or only a client holds left out; the menus; each flow's steps as numbered instructions; and each page's purpose, who opens it, its fields or columns, its actions with their confirmation, and per problem it names the message, the condition and the remedy.
+      - specarch document operations writes operations.md with the environments and their hosts, a checklist row per monitor, job and dependency, each monitor's response, each job's trigger, role and retries, each channel's carrier, publishers and consumers, each dependency's callers, the endpoints with their permissions, the settings, and the backup, restore and rollback steps.
+      - A specification with no pages, flows, monitors or jobs still gets both documents, each empty section one sentence naming the key that fills it, and its errors marked as in every document.
+      - A problem type without remedy and a monitor without response are read as before, with no error or warning, the same in both builds.
+    verification: test
+    needs: [NEED-3, NEED-5]
+    why: The people who use a system and the people who run it read a manual and an operations guide, not a technical specification; written by hand both drift from the pages and the procedures, and written from the specification they show early what a page asks of a person, which is where a change request starts.
+    cites:
+      - source: iso-12207
+        clause: "6.4.12"
+        says: "The operation process uses the system in its intended environment and supports its users."

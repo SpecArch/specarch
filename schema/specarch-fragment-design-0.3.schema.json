@@ -3925,6 +3925,10 @@
         "condition": {
           "$ref": "#/$defs/markdown"
         },
+        "remedy": {
+          "description": "SpecArch keyword. What the person who meets the problem does next, in their words, such as 'ask the member to return a copy first'. The user manual writes it beside the message each page shows for the problem (ADR-160).",
+          "$ref": "#/$defs/markdown"
+        },
         "type": {
           "description": "The problem type's URI, when it is not derived from the name.",
           "type": "string",

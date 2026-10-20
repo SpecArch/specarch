@@ -1,0 +1,19 @@
+specarch: "0.3"
+info: { title: Case, version: 1.0.0 }
+environments:
+  production: { description: The library's own host. }
+errors:
+  lending-refused:
+    status: 409
+    title: The copy cannot be lent
+    condition: The member holds the most open loans their tier allows.
+    remedy: Ask the member to return a copy first, then lend again.
+monitors:
+  catalogue-latency:
+    description: How long the catalogue takes to answer at the desk.
+    environment: production
+    objective: Nine calls in ten answer within 200 milliseconds over each opening day.
+    response:
+      - name: Look at the database
+        action: Open the database's slow query log for the last hour.
+        check: The slowest query is named.

@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: validate
+level: system
+scenario: golden
+given: a problem type with a remedy and a monitor with a response of one step
+when: validate is run
+then: it reads both with no error or warning and exits 0, the same in both builds
+verifies: [SA-90]

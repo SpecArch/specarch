@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.7.2-dev of the specification: 84 requirements, 5 entities, 15 commands, 7 algorithms, 580 tests, 144 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.7.2-dev of the specification: 85 requirements, 5 entities, 15 commands, 7 algorithms, 581 tests, 145 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 **Problems:** 3 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -11490,6 +11490,67 @@ extract-permissions-client-through hold the new readings.
 
 **Insight:** applicationChecks beside clientChecks rather than one key, because one word must mean one thing and the two checks write different keys, through on a role and callers on an operation; ADR-154's meaning of clientChecks is kept, and the argument is added to it, as its consequences said. Literals written where the reader writes the element they belong to, callers and via on the operation, and asked where it writes none, roles and tokens, because a reader writes nothing the code does not say and never invents an element to hang a literal on. The questions hold the errors of the names written before they are declared, because the compiler principle keeps the tree readable with every gap marked once at its entry. Two gates in sequence written as their common names, and strings after the names asked rather than read, because a list silently replaced by another drops a definition and a reason read as a name admits a caller nobody wrote. A client kept apart from a role of its name, because read as one the client would hold every grant of the role, a grant the table never gives it. Compiler test: a check named in part or twice is a must question at the paths, and every name read is written or asked at its entry. Acceptance test: the first techspec shows who may call each route and which question names the clients still to declare.
 
+### ADR-160: The user manual is written from the flows, menus, pages, roles and errors, and the operations guide from the endpoints, jobs, channels, dependencies, monitors, procedures and deployments; a problem type gains remedy and a monitor gains response
+
+Status: accepted, 2026-10-20.
+
+Context: ADR-016 left the manual and the operations guide unbuilt until the
+specification could say what they need. It can now say most of it.
+A flow is a task: who does it and each page on the way with what
+the person does there. A menu says how a page is reached, a page
+what it shows, which fields a person fills in, the actions offered
+and the message shown for each problem, and the roles who may open
+it. The operations side has the endpoints with their permissions,
+the jobs with their schedules and retries, the channels with what
+carries them, the dependencies with their protocol and time limit,
+the monitors with their objectives, the backup, restore, release
+and rollback procedures, the settings, and in the implementation
+files the hosts of each environment. Two sentences have no home:
+what a person does after the system refuses them, and what the
+operator does when a monitor's objective is missed.
+
+Decision: A problem type gains remedy, what the person who meets the problem
+does next, in their words; a monitor gains response, the steps the
+operator takes when the objective is missed, in the shape of a
+procedure's steps. Both are optional plain text with no reference
+in them.
+specarch document manual writes manual.md: who uses the system,
+the roles holding a permission some page needs, each with the pages
+it opens; the menus as the way to every page; a section per flow
+with its steps as numbered instructions written from the page, the
+event and the action; and a section per page with what it is for,
+who opens it, the fields to fill in or the columns shown, the
+actions with their confirmation, and for each problem the page
+names its message, the problem's condition and its remedy. A role
+only a job acts as, and one only a client holds, is a program, not
+a person, and is left out of who uses the system.
+specarch document operations writes operations.md: the
+environments and the hosts each implementation file deploys there;
+a checklist of what to look at on the live system, one row per
+monitor, job and dependency; the monitors with their responses;
+the jobs with their triggers, roles, retries and what becomes of
+an item after the last try; the channels with what carries them,
+who publishes and who consumes each message; the dependencies with
+what calls them; the endpoints with their permissions; the
+settings; and the backup, restore and rollback steps.
+Both are written for every specification whose implementation file
+names an output folder for them, and a section the specification
+has nothing for is one sentence saying so, naming the key that
+fills it.
+
+Consequences: An existing specification reads as before: the new keys are
+optional and no rule refuses their absence. specarch document
+manual and operations no longer answer with status 2; every
+document target of the design is built. A command-line tool's
+commands are not in the manual, and a dead-letter item's handling
+is not in the operations guide: both are left to build. The library
+lending example gains remedies, a monitor's response and both
+documents, kept current by CI.
+
+**Insight:** remedy and response as plain text rather than a structure, because both are advice to a person and nothing checks or generates from them; a key with references would need a rule in both validators for no gain in either document. Optional rather than required with a warning, because a condition often already says what to do, and a warning on every problem type and monitor of every specification would bury the problems that matter. Written always rather than passed over with a warning as the handover is, because the target is asked for by name under targets, a missing section said in a sentence is the early result an owner looks at and asks to change, and a handover is passed over only because a vendor-run system has no customer to receive one. Programs left out of who uses the system, because a manual addresses people, and jobs and clients are in the operations guide and the technical specification. Compiler test: an incomplete specification gets both documents, with each gap named at its section, and the errors marked as in every document. Acceptance test: a page reviewer reads the manual before any screen is built, and a remark on a step or a message names the page and the key to change.
+
+**Note:** From ISO/IEC/IEEE 12207, Systems and software engineering, Software life cycle processes, 2017, clause 6.4.12: The operation process uses the system in its intended environment and supports its users. <https://www.iso.org/standard/63712.html>
+
 ## 10. Quality requirements
 
 The design tests: what must hold on every implementation. Golden scenarios succeed; red scenarios are refused.
@@ -11999,6 +12060,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | validate-release-contents | command validate | system | red | a released release that includes an approved change and a confirmed defect, a released change its release does not include, and a released change that names a planned release | validate is run | it reports release_contents at each and exits 1 |
 | validate-release-version | command validate | system | red | info.version 1.1.0-dev with no planned release 1.1.0, and a release whose specificationVersion is not its version | validate is run | it reports release_version at info.version and at the specificationVersion, and exits 1 |
 | validate-releases-valid | command validate | system | golden | releases 0.1.0 and 0.2.0, the second with a major change, a planned 1.0.0, and info.version 1.0.0-dev | validate is run | the minor step is enough before 1.0.0, the pre-release matches the planned release, it prints nothing and exits 0 |
+| validate-remedy-and-response | command validate | system | golden | a problem type with a remedy and a monitor with a response of one step | validate is run | it reads both with no error or warning and exits 0, the same in both builds |
 | validate-requirement | command validate | system | red | a satisfies link to a requirement the specification does not have | validate is run | it reports requirement and exits 1 |
 | validate-requirement-fulfilled-by | command validate | system | red | two requirements another stakeholder owns, each fulfilled by a requirement of a specification given in the same run, one that it has and one that it does not | validate is run on both specifications | the requirement it has resolves, the one it does not have is refused as reference with the requirements it has suggested, and it exits 1 |
 | validate-requirement-owned | command validate | system | red | a design and a test that satisfy and verify no requirement, a requirement another stakeholder owns, one owned by a name that is not a stakeholder, and one with fulfilledBy and no ownedBy | validate is run | the owned requirement draws no requirement_unsatisfied or requirement_unverified warning, the unknown owner is refused as stakeholder, fulfilledBy without ownedBy is refused by the schema, and it exits 1 |
@@ -12167,6 +12229,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | SA-60 | specarch document html shall write a specification as one HTML page that opens from the disk with no server and makes no request, with an overview first, every element under an anchor named by its pointer, and every problem linked to the entry it marks and marked at that entry. | functional | should | accepted | test | The page is one index.html with its styles, its script and its diagrams inside it, a Content-Security-Policy that allows no request, and the generated-from header after its doctype; two runs write the same bytes. Every element shown has an id equal to its pointer, with what an id or a fragment cannot hold percent-encoded, and no id appears twice. Each error, warning and open question is listed in the order of the problems file and links to the deepest element the page shows that holds its pointer, and that element shows a mark linking back; an element an open question blocks says so and links to the question. Entities are drawn as an SVG diagram with their fields and relations, each workflow as specarch generate bpmn draws it, and each page that specarch generate ui writes as its screen without scripts; a page with no screen says why. An invalid specification is written all the same, from what could be read, with its errors marked. | NEED-3, NEED-10 |
 | SA-61 | specarch generate --check shall compare a folder of pages built by hand with what the target writes, saying for each file whether it matches and, for a page's data, which values differ. | functional | should | accepted | test | A file the plug-in marks as an object literal is read on both sides in the subset of TypeScript that is also JSON5 and compared by value, so formatting, comments, quotes and trailing commas do not count; each differing value is named by its path, with the value on disk and the one generated. A file on disk outside the subset is reported as not comparable, with the line and what was found, and never as matching. A file built by hand, which has no generated header, matches when it equals what the target writes without its header, draft notice and problem marks; it says so in a line of its own and is not counted as differing. A generated file is still compared byte for byte. The library lending example's sign-in and second-factor schemas, written by hand before the generator, compare equal, and a list schema with one column changed is reported as that column. | NEED-2 |
 | SA-71 | specarch generate sqlc shall write the sqlc queries the design derives against the tables generate sql writes, and leave every other query to be written by hand beside them. | functional | should | accepted | test | An operation that posts an entity is an insert of every column but the ones the database draws and the soft-delete flag, answering the record; a read, a replacement or an amendment by one path parameter, of an entity whose key is one field, reads or changes the record by its key, a softly deleted record left out, an amendment keeping a column the request leaves out. An operation with listOf on an entity is a page of it and its total, filtered by each filterable field and each query parameter that names a field, searched case-insensitively over the searchable fields, and sorted by the wire name of each sortable field either way, then by the key. A list of a view, a list under a path parameter, a list with a query parameter that names no field held in one column, and a read or change of an entity whose key is not one field are warnings at the operation, and their queries are left to be written by hand; an entity another stakeholder owns gets no query. A dialect other than PostgreSQL is an error at the target. A query file in the output folder that the plug-in did not write is never overwritten; generate --check compares it, and it matches when it equals what the target writes but for its header. The queries compile under sqlc against the migrations, and the lending desk's query file written by hand differs from the generated one only where the specification and its database disagree. | NEED-2, NEED-8 |
+| SA-90 | specarch document shall write the user manual from the flows, menus, pages, roles and problem types, and the operations guide from the endpoints, jobs, channels, dependencies, monitors, procedures, settings and deployments, and a problem type shall say what the person who meets it does next and a monitor what the operator does when its objective is missed. | functional | should | accepted | test | specarch document manual writes manual.md with the roles that open a page, each with the pages it opens, a role only a job acts as or only a client holds left out; the menus; each flow's steps as numbered instructions; and each page's purpose, who opens it, its fields or columns, its actions with their confirmation, and per problem it names the message, the condition and the remedy. specarch document operations writes operations.md with the environments and their hosts, a checklist row per monitor, job and dependency, each monitor's response, each job's trigger, role and retries, each channel's carrier, publishers and consumers, each dependency's callers, the endpoints with their permissions, the settings, and the backup, restore and rollback steps. A specification with no pages, flows, monitors or jobs still gets both documents, each empty section one sentence naming the key that fills it, and its errors marked as in every document. A problem type without remedy and a monitor without response are read as before, with no error or warning, the same in both builds. | NEED-3, NEED-5 |
 | SA-32 | SpecArch shall ship versioned idioms that say how each recurring implementation concern is done per stack, apply them to every implementation file by default, let a file exclude or override one with the reason, and check the result, starting with the type rendering of every field on Go and on PostgreSQL, SQL Server, Oracle and MariaDB. | functional | must | accepted | test | An idiom key naming no idiom, an exclusion or override without why, an override naming an unknown part or defining one it does not list, rendering a stack that is not the file's, or changing a shipped contract statement is each reported under its rule in both builds; an override copied from an older version is warned about. A field that no row of the type rendering matches for a stack of the implementation file, such as a decimal wider than Oracle holds, is reported as idiom_contract. An override that replaces the Oracle text rows for MAX_STRING_SIZE = EXTENDED validates without a diagnostic. The shipped set holds the fifteen idioms of the first set and ui-components, each statement marked with what checks it, and every one passes the idiom schema and cites only the sources it declares. A ui target's framework, given or by its platform's default, is a stack of its implementation file, so specarch idioms lists ui-components for a TypeScript file whose ui target is nextjs-carbon and not for one on plain-javascript, and an override rendering nextjs-carbon in a file on plain-javascript is reported as idiom_stack in both builds. | NEED-2 |
 | SA-11 | A specification shall be a folder tree with one root file, specarch.yaml, and one folder per life-cycle stage it keeps, in which a file holds one or a few objects of one kind. | functional | must | accepted | test | A tree whose root lists its stages and holds each stage's files under that folder validates. A file in the wrong folder, a section in the wrong file, a listed stage without a folder, and a folder that is not a stage are each reported as layout. | NEED-4 |
 | SA-12 | A specification shall be able to hold every stage of the life cycle, from stakeholders and needs through requirements, design, implementation, tests, deployment, commissioning and operation, each optional until the project reaches it. | functional | must | accepted | test | A specification with only a requirements stage validates with no error. A requirement no design element satisfies, a requirement no test, check or monitor verifies, and a need no requirement refines are reported as warnings once the later stage exists. | NEED-5 |
@@ -12315,6 +12378,10 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 **Insight on SA-61:** Most screens of a project that comes to SpecArch were built by hand; before the generated ones replace them, the owner needs to see, page by page, where the specification and the built screen disagree, without the noise of formatting.
 
 **Insight on SA-71:** A project on sqlc writes its queries by hand, and most of them are the same few shapes of every entity; writing those from the design keeps them in step with the tables, and a comparison with the file written by hand shows where the two disagree before the generated one replaces it.
+
+**Insight on SA-90:** The people who use a system and the people who run it read a manual and an operations guide, not a technical specification; written by hand both drift from the pages and the procedures, and written from the specification they show early what a page asks of a person, which is where a change request starts.
+
+**Note on SA-90:** From ISO/IEC/IEEE 12207, Systems and software engineering, Software life cycle processes, 2017, clause 6.4.12: The operation process uses the system in its intended environment and supports its users. <https://www.iso.org/standard/63712.html>
 
 **Insight on SA-32:** How a decimal, a text column or a missing value is held on a stack is decided once and read by every generator and every agent; without the table each implementation file restates it in prose, each a little differently.
 
@@ -12468,6 +12535,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-84 | enums Rule | tests derive-0-3-tokens; tests document-techspec-0-3-tokens; tests generate-openapi-0-3-tokens; tests validate-0-3-claims; tests validate-0-3-security-events; tests validate-0-3-token-audience; tests validate-0-3-tokens; tests validate-0-3-tokens-valid; tests validate-0-3-txn-token; tests validate-0-3-via |
 | SA-88 | enums Rule | tests document-techspec-caller-estate; tests gaps-caller-alone; tests validate-caller-chain-gap; tests validate-caller-chain-wrong; tests validate-caller-estate; tests validate-caller-estate-wrong |
 | SA-89 | decisions ADR-159 | tests extract-go-caller-checks; tests extract-permissions-client-through |
+| SA-90 | decisions ADR-160 | tests validate-remedy-and-response |
 
 ## Sources
 

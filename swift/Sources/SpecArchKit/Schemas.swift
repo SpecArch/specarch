@@ -5335,6 +5335,10 @@ let designSchemaJSON = #"""
           "type": "string",
           "minLength": 1
         },
+        "response": {
+          "description": "SpecArch keyword. What the operator does when the objective is missed, as steps with a check for each. The operations guide writes it under the monitor (ADR-160).",
+          "$ref": "#/$defs/steps"
+        },
         "verifies": {
           "$ref": "#/$defs/verifies"
         },
@@ -5608,6 +5612,10 @@ let designSchemaJSON = #"""
           "minLength": 1
         },
         "condition": {
+          "$ref": "#/$defs/markdown"
+        },
+        "remedy": {
+          "description": "SpecArch keyword. What the person who meets the problem does next, in their words, such as 'ask the member to return a copy first'. The user manual writes it beside the message each page shows for the problem (ADR-160).",
           "$ref": "#/$defs/markdown"
         },
         "type": {

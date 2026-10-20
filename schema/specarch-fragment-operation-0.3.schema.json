@@ -340,6 +340,10 @@
           "type": "string",
           "minLength": 1
         },
+        "response": {
+          "description": "SpecArch keyword. What the operator does when the objective is missed, as steps with a check for each. The operations guide writes it under the monitor (ADR-160).",
+          "$ref": "#/$defs/steps"
+        },
         "verifies": {
           "$ref": "#/$defs/verifies"
         },

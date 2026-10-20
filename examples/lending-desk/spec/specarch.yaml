@@ -52,3 +52,11 @@ sources:
       - { clause: migrations/004_loan_reference.sql, title: The loan's reference and the loans' indexes }
       - { clause: seeds/001_roles.sql, title: The seed of the roles tables }
 
+  estate-gateway:
+    kind: document
+    title: The library estate's gateway specification
+    edition: 0.1.0
+    author: The estate's maintainers
+    url: ../../estate/gateway/specarch.yaml
+    clauses:
+      - { clause: gateways.api, title: The gateway's forwards by audience }

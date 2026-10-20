@@ -318,12 +318,18 @@ jobs:
             cmp "examples/${pair#*:}" "$RUNNER_TEMP/dump.json" || exit 1
           done
       - name: The estate example validates as an estate and draws its module map
-        # examples/estate lists the lending desk and the catalogue service;
-        # validate on the estate file reads both modules through it.
+        # examples/estate lists the lending desk, the catalogue service and
+        # the gateway in front of both; validate on the estate file reads
+        # the three modules through it, and checks the gateway's forwards
+        # against the audiences the two services accept. The gateway alone
+        # counts its two forwards as unresolved references.
         run: |
           go run ./cmd/specarch validate examples/estate/specarch-estate.yaml 2> "$RUNNER_TEMP/estate.txt"
-          grep -q '^specarch: 3 inputs checked: 0 errors,' "$RUNNER_TEMP/estate.txt"
+          grep -q '^specarch: 4 inputs checked: 0 errors,' "$RUNNER_TEMP/estate.txt"
           grep -q '^  lending_desk -->|"catalogue, written against 0.1.0"| catalogue_service$' examples/estate/docs/estate.md
+          grep -q '^  library_gateway -->|"loans, written against 0.1.0"| lending_desk$' examples/estate/docs/estate.md
+          go run ./cmd/specarch validate examples/estate/gateway 2> "$RUNNER_TEMP/gateway.txt"
+          grep -q '^specarch: 1 input checked: 0 errors, 0 warnings, 2 unresolved references$' "$RUNNER_TEMP/gateway.txt"
       - name: Generated code and data are current
         # The library's migrations, queries, OpenAPI document, workflows as BPMN and SVG, and screens, in plain
         # JavaScript, on Next.js and in SwiftUI, are checked in, so a design change that

@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.2-dev of the specification: 589 design tests, 275 golden and 314 red, about 17 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.2-dev of the specification: 590 design tests, 275 golden and 315 red, about 17 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -15,7 +15,7 @@ Version 0.7.2-dev of the specification: 589 design tests, 275 golden and 314 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 585 |
+| system | 586 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -3430,6 +3430,14 @@ Scenario: golden; level: system; verifies SA-75.
 - Given: a gateway that verifies serviceAccess, reads aud and forwards to the lending desk and the catalogue service, calling the identity provider; the token declares aud with no const or enum and no token is the default; the gateway server links to the identity provider and the desk but not to the catalogue
 - When: validate is run
 - Then: it reports nothing of the gateway, the token or the default, warns as link_missing at the gateway server for the catalogue, and exits 0
+
+#### validate-gateway-estate-wrong
+
+Scenario: red; level: system; covers exit 1; verifies SA-75.
+
+- Given: an estate of a gateway forwarding by aud to the desk under another audience than the desk's access token declares, to the books, which accept no access token, and to a reports module the estate does not give
+- When: validate is run on the estate file
+- Then: it reports gateway at the desk's row, naming the audience the desk accepts, and at the books' row, and nothing for the reports' row, which counts as an unresolved reference; it exits 1
 
 #### validate-gateway-wrong
 

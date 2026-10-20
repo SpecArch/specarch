@@ -1,0 +1,39 @@
+specarch: "0.3"
+info: { title: Gateway, name: gateway, version: 1.0.0 }
+permissions:
+  public: { description: Open to everyone. }
+tokens:
+  serviceAccess:
+    description: The access token a client holds for one of the forwarded services.
+    format: jwt
+    signature: RS256
+    lifetime: PT15M
+    claims:
+      aud: { description: The service the token is for. }
+      sub: { description: The person. }
+paths:
+  /health:
+    get:
+      operationId: getHealth
+      summary: The health
+      permission: public
+      responses:
+        "200": { description: Up. }
+dependencies:
+  desk: { description: The desk., timeout: PT5S, specification: desk, version: 1.0.0 }
+  books: { description: The books., timeout: PT5S, specification: books, version: 1.0.0 }
+  reports: { description: The reports outside the estate., timeout: PT5S, specification: reports, version: 1.0.0 }
+gateways:
+  api:
+    description: Forwards by audience to the desk under another audience than it accepts, to the books, which accept no token, and to the reports, which the run does not give.
+    token: serviceAccess
+    claim: aud
+    forwards:
+      - { value: "https://desk.example.org", dependency: desk }
+      - { value: "https://books.example.org", dependency: books }
+      - { value: "https://reports.example.org", dependency: reports }
+tests:
+  get-health-succeeds: { level: system, operation: getHealth, scenario: golden, given: "any caller", when: "getHealth is called", then: "it answers 200" }
+  get-health-other-method: { level: system, operation: getHealth, scenario: red, given: "a POST to /health", when: "the gateway is called", then: "getHealth does not answer it" }
+  api-forwards: { level: system, gateway: api, scenario: golden, covers: [forwarded to desk, forwarded to books, forwarded to reports], given: "a serviceAccess token whose aud is a forward's", when: "a request no operation answers reaches the gateway api", then: "it reaches the service" }
+  api-refuses: { level: system, gateway: api, scenario: red, covers: [refused with no token, refused with a bad signature, denied with expired serviceAccess, dependency fails desk, dependency times out desk, dependency fails books, dependency times out books, dependency fails reports, dependency times out reports], given: "a bad token or a failing service", when: "a request no operation answers reaches the gateway api", then: "it is refused" }

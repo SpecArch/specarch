@@ -1,0 +1,5 @@
+arguments: [validate, specarch-estate.yaml]
+exitStatus: 1
+standardOutput: |
+  gateway/specarch.yaml:32:18: error: /gateways/api/forwards/0/value: gateway: gateway api forwards https://desk.example.org to desk, the module desk, which accepts no access token for that audience, so the token is refused there; it accepts https://desk.example.com; write its audience here, or have desk declare this one [gateway@specarch.yaml#/gateways/api/forwards/0/value]
+  gateway/specarch.yaml:33:18: error: /gateways/api/forwards/1/value: gateway: gateway api forwards https://books.example.org to books, the module books, which accepts no access token, so nothing there checks the token's audience; have books accept a token whose aud is https://books.example.org [gateway@specarch.yaml#/gateways/api/forwards/1/value]

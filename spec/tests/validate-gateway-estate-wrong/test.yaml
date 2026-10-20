@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "an estate of a gateway forwarding by aud to the desk under another audience than the desk's access token declares, to the books, which accept no access token, and to a reports module the estate does not give"
+when: validate is run on the estate file
+then: "it reports gateway at the desk's row, naming the audience the desk accepts, and at the books' row, and nothing for the reports' row, which counts as an unresolved reference; it exits 1"
+verifies: [SA-75]

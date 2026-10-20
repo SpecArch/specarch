@@ -294,6 +294,17 @@ extension Checker {
                 add(p.node, pointer(p.path), .reference, p.message)
             }
         }
+        // A forward by aud into a module given in the run names one of the
+        // audiences the module accepts (ADR-141).
+        for f in audienceForwards(d) {
+            guard let o = rv.otherOf(f.spec).0 else { continue } // not given: an unresolved reference
+            let auds = o.design.acceptedAudiences
+            if auds.isEmpty {
+                add(f.value, pointer(f.path), .gateway, "gateway \(f.gateway) forwards \(f.text) to \(f.dep), the module \(f.spec), which accepts no access token, so nothing there checks the token's audience; have \(f.spec) accept a token whose aud is \(f.text)")
+            } else if !auds.contains(f.text) {
+                add(f.value, pointer(f.path), .gateway, "gateway \(f.gateway) forwards \(f.text) to \(f.dep), the module \(f.spec), which accepts no access token for that audience, so the token is refused there; it accepts \(auds.joined(separator: ", ")); write its audience here, or have \(f.spec) declare this one")
+            }
+        }
         for name in d.dependencies.keys.sorted(by: byteLess) {
             let dep = d.dependencies[name]!
             let spName = str(dep.child("specification"))
@@ -321,6 +332,33 @@ func unresolvedReferences(_ s: Spec, _ given: Given) -> [Reference] {
         let res = rv.resolve(r)
         if !res.problems.isEmpty || res.waits.isEmpty { continue }
         out.append(Reference(path: pointer(r.path), text: r.text, waits: res.waits))
+    }
+    for f in audienceForwards(d) where rv.otherOf(f.spec).0 == nil {
+        out.append(Reference(path: pointer(f.path), text: f.text, waits: f.spec + " is not given"))
+    }
+    return out
+}
+
+/// One row of a gateway forwarding by aud whose dependency names another
+/// specification.
+private struct GatewayForward {
+    let value: YNode
+    let path: [String]
+    let dep: String, spec: String, gateway: String, text: String
+}
+
+/// The rows of the gateways forwarding by aud whose dependency names a
+/// specification, in document order.
+private func audienceForwards(_ d: Design) -> [GatewayForward] {
+    var out: [GatewayForward] = []
+    for g in d.gatewayList where str(g.value.child("claim")) == "aud" {
+        for (i, row) in items(g.value.child("forwards")).enumerated() {
+            let dep = str(row.child("dependency"))
+            let sp = d.specificationOf(dep)
+            if !sp.isEmpty, let v = row.child("value") {
+                out.append(GatewayForward(value: v, path: ["gateways", g.key.value, "forwards", "\(i)", "value"], dep: dep, spec: sp, gateway: g.key.value, text: v.value))
+            }
+        }
     }
     return out
 }

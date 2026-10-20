@@ -99,6 +99,20 @@ roles:
       - { source: desk-manual, clause: "2.2", says: "Desk staff register new members." }
       - { source: desk-code, clause: "seeds/001_roles.sql:3", says: "desk-staff grants members.write, loans.write and loans.read." }
 
+tokens:
+  deskAccess:
+    description: The access token a caller of the desk presents, minted for the desk's audience; through the estate's gateway, the one the gateway forwards by.
+    format: jwt
+    signature: RS256
+    lifetime: PT15M
+    claims:
+      iss: { const: "https://identity.library.example" }
+      aud: { const: "https://loans.library.example" }
+      sub: { description: The person or the service the token was minted for. }
+    default: true
+    origin: decided
+    decidedIn: ADR-001
+
 paths:
   /members:
     post:
@@ -214,3 +228,27 @@ questions:
     cites:
       - { source: desk-manual, clause: "3.4", says: "The catalogue team keeps the book records; the desk reads them and never edits them." }
       - { source: desk-code, clause: "migrations/001_init.sql:6", says: "CREATE TABLE books." }
+
+decisions:
+  ADR-001:
+    title: The desk accepts an access token whose audience names it, the one the estate's gateway forwards to it
+    status: accepted
+    date: "2026-10-20"
+    context: |
+      The estate in examples/estate puts a gateway in front of the desk
+      and the catalogue service, which forwards a request to the desk when
+      the access token's audience is https://loans.library.example. The
+      desk's code reads the caller's role from the Desk-Role header its
+      terminal sends and verifies no token.
+    decision: |
+      The desk accepts deskAccess, a JWT signed with RS256 by the
+      identity provider, whose aud is https://loans.library.example, on
+      every operation, and refuses a token minted for another audience.
+    consequences: |
+      The code does not verify the token yet, so the specification and
+      the code differ until it does. The gateway's forward to the desk
+      and the desk's audience are one value, which the estate's run
+      checks.
+    origin: stated
+    cites:
+      - { source: estate-gateway, clause: gateways.api, says: "Forwards a request whose token's aud is https://loans.library.example to the lending desk." }

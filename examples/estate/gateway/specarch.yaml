@@ -1,0 +1,108 @@
+# yaml-language-server: $schema=../../../schema/specarch-design-0.3.schema.json
+specarch: "0.3"
+
+info:
+  title: Library Gateway
+  name: library-gateway
+  version: 0.1.0
+  description: |
+    The gateway in front of the library's services, the third module of
+    the estate in examples/estate. It answers its own health and nothing
+    else; every other request it forwards, as received, to the service the
+    access token's audience names: the lending desk or the catalogue
+    service. It is an example, not a real library's system.
+
+permissions:
+  public:
+    description: Open to everyone.
+
+tokens:
+  serviceAccess:
+    description: The access token a client holds for one of the forwarded services, minted by the identity provider for that service's audience.
+    format: jwt
+    signature: RS256
+    lifetime: PT15M
+    claims:
+      iss: { const: "https://identity.library.example" }
+      aud: { description: "The service the token is for, one of the gateway's forwards." }
+      sub: { description: The person or the client the token was minted for. }
+
+errors:
+  token-invalid:
+    status: 401
+    title: The token is not valid
+    condition: "The token is missing, is not signed by the issuer's key, or has expired."
+    remedy: Sign in again, and send the access token the identity provider gave for the service.
+  service-unknown:
+    status: 404
+    title: No service has this audience
+    condition: "The token's audience names no forwarded service, or names two."
+    remedy: Ask the identity provider for a token whose audience is the one service the request is for.
+  service-failed:
+    status: 502
+    title: The service did not answer
+    condition: The forwarded service answered with no response the gateway could pass on.
+    remedy: Try again later; the service behind the gateway is down.
+  service-timed-out:
+    status: 504
+    title: The service did not answer in time
+    condition: The forwarded service did not answer within its time limit.
+    remedy: Try again later; the service behind the gateway is slow.
+
+paths:
+  /health:
+    get:
+      operationId: getHealth
+      summary: The gateway's health
+      permission: public
+      responses:
+        "200": { description: The gateway is up. }
+
+dependencies:
+  identity:
+    description: The identity provider whose keys sign the tokens the gateway verifies.
+    timeout: PT2S
+    kind: identityProvider
+    protocol: https
+  loans:
+    description: The lending desk, which lends the books and takes them back.
+    timeout: PT10S
+    kind: system
+    protocol: https
+    specification: lending-desk
+    version: 0.1.0
+  catalogue:
+    description: The catalogue service, which keeps the book records.
+    timeout: PT10S
+    kind: system
+    protocol: https
+    specification: catalogue-service
+    version: 0.1.0
+
+gateways:
+  api:
+    description: Forwards every request no path of this specification answers, as received, to the service the token's audience names.
+    token: serviceAccess
+    claim: aud
+    forwards:
+      - { value: "https://loans.library.example", dependency: loans }
+      - { value: "https://catalogue.library.example", dependency: catalogue }
+    calls: [identity]
+    refusals:
+      - { status: 401, problem: token-invalid, condition: "The token is missing, is not signed by the issuer's key, or has expired." }
+      - { status: 404, problem: service-unknown, condition: "The audience names no forwarded service, or names two." }
+      - { status: 502, problem: service-failed, condition: The forwarded service did not answer. }
+      - { status: 504, problem: service-timed-out, condition: The forwarded service did not answer within its time limit. }
+
+tests:
+  get-health-succeeds: { level: system, operation: getHealth, scenario: golden, given: "any caller", when: "getHealth is called", then: "it answers 200: The gateway is up." }
+  get-health-unknown-method: { level: system, operation: getHealth, scenario: red, given: "a POST to /health", when: "the gateway is called", then: "getHealth does not answer it, and the gateway forwards it as any other request" }
+  api-forwards-to-the-desk: { level: system, gateway: api, scenario: golden, covers: [forwarded to loans], given: "a serviceAccess token whose aud is https://loans.library.example", when: "a request no operation answers reaches the gateway api", then: "it reaches loans as received" }
+  api-forwards-to-the-catalogue: { level: system, gateway: api, scenario: golden, covers: [forwarded to catalogue], given: "a serviceAccess token whose aud is https://catalogue.library.example", when: "a request no operation answers reaches the gateway api", then: "it reaches catalogue as received" }
+  api-refused-with-no-token: { level: system, gateway: api, scenario: red, covers: [refused with no token], given: "a request with no bearer token", when: "a request no operation answers reaches the gateway api", then: "it answers 401 token-invalid and nothing is forwarded" }
+  api-refused-with-a-bad-signature: { level: system, gateway: api, scenario: red, covers: [refused with a bad signature], given: "a serviceAccess token not signed by the issuer's key", when: "a request no operation answers reaches the gateway api", then: "it answers 401 token-invalid and nothing is forwarded" }
+  api-denied-with-expired-service-access: { level: system, gateway: api, scenario: red, covers: [denied with expired serviceAccess], given: "a serviceAccess token that has expired after PT15M", when: "a request no operation answers reaches the gateway api", then: "it answers 401 token-invalid and nothing is forwarded" }
+  api-refused-with-an-unknown-aud: { level: system, gateway: api, scenario: red, covers: [refused with an unknown aud], given: "a serviceAccess token whose aud is no value of the forwards", when: "a request no operation answers reaches the gateway api", then: "it answers 404 service-unknown and nothing is forwarded" }
+  api-identity-fails: { level: system, gateway: api, scenario: red, covers: [dependency fails identity, dependency times out identity], given: "the identity provider fails or does not answer within PT2S, and the gateway holds no keys", when: "a request no operation answers reaches the gateway api", then: "it answers 401 token-invalid, since it cannot verify the token" }
+  api-desk-fails: { level: system, gateway: api, scenario: red, covers: [dependency fails loans, dependency times out loans], given: "the lending desk fails, or does not answer within PT10S", when: "a request for the desk reaches the gateway api", then: "it answers 502 service-failed, or 504 service-timed-out" }
+  api-catalogue-fails: { level: system, gateway: api, scenario: red, covers: [dependency fails catalogue, dependency times out catalogue], given: "the catalogue service fails, or does not answer within PT10S", when: "a request for the catalogue reaches the gateway api", then: "it answers 502 service-failed, or 504 service-timed-out" }

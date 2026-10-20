@@ -1,0 +1,24 @@
+# yaml-language-server: $schema=../../../schema/specarch-implementation-0.1.schema.json
+specarchImplementation: "0.1"
+info:
+  title: Library Gateway in Go
+  version: 0.1.0
+  description: Where the library gateway runs, so that the estate's deployment shows it in front of the two services.
+implements: { file: specarch.yaml, version: 0.1.0 }
+stack: { language: { name: Go, version: "1.26" } }
+layout:
+  internal/gateway:
+    description: Verifies the token, reads its audience and forwards the request; answers the health check.
+    implements: ["#/gateways/api", "#/paths/~1health"]
+deployments:
+  production:
+    description: The library's hosts as the gateway sees them.
+    servers:
+      - { name: gateway, url: "https://api.library.example", zone: edge, listens: [{ port: 443, protocol: https }], runs: { packages: [internal/gateway] } }
+      - { name: identity, dependency: identity, url: "https://identity.library.example", zone: application, listens: [{ port: 443, protocol: https }] }
+      - { name: desk, dependency: loans, url: "https://loans.library.example", zone: application, listens: [{ port: 443, protocol: https }] }
+      - { name: books, dependency: catalogue, url: "https://catalogue.library.example", zone: application, listens: [{ port: 443, protocol: https }] }
+    links:
+      - { from: gateway, to: identity, port: 443 }
+      - { from: gateway, to: desk, port: 443 }
+      - { from: gateway, to: books, port: 443 }

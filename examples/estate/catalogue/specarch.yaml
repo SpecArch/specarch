@@ -9,8 +9,8 @@ info:
     The book records of a small library, which the catalogue team keeps
     and the lending desk reads. It is the second module of the estate in
     examples/estate, written spec-first and kept small: one entity and the
-    two operations that read it. It is an example, not a real library's
-    system.
+    two operations that read it, which accept an access token for the
+    catalogue's audience. It is an example, not a real library's system.
 
 entities:
   Book:
@@ -31,6 +31,18 @@ roles:
   reader-service:
     description: A service that reads the book records, such as the lending desk.
     permissions: [books.read]
+
+tokens:
+  catalogueAccess:
+    description: The access token a caller of the catalogue presents, minted for the catalogue's audience; through the estate's gateway, the one the gateway forwards by.
+    format: jwt
+    signature: RS256
+    lifetime: PT15M
+    claims:
+      iss: { const: "https://identity.library.example" }
+      aud: { const: "https://catalogue.library.example" }
+      sub: { description: The person or the service the token was minted for. }
+    default: true
 
 paths:
   /books:
@@ -66,3 +78,5 @@ tests:
   get-book-succeeds: { level: system, operation: getBook, scenario: golden, given: "a caller with books.read", when: "getBook is called with values inside every limit", then: "it answers 200: The book record." }
   get-book-denied-without-books-read: { level: system, operation: getBook, scenario: red, covers: [denied without books.read], given: "a caller without books.read", when: "getBook is called", then: "it is refused as not allowed" }
   get-book-not-found-barcode: { level: system, operation: getBook, scenario: red, covers: [not found barcode], given: "no record has that barcode", when: "getBook is called with that barcode", then: "it is refused as not found" }
+  list-books-denied-with-expired-catalogue-access: { level: system, operation: listBooks, scenario: red, covers: [denied with expired catalogueAccess], given: "a caller whose catalogueAccess token has expired after PT15M", when: "listBooks is called", then: "it is refused as not signed in" }
+  get-book-denied-with-expired-catalogue-access: { level: system, operation: getBook, scenario: red, covers: [denied with expired catalogueAccess], given: "a caller whose catalogueAccess token has expired after PT15M", when: "getBook is called", then: "it is refused as not signed in" }

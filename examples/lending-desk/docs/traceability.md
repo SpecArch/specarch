@@ -14,13 +14,13 @@ Version 0.1.0 of the specification: 0 needs, 7 requirements, and 8 gaps. Each re
 
 | Requirement | Needs | Satisfied by | Verified by |
 |---|---|---|---|
-| LEND-1 |   | entities Member; permissions members.write; paths /members post | tests register-member-card-number-not-matching-its-pattern; tests register-member-denied-without-members-write; tests register-member-missing-address-city; tests register-member-missing-address-street; tests register-member-missing-card-number; tests register-member-missing-full-name; tests register-member-succeeds |
-| LEND-2 |   | entities Book; entities Loan; permissions loans.write; paths /loans post | tests lend-book-card-number-not-matching-its-pattern; tests lend-book-denied-without-loans-write; tests lend-book-missing-barcode; tests lend-book-missing-card-number; tests lend-book-not-found-barcode; tests lend-book-not-found-card-number; tests lend-book-succeeds |
-| LEND-3 |   | paths /loans post | tests lend-book-card-number-not-matching-its-pattern; tests lend-book-denied-without-loans-write; tests lend-book-missing-barcode; tests lend-book-missing-card-number; tests lend-book-not-found-barcode; tests lend-book-not-found-card-number; tests lend-book-succeeds |
+| LEND-1 |   | entities Member; permissions members.write; paths /members post | tests register-member-card-number-not-matching-its-pattern; tests register-member-denied-with-expired-desk-access; tests register-member-denied-without-members-write; tests register-member-missing-address-city; tests register-member-missing-address-street; tests register-member-missing-card-number; tests register-member-missing-full-name; tests register-member-succeeds |
+| LEND-2 |   | entities Book; entities Loan; permissions loans.write; paths /loans post | tests lend-book-card-number-not-matching-its-pattern; tests lend-book-denied-with-expired-desk-access; tests lend-book-denied-without-loans-write; tests lend-book-missing-barcode; tests lend-book-missing-card-number; tests lend-book-not-found-barcode; tests lend-book-not-found-card-number; tests lend-book-succeeds |
+| LEND-3 |   | paths /loans post | tests lend-book-card-number-not-matching-its-pattern; tests lend-book-denied-with-expired-desk-access; tests lend-book-denied-without-loans-write; tests lend-book-missing-barcode; tests lend-book-missing-card-number; tests lend-book-not-found-barcode; tests lend-book-not-found-card-number; tests lend-book-succeeds |
 | LEND-4 |   | entities Loan |   |
-| LEND-5 |   | permissions loans.write; paths /loans/{loanId}/renew post | tests renew-loan-denied-without-loans-write; tests renew-loan-not-found-loan-id; tests renew-loan-succeeds |
-| LEND-6 |   | entities Loan; permissions loans.write; paths /loans/{loanId}/return post | tests return-book-denied-without-loans-write; tests return-book-not-found-loan-id; tests return-book-succeeds |
-| LEND-7 |   | permissions loans.read; paths /members/{cardNumber}/loans get | tests list-member-loans-card-number-not-matching-its-pattern; tests list-member-loans-denied-without-loans-read; tests list-member-loans-not-found-card-number; tests list-member-loans-succeeds |
+| LEND-5 |   | permissions loans.write; paths /loans/{loanId}/renew post | tests renew-loan-denied-with-expired-desk-access; tests renew-loan-denied-without-loans-write; tests renew-loan-not-found-loan-id; tests renew-loan-succeeds |
+| LEND-6 |   | entities Loan; permissions loans.write; paths /loans/{loanId}/return post | tests return-book-denied-with-expired-desk-access; tests return-book-denied-without-loans-write; tests return-book-not-found-loan-id; tests return-book-succeeds |
+| LEND-7 |   | permissions loans.read; paths /members/{cardNumber}/loans get | tests list-member-loans-card-number-not-matching-its-pattern; tests list-member-loans-denied-with-expired-desk-access; tests list-member-loans-denied-without-loans-read; tests list-member-loans-not-found-card-number; tests list-member-loans-succeeds |
 
 ## 2. Gaps
 

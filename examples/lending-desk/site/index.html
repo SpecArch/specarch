@@ -92,7 +92,7 @@ ol.problems p{margin:2px 0}
 <li><a href="#requirements">Requirements</a><ol>
 <li><a href="#/stakeholders">Stakeholders</a> <span class="count">4</span></li>
 <li><a href="#/requirements">Requirements</a> <span class="count">7</span></li>
-<li><a href="#/sources">Sources</a> <span class="count">2</span></li>
+<li><a href="#/sources">Sources</a> <span class="count">3</span></li>
 </ol></li>
 <li><a href="#data">Data</a><ol>
 <li><a href="#/entities">Entities</a> <span class="count">3</span></li>
@@ -106,8 +106,11 @@ ol.problems p{margin:2px 0}
 <li><a href="#/paths">HTTP operations</a> <span class="count">5</span></li>
 <li><a href="#/dependencies">Dependencies</a> <span class="count">1</span></li>
 </ol></li>
+<li><a href="#algorithms-and-decisions">Algorithms and decisions</a><ol>
+<li><a href="#/decisions">Decisions</a> <span class="count">1</span></li>
+</ol></li>
 <li><a href="#tests-and-traceability">Tests and traceability</a><ol>
-<li><a href="#/tests">Tests</a> <span class="count">24</span></li>
+<li><a href="#/tests">Tests</a> <span class="count">29</span></li>
 <li><a href="#traceability">Traceability</a></li>
 </ol></li>
 <li><a href="#open-questions">Open questions</a><ol>
@@ -126,14 +129,15 @@ ol.problems p{margin:2px 0}
 <table class="counts"><thead><tr><th scope="col">Section</th><th scope="col">Elements</th></tr></thead><tbody>
 <tr><td><a href="#/stakeholders">Stakeholders</a></td><td>4</td></tr>
 <tr><td><a href="#/requirements">Requirements</a></td><td>7</td></tr>
-<tr><td><a href="#/sources">Sources</a></td><td>2</td></tr>
+<tr><td><a href="#/sources">Sources</a></td><td>3</td></tr>
 <tr><td><a href="#/entities">Entities</a></td><td>3</td></tr>
 <tr><td><a href="#/schemas">Schemas</a></td><td>1</td></tr>
 <tr><td><a href="#/permissions">Permissions</a></td><td>3</td></tr>
 <tr><td><a href="#/roles">Roles</a></td><td>1</td></tr>
 <tr><td><a href="#/paths">HTTP operations</a></td><td>5</td></tr>
 <tr><td><a href="#/dependencies">Dependencies</a></td><td>1</td></tr>
-<tr><td><a href="#/tests">Tests</a></td><td>24</td></tr>
+<tr><td><a href="#/decisions">Decisions</a></td><td>1</td></tr>
+<tr><td><a href="#/tests">Tests</a></td><td>29</td></tr>
 <tr><td><a href="#/questions">Questions</a></td><td>8</td></tr>
 </tbody></table>
 <p class="how">Every element carries its id, the pointer beside its name, such as <code>/entities/Name</code>. Link to it with <code>#</code> and the pointer after this page's address, and give the id when you report what you see, so the remark reaches the element it is about.</p>
@@ -184,7 +188,7 @@ ol.problems p{margin:2px 0}
 <article class="element" data-search id="/requirements/LEND-1">
 <h4>LEND-1 <a class="ptr" href="#/requirements/LEND-1">/requirements/LEND-1</a></h4>
 <p class="mark question">Held open by <a href="#/questions/Q-3">Q-3 (must, decision)</a>: How is each requirement shown to be met? Decided by desk-manager.</p>
-<p class="trace"><strong>Satisfied by:</strong> <a href="#/entities/Member">/entities/Member</a>, <a href="#/permissions/members.write">/permissions/members.write</a>, <a href="#/paths/~1members/post">/paths/~1members/post</a>. <strong>Verified by:</strong> <a href="#/tests/register-member-card-number-not-matching-its-pattern">/tests/register-member-card-number-not-matching-its-pattern</a>, <a href="#/tests/register-member-denied-without-members-write">/tests/register-member-denied-without-members-write</a>, <a href="#/tests/register-member-missing-address-city">/tests/register-member-missing-address-city</a>, <a href="#/tests/register-member-missing-address-street">/tests/register-member-missing-address-street</a>, <a href="#/tests/register-member-missing-card-number">/tests/register-member-missing-card-number</a>, <a href="#/tests/register-member-missing-full-name">/tests/register-member-missing-full-name</a>, <a href="#/tests/register-member-succeeds">/tests/register-member-succeeds</a>.</p>
+<p class="trace"><strong>Satisfied by:</strong> <a href="#/entities/Member">/entities/Member</a>, <a href="#/permissions/members.write">/permissions/members.write</a>, <a href="#/paths/~1members/post">/paths/~1members/post</a>. <strong>Verified by:</strong> <a href="#/tests/register-member-card-number-not-matching-its-pattern">/tests/register-member-card-number-not-matching-its-pattern</a>, <a href="#/tests/register-member-denied-with-expired-desk-access">/tests/register-member-denied-with-expired-desk-access</a>, <a href="#/tests/register-member-denied-without-members-write">/tests/register-member-denied-without-members-write</a>, <a href="#/tests/register-member-missing-address-city">/tests/register-member-missing-address-city</a>, <a href="#/tests/register-member-missing-address-street">/tests/register-member-missing-address-street</a>, <a href="#/tests/register-member-missing-card-number">/tests/register-member-missing-card-number</a>, <a href="#/tests/register-member-missing-full-name">/tests/register-member-missing-full-name</a>, <a href="#/tests/register-member-succeeds">/tests/register-member-succeeds</a>.</p>
 <p class="origin"><strong>Origin:</strong> stated in Lending desk manual, clause 2.1; Lending desk manual, clause 2.2; The lending desk service, clause lending/routes.go:37.</p>
 <p class="note"><strong>Note:</strong> From <a href="#/sources/desk-manual">Lending desk manual, 2025, clause 2.1</a>: A member is known by the card number printed on the card, and the desk records the member&#39;s full name.</p>
 <p class="note"><strong>Note:</strong> From <a href="#/sources/desk-manual">Lending desk manual, 2025, clause 2.2</a>: Desk staff register new members.</p>
@@ -203,7 +207,7 @@ ol.problems p{margin:2px 0}
 <article class="element" data-search id="/requirements/LEND-2">
 <h4>LEND-2 <a class="ptr" href="#/requirements/LEND-2">/requirements/LEND-2</a></h4>
 <p class="mark question">Held open by <a href="#/questions/Q-3">Q-3 (must, decision)</a>: How is each requirement shown to be met? Decided by desk-manager.</p>
-<p class="trace"><strong>Satisfied by:</strong> <a href="#/entities/Book">/entities/Book</a>, <a href="#/entities/Loan">/entities/Loan</a>, <a href="#/permissions/loans.write">/permissions/loans.write</a>, <a href="#/paths/~1loans/post">/paths/~1loans/post</a>. <strong>Verified by:</strong> <a href="#/tests/lend-book-card-number-not-matching-its-pattern">/tests/lend-book-card-number-not-matching-its-pattern</a>, <a href="#/tests/lend-book-denied-without-loans-write">/tests/lend-book-denied-without-loans-write</a>, <a href="#/tests/lend-book-missing-barcode">/tests/lend-book-missing-barcode</a>, <a href="#/tests/lend-book-missing-card-number">/tests/lend-book-missing-card-number</a>, <a href="#/tests/lend-book-not-found-barcode">/tests/lend-book-not-found-barcode</a>, <a href="#/tests/lend-book-not-found-card-number">/tests/lend-book-not-found-card-number</a>, <a href="#/tests/lend-book-succeeds">/tests/lend-book-succeeds</a>.</p>
+<p class="trace"><strong>Satisfied by:</strong> <a href="#/entities/Book">/entities/Book</a>, <a href="#/entities/Loan">/entities/Loan</a>, <a href="#/permissions/loans.write">/permissions/loans.write</a>, <a href="#/paths/~1loans/post">/paths/~1loans/post</a>. <strong>Verified by:</strong> <a href="#/tests/lend-book-card-number-not-matching-its-pattern">/tests/lend-book-card-number-not-matching-its-pattern</a>, <a href="#/tests/lend-book-denied-with-expired-desk-access">/tests/lend-book-denied-with-expired-desk-access</a>, <a href="#/tests/lend-book-denied-without-loans-write">/tests/lend-book-denied-without-loans-write</a>, <a href="#/tests/lend-book-missing-barcode">/tests/lend-book-missing-barcode</a>, <a href="#/tests/lend-book-missing-card-number">/tests/lend-book-missing-card-number</a>, <a href="#/tests/lend-book-not-found-barcode">/tests/lend-book-not-found-barcode</a>, <a href="#/tests/lend-book-not-found-card-number">/tests/lend-book-not-found-card-number</a>, <a href="#/tests/lend-book-succeeds">/tests/lend-book-succeeds</a>.</p>
 <p class="origin"><strong>Origin:</strong> stated in Lending desk manual, clause 3.1; The lending desk service, clause lending/routes.go:38.</p>
 <p class="note"><strong>Note:</strong> From <a href="#/sources/desk-manual">Lending desk manual, 2025, clause 3.1</a>: Desk staff lend a book by scanning the member&#39;s card and the book&#39;s barcode.</p>
 <p class="note"><strong>Note:</strong> From <a href="#/sources/desk-code">The lending desk service, 85f06f82a430a81cc24648d198454426a37c16c9, clause lending/routes.go:38</a>: POST /loans, checked against loans.write.</p>
@@ -221,7 +225,7 @@ ol.problems p{margin:2px 0}
 <article class="element" data-search id="/requirements/LEND-3">
 <h4>LEND-3 <a class="ptr" href="#/requirements/LEND-3">/requirements/LEND-3</a></h4>
 <p class="mark question">Held open by <a href="#/questions/Q-3">Q-3 (must, decision)</a>: How is each requirement shown to be met? Decided by desk-manager.</p>
-<p class="trace"><strong>Satisfied by:</strong> <a href="#/paths/~1loans/post">/paths/~1loans/post</a>. <strong>Verified by:</strong> <a href="#/tests/lend-book-card-number-not-matching-its-pattern">/tests/lend-book-card-number-not-matching-its-pattern</a>, <a href="#/tests/lend-book-denied-without-loans-write">/tests/lend-book-denied-without-loans-write</a>, <a href="#/tests/lend-book-missing-barcode">/tests/lend-book-missing-barcode</a>, <a href="#/tests/lend-book-missing-card-number">/tests/lend-book-missing-card-number</a>, <a href="#/tests/lend-book-not-found-barcode">/tests/lend-book-not-found-barcode</a>, <a href="#/tests/lend-book-not-found-card-number">/tests/lend-book-not-found-card-number</a>, <a href="#/tests/lend-book-succeeds">/tests/lend-book-succeeds</a>.</p>
+<p class="trace"><strong>Satisfied by:</strong> <a href="#/paths/~1loans/post">/paths/~1loans/post</a>. <strong>Verified by:</strong> <a href="#/tests/lend-book-card-number-not-matching-its-pattern">/tests/lend-book-card-number-not-matching-its-pattern</a>, <a href="#/tests/lend-book-denied-with-expired-desk-access">/tests/lend-book-denied-with-expired-desk-access</a>, <a href="#/tests/lend-book-denied-without-loans-write">/tests/lend-book-denied-without-loans-write</a>, <a href="#/tests/lend-book-missing-barcode">/tests/lend-book-missing-barcode</a>, <a href="#/tests/lend-book-missing-card-number">/tests/lend-book-missing-card-number</a>, <a href="#/tests/lend-book-not-found-barcode">/tests/lend-book-not-found-barcode</a>, <a href="#/tests/lend-book-not-found-card-number">/tests/lend-book-not-found-card-number</a>, <a href="#/tests/lend-book-succeeds">/tests/lend-book-succeeds</a>.</p>
 <p class="origin"><strong>Origin:</strong> stated in Lending desk manual, clause 3.2; The lending desk service, clause lending/model.go:11.</p>
 <p class="note"><strong>Note:</strong> From <a href="#/sources/desk-manual">Lending desk manual, 2025, clause 3.2</a>: A member may have at most five books on loan at a time.</p>
 <p class="note"><strong>Note:</strong> From <a href="#/sources/desk-code">The lending desk service, 85f06f82a430a81cc24648d198454426a37c16c9, clause lending/model.go:11</a>: MaxOpenLoans is 5; LendBook answers 409 at the limit.</p>
@@ -259,7 +263,7 @@ ol.problems p{margin:2px 0}
 <article class="element" data-search id="/requirements/LEND-5">
 <h4>LEND-5 <a class="ptr" href="#/requirements/LEND-5">/requirements/LEND-5</a></h4>
 <p class="mark question">Held open by <a href="#/questions/Q-3">Q-3 (must, decision)</a>: How is each requirement shown to be met? Decided by desk-manager.</p>
-<p class="trace"><strong>Satisfied by:</strong> <a href="#/permissions/loans.write">/permissions/loans.write</a>, <a href="#/paths/~1loans~1%7BloanId%7D~1renew/post">/paths/~1loans~1{loanId}~1renew/post</a>. <strong>Verified by:</strong> <a href="#/tests/renew-loan-denied-without-loans-write">/tests/renew-loan-denied-without-loans-write</a>, <a href="#/tests/renew-loan-not-found-loan-id">/tests/renew-loan-not-found-loan-id</a>, <a href="#/tests/renew-loan-succeeds">/tests/renew-loan-succeeds</a>.</p>
+<p class="trace"><strong>Satisfied by:</strong> <a href="#/permissions/loans.write">/permissions/loans.write</a>, <a href="#/paths/~1loans~1%7BloanId%7D~1renew/post">/paths/~1loans~1{loanId}~1renew/post</a>. <strong>Verified by:</strong> <a href="#/tests/renew-loan-denied-with-expired-desk-access">/tests/renew-loan-denied-with-expired-desk-access</a>, <a href="#/tests/renew-loan-denied-without-loans-write">/tests/renew-loan-denied-without-loans-write</a>, <a href="#/tests/renew-loan-not-found-loan-id">/tests/renew-loan-not-found-loan-id</a>, <a href="#/tests/renew-loan-succeeds">/tests/renew-loan-succeeds</a>.</p>
 <p class="origin"><strong>Origin:</strong> stated in Lending desk manual, clause 4.1.</p>
 <p class="note"><strong>Note:</strong> From <a href="#/sources/desk-manual">Lending desk manual, 2025, clause 4.1</a>: A member may renew a loan once, for one more loan period, by asking at the desk before the due date.</p>
 <dl>
@@ -276,7 +280,7 @@ ol.problems p{margin:2px 0}
 <article class="element" data-search id="/requirements/LEND-6">
 <h4>LEND-6 <a class="ptr" href="#/requirements/LEND-6">/requirements/LEND-6</a></h4>
 <p class="mark question">Held open by <a href="#/questions/Q-3">Q-3 (must, decision)</a>: How is each requirement shown to be met? Decided by desk-manager.</p>
-<p class="trace"><strong>Satisfied by:</strong> <a href="#/entities/Loan">/entities/Loan</a>, <a href="#/permissions/loans.write">/permissions/loans.write</a>, <a href="#/paths/~1loans~1%7BloanId%7D~1return/post">/paths/~1loans~1{loanId}~1return/post</a>. <strong>Verified by:</strong> <a href="#/tests/return-book-denied-without-loans-write">/tests/return-book-denied-without-loans-write</a>, <a href="#/tests/return-book-not-found-loan-id">/tests/return-book-not-found-loan-id</a>, <a href="#/tests/return-book-succeeds">/tests/return-book-succeeds</a>.</p>
+<p class="trace"><strong>Satisfied by:</strong> <a href="#/entities/Loan">/entities/Loan</a>, <a href="#/permissions/loans.write">/permissions/loans.write</a>, <a href="#/paths/~1loans~1%7BloanId%7D~1return/post">/paths/~1loans~1{loanId}~1return/post</a>. <strong>Verified by:</strong> <a href="#/tests/return-book-denied-with-expired-desk-access">/tests/return-book-denied-with-expired-desk-access</a>, <a href="#/tests/return-book-denied-without-loans-write">/tests/return-book-denied-without-loans-write</a>, <a href="#/tests/return-book-not-found-loan-id">/tests/return-book-not-found-loan-id</a>, <a href="#/tests/return-book-succeeds">/tests/return-book-succeeds</a>.</p>
 <p class="origin"><strong>Origin:</strong> stated in Lending desk manual, clause 5.1; The lending desk service, clause lending/routes.go:39.</p>
 <p class="note"><strong>Note:</strong> From <a href="#/sources/desk-manual">Lending desk manual, 2025, clause 5.1</a>: Desk staff check a returned book in by scanning its barcode, which closes the loan.</p>
 <p class="note"><strong>Note:</strong> From <a href="#/sources/desk-code">The lending desk service, 85f06f82a430a81cc24648d198454426a37c16c9, clause lending/routes.go:39</a>: POST /loans/{loanId}/return, checked against loans.write.</p>
@@ -295,7 +299,7 @@ ol.problems p{margin:2px 0}
 <h4>LEND-7 <a class="ptr" href="#/requirements/LEND-7">/requirements/LEND-7</a></h4>
 <p class="mark question">Held open by <a href="#/questions/Q-2">Q-2 (should, decision)</a>: The service lists a member&#39;s loans, which the manual never mentions. Is that wanted, and who may use it? Decided by desk-manager.</p>
 <p class="mark question">Held open by <a href="#/questions/Q-3">Q-3 (must, decision)</a>: How is each requirement shown to be met? Decided by desk-manager.</p>
-<p class="trace"><strong>Satisfied by:</strong> <a href="#/permissions/loans.read">/permissions/loans.read</a>, <a href="#/paths/~1members~1%7BcardNumber%7D~1loans/get">/paths/~1members~1{cardNumber}~1loans/get</a>. <strong>Verified by:</strong> <a href="#/tests/list-member-loans-card-number-not-matching-its-pattern">/tests/list-member-loans-card-number-not-matching-its-pattern</a>, <a href="#/tests/list-member-loans-denied-without-loans-read">/tests/list-member-loans-denied-without-loans-read</a>, <a href="#/tests/list-member-loans-not-found-card-number">/tests/list-member-loans-not-found-card-number</a>, <a href="#/tests/list-member-loans-succeeds">/tests/list-member-loans-succeeds</a>.</p>
+<p class="trace"><strong>Satisfied by:</strong> <a href="#/permissions/loans.read">/permissions/loans.read</a>, <a href="#/paths/~1members~1%7BcardNumber%7D~1loans/get">/paths/~1members~1{cardNumber}~1loans/get</a>. <strong>Verified by:</strong> <a href="#/tests/list-member-loans-card-number-not-matching-its-pattern">/tests/list-member-loans-card-number-not-matching-its-pattern</a>, <a href="#/tests/list-member-loans-denied-with-expired-desk-access">/tests/list-member-loans-denied-with-expired-desk-access</a>, <a href="#/tests/list-member-loans-denied-without-loans-read">/tests/list-member-loans-denied-without-loans-read</a>, <a href="#/tests/list-member-loans-not-found-card-number">/tests/list-member-loans-not-found-card-number</a>, <a href="#/tests/list-member-loans-succeeds">/tests/list-member-loans-succeeds</a>.</p>
 <p class="origin"><strong>Origin:</strong> inferred.</p>
 <p class="insight"><strong>Insight:</strong> Undocumented, from code. The service serves GET /members/{cardNumber}/loans; the manual never mentions it. Q-2 asks the desk manager to confirm it.</p>
 <p class="note"><strong>Note:</strong> From <a href="#/sources/desk-code">The lending desk service, 85f06f82a430a81cc24648d198454426a37c16c9, clause lending/routes.go:42</a>: GET /members/{cardNumber}/loans, checked against loans.read.</p>
@@ -499,6 +503,34 @@ ol.problems p{margin:2px 0}
 <dd>seeds/001_roles.sql</dd>
 <dt>title</dt>
 <dd>The seed of the roles tables</dd>
+</dl>
+</li>
+</ol>
+</dd>
+</dl>
+</article>
+<article class="element" data-search id="/sources/estate-gateway">
+<h4>estate-gateway: The library estate&#39;s gateway specification <a class="ptr" href="#/sources/estate-gateway">/sources/estate-gateway</a></h4>
+<dl>
+<dt>kind</dt>
+<dd>document</dd>
+<dt>title</dt>
+<dd>The library estate&#39;s gateway specification</dd>
+<dt>edition</dt>
+<dd>0.1.0</dd>
+<dt>author</dt>
+<dd>The estate&#39;s maintainers</dd>
+<dt>url</dt>
+<dd>../../estate/gateway/specarch.yaml</dd>
+<dt>clauses</dt>
+<dd>
+<ol class="items">
+<li id="/sources/estate-gateway/clauses/0">
+<dl>
+<dt>clause</dt>
+<dd>gateways.api</dd>
+<dt>title</dt>
+<dd>The gateway&#39;s forwards by audience</dd>
 </dl>
 </li>
 </ol>
@@ -1122,6 +1154,37 @@ ol.problems p{margin:2px 0}
 </article>
 </section>
 </section>
+<section class="group" id="algorithms-and-decisions">
+<h2>Algorithms and decisions</h2>
+<section class="section" id="/decisions">
+<h3>Decisions <a class="ptr" href="#/decisions">/decisions</a></h3>
+<article class="element" data-search id="/decisions/ADR-001">
+<h4>ADR-001: The desk accepts an access token whose audience names it, the one the estate&#39;s gateway forwards to it <a class="ptr" href="#/decisions/ADR-001">/decisions/ADR-001</a></h4>
+<p class="origin"><strong>Origin:</strong> stated in The library estate&#39;s gateway specification, clause gateways.api.</p>
+<p class="note"><strong>Note:</strong> From <a href="#/sources/estate-gateway">The library estate&#39;s gateway specification, 0.1.0, clause gateways.api</a>: Forwards a request whose token&#39;s aud is https://loans.library.example to the lending desk.</p>
+<dl>
+<dt>title</dt>
+<dd>The desk accepts an access token whose audience names it, the one the estate&#39;s gateway forwards to it</dd>
+<dt>status</dt>
+<dd>accepted</dd>
+<dt>date</dt>
+<dd>2026-10-20</dd>
+<dt>context</dt>
+<dd>
+<p>The estate in examples/estate puts a gateway in front of the desk and the catalogue service, which forwards a request to the desk when the access token&#39;s audience is https://loans.library.example. The desk&#39;s code reads the caller&#39;s role from the Desk-Role header its terminal sends and verifies no token.</p>
+</dd>
+<dt>decision</dt>
+<dd>
+<p>The desk accepts deskAccess, a JWT signed with RS256 by the identity provider, whose aud is https://loans.library.example, on every operation, and refuses a token minted for another audience.</p>
+</dd>
+<dt>consequences</dt>
+<dd>
+<p>The code does not verify the token yet, so the specification and the code differ until it does. The gateway&#39;s forward to the desk and the desk&#39;s audience are one value, which the estate&#39;s run checks.</p>
+</dd>
+</dl>
+</article>
+</section>
+</section>
 <section class="group" id="tests-and-traceability">
 <h2>Tests and traceability</h2>
 <section class="section" id="/tests">
@@ -1147,6 +1210,33 @@ ol.problems p{margin:2px 0}
 <dd>lendBook is called with cardNumber in the wrong form</dd>
 <dt>then</dt>
 <dd>it is refused</dd>
+<dt>verifies</dt>
+<dd>
+<p><a href="#/requirements/LEND-2">LEND-2</a>, <a href="#/requirements/LEND-3">LEND-3</a></p>
+</dd>
+</dl>
+</article>
+<article class="element" data-search id="/tests/lend-book-denied-with-expired-desk-access">
+<h4>lend-book-denied-with-expired-desk-access <a class="ptr" href="#/tests/lend-book-denied-with-expired-desk-access">/tests/lend-book-denied-with-expired-desk-access</a></h4>
+<p class="origin"><strong>Origin:</strong> inferred.</p>
+<p class="insight"><strong>Insight:</strong> Written by specarch derive: users get this wrong often, so the case is written. A draft: complete the given, when and then, and remove what does not hold.</p>
+<dl>
+<dt>operation</dt>
+<dd><a href="#/paths/~1loans/post">lendBook</a></dd>
+<dt>level</dt>
+<dd>system</dd>
+<dt>scenario</dt>
+<dd>red</dd>
+<dt>covers</dt>
+<dd>
+<p>denied with expired deskAccess</p>
+</dd>
+<dt>given</dt>
+<dd>a caller whose deskAccess token has expired after PT15M</dd>
+<dt>when</dt>
+<dd>lendBook is called</dd>
+<dt>then</dt>
+<dd>it is refused as not signed in</dd>
 <dt>verifies</dt>
 <dd>
 <p><a href="#/requirements/LEND-2">LEND-2</a>, <a href="#/requirements/LEND-3">LEND-3</a></p>
@@ -1345,6 +1435,33 @@ ol.problems p{margin:2px 0}
 </dd>
 </dl>
 </article>
+<article class="element" data-search id="/tests/list-member-loans-denied-with-expired-desk-access">
+<h4>list-member-loans-denied-with-expired-desk-access <a class="ptr" href="#/tests/list-member-loans-denied-with-expired-desk-access">/tests/list-member-loans-denied-with-expired-desk-access</a></h4>
+<p class="origin"><strong>Origin:</strong> inferred.</p>
+<p class="insight"><strong>Insight:</strong> Written by specarch derive: users get this wrong often, so the case is written. A draft: complete the given, when and then, and remove what does not hold.</p>
+<dl>
+<dt>operation</dt>
+<dd><a href="#/paths/~1members~1%7BcardNumber%7D~1loans/get">listMemberLoans</a></dd>
+<dt>level</dt>
+<dd>system</dd>
+<dt>scenario</dt>
+<dd>red</dd>
+<dt>covers</dt>
+<dd>
+<p>denied with expired deskAccess</p>
+</dd>
+<dt>given</dt>
+<dd>a caller whose deskAccess token has expired after PT15M</dd>
+<dt>when</dt>
+<dd>listMemberLoans is called</dd>
+<dt>then</dt>
+<dd>it is refused as not signed in</dd>
+<dt>verifies</dt>
+<dd>
+<p><a href="#/requirements/LEND-7">LEND-7</a></p>
+</dd>
+</dl>
+</article>
 <article class="element" data-search id="/tests/list-member-loans-denied-without-loans-read">
 <h4>list-member-loans-denied-without-loans-read <a class="ptr" href="#/tests/list-member-loans-denied-without-loans-read">/tests/list-member-loans-denied-without-loans-read</a></h4>
 <p class="origin"><strong>Origin:</strong> inferred.</p>
@@ -1450,6 +1567,33 @@ ol.problems p{margin:2px 0}
 <dd>registerMember is called with cardNumber in the wrong form</dd>
 <dt>then</dt>
 <dd>it is refused</dd>
+<dt>verifies</dt>
+<dd>
+<p><a href="#/requirements/LEND-1">LEND-1</a></p>
+</dd>
+</dl>
+</article>
+<article class="element" data-search id="/tests/register-member-denied-with-expired-desk-access">
+<h4>register-member-denied-with-expired-desk-access <a class="ptr" href="#/tests/register-member-denied-with-expired-desk-access">/tests/register-member-denied-with-expired-desk-access</a></h4>
+<p class="origin"><strong>Origin:</strong> inferred.</p>
+<p class="insight"><strong>Insight:</strong> Written by specarch derive: users get this wrong often, so the case is written. A draft: complete the given, when and then, and remove what does not hold.</p>
+<dl>
+<dt>operation</dt>
+<dd><a href="#/paths/~1members/post">registerMember</a></dd>
+<dt>level</dt>
+<dd>system</dd>
+<dt>scenario</dt>
+<dd>red</dd>
+<dt>covers</dt>
+<dd>
+<p>denied with expired deskAccess</p>
+</dd>
+<dt>given</dt>
+<dd>a caller whose deskAccess token has expired after PT15M</dd>
+<dt>when</dt>
+<dd>registerMember is called</dd>
+<dt>then</dt>
+<dd>it is refused as not signed in</dd>
 <dt>verifies</dt>
 <dd>
 <p><a href="#/requirements/LEND-1">LEND-1</a></p>
@@ -1621,6 +1765,33 @@ ol.problems p{margin:2px 0}
 </dd>
 </dl>
 </article>
+<article class="element" data-search id="/tests/renew-loan-denied-with-expired-desk-access">
+<h4>renew-loan-denied-with-expired-desk-access <a class="ptr" href="#/tests/renew-loan-denied-with-expired-desk-access">/tests/renew-loan-denied-with-expired-desk-access</a></h4>
+<p class="origin"><strong>Origin:</strong> inferred.</p>
+<p class="insight"><strong>Insight:</strong> Written by specarch derive: users get this wrong often, so the case is written. A draft: complete the given, when and then, and remove what does not hold.</p>
+<dl>
+<dt>operation</dt>
+<dd><a href="#/paths/~1loans~1%7BloanId%7D~1renew/post">renewLoan</a></dd>
+<dt>level</dt>
+<dd>system</dd>
+<dt>scenario</dt>
+<dd>red</dd>
+<dt>covers</dt>
+<dd>
+<p>denied with expired deskAccess</p>
+</dd>
+<dt>given</dt>
+<dd>a caller whose deskAccess token has expired after PT15M</dd>
+<dt>when</dt>
+<dd>renewLoan is called</dd>
+<dt>then</dt>
+<dd>it is refused as not signed in</dd>
+<dt>verifies</dt>
+<dd>
+<p><a href="#/requirements/LEND-5">LEND-5</a></p>
+</dd>
+</dl>
+</article>
 <article class="element" data-search id="/tests/renew-loan-denied-without-loans-write">
 <h4>renew-loan-denied-without-loans-write <a class="ptr" href="#/tests/renew-loan-denied-without-loans-write">/tests/renew-loan-denied-without-loans-write</a></h4>
 <p class="origin"><strong>Origin:</strong> inferred.</p>
@@ -1702,6 +1873,33 @@ ol.problems p{margin:2px 0}
 <dt>status</dt>
 <dd>200</dd>
 </dl>
+</dd>
+</dl>
+</article>
+<article class="element" data-search id="/tests/return-book-denied-with-expired-desk-access">
+<h4>return-book-denied-with-expired-desk-access <a class="ptr" href="#/tests/return-book-denied-with-expired-desk-access">/tests/return-book-denied-with-expired-desk-access</a></h4>
+<p class="origin"><strong>Origin:</strong> inferred.</p>
+<p class="insight"><strong>Insight:</strong> Written by specarch derive: users get this wrong often, so the case is written. A draft: complete the given, when and then, and remove what does not hold.</p>
+<dl>
+<dt>operation</dt>
+<dd><a href="#/paths/~1loans~1%7BloanId%7D~1return/post">returnBook</a></dd>
+<dt>level</dt>
+<dd>system</dd>
+<dt>scenario</dt>
+<dd>red</dd>
+<dt>covers</dt>
+<dd>
+<p>denied with expired deskAccess</p>
+</dd>
+<dt>given</dt>
+<dd>a caller whose deskAccess token has expired after PT15M</dd>
+<dt>when</dt>
+<dd>returnBook is called</dd>
+<dt>then</dt>
+<dd>it is refused as not signed in</dd>
+<dt>verifies</dt>
+<dd>
+<p><a href="#/requirements/LEND-6">LEND-6</a></p>
 </dd>
 </dl>
 </article>
@@ -1794,13 +1992,13 @@ ol.problems p{margin:2px 0}
 <h3>Traceability</h3>
 <p>Each requirement, the needs it refines, and the elements that satisfy and verify it. A requirement nothing satisfies or verifies is a gap.</p>
 <div class="scroll"><table><thead><tr><th scope="col">Requirement</th><th scope="col">Needs</th><th scope="col">Satisfied by</th><th scope="col">Verified by</th></tr></thead><tbody>
-<tr data-search><th scope="row"><a href="#/requirements/LEND-1">LEND-1</a></th><td></td><td><a href="#/entities/Member">/entities/Member</a>, <a href="#/permissions/members.write">/permissions/members.write</a>, <a href="#/paths/~1members/post">/paths/~1members/post</a></td><td><a href="#/tests/register-member-card-number-not-matching-its-pattern">/tests/register-member-card-number-not-matching-its-pattern</a>, <a href="#/tests/register-member-denied-without-members-write">/tests/register-member-denied-without-members-write</a>, <a href="#/tests/register-member-missing-address-city">/tests/register-member-missing-address-city</a>, <a href="#/tests/register-member-missing-address-street">/tests/register-member-missing-address-street</a>, <a href="#/tests/register-member-missing-card-number">/tests/register-member-missing-card-number</a>, <a href="#/tests/register-member-missing-full-name">/tests/register-member-missing-full-name</a>, <a href="#/tests/register-member-succeeds">/tests/register-member-succeeds</a></td></tr>
-<tr data-search><th scope="row"><a href="#/requirements/LEND-2">LEND-2</a></th><td></td><td><a href="#/entities/Book">/entities/Book</a>, <a href="#/entities/Loan">/entities/Loan</a>, <a href="#/permissions/loans.write">/permissions/loans.write</a>, <a href="#/paths/~1loans/post">/paths/~1loans/post</a></td><td><a href="#/tests/lend-book-card-number-not-matching-its-pattern">/tests/lend-book-card-number-not-matching-its-pattern</a>, <a href="#/tests/lend-book-denied-without-loans-write">/tests/lend-book-denied-without-loans-write</a>, <a href="#/tests/lend-book-missing-barcode">/tests/lend-book-missing-barcode</a>, <a href="#/tests/lend-book-missing-card-number">/tests/lend-book-missing-card-number</a>, <a href="#/tests/lend-book-not-found-barcode">/tests/lend-book-not-found-barcode</a>, <a href="#/tests/lend-book-not-found-card-number">/tests/lend-book-not-found-card-number</a>, <a href="#/tests/lend-book-succeeds">/tests/lend-book-succeeds</a></td></tr>
-<tr data-search><th scope="row"><a href="#/requirements/LEND-3">LEND-3</a></th><td></td><td><a href="#/paths/~1loans/post">/paths/~1loans/post</a></td><td><a href="#/tests/lend-book-card-number-not-matching-its-pattern">/tests/lend-book-card-number-not-matching-its-pattern</a>, <a href="#/tests/lend-book-denied-without-loans-write">/tests/lend-book-denied-without-loans-write</a>, <a href="#/tests/lend-book-missing-barcode">/tests/lend-book-missing-barcode</a>, <a href="#/tests/lend-book-missing-card-number">/tests/lend-book-missing-card-number</a>, <a href="#/tests/lend-book-not-found-barcode">/tests/lend-book-not-found-barcode</a>, <a href="#/tests/lend-book-not-found-card-number">/tests/lend-book-not-found-card-number</a>, <a href="#/tests/lend-book-succeeds">/tests/lend-book-succeeds</a></td></tr>
+<tr data-search><th scope="row"><a href="#/requirements/LEND-1">LEND-1</a></th><td></td><td><a href="#/entities/Member">/entities/Member</a>, <a href="#/permissions/members.write">/permissions/members.write</a>, <a href="#/paths/~1members/post">/paths/~1members/post</a></td><td><a href="#/tests/register-member-card-number-not-matching-its-pattern">/tests/register-member-card-number-not-matching-its-pattern</a>, <a href="#/tests/register-member-denied-with-expired-desk-access">/tests/register-member-denied-with-expired-desk-access</a>, <a href="#/tests/register-member-denied-without-members-write">/tests/register-member-denied-without-members-write</a>, <a href="#/tests/register-member-missing-address-city">/tests/register-member-missing-address-city</a>, <a href="#/tests/register-member-missing-address-street">/tests/register-member-missing-address-street</a>, <a href="#/tests/register-member-missing-card-number">/tests/register-member-missing-card-number</a>, <a href="#/tests/register-member-missing-full-name">/tests/register-member-missing-full-name</a>, <a href="#/tests/register-member-succeeds">/tests/register-member-succeeds</a></td></tr>
+<tr data-search><th scope="row"><a href="#/requirements/LEND-2">LEND-2</a></th><td></td><td><a href="#/entities/Book">/entities/Book</a>, <a href="#/entities/Loan">/entities/Loan</a>, <a href="#/permissions/loans.write">/permissions/loans.write</a>, <a href="#/paths/~1loans/post">/paths/~1loans/post</a></td><td><a href="#/tests/lend-book-card-number-not-matching-its-pattern">/tests/lend-book-card-number-not-matching-its-pattern</a>, <a href="#/tests/lend-book-denied-with-expired-desk-access">/tests/lend-book-denied-with-expired-desk-access</a>, <a href="#/tests/lend-book-denied-without-loans-write">/tests/lend-book-denied-without-loans-write</a>, <a href="#/tests/lend-book-missing-barcode">/tests/lend-book-missing-barcode</a>, <a href="#/tests/lend-book-missing-card-number">/tests/lend-book-missing-card-number</a>, <a href="#/tests/lend-book-not-found-barcode">/tests/lend-book-not-found-barcode</a>, <a href="#/tests/lend-book-not-found-card-number">/tests/lend-book-not-found-card-number</a>, <a href="#/tests/lend-book-succeeds">/tests/lend-book-succeeds</a></td></tr>
+<tr data-search><th scope="row"><a href="#/requirements/LEND-3">LEND-3</a></th><td></td><td><a href="#/paths/~1loans/post">/paths/~1loans/post</a></td><td><a href="#/tests/lend-book-card-number-not-matching-its-pattern">/tests/lend-book-card-number-not-matching-its-pattern</a>, <a href="#/tests/lend-book-denied-with-expired-desk-access">/tests/lend-book-denied-with-expired-desk-access</a>, <a href="#/tests/lend-book-denied-without-loans-write">/tests/lend-book-denied-without-loans-write</a>, <a href="#/tests/lend-book-missing-barcode">/tests/lend-book-missing-barcode</a>, <a href="#/tests/lend-book-missing-card-number">/tests/lend-book-missing-card-number</a>, <a href="#/tests/lend-book-not-found-barcode">/tests/lend-book-not-found-barcode</a>, <a href="#/tests/lend-book-not-found-card-number">/tests/lend-book-not-found-card-number</a>, <a href="#/tests/lend-book-succeeds">/tests/lend-book-succeeds</a></td></tr>
 <tr data-search class="gap"><th scope="row"><a href="#/requirements/LEND-4">LEND-4</a></th><td></td><td><a href="#/entities/Loan">/entities/Loan</a></td><td>nothing</td></tr>
-<tr data-search><th scope="row"><a href="#/requirements/LEND-5">LEND-5</a></th><td></td><td><a href="#/permissions/loans.write">/permissions/loans.write</a>, <a href="#/paths/~1loans~1%7BloanId%7D~1renew/post">/paths/~1loans~1{loanId}~1renew/post</a></td><td><a href="#/tests/renew-loan-denied-without-loans-write">/tests/renew-loan-denied-without-loans-write</a>, <a href="#/tests/renew-loan-not-found-loan-id">/tests/renew-loan-not-found-loan-id</a>, <a href="#/tests/renew-loan-succeeds">/tests/renew-loan-succeeds</a></td></tr>
-<tr data-search><th scope="row"><a href="#/requirements/LEND-6">LEND-6</a></th><td></td><td><a href="#/entities/Loan">/entities/Loan</a>, <a href="#/permissions/loans.write">/permissions/loans.write</a>, <a href="#/paths/~1loans~1%7BloanId%7D~1return/post">/paths/~1loans~1{loanId}~1return/post</a></td><td><a href="#/tests/return-book-denied-without-loans-write">/tests/return-book-denied-without-loans-write</a>, <a href="#/tests/return-book-not-found-loan-id">/tests/return-book-not-found-loan-id</a>, <a href="#/tests/return-book-succeeds">/tests/return-book-succeeds</a></td></tr>
-<tr data-search><th scope="row"><a href="#/requirements/LEND-7">LEND-7</a></th><td></td><td><a href="#/permissions/loans.read">/permissions/loans.read</a>, <a href="#/paths/~1members~1%7BcardNumber%7D~1loans/get">/paths/~1members~1{cardNumber}~1loans/get</a></td><td><a href="#/tests/list-member-loans-card-number-not-matching-its-pattern">/tests/list-member-loans-card-number-not-matching-its-pattern</a>, <a href="#/tests/list-member-loans-denied-without-loans-read">/tests/list-member-loans-denied-without-loans-read</a>, <a href="#/tests/list-member-loans-not-found-card-number">/tests/list-member-loans-not-found-card-number</a>, <a href="#/tests/list-member-loans-succeeds">/tests/list-member-loans-succeeds</a></td></tr>
+<tr data-search><th scope="row"><a href="#/requirements/LEND-5">LEND-5</a></th><td></td><td><a href="#/permissions/loans.write">/permissions/loans.write</a>, <a href="#/paths/~1loans~1%7BloanId%7D~1renew/post">/paths/~1loans~1{loanId}~1renew/post</a></td><td><a href="#/tests/renew-loan-denied-with-expired-desk-access">/tests/renew-loan-denied-with-expired-desk-access</a>, <a href="#/tests/renew-loan-denied-without-loans-write">/tests/renew-loan-denied-without-loans-write</a>, <a href="#/tests/renew-loan-not-found-loan-id">/tests/renew-loan-not-found-loan-id</a>, <a href="#/tests/renew-loan-succeeds">/tests/renew-loan-succeeds</a></td></tr>
+<tr data-search><th scope="row"><a href="#/requirements/LEND-6">LEND-6</a></th><td></td><td><a href="#/entities/Loan">/entities/Loan</a>, <a href="#/permissions/loans.write">/permissions/loans.write</a>, <a href="#/paths/~1loans~1%7BloanId%7D~1return/post">/paths/~1loans~1{loanId}~1return/post</a></td><td><a href="#/tests/return-book-denied-with-expired-desk-access">/tests/return-book-denied-with-expired-desk-access</a>, <a href="#/tests/return-book-denied-without-loans-write">/tests/return-book-denied-without-loans-write</a>, <a href="#/tests/return-book-not-found-loan-id">/tests/return-book-not-found-loan-id</a>, <a href="#/tests/return-book-succeeds">/tests/return-book-succeeds</a></td></tr>
+<tr data-search><th scope="row"><a href="#/requirements/LEND-7">LEND-7</a></th><td></td><td><a href="#/permissions/loans.read">/permissions/loans.read</a>, <a href="#/paths/~1members~1%7BcardNumber%7D~1loans/get">/paths/~1members~1{cardNumber}~1loans/get</a></td><td><a href="#/tests/list-member-loans-card-number-not-matching-its-pattern">/tests/list-member-loans-card-number-not-matching-its-pattern</a>, <a href="#/tests/list-member-loans-denied-with-expired-desk-access">/tests/list-member-loans-denied-with-expired-desk-access</a>, <a href="#/tests/list-member-loans-denied-without-loans-read">/tests/list-member-loans-denied-without-loans-read</a>, <a href="#/tests/list-member-loans-not-found-card-number">/tests/list-member-loans-not-found-card-number</a>, <a href="#/tests/list-member-loans-succeeds">/tests/list-member-loans-succeeds</a></td></tr>
 </tbody></table></div>
 </section>
 </section>
@@ -2005,14 +2203,62 @@ ol.problems p{margin:2px 0}
 </article>
 </section>
 </section>
+<section class="group" id="other">
+<h2>Other sections</h2>
+<p>Sections the meta-model does not know; the problems list says what is wrong with each.</p>
+<section class="section" id="/tokens">
+<h3>Tokens <a class="ptr" href="#/tokens">/tokens</a></h3>
+<article class="element" data-search id="/tokens/deskAccess">
+<h4>deskAccess <a class="ptr" href="#/tokens/deskAccess">/tokens/deskAccess</a></h4>
+<p class="origin"><strong>Origin:</strong> decided in ADR-001, The desk accepts an access token whose audience names it, the one the estate&#39;s gateway forwards to it.</p>
+<dl>
+<dt>description</dt>
+<dd>
+<p>The access token a caller of the desk presents, minted for the desk&#39;s audience; through the estate&#39;s gateway, the one the gateway forwards by.</p>
+</dd>
+<dt>format</dt>
+<dd>jwt</dd>
+<dt>signature</dt>
+<dd>RS256</dd>
+<dt>lifetime</dt>
+<dd>PT15M</dd>
+<dt>claims</dt>
+<dd id="/tokens/deskAccess/claims">
+<div class="scroll"><table><thead><tr><th scope="col">Name</th>
+<th scope="col">const</th>
+<th scope="col">description</th>
+</tr></thead><tbody>
+<tr id="/tokens/deskAccess/claims/iss"><th scope="row">iss <a class="ptr" href="#/tokens/deskAccess/claims/iss">/tokens/deskAccess/claims/iss</a>
+</th>
+<td>https://identity.library.example</td>
+<td></td>
+</tr>
+<tr id="/tokens/deskAccess/claims/aud"><th scope="row">aud <a class="ptr" href="#/tokens/deskAccess/claims/aud">/tokens/deskAccess/claims/aud</a>
+</th>
+<td>https://loans.library.example</td>
+<td></td>
+</tr>
+<tr id="/tokens/deskAccess/claims/sub"><th scope="row">sub <a class="ptr" href="#/tokens/deskAccess/claims/sub">/tokens/deskAccess/claims/sub</a>
+</th>
+<td></td>
+<td>The person or the service the token was minted for.</td>
+</tr>
+</tbody></table></div>
+</dd>
+<dt>default</dt>
+<dd>true</dd>
+</dl>
+</article>
+</section>
+</section>
 <section class="group" id="problems">
 <h2>Problems</h2>
 <p>Every error, warning and open question, in the order of the problems file, each with the file and line it is at and the entry it marks. The same problems are in problems.txt and problems.sarif.</p>
 <ol class="problems">
 <li class="question" data-search id="problem-Q-8">
-<p><code>../spec/design/design.yaml:206:3: question: /questions/Q-8: open_question: (must, decision) Does the desk read the book records through the catalogue service&#39;s operations, and with what time limit per call, or from the books table as the service does today? Decided by desk-manager. Answer with a decision record that names Q-8 under answers. [Q-8]</code></p>
-<p class="problem-note"><code>../spec/design/design.yaml:195:3: note: blocks #/dependencies/catalogue/timeout, which is not given yet</code></p>
-<p class="problem-note"><code>../spec/design/design.yaml:215:9: note: source desk-manual, clause 3.4: The catalogue team keeps the book records; the desk reads them and never edits them.</code></p>
+<p><code>../spec/design/design.yaml:220:3: question: /questions/Q-8: open_question: (must, decision) Does the desk read the book records through the catalogue service&#39;s operations, and with what time limit per call, or from the books table as the service does today? Decided by desk-manager. Answer with a decision record that names Q-8 under answers. [Q-8]</code></p>
+<p class="problem-note"><code>../spec/design/design.yaml:209:3: note: blocks #/dependencies/catalogue/timeout, which is not given yet</code></p>
+<p class="problem-note"><code>../spec/design/design.yaml:229:9: note: source desk-manual, clause 3.4: The catalogue team keeps the book records; the desk reads them and never edits them.</code></p>
 <p class="problem-note"><code>../sources/code/migrations/001_init.sql:6:1: note: source desk-code, clause migrations/001_init.sql:6: CREATE TABLE books.</code></p>
 <p>Marked at <a href="#/questions/Q-8">/questions/Q-8</a>.</p>
 </li>

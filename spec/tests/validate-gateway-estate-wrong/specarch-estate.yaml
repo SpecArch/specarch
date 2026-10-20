@@ -1,0 +1,6 @@
+specarchEstate: "0.1"
+info: { title: Case, version: 1.0.0 }
+modules:
+  gateway: { description: The gateway., location: gateway, version: 1.0.0 }
+  desk: { description: The desk., location: desk, version: 1.0.0 }
+  books: { description: The books., location: books, version: 1.0.0 }

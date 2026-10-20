@@ -369,6 +369,7 @@ func (c *checker) checkReferences(d *design) {
 			c.add(p.node, source.Pointer(p.path...), RuleReference, "%s", p.message)
 		}
 	}
+	c.checkGatewayAudiences(d, rv)
 	for _, name := range sortedKeys(d.dependencies) {
 		dep := d.dependencies[name]
 		spName := source.Str(source.Child(dep, "specification"))
@@ -379,6 +380,53 @@ func (c *checker) checkReferences(d *design) {
 		o, _ := rv.otherOf(spName)
 		if o != nil && o.version != vn.Value {
 			c.add(vn, source.Pointer("dependencies", name, "version"), RuleReference, "%s is at version %s, and %s names %s; check the references to it against %s, then write that version here", spName, o.version, name, vn.Value, o.version)
+		}
+	}
+}
+
+// gatewayForward is one row of a gateway forwarding by aud whose
+// dependency names another specification.
+type gatewayForward struct {
+	value         *yaml.Node
+	path          []string
+	dep, spec     string
+	gateway, text string
+}
+
+// audienceForwards are the rows of the gateways forwarding by aud whose
+// dependency names a specification, in document order.
+func audienceForwards(d *design) []gatewayForward {
+	var out []gatewayForward
+	for _, g := range d.gateways() {
+		if source.Str(source.Child(g.Value, "claim")) != "aud" {
+			continue
+		}
+		for i, row := range source.Items(source.Child(g.Value, "forwards")) {
+			dep := source.Str(source.Child(row, "dependency"))
+			v := source.Child(row, "value")
+			if sp := d.specificationOf(dep); sp != "" && v != nil {
+				out = append(out, gatewayForward{value: v, path: []string{"gateways", g.Key.Value, "forwards", fmt.Sprint(i), "value"}, dep: dep, spec: sp, gateway: g.Key.Value, text: v.Value})
+			}
+		}
+	}
+	return out
+}
+
+// checkGatewayAudiences checks, for each forward by aud into a module
+// given in the run, that the module accepts an access token for the
+// value: the gateway's table and the services' audiences agree (ADR-141).
+func (c *checker) checkGatewayAudiences(d *design, rv *resolver) {
+	for _, f := range audienceForwards(d) {
+		o, _ := rv.otherOf(f.spec)
+		if o == nil {
+			continue // not given: an unresolved reference
+		}
+		auds := o.design.acceptedAudiences()
+		switch {
+		case len(auds) == 0:
+			c.add(f.value, source.Pointer(f.path...), RuleGateway, "gateway %s forwards %s to %s, the module %s, which accepts no access token, so nothing there checks the token's audience; have %s accept a token whose aud is %s", f.gateway, f.text, f.dep, f.spec, f.spec, f.text)
+		case !contains(auds, f.text):
+			c.add(f.value, source.Pointer(f.path...), RuleGateway, "gateway %s forwards %s to %s, the module %s, which accepts no access token for that audience, so the token is refused there; it accepts %s; write its audience here, or have %s declare this one", f.gateway, f.text, f.dep, f.spec, strings.Join(auds, ", "), f.spec)
 		}
 	}
 }
@@ -416,6 +464,14 @@ func References(s *spec.Spec, given Given) []Reference {
 			Version:       source.Str(source.Child(dep, "version")),
 			Waits:         res.waits,
 		})
+	}
+	for _, f := range audienceForwards(d) {
+		if o, _ := rv.otherOf(f.spec); o == nil {
+			out = append(out, Reference{
+				Path: source.Pointer(f.path...), Line: f.value.Line, Text: f.text, Dependency: f.dep, Specification: f.spec,
+				Version: source.Str(source.Child(d.dependencies[f.dep], "version")), Waits: f.spec + " is not given",
+			})
+		}
 	}
 	return out
 }

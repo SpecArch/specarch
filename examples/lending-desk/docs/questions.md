@@ -6,7 +6,7 @@ Version 0.1.0 of the specification: 8 open questions (5 must, 3 should, 0 could)
 
 Decisions to take: desk-manager 7. Material to provide: desk-manager 1.
 
-Elements by origin: 20 stated, 29 inferred, 0 decided, 0 without origin.
+Elements by origin: 21 stated, 34 inferred, 1 decided, 0 without origin.
 
 ## 1. Requirements
 
@@ -167,6 +167,14 @@ What each source's sections produced: the elements that cite a clause, or the cl
 | migrations/003_member_address.sql | The member's address | #/schemas/Address |
 | migrations/004_loan_reference.sql | The loan's reference and the loans' indexes | #/entities/Loan, mapping of #/entities/Loan |
 | seeds/001_roles.sql | The seed of the roles tables | #/roles/desk-staff, mapping of #/roles/desk-staff |
+
+### The library estate's gateway specification (estate-gateway)
+
+0 clauses of 1 produced nothing.
+
+| Clause | Title | Produced |
+|---|---|---|
+| gateways.api | The gateway's forwards by audience | #/decisions/ADR-001 |
 
 ## 6. Outputs
 

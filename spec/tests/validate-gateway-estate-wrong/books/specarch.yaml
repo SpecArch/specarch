@@ -1,0 +1,19 @@
+specarch: "0.3"
+info: { title: Books, name: books, version: 1.0.0 }
+permissions:
+  books.read: { description: See books. }
+roles:
+  reader:
+    description: A reader.
+    permissions: [books.read]
+paths:
+  /books:
+    get:
+      operationId: listBooks
+      summary: The books
+      permission: books.read
+      responses:
+        "200": { description: The books. }
+tests:
+  list-books-succeeds: { level: system, operation: listBooks, scenario: golden, given: "a caller with books.read", when: "listBooks is called", then: "it answers 200" }
+  list-books-denied: { level: system, operation: listBooks, scenario: red, covers: [denied without books.read], given: "a caller without books.read", when: "listBooks is called", then: "it is refused" }

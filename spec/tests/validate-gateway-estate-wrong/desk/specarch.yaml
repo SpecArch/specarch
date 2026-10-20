@@ -1,0 +1,29 @@
+specarch: "0.3"
+info: { title: Desk, name: desk, version: 1.0.0 }
+permissions:
+  loans.read: { description: See loans. }
+roles:
+  clerk:
+    description: Desk staff.
+    permissions: [loans.read]
+tokens:
+  deskAccess:
+    description: The access token the desk accepts, for its own audience.
+    format: jwt
+    signature: RS256
+    lifetime: PT15M
+    claims:
+      aud: { const: "https://desk.example.com" }
+      sub: { description: The person. }
+    default: true
+paths:
+  /loans:
+    get:
+      operationId: listLoans
+      summary: The loans
+      permission: loans.read
+      responses:
+        "200": { description: The loans. }
+tests:
+  list-loans-succeeds: { level: system, operation: listLoans, scenario: golden, given: "a caller with loans.read", when: "listLoans is called", then: "it answers 200" }
+  list-loans-denied: { level: system, operation: listLoans, scenario: red, covers: [denied without loans.read, denied with expired deskAccess], given: "a caller without loans.read or with an expired token", when: "listLoans is called", then: "it is refused" }

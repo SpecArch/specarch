@@ -2,7 +2,7 @@
 
 # Lending Desk: technical specification
 
-Version 0.1.0 of the specification: 7 requirements, 3 entities, 1 schema, 5 HTTP operations, 1 dependency and 24 tests. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.1.0 of the specification: 7 requirements, 3 entities, 1 schema, 5 HTTP operations, 1 dependency, 29 tests and 1 decision. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 **Draft:** 8 open questions concern this document (Q-1, Q-2, Q-3, Q-8, Q-4, Q-6, Q-7, Q-5); see the open questions document, or run specarch gaps.
 
@@ -425,6 +425,14 @@ Access is fail-closed: every operation, command and page names the one permissio
 | loans.write | yes |
 | loans.read | yes |
 
+The tokens: the formats the service issues and accepts. An access token rides in the Authorization header as a bearer token and is accepted only for the audience it names; a transaction token rides in the Txn-Token header across the trust domain, minted once at the edge and passed on unmodified, and each hop accepts it only from the immediate callers its via names, each proving its workload identity. A claim fills the caller's property of the same name. The one default token is what every operation accepts unless it names another.
+
+| Token | Kind | Header | Audience | Lifetime | Signature | Claims | Accepted by |
+|---|---|---|---|---|---|---|---|
+| deskAccess (default) | access token, jwt | Authorization: Bearer | https://loans.library.example | PT15M | RS256 | iss, aud, sub | registerMember; lendBook; returnBook; renewLoan; listMemberLoans |
+
+**Origin on deskAccess:** decided in ADR-001, The desk accepts an access token whose audience names it, the one the estate's gateway forwards to it.
+
 **Origin on members.write:** stated in The lending desk service, clause lending/routes.go:37.
 
 **Note on members.write:** From The lending desk service, 85f06f82a430a81cc24648d198454426a37c16c9, clause lending/routes.go:37: POST /members checks members.write. <../sources/code>
@@ -445,6 +453,31 @@ Access is fail-closed: every operation, command and page names the one permissio
 
 **Note on desk-staff:** From The lending desk service, 85f06f82a430a81cc24648d198454426a37c16c9, clause seeds/001_roles.sql:3: desk-staff grants members.write, loans.write and loans.read. <../sources/code>
 
+## 9. Architecture decisions
+
+### ADR-001: The desk accepts an access token whose audience names it, the one the estate's gateway forwards to it
+
+Status: accepted, 2026-10-20.
+
+Context: The estate in examples/estate puts a gateway in front of the desk
+and the catalogue service, which forwards a request to the desk when
+the access token's audience is https://loans.library.example. The
+desk's code reads the caller's role from the Desk-Role header its
+terminal sends and verifies no token.
+
+Decision: The desk accepts deskAccess, a JWT signed with RS256 by the
+identity provider, whose aud is https://loans.library.example, on
+every operation, and refuses a token minted for another audience.
+
+Consequences: The code does not verify the token yet, so the specification and
+the code differ until it does. The gateway's forward to the desk
+and the desk's audience are one value, which the estate's run
+checks.
+
+**Origin:** stated in The library estate's gateway specification, clause gateways.api.
+
+**Note:** From The library estate's gateway specification, 0.1.0, clause gateways.api: Forwards a request whose token's aud is https://loans.library.example to the lending desk. <../../estate/gateway/specarch.yaml>
+
 ## 10. Quality requirements
 
 The design tests: what must hold on every implementation. Golden scenarios succeed; red scenarios are refused.
@@ -452,6 +485,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | Test | Subject | Level | Scenario | Given | When | Then |
 |---|---|---|---|---|---|---|
 | lend-book-card-number-not-matching-its-pattern | operation lendBook | system | red | ... | lendBook is called with cardNumber in the wrong form | it is refused |
+| lend-book-denied-with-expired-desk-access | operation lendBook | system | red | a caller whose deskAccess token has expired after PT15M | lendBook is called | it is refused as not signed in |
 | lend-book-denied-without-loans-write | operation lendBook | system | red | a caller without loans.write | lendBook is called | it is refused as not allowed |
 | lend-book-missing-barcode | operation lendBook | system | red | ... | lendBook is called without barcode | it is refused |
 | lend-book-missing-card-number | operation lendBook | system | red | ... | lendBook is called without cardNumber | it is refused |
@@ -459,19 +493,23 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | lend-book-not-found-card-number | operation lendBook | system | red | no Member has that cardNumber | lendBook is called with that cardNumber | it is refused as not found |
 | lend-book-succeeds | operation lendBook | system | golden | a caller with loans.write | lendBook is called with values inside every limit | it answers 201: The loan. |
 | list-member-loans-card-number-not-matching-its-pattern | operation listMemberLoans | system | red | ... | listMemberLoans is called with cardNumber in the wrong form | it is refused |
+| list-member-loans-denied-with-expired-desk-access | operation listMemberLoans | system | red | a caller whose deskAccess token has expired after PT15M | listMemberLoans is called | it is refused as not signed in |
 | list-member-loans-denied-without-loans-read | operation listMemberLoans | system | red | a caller without loans.read | listMemberLoans is called | it is refused as not allowed |
 | list-member-loans-not-found-card-number | operation listMemberLoans | system | red | no record has that cardNumber | listMemberLoans is called with that cardNumber | it is refused as not found |
 | list-member-loans-succeeds | operation listMemberLoans | system | golden | a caller with loans.read | listMemberLoans is called with values inside every limit | it answers 200: The member's loans. |
 | register-member-card-number-not-matching-its-pattern | operation registerMember | system | red | ... | registerMember is called with cardNumber in the wrong form | it is refused |
+| register-member-denied-with-expired-desk-access | operation registerMember | system | red | a caller whose deskAccess token has expired after PT15M | registerMember is called | it is refused as not signed in |
 | register-member-denied-without-members-write | operation registerMember | system | red | a caller without members.write | registerMember is called | it is refused as not allowed |
 | register-member-missing-address-city | operation registerMember | system | red | ... | registerMember is called with address without its city | it is refused |
 | register-member-missing-address-street | operation registerMember | system | red | ... | registerMember is called with address without its street | it is refused |
 | register-member-missing-card-number | operation registerMember | system | red | ... | registerMember is called without cardNumber | it is refused |
 | register-member-missing-full-name | operation registerMember | system | red | ... | registerMember is called without fullName | it is refused |
 | register-member-succeeds | operation registerMember | system | golden | a caller with members.write | registerMember is called with values inside every limit | it answers 201: The member is registered. |
+| renew-loan-denied-with-expired-desk-access | operation renewLoan | system | red | a caller whose deskAccess token has expired after PT15M | renewLoan is called | it is refused as not signed in |
 | renew-loan-denied-without-loans-write | operation renewLoan | system | red | a caller without loans.write | renewLoan is called | it is refused as not allowed |
 | renew-loan-not-found-loan-id | operation renewLoan | system | red | no record has that loanId | renewLoan is called with that loanId | it is refused as not found |
 | renew-loan-succeeds | operation renewLoan | system | golden | a caller with loans.write | renewLoan is called with values inside every limit | it answers 200: The loan, with its new due date. |
+| return-book-denied-with-expired-desk-access | operation returnBook | system | red | a caller whose deskAccess token has expired after PT15M | returnBook is called | it is refused as not signed in |
 | return-book-denied-without-loans-write | operation returnBook | system | red | a caller without loans.write | returnBook is called | it is refused as not allowed |
 | return-book-not-found-loan-id | operation returnBook | system | red | no record has that loanId | returnBook is called with that loanId | it is refused as not found |
 | return-book-succeeds | operation returnBook | system | golden | a caller with loans.write | returnBook is called with values inside every limit | it answers 200: The loan is closed. |
@@ -479,6 +517,10 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 **Origin on lend-book-card-number-not-matching-its-pattern:** inferred.
 
 **Insight on lend-book-card-number-not-matching-its-pattern:** Written by specarch derive: users get this wrong often, so the case is written. A draft: complete the given, when and then, and remove what does not hold.
+
+**Origin on lend-book-denied-with-expired-desk-access:** inferred.
+
+**Insight on lend-book-denied-with-expired-desk-access:** Written by specarch derive: users get this wrong often, so the case is written. A draft: complete the given, when and then, and remove what does not hold.
 
 **Origin on lend-book-denied-without-loans-write:** inferred.
 
@@ -508,6 +550,10 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 
 **Insight on list-member-loans-card-number-not-matching-its-pattern:** Written by specarch derive: users get this wrong often, so the case is written. A draft: complete the given, when and then, and remove what does not hold.
 
+**Origin on list-member-loans-denied-with-expired-desk-access:** inferred.
+
+**Insight on list-member-loans-denied-with-expired-desk-access:** Written by specarch derive: users get this wrong often, so the case is written. A draft: complete the given, when and then, and remove what does not hold.
+
 **Origin on list-member-loans-denied-without-loans-read:** inferred.
 
 **Insight on list-member-loans-denied-without-loans-read:** Written by specarch derive: users get this wrong often, so the case is written. A draft: complete the given, when and then, and remove what does not hold.
@@ -523,6 +569,10 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 **Origin on register-member-card-number-not-matching-its-pattern:** inferred.
 
 **Insight on register-member-card-number-not-matching-its-pattern:** Written by specarch derive: users get this wrong often, so the case is written. A draft: complete the given, when and then, and remove what does not hold.
+
+**Origin on register-member-denied-with-expired-desk-access:** inferred.
+
+**Insight on register-member-denied-with-expired-desk-access:** Written by specarch derive: users get this wrong often, so the case is written. A draft: complete the given, when and then, and remove what does not hold.
 
 **Origin on register-member-denied-without-members-write:** inferred.
 
@@ -548,6 +598,10 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 
 **Insight on register-member-succeeds:** Written by specarch derive: every subject needs a golden path, and this is the success the design gives. A draft: complete the given, when and then, and remove what does not hold.
 
+**Origin on renew-loan-denied-with-expired-desk-access:** inferred.
+
+**Insight on renew-loan-denied-with-expired-desk-access:** Written by specarch derive: users get this wrong often, so the case is written. A draft: complete the given, when and then, and remove what does not hold.
+
 **Origin on renew-loan-denied-without-loans-write:** inferred.
 
 **Insight on renew-loan-denied-without-loans-write:** Written by specarch derive: users get this wrong often, so the case is written. A draft: complete the given, when and then, and remove what does not hold.
@@ -559,6 +613,10 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 **Origin on renew-loan-succeeds:** inferred.
 
 **Insight on renew-loan-succeeds:** Written by specarch derive: every subject needs a golden path, and this is the success the design gives. A draft: complete the given, when and then, and remove what does not hold.
+
+**Origin on return-book-denied-with-expired-desk-access:** inferred.
+
+**Insight on return-book-denied-with-expired-desk-access:** Written by specarch derive: users get this wrong often, so the case is written. A draft: complete the given, when and then, and remove what does not hold.
 
 **Origin on return-book-denied-without-loans-write:** inferred.
 
@@ -658,13 +716,13 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 
 | Requirement | Satisfied by | Verified by |
 |---|---|---|
-| LEND-1 | entities Member; permissions members.write; paths /members post | tests register-member-card-number-not-matching-its-pattern; tests register-member-denied-without-members-write; tests register-member-missing-address-city; tests register-member-missing-address-street; tests register-member-missing-card-number; tests register-member-missing-full-name; tests register-member-succeeds |
-| LEND-2 | entities Book; entities Loan; permissions loans.write; paths /loans post | tests lend-book-card-number-not-matching-its-pattern; tests lend-book-denied-without-loans-write; tests lend-book-missing-barcode; tests lend-book-missing-card-number; tests lend-book-not-found-barcode; tests lend-book-not-found-card-number; tests lend-book-succeeds |
-| LEND-3 | paths /loans post | tests lend-book-card-number-not-matching-its-pattern; tests lend-book-denied-without-loans-write; tests lend-book-missing-barcode; tests lend-book-missing-card-number; tests lend-book-not-found-barcode; tests lend-book-not-found-card-number; tests lend-book-succeeds |
+| LEND-1 | entities Member; permissions members.write; paths /members post | tests register-member-card-number-not-matching-its-pattern; tests register-member-denied-with-expired-desk-access; tests register-member-denied-without-members-write; tests register-member-missing-address-city; tests register-member-missing-address-street; tests register-member-missing-card-number; tests register-member-missing-full-name; tests register-member-succeeds |
+| LEND-2 | entities Book; entities Loan; permissions loans.write; paths /loans post | tests lend-book-card-number-not-matching-its-pattern; tests lend-book-denied-with-expired-desk-access; tests lend-book-denied-without-loans-write; tests lend-book-missing-barcode; tests lend-book-missing-card-number; tests lend-book-not-found-barcode; tests lend-book-not-found-card-number; tests lend-book-succeeds |
+| LEND-3 | paths /loans post | tests lend-book-card-number-not-matching-its-pattern; tests lend-book-denied-with-expired-desk-access; tests lend-book-denied-without-loans-write; tests lend-book-missing-barcode; tests lend-book-missing-card-number; tests lend-book-not-found-barcode; tests lend-book-not-found-card-number; tests lend-book-succeeds |
 | LEND-4 | entities Loan |   |
-| LEND-5 | permissions loans.write; paths /loans/{loanId}/renew post | tests renew-loan-denied-without-loans-write; tests renew-loan-not-found-loan-id; tests renew-loan-succeeds |
-| LEND-6 | entities Loan; permissions loans.write; paths /loans/{loanId}/return post | tests return-book-denied-without-loans-write; tests return-book-not-found-loan-id; tests return-book-succeeds |
-| LEND-7 | permissions loans.read; paths /members/{cardNumber}/loans get | tests list-member-loans-card-number-not-matching-its-pattern; tests list-member-loans-denied-without-loans-read; tests list-member-loans-not-found-card-number; tests list-member-loans-succeeds |
+| LEND-5 | permissions loans.write; paths /loans/{loanId}/renew post | tests renew-loan-denied-with-expired-desk-access; tests renew-loan-denied-without-loans-write; tests renew-loan-not-found-loan-id; tests renew-loan-succeeds |
+| LEND-6 | entities Loan; permissions loans.write; paths /loans/{loanId}/return post | tests return-book-denied-with-expired-desk-access; tests return-book-denied-without-loans-write; tests return-book-not-found-loan-id; tests return-book-succeeds |
+| LEND-7 | permissions loans.read; paths /members/{cardNumber}/loans get | tests list-member-loans-card-number-not-matching-its-pattern; tests list-member-loans-denied-with-expired-desk-access; tests list-member-loans-denied-without-loans-read; tests list-member-loans-not-found-card-number; tests list-member-loans-succeeds |
 
 ## Sources
 
@@ -674,4 +732,5 @@ Every source a Note in this document cites.
 |---|---|---|---|---|
 | desk-code | The lending desk service | 85f06f82a430a81cc24648d198454426a37c16c9 | The desk team | ../sources/code |
 | desk-manual | Lending desk manual | 2025 | The desk team | ../sources/manual.md |
+| estate-gateway | The library estate's gateway specification | 0.1.0 | The estate's maintainers | ../../estate/gateway/specarch.yaml |
 

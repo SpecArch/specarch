@@ -13,11 +13,12 @@ next. This file is the design: a keyword for each, where each sits by the
 interface boundary's test, how the readers find each in code, the red
 cases each derives, the security event each refusal writes, what the
 validator checks, what the technical specification shows, and what stays
-out with the reason. Nothing here is built; the owner's decisions are at
-the end, each with its decision record (ADR-106 to ADR-111), which is
-where the reason for each choice and the alternative that lost are
-written, so that every document generated from the specification carries
-them.
+out with the reason. All five items of Building are built, the readers in
+`extract go` and `extract permissions`; the owner's decisions are at the
+end, each with its decision record (ADR-106 to ADR-111, and ADR-159 for
+the readers), which is where the reason for each choice and the
+alternative that lost are written, so that every document generated from
+the specification carries them.
 
 Three tests are applied, as `docs/estate.md` applies them: the compiler
 test (`docs/principles.md`), the acceptance test (`docs/acceptance.md`),
@@ -775,8 +776,7 @@ written), the techspec regenerated and a history entry. Items 1 to 3
 amend 0.3's steps 3 and 4 before they are built, so each is one item
 with its 0.3 step; items 4 and 5 need the umbrella (the estate's item 6)
 and the permission table's gate (its item 7). The order is the order the
-three-hop example needs to validate end to end. These are not queued:
-the dispatcher queues them once the owner has read this file.
+three-hop example needs to validate end to end.
 
 1. Clients by `software_id` with `kind`, version and statement, with 0.3
    step 3 (ADR-106). `kind`, `softwareVersion`, `softwareStatement`,
@@ -827,11 +827,13 @@ the dispatcher queues them once the owner has read this file.
    validates under the umbrella with no errors, removing the
    middleware's `via` gives the gap at the middleware, and the core's
    techspec draws the chain.
-5. The readers, with 0.3 step 5 and the estate's item 7. `clientChecks`,
+5. The readers, with 0.3 step 5 and the estate's item 7 (ADR-159).
+   `clientArgument` on `clientChecks`, `applicationChecks`,
    `callerChecks`, `audienceChecks` and `eventWriters` in the
-   implementation schema, the four code readers writing `through`, `via`
-   and `aud` from literals and asking otherwise, the `Txn-Token` header
-   read marking a `txn_token`, the permission table's two keys. Done when
+   implementation schema, `extract go` writing `callers` and `via` from
+   literals and asking for the rest, the `Txn-Token` header read asking
+   for a `txn_token`, the permission table's two keys. The swift,
+   javascript and dart readers read `permissionChecks` only. Done when
    the lending desk's sources extract the same twice and a fixture with
    a literal caller check gives `via`.
 

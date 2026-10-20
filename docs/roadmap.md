@@ -22,7 +22,7 @@ latest.
 | 0.6.1 to 0.6.4, 2026-10-14 | the plans for the estate and for meta-model 0.3; the first estate points (a dump committed outside the code's repository, role names on the wire); a request body decoded into a struct in `extract go`; fixes to `merge` and the readers |
 | 0.7.0, 2026-10-19 | the estate (`specarch-estate.yaml`, references between specifications, the module map); `specarch check`; `specarch facts`; `specarch-gen-sqlc`; indexes in `generate sql`; `implies`, `audience`, `middlewares`, the workflow table, documents in another language; the `handover` document |
 | 0.7.1, 2026-10-20 | the techspec's parameters, request body and responses per operation; `extract go` reading a dxlib handler's decoded body and JSON answers where the registration declares none (ADR-140); every operation's handler followed into the code, recorded with its source and drawn as a flowchart (ADR-144); the designs of the diagram keywords (`docs/diagrams.md`) and of the gateway (`docs/gateway.md`), proposed; dxlib's encrypted API type as a handshake an operation names and large files as a stream it declares (ADR-145, ADR-146), read by `extract go`, served by the dxlib dialect and the go-dxlib target with a Go client, and shown in the techspec; this roadmap matched to the code |
-| 0.7.2, open | `specarch-gen-ui-swiftui`, the screens for the iPhone in SwiftUI (ADR-147), with `generate` finding a plug-in by the target's framework before the file's language, and the pages read once for both UI generators that write a page as data (`internal/genscreens`); the diagram keywords (ADR-133 to ADR-139): `specarch model`, the context, component, deployment and network diagrams with their markers, the rules `channel`, `depends_on`, `server`, `link` and `link_missing`, and lanes and ids in the BPMN output |
+| 0.7.2, open | `specarch-gen-ui-swiftui`, the screens for the iPhone in SwiftUI (ADR-147), with `generate` finding a plug-in by the target's framework before the file's language, and the pages read once for both UI generators that write a page as data (`internal/genscreens`); the diagram keywords (ADR-133 to ADR-139): `specarch model`, the context, component, deployment and network diagrams with their markers, the rules `channel`, `depends_on`, `server`, `link` and `link_missing`, and lanes and ids in the BPMN output; caller context (ADR-106 to ADR-111, ADR-159): the identity module and the references into it, the chain by induction through `calls`, one audience per module, the scope case, the identity module's matrix and the chains in the techspec, and the readers of the client, application, caller and audience checks and of a grant's `client` and `through` |
 
 ## 1. Validator CLI
 
@@ -327,24 +327,39 @@ audience and a requirement held elsewhere, the sqlc queries and
 `specarch check`. Every keyword in it is an addition to 0.2. Still owed in
 it: the sqlc check against a real project's first query file.
 
-Caller context, items 1 to 3 built with 0.3's steps 3 and 4 in 0.7.2,
-items 4 and 5 not built. The same estate's services call each other on a
-person's behalf, and `docs/caller-context.md` designs the four inputs of an
-authorisation decision beyond the person and the roles, decided on
-2026-10-14 (ADR-106 to ADR-111): the application the person signed in
-through as a condition on a grant (`kind`, `softwareVersion` and
-`softwareStatement` on a client keyed by its `software_id`, `through` on a
-role, checked at every hop), the calling service with grants of its own and
-`callers` as an explicit subset, the delegation chain as one Transaction
-Token across the trust domain with `via` on each operation naming its
-immediate callers and a workload-identity proof on every service, and the
-audience per hop as `aud` fixed per token kind, with the confused-deputy
-red cases and a security event for every refusal. Clients, roles and the
-trust domain live in an identity module. Items 1 to 3 are 0.3's steps 3
-and 4 as that file amends them; item 4, the identity module and the
-induction through `calls`, waits for the umbrella, and item 5, the
-readers writing `through`, `via` and `aud`, for the permission table's
-`client` and `through` keys.
+Built, 0.7.2: caller context, all five items of
+`docs/caller-context.md` (ADR-106 to ADR-111, and ADR-159 for the
+readers). The same estate's services call each other on a person's
+behalf, and the design decides the four inputs of an authorisation
+decision beyond the person and the roles: the application the person
+signed in through as a condition on a grant (`kind`, `softwareVersion`
+and `softwareStatement` on a client keyed by its `software_id`, `through`
+on a role, checked at every hop), the calling service with grants of its
+own and `callers` as an explicit subset, the delegation chain as one
+Transaction Token across the trust domain with `via` on each operation
+naming its immediate callers and a workload-identity proof on every
+service, and the audience per hop as `aud` fixed per token kind, with the
+confused-deputy red cases and a security event for every refusal. Items
+1 to 3 came with 0.3's steps 3 and 4. Item 4 keeps clients, roles and
+the trust domain in an identity module the other modules name by
+reference (`<dependency>#/permissions/<name>`, `#/clients/<name>`,
+`#/roles/<name>`, `trustDomain`), counted as unresolved while that
+module is not given; finds the chain by induction through `calls` when
+the modules are given together, a client named in `via` being the module
+of its name; refuses two modules accepting one audience; derives the
+scope case; and draws the identity module's matrix and each chain in the
+techspec (`spec/tests/validate-caller-*`, `gaps-caller-alone`,
+`document-techspec-caller-estate`). Item 5 reads `applicationChecks`,
+`callerChecks`, `audienceChecks`, `eventWriters` and `clientArgument` in
+`extract go`, and a grant's `client` and `through` in `extract
+permissions` (`extract-go-caller-checks`,
+`extract-permissions-client-through`). Left to build: the same checks in
+the swift, javascript and dart readers, which read `permissionChecks`
+only; `through` on a pattern row of the permission table; the derived
+`through` cases in a module whose roles live in the identity module,
+since `derive` reads one specification; the event identifier under the
+trust domain in the derived cases' text, for the same reason; and
+BUG-038, `via` and `through` missing from `specarch model`'s references.
 
 Built, 0.7.2: the diagram keywords. An editor that draws every diagram
 from a specification can draw the system context, the components of an

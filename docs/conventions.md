@@ -615,6 +615,8 @@ redefined.
 | `nobody` | SpecArch | the reserved permission of a route closed on purpose, beside `public` (ADR-096) |
 | `through` (of a role) | SpecArch, after RFC 8693's `client_id` claim | the clients a grant holds through, checked against the application the token carries (ADR-106, ADR-108) |
 | `tokens`, `format`, `lifetime`, `signature` (of a token), `claims`, `checks`, `default`, `token` (on an operation) | SpecArch, after RFC 7519, RFC 9068, RFC 7518 and RFC 8725 | a token format: its kind, lifetime, algorithm, claims as properties, checks over them and whether it is the default (ADR-097) |
+| `trustDomain` | SpecArch, after the OAuth Transaction Tokens draft | in the identity module's root file, the URI naming the trust domain: the `aud` of every transaction token and the base of every security event's identifier (ADR-107) |
+| `<dependency>#/permissions/<name>`, `<dependency>#/clients/<name>`, `<dependency>#/roles/<name>` | SpecArch | a permission, client or role of another module, named through a dependency: a role of the identity module grants each module's permissions, and `via`, `callers` and a test's caller name the identity module's clients and roles (ADR-107) |
 | `tokenType`, `via` | SpecArch, after the OAuth Transaction Tokens draft | `txn_token` is the suffix of the draft's token type identifier; `via` names the immediate callers of a hop (ADR-111) |
 | `iss`, `sub`, `aud`, `exp`, `nbf`, `iat`, `jti` | RFC 7519 | registered claims, written as the registry names them |
 | `act`, `scope`, `client_id`, `may_act` | RFC 8693 | registered claims |

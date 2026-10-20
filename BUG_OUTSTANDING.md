@@ -113,3 +113,13 @@ ADR-137 says the handover document derives its network and ports paragraphs from
 Expected: every deployment with links or listens has its links, ports and network diagram in the handover, with or without `infrastructure`.
 
 To repeat: copy `examples/library-lending/spec`, delete the `infrastructure` block of the production deployment in `implementation/go/library-lending.go.specarch-implementation.yaml`, and run `specarch document handover --out out spec`. `out/handover.md` has no "allowed connections" sentence and no port 5671, where the example's own handover has both.
+
+## BUG-038 — model: an operation's via and a role's through are not listed as references
+
+- Reported: 2026-10-20, found while building the identity module (item 1004)
+
+`specarch model` lists every name a reference keyword gives as a reference to the element it names (ADR-138). Its table of reference places (`referencePlaces` in `internal/validate/model.go`, and the Swift build's) has `callers` on an operation and a command, but not `via` on an operation, which names clients too, nor a role's `through`, whose keys name permissions and whose values name clients. An editor reading the model therefore draws no link from a hop to the service its `via` names, or from a narrowed grant to its applications.
+
+Expected: `paths/*/*/via` listed as references to clients, and `roles/*/through` keys as references to permissions and their items as references to clients, in both builds.
+
+To repeat: run `specarch model spec/tests/validate-0-3-tokens-valid` and look at `references`: `/paths/~1invoices~1{invoiceId}/delete/via/0` (naming `middleware`) and `/roles/invoice-manager/through` (naming `invoices.delete` and `admin-web`) are absent.

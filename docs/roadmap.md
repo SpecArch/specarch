@@ -147,10 +147,17 @@ implementation file uses and compares an override with the shipped idiom.
    design keywords a generator reads are built, 0.5.0 (`docs/ui-design.md`):
    page events and flows, states, sections, compact columns, the
    accessibility target and the theme.
-   - Partly built, 0.5.0, for the web in plain JavaScript:
-     `specarch-gen-ui` writes list pages (ADR-040, `spec/tests/generate-ui`,
-     `examples/library-lending/web/`). Not built: forms, views, navigation
-     between pages, and the first real project's screen to check it against.
+   - Built for the web in plain JavaScript: `specarch-gen-ui` writes list
+     pages (0.5.0, ADR-040, `spec/tests/generate-ui`), and, in 0.7.2, view
+     pages and the navigation between pages, from a menu, a link, a
+     selected row and an event (ADR-147, `spec/tests/generate-ui-view`), and
+     form and task pages with their checks, conditions, pickers, values and
+     child rows (ADR-148, `spec/tests/generate-ui-form`), every page of
+     `examples/library-lending/web/`, checked against the member view and
+     form written by hand first (`examples/library-lending/web/reference/`).
+     Not built: the names on the wire when `wireNames` is not the design's
+     own (BUG-036), and the first real project's screen to check it
+     against.
    - Built, 0.6.0, for the web on Next.js and Carbon, for a project whose
      screens are built there: `specarch-gen-ui-typescript` writes task pages
      such as sign-in (ADR-067), lists, forms, views, server routes, strings

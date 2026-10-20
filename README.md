@@ -213,8 +213,8 @@ the Go one for an implementation file in Swift (Swift Testing) or in Dart
 (`package:test` or `flutter_test`, so a Flutter app too),
 `specarch-gen-go-dxlib`, which `specarch generate go-dxlib` runs to write
 the tables, handlers, seeds and tasks of a Go service on dxlib, and
-`specarch-gen-ui`, which `specarch generate ui` runs to write list pages
-for the web in plain JavaScript, `specarch-gen-ui-typescript`, which it
+`specarch-gen-ui`, which `specarch generate ui` runs to write the list,
+view, form and task pages for the web in plain JavaScript, `specarch-gen-ui-typescript`, which it
 runs instead for an implementation file in TypeScript to write the
 screens on Next.js and Carbon, `specarch-gen-ui-swiftui`, which it runs
 for a `ui` target of platform iphone to write the same screens in SwiftUI
@@ -346,8 +346,7 @@ latest. The schemas, the tree layout and the seven stages, SpecArch's own
 specification, six examples, the validator in Go and in Swift, fifteen
 documents, open questions with the gaps report, `decide` and the
 comparison, the approval gate on generation, the extract readers with `merge`, `check`, `diff`, `derive`
-and the eleven code targets exist; forms and views in plain
-JavaScript, the guarded scripts and meta-model 0.3 are on the roadmap (`docs/roadmap.md`, which says where
+and the eleven code targets exist; the guarded scripts and meta-model 0.3 are on the roadmap (`docs/roadmap.md`, which says where
 each entry stands). The meta-model will change: the first real
 projects written in SpecArch are expected to find concepts it cannot
 express, and those gaps define the next version.

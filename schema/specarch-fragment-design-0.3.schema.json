@@ -2011,6 +2011,16 @@
         "description": {
           "$ref": "#/$defs/markdown"
         },
+        "carriedBy": {
+          "description": "SpecArch keyword. The dependencies, by their keys under dependencies, that carry the channel: the broker it lives on, or the system that receives its messages directly. Left out, the channel is this system's own (ADR-134).",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
         "messages": {
           "type": "object",
           "propertyNames": {
@@ -2110,6 +2120,21 @@
         "timeout": {
           "description": "The time limit of one call: after it, the call is given up and the operation answers as it does when the dependency fails.",
           "$ref": "#/$defs/duration"
+        },
+        "kind": {
+          "description": "SpecArch keyword. What the dependency is: system, a software system with an interface this one calls; database, a data store another party keeps that this system reads or writes directly; messageBroker, a broker that carries channels; fileStore, a file exchange or object store; identityProvider, the issuer of the tokens this system accepts. Left out, it is system. It sets the dependency's shape in the context diagram (ADR-134).",
+          "enum": [
+            "system",
+            "database",
+            "messageBroker",
+            "fileStore",
+            "identityProvider"
+          ]
+        },
+        "protocol": {
+          "description": "AsyncAPI keyword, from its server object: how the dependency is reached, as a lowercase URI scheme name (RFC 3986, 3.1), such as https, grpc, amqp, kafka, mqtt, postgresql, sftp or smtp. Kept open, as AsyncAPI keeps it (ADR-134).",
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9+.-]*$"
         },
         "specification": {
           "description": "SpecArch keyword. When the dependency is a system specified on its own: that specification's name, its info.name. Its elements are then named from this specification as <dependency>#/<pointer>, in a $ref, a relation's target, a picker's or a list page's source, and calls.",

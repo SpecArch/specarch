@@ -23,16 +23,31 @@ kept only as long as the rules allow.
 
 ## 3. Context
 
+<!-- specarch:generate context -->
 ```mermaid
 flowchart LR
-  L[Librarian] -->|desk screens| S[Lending service]
-  M[Member] -->|catalogue, own loans| S
-  S -->|LoanOverdue, LoanReturned| N[Notification service]
-  S -->|every loan event| A[Audit log]
-  J[Nightly job] -->|LoanOverdue| S
+  system["Library Lending"]
+  person_librarian(["librarian (person)"])
+  person_librarian --> system
+  person_head_librarian(["head-librarian (person)"])
+  person_head_librarian --> system
+  person_member(["member (person)"])
+  person_member --> system
+  person_desk_supervisor(["desk-supervisor (person)"])
+  person_desk_supervisor --> system
+  person_anyone(["anyone (person)"])
+  person_anyone --> system
+  client_fee_ledger_batch["fee-ledger-batch (system, as auditor)"]
+  client_fee_ledger_batch --> system
+  dependency_feeLedger["feeLedger, https"]
+  system -->|"returnLoan, reportLost"| dependency_feeLedger
+  dependency_eventBus[["eventBus, amqp"]]
+  channel_fee_waivers>"fee.waivers (channel)"]
+  system -.-> channel_fee_waivers
+  system -.->|"loan.lifecycle"| dependency_eventBus
+  system -.->|"loan.overdue"| dependency_eventBus
 ```
-
-Hand-drawn.
+<!-- specarch:end -->
 
 ## 4. Solution strategy
 

@@ -22,6 +22,7 @@ public enum Rule: String, CaseIterable, Sendable {
     case requirement = "requirement"
     case emits = "emits"
     case dependency = "dependency"
+    case channel = "channel"
     case idempotencyKey = "idempotency_key"
     case validity = "validity"
     case session = "session"

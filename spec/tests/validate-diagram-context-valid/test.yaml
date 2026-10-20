@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: validate
+level: system
+scenario: golden
+given: "dependencies of kind system with a specification, messageBroker, fileStore and none, each with a protocol or none, and channels carried by the broker and by a system"
+when: validate is run
+then: "it reports nothing and exits 0"
+verifies: [SA-29]

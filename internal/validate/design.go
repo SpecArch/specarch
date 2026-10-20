@@ -187,6 +187,7 @@ func (c *checker) checkDesign(d *design) {
 	c.checkHandshakes(d)
 	c.checkCommands(d)
 	c.checkDependencies(d)
+	c.checkChannels(d)
 	c.checkJobs(d)
 	c.checkWorkflows(d)
 	c.checkMenus(d)

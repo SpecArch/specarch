@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.2-dev of the specification: 562 design tests, 255 golden and 307 red, about 17 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.2-dev of the specification: 565 design tests, 257 golden and 308 red, about 17 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 3 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -17,7 +17,7 @@ Version 0.7.2-dev of the specification: 562 design tests, 255 golden and 307 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 558 |
+| system | 561 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -670,6 +670,14 @@ Scenario: golden; level: system; verifies SA-84.
 - Given: the specification of validate-0-3-tokens-valid
 - When: document techspec is run with --out
 - Then: it writes the technical specification with the tokens table, the access token's audience and the transaction token's header and trust domain, the delete's via in the accepted-by column, the chain drawn as a flowchart, and the security events table with the store and the alarm, and exits 0
+
+#### document-techspec-context
+
+Scenario: golden; level: system; verifies SA-16.
+
+- Given: a specification with a role a job acts as, a role a service client holds, an application client, dependencies of every kind with their protocols, a channel the system emits on through the broker, one a job consumes from it, and one with no carrier
+- When: document techspec is run
+- Then: chapter 3 draws the context: a person per role but the job's and the service client's, reaching the system through the application client, the service client as a system with its role, each dependency in the shape of its kind with its protocol and the names that call it, the broker's channels out and in, and the channel with no carrier at the boundary, and it exits 0
 
 #### document-techspec-envelope-stream
 
@@ -3000,6 +3008,22 @@ Scenario: red; level: system; covers exit 1; verifies SA-10.
 - Given: an implementation mapping that points at an entity the design does not have
 - When: validate is run
 - Then: it reports design_ref and exits 1
+
+#### validate-diagram-context
+
+Scenario: red; level: system; covers exit 1; verifies SA-29.
+
+- Given: a dependency of a kind the meta-model does not have, a protocol in capitals, a file store with a specification, a channel carried by an undeclared dependency and by a file store, and one naming its carrier twice
+- When: validate is run
+- Then: it reports the kind and the protocol as schema errors, the specification as dependency, each wrong carrier as channel with the dependency it may mean, and the repeat, and exits 1
+
+#### validate-diagram-context-valid
+
+Scenario: golden; level: system; verifies SA-29.
+
+- Given: dependencies of kind system with a specification, messageBroker, fileStore and none, each with a protocol or none, and channels carried by the broker and by a system
+- When: validate is run
+- Then: it reports nothing and exits 0
 
 #### validate-duplicate-key
 

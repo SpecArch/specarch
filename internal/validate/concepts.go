@@ -18,11 +18,40 @@ import (
 // themselves, so an idempotency key on one says nothing.
 var idempotentMethods = map[string]bool{"get": true, "put": true, "delete": true}
 
-// checkDependencies refuses a time limit of zero: a call given up at once
-// is no call.
+// checkDependencies refuses a time limit of zero, since a call given up at
+// once is no call, and a specification on a store or a broker, which
+// another party runs and which is no system specified on its own
+// (ADR-134).
 func (c *checker) checkDependencies(d *design) {
 	for name, dep := range d.dependencies {
 		c.checkTimeout(source.Child(dep, "timeout"), source.Pointer("dependencies", name, "timeout"), RuleDependency, "the call")
+		switch kind := source.Str(source.Child(dep, "kind")); kind {
+		case "database", "messageBroker", "fileStore":
+			if sp := source.Child(dep, "specification"); sp != nil {
+				c.add(sp, source.Pointer("dependencies", name, "specification"), RuleDependency,
+					"a dependency of kind %s is a store or a broker, not a system specified on its own, so no specification describes it; remove specification and version, or give it kind system", kind)
+			}
+		}
+	}
+}
+
+// checkChannels checks that every dependency a channel is carried by is
+// declared and of a kind that carries messages: a broker or a system
+// (ADR-134).
+func (c *checker) checkChannels(d *design) {
+	for name, ch := range d.channels {
+		for i, e := range source.Items(source.Child(ch, "carriedBy")) {
+			ptr := source.Pointer("channels", name, "carriedBy", fmt.Sprint(i))
+			dep, ok := d.dependencies[e.Value]
+			if !ok {
+				c.add(e, ptr, RuleChannel, "%s is not a dependency of the specification; declare it under dependencies, or leave carriedBy out when the channel is this system's own%s", e.Value, suggest(e.Value, d.dependencies))
+				continue
+			}
+			switch kind := source.Str(source.Child(dep, "kind")); kind {
+			case "database", "fileStore", "identityProvider":
+				c.add(e, ptr, RuleChannel, "%s is a dependency of kind %s, which carries no messages; name the broker the channel lives on, or the system that receives its messages", e.Value, kind)
+			}
+		}
 	}
 }
 

@@ -2,7 +2,7 @@
 
 # Library Lending: technical specification
 
-Version 0.1.0 of the specification: 8 requirements, 4 entities, 1 view, 2 schemas, 19 HTTP operations, 3 channels, 1 dependency, 11 pages, 1 flow, 1 workflow, 1 algorithm, 185 tests, 2 decisions, 3 environments and 5 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.1.0 of the specification: 8 requirements, 4 entities, 1 view, 2 schemas, 19 HTTP operations, 3 channels, 2 dependencies, 11 pages, 1 flow, 1 workflow, 1 algorithm, 185 tests, 2 decisions, 3 environments and 5 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 ## 1. Introduction and goals
 
@@ -47,6 +47,32 @@ Owners: example-maintainers.
 
 The interfaces the system offers, as its clients see them.
 
+Who uses the system and what it reaches: a person per role, a system per calling service with the roles it holds, and the dependencies by kind with their protocol, each edge naming the operations and jobs that call it or the channel it carries.
+
+```mermaid
+flowchart LR
+  system["Library Lending"]
+  person_librarian(["librarian (person)"])
+  person_librarian --> system
+  person_head_librarian(["head-librarian (person)"])
+  person_head_librarian --> system
+  person_member(["member (person)"])
+  person_member --> system
+  person_desk_supervisor(["desk-supervisor (person)"])
+  person_desk_supervisor --> system
+  person_anyone(["anyone (person)"])
+  person_anyone --> system
+  client_fee_ledger_batch["fee-ledger-batch (system, as auditor)"]
+  client_fee_ledger_batch --> system
+  dependency_feeLedger["feeLedger, https"]
+  system -->|"returnLoan, reportLost"| dependency_feeLedger
+  dependency_eventBus[["eventBus, amqp"]]
+  channel_fee_waivers>"fee.waivers (channel)"]
+  system -.-> channel_fee_waivers
+  system -.->|"loan.lifecycle"| dependency_eventBus
+  system -.->|"loan.overdue"| dependency_eventBus
+```
+
 ### HTTP operations
 
 | Method and path | Operation | Summary | Permission |
@@ -87,7 +113,10 @@ External systems the operations call. A call that fails, or that does not answer
 
 | Dependency | Time limit per call | Called by | Description |
 |---|---|---|---|
+| eventBus | PT1S |   | The library's message broker, run by the library's IT team, which carries the loan events to the notification service and the audit log. |
 | feeLedger | PT5S | returnLoan, reportLost | The finance system's ledger, where a late fee or a replacement charge is posted the moment it is charged. |
+
+**Insight on eventBus:** A publish that the broker has not taken within a second is given up and retried, so a slow broker never holds a return at the desk.
 
 **Insight on feeLedger:** The desk waits for the answer, so a call that takes longer than a few seconds is given up and the return is refused rather than left half done.
 

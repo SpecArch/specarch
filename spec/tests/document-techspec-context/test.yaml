@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: document
+level: system
+scenario: golden
+given: "a specification with a role a job acts as, a role a service client holds, an application client, dependencies of every kind with their protocols, a channel the system emits on through the broker, one a job consumes from it, and one with no carrier"
+when: document techspec is run
+then: "chapter 3 draws the context: a person per role but the job's and the service client's, reaching the system through the application client, the service client as a system with its role, each dependency in the shape of its kind with its protocol and the names that call it, the broker's channels out and in, and the channel with no carrier at the boundary, and it exits 0"
+verifies: [SA-16]

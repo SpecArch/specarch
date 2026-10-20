@@ -377,7 +377,8 @@ func permissionsTable(root *yaml.Node) string {
 }
 
 // region renders what a marker names: "erDiagram", "stateDiagram Loan",
-// "sequenceDiagram returnLoan", "flowchart pages" or "permissions".
+// "sequenceDiagram returnLoan", "flowchart pages", "permissions" or
+// "context".
 func region(root *yaml.Node, what string) (string, error) {
 	kind, arg, _ := strings.Cut(strings.TrimSpace(what), " ")
 	arg = strings.TrimSpace(arg)
@@ -406,8 +407,13 @@ func region(root *yaml.Node, what string) (string, error) {
 		if out == "" {
 			err = fmt.Errorf("the design file has no permissions")
 		}
+	case "context":
+		out = contextDiagram(root)
+		if out == "" {
+			err = fmt.Errorf("the design file has no roles, dependencies or channels to draw")
+		}
 	default:
-		names := []string{"erDiagram", "stateDiagram <Entity>", "sequenceDiagram <operationId or command>", "flowchart pages", "permissions"}
+		names := []string{"context", "erDiagram", "stateDiagram <Entity>", "sequenceDiagram <operationId or command>", "flowchart pages", "permissions"}
 		sort.Strings(names)
 		return "", fmt.Errorf("%q is not something the generator draws; use one of %s", kind, strings.Join(names, ", "))
 	}
@@ -760,4 +766,206 @@ func joinLabel(label, word string) string {
 		return word
 	}
 	return label + ", " + word
+}
+
+// dependencyKinds is the order the context diagram draws the
+// dependencies in, grouped by kind (ADR-134).
+var dependencyKinds = []string{"system", "identityProvider", "database", "messageBroker", "fileStore"}
+
+// dependencyShape is the node of a dependency in the context diagram, a
+// shape per kind.
+func dependencyShape(id, label, kind string) string {
+	switch kind {
+	case "database":
+		return fmt.Sprintf("%s[(\"%s\")]", id, label)
+	case "messageBroker":
+		return fmt.Sprintf("%s[[\"%s\"]]", id, label)
+	case "fileStore":
+		return fmt.Sprintf("%s[/\"%s\"/]", id, label)
+	case "identityProvider":
+		return fmt.Sprintf("%s{{\"%s\"}}", id, label)
+	}
+	return fmt.Sprintf("%s[\"%s\"]", id, label)
+}
+
+// fewNames is up to three names and then how many more there are.
+func fewNames(names []string) string {
+	if len(names) <= 3 {
+		return strings.Join(names, ", ")
+	}
+	return fmt.Sprintf("%s and %d more", strings.Join(names[:3], ", "), len(names)-3)
+}
+
+// usesContextKeys says whether the design keys any dependency with a kind
+// or a protocol, or any channel with carriedBy, so that the technical
+// specification draws the context diagram only then and a specification
+// without the keys renders as before.
+func usesContextKeys(root *yaml.Node) bool {
+	for _, dep := range pairs(root, "dependencies") {
+		if get(dep.Value, "kind") != nil || get(dep.Value, "protocol") != nil {
+			return true
+		}
+	}
+	for _, ch := range pairs(root, "channels") {
+		if get(ch.Value, "carriedBy") != nil {
+			return true
+		}
+	}
+	return false
+}
+
+// contextDiagram is the system context in C4's style (ADR-134, ADR-135):
+// a person per role no job acts as and no service client holds, and one
+// for anyone when an operation or a page is public; a system per client of
+// kind service, with the roles it holds; this system in the middle; and
+// the dependencies by kind, with their protocol, each edge labelled with
+// the operations and jobs that call it and the channels it carries.
+func contextDiagram(root *yaml.Node) string {
+	deps := pairs(root, "dependencies")
+	chans := pairs(root, "channels")
+	roles := pairs(root, "roles")
+	if len(deps)+len(chans)+len(roles) == 0 {
+		return ""
+	}
+	jobs := pairs(root, "jobs")
+	jobRoles := map[string]bool{}
+	for _, j := range jobs {
+		jobRoles[str(j.Value, "role")] = true
+	}
+	var services, applications []source.Pair
+	serviceRoles := map[string]bool{}
+	for _, c := range pairs(root, "clients") {
+		if str(c.Value, "kind") == "service" {
+			services = append(services, c)
+			for _, r := range strs(c.Value, "roles") {
+				serviceRoles[r] = true
+			}
+		} else {
+			applications = append(applications, c)
+		}
+	}
+	public := false
+	for _, o := range operations(root) {
+		public = public || str(o.node, "permission") == "public"
+	}
+	for _, p := range pairs(root, "pages") {
+		public = public || str(p.Value, "permission") == "public"
+	}
+	var b strings.Builder
+	b.WriteString("flowchart LR\n")
+	system := "system"
+	fmt.Fprintf(&b, "  %s[\"%s\"]\n", system, mermaidText(str(get(root, "info"), "title")))
+	// An application client is the way a person reaches the system, drawn
+	// on the person's edge, not as a node.
+	through := ""
+	if len(applications) > 0 {
+		var names []string
+		for _, a := range applications {
+			names = append(names, a.Key.Value)
+		}
+		through = fmt.Sprintf(" -->|\"%s\"|", mermaidText(fewNames(names)))
+	} else {
+		through = " -->"
+	}
+	for _, r := range roles {
+		if jobRoles[r.Key.Value] || serviceRoles[r.Key.Value] {
+			continue
+		}
+		id := "person_" + mermaidID(r.Key.Value)
+		fmt.Fprintf(&b, "  %s([\"%s (person)\"])\n", id, mermaidText(r.Key.Value))
+		fmt.Fprintf(&b, "  %s%s %s\n", id, through, system)
+	}
+	if public {
+		fmt.Fprintf(&b, "  person_anyone([\"anyone (person)\"])\n")
+		fmt.Fprintf(&b, "  person_anyone%s %s\n", through, system)
+	}
+	for _, c := range services {
+		id := "client_" + mermaidID(c.Key.Value)
+		fmt.Fprintf(&b, "  %s[\"%s (system, as %s)\"]\n", id, mermaidText(c.Key.Value), mermaidText(strings.Join(strs(c.Value, "roles"), ", ")))
+		fmt.Fprintf(&b, "  %s --> %s\n", id, system)
+	}
+	// Who calls each dependency, who emits on each channel and which jobs
+	// consume from it, in the order the design declares them.
+	callers := map[string][]string{}
+	emitters := map[string]bool{}
+	consumers := map[string]bool{}
+	call := func(name string, n *yaml.Node) {
+		for _, c := range strs(n, "calls") {
+			dep := calledDependency(c)
+			if !contains(callers[dep], name) {
+				callers[dep] = append(callers[dep], name)
+			}
+		}
+		for _, e := range strs(n, "emits") {
+			ch, _, _ := strings.Cut(e, "/")
+			emitters[ch] = true
+		}
+	}
+	for _, o := range operations(root) {
+		call(o.id, o.node)
+	}
+	for _, j := range jobs {
+		call(j.Key.Value, j.Value)
+		if ch, _, ok := strings.Cut(str(get(j.Value, "trigger"), "consumes"), "/"); ok {
+			consumers[ch] = true
+		}
+	}
+	for _, w := range pairs(root, "workflows") {
+		call(w.Key.Value, w.Value)
+	}
+	declared := map[string]bool{}
+	for _, kind := range dependencyKinds {
+		for _, dep := range deps {
+			k := str(dep.Value, "kind")
+			if k == "" {
+				k = "system"
+			}
+			if k != kind {
+				continue
+			}
+			declared[dep.Key.Value] = true
+			label := mermaidText(dep.Key.Value)
+			if p := str(dep.Value, "protocol"); p != "" {
+				label += ", " + p
+			}
+			id := "dependency_" + mermaidID(dep.Key.Value)
+			fmt.Fprintf(&b, "  %s\n", dependencyShape(id, label, kind))
+			if names := callers[dep.Key.Value]; len(names) > 0 {
+				fmt.Fprintf(&b, "  %s -->|\"%s\"| %s\n", system, mermaidText(fewNames(names)), id)
+			}
+		}
+	}
+	// A channel goes to each declared dependency that carries it, out when
+	// the system emits on it and in when a job consumes from it; a channel
+	// carried by none it can name is this system's own, at its boundary.
+	for _, ch := range chans {
+		var carriers []string
+		for _, c := range strs(ch.Value, "carriedBy") {
+			if declared[c] {
+				carriers = append(carriers, c)
+			}
+		}
+		name := mermaidText(ch.Key.Value)
+		if len(carriers) == 0 {
+			id := "channel_" + mermaidID(ch.Key.Value)
+			fmt.Fprintf(&b, "  %s>\"%s (channel)\"]\n", id, name)
+			if consumers[ch.Key.Value] {
+				fmt.Fprintf(&b, "  %s -.-> %s\n", id, system)
+			}
+			if emitters[ch.Key.Value] || !consumers[ch.Key.Value] {
+				fmt.Fprintf(&b, "  %s -.-> %s\n", system, id)
+			}
+			continue
+		}
+		for _, c := range carriers {
+			id := "dependency_" + mermaidID(c)
+			if emitters[ch.Key.Value] {
+				fmt.Fprintf(&b, "  %s -.->|\"%s\"| %s\n", system, name, id)
+			}
+			if consumers[ch.Key.Value] {
+				fmt.Fprintf(&b, "  %s -.->|\"%s\"| %s\n", id, name, system)
+			}
+		}
+	}
+	return fence(b.String())
 }

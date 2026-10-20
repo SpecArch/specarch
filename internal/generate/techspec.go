@@ -239,6 +239,13 @@ func context(d *doc, root *yaml.Node) {
 	}
 	d.heading(2, "3. Context")
 	d.para("The interfaces the system offers, as its clients see them.")
+	if usesContextKeys(root) {
+		// Drawn once a dependency has a kind or a protocol or a channel
+		// names its carrier, so a specification without the keys renders
+		// as before (ADR-134).
+		d.para("Who uses the system and what it reaches: a person per role, a system per calling service with the roles it holds, and the dependencies by kind with their protocol, each edge naming the operations and jobs that call it or the channel it carries.")
+		d.block(contextDiagram(root))
+	}
 	if str(source.Child(root, "info"), "wireNames") == wirename.SnakeCase {
 		d.para("Every property goes on the wire in snake_case (info.wireNames): a field this specification names dueOn is due_on in a body, a parameter's schema and a message. A parameter's own name is written as it is on the wire.")
 	}

@@ -25,6 +25,7 @@ enums:
       - requirement
       - emits
       - dependency
+      - channel
       - idempotency_key
       - validity
       - session
@@ -160,7 +161,8 @@ enums:
       trigger: a transition's trigger is not an operation, command, channel message or algorithm
       requirement: a `satisfies` or `verifies` link names a requirement that is neither in the specification nor in a declared requirement set
       emits: an `emits` entry names a channel or message that does not exist
-      dependency: a `calls` entry names a dependency that is not declared, or a dependency's timeout is zero
+      dependency: a `calls` entry names a dependency that is not declared, a dependency's timeout is zero, or a dependency of kind `database`, `messageBroker` or `fileStore` names a `specification`
+      channel: a channel's `carriedBy` entry names no declared dependency, or one of kind `database`, `fileStore` or `identityProvider`, which carry no messages
       idempotency_key: an `idempotencyKey` names no header parameter of its operation, or sits on a method that RFC 9110 already makes idempotent
       validity: a `validity` names a field the entity does not have, one that is not a date or a date-time, or a `from` and an `until` of different formats
       session: a session's idle or absolute timeout is zero

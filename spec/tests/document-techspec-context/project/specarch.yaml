@@ -1,0 +1,106 @@
+specarch: "0.3"
+info: { title: Lending desk, version: 1.0.0 }
+permissions:
+  loans.read: { description: Read the loans. }
+  loans.return: { description: Take a copy back. }
+roles:
+  librarian:
+    description: Staff at the desk.
+    permissions: [loans.read, loans.return]
+  scheduler:
+    description: The system itself, running the nightly job.
+    permissions: [loans.read]
+  auditor:
+    description: The finance system's reconciliation.
+    permissions: [loans.read]
+clients:
+  desk-screens:
+    description: The desk's own screens.
+    kind: application
+  ledger-batch:
+    description: The finance system's nightly batch.
+    kind: service
+    roles: [auditor]
+    proof:
+      kind: signedRequest
+      algorithm: hmac-sha256
+      covers: ["@method", "@path", content-digest, date]
+dependencies:
+  ledger:
+    description: The finance system's ledger.
+    timeout: PT5S
+    protocol: https
+  eventBus:
+    description: The library's message broker.
+    timeout: PT1S
+    kind: messageBroker
+    protocol: amqp
+  statementDrop:
+    description: The bank's drop for the monthly statements.
+    timeout: PT30S
+    kind: fileStore
+    protocol: sftp
+  tokenIssuer:
+    description: The issuer of the staff's tokens.
+    timeout: PT2S
+    kind: identityProvider
+    protocol: https
+  catalogueStore:
+    description: The catalogue team's database, read directly.
+    timeout: PT2S
+    kind: database
+    protocol: postgresql
+channels:
+  loan.overdue:
+    description: One message per overdue loan.
+    carriedBy: [eventBus]
+    messages:
+      LoanOverdue:
+        summary: A loan became overdue.
+        payload:
+          type: object
+          properties:
+            loanId: { type: string, format: uuid }
+          required: [loanId]
+  card.blocked:
+    description: A member's card was blocked at the card office.
+    carriedBy: [eventBus]
+    messages:
+      CardBlocked:
+        summary: A card was blocked.
+        payload:
+          type: object
+          properties:
+            cardNumber: { type: string, maxLength: 16 }
+          required: [cardNumber]
+  desk.notes:
+    description: Notes for the desk, kept by this system alone.
+    messages:
+      NoteAdded:
+        summary: A note was added.
+        payload:
+          type: object
+          properties:
+            text: { type: string, maxLength: 200 }
+          required: [text]
+jobs:
+  markOverdue:
+    description: Every night, marks the loans past their due date and says so.
+    trigger: { schedule: "0 2 * * *" }
+    role: scheduler
+    calls: [ledger]
+    emits: [loan.overdue/LoanOverdue, desk.notes/NoteAdded]
+  blockLoans:
+    description: Stops lending on a card the card office blocked.
+    trigger: { consumes: card.blocked/CardBlocked }
+    role: scheduler
+    calls: [ledger]
+tests:
+  mark-overdue-runs-twice: { level: system, job: markOverdue, scenario: golden, covers: [runs twice], given: "the job markOverdue has run", when: "it runs again over the same records", then: "nothing changes a second time" }
+  mark-overdue-dependency-fails-ledger: { level: system, job: markOverdue, scenario: red, covers: [dependency fails ledger], given: "ledger answers with an error", when: "the job markOverdue runs", then: "the run is retried" }
+  mark-overdue-dependency-times-out-ledger: { level: system, job: markOverdue, scenario: red, covers: [dependency times out ledger], given: "ledger does not answer within PT5S", when: "the job markOverdue runs", then: "the call is given up and the run is retried" }
+  mark-overdue-succeeds: { level: system, job: markOverdue, scenario: golden, given: "open loans past their due date", when: "the job markOverdue runs", then: "it completes" }
+  block-loans-runs-twice: { level: system, job: blockLoans, scenario: golden, covers: [runs twice], given: "the job blockLoans has run", when: "the same card.blocked/CardBlocked arrives again", then: "nothing changes a second time" }
+  block-loans-dependency-fails-ledger: { level: system, job: blockLoans, scenario: red, covers: [dependency fails ledger], given: "ledger answers with an error", when: "a card.blocked/CardBlocked arrives for the job blockLoans", then: "the message is handled again" }
+  block-loans-dependency-times-out-ledger: { level: system, job: blockLoans, scenario: red, covers: [dependency times out ledger], given: "ledger does not answer within PT5S", when: "a card.blocked/CardBlocked arrives for the job blockLoans", then: "the call is given up and the run is retried" }
+  block-loans-succeeds: { level: system, job: blockLoans, scenario: golden, given: "a card with open loans", when: "a card.blocked/CardBlocked arrives for the job blockLoans", then: "it completes" }

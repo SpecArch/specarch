@@ -2,6 +2,7 @@
 channels:
   loan.overdue:
     description: Published by the nightly job for each loan whose due date passed.
+    carriedBy: [eventBus]
     satisfies: [LIB-4]
     messages:
       LoanOverdue:

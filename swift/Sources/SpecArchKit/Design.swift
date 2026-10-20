@@ -215,6 +215,7 @@ extension Checker {
         checkHandshakes(d)
         checkCommands(d)
         checkDependencies(d)
+        checkChannels(d)
         checkJobs(d)
         checkWorkflows(d)
         checkMenus(d)

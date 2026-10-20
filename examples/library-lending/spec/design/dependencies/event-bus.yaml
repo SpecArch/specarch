@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-design-0.3.schema.json
+dependencies:
+  eventBus:
+    description: The library's message broker, run by the library's IT team, which carries the loan events to the notification service and the audit log.
+    timeout: PT1S
+    kind: messageBroker
+    protocol: amqp
+    why: A publish that the broker has not taken within a second is given up and retried, so a slow broker never holds a return at the desk.

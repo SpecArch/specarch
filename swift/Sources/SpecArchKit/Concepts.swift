@@ -38,10 +38,35 @@ func headerParameter(_ o: Operation, _ name: String) -> YNode? {
 }
 
 extension Checker {
-    /// Refuses a time limit of zero: a call given up at once is no call.
+    /// Refuses a time limit of zero, since a call given up at once is no
+    /// call, and a specification on a store or a broker, which another
+    /// party runs and which is no system specified on its own (ADR-134).
     func checkDependencies(_ d: Design) {
         for (name, dep) in d.dependencies {
             checkTimeout(dep.child("timeout"), pointer("dependencies", name, "timeout"), .dependency, "the call")
+            let kind = str(dep.child("kind"))
+            if ["database", "messageBroker", "fileStore"].contains(kind), let sp = dep.child("specification") {
+                add(sp, pointer("dependencies", name, "specification"), .dependency,
+                    "a dependency of kind \(kind) is a store or a broker, not a system specified on its own, so no specification describes it; remove specification and version, or give it kind system")
+            }
+        }
+    }
+
+    /// Checks that every dependency a channel is carried by is declared and
+    /// of a kind that carries messages: a broker or a system (ADR-134).
+    func checkChannels(_ d: Design) {
+        for (name, ch) in d.channels {
+            for (i, e) in items(ch.child("carriedBy")).enumerated() {
+                let ptr = pointer("channels", name, "carriedBy", "\(i)")
+                guard let dep = d.dependencies[e.value] else {
+                    add(e, ptr, .channel, "\(e.value) is not a dependency of the specification; declare it under dependencies, or leave carriedBy out when the channel is this system's own\(suggest(e.value, d.dependencies))")
+                    continue
+                }
+                let kind = str(dep.child("kind"))
+                if ["database", "fileStore", "identityProvider"].contains(kind) {
+                    add(e, ptr, .channel, "\(e.value) is a dependency of kind \(kind), which carries no messages; name the broker the channel lives on, or the system that receives its messages")
+                }
+            }
         }
     }
 

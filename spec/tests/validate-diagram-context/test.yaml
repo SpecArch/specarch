@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "a dependency of a kind the meta-model does not have, a protocol in capitals, a file store with a specification, a channel carried by an undeclared dependency and by a file store, and one naming its carrier twice"
+when: validate is run
+then: "it reports the kind and the protocol as schema errors, the specification as dependency, each wrong carrier as channel with the dependency it may mean, and the repeat, and exits 1"
+verifies: [SA-29]

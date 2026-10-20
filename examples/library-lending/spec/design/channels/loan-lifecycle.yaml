@@ -2,6 +2,7 @@
 channels:
   loan.lifecycle:
     description: Every change in a loan's state, for the notification service and the audit log.
+    carriedBy: [eventBus]
     messages:
       LoanCreated:
         summary: A copy was lent.

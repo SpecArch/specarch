@@ -1,0 +1,48 @@
+specarch: "0.3"
+info: { title: Case, version: 1.0.0 }
+dependencies:
+  memberRegistry:
+    description: The registry of members, whose numbers the loans keep.
+    timeout: PT2S
+    kind: service
+    protocol: https
+    specification: member-registry
+    version: 2.4.0
+  eventBus:
+    description: The library's message broker.
+    timeout: PT1S
+    kind: messageBroker
+    protocol: AMQP
+  statementDrop:
+    description: The bank's drop for the monthly statements.
+    timeout: PT30S
+    kind: fileStore
+    specification: bank-drop
+    version: 1.0.0
+    protocol: sftp
+  ledger:
+    description: The finance system's ledger.
+    timeout: PT5S
+channels:
+  loans:
+    description: Loan events, for the notification service.
+    carriedBy: [eventBuss, statementDrop]
+    messages:
+      LoanOverdue:
+        summary: A loan became overdue.
+        payload:
+          type: object
+          properties:
+            loanId: { type: string, format: uuid }
+          required: [loanId]
+  fees:
+    description: Fee events, received by the ledger directly.
+    carriedBy: [ledger, ledger]
+    messages:
+      FeeCharged:
+        summary: A late fee was charged.
+        payload:
+          type: object
+          properties:
+            loanId: { type: string, format: uuid }
+          required: [loanId]

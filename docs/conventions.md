@@ -562,6 +562,8 @@ redefined.
 | `session`, `idleTimeout`, `absoluteTimeout` | SpecArch, after the OWASP Session Management Cheat Sheet | how a signed-in session ends; the two timeouts are the cheat sheet's |
 | `middlewares`, `refusals` | SpecArch | the steps a request passes before an operation's handler, declared once with what each checks or does and the refusals it answers, each a `status`, a `problem` and a `condition`; an operation lists the ones it runs, in order, `[]` for none. No standard names them: OpenAPI's `security` says how a caller proves who it is, not what runs (ADR-131) |
 | `dependencies`, `timeout`, `calls` | SpecArch | external systems an operation calls, each with a time limit per call |
+| `kind` on a dependency, `carriedBy` on a channel | SpecArch | what a dependency is (five kinds, after C4's software system and containers), and the dependencies a channel lives on; AsyncAPI's channel `servers` names hosts, which a design file excludes (ADR-134) |
+| `protocol` on a dependency | AsyncAPI, the server object | how the dependency is reached, a lowercase URI scheme name, kept open |
 | `specification`, `version` (on a dependency), `name` (in `info`) | SpecArch, after JSON Schema's `$ref` as a URI reference | a dependency that is another specification, named by its `info.name` and pinned to its `info.version`; its elements are named `<dependency>#/<pointer>` |
 | `specarchEstate`, `modules`, `location` | SpecArch | an estate file: the modules' specifications by `info.name`, each with its folder and the version held |
 | `idempotencyKey` | SpecArch, after RFC 9110 9.2.2 and the IETF Idempotency-Key header draft | a header that tells a repeated request from a new one, on a method that is not idempotent by itself |
@@ -1023,6 +1025,39 @@ calls a dependency gets two derived red cases, `dependency fails <name>`
 and `dependency times out <name>`, both critical whatever the operation's
 harm, because they are the cases nobody exercises by hand; the expected
 outcome is the operation's 502, 503 or 504 response when it declares one.
+
+What a dependency is, how it is reached and which dependencies carry a
+channel are said with three keys, for the context diagram (ADR-134):
+
+    dependencies:
+      eventBus:
+        description: The library's message broker.
+        timeout: PT1S
+        kind: messageBroker
+        protocol: amqp
+
+    channels:
+      loan.overdue:
+        description: Published by the nightly job for each overdue loan.
+        carriedBy: [eventBus]
+
+`kind` is one of `system` (another software system with an interface this
+one calls), `database` (a store another party keeps that this system reads
+or writes directly), `messageBroker` (a broker that carries channels),
+`fileStore` (a file exchange or object store) and `identityProvider` (the
+issuer of the tokens this system accepts); left out, it is `system`. It
+sets the dependency's shape in the context diagram. `protocol` is
+AsyncAPI's word: a lowercase URI scheme name (RFC 3986, 3.1), such as
+`https`, `grpc`, `amqp`, `kafka`, `postgresql` or `sftp`, kept open as
+AsyncAPI keeps it. `carriedBy` names the dependencies a channel lives on
+or is delivered to; a channel without it is this system's own, drawn at
+its boundary. Which way a message goes is said where it is sent and
+received: `emits` sends it, a job's `consumes` trigger receives it. A
+`specification` on a dependency of kind `database`, `messageBroker` or
+`fileStore` is an error (`dependency`): a specification is a system's.
+A `carriedBy` entry that names no declared dependency, or one of kind
+`database`, `fileStore` or `identityProvider`, is an error at the entry
+(`channel`), and the diagram still draws the channel.
 
 ### References between specifications
 
@@ -2151,7 +2186,9 @@ know where to look.
    quality goals.
 2. Constraints: technical, organisational, legal; the `constraints` and
    `assumptions` of the requirements stage, explained.
-3. Context: the system and its neighbours. One hand-drawn context picture.
+3. Context: the system and its neighbours. The generated context diagram,
+   once a dependency has a `kind` or a `protocol` or a channel a
+   `carriedBy`.
 4. Solution strategy: the few decisions that shape everything else, each
    pointing at its ADR.
 5. Building blocks: generated entity diagram, then prose on each entity
@@ -2197,7 +2234,7 @@ edit inside the markers; edit the YAML.
 | `flowchart` of pages and their `actions` | `flowchart pages` | `pages` | generated |
 | `flowchart` of one function of an operation's handler, a node per step by its id | | an implementation file's `mappings`, `handler` (ADR-144) | generated, in the technical specification only |
 | permissions matrix (a Markdown table, not a diagram) | `permissions` | `roles`, `permissions` | generated |
-| context picture | | prose | hand-drawn |
+| `flowchart` of the system's context in C4's style: a person per role, a system per service client, the dependencies by kind with their protocol, the channels they carry | `context` | `roles`, `clients`, `dependencies`, `channels`, `calls`, `emits`, `consumes` (ADR-134, ADR-135) | generated |
 | deployment picture | | prose | hand-drawn |
 | any explanatory sketch of an algorithm or a flow | | prose | hand-drawn |
 

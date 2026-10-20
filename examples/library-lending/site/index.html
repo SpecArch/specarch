@@ -113,7 +113,7 @@ ol.problems p{margin:2px 0}
 <li><a href="#operations">Operations</a><ol>
 <li><a href="#/paths">HTTP operations</a> <span class="count">19</span></li>
 <li><a href="#/channels">Channels</a> <span class="count">3</span></li>
-<li><a href="#/dependencies">Dependencies</a> <span class="count">1</span></li>
+<li><a href="#/dependencies">Dependencies</a> <span class="count">2</span></li>
 <li><a href="#/jobs">Jobs</a> <span class="count">1</span></li>
 <li><a href="#/errors">Errors</a> <span class="count">8</span></li>
 </ol></li>
@@ -175,7 +175,7 @@ ol.problems p{margin:2px 0}
 <tr><td><a href="#/session">Session</a></td><td>one</td></tr>
 <tr><td><a href="#/paths">HTTP operations</a></td><td>19</td></tr>
 <tr><td><a href="#/channels">Channels</a></td><td>3</td></tr>
-<tr><td><a href="#/dependencies">Dependencies</a></td><td>1</td></tr>
+<tr><td><a href="#/dependencies">Dependencies</a></td><td>2</td></tr>
 <tr><td><a href="#/jobs">Jobs</a></td><td>1</td></tr>
 <tr><td><a href="#/errors">Errors</a></td><td>8</td></tr>
 <tr><td><a href="#/pages">Pages</a></td><td>11</td></tr>
@@ -3126,6 +3126,10 @@ ol.problems p{margin:2px 0}
 <dl>
 <dt>description</dt>
 <dd>Every change in a loan&#39;s state, for the notification service and the audit log.</dd>
+<dt>carriedBy</dt>
+<dd>
+<p>eventBus</p>
+</dd>
 <dt>messages</dt>
 <dd id="/channels/loan.lifecycle/messages">
 <div class="scroll"><table><thead><tr><th scope="col">Name</th>
@@ -3156,6 +3160,10 @@ ol.problems p{margin:2px 0}
 <dl>
 <dt>description</dt>
 <dd>Published by the nightly job for each loan whose due date passed.</dd>
+<dt>carriedBy</dt>
+<dd>
+<p>eventBus</p>
+</dd>
 <dt>satisfies</dt>
 <dd>
 <p><a href="#/requirements/LIB-4">LIB-4</a></p>
@@ -3206,6 +3214,22 @@ ol.problems p{margin:2px 0}
 </section>
 <section class="section" id="/dependencies">
 <h3>Dependencies <a class="ptr" href="#/dependencies">/dependencies</a></h3>
+<article class="element" data-search id="/dependencies/eventBus">
+<h4>eventBus <a class="ptr" href="#/dependencies/eventBus">/dependencies/eventBus</a></h4>
+<p class="insight"><strong>Insight:</strong> A publish that the broker has not taken within a second is given up and retried, so a slow broker never holds a return at the desk.</p>
+<dl>
+<dt>description</dt>
+<dd>
+<p>The library&#39;s message broker, run by the library&#39;s IT team, which carries the loan events to the notification service and the audit log.</p>
+</dd>
+<dt>timeout</dt>
+<dd>PT1S</dd>
+<dt>kind</dt>
+<dd>messageBroker</dd>
+<dt>protocol</dt>
+<dd>amqp</dd>
+</dl>
+</article>
 <article class="element" data-search id="/dependencies/feeLedger">
 <h4>feeLedger <a class="ptr" href="#/dependencies/feeLedger">/dependencies/feeLedger</a></h4>
 <p class="insight"><strong>Insight:</strong> The desk waits for the answer, so a call that takes longer than a few seconds is given up and the return is refused rather than left half done.</p>
@@ -3214,6 +3238,10 @@ ol.problems p{margin:2px 0}
 <dd>The finance system&#39;s ledger, where a late fee or a replacement charge is posted the moment it is charged.</dd>
 <dt>timeout</dt>
 <dd>PT5S</dd>
+<dt>kind</dt>
+<dd>system</dd>
+<dt>protocol</dt>
+<dd>https</dd>
 </dl>
 </article>
 </section>

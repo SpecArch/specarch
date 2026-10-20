@@ -1,0 +1,9 @@
+arguments: [validate, .]
+exitStatus: 1
+standardOutput: |
+  specarch.yaml:7:11: error: /dependencies/memberRegistry/kind: schema: service is not allowed here; use one of database, fileStore, identityProvider, messageBroker, system [schema@specarch.yaml#/dependencies/memberRegistry/kind]
+  specarch.yaml:15:15: error: /dependencies/eventBus/protocol: schema: "AMQP" does not have the right form; it must be the pattern ^[a-z][a-z0-9+.-]*$ [schema@specarch.yaml#/dependencies/eventBus/protocol]
+  specarch.yaml:20:20: error: /dependencies/statementDrop/specification: dependency: a dependency of kind fileStore is a store or a broker, not a system specified on its own, so no specification describes it; remove specification and version, or give it kind system [dependency@specarch.yaml#/dependencies/statementDrop/specification]
+  specarch.yaml:29:17: error: /channels/loans/carriedBy/0: channel: eventBuss is not a dependency of the specification; declare it under dependencies, or leave carriedBy out when the channel is this system's own; did you mean eventBus? [channel@specarch.yaml#/channels/loans/carriedBy/0]
+  specarch.yaml:29:28: error: /channels/loans/carriedBy/1: channel: statementDrop is a dependency of kind fileStore, which carries no messages; name the broker the channel lives on, or the system that receives its messages [channel@specarch.yaml#/channels/loans/carriedBy/1]
+  specarch.yaml:40:16: error: /channels/fees/carriedBy: schema: items 0 and 1 are the same; remove the repeat [schema@specarch.yaml#/channels/fees/carriedBy]

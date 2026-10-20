@@ -1930,7 +1930,13 @@ The sources this build reads:
   name, is the permission of the routes under the group, declared
   citing them; Swift imports modules, not files, so the check is
   matched by its function's name. None, several and one that is not
-  a literal are must questions.
+  a literal are must questions. The gates the implementation file
+  names under `clientChecks`, `signatureChecks`, `applicationChecks`,
+  `callerChecks`, `audienceChecks` and `eventWriters` are middleware
+  of a group too, matched the same way, their names a string or an
+  array literal; a gate is never read as a permission check, and
+  each is written and asked as extract go does (ADR-154, ADR-159,
+  ADR-169).
 
   Calls to another system are read from `URLRequest(url:)`, its
   method the literal its `httpMethod` is given in the same function
@@ -2023,7 +2029,14 @@ The sources this build reads:
   `use` on the same router or of Fastify's `onRequest`,
   `preValidation` or `preHandler`, or called in the handler, is the
   operation's; none, several and one that is not a literal are must
-  questions.
+  questions. The gates the implementation file names under
+  `clientChecks`, `signatureChecks`, `applicationChecks`,
+  `callerChecks`, `audienceChecks` and `eventWriters` are found in
+  the same places, called or, as middleware, named without a call,
+  their names a string, a const or an array literal, and an earlier
+  `use` cited where it is made; a gate is never read as a permission
+  check, and each is written and asked as extract go does (ADR-154,
+  ADR-159, ADR-169).
 
   A request body is, in this order: the validation schema the
   handler applies to its body (`parse`, `safeParse`, `validate`,
@@ -2223,7 +2236,13 @@ The sources this build reads:
   it in the branch of its method, or called in a dart_frog
   `_middleware.dart` above it; none, several and one that is not a
   literal are must questions, naming a middleware that calls no
-  check. Calls to another system are retrofit's `@GET` and the like
+  check. The gates the implementation file names under
+  `clientChecks`, `signatureChecks`, `applicationChecks`,
+  `callerChecks`, `audienceChecks` and `eventWriters` are found in
+  the same places, wrappers nested one in another followed to the
+  handler, their names a string or a list literal; a gate is never
+  read as a permission check, and each is written and asked as
+  extract go does (ADR-154, ADR-159, ADR-169). Calls to another system are retrofit's `@GET` and the like
   under a `@RestApi` with its `baseUrl`, and dio's and http's `get`,
   `post`, `put`, `patch` and `delete` given a literal URL,
   `Uri.parse` of one, `Uri.https` or an interpolation of one value
@@ -2335,7 +2354,7 @@ Anyone who has the program runs it.
 | Option | What it does | Required |
 |---|---|---|
 | `--out <out>` | The folder the specification is written into; it becomes the specification's root folder. | yes |
-| `--implementation <implementation>` | For go, swift, javascript and dart, and for pages with --facts, an implementation file whose `bindings.http.permissionChecks` name the project's permission checks, which the reader reads routes' permissions through; for pages, with or without --facts, its `bindings.ui.schemaFile` names the file a page's schema is read from. |  |
+| `--implementation <implementation>` | For go, swift, javascript and dart, and for pages with --facts, an implementation file whose `bindings.http.permissionChecks` name the project's permission checks, which the reader reads routes' permissions through, and whose `clientChecks`, `signatureChecks`, `applicationChecks`, `callerChecks`, `audienceChecks` and `eventWriters` name its gates; for pages, with or without --facts, its `bindings.ui.schemaFile` names the file a page's schema is read from. |  |
 | `--facts <facts>` | For pages, a code-facts dump of JavaScript and TypeScript, made by specarch facts javascript of a folder that holds the router's folder, through which the Next.js files' code is read. |  |
 | `--routes <routes>` | For permissions, a route table of the same repository, made by tools/routes/dump-routes.sh, whose routes are written with the permission the permission table's rules give each. |  |
 | `--language <language>` | For documents, the language the document is written in, as a BCP 47 tag; the vocabulary SpecArch ships for it is read, or with --vocabulary the file's language must be this one. |  |

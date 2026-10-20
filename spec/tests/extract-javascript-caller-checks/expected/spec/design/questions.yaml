@@ -1,0 +1,220 @@
+questions:
+  # specarch-problem: question: open_question: (must, decision) What does GET /invoices do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-1 under answers. [Q-1]
+  Q-1:
+    question: What does GET /invoices do, and what does it answer?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1invoices/get/summary', '#/paths/~1invoices/get/responses']
+    decidedBy: system-owner
+    why: A registration names the handler and not what it does or the responses it gives.
+  # specarch-problem: question: open_question: (must, decision) Does the running system register GET /invoices? It is declared at server/src/app.ts:9, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-2 under answers. [Q-2]
+  Q-2:
+    question: Does the running system register GET /invoices? It is declared at server/src/app.ts:9, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1invoices/get']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'server/src/app.ts:9', says: Registers GET /invoices.}
+  # specarch-problem: question: open_question: (must, decision) What values does each path parameter of /invoices/{invoiceId} take: invoiceId? Decided by system-owner. Answer with a decision record that names Q-3 under answers. [Q-3]
+  Q-3:
+    question: 'What values does each path parameter of /invoices/{invoiceId} take: invoiceId?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1invoices~1{invoiceId}/parameters/0/schema']
+    decidedBy: system-owner
+    why: Express names a path's parameters and not the values they take.
+  # specarch-problem: question: open_question: (must, decision) What does DELETE /invoices/{invoiceId} do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-4 under answers. [Q-4]
+  Q-4:
+    question: What does DELETE /invoices/{invoiceId} do, and what does it answer?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1invoices~1{invoiceId}/delete/summary', '#/paths/~1invoices~1{invoiceId}/delete/responses']
+    decidedBy: system-owner
+    why: A registration names the handler and not what it does or the responses it gives.
+  # specarch-problem: question: open_question: (must, decision) Does the running system register DELETE /invoices/{invoiceId}? It is declared at server/src/app.ts:10, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-5 under answers. [Q-5]
+  Q-5:
+    question: Does the running system register DELETE /invoices/{invoiceId}? It is declared at server/src/app.ts:10, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1invoices~1{invoiceId}/delete']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'server/src/app.ts:10', says: 'Registers DELETE /invoices/{invoiceId}.'}
+  # specarch-problem: question: open_question: (must, decision) What values does each path parameter of /invoices/{invoiceId}/archive take: invoiceId? Decided by system-owner. Answer with a decision record that names Q-6 under answers. [Q-6]
+  Q-6:
+    question: 'What values does each path parameter of /invoices/{invoiceId}/archive take: invoiceId?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1invoices~1{invoiceId}~1archive/parameters/0/schema']
+    decidedBy: system-owner
+    why: Express names a path's parameters and not the values they take.
+  # specarch-problem: question: open_question: (must, decision) What does POST /invoices/{invoiceId}/archive do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-7 under answers. [Q-7]
+  Q-7:
+    question: What does POST /invoices/{invoiceId}/archive do, and what does it answer?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1invoices~1{invoiceId}~1archive/post/summary', '#/paths/~1invoices~1{invoiceId}~1archive/post/responses']
+    decidedBy: system-owner
+    why: A registration names the handler and not what it does or the responses it gives.
+  # specarch-problem: question: open_question: (must, decision) Does the running system register POST /invoices/{invoiceId}/archive? It is declared at server/src/app.ts:12, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-8 under answers. [Q-8]
+  Q-8:
+    question: Does the running system register POST /invoices/{invoiceId}/archive? It is declared at server/src/app.ts:12, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1invoices~1{invoiceId}~1archive/post']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'server/src/app.ts:12', says: 'Registers POST /invoices/{invoiceId}/archive.'}
+  # specarch-problem: question: open_question: (must, decision) What values does each path parameter of /invoices/{invoiceId}/send take: invoiceId? Decided by system-owner. Answer with a decision record that names Q-9 under answers. [Q-9]
+  Q-9:
+    question: 'What values does each path parameter of /invoices/{invoiceId}/send take: invoiceId?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1invoices~1{invoiceId}~1send/parameters/0/schema']
+    decidedBy: system-owner
+    why: Express names a path's parameters and not the values they take.
+  # specarch-problem: question: open_question: (must, decision) POST /invoices/{invoiceId}/send calls requireClients with "reporting" and "mailer" and requireClient with "mailer" in turn, and each refuses a caller it does not list, so only mailer passes every one, written as its callers. Which callers is it meant to admit? Decided by system-owner. Answer with a decision record that names Q-10 under answers. [Q-10]
+  Q-10:
+    question: POST /invoices/{invoiceId}/send calls requireClients with "reporting" and "mailer" and requireClient with "mailer" in turn, and each refuses a caller it does not list, so only mailer passes every one, written as its callers. Which callers is it meant to admit?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1invoices~1{invoiceId}~1send/post/callers']
+    decidedBy: system-owner
+    why: Checks in sequence admit only the names every one lists; lists that disagree are as often a mistake as a narrowing, so the set the code admits is written and asked, never one list chosen.
+    cites:
+      - {source: code, clause: 'server/src/app.ts:13', says: Calls requireClients with "reporting" and "mailer".}
+      - {source: code, clause: 'server/src/app.ts:13', says: Calls requireClient with "mailer".}
+  # specarch-problem: question: open_question: (must, decision) What does POST /invoices/{invoiceId}/send do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-11 under answers. [Q-11]
+  Q-11:
+    question: What does POST /invoices/{invoiceId}/send do, and what does it answer?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1invoices~1{invoiceId}~1send/post/summary', '#/paths/~1invoices~1{invoiceId}~1send/post/responses']
+    decidedBy: system-owner
+    why: A registration names the handler and not what it does or the responses it gives.
+  # specarch-problem: question: open_question: (must, decision) Does the running system register POST /invoices/{invoiceId}/send? It is declared at server/src/app.ts:13, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-12 under answers. [Q-12]
+  Q-12:
+    question: Does the running system register POST /invoices/{invoiceId}/send? It is declared at server/src/app.ts:13, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1invoices~1{invoiceId}~1send/post']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'server/src/app.ts:13', says: 'Registers POST /invoices/{invoiceId}/send.'}
+  # specarch-problem: question: open_question: (must, decision) What values does each path parameter of /invoices/{invoiceId}/void take: invoiceId? Decided by system-owner. Answer with a decision record that names Q-13 under answers. [Q-13]
+  Q-13:
+    question: 'What values does each path parameter of /invoices/{invoiceId}/void take: invoiceId?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1invoices~1{invoiceId}~1void/parameters/0/schema']
+    decidedBy: system-owner
+    why: Express names a path's parameters and not the values they take.
+  # specarch-problem: question: open_question: (must, decision) What does POST /invoices/{invoiceId}/void do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-14 under answers. [Q-14]
+  Q-14:
+    question: What does POST /invoices/{invoiceId}/void do, and what does it answer?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1invoices~1{invoiceId}~1void/post/summary', '#/paths/~1invoices~1{invoiceId}~1void/post/responses']
+    decidedBy: system-owner
+    why: A registration names the handler and not what it does or the responses it gives.
+  # specarch-problem: question: open_question: (must, decision) Does the running system register POST /invoices/{invoiceId}/void? It is declared at server/src/app.ts:11, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-15 under answers. [Q-15]
+  Q-15:
+    question: Does the running system register POST /invoices/{invoiceId}/void? It is declared at server/src/app.ts:11, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1invoices~1{invoiceId}~1void/post']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'server/src/app.ts:11', says: 'Registers POST /invoices/{invoiceId}/void.'}
+  # specarch-problem: question: open_question: (must, decision) server/src/app.ts:13: requireClient passes "only the mailer sends invoices" after "mailer", the argument the implementation file names as the check's. Is it a name the check admits too, or something else, such as a reason? Decided by system-owner. Answer with a decision record that names Q-16 under answers. [Q-16]
+  Q-16:
+    question: 'server/src/app.ts:13: requireClient passes "only the mailer sends invoices" after "mailer", the argument the implementation file names as the check''s. Is it a name the check admits too, or something else, such as a reason?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1invoices~1{invoiceId}~1send/post/callers']
+    decidedBy: system-owner
+    why: Syntax does not say whether a check takes its names as one argument or as every argument from it on; the reader writes the named argument alone and asks about the rest, so neither a name is dropped nor a reason admitted as a caller.
+    cites:
+      - {source: code, clause: 'server/src/app.ts:13', says: 'Calls requireClient with "mailer", then "only the mailer sends invoices".'}
+  # specarch-problem: question: open_question: (must, decision) The check requireApplication admits only the application admin-web, the one the person signed in through, at 1 operation, which check invoices.delete. On every role that grants it, write through with the applications the check admits, here or in the identity module. POST /invoices/{invoiceId}/archive and POST /invoices/{invoiceId}/void check the same without it, and through narrows the grant there too: is it meant there? It blocks roles. Decided by system-owner. Answer with a decision record that names Q-17 under answers. [Q-17]
+  Q-17:
+    question: 'The check requireApplication admits only the application admin-web, the one the person signed in through, at 1 operation, which check invoices.delete. On every role that grants it, write through with the applications the check admits, here or in the identity module. POST /invoices/{invoiceId}/archive and POST /invoices/{invoiceId}/void check the same without it, and through narrows the grant there too: is it meant there?'
+    kind: decision
+    priority: must
+    blocks: [roles]
+    decidedBy: system-owner
+    why: The application is a condition on a grant, written on the role keyed by the permission (ADR-106); the reader writes no role, and the code shows the check, not which grant it narrows.
+    cites:
+      - {source: code, clause: 'server/src/app.ts:10', says: 'Calls requireApplication, which the implementation file names as an application check.'}
+  # specarch-problem: question: open_question: (must, decision) The check requireAudience compares a token's aud with process.env.TOKEN_AUDIENCE ?? '' at 5 operations. Which audience names this service: the const of aud on the access token it accepts? A value per environment goes in the implementation file's deployments. It blocks tokens. Decided by system-owner. Answer with a decision record that names Q-18 under answers. [Q-18]
+  Q-18:
+    question: 'The check requireAudience compares a token''s aud with process.env.TOKEN_AUDIENCE ?? '''' at 5 operations. Which audience names this service: the const of aud on the access token it accepts? A value per environment goes in the implementation file''s deployments.'
+    kind: decision
+    priority: must
+    blocks: [tokens]
+    decidedBy: system-owner
+    why: A token accepted without a fixed audience is refused, since a token minted for one service could be replayed at the next (ADR-109); the reader writes no token, and an audience read from a setting is the deployment's value.
+    cites:
+      - {source: code, clause: 'server/src/app.ts:8', says: 'Calls requireAudience, which the implementation file names as an audience check.'}
+  # specarch-problem: question: open_question: (must, decision) The check requireCaller admits only the service middleware as the immediate caller on a person's behalf, written as the via of 1 operation. Declare each as a client of kind service with its workload-identity proof, mutualTls, spiffe or wimse, here or in the identity module, and the transaction token the operations accept with it. Decided by system-owner. Answer with a decision record that names Q-19 under answers. [Q-19]
+  Q-19:
+    question: The check requireCaller admits only the service middleware as the immediate caller on a person's behalf, written as the via of 1 operation. Declare each as a client of kind service with its workload-identity proof, mutualTls, spiffe or wimse, here or in the identity module, and the transaction token the operations accept with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1invoices~1{invoiceId}/delete/via']
+    decidedBy: system-owner
+    why: The code names the services and not how each proves itself, which is the deployment's; via names the immediate callers one by one, each with a workload-identity proof, and needs the transaction token it is checked with (ADR-111).
+    cites:
+      - {source: code, clause: 'server/src/app.ts:10', says: 'Calls requireCaller with "middleware", which the implementation file names as a caller check.'}
+  # specarch-problem: question: open_question: (must, decision) The check requireCaller compares the immediate caller's workload identity with the services callers gives, and it guards 1 operation. Which services call each of them on a person's behalf: its via? Decided by system-owner. Answer with a decision record that names Q-20 under answers. [Q-20]
+  Q-20:
+    question: 'The check requireCaller compares the immediate caller''s workload identity with the services callers gives, and it guards 1 operation. Which services call each of them on a person''s behalf: its via?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1invoices~1{invoiceId}~1void/post/via']
+    decidedBy: system-owner
+    why: Names read at run time are not known by syntax. via names the immediate callers one by one, each a service with a workload-identity proof, with no wildcard, since a hop added later would then be admitted without anyone writing it (ADR-111).
+    cites:
+      - {source: code, clause: 'server/src/app.ts:11', says: 'Calls requireCaller, which the implementation file names as a caller check.'}
+  # specarch-problem: question: open_question: (must, decision) The check requireClient admits only the client mailer, written as the callers of 1 operation. Declare each under clients with its kind, the roles that grant the permissions it calls with and its proof, here or in the identity module. Do people call any of them? Decided by system-owner. Answer with a decision record that names Q-21 under answers. [Q-21]
+  Q-21:
+    question: The check requireClient admits only the client mailer, written as the callers of 1 operation. Declare each under clients with its kind, the roles that grant the permissions it calls with and its proof, here or in the identity module. Do people call any of them?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1invoices~1{invoiceId}~1send/post/callers']
+    decidedBy: system-owner
+    why: 'The code names the clients and not what each is: its kind, its roles and its proof are the registration''s, never in syntax. callers names who may call one by one (ADR-110).'
+    cites:
+      - {source: code, clause: 'server/src/app.ts:13', says: 'Calls requireClient with "mailer", which the implementation file names as a client check.'}
+  # specarch-problem: question: open_question: (must, decision) The check requireClients admits only the clients reporting, archive and mailer, written as the callers of 2 operations. Declare each under clients with its kind, the roles that grant the permissions it calls with and its proof, here or in the identity module. Do people call any of them? Decided by system-owner. Answer with a decision record that names Q-22 under answers. [Q-22]
+  Q-22:
+    question: The check requireClients admits only the clients reporting, archive and mailer, written as the callers of 2 operations. Declare each under clients with its kind, the roles that grant the permissions it calls with and its proof, here or in the identity module. Do people call any of them?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1invoices/get/callers', '#/paths/~1invoices~1{invoiceId}~1send/post/callers']
+    decidedBy: system-owner
+    why: 'The code names the clients and not what each is: its kind, its roles and its proof are the registration''s, never in syntax. callers names who may call one by one (ADR-110).'
+    cites:
+      - {source: code, clause: 'server/src/app.ts:9', says: 'Calls requireClients with "reporting", "archive" and "mailer", which the implementation file names as a client check.'}
+  # specarch-problem: question: open_question: (must, decision) What does each permission allow: invoices.delete, invoices.read? Decided by system-owner. Answer with a decision record that names Q-23 under answers. [Q-23]
+  Q-23:
+    question: 'What does each permission allow: invoices.delete, invoices.read?'
+    kind: decision
+    priority: must
+    blocks: ['#/permissions/invoices.delete/description', '#/permissions/invoices.read/description']
+    decidedBy: system-owner
+    why: The source names the permission a route checks and not what it is for.
+  # specarch-problem: question: open_question: (must, decision) Which role grants each permission: invoices.delete, invoices.read? Decided by system-owner. Answer with a decision record that names Q-24 under answers. [Q-24]
+  Q-24:
+    question: 'Which role grants each permission: invoices.delete, invoices.read?'
+    kind: decision
+    priority: must
+    blocks: ['#/permissions/invoices.delete', '#/permissions/invoices.read']
+    decidedBy: system-owner
+    why: The source names the permission a route checks and not who holds it.

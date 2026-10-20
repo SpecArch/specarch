@@ -33,6 +33,8 @@ type jsRoute struct {
 	opts       *jsValue // Fastify's route options
 	permission string
 	checks     []string
+	gates      []checkUse
+	chainAt    []string // where each middleware of the chain is added, "" where the route is
 	mounts     []string // where the router it is registered on is mounted, outermost first
 	branch     string   // the method a handler that tells methods apart serves here, or ""
 	id, at     string
@@ -360,6 +362,7 @@ func (js *jsReader) readRoutes() {
 		// Middleware a router's use() adds to every route registered
 		// after it.
 		var used []jsValue
+		var usedAt []string
 		router := object
 		if object.Call != nil && object.Call.Callee.Member != nil && object.Call.Callee.Member.Name == "route" {
 			router = &object.Call.Callee.Member.Object
@@ -375,6 +378,7 @@ func (js *jsReader) readRoutes() {
 				for _, a := range u.Arguments {
 					if js.routerKind(js.variableOf(&a)) == "" {
 						used = append(used, a)
+						usedAt = append(usedAt, js.clause(u))
 					}
 				}
 			}
@@ -392,6 +396,7 @@ func (js *jsReader) readRoutes() {
 			r.params, _ = pathParameters(path)
 			r.mounts = m.at
 			chain := append(append(append([]jsValue{}, m.chain...), used...), r.middleware...)
+			r.chainAt = append(append(make([]string, len(m.chain)), usedAt...), make([]string, len(r.middleware))...)
 			js.routePermission(r, chain, m.at)
 			routes = append(routes, r)
 		}
@@ -426,7 +431,11 @@ func (js *jsReader) routePermission(rt *jsRoute, chain []jsValue, at []string) {
 			js.cite(callee.Declaration.clause())
 		}
 	}
-	for _, mw := range chain {
+	for i, mw := range chain {
+		mwAt := js.clause(rt.fact)
+		if i < len(rt.chainAt) && rt.chainAt[i] != "" {
+			mwAt = rt.chainAt[i]
+		}
 		v := &mw
 		if v.Name != nil {
 			if vr := js.variableOf(v); vr != nil && vr.Value != nil && vr.Value.Call != nil {
@@ -434,6 +443,15 @@ func (js *jsReader) routePermission(rt *jsRoute, chain []jsValue, at []string) {
 			}
 		}
 		if v.Call == nil {
+			if g := js.gateOf(v); g != nil {
+				rt.gates = append(rt.gates, checkUse{clause: mwAt, check: v.describe(), bound: g})
+				citeCheck(v)
+			}
+			continue
+		}
+		if g := js.gateOf(&v.Call.Callee); g != nil {
+			rt.gates = append(rt.gates, js.gateUse(g, v.Call, mwAt))
+			citeCheck(&v.Call.Callee)
 			continue
 		}
 		if c := js.checkOf(&v.Call.Callee); c != nil {
@@ -450,6 +468,11 @@ func (js *jsReader) routePermission(rt *jsRoute, chain []jsValue, at []string) {
 				}
 			}
 			if f.Kind == "call" {
+				if g := js.gateOf(f.Callee); g != nil {
+					rt.gates = append(rt.gates, js.gateUse(g, &jsCall{Callee: *f.Callee, Arguments: f.Arguments}, js.clause(f)))
+					citeCheck(f.Callee)
+					continue
+				}
 				if c := js.checkOf(f.Callee); c != nil {
 					use(c, f.Arguments, js.clause(f))
 					citeCheck(f.Callee)
@@ -466,6 +489,30 @@ func (js *jsReader) routePermission(rt *jsRoute, chain []jsValue, at []string) {
 	case len(found) == 1:
 		rt.checks = []string{"a check the implementation file names whose permission is not a literal permission name"}
 	}
+}
+
+// gateUse is a call of a gate, with the names its argument gives.
+func (js *jsReader) gateUse(g *permissionCheck, call *jsCall, clause string) checkUse {
+	u := checkUse{clause: clause, check: call.Callee.describe(), bound: g}
+	if g.argument > 0 {
+		vals := make([]*jsValue, len(call.Arguments))
+		for i := range call.Arguments {
+			vals[i] = &call.Arguments[i]
+		}
+		u.names, u.argument, u.trailing = gateNamesOf(vals, g.argument, js.constString,
+			func(v *jsValue) ([]*jsValue, bool) {
+				if v.Array == nil {
+					return nil, false
+				}
+				out := make([]*jsValue, len(v.Array))
+				for i := range v.Array {
+					out[i] = &v.Array[i]
+				}
+				return out, true
+			},
+			func(v *jsValue) string { return v.describe() })
+	}
+	return u
 }
 
 // jsPath writes Express's or Fastify's segments as a path template,
@@ -540,6 +587,8 @@ func (js *jsReader) writeRoutes(routes []*jsRoute) {
 	})
 	js.paths = mapping()
 	usedBy := map[string][]*jsRoute{}
+	gw := newGateWriter(js.gateHost())
+	checkedBy := map[string][]string{}
 	var lastPath string
 	var item *yaml.Node
 	for _, rt := range held {
@@ -563,9 +612,18 @@ func (js *jsReader) writeRoutes(routes []*jsRoute) {
 			}
 		}
 		op := mapping("operationId", rt.id)
+		callers, via := gw.route(label, rt.at, rt.gates)
+		gw.permission(rt.gates, rt.permission)
 		if rt.permission != "" {
 			set(op, "permission", rt.permission)
 			usedBy[rt.permission] = append(usedBy[rt.permission], rt)
+			checkedBy[rt.permission] = append(checkedBy[rt.permission], label)
+		}
+		if callers != nil {
+			set(op, "callers", callers)
+		}
+		if via != nil {
+			set(op, "via", via)
 		}
 		says := "Registers " + label
 		if rt.name != "" {
@@ -573,6 +631,15 @@ func (js *jsReader) writeRoutes(routes []*jsRoute) {
 		}
 		if rt.permission != "" {
 			says += "; its middleware checks " + rt.permission
+		}
+		if len(rt.gates) > 0 {
+			var gates []string
+			for _, g := range rt.gates {
+				if !contains(gates, g.check) {
+					gates = append(gates, g.check)
+				}
+			}
+			says += "; it is gated by " + joinAnd(gates)
 		}
 		cites := []*yaml.Node{js.at(clause, says+".")}
 		for _, m := range rt.mounts {
@@ -614,6 +681,8 @@ func (js *jsReader) writeRoutes(routes []*jsRoute) {
 		js.question("must", fmt.Sprintf("Does the running system register %s? It is declared at %s, and no list the running system printed was read with it.", label, clause),
 			[]string{rt.at}, "Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.", js.at(clause, "Registers "+label+"."))
 	}
+	gw.writeTrailing()
+	gw.writeGated(checkedBy)
 	if len(usedBy) > 0 {
 		var names []string
 		for n := range usedBy {

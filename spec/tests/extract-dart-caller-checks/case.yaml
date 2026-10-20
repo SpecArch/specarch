@@ -1,0 +1,34 @@
+arguments: [extract, dart, --implementation, implementation/core.dart.specarch-implementation.yaml, --out, spec, repo/facts.json]
+repository:
+  folder: repo
+  commits:
+    - [svc]
+    - [facts.json]
+exitStatus: 0
+standardOutput: |
+  commit 702418c08adf82773b17bf9de0b10671915e18c0: the last change to svc, as the code-facts dump facts.json names it
+  checks: implementation/core.dart.specarch-implementation.yaml names the permission checks lib/guard.allow and lib/guard.needs
+  checks: implementation/core.dart.specarch-implementation.yaml names the client checks lib/guard.requireClients and lib/guard.requireClient
+  checks: implementation/core.dart.specarch-implementation.yaml names the application check lib/guard.requireApplication
+  checks: implementation/core.dart.specarch-implementation.yaml names the caller check lib/guard.requireCaller
+  checks: implementation/core.dart.specarch-implementation.yaml names the audience check lib/guard.requireAudience
+  checks: implementation/core.dart.specarch-implementation.yaml names the event writer lib/guard.audit
+  counted 4 Dart files, 0 of them with syntax the analyzer could not read, and 56 facts: every tracked Dart file under svc, and every fact the dump holds
+  routes: counted 5 registrations: every call of get, post, put, patch, delete, head, options or all with a path and a handler on a shelf_router Router
+  routes: counted 1 route file under routes/: every dart_frog file with an onRequest
+  gate: implementation/core.dart.specarch-implementation.yaml names lib/guard.requireApplication as an application check, and it guards 1 operation
+  gate: implementation/core.dart.specarch-implementation.yaml names lib/guard.requireAudience as an audience check, and it guards 1 operation
+  gate: implementation/core.dart.specarch-implementation.yaml names lib/guard.requireCaller as a caller check, and it guards 1 operation, whose via are the services it names
+  gate: implementation/core.dart.specarch-implementation.yaml names lib/guard.requireCaller as a caller check, and it guards 1 operation
+  gate: implementation/core.dart.specarch-implementation.yaml names lib/guard.requireClient as a client check, and it guards 1 operation, whose callers are the clients it names
+  gate: implementation/core.dart.specarch-implementation.yaml names lib/guard.requireClients as a client check, and it guards 2 operations, whose callers are the clients it names
+  gate: implementation/core.dart.specarch-implementation.yaml names lib/guard.audit as an event writer, and it guards 1 operation; every security event is derived from the refusal that writes it, so the reader writes nothing from it
+  settings: counted 1 read: every fromEnvironment and every read of Platform.environment
+  wrote 0 pages, 0 schemas, 0 enums, 6 operations, 0 dependencies, 1 setting and 27 questions: one per element the source declares through an idiom the reader knows, one question per thing the source does not say, and one per thing the meta-model cannot hold
+  derived 0 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers
+  not derived: 3 draft tests for operation list, held up by Q-1, Q-2, Q-24; the validator warns for them until the questions are answered
+  not derived: 3 draft tests for operation delete, held up by Q-21, Q-3, Q-4, Q-5; the validator warns for them until the questions are answered
+  not derived: 3 draft tests for operation archive, held up by Q-6, Q-7, Q-8; the validator warns for them until the questions are answered
+  not derived: 4 draft tests for operation send, held up by Q-10, Q-11, Q-12, Q-18, Q-23, Q-24, Q-9; the validator warns for them until the questions are answered
+  not derived: 3 draft tests for operation void, held up by Q-13, Q-14, Q-15, Q-22; the validator warns for them until the questions are answered
+  not derived: 2 draft tests for operation getReports, held up by Q-16, Q-17; the validator warns for them until the questions are answered

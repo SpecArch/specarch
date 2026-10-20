@@ -280,6 +280,7 @@ type dartReader struct {
 	paths, permissions, deps        *yaml.Node
 	config                          *yaml.Node
 	checks                          []permissionCheck
+	gates                           []permissionCheck // the checks that read no permission (ADR-154, ADR-159)
 	checkFile                       string
 	counts                          map[string]int
 	widths                          []string
@@ -486,10 +487,27 @@ func (dr *dartReader) loadChecks(file string) error {
 		return refuse("%s does not parse as YAML", file)
 	}
 	dr.checkFile = file
-	list := child(child(child(doc.Content[0], "bindings"), "http"), "permissionChecks")
+	binding := child(child(doc.Content[0], "bindings"), "http")
+	dr.loadPermissionChecks(file, binding)
+	all := loadGates(dr.gateHost(), binding, dr.checks)
+	dr.gates = append([]permissionCheck(nil), all[len(dr.checks):]...)
+	return nil
+}
+
+// gateHost is the Dart reader as the gates see it.
+func (dr *dartReader) gateHost() gateHost {
+	return gateHost{question: func(priority, text string, blocks []string, why string, cites ...*yaml.Node) {
+		dr.question(priority, text, blocks, why, cites...)
+	}, at: dr.at, say: dr.res.say, file: dr.checkFile}
+}
+
+// loadPermissionChecks reads the checks an implementation file names under
+// bindings.http.permissionChecks.
+func (dr *dartReader) loadPermissionChecks(file string, binding *yaml.Node) {
+	list := child(binding, "permissionChecks")
 	if list == nil {
 		dr.res.say("checks: %s names no permission check under bindings.http.permissionChecks", file)
-		return nil
+		return
 	}
 	var names []string
 	for i, item := range list.Content {
@@ -506,14 +524,50 @@ func (dr *dartReader) loadChecks(file string) error {
 	if len(names) > 0 {
 		dr.res.say("checks: %s names the permission %s %s", file, map[bool]string{true: "check", false: "checks"}[len(names) == 1], joinAnd(names))
 	}
-	return nil
 }
 
 // checkOf is the check a call is: by its function's name, declared in the
 // files read under its package's path, or imported by its package URI.
 func (dr *dartReader) checkOf(name string, file string) *permissionCheck {
-	for i := range dr.checks {
-		c := &dr.checks[i]
+	return dr.matchCheck(dr.checks, name, file)
+}
+
+// gateOf is the gate a call is, matched as a permission check is.
+func (dr *dartReader) gateOf(name string, file string) *permissionCheck {
+	return dr.matchCheck(dr.gates, name, file)
+}
+
+// gateUse is a call of a gate, with the names its positional argument
+// gives.
+func (dr *dartReader) gateUse(g *permissionCheck, name string, args []dartArg, clause string) checkUse {
+	u := checkUse{clause: clause, check: name, bound: g}
+	if g.argument > 0 {
+		var vals []*dartValue
+		for i := range args {
+			if args[i].Name == "" {
+				vals = append(vals, &args[i].Value)
+			}
+		}
+		u.names, u.argument, u.trailing = gateNamesOf(vals, g.argument,
+			func(v *dartValue) (string, bool) { return v.stringLiteral() },
+			func(v *dartValue) ([]*dartValue, bool) {
+				if v.List == nil {
+					return nil, false
+				}
+				out := make([]*dartValue, len(v.List))
+				for i := range v.List {
+					out[i] = &v.List[i]
+				}
+				return out, true
+			},
+			func(v *dartValue) string { return v.describe() })
+	}
+	return u
+}
+
+func (dr *dartReader) matchCheck(checks []permissionCheck, name string, file string) *permissionCheck {
+	for i := range checks {
+		c := &checks[i]
 		if c.function != name {
 			continue
 		}

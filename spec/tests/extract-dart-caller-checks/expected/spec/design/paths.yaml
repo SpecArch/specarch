@@ -1,0 +1,72 @@
+permissions:
+  invoices.delete:
+    origin: stated
+    cites:
+      - {source: code, clause: 'svc/lib/server.dart:12', says: 'DELETE /invoices/{invoiceId}, POST /invoices/{invoiceId}/archive and POST /invoices/{invoiceId}/void check invoices.delete.'}
+  invoices.read:
+    origin: stated
+    cites:
+      - {source: code, clause: 'svc/lib/server.dart:11', says: 'GET /invoices and POST /invoices/{invoiceId}/send check invoices.read.'}
+  reports.read:
+    origin: stated
+    cites:
+      - {source: code, clause: 'svc/frog/routes/reports/index.dart:5', says: GET /reports checks reports.read.}
+paths:
+  /invoices:
+    get:
+      operationId: list
+      permission: invoices.read
+      callers: [reporting, archive]
+      origin: stated
+      cites:
+        - {source: code, clause: 'svc/lib/server.dart:11', says: 'Registers GET /invoices on api. Its check at svc/lib/server.dart:11 names invoices.read. It is gated by requireClients.'}
+        - {source: code, clause: 'svc/lib/server.dart:17', says: The handler _list.}
+  /invoices/{invoiceId}:
+    parameters:
+      - {name: invoiceId, in: path, required: true}
+    delete:
+      operationId: delete
+      permission: invoices.delete
+      via: [middleware]
+      origin: stated
+      cites:
+        - {source: code, clause: 'svc/lib/server.dart:12', says: 'Registers DELETE /invoices/<invoiceId> on api. Its check at svc/lib/server.dart:12 names invoices.delete. It is gated by requireCaller, requireApplication and audit.'}
+        - {source: code, clause: 'svc/lib/server.dart:19', says: The handler _delete.}
+  /invoices/{invoiceId}/archive:
+    parameters:
+      - {name: invoiceId, in: path, required: true}
+    post:
+      operationId: archive
+      permission: invoices.delete
+      origin: stated
+      cites:
+        - {source: code, clause: 'svc/lib/server.dart:14', says: 'Registers POST /invoices/<invoiceId>/archive on api. Its check at svc/lib/server.dart:14 names invoices.delete.'}
+        - {source: code, clause: 'svc/lib/server.dart:23', says: The handler _archive.}
+  /invoices/{invoiceId}/send:
+    parameters:
+      - {name: invoiceId, in: path, required: true}
+    post:
+      operationId: send
+      permission: invoices.read
+      callers: [mailer]
+      origin: stated
+      cites:
+        - {source: code, clause: 'svc/lib/server.dart:15', says: 'Registers POST /invoices/<invoiceId>/send on api. Its check at svc/lib/server.dart:15 names invoices.read. It is gated by requireClients and requireClient.'}
+        - {source: code, clause: 'svc/lib/server.dart:25', says: The handler _send.}
+  /invoices/{invoiceId}/void:
+    parameters:
+      - {name: invoiceId, in: path, required: true}
+    post:
+      operationId: void
+      permission: invoices.delete
+      origin: stated
+      cites:
+        - {source: code, clause: 'svc/lib/server.dart:13', says: 'Registers POST /invoices/<invoiceId>/void on api. Its check at svc/lib/server.dart:13 names invoices.delete. It is gated by requireCaller.'}
+        - {source: code, clause: 'svc/lib/server.dart:21', says: The handler _void.}
+  /reports:
+    get:
+      operationId: getReports
+      permission: reports.read
+      origin: stated
+      cites:
+        - {source: code, clause: 'svc/frog/routes/reports/index.dart:5', says: 'dart_frog serves GET /reports from svc/frog/routes/reports/index.dart. Its check at svc/frog/routes/reports/index.dart:7 names reports.read. It is gated by requireAudience.'}

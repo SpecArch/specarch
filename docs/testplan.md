@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.3-dev of the specification: 634 design tests, 296 golden and 338 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.3-dev of the specification: 637 design tests, 299 golden and 338 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.7.3-dev of the specification: 634 design tests, 296 golden and 338 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 630 |
+| system | 633 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -1047,6 +1047,14 @@ Scenario: golden; level: system; verifies SA-16, SA-22.
 
 ### Command extract
 
+#### extract-dart-caller-checks
+
+Scenario: golden; level: system; verifies SA-89.
+
+- Given: a code-facts dump of a shelf_router server whose handlers are wrapped in checks nested one in another, admitting two clients named in a list literal at one route, checking the immediate caller against a list literal at one route and against a setting at another, admitting one application named as a string at a route whose permission two other routes check without it, wrapped there in an event writer, and at one more route two client checks in turn whose lists differ, the second given a reason string after the client it names; a dart_frog route whose folder's _middleware.dart checks the audience against a literal; and an implementation file naming each under permissionChecks, clientChecks, applicationChecks, callerChecks, audienceChecks and eventWriters, with the argument that carries the names
+- When: extract dart is run on the dump with the implementation file
+- Then: it reads the gates as extract go does: writes the literal clients as the operation's callers and the literal service as the other's via, each with a must question to declare them that holds the errors at callers and via; asks for the via of the route whose names come from the setting, naming it; asks for the through the application check narrows, naming the two routes that check the same permission without it; asks at the tokens to write the literal audience the middleware checks as the const of aud; names the event writer and writes nothing from it; writes the clients both checks list as the callers of the route with two, asking which it is meant to admit; asks whether the string after the named argument is a name, writing it nowhere; reads every route's permission through the nested wrappers as before; and exits 0
+
 #### extract-dart-flutter-screens
 
 Scenario: golden; level: system; verifies SA-44.
@@ -1358,6 +1366,14 @@ Scenario: golden; level: system; verifies SA-79.
 - Given: a repository holding Go packages that each register a health route of their own and a fallback: on gin, NoRoute and NoMethod, Any under a group with a catch-all path, Match with a catch-all path, and Any on a plain path; on chi, NotFound and MethodNotAllowed and Handle with a catch-all; on gorilla/mux, PathPrefix given a router of the module with a route of its own, PathPrefix with Methods given another router of the module, PathPrefix given a handler that is no router, five routes whose last variable has a pattern that can match a slash, one with a literal slash in it, one that matches only a path of its own shape and one holding braces, and a route whose variable's pattern holds braces and cannot match a slash, and the NotFoundHandler and MethodNotAllowedHandler fields set through a struct field that keeps the router, the second behind a condition; on echo, the HTTPErrorHandler field; and on net/http's ServeMux, a wildcard pattern, the pattern / with no method handing every request to another mux, and the pattern / with no method given a handler that is no router
 - When: extract go is run on the module
 - Then: it writes one operation per health route, one for the route whose variable's pattern holds braces, named by the variable alone with a line for its pattern, one for the route of the mux handed every request under /, and one for the route of each router PathPrefix is given, each mounted under no prefix, with a line for the Methods on the second mount; asks a must question blocking gateways, counted as a registration, for each fallback registration and field, through the struct field too, naming the handler and the requests it takes, for the pattern / given a handler that is no router, for each route whose path ends in a catch-all, the gorilla/mux variables whose pattern matches a slash among them, and for PathPrefix given a handler that is no router, naming its prefix and its methods, every method for Any, Handle and PathPrefix; asks the question for a registration behind a condition for the field set behind one; asks the question for every method for the plain Any as before; and exits 0
+
+#### extract-javascript-caller-checks
+
+Scenario: golden; level: system; verifies SA-89.
+
+- Given: a code-facts dump of an Express server in TypeScript whose app.use() checks every route's audience against a setting, whose routes admit two clients named in an array literal at one route, check the immediate caller against an array literal at one route and against a setting at another, admit one application named as a string at a route whose permission two other routes check without it, and pass the event writer there by its name, without a call; and at one more route pass two client checks in turn whose lists differ, the second given a reason string after the client it names; and an implementation file naming each under permissionChecks, clientChecks, applicationChecks, callerChecks, audienceChecks and eventWriters, with the argument that carries the names
+- When: extract javascript is run on the dump with the implementation file
+- Then: it reads the gates as extract go does: writes the literal clients as the operation's callers and the literal service as the other's via, each with a must question to declare them that holds the errors at callers and via; asks for the via of the route whose names come from the setting, naming it; asks for the through the application check narrows, naming the two routes that check the same permission without it; asks at the tokens for the audience the setting gives, citing the use() call; names the event writer and writes nothing from it; writes the clients both checks list as the callers of the route with two, asking which it is meant to admit; asks whether the string after the named argument is a name, writing it nowhere; reads every route's permission as before; and exits 0
 
 #### extract-javascript-express-routes
 
@@ -1726,6 +1742,14 @@ Scenario: golden; level: system; verifies SA-44.
 - Given: a repository whose first commit holds a router's folder and whose second holds the route table printed from it, naming the first; the table has two methods on one path, a path with a parameter, a route with no permission, a HEAD route, a path with a wildcard, a handler serving two routes and a permission that is not a permission name
 - When: extract router is run on the route table
 - Then: it writes one operation per held method and path pair with its path parameters and permission, one permission per name a route checks, a question for each operation's summary and responses, each path's parameter values, the permissions' descriptions and the roles that grant them, every route without a usable permission, names the commit, counts the routes, prints a line for the HEAD route, the wildcard, the permission name and the shared handler, a could question citing the route for each but the permission name, which a must question asks for, and exits 0
+
+#### extract-swift-caller-checks
+
+Scenario: golden; level: system; verifies SA-89.
+
+- Given: a code-facts dump of a Vapor server whose groups check every route's audience against a setting, admit two clients named in an array literal at one route, check the immediate caller against an array literal at one route and against a setting at another, admit one application named as a string at a route whose permission two other routes check without it, and add an event writer there; and at one more route add two client checks in turn whose lists differ, the second given a reason string after the client it names; and an implementation file naming each under permissionChecks, clientChecks, applicationChecks, callerChecks, audienceChecks and eventWriters, with the argument that carries the names
+- When: extract swift is run on the dump with the implementation file
+- Then: it reads the gates as extract go does: writes the literal clients as the operation's callers and the literal service as the other's via, each with a must question to declare them that holds the errors at callers and via; asks for the via of the route whose names come from the setting, naming it; asks for the through the application check narrows, naming the two routes that check the same permission without it; asks at the tokens for the audience the setting gives; names the event writer and writes nothing from it; writes the clients both checks list as the callers of the route with two, asking which it is meant to admit; asks whether the string after the named argument is a name, writing it nowhere; reads every route's permission as before; and exits 0
 
 #### extract-swift-clients-settings
 
@@ -5155,7 +5179,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-383 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+384 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -5377,6 +5401,7 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-89 | acceptance 3 | golden | SA-89 names no harm |
 | requirement SA-89 | acceptance 4 | golden | SA-89 names no harm |
 | requirement SA-89 | acceptance 5 | golden | SA-89 names no harm |
+| requirement SA-89 | acceptance 6 | golden | SA-89 names no harm |
 | requirement SA-7 | acceptance 1 | golden | SA-7 names no harm |
 | requirement SA-7 | acceptance 2 | golden | SA-7 names no harm |
 | requirement SA-8 | acceptance 1 | golden | SA-8 names no harm |

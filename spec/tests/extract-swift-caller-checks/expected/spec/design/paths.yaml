@@ -1,0 +1,61 @@
+permissions:
+  invoices.delete:
+    origin: stated
+    cites:
+      - {source: code, clause: 'server/Sources/App/routes.swift:11', says: 'DELETE /invoices/{invoiceId}, POST /invoices/{invoiceId}/archive and POST /invoices/{invoiceId}/void check invoices.delete.'}
+  invoices.read:
+    origin: stated
+    cites:
+      - {source: code, clause: 'server/Sources/App/routes.swift:9', says: 'GET /invoices and POST /invoices/{invoiceId}/send check invoices.read.'}
+paths:
+  /invoices:
+    get:
+      operationId: listInvoices
+      permission: invoices.read
+      callers: [reporting, archive]
+      origin: stated
+      cites:
+        - {source: code, clause: 'server/Sources/App/routes.swift:9', says: 'Registers GET /invoices; its handler is listInvoices; the group made at server/Sources/App/routes.swift:8 checks invoices.read; it is gated by RequireAudience and RequireClients.'}
+        - {source: code, clause: 'server/Sources/App/routes.swift:20', says: The handler listInvoices.}
+  /invoices/{invoiceId}:
+    parameters:
+      - {name: invoiceId, in: path, required: true}
+    delete:
+      operationId: deleteInvoice
+      permission: invoices.delete
+      via: [middleware]
+      origin: stated
+      cites:
+        - {source: code, clause: 'server/Sources/App/routes.swift:11', says: 'Registers DELETE /invoices/{invoiceId}; its handler is deleteInvoice; the group made at server/Sources/App/routes.swift:10 checks invoices.delete; it is gated by RequireAudience, RequireCaller, RequireApplication and Audit.'}
+        - {source: code, clause: 'server/Sources/App/routes.swift:22', says: The handler deleteInvoice.}
+  /invoices/{invoiceId}/archive:
+    parameters:
+      - {name: invoiceId, in: path, required: true}
+    post:
+      operationId: archiveInvoice
+      permission: invoices.delete
+      origin: stated
+      cites:
+        - {source: code, clause: 'server/Sources/App/routes.swift:15', says: 'Registers POST /invoices/{invoiceId}/archive; its handler is archiveInvoice; the group made at server/Sources/App/routes.swift:14 checks invoices.delete; it is gated by RequireAudience.'}
+        - {source: code, clause: 'server/Sources/App/routes.swift:29', says: The handler archiveInvoice.}
+  /invoices/{invoiceId}/send:
+    parameters:
+      - {name: invoiceId, in: path, required: true}
+    post:
+      operationId: sendInvoice
+      permission: invoices.read
+      callers: [mailer]
+      origin: stated
+      cites:
+        - {source: code, clause: 'server/Sources/App/routes.swift:17', says: 'Registers POST /invoices/{invoiceId}/send; its handler is sendInvoice; the group made at server/Sources/App/routes.swift:16 checks invoices.read; it is gated by RequireAudience, RequireClients and RequireClient.'}
+        - {source: code, clause: 'server/Sources/App/routes.swift:31', says: The handler sendInvoice.}
+  /invoices/{invoiceId}/void:
+    parameters:
+      - {name: invoiceId, in: path, required: true}
+    post:
+      operationId: voidInvoice
+      permission: invoices.delete
+      origin: stated
+      cites:
+        - {source: code, clause: 'server/Sources/App/routes.swift:13', says: 'Registers POST /invoices/{invoiceId}/void; its handler is voidInvoice; the group made at server/Sources/App/routes.swift:12 checks invoices.delete; it is gated by RequireAudience and RequireCaller.'}
+        - {source: code, clause: 'server/Sources/App/routes.swift:27', says: The handler voidInvoice.}

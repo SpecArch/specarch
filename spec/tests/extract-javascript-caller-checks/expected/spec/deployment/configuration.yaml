@@ -1,0 +1,11 @@
+configuration:
+  tokenAudience:
+    schema: {type: string}
+    origin: stated
+    cites:
+      - {source: code, clause: 'server/src/app.ts:8', says: 'Reads process.env.TOKEN_AUDIENCE, "" when it is not set.'}
+  voidCallers:
+    schema: {type: string, default: ""}
+    origin: stated
+    cites:
+      - {source: code, clause: 'server/src/app.ts:6', says: 'Reads process.env.VOID_CALLERS, "" when it is not set.'}

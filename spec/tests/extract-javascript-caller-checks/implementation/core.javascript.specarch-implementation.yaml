@@ -1,0 +1,42 @@
+specarchImplementation: "0.1"
+
+info:
+  title: The core in JavaScript
+  version: 0.1.0
+
+implements:
+  file: ../specarch.yaml
+  version: 0.1.0
+
+stack:
+  language: { name: TypeScript, version: "6.0" }
+
+bindings:
+  http:
+    framework: Express
+    permissionChecks:
+      - package: src/guard
+        function: allow
+        permissionArgument: 1
+    clientChecks:
+      - package: src/guard
+        function: requireClients
+        clientArgument: 1
+      - package: src/guard
+        function: requireClient
+        clientArgument: 1
+    applicationChecks:
+      - package: src/guard
+        function: requireApplication
+        applicationArgument: 1
+    callerChecks:
+      - package: src/guard
+        function: requireCaller
+        callerArgument: 1
+    audienceChecks:
+      - package: src/guard
+        function: requireAudience
+        audienceArgument: 1
+    eventWriters:
+      - package: src/guard
+        function: audit

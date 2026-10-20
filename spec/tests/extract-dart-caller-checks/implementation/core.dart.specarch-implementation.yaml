@@ -1,0 +1,45 @@
+specarchImplementation: "0.1"
+
+info:
+  title: The core in Dart
+  version: 0.1.0
+
+implements:
+  file: ../specarch.yaml
+  version: 0.1.0
+
+stack:
+  language: { name: Dart, version: "3.11" }
+
+bindings:
+  http:
+    framework: shelf_router
+    permissionChecks:
+      - package: lib/guard
+        function: allow
+        permissionArgument: 1
+      - package: lib/guard
+        function: needs
+        permissionArgument: 1
+    clientChecks:
+      - package: lib/guard
+        function: requireClients
+        clientArgument: 1
+      - package: lib/guard
+        function: requireClient
+        clientArgument: 1
+    applicationChecks:
+      - package: lib/guard
+        function: requireApplication
+        applicationArgument: 1
+    callerChecks:
+      - package: lib/guard
+        function: requireCaller
+        callerArgument: 1
+    audienceChecks:
+      - package: lib/guard
+        function: requireAudience
+        audienceArgument: 1
+    eventWriters:
+      - package: lib/guard
+        function: audit

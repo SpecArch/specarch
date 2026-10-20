@@ -14,6 +14,7 @@ import (
 type swMount struct {
 	segments []string
 	chain    []*swCall
+	chainAt  []string // where the group of each middleware was made, "" while not known
 	at       []string // where each group was made, outermost first
 }
 
@@ -30,6 +31,7 @@ type swRoute struct {
 	handlerFn  *swFact
 	permission string
 	checks     []string // where a named check was found, for the citation
+	gates      []checkUse
 	id         string
 	at         string
 }
@@ -146,6 +148,7 @@ func (sw *swiftReader) readRoutes() {
 				}
 				for i := range m {
 					m[i].at = append(append([]string{}, m[i].at...), sw.clause(f))
+					m[i].chainAt = placeChain(m[i].chainAt, sw.clause(f))
 				}
 				vars[f.AssignedTo] = m
 			case f.Name == "group" && len(f.Closures) > 0 && f.Closures[0].Value.Closure != nil && len(f.Closures[0].Value.Closure.Parameters) == 1:
@@ -157,6 +160,7 @@ func (sw *swiftReader) readRoutes() {
 				}
 				for i := range m {
 					m[i].at = append(append([]string{}, m[i].at...), sw.clause(f))
+					m[i].chainAt = placeChain(m[i].chainAt, sw.clause(f))
 				}
 				vars[p] = m
 			}
@@ -199,7 +203,7 @@ func (sw *swiftReader) readRoutes() {
 			}
 			var out []swMount
 			for _, b := range base {
-				out = append(out, swMount{segments: append(append([]string{}, b.segments...), segs...), chain: append(append([]*swCall{}, b.chain...), chain...), at: b.at})
+				out = append(out, swMount{segments: append(append([]string{}, b.segments...), segs...), chain: append(append([]*swCall{}, b.chain...), chain...), chainAt: append(append([]string{}, b.chainAt...), make([]string, len(chain))...), at: b.at})
 			}
 			return out, ""
 		}
@@ -286,7 +290,11 @@ func (sw *swiftReader) readRoutes() {
 				}
 			}
 			var found []string
-			for _, mw := range m.chain {
+			for i, mw := range m.chain {
+				if u, ok := sw.gateUse(mw, placeChain(m.chainAt, clause)[i]); ok {
+					rt.gates = append(rt.gates, u)
+					continue
+				}
 				for _, c := range sw.checks {
 					if c.function != mw.Name {
 						continue
@@ -322,6 +330,55 @@ func (sw *swiftReader) readRoutes() {
 		sw.res.say("routes: counted %s: every call of get, post, put, patch, delete or on with a handler on a value of a file that imports Vapor", plural(registrations, "registration"))
 	}
 	sw.writeRoutes(routes)
+}
+
+// placeChain is where each middleware's group was made, the ones not
+// known yet made at clause.
+func placeChain(at []string, clause string) []string {
+	out := append([]string(nil), at...)
+	for i := range out {
+		if out[i] == "" {
+			out[i] = clause
+		}
+	}
+	return out
+}
+
+// gateUse says whether a group's middleware is one of the gates the
+// implementation file names, by its function's name as a permission check
+// is matched, and reads the names its argument gives.
+func (sw *swiftReader) gateUse(mw *swCall, clause string) (checkUse, bool) {
+	for i := range sw.gates {
+		c := &sw.gates[i]
+		if c.function != mw.Name {
+			continue
+		}
+		u := checkUse{clause: clause, check: mw.Name, bound: c}
+		if c.argument > 0 {
+			vals := make([]*swValue, len(mw.Arguments))
+			for j := range mw.Arguments {
+				vals[j] = &mw.Arguments[j].Value
+			}
+			u.names, u.argument, u.trailing = gateNamesOf(vals, c.argument,
+				func(v *swValue) (string, bool) { return v.stringLiteral() },
+				func(v *swValue) ([]*swValue, bool) {
+					if v.Array == nil {
+						return nil, false
+					}
+					out := make([]*swValue, len(v.Array))
+					for k := range v.Array {
+						out[k] = &v.Array[k]
+					}
+					return out, true
+				},
+				func(v *swValue) string { return v.describe() })
+		}
+		if t := sw.types[c.function]; t != nil && t.decl != nil {
+			sw.cite(t.decl.File)
+		}
+		return u, true
+	}
+	return checkUse{}, false
 }
 
 // splitSegments splits a literal path argument at its slashes, as Vapor
@@ -406,6 +463,8 @@ func (sw *swiftReader) writeRoutes(routes []*swRoute) {
 	})
 	sw.paths = mapping()
 	usedBy := map[string][]*swRoute{}
+	gw := newGateWriter(sw.gateHost())
+	checkedBy := map[string][]string{}
 	var lastPath string
 	var item *yaml.Node
 	for _, rt := range held {
@@ -429,9 +488,18 @@ func (sw *swiftReader) writeRoutes(routes []*swRoute) {
 			}
 		}
 		op := mapping("operationId", rt.id)
+		callers, via := gw.route(label, rt.at, rt.gates)
+		gw.permission(rt.gates, rt.permission)
 		if rt.permission != "" {
 			set(op, "permission", rt.permission)
 			usedBy[rt.permission] = append(usedBy[rt.permission], rt)
+			checkedBy[rt.permission] = append(checkedBy[rt.permission], label)
+		}
+		if callers != nil {
+			set(op, "callers", callers)
+		}
+		if via != nil {
+			set(op, "via", via)
 		}
 		says := fmt.Sprintf("Registers %s", label)
 		if rt.handler != "" {
@@ -439,6 +507,15 @@ func (sw *swiftReader) writeRoutes(routes []*swRoute) {
 		}
 		if rt.permission != "" {
 			says += fmt.Sprintf("; the group made at %s checks %s", rt.checks[len(rt.checks)-1], rt.permission)
+		}
+		if len(rt.gates) > 0 {
+			var gates []string
+			for _, g := range rt.gates {
+				if !contains(gates, g.check) {
+					gates = append(gates, g.check)
+				}
+			}
+			says += "; it is gated by " + joinAnd(gates)
 		}
 		cites := []*yaml.Node{sw.at(clause, says+".")}
 		if rt.handlerFn != nil {
@@ -464,6 +541,8 @@ func (sw *swiftReader) writeRoutes(routes []*swRoute) {
 		sw.question("must", fmt.Sprintf("Does the running system register %s? It is declared at %s, and no list the running system printed was read with it.", label, clause),
 			[]string{rt.at}, "Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.", sw.at(clause, "Registers "+label+"."))
 	}
+	gw.writeTrailing()
+	gw.writeGated(checkedBy)
 	if len(usedBy) > 0 {
 		var names []string
 		for n := range usedBy {

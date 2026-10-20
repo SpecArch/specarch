@@ -418,6 +418,7 @@ type jsReader struct {
 	paths, permissions, deps *yaml.Node
 	config                   *yaml.Node
 	checks                   []permissionCheck
+	gates                    []permissionCheck // the checks that read no permission (ADR-154, ADR-159)
 	checkFile                string
 	counts                   map[string]int
 	widths                   []string          // the numbers whose width is asked, by where they are
@@ -768,10 +769,27 @@ func (js *jsReader) loadChecks(file string) error {
 	}
 	js.checkFile = file
 	js.loadComponents(file, doc.Content[0])
-	list := child(child(child(doc.Content[0], "bindings"), "http"), "permissionChecks")
+	binding := child(child(doc.Content[0], "bindings"), "http")
+	js.loadPermissionChecks(file, binding)
+	all := loadGates(js.gateHost(), binding, js.checks)
+	js.gates = append([]permissionCheck(nil), all[len(js.checks):]...)
+	return nil
+}
+
+// gateHost is the JavaScript reader as the gates see it.
+func (js *jsReader) gateHost() gateHost {
+	return gateHost{question: func(priority, text string, blocks []string, why string, cites ...*yaml.Node) {
+		js.question(priority, text, blocks, why, cites...)
+	}, at: js.at, say: js.res.say, file: js.checkFile}
+}
+
+// loadPermissionChecks reads the checks an implementation file names under
+// bindings.http.permissionChecks.
+func (js *jsReader) loadPermissionChecks(file string, binding *yaml.Node) {
+	list := child(binding, "permissionChecks")
 	if list == nil {
 		js.res.say("checks: %s names no permission check under bindings.http.permissionChecks", file)
-		return nil
+		return
 	}
 	var names []string
 	for i, item := range list.Content {
@@ -792,18 +810,27 @@ func (js *jsReader) loadChecks(file string) error {
 		}
 		js.res.say("checks: %s names the permission %s %s", file, word, joinAnd(names))
 	}
-	return nil
 }
 
 // checkOf is the check the implementation file names that a callee
 // calls, or nil: by its function's name, and by the module it is
 // imported from or the file it is declared in.
 func (js *jsReader) checkOf(callee *jsValue) *permissionCheck {
+	return js.matchCheck(js.checks, callee)
+}
+
+// gateOf is the gate the implementation file names that a callee calls,
+// or nil, matched as a permission check is.
+func (js *jsReader) gateOf(callee *jsValue) *permissionCheck {
+	return js.matchCheck(js.gates, callee)
+}
+
+func (js *jsReader) matchCheck(checks []permissionCheck, callee *jsValue) *permissionCheck {
 	if callee == nil || callee.Name == nil {
 		return nil
 	}
-	for i := range js.checks {
-		c := &js.checks[i]
+	for i := range checks {
+		c := &checks[i]
 		name := *callee.Name
 		if callee.Import != nil {
 			name = callee.Import.Imported

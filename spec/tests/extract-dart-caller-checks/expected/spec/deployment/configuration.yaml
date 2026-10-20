@@ -1,0 +1,6 @@
+configuration:
+  voidCallers:
+    schema: {type: string}
+    origin: stated
+    cites:
+      - {source: code, clause: 'svc/lib/server.dart:8', says: 'Reads Platform.environment["VOID_CALLERS"].'}

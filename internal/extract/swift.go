@@ -317,6 +317,7 @@ type swiftReader struct {
 	entityNames              map[string]bool
 	wireSnake                bool
 	checks                   []permissionCheck
+	gates                    []permissionCheck // the checks that read no permission (ADR-154, ADR-159)
 	checkFile                string
 	counts                   map[string]int
 }
@@ -499,10 +500,27 @@ func (sw *swiftReader) loadChecks(file string) error {
 		return refuse("%s does not parse as YAML", file)
 	}
 	sw.checkFile = file
-	list := child(child(child(doc.Content[0], "bindings"), "http"), "permissionChecks")
+	binding := child(child(doc.Content[0], "bindings"), "http")
+	sw.loadPermissionChecks(file, binding)
+	all := loadGates(sw.gateHost(), binding, sw.checks)
+	sw.gates = append([]permissionCheck(nil), all[len(sw.checks):]...)
+	return nil
+}
+
+// gateHost is the Swift reader as the gates see it.
+func (sw *swiftReader) gateHost() gateHost {
+	return gateHost{question: func(priority, text string, blocks []string, why string, cites ...*yaml.Node) {
+		sw.question(priority, text, blocks, why, cites...)
+	}, at: sw.at, say: sw.res.say, file: sw.checkFile}
+}
+
+// loadPermissionChecks reads the checks an implementation file names under
+// bindings.http.permissionChecks.
+func (sw *swiftReader) loadPermissionChecks(file string, binding *yaml.Node) {
+	list := child(binding, "permissionChecks")
 	if list == nil {
 		sw.res.say("checks: %s names no permission check under bindings.http.permissionChecks", file)
-		return nil
+		return
 	}
 	var names []string
 	for i, item := range list.Content {
@@ -523,7 +541,6 @@ func (sw *swiftReader) loadChecks(file string) error {
 		}
 		sw.res.say("checks: %s names the permission %s %s", file, word, joinAnd(names))
 	}
-	return nil
 }
 
 func (sw *swiftReader) question(priority, text string, blocks []string, why string, cites ...*yaml.Node) string {

@@ -1,0 +1,61 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.3.schema.json
+decisions:
+  ADR-169:
+    title: extract swift, javascript and dart read the client, signature, application, caller and audience checks and the event writers the implementation file names, where each finds its permission checks, and write and ask about them in the words extract go uses
+    status: accepted
+    date: "2026-10-21"
+    context: |
+      Roadmap 5, caller context. ADR-154 and ADR-159 named the gates
+      that read no permission under the http binding, clientChecks with
+      clientArgument, signatureChecks, applicationChecks, callerChecks,
+      audienceChecks and eventWriters, and only extract go read them; the
+      swift, javascript and dart readers read permissionChecks only, so
+      the same estate written in another language read its client,
+      caller and audience checks as nothing and its operations as open
+      to any caller.
+    decision: |
+      The swift, javascript and dart readers read the six lists as extract
+      go does and find a gate where each finds a permission check, matched
+      the same way: for swift, a middleware a group is given, made by the
+      check's function; for javascript, middleware of the route, of a
+      mount above it or of an earlier use on the same router, called with
+      its argument or named without a call, and a call in the handler; for
+      dart, a check wrapping the handler, the wrappers nested one in
+      another followed to the handler, a call in the handler, and a call
+      in a dart_frog _middleware.dart above the route or in its onRequest
+      in the branch of its method. The names an argument gives are a
+      string or a list of strings: an array literal in swift and
+      javascript, a list literal in dart, and in javascript a const the
+      permission is read through too. A gate is never read as a
+      permission check. What is written and asked follows ADR-154 and
+      ADR-159 word for word: callers and via from literals, the questions
+      for declarations, the names from a setting, the through, the
+      audience, the strings after the named argument and two checks of
+      one kind in turn; the four readers share the one code that writes
+      them.
+    consequences: |
+      An implementation file without the gate keys reads as before in
+      every reader. The Txn-Token header read stays with extract go: the
+      other readers do not read a handler's headers yet, so an operation
+      whose handler reads it is not asked about there. The facts dumps are
+      unchanged, since they already carry calls with their arguments and
+      array and list literals. The cases extract-swift-caller-checks,
+      extract-javascript-caller-checks and extract-dart-caller-checks hold
+      the readings.
+    why: |
+      One meaning per key: a check named under clientChecks admits only
+      clients whatever the language it is written in, so each reader
+      reads it and writes the same callers and the same questions, and a
+      specification extracted from a service in Swift, TypeScript or Dart
+      shows who may call it as one in Go does. Found where the permission
+      checks are found, because a project writes its gates the way it
+      writes its permission checks, and a reader that looked elsewhere
+      would read one and miss the other. Shared code for the writing,
+      because two copies of the same questions drift apart in wording, and
+      the merge joins questions by their words.
+      Compiler test: a gate named in part or twice is a must question at
+      the paths in every reader, and every name read is written or asked
+      at its entry. Acceptance test: the first techspec of a service in any
+      of the four languages shows who may call each route and which
+      question names the clients still to declare.
+    satisfies: [SA-89]

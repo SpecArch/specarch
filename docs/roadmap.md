@@ -396,9 +396,11 @@ techspec (`spec/tests/validate-caller-*`, `gaps-caller-alone`,
 `callerChecks`, `audienceChecks`, `eventWriters` and `clientArgument` in
 `extract go`, and a grant's `client` and `through` in `extract
 permissions` (`extract-go-caller-checks`,
-`extract-permissions-client-through`). Left to build: the same checks in
-the swift, javascript and dart readers, which read `permissionChecks`
-only; `through` on a pattern row of the permission table; the derived
+`extract-permissions-client-through`), and the same checks in the swift,
+javascript and dart readers (ADR-169, `extract-swift-caller-checks`,
+`extract-javascript-caller-checks`, `extract-dart-caller-checks`). Left
+to build: the `Txn-Token` header read in the swift, javascript and dart
+readers; `through` on a pattern row of the permission table; the derived
 `through` cases in a module whose roles live in the identity module,
 since `derive` reads one specification; the event clause and its identifier under
 the trust domain in the derived cases of a module whose

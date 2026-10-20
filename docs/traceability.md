@@ -115,7 +115,7 @@ Version 0.7.3-dev of the specification: 10 needs, 90 requirements, and 1 gap. Ea
 | SA-86 | NEED-8 | enums DocumentTarget; commands document; decisions ADR-157 | tests document-writes-comparison; tests document-writes-comparison-citation-without-source |
 | SA-87 | NEED-2 | decisions ADR-158; decisions ADR-167; decisions ADR-168 | tests generate-scripts; tests generate-scripts-dialect-refused; tests generate-scripts-hand-written-refused; tests generate-scripts-mariadb |
 | SA-88 | NEED-2, NEED-3 | enums Rule | tests document-techspec-caller-estate; tests gaps-caller-alone; tests validate-caller-chain-gap; tests validate-caller-chain-wrong; tests validate-caller-estate; tests validate-caller-estate-wrong |
-| SA-89 | NEED-2 | decisions ADR-159 | tests extract-go-caller-checks; tests extract-permissions-client-through |
+| SA-89 | NEED-2 | decisions ADR-159; decisions ADR-169 | tests extract-dart-caller-checks; tests extract-go-caller-checks; tests extract-javascript-caller-checks; tests extract-permissions-client-through; tests extract-swift-caller-checks |
 | SA-90 | NEED-3, NEED-5 | enums DocumentTarget; decisions ADR-160; decisions ADR-165; decisions ADR-166 | tests document-manual-none; tests document-operations-none; tests document-writes-manual; tests document-writes-manual-cli; tests document-writes-manual-cli-unnamed; tests document-writes-operations; tests validate-command-remedies; tests validate-jobs-dead-letter; tests validate-remedy-and-response |
 
 ## 3. Gaps

@@ -531,7 +531,7 @@ requirements:
     needs: [NEED-2, NEED-3]
     why: The clients, the roles and the trust domain are facts of the whole estate, not of one service, and every hop of a call must check the same names; kept in each module they drift apart, and kept in the umbrella they would put design into a file that only lists and pins the modules (ADR-107).
   SA-89:
-    statement: specarch extract go shall read the project's own checks of the clients, the application, the immediate caller and the audience, and its event writers, as the implementation file names them, write the clients and the services its checks name as literals as an operation's callers and via, and ask for everything else the code reads at run time, and for the transaction token of an operation whose handler reads the Txn-Token header.
+    statement: specarch extract go, swift, javascript and dart shall read the project's own checks of the clients, the application, the immediate caller and the audience, and its event writers, as the implementation file names them, write the clients and the services its checks name as literals as an operation's callers and via, and ask for everything else the code reads at run time; extract go shall also ask for the transaction token of an operation whose handler reads the Txn-Token header.
     kind: functional
     priority: should
     status: accepted
@@ -540,6 +540,7 @@ requirements:
       - A client check whose argument gives the clients as literals writes them as the callers of each operation it guards, and a caller check the services as its via, each with one must question per check asking for their declaration, which holds the errors of the names not declared yet; given otherwise, such as from a setting, each is a must question naming where the code reads them. Strings a check's call passes after the argument that names are a must question and written nowhere, and two or more literal checks of one kind on a route give the names every one lists, with a must question where their lists differ.
       - An application check is a must question for the through of every role that grants the operations' permission, naming any operation that checks the same permission without it; an audience check is a must question at the tokens with its literal or the setting it reads; an event writer is named and nothing is written from it.
       - An operation whose handler reads the Txn-Token header gets a must question for its transaction token and its via.
+      - extract swift, javascript and dart find each check where they find a permission check, and write and ask the same as extract go.
       - specarch extract permissions reads a grant's client, the row's subject when it is a client, as a role named after it held by the client declared as a service, with a must question for its proof and a could question to rename the role, named with -client added where a role of the table has the client's name, with a must question whether the client holds that role; and a grant's through as the role's through, the client declared as an application; a grant both narrowed and not by two rows, and a name used as subject and as through, are must questions, and so are what each client is and which token carries the application.
     verification: test
     needs: [NEED-2]

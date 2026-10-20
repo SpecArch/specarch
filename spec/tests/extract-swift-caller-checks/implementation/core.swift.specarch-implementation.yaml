@@ -1,0 +1,42 @@
+specarchImplementation: "0.1"
+
+info:
+  title: The core in Swift
+  version: 0.1.0
+
+implements:
+  file: ../specarch.yaml
+  version: 0.1.0
+
+stack:
+  language: { name: Swift, version: "6.0" }
+
+bindings:
+  http:
+    framework: Vapor
+    permissionChecks:
+      - package: App
+        function: Guarded
+        permissionArgument: 1
+    clientChecks:
+      - package: App
+        function: RequireClients
+        clientArgument: 1
+      - package: App
+        function: RequireClient
+        clientArgument: 1
+    applicationChecks:
+      - package: App
+        function: RequireApplication
+        applicationArgument: 1
+    callerChecks:
+      - package: App
+        function: RequireCaller
+        callerArgument: 1
+    audienceChecks:
+      - package: App
+        function: RequireAudience
+        audienceArgument: 1
+    eventWriters:
+      - package: App
+        function: Audit

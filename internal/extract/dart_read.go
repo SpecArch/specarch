@@ -779,6 +779,7 @@ type dartRoute struct {
 	handlerAt                  string
 	permission, unguarded      string
 	params                     []string
+	gates                      []checkUse
 	id, at                     string
 }
 
@@ -905,15 +906,21 @@ func (dr *dartReader) shelfPermission(rt *dartRoute, f *dartFact, handler *dartV
 		}
 	}
 	h := handler
-	if h.Call != nil {
-		if c := dr.checkOf(h.Call.Name, f.File); c != nil {
-			use(c, h.Call.Arguments, dr.clause(f))
+	for depth := 0; h.Call != nil && depth < 8; depth++ {
+		call := h.Call
+		if g := dr.gateOf(call.Name, f.File); g != nil {
+			rt.gates = append(rt.gates, dr.gateUse(g, call.Name, call.Arguments, dr.clause(f)))
+		} else if c := dr.checkOf(call.Name, f.File); c != nil {
+			use(c, call.Arguments, dr.clause(f))
 		}
-		for i := range h.Call.Arguments {
-			a := &h.Call.Arguments[i].Value
-			if a.Name != nil || a.Function != nil {
+		for i := range call.Arguments {
+			a := &call.Arguments[i].Value
+			if a.Name != nil || a.Function != nil || a.Call != nil && (dr.gateOf(a.Call.Name, f.File) != nil || dr.checkOf(a.Call.Name, f.File) != nil) {
 				h = a
 			}
+		}
+		if h.Call == call {
+			break
 		}
 	}
 	switch {
@@ -923,7 +930,9 @@ func (dr *dartReader) shelfPermission(rt *dartRoute, f *dartFact, handler *dartV
 			rt.handlerAt = dr.clause(fn)
 			for _, c := range dr.calls {
 				if c.File == fn.File && strings.SplitN(c.Within, ".", 2)[0] == fn.Name {
-					if chk := dr.checkOf(c.Name, c.File); chk != nil && c.Target == nil {
+					if g := dr.gateOf(c.Name, c.File); g != nil && c.Target == nil {
+						rt.gates = append(rt.gates, dr.gateUse(g, c.Name, c.Arguments, dr.clause(c)))
+					} else if chk := dr.checkOf(c.Name, c.File); chk != nil && c.Target == nil {
 						use(chk, c.Arguments, dr.clause(c))
 					}
 				}
@@ -932,7 +941,9 @@ func (dr *dartReader) shelfPermission(rt *dartRoute, f *dartFact, handler *dartV
 	case h.Function != nil:
 		for _, c := range dr.calls {
 			if c.File == f.File && c.Function == h.Function.Line {
-				if chk := dr.checkOf(c.Name, c.File); chk != nil && c.Target == nil {
+				if g := dr.gateOf(c.Name, c.File); g != nil && c.Target == nil {
+					rt.gates = append(rt.gates, dr.gateUse(g, c.Name, c.Arguments, dr.clause(c)))
+				} else if chk := dr.checkOf(c.Name, c.File); chk != nil && c.Target == nil {
 					use(chk, c.Arguments, dr.clause(c))
 				}
 			}
@@ -978,6 +989,7 @@ func (dr *dartReader) readDartFrog() []*dartRoute {
 		return nil
 	}
 	middleware := map[string][]string{} // folder -> the permissions its middleware names, "" for none
+	mwGates := map[string][]checkUse{}   // folder -> the gates its middleware calls
 	mwAt := map[string]string{}
 	for _, f := range files {
 		if !strings.HasSuffix(f.rel, "_middleware.dart") {
@@ -987,6 +999,10 @@ func (dr *dartReader) readDartFrog() []*dartRoute {
 		mwAt[dir] = f.file
 		for _, c := range dr.calls {
 			if c.File == f.file {
+				if g := dr.gateOf(c.Name, c.File); g != nil && c.Target == nil {
+					mwGates[dir] = append(mwGates[dir], dr.gateUse(g, c.Name, c.Arguments, dr.clause(c)))
+					continue
+				}
 				if chk := dr.checkOf(c.Name, c.File); chk != nil && c.Target == nil {
 					s, _ := dartPositional(c.Arguments, chk.argument-1).stringLiteral()
 					middleware[dir] = append(middleware[dir], s)
@@ -1053,8 +1069,29 @@ func (dr *dartReader) readDartFrog() []*dartRoute {
 		// The checks of onRequest and of the middleware of the folders above.
 		type use struct{ permission, at, branch string }
 		var uses []use
+		type gateCall struct {
+			use    checkUse
+			branch string
+		}
+		var gateCalls []gateCall
+		var dirs []string
+		for dir := range mwAt {
+			if dir == "" || strings.HasPrefix(f.rel, dir+"/") {
+				dirs = append(dirs, dir)
+			}
+		}
+		sort.Strings(dirs)
+		for _, dir := range dirs {
+			for _, g := range mwGates[dir] {
+				gateCalls = append(gateCalls, gateCall{use: g})
+			}
+		}
 		for _, c := range dr.calls {
 			if c.File == f.file && strings.HasPrefix(c.Within, "onRequest") {
+				if g := dr.gateOf(c.Name, c.File); g != nil && c.Target == nil {
+					gateCalls = append(gateCalls, gateCall{dr.gateUse(g, c.Name, c.Arguments, dr.clause(c)), c.Branch})
+					continue
+				}
 				if chk := dr.checkOf(c.Name, c.File); chk != nil && c.Target == nil {
 					s, _ := dartPositional(c.Arguments, chk.argument-1).stringLiteral()
 					uses = append(uses, use{s, dr.clause(c), c.Branch})
@@ -1071,7 +1108,7 @@ func (dr *dartReader) readDartFrog() []*dartRoute {
 					if at == "" {
 						at = mwAt[dir]
 					}
-				} else {
+				} else if len(mwGates[dir]) == 0 {
 					mwUnread = file
 				}
 			}
@@ -1087,6 +1124,11 @@ func (dr *dartReader) readDartFrog() []*dartRoute {
 					if mineAt == "" {
 						mineAt = u.at
 					}
+				}
+			}
+			for _, g := range gateCalls {
+				if g.branch == "" || strings.EqualFold(g.branch, "HttpMethod."+strings.ToLower(m)) {
+					rt.gates = append(rt.gates, g.use)
 				}
 			}
 			dr.settlePermission(rt, mine, mineAt)
@@ -1148,6 +1190,8 @@ func (dr *dartReader) writeRoutes(routes []*dartRoute) {
 	})
 	dr.paths = mapping()
 	usedBy := map[string][]*dartRoute{}
+	gw := newGateWriter(dr.gateHost())
+	checkedBy := map[string][]string{}
 	var last string
 	var item *yaml.Node
 	for _, rt := range held {
@@ -1170,11 +1214,30 @@ func (dr *dartReader) writeRoutes(routes []*dartRoute) {
 			}
 		}
 		op := mapping("operationId", rt.id)
+		callers, via := gw.route(label, rt.at, rt.gates)
+		gw.permission(rt.gates, rt.permission)
 		if rt.permission != "" {
 			set(op, "permission", rt.permission)
 			usedBy[rt.permission] = append(usedBy[rt.permission], rt)
+			checkedBy[rt.permission] = append(checkedBy[rt.permission], label)
 		}
-		cites := []*yaml.Node{dr.at(rt.clause, rt.says)}
+		if callers != nil {
+			set(op, "callers", callers)
+		}
+		if via != nil {
+			set(op, "via", via)
+		}
+		says := rt.says
+		if len(rt.gates) > 0 {
+			var gates []string
+			for _, g := range rt.gates {
+				if !contains(gates, g.check) {
+					gates = append(gates, g.check)
+				}
+			}
+			says += " It is gated by " + joinAnd(gates) + "."
+		}
+		cites := []*yaml.Node{dr.at(rt.clause, says)}
 		if rt.handlerAt != "" {
 			cites = append(cites, dr.at(rt.handlerAt, "The handler "+rt.handler+"."))
 		}
@@ -1191,6 +1254,8 @@ func (dr *dartReader) writeRoutes(routes []*dartRoute) {
 		dr.question("must", fmt.Sprintf("Does the running system register %s? It is declared at %s, and no list the running system printed was read with it.", label, rt.clause),
 			[]string{rt.at}, "Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.", dr.at(rt.clause, "Registers "+label+"."))
 	}
+	gw.writeTrailing()
+	gw.writeGated(checkedBy)
 	if len(usedBy) > 0 {
 		var names []string
 		for n := range usedBy {

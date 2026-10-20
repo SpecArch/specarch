@@ -843,7 +843,8 @@ three-hop example needs to validate end to end.
    implementation schema, `extract go` writing `callers` and `via` from
    literals and asking for the rest, the `Txn-Token` header read asking
    for a `txn_token`, the permission table's two keys. The swift,
-   javascript and dart readers read `permissionChecks` only. Done when
+   javascript and dart readers read the same checks (ADR-169); the
+   `Txn-Token` header read is extract go's alone. Done when
    the lending desk's sources extract the same twice and a fixture with
    a literal caller check gives `via`.
 

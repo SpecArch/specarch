@@ -1,0 +1,11 @@
+configuration:
+  tokenAudience:
+    schema: {}
+    origin: stated
+    cites:
+      - {source: code, clause: 'server/Sources/App/routes.swift:3', says: Reads TOKEN_AUDIENCE from the environment.}
+  voidCallers:
+    schema: {}
+    origin: stated
+    cites:
+      - {source: code, clause: 'server/Sources/App/routes.swift:4', says: Reads VOID_CALLERS from the environment.}

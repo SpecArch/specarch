@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: traceability matrix
 
-Version 0.7.2-dev of the specification: 10 needs, 86 requirements, and 3 gaps. Each requirement is traced back to the needs it refines and forward to what satisfies it in the design and what verifies it in the tests and commissioning checks.
+Version 0.7.2-dev of the specification: 10 needs, 87 requirements, and 3 gaps. Each requirement is traced back to the needs it refines and forward to what satisfies it in the design and what verifies it in the tests and commissioning checks.
 
 **Problems:** 3 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 

@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: generate
+level: system
+scenario: golden
+given: "the tree extract go writes from the vault written by hand on dxlib (extract-go-dxlib-vault), with each of its sixteen questions answered by a decision record specarch decide wrote, the entries the answers block written and marked decided (issuePreKey public, the size an int64 within 2^53, the permissions described and granted by the role member, the handshake's lifetime of five minutes and one use, the problem's title and condition), its draft tests derived, and an implementation file whose go-dxlib target names the package vault; and specarch-gen-go-dxlib built from this repository on PATH"
+when: "generate go-dxlib is run with --unapproved"
+then: "it writes the service and the client with the same operations, request types, stream helpers, handshake and limits as the vault written as a specification, which TestExtractedRoundTrip runs against a real dxlib API with the vault's round-trip test, and exits 0"
+verifies: [SA-77, SA-44]

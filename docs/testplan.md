@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.2-dev of the specification: 612 design tests, 284 golden and 328 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.2-dev of the specification: 614 design tests, 286 golden and 328 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.7.2-dev of the specification: 612 design tests, 284 golden and 328 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 608 |
+| system | 610 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -1229,7 +1229,7 @@ Scenario: golden; level: system; verifies SA-77, SA-44.
 
 - Given: a repository holding a Go module on dxlib whose endpoints are registered with every endpoint type: a plain JSON POST that declares the parameters a0, a1 and a2 of the pre-key exchange and answers i, b0, b1 and b2; a POST of type EndPointTypeHTTPEndToEndEncryptionV2 with parameters; an upload stream of an octet stream with a content-length ceiling; a download stream with a parameter whose handler answers 404; a download stream of type EndPointTypeHTTPDownloadStreamV2 whose registration declares a data template on its 200; a POST of type EndPointTypeHTTPEndToEndEncryptionV3; a POST of type EndPointTypeHTTPEndToEndEncryptionV1; a GET whose type is a package variable; and an upload stream with a JSON content type
 - When: extract go is run on the module
-- Then: it writes the handshake preKey under handshakes with keyAgreement x25519, signature ed25519 and cipher aes-256-cbc, inferred from the type, established by the pre-key operation found by its parameters, citing the first encrypted registration and the exchange's, with a should question on its lifetime and uses; names the handshake on the encrypted POST and on the DownloadStreamV2 operation; writes stream upload on the octet-stream upload with its binary body, and stream download on both downloads with a 200 response of application/octet-stream and a binary string, asking a should question where the registration declared a data template; asks a must question on the handshake of the V3 operation naming dxlib's hooks, on the handshake and stream of the operation whose type is a variable, and on the stream and body of the upload with a JSON content type, writing neither for those; prints a line and a could question for the V1 type and writes that operation plain; says in each operation's citation that it travels in the pre-key envelope or streams its body; and exits 0
+- Then: it writes the handshake preKey under handshakes with keyAgreement x25519, signature ed25519 and cipher aes-256-cbc, inferred from the type, established by the pre-key operation found by its parameters, citing the first encrypted registration and the exchange's, with a should question on its lifetime and uses; names the handshake on the encrypted POST and on the DownloadStreamV2 operation; writes stream upload on the octet-stream upload with its binary body and its content-length ceiling as limits.maxRequestBytes, and stream download on both downloads with a 200 response of application/octet-stream and a binary string, asking a should question where the registration declared a data template; asks a must question on the handshake of the V3 operation naming dxlib's hooks, on the handshake and stream of the operation whose type is a variable, and on the stream and body of the upload with a JSON content type, writing neither for those; prints a line and a could question for the V1 type and writes that operation plain; says in each operation's citation that it travels in the pre-key envelope or streams its body; and exits 0
 
 #### extract-go-dxlib-handler-shapes
 
@@ -1262,6 +1262,14 @@ Scenario: golden; level: system; verifies SA-62.
 - Given: a Go module whose seed inserts dxlib_module roles named in upper snake case, two that grant privileges and one with two underscores in a row that grants one
 - When: extract go is run on the module
 - Then: it writes info.roleNames upper_snake and each role by its kebab-case name with its description and the permissions it grants, citing the seed's own names; prints a line and writes a could question for the name with two underscores, which would not go back on the wire unchanged, and exits 0
+
+#### extract-go-dxlib-vault
+
+Scenario: golden; level: system; verifies SA-77, SA-44.
+
+- Given: a repository holding the vault written by hand on dxlib, the service the round trip regenerates: a plain JSON POST /issuePreKey that declares a0, a1 and a2 and answers i, b0, b1 and b2, a POST /addNote of type EndPointTypeHTTPEndToEndEncryptionV2, an octet-stream upload /uploadAttachment with a content-length ceiling whose handler answers the size it counted, a download /downloadAttachment whose handler answers 404, and a download /exportVault of type EndPointTypeHTTPDownloadStreamV2
+- When: extract go is run on the module
+- Then: it writes the five operations under the names their URIs give, the handshake preKey established by issuePreKey and named by addNote and exportVault, an upload stream with its ceiling as limits.maxRequestBytes and two download streams, the permissions notes.read and notes.write and the problem attachment-not-found, and the must and should questions the code does not answer: whether the running system registers each operation, whether issuePreKey is public, the width of the size, what each permission allows and which role grants it, the problem's title, the handshake's lifetime and uses, the unread parameter text, the two downloads' unanswered 200 and the stub exchange; the decisions in generate-go-dxlib-extracted-vault answer them; it exits 0
 
 #### extract-go-handlers
 
@@ -1996,6 +2004,14 @@ Scenario: golden; level: system; verifies SA-77, SA-40.
 - Given: the vault of generate-openapi-dxlib-envelope-stream, and an implementation file with a go-dxlib target naming the package and the database; specarch-gen-go-dxlib built from this repository on PATH
 - When: generate go-dxlib is run with --unapproved
 - Then: it writes the service file with Register binding every handler and setting dxlib's hooks that open and seal the pre-key envelope, the exchange's handler that reads a0, a1 and a2, makes the service's keys, derives the two shared keys, stores the handshake with its lifetime and answers i, b0, b1 and b2, the handshake's record, store and in-memory store, the upload handler calling its body with the request body as a stream held to the limit, the download handlers with their media type and limit as constants, and the stream helpers; and a client file with Handshake, a method per operation that seals and opens the envelope, streams an upload in and a download out as the design says; and exits 0
+
+#### generate-go-dxlib-extracted-vault
+
+Scenario: golden; level: system; verifies SA-77, SA-44.
+
+- Given: the tree extract go writes from the vault written by hand on dxlib (extract-go-dxlib-vault), with each of its sixteen questions answered by a decision record specarch decide wrote, the entries the answers block written and marked decided (issuePreKey public, the size an int64 within 2^53, the permissions described and granted by the role member, the handshake's lifetime of five minutes and one use, the problem's title and condition), its draft tests derived, and an implementation file whose go-dxlib target names the package vault; and specarch-gen-go-dxlib built from this repository on PATH
+- When: generate go-dxlib is run with --unapproved
+- Then: it writes the service and the client with the same operations, request types, stream helpers, handshake and limits as the vault written as a specification, which TestExtractedRoundTrip runs against a real dxlib API with the vault's round-trip test, and exits 0
 
 #### generate-go-dxlib-value-objects
 

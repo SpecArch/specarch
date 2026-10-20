@@ -25,15 +25,73 @@ import (
 // answered with a plain stream. It needs a dxlib checkout, named by
 // SPECARCH_DXLIB, and is skipped without one (ADR-145, ADR-146).
 func TestEnvelopeStreamRoundTrip(t *testing.T) {
+	roundTrip(t, envelopeFixture)
+}
+
+// extractedFixture is the vault read back: the tree extract go writes from
+// the vault written by hand on dxlib, with every question it asked answered
+// by a decision and the entries written from the answers.
+const extractedFixture = "../../spec/tests/generate-go-dxlib-extracted-vault/project"
+
+// extractedFrom is the tree extract go writes from that vault, as its
+// conformance case records it.
+const extractedFrom = "../../spec/tests/extract-go-dxlib-vault/expected/spec"
+
+// TestExtractedRoundTrip is the extract leg of the round trip: the vault
+// written by hand on dxlib, read with extract go, its questions answered by
+// the decisions committed beside the tree, regenerates to a service and a
+// client that pass the same round trip as the vault written as a
+// specification, so code read into a specification regenerates to code that
+// behaves the same. It first checks that the decisions answer every
+// question the reader asked, and that none is left open.
+func TestExtractedRoundTrip(t *testing.T) {
+	asked := spec.Load(extractedFrom)
+	answered := spec.Load(extractedFixture)
+	if len(asked.Problems) > 0 || len(answered.Problems) > 0 {
+		t.Fatalf("the trees do not load: %v %v", asked.Problems, answered.Problems)
+	}
+	questions, _ := asked.Value.(map[string]any)["questions"].(map[string]any)
+	if len(questions) == 0 {
+		t.Fatal("the extracted tree asks no question; the case no longer shows the decisions at work")
+	}
+	if open, _ := answered.Value.(map[string]any)["questions"].(map[string]any); len(open) > 0 {
+		t.Fatalf("the answered tree leaves %d questions open", len(open))
+	}
+	answers := map[string]string{}
+	decisions, _ := answered.Value.(map[string]any)["decisions"].(map[string]any)
+	for id, d := range decisions {
+		list, _ := d.(map[string]any)["answers"].([]any)
+		for _, q := range list {
+			answers[q.(string)] = id
+		}
+	}
+	for q := range questions {
+		if answers[q] == "" {
+			t.Errorf("%s, which extract go asks of the vault, is answered by no decision", q)
+		}
+	}
+	for q := range answers {
+		if questions[q] == nil {
+			t.Errorf("a decision answers %s, which extract go no longer asks; take it out or extract again", q)
+		}
+	}
+	roundTrip(t, extractedFixture)
+}
+
+// roundTrip generates a fixture's service and client, binds the service to
+// a real dxlib API through the document the dxlib dialect writes, and runs
+// roundTripTest and screensTest against it.
+func roundTrip(t *testing.T, fixture string) {
+	t.Helper()
 	dxlib := os.Getenv("SPECARCH_DXLIB")
 	if dxlib == "" {
 		t.Skip("SPECARCH_DXLIB names no dxlib checkout, so the generated service cannot run here")
 	}
-	service := generateFrom(t, envelopeFixture, func(map[string]any) {}, nil)
+	service := generateFrom(t, fixture, func(map[string]any) {}, nil)
 	if len(service.Files) != 2 || len(service.Diagnostics) != 0 {
 		t.Fatalf("want the service file and the client with no diagnostic, got %d files and %v", len(service.Files), service.Diagnostics)
 	}
-	document := openapiDocument(t, envelopeFixture)
+	document := openapiDocument(t, fixture)
 	dir := t.TempDir()
 	files := map[string]string{
 		"go.mod":            "module vault\n\ngo 1.27.1\n\nrequire github.com/donnyhardyanto/dxlib v0.0.0\n\nreplace github.com/donnyhardyanto/dxlib => " + dxlib + "\n",

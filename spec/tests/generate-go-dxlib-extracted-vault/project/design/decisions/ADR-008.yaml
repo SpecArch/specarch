@@ -1,0 +1,23 @@
+# Written by specarch decide; answers Q-8. Edit it as any decision.
+decisions:
+  ADR-008:
+    title: 'Which width does each of these numbers take: int32, int64 within 2^53 or carried as text, or a double or a decimal with its precision and scale?'
+    status: accepted
+    date: "2026-10-20"
+    context: |-
+      Q-8 asked: Which width does each of these numbers take: int32, int64
+      within 2^53 or carried as text, or a double or a decimal with its
+      precision and scale? It blocked
+      #/paths/~1uploadAttachment/post/responses/200/content/application~1json/schema/properties/size/format.
+      The meta-model needs a number's width, and the document gives none it
+      holds; choosing one would be a guess.
+    decision: The size is an int64 from 0 to 2^53 - 1.
+    consequences: |-
+      #/paths/~1uploadAttachment/post/responses/200/content/application~1json/schema/properties/size/format
+      is written from this answer, carrying origin decided and decidedIn
+      ADR-008.
+    answers: [Q-8]
+    decidedBy: system-owner
+    origin: stated
+    cites:
+      - {source: vault-owner, says: The size is an int64 from 0 to 2^53 - 1.}

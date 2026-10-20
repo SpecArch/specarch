@@ -1,0 +1,24 @@
+# Written by specarch decide; answers Q-16. Edit it as any decision.
+decisions:
+  ADR-016:
+    title: 'api/handlers.go:11: the handler api.IssuePreKey of POST /issuePreKey does nothing: its body has no step but a return. Is it a stub, with the operation not built yet?'
+    status: accepted
+    date: "2026-10-20"
+    context: |-
+      Q-16 asked: api/handlers.go:11: the handler api.IssuePreKey of POST
+      /issuePreKey does nothing: its body has no step but a return. Is it a
+      stub, with the operation not built yet? It blocked
+      #/paths/~1issuePreKey/post. A handler that does nothing answers every
+      request the same way, whatever the specification says the operation
+      does.
+    decision: |-
+      Not a stub: the exchange is dxlib_module's pre-login, which the
+      regenerated service writes in full.
+    consequences: |-
+      #/paths/~1issuePreKey/post is written from this answer, carrying origin
+      decided and decidedIn ADR-016.
+    answers: [Q-16]
+    decidedBy: system-owner
+    origin: stated
+    cites:
+      - {source: vault-owner, says: 'Not a stub: the exchange is dxlib_module''s pre-login, which the regenerated service writes in full.'}

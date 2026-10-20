@@ -2,7 +2,7 @@
 
 Open bugs, one entry per bug, each as `BUG-NNN — <title>` with what was
 seen, what was expected and how to repeat it. The next free number is
-BUG-036. When the fix is on `main`, with `Fixes BUG-NNN` in its commit
+BUG-041. When the fix is on `main`, with `Fixes BUG-NNN` in its commit
 message, the entry moves to `BUG_HISTORY.md` with the fixing commit.
 
 ## BUG-030 — derive: a question that blocks one method of a path holds up the drafts of every method of that path

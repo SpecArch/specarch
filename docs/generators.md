@@ -399,7 +399,15 @@ generates the vault fixture, binds the service to a dxlib API through the
 document the dialect writes, and drives the client through the handshake,
 an encrypted call, a refused second envelope, a 40 MiB upload and download
 hashed on both sides, and an encrypted request answered with a stream; it
-runs when `SPECARCH_DXLIB` names a dxlib checkout.
+runs when `SPECARCH_DXLIB` names a dxlib checkout, and also drives the
+TypeScript screens' `transport.ts` on Node when `node` is on PATH. Its
+extract leg reads the same vault written by hand on dxlib
+(`spec/tests/extract-go-dxlib-vault`) with `extract go`, takes the tree it
+writes with each of its questions answered by a decision record
+(`spec/tests/generate-go-dxlib-extracted-vault`, every question answered and
+none left open, which the test checks against the extracted tree), and runs
+the same round trip on the service and client generated from it: code read
+into a specification regenerates to code that behaves the same.
 
 The file holds no data model besides those structs, since `specarch-gen-sql`
 writes the schema.

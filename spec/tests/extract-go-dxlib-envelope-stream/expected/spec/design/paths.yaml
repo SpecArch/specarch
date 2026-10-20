@@ -59,6 +59,7 @@ paths:
       permission: notes.write
       middlewares: []
       stream: {direction: upload}
+      limits: {maxRequestBytes: 1073741824}
       requestBody:
         content:
           application/octet-stream:

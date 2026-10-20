@@ -1,0 +1,19 @@
+# Written by specarch decide; answers Q-10. Edit it as any decision.
+decisions:
+  ADR-010:
+    title: 'Which role grants each permission: notes.read, notes.write?'
+    status: accepted
+    date: "2026-10-20"
+    context: |-
+      Q-10 asked: Which role grants each permission: notes.read, notes.write?
+      It blocked #/permissions/notes.read and #/permissions/notes.write. The
+      source names the privilege an endpoint checks and not who holds it.
+    decision: The role member grants both.
+    consequences: |-
+      #/permissions/notes.read and #/permissions/notes.write are written from
+      this answer, each entry carrying origin decided and decidedIn ADR-010.
+    answers: [Q-10]
+    decidedBy: system-owner
+    origin: stated
+    cites:
+      - {source: vault-owner, says: The role member grants both.}

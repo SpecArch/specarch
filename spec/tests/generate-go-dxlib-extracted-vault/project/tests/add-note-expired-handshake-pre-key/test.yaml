@@ -1,0 +1,9 @@
+operation: addNote
+level: system
+scenario: red
+covers: [expired handshake preKey]
+given: "a caller whose handshake preKey has expired or has carried its 1 envelope"
+when: "addNote is called through that handshake"
+then: "it is refused and the caller establishes a new handshake"
+origin: inferred
+why: "Written by specarch derive: users get this wrong often, so the case is written. A draft: complete the given, when and then, and remove what does not hold."

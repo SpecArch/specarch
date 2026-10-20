@@ -1,0 +1,25 @@
+# Written by specarch decide; answers Q-13. Edit it as any decision.
+decisions:
+  ADR-013:
+    title: 'api/handlers.go:16: the registration of POST /addNote at api/endpoints.go:30 declares the parameter text, and the handler api.AddNote of POST /addNote reads it nowhere in its own body, which calls no function of the module. Are they needed, or does the handler miss reading them?'
+    status: accepted
+    date: "2026-10-20"
+    context: |-
+      Q-13 asked: api/handlers.go:16: the registration of POST /addNote at
+      api/endpoints.go:30 declares the parameter text, and the handler
+      api.AddNote of POST /addNote reads it nowhere in its own body, which
+      calls no function of the module. Are they needed, or does the handler
+      miss reading them? It blocked #/paths/~1addNote/post. A parameter a
+      handler never reads is accepted and ignored, so a caller's value has no
+      effect, which the specification does not say.
+    decision: |-
+      Needed: text is the note's body, kept beside its title; the handler not
+      reading it is a fault the regenerated service does not repeat.
+    consequences: |-
+      #/paths/~1addNote/post is written from this answer, carrying origin
+      decided and decidedIn ADR-013.
+    answers: [Q-13]
+    decidedBy: system-owner
+    origin: stated
+    cites:
+      - {source: vault-owner, says: 'Needed: text is the note''s body, kept beside its title; the handler not reading it is a fault the regenerated service does not repeat.'}

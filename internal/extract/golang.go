@@ -124,6 +124,7 @@ type goEndpoint struct {
 	handshake  string          // the handshake the operation travels in (ADR-145)
 	stream     string          // upload or download when it streams a file (ADR-146)
 	templated  map[string]bool // the success codes of a download stream whose registration or handler declared a JSON body, which is not written
+	maxContent ast.Expr        // the registration's requestMaxContentLength
 }
 
 // goProblem is one refusal a handler answers.
@@ -683,6 +684,7 @@ func (g *goReader) registration(f *goFile, call *ast.CallExpr, name string, stac
 	if names, ok := g.stringList(f, call.Args[11]); ok {
 		ep.privileges, ep.privKnown = names, true
 	}
+	ep.maxContent = call.Args[12]
 	ep.responses = map[string]string{}
 	g.endpoints = append(g.endpoints, ep)
 	g.handlerBody(ep, call.Args[7])
@@ -952,6 +954,7 @@ func (g *goReader) write() {
 			regAts[ep.at] = regAt
 			g.writeChain(ep, op, regAt, label)
 			g.writeTransport(ep, op, regAt, label)
+			g.writeLimits(ep, op, regAt, label)
 			if ep.decl != nil {
 				w.request(ep, op, regAt, label)
 			}

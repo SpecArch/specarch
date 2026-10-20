@@ -1,0 +1,24 @@
+# Written by specarch decide; answers Q-3. Edit it as any decision.
+decisions:
+  ADR-003:
+    title: Does the running system register POST /exportVault? It is declared at api/endpoints.go:58, and no list the running system printed was read with it.
+    status: accepted
+    date: "2026-10-20"
+    context: |-
+      Q-3 asked: Does the running system register POST /exportVault? It is
+      declared at api/endpoints.go:58, and no list the running system printed
+      was read with it. It blocked #/paths/~1exportVault/post. Syntax shows a
+      declaration and not what runs; the document dxlib emits, or a route
+      table, says what the running system registers, and merging it answers
+      this.
+    decision: |-
+      Yes: Define registers it on the vault's API at start-up, as it registers
+      every endpoint of the file.
+    consequences: |-
+      #/paths/~1exportVault/post is written from this answer, carrying origin
+      decided and decidedIn ADR-003.
+    answers: [Q-3]
+    decidedBy: system-owner
+    origin: stated
+    cites:
+      - {source: vault-owner, says: 'Yes: Define registers it on the vault''s API at start-up, as it registers every endpoint of the file.'}

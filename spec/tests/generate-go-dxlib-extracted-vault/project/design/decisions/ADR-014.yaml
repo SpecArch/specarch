@@ -1,0 +1,27 @@
+# Written by specarch decide; answers Q-14. Edit it as any decision.
+decisions:
+  ADR-014:
+    title: 'api/handlers.go:38: the registration of POST /downloadAttachment at api/endpoints.go:49 declares the response 200, and the handler api.DownloadAttachment of POST /downloadAttachment answers it nowhere in its own body, which calls no function of the module, nor does a middleware of its chain. Does the operation answer 200, or is the declaration stale?'
+    status: accepted
+    date: "2026-10-20"
+    context: |-
+      Q-14 asked: api/handlers.go:38: the registration of POST
+      /downloadAttachment at api/endpoints.go:49 declares the response 200,
+      and the handler api.DownloadAttachment of POST /downloadAttachment
+      answers it nowhere in its own body, which calls no function of the
+      module, nor does a middleware of its chain. Does the operation answer
+      200, or is the declaration stale? It blocked
+      #/paths/~1downloadAttachment/post/responses/200. A response declared and
+      never answered is in the contract clients are built against, and the
+      code cannot produce it.
+    decision: |-
+      It answers 200 with the attachment's bytes, which the service's own code
+      streams.
+    consequences: |-
+      #/paths/~1downloadAttachment/post/responses/200 is written from this
+      answer, carrying origin decided and decidedIn ADR-014.
+    answers: [Q-14]
+    decidedBy: system-owner
+    origin: stated
+    cites:
+      - {source: vault-owner, says: 'It answers 200 with the attachment''s bytes, which the service''s own code streams.'}

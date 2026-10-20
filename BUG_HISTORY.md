@@ -476,3 +476,15 @@ Expected: a must question citing the call, as ADR-075 asks for every registratio
 Expected: the two values quoted; both builds report an all-digit `commit` of any width, written without quotes, as the schema type error at its line, "this is a number, but a string is expected here"; a case shows it.
 
 To repeat: run either build's `validate` on a copy of the file as it was. The Go build printed the type error at lines 40 and 322; `swift/.build/release/specarch validate` printed only the `implements` error of the copied file.
+
+## BUG-040 — extract go: a registration's largest request is not read, so an upload loses its ceiling
+
+- Reported: 2026-10-20, found by the extract leg of the dxlib round trip (item 1006)
+- Closed: 2026-10-20, completed
+- Fixed by: the commit on `main` whose message says `Fixes BUG-040`
+
+dxlib's `NewEndPoint` takes the request's largest content length as its thirteenth argument, `requestMaxContentLength`, and refuses a request whose declared Content-Length is above it. `specarch extract go` read every other argument and never that one, so the vault's upload, registered with 1073741824, came out with no `limits.maxRequestBytes`, and the service regenerated from it streamed an upload of any size: the generated `UploadStream` was handed 0 for no limit. The dxlib dialect writes that limit as `x-dxlib-max-content-length`, so the round trip lost it on the way in only.
+
+Expected: an integer literal above 0 is the operation's `limits.maxRequestBytes`; 0 is no limit and writes nothing; any other expression is a should question at `limits/maxRequestBytes`. `writeLimits` in `internal/extract/golang_transport.go` does this, and the cases extract-go-dxlib-envelope-stream and extract-go-dxlib-vault show the limit.
+
+To repeat: run `specarch extract go` on `spec/tests/extract-go-dxlib-envelope-stream/testdata/service` as its `case.yaml` does, before the fix: `POST /attachments/upload` has no `limits`.

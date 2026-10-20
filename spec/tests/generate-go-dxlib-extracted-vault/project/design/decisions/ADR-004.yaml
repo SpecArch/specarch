@@ -1,0 +1,24 @@
+# Written by specarch decide; answers Q-5. Edit it as any decision.
+decisions:
+  ADR-004:
+    title: Does the running system register POST /issuePreKey? It is declared at api/endpoints.go:15, and no list the running system printed was read with it.
+    status: accepted
+    date: "2026-10-20"
+    context: |-
+      Q-5 asked: Does the running system register POST /issuePreKey? It is
+      declared at api/endpoints.go:15, and no list the running system printed
+      was read with it. It blocked #/paths/~1issuePreKey/post. Syntax shows a
+      declaration and not what runs; the document dxlib emits, or a route
+      table, says what the running system registers, and merging it answers
+      this.
+    decision: |-
+      Yes: Define registers it on the vault's API at start-up, as it registers
+      every endpoint of the file.
+    consequences: |-
+      #/paths/~1issuePreKey/post is written from this answer, carrying origin
+      decided and decidedIn ADR-004.
+    answers: [Q-5]
+    decidedBy: system-owner
+    origin: stated
+    cites:
+      - {source: vault-owner, says: 'Yes: Define registers it on the vault''s API at start-up, as it registers every endpoint of the file.'}

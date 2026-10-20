@@ -1,0 +1,27 @@
+# Written by specarch decide; answers Q-11. Edit it as any decision.
+decisions:
+  ADR-011:
+    title: How long is a pre-key of handshake preKey accepted, and how many envelopes does one carry? The lifetime is the service's configuration (sessions.prekey_ttl_in_seconds in dxlib_module), and whether a pre-key is deleted after its first envelope is the service's own code.
+    status: accepted
+    date: "2026-10-20"
+    context: |-
+      Q-11 asked: How long is a pre-key of handshake preKey accepted, and how
+      many envelopes does one carry? The lifetime is the service's
+      configuration (sessions.prekey_ttl_in_seconds in dxlib_module), and
+      whether a pre-key is deleted after its first envelope is the service's
+      own code. It blocked #/handshakes/preKey/lifetime and
+      #/handshakes/preKey/uses. dxlib's type fixes the exchange and the
+      cipher, not how long a pre-key lives or how often it is used, and a
+      client must know both.
+    decision: |-
+      A pre-key is accepted for five minutes and carries one envelope: the
+      vault deletes it after the first.
+    consequences: |-
+      #/handshakes/preKey/lifetime and #/handshakes/preKey/uses are written
+      from this answer, each entry carrying origin decided and decidedIn
+      ADR-011.
+    answers: [Q-11]
+    decidedBy: system-owner
+    origin: stated
+    cites:
+      - {source: vault-owner, says: 'A pre-key is accepted for five minutes and carries one envelope: the vault deletes it after the first.'}

@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: extract
+level: system
+scenario: golden
+given: "a repository holding the vault written by hand on dxlib, the service the round trip regenerates: a plain JSON POST /issuePreKey that declares a0, a1 and a2 and answers i, b0, b1 and b2, a POST /addNote of type EndPointTypeHTTPEndToEndEncryptionV2, an octet-stream upload /uploadAttachment with a content-length ceiling whose handler answers the size it counted, a download /downloadAttachment whose handler answers 404, and a download /exportVault of type EndPointTypeHTTPDownloadStreamV2"
+when: "extract go is run on the module"
+then: "it writes the five operations under the names their URIs give, the handshake preKey established by issuePreKey and named by addNote and exportVault, an upload stream with its ceiling as limits.maxRequestBytes and two download streams, the permissions notes.read and notes.write and the problem attachment-not-found, and the must and should questions the code does not answer: whether the running system registers each operation, whether issuePreKey is public, the width of the size, what each permission allows and which role grants it, the problem's title, the handshake's lifetime and uses, the unread parameter text, the two downloads' unanswered 200 and the stub exchange; the decisions in generate-go-dxlib-extracted-vault answer them; it exits 0"
+verifies: [SA-77, SA-44]

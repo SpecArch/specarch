@@ -1,0 +1,24 @@
+# Written by specarch decide; answers Q-7. Edit it as any decision.
+decisions:
+  ADR-005:
+    title: Does the running system register POST /uploadAttachment? It is declared at api/endpoints.go:41, and no list the running system printed was read with it.
+    status: accepted
+    date: "2026-10-20"
+    context: |-
+      Q-7 asked: Does the running system register POST /uploadAttachment? It
+      is declared at api/endpoints.go:41, and no list the running system
+      printed was read with it. It blocked #/paths/~1uploadAttachment/post.
+      Syntax shows a declaration and not what runs; the document dxlib emits,
+      or a route table, says what the running system registers, and merging it
+      answers this.
+    decision: |-
+      Yes: Define registers it on the vault's API at start-up, as it registers
+      every endpoint of the file.
+    consequences: |-
+      #/paths/~1uploadAttachment/post is written from this answer, carrying
+      origin decided and decidedIn ADR-005.
+    answers: [Q-7]
+    decidedBy: system-owner
+    origin: stated
+    cites:
+      - {source: vault-owner, says: 'Yes: Define registers it on the vault''s API at start-up, as it registers every endpoint of the file.'}

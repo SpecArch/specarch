@@ -1,0 +1,26 @@
+# Written by specarch decide; answers Q-4. Edit it as any decision.
+decisions:
+  ADR-006:
+    title: 'POST /issuePreKey checks no privilege: it registers it with none, so dxlib lets through every caller its middlewares admit (it has no middleware). Is it meant to be open to everyone (public), or which permission should it check?'
+    status: accepted
+    date: "2026-10-20"
+    context: |-
+      Q-4 asked: POST /issuePreKey checks no privilege: it registers it with
+      none, so dxlib lets through every caller its middlewares admit (it has
+      no middleware). Is it meant to be open to everyone (public), or which
+      permission should it check? It blocked
+      #/paths/~1issuePreKey/post/permission. dxlib checks no privilege on an
+      endpoint that names none, and whether a caller must sign in is decided
+      by its middlewares, which are code; an open endpoint is never written as
+      public without the owner's word.
+    decision: |-
+      Public: a client calls it before it holds any key or token, so nothing
+      can be checked.
+    consequences: |-
+      #/paths/~1issuePreKey/post/permission is written from this answer,
+      carrying origin decided and decidedIn ADR-006.
+    answers: [Q-4]
+    decidedBy: system-owner
+    origin: stated
+    cites:
+      - {source: vault-owner, says: 'Public: a client calls it before it holds any key or token, so nothing can be checked.'}

@@ -1,0 +1,22 @@
+# Written by specarch decide; answers Q-12. Edit it as any decision.
+decisions:
+  ADR-012:
+    title: 'What is each problem''s title, and when is it answered: attachment-not-found?'
+    status: accepted
+    date: "2026-10-20"
+    context: |-
+      Q-12 asked: What is each problem's title, and when is it answered:
+      attachment-not-found? It blocked #/errors/attachment-not-found/title and
+      #/errors/attachment-not-found/condition. The source gives a problem's
+      status and reason, and not a title a person reads or the condition it is
+      answered under.
+    decision: 'No such attachment: answered when no attachment has the id asked for.'
+    consequences: |-
+      #/errors/attachment-not-found/title and
+      #/errors/attachment-not-found/condition are written from this answer,
+      each entry carrying origin decided and decidedIn ADR-012.
+    answers: [Q-12]
+    decidedBy: system-owner
+    origin: stated
+    cites:
+      - {source: vault-owner, says: 'No such attachment: answered when no attachment has the id asked for.'}

@@ -1,0 +1,21 @@
+# Written by specarch decide; answers Q-9. Edit it as any decision.
+decisions:
+  ADR-009:
+    title: 'What does each permission allow: notes.read, notes.write?'
+    status: accepted
+    date: "2026-10-20"
+    context: |-
+      Q-9 asked: What does each permission allow: notes.read, notes.write? It
+      blocked #/permissions/notes.read/description and
+      #/permissions/notes.write/description. The source names the privilege an
+      endpoint checks and not what it is for.
+    decision: notes.read reads notes and attachments; notes.write adds them.
+    consequences: |-
+      #/permissions/notes.read/description and
+      #/permissions/notes.write/description are written from this answer, each
+      entry carrying origin decided and decidedIn ADR-009.
+    answers: [Q-9]
+    decidedBy: system-owner
+    origin: stated
+    cites:
+      - {source: vault-owner, says: notes.read reads notes and attachments; notes.write adds them.}

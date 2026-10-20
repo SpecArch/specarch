@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"go/ast"
 	"sort"
+	"strconv"
 	"strings"
 
 	"go.yaml.in/yaml/v3"
@@ -91,6 +92,27 @@ func (g *goReader) writeTransport(ep *goEndpoint, op *yaml.Node, regAt, label st
 		ep.stream = "download"
 		set(op, "stream", flow(mapping("direction", "download")))
 	}
+}
+
+// writeLimits writes the largest request a registration accepts, its
+// requestMaxContentLength: dxlib refuses a request whose declared
+// Content-Length is above it, so it is the operation's maxRequestBytes,
+// which the dxlib dialect writes back as x-dxlib-max-content-length. Zero
+// is no limit; a value that is not an integer literal is asked about.
+func (g *goReader) writeLimits(ep *goEndpoint, op *yaml.Node, regAt, label string) {
+	if ep.maxContent == nil {
+		return
+	}
+	n, ok := numberLit(ep.maxContent)
+	if v, err := strconv.ParseInt(n, 0, 64); ok && err == nil {
+		if v > 0 {
+			set(op, "limits", flow(mapping("maxRequestBytes", numberNode(strconv.FormatInt(v, 10)))))
+		}
+		return
+	}
+	text := exprText(ep.maxContent)
+	g.question("should", fmt.Sprintf("%s registers %s with the request's largest content length %s, which is not an integer literal. How large may a request be, in bytes?", regAt, label, text),
+		[]string{ep.at + "/limits/maxRequestBytes"}, "dxlib refuses a request whose declared Content-Length is above that value, and only a literal says it by syntax.", g.at(regAt, "Registers "+label+" with the largest content length "+text+"."))
 }
 
 // streamsOut says whether a response of the endpoint is the file a

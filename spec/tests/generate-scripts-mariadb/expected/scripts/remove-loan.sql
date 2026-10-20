@@ -8,7 +8,7 @@
 -- Changes exactly 1 Loan record of table loans: sets is_deleted to true, by id, where status == "returned".
 -- Dry run: mariadb --init-command="SET @id = '...', @last_modified_by_user_id = '...', @last_modified_by_user_nameid = '...'" <database> < remove-loan.sql
 -- Apply: the same with @apply = true in the SET. Without it every check runs against the data and the change is rolled back.
-SET SESSION sql_mode = CONCAT_WS(',', NULLIF(@@SESSION.sql_mode, ''), 'STRICT_ALL_TABLES');
+SET SESSION sql_mode = CONCAT_WS(',', NULLIF(REPLACE(@@SESSION.sql_mode, 'NO_BACKSLASH_ESCAPES', ''), ''), 'STRICT_ALL_TABLES');
 DELIMITER //
 BEGIN NOT ATOMIC
   DECLARE found BIGINT;
@@ -23,7 +23,7 @@ BEGIN NOT ATOMIC
   IF @id IS NULL THEN
     SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'remove-loan.sql: the variable @id is not set; give it as SET @id = ''<Loan.id>'' (CHAR(36)) in --init-command';
   END IF;
-  IF @id IS NOT NULL AND NOT (@id REGEXP '^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}$') THEN
+  IF @id IS NOT NULL AND NOT (@id REGEXP '^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}\\z') THEN
     SET refusal = CONCAT('remove-loan.sql: the variable @id is ', QUOTE(@id), ', which is not a uuid for Loan.id (CHAR(36)); nothing was read');
     SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = refusal;
   END IF;

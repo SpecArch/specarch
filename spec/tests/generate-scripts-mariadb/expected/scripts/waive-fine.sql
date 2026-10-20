@@ -7,7 +7,7 @@
 -- Changes exactly 1 Fine record of table fine: deletes the record, by id.
 -- Dry run: mariadb --init-command="SET @id = '...'" <database> < waive-fine.sql
 -- Apply: the same with @apply = true in the SET. Without it every check runs against the data and the change is rolled back.
-SET SESSION sql_mode = CONCAT_WS(',', NULLIF(@@SESSION.sql_mode, ''), 'STRICT_ALL_TABLES');
+SET SESSION sql_mode = CONCAT_WS(',', NULLIF(REPLACE(@@SESSION.sql_mode, 'NO_BACKSLASH_ESCAPES', ''), ''), 'STRICT_ALL_TABLES');
 DELIMITER //
 BEGIN NOT ATOMIC
   DECLARE found BIGINT;
@@ -22,7 +22,7 @@ BEGIN NOT ATOMIC
   IF @id IS NULL THEN
     SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'waive-fine.sql: the variable @id is not set; give it as SET @id = ''<Fine.id>'' (BIGINT UNSIGNED) in --init-command';
   END IF;
-  IF @id IS NOT NULL AND NOT (@id REGEXP '^[+]?[0-9]+$') THEN
+  IF @id IS NOT NULL AND NOT (@id REGEXP '^[+]?[0-9]+\\z') THEN
     SET refusal = CONCAT('waive-fine.sql: the variable @id is ', QUOTE(@id), ', which is not a whole number of zero or more for Fine.id (BIGINT UNSIGNED); nothing was read');
     SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = refusal;
   END IF;

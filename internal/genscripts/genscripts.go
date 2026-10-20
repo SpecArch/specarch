@@ -460,13 +460,13 @@ func (g *gen) holds(c change) string {
 	case "transition":
 		return fmt.Sprintf("%s = %s", c.state.Name, g.quote(c.to))
 	case "put":
-		same := "IS NOT DISTINCT FROM"
-		if g.dialect == "mariadb" {
-			same = "<=>"
-		}
 		var parts []string
 		for _, col := range c.sets {
-			parts = append(parts, fmt.Sprintf("%s %s %s", col.Name, same, g.value(col)))
+			if g.dialect == "mariadb" {
+				parts = append(parts, mariaSame(col))
+				continue
+			}
+			parts = append(parts, fmt.Sprintf("%s IS NOT DISTINCT FROM %s", col.Name, g.value(col)))
 		}
 		return strings.Join(parts, " AND ")
 	case "delete":

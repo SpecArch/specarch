@@ -31,7 +31,7 @@ decisions:
         set is refused by name, except that of a column that may be null,
         which left out sets the column to NULL; before anything is read,
         each variable's text is checked against its column's form, by a
-        pattern: a whole number for an integer column (no sign for an
+        pattern that ends in \z: a whole number for an integer column (no sign for an
         unsigned one), a decimal with at most the column's scale of
         digits after the point, a number for DOUBLE, true or false
         (or 1 or 0) for BOOLEAN, a date or time of day that CAST also
@@ -45,7 +45,8 @@ decisions:
         ('true', '1'), and CHAR without a length for text;
       - the five steps of ADR-158, with SELECT COUNT(*) ... FOR UPDATE as
         the locking count, ROW_COUNT() for the count written, <=> for
-        IS NOT DISTINCT FROM, and an audit instant written as
+        IS NOT DISTINCT FROM, a text column compared with its value
+        converted to utf8mb4 under utf8mb4_nopad_bin, and an audit instant written as
         DATE_FORMAT(UTC_TIMESTAMP(6), '%Y-%m-%dT%H:%i:%s.%f000Z');
       - a refusal raised by SIGNAL SQLSTATE '45000' with the message ADR-158
         gives, its values joined by CONCAT; a notice is a row the client
@@ -79,8 +80,27 @@ decisions:
       so the script adds STRICT_ALL_TABLES itself, as a statement of its
       own before the compound statement, so the whole of it runs under
       the strict mode; tried on MariaDB 11.4 with the session's mode
-      emptied first, the title too long was still refused. The rest of the session's mode is kept, so the precondition
+      emptied first, the title too long was still refused. The same
+      statement takes NO_BACKSLASH_ESCAPES out of the session's mode, so
+      the backslash in a pattern and in a message reads alike on every
+      server; the rest of the session's mode is kept, so the precondition
       reads as the check constraints do.
+      A pattern ends in \z, not $: MariaDB's REGEXP is PCRE2, where $ also
+      matches before a final newline, so a value pasted with one would
+      pass, be stored with it, or be cut by the cast. Tried on MariaDB
+      11.4, '5' followed by a newline matched '^[0-9]+$' and not
+      '^[0-9]+\z'.
+      Text is compared byte for byte in the already-applied step and the
+      postcondition, since PostgreSQL compares text exactly and a column
+      MariaDB makes without a collation takes the server's, which is
+      case- and accent-insensitive and pads trailing spaces: under it
+      'the hobbit' equals 'The Hobbit', and a change of case alone would
+      be reported as already made. utf8mb4_nopad_bin compares code points
+      and counts trailing spaces; the value is converted to utf8mb4, which
+      holds every character set a column may have, so the collation fits
+      whatever the column's character set is. A key and a from state are
+      still matched under the column's own collation, as the table's
+      unique and check constraints match them.
       The locking count holds: tried on MariaDB 11.4, a second session's
       UPDATE of a row counted with COUNT(*) ... FOR UPDATE waited until it
       timed out. Under MariaDB's default repeatable read a locking read
@@ -96,8 +116,7 @@ decisions:
       three of the nine digits are zeros.
     consequences: |
       The scripts run through the mariadb client, not through a driver or
-      another client that does not read DELIMITER. A deployment that sets
-      NO_BACKSLASH_ESCAPES reads a doubled backslash in a message as two.
+      another client that does not read DELIMITER.
       Compiler test: generate-scripts-mariadb writes the six scripts of
       the PostgreSQL case for MariaDB, with the same warnings. Acceptance
       test: the scripts were run by hand on MariaDB 11.4 against the
@@ -106,7 +125,11 @@ decisions:
       before reading; a dry run rolled back; an applied run committed; a
       second run reported the record already changed or was refused by
       the count; a title too long and a state outside the check were
-      refused and rolled back.
+      refused and rolled back; a title changed only in case was written,
+      and one changed only by a trailing space was a change; a value with
+      a trailing newline, for an integer, a uuid key or an unsigned key,
+      was refused before reading, with NO_BACKSLASH_ESCAPES set in the
+      session too.
     satisfies: [SA-87]
     cites:
       - source: mariadb-compound-statements

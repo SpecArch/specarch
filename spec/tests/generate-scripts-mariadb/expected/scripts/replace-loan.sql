@@ -13,7 +13,7 @@
 -- Dry run: mariadb --init-command="SET @id = '...', [@note = '...'], @renewals = '...', @status = '...', @title = '...', @last_modified_by_user_id = '...', @last_modified_by_user_nameid = '...'" <database> < replace-loan.sql
 -- Apply: the same with @apply = true in the SET. Without it every check runs against the data and the change is rolled back.
 -- A variable in brackets may be left out: its column is set to NULL.
-SET SESSION sql_mode = CONCAT_WS(',', NULLIF(@@SESSION.sql_mode, ''), 'STRICT_ALL_TABLES');
+SET SESSION sql_mode = CONCAT_WS(',', NULLIF(REPLACE(@@SESSION.sql_mode, 'NO_BACKSLASH_ESCAPES', ''), ''), 'STRICT_ALL_TABLES');
 DELIMITER //
 BEGIN NOT ATOMIC
   DECLARE found BIGINT;
@@ -28,14 +28,14 @@ BEGIN NOT ATOMIC
   IF @id IS NULL THEN
     SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'replace-loan.sql: the variable @id is not set; give it as SET @id = ''<Loan.id>'' (CHAR(36)) in --init-command';
   END IF;
-  IF @id IS NOT NULL AND NOT (@id REGEXP '^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}$') THEN
+  IF @id IS NOT NULL AND NOT (@id REGEXP '^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}\\z') THEN
     SET refusal = CONCAT('replace-loan.sql: the variable @id is ', QUOTE(@id), ', which is not a uuid for Loan.id (CHAR(36)); nothing was read');
     SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = refusal;
   END IF;
   IF @renewals IS NULL THEN
     SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'replace-loan.sql: the variable @renewals is not set; give it as SET @renewals = ''<Loan.renewals>'' (INT) in --init-command';
   END IF;
-  IF @renewals IS NOT NULL AND NOT (@renewals REGEXP '^[+-]?[0-9]+$') THEN
+  IF @renewals IS NOT NULL AND NOT (@renewals REGEXP '^[+-]?[0-9]+\\z') THEN
     SET refusal = CONCAT('replace-loan.sql: the variable @renewals is ', QUOTE(@renewals), ', which is not a whole number for Loan.renewals (INT); nothing was read');
     SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = refusal;
   END IF;
@@ -54,7 +54,7 @@ BEGIN NOT ATOMIC
   START TRANSACTION;
   script: BEGIN
     -- 1. Already applied: the record already holds what the change writes.
-    IF EXISTS (SELECT 1 FROM loans WHERE id = CAST(@id AS CHAR) AND note <=> CAST(@note AS CHAR) AND renewals <=> CAST(@renewals AS DECIMAL(65,0)) AND status <=> CAST(@status AS CHAR) AND title <=> CAST(@title AS CHAR)) THEN
+    IF EXISTS (SELECT 1 FROM loans WHERE id = CAST(@id AS CHAR) AND note <=> CONVERT(@note USING utf8mb4) COLLATE utf8mb4_nopad_bin AND renewals <=> CAST(@renewals AS DECIMAL(65,0)) AND status <=> CONVERT(@status USING utf8mb4) COLLATE utf8mb4_nopad_bin AND title <=> CONVERT(@title USING utf8mb4) COLLATE utf8mb4_nopad_bin) THEN
       SELECT CONCAT('operation replaceLoan: the Loan with id ', @id, ' already holds the values given; nothing to change') AS message;
       ROLLBACK;
       LEAVE script;
@@ -87,7 +87,7 @@ BEGIN NOT ATOMIC
       SET refusal = CONCAT('operation replaceLoan: the change wrote ', changed, ' Loan records, and exactly 1 was expected; another writer may have changed them after they were counted; nothing was changed');
       SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = refusal;
     END IF;
-    IF NOT EXISTS (SELECT 1 FROM loans WHERE id = CAST(@id AS CHAR) AND note <=> CAST(@note AS CHAR) AND renewals <=> CAST(@renewals AS DECIMAL(65,0)) AND status <=> CAST(@status AS CHAR) AND title <=> CAST(@title AS CHAR)) THEN
+    IF NOT EXISTS (SELECT 1 FROM loans WHERE id = CAST(@id AS CHAR) AND note <=> CONVERT(@note USING utf8mb4) COLLATE utf8mb4_nopad_bin AND renewals <=> CAST(@renewals AS DECIMAL(65,0)) AND status <=> CONVERT(@status USING utf8mb4) COLLATE utf8mb4_nopad_bin AND title <=> CONVERT(@title USING utf8mb4) COLLATE utf8mb4_nopad_bin) THEN
       SET refusal = CONCAT('operation replaceLoan: after the change the Loan with id ', @id, ' does not hold the values given; nothing was changed');
       SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = refusal;
     END IF;

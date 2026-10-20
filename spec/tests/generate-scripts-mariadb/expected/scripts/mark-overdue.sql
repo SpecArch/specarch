@@ -7,7 +7,7 @@
 -- Changes exactly 2 Loan records of table loans: sets status to overdue, from open, where renewals == 3.
 -- Dry run: mariadb --init-command="SET @last_modified_by_user_id = '...', @last_modified_by_user_nameid = '...'" <database> < mark-overdue.sql
 -- Apply: the same with @apply = true in the SET. Without it every check runs against the data and the change is rolled back.
-SET SESSION sql_mode = CONCAT_WS(',', NULLIF(@@SESSION.sql_mode, ''), 'STRICT_ALL_TABLES');
+SET SESSION sql_mode = CONCAT_WS(',', NULLIF(REPLACE(@@SESSION.sql_mode, 'NO_BACKSLASH_ESCAPES', ''), ''), 'STRICT_ALL_TABLES');
 DELIMITER //
 BEGIN NOT ATOMIC
   DECLARE found BIGINT;

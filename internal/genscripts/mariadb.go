@@ -69,7 +69,7 @@ func (g *gen) writeMariaDB(e entry, entity string, t gensql.Table, c change, pat
 	if optional {
 		b.WriteString("-- A variable in brackets may be left out: its column is set to NULL.\n")
 	}
-	b.WriteString("SET SESSION sql_mode = CONCAT_WS(',', NULLIF(@@SESSION.sql_mode, ''), 'STRICT_ALL_TABLES');\n")
+	b.WriteString("SET SESSION sql_mode = CONCAT_WS(',', NULLIF(REPLACE(@@SESSION.sql_mode, 'NO_BACKSLASH_ESCAPES', ''), ''), 'STRICT_ALL_TABLES');\n")
 	b.WriteString("DELIMITER //\nBEGIN NOT ATOMIC\n  DECLARE found BIGINT;\n  DECLARE changed BIGINT;\n  DECLARE refusal TEXT;\n")
 	b.WriteString("  DECLARE EXIT HANDLER FOR SQLEXCEPTION BEGIN ROLLBACK; RESIGNAL; END;\n")
 	b.WriteString("  -- The variables: each is set, and its text is a value of its column.\n")
@@ -196,6 +196,21 @@ func mariaValue(col gensql.Column) string {
 	return "CAST(" + v + " AS CHAR)"
 }
 
+// mariaSame is the condition that column col holds its variable's value.
+// <=> treats two NULLs as equal, as IS NOT DISTINCT FROM does. A text
+// column is compared byte for byte: under the server's default collation
+// (case- and accent-insensitive, and padding trailing spaces) 'the hobbit'
+// equals 'The Hobbit', so a change of case alone would be taken as already
+// made. The value is converted to utf8mb4 first, which holds every
+// character set a column may have, so the collation fits it.
+func mariaSame(col gensql.Column) string {
+	v := mariaValue(col)
+	if v == "CAST(@"+col.Name+" AS CHAR)" {
+		v = "CONVERT(@" + col.Name + " USING utf8mb4) COLLATE utf8mb4_nopad_bin"
+	}
+	return col.Name + " <=> " + v
+}
+
 // mariaForm is the condition a variable's text must meet to be a value of
 // its column, and the form in words, or "" when any text is one.
 func mariaForm(col gensql.Column) (string, string) {
@@ -204,31 +219,31 @@ func mariaForm(col gensql.Column) (string, string) {
 	unsigned := strings.Contains(strings.ToUpper(col.Type), "UNSIGNED")
 	switch {
 	case col.Format == "uuid":
-		return v + " REGEXP '^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}$'", "a uuid"
+		return v + " REGEXP '^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}\\\\z'", "a uuid"
 	case col.Format == "date-time":
-		return v + " REGEXP '(?-i)^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}[.][0-9]{9}Z$'", "an instant in UTC with nine fractional digits, as 2006-01-02T15:04:05.000000000Z"
+		return v + " REGEXP '(?-i)^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}[.][0-9]{9}Z\\\\z'", "an instant in UTC with nine fractional digits, as 2006-01-02T15:04:05.000000000Z"
 	}
 	switch base {
 	case "INT", "INTEGER", "BIGINT", "SMALLINT", "TINYINT", "MEDIUMINT":
 		if unsigned {
-			return v + " REGEXP '^[+]?[0-9]+$'", "a whole number of zero or more"
+			return v + " REGEXP '^[+]?[0-9]+\\\\z'", "a whole number of zero or more"
 		}
-		return v + " REGEXP '^[+-]?[0-9]+$'", "a whole number"
+		return v + " REGEXP '^[+-]?[0-9]+\\\\z'", "a whole number"
 	case "DECIMAL", "NUMERIC":
 		if s := scale(size); s > 0 {
-			return fmt.Sprintf("%s REGEXP '^[+-]?[0-9]+([.][0-9]{1,%d})?$'", v, s), fmt.Sprintf("a decimal with at most %d digits after the point", s)
+			return fmt.Sprintf("%s REGEXP '^[+-]?[0-9]+([.][0-9]{1,%d})?\\\\z'", v, s), fmt.Sprintf("a decimal with at most %d digits after the point", s)
 		}
-		return v + " REGEXP '^[+-]?[0-9]+$'", "a whole number"
+		return v + " REGEXP '^[+-]?[0-9]+\\\\z'", "a whole number"
 	case "DOUBLE", "FLOAT", "REAL":
-		return v + " REGEXP '^[+-]?([0-9]+([.][0-9]*)?|[.][0-9]+)([eE][+-]?[0-9]+)?$'", "a number"
+		return v + " REGEXP '^[+-]?([0-9]+([.][0-9]*)?|[.][0-9]+)([eE][+-]?[0-9]+)?\\\\z'", "a number"
 	case "BOOLEAN", "BOOL":
 		return "LOWER(" + v + ") IN ('true', 'false', '1', '0')", "true or false"
 	case "DATE":
-		return v + " REGEXP '^[0-9]{4}-[0-9]{2}-[0-9]{2}$' AND CAST(" + v + " AS DATE) IS NOT NULL", "a date, as 2006-01-02"
+		return v + " REGEXP '^[0-9]{4}-[0-9]{2}-[0-9]{2}\\\\z' AND CAST(" + v + " AS DATE) IS NOT NULL", "a date, as 2006-01-02"
 	case "TIME":
-		return v + " REGEXP '^[0-9]{2}:[0-9]{2}:[0-9]{2}([.][0-9]{1,6})?$' AND CAST(" + v + " AS TIME(6)) IS NOT NULL", "a time of day, as 15:04:05"
+		return v + " REGEXP '^[0-9]{2}:[0-9]{2}:[0-9]{2}([.][0-9]{1,6})?\\\\z' AND CAST(" + v + " AS TIME(6)) IS NOT NULL", "a time of day, as 15:04:05"
 	case "BLOB", "LONGBLOB", "MEDIUMBLOB", "TINYBLOB", "VARBINARY", "BINARY":
-		return v + " REGEXP '^([0-9A-Fa-f]{2})*$'", "hexadecimal"
+		return v + " REGEXP '^([0-9A-Fa-f]{2})*\\\\z'", "hexadecimal"
 	}
 	return "", ""
 }

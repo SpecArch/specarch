@@ -47,7 +47,7 @@ private struct Ref {
     let text: String
     let dep: String
     let pointer: String
-    let kind: String   // ref, target, entity, source, picker, calls or fulfilledBy
+    let kind: String   // ref, target, entity, source, picker, calls, fulfilledBy, permission, client or role
     let owner: YNode   // the relation, page or picker it stands in
     let page: YNode?   // for a picker, its page
 }
@@ -75,6 +75,27 @@ private func collectRefs(_ d: Design) -> [Ref] {
         } else if path.count == 3 && path[0] == "paths" || path.count == 2 && path[0] == "jobs" {
             for (i, e) in items(n.child("calls")).enumerated() {
                 add(e, path + ["calls", "\(i)"], "calls", n, nil)
+            }
+        }
+        if path.count == 2 && path[0] == "roles" {
+            for (i, e) in items(n.child("permissions")).enumerated() {
+                add(e, path + ["permissions", "\(i)"], "permission", n, nil)
+            }
+            for p in pairs(n.child("through")) {
+                add(p.key, path + ["through", p.key.value], "permission", n, nil)
+            }
+        } else if path.count == 3 && path[0] == "paths" || path.count == 2 && path[0] == "commands" {
+            for key in ["callers", "via"] {
+                for (i, e) in items(n.child(key)).enumerated() {
+                    add(e, path + [key, "\(i)"], "client", n, nil)
+                }
+            }
+        } else if path.count == 2 && path[0] == "tests" {
+            let caller = n.child("fixture")?.child("caller")
+            if caller?.kind == .scalar {
+                add(caller, path + ["fixture", "caller"], "role", n, nil)
+            } else {
+                add(caller?.child("role"), path + ["fixture", "caller", "role"], "role", n, nil)
             }
         }
     }
@@ -178,10 +199,13 @@ private final class Resolver {
         let od = o.design
         let tokens = referenceTokens(r.pointer)
         let about = "\(o.name) \(o.version)"
+        if let want = ["permission": "permissions", "client": "clients", "role": "roles"][r.kind], tokens.count != 2 || tokens[0] != want {
+            return fail(r.node, r.path, "\(r.text) names no \(want.dropLast()); write \(r.dep)#/\(want)/<name>")
+        }
         if tokens.count == 2 {
             let section = tokens[0], el = tokens[1]
-            let sets: [String: [String: YNode]] = ["entities": od.entities, "enums": od.enums, "views": od.views, "schemas": od.schemas, "requirements": od.requirements]
-            let what: [String: String] = ["entities": "an entity", "enums": "an enum", "views": "a view", "schemas": "a schema", "requirements": "a requirement"]
+            let sets: [String: [String: YNode]] = ["entities": od.entities, "enums": od.enums, "views": od.views, "schemas": od.schemas, "requirements": od.requirements, "permissions": od.permissions, "clients": od.clientNames, "roles": od.roles]
+            let what: [String: String] = ["entities": "an entity", "enums": "an enum", "views": "a view", "schemas": "a schema", "requirements": "a requirement", "permissions": "a permission", "clients": "a client", "roles": "a role"]
             let elements = sets[section] ?? [:]
             if sets[section] == nil || elements[el] == nil {
                 return fail(r.node, r.path, "\(el) is not \(what[section] ?? "") of \(about)\(suggest(el, elements))")
@@ -289,10 +313,139 @@ func unresolvedReferences(_ s: Spec, _ given: Given) -> [Reference] {
     let d = Design(root)
     let rv = Resolver(d, given)
     var out: [Reference] = []
+    let identity = d.identityDependency
+    for p in rv.ungrantedWaiting() {
+        out.append(Reference(path: pointer("permissions", p.key.value), text: identity + "#/roles", waits: rv.identityGrant(p.key.value).waits))
+    }
     for r in collectRefs(d) {
         let res = rv.resolve(r)
         if !res.problems.isEmpty || res.waits.isEmpty { continue }
         out.append(Reference(path: pointer(r.path), text: r.text, waits: res.waits))
     }
     return out
+}
+
+// The identity module holds the estate's clients, roles and trust domain,
+// and every other module names them by reference through a dependency of
+// kind identityProvider (see the Go build's identity.go, ADR-107).
+
+extension Design {
+    /// The dependency that names the identity module, of kind
+    /// identityProvider and with a specification, the first by name; "".
+    var identityDependency: String {
+        for name in dependencies.keys.sorted(by: byteLess) {
+            let dep = dependencies[name]!
+            if str(dep.child("kind")) == "identityProvider" && !str(dep.child("specification")).isEmpty { return name }
+        }
+        return ""
+    }
+
+    /// The specification a dependency names, or "".
+    func specificationOf(_ dep: String) -> String { str(dependencies[dep]?.child("specification")) }
+
+    /// Every permission a role of the specification grants, directly or by
+    /// implies.
+    var grantedHere: Set<String> {
+        var out = Set<String>()
+        for r in roles.values { out.formUnion(roleHolds(r)) }
+        return out
+    }
+}
+
+extension Other {
+    /// Whether one of the roles grants the permission perm of the module
+    /// named module, by a reference through one of its dependencies.
+    func grants(_ roles: [String], _ module: String, _ perm: String) -> Bool {
+        for r in roles {
+            for p in design.roleHolds(design.roles[r]) {
+                if let (dep, ptr) = crossRef(p), design.specificationOf(dep) == module, ptr == "/permissions/" + perm { return true }
+            }
+        }
+        return false
+    }
+}
+
+extension Resolver {
+    /// The element a reference names in a specification given with this
+    /// one, with that specification.
+    func element(_ text: String) -> (Other, YNode)? {
+        guard let (dep, ptr) = crossRef(text) else { return nil }
+        let name = d.specificationOf(dep)
+        if name.isEmpty { return nil }
+        let (found, problem) = otherOf(name)
+        guard let o = found, problem.isEmpty else { return nil }
+        let tokens = referenceTokens(ptr)
+        guard tokens.count == 2, let el = o.design.root.child(tokens[0])?.child(tokens[1]) else { return nil }
+        return (o, el)
+    }
+
+    /// Whether a permission no role here grants is granted by a role of the
+    /// identity module, or why it cannot be told.
+    func identityGrant(_ perm: String) -> (granted: Bool, waits: String, identity: String) {
+        let dep = d.identityDependency
+        if dep.isEmpty { return (false, "", "") }
+        let name = d.specificationOf(dep)
+        let (found, problem) = otherOf(name)
+        if !problem.isEmpty { return (false, "", name) }
+        guard let o = found else { return (false, name + " is not given, so the role that grants " + perm + " cannot be found", name) }
+        return (o.grants(o.design.roles.keys.sorted(by: byteLess), specName(d.root), perm), "", name)
+    }
+
+    /// The permissions no role here grants whose grant waits for the
+    /// identity module.
+    func ungrantedWaiting() -> [Pair] {
+        let granted = d.grantedHere
+        return pairs(d.root.child("permissions")).filter { p in
+            p.key.value != permissionPublic && p.key.value != permissionNobody && !granted.contains(p.key.value) && !identityGrant(p.key.value).waits.isEmpty
+        }
+    }
+}
+
+/// A client of the identity module named in via or callers, once that
+/// module is given and holds it.
+struct ReferencedClient {
+    let module: String
+    let node: YNode
+    let grants: (_ roles: [String], _ perm: String) -> Bool
+}
+
+extension Checker {
+    func referencedClient(_ d: Design, _ text: String) -> ReferencedClient? {
+        guard let (_, ptr) = crossRef(text), ptr.hasPrefix("/clients/") else { return nil }
+        let rv = Resolver(d, given)
+        guard let (o, cl) = rv.element(text) else { return nil }
+        let module = specName(d.root)
+        return ReferencedClient(module: o.name, node: cl) { roles, perm in o.grants(roles, module, perm) }
+    }
+
+    func identityGrant(_ d: Design, _ perm: String) -> (granted: Bool, waits: String, identity: String) {
+        Resolver(d, given).identityGrant(perm)
+    }
+
+    /// Whether a specification given with this one names the client in an
+    /// operation's via, through a dependency on this specification.
+    func namedInViaElsewhere(_ d: Design, _ client: String) -> Bool {
+        let module = specName(d.root)
+        if module.isEmpty { return false }
+        for list in given.values {
+            for s in list {
+                guard let root = s.root, specName(root) != module else { continue }
+                let od = Design(root)
+                for o in od.opList {
+                    for v in items(o.node.child("via")) {
+                        if let (dep, ptr) = crossRef(v.value), od.specificationOf(dep) == module, ptr == "/clients/" + client { return true }
+                    }
+                }
+            }
+        }
+        return false
+    }
+
+    /// Checks that the trust domain is a URI.
+    func checkTrustDomain(_ d: Design) {
+        guard let n = d.root.child("trustDomain") else { return }
+        let s = str(n)
+        if let u = URLComponents(string: s), let scheme = u.scheme, !scheme.isEmpty, let host = u.host, !host.isEmpty { return }
+        add(n, "/trustDomain", .tokenAudience, "trustDomain \(s) is not a URI; it is the aud of every transaction token and the base of every security event's identifier, such as https://estate.example.org")
+    }
 }

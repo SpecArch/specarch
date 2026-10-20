@@ -41,8 +41,12 @@ extension Design {
         return out
     }
 
-    /// Whether any client is a service.
-    var hasService: Bool { clientList.contains { str($0.value.child("kind")) == "service" } }
+    /// Whether any client is a service, or a client of the identity module
+    /// is named in via, which makes it one by the via rule.
+    var hasService: Bool {
+        clientList.contains { str($0.value.child("kind")) == "service" }
+            || opList.contains { items($0.node.child("via")).contains { isCross($0.value) } }
+    }
 
     /// Whether any declared token carries the claim.
     func tokensDeclareClaim(_ claim: String) -> Bool {
@@ -152,7 +156,7 @@ extension Checker {
                     add(v, at + "/softwareVersion", .softwareVersion, "softwareVersion on \(name) has nothing to be checked against: no token declares a softwareVersion claim, and the version is read at the edge from the claim the issuer fills from the registration; declare the claim on the token the edge accepts, or take softwareVersion away")
                 }
             }
-            if kind == "service" && roles == nil && !d.namedInVia(name) {
+            if kind == "service" && roles == nil && !d.namedInVia(name) && !namedInViaElsewhere(d, name) {
                 warn(cl.key, at, .clientUnused, "\(name) is a service with no roles that no operation names in via, so nothing reaches it; give it roles, name it in via, or remove it")
             }
         }
@@ -248,6 +252,17 @@ extension Checker {
             }
             seen.insert(name)
             if name == callerPeople { continue }
+            if isCross(name) {
+                // A client of the identity module, whose roles grant this
+                // module's permissions by reference (ADR-107).
+                guard let rc = referencedClient(d, name) else { continue }
+                if str(rc.node.child("kind")) == "service" && rc.node.child("roles") == nil {
+                    add(item, iat, .callers, "\(name) is a service with no roles, which only carries a person's call and never calls on its own account; list people, whose calls it carries, or give it roles")
+                } else if !perm.isEmpty && perm != permissionPublic && perm != permissionNobody && !rc.grants(items(rc.node.child("roles")).map { $0.value }, perm) {
+                    add(item, iat, .callers, "\(name) holds no role that grants \(perm) of \(specName(d.root)), so it could never call \(who); add the permission to one of its roles in \(rc.module), or take the client out of callers")
+                }
+                continue
+            }
             guard let cl = d.client(name) else {
                 add(item, iat, .callers, "\(name) is neither people nor a client of the specification\(suggest(name, d.clientNames))")
                 continue

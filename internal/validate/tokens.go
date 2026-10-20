@@ -328,6 +328,7 @@ func (c *checker) checkVia(d *design, o operation) {
 		c.add(via, at, RuleVia, "via names no caller, which would make operation %s a route nobody reaches; list the services, or close it with permission: nobody", o.id)
 	}
 	seen := map[string]bool{}
+	rv := newResolver(d, c.given)
 	for i, item := range items {
 		name := item.Value
 		iat := at + "/" + itoa(i)
@@ -337,7 +338,13 @@ func (c *checker) checkVia(d *design, o operation) {
 		}
 		seen[name] = true
 		cl := d.client(name)
-		if cl == nil {
+		if isCross(name) {
+			// A client of the identity module: the reference check says
+			// whether it is there, and it is checked once it is given.
+			if _, cl = rv.referencedClient(name); cl == nil {
+				continue
+			}
+		} else if cl == nil {
 			c.add(item, iat, RuleVia, "%s is not a client of the specification%s", name, suggest(name, d.clientNames()))
 			continue
 		}

@@ -68,6 +68,15 @@ func (d *design) hasService() bool {
 			return true
 		}
 	}
+	// A client of the identity module named in via is a service, by the
+	// via rule.
+	for _, o := range d.opList {
+		for _, v := range source.Items(source.Child(o.node, "via")) {
+			if isCross(v.Value) {
+				return true
+			}
+		}
+	}
 	return false
 }
 
@@ -124,7 +133,7 @@ func (c *checker) checkClients(d *design) {
 				c.add(v, at+"/softwareVersion", RuleSoftwareVersion, "softwareVersion on %s has nothing to be checked against: no token declares a softwareVersion claim, and the version is read at the edge from the claim the issuer fills from the registration; declare the claim on the token the edge accepts, or take softwareVersion away", name)
 			}
 		}
-		if kind == "service" && roles == nil && !d.namedInVia(name) {
+		if kind == "service" && roles == nil && !d.namedInVia(name) && !c.namedInViaElsewhere(d, name) {
 			c.warn(cl.Key, at, RuleClientUnused, "%s is a service with no roles that no operation names in via, so nothing reaches it; give it roles, name it in via, or remove it", name)
 		}
 	}
@@ -234,6 +243,7 @@ func (c *checker) checkCallerList(d *design, n *yaml.Node, at, who string) {
 		c.add(callers, at, RuleCallers, "%s is closed with permission nobody, so callers has nobody to list; remove callers", who)
 	}
 	seen := map[string]bool{}
+	rv := newResolver(d, c.given)
 	for i, item := range items {
 		name := item.Value
 		iat := at + "/" + itoa(i)
@@ -243,6 +253,19 @@ func (c *checker) checkCallerList(d *design, n *yaml.Node, at, who string) {
 		}
 		seen[name] = true
 		if name == callerPeople {
+			continue
+		}
+		if isCross(name) {
+			// A client of the identity module, whose roles grant this
+			// module's permissions by reference (ADR-107).
+			o, cl := rv.referencedClient(name)
+			switch {
+			case cl == nil:
+			case source.Str(source.Child(cl, "kind")) == "service" && source.Child(cl, "roles") == nil:
+				c.add(item, iat, RuleCallers, "%s is a service with no roles, which only carries a person's call and never calls on its own account; list people, whose calls it carries, or give it roles", name)
+			case perm != "" && perm != permissionPublic && perm != permissionNobody && !o.grants(itemValues(source.Child(cl, "roles")), SpecName(d.root), perm):
+				c.add(item, iat, RuleCallers, "%s holds no role that grants %s of %s, so it could never call %s; add the permission to one of its roles in %s, or take the client out of callers", name, perm, SpecName(d.root), who, o.name)
+			}
 			continue
 		}
 		cl := d.client(name)

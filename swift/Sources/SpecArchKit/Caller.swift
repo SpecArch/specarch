@@ -204,7 +204,7 @@ extension Checker {
     func checkFixtureCaller(_ d: Design, _ n: YNode, _ ptr: String) {
         if n.kind == .scalar {
             let v = n.value
-            if !v.isEmpty && v != "public" && d.roles[v] == nil {
+            if !v.isEmpty && v != "public" && d.roles[v] == nil && !isCross(v) {
                 add(n, ptr, .testData, "caller \(v) is neither public nor a role of the specification\(suggest(v, d.roles))")
             }
             return
@@ -215,7 +215,7 @@ extension Checker {
             let key = kv.key.value
             if key == "role" {
                 let v = str(kv.value)
-                if !v.isEmpty && v != "public" && d.roles[v] == nil {
+                if !v.isEmpty && v != "public" && d.roles[v] == nil && !isCross(v) {
                     add(kv.value, ptr + "/role", .testData, "caller role \(v) is neither public nor a role of the specification\(suggest(v, d.roles))")
                 }
             } else if key.hasPrefix("x-") {

@@ -484,3 +484,16 @@ requirements:
     verification: test
     needs: [NEED-1, NEED-2, NEED-3]
     why: An identity service issues access, refresh, step-up, delegated and machine tokens, each with its own claims and lifetime, and the claims were only in prose, so a requirement such as the actor claim never equals the subject could not be checked against the binding, a token minted for one service could be replayed at the next, and a refusal left no event behind.
+  SA-88:
+    statement: An estate shall be able to keep its clients, roles and trust domain in one identity module that every other module names by reference, and specarch validate shall resolve those references when the modules are given together, count them as unresolved when they are not, and check what the referenced clients and roles allow at every hop.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance:
+      - trustDomain, written in the identity module's root file, is a URI, or is refused as token_audience in both builds.
+      - A role may grant <dependency>#/permissions/<name> and narrow it by through; via and callers may name <dependency>#/clients/<name>; a test's caller may be <dependency>#/roles/<name>. Each is resolved when the specification it names is given in the run, and a name that specification does not hold, or a reference to the wrong kind of element, is refused as reference at the entry, the same in both builds.
+      - A module with a dependency of kind identityProvider counts each permission no role of its own grants as an unresolved reference while the identity module is not given, and specarch gaps lists it; given, a permission no role of either grants is refused as permission_ungranted.
+      - Once the identity module is given, a client it holds is checked in via and callers as a client of the module is, so an application or a service without a workload-identity proof in via, a service with no roles or a client none of whose roles grants the operation's permission in callers; and a service with no roles is not reported unused when another module names it in via.
+    verification: test
+    needs: [NEED-2, NEED-3]
+    why: The clients, the roles and the trust domain are facts of the whole estate, not of one service, and every hop of a call must check the same names; kept in each module they drift apart, and kept in the umbrella they would put design into a file that only lists and pins the modules (ADR-107).

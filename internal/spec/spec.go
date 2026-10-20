@@ -74,7 +74,7 @@ var sectionOrder = []string{
 var singleSections = map[string]bool{"release": true, "rollback": true, "handover": true, "signoff": true, "backup": true, "restore": true, "accessibility": true, "theme": true}
 
 // rootOnly are the keys that live only in the root file.
-var rootOnly = map[string]bool{"specarch": true, "info": true, "stages": true, "sources": true}
+var rootOnly = map[string]bool{"specarch": true, "info": true, "trustDomain": true, "stages": true, "sources": true}
 
 // keyedElements are the sections whose entries are each an element that
 // may carry audience (ADR-119).

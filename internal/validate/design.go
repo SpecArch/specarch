@@ -212,6 +212,7 @@ func (c *checker) checkDesign(d *design) {
 	c.checkCaller(d)
 	c.checkRoleRows(d)
 	c.checkClients(d)
+	c.checkTrustDomain(d)
 	c.checkThrough(d)
 	c.checkCallers(d)
 	c.checkTokens(d)
@@ -721,7 +722,7 @@ func (c *checker) checkDecisions(d *design) {
 func (c *checker) checkAccess(d *design) {
 	use := func(n *yaml.Node, ptr string, who string) {
 		p := source.Str(n)
-		if p != "" && d.permissions[p] == nil {
+		if p != "" && d.permissions[p] == nil && !isCross(p) {
 			c.add(n, ptr, RulePermissionUndeclared, "%s needs permission %s, which is not declared; add it under permissions%s", who, p, strings.Replace(suggest(p, d.permissions), "; there are none in the specification", "", 1))
 		}
 	}
@@ -742,7 +743,6 @@ func (c *checker) checkAccess(d *design) {
 			use(source.Child(st, "permission"), source.Pointer("workflows", w.Key.Value, "steps", fmt.Sprint(i), "permission"), "workflow "+w.Key.Value)
 		}
 	}
-	granted := map[string]bool{}
 	for name, r := range d.roles {
 		for i, p := range source.Items(source.Child(r, "permissions")) {
 			if p.Value == permissionNobody {
@@ -751,12 +751,22 @@ func (c *checker) checkAccess(d *design) {
 			}
 			use(p, source.Pointer("roles", name, "permissions", fmt.Sprint(i)), "role "+name)
 		}
-		for p := range d.roleHolds(r) {
-			granted[p] = true
-		}
 	}
+	// A permission no role here grants may be granted by a role of the
+	// identity module; while that module is not given, it is counted as an
+	// unresolved reference (ADR-107).
+	granted := d.grantedHere()
+	rv := newResolver(d, c.given)
 	for _, p := range source.Pairs(source.Child(d.root, "permissions")) {
-		if p.Key.Value != permissionPublic && p.Key.Value != permissionNobody && !granted[p.Key.Value] {
+		if p.Key.Value == permissionPublic || p.Key.Value == permissionNobody || granted[p.Key.Value] {
+			continue
+		}
+		switch ok, waits, identity := rv.identityGrant(p.Key.Value); {
+		case ok || waits != "":
+		case identity != "":
+			c.add(p.Key, source.Pointer("permissions", p.Key.Value), RulePermissionUngranted,
+				"no role grants %s, here or in %s, so nobody can use what it guards; add it to a role of %s through its dependency on this module, or use public if it is meant for everyone", p.Key.Value, identity, identity)
+		default:
 			c.add(p.Key, source.Pointer("permissions", p.Key.Value), RulePermissionUngranted,
 				"no role grants %s, so nobody can use what it guards; add it to a role, or use public if it is meant for everyone", p.Key.Value)
 		}

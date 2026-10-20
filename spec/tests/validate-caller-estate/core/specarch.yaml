@@ -1,0 +1,67 @@
+specarch: "0.3"
+info: { title: Core, version: 1.0.0, name: core }
+entities:
+  Invoice:
+    type: object
+    properties:
+      id: { type: string, maxLength: 36 }
+    required: [id]
+    primaryKey: [id]
+permissions:
+  invoices.read: { description: See invoices. }
+  invoices.delete: { description: Delete invoices. }
+dependencies:
+  identity: { description: Issues the estate's tokens and holds its clients and roles., timeout: PT2S, kind: identityProvider, specification: identity, version: 1.0.0 }
+tokens:
+  access:
+    description: What a person or the reporting service presents when it calls the core directly.
+    format: jwt
+    lifetime: PT15M
+    signature: ES256
+    claims:
+      sub: { description: The caller's identifier. }
+      aud: { const: "https://core.estate.example.org" }
+      client_id: { description: The application or service the token was issued to. }
+    default: true
+  transaction:
+    description: What the middleware passes on, unmodified, on a person's behalf.
+    format: jwt
+    tokenType: txn_token
+    lifetime: PT5M
+    signature: ES256
+    claims:
+      txn: { description: "The transaction's identifier, one for the whole call." }
+      sub: { description: The person acted for. }
+      scope: { description: The permission the edge operation checked. }
+      req_wl: { description: The edge workload that requested the token. }
+      tctx:
+        properties:
+          application: { description: The software_id of the application the person signed in through. }
+paths:
+  /invoices:
+    get:
+      operationId: listInvoices
+      summary: List invoices
+      permission: invoices.read
+      callers: [people, "identity#/clients/reporting"]
+      responses:
+        "200": { description: The invoices. }
+  /invoices/{invoiceId}:
+    parameters:
+      - { name: invoiceId, in: path, required: true, schema: { type: string, maxLength: 36 } }
+    delete:
+      operationId: deleteInvoice
+      summary: Delete an invoice, called by the middleware on a person's behalf
+      permission: invoices.delete
+      token: transaction
+      via: ["identity#/clients/middleware"]
+      responses:
+        "204": { description: Deleted. }
+tests:
+  list-invoices-succeeds: { operation: listInvoices, level: system, scenario: golden, given: an invoice reader, when: listInvoices is called, then: it answers 200, fixture: { caller: "identity#/roles/invoice-reader" } }
+  list-invoices-denied: { operation: listInvoices, level: system, scenario: red, covers: [denied without invoices.read], given: a caller without invoices.read, when: listInvoices is called, then: it is refused }
+  list-invoices-expired: { operation: listInvoices, level: system, scenario: red, covers: [denied with expired access], given: an access token expired after 15 minutes, when: listInvoices is called, then: it is refused as not signed in }
+  delete-invoice-succeeds: { operation: deleteInvoice, level: system, scenario: golden, given: the middleware with a transaction token for an invoice manager through admin-web, when: deleteInvoice is called, then: it answers 204 }
+  delete-invoice-not-found: { operation: deleteInvoice, level: system, scenario: red, covers: [not found invoiceId], given: no invoice with that invoiceId, when: deleteInvoice is called, then: it is refused as not found }
+  delete-invoice-denied: { operation: deleteInvoice, level: system, scenario: red, covers: [denied without invoices.delete], given: a caller without invoices.delete, when: deleteInvoice is called, then: it is refused }
+  delete-invoice-expired: { operation: deleteInvoice, level: system, scenario: red, covers: [denied with expired transaction], given: a transaction token expired after 5 minutes, when: deleteInvoice is called, then: it is refused as not signed in }

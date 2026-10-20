@@ -1,0 +1,34 @@
+arguments: [gaps, core]
+exitStatus: 0
+standardOutput: |+
+  # Core: open questions
+
+  Version 1.0.0 of the specification has no open question: nothing it says waits on a decision or on material from a stakeholder.
+
+  ## 1. References to other specifications
+
+  5 references name elements of other specifications and are not resolved in this run: the specification named is not given with this one, or the element is blocked there by a must question. Give the other specification in the same run to check them; until then they are gaps, not errors.
+
+  | At | Reference | Specification | Waits on |
+  |---|---|---|---|
+  | /permissions/invoices.read | identity#/roles | identity 1.0.0 | identity is not given, so the role that grants invoices.read cannot be found |
+  | /permissions/invoices.delete | identity#/roles | identity 1.0.0 | identity is not given, so the role that grants invoices.delete cannot be found |
+  | /paths/~1invoices/get/callers/1 | identity#/clients/reporting | identity 1.0.0 | identity is not given |
+  | /paths/~1invoices~1{invoiceId}/delete/via/0 | identity#/clients/middleware | identity 1.0.0 | identity is not given |
+  | /tests/list-invoices-succeeds/fixture/caller | identity#/roles/invoice-reader | identity 1.0.0 | identity is not given |
+
+  ## 2. Outputs
+
+  What can be made from the specification now. A document is a draft while a must or should question blocks what it reads, or an error is in it; code generation waits for those questions, for every error to be fixed, and for the approval.
+
+  | Output | State | Waits on |
+  |---|---|---|
+  | techspec document | ready | |
+  | requirements document | ready | |
+  | testplan document | ready | |
+  | traceability document | ready | |
+  | deployment document | ready | |
+  | commissioning document | ready | |
+  | html document | ready | |
+  | code generation | waits | not approved: there is no records/approvals/1.0.0.yaml beside the specification |
+

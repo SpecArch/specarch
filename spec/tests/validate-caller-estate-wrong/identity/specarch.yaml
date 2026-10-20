@@ -1,0 +1,63 @@
+specarch: "0.3"
+info: { title: Identity, version: 1.0.0, name: identity }
+trustDomain: estate.example.org
+clients:
+  admin-web:
+    description: The administration application in the browser, where staff sign in.
+    kind: application
+    softwareVersion: ">=1.2.0 <2.0.0"
+    softwareStatement: true
+  reporting:
+    description: The reporting service, which reads invoices on its own account every night.
+    kind: service
+    roles: [invoice-reader]
+    proof: { kind: token, token: machine }
+  bff:
+    description: The service behind the front ends, which calls the middleware on the person's behalf.
+    kind: service
+    proof: { kind: spiffe }
+  middleware:
+    description: The service between the front ends' backend and the core, which calls the core on the person's behalf.
+    kind: service
+    proof: { kind: spiffe }
+roles:
+  invoice-manager:
+    description: Staff who manage invoices, who may delete them only from the administration application.
+    permissions: [core#/permissions/invoices.read, core#/permissions/invoices.delete, core#/permissions/invoices.remove, middleware#/permissions/invoices.delete, bff#/permissions/invoices.delete]
+    through:
+      core#/permissions/invoices.delete: [admin-web]
+      middleware#/permissions/invoices.delete: [admin-web]
+      bff#/permissions/invoices.delete: [admin-web]
+  invoice-reader:
+    description: What the reporting service reads on its own account.
+    permissions: [core#/permissions/invoices.read]
+dependencies:
+  core: { description: Keeps the invoices., timeout: PT2S, kind: system, specification: core, version: 1.0.0 }
+  middleware: { description: Sits between the front ends' backend and the core., timeout: PT2S, kind: system, specification: middleware, version: 1.0.0 }
+  bff: { description: The backend behind the front ends., timeout: PT2S, kind: system, specification: bff, version: 1.0.0 }
+  securityLog: { description: The append-only store of security events., timeout: PT2S }
+  pager: { description: The alarm channel., timeout: PT2S }
+securityEvents:
+  store: securityLog
+  alarm: pager
+tokens:
+  access:
+    description: What a signed-in person presents at the edge.
+    format: jwt
+    lifetime: PT15M
+    signature: ES256
+    claims:
+      sub: { description: The person's identifier. }
+      aud: { description: The service the token is minted for. }
+      client_id: { description: The application the person signed in through. }
+      softwareVersion: { type: string, maxLength: 20, description: "The application's version, as the issuer registered it." }
+    default: true
+  machine:
+    description: What a service presents when it calls on its own account.
+    format: jwt
+    lifetime: PT5M
+    signature: ES256
+    claims:
+      sub: { description: The service's identifier. }
+      aud: { description: The service the token is minted for. }
+      client_id: { description: The service itself. }

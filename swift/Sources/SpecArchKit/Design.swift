@@ -240,6 +240,7 @@ extension Checker {
         checkCaller(d)
         checkRoleRows(d)
         checkClients(d)
+        checkTrustDomain(d)
         checkThrough(d)
         checkCallers(d)
         checkTokens(d)
@@ -777,7 +778,7 @@ extension Checker {
     func checkAccess(_ d: Design) {
         func use(_ n: YNode?, _ ptr: String, _ who: String) {
             let p = str(n)
-            if !p.isEmpty && d.permissions[p] == nil {
+            if !p.isEmpty && d.permissions[p] == nil && !isCross(p) {
                 let hint = suggest(p, d.permissions).replacingOccurrences(of: "; there are none in the specification", with: "")
                 add(n, ptr, .permissionUndeclared, "\(who) needs permission \(p), which is not declared; add it under permissions\(hint)")
             }
@@ -795,7 +796,6 @@ extension Checker {
                 use(st.child("permission"), pointer("workflows", w.key.value, "steps", "\(i)", "permission"), "workflow " + w.key.value)
             }
         }
-        var granted = Set<String>()
         for (name, r) in d.roles {
             for (i, p) in items(r.child("permissions")).enumerated() {
                 if p.value == permissionNobody {
@@ -804,11 +804,21 @@ extension Checker {
                 }
                 use(p, pointer("roles", name, "permissions", "\(i)"), "role " + name)
             }
-            granted.formUnion(d.roleHolds(r))
         }
+        // A permission no role here grants may be granted by a role of the
+        // identity module; while that module is not given, it is counted as
+        // an unresolved reference (ADR-107).
+        let granted = d.grantedHere
         for p in pairs(d.root.child("permissions")) where p.key.value != permissionPublic && p.key.value != permissionNobody && !granted.contains(p.key.value) {
-            add(p.key, pointer("permissions", p.key.value), .permissionUngranted,
-                "no role grants \(p.key.value), so nobody can use what it guards; add it to a role, or use public if it is meant for everyone")
+            let g = identityGrant(d, p.key.value)
+            if g.granted || !g.waits.isEmpty { continue }
+            if !g.identity.isEmpty {
+                add(p.key, pointer("permissions", p.key.value), .permissionUngranted,
+                    "no role grants \(p.key.value), here or in \(g.identity), so nobody can use what it guards; add it to a role of \(g.identity) through its dependency on this module, or use public if it is meant for everyone")
+            } else {
+                add(p.key, pointer("permissions", p.key.value), .permissionUngranted,
+                    "no role grants \(p.key.value), so nobody can use what it guards; add it to a role, or use public if it is meant for everyone")
+            }
         }
     }
 

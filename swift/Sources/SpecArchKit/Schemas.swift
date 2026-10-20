@@ -20,6 +20,11 @@ let designSchemaJSON = #"""
     "info": {
       "$ref": "#/$defs/info"
     },
+    "trustDomain": {
+      "description": "SpecArch keyword, in the identity module's root file. The URI that names the trust domain: the aud of every transaction token, and the base of every security event's identifier, <trustDomain>/events/<rule> (ADR-107, ADR-109).",
+      "type": "string",
+      "minLength": 1
+    },
     "stages": {
       "description": "SpecArch keyword. The life-cycle stages this specification keeps in folders of their own, in life-cycle order. A listed stage has a folder of that name beside specarch.yaml and its sections live there; a stage that is not listed has no folder, and its sections, if any, are written in specarch.yaml. Only in specarch.yaml.",
       "type": "array",
@@ -2206,7 +2211,14 @@ let designSchemaJSON = #"""
           "description": "Permissions this role grants. Fail-closed: an empty list is not allowed; a role that grants nothing is left out.",
           "type": "array",
           "items": {
-            "$ref": "#/$defs/permissionName"
+            "anyOf": [
+              {
+                "$ref": "#/$defs/permissionName"
+              },
+              {
+                "$ref": "#/$defs/permissionReference"
+              }
+            ]
           },
           "minItems": 1,
           "uniqueItems": true
@@ -2227,7 +2239,14 @@ let designSchemaJSON = #"""
           "description": "SpecArch keyword. The clients a grant holds through, keyed by a permission the role grants, directly or by implies: the application the caller signed in through, or the client calling on its own account, must be one listed, checked at every hop against the token's client_id or tctx.application. A permission not listed holds through every client. Listing nobody is not written: to close the grant, drop the permission (ADR-106, ADR-108).",
           "type": "object",
           "propertyNames": {
-            "$ref": "#/$defs/permissionName"
+            "anyOf": [
+              {
+                "$ref": "#/$defs/permissionName"
+              },
+              {
+                "$ref": "#/$defs/permissionReference"
+              }
+            ]
           },
           "additionalProperties": {
             "type": "array",
@@ -2529,8 +2548,15 @@ let designSchemaJSON = #"""
           "description": "SpecArch keyword. Who may call: the explicit subset, people (anyone signed in; which people is the roles' business) and clients by name, in any order. Left out, it is [people]: a client is refused. A client listed must hold a role that grants the permission, and a service with no roles cannot be listed (ADR-110). There is no all: a client added later is admitted only once someone writes it here.",
           "type": "array",
           "items": {
-            "type": "string",
-            "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+              },
+              {
+                "$ref": "#/$defs/clientReference"
+              }
+            ]
           }
         },
         "token": {
@@ -2541,7 +2567,14 @@ let designSchemaJSON = #"""
           "description": "SpecArch keyword. The immediate callers of this operation on a person's behalf: the services that call it with the transaction token, each with a workload-identity proof. Required on an operation accepting a transaction token or a token declaring act, refused elsewhere; every caller is written out, since a wildcard would admit a hop added later without anyone writing it (ADR-111).",
           "type": "array",
           "items": {
-            "$ref": "#/$defs/clientName"
+            "anyOf": [
+              {
+                "$ref": "#/$defs/clientName"
+              },
+              {
+                "$ref": "#/$defs/clientReference"
+              }
+            ]
           }
         },
         "middlewares": {
@@ -4317,8 +4350,15 @@ let designSchemaJSON = #"""
           "description": "SpecArch keyword. Who may call: the explicit subset, people (anyone signed in; which people is the roles' business) and clients by name, in any order. Left out, it is [people]: a client is refused. A client listed must hold a role that grants the permission, and a service with no roles cannot be listed (ADR-110). There is no all: a client added later is admitted only once someone writes it here.",
           "type": "array",
           "items": {
-            "type": "string",
-            "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+              },
+              {
+                "$ref": "#/$defs/clientReference"
+              }
+            ]
           }
         },
         "arguments": {
@@ -6527,6 +6567,16 @@ let designSchemaJSON = #"""
         "^x-": {}
       },
       "additionalProperties": false
+    },
+    "permissionReference": {
+      "description": "SpecArch keyword. A permission of another module, the one whose service enforces it: <dependency>#/permissions/<name>, through a dependency that names that module's specification (ADR-107).",
+      "type": "string",
+      "pattern": "^[a-z][A-Za-z0-9]*#/permissions/[a-z][a-z0-9]*(\\.[a-z][a-z0-9]*)*$"
+    },
+    "clientReference": {
+      "description": "SpecArch keyword. A client of the identity module: <dependency>#/clients/<software_id>, through a dependency that names the identity module's specification (ADR-107).",
+      "type": "string",
+      "pattern": "^[a-z][A-Za-z0-9]*#/clients/[a-z][a-z0-9]*(-[a-z0-9]+)*$"
     }
   }
 }

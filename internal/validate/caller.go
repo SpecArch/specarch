@@ -262,7 +262,7 @@ func callerProperties(root *yaml.Node) []string {
 // word, or an object with the role and values for the caller's properties.
 func (c *checker) checkFixtureCaller(d *design, n *yaml.Node, ptr string) {
 	if source.IsScalar(n) {
-		if v := source.Str(n); v != "" && v != "public" && d.roles[v] == nil {
+		if v := source.Str(n); v != "" && v != "public" && d.roles[v] == nil && !isCross(v) {
 			c.add(n, ptr, RuleTestData, "caller %s is neither public nor a role of the specification%s", v, suggest(v, d.roles))
 		}
 		return
@@ -275,7 +275,7 @@ func (c *checker) checkFixtureCaller(d *design, n *yaml.Node, ptr string) {
 		key := kv.Key.Value
 		switch {
 		case key == "role":
-			if v := source.Str(kv.Value); v != "" && v != "public" && d.roles[v] == nil {
+			if v := source.Str(kv.Value); v != "" && v != "public" && d.roles[v] == nil && !isCross(v) {
 				c.add(kv.Value, ptr+"/role", RuleTestData, "caller role %s is neither public nor a role of the specification%s", v, suggest(v, d.roles))
 			}
 		case strings.HasPrefix(key, "x-"):

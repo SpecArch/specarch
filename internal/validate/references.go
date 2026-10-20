@@ -75,7 +75,7 @@ type ref struct {
 	text    string
 	dep     string
 	pointer string
-	kind    string     // ref, target, entity, source, picker, calls or fulfilledBy
+	kind    string     // ref, target, entity, source, picker, calls, fulfilledBy, permission, client or role
 	owner   *yaml.Node // the relation, page or picker it stands in
 	page    *yaml.Node // for a picker, its page
 }
@@ -91,7 +91,7 @@ func collectRefs(d *design) []ref {
 		out = append(out, ref{node: n, path: path, text: n.Value, dep: dep, pointer: ptr, kind: kind, owner: owner, page: page})
 	}
 	walk(d.root, nil, func(n *yaml.Node, path []string) {
-		at := func(key string) []string { return append(append([]string{}, path...), key) }
+		at := func(keys ...string) []string { return append(append([]string{}, path...), keys...) }
 		if v := source.Child(n, "$ref"); source.IsScalar(v) {
 			add(v, at("$ref"), "ref", n, nil)
 		}
@@ -108,6 +108,28 @@ func collectRefs(d *design) []ref {
 		case len(path) == 3 && path[0] == "paths" || len(path) == 2 && path[0] == "jobs":
 			for i, e := range source.Items(source.Child(n, "calls")) {
 				add(e, append(at("calls"), fmt.Sprint(i)), "calls", n, nil)
+			}
+		}
+		switch {
+		case len(path) == 2 && path[0] == "roles":
+			for i, e := range source.Items(source.Child(n, "permissions")) {
+				add(e, append(at("permissions"), fmt.Sprint(i)), "permission", n, nil)
+			}
+			for _, p := range source.Pairs(source.Child(n, "through")) {
+				add(p.Key, at("through", p.Key.Value), "permission", n, nil)
+			}
+		case len(path) == 3 && path[0] == "paths" || len(path) == 2 && path[0] == "commands":
+			for _, key := range []string{"callers", "via"} {
+				for i, e := range source.Items(source.Child(n, key)) {
+					add(e, append(at(key), fmt.Sprint(i)), "client", n, nil)
+				}
+			}
+		case len(path) == 2 && path[0] == "tests":
+			caller := source.Child(source.Child(n, "fixture"), "caller")
+			if source.IsScalar(caller) {
+				add(caller, at("fixture", "caller"), "role", n, nil)
+			} else {
+				add(source.Child(caller, "role"), at("fixture", "caller", "role"), "role", n, nil)
 			}
 		}
 	})
@@ -229,11 +251,14 @@ func (rv *resolver) resolve(r ref) referenceResult {
 	od := o.design
 	tokens := pointerTokens(r.pointer)
 	about := fmt.Sprintf("%s %s", o.name, o.version)
+	if want := map[string]string{"permission": "permissions", "client": "clients", "role": "roles"}[r.kind]; want != "" && (len(tokens) != 2 || tokens[0] != want) {
+		return fail(r.node, r.path, "%s names no %s; write %s#/%s/<name>", r.text, strings.TrimSuffix(want, "s"), r.dep, want)
+	}
 	if len(tokens) == 2 {
 		section, el := tokens[0], tokens[1]
-		elements := map[string]map[string]*yaml.Node{"entities": od.entities, "enums": od.enums, "views": od.views, "schemas": od.schemas, "requirements": od.requirements}[section]
+		elements := map[string]map[string]*yaml.Node{"entities": od.entities, "enums": od.enums, "views": od.views, "schemas": od.schemas, "requirements": od.requirements, "permissions": od.permissions, "clients": topMap(od.root, "clients"), "roles": od.roles}[section]
 		if elements == nil || elements[el] == nil {
-			return fail(r.node, r.path, "%s is not %s of %s%s", el, map[string]string{"entities": "an entity", "enums": "an enum", "views": "a view", "schemas": "a schema", "requirements": "a requirement"}[section], about, suggest(el, elements))
+			return fail(r.node, r.path, "%s is not %s of %s%s", el, map[string]string{"entities": "an entity", "enums": "an enum", "views": "a view", "schemas": "a schema", "requirements": "a requirement", "permissions": "a permission", "clients": "a client", "roles": "a role"}[section], about, suggest(el, elements))
 		}
 	}
 	var op operation
@@ -369,6 +394,16 @@ func References(s *spec.Spec, given Given) []Reference {
 	d := newDesign(s.Root)
 	rv := newResolver(d, given)
 	var out []Reference
+	identity := d.identityDependency()
+	for _, p := range ungrantedWaiting(d, rv) {
+		_, waits, _ := rv.identityGrant(p.Key.Value)
+		out = append(out, Reference{
+			Path: source.Pointer("permissions", p.Key.Value), Line: p.Key.Line, Text: identity + "#/roles", Dependency: identity,
+			Specification: d.specificationOf(identity),
+			Version:       source.Str(source.Child(d.dependencies[identity], "version")),
+			Waits:         waits,
+		})
+	}
 	for _, r := range collectRefs(d) {
 		res := rv.resolve(r)
 		if len(res.problems) > 0 || res.waits == "" {

@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: requirements specification
 
-Version 0.7.2-dev of the specification: 5 stakeholders, 10 needs and 81 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
+Version 0.7.2-dev of the specification: 5 stakeholders, 10 needs and 82 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
 
 **Problems:** 3 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -34,8 +34,8 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | Need | Statement | Stakeholders | Status | Refined by |
 |---|---|---|---|---|
 | NEED-1 | I want a specification that cannot quietly be wrong, so that the code built from it is right. | specification-author, implementer | accepted | SA-33, SA-34, SA-35, SA-47, SA-48, SA-50, SA-75, SA-77, SA-82, SA-83, SA-84, SA-72, SA-1, SA-2, SA-3, SA-4, SA-5, SA-6, SA-51 |
-| NEED-2 | I want to write a design once and build it in more than one language. | implementer | accepted | SA-33, SA-34, SA-36, SA-37, SA-38, SA-39, SA-40, SA-41, SA-42, SA-43, SA-52, SA-53, SA-54, SA-55, SA-56, SA-49, SA-62, SA-63, SA-65, SA-66, SA-70, SA-77, SA-78, SA-82, SA-83, SA-84, SA-46, SA-61, SA-71, SA-32, SA-9, SA-10 |
-| NEED-3 | I want the documents and diagrams to come from the specification, so they never drift from it. | reviewer, specification-author | accepted | SA-22, SA-36, SA-67, SA-75, SA-77, SA-82, SA-83, SA-84, SA-7, SA-8, SA-26, SA-16, SA-58, SA-59, SA-60, SA-19, SA-74 |
+| NEED-2 | I want to write a design once and build it in more than one language. | implementer | accepted | SA-33, SA-34, SA-36, SA-37, SA-38, SA-39, SA-40, SA-41, SA-42, SA-43, SA-52, SA-53, SA-54, SA-55, SA-56, SA-49, SA-62, SA-63, SA-65, SA-66, SA-70, SA-77, SA-78, SA-82, SA-83, SA-84, SA-88, SA-46, SA-61, SA-71, SA-32, SA-9, SA-10 |
+| NEED-3 | I want the documents and diagrams to come from the specification, so they never drift from it. | reviewer, specification-author | accepted | SA-22, SA-36, SA-67, SA-75, SA-77, SA-82, SA-83, SA-84, SA-88, SA-7, SA-8, SA-26, SA-16, SA-58, SA-59, SA-60, SA-19, SA-74 |
 | NEED-4 | I want a big specification split over many files, each about one thing, so I can find what I am looking for. | specification-author, reviewer | accepted | SA-11, SA-2 |
 | NEED-5 | I want the whole life of the system in one place, from the first requirement to the day it is accepted. | reviewer, operator | accepted | SA-35, SA-47, SA-68, SA-26, SA-16, SA-12, SA-23, SA-24, SA-25, SA-73 |
 | NEED-6 | I want to see why something is the way it is, and which standard asks for it. | reviewer | accepted | SA-15, SA-13 |
@@ -88,6 +88,7 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | SA-82 | functional | must | accepted | A specification shall be able to declare the caller, one record of who is making the call with properties typed as fields, and on a role the rows it reaches in an entity, one expression over the entity's fields and the caller's properties written caller.<property>; specarch validate shall check both in both builds and reserve the name caller in a file on meta-model 0.3, reading a 0.2 file with a warning, the derived cases shall cover what a caller sees outside their rows, generate sql shall write each rule as a row security policy where the engine has one, and the technical specification shall show the caller and the rows each role reaches. |
 | SA-83 | functional | must | accepted | A specification shall be able to declare its machine clients, each by its software_id with its kind, the versions it is admitted at, the roles it holds and how it proves its identity on each request; to say on an operation or command the explicit subset of who may call it, people and clients by name; to close a route on purpose with the reserved permission nobody; and to narrow a role's grant to the clients it holds through; specarch validate shall check each in both builds, the derived cases shall cover every refusal, and the technical specification shall show the clients beside the roles, the callers of each route and the grants narrowed by client. |
 | SA-84 | functional | must | accepted | A specification shall be able to declare the token formats its service issues and accepts, each with its kind, lifetime, signature algorithm, claims and checks, one of them the default, and on an operation the token it accepts and the immediate callers of a transaction token; to fix the audience of every accepted access token; and to say where the security event every refusal of a caller writes goes; specarch validate shall check each in both builds, the derived cases shall cover the expired token, each check, the actor as subject, the audience, the chain and the confused deputy's token forms, each naming its security event, generate openapi shall write the schemes the tokens give, and the technical specification shall show the tokens, the chain and the events. |
+| SA-88 | functional | must | accepted | An estate shall be able to keep its clients, roles and trust domain in one identity module that every other module names by reference, and specarch validate shall resolve those references when the modules are given together, count them as unresolved when they are not, and check what the referenced clients and roles allow at every hop. |
 | SA-7 | functional | must | accepted | specarch document and specarch generate shall write only into the folder the target owns, and with --check shall fail when the committed output differs. |
 | SA-8 | functional | must | accepted | Every generated file shall name its source specification, version and meta-model, and a hand-written Markdown document shall change only between its markers. |
 | SA-26 | functional | should | accepted | specarch document shall write the change and defect register and the release notes from the records beside a specification, kept current with --check like the other documents. |
@@ -775,6 +776,21 @@ Acceptance criteria:
 - The technical specification lists the tokens with their kind, header, audience, lifetime, signature, claims and the operations that accept them with their via, draws the chain via gives, and lists the security events with their severities, the store and the alarm channel.
 
 **Insight:** An identity service issues access, refresh, step-up, delegated and machine tokens, each with its own claims and lifetime, and the claims were only in prose, so a requirement such as the actor claim never equals the subject could not be checked against the binding, a token minted for one service could be replayed at the next, and a refusal left no event behind.
+
+### SA-88
+
+An estate shall be able to keep its clients, roles and trust domain in one identity module that every other module names by reference, and specarch validate shall resolve those references when the modules are given together, count them as unresolved when they are not, and check what the referenced clients and roles allow at every hop.
+
+Kind: functional; priority: must; status: accepted; verified by test; refines NEED-2, NEED-3.
+
+Acceptance criteria:
+
+- trustDomain, written in the identity module's root file, is a URI, or is refused as token_audience in both builds.
+- A role may grant <dependency>#/permissions/<name> and narrow it by through; via and callers may name <dependency>#/clients/<name>; a test's caller may be <dependency>#/roles/<name>. Each is resolved when the specification it names is given in the run, and a name that specification does not hold, or a reference to the wrong kind of element, is refused as reference at the entry, the same in both builds.
+- A module with a dependency of kind identityProvider counts each permission no role of its own grants as an unresolved reference while the identity module is not given, and specarch gaps lists it; given, a permission no role of either grants is refused as permission_ungranted.
+- Once the identity module is given, a client it holds is checked in via and callers as a client of the module is, so an application or a service without a workload-identity proof in via, a service with no roles or a client none of whose roles grants the operation's permission in callers; and a service with no roles is not reported unused when another module names it in via.
+
+**Insight:** The clients, the roles and the trust domain are facts of the whole estate, not of one service, and every hop of a call must check the same names; kept in each module they drift apart, and kept in the umbrella they would put design into a file that only lists and pins the modules (ADR-107).
 
 ### SA-7
 

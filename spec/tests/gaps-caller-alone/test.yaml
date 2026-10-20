@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: gaps
+level: system
+scenario: golden
+given: "the core of validate-caller-estate alone, whose roles, clients and grants are all in the identity module it names through a dependency of kind identityProvider"
+when: "gaps is run on the core"
+then: "it reports no error, and lists each permission whose grant waits for the identity module, the clients in callers and via and the role a test names as references not resolved in this run"
+verifies: [SA-88]

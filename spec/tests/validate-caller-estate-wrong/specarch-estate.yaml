@@ -1,0 +1,7 @@
+specarchEstate: "0.1"
+info: { title: Invoicing estate, version: 1.0.0 }
+modules:
+  identity: { description: "Holds the estate's clients, roles and trust domain, and issues its tokens.", location: identity, version: 1.0.0 }
+  bff: { description: "The backend behind the front ends, the edge of every call a person makes.", location: bff, version: 1.0.0 }
+  middleware: { description: Sits between the front ends' backend and the core., location: middleware, version: 1.0.0 }
+  core: { description: Keeps the invoices., location: core, version: 1.0.0 }

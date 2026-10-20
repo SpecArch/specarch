@@ -279,7 +279,14 @@ extension Checker {
                 continue
             }
             seen.insert(name)
-            guard let cl = d.client(name) else {
+            var found = d.client(name)
+            if isCross(name) {
+                // A client of the identity module: the reference check says
+                // whether it is there, and it is checked once it is given.
+                found = referencedClient(d, name)?.node
+                if found == nil { continue }
+            }
+            guard let cl = found else {
                 add(item, iat, .via, "\(name) is not a client of the specification\(suggest(name, d.clientNames))")
                 continue
             }

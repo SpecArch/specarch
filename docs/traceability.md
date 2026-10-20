@@ -2,13 +2,11 @@
 
 # SpecArch toolchain: traceability matrix
 
-Version 0.7.2-dev of the specification: 10 needs, 78 requirements, and 5 gaps. Each requirement is traced back to the needs it refines and forward to what satisfies it in the design and what verifies it in the tests and commissioning checks.
+Version 0.7.2-dev of the specification: 10 needs, 78 requirements, and 4 gaps. Each requirement is traced back to the needs it refines and forward to what satisfies it in the design and what verifies it in the tests and commissioning checks.
 
-**Problems:** 5 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
+**Problems:** 4 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
 **Problem:** warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SA-75; add verifies: [SA-75] to the test that shows it is met [requirement_unverified@requirements/requirements/design-keywords.yaml#/requirements/SA-75]
-
-**Problem:** warning: requirement_unsatisfied: no design element satisfies requirement SA-78; add satisfies: [SA-78] to the entity, operation, command, page, algorithm or decision that meets it [requirement_unsatisfied@requirements/requirements/design-keywords.yaml#/requirements/SA-78]
 
 **Problem:** warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SA-57; add verifies: [SA-57] to the test that shows it is met [requirement_unverified@requirements/requirements/refinement.yaml#/requirements/SA-57]
 
@@ -112,12 +110,11 @@ Version 0.7.2-dev of the specification: 10 needs, 78 requirements, and 5 gaps. E
 | SA-75 | NEED-1, NEED-3, NEED-9 | decisions ADR-141 |   |
 | SA-76 | NEED-8 | decisions ADR-142; decisions ADR-143 |   |
 | SA-77 | NEED-1, NEED-2, NEED-3 | enums Rule; decisions ADR-145; decisions ADR-146 | tests document-techspec-envelope-stream; tests extract-go-dxlib-envelope-stream; tests generate-go-dxlib-envelope-stream; tests generate-openapi-dxlib-envelope-stream; tests validate-handshake; tests validate-stream |
-| SA-78 | NEED-1, NEED-2, NEED-3 |   | tests derive-0-3-rows; tests validate-0-3-caller-property; tests validate-0-3-meta-model-0-2; tests validate-0-3-reserved-name; tests validate-0-3-rows; tests validate-0-3-rows-valid |
+| SA-78 | NEED-1, NEED-2, NEED-3 | enums Rule | tests derive-0-3-rows; tests generate-sql-0-3-rows; tests generate-sql-0-3-rows-changed; tests generate-sql-0-3-rows-mariadb; tests validate-0-3-caller-property; tests validate-0-3-meta-model-0-2; tests validate-0-3-reserved-name; tests validate-0-3-rows; tests validate-0-3-rows-valid |
 
 ## 3. Gaps
 
 The work the specification still owes, the same gaps the validator warns about. Rejected needs and rejected or retired requirements are left out.
 
-- Requirements no design element satisfies: SA-78.
 - Requirements no test, check or monitor verifies: SA-75, SA-57, SA-76, SA-74.
 

@@ -100,6 +100,7 @@ func Decode(data []byte) (*Request, error) {
 var Dialects = map[string]bool{"postgresql": true, "sqlserver": true, "oracle": true, "mariadb": true}
 
 type gen struct {
+	warnings []Diagnostic // what a dialect cannot write, reported and written around
 	spec     map[string]any
 	impl     Implementation
 	owned    ownership.Owned // elements another stakeholder owns, which get no statement
@@ -121,6 +122,12 @@ func Generate(r *Request) Response {
 	if failed != nil {
 		return *failed
 	}
+	resp := g.generate(r)
+	resp.Diagnostics = append(append([]Diagnostic{}, g.warnings...), resp.Diagnostics...)
+	return resp
+}
+
+func (g *gen) generate(r *Request) Response {
 
 	tables := g.tables()
 	if len(g.diags) > 0 {
@@ -270,6 +277,18 @@ func (g *gen) problem(path, format string, args ...any) {
 	g.diags = append(g.diags, Diagnostic{File: g.root, Line: 1, Severity: "error", Path: path, Rule: "generator", Message: fmt.Sprintf(format, args...)})
 }
 
+// warn reports what the dialect cannot write and the migration goes on
+// without; the entry is marked in the migration too.
+func (g *gen) warn(path, format string, args ...any) {
+	d := Diagnostic{File: g.root, Line: 1, Severity: "warning", Path: path, Rule: "generator", Message: fmt.Sprintf(format, args...)}
+	for _, w := range g.warnings {
+		if w == d {
+			return // a table is rendered more than once on the way to a migration
+		}
+	}
+	g.warnings = append(g.warnings, d)
+}
+
 // rendering is one part of an idiom for one stack, by the lookup order:
 // the override's part for the stack, the shipped part for the stack, the
 // shipped part under any.
@@ -355,6 +374,11 @@ func (g *gen) snapshot() string {
 	}
 	if len(indexes) > 0 {
 		s["indexes"] = indexes
+	}
+	// The row security policies of each table, only when there are any,
+	// so a schema without any keeps its snapshot.
+	if rows := g.snapshotRows(); len(rows) > 0 {
+		s["rows"] = rows
 	}
 	var b bytes.Buffer
 	enc := yaml.NewEncoder(&b)
@@ -443,6 +467,7 @@ type table struct {
 	columns     []string
 	constraints []string
 	indexes     []string // statements after the table, such as a filtered unique index
+	policies    []string // statements after the indexes: row security and its policies, or a comment where the dialect has none
 	foreignKeys []string // statements after every table
 	elsewhere   []string // comments after every table: a column that keeps another specification's key
 	schema      []Column // the columns, for a generator that writes against the table
@@ -465,6 +490,13 @@ func (t table) create(dialect string) string {
 	b.WriteString(");\n")
 	for _, ix := range t.indexes {
 		b.WriteString(ix + ";\n")
+	}
+	for _, p := range t.policies {
+		if strings.HasPrefix(p, "-- ") {
+			b.WriteString(p + "\n")
+		} else {
+			b.WriteString(p + ";\n")
+		}
 	}
 	return b.String()
 }
@@ -573,6 +605,8 @@ func (g *gen) table(entity string, e map[string]any) table {
 		t.indexes = append(t.indexes, ix.create(t.name))
 		t.keys.Indexes = append(t.keys.Indexes, Index{Name: ix.Name, Columns: ix.Columns})
 	}
+	ps, comments := g.policies(entity, t.name, props)
+	t.policies = append(policyStatements(t.name, ps), comments...)
 	rels := obj0(e["relations"])
 	for _, rn := range sortedKeys(rels) {
 		rel := obj0(rels[rn])
@@ -1063,9 +1097,10 @@ func (g *gen) check(src string, props map[string]any) (string, string) {
 }
 
 type translator struct {
-	g     *gen
-	props map[string]any
-	err   string
+	g      *gen
+	props  map[string]any
+	caller map[string]callerColumn // the caller's properties, in a rows rule
+	err    string
 	// filter is set for a SQL Server filtered index, whose filter has no
 	// NOT: a negated boolean field is written as the field equal to 0.
 	filter bool
@@ -1080,6 +1115,9 @@ func (t *translator) fail(format string, args ...any) string {
 
 func (t *translator) isBoolean(n *expr.Node) bool {
 	if n.Op == expr.OpName {
+		if c, ok := t.caller[n.Text]; ok {
+			return c.boolean
+		}
 		return text(obj0(t.props[n.Text])["type"]) == "boolean"
 	}
 	return false
@@ -1090,6 +1128,9 @@ func (t *translator) tr(n *expr.Node, cond bool) string {
 	numericBool := t.g.dialect == "sqlserver" || t.g.dialect == "oracle"
 	switch n.Op {
 	case expr.OpName:
+		if c, ok := t.caller[n.Text]; ok {
+			return c.sql
+		}
 		f := obj0(t.props[n.Text])
 		if f == nil {
 			return t.fail("%s is not a field of the entity", n.Text)

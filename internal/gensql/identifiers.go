@@ -54,8 +54,8 @@ func (g *gen) checkNames(entity string, t table) {
 		col := strings.Fields(l)[0]
 		check(g.columnAt(entity, col), "column", col)
 	}
-	for _, l := range append(append(append([]string{}, t.constraints...), t.indexes...), t.foreignKeys...) {
-		for _, word := range []string{"CONSTRAINT ", "INDEX "} {
+	for _, l := range append(append(append(append([]string{}, t.constraints...), t.indexes...), t.policies...), t.foreignKeys...) {
+		for _, word := range []string{"CONSTRAINT ", "INDEX ", "POLICY "} {
 			if _, rest, found := strings.Cut(l, word); found {
 				check(at, "constraint", strings.Fields(rest)[0])
 				break

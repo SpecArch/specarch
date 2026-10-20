@@ -72,6 +72,7 @@ func (g *gen) diff(prevText string) *steps {
 		expand, contract := len(s.expand), len(s.contract)
 		fks = append(fks, g.diffEntity(s, name, obj0(pe[name]), e, obj0(prev["enums"]), obj0(cur["enums"]))...)
 		g.diffIndexes(s, name, list(obj0(prev["indexes"])["#/entities/"+name]), list(obj0(cur["indexes"])["#/entities/"+name]))
+		g.diffPolicies(s, g.tableNameOf(name, cm), obj0(obj0(prev["rows"])["#/entities/"+name]), obj0(obj0(cur["rows"])["#/entities/"+name]))
 		// The marks of an entity and its fields go above the first
 		// statement that changes its table.
 		switch {

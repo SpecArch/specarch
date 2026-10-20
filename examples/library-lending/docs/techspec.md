@@ -1128,6 +1128,7 @@ Stack: language Go 1.26; toolchain go 1.26.0.
 | #/entities/Loan | table loans |   |
 | #/entities/Member | table members |   |
 | #/entities/Book | table books |   |
+| #/caller/properties/memberId | CAST(current_setting('library.member_id', true) AS UUID) | The service sets library.member_id on the connection for a signed-in member with SET LOCAL, and sets nothing for staff, so the setting reads NULL and the member's row security policy holds for no row. |
 | #/algorithms/lateFee | lending.LateFee | Takes and returns `decimal.Decimal` values with scale 2. |
 | #/paths/~1loans/post | lending.Server.CreateLoan |   |
 

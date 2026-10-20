@@ -460,7 +460,10 @@ type-rendering row `ck_<table>_<column>`, a foreign key
 `fk_<table>_<column>`, and a declared unique or check constraint keeps its
 own name. A plain index under a mapping's `indexes` is
 `ix_<table>_<column>_<column>`, its columns in its order, unless it names
-its own. Identifiers are written unquoted and in lower case.
+its own. A row security policy of a role's `rows` rule is
+`rls_<table>_<role>`, the role's hyphens as underscores, and applies to
+the database role the mapping of `#/roles/<name>` gives, or the role's
+name with underscores. Identifiers are written unquoted and in lower case.
 
 ### Types
 

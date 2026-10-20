@@ -426,7 +426,6 @@ requirements:
     verification: test
     needs: [NEED-1, NEED-2, NEED-3]
     why: A service whose operations travel in an encrypted envelope, or that streams large files, could not say so in its specification, so a client built from it would send plain JSON to an endpoint that expects an envelope, and a document would show a field table where a stream of bytes travels.
-  # specarch-problem: warning: requirement_unsatisfied: no design element satisfies requirement SA-78; add satisfies: [SA-78] to the entity, operation, command, page, algorithm or decision that meets it [requirement_unsatisfied@requirements/requirements/design-keywords.yaml#/requirements/SA-78]
   SA-78:
     statement: A specification shall be able to declare the caller, one record of who is making the call with properties typed as fields, and on a role the rows it reaches in an entity, one expression over the entity's fields and the caller's properties written caller.<property>; specarch validate shall check both in both builds and reserve the name caller in a file on meta-model 0.3, reading a 0.2 file with a warning, the derived cases shall cover what a caller sees outside their rows, generate sql shall write each rule as a row security policy where the engine has one, and the technical specification shall show the caller and the rows each role reaches.
     kind: functional

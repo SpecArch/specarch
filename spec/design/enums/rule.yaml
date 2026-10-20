@@ -255,4 +255,4 @@ enums:
       caller_property: "an expression uses a dot outside caller.<property>, or names a property the caller does not declare, or names the caller where only a role's rows rule may (ADR-095)"
       rows: "a role's rows rule names an entity the specification does not have, names something that is neither a field of that entity nor a property of the caller, or does not give true or false (ADR-095)"
       reserved_name: "a file on meta-model 0.3 names a field, a schema's or a view's property or an algorithm's input caller, which 0.3 reserves for the caller record, since an expression naming it could mean either (ADR-094)"
-    satisfies: [SA-2, SA-3, SA-4, SA-5, SA-6, SA-9, SA-10, SA-11, SA-12, SA-13, SA-17, SA-18, SA-23, SA-24, SA-27, SA-29, SA-41, SA-42, SA-47, SA-48, SA-49, SA-50, SA-62, SA-63, SA-67, SA-68, SA-69, SA-73, SA-77]
+    satisfies: [SA-2, SA-3, SA-4, SA-5, SA-6, SA-9, SA-10, SA-11, SA-12, SA-13, SA-17, SA-18, SA-23, SA-24, SA-27, SA-29, SA-41, SA-42, SA-47, SA-48, SA-49, SA-50, SA-62, SA-63, SA-67, SA-68, SA-69, SA-73, SA-77, SA-78]

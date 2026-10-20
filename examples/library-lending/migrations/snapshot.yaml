@@ -241,6 +241,11 @@ mappings:
   '#/entities/Book': table books
   '#/entities/Loan': table loans
   '#/entities/Member': table members
+rows:
+  '#/entities/Loan':
+    member:
+      role: member
+      using: (member_id = CAST(current_setting('library.member_id', true) AS UUID))
 typeRendering: 1.4.0
 views:
   MemberWithLoans:

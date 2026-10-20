@@ -1,0 +1,6 @@
+arguments: [generate, sql, --unapproved, project]
+exitStatus: 0
+standardOutput: |
+  project/specarch.yaml:31:13: warning: /roles/desk-staff/rows/Loan: generator: the rows rule of desk-staff on Loan (organisationId == caller.organisationId && !archived) is not written: mariadb has no row security policy this version writes, so the service's own filter is the only one [generator@specarch.yaml#/roles/desk-staff/rows/Loan]
+  project/specarch.yaml:26:13: warning: /roles/member/rows/Loan: generator: the rows rule of member on Loan (memberId == caller.memberId) is not written: mariadb has no row security policy this version writes, so the service's own filter is the only one [generator@specarch.yaml#/roles/member/rows/Loan]
+plugins: [sql]

@@ -9,9 +9,6 @@
           "informationUri": "https://github.com/SpecArch/specarch",
           "rules": [
             {
-              "id": "requirement_unsatisfied"
-            },
-            {
               "id": "requirement_unverified"
             }
           ]
@@ -48,37 +45,6 @@
           ],
           "partialFingerprints": {
             "specarchId/v1": "requirement_unverified@requirements/requirements/design-keywords.yaml#/requirements/SA-75"
-          }
-        },
-        {
-          "ruleId": "requirement_unsatisfied",
-          "kind": "fail",
-          "level": "warning",
-          "message": {
-            "text": "no design element satisfies requirement SA-78; add satisfies: [SA-78] to the entity, operation, command, page, algorithm or decision that meets it"
-          },
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "../spec/requirements/requirements/design-keywords.yaml",
-                  "uriBaseId": "PROBLEMSDIR"
-                },
-                "region": {
-                  "startLine": 430,
-                  "startColumn": 3
-                }
-              },
-              "logicalLocations": [
-                {
-                  "fullyQualifiedName": "/requirements/SA-78",
-                  "kind": "element"
-                }
-              ]
-            }
-          ],
-          "partialFingerprints": {
-            "specarchId/v1": "requirement_unsatisfied@requirements/requirements/design-keywords.yaml#/requirements/SA-78"
           }
         },
         {

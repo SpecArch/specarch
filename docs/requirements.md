@@ -4,7 +4,7 @@
 
 Version 0.7.2-dev of the specification: 5 stakeholders, 10 needs and 78 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
 
-**Problems:** 5 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
+**Problems:** 4 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
 ## 1. Purpose and scope
 
@@ -721,8 +721,6 @@ Acceptance criteria:
 - For every role with a rule and every operation over the entity whose permission the role holds, specarch derive writes the case of the list showing only the rows, of a read by key outside them answering not found, and of a change that would leave them being refused; a job acting as the role gets the case of acting on those rows only.
 - generate sql writes the rule as a row security policy on PostgreSQL, with the caller's properties read as the implementation file maps them, and marks the role's rule on an engine with no row security without dropping it.
 - The technical specification lists the caller's properties and, beside the permissions matrix, the rows each role reaches.
-
-**Problem:** warning: requirement_unsatisfied: no design element satisfies requirement SA-78; add satisfies: [SA-78] to the entity, operation, command, page, algorithm or decision that meets it [requirement_unsatisfied@requirements/requirements/design-keywords.yaml#/requirements/SA-78]
 
 **Insight:** A member sees only their own loans, and a tenant's staff only their organisation's records, and the meta-model could say neither, so the rule lived in prose beside the role and the service enforced what no test derived and no policy carried.
 

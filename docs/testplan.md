@@ -2,13 +2,11 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.2-dev of the specification: 535 design tests, 241 golden and 294 red, about 16 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.2-dev of the specification: 538 design tests, 244 golden and 294 red, about 16 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
-**Problems:** 5 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
+**Problems:** 4 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
 **Problem:** warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SA-75; add verifies: [SA-75] to the test that shows it is met [requirement_unverified@requirements/requirements/design-keywords.yaml#/requirements/SA-75]
-
-**Problem:** warning: requirement_unsatisfied: no design element satisfies requirement SA-78; add satisfies: [SA-78] to the entity, operation, command, page, algorithm or decision that meets it [requirement_unsatisfied@requirements/requirements/design-keywords.yaml#/requirements/SA-78]
 
 **Problem:** warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SA-57; add verifies: [SA-57] to the test that shows it is met [requirement_unverified@requirements/requirements/refinement.yaml#/requirements/SA-57]
 
@@ -21,7 +19,7 @@ Version 0.7.2-dev of the specification: 535 design tests, 241 golden and 294 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 531 |
+| system | 534 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -1906,6 +1904,30 @@ Scenario: golden; level: system; verifies SA-37.
 - Given: a specification with an enum, an audited entity with soft deletion, a unique and a check constraint, an encrypted field found by hash, and a relation, an implementation file in Go whose sql target is PostgreSQL, and specarch-gen-sql built from this repository on PATH
 - When: generate sql is run with --unapproved
 - Then: it writes 0001_expand.sql, each column through the type-rendering rows with the enum's check, the audit and deleted columns, the hash column the unique constraint is on, the translated check and the foreign key, and snapshot.yaml beside it, and exits 0
+
+#### generate-sql-0-3-rows
+
+Scenario: golden; level: system; verifies SA-78.
+
+- Given: a specification on 0.3 with a caller of two properties and two roles whose rows rules limit Loan, one by the member's identifier and one by the organisation and a boolean field; an implementation file in Go with a PostgreSQL sql target that maps one caller property to its own expression and one role to its own database role; specarch-gen-sql built from this repository on PATH
+- When: generate sql is run with --unapproved
+- Then: it writes 0001_expand.sql with the loans table, row security enabled and forced on it, and one policy per role, the mapped property read as mapped and the other from the setting named after it, the mapped role under its database role and the other under its own name with underscores; writes the snapshot with the policies, and exits 0
+
+#### generate-sql-0-3-rows-changed
+
+Scenario: golden; level: system; verifies SA-78.
+
+- Given: the specification of generate-sql-0-3-rows with its first migration and snapshot in the output folder, the member's rule now also keeping archived loans out and the desk staff's rule gone; specarch-gen-sql built from this repository on PATH
+- When: generate sql is run with --unapproved
+- Then: it writes 0002_expand.sql, which drops and creates the member's policy with the new condition and drops the desk staff's policy, leaves row security on since a policy remains, writes the snapshot again, and exits 0
+
+#### generate-sql-0-3-rows-mariadb
+
+Scenario: golden; level: system; verifies SA-78.
+
+- Given: the specification of generate-sql-0-3-rows with its sql target on MariaDB; specarch-gen-sql built from this repository on PATH
+- When: generate sql is run with --unapproved
+- Then: it writes 0001_expand.sql with the loans table and no policy, a comment at the table for each rule saying MariaDB has no row security policy this version writes, warns once per rule at the rule, keeps the snapshot without policies, and exits 0
 
 #### generate-sql-expand
 

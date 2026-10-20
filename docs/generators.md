@@ -493,6 +493,36 @@ translated into the target's dialect; one the target cannot express fails
 generation (rule 4). Names are derived with the rules in
 `docs/conventions.md`, so the database gate can derive them the same way.
 
+A role's `rows` rule becomes a row security policy on PostgreSQL
+(ADR-095): after the table and its indexes, `ALTER TABLE ... ENABLE ROW
+LEVEL SECURITY`, `ALTER TABLE ... FORCE ROW LEVEL SECURITY`, and one
+`CREATE POLICY rls_<table>_<role> ON <table> FOR ALL TO <role> USING
+(...) WITH CHECK (...)` per role with a rule, the rule translated as a
+check is, with each `caller.<property>` written as the implementation
+file's mapping of `#/caller/properties/<name>` gives it (a SQL
+expression, such as `CAST(current_setting('app.member_id', true) AS
+UUID)`) or, with no mapping, as `CAST(current_setting('specarch.caller.<name
+in snake case>', true) AS <the property's type>)`. The second argument of
+`current_setting` makes a setting that was never set read as NULL, and a
+comparison with NULL holds for no row, so a caller whose property is
+unset reaches nothing: the fail-closed answer. Row security is forced
+because the table's owner bypasses every policy otherwise, and a service
+often connects as the owner. The policy applies to the database role the
+mapping of `#/roles/<name>` gives (`target: role <name>`) or, with no
+mapping, to the role's name with each hyphen an underscore; the roles
+are cluster state, like the database itself, so the migration creates
+none, and the service runs `SET LOCAL ROLE` for the caller's role on each
+request, with the policies of every role the session user is a member of
+applying together, permissively, which is how a caller holding several
+roles reaches the union of their rows. The snapshot keeps each policy's
+database role and condition as written, so a changed rule or mapping is
+dropped and created again in the next expand migration, a rule removed
+drops its policy and the last one gone switches row security off; none of
+it loses data. On SQL Server, Oracle and MariaDB this version writes no
+policy: the rule is a warning at the rule and a comment at the table, so
+that the service's own filter is seen to be the only one, and the rule is
+never dropped.
+
 ## Queries for sqlc
 
 `specarch-gen-sqlc` writes the sqlc queries the design derives, in

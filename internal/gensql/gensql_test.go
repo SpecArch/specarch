@@ -48,8 +48,10 @@ func request(t *testing.T, dialect string, existing ...File) *Request {
 func migration(t *testing.T, r *Request) string {
 	t.Helper()
 	resp := Generate(r)
-	if len(resp.Diagnostics) > 0 {
-		t.Fatalf("diagnostics: %v", resp.Diagnostics)
+	for _, d := range resp.Diagnostics {
+		if d.Severity == "error" {
+			t.Fatalf("diagnostics: %v", resp.Diagnostics)
+		}
 	}
 	for _, f := range resp.Files {
 		if f.Path == "0001_expand.sql" {
@@ -112,8 +114,56 @@ func TestOracleWideText(t *testing.T) {
 	}
 	book["constraints"].(map[string]any)["book_summary_unique"] = map[string]any{"kind": "unique", "fields": []any{"summary"}}
 	resp := Generate(r)
-	if len(resp.Diagnostics) != 1 || !strings.Contains(resp.Diagnostics[0].Message, "maxLength of at most 255") {
+	if errs := errorsOf(resp); len(errs) != 1 || !strings.Contains(errs[0].Message, "maxLength of at most 255") {
 		t.Errorf("want one diagnostic about the key's width, got %v", resp.Diagnostics)
+	}
+}
+
+// errorsOf is the errors among a response's diagnostics: what stops the
+// migration, apart from the warnings a dialect writes around.
+func errorsOf(resp Response) []Diagnostic {
+	var out []Diagnostic
+	for _, d := range resp.Diagnostics {
+		if d.Severity == "error" {
+			out = append(out, d)
+		}
+	}
+	return out
+}
+
+// TestRows writes the library's member rule as a row security policy on
+// PostgreSQL, with the caller's property read as the implementation file
+// maps it, and on the other dialects writes nothing for it, warns at the
+// rule and comments at the table.
+func TestRows(t *testing.T) {
+	sql := migration(t, request(t, "postgresql"))
+	for _, want := range []string{
+		"ALTER TABLE loans ENABLE ROW LEVEL SECURITY;", "ALTER TABLE loans FORCE ROW LEVEL SECURITY;",
+		"CREATE POLICY rls_loans_member ON loans FOR ALL TO member USING ((member_id = CAST(current_setting('library.member_id', true) AS UUID))) WITH CHECK ((member_id = CAST(current_setting('library.member_id', true) AS UUID)));",
+	} {
+		if !strings.Contains(sql, want) {
+			t.Errorf("postgresql: the migration has no %q", want)
+		}
+	}
+	for _, dialect := range []string{"sqlserver", "oracle", "mariadb"} {
+		r := request(t, dialect)
+		resp := Generate(r)
+		if errs := errorsOf(resp); len(errs) > 0 {
+			t.Fatalf("%s: %v", dialect, errs)
+		}
+		warned := false
+		for _, d := range resp.Diagnostics {
+			if d.Severity == "warning" && d.Path == "/roles/member/rows/Loan" && strings.Contains(d.Message, "has no row security policy") {
+				warned = true
+			}
+		}
+		if !warned {
+			t.Errorf("%s: no warning at the rule, got %v", dialect, resp.Diagnostics)
+		}
+		sql := file(resp, "0001_expand.sql")
+		if strings.Contains(sql, "POLICY") || !strings.Contains(sql, "-- The rows rule of member on Loan, memberId == caller.memberId, is not written") {
+			t.Errorf("%s: want a comment and no policy:\n%s", dialect, sql)
+		}
 	}
 }
 
@@ -542,7 +592,7 @@ func TestPartialUnique(t *testing.T) {
 		r := request(t, dialect)
 		withOneOpenLoan(r, []any{"bookId"}, `status == "open" || status == "overdue"`)
 		resp := Generate(r)
-		if len(resp.Diagnostics) != 1 || !strings.Contains(resp.Diagnostics[0].Message, want) || resp.Diagnostics[0].Path != "/entities/Loan/constraints/loan_one_open" {
+		if errs := errorsOf(resp); len(errs) != 1 || !strings.Contains(errs[0].Message, want) || errs[0].Path != "/entities/Loan/constraints/loan_one_open" {
 			t.Errorf("%s: want one diagnostic saying %q, got %v", dialect, want, resp.Diagnostics)
 		}
 	}
@@ -554,7 +604,7 @@ func TestPartialUnique(t *testing.T) {
 		r := request(t, "sqlserver")
 		withOneOpenLoan(r, []any{"bookId"}, where)
 		resp := Generate(r)
-		if len(resp.Diagnostics) != 1 || !strings.Contains(resp.Diagnostics[0].Message, want) {
+		if errs := errorsOf(resp); len(errs) != 1 || !strings.Contains(errs[0].Message, want) {
 			t.Errorf("sqlserver, %s: want one diagnostic saying %q, got %v", where, want, resp.Diagnostics)
 		}
 	}

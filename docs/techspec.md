@@ -10747,7 +10747,7 @@ is unchanged.
 
 ### ADR-141: A gateway that forwards by a token claim is a design element of its own under gateways, after RFC 9110's gateway, with the token it verifies, the claim it reads, the dependency each value selects, its own refusals and no permission, and its forwards fix the token's audience
 
-Status: proposed, 2026-10-19.
+Status: accepted, 2026-10-19.
 
 Context: docs/gateway.md, ask 1. A service in front of an estate's services
 registers routes only for its health and its metrics, and forwards
@@ -10827,7 +10827,7 @@ fixes ADR-143.
 
 ### ADR-142: A gateway's table of services is printed by the project in SpecArch's gateway table format and read by extract gateway, as the route, permission and workflow tables are, never from the project's own file, and check compares it
 
-Status: proposed, 2026-10-19.
+Status: accepted, 2026-10-19.
 
 Context: docs/gateway.md, ask 2. The gateway loads its table, a value of the
 claim to the setting that holds the service's address, from a file

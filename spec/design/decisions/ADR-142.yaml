@@ -2,7 +2,7 @@
 decisions:
   ADR-142:
     title: A gateway's table of services is printed by the project in SpecArch's gateway table format and read by extract gateway, as the route, permission and workflow tables are, never from the project's own file, and check compares it
-    status: proposed
+    status: accepted
     date: "2026-10-19"
     context: |
       docs/gateway.md, ask 2. The gateway loads its table, a value of the

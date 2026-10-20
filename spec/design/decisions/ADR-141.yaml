@@ -2,7 +2,7 @@
 decisions:
   ADR-141:
     title: A gateway that forwards by a token claim is a design element of its own under gateways, after RFC 9110's gateway, with the token it verifies, the claim it reads, the dependency each value selects, its own refusals and no permission, and its forwards fix the token's audience
-    status: proposed
+    status: accepted
     date: "2026-10-19"
     context: |
       docs/gateway.md, ask 1. A service in front of an estate's services

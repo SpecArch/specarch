@@ -19,11 +19,10 @@ fixed as the literal it stands for.
 
 This file is the design: the standards consulted, the decision for each
 of the three with its decision record, what stays out and why, and the
-build items in order. Of the three, the Go reader's rules of section 3
-are built (ADR-143, accepted); the element and the table are not, and
-their decision records, ADR-141 and ADR-142, are proposed until the
-owner approves this design; the item that builds each sets its record
-accepted. The words follow the
+build items in order. The three decision records, ADR-141 to ADR-143,
+are accepted. Of the three, the Go reader's rules of section 3 are
+built; the element and the table are built by the items below. The
+words follow the
 diagram keywords of `docs/diagrams.md`: a forwarded service is a
 dependency with ADR-134's `kind` and `protocol`, the issuer of the tokens
 is a dependency of kind `identityProvider`, and the host of each in an
@@ -605,16 +604,14 @@ Each item changes `spec/` first (the design, the schemas where a key is
 one, `spec/design/commands/` for a command), both validator builds where
 a rule is added, with its conformance cases and design tests, the
 documents' designs, the origin table rows and the convention's section,
-sets its record accepted, and writes a history entry. These are not
-queued: the dispatcher queues them once the owner has approved this
-file. The order puts the reader fixes first, since they need no decision
-of the meta-model and remove two defects, and the element after the
-designs it stacks on: 0.3's step 4 (`tokens`, `token` on an operation,
-as `docs/caller-context.md` amends it) and the diagram keywords' items 2
-and 4 (ADR-134's `kind` and `protocol` on a dependency, ADR-136's
-`dependency` on a server), none built. Until the element is built, the
-table stays in `extract outline` and under `gaps` as a surface not
-read, which is the right record.
+and writes a history entry. The order puts the reader fixes first,
+since they need no decision of the meta-model and remove two defects,
+and the element after the designs it stacks on: 0.3's step 4 (`tokens`,
+`token` on an operation, as `docs/caller-context.md` amends it) and the
+diagram keywords' items 2 and 4 (ADR-134's `kind` and `protocol` on a
+dependency, ADR-136's `dependency` on a server). Until the element is
+built, the table stays in `extract outline` and under `gaps` as a
+surface not read, which is the right record.
 
 1. **The Go reader's constants and fallbacks** (ADR-143, SA-79, BUG-028,
    BUG-029). The two rules of section 3 in `internal/extract`, the walk

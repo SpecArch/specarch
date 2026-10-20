@@ -540,3 +540,17 @@ Expected: every name the screens read or send is the wire name `internal/wirenam
 To repeat: in a copy of `spec/tests/generate-ui/project/specarch.yaml`, add `wireNames: snake_case` to `info` and rename the field `title` to `bookTitle` (in the entity, its `required` and the page's columns), then run `specarch generate ui --unapproved`; `books-list.js` lists `"bookTitle"` where the service sends `book_title`, and nothing is reported.
 
 Fix: `specarch-gen-ui` maps every name its pages read from a record or send through `internal/wirename`, as the other generators do: a list's columns, row key, path parameters, `with`, `when`, reason and filters by `filterable`, a view's places, parts and conditions, and a form's controls, sent fields, checks, conditions, pickers, child rows, refusals and next page's parameters, with the paginated-list idiom's names mapped too (ADR-062). A query parameter keeps its own name, and a route's parameters theirs. The case `generate-ui-wire-names` pins it.
+
+## BUG-043 — document operations: a job tried again once reads "tried again up to 1 times"
+
+- Reported: 2026-10-20, found while writing what a person does with an item a job keeps apart (ADR-166)
+- Closed: 2026-10-21, completed
+- Fixed by: the commit on `main` whose message says `Fixes BUG-043`
+
+The jobs table of the operations guide writes a job's retries as `tried again up to N times`, from `retriesText` in `internal/generate/operations.go`, whatever N is, so `retries: { limit: 1, then: ... }` reads "tried again up to 1 times".
+
+Expected: "tried again up to 1 time" for a limit of 1, and "times" for any other.
+
+To repeat: give a job `retries: { limit: 1, then: discard }` and run `specarch document operations`.
+
+Fix: `retriesText` writes "time" when the limit is 1. The case `document-writes-operations` gives its job `countStock` a limit of 1 and pins it.

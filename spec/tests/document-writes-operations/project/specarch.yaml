@@ -91,7 +91,7 @@ jobs:
     description: Every night, counts the stock left on the shelves.
     trigger: { schedule: "0 3 * * *" }
     role: night-batch
-    retries: { limit: 2, then: deadLetter }
+    retries: { limit: 1, then: deadLetter }
   printReceipt:
     description: Prints a receipt for each order taken.
     trigger: { consumes: order.events/OrderTaken }

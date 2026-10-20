@@ -31,7 +31,7 @@ What to look at on the live system each day. Tick the last column as each is see
 | Monitor till-latency (production) | How long taking an order takes. | Nine orders in ten are taken within a second over each day. |   |
 | Monitor receipts-printed (production) | Whether every order taken has its receipt. | Every order taken in a day has a printed receipt by closing. |   |
 | Job settleDay | Its last run, on the schedule `0 1 * * *` (UTC). | It ran, and no item is kept apart after its last try; the section Jobs says where a kept item is. |   |
-| Job countStock | Its last run, on the schedule `0 3 * * *` (UTC). | It ran, and no item is kept apart after its last try; the section Jobs says where a kept item is. |   |
+| Job countStock | Its last run, on the schedule `0 3 * * *` (UTC). | It ran, and no item is kept apart after its last try. |   |
 | Job printReceipt | Its last run, for each order.events/OrderTaken. | It ran, and failed on no item. |   |
 | Job sweep | Its last run, every PT1H. | It ran, and failed on no item. |   |
 | Dependency broker | That it answers over amqp. | It answers within PT1S. |   |
@@ -65,7 +65,7 @@ What the system runs on its own. A job acts as its role and may do only what the
 | Job | Starts | Acts as | After a failure | Description |
 |---|---|---|---|---|
 | settleDay | on the schedule `0 1 * * *` (UTC) | night-batch | tried again up to 3 times, then kept apart for the manager role | Every night, settles the day's card payments. |
-| countStock | on the schedule `0 3 * * *` (UTC) | night-batch | tried again up to 2 times, then kept apart for a person | Every night, counts the stock left on the shelves. |
+| countStock | on the schedule `0 3 * * *` (UTC) | night-batch | tried again up to 1 time, then kept apart for a person | Every night, counts the stock left on the shelves. |
 | printReceipt | for each order.events/OrderTaken | night-batch | tried again up to 2 times, then dropped | Prints a receipt for each order taken. |
 | sweep | every PT1H | night-batch | not tried again | Removes stale sessions. |
 

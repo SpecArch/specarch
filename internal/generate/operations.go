@@ -80,7 +80,10 @@ func Operations(root *yaml.Node, relRoot string, impls []Implementation, state *
 		for _, j := range jobs {
 			expected := "It ran, and failed on no item."
 			if str(get(j.Value, "retries"), "then") == "deadLetter" {
-				expected = "It ran, and no item is kept apart after its last try; the section Jobs says where a kept item is."
+				expected = "It ran, and no item is kept apart after its last try."
+				if get(j.Value, "deadLetter") != nil {
+					expected = "It ran, and no item is kept apart after its last try; the section Jobs says where a kept item is."
+				}
 			}
 			d.line("| Job %s | %s | %s | %s |", j.Key.Value, cell("Its last run, "+triggerText(get(j.Value, "trigger"))+"."), cell(expected), cell(""))
 		}
@@ -314,7 +317,11 @@ func retriesText(job *yaml.Node) string {
 	if r == nil {
 		return "not tried again"
 	}
-	text := fmt.Sprintf("tried again up to %s times, then ", str(r, "limit"))
+	times := "times"
+	if str(r, "limit") == "1" {
+		times = "time"
+	}
+	text := fmt.Sprintf("tried again up to %s %s, then ", str(r, "limit"), times)
 	if str(r, "then") == "deadLetter" {
 		if role := str(get(job, "deadLetter"), "role"); role != "" {
 			return text + "kept apart for the " + role + " role"

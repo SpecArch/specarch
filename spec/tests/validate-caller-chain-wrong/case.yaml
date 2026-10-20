@@ -1,0 +1,7 @@
+arguments: [validate, specarch-estate.yaml]
+exitStatus: 1
+standardOutput: |
+  core/specarch.yaml:57:12: error: /paths/~1invoices~1{invoiceId}/delete/via: via: operation deleteInvoice of middleware calls deleteInvoice, and via does not name middleware, so the hop that calls it is not in the chain; add identity#/clients/middleware to via, or stop the call [via@specarch.yaml#/paths/~1invoices~1{invoiceId}/delete/via]
+  core/specarch.yaml:57:13: error: /paths/~1invoices~1{invoiceId}/delete/via/0: via: deleteInvoice names identity#/clients/bff, and no operation of the module bff calls DELETE /invoices/{invoiceId}, so the chain has no hop before this one; call it from bff, or take identity#/clients/bff out of via [via@specarch.yaml#/paths/~1invoices~1{invoiceId}/delete/via/0]
+  identity/specarch.yaml:19:3: warning: /clients/middleware: client_unused: middleware is a service with no roles that no operation names in via, so nothing reaches it; give it roles, name it in via, or remove it [client_unused@specarch.yaml#/clients/middleware]
+  middleware/specarch.yaml:32:13: error: /paths/~1invoices~1{invoiceId}/delete/via/0: via: operation deleteInvoice of bff calls deleteInvoice and accepts no token, so it has no person's call to carry on; accept the transaction token, with a via of its own, or an access token, as the edge [via@specarch.yaml#/paths/~1invoices~1{invoiceId}/delete/via/0]

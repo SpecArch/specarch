@@ -4,5 +4,5 @@ level: system
 scenario: golden
 given: "an estate of four modules: an identity module with the trust domain, the clients and the roles, whose roles grant each hop's permission by reference and narrow the delete to the administration application; the front ends' backend as the edge; the middleware and the core, each naming its immediate caller in via, and the core admitting the reporting service by reference in callers; and tests whose caller is a role of the identity module"
 when: "validate is run on the estate file"
-then: "it resolves every reference to a client, a role and a permission, finds every permission granted by a role of the identity module, reports nothing, and exits 0"
+then: "it resolves every reference to a client, a role and a permission, finds every permission granted by a role of the identity module, finds the chain bff, middleware, core by induction through calls, accepts a test covering the scope case at the core, reports nothing, and exits 0"
 verifies: [SA-88]

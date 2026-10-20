@@ -466,6 +466,9 @@ that calls it, or a caller with no `via` where one is required, is a gap,
 the error `via` at that hop. The middleware's delete lists the front
 ends' backend, the core's lists the middleware, and the chain `bff,
 middleware, core` is what the induction finds and the techspec draws.
+The module of a client named in `via` is the module whose `info.name` is
+the client's name: the client `bff` is the module `bff`, so the
+induction needs no key beyond the two names the estate already has.
 The validator also refuses an empty list (a route nobody may call is
 `nobody`), a client not declared, an `application`, a client twice, and
 a client without a workload-identity proof (`via`). Every caller is

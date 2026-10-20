@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.2-dev of the specification: 573 design tests, 261 golden and 312 red, about 17 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.2-dev of the specification: 575 design tests, 261 golden and 314 red, about 17 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 3 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -17,7 +17,7 @@ Version 0.7.2-dev of the specification: 573 design tests, 261 golden and 312 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 569 |
+| system | 571 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -2825,13 +2825,29 @@ Scenario: red; level: system; covers exit 1; verifies SA-73.
 - When: validate is run
 - Then: it reports build_task at each, suggesting the close name, and exits 1
 
+#### validate-caller-chain-gap
+
+Scenario: red; level: system; verifies SA-88.
+
+- Given: the estate of validate-caller-estate with the middleware's via removed, and the core accepting an access token for the front ends' backend's audience
+- When: validate is run on the estate file
+- Then: it reports the gap at the middleware as via and the two modules accepting one audience at the core's entry in the estate as token_audience, the same in both builds, and exits 1
+
+#### validate-caller-chain-wrong
+
+Scenario: red; level: system; verifies SA-88.
+
+- Given: the estate of validate-caller-estate with the core's via naming the front ends' backend instead of the middleware, and the front ends' backend accepting no token
+- When: validate is run on the estate file
+- Then: the induction through calls reports, as via, the backend that does not call the core, the middleware that calls the core and is not in its via, and the backend that calls the middleware with no person's token to carry on, the same in both builds, and exits 1
+
 #### validate-caller-estate
 
 Scenario: golden; level: system; verifies SA-88.
 
 - Given: an estate of four modules: an identity module with the trust domain, the clients and the roles, whose roles grant each hop's permission by reference and narrow the delete to the administration application; the front ends' backend as the edge; the middleware and the core, each naming its immediate caller in via, and the core admitting the reporting service by reference in callers; and tests whose caller is a role of the identity module
 - When: validate is run on the estate file
-- Then: it resolves every reference to a client, a role and a permission, finds every permission granted by a role of the identity module, reports nothing, and exits 0
+- Then: it resolves every reference to a client, a role and a permission, finds every permission granted by a role of the identity module, finds the chain bff, middleware, core by induction through calls, accepts a test covering the scope case at the core, reports nothing, and exits 0
 
 #### validate-caller-estate-wrong
 
@@ -4669,7 +4685,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-340 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+342 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -4869,6 +4885,8 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-88 | acceptance 2 | golden | SA-88 names no harm |
 | requirement SA-88 | acceptance 3 | golden | SA-88 names no harm |
 | requirement SA-88 | acceptance 4 | golden | SA-88 names no harm |
+| requirement SA-88 | acceptance 5 | golden | SA-88 names no harm |
+| requirement SA-88 | acceptance 6 | golden | SA-88 names no harm |
 | requirement SA-7 | acceptance 1 | golden | SA-7 names no harm |
 | requirement SA-7 | acceptance 2 | golden | SA-7 names no harm |
 | requirement SA-8 | acceptance 1 | golden | SA-8 names no harm |

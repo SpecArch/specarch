@@ -1,0 +1,6 @@
+arguments: [validate, specarch-estate.yaml]
+exitStatus: 1
+standardOutput: |
+  identity/specarch.yaml:15:3: warning: /clients/bff: client_unused: bff is a service with no roles that no operation names in via, so nothing reaches it; give it roles, name it in via, or remove it [client_unused@specarch.yaml#/clients/bff]
+  middleware/specarch.yaml:29:7: error: /paths/~1invoices~1{invoiceId}/delete: via: operation deleteInvoice accepts transaction, a transaction token or a token declaring act, and names no via; list its immediate callers, the services that call it on a person's behalf [via@specarch.yaml#/paths/~1invoices~1{invoiceId}/delete]
+  specarch-estate.yaml:7:9: error: /modules/core: token_audience: bff and core both accept an access token for the audience https://bff.estate.example.org, so a token minted for one is accepted by the other; give each module an audience of its own [token_audience@specarch-estate.yaml#/modules/core]

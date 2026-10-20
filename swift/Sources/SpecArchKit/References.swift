@@ -449,3 +449,91 @@ extension Checker {
         add(n, "/trustDomain", .tokenAudience, "trustDomain \(s) is not a URI; it is the aud of every transaction token and the base of every security event's identifier, such as https://estate.example.org")
     }
 }
+
+// The chain of a call is found by induction across the modules given
+// together (see the Go build's identity.go, ADR-111).
+
+/// The name of the client a via entry names.
+func clientKey(_ entry: String) -> String {
+    guard let (_, ptr) = crossRef(entry) else { return entry }
+    return ptr.hasPrefix("/clients/") ? String(ptr.dropFirst("/clients/".count)) : ptr
+}
+
+/// The operations of a design that call operation o of the module named
+/// module, through a dependency on it, in document order.
+func callersOf(_ od: Design, _ module: String, _ o: Operation) -> [Operation] {
+    var out: [Operation] = []
+    for x in od.opList {
+        for e in items(x.node.child("calls")) {
+            let cross = crossRef(e.value)
+            let dep = cross?.dep ?? e.value
+            if od.specificationOf(dep) != module { continue }
+            if let cross {
+                let tokens = referenceTokens(cross.pointer)
+                if tokens.count != 3 || tokens[0] != "paths" || tokens[1] != o.path || tokens[2] != o.method { continue }
+            }
+            out.append(x)
+            break
+        }
+    }
+    return out
+}
+
+extension Design {
+    /// The aud values of the access tokens an operation accepts, sorted.
+    var acceptedAudiences: [String] {
+        var seen = Set<String>()
+        for name in acceptedTokens {
+            guard let tok = token(name), tokenType(tok) == "access_token" else { continue }
+            let aud = tok.child("claims")?.child("aud")
+            if let v = aud?.child("const"), v.kind == .scalar { seen.insert(v.value) }
+            for v in items(aud?.child("enum")) { seen.insert(v.value) }
+        }
+        return seen.sorted(by: byteLess)
+    }
+}
+
+extension Checker {
+    /// The one specification given under a name, read, or nil.
+    func givenOne(_ name: String) -> Design? {
+        guard let list = given[name], list.count == 1, let root = list[0].root, root.kind == .mapping else { return nil }
+        return Design(root)
+    }
+
+    /// Checks an operation's via against the modules given with this one.
+    func checkChain(_ d: Design, _ o: Operation) {
+        let module = specName(d.root)
+        guard !module.isEmpty, let via = o.node.child("via") else { return }
+        var named = Set<String>()
+        for (i, item) in items(via).enumerated() {
+            let key = clientKey(item.value)
+            named.insert(key)
+            guard let cd = givenOne(key), key != module else { continue }
+            let callers = callersOf(cd, module, o)
+            if callers.isEmpty {
+                add(item, o.pointer("via", "\(i)"), .via, "\(o.id) names \(item.value), and no operation of the module \(key) calls \(o.method.uppercased()) \(o.path), so the chain has no hop before this one; call it from \(key), or take \(item.value) out of via")
+                continue
+            }
+            for x in callers where cd.token(cd.acceptedToken(x.node)) == nil {
+                add(item, o.pointer("via", "\(i)"), .via, "operation \(x.id) of \(key) calls \(o.id) and accepts no token, so it has no person's call to carry on; accept the transaction token, with a via of its own, or an access token, as the edge")
+            }
+        }
+        for name in given.keys.sorted(by: byteLess) where name != module && !named.contains(name) {
+            guard let od = givenOne(name) else { continue }
+            let callers = callersOf(od, module, o)
+            if let x = callers.first {
+                add(via, o.pointer("via"), .via, "operation \(x.id) of \(name) calls \(o.id), and via does not name \(name), so the hop that calls it is not in the chain; add \(viaEntry(d, o, name)) to via, or stop the call")
+            }
+        }
+    }
+}
+
+/// How via would name a client: through the dependency its other entries
+/// go through, or by name.
+func viaEntry(_ d: Design, _ o: Operation, _ client: String) -> String {
+    for item in items(o.node.child("via")) {
+        if let (dep, _) = crossRef(item.value) { return dep + "#/clients/" + client }
+    }
+    let dep = d.identityDependency
+    return dep.isEmpty ? client : dep + "#/clients/" + client
+}

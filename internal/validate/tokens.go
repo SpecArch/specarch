@@ -204,6 +204,7 @@ func (c *checker) checkTokens(d *design) {
 			c.add(source.Child(o.node, "token"), o.pointer("token"), RuleToken, "%s is not a token of the specification%s", name, suggest(name, d.tokenNames()))
 		}
 		c.checkVia(d, o)
+		c.checkChain(d, o)
 	}
 	if len(tokens) > 0 && len(d.clients()) > 0 && source.Child(d.root, "securityEvents") == nil {
 		c.add(source.Key(d.root, "tokens"), "/tokens", RuleSecurityEvents, "the specification declares tokens and clients, so every refusal of a caller is a security event, and declares no securityEvents; add securityEvents with store and alarm, two dependencies")
@@ -424,6 +425,7 @@ func (d *design) tokenCases(s *subject, o operation, perm, call string) {
 		if txn {
 			s.red("refused with a req_wl that is not an edge", rare, "a "+name+" token whose req_wl names a later hop, which requested a transaction of its own", call, "it is refused as not allowed"+d.event("deputy"))
 			s.red("refused with a txn differing from the one received", rare, "a "+name+" token whose txn is not the one the hop received, minted anew instead of passed on unmodified", call, "it is refused as not allowed"+d.event("deputy"))
+			s.red("refused with a scope no edge of its chain checked", rare, "a "+name+" token whose scope is not the permission of an edge operation whose chain reaches this one, a transaction minted for another purpose", call, "it is refused as not allowed"+d.event("deputy"))
 		} else {
 			s.red("refused for a person's token requested by a service with no actor", rare, "a "+name+" token whose client_id names a service and which declares no act, impersonation rather than delegation (RFC 8693, section 1.1)", call, "it is refused as not allowed"+d.event("deputy"))
 		}

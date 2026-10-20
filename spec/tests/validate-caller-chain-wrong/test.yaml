@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: validate
+level: system
+scenario: red
+given: "the estate of validate-caller-estate with the core's via naming the front ends' backend instead of the middleware, and the front ends' backend accepting no token"
+when: "validate is run on the estate file"
+then: "the induction through calls reports, as via, the backend that does not call the core, the middleware that calls the core and is not in its via, and the backend that calls the middleware with no person's token to carry on, the same in both builds, and exits 1"
+verifies: [SA-88]

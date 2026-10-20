@@ -109,6 +109,7 @@ extension Design {
             if txn {
                 s.red("refused with a req_wl that is not an edge", rare, "a " + name + " token whose req_wl names a later hop, which requested a transaction of its own", call, "it is refused as not allowed" + event("deputy"))
                 s.red("refused with a txn differing from the one received", rare, "a " + name + " token whose txn is not the one the hop received, minted anew instead of passed on unmodified", call, "it is refused as not allowed" + event("deputy"))
+                s.red("refused with a scope no edge of its chain checked", rare, "a " + name + " token whose scope is not the permission of an edge operation whose chain reaches this one, a transaction minted for another purpose", call, "it is refused as not allowed" + event("deputy"))
             } else {
                 s.red("refused for a person's token requested by a service with no actor", rare, "a " + name + " token whose client_id names a service and which declares no act, impersonation rather than delegation (RFC 8693, section 1.1)", call, "it is refused as not allowed" + event("deputy"))
             }
@@ -173,6 +174,7 @@ extension Checker {
                 add(o.node.child("token"), o.pointer("token"), .token, "\(name) is not a token of the specification\(suggest(name, d.tokenNames))")
             }
             checkVia(d, o)
+            checkChain(d, o)
         }
         if !tokens.isEmpty && !d.clientList.isEmpty && d.root.child("securityEvents") == nil {
             add(d.root.key("tokens"), "/tokens", .securityEvents, "the specification declares tokens and clients, so every refusal of a caller is a security event, and declares no securityEvents; add securityEvents with store and alarm, two dependencies")

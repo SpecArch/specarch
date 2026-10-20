@@ -2,6 +2,7 @@ package validate
 
 import (
 	"net/url"
+	"sort"
 	"strings"
 
 	"go.yaml.in/yaml/v3"
@@ -166,4 +167,139 @@ func (c *checker) checkTrustDomain(d *design) {
 	if u, err := url.Parse(source.Str(n)); err != nil || u.Scheme == "" || u.Host == "" {
 		c.add(n, "/trustDomain", RuleTokenAudience, "trustDomain %s is not a URI; it is the aud of every transaction token and the base of every security event's identifier, such as https://estate.example.org", source.Str(n))
 	}
+}
+
+// The chain of a call is found by induction across the modules given
+// together (ADR-111): a client named in via is the module whose info.name
+// is the client's name, and that module's operations that call this one
+// through a dependency on it are the hop before. Each must accept a
+// transaction token, with a via of its own, or be the edge, accepting an
+// access token; and every module that calls this operation must be named
+// in its via.
+
+// clientKey is the name of the client a via entry names: the last part of
+// a reference, or the entry itself.
+func clientKey(entry string) string {
+	if _, ptr, ok := crossRef(entry); ok {
+		return strings.TrimPrefix(ptr, "/clients/")
+	}
+	return entry
+}
+
+// callersOf are the operations of a design that call operation o of the
+// module named module, through a dependency on it, in document order.
+func callersOf(od *design, module string, o operation) []operation {
+	var out []operation
+	for _, x := range od.opList {
+		for _, e := range source.Items(source.Child(x.node, "calls")) {
+			dep, ptr, cross := crossRef(e.Value)
+			if !cross {
+				dep = e.Value
+			}
+			if od.specificationOf(dep) != module {
+				continue
+			}
+			if tokens := pointerTokens(ptr); cross && (len(tokens) != 3 || tokens[0] != "paths" || tokens[1] != o.path || tokens[2] != o.method) {
+				continue
+			}
+			out = append(out, x)
+			break
+		}
+	}
+	return out
+}
+
+// givenOne is the one specification given under a name, read, or nil.
+func (c *checker) givenOne(name string) *design {
+	list := c.given[name]
+	if len(list) != 1 || list[0].Root == nil || list[0].Root.Kind != yaml.MappingNode {
+		return nil
+	}
+	return newDesign(list[0].Root)
+}
+
+// checkChain checks an operation's via against the modules given with
+// this one.
+func (c *checker) checkChain(d *design, o operation) {
+	module := SpecName(d.root)
+	via := source.Child(o.node, "via")
+	if module == "" || via == nil {
+		return
+	}
+	named := map[string]bool{}
+	for i, item := range source.Items(via) {
+		key := clientKey(item.Value)
+		named[key] = true
+		cd := c.givenOne(key)
+		if cd == nil || key == module {
+			continue
+		}
+		callers := callersOf(cd, module, o)
+		if len(callers) == 0 {
+			c.add(item, o.pointer("via", itoa(i)), RuleVia, "%s names %s, and no operation of the module %s calls %s %s, so the chain has no hop before this one; call it from %s, or take %s out of via", o.id, item.Value, key, strings.ToUpper(o.method), o.path, key, item.Value)
+			continue
+		}
+		for _, x := range callers {
+			tok := cd.token(cd.acceptedToken(x.node))
+			if tok == nil {
+				c.add(item, o.pointer("via", itoa(i)), RuleVia, "operation %s of %s calls %s and accepts no token, so it has no person's call to carry on; accept the transaction token, with a via of its own, or an access token, as the edge", x.id, key, o.id)
+			}
+		}
+	}
+	others := make([]string, 0, len(c.given))
+	for name := range c.given {
+		others = append(others, name)
+	}
+	sort.Strings(others)
+	for _, name := range others {
+		if name == module || named[name] {
+			continue
+		}
+		od := c.givenOne(name)
+		if od == nil {
+			continue
+		}
+		if callers := callersOf(od, module, o); len(callers) > 0 {
+			c.add(via, o.pointer("via"), RuleVia, "operation %s of %s calls %s, and via does not name %s, so the hop that calls it is not in the chain; add %s to via, or stop the call", callers[0].id, name, o.id, name, viaEntry(d, o, name))
+		}
+	}
+}
+
+// viaEntry is how via would name a client: through the dependency its
+// other entries go through, or by name.
+func viaEntry(d *design, o operation, client string) string {
+	for _, item := range source.Items(source.Child(o.node, "via")) {
+		if dep, _, ok := crossRef(item.Value); ok {
+			return dep + "#/clients/" + client
+		}
+	}
+	if dep := d.identityDependency(); dep != "" {
+		return dep + "#/clients/" + client
+	}
+	return client
+}
+
+// acceptedAudiences are the aud values of the access tokens an operation
+// of the design accepts, each once, sorted.
+func (d *design) acceptedAudiences() []string {
+	seen := map[string]bool{}
+	for name := range d.acceptedTokens() {
+		tok := d.token(name)
+		if tokenType(tok) != "access_token" {
+			continue
+		}
+		aud := source.Child(source.Child(tok, "claims"), "aud")
+		if v := source.Child(aud, "const"); source.IsScalar(v) {
+			seen[v.Value] = true
+		}
+		for _, v := range source.Items(source.Child(aud, "enum")) {
+			seen[v.Value] = true
+		}
+	}
+	out := make([]string, 0, len(seen))
+	for v := range seen {
+		out = append(out, v)
+	}
+	sort.Strings(out)
+	return out
 }

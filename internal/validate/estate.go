@@ -135,6 +135,24 @@ func (c *checker) checkModules(e *Estate, specs map[string]*spec.Spec) {
 				"%s is at version %s, and the estate lists %s; check it against the other modules, then write %s here", m.Key, v, m.Version, v)
 		}
 	}
+	// An access token is minted for one service, so no two modules accept
+	// one audience value; every module of a trust domain accepts the one
+	// transaction token, whose audience is the trust domain (ADR-109).
+	first := map[string]string{}
+	for _, m := range e.Modules {
+		s := found[m.Key]
+		if s == nil {
+			continue
+		}
+		for _, aud := range newDesign(s.Root).acceptedAudiences() {
+			if other, ok := first[aud]; ok {
+				c.add(m.key, source.Pointer("modules", m.Key), RuleTokenAudience,
+					"%s and %s both accept an access token for the audience %s, so a token minted for one is accepted by the other; give each module an audience of its own", other, m.Key, aud)
+				continue
+			}
+			first[aud] = m.Key
+		}
+	}
 	edges := moduleCalls(found)
 	for _, m := range e.Modules {
 		if cycle := callCycle(m.Key, edges); cycle != nil {

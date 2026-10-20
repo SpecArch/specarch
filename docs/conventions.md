@@ -997,8 +997,8 @@ audience` for an access token; `refused with a caller not listed in via`
 where `via` is written; and, once a service exists, the confused deputy's
 token forms: `refused for a person's token requested by a service with no
 actor` on an access token, `refused with a req_wl that is not an edge` and
-`refused with a txn differing from the one received` on a transaction
-token.
+`refused with a txn differing from the one received` and `refused with a
+scope no edge of its chain checked` on a transaction token.
 
 ### Separation of duties
 

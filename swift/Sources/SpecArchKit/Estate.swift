@@ -96,6 +96,22 @@ extension Checker {
                     "\(m.key) is at version \(v), and the estate lists \(m.version); check it against the other modules, then write \(v) here")
             }
         }
+        // An access token is minted for one service, so no two modules
+        // accept one audience value; every module of a trust domain accepts
+        // the one transaction token, whose audience is the trust domain
+        // (ADR-109).
+        var first: [String: String] = [:]
+        for m in e.modules {
+            guard let root = found[m.key]?.root else { continue }
+            for aud in Design(root).acceptedAudiences {
+                if let other = first[aud] {
+                    add(m.keyNode, pointer("modules", m.key), .tokenAudience,
+                        "\(other) and \(m.key) both accept an access token for the audience \(aud), so a token minted for one is accepted by the other; give each module an audience of its own")
+                    continue
+                }
+                first[aud] = m.key
+            }
+        }
         let edges = moduleCalls(found)
         for m in e.modules {
             if let cycle = callCycle(m.key, edges) {

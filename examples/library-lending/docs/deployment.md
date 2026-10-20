@@ -85,19 +85,30 @@ The library's own hosts, which its IT staff build for and run. Environment: prod
 | Server | Description |
 |---|---|
 | https://library.example | The API behind the desk screens. |
+| http://worker.library.internal | The host that runs the nightly jobs. |
 | postgresql://db.library.internal:5432 | The loans database. |
 | amqps://bus.library.internal:5671 | The library's broker in this environment. |
 
 ```mermaid
 flowchart LR
-  subgraph deployment_production["production, environment production"]
+  subgraph zone_application["zone application"]
     server_api["api, service, library.example<br/>runs internal/api, internal/lending"]
+    server_worker["worker, service, worker.library.internal<br/>runs internal/worker, internal/lending"]
+  end
+  subgraph zone_data["zone data"]
     server_db[("db, database, db.library.internal:5432<br/>runs target sql")]
     server_bus[["bus, dependency eventBus, bus.library.internal:5671"]]
   end
+  server_api -->|"5432 postgresql"| server_db
+  server_api -->|"5671 amqp"| server_bus
+  server_worker -->|"5432 postgresql"| server_db
+  server_worker -->|"5671 amqp"| server_bus
+  subgraph unreached_production["not a server of production"]
+    dependency_feeLedger["feeLedger"]
+  end
 ```
 
-The deployment declares no links between its servers, so the diagram draws none.
+The servers by zone, with the links allowed between them on their ports; a dependency no server of the deployment is stands apart, not reached.
 
 The image is built from the tagged commit with the build task, on any machine with the pinned toolchain; the binary is built with -trimpath and the module cache verified against go.sum, so the image's layers do not depend on the machine.
 

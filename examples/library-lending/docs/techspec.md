@@ -332,8 +332,10 @@ The packages of ../spec/implementation/go/library-lending.go.specarch-implementa
 flowchart LR
   package_internal_api["internal/api, implements 3"]
   package_internal_lending["internal/lending, implements 2"]
+  package_internal_worker["internal/worker, implements 1"]
   package_migrations["migrations"]
   package_internal_lending --> package_internal_api
+  package_internal_worker --> package_internal_lending
   subgraph libraries
     library_github_com_oapi_codegen_oapi_codegen_v2["github.com/oapi-codegen/oapi-codegen/v2 v2.8.0"]
     library_github_com_oapi_codegen_runtime["github.com/oapi-codegen/runtime v1.7.0"]
@@ -1166,6 +1168,7 @@ Stack: language Go 1.26; toolchain go 1.26.0.
 |---|---|---|
 | internal/api | Generated server interface and types. Never edited by hand. | #/paths/~1books/get, #/paths/~1loans/post, #/paths/~1loans~1{loanId}~1return/post |
 | internal/lending | Hand-written handlers that implement the generated interface, and the late-fee algorithm. | #/algorithms/lateFee, #/entities/Loan |
+| internal/worker | The nightly jobs, run on a host of their own so that a long run never slows the desk. | #/jobs/markOverdue |
 | migrations | Generated forward migrations, new files only. |   |
 
 #### Mappings
@@ -1265,18 +1268,28 @@ flowchart LR
 
 The deployment declares no links between its servers, so the diagram draws none.
 
-production: The library's own hosts, which its IT staff build for and run. Environment: production. Servers: https://library.example, postgresql://db.library.internal:5432, amqps://bus.library.internal:5671. Settings: dailyRate 0.50, notificationChannelUrl https://notify.library.example/events. Built by the task build from 2 base images pinned by digest. Installed with podman-compose 1.4 from ../../../deploy/compose.
+production: The library's own hosts, which its IT staff build for and run. Environment: production. Servers: https://library.example, http://worker.library.internal, postgresql://db.library.internal:5432, amqps://bus.library.internal:5671. Settings: dailyRate 0.50, notificationChannelUrl https://notify.library.example/events. Built by the task build from 2 base images pinned by digest. Installed with podman-compose 1.4 from ../../../deploy/compose.
 
 ```mermaid
 flowchart LR
-  subgraph deployment_production["production, environment production"]
+  subgraph zone_application["zone application"]
     server_api["api, service, library.example<br/>runs internal/api, internal/lending"]
+    server_worker["worker, service, worker.library.internal<br/>runs internal/worker, internal/lending"]
+  end
+  subgraph zone_data["zone data"]
     server_db[("db, database, db.library.internal:5432<br/>runs target sql")]
     server_bus[["bus, dependency eventBus, bus.library.internal:5671"]]
   end
+  server_api -->|"5432 postgresql"| server_db
+  server_api -->|"5671 amqp"| server_bus
+  server_worker -->|"5432 postgresql"| server_db
+  server_worker -->|"5671 amqp"| server_bus
+  subgraph unreached_production["not a server of production"]
+    dependency_feeLedger["feeLedger"]
+  end
 ```
 
-The deployment declares no links between its servers, so the diagram draws none.
+The servers by zone, with the links allowed between them on their ports; a dependency no server of the deployment is stands apart, not reached.
 
 | Resource | What the hosts must provide |
 |---|---|

@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "a deployment whose links name a port the database does not listen on, a server it does not have, a server reaching itself and a broker that listens on nothing, whose API implements an entity with no link to the database, and whose worker runs a job that reads the entity and emits on a channel the broker carries with no link that stands; and a second deployment with no links"
+when: validate is run
+then: "it reports each wrong link as link at the entry, with the server it may mean, warns as link_missing at the API for the database and at the worker for the broker, names no ledger since no server is it, warns nothing for the deployment with no links, and exits 1"
+verifies: [SA-10]

@@ -181,6 +181,37 @@ dependency. The technical specification and the deployment guide draw a
 deployment once one of its servers uses a key; a deployment without them
 renders as before.
 
+The network is said with three more keys (ADR-137): `zone` on a server,
+IEC 62443's word, a kebab-case name for servers that share security
+requirements; `listens` on a server, each a `port` and the `protocol` on
+it; and `links` on a deployment, each a firewall rule in NIST SP 800-41's
+form, `from` a named server `to` a named server on a `port` the target
+listens on, with a `description` when the reason is not plain. A link
+the other way is another link.
+
+    servers:
+      - { name: api, url: "https://library.example", zone: application, listens: [{ port: 8080, protocol: http }], runs: { packages: [internal/api] } }
+      - { name: db, kind: database, url: "postgresql://db.internal:5432", zone: data, listens: [{ port: 5432, protocol: postgresql }], runs: { targets: [sql] } }
+    links:
+      - { from: api, to: db, port: 5432 }
+
+A link that names no server of the deployment, joins a server to itself
+or names a port the target does not listen on is an error at the entry
+(`link`). Once a deployment declares `links`, the validator runs the
+firewall check and warns at a server (`link_missing`) whose packages
+implement an operation or a job that calls a dependency, or emits on or
+consumes from a channel a dependency carries, with no link to the server
+that is that dependency in the deployment; and at one whose packages
+implement an entity, or a job that reads or writes one, with no link to
+the deployment's database server that runs the `sql` target. A job is
+placed by the package that implements it (`implements:
+["#/jobs/markOverdue"]`). The documents then draw the deployment as its
+network: a subgraph per zone, an edge per link with its port and the
+target's protocol, and the dependencies no server is apart; the marker
+`network <deployment>` draws it in a hand-written `specarch.md`. The
+handover document prints the links and the ports before the
+infrastructure's sentences, which say what the keys do not.
+
 Pointers from an implementation file into its specification are JSON
 pointers written from the merged document's root: `#/entities/Loan`,
 `#/commands/validate`, `#/paths/~1loans/post` (a `/` inside a key is
@@ -601,6 +632,8 @@ redefined.
 | `protocol` on a dependency | AsyncAPI, the server object | how the dependency is reached, a lowercase URI scheme name, kept open |
 | `dependsOn` on a layout entry, in an implementation file | CycloneDX, a component's dependencies | the other packages of the layout this one calls, imports or links against (ADR-133) |
 | `name`, `kind`, `runs`, `dependency` on a deployment's server, in an implementation file | SpecArch, after C4's deployment node and container instance | what a server is, what of the implementation runs on it, and which dependency it is in that environment; C4's words name the thing placed, not the placing (ADR-136) |
+| `zone` on a server, in an implementation file | IEC 62443-3-2, the zone | a grouping of servers that share security requirements (ADR-137) |
+| `listens` on a server, `links` on a deployment, in an implementation file | NIST SP 800-41, a firewall rule | what a server accepts, and the directed connections allowed between servers on a port; IEC 62443's conduit joins zones, and the check needs the host and the port (ADR-137) |
 | `specification`, `version` (on a dependency), `name` (in `info`) | SpecArch, after JSON Schema's `$ref` as a URI reference | a dependency that is another specification, named by its `info.name` and pinned to its `info.version`; its elements are named `<dependency>#/<pointer>` |
 | `specarchEstate`, `modules`, `location` | SpecArch | an estate file: the modules' specifications by `info.name`, each with its folder and the version held |
 | `idempotencyKey` | SpecArch, after RFC 9110 9.2.2 and the IETF Idempotency-Key header draft | a header that tells a repeated request from a new one, on a method that is not idempotent by itself |
@@ -2275,6 +2308,7 @@ edit inside the markers; edit the YAML.
 | permissions matrix (a Markdown table, not a diagram) | `permissions` | `roles`, `permissions` | generated |
 | `flowchart` of the system's context in C4's style: a person per role, a system per service client, the dependencies by kind with their protocol, the channels they carry | `context` | `roles`, `clients`, `dependencies`, `channels`, `calls`, `emits`, `consumes` (ADR-134, ADR-135) | generated |
 | `flowchart` of one deployment: a node per server with its name, kind, host and what it runs, a server that is a dependency drawn as that dependency | `deployment <deployment>` | an implementation file's `deployments`, `servers` with `name`, `kind`, `runs`, `dependency` (ADR-136) | generated |
+| `flowchart` of one deployment's network: a subgraph per zone, an edge per link with its port and protocol, the dependencies no server is apart | `network <deployment>` | an implementation file's `deployments`, `zone`, `listens`, `links` (ADR-137) | generated |
 | any explanatory sketch of an algorithm or a flow | | prose | hand-drawn |
 
 `specarch document techspec` fills every marked region of the `specarch.md`

@@ -370,6 +370,14 @@ func Handover(root *yaml.Node, relRoot string, impls []Implementation, state *St
 					line += " Environment: " + e + "."
 				}
 				d.para(line)
+				// The links and listens come first, what the keys say, and
+				// the infrastructure's sentences after them for the rest
+				// (ADR-137).
+				if links, ports := linkSentences(dep.Value); links != "" || ports != "" {
+					d.para(links)
+					d.para(ports)
+					d.block(networkDiagram(root, dep.Key.Value, dep.Value))
+				}
 				infrastructureTable(d, infra)
 				if servers := items(dep.Value, "servers"); len(servers) > 0 {
 					d.line("| Server | Description |")

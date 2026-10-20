@@ -288,6 +288,7 @@ extension Checker {
                 }
             }
             checkServers(d, base, p.value.child("servers"))
+            checkLinks(d, base, p.value)
             for m in pairs(p.value.child("monitors")) where d.monitors[m.key.value] == nil {
                 add(m.key, pointer(base + ["monitors", m.key.value]), .monitor, "\(m.key.value) is not a monitor of the specification\(suggest(m.key.value, d.monitors))")
             }
@@ -458,5 +459,146 @@ extension Checker {
                 add(t, pointer(at + ["runs", "targets", "\(j)"]), .server, "\(t.value) is not a key of targets\(suggest(t.value, targets))")
             }
         }
+    }
+}
+
+/// What the packages of one server reach: each dependency with the design
+/// objects that reach it, and the objects that touch the data.
+struct ServerReach {
+    var dependencies: [String: [String]] = [:]
+    var data: [String] = []
+}
+
+extension Checker {
+    /// Checks a deployment's links against its servers (ADR-137): each
+    /// joins two named servers on a port the target listens on. When the
+    /// deployment declares links, it then warns at each server whose
+    /// packages call a dependency, use a channel one carries or reach the
+    /// database with no link that allows it: the firewall check.
+    func checkLinks(_ d: Design, _ base: [String], _ dep: YNode) {
+        let servers = items(dep.child("servers"))
+        var named: [String: YNode] = [:]
+        for s in servers {
+            let n = str(s.child("name"))
+            if !n.isEmpty && named[n] == nil { named[n] = s }
+        }
+        let linksNode = dep.child("links")
+        var linked: Set<String> = []
+        for (i, l) in items(linksNode).enumerated() {
+            let at = base + ["links", "\(i)"]
+            let from = l.child("from"), to = l.child("to")
+            var ok = true
+            for (key, end) in [("from", from), ("to", to)] {
+                if let end, named[end.value] == nil {
+                    add(end, pointer(at + [key]), .link, "\(end.value) is not a named server of this deployment\(suggest(end.value, named))")
+                    ok = false
+                }
+            }
+            guard ok, let from, let to else { continue }
+            if from.value == to.value {
+                add(to, pointer(at + ["to"]), .link, "the link goes from \(from.value) to itself; a server reaches itself with no link, so remove it")
+                continue
+            }
+            linked.insert(from.value + "\u{0}" + to.value)
+            if let port = l.child("port") {
+                var ports: [String] = []
+                var listened = false
+                for ln in items(child(named[to.value], "listens")) {
+                    let p = str(ln.child("port"))
+                    ports.append(p)
+                    if p == port.value { listened = true }
+                }
+                if listened {
+                } else if ports.isEmpty {
+                    add(port, pointer(at + ["port"]), .link, "\(to.value) listens on no port, so no link can reach it; add the port under its listens")
+                } else {
+                    add(port, pointer(at + ["port"]), .link, "\(to.value) does not listen on \(port.value); it listens on \(ports.joined(separator: ", "))")
+                }
+            }
+        }
+        guard linksNode != nil else { return }
+        // What each dependency is in this deployment, and its database.
+        var depServer: [String: String] = [:]
+        var database = ""
+        for s in servers {
+            let n = str(s.child("name"))
+            if n.isEmpty { continue }
+            let dn = str(s.child("dependency"))
+            if !dn.isEmpty {
+                if depServer[dn] == nil { depServer[dn] = n }
+                continue
+            }
+            if str(s.child("kind")) == "database" && database.isEmpty
+                && items(child(s.child("runs"), "targets")).contains(where: { $0.value == "sql" }) {
+                database = n
+            }
+        }
+        var layout: [String: YNode] = [:]
+        for p in pairs(root.child("layout")) { layout[p.key.value] = p.value }
+        for (i, s) in servers.enumerated() {
+            let n = str(s.child("name"))
+            if n.isEmpty || s.child("dependency") != nil { continue }
+            let got = serverReach(d, layout, items(child(s.child("runs"), "packages")))
+            let at = pointer(base + ["servers", "\(i)"])
+            for dn in got.dependencies.keys.sorted(by: byteLess) {
+                guard let target = depServer[dn], !linked.contains(n + "\u{0}" + target) else { continue }
+                warn(s, at, .linkMissing, "\(n) runs the packages implementing \(got.dependencies[dn]!.joined(separator: ", ")), which reach the dependency \(dn), and no link leads from \(n) to \(target), the server that is \(dn) here; add a link from \(n) to \(target) on a port it listens on")
+            }
+            if !got.data.isEmpty && !database.isEmpty && database != n && !linked.contains(n + "\u{0}" + database) {
+                warn(s, at, .linkMissing, "\(n) runs the packages implementing \(got.data.joined(separator: ", ")), which read or write the database, and no link leads from \(n) to \(database), the server that runs the sql target; add a link from \(n) to \(database) on a port it listens on")
+            }
+        }
+    }
+
+    /// Follows the design objects the packages implement: an operation or
+    /// a job reaches the dependencies it calls and those carrying the
+    /// channels it emits on or consumes from; an entity, or a job that
+    /// reads or writes one, reaches the database.
+    func serverReach(_ d: Design, _ layout: [String: YNode], _ packages: [YNode]) -> ServerReach {
+        var r = ServerReach()
+        func reached(_ dep: String, _ by: String) {
+            if d.dependencies[dep] != nil && !(r.dependencies[dep] ?? []).contains(by) {
+                r.dependencies[dep, default: []].append(by)
+            }
+        }
+        func carriers(_ message: String, _ by: String) {
+            let ch = String(message.split(separator: "/", maxSplits: 1, omittingEmptySubsequences: false).first ?? "")
+            for e in items(child(d.channels[ch], "carriedBy")) { reached(e.value, by) }
+        }
+        func uses(_ n: YNode?, _ by: String) {
+            for call in items(child(n, "calls")) {
+                reached(String(call.value.split(separator: "#", maxSplits: 1, omittingEmptySubsequences: false).first ?? ""), by)
+            }
+            for e in items(child(n, "emits")) { carriers(e.value, by) }
+        }
+        for pkg in packages {
+            for ref in items(child(layout[pkg.value], "implements")) {
+                let tokens = ref.value.hasPrefix("#/") ? ref.value.dropFirst(2).split(separator: "/", omittingEmptySubsequences: false).map { unescapeToken(String($0)) } : [ref.value]
+                let (node, ok) = resolve(d.root, tokens)
+                if !ok || tokens.count < 2 { continue }
+                switch tokens[0] {
+                case "entities":
+                    if !r.data.contains(tokens[1]) { r.data.append(tokens[1]) }
+                case "jobs":
+                    uses(node, tokens[1])
+                    let consumes = str(child(node.child("trigger"), "consumes"))
+                    if !consumes.isEmpty { carriers(consumes, tokens[1]) }
+                    if (node.child("reads") != nil || node.child("writes") != nil) && !r.data.contains(tokens[1]) {
+                        r.data.append(tokens[1])
+                    }
+                case "paths":
+                    if tokens.count == 3 {
+                        uses(node, str(node.child("operationId")))
+                        continue
+                    }
+                    for m in ["get", "post", "put", "patch", "delete"] {
+                        if let op = node.child(m) { uses(op, str(op.child("operationId"))) }
+                    }
+                default:
+                    break
+                }
+            }
+        }
+        return r
     }
 }

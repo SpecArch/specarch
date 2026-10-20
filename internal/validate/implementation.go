@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -321,6 +322,7 @@ func (c *checker) checkDeployments(d *design) {
 			}
 		}
 		c.checkServers(d, base, source.Child(p.Value, "servers"))
+		c.checkLinks(d, base, p.Value)
 		for _, m := range source.Pairs(source.Child(p.Value, "monitors")) {
 			if d.monitors[m.Key.Value] == nil {
 				c.add(m.Key, source.Pointer(append(base, "monitors", m.Key.Value)...), RuleMonitor, "%s is not a monitor of the specification%s", m.Key.Value, suggest(m.Key.Value, d.monitors))
@@ -452,4 +454,185 @@ func (c *checker) checkServers(d *design, base []string, servers *yaml.Node) {
 			}
 		}
 	}
+}
+
+// checkLinks checks a deployment's links against its servers (ADR-137):
+// each joins two named servers on a port the target listens on. When the
+// deployment declares links, it then warns at each server whose packages
+// call a dependency, use a channel one carries or reach the database with
+// no link that allows it: the firewall check.
+func (c *checker) checkLinks(d *design, base []string, dep *yaml.Node) {
+	servers := source.Items(source.Child(dep, "servers"))
+	named := map[string]*yaml.Node{}
+	var names []string
+	for _, s := range servers {
+		if n := source.Str(source.Child(s, "name")); n != "" && named[n] == nil {
+			named[n] = s
+			names = append(names, n)
+		}
+	}
+	linksNode := source.Child(dep, "links")
+	linked := map[[2]string]bool{}
+	for i, l := range source.Items(linksNode) {
+		at := append(append([]string{}, base...), "links", fmt.Sprint(i))
+		from, to := source.Child(l, "from"), source.Child(l, "to")
+		ok := true
+		for _, end := range []struct {
+			key  string
+			node *yaml.Node
+		}{{"from", from}, {"to", to}} {
+			if end.node != nil && named[end.node.Value] == nil {
+				c.add(end.node, source.Pointer(append(at, end.key)...), RuleLink, "%s is not a named server of this deployment%s", end.node.Value, suggest(end.node.Value, named))
+				ok = false
+			}
+		}
+		if !ok || from == nil || to == nil {
+			continue
+		}
+		if from.Value == to.Value {
+			c.add(to, source.Pointer(append(at, "to")...), RuleLink, "the link goes from %s to itself; a server reaches itself with no link, so remove it", from.Value)
+			continue
+		}
+		linked[[2]string{from.Value, to.Value}] = true
+		if port := source.Child(l, "port"); port != nil {
+			var ports []string
+			listened := false
+			for _, ln := range source.Items(source.Child(named[to.Value], "listens")) {
+				p := source.Str(source.Child(ln, "port"))
+				ports = append(ports, p)
+				listened = listened || p == port.Value
+			}
+			switch {
+			case listened:
+			case len(ports) == 0:
+				c.add(port, source.Pointer(append(at, "port")...), RuleLink, "%s listens on no port, so no link can reach it; add the port under its listens", to.Value)
+			default:
+				c.add(port, source.Pointer(append(at, "port")...), RuleLink, "%s does not listen on %s; it listens on %s", to.Value, port.Value, strings.Join(ports, ", "))
+			}
+		}
+	}
+	if linksNode == nil {
+		return
+	}
+	// What each dependency is in this deployment, and its database.
+	depServer := map[string]string{}
+	database := ""
+	for _, s := range servers {
+		n := source.Str(source.Child(s, "name"))
+		if n == "" {
+			continue
+		}
+		if dn := source.Str(source.Child(s, "dependency")); dn != "" {
+			if _, seen := depServer[dn]; !seen {
+				depServer[dn] = n
+			}
+			continue
+		}
+		if source.Str(source.Child(s, "kind")) == "database" && database == "" {
+			for _, t := range source.Items(source.Child(source.Child(s, "runs"), "targets")) {
+				if t.Value == "sql" {
+					database = n
+				}
+			}
+		}
+	}
+	layout := topMap(c.root, "layout")
+	for i, s := range servers {
+		n := source.Str(source.Child(s, "name"))
+		if n == "" || source.Child(s, "dependency") != nil {
+			continue
+		}
+		got := c.serverReach(d, layout, source.Items(source.Child(source.Child(s, "runs"), "packages")))
+		at := source.Pointer(append(append([]string{}, base...), "servers", fmt.Sprint(i))...)
+		var deps []string
+		for dn := range got.dependencies {
+			deps = append(deps, dn)
+		}
+		sort.Strings(deps)
+		for _, dn := range deps {
+			target, ok := depServer[dn]
+			if !ok || linked[[2]string{n, target}] {
+				continue
+			}
+			c.warn(s, at, RuleLinkMissing, "%s runs the packages implementing %s, which reach the dependency %s, and no link leads from %s to %s, the server that is %s here; add a link from %s to %s on a port it listens on", n, strings.Join(got.dependencies[dn], ", "), dn, n, target, dn, n, target)
+		}
+		if len(got.data) > 0 && database != "" && database != n && !linked[[2]string{n, database}] {
+			c.warn(s, at, RuleLinkMissing, "%s runs the packages implementing %s, which read or write the database, and no link leads from %s to %s, the server that runs the sql target; add a link from %s to %s on a port it listens on", n, strings.Join(got.data, ", "), n, database, n, database)
+		}
+	}
+}
+
+// reach is what the packages of one server reach: each dependency with
+// the design objects that reach it, and the objects that touch the data.
+type reach struct {
+	dependencies map[string][]string
+	data         []string
+}
+
+// serverReach follows the design objects the packages implement: an
+// operation or a job reaches the dependencies it calls and those carrying
+// the channels it emits on or consumes from; an entity, or a job that
+// reads or writes one, reaches the database.
+func (c *checker) serverReach(d *design, layout map[string]*yaml.Node, packages []*yaml.Node) reach {
+	r := reach{dependencies: map[string][]string{}}
+	add := func(dep, by string) {
+		if d.dependencies[dep] != nil && !contains(r.dependencies[dep], by) {
+			r.dependencies[dep] = append(r.dependencies[dep], by)
+		}
+	}
+	carriers := func(message, by string) {
+		ch, _, _ := strings.Cut(message, "/")
+		for _, e := range source.Items(source.Child(d.channels[ch], "carriedBy")) {
+			add(e.Value, by)
+		}
+	}
+	uses := func(n *yaml.Node, by string) {
+		for _, call := range source.Items(source.Child(n, "calls")) {
+			dep, _, _ := strings.Cut(call.Value, "#")
+			add(dep, by)
+		}
+		for _, e := range source.Items(source.Child(n, "emits")) {
+			carriers(e.Value, by)
+		}
+	}
+	for _, pkg := range packages {
+		for _, ref := range source.Items(source.Child(layout[pkg.Value], "implements")) {
+			if !strings.HasPrefix(ref.Value, "#/") {
+				continue // the schema reports it
+			}
+			var tokens []string
+			for _, t := range strings.Split(strings.TrimPrefix(ref.Value, "#/"), "/") {
+				tokens = append(tokens, source.UnescapeToken(t))
+			}
+			node, ok := source.Resolve(d.root, tokens)
+			if !ok || len(tokens) < 2 {
+				continue
+			}
+			switch tokens[0] {
+			case "entities":
+				if !contains(r.data, tokens[1]) {
+					r.data = append(r.data, tokens[1])
+				}
+			case "jobs":
+				uses(node, tokens[1])
+				if consumes := source.Str(source.Child(source.Child(node, "trigger"), "consumes")); consumes != "" {
+					carriers(consumes, tokens[1])
+				}
+				if (source.Child(node, "reads") != nil || source.Child(node, "writes") != nil) && !contains(r.data, tokens[1]) {
+					r.data = append(r.data, tokens[1])
+				}
+			case "paths":
+				if len(tokens) == 3 {
+					uses(node, source.Str(source.Child(node, "operationId")))
+					continue
+				}
+				for _, m := range []string{"get", "post", "put", "patch", "delete"} {
+					if op := source.Child(node, m); op != nil {
+						uses(op, source.Str(source.Child(op, "operationId")))
+					}
+				}
+			}
+		}
+	}
+	return r
 }

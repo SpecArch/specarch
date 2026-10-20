@@ -113,8 +113,10 @@ The Go service's packages, and which calls which:
 flowchart LR
   package_internal_api["internal/api, implements 3"]
   package_internal_lending["internal/lending, implements 2"]
+  package_internal_worker["internal/worker, implements 1"]
   package_migrations["migrations"]
   package_internal_lending --> package_internal_api
+  package_internal_worker --> package_internal_lending
   subgraph libraries
     library_github_com_oapi_codegen_oapi_codegen_v2["github.com/oapi-codegen/oapi-codegen/v2 v2.8.0"]
     library_github_com_oapi_codegen_runtime["github.com/oapi-codegen/runtime v1.7.0"]
@@ -167,15 +169,25 @@ rollback steps, the tier migration and the commissioning checks are in
 `deployment/` and `commissioning/`; the hosts are in the implementation
 file.
 
-Production, from the Go implementation file's servers:
+Production, from the Go implementation file's servers, zones and links:
 
-<!-- specarch:generate deployment production -->
+<!-- specarch:generate network production -->
 ```mermaid
 flowchart LR
-  subgraph deployment_production["production, environment production"]
+  subgraph zone_application["zone application"]
     server_api["api, service, library.example<br/>runs internal/api, internal/lending"]
+    server_worker["worker, service, worker.library.internal<br/>runs internal/worker, internal/lending"]
+  end
+  subgraph zone_data["zone data"]
     server_db[("db, database, db.library.internal:5432<br/>runs target sql")]
     server_bus[["bus, dependency eventBus, bus.library.internal:5671"]]
+  end
+  server_api -->|"5432 postgresql"| server_db
+  server_api -->|"5671 amqp"| server_bus
+  server_worker -->|"5432 postgresql"| server_db
+  server_worker -->|"5671 amqp"| server_bus
+  subgraph unreached_production["not a server of production"]
+    dependency_feeLedger["feeLedger"]
   end
 ```
 <!-- specarch:end -->

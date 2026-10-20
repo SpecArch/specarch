@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.2-dev of the specification: 568 design tests, 258 golden and 310 red, about 17 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.2-dev of the specification: 569 design tests, 258 golden and 311 red, about 17 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 3 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -17,7 +17,7 @@ Version 0.7.2-dev of the specification: 568 design tests, 258 golden and 310 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 564 |
+| system | 565 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -3040,6 +3040,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-10.
 - Given: an implementation file whose layout's dependsOn names a package the layout does not have, names the entry itself, repeats a package, and makes a cycle of two packages
 - When: validate is run
 - Then: it reports the unknown package as depends_on with the key it may mean, the entry naming itself as depends_on, the repeat as a schema error, nothing for the cycle, and exits 1
+
+#### validate-diagram-network
+
+Scenario: red; level: system; covers exit 1; verifies SA-10.
+
+- Given: a deployment whose links name a port the database does not listen on, a server it does not have, a server reaching itself and a broker that listens on nothing, whose API implements an entity with no link to the database, and whose worker runs a job that reads the entity and emits on a channel the broker carries with no link that stands; and a second deployment with no links
+- When: validate is run
+- Then: it reports each wrong link as link at the entry, with the server it may mean, warns as link_missing at the API for the database and at the worker for the broker, names no ledger since no server is it, warns nothing for the deployment with no links, and exits 1
 
 #### validate-diagram-server
 

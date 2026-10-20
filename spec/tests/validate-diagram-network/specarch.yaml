@@ -1,0 +1,50 @@
+specarch: "0.3"
+info: { title: Case, version: 1.0.0 }
+dependencies:
+  eventBus:
+    description: The broker.
+    timeout: PT1S
+    kind: messageBroker
+  ledger:
+    description: The finance system's ledger.
+    timeout: PT5S
+channels:
+  loan.overdue:
+    description: One message per overdue loan.
+    carriedBy: [eventBus]
+    messages:
+      LoanOverdue:
+        summary: A loan became overdue.
+        payload:
+          type: object
+          properties:
+            loanId: { type: string, format: uuid }
+          required: [loanId]
+entities:
+  Loan:
+    description: A loan.
+    type: object
+    properties:
+      id: { type: string, format: uuid }
+    required: [id]
+    primaryKey: [id]
+permissions:
+  loans.read: { description: Read the loans. }
+roles:
+  scheduler:
+    description: The system itself.
+    permissions: [loans.read]
+jobs:
+  markOverdue:
+    description: Marks the loans past their due date and says so.
+    trigger: { schedule: "0 2 * * *" }
+    role: scheduler
+    reads: [Loan]
+    calls: [ledger]
+    emits: [loan.overdue/LoanOverdue]
+    retries: { limit: 3, then: deadLetter }
+tests:
+  mark-overdue-succeeds: { level: system, job: markOverdue, scenario: golden, given: "open loans past their due date", when: "the job markOverdue runs", then: "it completes" }
+  mark-overdue-runs-twice: { level: system, job: markOverdue, scenario: golden, covers: [runs twice], given: "the job markOverdue has run", when: "it runs again over the same records", then: "nothing changes a second time" }
+  mark-overdue-dependency-fails-ledger: { level: system, job: markOverdue, scenario: red, covers: [dependency fails ledger], given: "ledger answers with an error", when: "the job markOverdue runs", then: "the run is retried" }
+  mark-overdue-dependency-times-out-ledger: { level: system, job: markOverdue, scenario: red, covers: [dependency times out ledger], given: "ledger does not answer within PT5S", when: "the job markOverdue runs", then: "the call is given up and the run is retried" }

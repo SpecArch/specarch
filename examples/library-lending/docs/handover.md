@@ -85,6 +85,29 @@ The software bill of materials of the build, and its scan for known vulnerabilit
 
 The library's own hosts, which its IT staff build for and run. Environment: production.
 
+The allowed connections, and no others: api reaches db on port 5432 over postgresql. api reaches bus on port 5671 over amqp. The loan events. worker reaches db on port 5432 over postgresql. worker reaches bus on port 5671 over amqp. LoanOverdue for each loan the job marks.
+
+Ports listened on: api on 8080 (http); db on 5432 (postgresql); bus on 5671 (amqp).
+
+```mermaid
+flowchart LR
+  subgraph zone_application["zone application"]
+    server_api["api, service, library.example<br/>runs internal/api, internal/lending"]
+    server_worker["worker, service, worker.library.internal<br/>runs internal/worker, internal/lending"]
+  end
+  subgraph zone_data["zone data"]
+    server_db[("db, database, db.library.internal:5432<br/>runs target sql")]
+    server_bus[["bus, dependency eventBus, bus.library.internal:5671"]]
+  end
+  server_api -->|"5432 postgresql"| server_db
+  server_api -->|"5671 amqp"| server_bus
+  server_worker -->|"5432 postgresql"| server_db
+  server_worker -->|"5671 amqp"| server_bus
+  subgraph unreached_production["not a server of production"]
+    dependency_feeLedger["feeLedger"]
+  end
+```
+
 | Resource | What the hosts must provide |
 |---|---|
 | Processor | Two cores for the API host; four for the database host. |
@@ -97,6 +120,7 @@ The library's own hosts, which its IT staff build for and run. Environment: prod
 | Server | Description |
 |---|---|
 | https://library.example | The API behind the desk screens. |
+| http://worker.library.internal | The host that runs the nightly jobs. |
 | postgresql://db.library.internal:5432 | The loans database. |
 | amqps://bus.library.internal:5671 | The library's broker in this environment. |
 

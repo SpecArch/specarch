@@ -68,6 +68,8 @@ const (
 	RuleLayout                 Rule = "layout"
 	RuleDependsOn              Rule = "depends_on"
 	RuleServer                 Rule = "server"
+	RuleLink                   Rule = "link"
+	RuleLinkMissing            Rule = "link_missing"
 	RuleNeed                   Rule = "need"
 	RuleStakeholder            Rule = "stakeholder"
 	RuleSource                 Rule = "source"
@@ -210,6 +212,8 @@ var Rules = []Rule{
 	RuleLayout,
 	RuleDependsOn,
 	RuleServer,
+	RuleLink,
+	RuleLinkMissing,
 	RuleNeed,
 	RuleStakeholder,
 	RuleSource,

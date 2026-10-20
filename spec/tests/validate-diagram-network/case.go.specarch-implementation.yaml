@@ -1,0 +1,32 @@
+specarchImplementation: "0.1"
+info: { title: Case in Go, version: 1.0.0 }
+implements: { file: specarch.yaml, version: 1.0.0 }
+stack: { language: { name: Go, version: "1.26" } }
+layout:
+  internal/store:
+    description: The data access.
+    implements: ["#/entities/Loan"]
+  internal/worker:
+    description: The nightly job.
+    implements: ["#/jobs/markOverdue"]
+targets:
+  sql:
+    output: migrations
+deployments:
+  production:
+    description: The hosts.
+    servers:
+      - { name: api, url: "https://library.example", zone: application, listens: [{ port: 8080, protocol: http }], runs: { packages: [internal/store] } }
+      - { name: worker, url: "http://worker", zone: application, runs: { packages: [internal/worker] } }
+      - { name: db, kind: database, url: "postgresql://db:5432", zone: data, listens: [{ port: 5432, protocol: postgresql }], runs: { targets: [sql] } }
+      - { name: bus, dependency: eventBus, url: "amqps://bus:5671", zone: data }
+    links:
+      - { from: worker, to: db, port: 5433 }
+      - { from: workr, to: bus, port: 5671 }
+      - { from: api, to: api, port: 8080 }
+      - { from: api, to: bus, port: 5671 }
+  staging:
+    description: A deployment with no links, so no warning for it.
+    servers:
+      - { name: api, url: "https://staging.library.example", runs: { packages: [internal/store] } }
+      - { name: db, kind: database, url: "postgresql://db-staging:5432", runs: { targets: [sql] } }

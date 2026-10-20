@@ -415,13 +415,15 @@ func region(root *yaml.Node, impls []Implementation, what string) (string, error
 		out, err = componentsRegion(impls, arg)
 	case "deployment":
 		out, err = deploymentRegion(root, impls, arg)
+	case "network":
+		out, err = networkRegion(root, impls, arg)
 	case "context":
 		out = contextDiagram(root)
 		if out == "" {
 			err = fmt.Errorf("the design file has no roles, dependencies or channels to draw")
 		}
 	default:
-		names := []string{"components <stack>", "context", "deployment <deployment>", "erDiagram", "stateDiagram <Entity>", "sequenceDiagram <operationId or command>", "flowchart pages", "permissions"}
+		names := []string{"components <stack>", "context", "deployment <deployment>", "erDiagram", "network <deployment>", "stateDiagram <Entity>", "sequenceDiagram <operationId or command>", "flowchart pages", "permissions"}
 		sort.Strings(names)
 		return "", fmt.Errorf("%q is not something the generator draws; use one of %s", kind, strings.Join(names, ", "))
 	}
@@ -1108,9 +1110,13 @@ func serverShape(id, label, kind string) string {
 // deploymentDiagram draws one deployment of an implementation (ADR-136): a
 // node per server in the environment's subgraph, labelled with its name,
 // kind, host and what it runs, in its kind's shape; a server that is a
-// dependency drawn as that dependency. It has no edges until the
-// deployment declares its links.
+// dependency drawn as that dependency. Once the deployment has links or
+// zones, it is the network diagram, with the servers in their zones and
+// the links as its edges.
 func deploymentDiagram(root *yaml.Node, name string, dep *yaml.Node) string {
+	if hasNetwork(dep) {
+		return networkDiagram(root, name, dep)
+	}
 	servers := items(dep, "servers")
 	if len(servers) == 0 {
 		return ""
@@ -1123,33 +1129,199 @@ func deploymentDiagram(root *yaml.Node, name string, dep *yaml.Node) string {
 	}
 	fmt.Fprintf(&b, "  subgraph deployment_%s[\"%s\"]\n", mermaidID(name), mermaidText(title))
 	for i, s := range servers {
-		label := str(s, "name")
-		kind := str(s, "kind")
-		if kind == "" {
-			kind = "service"
-		}
-		if d := str(s, "dependency"); d != "" {
-			kind = str(get(get(root, "dependencies"), d), "kind")
-			if kind == "" {
-				kind = "system"
-			}
-			label = joinLabel(label, "dependency "+d)
-		} else {
-			label = joinLabel(label, kind)
-		}
-		label = joinLabel(label, urlHost(str(s, "url")))
-		var runs []string
-		runs = append(runs, strs(get(s, "runs"), "packages")...)
-		for _, t := range strs(get(s, "runs"), "targets") {
-			runs = append(runs, "target "+t)
-		}
-		if len(runs) > 0 {
-			label += "<br/>runs " + strings.Join(runs, ", ")
-		}
-		fmt.Fprintf(&b, "    %s\n", serverShape(serverID(s, i), mermaidText(label), kind))
+		fmt.Fprintf(&b, "    %s\n", serverNode(root, s, i))
 	}
 	b.WriteString("  end\n")
 	return fence(b.String())
+}
+
+// serverNode is a server's node: its name, its kind or the dependency it
+// is, its URL's host and what it runs, in its kind's shape.
+func serverNode(root, s *yaml.Node, i int) string {
+	label := str(s, "name")
+	kind := str(s, "kind")
+	if kind == "" {
+		kind = "service"
+	}
+	if d := str(s, "dependency"); d != "" {
+		kind = str(get(get(root, "dependencies"), d), "kind")
+		if kind == "" {
+			kind = "system"
+		}
+		label = joinLabel(label, "dependency "+d)
+	} else {
+		label = joinLabel(label, kind)
+	}
+	label = joinLabel(label, urlHost(str(s, "url")))
+	var runs []string
+	runs = append(runs, strs(get(s, "runs"), "packages")...)
+	for _, t := range strs(get(s, "runs"), "targets") {
+		runs = append(runs, "target "+t)
+	}
+	if len(runs) > 0 {
+		label += "<br/>runs " + strings.Join(runs, ", ")
+	}
+	return serverShape(serverID(s, i), mermaidText(label), kind)
+}
+
+// hasNetwork says whether a deployment declares links or puts a server in
+// a zone, so that the documents draw its network.
+func hasNetwork(dep *yaml.Node) bool {
+	if len(items(dep, "links")) > 0 {
+		return true
+	}
+	for _, s := range items(dep, "servers") {
+		if str(s, "zone") != "" {
+			return true
+		}
+	}
+	return false
+}
+
+// listenedProtocol is the protocol a server says it speaks on a port, ""
+// when it says none.
+func listenedProtocol(s *yaml.Node, port string) string {
+	for _, l := range items(s, "listens") {
+		if str(l, "port") == port {
+			return str(l, "protocol")
+		}
+	}
+	return ""
+}
+
+// namedServers is a deployment's servers by name, with their place in the
+// list.
+func namedServers(dep *yaml.Node) (map[string]*yaml.Node, map[string]int) {
+	byName, place := map[string]*yaml.Node{}, map[string]int{}
+	for i, s := range items(dep, "servers") {
+		if n := str(s, "name"); n != "" {
+			if _, seen := byName[n]; !seen {
+				byName[n], place[n] = s, i
+			}
+		}
+	}
+	return byName, place
+}
+
+// networkDiagram draws one deployment's network (ADR-137): a subgraph per
+// zone, a node per server as the deployment diagram draws it, an edge per
+// link labelled with its port and the target's protocol there, and the
+// design's dependencies no server of the deployment is, apart as not
+// reached. A link naming no server is the validator's error and draws no
+// edge.
+func networkDiagram(root *yaml.Node, name string, dep *yaml.Node) string {
+	servers := items(dep, "servers")
+	if len(servers) == 0 {
+		return ""
+	}
+	var b strings.Builder
+	b.WriteString("flowchart LR\n")
+	var zones []string
+	inZone := map[string][]int{}
+	placed := map[string]bool{}
+	for i, s := range servers {
+		z := str(s, "zone")
+		if z != "" && !contains(zones, z) {
+			zones = append(zones, z)
+		}
+		inZone[z] = append(inZone[z], i)
+		if d := str(s, "dependency"); d != "" {
+			placed[d] = true
+		}
+	}
+	for _, i := range inZone[""] {
+		fmt.Fprintf(&b, "  %s\n", serverNode(root, servers[i], i))
+	}
+	for _, z := range zones {
+		fmt.Fprintf(&b, "  subgraph zone_%s[\"zone %s\"]\n", mermaidID(z), mermaidText(z))
+		for _, i := range inZone[z] {
+			fmt.Fprintf(&b, "    %s\n", serverNode(root, servers[i], i))
+		}
+		b.WriteString("  end\n")
+	}
+	byName, place := namedServers(dep)
+	for _, l := range items(dep, "links") {
+		from, to := byName[str(l, "from")], byName[str(l, "to")]
+		if from == nil || to == nil || from == to {
+			continue
+		}
+		label := str(l, "port")
+		if p := listenedProtocol(to, label); p != "" {
+			label += " " + p
+		}
+		fmt.Fprintf(&b, "  %s -->|\"%s\"| %s\n", serverID(from, place[str(l, "from")]), mermaidText(label), serverID(to, place[str(l, "to")]))
+	}
+	var unreached []source.Pair
+	for _, d := range pairs(root, "dependencies") {
+		if !placed[d.Key.Value] {
+			unreached = append(unreached, d)
+		}
+	}
+	if len(unreached) > 0 {
+		fmt.Fprintf(&b, "  subgraph unreached_%s[\"not a server of %s\"]\n", mermaidID(name), mermaidText(name))
+		for _, d := range unreached {
+			kind := str(d.Value, "kind")
+			if kind == "" {
+				kind = "system"
+			}
+			fmt.Fprintf(&b, "    %s\n", dependencyShape("dependency_"+mermaidID(d.Key.Value), mermaidText(d.Key.Value), kind))
+		}
+		b.WriteString("  end\n")
+	}
+	return fence(b.String())
+}
+
+// networkRegion draws the network of the deployment a network marker
+// names, from the first implementation file that has it.
+func networkRegion(root *yaml.Node, impls []Implementation, name string) (string, error) {
+	for _, i := range impls {
+		for _, d := range pairs(i.Node, "deployments") {
+			if d.Key.Value == name && !hasNetwork(d.Value) {
+				return "", fmt.Errorf("the deployment %s of %s has no links and no zones to draw", name, i.Rel)
+			}
+		}
+	}
+	return deploymentRegion(root, impls, name)
+}
+
+// linkSentences are a deployment's links and listens in words, for the
+// handover: which server reaches which on what, and what each listens on.
+func linkSentences(dep *yaml.Node) (links, ports string) {
+	byName, _ := namedServers(dep)
+	var ls []string
+	for _, l := range items(dep, "links") {
+		to := byName[str(l, "to")]
+		s := fmt.Sprintf("%s reaches %s on port %s", str(l, "from"), str(l, "to"), str(l, "port"))
+		if p := listenedProtocol(to, str(l, "port")); p != "" {
+			s += " over " + p
+		}
+		s += "."
+		if desc := strings.TrimSpace(str(l, "description")); desc != "" {
+			s += " " + desc
+		}
+		ls = append(ls, s)
+	}
+	if len(ls) > 0 {
+		links = "The allowed connections, and no others: " + strings.Join(ls, " ")
+	}
+	var ps []string
+	for _, s := range items(dep, "servers") {
+		var on []string
+		for _, l := range items(s, "listens") {
+			p := str(l, "port")
+			if pr := str(l, "protocol"); pr != "" {
+				p += " (" + pr + ")"
+			}
+			on = append(on, p)
+		}
+		if len(on) > 0 {
+			ps = append(ps, fmt.Sprintf("%s on %s", str(s, "name"), strings.Join(on, ", ")))
+		}
+	}
+	if len(ps) > 0 {
+		ports = "Ports listened on: " + strings.Join(ps, "; ") + "."
+	}
+	return links, ports
 }
 
 // deploymentRegion draws the deployment a deployment marker names, from
@@ -1180,9 +1352,13 @@ func deploymentRegion(root *yaml.Node, impls []Implementation, name string) (str
 // deploymentPicture writes a deployment's diagram, when its servers use
 // the keys, and says when it has no edges.
 func deploymentPicture(d *doc, root *yaml.Node, name string, dep *yaml.Node) {
-	if !usesServerKeys(dep) {
+	if !usesServerKeys(dep) && !hasNetwork(dep) {
 		return
 	}
 	d.block(deploymentDiagram(root, name, dep))
+	if hasNetwork(dep) {
+		d.para("The servers by zone, with the links allowed between them on their ports; a dependency no server of the deployment is stands apart, not reached.")
+		return
+	}
 	d.para("The deployment declares no links between its servers, so the diagram draws none.")
 }

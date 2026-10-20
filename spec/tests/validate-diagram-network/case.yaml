@@ -1,0 +1,9 @@
+arguments: [validate, .]
+exitStatus: 1
+standardOutput: |
+  case.go.specarch-implementation.yaml:19:9: warning: /deployments/production/servers/0: link_missing: api runs the packages implementing Loan, which read or write the database, and no link leads from api to db, the server that runs the sql target; add a link from api to db on a port it listens on [link_missing@case.go.specarch-implementation.yaml#/deployments/production/servers/0]
+  case.go.specarch-implementation.yaml:20:9: warning: /deployments/production/servers/1: link_missing: worker runs the packages implementing markOverdue, which reach the dependency eventBus, and no link leads from worker to bus, the server that is eventBus here; add a link from worker to bus on a port it listens on [link_missing@case.go.specarch-implementation.yaml#/deployments/production/servers/1]
+  case.go.specarch-implementation.yaml:24:39: error: /deployments/production/links/0/port: link: db does not listen on 5433; it listens on 5432 [link@case.go.specarch-implementation.yaml#/deployments/production/links/0/port]
+  case.go.specarch-implementation.yaml:25:17: error: /deployments/production/links/1/from: link: workr is not a named server of this deployment; did you mean worker? [link@case.go.specarch-implementation.yaml#/deployments/production/links/1/from]
+  case.go.specarch-implementation.yaml:26:26: error: /deployments/production/links/2/to: link: the link goes from api to itself; a server reaches itself with no link, so remove it [link@case.go.specarch-implementation.yaml#/deployments/production/links/2/to]
+  case.go.specarch-implementation.yaml:27:37: error: /deployments/production/links/3/port: link: bus listens on no port, so no link can reach it; add the port under its listens [link@case.go.specarch-implementation.yaml#/deployments/production/links/3/port]

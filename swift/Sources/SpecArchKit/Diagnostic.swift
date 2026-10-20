@@ -59,6 +59,8 @@ public enum Rule: String, CaseIterable, Sendable {
     case layout = "layout"
     case dependsOn = "depends_on"
     case server = "server"
+    case link = "link"
+    case linkMissing = "link_missing"
     case need = "need"
     case stakeholder = "stakeholder"
     case source = "source"

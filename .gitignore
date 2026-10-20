@@ -1,3 +1,4 @@
 /specarch
 .DS_Store
 .build/
+/.bin/

@@ -26,19 +26,15 @@ jobs:
         with:
           go-version: stable
           check-latest: true
-      - name: Build
-        run: go build ./...
-      - name: Vet
-        run: go vet ./...
-      - name: Test, including the conformance suite
-        run: go test ./...
+      - name: The landing checks, Go part
+        # Build, vet, test with the conformance suite, the fragment schemas,
+        # validate, and every generated document, code and data file
+        # current; scripts/landing-check.sh names the step that fails, and
+        # scripts/regenerate.sh writes the generated files again. It builds
+        # the specarch-gen-* plug-ins into .bin, which later steps use.
+        run: sh scripts/landing-check.sh go
       - name: Vulnerabilities
         run: go run golang.org/x/vuln/cmd/govulncheck@v1.8.0 ./...
-      - name: Validate SpecArch's own specification and every example
-        run: go run ./cmd/specarch validate spec examples
-      - name: The fragment schemas and every fragment's hint line are current with the design schema
-        # go test checks it too; this step names what to run when it fails.
-        run: go run ./tools/fragment-schemas -check
       - name: The lending desk's database extracts the same twice and validates, its generated reference and its indexes with no question
         # The loans table's reference defaults to gen_random_uuid(), which
         # type-rendering names for identifier; its two plain indexes go
@@ -296,17 +292,6 @@ jobs:
           grep -q '^wrote 0 pages, 4 schemas, 1 enum, 7 operations' "$RUNNER_TEMP/rooms-one/ts.txt"
           grep -q '^wrote 0 pages, 2 schemas, 0 enums, 7 operations' "$RUNNER_TEMP/rooms-one/js.txt"
           diff examples/room-booking/differences.txt "$RUNNER_TEMP/rooms-one/differences.txt"
-      - name: Generated documents are current
-        # The first loop is the one CONTRIBUTING.md gives, over every
-        # specification at once. examples/lending-desk is a partial
-        # specification written from sources and configures only the
-        # documents an owner reads while questions are open
-        # (docs/from-sources.md, section 4), so that loop warns for it at
-        # testplan, deployment and commissioning and goes on (ADR-073).
-        run: |
-          for target in techspec requirements testplan traceability deployment commissioning handover; do go run ./cmd/specarch document $target --check spec examples || exit 1; done
-          for target in techspec requirements testplan traceability deployment commissioning handover manual operations questions problems changes releases html; do go run ./cmd/specarch document $target --check spec examples/library-lending || exit 1; done
-          for target in techspec requirements traceability questions problems html; do go run ./cmd/specarch document $target --check examples/lending-desk || exit 1; done
       - name: specarch facts remakes the examples' JavaScript dumps byte for byte, with no Node
         # The JavaScript reader is inside the binary, on the TypeScript
         # compiler in third_party/typescript-go (ADR-116), so this step
@@ -342,22 +327,10 @@ jobs:
           grep -q '^wrote 1 gateway, 2 dependencies, 2 settings and ' "$RUNNER_TEMP/gateway-one.txt"
           grep -q '^wrote the deployment production: 2 servers and 2 setting values$' "$RUNNER_TEMP/gateway-one.txt"
           go run ./cmd/specarch check examples/estate/gateway examples/estate/sources/gateway/gateway-table.json
-      - name: Generated code and data are current
-        # The library's migrations, queries, OpenAPI document, workflows as BPMN and SVG, and screens, in plain
-        # JavaScript, on Next.js and in SwiftUI, are checked in, so a design change that
-        # leaves them stale fails here. The
-        # example is not approved, hence --unapproved. Its tests target
-        # writes into the service's own tree, which the example does not
-        # hold, and the lending desk's SQL and OpenAPI are generated only
-        # with --out, in the step above.
-        run: |
-          mkdir -p "$RUNNER_TEMP/bin"
-          for generator in sql sqlc openapi ui ui-typescript ui-swiftui bpmn; do go build -o "$RUNNER_TEMP/bin/specarch-gen-$generator" ./cmd/specarch-gen-$generator || exit 1; done
-          export PATH="$RUNNER_TEMP/bin:$PATH"
-          for target in sql sqlc openapi ui bpmn; do go run ./cmd/specarch generate $target --check --unapproved examples/library-lending || exit 1; done
       - name: A generated schema edited by hand is reported
+        # The plug-ins are the ones the landing checks built into .bin.
         run: |
-          export PATH="$RUNNER_TEMP/bin:$PATH"
+          export PATH="$PWD/.bin:$PATH"
           schema=examples/library-lending/web-nextjs/acme/src/app/members/page.schema.ts
           sed -i 's/"members-list.columns.email", sortable: false/"members-list.columns.email", sortable: true/' "$schema"
           status=0; go run ./cmd/specarch generate ui --check --unapproved examples/library-lending > "$RUNNER_TEMP/edited.txt" || status=$?
@@ -399,28 +372,18 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - name: Toolchain
-        run: swift --version
-      - name: Build
-        run: swift build -c release --package-path swift
-      - name: Test, including the conformance suite
-        run: swift test --package-path swift
-      - name: Validate SpecArch's own specification and every example
-        run: swift/.build/release/specarch validate spec examples
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version: stable
           check-latest: true
-      - name: Both builds print the same model of SpecArch's own specification, every example and the estate
-        # specarch model is an editor's loader; the two builds must print
-        # the same bytes for it to read either (ADR-138).
-        run: |
-          go build -o "$RUNNER_TEMP/specarch-go" ./cmd/specarch
-          for paths in "spec examples" examples/estate/specarch-estate.yaml; do
-            "$RUNNER_TEMP/specarch-go" model $paths > "$RUNNER_TEMP/go.json" || exit 1
-            swift/.build/release/specarch model $paths > "$RUNNER_TEMP/swift.json" || exit 1
-            cmp "$RUNNER_TEMP/go.json" "$RUNNER_TEMP/swift.json" || exit 1
-          done
+      - name: Toolchain
+        run: swift --version
+      - name: The landing checks, Swift part
+        # Build and test with the conformance suite, then the Swift build's
+        # validate output and the model it prints, which an editor loads
+        # from either build (ADR-138), the same bytes as the Go build's,
+        # for SpecArch's own specification, every example and the estate.
+        run: sh scripts/landing-check.sh swift
       - name: The library lending example's iPhone screens build and their tests pass
         # The Swift package of the generated SwiftUI screens, with the app
         # around it written by hand, built as a library and run as tests

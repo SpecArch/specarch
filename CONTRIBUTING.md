@@ -36,14 +36,24 @@ organisation's own repository, where it points at this one as a dependency.
 
 ## Checks before a change is proposed
 
-These are the checks CI runs on every change:
+One script, run from the repository root, holds the checks a change must
+pass; CI runs it too, so the two cannot differ:
 
-    go build ./...
-    go test ./...
-    govulncheck ./...
-    go run ./cmd/specarch validate spec examples
-    for target in techspec requirements testplan traceability deployment commissioning handover; do go run ./cmd/specarch document $target --check spec examples || exit 1; done
-    swift build --package-path swift && swift test --package-path swift
+    sh scripts/landing-check.sh
+
+It builds, vets and tests the Go build, checks the fragment schemas,
+validates `spec/` and `examples/`, checks that every generated document and
+the library lending example's generated code and data are current, builds
+and tests the Swift build, and compares the two builds' validate and model
+output. It stops at the first failure and names the step. `sh
+scripts/landing-check.sh go` runs the Go part alone and `swift` the Swift
+part. CI also runs `govulncheck ./...`, the extraction examples and the
+web screens' build.
+
+    sh scripts/regenerate.sh
+
+writes every file the script checks as generated. To settle a conflict in
+one, take either side, run it on the merged tree, then run the checks.
 
 `go test` runs the conformance suite, which is the tests stage of SpecArch's
 own specification, `spec/tests/`: every test folder holds `test.yaml` (the
@@ -63,9 +73,8 @@ wrote; read each line before it becomes the expectation.
 
 A change to the program changes its specification first, in `spec/`, and the
 validator must pass on `spec/` and `examples/` with no error. A change to a
-specification is followed by `specarch document <target> spec examples` for
-every built document target, and the regenerated documents are committed
-with it.
+specification is followed by `sh scripts/regenerate.sh`, and the regenerated
+files are committed with it.
 
 Dependencies are added only when their licence is OSI-approved and their SBOM
 scan (syft, then grype and osv-scanner; govulncheck for Go) is clean, or when

@@ -4,7 +4,9 @@
 
 Version 0.7.2-dev of the specification: 618 design tests, 288 golden and 330 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
-**Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
+**Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
+
+**Problem:** warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SA-87; add verifies: [SA-87] to the test that shows it is met [requirement_unverified@requirements/requirements/documents-and-generators.yaml#/requirements/SA-87]
 
 **Problem:** warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SA-57; add verifies: [SA-57] to the test that shows it is met [requirement_unverified@requirements/requirements/refinement.yaml#/requirements/SA-57]
 
@@ -5027,7 +5029,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-360 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+364 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -5275,6 +5277,10 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-71 | acceptance 3 | golden | SA-71 names no harm |
 | requirement SA-71 | acceptance 4 | golden | SA-71 names no harm |
 | requirement SA-71 | acceptance 5 | golden | SA-71 names no harm |
+| requirement SA-87 | acceptance 1 | golden | SA-87 names no harm |
+| requirement SA-87 | acceptance 2 | golden | SA-87 names no harm |
+| requirement SA-87 | acceptance 3 | golden | SA-87 names no harm |
+| requirement SA-87 | acceptance 4 | golden | SA-87 names no harm |
 | requirement SA-90 | acceptance 1 | golden | SA-90 names no harm |
 | requirement SA-90 | acceptance 2 | golden | SA-90 names no harm |
 | requirement SA-90 | acceptance 3 | golden | SA-90 names no harm |

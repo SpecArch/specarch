@@ -2,9 +2,9 @@
 
 # SpecArch toolchain: requirements specification
 
-Version 0.7.2-dev of the specification: 5 stakeholders, 10 needs and 87 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
+Version 0.7.2-dev of the specification: 5 stakeholders, 10 needs and 88 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
 
-**Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
+**Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
 ## 1. Purpose and scope
 
@@ -34,7 +34,7 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | Need | Statement | Stakeholders | Status | Refined by |
 |---|---|---|---|---|
 | NEED-1 | I want a specification that cannot quietly be wrong, so that the code built from it is right. | specification-author, implementer | accepted | SA-33, SA-34, SA-35, SA-47, SA-48, SA-50, SA-75, SA-77, SA-82, SA-83, SA-84, SA-72, SA-1, SA-2, SA-3, SA-4, SA-5, SA-6, SA-51 |
-| NEED-2 | I want to write a design once and build it in more than one language. | implementer | accepted | SA-33, SA-34, SA-36, SA-37, SA-38, SA-39, SA-40, SA-41, SA-42, SA-43, SA-52, SA-53, SA-54, SA-55, SA-56, SA-49, SA-62, SA-63, SA-65, SA-66, SA-70, SA-77, SA-78, SA-82, SA-83, SA-84, SA-88, SA-89, SA-46, SA-61, SA-71, SA-32, SA-9, SA-10 |
+| NEED-2 | I want to write a design once and build it in more than one language. | implementer | accepted | SA-33, SA-34, SA-36, SA-37, SA-38, SA-39, SA-40, SA-41, SA-42, SA-43, SA-52, SA-53, SA-54, SA-55, SA-56, SA-49, SA-62, SA-63, SA-65, SA-66, SA-70, SA-77, SA-78, SA-82, SA-83, SA-84, SA-88, SA-89, SA-46, SA-61, SA-71, SA-87, SA-32, SA-9, SA-10 |
 | NEED-3 | I want the documents and diagrams to come from the specification, so they never drift from it. | reviewer, specification-author | accepted | SA-22, SA-36, SA-67, SA-75, SA-77, SA-82, SA-83, SA-84, SA-88, SA-7, SA-8, SA-26, SA-16, SA-58, SA-59, SA-60, SA-90, SA-19, SA-74 |
 | NEED-4 | I want a big specification split over many files, each about one thing, so I can find what I am looking for. | specification-author, reviewer | accepted | SA-11, SA-2 |
 | NEED-5 | I want the whole life of the system in one place, from the first requirement to the day it is accepted. | reviewer, operator | accepted | SA-35, SA-47, SA-68, SA-26, SA-16, SA-90, SA-12, SA-23, SA-24, SA-25, SA-73 |
@@ -102,6 +102,7 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | SA-60 | functional | should | accepted | specarch document html shall write a specification as one HTML page that opens from the disk with no server and makes no request, with an overview first, every element under an anchor named by its pointer, and every problem linked to the entry it marks and marked at that entry. |
 | SA-61 | functional | should | accepted | specarch generate --check shall compare a folder of pages built by hand with what the target writes, saying for each file whether it matches and, for a page's data, which values differ. |
 | SA-71 | functional | should | accepted | specarch generate sqlc shall write the sqlc queries the design derives against the tables generate sql writes, and leave every other query to be written by hand beside them. |
+| SA-87 | functional | should | accepted | specarch generate scripts shall write, for each guarded operation or command whose change the design says, a script that refuses unless the guard's precondition holds on exactly the records it names, makes the change only when told to apply it, checks the exact count of records changed, and changes nothing when it is run again; every other guarded change is left to be written by hand. |
 | SA-90 | functional | should | accepted | specarch document shall write the user manual from the flows, menus, pages, roles and problem types, and the operations guide from the endpoints, jobs, channels, dependencies, monitors, procedures, settings and deployments, and a problem type shall say what the person who meets it does next and a monitor what the operator does when its objective is missed. |
 | SA-32 | functional | must | accepted | SpecArch shall ship versioned idioms that say how each recurring implementation concern is done per stack, apply them to every implementation file by default, let a file exclude or override one with the reason, and check the result, starting with the type rendering of every field on Go and on PostgreSQL, SQL Server, Oracle and MariaDB. |
 | SA-11 | functional | must | accepted | A specification shall be a folder tree with one root file, specarch.yaml, and one folder per life-cycle stage it keeps, in which a file holds one or a few objects of one kind. |
@@ -981,6 +982,23 @@ Acceptance criteria:
 - The queries compile under sqlc against the migrations, and the lending desk's query file written by hand differs from the generated one only where the specification and its database disagree.
 
 **Insight:** A project on sqlc writes its queries by hand, and most of them are the same few shapes of every entity; writing those from the design keeps them in step with the tables, and a comparison with the file written by hand shows where the two disagree before the generated one replaces it.
+
+### SA-87
+
+specarch generate scripts shall write, for each guarded operation or command whose change the design says, a script that refuses unless the guard's precondition holds on exactly the records it names, makes the change only when told to apply it, checks the exact count of records changed, and changes nothing when it is run again; every other guarded change is left to be written by hand.
+
+Kind: functional; priority: should; status: accepted; verified by test; refines NEED-2.
+
+Acceptance criteria:
+
+- A guarded entry that triggers transitions of the guard's entity with one to state sets the state field to it, on the record by its key when the operation's path has one parameter, and otherwise on every record in a from state for which the precondition holds; a guarded PUT of the entity by one path parameter sets every column a caller may set; a guarded DELETE by one path parameter deletes the record, or sets its soft-delete flag.
+- The script counts the records the change would write, with the key, the from states, the precondition and the soft-delete flag in its condition, and refuses unless the count is recordsChanged; the change carries the same condition, and the script refuses unless it wrote recordsChanged records and a record changed by its key holds what was written.
+- Without the variable apply set to true, the script runs every check and rolls back, saying how many records would change; a record by its key that already holds what the change writes is reported as already applied and left as it is.
+- A guarded POST, a guarded PATCH, a guarded command that triggers no transition, transitions of one trigger with two to states, a keyed change whose recordsChanged is not 1 and an entity whose key is not one field are warnings at the guard, and their scripts are left to be written by hand. A dialect other than PostgreSQL is an error at the target, and a script in the output folder that the plug-in did not write is never overwritten.
+
+**Problem:** warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SA-87; add verifies: [SA-87] to the test that shows it is met [requirement_unverified@requirements/requirements/documents-and-generators.yaml#/requirements/SA-87]
+
+**Insight:** A data change typed by hand against a live system is where a wrong condition changes a thousand records instead of one; a script written from the guard checks the state it expects, shows the change before making it and counts what it changed, so the mistake is refused rather than committed.
 
 ### SA-90
 

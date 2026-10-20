@@ -1027,16 +1027,64 @@ SVG. A workflow another stakeholder owns is left out.
 
 ## Guarded operational scripts
 
-A data change run against a live system (a new role and its permissions, a
-backfill, a one-off correction) is safer emitted than typed. The emitted
-script has preconditions that raise when the system is not in the expected
-state, a dry run as the default, postconditions that check exact row counts,
-and no effect on a second run.
+A data change run against a live system (a correction, a backfill, a record
+moved on by an operator) is safer emitted than typed. `specarch-gen-scripts`
+writes one script per operation or command that carries a `guard`
+(`docs/conventions.md`, Guards), named after its operationId or its
+command's words in kebab case, as a psql script for PostgreSQL. The guard
+gives the entity, the precondition and the exact count; the change itself
+is derived by keyword only (ADR-158):
 
-The `guard` on an operation or a command (`docs/conventions.md`, Guards)
-is what the script is emitted from: its `precondition` becomes the check
-that raises, its `recordsChanged` the exact count the postcondition
-asserts. The emitter is a later item.
+| The guarded entry | The change |
+|---|---|
+| the trigger of transitions of the guard's entity, all with one `to` | sets the `stateField` to `to`, on the records in one of their `from` states |
+| a PUT whose request body is the guard's entity, on a path with one parameter | sets every column a caller may set, by the key |
+| a DELETE on a path with one parameter | deletes the record by the key, or sets its soft-delete flag |
+
+On a path with one parameter the change writes the record with the key the
+operator gives: the entity's key must be one field and `recordsChanged`
+must be 1. A transition triggered by a command, or by an operation on a
+path with no parameter, writes every record in a `from` state for which the
+precondition holds, and their number must be `recordsChanged`. A guarded
+POST, a guarded PATCH and a command no transition names say no more than
+that something is written, so each is a warning at its guard and its script
+is left to be written by hand; so are transitions of one trigger with two
+`to` states, a keyed change whose `recordsChanged` is not 1 and an entity
+whose key is not one field. An entity another stakeholder owns gets no
+script. The columns are the ones `specarch-gen-sql` creates, read through
+the same model, and the precondition is written as that generator writes a
+check constraint.
+
+Every value is a psql variable named after its column, given as
+`psql -v id=... -f <script>.sql`; a variable that is not set is refused by
+name before anything is read. The change's audit columns are set as well:
+a timestamp to `now()`, any other from its variable. The script runs in one
+transaction, in five steps:
+
+1. Already applied: a record by its key that already holds what the change
+   writes (the `to` state, the values put, the soft-delete flag) is
+   reported and left as it is, and the script ends without a change.
+2. Precondition: the records the change would write (the key, the `from`
+   states, the precondition, not softly deleted) are counted and locked,
+   and the script refuses unless there are `recordsChanged` of them.
+3. The change, with the same condition in its `WHERE`.
+4. Postcondition: the change wrote exactly `recordsChanged` records, and a
+   record changed by its key holds what was written; otherwise the script
+   refuses.
+5. Dry run by default: the transaction commits only with `-v apply=true`;
+   otherwise the script says how many records would change and rolls back,
+   having run every check against the live data.
+
+The checks run with the change, as the guard promises: PostgreSQL's read
+committed isolation evaluates an `UPDATE`'s or a `DELETE`'s `WHERE` again on
+a row another writer changed, so a record that no longer holds the
+precondition is skipped, and the short count is refused. A second run finds
+the record by its key already changed, or no record left in a `from` state,
+and changes nothing. A refusal raises an exception that names the entry,
+the entity, the condition and both counts; psql stops on it and rolls the
+transaction back. A dialect other than PostgreSQL is an error at the
+target, and a script in the output folder that the plug-in did not write is
+never written over, as for the sqlc queries.
 
 ## Other formats
 

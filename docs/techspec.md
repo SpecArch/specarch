@@ -2,9 +2,9 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.7.2-dev of the specification: 87 requirements, 5 entities, 16 commands, 7 algorithms, 618 tests, 151 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.7.2-dev of the specification: 88 requirements, 5 entities, 16 commands, 7 algorithms, 618 tests, 152 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
-**Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
+**Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
 ## 1. Introduction and goals
 
@@ -11760,6 +11760,86 @@ that produced nothing, which is what a reviewer looks for.
 
 **Note:** From ISO/IEC/IEEE 29148, Systems and software engineering, Life cycle processes, Requirements engineering, 2018, clause 6.3.3.6: Requirements validation is subject to approval by the project authority and the key stakeholders. <https://www.iso.org/standard/72089.html>
 
+### ADR-158: specarch-gen-scripts writes one guarded psql script per guarded entry whose change the design says, checks the precondition and the exact count inside the change, rolls back unless told to apply, and leaves every other change to be written by hand
+
+Status: proposed, 2026-10-20.
+
+Context: Target 8 of the roadmap. A data change run by hand against a live
+system (a correction, a backfill, a record moved on by an operator)
+is safer emitted than typed: the emitted script refuses when the
+system is not in the state it expects, shows what it would do before
+it does it, checks that it changed exactly as many records as it
+should, and changes nothing when it is run a second time. The guard
+on an operation or a command says the entity, the precondition that
+must hold on each record at the moment of the change, and the exact
+number of records changed. It does not say what the change writes:
+that is said elsewhere in the design, or nowhere.
+
+Decision: The target is scripts, the plug-in specarch-gen-scripts. It writes
+one script per operation or command that has a guard, named after
+the operationId or the command's words in kebab case, as a psql
+script for PostgreSQL; another dialect is an error at the target.
+It reads the tables and columns through specarch-gen-sql's model
+(gensql.Schema) and writes the precondition as specarch-gen-sql
+writes a check constraint, so the script names only columns the
+migrations create. The change is derived by keyword only:
+- the guard's entity has transitions whose trigger is the entry: the
+  change sets the stateField to their to, on the records in one of
+  their from states; every transition with that trigger must have
+  one to;
+- a PUT whose request body is the guard's entity, on a path with one
+  parameter: the change sets every column a caller may set, by the
+  key;
+- a DELETE on a path with one parameter: the change deletes the
+  record by the key, or sets its soft-delete flag when the entity
+  is deleted softly.
+A path with one parameter means the record is the one with the key
+the operator gives; the entity's key must be one field, and
+recordsChanged must be 1. A transition triggered by a command, or
+by an operation on a path with no parameter, changes every record
+in a from state for which the precondition holds, and their number
+must be recordsChanged. Every other guarded entry (a POST, a PATCH,
+a command no transition names) is a warning at its guard, and its
+script is left to be written by hand. An entity another stakeholder
+owns gets no script.
+
+Each value the script needs is a psql variable named after its
+column (-v id=...), passed into the change with set_config and read
+back with current_setting, since psql does not substitute a
+variable inside the dollar-quoted body of a DO block; a variable
+that is not set is refused by name before anything is read. A
+change's audit columns are set too: a timestamp to now(), any other
+from its variable. The script runs in one transaction:
+1. already applied: when the record by the key already holds what
+   the change writes (the to state, the values put, the soft-delete
+   flag), it says so and changes nothing;
+2. precondition: it counts, locking them, the records the change
+   would write (the key, the from states, the precondition, and not
+   softly deleted) and refuses unless their number is
+   recordsChanged;
+3. the change, with the same conditions in its WHERE, so a record
+   another writer moved between the count and the change is not
+   written;
+4. postcondition: the number of records the change wrote is
+   recordsChanged exactly, and a record changed by the key holds
+   what was written, or it refuses;
+5. it commits only when the variable apply is true; otherwise it
+   says how many records would change and rolls back.
+A refusal raises an exception that names the entry, the entity, the
+condition and both counts; psql stops on it and the transaction
+is rolled back.
+
+Consequences: The scripts target in an implementation file takes the dialect
+setting as the sql target does. No example carries a guard yet, so
+the conformance cases are the scripts' only fixtures, and the
+scripts are run against a real PostgreSQL only by hand; a project
+with guards on its live data changes decides whether CI runs them in
+a disposable database. A change the design does not say stays a
+warning until the meta-model has a word for what a change writes,
+which no project has asked for yet.
+
+**Insight:** Keywords only, as for the sqlc queries (ADR-123): a transition says which state a trigger moves a record to, a PUT with an entity body and a key says the record is replaced, and a DELETE with a key says it goes. A POST or a PATCH says no more than that a record is made or partly changed with values the caller sends, and a command no transition names says nothing of what it writes, so guessing would put a meaning in the specification nobody wrote; the warning at the guard keeps that visible and the script the project's. A placeholder in a generated file would be edited by hand and break generate --check, so there is none. The precondition and the count are checked inside the change, not only before it, because the guard's promise is that the checks run with the change: under PostgreSQL's read committed isolation an UPDATE or DELETE re-evaluates its WHERE on a row another writer changed, so a record that no longer holds the precondition is skipped and the count comes out short, which the postcondition refuses. The count before the change locks the records (FOR UPDATE) so the refusal names the state found rather than a short count. Dry run by default because the safe mistake is forgetting to apply: the dry run runs every check against the live data and rolls back, so it shows exactly what an applied run would do. A second run finds the record by the key already changed and says so; a change of many records finds none left in a from state and is refused by its precondition, and either way nothing changes. psql rather than a program because a database administrator can read every statement the script runs before running it, and psql is what is at hand on a host that runs PostgreSQL. The variables are named after columns because the script is about the table, which the operator reads.
+
 ### ADR-159: extract go reads the checks of the clients, the application, the immediate caller and the audience, and the event writers, each named under the implementation file's http binding with the argument that carries the names; literal clients and services are written as callers and via, and everything else is asked; extract permissions reads a grant's client and through
 
 Status: accepted, 2026-10-20.
@@ -12844,6 +12924,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | SA-60 | specarch document html shall write a specification as one HTML page that opens from the disk with no server and makes no request, with an overview first, every element under an anchor named by its pointer, and every problem linked to the entry it marks and marked at that entry. | functional | should | accepted | test | The page is one index.html with its styles, its script and its diagrams inside it, a Content-Security-Policy that allows no request, and the generated-from header after its doctype; two runs write the same bytes. Every element shown has an id equal to its pointer, with what an id or a fragment cannot hold percent-encoded, and no id appears twice. Each error, warning and open question is listed in the order of the problems file and links to the deepest element the page shows that holds its pointer, and that element shows a mark linking back; an element an open question blocks says so and links to the question. Entities are drawn as an SVG diagram with their fields and relations, each workflow as specarch generate bpmn draws it, and each page that specarch generate ui writes as its screen without scripts; a page with no screen says why. An invalid specification is written all the same, from what could be read, with its errors marked. | NEED-3, NEED-10 |
 | SA-61 | specarch generate --check shall compare a folder of pages built by hand with what the target writes, saying for each file whether it matches and, for a page's data, which values differ. | functional | should | accepted | test | A file the plug-in marks as an object literal is read on both sides in the subset of TypeScript that is also JSON5 and compared by value, so formatting, comments, quotes and trailing commas do not count; each differing value is named by its path, with the value on disk and the one generated. A file on disk outside the subset is reported as not comparable, with the line and what was found, and never as matching. A file built by hand, which has no generated header, matches when it equals what the target writes without its header, draft notice and problem marks; it says so in a line of its own and is not counted as differing. A generated file is still compared byte for byte. The library lending example's sign-in and second-factor schemas, written by hand before the generator, compare equal, and a list schema with one column changed is reported as that column. | NEED-2 |
 | SA-71 | specarch generate sqlc shall write the sqlc queries the design derives against the tables generate sql writes, and leave every other query to be written by hand beside them. | functional | should | accepted | test | An operation that posts an entity is an insert of every column but the ones the database draws and the soft-delete flag, answering the record; a read, a replacement or an amendment by one path parameter, of an entity whose key is one field, reads or changes the record by its key, a softly deleted record left out, an amendment keeping a column the request leaves out. An operation with listOf on an entity is a page of it and its total, filtered by each filterable field and each query parameter that names a field, searched case-insensitively over the searchable fields, and sorted by the wire name of each sortable field either way, then by the key. A list of a view, a list under a path parameter, a list with a query parameter that names no field held in one column, and a read or change of an entity whose key is not one field are warnings at the operation, and their queries are left to be written by hand; an entity another stakeholder owns gets no query. A dialect other than PostgreSQL is an error at the target. A query file in the output folder that the plug-in did not write is never overwritten; generate --check compares it, and it matches when it equals what the target writes but for its header. The queries compile under sqlc against the migrations, and the lending desk's query file written by hand differs from the generated one only where the specification and its database disagree. | NEED-2, NEED-8 |
+| SA-87 | specarch generate scripts shall write, for each guarded operation or command whose change the design says, a script that refuses unless the guard's precondition holds on exactly the records it names, makes the change only when told to apply it, checks the exact count of records changed, and changes nothing when it is run again; every other guarded change is left to be written by hand. | functional | should | accepted | test | A guarded entry that triggers transitions of the guard's entity with one to state sets the state field to it, on the record by its key when the operation's path has one parameter, and otherwise on every record in a from state for which the precondition holds; a guarded PUT of the entity by one path parameter sets every column a caller may set; a guarded DELETE by one path parameter deletes the record, or sets its soft-delete flag. The script counts the records the change would write, with the key, the from states, the precondition and the soft-delete flag in its condition, and refuses unless the count is recordsChanged; the change carries the same condition, and the script refuses unless it wrote recordsChanged records and a record changed by its key holds what was written. Without the variable apply set to true, the script runs every check and rolls back, saying how many records would change; a record by its key that already holds what the change writes is reported as already applied and left as it is. A guarded POST, a guarded PATCH, a guarded command that triggers no transition, transitions of one trigger with two to states, a keyed change whose recordsChanged is not 1 and an entity whose key is not one field are warnings at the guard, and their scripts are left to be written by hand. A dialect other than PostgreSQL is an error at the target, and a script in the output folder that the plug-in did not write is never overwritten. | NEED-2 |
 | SA-90 | specarch document shall write the user manual from the flows, menus, pages, roles and problem types, and the operations guide from the endpoints, jobs, channels, dependencies, monitors, procedures, settings and deployments, and a problem type shall say what the person who meets it does next and a monitor what the operator does when its objective is missed. | functional | should | accepted | test | specarch document manual writes manual.md with the roles that open a page, each with the pages it opens, a role a job acts as or a client holds left out unless a flow names it as its actor; the menus; each flow's steps as numbered instructions; and each page's purpose, who opens it, its fields or columns, its actions with their confirmation, and per problem it names the message, the condition and the remedy. specarch document operations writes operations.md with the environments and their hosts, a checklist row per monitor, job and dependency, each monitor's response, each job's trigger, role and retries, each channel's carrier, publishers and consumers, each dependency's callers, the endpoints with their permissions, the settings, and the backup, restore and rollback steps. A specification with no pages, flows, monitors or jobs still gets both documents, each empty section one sentence naming the key that fills it, and its errors marked as in every document. A problem type without remedy and a monitor without response are read as before, with no error or warning, the same in both builds. | NEED-3, NEED-5 |
 | SA-32 | SpecArch shall ship versioned idioms that say how each recurring implementation concern is done per stack, apply them to every implementation file by default, let a file exclude or override one with the reason, and check the result, starting with the type rendering of every field on Go and on PostgreSQL, SQL Server, Oracle and MariaDB. | functional | must | accepted | test | An idiom key naming no idiom, an exclusion or override without why, an override naming an unknown part or defining one it does not list, rendering a stack that is not the file's, or changing a shipped contract statement is each reported under its rule in both builds; an override copied from an older version is warned about. A field that no row of the type rendering matches for a stack of the implementation file, such as a decimal wider than Oracle holds, is reported as idiom_contract. An override that replaces the Oracle text rows for MAX_STRING_SIZE = EXTENDED validates without a diagnostic. The shipped set holds the fifteen idioms of the first set and ui-components, each statement marked with what checks it, and every one passes the idiom schema and cites only the sources it declares. A ui target's framework, given or by its platform's default, is a stack of its implementation file, so specarch idioms lists ui-components for a TypeScript file whose ui target is nextjs-carbon and not for one on plain-javascript, and an override rendering nextjs-carbon in a file on plain-javascript is reported as idiom_stack in both builds. | NEED-2 |
 | SA-11 | A specification shall be a folder tree with one root file, specarch.yaml, and one folder per life-cycle stage it keeps, in which a file holds one or a few objects of one kind. | functional | must | accepted | test | A tree whose root lists its stages and holds each stage's files under that folder validates. A file in the wrong folder, a section in the wrong file, a listed stage without a folder, and a folder that is not a stage are each reported as layout. | NEED-4 |
@@ -12993,6 +13074,10 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 **Insight on SA-61:** Most screens of a project that comes to SpecArch were built by hand; before the generated ones replace them, the owner needs to see, page by page, where the specification and the built screen disagree, without the noise of formatting.
 
 **Insight on SA-71:** A project on sqlc writes its queries by hand, and most of them are the same few shapes of every entity; writing those from the design keeps them in step with the tables, and a comparison with the file written by hand shows where the two disagree before the generated one replaces it.
+
+**Problem on SA-87:** warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SA-87; add verifies: [SA-87] to the test that shows it is met [requirement_unverified@requirements/requirements/documents-and-generators.yaml#/requirements/SA-87]
+
+**Insight on SA-87:** A data change typed by hand against a live system is where a wrong condition changes a thousand records instead of one; a script written from the guard checks the state it expects, shows the change before making it and counts what it changed, so the mistake is refused rather than committed.
 
 **Insight on SA-90:** The people who use a system and the people who run it read a manual and an operations guide, not a technical specification; written by hand both drift from the pages and the procedures, and written from the specification they show early what a page asks of a person, which is where a change request starts.
 
@@ -13156,6 +13241,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-84 | enums Rule | tests derive-0-3-tokens; tests document-techspec-0-3-tokens; tests generate-openapi-0-3-tokens; tests validate-0-3-claims; tests validate-0-3-security-events; tests validate-0-3-token-audience; tests validate-0-3-tokens; tests validate-0-3-tokens-valid; tests validate-0-3-txn-token; tests validate-0-3-via |
 | SA-85 | commands decide; decisions ADR-155; decisions ADR-156 | tests decide-needs-source; tests decide-removes-questions-file; tests decide-unknown-question; tests decide-unknown-source; tests decide-unknown-stakeholder; tests decide-usage-error; tests decide-writes-decision; tests document-problems-lists |
 | SA-86 | enums DocumentTarget; commands document; decisions ADR-157 | tests document-writes-comparison; tests document-writes-comparison-citation-without-source |
+| SA-87 | decisions ADR-158 |   |
 | SA-88 | enums Rule | tests document-techspec-caller-estate; tests gaps-caller-alone; tests validate-caller-chain-gap; tests validate-caller-chain-wrong; tests validate-caller-estate; tests validate-caller-estate-wrong |
 | SA-89 | decisions ADR-159 | tests extract-go-caller-checks; tests extract-permissions-client-through |
 | SA-90 | enums DocumentTarget; decisions ADR-160 | tests document-manual-none; tests document-operations-none; tests document-writes-manual; tests document-writes-operations; tests validate-remedy-and-response |

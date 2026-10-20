@@ -1,0 +1,75 @@
+questions:
+  # specarch-problem: question: open_question: (must, decision) Role clerk is granted invoices.read by one row through mobile and by another through any client. Is the grant narrowed to mobile, or does it hold through every client? Decided by system-owner. Answer with a decision record that names Q-1 under answers. [Q-1]
+  Q-1:
+    question: Role clerk is granted invoices.read by one row through mobile and by another through any client. Is the grant narrowed to mobile, or does it hold through every client?
+    kind: decision
+    priority: must
+    blocks: ['#/roles/clerk/through']
+    decidedBy: system-owner
+    why: Two rows of the table disagree on whether the grant is narrowed, and the check reads one of them in an order the table does not show; through is never guessed.
+    cites:
+      - {source: code, clause: access role clerk, says: 'clerk grants invoices.read through mobile, and grants it with no client too.'}
+  # specarch-problem: question: open_question: (must, decision) What is each role for, and who holds it: admin-web, clerk, invoice-manager, reporting? Decided by system-owner. Answer with a decision record that names Q-2 under answers. [Q-2]
+  Q-2:
+    question: 'What is each role for, and who holds it: admin-web, clerk, invoice-manager, reporting?'
+    kind: decision
+    priority: must
+    blocks: ['#/roles/admin-web/description', '#/roles/clerk/description', '#/roles/invoice-manager/description', '#/roles/reporting/description']
+    decidedBy: system-owner
+    why: A permission table names a role and what it grants, not who holds it.
+  # specarch-problem: question: open_question: (must, decision) What does each permission allow: invoices.delete, invoices.read? Decided by system-owner. Answer with a decision record that names Q-3 under answers. [Q-3]
+  Q-3:
+    question: 'What does each permission allow: invoices.delete, invoices.read?'
+    kind: decision
+    priority: must
+    blocks: ['#/permissions/invoices.delete/description', '#/permissions/invoices.read/description']
+    decidedBy: system-owner
+    why: A permission table names the permissions a role grants and not what they are for.
+  # specarch-problem: question: open_question: (must, decision) The table names admin-web as the subject of its own grants, a caller on its own account, and as the client a grant holds through, the application a person signs in through. Which is it? Decided by system-owner. Answer with a decision record that names Q-4 under answers. [Q-4]
+  Q-4:
+    question: The table names admin-web as the subject of its own grants, a caller on its own account, and as the client a grant holds through, the application a person signs in through. Which is it?
+    kind: decision
+    priority: must
+    blocks: ['#/clients/admin-web']
+    decidedBy: system-owner
+    why: One name is used as a caller and as a condition; a client is an application or a service, and the reader writes it as the service its own grants make it.
+  # specarch-problem: question: open_question: (must, decision) The client admin-web calls on its own account with the grants the table gives it. How does it prove itself on each request: its proof? Decided by system-owner. Answer with a decision record that names Q-5 under answers. [Q-5]
+  Q-5:
+    question: 'The client admin-web calls on its own account with the grants the table gives it. How does it prove itself on each request: its proof?'
+    kind: decision
+    priority: must
+    blocks: ['#/clients/admin-web/proof']
+    decidedBy: system-owner
+    why: A client that calls on its own account must prove itself on each request (RFC 6749, section 4.4), and the table names its grants, not its credential.
+  # specarch-problem: question: open_question: (must, decision) The client reporting calls on its own account with the grants the table gives it. How does it prove itself on each request: its proof? Decided by system-owner. Answer with a decision record that names Q-6 under answers. [Q-6]
+  Q-6:
+    question: 'The client reporting calls on its own account with the grants the table gives it. How does it prove itself on each request: its proof?'
+    kind: decision
+    priority: must
+    blocks: ['#/clients/reporting/proof']
+    decidedBy: system-owner
+    why: A client that calls on its own account must prove itself on each request (RFC 6749, section 4.4), and the table names its grants, not its credential.
+  # specarch-problem: question: open_question: (could, decision) The roles admin-web and reporting are named after the clients the table grants permissions directly. Should any be renamed to say what it allows? Decided by system-owner. Answer with a decision record that names Q-7 under answers. [Q-7]
+  Q-7:
+    question: The roles admin-web and reporting are named after the clients the table grants permissions directly. Should any be renamed to say what it allows?
+    kind: decision
+    priority: could
+    blocks: ['#/roles/admin-web', '#/roles/reporting']
+    decidedBy: system-owner
+    why: A role is a set of grants a reviewer reads in the matrix; the table gives the client's grants, not a role's name. Nothing waits for the answer.
+  # specarch-problem: question: open_question: (must, decision) What is each client the table names: admin-web, mobile and reporting? Decided by system-owner. Answer with a decision record that names Q-8 under answers. [Q-8]
+  Q-8:
+    question: 'What is each client the table names: admin-web, mobile and reporting?'
+    kind: decision
+    priority: must
+    blocks: ['#/clients/admin-web/description', '#/clients/mobile/description', '#/clients/reporting/description']
+    decidedBy: system-owner
+    why: The table names a client by the grants it holds or narrows, not what it is, who runs it or who signs in through it.
+  # specarch-problem: question: open_question: (must, decision) The table narrows grants to the applications admin-web and mobile. Which token carries the application the person signed in through: the client_id of an access token, or tctx.application of a transaction token? It blocks tokens. Decided by system-owner. Answer with a decision record that names Q-9 under answers. [Q-9]
+  Q-9:
+    question: 'The table narrows grants to the applications admin-web and mobile. Which token carries the application the person signed in through: the client_id of an access token, or tctx.application of a transaction token?'
+    kind: decision
+    priority: must
+    blocks: ['#/roles/invoice-manager/through', tokens]
+    decidedBy: system-owner
+    why: through is checked against the application a token carries, which a session does not; the table names the condition, not the token (ADR-106, ADR-108).

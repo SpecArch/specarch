@@ -1,0 +1,15 @@
+{
+    "permissionTable": 1,
+    "path": "access",
+    "commit": "91577cff0fdaa5365ab992c1a63461487b4ff941",
+    "grants": [
+        {"role": "invoice-manager", "permission": "invoices.read"},
+        {"role": "invoice-manager", "permission": "invoices.delete", "through": "admin-web"},
+        {"role": "clerk", "permission": "invoices.delete"},
+        {"role": "clerk", "permission": "invoices.read", "through": "mobile"},
+        {"role": "clerk", "permission": "invoices.read"},
+        {"client": "reporting", "permission": "invoices.read"},
+        {"client": "admin-web", "permission": "invoices.read"}
+    ],
+    "gates": []
+}

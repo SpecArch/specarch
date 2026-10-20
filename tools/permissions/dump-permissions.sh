@@ -23,6 +23,12 @@
 #   }
 #
 # - grants: every role and permission it grants, one object per pair.
+#   A row whose subject is a client and not a role names it under
+#   client in place of role, {"client": "reporting", "permission":
+#   "invoices.read"}; a row that holds through one client only, the
+#   application the person signed in through, adds it under through,
+#   {"role": "invoice-manager", "permission": "invoices.delete",
+#   "through": "admin-web"}. Both are software_ids in kebab-case.
 # - gates: every permission check that runs only when a setting is
 #   present, and so lets every request through when the setting is
 #   empty: the check's name and the setting's; and every check that lets

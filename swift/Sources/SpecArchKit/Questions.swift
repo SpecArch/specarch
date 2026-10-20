@@ -257,6 +257,19 @@ func coveredByQuestions(_ ds: [Diagnostic], _ root: YNode) -> (kept: [Diagnostic
             // specification declares problem types: the problem is the key
             // missing, and a question on it says it is not known.
             isCovered = b.under(d.path) || (b.keys[d.path] ?? []).contains("problem")
+        } else if (d.rule == .callers || d.rule == .via) && (d.message.contains(" is neither people nor a client of the specification") || d.message.contains(" is not a client of the specification") || d.message.contains(" accepts neither a transaction token nor a token declaring act")) {
+            // A client the code names and the specification does not yet
+            // declare, or a via whose token is not yet declared: the
+            // question that asks for the declaration covers it.
+            isCovered = b.under(d.path)
+        } else if d.rule == .through && d.message.hasPrefix("through needs the application the caller signed in through") {
+            // A grant narrowed by a table that names no token: the question
+            // on which token carries the application covers it.
+            isCovered = b.under(d.path)
+        } else if d.rule == .client && d.message.contains(" and has no proof") {
+            // A client a table grants permissions to directly: the question
+            // on its proof covers the proof missing.
+            isCovered = b.under(d.path) || (b.keys[d.path] ?? []).contains("proof")
         } else if d.rule == .permissionUngranted {
             // The grant is what is missing, and it is written in a role,
             // not under the permission; a question on the permission

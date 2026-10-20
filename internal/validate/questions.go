@@ -318,6 +318,19 @@ func Covered(ds []Diagnostic, root *yaml.Node) (kept, covered []Diagnostic) {
 			// the specification declares problem types: the problem is
 			// the key missing, and a question on it says it is not known.
 			isCovered = b.under(d.Path) || contains(b.keys[d.Path], "problem")
+		case (d.Rule == RuleCallers || d.Rule == RuleVia) && (strings.Contains(d.Message, " is neither people nor a client of the specification") || strings.Contains(d.Message, " is not a client of the specification") || strings.Contains(d.Message, " accepts neither a transaction token nor a token declaring act")):
+			// A client the code names and the specification does not yet
+			// declare, or a via whose token is not yet declared: the
+			// question that asks for the declaration covers it.
+			isCovered = b.under(d.Path)
+		case d.Rule == RuleThrough && strings.HasPrefix(d.Message, "through needs the application the caller signed in through"):
+			// A grant narrowed by a table that names no token: the question
+			// on which token carries the application covers it.
+			isCovered = b.under(d.Path)
+		case d.Rule == RuleClient && strings.Contains(d.Message, " and has no proof"):
+			// A client a table grants permissions to directly: the
+			// question on its proof covers the proof missing.
+			isCovered = b.under(d.Path) || contains(b.keys[d.Path], "proof")
 		case d.Rule == RulePermissionUngranted:
 			// The grant is what is missing, and it is written in a role,
 			// not under the permission; a question on the permission

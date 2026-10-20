@@ -33,6 +33,12 @@ type permissionTable struct {
 type dumpGrant struct {
 	Role       string `json:"role"`
 	Permission string `json:"permission"`
+	// Client is the row's subject when it is a client and not a role, as
+	// a policy library's rows name a service directly; Through is the one
+	// client the grant holds through, the application the person signed
+	// in through (ADR-106, ADR-110).
+	Client  string `json:"client"`
+	Through string `json:"through"`
 }
 
 type dumpGate struct {
@@ -99,7 +105,11 @@ func Permissions(dumpPath, routesPath, out, key string) (*Result, error) {
 	var stages []string
 	if pr.roles != nil {
 		stages = []string{"design"}
-		res.Tree.put("design/roles.yaml", mapping("permissions", pr.permissions, "roles", pr.roles))
+		if pr.clients != nil {
+			res.Tree.put("design/roles.yaml", mapping("permissions", pr.permissions, "roles", pr.roles, "clients", pr.clients))
+		} else {
+			res.Tree.put("design/roles.yaml", mapping("permissions", pr.permissions, "roles", pr.roles))
+		}
 	}
 	if rd != nil && len(rd.routes) > 0 {
 		stages = []string{"design"}
@@ -167,6 +177,7 @@ type permissionReader struct {
 	res         *Result
 	roles       *yaml.Node
 	permissions *yaml.Node
+	clients     *yaml.Node // the clients the grants name, as subject or through
 	questions   *yaml.Node
 	nextID      int
 	notHeld     []notHeld
@@ -240,14 +251,26 @@ func (pr *permissionReader) read(dumpName string) error {
 	var roles []string
 	for i, g := range pr.t.Grants {
 		where := fmt.Sprintf("%s, grant %d", dumpName, i+1)
-		if g.Role == "" || g.Permission == "" {
+		switch {
+		case g.Role != "" && g.Client != "":
+			return refuse("%s names both the role %s and the client %s; a grant is one role or one client, and one permission", where, g.Role, g.Client)
+		case g.Role == "" && g.Client == "" || g.Permission == "":
 			return refuse("%s names no role or no permission; a grant is one role and one permission", where)
+		case g.Client != "" && !roleWord.MatchString(g.Client):
+			return refuse("%s: the client %q is not kebab-case; a client is named by its software_id in kebab-case", where, g.Client)
+		case g.Through != "" && !roleWord.MatchString(g.Through):
+			return refuse("%s: the client %q it holds through is not kebab-case; a client is named by its software_id in kebab-case", where, g.Through)
 		}
 		if seen[g] {
+			if g.Client != "" {
+				return refuse("%s: %s granting %s is listed twice", where, g.Client, g.Permission)
+			}
 			return refuse("%s: %s granting %s is listed twice", where, g.Role, g.Permission)
 		}
 		seen[g] = true
-		roles = append(roles, g.Role)
+		if g.Role != "" {
+			roles = append(roles, g.Role)
+		}
 	}
 	for _, r := range pr.t.Rules {
 		if r.Role != "" {
@@ -261,8 +284,16 @@ func (pr *permissionReader) read(dumpName string) error {
 	pr.wireOf = map[string]string{}
 	grants := make([]dumpGrant, len(pr.t.Grants))
 	isRole := map[string]bool{}
+	// A client that is a row's subject holds a role named after it, so
+	// the matrix shows it beside the roles (ADR-110).
+	clientRole := map[string]bool{}
 	for i, g := range pr.t.Grants {
-		if n, ok := pr.roleNames.name(g.Role); ok {
+		if g.Client != "" {
+			g.Role = g.Client
+			isRole[g.Role] = true
+			pr.wireOf[g.Role] = g.Client
+			clientRole[g.Client] = true
+		} else if n, ok := pr.roleNames.name(g.Role); ok {
 			g.Role = n
 			isRole[n] = true
 			pr.wireOf[n] = pr.t.Grants[i].Role
@@ -279,6 +310,8 @@ func (pr *permissionReader) read(dumpName string) error {
 	// ADR-076, as extract openapi and extract go map them.
 	privileges := newPrivilegeNames(names)
 	byRole := map[string][]string{}
+	through := map[string]map[string][]string{} // role -> permission -> the clients a row holds it through
+	plain := map[string]bool{}                   // "role permission" granted by a row with no through
 	type asked struct{ role, question, why string }
 	var problems []asked
 	pr.mappedFrom = map[string]string{}
@@ -300,7 +333,17 @@ func (pr *permissionReader) read(dumpName string) error {
 			if mapped {
 				pr.mappedFrom[p] = g.Permission
 			}
-			byRole[g.Role] = append(byRole[g.Role], p)
+			if g.Through != "" {
+				if through[g.Role] == nil {
+					through[g.Role] = map[string][]string{}
+				}
+				through[g.Role][p] = append(through[g.Role][p], g.Through)
+			} else {
+				plain[g.Role+" "+p] = true
+			}
+			if !contains(byRole[g.Role], p) {
+				byRole[g.Role] = append(byRole[g.Role], p)
+			}
 		}
 	}
 	// What specarch check compares: every grant but a grant of public, by
@@ -379,7 +422,7 @@ func (pr *permissionReader) read(dumpName string) error {
 			sort.Strings(perms)
 			var granted []string
 			for _, g := range grants {
-				if g.Role == name {
+				if g.Role == name && !contains(granted, g.Permission) {
 					granted = append(granted, g.Permission)
 				}
 			}
@@ -387,6 +430,9 @@ func (pr *permissionReader) read(dumpName string) error {
 			role := mapping()
 			if len(perms) > 0 {
 				set(role, "permissions", perms)
+			}
+			if narrowed := pr.throughOf(name, through[name], plain); narrowed != nil {
+				set(role, "through", narrowed)
 			}
 			set(role, "origin", "stated")
 			wire := pr.wireOf[name]
@@ -444,6 +490,7 @@ func (pr *permissionReader) read(dumpName string) error {
 			)
 		}
 		pr.renameQuestion()
+		pr.writeClients(roleNames, clientRole, through)
 	}
 	sort.SliceStable(problems, func(i, j int) bool { return problems[i].role < problems[j].role })
 	for _, a := range problems {
@@ -529,4 +576,122 @@ func laterCommit(repo, a, b string) (string, error) {
 		return a, nil
 	}
 	return "", fmt.Errorf("neither %s nor %s is an ancestor of the other", a, b)
+}
+
+// throughOf is a role's through, keyed by permission, from the rows that
+// hold a grant through one client; nil when none does. A permission one
+// row grants through a client and another grants with none is a must
+// question at the role, since the rows disagree on whether the grant is
+// narrowed, and is left out of through (ADR-106).
+func (pr *permissionReader) throughOf(role string, by map[string][]string, plain map[string]bool) *yaml.Node {
+	if len(by) == 0 {
+		return nil
+	}
+	var perms []string
+	for p := range by {
+		perms = append(perms, p)
+	}
+	sort.Strings(perms)
+	out := mapping()
+	for _, p := range perms {
+		clients := append([]string(nil), by[p]...)
+		sort.Strings(clients)
+		if plain[role+" "+p] {
+			pr.question(fmt.Sprintf("Role %s is granted %s by one row through %s and by another through any client. Is the grant narrowed to %s, or does it hold through every client?", pr.wireOf[role], p, joinAnd(clients), joinAnd(clients)),
+				[]string{"#/roles/" + escapeToken(role) + "/through"},
+				"Two rows of the table disagree on whether the grant is narrowed, and the check reads one of them in an order the table does not show; through is never guessed.",
+				citation(pr.key, pr.t.Path+" role "+pr.wireOf[role], fmt.Sprintf("%s grants %s through %s, and grants it with no client too.", pr.wireOf[role], p, joinAnd(clients))))
+			continue
+		}
+		set(out, p, flow(value(clients)))
+	}
+	if len(out.Content) == 0 {
+		return nil
+	}
+	return out
+}
+
+// writeClients declares every client the grants name: a row's subject as
+// a service holding the role named after it, with a must question for its
+// proof and a could question to rename the role; and every client a grant
+// holds through as an application, with a must question for what it is.
+// One name used as both is a must question (ADR-106, ADR-110).
+func (pr *permissionReader) writeClients(roleNames []string, clientRole map[string]bool, through map[string]map[string][]string) {
+	apps := map[string]bool{}
+	var narrowed []string
+	for _, r := range roleNames {
+		if len(through[r]) > 0 && child(child(pr.roles, r), "through") != nil {
+			narrowed = append(narrowed, "#/roles/"+escapeToken(r)+"/through")
+		}
+		for _, list := range through[r] {
+			for _, c := range list {
+				apps[c] = true
+			}
+		}
+	}
+	var names []string
+	for c := range clientRole {
+		names = append(names, c)
+	}
+	for c := range apps {
+		if !clientRole[c] {
+			names = append(names, c)
+		}
+	}
+	if len(names) == 0 {
+		return
+	}
+	sort.Strings(names)
+	pr.clients = mapping()
+	var services, appNames []string
+	for _, c := range names {
+		cl := mapping()
+		switch {
+		case clientRole[c]:
+			set(cl, "kind", "service")
+			set(cl, "roles", flow(value([]string{c})))
+			services = append(services, c)
+		default:
+			set(cl, "kind", "application")
+		}
+		if apps[c] {
+			appNames = append(appNames, c)
+		}
+		set(cl, "origin", "stated")
+		says := fmt.Sprintf("The table grants %s permissions directly.", c)
+		if !clientRole[c] {
+			says = fmt.Sprintf("The table narrows a grant to %s.", c)
+		}
+		set(cl, "cites", []*yaml.Node{citation(pr.key, pr.t.Path+" client "+c, says)})
+		set(pr.clients, c, cl)
+		if clientRole[c] && apps[c] {
+			pr.question(fmt.Sprintf("The table names %s as the subject of its own grants, a caller on its own account, and as the client a grant holds through, the application a person signs in through. Which is it?", c),
+				[]string{"#/clients/" + escapeToken(c)},
+				"One name is used as a caller and as a condition; a client is an application or a service, and the reader writes it as the service its own grants make it.")
+		}
+	}
+	for _, c := range services {
+		pr.question(fmt.Sprintf("The client %s calls on its own account with the grants the table gives it. How does it prove itself on each request: its proof?", c),
+			[]string{"#/clients/" + escapeToken(c) + "/proof"},
+			"A client that calls on its own account must prove itself on each request (RFC 6749, section 4.4), and the table names its grants, not its credential.")
+	}
+	if len(services) > 0 {
+		var blocks []string
+		for _, c := range services {
+			blocks = append(blocks, "#/roles/"+escapeToken(c))
+		}
+		pr.couldQuestion(fmt.Sprintf("The roles %s are named after the clients the table grants permissions directly. Should any be renamed to say what it allows?", joinAnd(services)),
+			blocks, "A role is a set of grants a reviewer reads in the matrix; the table gives the client's grants, not a role's name. Nothing waits for the answer.")
+	}
+	var blocks []string
+	for _, c := range names {
+		blocks = append(blocks, "#/clients/"+escapeToken(c)+"/description")
+	}
+	pr.question(fmt.Sprintf("What is each client the table names: %s?", joinAnd(names)), blocks,
+		"The table names a client by the grants it holds or narrows, not what it is, who runs it or who signs in through it.")
+	if len(narrowed) > 0 {
+		pr.question(fmt.Sprintf("The table narrows grants to the applications %s. Which token carries the application the person signed in through: the client_id of an access token, or tctx.application of a transaction token?", joinAnd(appNames)),
+			append(narrowed, "tokens"),
+			"through is checked against the application a token carries, which a session does not; the table names the condition, not the token (ADR-106, ADR-108).")
+	}
 }

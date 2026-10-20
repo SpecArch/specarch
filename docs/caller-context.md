@@ -673,27 +673,33 @@ compares against is a question unless it is a literal.
   grant is narrowed. With `rules` (pattern rows, `docs/estate.md`, point
   5) the same field on a pattern row narrows the permissions the row
   yields.
-- `extract go`, `extract swift`, `extract javascript` and `extract
-  dart`. The implementation file's binding names the project's own
-  checks, as `permissionChecks` does (ADR-081), with the argument that
-  holds the names: `clientChecks` (the function that checks the
-  application, and `clientArgument`), `callerChecks` (the function that
-  checks the immediate caller's workload identity, and
-  `callerArgument`), `audienceChecks` (the function that checks `aud`,
-  and `audienceArgument`) and `eventWriters` (the function that writes a
-  security event). A client check on a route whose permission no other
-  route names writes `through` on every role granting that permission;
-  on a permission other routes name too it is a `must` question at the
-  operation, since the condition would then narrow a grant elsewhere. A
-  caller check with literal names writes `via` on the operation; one
-  reading its names from a setting is a `must` question naming the
-  setting. An audience check against a literal writes `aud` with
-  `const`; against a setting, which it nearly always is, a `must`
-  question at the token naming the setting, which the implementation
-  file's `deployments` answer. A verifier the bindings do not name is
-  what it is today: a `must` question at the operation naming the
-  middleware. A header read named `Txn-Token` marks the operation's
-  token as a `txn_token`.
+- `extract go`. The implementation file's binding names the project's
+  own checks, as `permissionChecks` does (ADR-081), with the argument
+  that holds the names (ADR-159): `clientChecks` with `clientArgument`
+  (the function that admits only the clients named, ADR-154's check),
+  `applicationChecks` with `applicationArgument` (the function that
+  checks the application the person signed in through), `callerChecks`
+  with `callerArgument` (the function that checks the immediate caller's
+  workload identity), `audienceChecks` with `audienceArgument` (the
+  function that checks `aud`) and `eventWriters` (the function that
+  writes a security event). The application check has a key of its own
+  because a literal name in the code cannot say whether it is an
+  application or a service; the client's `kind` says it. A client check
+  or a caller check with literal names writes them as the operation's
+  `callers` or `via`, with a `must` question for their declarations;
+  one reading its names from a setting is a `must` question naming the
+  setting. An application check is a `must` question for the `through`
+  of every role granting the operation's permission, naming the routes
+  that check that permission without it, since the condition would
+  narrow a grant there too; an audience check is a `must` question at
+  the tokens with its literal or its setting, which the implementation
+  file's `deployments` answer; the reader writes no role and no token.
+  An event writer is named and nothing is written. A verifier the
+  bindings do not name is what it is today: a `must` question at the
+  operation naming the middleware. A header read named `Txn-Token` is a
+  `must` question for the operation's transaction token and its `via`.
+  `extract swift`, `extract javascript` and `extract dart` read
+  `permissionChecks` only, as they do for ADR-154's gates.
 - `extract go` on a token exchange: a handler that mints a token with a
   `txn` or an `act` claim is the exchange operation, and the claims
   found where the token is minted stay the question 0.3's step 5 asks,

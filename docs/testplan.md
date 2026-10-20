@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.2-dev of the specification: 576 design tests, 262 golden and 314 red, about 17 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.2-dev of the specification: 578 design tests, 264 golden and 314 red, about 17 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 3 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -17,7 +17,7 @@ Version 0.7.2-dev of the specification: 576 design tests, 262 golden and 314 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 572 |
+| system | 574 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -1049,6 +1049,14 @@ Scenario: golden; level: system; verifies SA-44.
 - When: extract go is run on the module with the implementation file
 - Then: it writes the four operations with the permissions the checks read, one must question on the bypassed check, named by its method's name, blocking the permission of the two operations it guards and of no other, in the words extract permissions uses, citing the first call of it, a line naming the check and counting those operations, and exits 0
 
+#### extract-go-caller-checks
+
+Scenario: golden; level: system; verifies SA-89.
+
+- Given: a repository holding a Go module on chi whose server checks every route's audience against a setting, admits two clients named in a list literal at one route, checks the immediate caller against a list literal at one route and against a setting at another, admits one application named as a string at a route whose permission two other routes check without it, wraps that route in an event writer, and has its handler read the Txn-Token header; and an implementation file naming each under permissionChecks, clientChecks, applicationChecks, callerChecks, audienceChecks and eventWriters, with the argument that carries the names
+- When: extract go is run on the module with the implementation file
+- Then: it writes the literal clients as the operation's callers and the literal service as the other's via, each with a must question to declare them that holds the errors at callers and via; asks for the via of the route whose names come from the setting, naming it; asks for the through the application check narrows, naming the two routes that check the same permission without it; asks at the tokens for the audience the setting gives; asks at the operation whose handler reads the Txn-Token header for its transaction token and via; names the event writer and writes nothing from it; and exits 0
+
 #### extract-go-client-gates
 
 Scenario: golden; level: system; verifies SA-44.
@@ -1408,6 +1416,14 @@ Scenario: golden; level: system; verifies SA-44.
 - Given: a repository whose first commit holds a permission check's folder, whose second holds a router's folder, and whose third holds the permission table printed from the first, with three grants, a gate saying the check is skipped for every client and a gate on a setting, and the route table printed from the second, with three routes that check a permission, one that checks public and one that checks none
 - When: extract permissions is run on the permission table with the route table given by --routes
 - Then: it writes the roles and the operations, one must question on the bypassed check blocking the permission of each of the three routes that check a permission and of no other, citing the table's gate, the gate on the setting asked as before, a line for each gate and one counting the operations the bypassed check guards, and exits 0
+
+#### extract-permissions-client-through
+
+Scenario: golden; level: system; verifies SA-89.
+
+- Given: a permission table whose grants narrow one role's permission through an application, grant another role one permission both through an application and with no client, and give two clients permissions directly, one of them also the application a grant is narrowed to
+- When: extract permissions is run on it
+- Then: it writes the narrowed grant as the role's through, a role named after each client with the client declared as a service holding it, and the application declared as one; asks which holds where two rows disagree on the narrowing, which a name used as subject and as condition is, each service's proof, what each client is and which token carries the application, with a could question to rename the clients' roles; the tree validates with no error, and it exits 0
 
 #### extract-permissions-gate-both-forms
 
@@ -4693,7 +4709,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-343 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+348 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -4896,6 +4912,11 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-88 | acceptance 5 | golden | SA-88 names no harm |
 | requirement SA-88 | acceptance 6 | golden | SA-88 names no harm |
 | requirement SA-88 | acceptance 7 | golden | SA-88 names no harm |
+| requirement SA-89 | acceptance 1 | golden | SA-89 names no harm |
+| requirement SA-89 | acceptance 2 | golden | SA-89 names no harm |
+| requirement SA-89 | acceptance 3 | golden | SA-89 names no harm |
+| requirement SA-89 | acceptance 4 | golden | SA-89 names no harm |
+| requirement SA-89 | acceptance 5 | golden | SA-89 names no harm |
 | requirement SA-7 | acceptance 1 | golden | SA-7 names no harm |
 | requirement SA-7 | acceptance 2 | golden | SA-7 names no harm |
 | requirement SA-8 | acceptance 1 | golden | SA-8 names no harm |

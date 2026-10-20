@@ -193,6 +193,29 @@ func (g *goReader) readHandlers() {
 		h.findings()
 	}
 	g.askFaults()
+	g.askTransactionTokens()
+}
+
+// askTransactionTokens asks, at every operation whose handler reads the
+// Txn-Token header, for the transaction token it accepts and its via: the
+// header is where the Transaction Tokens draft carries one (section 12),
+// so the operation accepts a transaction token (ADR-111).
+func (g *goReader) askTransactionTokens() {
+	for _, h := range g.handlers {
+		var read *goStep
+		h.each(func(_ *goFunction, s *goStep, _ []*goStep) {
+			if read == nil && s.kind == "input" && strings.EqualFold(s.parameter, "Txn-Token") {
+				read = s
+			}
+		})
+		if read == nil {
+			continue
+		}
+		clause := g.clause(read.file, read.syntax.Pos())
+		g.question("must", fmt.Sprintf("%s: the handler of %s reads the Txn-Token header, so the operation accepts a transaction token. Declare it under tokens with tokenType txn_token and its claims, name it in the operation's token, and list the services that call it on a person's behalf in via.", clause, h.label),
+			[]string{h.at + "/token", h.at + "/via"}, "The Txn-Token header carries a transaction token and nothing else (the Transaction Tokens draft, section 12); its claims and the immediate callers are the design's, and the code shows only that the header is read.",
+			g.at(clause, "Reads the header "+read.parameter+"."))
+	}
 }
 
 // number gives every step its id, in the order the record writes them:

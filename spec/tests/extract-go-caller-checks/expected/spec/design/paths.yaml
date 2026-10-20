@@ -1,0 +1,50 @@
+permissions:
+  invoices.delete:
+    origin: stated
+    cites:
+      - {source: code, clause: 'core/server.go:26', says: 'DELETE /invoices/{invoiceId}, POST /invoices/{invoiceId}/archive and POST /invoices/{invoiceId}/void check invoices.delete with s.Require.'}
+  invoices.read:
+    origin: stated
+    cites:
+      - {source: code, clause: 'core/server.go:25', says: GET /invoices checks invoices.read with s.Require.}
+paths:
+  /invoices:
+    get:
+      operationId: listInvoices
+      permission: invoices.read
+      callers: [reporting, archive]
+      origin: stated
+      cites:
+        - {source: code, clause: 'core/server.go:25', says: 'Registers GET /invoices on a chi router; its handler is s.listInvoices, and it is checked by s.Require("invoices.read"), and gated by s.RequireAudience and s.RequireClients.'}
+        - {source: code, clause: 'core/server.go:53', says: The handler of GET /invoices reads no path parameter by name.}
+  /invoices/{invoiceId}:
+    parameters:
+      - {name: invoiceId, in: path, required: true}
+    delete:
+      operationId: deleteInvoice
+      permission: invoices.delete
+      via: [middleware]
+      origin: stated
+      cites:
+        - {source: code, clause: 'core/server.go:26', says: 'Registers DELETE /invoices/{invoiceId} on a chi router; its handler is s.deleteInvoice, and it is checked by s.Require("invoices.delete"), and gated by s.RequireAudience, s.RequireCaller, s.RequireApplication and s.Audit.'}
+        - {source: code, clause: 'core/server.go:55', says: 'The handler of DELETE /invoices/{invoiceId} reads no path parameter by name.'}
+  /invoices/{invoiceId}/archive:
+    parameters:
+      - {name: invoiceId, in: path, required: true}
+    post:
+      operationId: archiveInvoice
+      permission: invoices.delete
+      origin: stated
+      cites:
+        - {source: code, clause: 'core/server.go:28', says: 'Registers POST /invoices/{invoiceId}/archive on a chi router; its handler is s.archiveInvoice, and it is checked by s.Require("invoices.delete"), and gated by s.RequireAudience.'}
+        - {source: code, clause: 'core/server.go:63', says: 'The handler of POST /invoices/{invoiceId}/archive reads no path parameter by name.'}
+  /invoices/{invoiceId}/void:
+    parameters:
+      - {name: invoiceId, in: path, required: true}
+    post:
+      operationId: voidInvoice
+      permission: invoices.delete
+      origin: stated
+      cites:
+        - {source: code, clause: 'core/server.go:27', says: 'Registers POST /invoices/{invoiceId}/void on a chi router; its handler is s.voidInvoice, and it is checked by s.Require("invoices.delete"), and gated by s.RequireAudience and s.RequireCaller.'}
+        - {source: code, clause: 'core/server.go:61', says: 'The handler of POST /invoices/{invoiceId}/void reads no path parameter by name.'}

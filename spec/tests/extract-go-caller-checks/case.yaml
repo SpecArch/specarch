@@ -1,0 +1,31 @@
+arguments: [extract, go, --implementation, implementation/core.go.specarch-implementation.yaml, --out, spec, testdata/service]
+repository:
+  folder: testdata/service
+  commits:
+    - [.]
+exitStatus: 0
+standardOutput: |
+  commit d4cd1599705578cd4a365e05f599fec955e95e22: the last change to .
+  counted 1 Go file, 0 of them importing dxlib's api package and 0 that do not parse, and left out 0: every tracked Go file under . but test files and files in a folder below it named testdata or vendor, or that the go command ignores
+  checks: implementation/core.go.specarch-implementation.yaml names the permission check core.Server.Require
+  checks: implementation/core.go.specarch-implementation.yaml names the client check core.Server.RequireClients
+  checks: implementation/core.go.specarch-implementation.yaml names the application check core.Server.RequireApplication
+  checks: implementation/core.go.specarch-implementation.yaml names the caller check core.Server.RequireCaller
+  checks: implementation/core.go.specarch-implementation.yaml names the audience check core.Server.RequireAudience
+  checks: implementation/core.go.specarch-implementation.yaml names the event writer core.Server.Audit
+  routers: counted 4 registrations: every call that registers a route on a router of net/http, chi, gin, echo or gorilla/mux that the reader follows from where it is made, with its groups, mounts and subrouters
+  gate: implementation/core.go.specarch-implementation.yaml names core.Server.RequireApplication as an application check, and it guards 1 operation
+  gate: implementation/core.go.specarch-implementation.yaml names core.Server.RequireAudience as an audience check, and it guards 4 operations
+  gate: implementation/core.go.specarch-implementation.yaml names core.Server.RequireCaller as a caller check, and it guards 1 operation, whose via are the services it names
+  gate: implementation/core.go.specarch-implementation.yaml names core.Server.RequireCaller as a caller check, and it guards 1 operation
+  gate: implementation/core.go.specarch-implementation.yaml names core.Server.RequireClients as a client check, and it guards 1 operation, whose callers are the clients it names
+  gate: implementation/core.go.specarch-implementation.yaml names core.Server.Audit as an event writer, and it guards 1 operation; every security event is derived from the refusal that writes it, so the reader writes nothing from it
+  routes: wrote 4 operations: one operation per route a router of net/http, chi, gin, echo or gorilla/mux registers with a literal method and path, outside a loop or a condition, under a prefix the reader knows
+  wrote 2 permissions and 18 questions: one permission per name a route checks with a literal, one question per thing the source does not say, and one per thing the meta-model cannot hold
+  handlers: followed 4 of 4 handlers into 4 functions, to 3 calls deep, and left 0 calls not followed: the handler of each operation, where it is a function literal, a function of the same package or one of another package of the module, and each function of the module its steps call
+  handlers: compared with the records of implementation/core.go.specarch-implementation.yaml: 0 unchanged, 0 changed, 4 not recorded there, 0 recorded there and not read now
+  derived 0 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers
+  not derived: 3 draft tests for operation listInvoices, held up by Q-1, Q-16, Q-19, Q-2; the validator warns for them until the questions are answered
+  not derived: 3 draft tests for operation deleteInvoice, held up by Q-14, Q-20, Q-23, Q-3, Q-4, Q-5; the validator warns for them until the questions are answered
+  not derived: 3 draft tests for operation archiveInvoice, held up by Q-21, Q-6, Q-7, Q-8; the validator warns for them until the questions are answered
+  not derived: 3 draft tests for operation voidInvoice, held up by Q-10, Q-11, Q-15, Q-22, Q-9; the validator warns for them until the questions are answered

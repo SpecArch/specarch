@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: requirements specification
 
-Version 0.7.2-dev of the specification: 5 stakeholders, 10 needs and 82 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
+Version 0.7.2-dev of the specification: 5 stakeholders, 10 needs and 83 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
 
 **Problems:** 3 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -34,7 +34,7 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | Need | Statement | Stakeholders | Status | Refined by |
 |---|---|---|---|---|
 | NEED-1 | I want a specification that cannot quietly be wrong, so that the code built from it is right. | specification-author, implementer | accepted | SA-33, SA-34, SA-35, SA-47, SA-48, SA-50, SA-75, SA-77, SA-82, SA-83, SA-84, SA-72, SA-1, SA-2, SA-3, SA-4, SA-5, SA-6, SA-51 |
-| NEED-2 | I want to write a design once and build it in more than one language. | implementer | accepted | SA-33, SA-34, SA-36, SA-37, SA-38, SA-39, SA-40, SA-41, SA-42, SA-43, SA-52, SA-53, SA-54, SA-55, SA-56, SA-49, SA-62, SA-63, SA-65, SA-66, SA-70, SA-77, SA-78, SA-82, SA-83, SA-84, SA-88, SA-46, SA-61, SA-71, SA-32, SA-9, SA-10 |
+| NEED-2 | I want to write a design once and build it in more than one language. | implementer | accepted | SA-33, SA-34, SA-36, SA-37, SA-38, SA-39, SA-40, SA-41, SA-42, SA-43, SA-52, SA-53, SA-54, SA-55, SA-56, SA-49, SA-62, SA-63, SA-65, SA-66, SA-70, SA-77, SA-78, SA-82, SA-83, SA-84, SA-88, SA-89, SA-46, SA-61, SA-71, SA-32, SA-9, SA-10 |
 | NEED-3 | I want the documents and diagrams to come from the specification, so they never drift from it. | reviewer, specification-author | accepted | SA-22, SA-36, SA-67, SA-75, SA-77, SA-82, SA-83, SA-84, SA-88, SA-7, SA-8, SA-26, SA-16, SA-58, SA-59, SA-60, SA-19, SA-74 |
 | NEED-4 | I want a big specification split over many files, each about one thing, so I can find what I am looking for. | specification-author, reviewer | accepted | SA-11, SA-2 |
 | NEED-5 | I want the whole life of the system in one place, from the first requirement to the day it is accepted. | reviewer, operator | accepted | SA-35, SA-47, SA-68, SA-26, SA-16, SA-12, SA-23, SA-24, SA-25, SA-73 |
@@ -89,6 +89,7 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | SA-83 | functional | must | accepted | A specification shall be able to declare its machine clients, each by its software_id with its kind, the versions it is admitted at, the roles it holds and how it proves its identity on each request; to say on an operation or command the explicit subset of who may call it, people and clients by name; to close a route on purpose with the reserved permission nobody; and to narrow a role's grant to the clients it holds through; specarch validate shall check each in both builds, the derived cases shall cover every refusal, and the technical specification shall show the clients beside the roles, the callers of each route and the grants narrowed by client. |
 | SA-84 | functional | must | accepted | A specification shall be able to declare the token formats its service issues and accepts, each with its kind, lifetime, signature algorithm, claims and checks, one of them the default, and on an operation the token it accepts and the immediate callers of a transaction token; to fix the audience of every accepted access token; and to say where the security event every refusal of a caller writes goes; specarch validate shall check each in both builds, the derived cases shall cover the expired token, each check, the actor as subject, the audience, the chain and the confused deputy's token forms, each naming its security event, generate openapi shall write the schemes the tokens give, and the technical specification shall show the tokens, the chain and the events. |
 | SA-88 | functional | must | accepted | An estate shall be able to keep its clients, roles and trust domain in one identity module that every other module names by reference, and specarch validate shall resolve those references when the modules are given together, count them as unresolved when they are not, and check what the referenced clients and roles allow at every hop. |
+| SA-89 | functional | should | accepted | specarch extract go shall read the project's own checks of the clients, the application, the immediate caller and the audience, and its event writers, as the implementation file names them, write the clients and the services its checks name as literals as an operation's callers and via, and ask for everything else the code reads at run time, and for the transaction token of an operation whose handler reads the Txn-Token header. |
 | SA-7 | functional | must | accepted | specarch document and specarch generate shall write only into the folder the target owns, and with --check shall fail when the committed output differs. |
 | SA-8 | functional | must | accepted | Every generated file shall name its source specification, version and meta-model, and a hand-written Markdown document shall change only between its markers. |
 | SA-26 | functional | should | accepted | specarch document shall write the change and defect register and the release notes from the records beside a specification, kept current with --check like the other documents. |
@@ -794,6 +795,22 @@ Acceptance criteria:
 - Once the identity module is given, a client it holds is checked in via and callers as a client of the module is, so an application or a service without a workload-identity proof in via, a service with no roles or a client none of whose roles grants the operation's permission in callers; and a service with no roles is not reported unused when another module names it in via.
 
 **Insight:** The clients, the roles and the trust domain are facts of the whole estate, not of one service, and every hop of a call must check the same names; kept in each module they drift apart, and kept in the umbrella they would put design into a file that only lists and pins the modules (ADR-107).
+
+### SA-89
+
+specarch extract go shall read the project's own checks of the clients, the application, the immediate caller and the audience, and its event writers, as the implementation file names them, write the clients and the services its checks name as literals as an operation's callers and via, and ask for everything else the code reads at run time, and for the transaction token of an operation whose handler reads the Txn-Token header.
+
+Kind: functional; priority: should; status: accepted; verified by test; refines NEED-2.
+
+Acceptance criteria:
+
+- The implementation schema's http binding takes clientChecks with an optional clientArgument, and applicationChecks, callerChecks and audienceChecks each with the argument that carries the names, and eventWriters.
+- A client check whose argument gives the clients as literals writes them as the callers of each operation it guards, and a caller check the services as its via, each with one must question per check asking for their declaration, which holds the errors of the names not declared yet; given otherwise, such as from a setting, each is a must question naming where the code reads them.
+- An application check is a must question for the through of every role that grants the operations' permission, naming any operation that checks the same permission without it; an audience check is a must question at the tokens with its literal or the setting it reads; an event writer is named and nothing is written from it.
+- An operation whose handler reads the Txn-Token header gets a must question for its transaction token and its via.
+- specarch extract permissions reads a grant's client, the row's subject when it is a client, as a role named after it held by the client declared as a service, with a must question for its proof and a could question to rename the role; and a grant's through as the role's through, the client declared as an application; a grant both narrowed and not by two rows, and a name used as subject and as through, are must questions, and so are what each client is and which token carries the application.
+
+**Insight:** An estate written from its code has its application, caller and audience checks in middleware the project writes its own way; read as nothing, the operations look open to any caller, and guessed, a condition on a grant could be written where none holds (ADR-106, ADR-109, ADR-111).
 
 ### SA-7
 

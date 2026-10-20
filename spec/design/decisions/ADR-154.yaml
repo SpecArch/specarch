@@ -43,10 +43,9 @@ decisions:
       its callers. extract router reads a route table that carries no
       middleware, and the seeds reader reads dxlib_module's tables, which
       hold no client; neither has a gate or a client to find, so both
-      stay as they are. The checks of caller-context's readers item
-      (the application, the immediate caller, the audience, the event
-      writer, with an argument naming them) are a later item, which adds
-      an argument to clientChecks rather than renaming it.
+      stay as they are. The checks of the application, the immediate
+      caller and the audience, the event writers, and an argument on
+      clientChecks that names the clients, are ADR-159's.
     why: |
       A question rather than callers written from the code, because the
       compiler principle never guesses: a client list the code does not

@@ -802,15 +802,135 @@
           "minItems": 1
         },
         "clientChecks": {
-          "description": "SpecArch keyword. The project's own checks that admit a client, a caller on its own account rather than a person's, and refuse everyone else, such as a check of an API key or a client-credentials token. specarch extract go asks, at each operation a call of one wraps, guards as middleware or is made in, which clients call it and whether people do, for callers, which names them one by one (ADR-110, ADR-154). Read for the http binding.",
+          "description": "SpecArch keyword. The project's own checks that admit a client, a caller on its own account rather than a person's, and refuse everyone else, such as a check of an API key or a client-credentials token. specarch extract go reads, at each operation a call of one wraps, guards as middleware or is made in, the clients its clientArgument names as literals and writes them as the operation's callers; with no clientArgument, or names it does not give as literals, it asks which clients call it and whether people do, for callers, which names them one by one (ADR-110, ADR-154). Read for the http binding.",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "package": {
+                "description": "Where the check is declared, as the language names it: a Go import path, or the folder from the repository's root where no go.mod is read.",
+                "type": "string",
+                "minLength": 1
+              },
+              "function": {
+                "description": "The check's name in that package: a function, or a type and its method joined by a dot, such as Server.RequireClient.",
+                "type": "string",
+                "pattern": "^[A-Za-z_$][A-Za-z0-9_$]*(\\.[A-Za-z_$][A-Za-z0-9_$]*)?$"
+              },
+              "clientArgument": {
+                "description": "The argument that carries the names of the clients admitted, counted from 1: a string, a list of strings, or the first of several strings.",
+                "type": "integer",
+                "minimum": 1
+              }
+            },
+            "required": [
+              "package",
+              "function"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 1
+        },
+        "signatureChecks": {
+          "description": "SpecArch keyword. The project's own checks that verify a request's signature, such as an HTTP Message Signatures or HMAC verifier. specarch extract go asks, at each operation one guards, which client signs and with which proof: the algorithm and the request parts the signature covers (ADR-154). Read for the http binding.",
           "type": "array",
           "items": {
             "$ref": "#/$defs/gateCheck"
           },
           "minItems": 1
         },
-        "signatureChecks": {
-          "description": "SpecArch keyword. The project's own checks that verify a request's signature, such as an HTTP Message Signatures or HMAC verifier. specarch extract go asks, at each operation one guards, which client signs and with which proof: the algorithm and the request parts the signature covers (ADR-154). Read for the http binding.",
+        "applicationChecks": {
+          "description": "SpecArch keyword. The project's own checks of the application the person signed in through, the client_id of an access token or tctx.application of a transaction token. specarch extract go asks, at each operation one guards, for the through of every role granting the operation's permission: the applications its applicationArgument names as literals, or the setting it reads them from (ADR-106). Read for the http binding.",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "package": {
+                "description": "Where the check is declared, as the language names it: a Go import path, or the folder from the repository's root where no go.mod is read.",
+                "type": "string",
+                "minLength": 1
+              },
+              "function": {
+                "description": "The check's name in that package: a function, or a type and its method joined by a dot, such as Server.RequireClient.",
+                "type": "string",
+                "pattern": "^[A-Za-z_$][A-Za-z0-9_$]*(\\.[A-Za-z_$][A-Za-z0-9_$]*)?$"
+              },
+              "applicationArgument": {
+                "description": "The argument that carries the names of the applications admitted, counted from 1: a string, a list of strings, or the first of several strings.",
+                "type": "integer",
+                "minimum": 1
+              }
+            },
+            "required": [
+              "package",
+              "function"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 1
+        },
+        "callerChecks": {
+          "description": "SpecArch keyword. The project's own checks of the immediate caller's workload identity, on a call made on a person's behalf. specarch extract go writes the services its callerArgument names as literals as the operation's via, and asks for the setting it reads them from otherwise; either way it asks for each service's declaration with its workload-identity proof (ADR-111). Read for the http binding.",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "package": {
+                "description": "Where the check is declared, as the language names it: a Go import path, or the folder from the repository's root where no go.mod is read.",
+                "type": "string",
+                "minLength": 1
+              },
+              "function": {
+                "description": "The check's name in that package: a function, or a type and its method joined by a dot, such as Server.RequireClient.",
+                "type": "string",
+                "pattern": "^[A-Za-z_$][A-Za-z0-9_$]*(\\.[A-Za-z_$][A-Za-z0-9_$]*)?$"
+              },
+              "callerArgument": {
+                "description": "The argument that carries the names of the services admitted as the immediate caller, counted from 1: a string, a list of strings, or the first of several strings.",
+                "type": "integer",
+                "minimum": 1
+              }
+            },
+            "required": [
+              "package",
+              "function"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 1
+        },
+        "audienceChecks": {
+          "description": "SpecArch keyword. The project's own checks of a token's aud. specarch extract go asks, at the tokens, for the aud the service accepts: the literal its audienceArgument gives, as the claim's const, or the setting it reads it from, whose value per environment goes in deployments (ADR-109). Read for the http binding.",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "package": {
+                "description": "Where the check is declared, as the language names it: a Go import path, or the folder from the repository's root where no go.mod is read.",
+                "type": "string",
+                "minLength": 1
+              },
+              "function": {
+                "description": "The check's name in that package: a function, or a type and its method joined by a dot, such as Server.RequireClient.",
+                "type": "string",
+                "pattern": "^[A-Za-z_$][A-Za-z0-9_$]*(\\.[A-Za-z_$][A-Za-z0-9_$]*)?$"
+              },
+              "audienceArgument": {
+                "description": "The argument that carries the audience the check compares aud with, counted from 1.",
+                "type": "integer",
+                "minimum": 1
+              }
+            },
+            "required": [
+              "package",
+              "function"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 1
+        },
+        "eventWriters": {
+          "description": "SpecArch keyword. The project's own functions that write a security event. specarch extract go names them and writes nothing from them, since every security event is derived from the refusal that writes it and no one writes one by hand (ADR-109). Read for the http binding.",
           "type": "array",
           "items": {
             "$ref": "#/$defs/gateCheck"

@@ -357,8 +357,9 @@ permissions` (`extract-go-caller-checks`,
 the swift, javascript and dart readers, which read `permissionChecks`
 only; `through` on a pattern row of the permission table; the derived
 `through` cases in a module whose roles live in the identity module,
-since `derive` reads one specification; the event identifier under the
-trust domain in the derived cases' text, for the same reason; and
+since `derive` reads one specification; the event clause and its identifier under
+the trust domain in the derived cases of a module whose
+`securityEvents` are the identity module's, for the same reason; and
 BUG-038, `via` and `through` missing from `specarch model`'s references.
 
 Built, 0.7.2: the diagram keywords. An editor that draws every diagram

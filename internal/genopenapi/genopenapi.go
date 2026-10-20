@@ -294,7 +294,16 @@ func (g *gen) operation(path, method string, op map[string]any) *yaml.Node {
 		add(n, "deprecated", boolean(true))
 	}
 	perm := text(op["permission"])
-	if g.securityScheme() != "" {
+	if scheme := g.tokenScheme(op); scheme != "" {
+		// The token the operation accepts gives its scheme (ADR-097).
+		sec := sequence()
+		if perm != "public" {
+			req := mapping()
+			add(req, scheme, sequence())
+			sec.Content = append(sec.Content, req)
+		}
+		add(n, "security", sec)
+	} else if g.securityScheme() != "" {
 		sec := sequence()
 		if perm != "public" {
 			req := mapping()
@@ -302,6 +311,11 @@ func (g *gen) operation(path, method string, op map[string]any) *yaml.Node {
 			sec.Content = append(sec.Content, req)
 		}
 		add(n, "security", sec)
+	}
+	if perm != "" && perm != "public" {
+		if callers := list(op["callers"]); len(callers) > 0 {
+			add(n, "x-specarch-callers", plain(callers))
+		}
 	}
 	if perm != "" {
 		add(n, "x-specarch-permission", str(perm))
@@ -563,7 +577,9 @@ func (g *gen) components() *yaml.Node {
 	if len(schemas.Content) > 0 {
 		add(out, "schemas", schemas)
 	}
-	if name := g.securityScheme(); name != "" {
+	if schemes := g.tokenSchemes(); len(schemes.Content) > 0 {
+		add(out, "securitySchemes", schemes)
+	} else if name := g.securityScheme(); name != "" {
 		ss := mapping()
 		scheme := mapping()
 		def := obj(g.settings["securityScheme"])
@@ -957,4 +973,78 @@ func sortedKeys(m map[string]any) []string {
 	}
 	sort.Strings(out)
 	return out
+}
+
+// defaultToken is the token every operation accepts unless it names
+// another, or "" (ADR-097).
+func (g *gen) defaultToken() string {
+	tokens := obj(g.spec["tokens"])
+	for _, name := range sortedKeys(tokens) {
+		if obj(tokens[name])["default"] == true {
+			return name
+		}
+	}
+	return ""
+}
+
+// tokenScheme is the security scheme an operation's token gives: the
+// token's name, or "" when the specification declares no tokens.
+func (g *gen) tokenScheme(op map[string]any) string {
+	if len(obj(g.spec["tokens"])) == 0 {
+		return ""
+	}
+	if name := text(op["token"]); name != "" {
+		return name
+	}
+	return g.defaultToken()
+}
+
+// tokenSchemes are the security schemes the accepted tokens give: a
+// bearer scheme for an access token, with bearerFormat JWT for a JWT, and
+// an apiKey scheme in the Txn-Token header for a transaction token, which
+// never travels in Authorization (ADR-111). A target's securityScheme
+// setting is not used beside them, and says so.
+func (g *gen) tokenSchemes() *yaml.Node {
+	ss := mapping()
+	tokens := obj(g.spec["tokens"])
+	if len(tokens) == 0 {
+		return ss
+	}
+	accepted := map[string]bool{}
+	for _, p := range obj(g.spec["paths"]) {
+		for _, m := range []string{"get", "post", "put", "patch", "delete"} {
+			if op, ok := obj(p)[m].(map[string]any); ok {
+				if name := g.tokenScheme(op); name != "" {
+					accepted[name] = true
+				}
+			}
+		}
+	}
+	for _, name := range sortedKeys(tokens) {
+		if !accepted[name] {
+			continue
+		}
+		t := obj(tokens[name])
+		scheme := mapping()
+		if text(t["tokenType"]) == "txn_token" {
+			add(scheme, "type", str("apiKey"))
+			add(scheme, "in", str("header"))
+			add(scheme, "name", str("Txn-Token"))
+		} else {
+			add(scheme, "type", str("http"))
+			add(scheme, "scheme", str("bearer"))
+			if text(t["format"]) == "jwt" {
+				add(scheme, "bearerFormat", str("JWT"))
+			}
+		}
+		if d := text(t["description"]); d != "" {
+			add(scheme, "description", str(d))
+		}
+		add(ss, name, scheme)
+	}
+	if len(ss.Content) > 0 && text(obj(g.settings["securityScheme"])["name"]) != "" {
+		g.diags = append(g.diags, Diagnostic{File: g.root, Line: 1, Severity: "warning", Path: "/tokens", Rule: "generator",
+			Message: "the specification declares tokens, which give the security schemes, so the target's securityScheme setting is not used; remove it from the openapi target"})
+	}
+	return ss
 }

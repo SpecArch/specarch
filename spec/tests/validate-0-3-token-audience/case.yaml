@@ -1,0 +1,4 @@
+arguments: [validate, .]
+exitStatus: 1
+standardOutput: |
+  specarch.yaml:17:12: error: /tokens/access/claims/aud: token_audience: access is accepted by an operation and fixes no audience; declare aud with const naming this service, or enum naming the few it stands for, so that a token minted for another service is refused (RFC 9068, section 4; RFC 8707) [token_audience@specarch.yaml#/tokens/access/claims/aud]

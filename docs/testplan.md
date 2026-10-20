@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.2-dev of the specification: 545 design tests, 247 golden and 298 red, about 16 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.2-dev of the specification: 555 design tests, 251 golden and 304 red, about 16 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 4 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -19,7 +19,7 @@ Version 0.7.2-dev of the specification: 545 design tests, 247 golden and 298 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 541 |
+| system | 551 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -144,6 +144,14 @@ Scenario: golden; level: system; verifies SA-78.
 - Given: a specification on 0.3 with a member role whose rows rule limits Loan, a list and a read by key of loans, and a job acting as member over loans, with no tests
 - When: derive is run
 - Then: it writes a draft for the list showing only the member's rows, for the read by key answering not found outside them, and for the job acting on them only, beside the drafts of the permission and the key, and exits 0
+
+#### derive-0-3-tokens
+
+Scenario: golden; level: system; verifies SA-80.
+
+- Given: the specification of validate-0-3-tokens-valid with only the list's golden test
+- When: derive is run
+- Then: it writes denied with expired access on the list and denied with expired transaction on the delete, each ending with the event token (low), beside the permission and key drafts, and exits 0
 
 #### derive-invalid-spec
 
@@ -656,6 +664,14 @@ Scenario: golden; level: system; verifies SA-79.
 - Given: the specification of validate-0-3-clients-valid
 - When: document techspec is run with --out
 - Then: it writes the technical specification whose permissions matrix has a column per client with roles and marks the closed permission, a table of the clients with their kind, versions, roles and proof, and a table of who may call each route, and exits 0
+
+#### document-techspec-0-3-tokens
+
+Scenario: golden; level: system; verifies SA-80.
+
+- Given: the specification of validate-0-3-tokens-valid
+- When: document techspec is run with --out
+- Then: it writes the technical specification with the tokens table, the access token's audience and the transaction token's header and trust domain, the delete's via in the accepted-by column, the chain drawn as a flowchart, and the security events table with the store and the alarm, and exits 0
 
 #### document-techspec-envelope-stream
 
@@ -1793,6 +1809,14 @@ Scenario: golden; level: system; verifies SA-36.
 - When: generate openapi is run with --unapproved
 - Then: it writes openapi.yaml, OpenAPI 3.1.0, with the list paged by the paginated-list names in its envelope, the 404 as a problem document, the audit fields read-only and the security scheme on the operation, and exits 0
 
+#### generate-openapi-0-3-tokens
+
+Scenario: golden; level: system; verifies SA-80.
+
+- Given: the specification of validate-0-3-tokens-valid with an implementation file whose openapi target still names a securityScheme setting; specarch-gen-openapi built from this repository on PATH
+- When: generate openapi is run with --unapproved
+- Then: it writes openapi.yaml with a bearer scheme named access with bearerFormat JWT and an apiKey scheme named transaction in the Txn-Token header, the list requiring access and the delete requiring transaction, warns that the securityScheme setting is not used, and exits 0
+
 #### generate-openapi-dxlib
 
 Scenario: golden; level: system; verifies SA-39.
@@ -2593,6 +2617,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-79.
 - When: validate is run
 - Then: it reports callers for the empty list, the client without a granting role, the service without roles, the unknown name with the nearest client, the repeated people, and the closed route, and exits 1
 
+#### validate-0-3-claims
+
+Scenario: red; level: system; covers exit 1; verifies SA-80.
+
+- Given: an access token whose exp is written as a string, whose own claim is in snake case, and whose aud lists two URIs and a value with a colon that is no URI
+- When: validate is run
+- Then: it reports claim for the retyped exp and the snake-case claim, token_audience for the value that is no URI and nothing for the two URIs, and exits 1
+
 #### validate-0-3-clients
 
 Scenario: red; level: system; covers exit 1; verifies SA-79.
@@ -2649,6 +2681,14 @@ Scenario: golden; level: system; verifies SA-78.
 - When: validate is run
 - Then: it reports nothing and exits 0
 
+#### validate-0-3-security-events
+
+Scenario: red; level: system; covers exit 1; verifies SA-80.
+
+- Given: a specification with a token and a client and no securityEvents
+- When: validate is run
+- Then: it reports security_events at tokens, saying every refusal is a security event with nowhere to go, and exits 1
+
 #### validate-0-3-through
 
 Scenario: red; level: system; covers exit 1; verifies SA-79.
@@ -2656,6 +2696,46 @@ Scenario: red; level: system; covers exit 1; verifies SA-79.
 - Given: a specification whose only sign-in is a session, with a role whose through names a permission another role grants and a client that is not declared, and another whose through lists no client
 - When: validate is run
 - Then: it reports through at each role for the session carrying no application, at the permission not granted, at the undeclared client with the nearest name, and at the empty list, and exits 1
+
+#### validate-0-3-token-audience
+
+Scenario: red; level: system; covers exit 1; verifies SA-80.
+
+- Given: an accepted access token whose aud fixes no value, and a token the service issues and no operation accepts, whose aud fixes none either
+- When: validate is run
+- Then: it reports token_audience at the accepted token's aud and nothing at the issued token's, and exits 1
+
+#### validate-0-3-tokens
+
+Scenario: red; level: system; covers exit 1; verifies SA-80.
+
+- Given: tokens signed with none and with an algorithm the RFC does not register, a JWT with no signature, an opaque token with one, two defaults, a claim typed unlike the caller property of its name, a check over an undeclared claim and one giving no bool, and an operation naming a token that is not declared
+- When: validate is run
+- Then: it reports token for the algorithms, the missing and the surplus signature, the second default, the two checks and the undeclared token with the nearest name, claim for the member identifier's type, and exits 1
+
+#### validate-0-3-tokens-valid
+
+Scenario: golden; level: system; verifies SA-80.
+
+- Given: the three-hop example in one module: an access token with its audience fixed, the client_id and softwareVersion claims and a check, a transaction token with the draft's claims and tctx.application, an application admitted at a version range with a software statement, a role whose through narrows a grant to it, a service with a SPIFFE proof named in the delete's via, the security events' store and alarm, and a test of each chosen case
+- When: validate is run
+- Then: it reports nothing and exits 0
+
+#### validate-0-3-txn-token
+
+Scenario: red; level: system; covers exit 1; verifies SA-80.
+
+- Given: a transaction token that is opaque, declares neither scope nor req_wl, writes aud, and declares no tctx.application while a role's through reaches the operation that accepts it
+- When: validate is run
+- Then: it reports token for the format, each missing claim, the aud and the missing tctx.application, and exits 1
+
+#### validate-0-3-via
+
+Scenario: red; level: system; covers exit 1; verifies SA-80.
+
+- Given: a via on an operation accepting the access token, an operation accepting the transaction token with no via, a via naming an undeclared client, an application, a service with a signed-request proof and a service twice, an empty via, and proofs of kind token naming the transaction token and an undeclared token, and a wimse proof naming a token
+- When: validate is run
+- Then: it reports via at each of the operations and items, and proof at the three proofs, and exits 1
 
 #### validate-accessibility
 
@@ -4469,7 +4549,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-326 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+331 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -4655,6 +4735,11 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-79 | acceptance 4 | golden | SA-79 names no harm |
 | requirement SA-79 | acceptance 5 | golden | SA-79 names no harm |
 | requirement SA-79 | acceptance 6 | golden | SA-79 names no harm |
+| requirement SA-80 | acceptance 1 | golden | SA-80 names no harm |
+| requirement SA-80 | acceptance 2 | golden | SA-80 names no harm |
+| requirement SA-80 | acceptance 3 | golden | SA-80 names no harm |
+| requirement SA-80 | acceptance 4 | golden | SA-80 names no harm |
+| requirement SA-80 | acceptance 5 | golden | SA-80 names no harm |
 | requirement SA-7 | acceptance 1 | golden | SA-7 names no harm |
 | requirement SA-7 | acceptance 2 | golden | SA-7 names no harm |
 | requirement SA-8 | acceptance 1 | golden | SA-8 names no harm |

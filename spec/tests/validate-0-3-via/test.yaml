@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "a via on an operation accepting the access token, an operation accepting the transaction token with no via, a via naming an undeclared client, an application, a service with a signed-request proof and a service twice, an empty via, and proofs of kind token naming the transaction token and an undeclared token, and a wimse proof naming a token"
+when: validate is run
+then: "it reports via at each of the operations and items, and proof at the three proofs, and exits 1"
+verifies: [SA-80]

@@ -1,0 +1,105 @@
+specarch: "0.3"
+info: { title: Case, version: 1.0.0 }
+permissions:
+  invoices.read: { description: See invoices. }
+  invoices.delete: { description: Delete invoices. }
+roles:
+  invoice-manager:
+    description: Staff who manage invoices.
+    permissions: [invoices.read, invoices.delete]
+clients:
+  admin-web:
+    description: The administration application.
+    kind: application
+  middleware:
+    description: The middleware, with a SPIFFE proof.
+    kind: service
+    proof: { kind: spiffe }
+  reporting:
+    description: A service that proves itself with the transaction token, which a workload must not.
+    kind: service
+    roles: [invoice-manager]
+    proof: { kind: token, token: transaction }
+  batch:
+    description: A service that proves itself with a signed request, so it cannot be a hop.
+    kind: service
+    roles: [invoice-manager]
+    proof: { kind: signedRequest, algorithm: hmac-sha256, covers: ["@method", "@path"] }
+  gateway:
+    description: A WIMSE proof that also names a token.
+    kind: service
+    proof: { kind: wimse, token: access }
+  relay:
+    description: A token proof naming a token that is not declared.
+    kind: service
+    roles: [invoice-manager]
+    proof: { kind: token, token: acces }
+dependencies:
+  securityLog: { description: The store., timeout: PT2S }
+  pager: { description: The alarm., timeout: PT2S }
+securityEvents: { store: securityLog, alarm: pager }
+tokens:
+  access:
+    description: The edge's token.
+    format: jwt
+    lifetime: PT15M
+    signature: ES256
+    claims:
+      sub: { description: The person. }
+      aud: { const: "https://invoices.example.org" }
+    default: true
+  transaction:
+    description: The transaction token.
+    format: jwt
+    tokenType: txn_token
+    lifetime: PT5M
+    signature: ES256
+    claims:
+      txn: { description: The transaction. }
+      sub: { description: The person. }
+      scope: { description: The permission. }
+      req_wl: { description: The edge. }
+paths:
+  /invoices:
+    get:
+      operationId: listInvoices
+      summary: List invoices, with a via it does not need
+      permission: invoices.read
+      via: [middleware]
+      responses:
+        "200": { description: The invoices. }
+    post:
+      operationId: createInvoice
+      summary: Create an invoice, accepting the transaction token with no via
+      permission: invoices.delete
+      token: transaction
+      responses:
+        "201": { description: Created. }
+  /invoices/{invoiceId}:
+    parameters:
+      - { name: invoiceId, in: path, required: true, schema: { type: string, maxLength: 36 } }
+    delete:
+      operationId: deleteInvoice
+      summary: Delete an invoice
+      permission: invoices.delete
+      token: transaction
+      via: [middleware, middlewear, admin-web, batch, middleware]
+      responses:
+        "204": { description: Deleted. }
+    patch:
+      operationId: archiveInvoice
+      summary: Archive an invoice, with an empty via
+      permission: invoices.delete
+      token: transaction
+      via: []
+      responses:
+        "204": { description: Archived. }
+tests:
+  list-invoices-succeeds: { operation: listInvoices, level: system, scenario: golden, given: a caller with invoices.read, when: listInvoices is called, then: it answers 200 }
+  list-invoices-refused: { operation: listInvoices, level: system, scenario: red, covers: [denied without invoices.read, denied with expired access], given: a bad call, when: listInvoices is called, then: it is refused }
+  create-invoice-succeeds: { operation: createInvoice, level: system, scenario: golden, given: the middleware, when: createInvoice is called, then: it answers 201 }
+  create-invoice-refused: { operation: createInvoice, level: system, scenario: red, covers: [denied without invoices.delete, denied with expired transaction], given: a bad call, when: createInvoice is called, then: it is refused }
+  delete-invoice-succeeds: { operation: deleteInvoice, level: system, scenario: golden, given: the middleware, when: deleteInvoice is called, then: it answers 204 }
+  delete-invoice-refused: { operation: deleteInvoice, level: system, scenario: red, covers: [denied without invoices.delete, denied with expired transaction, not found invoiceId], given: a bad call, when: deleteInvoice is called, then: it is refused }
+  archive-invoice-succeeds: { operation: archiveInvoice, level: system, scenario: golden, given: the middleware, when: archiveInvoice is called, then: it answers 204 }
+  archive-invoice-refused: { operation: archiveInvoice, level: system, scenario: red, covers: [denied without invoices.delete, denied with expired transaction, not found invoiceId], given: a bad call, when: archiveInvoice is called, then: it is refused }

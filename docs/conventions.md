@@ -548,6 +548,15 @@ redefined.
 | `callers`, `people` | SpecArch | the explicit subset of who may call an operation or command; `people` reserved for anyone signed in (ADR-110) |
 | `nobody` | SpecArch | the reserved permission of a route closed on purpose, beside `public` (ADR-096) |
 | `through` (of a role) | SpecArch, after RFC 8693's `client_id` claim | the clients a grant holds through, checked against the application the token carries (ADR-106, ADR-108) |
+| `tokens`, `format`, `lifetime`, `signature` (of a token), `claims`, `checks`, `default`, `token` (on an operation) | SpecArch, after RFC 7519, RFC 9068, RFC 7518 and RFC 8725 | a token format: its kind, lifetime, algorithm, claims as properties, checks over them and whether it is the default (ADR-097) |
+| `tokenType`, `via` | SpecArch, after the OAuth Transaction Tokens draft | `txn_token` is the suffix of the draft's token type identifier; `via` names the immediate callers of a hop (ADR-111) |
+| `iss`, `sub`, `aud`, `exp`, `nbf`, `iat`, `jti` | RFC 7519 | registered claims, written as the registry names them |
+| `act`, `scope`, `client_id`, `may_act` | RFC 8693 | registered claims |
+| `cnf` | RFC 7800 | registered claim |
+| `txn`, `events`, `toe` | RFC 8417 | registered claims |
+| `auth_time`, `acr`, `amr`, `azp` | OpenID Connect Core | registered claims |
+| `req_wl`, `rctx`, `tctx` | the OAuth Transaction Tokens draft | its claims, pending registration |
+| `securityEvents`, `store`, `alarm` | SpecArch, after RFC 8417 and OWASP ASVS 5.0 V16 | where every refusal's security event goes (ADR-109) |
 | `rows` (of a role) | SpecArch, after PostgreSQL's `CREATE POLICY ... USING (...)` | the rows a role reaches in an entity, one bool expression per entity, permissive across roles as the policies are; ISO SQL has no row security, so the one engine that models it names it (ADR-095) |
 | `separationOfDuties`, `cardinality` | ANSI INCITS 359 (RBAC), static separation of duty | a set and a number no holder may reach; stated over permissions, not roles, because the specification declares the duties and the roles that grant them |
 | `session`, `idleTimeout`, `absoluteTimeout` | SpecArch, after the OWASP Session Management Cheat Sheet | how a signed-in session ends; the two timeouts are the cheat sheet's |
@@ -806,6 +815,110 @@ edge; and, once any service is declared, `refused for a service's own
 token` at every operation for people, the confused deputy: a service
 calling with its own proof or token in place of the person's, so that the
 person, with their rows, roles and `through`, would be lost (ADR-108).
+
+### Tokens, the delegation chain, the audience and security events
+
+A service that issues tokens declares each format under `tokens`
+(ADR-097, ADR-108, ADR-109, ADR-111):
+
+    tokens:
+      access:
+        description: What a signed-in person presents on every call.
+        format: jwt
+        lifetime: PT15M
+        signature: ES256
+        claims:
+          sub: { description: The person's identifier. }
+          aud: { const: https://loans.example.org }
+          client_id: { description: The application the person signed in through. }
+          memberId: { type: [string, "null"], format: uuid, description: The member signed in; null for staff. }
+        default: true
+      transaction:
+        description: What a hop presents when it calls the next on a person's behalf, inside the trust domain.
+        format: jwt
+        tokenType: txn_token
+        lifetime: PT5M
+        signature: ES256
+        claims:
+          txn: { description: The transaction's identifier, one for the whole call. }
+          sub: { description: The person acted for. }
+          scope: { description: The permission the edge operation checked. }
+          req_wl: { description: The edge workload that requested the token. }
+          tctx:
+            properties:
+              application: { description: The software_id of the application the person signed in through. }
+
+`format` is `jwt` (RFC 7519, with the access-token profile of RFC 9068)
+or `opaque`, a reference the service looks up; `lifetime` is how long
+one is valid; `signature` names an algorithm of RFC 7518 or RFC 8037
+(`ES256`, `RS256`, `EdDSA`, `HS256` and the rest), and `none` is refused,
+as RFC 8725 says a verifier must refuse it; the algorithm is design
+because the verifier is often another service. `claims` are JSON Schema
+properties, camelCase like every property and on the wire as
+`info.wireNames` says, except the registered claims of the JSON Web
+Token Claims registry that SpecArch knows (`iss`, `sub`, `aud`, `exp`,
+`nbf`, `iat`, `jti` of RFC 7519; `act`, `scope`, `client_id`, `may_act`
+of RFC 8693; `cnf` of RFC 7800; `txn`, `events`, `toe` of RFC 8417;
+`auth_time`, `acr`, `amr`, `azp` of OpenID Connect Core; and, while the
+Transaction Tokens draft is a draft, its `req_wl`, `rctx` and `tctx`),
+which are written as the registry names them, go on the wire as
+registered whatever `info.wireNames` says, and carry the registering
+document's type without being retyped; any other underscore name is
+refused (`claim`). A claim fills the caller's property of the same name,
+null when the token carried has no such claim, and a claim and a caller
+property of one name and different types are refused. `checks` are bool
+expressions over the claims, each a derived red case wherever the token
+is accepted. The one token marked `default` is what every operation
+accepts unless it names another with `token`; a specification with a
+session and no tokens writes none of this.
+
+`tokenType` is `access_token`, the default, or `txn_token`, a transaction
+token of the OAuth Transaction Tokens draft: one short-lived JWT minted
+once at the edge and passed unmodified through every hop of a call,
+carried in the `Txn-Token` header and never in `Authorization`, declaring
+`txn`, `sub`, `scope` (the permission the edge checked) and `req_wl` (the
+edge workload), no `aud` (its audience is the trust domain), and
+`tctx.application`, the application the person signed in through,
+immutable from the edge on, which every hop checks `through` against. An
+operation accepting a transaction token, or a token declaring `act`,
+names `via`, its immediate callers on a person's behalf: services with a
+workload-identity proof (`mutualTls`, `spiffe` or `wimse`), each written
+out, since a wildcard would admit a hop added later without anyone
+writing it; `via` elsewhere is refused. A `token` proof names an access
+token a client presents, never a transaction token, since a workload must
+not authenticate itself with one.
+
+An access token some operation accepts fixes its audience: `aud` with
+`const` naming the service, or `enum` naming the few it stands for, each
+a URI when it has a colon (RFC 9068, section 4; RFC 8707; RFC 9700,
+section 2.3), so that a token minted for one service is refused at the
+next (`token_audience`). A transaction token writes no `aud` and is
+refused at a wrong hop by the caller's workload identity instead.
+
+Every refusal of a caller is a security event with a fixed rule and
+severity: `token_audience`, `via` and the confused deputy (`deputy`)
+high; `callers`, `through` and a version outside the range with a
+software statement medium; a self-asserted version and an expired token
+low. A specification with tokens and clients declares `securityEvents`,
+with `store`, the dependency that is the append-only store, and `alarm`,
+the dependency that is the alarm channel an event of severity high, or a
+repeat for one client within the window the deployment sets, goes to as
+well (`security_events`). An event is a Security Event Token (RFC 8417)
+holding the rule, the severity, the operation, the client, the subject
+and the hash of the refused token, never the token. Once `securityEvents`
+is declared, every derived refusal says which event it writes, so the
+generated tests check it.
+
+The derived cases: `denied with expired <token>` on every operation
+accepting a token, as a session gives `denied with expired session`;
+`<check> fails on <token>` for each check; `refused when the actor is the
+subject` for a token declaring `act`; `refused with a token for another
+audience` for an access token; `refused with a caller not listed in via`
+where `via` is written; and, once a service exists, the confused deputy's
+token forms: `refused for a person's token requested by a service with no
+actor` on an access token, `refused with a req_wl that is not an edge` and
+`refused with a txn differing from the one received` on a transaction
+token.
 
 ### Separation of duties
 

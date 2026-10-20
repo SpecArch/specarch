@@ -1,0 +1,59 @@
+specarch: "0.3"
+info: { title: Case, version: 1.0.0 }
+caller:
+  description: Who is making the call.
+  properties:
+    memberId: { type: [string, "null"], format: uuid, description: The member signed in. }
+permissions:
+  loans.read: { description: See loans. }
+roles:
+  member:
+    description: A card holder.
+    permissions: [loans.read]
+tokens:
+  access:
+    description: A JWT signed with none, whose memberId claim is an integer while the caller's is a string, and whose check names a claim it does not have.
+    format: jwt
+    lifetime: PT15M
+    signature: none
+    claims:
+      sub: { description: The person. }
+      aud: { const: "https://loans.example.org" }
+      memberId: { type: integer, format: int32, description: "The member, as a number." }
+    checks:
+      tenant-known: { expression: tenantId != "", message: The tenant is known. }
+      member-known: { expression: memberId, message: The member is known. }
+    default: true
+  refresh:
+    description: A second default, with an algorithm the RFC does not register.
+    format: jwt
+    lifetime: P30D
+    signature: HS1
+    claims:
+      sub: { description: The person. }
+    default: true
+  unsigned:
+    description: A JWT with no signature.
+    format: jwt
+    lifetime: PT5M
+    claims:
+      sub: { description: The person. }
+  reference:
+    description: An opaque token with a signature.
+    format: opaque
+    lifetime: PT5M
+    signature: ES256
+    claims:
+      sub: { description: The person. }
+paths:
+  /loans:
+    get:
+      operationId: listLoans
+      summary: List loans
+      permission: loans.read
+      token: acces
+      responses:
+        "200": { description: The loans. }
+tests:
+  list-loans-succeeds: { operation: listLoans, level: system, scenario: golden, given: a caller with loans.read, when: listLoans is called, then: it answers 200 }
+  list-loans-denied: { operation: listLoans, level: system, scenario: red, covers: [denied without loans.read], given: a caller without loans.read, when: listLoans is called, then: it is refused }

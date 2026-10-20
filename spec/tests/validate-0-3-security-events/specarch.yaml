@@ -1,0 +1,38 @@
+specarch: "0.3"
+info: { title: Case, version: 1.0.0 }
+permissions:
+  loans.read: { description: See loans. }
+roles:
+  auditor:
+    description: The batch.
+    permissions: [loans.read]
+clients:
+  batch:
+    description: The batch.
+    kind: service
+    roles: [auditor]
+    proof: { kind: token, token: machine }
+dependencies:
+  securityLog: { description: The store., timeout: PT2S }
+tokens:
+  machine:
+    description: The batch's token.
+    format: jwt
+    lifetime: PT5M
+    signature: ES256
+    claims:
+      sub: { description: The batch. }
+      aud: { const: "https://loans.example.org" }
+    default: true
+paths:
+  /loans:
+    get:
+      operationId: listLoans
+      summary: List loans
+      permission: loans.read
+      callers: [batch]
+      responses:
+        "200": { description: The loans. }
+tests:
+  list-loans-succeeds: { operation: listLoans, level: system, scenario: golden, given: the batch, when: listLoans is called, then: it answers 200 }
+  list-loans-refused: { operation: listLoans, level: system, scenario: red, covers: [denied without loans.read, denied with expired machine, refused for a signed-in person], given: a bad call, when: listLoans is called, then: it is refused }

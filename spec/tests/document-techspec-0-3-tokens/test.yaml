@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: document
+level: system
+scenario: golden
+given: "the specification of validate-0-3-tokens-valid"
+when: "document techspec is run with --out"
+then: "it writes the technical specification with the tokens table, the access token's audience and the transaction token's header and trust domain, the delete's via in the accepted-by column, the chain drawn as a flowchart, and the security events table with the store and the alarm, and exits 0"
+verifies: [SA-80]

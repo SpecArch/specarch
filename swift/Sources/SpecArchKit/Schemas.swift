@@ -5,7 +5,7 @@ let designSchemaJSON = #"""
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-design-0.3.schema.json",
   "title": "SpecArch specification, meta-model 0.3",
-  "description": "A SpecArch specification describes one system through its whole life cycle: the sources it rests on, the requirements (stakeholders, needs, requirements, glossary, assumptions, constraints), the design (enums, entities, permissions, roles, caller, clients, session, endpoints, commands, channels, dependencies, pages, algorithms, decisions), the tests, the deployment (environments, configuration, release, rollback, migrations) and the commissioning (checks, sign-off). On disk it is a folder whose root file is specarch.yaml; each stage listed under 'stages' lives in a folder of that name, and a stage not listed may be written inside specarch.yaml itself. The validator merges the tree into one document that this schema describes. Field keywords come from JSON Schema, endpoint keywords from OpenAPI 3, event keywords from AsyncAPI. Keywords with no standard origin are marked 'SpecArch keyword' in their description. Every object rejects unknown keys; keys starting with 'x-' are allowed everywhere as extensions.",
+  "description": "A SpecArch specification describes one system through its whole life cycle: the sources it rests on, the requirements (stakeholders, needs, requirements, glossary, assumptions, constraints), the design (enums, entities, permissions, roles, caller, clients, tokens, securityEvents, session, endpoints, commands, channels, dependencies, pages, algorithms, decisions), the tests, the deployment (environments, configuration, release, rollback, migrations) and the commissioning (checks, sign-off). On disk it is a folder whose root file is specarch.yaml; each stage listed under 'stages' lives in a folder of that name, and a stage not listed may be written inside specarch.yaml itself. The validator merges the tree into one document that this schema describes. Field keywords come from JSON Schema, endpoint keywords from OpenAPI 3, event keywords from AsyncAPI. Keywords with no standard origin are marked 'SpecArch keyword' in their description. Every object rejects unknown keys; keys starting with 'x-' are allowed everywhere as extensions.",
   "type": "object",
   "properties": {
     "specarch": {
@@ -180,6 +180,20 @@ let designSchemaJSON = #"""
       "additionalProperties": {
         "$ref": "#/$defs/client"
       }
+    },
+    "tokens": {
+      "description": "SpecArch keyword. The token formats the service issues and accepts, keyed by camelCase name: a JWT (RFC 7519, with the access-token profile of RFC 9068) or an opaque reference, with its lifetime, its signature algorithm, its claims as properties, checks over the claims, and whether it is the default every operation accepts. A claim fills the caller's property of the same name; a transaction token (the OAuth Transaction Tokens draft) rides in the Txn-Token header across a trust domain (ADR-097, ADR-108, ADR-109, ADR-111).",
+      "type": "object",
+      "propertyNames": {
+        "$ref": "#/$defs/memberName"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/token"
+      }
+    },
+    "securityEvents": {
+      "description": "SpecArch keyword. Where the security event every refusal of a caller derives is written: store, the dependency that is the append-only store, and alarm, the dependency that is the alarm channel an event of severity high, or a repeat for one client, goes to as well. An event is a Security Event Token (RFC 8417) holding the rule, the severity, the operation, the client, the subject and the hash of the refused token, never the token; a specification with tokens and clients declares it (ADR-109).",
+      "$ref": "#/$defs/securityEvents"
     },
     "separationOfDuties": {
       "description": "SpecArch keyword. Sets of permissions one holder must never have together, after the static separation of duty of ANSI INCITS 359, keyed by kebab-case name. No role may grant cardinality or more of a set's permissions; the techspec lists the combinations of roles that together reach a set, as roles never to be given to one person.",
@@ -2517,6 +2531,17 @@ let designSchemaJSON = #"""
           "items": {
             "type": "string",
             "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+          }
+        },
+        "token": {
+          "description": "SpecArch keyword. The token this operation accepts, when it is not the default: a name under tokens (ADR-097).",
+          "$ref": "#/$defs/memberName"
+        },
+        "via": {
+          "description": "SpecArch keyword. The immediate callers of this operation on a person's behalf: the services that call it with the transaction token, each with a workload-identity proof. Required on an operation accepting a transaction token or a token declaring act, refused elsewhere; every caller is written out, since a wildcard would admit a hop added later without anyone writing it (ADR-111).",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/clientName"
           }
         },
         "middlewares": {
@@ -6096,14 +6121,17 @@ let designSchemaJSON = #"""
       "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
     },
     "proof": {
-      "description": "SpecArch keyword. How a client proves its identity on each request: signedRequest, a signature over named parts of the request after RFC 9421 with the algorithm the two sides agree on and the components it covers; or mutualTls, the client certificate of RFC 8705. The key itself is a secret and is never in a specification.",
+      "description": "SpecArch keyword. How a client proves its identity on each request: signedRequest, a signature over named parts of the request after RFC 9421 with the algorithm the two sides agree on and the components it covers; mutualTls, the client certificate of RFC 8705; token, a token format declared under tokens; spiffe, an X.509 or JWT SVID carrying the SPIFFE ID; or wimse, the Workload Identity Token of the WIMSE drafts. A service in a chain presents a workload identity: mutualTls, spiffe or wimse. The key itself is a secret and is never in a specification.",
       "type": "object",
       "properties": {
         "kind": {
           "type": "string",
           "enum": [
             "signedRequest",
-            "mutualTls"
+            "mutualTls",
+            "token",
+            "spiffe",
+            "wimse"
           ]
         },
         "algorithm": {
@@ -6119,6 +6147,10 @@ let designSchemaJSON = #"""
             "minLength": 1
           },
           "uniqueItems": true
+        },
+        "token": {
+          "description": "For a token proof: the token format the client presents, a name under tokens; never a transaction token, since a workload must not authenticate itself with one (the draft, section 13.12).",
+          "$ref": "#/$defs/memberName"
         }
       },
       "required": [
@@ -6189,6 +6221,277 @@ let designSchemaJSON = #"""
       "required": [
         "description",
         "kind"
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "securityEvents": {
+      "type": "object",
+      "properties": {
+        "description": {
+          "$ref": "#/$defs/markdown"
+        },
+        "store": {
+          "description": "The dependency every module writes its security events to, append-only.",
+          "$ref": "#/$defs/memberName"
+        },
+        "alarm": {
+          "description": "The dependency that is the alarm channel.",
+          "$ref": "#/$defs/memberName"
+        },
+        "satisfies": {
+          "$ref": "#/$defs/satisfies"
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
+        },
+        "audience": {
+          "$ref": "#/$defs/audience"
+        }
+      },
+      "required": [
+        "store",
+        "alarm"
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "claim": {
+      "description": "JSON Schema keywords of one claim, as a field has them; a registered claim of the JSON Web Token Claims registry is written as the registry names it, carries the registry's type and is not retyped.",
+      "type": "object",
+      "properties": {
+        "description": {
+          "$ref": "#/$defs/markdown"
+        },
+        "type": {
+          "oneOf": [
+            {
+              "type": "string",
+              "enum": [
+                "string",
+                "integer",
+                "number",
+                "boolean",
+                "array",
+                "object"
+              ]
+            },
+            {
+              "description": "A type that also allows null, written as JSON Schema does: [string, 'null'].",
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "string",
+                  "integer",
+                  "number",
+                  "boolean",
+                  "array",
+                  "object",
+                  "null"
+                ]
+              },
+              "minItems": 2,
+              "maxItems": 2,
+              "uniqueItems": true,
+              "contains": {
+                "const": "null"
+              }
+            }
+          ]
+        },
+        "format": {
+          "description": "The concrete type of the value, where the JSON type alone would leave it open. type says how the value is carried in JSON; format says what it is. An integer needs int32, int64 or uint64; a number needs double; a decimal is a string with format decimal, precision and scale; an int64 or uint64 that can exceed 2^53 is carried as a string with format int64 or uint64. See 'Types' in docs/conventions.md.",
+          "type": "string",
+          "enum": [
+            "int32",
+            "int64",
+            "uint64",
+            "double",
+            "decimal",
+            "date",
+            "date-time",
+            "time",
+            "duration",
+            "email",
+            "uuid",
+            "uri",
+            "hostname",
+            "ipv4",
+            "ipv6",
+            "byte",
+            "binary",
+            "password"
+          ]
+        },
+        "const": {},
+        "enum": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "maxLength": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "pattern": {
+          "type": "string"
+        },
+        "properties": {
+          "description": "For an object claim such as tctx: its members, each a claim.",
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/claim"
+          }
+        },
+        "items": {
+          "$ref": "#/$defs/claim"
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        }
+      },
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "tokenCheck": {
+      "type": "object",
+      "properties": {
+        "expression": {
+          "description": "A bool expression over the token's claims, in the subset of docs/conventions.md, checked wherever the token is accepted.",
+          "type": "string",
+          "minLength": 1
+        },
+        "message": {
+          "description": "What the refusal says.",
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "expression",
+        "message"
+      ],
+      "additionalProperties": false
+    },
+    "token": {
+      "description": "SpecArch keyword. One token format.",
+      "type": "object",
+      "properties": {
+        "description": {
+          "$ref": "#/$defs/markdown"
+        },
+        "format": {
+          "description": "jwt (RFC 7519) or opaque, a reference the service looks up.",
+          "type": "string",
+          "enum": [
+            "jwt",
+            "opaque"
+          ]
+        },
+        "tokenType": {
+          "description": "SpecArch keyword. access_token, the default, or txn_token, the suffix of the OAuth token type identifier of a transaction token, which is a JWT carried in the Txn-Token header and never in Authorization, declares the draft's claims txn, sub, scope and req_wl, and has no aud, since its audience is the trust domain (ADR-111).",
+          "type": "string",
+          "enum": [
+            "access_token",
+            "txn_token"
+          ]
+        },
+        "lifetime": {
+          "description": "How long one is valid.",
+          "$ref": "#/$defs/duration"
+        },
+        "signature": {
+          "description": "For a JWT: an algorithm of RFC 7518 or RFC 8037, such as ES256, RS256, EdDSA or HS256; none is refused, as RFC 8725 says a verifier must refuse it. Design, because the verifier is often another service.",
+          "type": "string",
+          "minLength": 1
+        },
+        "claims": {
+          "description": "JSON Schema properties, camelCase like every property and on the wire as info.wireNames says, except the registered claims (iss, sub, aud, exp, nbf, iat, jti; act, scope, client_id, may_act; cnf; txn, events, toe; auth_time, acr, amr, azp; and the Transaction Tokens draft's req_wl, rctx and tctx), written as the registry names them and carrying its types. aud with const or enum fixes the audience an access token is accepted for. A claim fills the caller's property of the same name.",
+          "type": "object",
+          "propertyNames": {
+            "type": "string",
+            "pattern": "^[a-z][A-Za-z0-9_]*$"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/claim"
+          },
+          "minProperties": 1
+        },
+        "checks": {
+          "description": "SpecArch keyword. Rules over the claims, each a derived red case wherever the token is accepted.",
+          "type": "object",
+          "propertyNames": {
+            "$ref": "#/$defs/roleName"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/tokenCheck"
+          },
+          "minProperties": 1
+        },
+        "default": {
+          "description": "SpecArch keyword. True on the one token every operation accepts unless it names another with token.",
+          "type": "boolean"
+        },
+        "satisfies": {
+          "$ref": "#/$defs/satisfies"
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
+        },
+        "audience": {
+          "$ref": "#/$defs/audience"
+        }
+      },
+      "required": [
+        "description",
+        "format",
+        "lifetime"
       ],
       "propertyNames": {
         "not": {
@@ -7273,13 +7576,35 @@ let implementationSchemaJSON = #"""
                 "description": "The client_id of RFC 6749, as the authorisation server issued it for this environment.",
                 "type": "string",
                 "minLength": 1
+              },
+              "workloadIdentity": {
+                "description": "SpecArch keyword. The workload identity the client presents in this environment, which a hop's via binds to: its SPIFFE ID, the subject of its certificate, or its Workload Identity Token's subject (ADR-111).",
+                "type": "string",
+                "minLength": 1
               }
             },
-            "required": [
-              "clientId"
-            ],
+            "required": [],
             "additionalProperties": false
           }
+        },
+        "securityEvents": {
+          "description": "SpecArch keyword. The alarm's repeat rule in this environment: how many events for one client within the window go to the alarm channel as well as the store (ADR-109).",
+          "type": "object",
+          "properties": {
+            "repeats": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "window": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "repeats",
+            "window"
+          ],
+          "additionalProperties": false
         },
         "monitors": {
           "description": "How this deployment watches each monitor of the specification, keyed by monitor name: the tool that measures, how, and where an alert goes.",

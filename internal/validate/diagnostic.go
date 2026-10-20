@@ -142,6 +142,11 @@ const (
 	RuleThrough                Rule = "through"
 	RuleCallers                Rule = "callers"
 	RuleProof                  Rule = "proof"
+	RuleToken                  Rule = "token"
+	RuleClaim                  Rule = "claim"
+	RuleVia                    Rule = "via"
+	RuleTokenAudience          Rule = "token_audience"
+	RuleSecurityEvents         Rule = "security_events"
 )
 
 // Rules lists every rule, in the order of the design's Rule enum.
@@ -276,6 +281,11 @@ var Rules = []Rule{
 	RuleThrough,
 	RuleCallers,
 	RuleProof,
+	RuleToken,
+	RuleClaim,
+	RuleVia,
+	RuleTokenAudience,
+	RuleSecurityEvents,
 }
 
 // Severity says whether a diagnostic makes the file invalid.

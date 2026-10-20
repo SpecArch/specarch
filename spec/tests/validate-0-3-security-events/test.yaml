@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "a specification with a token and a client and no securityEvents"
+when: validate is run
+then: "it reports security_events at tokens, saying every refusal is a security event with nowhere to go, and exits 1"
+verifies: [SA-80]

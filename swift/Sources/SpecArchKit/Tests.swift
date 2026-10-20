@@ -421,6 +421,7 @@ extension Design {
         s.closed = perm == permissionNobody
         denied(s, perm, call)
         callerCases(s, o.node, perm, call, atEdge: true)
+        tokenCases(s, o, perm, call)
         rowsCases(s, o, call)
         disabled(s, o.node, call)
         var seenChannel = Set<String>()

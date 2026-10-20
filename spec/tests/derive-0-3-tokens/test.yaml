@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: derive
+level: system
+scenario: golden
+given: "the specification of validate-0-3-tokens-valid with only the list's golden test"
+when: derive is run
+then: "it writes denied with expired access on the list and denied with expired transaction on the delete, each ending with the event token (low), beside the permission and key drafts, and exits 0"
+verifies: [SA-80]

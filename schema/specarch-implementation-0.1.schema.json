@@ -1066,13 +1066,35 @@
                 "description": "The client_id of RFC 6749, as the authorisation server issued it for this environment.",
                 "type": "string",
                 "minLength": 1
+              },
+              "workloadIdentity": {
+                "description": "SpecArch keyword. The workload identity the client presents in this environment, which a hop's via binds to: its SPIFFE ID, the subject of its certificate, or its Workload Identity Token's subject (ADR-111).",
+                "type": "string",
+                "minLength": 1
               }
             },
-            "required": [
-              "clientId"
-            ],
+            "required": [],
             "additionalProperties": false
           }
+        },
+        "securityEvents": {
+          "description": "SpecArch keyword. The alarm's repeat rule in this environment: how many events for one client within the window go to the alarm channel as well as the store (ADR-109).",
+          "type": "object",
+          "properties": {
+            "repeats": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "window": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "repeats",
+            "window"
+          ],
+          "additionalProperties": false
         },
         "monitors": {
           "description": "How this deployment watches each monitor of the specification, keyed by monitor name: the tool that measures, how, and where an alert goes.",

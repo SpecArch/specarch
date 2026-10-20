@@ -275,6 +275,9 @@ paths:
                   - totalPages
       security:
         - bearerAuth: []
+      x-specarch-callers:
+        - people
+        - fee-ledger-batch
       x-specarch-permission: loans.read
     post:
       operationId: createLoan

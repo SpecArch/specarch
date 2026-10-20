@@ -1,0 +1,14 @@
+arguments: [validate, .]
+exitStatus: 1
+standardOutput: |
+  specarch.yaml:22:34: error: /clients/reporting/proof/token: proof: transaction is a transaction token, and a workload must not authenticate itself with one (the Transaction Tokens draft, section 13.12); name an access token [proof@specarch.yaml#/clients/reporting/proof/token]
+  specarch.yaml:28:3: warning: /clients/gateway: client_unused: gateway is a service with no roles that no operation names in via, so nothing reaches it; give it roles, name it in via, or remove it [client_unused@specarch.yaml#/clients/gateway]
+  specarch.yaml:31:12: error: /clients/gateway/proof: proof: a wimse proof is the workload's own identity and names no algorithm, covered components or token; remove them [proof@specarch.yaml#/clients/gateway/proof]
+  specarch.yaml:36:34: error: /clients/relay/proof/token: proof: acces is not a token of the specification; did you mean access? [proof@specarch.yaml#/clients/relay/proof/token]
+  specarch.yaml:68:12: error: /paths/~1invoices/get/via: via: operation listInvoices accepts neither a transaction token nor a token declaring act, and via names the hops of a chain; remove via, or accept the chain's token [via@specarch.yaml#/paths/~1invoices/get/via]
+  specarch.yaml:72:7: error: /paths/~1invoices/post: via: operation createInvoice accepts transaction, a transaction token or a token declaring act, and names no via; list its immediate callers, the services that call it on a person's behalf [via@specarch.yaml#/paths/~1invoices/post]
+  specarch.yaml:86:25: error: /paths/~1invoices~1{invoiceId}/delete/via/1: via: middlewear is not a client of the specification; did you mean middleware? [via@specarch.yaml#/paths/~1invoices~1{invoiceId}/delete/via/1]
+  specarch.yaml:86:37: error: /paths/~1invoices~1{invoiceId}/delete/via/2: via: admin-web is an application, and via names the services that carry a person's call; a person's own application calls the edge with an access token [via@specarch.yaml#/paths/~1invoices~1{invoiceId}/delete/via/2]
+  specarch.yaml:86:48: error: /paths/~1invoices~1{invoiceId}/delete/via/3: via: batch proves itself with signedRequest, and a hop in a chain presents a workload identity: mutualTls, spiffe or wimse [via@specarch.yaml#/paths/~1invoices~1{invoiceId}/delete/via/3]
+  specarch.yaml:86:55: error: /paths/~1invoices~1{invoiceId}/delete/via/4: via: middleware is listed twice; list it once [via@specarch.yaml#/paths/~1invoices~1{invoiceId}/delete/via/4]
+  specarch.yaml:94:12: error: /paths/~1invoices~1{invoiceId}/patch/via: via: via names no caller, which would make operation archiveInvoice a route nobody reaches; list the services, or close it with permission: nobody [via@specarch.yaml#/paths/~1invoices~1{invoiceId}/patch/via]

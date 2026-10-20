@@ -115,6 +115,7 @@ func (c *checker) checkClients(d *design) {
 		}
 		if proof != nil {
 			c.checkProof(name, proof, at+"/proof")
+			c.checkTokenProof(d, name, proof, at+"/proof")
 		}
 		if v := source.Child(cl.Value, "softwareVersion"); v != nil {
 			if !versionRange.MatchString(source.Str(v)) {
@@ -284,23 +285,23 @@ func (d *design) admitsPeople(n *yaml.Node) bool {
 // (the confused deputy, ADR-108).
 func (d *design) callerCases(s *subject, n *yaml.Node, perm, what string, atEdge bool) {
 	if perm == permissionNobody {
-		s.red("refused for every caller", frequent, "any caller, signed in or not, with any roles", what, "it is refused: the route is closed on purpose, with the problem the design declares")
+		s.red("refused for every caller", frequent, "any caller, signed in or not, with any roles", what, "it is refused: the route is closed on purpose, with the problem the design declares"+d.event("callers"))
 		return
 	}
 	callers := source.Items(source.Child(n, "callers"))
 	people := d.admitsPeople(n)
 	if len(callers) > 0 {
 		if !people {
-			s.red("refused for a signed-in person", frequent, "a person signed in, whatever roles they hold", what, "it is refused: only the clients listed may call it")
+			s.red("refused for a signed-in person", frequent, "a person signed in, whatever roles they hold", what, "it is refused: only the clients listed may call it"+d.event("callers"))
 		}
-		s.red("refused for every caller not listed", occasional, "a client not listed in callers, whatever its roles grant", what, "it is refused as not allowed")
+		s.red("refused for every caller not listed", occasional, "a client not listed in callers, whatever its roles grant", what, "it is refused as not allowed"+d.event("callers"))
 		for _, item := range callers {
 			cl := d.client(item.Value)
 			if cl == nil {
 				continue
 			}
 			if proof := source.Child(cl, "proof"); source.Str(source.Child(proof, "kind")) == "signedRequest" {
-				s.red("refused with a bad signature from "+item.Value, rare, item.Value+" calls with a signature that does not verify over "+joinAnd(itemValues(source.Child(proof, "covers"))), what, "it is refused as not signed, and nothing changes")
+				s.red("refused with a bad signature from "+item.Value, rare, item.Value+" calls with a signature that does not verify over "+joinAnd(itemValues(source.Child(proof, "covers"))), what, "it is refused as not signed, and nothing changes"+d.event("callers"))
 			}
 			if atEdge {
 				d.versionCase(s, item.Value, cl, what)
@@ -320,7 +321,7 @@ func (d *design) callerCases(s *subject, n *yaml.Node, perm, what string, atEdge
 		}
 	}
 	if d.hasService() {
-		s.red("refused for a service's own token", rare, "a service calling with its own proof or token and no person's token, so that the call carries the service and not the person", what, "it is refused as not allowed: the person, with their rows, roles and through, would be lost")
+		s.red("refused for a service's own token", rare, "a service calling with its own proof or token and no person's token, so that the call carries the service and not the person", what, "it is refused as not allowed: the person, with their rows, roles and through, would be lost"+d.event("deputy"))
 	}
 }
 
@@ -332,7 +333,7 @@ func (d *design) throughCases(s *subject, perm, what string) {
 		if list == nil {
 			continue
 		}
-		s.red("refused through a client not listed for "+r.Key.Value, occasional, "a caller holding "+r.Key.Value+" who signed in through a client other than "+joinAnd(itemValues(list)), what, "it is refused as not allowed")
+		s.red("refused through a client not listed for "+r.Key.Value, occasional, "a caller holding "+r.Key.Value+" who signed in through a client other than "+joinAnd(itemValues(list)), what, "it is refused as not allowed"+d.event("through"))
 	}
 }
 
@@ -340,6 +341,16 @@ func (d *design) throughCases(s *subject, perm, what string) {
 // calling at a version outside it.
 func (d *design) versionCase(s *subject, name string, cl *yaml.Node, what string) {
 	if v := source.Str(source.Child(cl, "softwareVersion")); v != "" {
-		s.red("refused with "+name+" at a version outside its admitted range", occasional, "a caller through "+name+" whose token carries a softwareVersion outside "+v, what, "it is refused with 403 and the problem the design declares")
+		s.red("refused with "+name+" at a version outside its admitted range", occasional, "a caller through "+name+" whose token carries a softwareVersion outside "+v, what, "it is refused with 403 and the problem the design declares"+d.versionEvent(cl))
 	}
+}
+
+// versionEvent is the event clause of a version refusal: medium with a
+// software statement, low when the version is self-asserted (ADR-109).
+func (d *design) versionEvent(cl *yaml.Node) string {
+	e := d.event("software_version")
+	if e != "" && source.Str(source.Child(cl, "softwareStatement")) != "true" {
+		e = strings.Replace(e, "(medium)", "(low)", 1)
+	}
+	return e
 }

@@ -136,6 +136,11 @@ enums:
       - through
       - callers
       - proof
+      - token
+      - claim
+      - via
+      - token_audience
+      - security_events
     valueDescriptions:
       file_kind: a file given by name is neither `specarch.yaml` nor `*.specarch-implementation.yaml`, is part of a specification that should be checked as a whole, or its root key does not match its name
       yaml_syntax: an entry of the file, or the file as a whole, is not well-formed YAML; the entries that parse are still read (ADR-080)
@@ -266,5 +271,10 @@ enums:
       software_version: "a client says softwareVersion while no token declares a softwareVersion claim, so the edge has nothing to check the version against (ADR-106)"
       through: "a role's through names a permission the role does not grant, directly or by implies, a client the specification does not declare, or an empty list, or the specification carries no application a caller signed in through: no token declares client_id or tctx and a session carries none (ADR-106, ADR-108)"
       callers: "an operation's or command's callers is empty, is on a route closed with nobody, names what is neither people nor a declared client, lists a name twice, lists a service with no roles, or lists a client none of whose roles grants the permission (ADR-110)"
-      proof: "a signedRequest proof names no algorithm, an algorithm RFC 9421 does not register or a covered component that is neither a derived component nor a header field name, or a mutualTls proof names an algorithm or covered components (ADR-096)"
-    satisfies: [SA-2, SA-3, SA-4, SA-5, SA-6, SA-9, SA-10, SA-11, SA-12, SA-13, SA-17, SA-18, SA-23, SA-24, SA-27, SA-29, SA-41, SA-42, SA-47, SA-48, SA-49, SA-50, SA-62, SA-63, SA-67, SA-68, SA-69, SA-73, SA-77, SA-78, SA-79]
+      proof: "a signedRequest proof names no algorithm, an algorithm RFC 9421 does not register or a covered component that is neither a derived component nor a header field name; a mutualTls, spiffe or wimse proof names an algorithm, covered components or a token; a token proof names no token, an undeclared one or a transaction token, which a workload must not authenticate itself with (ADR-096, ADR-111)"
+      token: "a JWT with no signature, an opaque token with one, the algorithm none or one RFC 7518 does not register, two tokens marked default or none, an operation naming an undeclared token, a check that names what is not a claim or gives no bool, a transaction token that is not a JWT, lacks txn, sub, scope or req_wl, writes aud, or is accepted where a role's through reaches without tctx.application (ADR-097, ADR-111)"
+      claim: "a registered claim of the JSON Web Token Claims registry retyped, a claim with an underscore outside the registry, or a claim of a caller property's name with another type (ADR-097, ADR-111)"
+      via: "an operation accepting a transaction token or a token declaring act names no via, one accepting neither names it, or via is empty, names an undeclared client, an application, a client twice or a service without a workload-identity proof (ADR-111)"
+      token_audience: "an access token some operation accepts declares no aud with const or enum, or an audience value with a colon that is not a URI (ADR-109)"
+      security_events: "a specification with tokens and clients declares no securityEvents, or its store or alarm is not a dependency (ADR-109)"
+    satisfies: [SA-2, SA-3, SA-4, SA-5, SA-6, SA-9, SA-10, SA-11, SA-12, SA-13, SA-17, SA-18, SA-23, SA-24, SA-27, SA-29, SA-41, SA-42, SA-47, SA-48, SA-49, SA-50, SA-62, SA-63, SA-67, SA-68, SA-69, SA-73, SA-77, SA-78, SA-79, SA-80]

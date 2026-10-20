@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "tokens signed with none and with an algorithm the RFC does not register, a JWT with no signature, an opaque token with one, two defaults, a claim typed unlike the caller property of its name, a check over an undeclared claim and one giving no bool, and an operation naming a token that is not declared"
+when: validate is run
+then: "it reports token for the algorithms, the missing and the surplus signature, the second default, the two checks and the undeclared token with the nearest name, claim for the member identifier's type, and exits 1"
+verifies: [SA-80]

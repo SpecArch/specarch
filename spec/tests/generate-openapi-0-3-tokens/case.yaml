@@ -1,0 +1,5 @@
+arguments: [generate, openapi, --unapproved, project]
+exitStatus: 0
+standardOutput: |
+  project/specarch.yaml:46:3: warning: /tokens: generator: the specification declares tokens, which give the security schemes, so the target's securityScheme setting is not used; remove it from the openapi target [generator@specarch.yaml#/tokens]
+plugins: [openapi]

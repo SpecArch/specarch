@@ -231,7 +231,13 @@ hints are left out. Permissions become the security scheme the target's
 settings name under `securityScheme` (its `name` and the OpenAPI scheme
 object), required on every operation that is not public, plus the
 `x-specarch-permission` extension; without the setting the document has
-no scheme. A response that names a problem type answers
+no scheme. A specification that declares tokens gives the schemes itself
+(ADR-097, ADR-111): a bearer scheme named after each accepted access
+token, with `bearerFormat: JWT` for a JWT, an `apiKey` scheme in the
+`Txn-Token` header for a transaction token, and each operation's security
+requirement names the token it accepts; the target's `securityScheme`
+setting is then not used, and a warning says so. An operation's `callers`
+go into `x-specarch-callers`. A response that names a problem type answers
 `application/problem+json` with RFC 9457's problem schema and names the
 type in `x-specarch-problem`; the catalogue is `x-specarch-problems`. A
 list takes the names of the paginated-list idiom that applies: query

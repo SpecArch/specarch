@@ -1,0 +1,8 @@
+arguments: [validate, .]
+exitStatus: 1
+standardOutput: |
+  specarch.yaml:34:3: error: /tokens/transaction: token: transaction is a transaction token and declares no req_wl; a transaction token declares the draft's claims txn, sub, scope, req_wl [token.17309e61@specarch.yaml#/tokens/transaction]
+  specarch.yaml:34:3: error: /tokens/transaction: token: transaction is a transaction token and declares no scope; a transaction token declares the draft's claims txn, sub, scope, req_wl [token.9bb1a473@specarch.yaml#/tokens/transaction]
+  specarch.yaml:34:3: error: /tokens/transaction: token: transaction is accepted where a role's through reaches, and declares no tctx.application, the application the person signed in through, immutable from the edge on; add tctx with properties.application [token.d74b8c80@specarch.yaml#/tokens/transaction]
+  specarch.yaml:36:13: error: /tokens/transaction/format: token: transaction is a transaction token, which is a JWT (the Transaction Tokens draft); set format: jwt [token@specarch.yaml#/tokens/transaction/format]
+  specarch.yaml:42:12: error: /tokens/transaction/claims/aud: token: aud is not written on a transaction token: its audience is the trust domain, one value for every hop (the draft, section 9.2); remove aud [token@specarch.yaml#/tokens/transaction/claims/aud]

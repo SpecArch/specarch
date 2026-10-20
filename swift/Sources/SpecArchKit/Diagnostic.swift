@@ -133,6 +133,11 @@ public enum Rule: String, CaseIterable, Sendable {
     case through = "through"
     case callers = "callers"
     case proof = "proof"
+    case token = "token"
+    case claim = "claim"
+    case via = "via"
+    case tokenAudience = "token_audience"
+    case securityEvents = "security_events"
 }
 
 /// Whether a diagnostic makes the file invalid.

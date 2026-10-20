@@ -1,0 +1,100 @@
+specarch: "0.3"
+info: { title: Case, version: 1.0.0 }
+stages: [implementation]
+entities:
+  Invoice:
+    type: object
+    properties:
+      id: { type: string, maxLength: 36 }
+      organisationId: { type: string, maxLength: 36 }
+    required: [id, organisationId]
+    primaryKey: [id]
+caller:
+  description: Who is making the call, once the token has been checked.
+  properties:
+    organisationId: { type: string, maxLength: 36, description: The organisation the caller belongs to. }
+permissions:
+  invoices.read: { description: See invoices. }
+  invoices.delete: { description: Delete invoices. }
+roles:
+  invoice-manager:
+    description: Staff who manage invoices, who may delete them only from the administration application.
+    permissions: [invoices.read, invoices.delete]
+    through:
+      invoices.delete: [admin-web]
+clients:
+  admin-web:
+    description: The administration application in the browser, where staff sign in.
+    kind: application
+    softwareVersion: ">=1.2.0 <2.0.0"
+    softwareStatement: true
+  middleware:
+    description: The service between the front ends' backend and this one, which calls on the person's behalf.
+    kind: service
+    proof: { kind: spiffe }
+dependencies:
+  securityLog:
+    description: The append-only store of security events.
+    timeout: PT2S
+  pager:
+    description: The alarm channel.
+    timeout: PT2S
+securityEvents:
+  store: securityLog
+  alarm: pager
+tokens:
+  access:
+    description: What a signed-in person presents on every call at the edge.
+    format: jwt
+    lifetime: PT15M
+    signature: ES256
+    claims:
+      sub: { description: The person's identifier. }
+      aud: { const: "https://invoices.example.org" }
+      client_id: { description: The application the person signed in through. }
+      softwareVersion: { type: string, maxLength: 20, description: "The application's version, as the issuer registered it." }
+      organisationId: { type: string, maxLength: 36, description: The organisation the person belongs to. }
+    checks:
+      organisation-known: { expression: size(organisationId) > 0, message: The organisation is known. }
+    default: true
+  transaction:
+    description: What a hop presents when it calls the next on a person's behalf, inside the trust domain.
+    format: jwt
+    tokenType: txn_token
+    lifetime: PT5M
+    signature: ES256
+    claims:
+      txn: { description: "The transaction's identifier, one for the whole call." }
+      sub: { description: The person acted for. }
+      scope: { description: The permission the edge operation checked. }
+      req_wl: { description: The edge workload that requested the token. }
+      tctx:
+        properties:
+          application: { description: The software_id of the application the person signed in through. }
+paths:
+  /invoices:
+    get:
+      operationId: listInvoices
+      summary: List invoices
+      permission: invoices.read
+      responses:
+        "200": { description: The invoices. }
+  /invoices/{invoiceId}:
+    parameters:
+      - { name: invoiceId, in: path, required: true, schema: { type: string, maxLength: 36 } }
+    delete:
+      operationId: deleteInvoice
+      summary: Delete an invoice, called by the middleware on a person's behalf
+      permission: invoices.delete
+      token: transaction
+      via: [middleware]
+      responses:
+        "204": { description: Deleted. }
+tests:
+  list-invoices-succeeds: { operation: listInvoices, level: system, scenario: golden, given: a caller with invoices.read, when: listInvoices is called, then: it answers 200 }
+  list-invoices-denied: { operation: listInvoices, level: system, scenario: red, covers: [denied without invoices.read], given: a caller without invoices.read, when: listInvoices is called, then: it is refused }
+  list-invoices-expired: { operation: listInvoices, level: system, scenario: red, covers: [denied with expired access], given: an access token expired after 15 minutes, when: listInvoices is called, then: "it is refused as not signed in, and the event token (low) is written" }
+  delete-invoice-succeeds: { operation: deleteInvoice, level: system, scenario: golden, given: the middleware with a transaction token for an invoice manager through admin-web, when: deleteInvoice is called, then: it answers 204 }
+  delete-invoice-not-found: { operation: deleteInvoice, level: system, scenario: red, covers: [not found invoiceId], given: no invoice with that invoiceId, when: deleteInvoice is called, then: it is refused as not found }
+  delete-invoice-denied: { operation: deleteInvoice, level: system, scenario: red, covers: [denied without invoices.delete], given: a caller without invoices.delete, when: deleteInvoice is called, then: it is refused }
+  delete-invoice-expired: { operation: deleteInvoice, level: system, scenario: red, covers: [denied with expired transaction], given: a transaction token expired after 5 minutes, when: deleteInvoice is called, then: "it is refused as not signed in, and the event token (low) is written" }

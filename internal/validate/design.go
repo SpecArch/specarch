@@ -213,6 +213,7 @@ func (c *checker) checkDesign(d *design) {
 	c.checkClients(d)
 	c.checkThrough(d)
 	c.checkCallers(d)
+	c.checkTokens(d)
 	c.checkImplies(d)
 	c.checkSeparationOfDuties(d)
 	c.checkExpressions(d)

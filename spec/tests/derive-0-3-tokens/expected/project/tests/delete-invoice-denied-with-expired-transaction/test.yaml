@@ -1,0 +1,9 @@
+operation: deleteInvoice
+level: system
+scenario: red
+covers: [denied with expired transaction]
+given: "a caller whose transaction token has expired after PT5M"
+when: "deleteInvoice is called"
+then: "it is refused as not signed in, and the security event token (low) is written"
+origin: inferred
+why: "Written by specarch derive: users get this wrong often, so the case is written. A draft: complete the given, when and then, and remove what does not hold."

@@ -1,0 +1,9 @@
+arguments: [derive, project]
+exitStatus: 0
+standardOutput: |
+  project/tests/list-invoices-denied-without-invoices-read/test.yaml
+  project/tests/list-invoices-denied-with-expired-access/test.yaml
+  project/tests/delete-invoice-succeeds/test.yaml
+  project/tests/delete-invoice-not-found-invoice-id/test.yaml
+  project/tests/delete-invoice-denied-without-invoices-delete/test.yaml
+  project/tests/delete-invoice-denied-with-expired-transaction/test.yaml

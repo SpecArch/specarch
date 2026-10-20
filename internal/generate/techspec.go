@@ -779,6 +779,71 @@ func crossCutting(d *doc, root *yaml.Node) {
 			}
 			d.blank()
 		}
+		if tokens := pairs(root, "tokens"); len(tokens) > 0 {
+			d.para("The tokens: the formats the service issues and accepts. An access token rides in the Authorization header as a bearer token and is accepted only for the audience it names; a transaction token rides in the Txn-Token header across the trust domain, minted once at the edge and passed on unmodified, and each hop accepts it only from the immediate callers its via names, each proving its workload identity. A claim fills the caller's property of the same name. The one default token is what every operation accepts unless it names another.")
+			d.line("| Token | Kind | Header | Audience | Lifetime | Signature | Claims | Accepted by |")
+			d.line("|---|---|---|---|---|---|---|---|")
+			for _, t := range tokens {
+				kind, header, audience := "access token", "Authorization: Bearer", "none fixed"
+				if str(t.Value, "tokenType") == "txn_token" {
+					kind, header, audience = "transaction token", "Txn-Token", "the trust domain"
+				} else if aud := get(get(t.Value, "claims"), "aud"); aud != nil {
+					if v := str(aud, "const"); v != "" {
+						audience = v
+					} else if vs := strs(aud, "enum"); len(vs) > 0 {
+						audience = strings.Join(vs, ", ")
+					}
+				}
+				name := t.Key.Value
+				if str(t.Value, "default") == "true" {
+					name += " (default)"
+				}
+				var claims []string
+				for _, c := range pairs(t.Value, "claims") {
+					claims = append(claims, c.Key.Value)
+				}
+				var by []string
+				for _, o := range operations(root) {
+					if acceptedTokenOf(root, o.node) == t.Key.Value {
+						via := strs(o.node, "via")
+						if len(via) > 0 {
+							by = append(by, o.id+" via "+strings.Join(via, ", "))
+						} else {
+							by = append(by, o.id)
+						}
+					}
+				}
+				if len(by) == 0 {
+					by = []string{"no operation"}
+				}
+				sig := str(t.Value, "signature")
+				if sig == "" {
+					sig = "none: opaque"
+				}
+				d.line("| %s | %s, %s | %s | %s | %s | %s | %s | %s |", name, kind, str(t.Value, "format"), header, cell(audience), str(t.Value, "lifetime"), sig, cell(strings.Join(claims, ", ")), cell(strings.Join(by, "; ")))
+			}
+			d.blank()
+			d.explainRows(pairRows(root, "tokens"))
+			if chain := callChain(root); chain != "" {
+				d.para("The delegation chain each operation accepts, hop by hop, with the token on each arrow: the services via names call the operation on the person's behalf, each presenting its workload identity.")
+				d.block(fence(chain))
+			}
+		}
+		if se := source.Child(root, "securityEvents"); se != nil {
+			d.heading(3, "Security events")
+			d.para(fmt.Sprintf("Every refusal of a caller writes a security event, a Security Event Token (RFC 8417) holding the rule, the severity, the operation, the client, the subject and the hash of the refused token, never the token itself, to %s, the append-only store; an event of severity high, or a repeat for one client within the window the deployment sets, goes to %s, the alarm channel, as well. The events, by the rule that refuses:", str(se, "store"), str(se, "alarm")))
+			d.line("| Refusal | Rule | Severity |")
+			d.line("|---|---|---|")
+			d.line("| a token for another audience | token_audience | high |")
+			d.line("| an immediate caller not listed in via | via | high |")
+			d.line("| the confused deputy, each form | deputy | high |")
+			d.line("| a caller not in callers, or a closed route | callers | medium |")
+			d.line("| an application not in through | through | medium |")
+			d.line("| a version outside the admitted range, with a software statement | software_version | medium |")
+			d.line("| a version outside the admitted range, self-asserted | software_version | low |")
+			d.line("| an expired token | token | low |")
+			d.blank()
+		}
 		if rule := str(source.Child(root, "info"), "roleNames"); rule == wirename.UpperSnake {
 			d.para("Every role goes on the wire in upper snake case (info.roleNames): in a token's roles claim and in the tables the permission check reads, a role is its name in capitals with each hyphen an underscore.")
 			d.line("| Role | On the wire |")
@@ -1667,4 +1732,33 @@ func proofText(proof *yaml.Node) string {
 		return "none: a public client, whose name in a token is the issuer's word"
 	}
 	return str(proof, "kind")
+}
+
+// acceptedTokenOf is the token an operation accepts: the one it names, or
+// the default, or "".
+func acceptedTokenOf(root, op *yaml.Node) string {
+	if name := str(op, "token"); name != "" {
+		return name
+	}
+	for _, t := range pairs(root, "tokens") {
+		if str(t.Value, "default") == "true" {
+			return t.Key.Value
+		}
+	}
+	return ""
+}
+
+// callChain draws every operation's via as a flowchart: each service
+// that calls it on a person's behalf, with the token on the arrow.
+func callChain(root *yaml.Node) string {
+	var b strings.Builder
+	for _, o := range operations(root) {
+		for _, caller := range strs(o.node, "via") {
+			fmt.Fprintf(&b, "    %s -->|%s| %s\n", mermaidID(caller), acceptedTokenOf(root, o.node), o.id)
+		}
+	}
+	if b.Len() == 0 {
+		return ""
+	}
+	return "flowchart LR\n" + b.String()
 }

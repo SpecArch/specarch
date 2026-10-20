@@ -1,0 +1,57 @@
+specarch: "0.3"
+info: { title: Case, version: 1.0.0 }
+permissions:
+  invoices.delete: { description: Delete invoices. }
+roles:
+  invoice-manager:
+    description: Staff who manage invoices.
+    permissions: [invoices.delete]
+    through:
+      invoices.delete: [admin-web]
+clients:
+  admin-web:
+    description: The administration application.
+    kind: application
+  middleware:
+    description: The middleware.
+    kind: service
+    proof: { kind: spiffe }
+dependencies:
+  securityLog: { description: The store., timeout: PT2S }
+  pager: { description: The alarm., timeout: PT2S }
+securityEvents: { store: securityLog, alarm: pager }
+tokens:
+  access:
+    description: The edge's token.
+    format: jwt
+    lifetime: PT15M
+    signature: ES256
+    claims:
+      sub: { description: The person. }
+      aud: { const: "https://invoices.example.org" }
+      client_id: { description: The application. }
+    default: true
+  transaction:
+    description: A transaction token that is opaque, lacks scope and req_wl, writes aud and declares no tctx.application while through reaches it.
+    format: opaque
+    tokenType: txn_token
+    lifetime: PT5M
+    claims:
+      txn: { description: The transaction. }
+      sub: { description: The person. }
+      aud: { const: "https://invoices.example.org" }
+paths:
+  /invoices/{invoiceId}:
+    parameters:
+      - { name: invoiceId, in: path, required: true, schema: { type: string, maxLength: 36 } }
+    delete:
+      operationId: deleteInvoice
+      summary: Delete an invoice
+      permission: invoices.delete
+      token: transaction
+      via: [middleware]
+      responses:
+        "204": { description: Deleted. }
+tests:
+  delete-invoice-succeeds: { operation: deleteInvoice, level: system, scenario: golden, given: the middleware, when: deleteInvoice is called, then: it answers 204 }
+  delete-invoice-refused: { operation: deleteInvoice, level: system, scenario: red, covers: [not found invoiceId, denied without invoices.delete, denied with expired transaction], given: a bad call, when: deleteInvoice is called, then: it is refused }

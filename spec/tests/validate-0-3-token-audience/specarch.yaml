@@ -1,0 +1,37 @@
+specarch: "0.3"
+info: { title: Case, version: 1.0.0 }
+permissions:
+  loans.read: { description: See loans. }
+roles:
+  member:
+    description: A card holder.
+    permissions: [loans.read]
+tokens:
+  access:
+    description: An accepted access token with no audience.
+    format: jwt
+    lifetime: PT15M
+    signature: ES256
+    claims:
+      sub: { description: The person. }
+      aud: { description: "The audience, with no value fixed." }
+    default: true
+  issued:
+    description: A token the service issues and no operation accepts, whose audience differs per exchange.
+    format: jwt
+    lifetime: PT5M
+    signature: ES256
+    claims:
+      sub: { description: The person. }
+      aud: { description: The service the exchange names. }
+paths:
+  /loans:
+    get:
+      operationId: listLoans
+      summary: List loans
+      permission: loans.read
+      responses:
+        "200": { description: The loans. }
+tests:
+  list-loans-succeeds: { operation: listLoans, level: system, scenario: golden, given: a caller with loans.read, when: listLoans is called, then: it answers 200 }
+  list-loans-denied: { operation: listLoans, level: system, scenario: red, covers: [denied without loans.read, denied with expired access], given: a caller without loans.read, when: listLoans is called, then: it is refused }

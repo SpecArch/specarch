@@ -182,6 +182,9 @@ not a user mistake.
 | shows only the rows of a role, a record outside the rows is not found, a change outside the rows is refused, a job acts only on the rows | frequent | a caller reaching for another's records, by mistake or on purpose |
 | refused for every caller, refused for a signed-in person | frequent | a closed route, or a machine route a person calls by mistake |
 | refused for every caller not listed, refused through a client not listed, refused at a version outside the admitted range | occasional | a client or an application the specification does not admit there |
+| denied with expired token | frequent | every user meets it after a pause |
+| a check fails on a token, refused with a token for another audience | occasional | a token minted elsewhere, or for another service |
+| refused when the actor is the subject, refused with a caller not listed in via, the confused deputy's token forms | rare | an attack rather than a mistake |
 | refused with a bad signature, refused for a service's own token | rare | an attack rather than a mistake; chosen through the harm of the requirements the route satisfies |
 | guard precondition fails | occasional | a stale screen |
 | concurrent write | rare | but critical by nature, see below |
@@ -290,6 +293,7 @@ meta-model it is derived from (`docs/conventions.md` has each concept):
 | expired data | `validity` on the entity a body field names (`expired`, `not yet valid`) |
 | session expiry | the `session` (`denied with expired session`, for every permission other than public) |
 | callers | the route's `callers`, `nobody` and the clients (`refused for every caller`, `refused for a signed-in person`, `refused for every caller not listed`, `refused with a bad signature from <client>`, `refused with <client> at a version outside its admitted range`, `refused for a service's own token`) and a role's `through` (`refused through a client not listed for <role>`) |
+| tokens | the token an operation accepts (`denied with expired <token>`, `<check> fails on <token>`, `refused when the actor is the subject`, `refused with a token for another audience`), its `via` (`refused with a caller not listed in via`) and, once a service exists, the deputy's token forms (`refused for a person's token requested by a service with no actor`, `refused with a req_wl that is not an edge`, `refused with a txn differing from the one received`); each ends with its security event once `securityEvents` is declared |
 | rows | a role's `rows` rule over the entity an operation reads or writes, where the role holds the operation's permission (`shows only the rows of <role>` for a list, `a record outside the rows of <role> is not found` for a read by key, `a change outside the rows of <role> is refused` for a write), and over an entity a job acting as the role reads or writes (`acts only on the rows of <role> in <entity>`) |
 | concurrency | the `guard` on the operation or command (`concurrent write`, and `guard precondition fails`) |
 

@@ -65,20 +65,20 @@ extension Design {
     /// build's callerCases).
     func callerCases(_ s: Subject, _ n: YNode, _ perm: String, _ what: String, atEdge: Bool) {
         if perm == permissionNobody {
-            s.red("refused for every caller", frequent, "any caller, signed in or not, with any roles", what, "it is refused: the route is closed on purpose, with the problem the design declares")
+            s.red("refused for every caller", frequent, "any caller, signed in or not, with any roles", what, "it is refused: the route is closed on purpose, with the problem the design declares" + event("callers"))
             return
         }
         let callers = items(n.child("callers"))
         let people = admitsPeople(n)
         if !callers.isEmpty {
             if !people {
-                s.red("refused for a signed-in person", frequent, "a person signed in, whatever roles they hold", what, "it is refused: only the clients listed may call it")
+                s.red("refused for a signed-in person", frequent, "a person signed in, whatever roles they hold", what, "it is refused: only the clients listed may call it" + event("callers"))
             }
-            s.red("refused for every caller not listed", occasional, "a client not listed in callers, whatever its roles grant", what, "it is refused as not allowed")
+            s.red("refused for every caller not listed", occasional, "a client not listed in callers, whatever its roles grant", what, "it is refused as not allowed" + event("callers"))
             for item in callers {
                 guard let cl = client(item.value) else { continue }
                 if let proof = cl.child("proof"), str(proof.child("kind")) == "signedRequest" {
-                    s.red("refused with a bad signature from " + item.value, rare, item.value + " calls with a signature that does not verify over " + joinAnd(items(proof.child("covers")).map { $0.value }), what, "it is refused as not signed, and nothing changes")
+                    s.red("refused with a bad signature from " + item.value, rare, item.value + " calls with a signature that does not verify over " + joinAnd(items(proof.child("covers")).map { $0.value }), what, "it is refused as not signed, and nothing changes" + event("callers"))
                 }
                 if atEdge { versionCase(s, item.value, cl, what) }
             }
@@ -90,7 +90,7 @@ extension Design {
             versionCase(s, cl.key.value, cl.value, what)
         }
         if hasService {
-            s.red("refused for a service's own token", rare, "a service calling with its own proof or token and no person's token, so that the call carries the service and not the person", what, "it is refused as not allowed: the person, with their rows, roles and through, would be lost")
+            s.red("refused for a service's own token", rare, "a service calling with its own proof or token and no person's token, so that the call carries the service and not the person", what, "it is refused as not allowed: the person, with their rows, roles and through, would be lost" + event("deputy"))
         }
     }
 
@@ -99,7 +99,7 @@ extension Design {
     func throughCases(_ s: Subject, _ perm: String, _ what: String) {
         for r in pairs(root.child("roles")) {
             guard let list = r.value.child("through")?.child(perm) else { continue }
-            s.red("refused through a client not listed for " + r.key.value, occasional, "a caller holding " + r.key.value + " who signed in through a client other than " + joinAnd(items(list).map { $0.value }), what, "it is refused as not allowed")
+            s.red("refused through a client not listed for " + r.key.value, occasional, "a caller holding " + r.key.value + " who signed in through a client other than " + joinAnd(items(list).map { $0.value }), what, "it is refused as not allowed" + event("through"))
         }
     }
 
@@ -108,7 +108,7 @@ extension Design {
     func versionCase(_ s: Subject, _ name: String, _ cl: YNode, _ what: String) {
         let v = str(cl.child("softwareVersion"))
         if !v.isEmpty {
-            s.red("refused with " + name + " at a version outside its admitted range", occasional, "a caller through " + name + " whose token carries a softwareVersion outside " + v, what, "it is refused with 403 and the problem the design declares")
+            s.red("refused with " + name + " at a version outside its admitted range", occasional, "a caller through " + name + " whose token carries a softwareVersion outside " + v, what, "it is refused with 403 and the problem the design declares" + versionEvent(cl))
         }
     }
 }
@@ -141,7 +141,10 @@ extension Checker {
             } else if kind == "service" && proof == nil {
                 add(cl.key, at, .client, "\(name) is a service with no proof; a service proves itself on each request with a signed request or its client certificate; add proof")
             }
-            if let proof { checkProof(name, proof, at + "/proof") }
+            if let proof {
+                checkProof(name, proof, at + "/proof")
+                checkTokenProof(d, name, proof, at + "/proof")
+            }
             if let v = cl.value.child("softwareVersion") {
                 if !matches(versionRange, str(v)) {
                     add(v, at + "/softwareVersion", .client, "softwareVersion \(str(v)) is not a range written >=<lower> <<upper>, each a Semantic Versioning 2.0.0 version, such as >=1.2.0 <2.0.0")

@@ -503,6 +503,7 @@ func (d *design) operationSubject(o operation) *subject {
 	s.closed = perm == permissionNobody
 	d.denied(s, perm, call)
 	d.callerCases(s, o.node, perm, call, true)
+	d.tokenCases(s, o, perm, call)
 	d.rowsCases(s, o, call)
 	d.disabled(s, o.node, call)
 	seenChannel := map[string]bool{}

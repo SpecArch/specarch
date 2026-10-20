@@ -1,0 +1,9 @@
+operation: listInvoices
+level: system
+scenario: red
+covers: [denied without invoices.read]
+given: "a caller without invoices.read"
+when: "listInvoices is called"
+then: "it is refused as not allowed"
+origin: inferred
+why: "Written by specarch derive: users get this wrong often, so the case is written. A draft: complete the given, when and then, and remove what does not hold."

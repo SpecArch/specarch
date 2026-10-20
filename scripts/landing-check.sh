@@ -44,9 +44,12 @@ step() {
 	fi
 }
 
+build_specarch() {
+	mkdir -p "$bin" && go build -o "$bin/specarch" ./cmd/specarch
+}
+
 build_tools() {
-	mkdir -p "$bin" || return 1
-	go build -o "$bin/specarch" ./cmd/specarch || return 1
+	build_specarch || return 1
 	for generator in sql sqlc openapi ui ui-typescript ui-swiftui bpmn; do
 		go build -o "$bin/specarch-gen-$generator" ./cmd/specarch-gen-$generator || return 1
 	done
@@ -114,7 +117,7 @@ if [ "$parts" != go ]; then
 	step "swift build" swift build -c release --package-path swift
 	step "swift test, including the conformance suite" swift test --package-path swift
 	if [ "$parts" = swift ]; then
-		step "build specarch into .bin" build_tools
+		step "build specarch into .bin" build_specarch
 	fi
 	step "the Swift build's validate output is the Go build's" validate_same
 	step "both builds print the same model of the specification, every example and the estate" model_same

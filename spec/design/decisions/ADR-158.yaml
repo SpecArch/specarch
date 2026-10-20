@@ -27,7 +27,9 @@ decisions:
       - the guard's entity has transitions whose trigger is the entry: the
         change sets the stateField to their to, on the records in one of
         their from states; every transition with that trigger must have
-        one to;
+        one to, and it must not be one of the from states, since a record
+        moved to the state it was in cannot be told from one not yet
+        moved and a second run would move it again;
       - a PUT whose request body is the guard's entity, on a path with one
         parameter: the change sets every column a caller may set, by the
         key;
@@ -40,7 +42,8 @@ decisions:
       by an operation on a path with no parameter, changes every record
       in a from state for which the precondition holds, and their number
       must be recordsChanged. Every other guarded entry (a POST, a PATCH,
-      a command no transition names) is a warning at its guard, and its
+      a command no transition names, a transition back to the state it
+      leaves) is a warning at its guard, and its
       script is left to be written by hand. An entity another stakeholder
       owns gets no script.
 

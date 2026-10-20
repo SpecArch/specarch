@@ -1037,7 +1037,7 @@ is derived by keyword only (ADR-158):
 
 | The guarded entry | The change |
 |---|---|
-| the trigger of transitions of the guard's entity, all with one `to` | sets the `stateField` to `to`, on the records in one of their `from` states |
+| the trigger of transitions of the guard's entity, all with one `to` that is none of their `from` states | sets the `stateField` to `to`, on the records in one of their `from` states |
 | a PUT whose request body is the guard's entity, on a path with one parameter | sets every column a caller may set, by the key |
 | a DELETE on a path with one parameter | deletes the record by the key, or sets its soft-delete flag |
 
@@ -1049,7 +1049,9 @@ precondition holds, and their number must be `recordsChanged`. A guarded
 POST, a guarded PATCH and a command no transition names say no more than
 that something is written, so each is a warning at its guard and its script
 is left to be written by hand; so are transitions of one trigger with two
-`to` states, a keyed change whose `recordsChanged` is not 1 and an entity
+`to` states, a transition back to the state it leaves (a record already
+moved cannot be told from one not yet moved, so a second run would move it
+again), a keyed change whose `recordsChanged` is not 1 and an entity
 whose key is not one field. An entity another stakeholder owns gets no
 script. The columns are the ones `specarch-gen-sql` creates, read through
 the same model, and the precondition is written as that generator writes a

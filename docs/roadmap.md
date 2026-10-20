@@ -204,11 +204,15 @@ implementation file uses and compares an override with the shipped idiom.
    in the manual, the handling of a dead-letter item in the operations
    guide, and other project documents. The handover document (0.7.0) says
    what a customer who runs the system receives.
-8. Partly built: guarded operational scripts for data changes on live
-   systems: preconditions, dry run by default, postconditions with exact
-   counts, idempotent. Built, 0.3.0: the `guard` on an operation or a
-   command they are emitted from (`spec/tests/validate-guard`). Not built:
-   the generator that writes the scripts.
+8. Built: guarded operational scripts for data changes on live systems:
+   preconditions, dry run by default, postconditions with exact counts,
+   idempotent. The `guard` on an operation or a command they are emitted
+   from came in 0.3.0 (`spec/tests/validate-guard`); `specarch-gen-scripts`
+   (0.7.2, ADR-158, `spec/tests/generate-scripts`) writes a psql script for
+   PostgreSQL per guarded entry whose change a transition it triggers, a PUT
+   by its key or a DELETE by its key says, and warns at the guard for every
+   other change, left to be written by hand. Not built: another dialect, and
+   a word in the meta-model for what any other change writes.
 
 "Any language or framework" means any stack that has a generator written for
 it. Generators are added one stack at a time, driven by the real projects

@@ -2,22 +2,18 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.2-dev of the specification: 593 design tests, 274 golden and 319 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.2-dev of the specification: 607 design tests, 283 golden and 324 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
-**Problems:** 3 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
-
-**Problem:** warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SA-75; add verifies: [SA-75] to the test that shows it is met [requirement_unverified@requirements/requirements/design-keywords.yaml#/requirements/SA-75]
+**Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
 **Problem:** warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SA-57; add verifies: [SA-57] to the test that shows it is met [requirement_unverified@requirements/requirements/refinement.yaml#/requirements/SA-57]
-
-**Problem:** warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SA-76; add verifies: [SA-76] to the test that shows it is met [requirement_unverified@requirements/requirements/refinement.yaml#/requirements/SA-76]
 
 ## 1. Levels and how the tests run
 
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 589 |
+| system | 603 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -100,6 +96,22 @@ Scenario: red; level: system; covers exit 1; verifies SA-72.
 - Given: the branches and copies of the golden case, where the route table's GET /copies/{copyId} checks no permission, the permission table grants nothing to the visitor and grants a role the specification does not declare, and the allowlist repeats a line and holds a line for a difference there is not, a line for a report and a line that is no id
 - When: check is run with the allowlist on the three dumps
 - Then: it prints the CHAR column the allowlist no longer names, the permission that differs, the visitor's grant the code does not hold and the undeclared role's grant at its line of the dump as errors, the two reports as warnings, and each of the five lines of the allowlist that allow nothing as allowlist_stale at its line, and exits 1
+
+#### check-gateway-forward-moved
+
+Scenario: red; level: system; covers exit 1; verifies SA-76.
+
+- Given: a specification whose gateway api forwards the loans audience to loans and the archive audience to reports, and a committed gateway table whose row for the loans audience names the service reports and whose row for the archive audience names none
+- When: check is run with the table
+- Then: it reports forward_differs at the forward of the loans audience as an error and at the forward of the archive audience as a report, the name made from the value being a guess, and exits 1
+
+#### check-gateway-forward-removed
+
+Scenario: red; level: system; covers exit 1; verifies SA-76.
+
+- Given: a specification whose gateway api forwards to loans and to reports, and a committed gateway table forwarding to loans and to catalogue
+- When: check is run with the table
+- Then: it reports forward_not_served at the specification's forward to reports and forward_not_specified at the table's row for catalogue, and exits 1
 
 #### check-skips-a-partition
 
@@ -761,6 +773,14 @@ Scenario: golden; level: system; verifies SA-77, SA-7.
 - When: document techspec is run
 - Then: the runtime view lists the handshake with its key agreement, signature, cipher, establishing operation with its method and path, lifetime and envelopes, and what a client does for it in five steps; says of the encrypted operation that it travels in the envelope, naming the establishing operation, and notes the envelope in its sequence diagram with the request and the answer sealed; says of the upload that it streams the request body in as a file with its media type and bound in place of a body table; says of each download that it streams the response body out, its success response reading the file, streamed, with the bound where one is declared, and of the encrypted download that the file comes back outside the envelope; and exits 0
 
+#### document-techspec-gateway
+
+Scenario: golden; level: system; verifies SA-75.
+
+- Given: the specification of validate-gateway: a gateway api that verifies serviceAccess, reads aud, forwards to loans and catalogue and calls the identity provider, with three refusals and three tests
+- When: document techspec is run
+- Then: the context diagram draws an edge labelled api by aud to loans and to catalogue and one labelled api to the identity provider, the dependencies table names gateway api as the caller of each, and chapter 6 has a section Gateway api with the token's format, algorithm and issuer, the claim, the forwards as a table, the call, the refusals, the tests that name it and the sequence of one forwarded request
+
 #### document-techspec-handler
 
 Scenario: golden; level: system; verifies SA-7.
@@ -832,6 +852,14 @@ Scenario: golden; level: system; verifies SA-16, SA-24.
 - Given: requirements meant for a released and a planned release, and one with no release, verified by design tests
 - When: document testplan is run
 - Then: it writes testplan.md with the requirements grouped by release, oldest first, each with the tests that verify it, the one with no release last, and exits 0
+
+#### document-testplan-gateway
+
+Scenario: golden; level: system; verifies SA-75.
+
+- Given: the specification of validate-gateway, whose three tests name the gateway api
+- When: document testplan is run
+- Then: the gateway is a subject of its own, Gateway api, with its three tests beside the operation's, and its occasional and rare cases no test covers are listed among the derived cases left out
 
 #### document-testplan-left-out
 
@@ -1139,6 +1167,22 @@ Scenario: red; level: system; covers exit 1; verifies SA-44.
 - When: extract database is run on it
 - Then: it says the file is not a catalogue dump, writes nothing and exits 1
 
+#### extract-gateway
+
+Scenario: golden; level: system; verifies SA-76.
+
+- Given: a gateway table of the gateway api, reading aud, resolved in production, with a row naming loans with its setting and address, a row with no name whose setting and address are given, and a row naming reports whose setting's name holds key and which gives no address; the table and the folder it names committed in a repository
+- When: extract gateway is run with --implementation-out
+- Then: it writes the gateway api with its claim and three forwards, cited at the table and each row, a must question for its description and one for its token and a should question for its refusals; the dependencies loans, catalogue, named after the host, and reports, of kind system, the first two over https, with a must question each for the description and timeout, a should question for the protocol of reports and a could question to rename catalogue; three settings under configuration, strings of format uri and no secret, with a should question to confirm two are no secret and a must question for the one whose name holds key; and the fragment of the deployment production with the two servers that have an address and the two settings' values
+
+#### extract-gateway-value-twice
+
+Scenario: red; level: system; covers exit 1; verifies SA-76.
+
+- Given: a gateway table whose two rows hold one value
+- When: extract gateway is run
+- Then: it refuses the table, naming both rows, since a request goes to one service, writes nothing and exits 1
+
 #### extract-go-bypassed-check
 
 Scenario: golden; level: system; verifies SA-44.
@@ -1265,7 +1309,7 @@ Scenario: golden; level: system; verifies SA-44.
 
 - Given: a repository holding a Go module whose files register routes on net/http's ServeMux (method patterns, a pattern with no method, one with a host, a rest wildcard, the exact root, a HEAD route, a mux handed a subtree through StripPrefix, a subtree handed to a handler that is not a router, and a pattern built in a loop), on chi (Route, Group, With, Method, Mount of a router a function returns, Handle for every method, a route behind a condition, a parameter with a pattern, a catch-all and a Route with a computed prefix), on gin (nested groups, Handle, Any and a catch-all), on echo (Group, Add and Match) and on gorilla/mux (HandleFunc with Methods, a subrouter under PathPrefix, Path with HandlerFunc, a route with no Methods and one with Queries); handlers that read a path parameter their path does not have; a function given a router that nothing in the module calls; and a file that imports echo and registers nothing; with no implementation file
 - When: extract go is run on the module
-- Then: it writes one operation per route whose method and path it reads as literals, outside a loop or a condition, with the prefixes of groups, routes, mounts, subrouters and StripPrefix joined and each library's parameters written {name}, named after its handler as extract router names one, citing its registration and its handler; asks a must question for the route in a loop, the one behind a condition, the routes for every method, the subtree handed to a handler that is not a router, the computed prefix, the router given to a function nothing calls, each parameter read that the path does not have, each operation's permission, since no implementation file names the check, its summary and responses, and whether the running system registers it; asks a must question blocking the design stage for each route whose path ends in a wildcard or a catch-all, naming its prefix and methods; prints a line and asks a could question for the host, the HEAD route, the Queries route, the parameters' patterns and each handler that serves more than one route; names the file that registers nothing; and exits 0
+- Then: it writes one operation per route whose method and path it reads as literals, outside a loop or a condition, with the prefixes of groups, routes, mounts, subrouters and StripPrefix joined and each library's parameters written {name}, named after its handler as extract router names one, citing its registration and its handler; asks a must question for the route in a loop, the one behind a condition, the routes for every method, the subtree handed to a handler that is not a router, the computed prefix, the router given to a function nothing calls, each parameter read that the path does not have, each operation's permission, since no implementation file names the check, its summary and responses, and whether the running system registers it; asks a must question blocking gateways for each route whose path ends in a wildcard or a catch-all, naming its prefix and methods; prints a line and asks a could question for the host, the HEAD route, the Queries route, the parameters' patterns and each handler that serves more than one route; names the file that registers nothing; and exits 0
 
 #### extract-go-routes-constants
 
@@ -1281,7 +1325,7 @@ Scenario: golden; level: system; verifies SA-79.
 
 - Given: a repository holding Go packages that each register a health route of their own and a fallback: on gin, NoRoute and NoMethod, Any under a group with a catch-all path, Match with a catch-all path, and Any on a plain path; on chi, NotFound and MethodNotAllowed and Handle with a catch-all; on gorilla/mux, PathPrefix given a router of the module with a route of its own, PathPrefix with Methods given another router of the module, PathPrefix given a handler that is no router, five routes whose last variable has a pattern that can match a slash, one with a literal slash in it, one that matches only a path of its own shape and one holding braces, and a route whose variable's pattern holds braces and cannot match a slash, and the NotFoundHandler and MethodNotAllowedHandler fields set through a struct field that keeps the router, the second behind a condition; on echo, the HTTPErrorHandler field; and on net/http's ServeMux, a wildcard pattern, the pattern / with no method handing every request to another mux, and the pattern / with no method given a handler that is no router
 - When: extract go is run on the module
-- Then: it writes one operation per health route, one for the route whose variable's pattern holds braces, named by the variable alone with a line for its pattern, one for the route of the mux handed every request under /, and one for the route of each router PathPrefix is given, each mounted under no prefix, with a line for the Methods on the second mount; asks a must question blocking the design stage, counted as a registration, for each fallback registration and field, through the struct field too, naming the handler and the requests it takes, for the pattern / given a handler that is no router, for each route whose path ends in a catch-all, the gorilla/mux variables whose pattern matches a slash among them, and for PathPrefix given a handler that is no router, naming its prefix and its methods, every method for Any, Handle and PathPrefix; asks the question for a registration behind a condition for the field set behind one; asks the question for every method for the plain Any as before; and exits 0
+- Then: it writes one operation per health route, one for the route whose variable's pattern holds braces, named by the variable alone with a line for its pattern, one for the route of the mux handed every request under /, and one for the route of each router PathPrefix is given, each mounted under no prefix, with a line for the Methods on the second mount; asks a must question blocking gateways, counted as a registration, for each fallback registration and field, through the struct field too, naming the handler and the requests it takes, for the pattern / given a handler that is no router, for each route whose path ends in a catch-all, the gorilla/mux variables whose pattern matches a slash among them, and for PathPrefix given a handler that is no router, naming its prefix and its methods, every method for Any, Handle and PathPrefix; asks the question for a registration behind a condition for the field set behind one; asks the question for every method for the plain Any as before; and exits 0
 
 #### extract-javascript-express-routes
 
@@ -2017,6 +2061,14 @@ Scenario: red; level: system; verifies SA-39.
 - When: generate openapi is run with --unapproved
 - Then: it reports at the field that the enum beside the $ref cannot be carried in the dxlib dialect, writes the document as a draft with that error in x-specarch-marks on the field, and exits 1
 
+#### generate-openapi-gateway
+
+Scenario: golden; level: system; verifies SA-75.
+
+- Given: the specification of validate-gateway, whose only token is the one the gateway forwards by aud, with an implementation file naming the openapi target; specarch-gen-openapi built from this repository on PATH
+- When: generate openapi is run with --unapproved
+- Then: it writes openapi.yaml with the health operation and no security scheme, since no operation accepts a token, warns at the gateway that OpenAPI cannot describe what it forwards, and exits 0
+
 #### generate-openapi-list-twin
 
 Scenario: golden; level: system; verifies SA-70.
@@ -2502,6 +2554,38 @@ Scenario: golden; level: system; verifies SA-64.
 - Given: the trees of merge-documents-days-vocabulary, whose handbook is in language de, and no vocabulary for it
 - When: merge is run on the two trees without --vocabulary
 - Then: it prints that the handbook's requirements are not compared, naming the language and the option, keeps every statement as it is, asks nothing about days, and exits 0
+
+#### merge-gateway-catch-all-kept
+
+Scenario: golden; level: system; verifies SA-76.
+
+- Given: the tree extract go wrote of a router with a catch-all route under /static/ and a NoRoute handler, two questions that block gateways alone, the catch-all's asked first, and the tree extract gateway wrote of a gateway table with one gateway
+- When: merge is run on both
+- Then: the one gateway answers the fallback question, which is left out with a line naming the gateway api, and the catch-all question stays open with a line saying no gateway is left for it
+
+#### merge-gateway-fallback
+
+Scenario: golden; level: system; verifies SA-76.
+
+- Given: the tree extract go wrote of a router with a NoRoute handler, whose question blocks gateways, and the tree extract gateway wrote of the gateway table
+- When: merge is run on both
+- Then: the fallback question is left out as answered, with a line naming the gateway tree and the gateway api, and the rest is merged as before
+
+#### merge-gateway-fallback-across-trees
+
+Scenario: golden; level: system; verifies SA-76.
+
+- Given: a first tree extract go wrote of a router whose only question on gateways is a catch-all route's under /static/, a second whose only one is a NoRoute handler's, and the tree extract gateway wrote of a gateway table with one gateway
+- When: merge is run on the three, the catch-all tree first
+- Then: the one gateway answers the second tree's fallback question, which is left out with a line naming the gateway api, and the first tree's catch-all question stays open with a line saying no gateway is left for it, since every tree's fallback questions are picked before any catch-all route's
+
+#### merge-gateway-two-trees
+
+Scenario: golden; level: system; verifies SA-76.
+
+- Given: two trees extract go wrote of routers that each have a NoRoute handler, whose question blocks gateways alone, and the tree extract gateway wrote of a gateway table with one gateway
+- When: merge is run on the three, the two code trees first
+- Then: the one gateway answers the first code tree's fallback question, which is left out with a line naming the gateway api, and the second code tree's stays open with a line saying no gateway is left for it, since one gateway table describes one gateway in front of one tree
 
 #### merge-joins-commits
 
@@ -3474,6 +3558,30 @@ Scenario: red; level: system; covers exit 1.
 - Given: a file of a tree given by name instead of the tree's folder
 - When: validate is run on it
 - Then: it reports file_kind naming the folder to run on and exits 1
+
+#### validate-gateway
+
+Scenario: golden; level: system; verifies SA-75.
+
+- Given: a gateway that verifies serviceAccess, reads aud and forwards to the lending desk and the catalogue service, calling the identity provider; the token declares aud with no const or enum and no token is the default; the gateway server links to the identity provider and the desk but not to the catalogue
+- When: validate is run
+- Then: it reports nothing of the gateway, the token or the default, warns as link_missing at the gateway server for the catalogue, and exits 0
+
+#### validate-gateway-estate-wrong
+
+Scenario: red; level: system; covers exit 1; verifies SA-75.
+
+- Given: an estate of a gateway forwarding by aud to the desk under another audience than the desk's access token declares, to the books, which accept no access token, and to a reports module the estate does not give
+- When: validate is run on the estate file
+- Then: it reports gateway at the desk's row, naming the audience the desk accepts, and at the books' row, and nothing for the reports' row, which counts as an unresolved reference; it exits 1
+
+#### validate-gateway-wrong
+
+Scenario: red; level: system; covers exit 1; verifies SA-75.
+
+- Given: a gateway reading aud whose token is the default, is named by an operation and writes enum on its aud, with a value twice, a forward to a database, one to a dependency not declared, a forward also under calls, a call to nothing declared, a middleware not declared and two refusals naming wrong problems; a gateway with an undeclared token and no forwards; and one reading a claim its token lacks
+- When: validate is run
+- Then: it reports gateway at each, token_audience at the enum, dependency, middleware and problem as for an operation, middleware_missing at the gateway that names no middlewares, and exits 1
 
 #### validate-generated-default
 

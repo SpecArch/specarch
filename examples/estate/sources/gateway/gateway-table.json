@@ -1,0 +1,12 @@
+{
+    "gatewayTable": 1,
+    "path": "examples/estate/sources/gateway/code",
+    "commit": "3b8f1e2f36b3019a780029c4adb6887684e482b0",
+    "gateway": "api",
+    "claim": "aud",
+    "environment": "production",
+    "forwards": [
+        {"value": "https://loans.library.example", "name": "loans", "setting": "LOANS_URL", "url": "https://desk.internal.library.example"},
+        {"value": "https://catalogue.library.example", "name": "catalogue", "setting": "CATALOGUE_URL", "url": "https://books.internal.library.example"}
+    ]
+}

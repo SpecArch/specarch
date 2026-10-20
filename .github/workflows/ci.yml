@@ -330,6 +330,18 @@ jobs:
           grep -q '^  library_gateway -->|"loans, written against 0.1.0"| lending_desk$' examples/estate/docs/estate.md
           go run ./cmd/specarch validate examples/estate/gateway 2> "$RUNNER_TEMP/gateway.txt"
           grep -q '^specarch: 1 input checked: 0 errors, 0 warnings, 2 unresolved references$' "$RUNNER_TEMP/gateway.txt"
+      - name: The estate's gateway table extracts the same twice, and the gateway's specification and its table agree
+        # examples/estate/sources/gateway/gateway-table.json is the table
+        # tools/gateways/dump-gateway.sh wrote around the gateway's own
+        # printer, with its addresses in production (ADR-142).
+        run: |
+          for run in one two; do go run ./cmd/specarch extract gateway --implementation-out "$RUNNER_TEMP/gateway-$run-servers.yaml" --out "$RUNNER_TEMP/gateway-$run" examples/estate/sources/gateway/gateway-table.json > "$RUNNER_TEMP/gateway-$run.txt" || exit 1; done
+          diff -r "$RUNNER_TEMP/gateway-one" "$RUNNER_TEMP/gateway-two"
+          diff "$RUNNER_TEMP/gateway-one-servers.yaml" "$RUNNER_TEMP/gateway-two-servers.yaml"
+          diff "$RUNNER_TEMP/gateway-one.txt" "$RUNNER_TEMP/gateway-two.txt"
+          grep -q '^wrote 1 gateway, 2 dependencies, 2 settings and ' "$RUNNER_TEMP/gateway-one.txt"
+          grep -q '^wrote the deployment production: 2 servers and 2 setting values$' "$RUNNER_TEMP/gateway-one.txt"
+          go run ./cmd/specarch check examples/estate/gateway examples/estate/sources/gateway/gateway-table.json
       - name: Generated code and data are current
         # The library's migrations, queries, OpenAPI document, workflows as BPMN and SVG, and screens, in plain
         # JavaScript, on Next.js and in SwiftUI, are checked in, so a design change that

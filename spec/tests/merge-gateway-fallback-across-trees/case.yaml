@@ -1,0 +1,37 @@
+arguments: [merge, --out, spec, static, go, gateway]
+exitStatus: 0
+standardOutput: |
+  tree static: Go source of ., on the code, parsed side: 8 elements and 28 questions
+  tree go: Go source of ., on the code, parsed side: 8 elements and 28 questions
+  tree gateway: Gateway api of gateway, on the code, printed side: 8 elements and 10 questions
+  kept: Q-29 of static, on gateways, stays open; Gateway api of gateway gives 1 gateway, each gateway answers one question in the whole merge, every fallback handler's question in the merge before any catch-all route's, and none is left for it
+  answered: Q-1 of go, on gateways, is left out; Gateway api of gateway gives the gateway api
+  asked twice: Q-7 of go, on #/paths/~1api~1local/delete/permission, is left out; Q-7 of static asks it
+  asked twice: Q-8 of go, on #/paths/~1api~1local/delete/summary, #/paths/~1api~1local/delete/responses, is left out; Q-8 of static asks it
+  asked twice: Q-9 of go, on #/paths/~1api~1local/delete, is left out; Q-9 of static asks it
+  asked twice: Q-10 of go, on #/paths/~1live/get/permission, is left out; Q-10 of static asks it
+  asked twice: Q-11 of go, on #/paths/~1live/get/summary, #/paths/~1live/get/responses, is left out; Q-11 of static asks it
+  asked twice: Q-12 of go, on #/paths/~1live/get, is left out; Q-12 of static asks it
+  asked twice: Q-13 of go, on #/paths/~1metrics/get/permission, is left out; Q-13 of static asks it
+  asked twice: Q-14 of go, on #/paths/~1metrics/get/summary, #/paths/~1metrics/get/responses, is left out; Q-14 of static asks it
+  asked twice: Q-15 of go, on #/paths/~1metrics/get, is left out; Q-15 of static asks it
+  asked twice: Q-16 of go, on #/paths/~1ready/get/permission, is left out; Q-16 of static asks it
+  asked twice: Q-17 of go, on #/paths/~1ready/get/summary, #/paths/~1ready/get/responses, is left out; Q-17 of static asks it
+  asked twice: Q-18 of go, on #/paths/~1ready/get, is left out; Q-18 of static asks it
+  asked twice: Q-19 of go, on #/paths/~1started/get/permission, is left out; Q-19 of static asks it
+  asked twice: Q-20 of go, on #/paths/~1started/get/summary, #/paths/~1started/get/responses, is left out; Q-20 of static asks it
+  asked twice: Q-21 of go, on #/paths/~1started/get, is left out; Q-21 of static asks it
+  asked twice: Q-22 of go, on #/paths/~1version/get/permission, is left out; Q-22 of static asks it
+  asked twice: Q-23 of go, on #/paths/~1version/get/summary, #/paths/~1version/get/responses, is left out; Q-23 of static asks it
+  asked twice: Q-24 of go, on #/paths/~1version/get, is left out; Q-24 of static asks it
+  asked twice: Q-6 of go, on #/configuration/shadow/description, #/configuration/shadow/secret, is left out; Q-6 of static asks it
+  merged 15 elements, each an entry of a section or an operation: 8 in more than one tree, and 0 keys the trees disagree on
+  wrote 46 questions: 46 from the trees, numbered again in the order the trees are given, and 0 the merge asked
+  derived 0 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers
+  not derived: 1 draft test for operation h, held up by Q-2, Q-27, Q-29, Q-3, Q-30, Q-31, Q-32, Q-36, Q-4, Q-5, Q-6, Q-7, Q-8; the validator warns for them until the questions are answered
+  not derived: 1 draft test for operation live, held up by Q-10, Q-11, Q-2, Q-29, Q-3, Q-30, Q-31, Q-32, Q-4, Q-5, Q-9; the validator warns for them until the questions are answered
+  not derived: 1 draft test for operation metrics, held up by Q-12, Q-13, Q-14, Q-2, Q-29, Q-3, Q-30, Q-31, Q-32, Q-4, Q-5; the validator warns for them until the questions are answered
+  not derived: 1 draft test for operation ready, held up by Q-15, Q-16, Q-17, Q-2, Q-29, Q-3, Q-30, Q-31, Q-32, Q-4, Q-5; the validator warns for them until the questions are answered
+  not derived: 1 draft test for operation started, held up by Q-18, Q-19, Q-2, Q-20, Q-29, Q-3, Q-30, Q-31, Q-32, Q-4, Q-5; the validator warns for them until the questions are answered
+  not derived: 1 draft test for operation version, held up by Q-2, Q-21, Q-22, Q-23, Q-29, Q-3, Q-30, Q-31, Q-32, Q-4, Q-5; the validator warns for them until the questions are answered
+  not derived: 12 draft tests for gateway api, held up by Q-1, Q-37, Q-38, Q-39; the validator warns for them until the questions are answered

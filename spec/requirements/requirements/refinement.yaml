@@ -156,7 +156,7 @@ requirements:
     acceptance:
       - extract gateway on a table with two rows writes the gateway with its claim and two forwards, two dependencies of kind system with their protocol from the addresses, two settings, and must questions for the gateway's description and token and for each dependency's description and timeout, byte-identical twice; a table with a repeated value or a key the format lacks is refused with the reason; with --implementation-out and an environment it writes that deployment's servers with name, url and dependency.
       - check reports a forward only the specification holds as forward_not_served, one only the table holds as forward_not_specified, one the table sends to another dependency as forward_differs and a claim that differs as claim_differs, each an error the allowlist may name, forward_differs a report when the row names no service.
-      - merge leaves the fallback question of SA-79 out when a gateway table's tree answers it, one gateway to one question over the whole merge, the trees in the order given and in each a fallback handler's before a catch-all route's, and keeps a question no gateway is left for open with a line.
+      - merge leaves the fallback question of SA-79 out when a gateway table's tree answers it, one gateway to one question over the whole merge, every tree's fallback handler's question before any tree's catch-all route's, each pass over the trees in the order given, and keeps a question no gateway is left for open with a line.
     verification: test
     needs: [NEED-8]
     why: The table a gateway forwards by was readable by nothing, and a gateway no check compares with its table drifts as every other part of a specification nobody compares with its code does.

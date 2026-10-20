@@ -1181,9 +1181,9 @@ func itemNamed(n *yaml.Node, name string) *yaml.Node {
 // gateway table's tree says what that handler forwards and by which
 // claim (ADR-142, ADR-143). Each gateway answers one question over the
 // whole merge, since one gateway table describes one gateway in front of
-// one tree: the trees are taken in the order given, and in each a
-// question at a fallback handler before one at a catch-all route, which
-// may as well be a file server, each kind in the order it is asked. A
+// one tree: every tree's questions at a fallback handler first, then
+// every tree's at a catch-all route, which may as well be a file server,
+// each pass over the trees in the order given. A
 // question no gateway is left for stays open, with a line that says so.
 func (m *merger) gatewayAnswers(asking int, t *mergeTree, id string, blocks []*yaml.Node) bool {
 	if !gatewaysOnly(blocks) {
@@ -1214,7 +1214,7 @@ func (m *merger) gatewayAnswers(asking int, t *mergeTree, id string, blocks []*y
 	}
 	gw := picks[id]
 	if gw == "" {
-		m.res.say("kept: %s of %s, on gateways, stays open; %s %s %s, each gateway answers one question in the whole merge, one at a fallback handler before one at a catch-all route, and none is left for it", id, t.s.Dir, joinAnd(givers), giveOrGives(len(givers)), plural(len(names), "gateway"))
+		m.res.say("kept: %s of %s, on gateways, stays open; %s %s %s, each gateway answers one question in the whole merge, every fallback handler's question in the merge before any catch-all route's, and none is left for it", id, t.s.Dir, joinAnd(givers), giveOrGives(len(givers)), plural(len(names), "gateway"))
 		return false
 	}
 	m.res.say("answered: %s of %s, on gateways, is left out; %s %s the gateway %s", id, t.s.Dir, joinAnd(givers), giveOrGives(len(givers)), gw)
@@ -1237,48 +1237,63 @@ func gatewaysOnly(blocks []*yaml.Node) bool {
 
 // pickGatewayAnswers pairs the questions that block gateways alone with
 // the gateways the trees declare, one gateway to one question over the
-// whole merge, never a tree's own gateway to its own question: the trees
-// in the order given, and in each the questions at a fallback handler
-// first, then those at a catch-all route and any other, each in the order
-// the tree asks them. It gives each tree's question ids -> the gateway
-// that answers it.
+// whole merge, never a tree's own gateway to its own question. It picks
+// in two passes over the trees in the order given: first every tree's
+// questions at a fallback handler, then every tree's questions at a
+// catch-all route and any other, each in the order the tree asks them,
+// so a catch-all question, which may as well be a file server, never
+// takes a gateway from another tree's fallback question. It gives each
+// tree's question ids -> the gateway that answers it.
 func (m *merger) pickGatewayAnswers() map[int]map[string]string {
-	used := map[string]bool{}
-	all := map[int]map[string]string{}
-	for asking, t := range m.trees {
-		var names []string
-		for ti, o := range m.trees {
-			if ti == asking {
-				continue
-			}
-			for _, g := range source.Pairs(source.Child(o.s.Root, "gateways")) {
-				if !used[g.Key.Value] && !contains(names, g.Key.Value) {
-					names = append(names, g.Key.Value)
-				}
-			}
-		}
-		var fallback, other []string
+	fallback := map[int][]string{}
+	other := map[int][]string{}
+	for ti, t := range m.trees {
 		for _, p := range source.Pairs(source.Child(t.s.Root, spec.QuestionsSection)) {
 			if !gatewaysOnly(source.Items(source.Child(p.Value, "blocks"))) {
 				continue
 			}
 			if source.Str(source.Child(p.Value, "why")) == fallbackWhy {
-				fallback = append(fallback, p.Key.Value)
+				fallback[ti] = append(fallback[ti], p.Key.Value)
 			} else {
-				other = append(other, p.Key.Value)
+				other[ti] = append(other[ti], p.Key.Value)
 			}
 		}
-		picks := map[string]string{}
-		for i, id := range append(fallback, other...) {
-			if i >= len(names) {
-				break
+	}
+	used := map[string]bool{}
+	all := map[int]map[string]string{}
+	for asking := range m.trees {
+		all[asking] = map[string]string{}
+	}
+	for _, pass := range []map[int][]string{fallback, other} {
+		for asking := range m.trees {
+			for _, id := range pass[asking] {
+				gw := m.unusedGateway(asking, used)
+				if gw == "" {
+					break
+				}
+				all[asking][id] = gw
+				used[gw] = true
 			}
-			picks[id] = names[i]
-			used[names[i]] = true
 		}
-		all[asking] = picks
 	}
 	return all
+}
+
+// unusedGateway gives the first gateway, in the order the trees are
+// given, that a tree other than the asking one declares and no question
+// has taken yet, or "" when none is left.
+func (m *merger) unusedGateway(asking int, used map[string]bool) string {
+	for ti, o := range m.trees {
+		if ti == asking {
+			continue
+		}
+		for _, g := range source.Pairs(source.Child(o.s.Root, "gateways")) {
+			if !used[g.Key.Value] {
+				return g.Key.Value
+			}
+		}
+	}
+	return ""
 }
 
 // treeQuestions takes every tree's questions, in the order the trees are

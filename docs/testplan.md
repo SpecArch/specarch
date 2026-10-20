@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.2-dev of the specification: 597 design tests, 279 golden and 318 red, about 17 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.2-dev of the specification: 598 design tests, 280 golden and 318 red, about 17 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.7.2-dev of the specification: 597 design tests, 279 golden and 318 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 593 |
+| system | 594 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -2496,6 +2496,14 @@ Scenario: golden; level: system; verifies SA-76.
 - Given: the tree extract go wrote of a router with a NoRoute handler, whose question blocks gateways, and the tree extract gateway wrote of the gateway table
 - When: merge is run on both
 - Then: the fallback question is left out as answered, with a line naming the gateway tree and the gateway api, and the rest is merged as before
+
+#### merge-gateway-fallback-across-trees
+
+Scenario: golden; level: system; verifies SA-76.
+
+- Given: a first tree extract go wrote of a router whose only question on gateways is a catch-all route's under /static/, a second whose only one is a NoRoute handler's, and the tree extract gateway wrote of a gateway table with one gateway
+- When: merge is run on the three, the catch-all tree first
+- Then: the one gateway answers the second tree's fallback question, which is left out with a line naming the gateway api, and the first tree's catch-all question stays open with a line saying no gateway is left for it, since every tree's fallback questions are picked before any catch-all route's
 
 #### merge-gateway-two-trees
 

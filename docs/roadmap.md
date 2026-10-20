@@ -418,7 +418,8 @@ question over the whole merge, keeping a catch-all question, or a second
 code tree's, no gateway is left for open
 (`extract-gateway`, `extract-gateway-value-twice`, `check-gateway-forward-removed`,
 `check-gateway-forward-moved`, `merge-gateway-fallback`,
-`merge-gateway-catch-all-kept`, `merge-gateway-two-trees`). `extract go` reads a package-level string
+`merge-gateway-catch-all-kept`, `merge-gateway-two-trees`,
+`merge-gateway-fallback-across-trees`). `extract go` reads a package-level string
 constant as the literal it names and a package-level list assigned once as
 a literal list, and asks a must question blocking `gateways` at every
 fallback handler and catch-all route (BUG-028 and BUG-029 fixed;

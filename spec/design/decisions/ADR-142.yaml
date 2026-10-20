@@ -43,8 +43,9 @@ decisions:
       (ADR-143), which blocks gateways once the element exists, out when
       a table's gateway answers it, by the rule for a question whose
       every blocked key another tree gives, one gateway to one question
-      over the whole merge, the trees in the order given and in each a
-      fallback handler's before a catch-all route's; a question no
+      over the whole merge, every tree's fallback handler's question
+      before any tree's catch-all route's, each pass over the trees in
+      the order given; a question no
       gateway is left for stays open. check compares
       a specification with its gateway table: forward_not_served at a
       forward the table does not hold, forward_not_specified at a table

@@ -5,7 +5,7 @@ standardOutput: |
   tree go2: Go source of ., on the code, parsed side: 8 elements and 28 questions
   tree gateway: Gateway api of gateway, on the code, printed side: 8 elements and 10 questions
   answered: Q-1 of go, on gateways, is left out; Gateway api of gateway gives the gateway api
-  kept: Q-1 of go2, on gateways, stays open; Gateway api of gateway gives 1 gateway, each gateway answers one question in the whole merge, one at a fallback handler before one at a catch-all route, and none is left for it
+  kept: Q-1 of go2, on gateways, stays open; Gateway api of gateway gives 1 gateway, each gateway answers one question in the whole merge, every fallback handler's question in the merge before any catch-all route's, and none is left for it
   asked twice: Q-7 of go2, on #/paths/~1api~1local/delete/permission, is left out; Q-7 of go asks it
   asked twice: Q-8 of go2, on #/paths/~1api~1local/delete/summary, #/paths/~1api~1local/delete/responses, is left out; Q-8 of go asks it
   asked twice: Q-9 of go2, on #/paths/~1api~1local/delete, is left out; Q-9 of go asks it

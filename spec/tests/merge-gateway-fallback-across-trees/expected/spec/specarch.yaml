@@ -1,0 +1,27 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v0.7.1/schema/specarch-design-0.3.schema.json
+specarch: "0.3"
+info:
+  title: Merge of 3 trees
+  version: 0.1.0
+  description: |
+    The elements of these trees, merged in this order: Go source of .; Go source of .; Gateway api of gateway. Every element cites where it was read; where the trees disagree, or the documents and the code do, a question asks which is right.
+  tracksOrigin: true
+stages: [requirements, design, deployment]
+sources:
+  code:
+    kind: code
+    title: The code repository
+    edition: d28f3f52e7cbbec3c27b08d6c0f85d5d208bf07d
+    url: ../testdata/service
+    clauses:
+      - {clause: main.go, title: 'Go source, read by its syntax'}
+      - {clause: more.go, title: 'Go source, read by its syntax'}
+    reading: parsed
+  gateway-table:
+    kind: code
+    title: The code repository
+    edition: d8b6894bd326d1c8217e2edad2184cf5a7a7d112
+    url: ../repo
+    clauses:
+      - {clause: gateway, title: 'The table of services the gateway loads from here, as its printer prints it'}
+    reading: printed

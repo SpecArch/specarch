@@ -443,9 +443,10 @@ A value written twice is refused, as the schema refuses it in the tree.
 (ADR-143) with the table's gateway, by the rule that a question of one
 tree whose every blocked key another tree gives is left out. One gateway
 answers one question over the whole merge, since one gateway table
-describes one gateway in front of one tree: the trees in the order given,
-and in each a question at a fallback handler first, then one at a
-catch-all route, which may as well be a file server. A question no
+describes one gateway in front of one tree: first the questions at a fallback handler in
+every tree, then those at a catch-all route, which may as well be a file
+server, each pass over the trees in the order given, so a catch-all
+question never takes a gateway from another tree's fallback question. A question no
 gateway is left for stays open, with a line that says so. **`check`**
 (SA-72) compares a specification with its gateway table as it compares
 the route table: a forward in the specification the table does not hold

@@ -224,10 +224,12 @@ commands:
         forwards and by which claim, and the line names the trees and the
         gateway (ADR-142, ADR-143). Each gateway answers one such question
         over the whole merge, never one of its own tree, since one gateway
-        table describes one gateway in front of one tree: the trees in the
-        order given, and in each the questions at a fallback handler
-        first, then those at a catch-all route, which may as well be a
-        file server, each in the order the tree asks them. A question no gateway is left for stays
+        table describes one gateway in front of one tree: first the
+        questions at a fallback handler in every tree, then those at a
+        catch-all route, which may as well be a file server, in every
+        tree, each pass over the trees in the order given and in each
+        tree in the order it asks them, so a catch-all question never
+        takes a gateway from another tree's fallback question. A question no gateway is left for stays
         open, with a line that says so, rather than being answered by a
         gateway that has nothing to do with it.
       - A map one tree writes open, `additionalProperties: true`, with a

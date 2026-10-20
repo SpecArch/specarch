@@ -6,8 +6,8 @@ the validator, and the real projects check all of it.
 
 Each entry says where it stands in the code: built, with the release that
 first carried it and the file or conformance case that shows it; partly
-built, with what is missing; or not built. A release is a tag; 0.7.0 is the
-latest, and 0.7.1 is the next.
+built, with what is missing; or not built. A release is a tag; 0.7.1 is the
+latest.
 
 ## Releases
 
@@ -21,7 +21,7 @@ latest, and 0.7.1 is the next.
 | 0.6.0, 2026-10-13 | meta-model 0.2 (`schema/specarch-design-0.2.schema.json`); the workflows reader; the Go reader on dxlib, `net/http` and the common routers; the Swift, JavaScript, Vue and Dart readers; `specarch-gen-ui-typescript` on Next.js and Carbon; `specarch-gen-bpmn`; the `problems` and `html` documents |
 | 0.6.1 to 0.6.4, 2026-10-14 | the plans for the estate and for meta-model 0.3; the first estate points (a dump committed outside the code's repository, role names on the wire); a request body decoded into a struct in `extract go`; fixes to `merge` and the readers |
 | 0.7.0, 2026-10-19 | the estate (`specarch-estate.yaml`, references between specifications, the module map); `specarch check`; `specarch facts`; `specarch-gen-sqlc`; indexes in `generate sql`; `implies`, `audience`, `middlewares`, the workflow table, documents in another language; the `handover` document |
-| 0.7.1, next | the techspec's parameters, request body and responses per operation; `extract go` reading a dxlib handler's decoded body and JSON answers where the registration declares none (ADR-140); every operation's handler followed into the code, recorded with its source and drawn as a flowchart (ADR-144); the designs of the diagram keywords (`docs/diagrams.md`) and of the gateway (`docs/gateway.md`), proposed; dxlib's encrypted API type as a handshake an operation names and large files as a stream it declares (ADR-145, ADR-146, proposed), read by `extract go`, served by the dxlib dialect and the go-dxlib target with a Go client, and shown in the techspec; this roadmap matched to the code |
+| 0.7.1, 2026-10-20 | the techspec's parameters, request body and responses per operation; `extract go` reading a dxlib handler's decoded body and JSON answers where the registration declares none (ADR-140); every operation's handler followed into the code, recorded with its source and drawn as a flowchart (ADR-144); the designs of the diagram keywords (`docs/diagrams.md`) and of the gateway (`docs/gateway.md`), proposed; dxlib's encrypted API type as a handshake an operation names and large files as a stream it declares (ADR-145, ADR-146, proposed), read by `extract go`, served by the dxlib dialect and the go-dxlib target with a Go client, and shown in the techspec; this roadmap matched to the code |
 
 ## 1. Validator CLI
 

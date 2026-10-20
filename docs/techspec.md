@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.7.3-dev of the specification: 90 requirements, 5 entities, 16 commands, 7 algorithms, 630 tests, 156 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.7.3-dev of the specification: 90 requirements, 5 entities, 16 commands, 7 algorithms, 631 tests, 156 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -12460,7 +12460,10 @@ of its exit statuses in number order, each with what it means and
 its remedy. A specification with no commands gets the section as one
 sentence naming commands, and one with commands and no program
 writes each command by its words alone and says that info.program
-names the program. The manual reads commands, so a question blocking
+names the program; either way the section opens with the notation of
+the usage lines. A file's path is written as one code span, its fence
+longer than any run of backticks in the path, as CommonMark reads a
+code span. The manual reads commands, so a question blocking
 them makes it a draft and their problems are marked in it.
 
 Consequences: An existing specification reads as before: both keys are optional
@@ -12600,6 +12603,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | document-writes-html | command document | system | golden | a specification with a requirement, three entities, two of them related, a decision, a permission a role grants, and must and could questions that block an entity, a field and a requirement's keys | document html is run | it writes site/index.html, one page with the overview first, the entity diagram as SVG, every element under an id that is its pointer, a mark at each element a question blocks linking to the question, and each question in the problems linked to its entry, and exits 0 |
 | document-writes-manual | command document | system | golden | people's roles, a role a job acts as and one a client holds, a menu, a flow, a list with a filter and a row that opens a view, a view in sections with an operation action under a confirmation and a condition, a form with a required field and a check, a public task answering two ways, problem types, one with a remedy, and a default message for any other problem | document manual is run | it writes manual.md with the people's roles and the pages each opens, the job's and the client's roles left out, the public page, the menu, the flow as numbered steps starting from the menu, and each page with how it is reached, who opens it, its columns or fields, its actions, what follows a submission and, per problem it names, the message, the condition and the remedy, the default row answering any other problem, and exits 0 |
 | document-writes-manual-cli | command document | system | golden | a specification with no pages that names its program and holds three commands: a public one with a repeatable argument, a required option, an option of enum values, a boolean option, the files it reads and writes, what it prints and a remedy for a failing status; a public one that writes no file; and a deprecated one whose permission a role a person holds grants | document manual is run | it writes manual.md with the role and the command it runs, the public commands named, the page sections each one sentence, and a section per command in the order of their words with its usage line after the program's name, who runs it, its arguments and options tables, what it reads and writes or that it writes no file, what it prints, and its exit statuses in order with their meaning and remedy, and exits 0 |
+| document-writes-manual-cli-unnamed | command document | system | golden | a specification that names no program and holds one command whose read file's path holds backticks | document manual is run | it writes manual.md whose Commands section says the commands are written by their words alone, names info.program and gives the notation of the usage lines, and writes the path as one code span with a fence longer than its backticks, and exits 0 |
 | document-writes-operations | command document | system | golden | two environments, a deployment with a named and an unnamed host and a watched monitor, a monitor with a response and one without, jobs on a schedule with dead letters, on a channel dropping after its retries and every hour with none, a carried channel and the system's own, a workflow publishing a message, a dependency an operation and a job call and one that carries a channel, a setting and a secret, and a backup with no restore or rollback | document operations is run | it writes operations.md with the environments and the deployment's hosts, a checklist row per monitor, job and dependency, each monitor with how it is watched and its response or a sentence naming response, the jobs' triggers, roles and retries, each message's carrier, its publishers among operations, jobs and workflows, and its consumers, each dependency's users, the endpoints with their warnings under them, the settings, the backup, and a sentence each for restore and rollback, and exits 0 |
 | document-writes-questions | command document | system | golden | a specification with two must questions in two stages, one of them a material question, and a could question, and no implementation file | document questions is run | it writes questions.md with the decisions by stage, the material question in a group of its own, and the outputs, where code generation waits on the questions and the approval, and exits 0 |
 | document-writes-releases | command document | system | golden | a released 1.0.0 that includes a change, and a planned 1.1.0 that includes a change and a defect | document releases is run | it writes releases.md with 1.1.0 first, each release's items grouped as changed and fixed, and exits 0 |
@@ -13532,7 +13536,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-87 | decisions ADR-158 | tests generate-scripts; tests generate-scripts-dialect-refused; tests generate-scripts-hand-written-refused |
 | SA-88 | enums Rule | tests document-techspec-caller-estate; tests gaps-caller-alone; tests validate-caller-chain-gap; tests validate-caller-chain-wrong; tests validate-caller-estate; tests validate-caller-estate-wrong |
 | SA-89 | decisions ADR-159 | tests extract-go-caller-checks; tests extract-permissions-client-through |
-| SA-90 | enums DocumentTarget; decisions ADR-160; decisions ADR-165 | tests document-manual-none; tests document-operations-none; tests document-writes-manual; tests document-writes-manual-cli; tests document-writes-operations; tests validate-command-remedies; tests validate-remedy-and-response |
+| SA-90 | enums DocumentTarget; decisions ADR-160; decisions ADR-165 | tests document-manual-none; tests document-operations-none; tests document-writes-manual; tests document-writes-manual-cli; tests document-writes-manual-cli-unnamed; tests document-writes-operations; tests validate-command-remedies; tests validate-remedy-and-response |
 
 ## Sources
 

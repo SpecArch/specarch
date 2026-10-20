@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.3-dev of the specification: 630 design tests, 294 golden and 336 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.3-dev of the specification: 631 design tests, 295 golden and 336 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.7.3-dev of the specification: 630 design tests, 294 golden and 336 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 626 |
+| system | 627 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -980,6 +980,14 @@ Scenario: golden; level: system; verifies SA-90.
 - Given: a specification with no pages that names its program and holds three commands: a public one with a repeatable argument, a required option, an option of enum values, a boolean option, the files it reads and writes, what it prints and a remedy for a failing status; a public one that writes no file; and a deprecated one whose permission a role a person holds grants
 - When: document manual is run
 - Then: it writes manual.md with the role and the command it runs, the public commands named, the page sections each one sentence, and a section per command in the order of their words with its usage line after the program's name, who runs it, its arguments and options tables, what it reads and writes or that it writes no file, what it prints, and its exit statuses in order with their meaning and remedy, and exits 0
+
+#### document-writes-manual-cli-unnamed
+
+Scenario: golden; level: system; verifies SA-90.
+
+- Given: a specification that names no program and holds one command whose read file's path holds backticks
+- When: document manual is run
+- Then: it writes manual.md whose Commands section says the commands are written by their words alone, names info.program and gives the notation of the usage lines, and writes the path as one code span with a fence longer than its backticks, and exits 0
 
 #### document-writes-operations
 

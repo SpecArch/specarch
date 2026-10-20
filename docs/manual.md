@@ -3230,7 +3230,7 @@ It reads:
 
 - `{paths}`: Root files, the files under their stage folders, and implementation files.
 - `records/ beside each specification's folder`: The change, defect, release, incident, commissioning and approval records of that specification.
-- `the specification named in each standalone implementation file's `implements``: Read to resolve that file's references.
+- `` the specification named in each standalone implementation file's `implements` ``: Read to resolve that file's references.
 - `each estate's modules, at their location`: The specification of every module an estate lists, read with the estate.
 
 It writes no file.

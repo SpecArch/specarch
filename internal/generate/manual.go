@@ -143,9 +143,9 @@ func Manual(root *yaml.Node, relRoot string, impls []Implementation, state *Stat
 	case len(commands) == 0:
 		d.para("The specification has no commands; each command a person types, with its arguments, options and exit statuses, is written under commands.")
 	case program == "":
-		d.para("The specification names no program, so each command is written by its words alone; the name a person types before them is written under info.program.")
+		d.para("The specification names no program, so each command is written by its words alone; the name a person types before them is written under info.program. " + usageLegend)
 	default:
-		d.para("Each command is typed after the program's name, " + program + ", in a terminal. A word in angle brackets is a value to give, one in square brackets may be left out, and ... means one or more.")
+		d.para("Each command is typed after the program's name, " + program + ", in a terminal. " + usageLegend)
 	}
 	for _, c := range commands {
 		manualCommand(d, root, program, c.Key.Value, c.Value)
@@ -566,7 +566,7 @@ func manualCommand(d *doc, root *yaml.Node, program, name string, c *yaml.Node) 
 		if list := items(c, f[0]); len(list) > 0 {
 			d.para(f[1])
 			for _, u := range list {
-				d.line("- `%s`: %s", str(u, "path"), oneParagraph(str(u, "description")))
+				d.line("- %s: %s", codeSpan(str(u, "path")), oneParagraph(str(u, "description")))
 			}
 			d.blank()
 		}
@@ -594,6 +594,29 @@ func manualCommand(d *doc, root *yaml.Node, program, name string, c *yaml.Node) 
 		}
 		d.blank()
 	}
+}
+
+// usageLegend reads the notation of every usage line.
+const usageLegend = "A word in angle brackets is a value to give, one in square brackets may be left out, and ... means one or more."
+
+// codeSpan writes text as inline code. A text holding backticks gets a
+// fence one backtick longer than its longest run, padded with a space on
+// each side, as CommonMark reads a code span.
+func codeSpan(text string) string {
+	longest, run := 0, 0
+	for _, r := range text {
+		if r == '`' {
+			run++
+			longest = max(longest, run)
+		} else {
+			run = 0
+		}
+	}
+	if longest == 0 {
+		return "`" + text + "`"
+	}
+	fence := strings.Repeat("`", longest+1)
+	return fence + " " + text + " " + fence
 }
 
 // usageLine is how a command is typed: its words, its arguments in

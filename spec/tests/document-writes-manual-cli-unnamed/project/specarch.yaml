@@ -1,0 +1,25 @@
+specarch: "0.3"
+info:
+  title: Archive tool
+  version: 1.0.0
+permissions:
+  public: { description: Anyone who has the program may run it. }
+commands:
+  list:
+    summary: List what an archive holds
+    permission: public
+    arguments:
+      - { name: archive, description: The archive file., required: true, schema: { type: string } }
+    options:
+      verbose: { description: Print each file's size too., schema: { type: boolean, default: false } }
+    reads:
+      - { path: "the archive named in the manifest's `source`", description: The archive. }
+    standardOutput: One line per file.
+    exitCodes:
+      "0": listed
+      "2": usage error, or the archive could not be read
+    remedies:
+      "2": Check the archive's path, then run it again.
+tests:
+  list-succeeds: { command: list, level: system, scenario: golden, given: an archive, when: list is run, then: it prints each file and exits 0 }
+  list-usage-error: { command: list, level: system, scenario: red, covers: [usage error, exit 2], given: no archive, when: list is run with arguments it does not accept, then: it prints how to use it and exits 2 }

@@ -39,7 +39,10 @@ decisions:
       its remedy. A specification with no commands gets the section as one
       sentence naming commands, and one with commands and no program
       writes each command by its words alone and says that info.program
-      names the program. The manual reads commands, so a question blocking
+      names the program; either way the section opens with the notation of
+      the usage lines. A file's path is written as one code span, its fence
+      longer than any run of backticks in the path, as CommonMark reads a
+      code span. The manual reads commands, so a question blocking
       them makes it a draft and their problems are marked in it.
     consequences: |
       An existing specification reads as before: both keys are optional

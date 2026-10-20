@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: document
+level: system
+scenario: golden
+given: "a specification that names no program and holds one command whose read file's path holds backticks"
+when: "document manual is run"
+then: "it writes manual.md whose Commands section says the commands are written by their words alone, names info.program and gives the notation of the usage lines, and writes the path as one code span with a fence longer than its backticks, and exits 0"
+verifies: [SA-90]

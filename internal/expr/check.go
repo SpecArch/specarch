@@ -121,6 +121,9 @@ func (c *checker) check(n *Node) Type {
 	case OpName:
 		t, ok := c.env[n.Text]
 		if !ok {
+			if strings.HasPrefix(n.Text, CallerName+".") {
+				return c.callerFail(n)
+			}
 			return c.fail(n, Name, "%s is not a name this expression can use; %s", n.Text, c.names(n.Text))
 		}
 		return t
@@ -288,6 +291,28 @@ func ParseDuration(s string) (time.Duration, bool) {
 		}
 	}
 	return d, true
+}
+
+// callerFail reports caller.<property> for a property the caller does not
+// declare, or where the caller is not named at all.
+func (c *checker) callerFail(n *Node) Type {
+	var props []string
+	for name := range c.env {
+		if strings.HasPrefix(name, CallerName+".") {
+			props = append(props, strings.TrimPrefix(name, CallerName+"."))
+		}
+	}
+	sort.Strings(props)
+	prop := strings.TrimPrefix(n.Text, CallerName+".")
+	if len(props) == 0 {
+		return c.fail(n, CallerProperty, "%s names the caller, which only a role's rows rule may name; write the rule under roles.<role>.rows", n.Text)
+	}
+	for _, p := range props {
+		if strings.EqualFold(p, prop) {
+			return c.fail(n, CallerProperty, "%s is not a property of the caller; did you mean caller.%s?", n.Text, p)
+		}
+	}
+	return c.fail(n, CallerProperty, "%s is not a property of the caller; its properties are %s", n.Text, strings.Join(props, ", "))
 }
 
 func (c *checker) names(near string) string {

@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.3.schema.json
 decisions:
   ADR-083:
     title: A result is shown early and traced to its elements, and a remark from acceptance comes back as a change request that becomes a decision, a question or a rejection

@@ -108,10 +108,10 @@ func (c *checker) checkTests(d *design) {
 		}
 	}
 
-	// In a 0.2 file a test specarch derive writes and nobody has is an
-	// error, except for a subject an open must or should question holds
+	// In a 0.2 or 0.3 file a test specarch derive writes and nobody has is
+	// an error, except for a subject an open must or should question holds
 	// up, whose test derive leaves out too (ADR-055).
-	strict := source.Str(source.Child(d.root, "specarch")) == "0.2"
+	strict := d.metaModelVersion() != "0.1"
 	blocking := blockingQuestions(d.root)
 	for _, s := range subjects {
 		cv := cov[s]
@@ -155,14 +155,16 @@ func (c *checker) checkTests(d *design) {
 	}
 }
 
-// checkMetaModelVersion warns once in a file written against 0.1, which
-// is read until 1.0 (ADR-055).
+// checkMetaModelVersion warns once in a file written against 0.1 or 0.2,
+// which are read until 1.0 (ADR-055, ADR-094).
 func (c *checker) checkMetaModelVersion(d *design) {
 	v := source.Child(d.root, "specarch")
-	if source.Str(v) != "0.1" {
-		return
+	switch source.Str(v) {
+	case "0.1":
+		c.warn(v, "/specarch", RuleMetaModelVersion, "the specification is written against meta-model 0.1, which is read until 1.0, and its missing tests are warnings; run specarch derive to write the tests 0.2 asks for, then change the line to specarch: \"0.3\" once nothing an expression can name is called caller")
+	case "0.2":
+		c.warn(v, "/specarch", RuleMetaModelVersion, "the specification is written against meta-model 0.2, which is read until 1.0; 0.3 reserves the name caller for the caller record, so change the line to specarch: \"0.3\" once no field, property or input is called caller")
 	}
-	c.warn(v, "/specarch", RuleMetaModelVersion, "the specification is written against meta-model 0.1, which is read until 1.0, and its missing tests are warnings; run specarch derive to write the tests 0.2 asks for, then change the line to specarch: \"0.2\"")
 }
 
 func listCases(s *subject) string {

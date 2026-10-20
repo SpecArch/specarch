@@ -208,6 +208,8 @@ func (c *checker) checkDesign(d *design) {
 	c.checkPageElements(d)
 	c.checkDecisions(d)
 	c.checkAccess(d)
+	c.checkCaller(d)
+	c.checkRoleRows(d)
 	c.checkImplies(d)
 	c.checkSeparationOfDuties(d)
 	c.checkExpressions(d)

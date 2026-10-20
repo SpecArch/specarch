@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.3.schema.json
 decisions:
   ADR-112:
     title: A specification names an element of another through a dependency as <dependency>#/<pointer>, resolved when that specification is given in the same run and counted as unresolved otherwise; and merge asks when two trees disagree on how roles go on the wire

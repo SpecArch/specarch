@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.3.schema.json
 decisions:
   ADR-138:
     title: specarch model prints the merged document with every node's file, line and column, the resolved references and the layout problems as one JSON document in RFC 8785's canonical form, in both builds

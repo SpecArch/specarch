@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=../../../schema/specarch-fragment-requirements-0.2.schema.json
+# yaml-language-server: $schema=../../../schema/specarch-fragment-requirements-0.3.schema.json
 requirements:
   SA-1:
     statement: specarch validate shall check every specification and implementation file given against the JSON Schema of its kind and meta-model version.

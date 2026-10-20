@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=../../../../../schema/specarch-fragment-requirements-0.2.schema.json
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-requirements-0.3.schema.json
 assumptions:
   ASSUME-1:
     statement: One library, one branch, one currency.

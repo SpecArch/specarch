@@ -1,0 +1,7 @@
+# yaml-language-server: $schema=../../../../schema/specarch-fragment-design-0.3.schema.json
+caller:
+  description: Who is making the call, as the service knows it once the session has been checked. A member signs in with a card; a librarian signs in as staff and has no member identifier.
+  properties:
+    memberId: { type: [string, "null"], format: uuid, description: The member signed in; null for staff and for the scheduler. }
+  satisfies: [LIB-6]
+  why: A role's rows rule names the caller's properties, and the session fills them at sign-in; how the service carries them from the request to the query is the implementation file's.

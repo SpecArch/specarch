@@ -1,7 +1,7 @@
 arguments: [validate, .]
 exitStatus: 1
 standardOutput: |
-  specarch.yaml:1:11: warning: /specarch: meta_model_version: the specification is written against meta-model 0.1, which is read until 1.0, and its missing tests are warnings; run specarch derive to write the tests 0.2 asks for, then change the line to specarch: "0.2" [meta_model_version@specarch.yaml#/specarch]
+  specarch.yaml:1:11: warning: /specarch: meta_model_version: the specification is written against meta-model 0.1, which is read until 1.0, and its missing tests are warnings; run specarch derive to write the tests 0.2 asks for, then change the line to specarch: "0.3" once nothing an expression can name is called caller [meta_model_version@specarch.yaml#/specarch]
   specarch.yaml:13:26: error: /entities/Loan/relations/summary/target: value_object: Receipt is a schema, a value with no identity, and a relation leads to a record; give Receipt a key and make it an entity, or hold its fields in Loan [value_object@specarch.yaml#/entities/Loan/relations/summary/target]
   specarch.yaml:20:23: error: /schemas/Receipt/required/1: field: returnedOn is not a field of Receipt, so it cannot be required; use one of dueOn [field@specarch.yaml#/schemas/Receipt/required/1]
   specarch.yaml:22:3: error: /schemas/Loan: value_object: Loan is the name of an entity too; a schema, an entity and a view are one namespace, since each becomes a schema of its own in the interface; rename the schema [value_object@specarch.yaml#/schemas/Loan]

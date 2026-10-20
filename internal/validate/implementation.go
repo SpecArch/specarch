@@ -19,7 +19,7 @@ var designKeys = map[string]bool{
 	"specarch": true, "stages": true, "sources": true,
 	"stakeholders": true, "needs": true, "requirements": true, "glossary": true, "assumptions": true,
 	"enums": true, "entities": true, "permissions": true, "roles": true, "paths": true, "commands": true,
-	"channels": true, "dependencies": true, "session": true, "pages": true, "algorithms": true, "tests": true,
+	"channels": true, "dependencies": true, "session": true, "caller": true, "pages": true, "algorithms": true, "tests": true,
 	"environments": true, "release": true, "rollback": true, "migrations": true, "handover": true, "checks": true, "signoff": true,
 	"backup": true, "restore": true, "relations": true, "constraints": true, "transitions": true, "operationId": true, "responses": true,
 	"requestBody": true, "parameters": true, "permission": true, "formula": true, "examples": true,

@@ -30,7 +30,15 @@ const (
 	Syntax ErrorKind = iota
 	Name
 	TypeMismatch
+	// CallerProperty is a dot outside caller.<property>, or a property the
+	// caller does not declare (ADR-095).
+	CallerProperty
 )
+
+// CallerName is the reserved name of the caller record: caller.<property>
+// is the one field access an expression may use, and a name of the form
+// caller.<property> in an Env is one of its properties.
+const CallerName = "caller"
 
 // Node is one node of a parsed expression.
 type Node struct {
@@ -131,7 +139,7 @@ func (b *builder) node(e ast.Expr) *Node {
 		n.Op, n.Text = OpName, e.AsIdent()
 		return n
 	case ast.SelectKind:
-		return b.refuse(e, "field access with . is not part of SpecArch expressions; name the field directly")
+		return b.selectNode(e, n)
 	case ast.ListKind:
 		return b.refuse(e, "lists [ ] are not part of SpecArch expressions")
 	case ast.MapKind, ast.StructKind:
@@ -142,6 +150,20 @@ func (b *builder) node(e ast.Expr) *Node {
 		return b.call(e, n)
 	}
 	return b.refuse(e, "this is not part of SpecArch expressions")
+}
+
+// selectNode reads caller.<property>, the one field access of the subset,
+// as one name; a dot on anything else is refused.
+func (b *builder) selectNode(e ast.Expr, n *Node) *Node {
+	sel := e.AsSelect()
+	if operand := sel.Operand(); operand.Kind() == ast.IdentKind && operand.AsIdent() == CallerName && !sel.IsTestOnly() {
+		n.Line, n.Column = b.at(operand)
+		n.Op, n.Text = OpName, CallerName+"."+sel.FieldName()
+		return n
+	}
+	line, col := b.at(e)
+	b.errs = append(b.errs, Error{Line: line, Column: col, Kind: CallerProperty, Message: "field access with . is only for the caller's properties, written caller.<property>; name a field directly"})
+	return nil
 }
 
 func (b *builder) literal(e ast.Expr, n *Node) *Node {

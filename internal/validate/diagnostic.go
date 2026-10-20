@@ -133,6 +133,9 @@ const (
 	RuleHandlerSource          Rule = "handler_source"
 	RuleHandshake              Rule = "handshake"
 	RuleStream                 Rule = "stream"
+	RuleCallerProperty         Rule = "caller_property"
+	RuleRows                   Rule = "rows"
+	RuleReservedName           Rule = "reserved_name"
 )
 
 // Rules lists every rule, in the order of the design's Rule enum.
@@ -258,6 +261,9 @@ var Rules = []Rule{
 	RuleHandlerSource,
 	RuleHandshake,
 	RuleStream,
+	RuleCallerProperty,
+	RuleRows,
+	RuleReservedName,
 }
 
 // Severity says whether a diagnostic makes the file invalid.

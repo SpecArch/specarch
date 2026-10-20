@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=../../../../schema/specarch-fragment-questions-0.2.schema.json
+# yaml-language-server: $schema=../../../../schema/specarch-fragment-questions-0.3.schema.json
 questions:
   # specarch-problem: question: open_question: (should, material) Which data must the service be tested with? specarch derive wrote the cases that follow from the design as draft tests under tests/; each says what it checks, and none names the members, books or loans it runs on. It blocks tests. Decided by desk-manager. Answer with a decision record that names Q-5 under answers. [Q-5]
   Q-5:

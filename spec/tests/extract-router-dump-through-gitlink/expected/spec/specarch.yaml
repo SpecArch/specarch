@@ -1,5 +1,5 @@
-# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v0.7.1/schema/specarch-design-0.2.schema.json
-specarch: "0.2"
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v0.7.1/schema/specarch-design-0.3.schema.json
+specarch: "0.3"
 info:
   title: Routes of router
   version: 0.1.0

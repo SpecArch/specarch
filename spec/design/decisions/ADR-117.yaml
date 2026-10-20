@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.3.schema.json
 decisions:
   ADR-117:
     title: merge keeps a reference where the shape written in place agrees with the named one, leaves the key out where a key both give differs, and asks about properties only one side lists

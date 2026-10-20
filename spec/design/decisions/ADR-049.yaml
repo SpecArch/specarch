@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.3.schema.json
 decisions:
   ADR-049:
     title: extract openapi reads an OpenAPI document as a document source, and merge takes the answer one tree gives to another's question and reports a placeholder

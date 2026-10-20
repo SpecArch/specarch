@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.3.schema.json
 decisions:
   ADR-123:
     title: specarch-gen-sqlc writes the sqlc queries the design derives, in PostgreSQL, one file per table, against the tables specarch-gen-sql writes, and leaves every other query to be written by hand beside them

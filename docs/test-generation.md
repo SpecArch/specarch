@@ -179,6 +179,7 @@ not a user mistake.
 | key reused for another request | occasional | a client bug |
 | expired, not yet valid | occasional | a record used past its validity |
 | denied with expired session | frequent | every user meets it after a pause |
+| shows only the rows of a role, a record outside the rows is not found, a change outside the rows is refused, a job acts only on the rows | frequent | a caller reaching for another's records, by mistake or on purpose |
 | guard precondition fails | occasional | a stale screen |
 | concurrent write | rare | but critical by nature, see below |
 | response 4xx or 5xx not covered above | occasional | |
@@ -285,6 +286,7 @@ meta-model it is derived from (`docs/conventions.md` has each concept):
 | timeout | the dependency's `timeout` (`dependency times out`) |
 | expired data | `validity` on the entity a body field names (`expired`, `not yet valid`) |
 | session expiry | the `session` (`denied with expired session`, for every permission other than public) |
+| rows | a role's `rows` rule over the entity an operation reads or writes, where the role holds the operation's permission (`shows only the rows of <role>` for a list, `a record outside the rows of <role> is not found` for a read by key, `a change outside the rows of <role> is refused` for a write), and over an entity a job acting as the role reads or writes (`acts only on the rows of <role> in <entity>`) |
 | concurrency | the `guard` on the operation or command (`concurrent write`, and `guard precondition fails`) |
 
 Each concept was chosen for what a test can set up from outside: a

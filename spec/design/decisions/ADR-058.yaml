@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.3.schema.json
 decisions:
   ADR-058:
     title: A page's elements are maps keyed by the field they are about beside its fields, a picker goes through a many-to-one relation, and a page is its own mode

@@ -81,7 +81,7 @@ func openapiDocument(t *testing.T, fixture string) string {
 		}
 		impls = append(impls, map[string]any{"file": impl.Path, "content": source.ValueOf(root), "idioms": idioms})
 	}
-	data, err := json.Marshal(map[string]any{"specarch": "0.2", "target": "openapi", "root": filepath.ToSlash(s.RootFile),
+	data, err := json.Marshal(map[string]any{"specarch": "0.3", "target": "openapi", "root": filepath.ToSlash(s.RootFile),
 		"specification": s.Value, "implementations": impls, "output": filepath.ToSlash(filepath.Join(fixture, "..", "out"))})
 	if err != nil {
 		t.Fatal(err)

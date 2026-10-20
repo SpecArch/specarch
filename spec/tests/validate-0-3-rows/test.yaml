@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "a rows rule keyed by a name that is not an entity, one that gives a string rather than true or false, and one naming a field the entity does not have"
+when: validate is run
+then: "it reports rows for each of the three, suggesting the entity, saying what the rule gives, and listing the names the rule may use, and exits 1"
+verifies: [SA-78]

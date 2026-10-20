@@ -1,0 +1,9 @@
+operation: getLoan
+level: system
+scenario: red
+covers: [a record outside the rows of member is not found]
+given: "a caller holding member, whose rows of Loan are memberId == caller.memberId"
+when: "getLoan is called for a Loan the rule does not hold for"
+then: "it is refused as not found, as if no record had that key"
+origin: inferred
+why: "Written by specarch derive: users get this wrong often, so the case is written. A draft: complete the given, when and then, and remove what does not hold."

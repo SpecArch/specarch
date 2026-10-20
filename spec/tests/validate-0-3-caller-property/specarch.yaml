@@ -1,0 +1,39 @@
+specarch: "0.3"
+info: { title: Case, version: 1.0.0 }
+entities:
+  Loan:
+    type: object
+    properties:
+      id: { type: string, format: uuid }
+      memberId: { type: string, format: uuid }
+    required: [id, memberId]
+    primaryKey: [id]
+    constraints:
+      loan_member_known:
+        kind: check
+        expression: memberId.size > 0
+        message: The member is known.
+      loan_own_member:
+        kind: check
+        expression: memberId == caller.memberId
+        message: The loan is the caller's.
+caller:
+  description: Who is making the call.
+  properties:
+    memberId: { type: [string, "null"], format: uuid, description: The member signed in. }
+permissions:
+  loans.read: { description: See loans. }
+roles:
+  member:
+    description: A card holder.
+    permissions: [loans.read]
+    rows:
+      Loan: memberId == caller.memberid
+  tenant:
+    description: A tenant's staff.
+    permissions: [loans.read]
+    rows:
+      Loan: memberId == caller.organisationId
+tests:
+  loan-member-known-succeeds: { entity: Loan, constraint: loan_member_known, level: system, scenario: golden, given: a loan with a member, when: it is saved, then: it is kept }
+  loan-own-member-succeeds: { entity: Loan, constraint: loan_own_member, level: system, scenario: golden, given: a loan of the caller, when: it is saved, then: it is kept }

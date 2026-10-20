@@ -1,6 +1,7 @@
 arguments: [validate, .]
 exitStatus: 1
 standardOutput: |
+  specarch.yaml:1:11: warning: /specarch: meta_model_version: the specification is written against meta-model 0.2, which is read until 1.0; 0.3 reserves the name caller for the caller record, so change the line to specarch: "0.3" once no field, property or input is called caller [meta_model_version@specarch.yaml#/specarch]
   specarch.yaml:6:3: error: /requirements/ITEM-1: test_case_missing: requirement ITEM-1 has no golden scenario for "acceptance 1"; add under tests item-1-acceptance-1: { requirement: ITEM-1, scenario: golden, covers: [acceptance 1], given: "...", when: "...", then: "An added item is in the stock." } [test_case_missing@specarch.yaml#/requirements/ITEM-1]
   specarch.yaml:38:7: error: /paths/~1stock/get: test_case_missing: operation listStock has no red scenario for "denied without items.read"; add under tests list-stock-denied-without-items-read: { operation: listStock, scenario: red, covers: [denied without items.read], given: "a caller without items.read", when: "listStock is called", then: "it is refused as not allowed" } [test_case_missing@specarch.yaml#/paths/~1stock/get]
   specarch.yaml:38:7: error: /paths/~1stock/get: test_golden_missing: operation listStock has no golden scenario; add one under tests, for example list-stock-succeeds: { operation: listStock, scenario: golden, given: "a caller with items.read", when: "listStock is called", then: "it answers 200: The items in stock." } [test_golden_missing@specarch.yaml#/paths/~1stock/get]

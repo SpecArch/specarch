@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.3.schema.json
 decisions:
   ADR-114:
     title: A check skipped for one kind of caller is a gate with bypassedFor client in the permission table and on a permission check's binding, asked as one must question blocking the permission of every operation the check guards, and joined by merge

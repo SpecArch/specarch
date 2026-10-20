@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.3.schema.json
 decisions:
   ADR-115:
     title: The name of a page's schema file is the ui binding's schemaFile in the implementation file, page.schema.ts when left out, read by extract pages and written by the TypeScript UI generator

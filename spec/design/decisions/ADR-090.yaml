@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.3.schema.json
 decisions:
   ADR-090:
     title: extract pages reads the Next.js files' code through the JavaScript reader's code-facts dump, given with --facts, so the router's folders stay the routes and the code answers what the folders cannot

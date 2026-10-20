@@ -1,16 +1,17 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-design-0.2.schema.json",
-  "title": "SpecArch specification, meta-model 0.2",
-  "description": "A SpecArch specification describes one system through its whole life cycle: the sources it rests on, the requirements (stakeholders, needs, requirements, glossary, assumptions, constraints), the design (enums, entities, permissions, roles, session, endpoints, commands, channels, dependencies, pages, algorithms, decisions), the tests, the deployment (environments, configuration, release, rollback, migrations) and the commissioning (checks, sign-off). On disk it is a folder whose root file is specarch.yaml; each stage listed under 'stages' lives in a folder of that name, and a stage not listed may be written inside specarch.yaml itself. The validator merges the tree into one document that this schema describes. Field keywords come from JSON Schema, endpoint keywords from OpenAPI 3, event keywords from AsyncAPI. Keywords with no standard origin are marked 'SpecArch keyword' in their description. Every object rejects unknown keys; keys starting with 'x-' are allowed everywhere as extensions.",
+  "$id": "https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-design-0.3.schema.json",
+  "title": "SpecArch specification, meta-model 0.3",
+  "description": "A SpecArch specification describes one system through its whole life cycle: the sources it rests on, the requirements (stakeholders, needs, requirements, glossary, assumptions, constraints), the design (enums, entities, permissions, roles, caller, session, endpoints, commands, channels, dependencies, pages, algorithms, decisions), the tests, the deployment (environments, configuration, release, rollback, migrations) and the commissioning (checks, sign-off). On disk it is a folder whose root file is specarch.yaml; each stage listed under 'stages' lives in a folder of that name, and a stage not listed may be written inside specarch.yaml itself. The validator merges the tree into one document that this schema describes. Field keywords come from JSON Schema, endpoint keywords from OpenAPI 3, event keywords from AsyncAPI. Keywords with no standard origin are marked 'SpecArch keyword' in their description. Every object rejects unknown keys; keys starting with 'x-' are allowed everywhere as extensions.",
   "type": "object",
   "properties": {
     "specarch": {
-      "description": "Meta-model version this file is written against. In 0.2 a derived case no test covers is an error; a 0.1 file is read until 1.0, with that case a warning and one warning that the file is on 0.1.",
+      "description": "Meta-model version this file is written against. In 0.3 the name caller is reserved for the caller record wherever an expression's names come from, and, as in 0.2, a derived case no test covers is an error; a 0.1 or 0.2 file is read until 1.0, with one warning that the file is on an earlier version, and a 0.1 file's missing tests are warnings.",
       "type": "string",
       "enum": [
         "0.1",
-        "0.2"
+        "0.2",
+        "0.3"
       ]
     },
     "info": {
@@ -162,6 +163,10 @@
       "additionalProperties": {
         "$ref": "#/$defs/role"
       }
+    },
+    "caller": {
+      "description": "SpecArch keyword. Who is making the call, as the service knows it once the session or token has been checked: one record with the properties of a value object, which a role's rows rule names as caller.<property>. A token's claims fill the properties of their names, and a session fills them at sign-in; how a running service carries them from the request to the query is the implementation file's (ADR-095).",
+      "$ref": "#/$defs/caller"
     },
     "separationOfDuties": {
       "description": "SpecArch keyword. Sets of permissions one holder must never have together, after the static separation of duty of ANSI INCITS 359, keyed by kebab-case name. No role may grant cardinality or more of a set's permissions; the techspec lists the combinations of roles that together reach a set, as roles never to be given to one person.",
@@ -2178,6 +2183,18 @@
           },
           "minItems": 1,
           "uniqueItems": true
+        },
+        "rows": {
+          "description": "SpecArch keyword. The rows the role reaches, keyed by entity: one expression over the entity's fields and the caller's properties (caller.<property>), giving true or false, in the subset of docs/conventions.md. A holder reads and changes only the records it holds for; an entity not listed is reached whole; a caller holding several roles reaches the union of their rows, after PostgreSQL's permissive row security policies. A rows rule grants nothing: the permission a holder needs is still the role's (ADR-095).",
+          "type": "object",
+          "propertyNames": {
+            "$ref": "#/$defs/typeName"
+          },
+          "additionalProperties": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minProperties": 1
         },
         "satisfies": {
           "$ref": "#/$defs/satisfies"
@@ -4499,12 +4516,40 @@
           "minLength": 1
         },
         "fixture": {
-          "description": "SpecArch keyword. The state before the test, for a generator: caller, the role making the call or public, and records that exist, by entity name.",
+          "description": "SpecArch keyword. The state before the test, for a generator: caller, the role making the call or public, as a word or as an object with the role and the caller's properties, and records that exist, by entity name.",
           "type": "object",
           "properties": {
             "caller": {
-              "type": "string",
-              "minLength": 1
+              "oneOf": [
+                {
+                  "description": "The role making the call, or public.",
+                  "type": "string",
+                  "minLength": 1
+                },
+                {
+                  "description": "The role making the call under role, or public, and a value for each property of the caller the test needs, by its name.",
+                  "type": "object",
+                  "properties": {
+                    "role": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "required": [
+                    "role"
+                  ],
+                  "propertyNames": {
+                    "anyOf": [
+                      {
+                        "const": "role"
+                      },
+                      {
+                        "$ref": "#/$defs/memberName"
+                      }
+                    ]
+                  }
+                }
+              ]
             }
           },
           "propertyNames": {
@@ -5939,6 +5984,57 @@
             "rows"
           ]
         }
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "caller": {
+      "description": "SpecArch keyword. The one caller record of a specification.",
+      "type": "object",
+      "properties": {
+        "description": {
+          "$ref": "#/$defs/markdown"
+        },
+        "properties": {
+          "description": "JSON Schema keyword. The caller's properties, keyed by camelCase name, each typed as a field; a property the caller may lack, such as a member identifier a staff member has none of, allows null, and a comparison with it is false when it is null.",
+          "type": "object",
+          "propertyNames": {
+            "$ref": "#/$defs/memberName"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/field"
+          },
+          "minProperties": 1
+        },
+        "satisfies": {
+          "$ref": "#/$defs/satisfies"
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
+        },
+        "audience": {
+          "$ref": "#/$defs/audience"
+        }
+      },
+      "required": [
+        "description",
+        "properties"
       ],
       "propertyNames": {
         "not": {

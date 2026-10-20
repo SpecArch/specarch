@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.3.schema.json
 enums:
   Rule:
     type: string
@@ -127,6 +127,9 @@ enums:
       - handler_source
       - handshake
       - stream
+      - caller_property
+      - rows
+      - reserved_name
     valueDescriptions:
       file_kind: a file given by name is neither `specarch.yaml` nor `*.specarch-implementation.yaml`, is part of a specification that should be checked as a whole, or its root key does not match its name
       yaml_syntax: an entry of the file, or the file as a whole, is not well-formed YAML; the entries that parse are still read (ADR-080)
@@ -236,7 +239,7 @@ enums:
       form_field: "a page's fieldConditions name a field it does not show, make a field read-only on a page that is not a form, or give readOnly and readOnlyWhen together; its checks or enteredTwice are on a page that is not a form or a task, or a check's field or a field entered twice is not one the page shows; or a check's message is not a full sentence"
       value_object: "a relation leads to a schema, a schema is named like an entity or a view, storage is on a field that holds no schema or inside a value or is columns on a list, or a value kept in columns is optional with no required part that is never null or holds a list of schemas, itself or a reference to an entity"
       wire_name: "the specification names its wire names (info.wireNames) and two properties of one object, an entity's, a view's with its entity's, or a body's, a parameter's or a message's, go on the wire under one name; or it names its roles' wire names (info.roleNames) and two roles go on the wire under one name"
-      meta_model_version: "the file says `specarch: \"0.1\"`, which is read until 1.0; run `specarch derive` and change the line to \"0.2\" (a warning)"
+      meta_model_version: "the file says `specarch: \"0.1\"` or `\"0.2\"`, which are read until 1.0; for 0.1 run `specarch derive`, and for either change the line to \"0.3\" once nothing an expression can name is called caller (a warning, ADR-055, ADR-094)"
       output_folder: "document or generate is given no --out, and no implementation file of a specification names an output folder for the target under targets, so that specification has no such output (a warning, ADR-073, ADR-086)"
       audience: "an element for everyone (no `audience`) names an element whose audience is internal through a `$ref`, a relation's `target`, a page's `entity` or a requirement's `needs`, so a document for everyone would name what it may not show (ADR-119)"
       question_opened: "a decision names under `opens` a question that is neither open in the specification nor answered by a decision, or one it answers itself (ADR-120)"
@@ -249,4 +252,7 @@ enums:
       handler_source: "as a warning, a handler record of an implementation file no longer matches the code: the source it holds for a function is not what the cited file holds at the function's lines (whether the source moved or changed), the file is not under the folder the code source names, or the record cites no source with a folder (ADR-144)"
       handshake: "an operation names under handshake a handshake the specification does not declare, a handshake's establishedBy names no operation or one that itself travels in a handshake's envelope, or an operation travels in an envelope and streams an upload, whose body is the file and not a JSON body the envelope carries (ADR-145)"
       stream: "an upload stream is on a method other than post or put or its request body is not one media type whose schema is a string of format binary, a download stream's success responses are not each one such media type, or limits.maxResponseBytes is on an operation that streams no download (ADR-146)"
+      caller_property: "an expression uses a dot outside caller.<property>, or names a property the caller does not declare, or names the caller where only a role's rows rule may (ADR-095)"
+      rows: "a role's rows rule names an entity the specification does not have, names something that is neither a field of that entity nor a property of the caller, or does not give true or false (ADR-095)"
+      reserved_name: "a file on meta-model 0.3 names a field, a schema's or a view's property or an algorithm's input caller, which 0.3 reserves for the caller record, since an expression naming it could mean either (ADR-094)"
     satisfies: [SA-2, SA-3, SA-4, SA-5, SA-6, SA-9, SA-10, SA-11, SA-12, SA-13, SA-17, SA-18, SA-23, SA-24, SA-27, SA-29, SA-41, SA-42, SA-47, SA-48, SA-49, SA-50, SA-62, SA-63, SA-67, SA-68, SA-69, SA-73, SA-77]

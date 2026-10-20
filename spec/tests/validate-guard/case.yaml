@@ -1,7 +1,7 @@
 arguments: [validate, .]
 exitStatus: 1
 standardOutput: |
-  specarch.yaml:1:11: warning: /specarch: meta_model_version: the specification is written against meta-model 0.1, which is read until 1.0, and its missing tests are warnings; run specarch derive to write the tests 0.2 asks for, then change the line to specarch: "0.2" [meta_model_version@specarch.yaml#/specarch]
+  specarch.yaml:1:11: warning: /specarch: meta_model_version: the specification is written against meta-model 0.1, which is read until 1.0, and its missing tests are warnings; run specarch derive to write the tests 0.2 asks for, then change the line to specarch: "0.3" once nothing an expression can name is called caller [meta_model_version@specarch.yaml#/specarch]
   specarch.yaml:16:7: warning: /paths/~1cards/post: test_case_missing: operation issueCard has no red scenario for "concurrent write"; add under tests issue-card-concurrent-write: { operation: issueCard, scenario: red, covers: [concurrent write], given: "another caller changed the Cards after this caller read it", when: "issueCard is called", then: "it is refused and the other caller's change stands" } [test_case_missing@specarch.yaml#/paths/~1cards/post]
   specarch.yaml:16:7: warning: /paths/~1cards/post: test_golden_missing: operation issueCard has no golden scenario; add one under tests, for example issue-card-succeeds: { operation: issueCard, scenario: golden, given: "any caller", when: "issueCard is called", then: "it answers 201: Issued." } [test_golden_missing@specarch.yaml#/paths/~1cards/post]
   specarch.yaml:21:24: error: /paths/~1cards/post/guard/entity: guard: Cards is not an entity of the specification; did you mean Card? [guard@specarch.yaml#/paths/~1cards/post/guard/entity]

@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.3.schema.json
 decisions:
   ADR-074:
     title: Server routes forward each called operation with the session's token, the strings hold every translation the settings name, and the theme reaches Carbon's tokens through the design-tokens idiom

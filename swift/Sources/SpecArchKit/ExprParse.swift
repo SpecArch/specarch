@@ -3,7 +3,7 @@ import Foundation
 /// One problem in an expression. Line and column count from 1, inside the
 /// expression text.
 public struct ExprError {
-    public enum Kind { case syntax, name, typeMismatch }
+    public enum Kind { case syntax, name, typeMismatch, callerProperty }
     public let line: Int
     public let column: Int
     public let kind: Kind
@@ -31,6 +31,10 @@ public final class ExprNode {
         self.column = column
     }
 }
+
+/// The reserved name of the caller record: caller.<property> is the one
+/// field access an expression may use (ADR-095).
+public let exprCallerName = "caller"
 
 /// The functions of the subset.
 public let exprFunctions: Set<String> = ["int", "uint", "double", "decimal", "string", "date", "timestamp", "duration", "size", "round", "floor", "ceil", "min", "max"]
@@ -207,8 +211,8 @@ private final class Parser {
         _ = next()
     }
 
-    func refuse(_ t: Token, _ message: String) {
-        refusals.append(ExprError(line: t.line, column: t.column, kind: .syntax, message: message))
+    func refuse(_ t: Token, _ message: String, kind: ExprError.Kind = .syntax) {
+        refusals.append(ExprError(line: t.line, column: t.column, kind: kind, message: message))
     }
 
     func parse() throws -> ExprNode {
@@ -288,6 +292,9 @@ private final class Parser {
 
     func member() throws -> ExprNode {
         let n = try primary()
+        // The dots of a chain of field accesses, refused once at the last
+        // one, as the CEL parser places the outermost select.
+        var lastDot: Token?
         while true {
             if isOp(".") {
                 let dot = next()
@@ -297,8 +304,14 @@ private final class Parser {
                     let open = next()
                     _ = try arguments()
                     refuse(open, "the method form x.\(name.text)() is not part of SpecArch expressions; write \(name.text)(x)")
+                } else if lastDot == nil && n.op == .name && n.text == exprCallerName {
+                    // caller.<property>, the one field access, read as one name.
+                    n.text = exprCallerName + "." + name.text
                 } else {
-                    refuse(dot, "field access with . is not part of SpecArch expressions; name the field directly")
+                    lastDot = dot
+                    if !isOp(".") {
+                        refuse(dot, "field access with . is only for the caller's properties, written caller.<property>; name a field directly", kind: .callerProperty)
+                    }
                 }
                 continue
             }

@@ -1,0 +1,6 @@
+operation: listLoans
+level: system
+scenario: golden
+given: a caller with loans.read
+when: listLoans is called
+then: "it answers 200: The loans."

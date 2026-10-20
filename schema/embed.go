@@ -6,7 +6,7 @@ import _ "embed"
 
 // Definition is the schema of a SpecArch Definition File.
 //
-//go:embed specarch-design-0.2.schema.json
+//go:embed specarch-design-0.3.schema.json
 var Definition []byte
 
 // Implementation is the schema of a SpecArch Implementation File.

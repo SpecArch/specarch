@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.3.schema.json
 decisions:
   ADR-087:
     title: extract swift reads a code-facts dump that SwiftSyntax wrote, and turns its facts into screens, models, routes, clients and settings in Go

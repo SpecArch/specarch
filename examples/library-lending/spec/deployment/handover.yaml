@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=../../../../schema/specarch-fragment-deployment-0.2.schema.json
+# yaml-language-server: $schema=../../../../schema/specarch-fragment-deployment-0.3.schema.json
 handover:
   description: |
     Each release is handed to the library's IT staff as source: they build

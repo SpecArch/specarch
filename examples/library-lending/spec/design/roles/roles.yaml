@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=../../../../../schema/specarch-fragment-design-0.2.schema.json
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-design-0.3.schema.json
 roles:
   librarian:
     description: Staff at the desk.
@@ -7,10 +7,12 @@ roles:
     description: Staff who decide what a lost copy costs the library; they do not lend.
     permissions: [loans.read, loans.writeoff]
   member:
-    description: A card holder, limited to their own records by the service.
+    description: A card holder, who sees only their own loans.
     permissions: [catalogue.read, loans.read]
+    rows:
+      Loan: memberId == caller.memberId
     satisfies: [LIB-6]
-    why: The row-level rule, a member sees only loans whose memberId is their own, is not in the meta-model yet; the service enforces it and this role is where it is written down.
+    why: A member reads only the loans whose memberId is their own; the rule is written here once and holds for every operation, page and job that reads a loan, and a caller with no member identifier reaches no loan through it.
   scheduler:
     description: The system itself, running the nightly jobs; no person signs in as it.
     permissions: [loans.read]

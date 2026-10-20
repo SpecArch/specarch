@@ -28,9 +28,7 @@ func (c *checker) checkTestData(d *design) {
 				ptr := source.Pointer(append(base, "fixture", kv.Key.Value)...)
 				switch {
 				case kv.Key.Value == "caller":
-					if v := source.Str(kv.Value); v != "" && v != "public" && d.roles[v] == nil {
-						c.add(kv.Value, ptr, RuleTestData, "caller %s is neither public nor a role of the specification%s", v, suggest(v, d.roles))
-					}
+					c.checkFixtureCaller(d, kv.Value, ptr)
 				case strings.HasPrefix(kv.Key.Value, "x-"):
 				default:
 					c.checkRecords(d, kv, ptr)

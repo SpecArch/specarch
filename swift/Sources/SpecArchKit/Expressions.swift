@@ -208,6 +208,7 @@ extension Checker {
             case .name: rule = .expressionName
             case .typeMismatch: rule = .expressionType
             case .syntax: rule = .expressionSyntax
+            case .callerProperty: rule = .callerProperty
             }
             addFile(fileOf(n), exprLine(n, e.line), ptr, rule, "\(what): \(e.message)")
             diags[diags.count - 1].column = exprColumn(n, e.line, e.column)

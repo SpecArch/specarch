@@ -61,7 +61,7 @@ file's pointers use.
 
 The first line of the root file is the editor hint:
 
-    # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v0.7.1/schema/specarch-design-0.2.schema.json
+    # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v0.7.1/schema/specarch-design-0.3.schema.json
 
 For an implementation file:
 
@@ -77,14 +77,14 @@ folder, which holds only some of its sections, has a schema of its own:
 
 | File | Its schema |
 |---|---|
-| a file under `requirements/`, `design/`, `deployment/`, `commissioning/` or `operation/` | `specarch-fragment-<stage>-0.2.schema.json`, that stage's sections and `questions` |
-| `tests/<name>/test.yaml` | `specarch-fragment-test-0.2.schema.json`, one test |
-| a file directly under `tests/` or `implementation/` | `specarch-fragment-questions-0.2.schema.json`, only `questions` |
+| a file under `requirements/`, `design/`, `deployment/`, `commissioning/` or `operation/` | `specarch-fragment-<stage>-0.3.schema.json`, that stage's sections and `questions` |
+| `tests/<name>/test.yaml` | `specarch-fragment-test-0.3.schema.json`, one test |
+| a file directly under `tests/` or `implementation/` | `specarch-fragment-questions-0.3.schema.json`, only `questions` |
 
 A fragment's hint names the same commit or tag as the root file's, here
 for a file under `design/entities/`:
 
-    # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/<commit or tag>/schema/specarch-fragment-design-0.2.schema.json
+    # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/<commit or tag>/schema/specarch-fragment-design-0.3.schema.json
 
 Each is written from the design schema by `tools/fragment-schemas`, which
 copies the stage's sections and the definitions they reach, so a keyword
@@ -98,7 +98,7 @@ editor checks each file as it is written; `specarch validate` checks the
 whole tree.
 
 The specifications in this repository name the schemas by a path relative
-to the file (`../../../schema/specarch-fragment-design-0.2.schema.json`),
+to the file (`../../../schema/specarch-fragment-design-0.3.schema.json`),
 because they are written against the schemas beside them rather than a
 released tag; `go run ./tools/fragment-schemas` writes those lines too.
 
@@ -539,6 +539,8 @@ redefined.
 | `valueDescriptions` | SpecArch | per-value meaning of an enum |
 | `commands`, `arguments`, `options`, `reads`, `writes`, `standardOutput`, `standardError`, `exitCodes`, `repeatable` | SpecArch | command-line interfaces; no standard describes one |
 | `permissions`, `roles`, `permission` | SpecArch | OpenAPI's `security` names a scheme, not a right; SpecArch needs the right |
+| `caller` | SpecArch | the one record of who is making the call, with properties as JSON Schema has them; `caller.<property>` in an expression is CEL's own field access, kept to this one record so that every name is still a declared column of one record and a generator renders a rule without a join (ADR-095) |
+| `rows` (of a role) | SpecArch, after PostgreSQL's `CREATE POLICY ... USING (...)` | the rows a role reaches in an entity, one bool expression per entity, permissive across roles as the policies are; ISO SQL has no row security, so the one engine that models it names it (ADR-095) |
 | `separationOfDuties`, `cardinality` | ANSI INCITS 359 (RBAC), static separation of duty | a set and a number no holder may reach; stated over permissions, not roles, because the specification declares the duties and the roles that grant them |
 | `session`, `idleTimeout`, `absoluteTimeout` | SpecArch, after the OWASP Session Management Cheat Sheet | how a signed-in session ends; the two timeouts are the cheat sheet's |
 | `middlewares`, `refusals` | SpecArch | the steps a request passes before an operation's handler, declared once with what each checks or does and the refusals it answers, each a `status`, a `problem` and a `condition`; an operation lists the ones it runs, in order, `[]` for none. No standard names them: OpenAPI's `security` says how a caller proves who it is, not what runs (ADR-131) |
@@ -650,9 +652,58 @@ implying `v1.get` lets a holder of `v1.all` call what `v1.get` guards. Every
 check of what a role grants counts what its permissions imply, and the
 techspec's matrix marks an implied one with the permission it comes through.
 An undeclared name, `public` on either side and a cycle are refused
-(`implies`). Row-level rules (a member sees only
-their own loans) are not in the meta-model yet; they are described in prose and
-enforced by the service, and are on the list in `docs/roadmap.md`.
+(`implies`).
+
+### The caller and the rows a role reaches
+
+A specification may declare the caller: who is making the call, as the
+service knows it once the session or token has been checked, as one record
+with the properties of a value object (ADR-095):
+
+    caller:
+      description: Who is making the call, once the session has been checked.
+      properties:
+        memberId: { type: [string, "null"], format: uuid, description: The member signed in; null for staff. }
+
+A role may then limit the rows it reaches in an entity, with one expression
+per entity over that entity's fields and the caller's properties, written
+`caller.<property>`, giving true or false in the subset of Expressions
+below:
+
+    roles:
+      member:
+        description: A card holder.
+        permissions: [catalogue.read, loans.read]
+        rows:
+          Loan: memberId == caller.memberId
+
+A holder of the role reads and changes only the records the rule holds for;
+an entity not listed is reached whole; a caller holding several roles
+reaches the union of their rows, after PostgreSQL's permissive row security
+policies, which are the model. A rows rule grants nothing: the permission a
+holder needs is still the role's. A property the caller may lack allows
+null, and a comparison with it is false when it is null, so a rule written
+`memberId == caller.memberId` reaches no row for a caller with no member
+identifier, which is the fail-closed answer. What a caller sees outside
+their rows is settled once: a list shows only the rows, a read of one
+record by its key answers not found, never forbidden, so that an identifier
+does not reveal whether a record exists, and a change that would leave the
+rows is refused. Each is a derived case for every operation over the
+entity whose permission the role holds (`shows only the rows of <role>`,
+`a record outside the rows of <role> is not found`, `a change outside the
+rows of <role> is refused`), and a job acting as the role gets `acts only
+on the rows of <role> in <entity>`. The validator refuses a rule keyed by a
+name that is not an entity, one that does not give true or false, and one
+naming what is neither the entity's field nor the caller's property
+(`rows`); a dot anywhere but in `caller.<property>`, a property the caller
+does not declare, and the caller named outside a rows rule
+(`caller_property`). The name `caller` is reserved wherever an expression's
+names come from: a field, a schema's or a view's property or an algorithm's
+input of that name is refused in a file on 0.3 (`reserved_name`), and read
+with the version warning in a file on 0.2 (ADR-094). The roles a caller
+holds are not a property: a rule is written per role. A test's fixture
+names the caller as a role, or as an object with `role` and a value for
+each property the test needs.
 
 ### Separation of duties
 
@@ -1538,7 +1589,8 @@ float), so every conversion is written where it happens.
 
 A check is one expression that gives a bool, and so is the `where` of a
 unique constraint: the fields must be unique only among the records it
-holds for. A formula is one expression
+holds for; a role's `rows` rule is one that gives a bool over an entity's
+fields and the caller's properties. A formula is one expression
 whose type is the algorithm's output type. The validator parses every
 expression, refuses anything outside the subset by name, checks every name
 and type against the declared fields and inputs, and evaluates every formula
@@ -1559,7 +1611,8 @@ none; money needs one.
 | string | `"open"`, `'open'` | text, in double or single quotes |
 | bool | `true`, `false` | |
 | `null` | `returnedAt == null` | no value; only for a field that allows null |
-| name | `dueOn` | a field of the entity (in a check) or an input of the algorithm (in a formula) |
+| name | `dueOn` | a field of the entity (in a check or a rows rule) or an input of the algorithm (in a formula) |
+| `caller.<property>` | `memberId == caller.memberId` | a property of the caller, in a rows rule only; the one place a `.` may appear |
 | `( )` | `(a + b) * c` | grouping |
 | `-x` | `-discount` | negation |
 | `!x` | `!active` | not |
@@ -1789,8 +1842,8 @@ One test may cover several cases when they are one scenario (a lookup that
 answers 404 covers `not found memberId` and `response 404`). A case that
 does not apply is covered by a test with `notApplicable` and a written
 reason instead of given, when and then. In a file that says
-`specarch: "0.2"` a test `specarch derive` would write and nobody has is an
-error: a chosen case no test covers (`test_case_missing`), and a subject
+`specarch: "0.2"` or `"0.3"` a test `specarch derive` would write and nobody
+has is an error: a chosen case no test covers (`test_case_missing`), and a subject
 with no golden test when the design gives its success
 (`test_golden_missing`). A subject an open must or should question holds
 up keeps a warning, since derive leaves its tests out too until the
@@ -1800,7 +1853,9 @@ runs past these errors, since they are what it settles, and `specarch
 extract` and `specarch merge` run it into every tree they write. A file
 that says `specarch: "0.1"` is read until 1.0: its missing tests are
 warnings, and it gets one warning at the `specarch` line
-(`meta_model_version`) until it is moved to 0.2 (ADR-055).
+(`meta_model_version`) until it is moved on (ADR-055); so is one that says
+`"0.2"`, whose one warning says that 0.3 reserves the name `caller`
+(ADR-094).
 
 An implementation file's suite names the design tests it runs, by name
 (`designTests`) or by subject (`designTestsOf: [{ command: validate }]`),

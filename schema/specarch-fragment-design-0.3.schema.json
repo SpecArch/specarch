@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-fragment-design-0.2.schema.json",
-  "title": "SpecArch design file, meta-model 0.2",
-  "description": "One file under the design/ folder of a SpecArch specification: a mapping of that stage's sections (enums, entities, views, schemas, permissions, roles, separationOfDuties, session, middlewares, handshakes, paths, commands, channels, dependencies, jobs, workflows, errors, pages, menus, flows, accessibility, theme, algorithms, decisions, questions). A file under a sub-folder named after a section holds only that section. The validator merges every file of a tree into one document, which specarch-design-0.2.schema.json describes, and checks what spans files, such as references and names defined twice; this schema checks one file alone. Written by tools/fragment-schemas from that schema; do not edit, run it.",
+  "$id": "https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-fragment-design-0.3.schema.json",
+  "title": "SpecArch design file, meta-model 0.3",
+  "description": "One file under the design/ folder of a SpecArch specification: a mapping of that stage's sections (enums, entities, views, schemas, permissions, roles, caller, separationOfDuties, session, middlewares, handshakes, paths, commands, channels, dependencies, jobs, workflows, errors, pages, menus, flows, accessibility, theme, algorithms, decisions, questions). A file under a sub-folder named after a section holds only that section. The validator merges every file of a tree into one document, which specarch-design-0.3.schema.json describes, and checks what spans files, such as references and names defined twice; this schema checks one file alone. Written by tools/fragment-schemas from that schema; do not edit, run it.",
   "type": "object",
   "properties": {
     "enums": {
@@ -64,6 +64,10 @@
       "additionalProperties": {
         "$ref": "#/$defs/role"
       }
+    },
+    "caller": {
+      "description": "SpecArch keyword. Who is making the call, as the service knows it once the session or token has been checked: one record with the properties of a value object, which a role's rows rule names as caller.<property>. A token's claims fill the properties of their names, and a session fills them at sign-in; how a running service carries them from the request to the query is the implementation file's (ADR-095).",
+      "$ref": "#/$defs/caller"
     },
     "separationOfDuties": {
       "description": "SpecArch keyword. Sets of permissions one holder must never have together, after the static separation of duty of ANSI INCITS 359, keyed by kebab-case name. No role may grant cardinality or more of a set's permissions; the techspec lists the combinations of roles that together reach a set, as roles never to be given to one person.",
@@ -1403,6 +1407,18 @@
           },
           "minItems": 1,
           "uniqueItems": true
+        },
+        "rows": {
+          "description": "SpecArch keyword. The rows the role reaches, keyed by entity: one expression over the entity's fields and the caller's properties (caller.<property>), giving true or false, in the subset of docs/conventions.md. A holder reads and changes only the records it holds for; an entity not listed is reached whole; a caller holding several roles reaches the union of their rows, after PostgreSQL's permissive row security policies. A rows rule grants nothing: the permission a holder needs is still the role's (ADR-095).",
+          "type": "object",
+          "propertyNames": {
+            "$ref": "#/$defs/typeName"
+          },
+          "additionalProperties": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minProperties": 1
         },
         "satisfies": {
           "$ref": "#/$defs/satisfies"
@@ -4291,6 +4307,57 @@
             "rows"
           ]
         }
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "caller": {
+      "description": "SpecArch keyword. The one caller record of a specification.",
+      "type": "object",
+      "properties": {
+        "description": {
+          "$ref": "#/$defs/markdown"
+        },
+        "properties": {
+          "description": "JSON Schema keyword. The caller's properties, keyed by camelCase name, each typed as a field; a property the caller may lack, such as a member identifier a staff member has none of, allows null, and a comparison with it is false when it is null.",
+          "type": "object",
+          "propertyNames": {
+            "$ref": "#/$defs/memberName"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/field"
+          },
+          "minProperties": 1
+        },
+        "satisfies": {
+          "$ref": "#/$defs/satisfies"
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
+        },
+        "audience": {
+          "$ref": "#/$defs/audience"
+        }
+      },
+      "required": [
+        "description",
+        "properties"
       ],
       "propertyNames": {
         "not": {

@@ -413,6 +413,7 @@ extension Design {
             }
         }
         denied(s, str(o.node.child("permission")), call)
+        rowsCases(s, o, call)
         disabled(s, o.node, call)
         var seenChannel = Set<String>()
         for e in items(o.node.child("emits")) {
@@ -651,6 +652,7 @@ extension Design {
         s.success = golden("...", run, "it completes")
         s.cases.append(DerivedCase(name: "runs twice", scenario: "golden", given: "the job " + name + " has run", when: again,
                                    then: "nothing changes a second time", frequency: rare, critical: true))
+        jobRowsCases(s, p.value, run)
         for name in calledDependencies(p.value) {
             guard let dep = dependencies[name] else { continue }
             s.byNature("dependency fails " + name, name + " answers with an error", run, "...")
@@ -883,11 +885,18 @@ private func listCases(_ s: Subject) -> String {
 }
 
 extension Checker {
-    /// Warns once in a file written against 0.1, which is read until 1.0
-    /// (ADR-055).
+    /// Warns once in a file written against 0.1 or 0.2, which are read
+    /// until 1.0 (ADR-055, ADR-094).
     func checkMetaModelVersion(_ d: Design) {
-        guard let v = d.root.child("specarch"), str(v) == "0.1" else { return }
-        warn(v, "/specarch", .metaModelVersion, "the specification is written against meta-model 0.1, which is read until 1.0, and its missing tests are warnings; run specarch derive to write the tests 0.2 asks for, then change the line to specarch: \"0.2\"")
+        guard let v = d.root.child("specarch") else { return }
+        switch str(v) {
+        case "0.1":
+            warn(v, "/specarch", .metaModelVersion, "the specification is written against meta-model 0.1, which is read until 1.0, and its missing tests are warnings; run specarch derive to write the tests 0.2 asks for, then change the line to specarch: \"0.3\" once nothing an expression can name is called caller")
+        case "0.2":
+            warn(v, "/specarch", .metaModelVersion, "the specification is written against meta-model 0.2, which is read until 1.0; 0.3 reserves the name caller for the caller record, so change the line to specarch: \"0.3\" once no field, property or input is called caller")
+        default:
+            break
+        }
     }
 
     func checkTests(_ d: Design) {
@@ -931,10 +940,10 @@ extension Checker {
             }
         }
 
-        // In a 0.2 file a test specarch derive writes and nobody has is an
-        // error, except for a subject an open must or should question holds
+        // In a 0.2 or 0.3 file a test specarch derive writes and nobody has is
+        // an error, except for a subject an open must or should question holds
         // up, whose test derive leaves out too (ADR-055).
-        let strict = str(d.root.child("specarch")) == "0.2"
+        let strict = d.metaModelVersion != "0.1"
         let blocking = blockingQuestions(d.root)
         for s in subjects {
             let id = ObjectIdentifier(s)

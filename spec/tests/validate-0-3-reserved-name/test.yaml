@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "a specification on 0.3 with a field, a view's property, a schema's property and an algorithm's input each named caller"
+when: validate is run
+then: "it reports reserved_name at each of the four, saying 0.3 reserves the name for the caller record, and exits 1"
+verifies: [SA-78]

@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.3.schema.json
 decisions:
   ADR-092:
     title: extract dart reads a code-facts dump the analyzer package's parseString wrote, resolving no package, and turns its facts into screens, models, routes, clients and settings in Go

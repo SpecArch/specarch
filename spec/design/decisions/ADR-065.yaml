@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.3.schema.json
 decisions:
   ADR-065:
     title: Every problem is one record, listed in one problems file with its SARIF form, and marked at the entry in every file SpecArch writes

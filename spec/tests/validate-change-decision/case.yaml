@@ -1,6 +1,6 @@
 arguments: [validate, project]
 exitStatus: 1
 standardOutput: |
-  project/specarch.yaml:1:11: warning: /specarch: meta_model_version: the specification is written against meta-model 0.1, which is read until 1.0, and its missing tests are warnings; run specarch derive to write the tests 0.2 asks for, then change the line to specarch: "0.2" [meta_model_version@specarch.yaml#/specarch]
+  project/specarch.yaml:1:11: warning: /specarch: meta_model_version: the specification is written against meta-model 0.1, which is read until 1.0, and its missing tests are warnings; run specarch derive to write the tests 0.2 asks for, then change the line to specarch: "0.3" once nothing an expression can name is called caller [meta_model_version@specarch.yaml#/specarch]
   records/changes/CR-1.yaml:13:9: error: /status: change_decision: CR-1 is approved but has no decision; add decision with by, date, outcome approved and why [change_decision@../records/changes/CR-1.yaml#/status]
   records/changes/CR-2.yaml:13:53: error: /decision/outcome: change_decision: CR-2 is rejected but its decision's outcome is approved; a rejected change needs outcome rejected [change_decision@../records/changes/CR-2.yaml#/decision/outcome]

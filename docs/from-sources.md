@@ -60,7 +60,7 @@ The schemas are compiled into the program, so validation needs nothing
 else. An editor that should check the YAML as it is typed points at the
 same commit:
 
-    # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/<commit or tag>/schema/specarch-design-0.2.schema.json
+    # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/<commit or tag>/schema/specarch-design-0.3.schema.json
 
 ## 2. The folder
 
@@ -68,7 +68,7 @@ The specification lives in its own folder of the repository, such as
 `spec/`, beside the documents and code it is read from. Its root file
 declares the sources and says the specification tracks origin:
 
-    specarch: "0.2"
+    specarch: "0.3"
     info: { title: <system>, version: 0.1.0, tracksOrigin: true }
     stages: [requirements, design, implementation]
     sources:

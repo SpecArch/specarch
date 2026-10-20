@@ -9,7 +9,7 @@ out=Sources/SpecArchKit/Schemas.swift
   echo '// Written by embed-schemas.sh from ../schema and ../idioms. Do not edit; run the script.'
   echo
   echo 'let designSchemaJSON = #"""'
-  cat ../schema/specarch-design-0.2.schema.json
+  cat ../schema/specarch-design-0.3.schema.json
   echo '"""#'
   echo
   echo 'let implementationSchemaJSON = #"""'

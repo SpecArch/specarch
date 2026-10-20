@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.3.schema.json
 decisions:
   ADR-066:
     title: Problem marks go into every fragment of a specification when document problems runs, and generated code may be written as a marked draft beside the approval gate

@@ -48,7 +48,7 @@ const QuestionsSection = "questions"
 var Sections = map[string]string{
 	"stakeholders": "requirements", "needs": "requirements", "requirements": "requirements",
 	"glossary": "requirements", "assumptions": "requirements", "constraints": "requirements",
-	"enums": "design", "entities": "design", "views": "design", "schemas": "design", "permissions": "design", "roles": "design", "separationOfDuties": "design", "session": "design", "middlewares": "design", "handshakes": "design", "paths": "design",
+	"enums": "design", "entities": "design", "views": "design", "schemas": "design", "permissions": "design", "roles": "design", "caller": "design", "separationOfDuties": "design", "session": "design", "middlewares": "design", "handshakes": "design", "paths": "design",
 	"commands": "design", "channels": "design", "dependencies": "design", "jobs": "design", "workflows": "design", "errors": "design", "pages": "design", "menus": "design", "flows": "design", "accessibility": "design", "theme": "design", "algorithms": "design", "decisions": "design",
 	"tests":        "tests",
 	"environments": "deployment", "configuration": "deployment", "release": "deployment",
@@ -61,7 +61,7 @@ var Sections = map[string]string{
 // docs/conventions.md: life-cycle order, the questions last.
 var sectionOrder = []string{
 	"stakeholders", "needs", "requirements", "glossary", "assumptions", "constraints",
-	"enums", "entities", "views", "schemas", "permissions", "roles", "separationOfDuties", "session", "middlewares", "handshakes", "paths", "commands", "channels", "dependencies", "jobs", "workflows", "errors", "pages", "menus", "flows", "accessibility", "theme", "algorithms",
+	"enums", "entities", "views", "schemas", "permissions", "roles", "caller", "separationOfDuties", "session", "middlewares", "handshakes", "paths", "commands", "channels", "dependencies", "jobs", "workflows", "errors", "pages", "menus", "flows", "accessibility", "theme", "algorithms",
 	"tests", "decisions",
 	"environments", "configuration", "release", "rollback", "migrations", "handover",
 	"checks", "signoff",
@@ -94,7 +94,7 @@ var keyedElements = map[string]bool{
 func IsElement(path []string) bool {
 	switch len(path) {
 	case 1:
-		return path[0] == "session" || path[0] == "release" || path[0] == "rollback" || path[0] == "signoff" || path[0] == "backup" || path[0] == "restore"
+		return path[0] == "caller" || path[0] == "session" || path[0] == "release" || path[0] == "rollback" || path[0] == "signoff" || path[0] == "backup" || path[0] == "restore"
 	case 2:
 		return keyedElements[path[0]]
 	case 3:

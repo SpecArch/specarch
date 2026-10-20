@@ -107,6 +107,8 @@ func (c *checker) exprErrors(n *yaml.Node, ptr, what string, errs []expr.Error) 
 			rule = RuleExpressionName
 		case expr.TypeMismatch:
 			rule = RuleExpressionType
+		case expr.CallerProperty:
+			rule = RuleCallerProperty
 		}
 		c.addFile(c.fileOf(n), exprLine(n, e.Line), ptr, rule, "%s: %s", what, e.Message)
 		c.diags[len(c.diags)-1].Column = c.exprColumn(n, e.Line, e.Column)

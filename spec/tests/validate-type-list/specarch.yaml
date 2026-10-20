@@ -1,4 +1,4 @@
-specarch: "0.2"
+specarch: "0.3"
 info: { title: Case, version: 1.0.0 }
 schemas:
   Settings:

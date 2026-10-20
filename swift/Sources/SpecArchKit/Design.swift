@@ -236,6 +236,8 @@ extension Checker {
         checkPageElements(d)
         checkDecisions(d)
         checkAccess(d)
+        checkCaller(d)
+        checkRoleRows(d)
         checkImplies(d)
         checkSeparationOfDuties(d)
         checkExpressions(d)

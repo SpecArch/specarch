@@ -1,4 +1,4 @@
-specarch: "0.2"
+specarch: "0.3"
 info: { title: Lockers, version: 1.0.0 }
 sources:
   code: { kind: code, title: The code repository, edition: "1111111111111111111111111111111111111111", url: ../testdata/code, reading: parsed, clauses: [{ clause: api/handlers.go, title: Go source }] }

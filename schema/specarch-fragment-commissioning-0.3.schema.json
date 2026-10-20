@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-fragment-commissioning-0.2.schema.json",
-  "title": "SpecArch commissioning file, meta-model 0.2",
-  "description": "One file under the commissioning/ folder of a SpecArch specification: a mapping of that stage's sections (checks, signoff, questions). A file under a sub-folder named after a section holds only that section. The validator merges every file of a tree into one document, which specarch-design-0.2.schema.json describes, and checks what spans files, such as references and names defined twice; this schema checks one file alone. Written by tools/fragment-schemas from that schema; do not edit, run it.",
+  "$id": "https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-fragment-commissioning-0.3.schema.json",
+  "title": "SpecArch commissioning file, meta-model 0.3",
+  "description": "One file under the commissioning/ folder of a SpecArch specification: a mapping of that stage's sections (checks, signoff, questions). A file under a sub-folder named after a section holds only that section. The validator merges every file of a tree into one document, which specarch-design-0.3.schema.json describes, and checks what spans files, such as references and names defined twice; this schema checks one file alone. Written by tools/fragment-schemas from that schema; do not edit, run it.",
   "type": "object",
   "properties": {
     "checks": {

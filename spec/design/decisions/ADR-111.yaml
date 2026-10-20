@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.3.schema.json
 decisions:
   ADR-111:
     title: A token says its kind with tokenType, via on each operation names its immediate callers and is required wherever a Txn-Token or an act token is accepted, the validator derives the chain by induction, and every service in a chain proves a workload identity

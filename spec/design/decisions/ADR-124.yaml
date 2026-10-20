@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.3.schema.json
 decisions:
   ADR-124:
     title: specarch check compares a specification with the dumps of its code by the merge's matching, the database through the tables generate sql writes, fails on a difference an allowlist does not name, and lets the allowlist only shrink

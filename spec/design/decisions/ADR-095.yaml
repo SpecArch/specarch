@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.3.schema.json
 decisions:
   ADR-095:
     title: The caller is a declared record, caller.<property> is the one field access an expression may use, and a role's rows rule limits an entity's rows after PostgreSQL's row security policies, with a record outside the rows not found

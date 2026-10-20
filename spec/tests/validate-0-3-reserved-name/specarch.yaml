@@ -1,0 +1,39 @@
+specarch: "0.3"
+info: { title: Case, version: 1.0.0 }
+entities:
+  Member:
+    type: object
+    properties:
+      id: { type: string, format: uuid }
+      caller: { type: string, maxLength: 100 }
+    required: [id, caller]
+    primaryKey: [id]
+  Loan:
+    type: object
+    properties:
+      id: { type: string, format: uuid }
+      memberId: { type: string, format: uuid }
+    required: [id, memberId]
+    primaryKey: [id]
+    relations:
+      member: { target: Member, kind: many-to-one, via: memberId }
+views:
+  LoanView:
+    from: Loan
+    properties:
+      caller: { path: member.caller }
+schemas:
+  Request:
+    type: object
+    properties:
+      caller: { type: string, maxLength: 100 }
+algorithms:
+  fee:
+    description: A fee by the caller's tier.
+    inputs:
+      caller: { type: integer, format: int32 }
+    output: { type: integer, format: int32 }
+    formula: caller * 2
+    pseudocode: twice the tier
+    examples:
+      - { name: tier one, inputs: { caller: 1 }, expected: 2 }

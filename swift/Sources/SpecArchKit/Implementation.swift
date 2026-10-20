@@ -6,7 +6,7 @@ let designKeys: Set<String> = [
     "specarch", "stages", "sources",
     "stakeholders", "needs", "requirements", "glossary", "assumptions",
     "enums", "entities", "permissions", "roles", "paths", "commands",
-    "channels", "dependencies", "session", "pages", "algorithms", "tests",
+    "channels", "dependencies", "session", "caller", "pages", "algorithms", "tests",
     "environments", "release", "rollback", "migrations", "handover", "checks", "signoff",
     "backup", "restore", "relations", "constraints", "transitions", "operationId", "responses",
     "requestBody", "parameters", "permission", "formula", "examples",

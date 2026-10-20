@@ -1,0 +1,10 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-test-0.3.schema.json
+operation: listLoans
+level: system
+scenario: red
+covers: [shows only the rows of member]
+given: a member with two loans, while another member has one
+when: listLoans is called by that member, with no memberId filter and again with the other member's memberId
+then: both answers list only that member's two loans, and nothing says the other member's loan exists
+fixture:
+  caller: { role: member, memberId: "0d2a1b2c-3d4e-4f50-8a6b-7c8d9e0f1a2b" }

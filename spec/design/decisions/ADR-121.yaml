@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.3.schema.json
 decisions:
   ADR-121:
     title: A field may say generatedDefault, an entity's mapping lists its table's plain indexes, the database reader writes them into an implementation fragment, and a list served two ways is two operations named after one handler

@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.3.schema.json
 decisions:
   ADR-141:
     title: A gateway that forwards by a token claim is a design element of its own under gateways, after RFC 9110's gateway, with the token it verifies, the claim it reads, the dependency each value selects, its own refusals and no permission, and its forwards fix the token's audience

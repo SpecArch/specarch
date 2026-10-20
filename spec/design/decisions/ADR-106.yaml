@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.3.schema.json
 decisions:
   ADR-106:
     title: A client is keyed by its software_id with a kind, its client_id is a deployment value, and its version is checked once at the edge against a declared claim, after RFC 7591

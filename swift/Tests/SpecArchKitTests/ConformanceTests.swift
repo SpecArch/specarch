@@ -106,7 +106,7 @@ private func ownSpecification() throws -> YNode {
 
 /// The embedded schemas are the files in schema/.
 @Test func embeddedSchemasAreCurrent() throws {
-    let design = try String(contentsOf: repository.appendingPathComponent("schema/specarch-design-0.2.schema.json"), encoding: .utf8)
+    let design = try String(contentsOf: repository.appendingPathComponent("schema/specarch-design-0.3.schema.json"), encoding: .utf8)
     let implementation = try String(contentsOf: repository.appendingPathComponent("schema/specarch-implementation-0.1.schema.json"), encoding: .utf8)
     #expect(designSchemaJSON + "\n" == design, "run swift/embed-schemas.sh")
     #expect(implementationSchemaJSON + "\n" == implementation, "run swift/embed-schemas.sh")

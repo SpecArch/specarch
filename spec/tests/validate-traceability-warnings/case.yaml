@@ -1,7 +1,7 @@
 arguments: [validate, .]
 exitStatus: 0
 standardOutput: |
-  specarch.yaml:1:11: warning: /specarch: meta_model_version: the specification is written against meta-model 0.1, which is read until 1.0, and its missing tests are warnings; run specarch derive to write the tests 0.2 asks for, then change the line to specarch: "0.2" [meta_model_version@specarch.yaml#/specarch]
+  specarch.yaml:1:11: warning: /specarch: meta_model_version: the specification is written against meta-model 0.1, which is read until 1.0, and its missing tests are warnings; run specarch derive to write the tests 0.2 asks for, then change the line to specarch: "0.3" once nothing an expression can name is called caller [meta_model_version@specarch.yaml#/specarch]
   specarch.yaml:7:11: warning: /needs/NEED-2: need_unrefined: no requirement refines need NEED-2; add a requirement with needs: [NEED-2], or set the need's status to rejected [need_unrefined@specarch.yaml#/needs/NEED-2]
   specarch.yaml:9:3: warning: /requirements/CASE-1: acceptance_missing: requirement CASE-1 has no acceptance criteria, so no test can show it is met; add acceptance with one verifiable sentence per criterion [acceptance_missing@specarch.yaml#/requirements/CASE-1]
   specarch.yaml:9:3: warning: /requirements/CASE-1: requirement_unsatisfied: no design element satisfies requirement CASE-1; add satisfies: [CASE-1] to the entity, operation, command, page, algorithm or decision that meets it [requirement_unsatisfied@specarch.yaml#/requirements/CASE-1]

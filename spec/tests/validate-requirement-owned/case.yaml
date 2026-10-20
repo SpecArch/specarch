@@ -1,7 +1,7 @@
 arguments: [validate, .]
 exitStatus: 1
 standardOutput: |
-  specarch.yaml:1:11: warning: /specarch: meta_model_version: the specification is written against meta-model 0.1, which is read until 1.0, and its missing tests are warnings; run specarch derive to write the tests 0.2 asks for, then change the line to specarch: "0.2" [meta_model_version@specarch.yaml#/specarch]
+  specarch.yaml:1:11: warning: /specarch: meta_model_version: the specification is written against meta-model 0.1, which is read until 1.0, and its missing tests are warnings; run specarch derive to write the tests 0.2 asks for, then change the line to specarch: "0.3" once nothing an expression can name is called caller [meta_model_version@specarch.yaml#/specarch]
   specarch.yaml:24:14: error: /requirements/OW-2/ownedBy: stakeholder: card-team is not a stakeholder of the specification; use one of card-issuer, clerk [stakeholder@specarch.yaml#/requirements/OW-2/ownedBy]
   specarch.yaml:25:3: warning: /requirements/OW-3: requirement_unsatisfied: no design element satisfies requirement OW-3; add satisfies: [OW-3] to the entity, operation, command, page, algorithm or decision that meets it [requirement_unsatisfied@specarch.yaml#/requirements/OW-3]
   specarch.yaml:25:3: warning: /requirements/OW-3: requirement_unverified: no test, commissioning check or monitor verifies requirement OW-3; add verifies: [OW-3] to the test that shows it is met [requirement_unverified@specarch.yaml#/requirements/OW-3]

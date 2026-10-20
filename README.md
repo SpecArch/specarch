@@ -90,7 +90,7 @@ commissioning runs and approvals). The same schema gives editors
 validation and completion through `yaml-language-server`: put this on the
 first line of a root file and most editors pick it up.
 
-    # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v0.7.1/schema/specarch-design-0.2.schema.json
+    # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v0.7.1/schema/specarch-design-0.3.schema.json
 
 ## The rules SpecArch serves
 
@@ -120,12 +120,12 @@ a defect in the roadmap, not an accepted state.
 
 | Path | Holds |
 |---|---|
-| `schema/specarch-design-0.2.schema.json` | the meta-model of a specification, JSON Schema 2020-12; it reads files on 0.2 and on 0.1 |
+| `schema/specarch-design-0.3.schema.json` | the meta-model of a specification, JSON Schema 2020-12; it reads files on 0.3, 0.2 and 0.1 |
 | `schema/specarch-implementation-0.1.schema.json` | the meta-model of implementation files |
 | `schema/specarch-record-0.1.schema.json` | the records beside a specification |
 | `schema/specarch-idiom-0.1.schema.json` | the meta-model of an idiom, shipped or a project's |
 | `schema/specarch-estate-0.1.schema.json` | an estate: the modules' specifications it lists and pins (`docs/conventions.md`, Estates) |
-| `schema/specarch-fragment-*-0.2.schema.json` | one schema per kind of file under a stage folder, written from the design schema by `tools/fragment-schemas` (`docs/conventions.md`, The tree) |
+| `schema/specarch-fragment-*-0.3.schema.json` | one schema per kind of file under a stage folder, written from the design schema by `tools/fragment-schemas` (`docs/conventions.md`, The tree) |
 | `idioms/` | the idioms SpecArch ships, one folder per concern, embedded into the program: fifteen, each a stack-neutral contract and its Go rendering, such as `type-rendering` (what each field type becomes in Go and in PostgreSQL, SQL Server, Oracle and MariaDB), `paginated-list`, `request-validation` and `error-response`; `ui-components`, what draws each page and field on Next.js with Carbon; and `design-tokens`, which Carbon token takes each colour of the theme |
 | `spec/` | SpecArch's own specification: every stage, the design of the `specarch` command, its Go and Swift implementation files, and in `spec/tests/` the conformance suite every implementation of `specarch` must pass |
 | `docs/techspec.md` | SpecArch's technical specification, generated from `spec/` |
@@ -158,6 +158,7 @@ a defect in the roadmap, not an accepted state.
 | `docs/from-sources.md` | the procedure an agent follows to write a specification from existing documents and code, with how to install and pin `specarch` |
 | `docs/roadmap.md` | document targets, code targets, sync gates, first real projects, the next meta-model |
 | `docs/meta-model-0.2.md` | meta-model 0.2: separation of duties, workflows, task pages and page elements, value objects, missing tests as errors, and the steps that build them |
+| `docs/meta-model-0.3.md` | meta-model 0.3: the caller as a record an expression can name, the rows a role reaches, machine clients and the gates that are not a permission, token formats, and the steps that build them |
 | `examples/library-lending/` | a small complete example: a specification with every stage in `spec/`, its document in `docs/` |
 | `examples/lending-desk/` | a partial specification written from a desk manual and a small Go service that disagree, by `docs/from-sources.md`, and `extract.sh`, which reads the same sources with every reader and merges them |
 | `examples/estate/` | an estate of two modules, the lending desk above and a small catalogue service it depends on: `specarch-estate.yaml` lists and pins them, and `docs/estate.md` is their module map |
@@ -328,8 +329,8 @@ answers with. `docs/generators.md` has the protocol.
 
 ## Status
 
-Version 0.2 of the meta-model, October 2026; a file written against 0.1
-is read until 1.0, with its missing tests as warnings. Release 0.7.1 is the
+Version 0.3 of the meta-model, October 2026; a file written against 0.2
+or 0.1 is read until 1.0, a 0.1 file with its missing tests as warnings. Release 0.7.1 is the
 latest. The schemas, the tree layout and the seven stages, SpecArch's own
 specification, six examples, the validator in Go and in Swift, twelve
 documents, open questions with the gaps report, the approval gate on

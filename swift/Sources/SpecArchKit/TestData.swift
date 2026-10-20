@@ -73,10 +73,7 @@ extension Checker {
             for kv in pairs(t.child("fixture")) {
                 let ptr = pointer(base + ["fixture", kv.key.value])
                 if kv.key.value == "caller" {
-                    let v = str(kv.value)
-                    if !v.isEmpty && v != "public" && d.roles[v] == nil {
-                        add(kv.value, ptr, .testData, "caller \(v) is neither public nor a role of the specification\(suggest(v, d.roles))")
-                    }
+                    checkFixtureCaller(d, kv.value, ptr)
                 } else if !kv.key.value.hasPrefix("x-") {
                     checkRecords(d, kv, ptr)
                 }

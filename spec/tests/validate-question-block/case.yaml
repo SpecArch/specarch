@@ -1,7 +1,7 @@
 arguments: [validate, .]
 exitStatus: 1
 standardOutput: |
-  specarch.yaml:1:11: warning: /specarch: meta_model_version: the specification is written against meta-model 0.1, which is read until 1.0, and its missing tests are warnings; run specarch derive to write the tests 0.2 asks for, then change the line to specarch: "0.2" [meta_model_version@specarch.yaml#/specarch]
+  specarch.yaml:1:11: warning: /specarch: meta_model_version: the specification is written against meta-model 0.1, which is read until 1.0, and its missing tests are warnings; run specarch derive to write the tests 0.2 asks for, then change the line to specarch: "0.3" once nothing an expression can name is called caller [meta_model_version@specarch.yaml#/specarch]
   specarch.yaml:27:14: error: /questions/Q-1/blocks/0: question_block: #/entities/Lon does not point at anything in the specification; did you mean Loan? [question_block@specarch.yaml#/questions/Q-1/blocks/0]
   specarch.yaml:27:32: error: /questions/Q-1/blocks/1: question_block: nowhere is neither a stage, a section nor a #/ pointer to an element; name the stage (requirements, design, implementation, tests, deployment, commissioning, operation), a section, or #/<section>/<name> [question_block@specarch.yaml#/questions/Q-1/blocks/1]
   specarch.yaml:27:41: error: /questions/Q-1/blocks/2: question_block: #/entities/Loan/properties/dueOn/type points below a key that does not exist; name the element, or one missing key of it [question_block@specarch.yaml#/questions/Q-1/blocks/2]

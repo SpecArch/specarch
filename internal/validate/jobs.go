@@ -73,6 +73,7 @@ func (d *design) jobSubject(p source.Pair) *subject {
 	s.success = golden("...", run, "it completes")
 	s.cases = append(s.cases, derivedCase{name: "runs twice", scenario: "golden", given: "the job " + name + " has run", when: again,
 		then: "nothing changes a second time", frequency: rare, critical: true})
+	d.jobRowsCases(s, p.Value, run)
 	for _, name := range calledDependencies(p.Value) {
 		dep := d.dependencies[name]
 		if dep == nil {

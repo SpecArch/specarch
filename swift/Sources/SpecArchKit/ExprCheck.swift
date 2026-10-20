@@ -112,6 +112,21 @@ private final class TypeChecker {
         return bad
     }
 
+    /// Reports caller.<property> for a property the caller does not
+    /// declare, or where the caller is not named at all.
+    func callerFail(_ n: ExprNode) -> ExprType {
+        let prefix = exprCallerName + "."
+        let props = env.keys.filter { $0.hasPrefix(prefix) }.map { String($0.dropFirst(prefix.count)) }.sorted(by: byteLess)
+        let prop = String(n.text.dropFirst(prefix.count))
+        if props.isEmpty {
+            return fail(n, .callerProperty, "\(n.text) names the caller, which only a role's rows rule may name; write the rule under roles.<role>.rows")
+        }
+        if let p = props.first(where: { $0.lowercased() == prop.lowercased() }) {
+            return fail(n, .callerProperty, "\(n.text) is not a property of the caller; did you mean caller.\(p)?")
+        }
+        return fail(n, .callerProperty, "\(n.text) is not a property of the caller; its properties are \(props.joined(separator: ", "))")
+    }
+
     func names(_ near: String) -> String {
         let names = env.keys.sorted(by: byteLess)
         if names.isEmpty { return "there are none" }
@@ -129,6 +144,7 @@ private final class TypeChecker {
         case .null: return ExprType(.null)
         case .name:
             guard let t = env[n.text] else {
+                if n.text.hasPrefix(exprCallerName + ".") { return callerFail(n) }
                 return fail(n, .name, "\(n.text) is not a name this expression can use; \(names(n.text))")
             }
             return t

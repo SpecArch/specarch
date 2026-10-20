@@ -494,6 +494,7 @@ func (d *design) operationSubject(o operation) *subject {
 		}
 	}
 	d.denied(s, source.Str(source.Child(o.node, "permission")), call)
+	d.rowsCases(s, o, call)
 	d.disabled(s, o.node, call)
 	seenChannel := map[string]bool{}
 	for _, e := range source.Items(source.Child(o.node, "emits")) {

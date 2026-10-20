@@ -18,7 +18,7 @@ latest.
 | 0.3.0, 2026-10-08 | `specarch derive`; `specarch diff`; change, defect, release and commissioning records with their rules; the `changes` and `releases` documents; `guard`, `dependencies`, `idempotencyKey`, `validity` and `session` |
 | 0.4.0, 2026-10-08 | `specarch-gen-openapi`, with the dxlib dialect; `specarch-gen-sql`; `specarch-gen-go-dxlib`; `specarch-gen-tests-go`; `specarch idioms`; `views`, `jobs` and menus |
 | 0.5.0, 2026-10-09 | `specarch extract` with the outline, database, router, documents, OpenAPI, permissions and pages readers; `specarch merge`; `specarch-gen-ui` for list pages in plain JavaScript; `specarch-gen-tests-swift` and `specarch-gen-tests-dart`; the page events, states and theme |
-| 0.6.0, 2026-10-13 | meta-model 0.2 (`schema/specarch-design-0.2.schema.json`); the workflows reader; the Go reader on dxlib, `net/http` and the common routers; the Swift, JavaScript, Vue and Dart readers; `specarch-gen-ui-typescript` on Next.js and Carbon; `specarch-gen-bpmn`; the `problems` and `html` documents |
+| 0.6.0, 2026-10-13 | meta-model 0.2 (`schema/specarch-design-0.3.schema.json`); the workflows reader; the Go reader on dxlib, `net/http` and the common routers; the Swift, JavaScript, Vue and Dart readers; `specarch-gen-ui-typescript` on Next.js and Carbon; `specarch-gen-bpmn`; the `problems` and `html` documents |
 | 0.6.1 to 0.6.4, 2026-10-14 | the plans for the estate and for meta-model 0.3; the first estate points (a dump committed outside the code's repository, role names on the wire); a request body decoded into a struct in `extract go`; fixes to `merge` and the readers |
 | 0.7.0, 2026-10-19 | the estate (`specarch-estate.yaml`, references between specifications, the module map); `specarch check`; `specarch facts`; `specarch-gen-sqlc`; indexes in `generate sql`; `implies`, `audience`, `middlewares`, the workflow table, documents in another language; the `handover` document |
 | 0.7.1, 2026-10-20 | the techspec's parameters, request body and responses per operation; `extract go` reading a dxlib handler's decoded body and JSON answers where the registration declares none (ADR-140); every operation's handler followed into the code, recorded with its source and drawn as a flowchart (ADR-144); the designs of the diagram keywords (`docs/diagrams.md`) and of the gateway (`docs/gateway.md`), proposed; dxlib's encrypted API type as a handshake an operation names and large files as a stream it declares (ADR-145, ADR-146), read by `extract go`, served by the dxlib dialect and the go-dxlib target with a Go client, and shown in the techspec; this roadmap matched to the code |
@@ -260,7 +260,7 @@ specification must be importable by both.
 
 ## 5. Meta-model 0.2 and after
 
-Meta-model 0.2 is built, 0.6.0 (`schema/specarch-design-0.2.schema.json`),
+Meta-model 0.2 is built, 0.6.0 (`schema/specarch-design-0.3.schema.json`),
 driven by the gaps found in step 4 and by the first request for generated
 screens. `docs/meta-model-0.2.md` is the plan: what is taken, what waits
 and why, and the steps that build it, each with what done looks like.

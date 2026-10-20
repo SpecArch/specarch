@@ -35,7 +35,7 @@ import (
 )
 
 // designFile is the design schema, under schema/.
-const designFile = "specarch-design-0.2.schema.json"
+const designFile = "specarch-design-0.3.schema.json"
 
 // Trees are the repository's own specifications whose fragments carry a
 // hint line.

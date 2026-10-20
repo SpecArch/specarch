@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-fragment-questions-0.2.schema.json",
-  "title": "SpecArch questions file, meta-model 0.2",
-  "description": "A file directly under the tests/ or implementation/ folder of a SpecArch specification, whose other entries are folders: it holds only open questions. The validator merges every file of a tree into one document, which specarch-design-0.2.schema.json describes, and checks what spans files, such as references and names defined twice; this schema checks one file alone. Written by tools/fragment-schemas from that schema; do not edit, run it.",
+  "$id": "https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-fragment-questions-0.3.schema.json",
+  "title": "SpecArch questions file, meta-model 0.3",
+  "description": "A file directly under the tests/ or implementation/ folder of a SpecArch specification, whose other entries are folders: it holds only open questions. The validator merges every file of a tree into one document, which specarch-design-0.3.schema.json describes, and checks what spans files, such as references and names defined twice; this schema checks one file alone. Written by tools/fragment-schemas from that schema; do not edit, run it.",
   "type": "object",
   "properties": {
     "questions": {

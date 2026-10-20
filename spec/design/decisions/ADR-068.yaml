@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.3.schema.json
 decisions:
   ADR-068:
     title: Lists, the menu and the guard read one decision from the session an operation answers, and a second front end of one stack is an implementation file with its own output

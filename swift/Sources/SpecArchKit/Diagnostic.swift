@@ -124,6 +124,9 @@ public enum Rule: String, CaseIterable, Sendable {
     case handlerSource = "handler_source"
     case handshake = "handshake"
     case stream = "stream"
+    case callerProperty = "caller_property"
+    case rows = "rows"
+    case reservedName = "reserved_name"
 }
 
 /// Whether a diagnostic makes the file invalid.
@@ -139,7 +142,7 @@ public struct Diagnostic: CustomStringConvertible {
     public var column: Int = 0
     public var severity: Severity
     public let path: String
-    public let rule: Rule
+    public var rule: Rule
     public let message: String
     /// Names what is wrong, not where it is printed (ADR-065): set by a
     /// Placer.

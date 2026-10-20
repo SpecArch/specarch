@@ -1,0 +1,7 @@
+arguments: [validate, .]
+exitStatus: 1
+standardOutput: |
+  specarch.yaml:8:15: error: /entities/Member/properties/caller: reserved_name: a field of entity Member is named caller, which a file on meta-model 0.3 reserves for the caller record, since an expression naming it could mean a field of entity Member or the caller; rename it [reserved_name@specarch.yaml#/entities/Member/properties/caller]
+  specarch.yaml:24:15: error: /views/LoanView/properties/caller: reserved_name: a property of view LoanView is named caller, which a file on meta-model 0.3 reserves for the caller record, since an expression naming it could mean a property of view LoanView or the caller; rename it [reserved_name@specarch.yaml#/views/LoanView/properties/caller]
+  specarch.yaml:29:15: error: /schemas/Request/properties/caller: reserved_name: a property of schema Request is named caller, which a file on meta-model 0.3 reserves for the caller record, since an expression naming it could mean a property of schema Request or the caller; rename it [reserved_name@specarch.yaml#/schemas/Request/properties/caller]
+  specarch.yaml:34:15: error: /algorithms/fee/inputs/caller: reserved_name: an input of algorithm fee is named caller, which a file on meta-model 0.3 reserves for the caller record, since an expression naming it could mean an input of algorithm fee or the caller; rename it [reserved_name@specarch.yaml#/algorithms/fee/inputs/caller]

@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.3.schema.json
 decisions:
   ADR-125:
     title: A map is JSON Schema's additionalProperties on an object, a field or a boolean, read from every reader's map shapes and written by every generator, with patternProperties and propertyNames left out

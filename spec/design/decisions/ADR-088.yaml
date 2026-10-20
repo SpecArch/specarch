@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.3.schema.json
 decisions:
   ADR-088:
     title: document html writes the whole specification as one HTML page that needs no server and makes no request, with every element under an id that is its pointer and every problem linked both ways with its entry

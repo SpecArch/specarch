@@ -706,6 +706,30 @@ func crossCutting(d *doc, root *yaml.Node) {
 			}
 			d.blank()
 		}
+		if caller := source.Child(root, "caller"); caller != nil {
+			d.para("The caller is who is making the call, as the service knows it once the session or token has been checked: one record with the properties below, which a role's rows rule names as caller.<property>. A property the caller may lack allows null, and a comparison with it is false then.")
+			d.line("| Property | Type | Description |")
+			d.line("|---|---|---|")
+			for _, p := range pairs(caller, "properties") {
+				d.line("| %s | %s | %s |", p.Key.Value, cell(typeText(p.Value)), cell(str(p.Value, "description")))
+			}
+			d.blank()
+		}
+		var rows [][3]string
+		for _, r := range pairs(root, "roles") {
+			for _, row := range pairs(r.Value, "rows") {
+				rows = append(rows, [3]string{r.Key.Value, row.Key.Value, source.Str(row.Value)})
+			}
+		}
+		if len(rows) > 0 {
+			d.para("A role with a rows rule reaches only the records of the entity the rule holds for, through every operation, page and job; an entity not listed is reached whole, and a caller holding several roles reaches the union of their rows. A list shows only the rows, a read by key outside them answers not found, and a change that would leave them is refused.")
+			d.line("| Role | Entity | Rows |")
+			d.line("|---|---|---|")
+			for _, row := range rows {
+				d.line("| %s | %s | `%s` |", row[0], row[1], row[2])
+			}
+			d.blank()
+		}
 		if rule := str(source.Child(root, "info"), "roleNames"); rule == wirename.UpperSnake {
 			d.para("Every role goes on the wire in upper snake case (info.roleNames): in a token's roles claim and in the tables the permission check reads, a role is its name in capitals with each hyphen an underscore.")
 			d.line("| Role | On the wire |")

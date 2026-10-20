@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.3.schema.json
 decisions:
   ADR-118:
     title: Workflow definitions in a format of a project's own are read through a workflow table the project's printer writes, read by extract workflows --table into the workflows the BPMN reader writes, with the same questions at the same keys

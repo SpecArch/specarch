@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.3.schema.json
 decisions:
   ADR-113:
     title: An estate is the file specarch-estate.yaml that lists each module's specification by its info.name with its folder and the version held, brings every module into the run, and checks each against its entry as module

@@ -418,9 +418,13 @@ func ReferencedGrants(s *spec.Spec, given Given) []RoleColumn {
 	}
 	cellsOf := func(role *yaml.Node) map[string]string {
 		cells := map[string]string{}
-		holds := o.design.roleHolds(role)
+		var holds []string
+		for held := range o.design.roleHolds(role) {
+			holds = append(holds, held)
+		}
+		sort.Strings(holds)
 		for _, p := range source.Pairs(source.Child(d.root, "permissions")) {
-			for held := range holds {
+			for _, held := range holds {
 				hdep, ptr, ok := crossRef(held)
 				if !ok || o.design.specificationOf(hdep) != module || ptr != "/permissions/"+p.Key.Value {
 					continue

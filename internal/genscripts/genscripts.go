@@ -361,7 +361,7 @@ func (g *gen) write(e entry, entity string, t gensql.Table, c change, path strin
 	if c.keyed && holds != "" {
 		fmt.Fprintf(&b, "  -- %d. Already applied: the record already holds what the change writes.\n", next())
 		fmt.Fprintf(&b, "  IF EXISTS (SELECT 1 FROM %s WHERE %s AND %s) THEN\n", t.Name, keyEquals(c.key), holds)
-		fmt.Fprintf(&b, "    RAISE NOTICE %s, %s;\n", quote(fmt.Sprintf("%s: the %s with %s %% already holds %s; nothing to change", e.what, entity, c.key.Name, g.describeHolds(c))), value(c.key))
+		fmt.Fprintf(&b, "    RAISE NOTICE %s, %s;\n", quote(fmt.Sprintf("%s: the %s with %s %% already holds %s; nothing to change", e.what, entity, c.key.Name, g.describeHolds(c))), keyValue(c.key))
 		b.WriteString("    RETURN;\n  END IF;\n")
 	}
 	fmt.Fprintf(&b, "  -- %d. Precondition: exactly %s to change, locked until the end.\n", next(), records(c.count, entity))
@@ -369,7 +369,7 @@ func (g *gen) write(e entry, entity string, t gensql.Table, c change, path strin
 	fmt.Fprintf(&b, "  IF found <> %d THEN\n", c.count)
 	found := "found"
 	if c.keyed {
-		found += ", " + value(c.key)
+		found += ", " + keyValue(c.key)
 	}
 	fmt.Fprintf(&b, "    RAISE EXCEPTION %s, %s;\n  END IF;\n", quote(fmt.Sprintf("%s: %% %s records hold %s, and the change expects exactly %d; nothing was changed", e.what, entity, g.condText(c), c.count)), found)
 	fmt.Fprintf(&b, "  -- %d. The change, under the same condition.\n", next())
@@ -411,7 +411,7 @@ func (g *gen) write(e entry, entity string, t gensql.Table, c change, path strin
 			check, says = "EXISTS (SELECT 1 FROM "+t.Name+" WHERE "+keyEquals(c.key)+")", "is still there"
 		}
 		fmt.Fprintf(&b, "  IF %s THEN\n", check)
-		fmt.Fprintf(&b, "    RAISE EXCEPTION %s, %s;\n  END IF;\n", quote(fmt.Sprintf("%s: after the change the %s with %s %% %s; nothing was changed", e.what, entity, c.key.Name, says)), value(c.key))
+		fmt.Fprintf(&b, "    RAISE EXCEPTION %s, %s;\n  END IF;\n", quote(fmt.Sprintf("%s: after the change the %s with %s %% %s; nothing was changed", e.what, entity, c.key.Name, says)), keyValue(c.key))
 	}
 	fmt.Fprintf(&b, "  -- %d. Dry run unless apply is true.\n", next())
 	b.WriteString("  IF current_setting('specarch.apply')::boolean THEN\n")
@@ -525,7 +525,25 @@ func (g *gen) condText(c change) string {
 }
 
 // keyEquals is the condition on a record's key.
-func keyEquals(k gensql.Column) string { return k.Name + " = " + value(k) }
+func keyEquals(k gensql.Column) string { return k.Name + " = " + keyValue(k) }
+
+// keyValue is a key variable's value, cast as value casts it and, for a
+// NUMERIC or DECIMAL key, without its precision and scale as well:
+// PostgreSQL rounds a value cast to numeric(p,s) to s fractional digits,
+// so a key given as 123.7 would become 124 and name another record. Cast
+// without them, a fractional key matches no record and the count refuses
+// it. A value written to a column keeps the width, since the column rounds
+// it the same way and the checks then agree with what was written.
+func keyValue(k gensql.Column) string {
+	base, _, sized := strings.Cut(k.Type, "(")
+	switch strings.ToUpper(strings.TrimSpace(base)) {
+	case "NUMERIC", "DECIMAL":
+		if sized {
+			return fmt.Sprintf("current_setting('specarch.%s', true)::NUMERIC", k.Name)
+		}
+	}
+	return value(k)
+}
 
 // value is a variable's value as the column's type. A character type is
 // cast without its length: PostgreSQL cuts a string cast to varchar(n) or

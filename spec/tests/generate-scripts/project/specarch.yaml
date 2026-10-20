@@ -77,6 +77,13 @@ entities:
       label: { type: string, maxLength: 80 }
     required: [code, label]
     primaryKey: [code]
+  Fine:
+    type: object
+    properties:
+      id: { type: string, format: uint64 }
+      cents: { type: integer, format: int32, minimum: 0 }
+    required: [id, cents]
+    primaryKey: [id]
 permissions:
   public: { description: Open to everyone. }
 paths:
@@ -229,6 +236,16 @@ paths:
             schema: { $ref: "#/entities/Tag" }
       responses:
         "200": { description: The tag is replaced. }
+  /fines/{fineId}:
+    parameters:
+      - { name: fineId, in: path, required: true, schema: { type: string, format: uint64 } }
+    delete:
+      operationId: waiveFine
+      summary: Waive a fine.
+      permission: public
+      guard: { entity: Fine, recordsChanged: 1 }
+      responses:
+        "204": { description: The fine is waived. }
 commands:
   mark overdue:
     summary: Mark the open loans renewed three times as overdue

@@ -63,8 +63,9 @@ decisions:
       default and its MapClaims literal names the claims by syntax; a
       struct of claims would need the reader to follow the type's tags,
       which waits for a source that needs it. Compiler test: a gate
-      named in part is a must question at the paths and the routes are
-      read with their permissions; every gate found is a problem at
+      named in part, or a function named as two kinds of check, is a must
+      question at the paths and the routes are read with their
+      permissions; every gate found is a problem at
       each operation it guards. Acceptance test: a reviewer of the first
       techspec sees, at the route, that a client reaches it and which
       question names the clients, and the change asked for is the

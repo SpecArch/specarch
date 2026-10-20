@@ -920,7 +920,8 @@ commands:
         and `bindings.http.signatureChecks`, a check that verifies a
         request's signature, each by its package and function, and found
         as a permission check is, and also as middleware named without a
-        call. Each prints a line counting the operations it guards and is
+        call; a function named as two kinds of check is a must question and
+        read as the first. Each prints a line counting the operations it guards and is
         one must question per check blocking the callers of each of them:
         for a client check which clients call them and whether people do,
         since callers names its clients one by one (ADR-110); for a

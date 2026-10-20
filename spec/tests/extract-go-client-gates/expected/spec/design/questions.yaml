@@ -1,14 +1,22 @@
 questions:
-  # specarch-problem: question: open_question: (must, decision) What does POST /fees/settlements do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-1 under answers. [Q-1]
+  # specarch-problem: question: open_question: (must, decision) The implementation file implementation/desk.go.specarch-implementation.yaml names desk.Server.Require as a signature check (item 2 of bindings.http.signatureChecks), and also as a permission check. Which is it? It blocks paths. Decided by system-owner. Answer with a decision record that names Q-1 under answers. [Q-1]
   Q-1:
+    question: The implementation file implementation/desk.go.specarch-implementation.yaml names desk.Server.Require as a signature check (item 2 of bindings.http.signatureChecks), and also as a permission check. Which is it?
+    kind: decision
+    priority: must
+    blocks: [paths]
+    decidedBy: system-owner
+    why: A call is read as one check; the reader reads it as the one named first, and the other would be left unread.
+  # specarch-problem: question: open_question: (must, decision) What does POST /fees/settlements do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-2 under answers. [Q-2]
+  Q-2:
     question: What does POST /fees/settlements do, and what does it answer?
     kind: decision
     priority: must
     blocks: ['#/paths/~1fees~1settlements/post/summary', '#/paths/~1fees~1settlements/post/responses']
     decidedBy: system-owner
     why: The source registers a handler and does not say what it does or the responses it gives.
-  # specarch-problem: question: open_question: (must, decision) Does the running system register POST /fees/settlements? It is declared at desk/server.go:27, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-2 under answers. [Q-2]
-  Q-2:
+  # specarch-problem: question: open_question: (must, decision) Does the running system register POST /fees/settlements? It is declared at desk/server.go:27, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-3 under answers. [Q-3]
+  Q-3:
     question: Does the running system register POST /fees/settlements? It is declared at desk/server.go:27, and no list the running system printed was read with it.
     kind: decision
     priority: must
@@ -17,16 +25,16 @@ questions:
     why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
     cites:
       - {source: code, clause: 'desk/server.go:27', says: Registers POST /fees/settlements.}
-  # specarch-problem: question: open_question: (must, decision) What does GET /loans do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-3 under answers. [Q-3]
-  Q-3:
+  # specarch-problem: question: open_question: (must, decision) What does GET /loans do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-4 under answers. [Q-4]
+  Q-4:
     question: What does GET /loans do, and what does it answer?
     kind: decision
     priority: must
     blocks: ['#/paths/~1loans/get/summary', '#/paths/~1loans/get/responses']
     decidedBy: system-owner
     why: The source registers a handler and does not say what it does or the responses it gives.
-  # specarch-problem: question: open_question: (must, decision) Does the running system register GET /loans? It is declared at desk/server.go:25, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-4 under answers. [Q-4]
-  Q-4:
+  # specarch-problem: question: open_question: (must, decision) Does the running system register GET /loans? It is declared at desk/server.go:25, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-5 under answers. [Q-5]
+  Q-5:
     question: Does the running system register GET /loans? It is declared at desk/server.go:25, and no list the running system printed was read with it.
     kind: decision
     priority: must
@@ -35,16 +43,16 @@ questions:
     why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
     cites:
       - {source: code, clause: 'desk/server.go:25', says: Registers GET /loans.}
-  # specarch-problem: question: open_question: (must, decision) What does GET /reconciliation/loans do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-5 under answers. [Q-5]
-  Q-5:
+  # specarch-problem: question: open_question: (must, decision) What does GET /reconciliation/loans do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-6 under answers. [Q-6]
+  Q-6:
     question: What does GET /reconciliation/loans do, and what does it answer?
     kind: decision
     priority: must
     blocks: ['#/paths/~1reconciliation~1loans/get/summary', '#/paths/~1reconciliation~1loans/get/responses']
     decidedBy: system-owner
     why: The source registers a handler and does not say what it does or the responses it gives.
-  # specarch-problem: question: open_question: (must, decision) Does the running system register GET /reconciliation/loans? It is declared at desk/server.go:26, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-6 under answers. [Q-6]
-  Q-6:
+  # specarch-problem: question: open_question: (must, decision) Does the running system register GET /reconciliation/loans? It is declared at desk/server.go:26, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-7 under answers. [Q-7]
+  Q-7:
     question: Does the running system register GET /reconciliation/loans? It is declared at desk/server.go:26, and no list the running system printed was read with it.
     kind: decision
     priority: must
@@ -53,24 +61,24 @@ questions:
     why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
     cites:
       - {source: code, clause: 'desk/server.go:26', says: Registers GET /reconciliation/loans.}
-  # specarch-problem: question: open_question: (must, decision) POST /sessions checks no permission: none of the checks the implementation file names wraps its handler, is among its middleware or is called in its handler. Is it meant to be open to everyone (public), or which permission should it check? Decided by system-owner. Answer with a decision record that names Q-7 under answers. [Q-7]
-  Q-7:
+  # specarch-problem: question: open_question: (must, decision) POST /sessions checks no permission: none of the checks the implementation file names wraps its handler, is among its middleware or is called in its handler. Is it meant to be open to everyone (public), or which permission should it check? Decided by system-owner. Answer with a decision record that names Q-8 under answers. [Q-8]
+  Q-8:
     question: 'POST /sessions checks no permission: none of the checks the implementation file names wraps its handler, is among its middleware or is called in its handler. Is it meant to be open to everyone (public), or which permission should it check?'
     kind: decision
     priority: must
     blocks: ['#/paths/~1sessions/post/permission']
     decidedBy: system-owner
     why: An operation open to everyone is how an open endpoint is usually found, so it is asked, never assumed.
-  # specarch-problem: question: open_question: (must, decision) What does POST /sessions do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-8 under answers. [Q-8]
-  Q-8:
+  # specarch-problem: question: open_question: (must, decision) What does POST /sessions do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-9 under answers. [Q-9]
+  Q-9:
     question: What does POST /sessions do, and what does it answer?
     kind: decision
     priority: must
     blocks: ['#/paths/~1sessions/post/summary', '#/paths/~1sessions/post/responses']
     decidedBy: system-owner
     why: The source registers a handler and does not say what it does or the responses it gives.
-  # specarch-problem: question: open_question: (must, decision) Does the running system register POST /sessions? It is declared at desk/server.go:28, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-9 under answers. [Q-9]
-  Q-9:
+  # specarch-problem: question: open_question: (must, decision) Does the running system register POST /sessions? It is declared at desk/server.go:28, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-10 under answers. [Q-10]
+  Q-10:
     question: Does the running system register POST /sessions? It is declared at desk/server.go:28, and no list the running system printed was read with it.
     kind: decision
     priority: must
@@ -79,8 +87,8 @@ questions:
     why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
     cites:
       - {source: code, clause: 'desk/server.go:28', says: Registers POST /sessions.}
-  # specarch-problem: question: open_question: (must, decision) The check RequireClient admits only a client, a caller on its own account rather than a person's, and it guards 1 operation. Which clients call each of them, and do people call any? Decided by system-owner. Answer with a decision record that names Q-10 under answers. [Q-10]
-  Q-10:
+  # specarch-problem: question: open_question: (must, decision) The check RequireClient admits only a client, a caller on its own account rather than a person's, and it guards 1 operation. Which clients call each of them, and do people call any? Decided by system-owner. Answer with a decision record that names Q-11 under answers. [Q-11]
+  Q-11:
     question: The check RequireClient admits only a client, a caller on its own account rather than a person's, and it guards 1 operation. Which clients call each of them, and do people call any?
     kind: decision
     priority: must
@@ -89,8 +97,8 @@ questions:
     why: Syntax shows that a check admits clients and not which ones, which a key or a token read at run time says. callers names who may call one by one, people and each client, with no word for every client, since a client added later would then be admitted without anyone writing it (ADR-110).
     cites:
       - {source: code, clause: 'desk/server.go:26', says: 'Calls Server.RequireClient, which the implementation file names as a client check.'}
-  # specarch-problem: question: open_question: (must, decision) The check VerifySignature verifies a request's signature, and it guards 1 operation. Which client signs the requests, with which algorithm, and over which parts of the request: the client's proof? Decided by system-owner. Answer with a decision record that names Q-11 under answers. [Q-11]
-  Q-11:
+  # specarch-problem: question: open_question: (must, decision) The check VerifySignature verifies a request's signature, and it guards 1 operation. Which client signs the requests, with which algorithm, and over which parts of the request: the client's proof? Decided by system-owner. Answer with a decision record that names Q-12 under answers. [Q-12]
+  Q-12:
     question: 'The check VerifySignature verifies a request''s signature, and it guards 1 operation. Which client signs the requests, with which algorithm, and over which parts of the request: the client''s proof?'
     kind: decision
     priority: must
@@ -99,24 +107,24 @@ questions:
     why: A signature's signer, algorithm and covered parts are in a key and a header the code reads at run time, never in syntax. A client's proof names them (ADR-096), and the operation names the client in callers.
     cites:
       - {source: code, clause: 'desk/server.go:27', says: 'Calls VerifySignature, which the implementation file names as a signature check.'}
-  # specarch-problem: question: open_question: (must, decision) What does each permission allow: fees.settle, loans.read? Decided by system-owner. Answer with a decision record that names Q-12 under answers. [Q-12]
-  Q-12:
+  # specarch-problem: question: open_question: (must, decision) What does each permission allow: fees.settle, loans.read? Decided by system-owner. Answer with a decision record that names Q-13 under answers. [Q-13]
+  Q-13:
     question: 'What does each permission allow: fees.settle, loans.read?'
     kind: decision
     priority: must
     blocks: ['#/permissions/fees.settle/description', '#/permissions/loans.read/description']
     decidedBy: system-owner
     why: The source names the privilege an endpoint checks and not what it is for.
-  # specarch-problem: question: open_question: (must, decision) Which role grants each permission: fees.settle, loans.read? Decided by system-owner. Answer with a decision record that names Q-13 under answers. [Q-13]
-  Q-13:
+  # specarch-problem: question: open_question: (must, decision) Which role grants each permission: fees.settle, loans.read? Decided by system-owner. Answer with a decision record that names Q-14 under answers. [Q-14]
+  Q-14:
     question: 'Which role grants each permission: fees.settle, loans.read?'
     kind: decision
     priority: must
     blocks: ['#/permissions/fees.settle', '#/permissions/loans.read']
     decidedBy: system-owner
     why: The source names the privilege an endpoint checks and not who holds it.
-  # specarch-problem: question: open_question: (could, decision) Not held: desk/server.go:25: the route GET /loans: its handler s.listLoans serves more than one route; the operation is named getLoans. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-14 under answers. [Q-14]
-  Q-14:
+  # specarch-problem: question: open_question: (could, decision) Not held: desk/server.go:25: the route GET /loans: its handler s.listLoans serves more than one route; the operation is named getLoans. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-15 under answers. [Q-15]
+  Q-15:
     question: 'Not held: desk/server.go:25: the route GET /loans: its handler s.listLoans serves more than one route; the operation is named getLoans. Does the specification need it, written another way or described by hand?'
     kind: decision
     priority: could
@@ -125,8 +133,8 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: code, clause: 'desk/server.go:25', says: 'Not held: the route GET /loans: its handler s.listLoans serves more than one route; the operation is named getLoans.'}
-  # specarch-problem: question: open_question: (could, decision) Not held: desk/server.go:26: the route GET /reconciliation/loans: its handler s.listLoans serves more than one route; the operation is named getReconciliationLoans. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-15 under answers. [Q-15]
-  Q-15:
+  # specarch-problem: question: open_question: (could, decision) Not held: desk/server.go:26: the route GET /reconciliation/loans: its handler s.listLoans serves more than one route; the operation is named getReconciliationLoans. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-16 under answers. [Q-16]
+  Q-16:
     question: 'Not held: desk/server.go:26: the route GET /reconciliation/loans: its handler s.listLoans serves more than one route; the operation is named getReconciliationLoans. Does the specification need it, written another way or described by hand?'
     kind: decision
     priority: could
@@ -135,8 +143,8 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: code, clause: 'desk/server.go:26', says: 'Not held: the route GET /reconciliation/loans: its handler s.listLoans serves more than one route; the operation is named getReconciliationLoans.'}
-  # specarch-problem: question: open_question: (should, decision, suspected) desk/server.go:81: the result of w.Write([]byte(signed)) is dropped in desk.Server.signIn, so when the call fails the handler desk.Server.signIn of POST /sessions goes on as if it had succeeded. Is the error meant to be ignored? Decided by system-owner. Answer with a decision record that names Q-16 under answers. [Q-16]
-  Q-16:
+  # specarch-problem: question: open_question: (should, decision, suspected) desk/server.go:81: the result of w.Write([]byte(signed)) is dropped in desk.Server.signIn, so when the call fails the handler desk.Server.signIn of POST /sessions goes on as if it had succeeded. Is the error meant to be ignored? Decided by system-owner. Answer with a decision record that names Q-17 under answers. [Q-17]
+  Q-17:
     question: 'desk/server.go:81: the result of w.Write([]byte(signed)) is dropped in desk.Server.signIn, so when the call fails the handler desk.Server.signIn of POST /sessions goes on as if it had succeeded. Is the error meant to be ignored?'
     kind: decision
     priority: should
@@ -146,8 +154,8 @@ questions:
     why: 'An error dropped is a failure nobody sees: the request is answered as a success, or with a value that is not there.'
     cites:
       - {source: code, clause: 'desk/server.go:81', says: 'Drops the result of w.Write([]byte(signed)).'}
-  # specarch-problem: question: open_question: (should, decision, suspected) desk/server.go:67: the handler desk.Server.settleFees of POST /fees/settlements does nothing: its body has no step. Is it a stub, with the operation not built yet? Decided by system-owner. Answer with a decision record that names Q-17 under answers. [Q-17]
-  Q-17:
+  # specarch-problem: question: open_question: (should, decision, suspected) desk/server.go:67: the handler desk.Server.settleFees of POST /fees/settlements does nothing: its body has no step. Is it a stub, with the operation not built yet? Decided by system-owner. Answer with a decision record that names Q-18 under answers. [Q-18]
+  Q-18:
     question: 'desk/server.go:67: the handler desk.Server.settleFees of POST /fees/settlements does nothing: its body has no step. Is it a stub, with the operation not built yet?'
     kind: decision
     priority: should
@@ -157,8 +165,8 @@ questions:
     why: A handler that does nothing answers every request the same way, whatever the specification says the operation does.
     cites:
       - {source: code, clause: 'desk/server.go:67', says: The body holds no step but a return.}
-  # specarch-problem: question: open_question: (should, decision, suspected) desk/server.go:65: the handler desk.Server.listLoans of GET /loans and GET /reconciliation/loans does nothing: its body has no step. Is it a stub, with the operation not built yet? Decided by system-owner. Answer with a decision record that names Q-18 under answers. [Q-18]
-  Q-18:
+  # specarch-problem: question: open_question: (should, decision, suspected) desk/server.go:65: the handler desk.Server.listLoans of GET /loans and GET /reconciliation/loans does nothing: its body has no step. Is it a stub, with the operation not built yet? Decided by system-owner. Answer with a decision record that names Q-19 under answers. [Q-19]
+  Q-19:
     question: 'desk/server.go:65: the handler desk.Server.listLoans of GET /loans and GET /reconciliation/loans does nothing: its body has no step. Is it a stub, with the operation not built yet?'
     kind: decision
     priority: should
@@ -168,8 +176,8 @@ questions:
     why: A handler that does nothing answers every request the same way, whatever the specification says the operation does.
     cites:
       - {source: code, clause: 'desk/server.go:65', says: The body holds no step but a return.}
-  # specarch-problem: question: open_question: (must, decision) desk/server.go:75 mints a token with the claims exp, role and sub. Which token is it: its format, lifetime, signature algorithm, the type of each claim and the checks over them? It blocks tokens. Decided by system-owner. Answer with a decision record that names Q-19 under answers. [Q-19]
-  Q-19:
+  # specarch-problem: question: open_question: (must, decision) desk/server.go:75 mints a token with the claims exp, role and sub. Which token is it: its format, lifetime, signature algorithm, the type of each claim and the checks over them? It blocks tokens. Decided by system-owner. Answer with a decision record that names Q-20 under answers. [Q-20]
+  Q-20:
     question: 'desk/server.go:75 mints a token with the claims exp, role and sub. Which token is it: its format, lifetime, signature algorithm, the type of each claim and the checks over them?'
     kind: decision
     priority: must

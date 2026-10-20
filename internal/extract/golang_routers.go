@@ -3217,6 +3217,11 @@ func (g *goReader) loadGates(file string, binding *yaml.Node) {
 					[]string{"paths"}, "A check named in part cannot be found in the source, and the operations it guards would be read as open to people.")
 				continue
 			}
+			if named := g.namedCheck(pkg, fn); named != "" {
+				g.question("must", fmt.Sprintf("The implementation file %s names %s.%s as a %s check (item %d of bindings.http.%s), and also as a %s. Which is it?", file, pkg, fn, kind.word, i+1, kind.key, named),
+					[]string{"paths"}, "A call is read as one check; the reader reads it as the one named first, and the other would be left unread.")
+				continue
+			}
 			g.rt.checks = append(g.rt.checks, permissionCheck{pkg: pkg, function: fn, gate: kind.gate})
 			names = append(names, pkg+"."+fn)
 		}
@@ -3228,4 +3233,18 @@ func (g *goReader) loadGates(file string, binding *yaml.Node) {
 			g.res.say("checks: %s names the %s %s %s", file, kind.word, word, joinAnd(names))
 		}
 	}
+}
+
+// namedCheck is what an earlier item names a function as, "" when none
+// does.
+func (g *goReader) namedCheck(pkg, fn string) string {
+	for _, c := range g.rt.checks {
+		if c.pkg == pkg && c.function == fn {
+			if c.gate == "" {
+				return "permission check"
+			}
+			return c.gate + " check"
+		}
+	}
+	return ""
 }

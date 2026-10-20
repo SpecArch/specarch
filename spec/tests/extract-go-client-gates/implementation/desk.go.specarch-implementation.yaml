@@ -24,3 +24,5 @@ bindings:
     signatureChecks:
       - package: desk
         function: VerifySignature
+      - package: desk
+        function: Server.Require

@@ -14,14 +14,14 @@ standardOutput: |
   gate: implementation/desk.go.specarch-implementation.yaml names desk.Server.RequireClient as a client check, and it guards 1 operation
   gate: implementation/desk.go.specarch-implementation.yaml names desk.VerifySignature as a signature check, and it guards 1 operation
   routes: wrote 4 operations: one operation per route a router of net/http, chi, gin, echo or gorilla/mux registers with a literal method and path, outside a loop or a condition, under a prefix the reader knows
-  wrote 2 permissions and 15 questions: one permission per name a route checks with a literal, one question per thing the source does not say, and one per thing the meta-model cannot hold
-  not held: desk/server.go:25: the route GET /loans: its handler s.listLoans serves more than one route; the operation is named getLoans; could question Q-14
-  not held: desk/server.go:26: the route GET /reconciliation/loans: its handler s.listLoans serves more than one route; the operation is named getReconciliationLoans; could question Q-15
+  wrote 2 permissions and 16 questions: one permission per name a route checks with a literal, one question per thing the source does not say, and one per thing the meta-model cannot hold
+  not held: desk/server.go:25: the route GET /loans: its handler s.listLoans serves more than one route; the operation is named getLoans; could question Q-15
+  not held: desk/server.go:26: the route GET /reconciliation/loans: its handler s.listLoans serves more than one route; the operation is named getReconciliationLoans; could question Q-16
   tokens: counted 1 minted token: every call of golang-jwt's NewWithClaims
   handlers: followed 4 of 4 handlers into 4 functions, to 3 calls deep, and left 2 calls not followed: the handler of each operation, where it is a function literal, a function of the same package or one of another package of the module, and each function of the module its steps call
   handlers: compared with the records of implementation/desk.go.specarch-implementation.yaml: 0 unchanged, 0 changed, 4 not recorded there, 0 recorded there and not read now
   derived 0 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers
-  not derived: 2 draft tests for operation settleFees, held up by Q-1, Q-11, Q-17, Q-2; the validator warns for them until the questions are answered
-  not derived: 2 draft tests for operation getLoans, held up by Q-18, Q-3, Q-4; the validator warns for them until the questions are answered
-  not derived: 2 draft tests for operation getReconciliationLoans, held up by Q-10, Q-18, Q-5, Q-6; the validator warns for them until the questions are answered
-  not derived: 1 draft test for operation signIn, held up by Q-16, Q-7, Q-8, Q-9; the validator warns for them until the questions are answered
+  not derived: 2 draft tests for operation settleFees, held up by Q-1, Q-12, Q-18, Q-2, Q-3; the validator warns for them until the questions are answered
+  not derived: 2 draft tests for operation getLoans, held up by Q-1, Q-19, Q-4, Q-5; the validator warns for them until the questions are answered
+  not derived: 2 draft tests for operation getReconciliationLoans, held up by Q-1, Q-11, Q-19, Q-6, Q-7; the validator warns for them until the questions are answered
+  not derived: 1 draft test for operation signIn, held up by Q-1, Q-10, Q-17, Q-8, Q-9; the validator warns for them until the questions are answered

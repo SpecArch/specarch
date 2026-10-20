@@ -2,7 +2,7 @@
 decisions:
   ADR-143:
     title: extract go reads a package-level string constant as the literal it names and a package-level list assigned once as a literal list, and asks a must question at every fallback handler and catch-all route in place of silence or a line
-    status: proposed
+    status: accepted
     date: "2026-10-19"
     context: |
       docs/gateway.md, ask 3. Read with the 0.7.0 build, a Go module

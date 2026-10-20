@@ -8,18 +8,18 @@ standardOutput: |
   commit d28f3f52e7cbbec3c27b08d6c0f85d5d208bf07d: the last change to .
   counted 2 Go files, 0 of them importing dxlib's api package and 0 that do not parse, and left out 0: every tracked Go file under . but test files and files in a folder below it named testdata or vendor, or that the go command ignores
   settings: counted 1 read of the environment and 0 configurations: every call of os or of dxlib's utils/os that reads the environment by a name, and every NewConfiguration of dxlib's configuration
-  routers: counted 10 registrations: every call that registers a route on a router of net/http, chi, gin, echo or gorilla/mux that the reader follows from where it is made, with its groups, mounts and subrouters
+  routers: counted 11 registrations: every call that registers a route on a router of net/http, chi, gin, echo or gorilla/mux that the reader follows from where it is made, with its groups, mounts and subrouters
   routes: wrote 6 operations: one operation per route a router of net/http, chi, gin, echo or gorilla/mux registers with a literal method and path, outside a loop or a condition, under a prefix the reader knows
-  wrote 0 permissions and 26 questions: one permission per name a route checks with a literal, one question per thing the source does not say, and one per thing the meta-model cannot hold
+  wrote 0 permissions and 27 questions: one permission per name a route checks with a literal, one question per thing the source does not say, and one per thing the meta-model cannot hold
   wrote 0 entities, 0 roles and 1 setting: one entity per table NewModelDBTable declares with a literal schema and name, one role per role the seeds grant something, and one setting per name the source reads or a configuration file holds
-  not held: main.go:19: the route HEAD /live: the method HEAD has no operation in the meta-model, which holds GET, POST, PUT, PATCH and DELETE; left out; could question Q-24
-  not held: main.go:20: the route HEAD /ready: the method HEAD has no operation in the meta-model, which holds GET, POST, PUT, PATCH and DELETE; left out; could question Q-25
-  not held: main.go:21: the route HEAD /started: the method HEAD has no operation in the meta-model, which holds GET, POST, PUT, PATCH and DELETE; left out; could question Q-26
+  not held: main.go:19: the route HEAD /live: the method HEAD has no operation in the meta-model, which holds GET, POST, PUT, PATCH and DELETE; left out; could question Q-25
+  not held: main.go:20: the route HEAD /ready: the method HEAD has no operation in the meta-model, which holds GET, POST, PUT, PATCH and DELETE; left out; could question Q-26
+  not held: main.go:21: the route HEAD /started: the method HEAD has no operation in the meta-model, which holds GET, POST, PUT, PATCH and DELETE; left out; could question Q-27
   handlers: followed 6 of 6 handlers into 6 functions, to 3 calls deep, and left 0 calls not followed: the handler of each operation, where it is a function literal, a function of the same package or one of another package of the module, and each function of the module its steps call
   derived 0 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers
-  not derived: 1 draft test for operation h, held up by Q-1, Q-2, Q-27, Q-3, Q-4, Q-6, Q-7, Q-8; the validator warns for them until the questions are answered
-  not derived: 1 draft test for operation live, held up by Q-1, Q-10, Q-11, Q-2, Q-3, Q-4, Q-9; the validator warns for them until the questions are answered
-  not derived: 1 draft test for operation metrics, held up by Q-1, Q-12, Q-13, Q-14, Q-2, Q-3, Q-4; the validator warns for them until the questions are answered
-  not derived: 1 draft test for operation ready, held up by Q-1, Q-15, Q-16, Q-17, Q-2, Q-3, Q-4; the validator warns for them until the questions are answered
-  not derived: 1 draft test for operation started, held up by Q-1, Q-18, Q-19, Q-2, Q-20, Q-3, Q-4; the validator warns for them until the questions are answered
-  not derived: 1 draft test for operation version, held up by Q-1, Q-2, Q-21, Q-22, Q-23, Q-3, Q-4; the validator warns for them until the questions are answered
+  not derived: 1 draft test for operation h, held up by Q-1, Q-2, Q-28, Q-3, Q-4, Q-5, Q-7, Q-8, Q-9; the validator warns for them until the questions are answered
+  not derived: 1 draft test for operation live, held up by Q-1, Q-10, Q-11, Q-12, Q-2, Q-3, Q-4, Q-5; the validator warns for them until the questions are answered
+  not derived: 1 draft test for operation metrics, held up by Q-1, Q-13, Q-14, Q-15, Q-2, Q-3, Q-4, Q-5; the validator warns for them until the questions are answered
+  not derived: 1 draft test for operation ready, held up by Q-1, Q-16, Q-17, Q-18, Q-2, Q-3, Q-4, Q-5; the validator warns for them until the questions are answered
+  not derived: 1 draft test for operation started, held up by Q-1, Q-19, Q-2, Q-20, Q-21, Q-3, Q-4, Q-5; the validator warns for them until the questions are answered
+  not derived: 1 draft test for operation version, held up by Q-1, Q-2, Q-22, Q-23, Q-24, Q-3, Q-4, Q-5; the validator warns for them until the questions are answered

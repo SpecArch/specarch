@@ -19,8 +19,18 @@ questions:
     why: Syntax does not run the code; only the running system's own list of routes, such as a route table, says what a loop or a condition registers.
     cites:
       - {source: code, clause: 'chirouter/router.go:27', says: Registers a route behind a condition.}
-  # specarch-problem: question: open_question: (must, decision) ginrouter/router.go:12 registers /search for every method. Which methods does the running system answer there, and what does each do? It blocks paths. Decided by system-owner. Answer with a decision record that names Q-3 under answers. [Q-3]
+  # specarch-problem: question: open_question: (must, decision) chirouter/router.go:29 registers GET under /assets with the rest of the path matched by *, a catch-all that takes every request under the prefix. What does its handler answer or forward, and by which claim of the token does it pick the service? It blocks design. Decided by system-owner. Answer with a decision record that names Q-3 under answers. [Q-3]
   Q-3:
+    question: chirouter/router.go:29 registers GET under /assets with the rest of the path matched by *, a catch-all that takes every request under the prefix. What does its handler answer or forward, and by which claim of the token does it pick the service?
+    kind: decision
+    priority: must
+    blocks: [design]
+    decidedBy: system-owner
+    why: A route whose path ends in a catch-all takes every request under its prefix, as a fallback handler takes every request no route answers; a path parameter holds one segment, so no operation is written, and syntax cannot tell a gateway from a file server.
+    cites:
+      - {source: code, clause: 'chirouter/router.go:29', says: Registers GET /assets/*.}
+  # specarch-problem: question: open_question: (must, decision) ginrouter/router.go:12 registers /search for every method. Which methods does the running system answer there, and what does each do? It blocks paths. Decided by system-owner. Answer with a decision record that names Q-4 under answers. [Q-4]
+  Q-4:
     question: ginrouter/router.go:12 registers /search for every method. Which methods does the running system answer there, and what does each do?
     kind: decision
     priority: must
@@ -29,8 +39,18 @@ questions:
     why: A route registered for every method answers any method, and an operation has one; writing one per method would write operations the code may refuse.
     cites:
       - {source: code, clause: 'ginrouter/router.go:12', says: Registers /search for every method.}
-  # specarch-problem: question: open_question: (must, decision) gorillarouter/router.go:17 registers /holds/export for every method. Which methods does the running system answer there, and what does each do? It blocks paths. Decided by system-owner. Answer with a decision record that names Q-4 under answers. [Q-4]
-  Q-4:
+  # specarch-problem: question: open_question: (must, decision) ginrouter/router.go:14 registers GET under /static with the rest of the path matched by *filepath, a catch-all that takes every request under the prefix. What does its handler answer or forward, and by which claim of the token does it pick the service? It blocks design. Decided by system-owner. Answer with a decision record that names Q-5 under answers. [Q-5]
+  Q-5:
+    question: ginrouter/router.go:14 registers GET under /static with the rest of the path matched by *filepath, a catch-all that takes every request under the prefix. What does its handler answer or forward, and by which claim of the token does it pick the service?
+    kind: decision
+    priority: must
+    blocks: [design]
+    decidedBy: system-owner
+    why: A route whose path ends in a catch-all takes every request under its prefix, as a fallback handler takes every request no route answers; a path parameter holds one segment, so no operation is written, and syntax cannot tell a gateway from a file server.
+    cites:
+      - {source: code, clause: 'ginrouter/router.go:14', says: Registers GET /static/*filepath.}
+  # specarch-problem: question: open_question: (must, decision) gorillarouter/router.go:17 registers /holds/export for every method. Which methods does the running system answer there, and what does each do? It blocks paths. Decided by system-owner. Answer with a decision record that names Q-6 under answers. [Q-6]
+  Q-6:
     question: gorillarouter/router.go:17 registers /holds/export for every method. Which methods does the running system answer there, and what does each do?
     kind: decision
     priority: must
@@ -39,8 +59,8 @@ questions:
     why: A route registered for every method answers any method, and an operation has one; writing one per method would write operations the code may refuse.
     cites:
       - {source: code, clause: 'gorillarouter/router.go:17', says: Registers /holds/export for every method.}
-  # specarch-problem: question: open_question: (must, decision) stdmux/mux.go:10 registers /health for every method. Which methods does the running system answer there, and what does each do? It blocks paths. Decided by system-owner. Answer with a decision record that names Q-5 under answers. [Q-5]
-  Q-5:
+  # specarch-problem: question: open_question: (must, decision) stdmux/mux.go:10 registers /health for every method. Which methods does the running system answer there, and what does each do? It blocks paths. Decided by system-owner. Answer with a decision record that names Q-7 under answers. [Q-7]
+  Q-7:
     question: stdmux/mux.go:10 registers /health for every method. Which methods does the running system answer there, and what does each do?
     kind: decision
     priority: must
@@ -49,8 +69,18 @@ questions:
     why: A route registered for every method answers any method, and an operation has one; writing one per method would write operations the code may refuse.
     cites:
       - {source: code, clause: 'stdmux/mux.go:10', says: Registers /health for every method.}
-  # specarch-problem: question: open_question: (must, decision) stdmux/mux.go:18: Handle hands every request under /admin/ to admin, which the reader does not read as a router. Which routes does it serve? It blocks paths. Decided by system-owner. Answer with a decision record that names Q-6 under answers. [Q-6]
-  Q-6:
+  # specarch-problem: question: open_question: (must, decision) stdmux/mux.go:12 registers GET under /files with the rest of the path matched by {path...}, a catch-all that takes every request under the prefix. What does its handler answer or forward, and by which claim of the token does it pick the service? It blocks design. Decided by system-owner. Answer with a decision record that names Q-8 under answers. [Q-8]
+  Q-8:
+    question: stdmux/mux.go:12 registers GET under /files with the rest of the path matched by {path...}, a catch-all that takes every request under the prefix. What does its handler answer or forward, and by which claim of the token does it pick the service?
+    kind: decision
+    priority: must
+    blocks: [design]
+    decidedBy: system-owner
+    why: A route whose path ends in a catch-all takes every request under its prefix, as a fallback handler takes every request no route answers; a path parameter holds one segment, so no operation is written, and syntax cannot tell a gateway from a file server.
+    cites:
+      - {source: code, clause: 'stdmux/mux.go:12', says: 'Registers GET /files/{path...}.'}
+  # specarch-problem: question: open_question: (must, decision) stdmux/mux.go:18: Handle hands every request under /admin/ to admin, which the reader does not read as a router. Which routes does it serve? It blocks paths. Decided by system-owner. Answer with a decision record that names Q-9 under answers. [Q-9]
+  Q-9:
     question: 'stdmux/mux.go:18: Handle hands every request under /admin/ to admin, which the reader does not read as a router. Which routes does it serve?'
     kind: decision
     priority: must
@@ -59,8 +89,8 @@ questions:
     why: Syntax follows a router the module makes; a handler of another kind may serve any path below the prefix.
     cites:
       - {source: code, clause: 'stdmux/mux.go:18', says: Handle hands requests to admin.}
-  # specarch-problem: question: open_question: (must, decision) stdmux/mux.go:20 registers a route in a loop at stdmux/mux.go:19, so the reader cannot tell how many routes it registers, or whether it registers one. Which routes does the running system register here? It blocks paths. Decided by system-owner. Answer with a decision record that names Q-7 under answers. [Q-7]
-  Q-7:
+  # specarch-problem: question: open_question: (must, decision) stdmux/mux.go:20 registers a route in a loop at stdmux/mux.go:19, so the reader cannot tell how many routes it registers, or whether it registers one. Which routes does the running system register here? It blocks paths. Decided by system-owner. Answer with a decision record that names Q-10 under answers. [Q-10]
+  Q-10:
     question: stdmux/mux.go:20 registers a route in a loop at stdmux/mux.go:19, so the reader cannot tell how many routes it registers, or whether it registers one. Which routes does the running system register here?
     kind: decision
     priority: must
@@ -69,8 +99,8 @@ questions:
     why: Syntax does not run the code; only the running system's own list of routes, such as a route table, says what a loop or a condition registers.
     cites:
       - {source: code, clause: 'stdmux/mux.go:20', says: Registers a route in a loop.}
-  # specarch-problem: question: open_question: (must, decision) chirouter/router.go:32 registers GET /ping on a router whose place the reader does not know (chirouter/router.go:31: Route is given the prefix prefix, which is not a literal). Under which path does the running system serve it? It blocks paths. Decided by system-owner. Answer with a decision record that names Q-9 under answers. [Q-9]
-  Q-9:
+  # specarch-problem: question: open_question: (must, decision) chirouter/router.go:32 registers GET /ping on a router whose place the reader does not know (chirouter/router.go:31: Route is given the prefix prefix, which is not a literal). Under which path does the running system serve it? It blocks paths. Decided by system-owner. Answer with a decision record that names Q-12 under answers. [Q-12]
+  Q-12:
     question: 'chirouter/router.go:32 registers GET /ping on a router whose place the reader does not know (chirouter/router.go:31: Route is given the prefix prefix, which is not a literal). Under which path does the running system serve it?'
     kind: decision
     priority: must
@@ -79,8 +109,8 @@ questions:
     why: A prefix computed at run time, or a router passed in from code the reader does not follow, is a guess for syntax; an operation's path is never written from a guess.
     cites:
       - {source: code, clause: 'chirouter/router.go:32', says: Registers GET /ping.}
-  # specarch-problem: question: open_question: (must, decision) unused/routes.go:12 registers GET /orphans on a router whose place the reader does not know (unused/routes.go:11 is given the router r, and the reader found no call that passes it one whose path it knows). Under which path does the running system serve it? It blocks paths. Decided by system-owner. Answer with a decision record that names Q-10 under answers. [Q-10]
-  Q-10:
+  # specarch-problem: question: open_question: (must, decision) unused/routes.go:12 registers GET /orphans on a router whose place the reader does not know (unused/routes.go:11 is given the router r, and the reader found no call that passes it one whose path it knows). Under which path does the running system serve it? It blocks paths. Decided by system-owner. Answer with a decision record that names Q-13 under answers. [Q-13]
+  Q-13:
     question: unused/routes.go:12 registers GET /orphans on a router whose place the reader does not know (unused/routes.go:11 is given the router r, and the reader found no call that passes it one whose path it knows). Under which path does the running system serve it?
     kind: decision
     priority: must
@@ -89,24 +119,24 @@ questions:
     why: A prefix computed at run time, or a router passed in from code the reader does not follow, is a guess for syntax; an operation's path is never written from a guess.
     cites:
       - {source: code, clause: 'unused/routes.go:12', says: Registers GET /orphans.}
-  # specarch-problem: question: open_question: (must, decision) stdmux/mux.go:13: no implementation file names the project's permission check, so the reader does not know which permission GET / checks. Which permission does it check, or is it meant to be open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-11 under answers. [Q-11]
-  Q-11:
+  # specarch-problem: question: open_question: (must, decision) stdmux/mux.go:13: no implementation file names the project's permission check, so the reader does not know which permission GET / checks. Which permission does it check, or is it meant to be open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-14 under answers. [Q-14]
+  Q-14:
     question: 'stdmux/mux.go:13: no implementation file names the project''s permission check, so the reader does not know which permission GET / checks. Which permission does it check, or is it meant to be open to everyone (public)?'
     kind: decision
     priority: must
     blocks: ['#/paths/~1/get/permission']
     decidedBy: system-owner
     why: A check is a call the project writes its own way; the implementation file names it (bindings.http.permissionChecks), and without it no permission is read.
-  # specarch-problem: question: open_question: (must, decision) What does GET / do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-12 under answers. [Q-12]
-  Q-12:
+  # specarch-problem: question: open_question: (must, decision) What does GET / do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-15 under answers. [Q-15]
+  Q-15:
     question: What does GET / do, and what does it answer?
     kind: decision
     priority: must
     blocks: ['#/paths/~1/get/summary', '#/paths/~1/get/responses']
     decidedBy: system-owner
     why: The source registers a handler and does not say what it does or the responses it gives.
-  # specarch-problem: question: open_question: (must, decision) Does the running system register GET /? It is declared at stdmux/mux.go:13, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-13 under answers. [Q-13]
-  Q-13:
+  # specarch-problem: question: open_question: (must, decision) Does the running system register GET /? It is declared at stdmux/mux.go:13, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-16 under answers. [Q-16]
+  Q-16:
     question: Does the running system register GET /? It is declared at stdmux/mux.go:13, and no list the running system printed was read with it.
     kind: decision
     priority: must
@@ -115,24 +145,24 @@ questions:
     why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
     cites:
       - {source: code, clause: 'stdmux/mux.go:13', says: Registers GET /.}
-  # specarch-problem: question: open_question: (must, decision) gorillarouter/router.go:16: no implementation file names the project's permission check, so the reader does not know which permission POST /api/holds checks. Which permission does it check, or is it meant to be open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-14 under answers. [Q-14]
-  Q-14:
+  # specarch-problem: question: open_question: (must, decision) gorillarouter/router.go:16: no implementation file names the project's permission check, so the reader does not know which permission POST /api/holds checks. Which permission does it check, or is it meant to be open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-17 under answers. [Q-17]
+  Q-17:
     question: 'gorillarouter/router.go:16: no implementation file names the project''s permission check, so the reader does not know which permission POST /api/holds checks. Which permission does it check, or is it meant to be open to everyone (public)?'
     kind: decision
     priority: must
     blocks: ['#/paths/~1api~1holds/post/permission']
     decidedBy: system-owner
     why: A check is a call the project writes its own way; the implementation file names it (bindings.http.permissionChecks), and without it no permission is read.
-  # specarch-problem: question: open_question: (must, decision) What does POST /api/holds do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-15 under answers. [Q-15]
-  Q-15:
+  # specarch-problem: question: open_question: (must, decision) What does POST /api/holds do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-18 under answers. [Q-18]
+  Q-18:
     question: What does POST /api/holds do, and what does it answer?
     kind: decision
     priority: must
     blocks: ['#/paths/~1api~1holds/post/summary', '#/paths/~1api~1holds/post/responses']
     decidedBy: system-owner
     why: The source registers a handler and does not say what it does or the responses it gives.
-  # specarch-problem: question: open_question: (must, decision) Does the running system register POST /api/holds? It is declared at gorillarouter/router.go:16, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-16 under answers. [Q-16]
-  Q-16:
+  # specarch-problem: question: open_question: (must, decision) Does the running system register POST /api/holds? It is declared at gorillarouter/router.go:16, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-19 under answers. [Q-19]
+  Q-19:
     question: Does the running system register POST /api/holds? It is declared at gorillarouter/router.go:16, and no list the running system printed was read with it.
     kind: decision
     priority: must
@@ -141,32 +171,32 @@ questions:
     why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
     cites:
       - {source: code, clause: 'gorillarouter/router.go:16', says: Registers POST /api/holds.}
-  # specarch-problem: question: open_question: (must, decision) What values does each path parameter of /api/holds/{holdId} take: holdId? Decided by system-owner. Answer with a decision record that names Q-17 under answers. [Q-17]
-  Q-17:
+  # specarch-problem: question: open_question: (must, decision) What values does each path parameter of /api/holds/{holdId} take: holdId? Decided by system-owner. Answer with a decision record that names Q-20 under answers. [Q-20]
+  Q-20:
     question: 'What values does each path parameter of /api/holds/{holdId} take: holdId?'
     kind: decision
     priority: must
     blocks: ['#/paths/~1api~1holds~1{holdId}/parameters/0/schema']
     decidedBy: system-owner
     why: A path names its parameters and not the values they take.
-  # specarch-problem: question: open_question: (must, decision) gorillarouter/router.go:14: no implementation file names the project's permission check, so the reader does not know which permission GET /api/holds/{holdId} checks. Which permission does it check, or is it meant to be open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-18 under answers. [Q-18]
-  Q-18:
+  # specarch-problem: question: open_question: (must, decision) gorillarouter/router.go:14: no implementation file names the project's permission check, so the reader does not know which permission GET /api/holds/{holdId} checks. Which permission does it check, or is it meant to be open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-21 under answers. [Q-21]
+  Q-21:
     question: 'gorillarouter/router.go:14: no implementation file names the project''s permission check, so the reader does not know which permission GET /api/holds/{holdId} checks. Which permission does it check, or is it meant to be open to everyone (public)?'
     kind: decision
     priority: must
     blocks: ['#/paths/~1api~1holds~1{holdId}/get/permission']
     decidedBy: system-owner
     why: A check is a call the project writes its own way; the implementation file names it (bindings.http.permissionChecks), and without it no permission is read.
-  # specarch-problem: question: open_question: (must, decision) What does GET /api/holds/{holdId} do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-19 under answers. [Q-19]
-  Q-19:
+  # specarch-problem: question: open_question: (must, decision) What does GET /api/holds/{holdId} do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-22 under answers. [Q-22]
+  Q-22:
     question: What does GET /api/holds/{holdId} do, and what does it answer?
     kind: decision
     priority: must
     blocks: ['#/paths/~1api~1holds~1{holdId}/get/summary', '#/paths/~1api~1holds~1{holdId}/get/responses']
     decidedBy: system-owner
     why: The source registers a handler and does not say what it does or the responses it gives.
-  # specarch-problem: question: open_question: (must, decision) Does the running system register GET /api/holds/{holdId}? It is declared at gorillarouter/router.go:14, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-20 under answers. [Q-20]
-  Q-20:
+  # specarch-problem: question: open_question: (must, decision) Does the running system register GET /api/holds/{holdId}? It is declared at gorillarouter/router.go:14, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-23 under answers. [Q-23]
+  Q-23:
     question: Does the running system register GET /api/holds/{holdId}? It is declared at gorillarouter/router.go:14, and no list the running system printed was read with it.
     kind: decision
     priority: must
@@ -175,24 +205,24 @@ questions:
     why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
     cites:
       - {source: code, clause: 'gorillarouter/router.go:14', says: 'Registers GET /api/holds/{holdId}.'}
-  # specarch-problem: question: open_question: (must, decision) gorillarouter/router.go:15: no implementation file names the project's permission check, so the reader does not know which permission POST /api/holds/{holdId} checks. Which permission does it check, or is it meant to be open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-21 under answers. [Q-21]
-  Q-21:
+  # specarch-problem: question: open_question: (must, decision) gorillarouter/router.go:15: no implementation file names the project's permission check, so the reader does not know which permission POST /api/holds/{holdId} checks. Which permission does it check, or is it meant to be open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-24 under answers. [Q-24]
+  Q-24:
     question: 'gorillarouter/router.go:15: no implementation file names the project''s permission check, so the reader does not know which permission POST /api/holds/{holdId} checks. Which permission does it check, or is it meant to be open to everyone (public)?'
     kind: decision
     priority: must
     blocks: ['#/paths/~1api~1holds~1{holdId}/post/permission']
     decidedBy: system-owner
     why: A check is a call the project writes its own way; the implementation file names it (bindings.http.permissionChecks), and without it no permission is read.
-  # specarch-problem: question: open_question: (must, decision) What does POST /api/holds/{holdId} do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-22 under answers. [Q-22]
-  Q-22:
+  # specarch-problem: question: open_question: (must, decision) What does POST /api/holds/{holdId} do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-25 under answers. [Q-25]
+  Q-25:
     question: What does POST /api/holds/{holdId} do, and what does it answer?
     kind: decision
     priority: must
     blocks: ['#/paths/~1api~1holds~1{holdId}/post/summary', '#/paths/~1api~1holds~1{holdId}/post/responses']
     decidedBy: system-owner
     why: The source registers a handler and does not say what it does or the responses it gives.
-  # specarch-problem: question: open_question: (must, decision) Does the running system register POST /api/holds/{holdId}? It is declared at gorillarouter/router.go:15, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-23 under answers. [Q-23]
-  Q-23:
+  # specarch-problem: question: open_question: (must, decision) Does the running system register POST /api/holds/{holdId}? It is declared at gorillarouter/router.go:15, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-26 under answers. [Q-26]
+  Q-26:
     question: Does the running system register POST /api/holds/{holdId}? It is declared at gorillarouter/router.go:15, and no list the running system printed was read with it.
     kind: decision
     priority: must
@@ -201,24 +231,24 @@ questions:
     why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
     cites:
       - {source: code, clause: 'gorillarouter/router.go:15', says: 'Registers POST /api/holds/{holdId}.'}
-  # specarch-problem: question: open_question: (must, decision) gorillarouter/router.go:15: no implementation file names the project's permission check, so the reader does not know which permission DELETE /api/holds/{holdId} checks. Which permission does it check, or is it meant to be open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-24 under answers. [Q-24]
-  Q-24:
+  # specarch-problem: question: open_question: (must, decision) gorillarouter/router.go:15: no implementation file names the project's permission check, so the reader does not know which permission DELETE /api/holds/{holdId} checks. Which permission does it check, or is it meant to be open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-27 under answers. [Q-27]
+  Q-27:
     question: 'gorillarouter/router.go:15: no implementation file names the project''s permission check, so the reader does not know which permission DELETE /api/holds/{holdId} checks. Which permission does it check, or is it meant to be open to everyone (public)?'
     kind: decision
     priority: must
     blocks: ['#/paths/~1api~1holds~1{holdId}/delete/permission']
     decidedBy: system-owner
     why: A check is a call the project writes its own way; the implementation file names it (bindings.http.permissionChecks), and without it no permission is read.
-  # specarch-problem: question: open_question: (must, decision) What does DELETE /api/holds/{holdId} do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-25 under answers. [Q-25]
-  Q-25:
+  # specarch-problem: question: open_question: (must, decision) What does DELETE /api/holds/{holdId} do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-28 under answers. [Q-28]
+  Q-28:
     question: What does DELETE /api/holds/{holdId} do, and what does it answer?
     kind: decision
     priority: must
     blocks: ['#/paths/~1api~1holds~1{holdId}/delete/summary', '#/paths/~1api~1holds~1{holdId}/delete/responses']
     decidedBy: system-owner
     why: The source registers a handler and does not say what it does or the responses it gives.
-  # specarch-problem: question: open_question: (must, decision) Does the running system register DELETE /api/holds/{holdId}? It is declared at gorillarouter/router.go:15, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-26 under answers. [Q-26]
-  Q-26:
+  # specarch-problem: question: open_question: (must, decision) Does the running system register DELETE /api/holds/{holdId}? It is declared at gorillarouter/router.go:15, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-29 under answers. [Q-29]
+  Q-29:
     question: Does the running system register DELETE /api/holds/{holdId}? It is declared at gorillarouter/router.go:15, and no list the running system printed was read with it.
     kind: decision
     priority: must
@@ -227,16 +257,16 @@ questions:
     why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
     cites:
       - {source: code, clause: 'gorillarouter/router.go:15', says: 'Registers DELETE /api/holds/{holdId}.'}
-  # specarch-problem: question: open_question: (must, decision) What values does each path parameter of /branches/{branchId} take: branchId? Decided by system-owner. Answer with a decision record that names Q-27 under answers. [Q-27]
-  Q-27:
+  # specarch-problem: question: open_question: (must, decision) What values does each path parameter of /branches/{branchId} take: branchId? Decided by system-owner. Answer with a decision record that names Q-30 under answers. [Q-30]
+  Q-30:
     question: 'What values does each path parameter of /branches/{branchId} take: branchId?'
     kind: decision
     priority: must
     blocks: ['#/paths/~1branches~1{branchId}/parameters/0/schema']
     decidedBy: system-owner
     why: A path names its parameters and not the values they take.
-  # specarch-problem: question: open_question: (must, decision) chirouter/router.go:49: the handler of GET /branches/{branchId} reads the path parameter id, which its path does not have, so it reads an empty value. Is id a parameter of the operation, or is the read a mistake? Decided by system-owner. Answer with a decision record that names Q-28 under answers. [Q-28]
-  Q-28:
+  # specarch-problem: question: open_question: (must, decision) chirouter/router.go:49: the handler of GET /branches/{branchId} reads the path parameter id, which its path does not have, so it reads an empty value. Is id a parameter of the operation, or is the read a mistake? Decided by system-owner. Answer with a decision record that names Q-31 under answers. [Q-31]
+  Q-31:
     question: 'chirouter/router.go:49: the handler of GET /branches/{branchId} reads the path parameter id, which its path does not have, so it reads an empty value. Is id a parameter of the operation, or is the read a mistake?'
     kind: decision
     priority: must
@@ -245,24 +275,24 @@ questions:
     why: A path parameter the route's path does not name is always empty, so the code cannot work as written.
     cites:
       - {source: code, clause: 'chirouter/router.go:49', says: Reads the path parameter id.}
-  # specarch-problem: question: open_question: (must, decision) chirouter/router.go:39: no implementation file names the project's permission check, so the reader does not know which permission GET /branches/{branchId} checks. Which permission does it check, or is it meant to be open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-29 under answers. [Q-29]
-  Q-29:
+  # specarch-problem: question: open_question: (must, decision) chirouter/router.go:39: no implementation file names the project's permission check, so the reader does not know which permission GET /branches/{branchId} checks. Which permission does it check, or is it meant to be open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-32 under answers. [Q-32]
+  Q-32:
     question: 'chirouter/router.go:39: no implementation file names the project''s permission check, so the reader does not know which permission GET /branches/{branchId} checks. Which permission does it check, or is it meant to be open to everyone (public)?'
     kind: decision
     priority: must
     blocks: ['#/paths/~1branches~1{branchId}/get/permission']
     decidedBy: system-owner
     why: A check is a call the project writes its own way; the implementation file names it (bindings.http.permissionChecks), and without it no permission is read.
-  # specarch-problem: question: open_question: (must, decision) What does GET /branches/{branchId} do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-30 under answers. [Q-30]
-  Q-30:
+  # specarch-problem: question: open_question: (must, decision) What does GET /branches/{branchId} do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-33 under answers. [Q-33]
+  Q-33:
     question: What does GET /branches/{branchId} do, and what does it answer?
     kind: decision
     priority: must
     blocks: ['#/paths/~1branches~1{branchId}/get/summary', '#/paths/~1branches~1{branchId}/get/responses']
     decidedBy: system-owner
     why: The source registers a handler and does not say what it does or the responses it gives.
-  # specarch-problem: question: open_question: (must, decision) Does the running system register GET /branches/{branchId}? It is declared at chirouter/router.go:39, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-31 under answers. [Q-31]
-  Q-31:
+  # specarch-problem: question: open_question: (must, decision) Does the running system register GET /branches/{branchId}? It is declared at chirouter/router.go:39, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-34 under answers. [Q-34]
+  Q-34:
     question: Does the running system register GET /branches/{branchId}? It is declared at chirouter/router.go:39, and no list the running system printed was read with it.
     kind: decision
     priority: must
@@ -271,16 +301,16 @@ questions:
     why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
     cites:
       - {source: code, clause: 'chirouter/router.go:39', says: 'Registers GET /branches/{branchId}.'}
-  # specarch-problem: question: open_question: (must, decision) What values does each path parameter of /fines/{fineId} take: fineId? Decided by system-owner. Answer with a decision record that names Q-32 under answers. [Q-32]
-  Q-32:
+  # specarch-problem: question: open_question: (must, decision) What values does each path parameter of /fines/{fineId} take: fineId? Decided by system-owner. Answer with a decision record that names Q-35 under answers. [Q-35]
+  Q-35:
     question: 'What values does each path parameter of /fines/{fineId} take: fineId?'
     kind: decision
     priority: must
     blocks: ['#/paths/~1fines~1{fineId}/parameters/0/schema']
     decidedBy: system-owner
     why: A path names its parameters and not the values they take.
-  # specarch-problem: question: open_question: (must, decision) echorouter/router.go:19: the handler of GET /fines/{fineId} reads the path parameter fine, which its path does not have, so it reads an empty value. Is fine a parameter of the operation, or is the read a mistake? Decided by system-owner. Answer with a decision record that names Q-33 under answers. [Q-33]
-  Q-33:
+  # specarch-problem: question: open_question: (must, decision) echorouter/router.go:19: the handler of GET /fines/{fineId} reads the path parameter fine, which its path does not have, so it reads an empty value. Is fine a parameter of the operation, or is the read a mistake? Decided by system-owner. Answer with a decision record that names Q-36 under answers. [Q-36]
+  Q-36:
     question: 'echorouter/router.go:19: the handler of GET /fines/{fineId} reads the path parameter fine, which its path does not have, so it reads an empty value. Is fine a parameter of the operation, or is the read a mistake?'
     kind: decision
     priority: must
@@ -289,24 +319,24 @@ questions:
     why: A path parameter the route's path does not name is always empty, so the code cannot work as written.
     cites:
       - {source: code, clause: 'echorouter/router.go:19', says: Reads the path parameter fine.}
-  # specarch-problem: question: open_question: (must, decision) echorouter/router.go:13: no implementation file names the project's permission check, so the reader does not know which permission GET /fines/{fineId} checks. Which permission does it check, or is it meant to be open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-34 under answers. [Q-34]
-  Q-34:
+  # specarch-problem: question: open_question: (must, decision) echorouter/router.go:13: no implementation file names the project's permission check, so the reader does not know which permission GET /fines/{fineId} checks. Which permission does it check, or is it meant to be open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-37 under answers. [Q-37]
+  Q-37:
     question: 'echorouter/router.go:13: no implementation file names the project''s permission check, so the reader does not know which permission GET /fines/{fineId} checks. Which permission does it check, or is it meant to be open to everyone (public)?'
     kind: decision
     priority: must
     blocks: ['#/paths/~1fines~1{fineId}/get/permission']
     decidedBy: system-owner
     why: A check is a call the project writes its own way; the implementation file names it (bindings.http.permissionChecks), and without it no permission is read.
-  # specarch-problem: question: open_question: (must, decision) What does GET /fines/{fineId} do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-35 under answers. [Q-35]
-  Q-35:
+  # specarch-problem: question: open_question: (must, decision) What does GET /fines/{fineId} do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-38 under answers. [Q-38]
+  Q-38:
     question: What does GET /fines/{fineId} do, and what does it answer?
     kind: decision
     priority: must
     blocks: ['#/paths/~1fines~1{fineId}/get/summary', '#/paths/~1fines~1{fineId}/get/responses']
     decidedBy: system-owner
     why: The source registers a handler and does not say what it does or the responses it gives.
-  # specarch-problem: question: open_question: (must, decision) Does the running system register GET /fines/{fineId}? It is declared at echorouter/router.go:13, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-36 under answers. [Q-36]
-  Q-36:
+  # specarch-problem: question: open_question: (must, decision) Does the running system register GET /fines/{fineId}? It is declared at echorouter/router.go:13, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-39 under answers. [Q-39]
+  Q-39:
     question: Does the running system register GET /fines/{fineId}? It is declared at echorouter/router.go:13, and no list the running system printed was read with it.
     kind: decision
     priority: must
@@ -315,24 +345,24 @@ questions:
     why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
     cites:
       - {source: code, clause: 'echorouter/router.go:13', says: 'Registers GET /fines/{fineId}.'}
-  # specarch-problem: question: open_question: (must, decision) echorouter/router.go:15: no implementation file names the project's permission check, so the reader does not know which permission PUT /fines/{fineId} checks. Which permission does it check, or is it meant to be open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-37 under answers. [Q-37]
-  Q-37:
+  # specarch-problem: question: open_question: (must, decision) echorouter/router.go:15: no implementation file names the project's permission check, so the reader does not know which permission PUT /fines/{fineId} checks. Which permission does it check, or is it meant to be open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-40 under answers. [Q-40]
+  Q-40:
     question: 'echorouter/router.go:15: no implementation file names the project''s permission check, so the reader does not know which permission PUT /fines/{fineId} checks. Which permission does it check, or is it meant to be open to everyone (public)?'
     kind: decision
     priority: must
     blocks: ['#/paths/~1fines~1{fineId}/put/permission']
     decidedBy: system-owner
     why: A check is a call the project writes its own way; the implementation file names it (bindings.http.permissionChecks), and without it no permission is read.
-  # specarch-problem: question: open_question: (must, decision) What does PUT /fines/{fineId} do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-38 under answers. [Q-38]
-  Q-38:
+  # specarch-problem: question: open_question: (must, decision) What does PUT /fines/{fineId} do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-41 under answers. [Q-41]
+  Q-41:
     question: What does PUT /fines/{fineId} do, and what does it answer?
     kind: decision
     priority: must
     blocks: ['#/paths/~1fines~1{fineId}/put/summary', '#/paths/~1fines~1{fineId}/put/responses']
     decidedBy: system-owner
     why: The source registers a handler and does not say what it does or the responses it gives.
-  # specarch-problem: question: open_question: (must, decision) Does the running system register PUT /fines/{fineId}? It is declared at echorouter/router.go:15, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-39 under answers. [Q-39]
-  Q-39:
+  # specarch-problem: question: open_question: (must, decision) Does the running system register PUT /fines/{fineId}? It is declared at echorouter/router.go:15, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-42 under answers. [Q-42]
+  Q-42:
     question: Does the running system register PUT /fines/{fineId}? It is declared at echorouter/router.go:15, and no list the running system printed was read with it.
     kind: decision
     priority: must
@@ -341,24 +371,24 @@ questions:
     why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
     cites:
       - {source: code, clause: 'echorouter/router.go:15', says: 'Registers PUT /fines/{fineId}.'}
-  # specarch-problem: question: open_question: (must, decision) echorouter/router.go:15: no implementation file names the project's permission check, so the reader does not know which permission PATCH /fines/{fineId} checks. Which permission does it check, or is it meant to be open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-40 under answers. [Q-40]
-  Q-40:
+  # specarch-problem: question: open_question: (must, decision) echorouter/router.go:15: no implementation file names the project's permission check, so the reader does not know which permission PATCH /fines/{fineId} checks. Which permission does it check, or is it meant to be open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-43 under answers. [Q-43]
+  Q-43:
     question: 'echorouter/router.go:15: no implementation file names the project''s permission check, so the reader does not know which permission PATCH /fines/{fineId} checks. Which permission does it check, or is it meant to be open to everyone (public)?'
     kind: decision
     priority: must
     blocks: ['#/paths/~1fines~1{fineId}/patch/permission']
     decidedBy: system-owner
     why: A check is a call the project writes its own way; the implementation file names it (bindings.http.permissionChecks), and without it no permission is read.
-  # specarch-problem: question: open_question: (must, decision) What does PATCH /fines/{fineId} do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-41 under answers. [Q-41]
-  Q-41:
+  # specarch-problem: question: open_question: (must, decision) What does PATCH /fines/{fineId} do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-44 under answers. [Q-44]
+  Q-44:
     question: What does PATCH /fines/{fineId} do, and what does it answer?
     kind: decision
     priority: must
     blocks: ['#/paths/~1fines~1{fineId}/patch/summary', '#/paths/~1fines~1{fineId}/patch/responses']
     decidedBy: system-owner
     why: The source registers a handler and does not say what it does or the responses it gives.
-  # specarch-problem: question: open_question: (must, decision) Does the running system register PATCH /fines/{fineId}? It is declared at echorouter/router.go:15, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-42 under answers. [Q-42]
-  Q-42:
+  # specarch-problem: question: open_question: (must, decision) Does the running system register PATCH /fines/{fineId}? It is declared at echorouter/router.go:15, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-45 under answers. [Q-45]
+  Q-45:
     question: Does the running system register PATCH /fines/{fineId}? It is declared at echorouter/router.go:15, and no list the running system printed was read with it.
     kind: decision
     priority: must
@@ -367,32 +397,32 @@ questions:
     why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
     cites:
       - {source: code, clause: 'echorouter/router.go:15', says: 'Registers PATCH /fines/{fineId}.'}
-  # specarch-problem: question: open_question: (must, decision) What values does each path parameter of /fines/{fineId}/waivers take: fineId? Decided by system-owner. Answer with a decision record that names Q-43 under answers. [Q-43]
-  Q-43:
+  # specarch-problem: question: open_question: (must, decision) What values does each path parameter of /fines/{fineId}/waivers take: fineId? Decided by system-owner. Answer with a decision record that names Q-46 under answers. [Q-46]
+  Q-46:
     question: 'What values does each path parameter of /fines/{fineId}/waivers take: fineId?'
     kind: decision
     priority: must
     blocks: ['#/paths/~1fines~1{fineId}~1waivers/parameters/0/schema']
     decidedBy: system-owner
     why: A path names its parameters and not the values they take.
-  # specarch-problem: question: open_question: (must, decision) echorouter/router.go:14: no implementation file names the project's permission check, so the reader does not know which permission POST /fines/{fineId}/waivers checks. Which permission does it check, or is it meant to be open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-44 under answers. [Q-44]
-  Q-44:
+  # specarch-problem: question: open_question: (must, decision) echorouter/router.go:14: no implementation file names the project's permission check, so the reader does not know which permission POST /fines/{fineId}/waivers checks. Which permission does it check, or is it meant to be open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-47 under answers. [Q-47]
+  Q-47:
     question: 'echorouter/router.go:14: no implementation file names the project''s permission check, so the reader does not know which permission POST /fines/{fineId}/waivers checks. Which permission does it check, or is it meant to be open to everyone (public)?'
     kind: decision
     priority: must
     blocks: ['#/paths/~1fines~1{fineId}~1waivers/post/permission']
     decidedBy: system-owner
     why: A check is a call the project writes its own way; the implementation file names it (bindings.http.permissionChecks), and without it no permission is read.
-  # specarch-problem: question: open_question: (must, decision) What does POST /fines/{fineId}/waivers do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-45 under answers. [Q-45]
-  Q-45:
+  # specarch-problem: question: open_question: (must, decision) What does POST /fines/{fineId}/waivers do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-48 under answers. [Q-48]
+  Q-48:
     question: What does POST /fines/{fineId}/waivers do, and what does it answer?
     kind: decision
     priority: must
     blocks: ['#/paths/~1fines~1{fineId}~1waivers/post/summary', '#/paths/~1fines~1{fineId}~1waivers/post/responses']
     decidedBy: system-owner
     why: The source registers a handler and does not say what it does or the responses it gives.
-  # specarch-problem: question: open_question: (must, decision) Does the running system register POST /fines/{fineId}/waivers? It is declared at echorouter/router.go:14, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-46 under answers. [Q-46]
-  Q-46:
+  # specarch-problem: question: open_question: (must, decision) Does the running system register POST /fines/{fineId}/waivers? It is declared at echorouter/router.go:14, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-49 under answers. [Q-49]
+  Q-49:
     question: Does the running system register POST /fines/{fineId}/waivers? It is declared at echorouter/router.go:14, and no list the running system printed was read with it.
     kind: decision
     priority: must
@@ -401,24 +431,24 @@ questions:
     why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
     cites:
       - {source: code, clause: 'echorouter/router.go:14', says: 'Registers POST /fines/{fineId}/waivers.'}
-  # specarch-problem: question: open_question: (must, decision) gorillarouter/router.go:12: no implementation file names the project's permission check, so the reader does not know which permission GET /holds checks. Which permission does it check, or is it meant to be open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-47 under answers. [Q-47]
-  Q-47:
+  # specarch-problem: question: open_question: (must, decision) gorillarouter/router.go:12: no implementation file names the project's permission check, so the reader does not know which permission GET /holds checks. Which permission does it check, or is it meant to be open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-50 under answers. [Q-50]
+  Q-50:
     question: 'gorillarouter/router.go:12: no implementation file names the project''s permission check, so the reader does not know which permission GET /holds checks. Which permission does it check, or is it meant to be open to everyone (public)?'
     kind: decision
     priority: must
     blocks: ['#/paths/~1holds/get/permission']
     decidedBy: system-owner
     why: A check is a call the project writes its own way; the implementation file names it (bindings.http.permissionChecks), and without it no permission is read.
-  # specarch-problem: question: open_question: (must, decision) What does GET /holds do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-48 under answers. [Q-48]
-  Q-48:
+  # specarch-problem: question: open_question: (must, decision) What does GET /holds do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-51 under answers. [Q-51]
+  Q-51:
     question: What does GET /holds do, and what does it answer?
     kind: decision
     priority: must
     blocks: ['#/paths/~1holds/get/summary', '#/paths/~1holds/get/responses']
     decidedBy: system-owner
     why: The source registers a handler and does not say what it does or the responses it gives.
-  # specarch-problem: question: open_question: (must, decision) Does the running system register GET /holds? It is declared at gorillarouter/router.go:12, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-49 under answers. [Q-49]
-  Q-49:
+  # specarch-problem: question: open_question: (must, decision) Does the running system register GET /holds? It is declared at gorillarouter/router.go:12, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-52 under answers. [Q-52]
+  Q-52:
     question: Does the running system register GET /holds? It is declared at gorillarouter/router.go:12, and no list the running system printed was read with it.
     kind: decision
     priority: must
@@ -427,24 +457,24 @@ questions:
     why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
     cites:
       - {source: code, clause: 'gorillarouter/router.go:12', says: Registers GET /holds.}
-  # specarch-problem: question: open_question: (must, decision) stdmux/mux.go:9: no implementation file names the project's permission check, so the reader does not know which permission POST /loans checks. Which permission does it check, or is it meant to be open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-50 under answers. [Q-50]
-  Q-50:
+  # specarch-problem: question: open_question: (must, decision) stdmux/mux.go:9: no implementation file names the project's permission check, so the reader does not know which permission POST /loans checks. Which permission does it check, or is it meant to be open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-53 under answers. [Q-53]
+  Q-53:
     question: 'stdmux/mux.go:9: no implementation file names the project''s permission check, so the reader does not know which permission POST /loans checks. Which permission does it check, or is it meant to be open to everyone (public)?'
     kind: decision
     priority: must
     blocks: ['#/paths/~1loans/post/permission']
     decidedBy: system-owner
     why: A check is a call the project writes its own way; the implementation file names it (bindings.http.permissionChecks), and without it no permission is read.
-  # specarch-problem: question: open_question: (must, decision) What does POST /loans do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-51 under answers. [Q-51]
-  Q-51:
+  # specarch-problem: question: open_question: (must, decision) What does POST /loans do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-54 under answers. [Q-54]
+  Q-54:
     question: What does POST /loans do, and what does it answer?
     kind: decision
     priority: must
     blocks: ['#/paths/~1loans/post/summary', '#/paths/~1loans/post/responses']
     decidedBy: system-owner
     why: The source registers a handler and does not say what it does or the responses it gives.
-  # specarch-problem: question: open_question: (must, decision) Does the running system register POST /loans? It is declared at stdmux/mux.go:9, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-52 under answers. [Q-52]
-  Q-52:
+  # specarch-problem: question: open_question: (must, decision) Does the running system register POST /loans? It is declared at stdmux/mux.go:9, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-55 under answers. [Q-55]
+  Q-55:
     question: Does the running system register POST /loans? It is declared at stdmux/mux.go:9, and no list the running system printed was read with it.
     kind: decision
     priority: must
@@ -453,32 +483,32 @@ questions:
     why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
     cites:
       - {source: code, clause: 'stdmux/mux.go:9', says: Registers POST /loans.}
-  # specarch-problem: question: open_question: (must, decision) What values does each path parameter of /loans/{loanId} take: loanId? Decided by system-owner. Answer with a decision record that names Q-53 under answers. [Q-53]
-  Q-53:
+  # specarch-problem: question: open_question: (must, decision) What values does each path parameter of /loans/{loanId} take: loanId? Decided by system-owner. Answer with a decision record that names Q-56 under answers. [Q-56]
+  Q-56:
     question: 'What values does each path parameter of /loans/{loanId} take: loanId?'
     kind: decision
     priority: must
     blocks: ['#/paths/~1loans~1{loanId}/parameters/0/schema']
     decidedBy: system-owner
     why: A path names its parameters and not the values they take.
-  # specarch-problem: question: open_question: (must, decision) stdmux/mux.go:8: no implementation file names the project's permission check, so the reader does not know which permission GET /loans/{loanId} checks. Which permission does it check, or is it meant to be open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-54 under answers. [Q-54]
-  Q-54:
+  # specarch-problem: question: open_question: (must, decision) stdmux/mux.go:8: no implementation file names the project's permission check, so the reader does not know which permission GET /loans/{loanId} checks. Which permission does it check, or is it meant to be open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-57 under answers. [Q-57]
+  Q-57:
     question: 'stdmux/mux.go:8: no implementation file names the project''s permission check, so the reader does not know which permission GET /loans/{loanId} checks. Which permission does it check, or is it meant to be open to everyone (public)?'
     kind: decision
     priority: must
     blocks: ['#/paths/~1loans~1{loanId}/get/permission']
     decidedBy: system-owner
     why: A check is a call the project writes its own way; the implementation file names it (bindings.http.permissionChecks), and without it no permission is read.
-  # specarch-problem: question: open_question: (must, decision) What does GET /loans/{loanId} do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-55 under answers. [Q-55]
-  Q-55:
+  # specarch-problem: question: open_question: (must, decision) What does GET /loans/{loanId} do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-58 under answers. [Q-58]
+  Q-58:
     question: What does GET /loans/{loanId} do, and what does it answer?
     kind: decision
     priority: must
     blocks: ['#/paths/~1loans~1{loanId}/get/summary', '#/paths/~1loans~1{loanId}/get/responses']
     decidedBy: system-owner
     why: The source registers a handler and does not say what it does or the responses it gives.
-  # specarch-problem: question: open_question: (must, decision) Does the running system register GET /loans/{loanId}? It is declared at stdmux/mux.go:8, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-56 under answers. [Q-56]
-  Q-56:
+  # specarch-problem: question: open_question: (must, decision) Does the running system register GET /loans/{loanId}? It is declared at stdmux/mux.go:8, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-59 under answers. [Q-59]
+  Q-59:
     question: Does the running system register GET /loans/{loanId}? It is declared at stdmux/mux.go:8, and no list the running system printed was read with it.
     kind: decision
     priority: must
@@ -487,24 +517,24 @@ questions:
     why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
     cites:
       - {source: code, clause: 'stdmux/mux.go:8', says: 'Registers GET /loans/{loanId}.'}
-  # specarch-problem: question: open_question: (must, decision) chirouter/router.go:14: no implementation file names the project's permission check, so the reader does not know which permission GET /members checks. Which permission does it check, or is it meant to be open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-57 under answers. [Q-57]
-  Q-57:
+  # specarch-problem: question: open_question: (must, decision) chirouter/router.go:14: no implementation file names the project's permission check, so the reader does not know which permission GET /members checks. Which permission does it check, or is it meant to be open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-60 under answers. [Q-60]
+  Q-60:
     question: 'chirouter/router.go:14: no implementation file names the project''s permission check, so the reader does not know which permission GET /members checks. Which permission does it check, or is it meant to be open to everyone (public)?'
     kind: decision
     priority: must
     blocks: ['#/paths/~1members/get/permission']
     decidedBy: system-owner
     why: A check is a call the project writes its own way; the implementation file names it (bindings.http.permissionChecks), and without it no permission is read.
-  # specarch-problem: question: open_question: (must, decision) What does GET /members do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-58 under answers. [Q-58]
-  Q-58:
+  # specarch-problem: question: open_question: (must, decision) What does GET /members do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-61 under answers. [Q-61]
+  Q-61:
     question: What does GET /members do, and what does it answer?
     kind: decision
     priority: must
     blocks: ['#/paths/~1members/get/summary', '#/paths/~1members/get/responses']
     decidedBy: system-owner
     why: The source registers a handler and does not say what it does or the responses it gives.
-  # specarch-problem: question: open_question: (must, decision) Does the running system register GET /members? It is declared at chirouter/router.go:14, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-59 under answers. [Q-59]
-  Q-59:
+  # specarch-problem: question: open_question: (must, decision) Does the running system register GET /members? It is declared at chirouter/router.go:14, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-62 under answers. [Q-62]
+  Q-62:
     question: Does the running system register GET /members? It is declared at chirouter/router.go:14, and no list the running system printed was read with it.
     kind: decision
     priority: must
@@ -513,24 +543,24 @@ questions:
     why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
     cites:
       - {source: code, clause: 'chirouter/router.go:14', says: Registers GET /members.}
-  # specarch-problem: question: open_question: (must, decision) chirouter/router.go:15: no implementation file names the project's permission check, so the reader does not know which permission POST /members checks. Which permission does it check, or is it meant to be open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-60 under answers. [Q-60]
-  Q-60:
+  # specarch-problem: question: open_question: (must, decision) chirouter/router.go:15: no implementation file names the project's permission check, so the reader does not know which permission POST /members checks. Which permission does it check, or is it meant to be open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-63 under answers. [Q-63]
+  Q-63:
     question: 'chirouter/router.go:15: no implementation file names the project''s permission check, so the reader does not know which permission POST /members checks. Which permission does it check, or is it meant to be open to everyone (public)?'
     kind: decision
     priority: must
     blocks: ['#/paths/~1members/post/permission']
     decidedBy: system-owner
     why: A check is a call the project writes its own way; the implementation file names it (bindings.http.permissionChecks), and without it no permission is read.
-  # specarch-problem: question: open_question: (must, decision) What does POST /members do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-61 under answers. [Q-61]
-  Q-61:
+  # specarch-problem: question: open_question: (must, decision) What does POST /members do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-64 under answers. [Q-64]
+  Q-64:
     question: What does POST /members do, and what does it answer?
     kind: decision
     priority: must
     blocks: ['#/paths/~1members/post/summary', '#/paths/~1members/post/responses']
     decidedBy: system-owner
     why: The source registers a handler and does not say what it does or the responses it gives.
-  # specarch-problem: question: open_question: (must, decision) Does the running system register POST /members? It is declared at chirouter/router.go:15, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-62 under answers. [Q-62]
-  Q-62:
+  # specarch-problem: question: open_question: (must, decision) Does the running system register POST /members? It is declared at chirouter/router.go:15, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-65 under answers. [Q-65]
+  Q-65:
     question: Does the running system register POST /members? It is declared at chirouter/router.go:15, and no list the running system printed was read with it.
     kind: decision
     priority: must
@@ -539,32 +569,32 @@ questions:
     why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
     cites:
       - {source: code, clause: 'chirouter/router.go:15', says: Registers POST /members.}
-  # specarch-problem: question: open_question: (must, decision) What values does each path parameter of /members/{cardNumber} take: cardNumber? Decided by system-owner. Answer with a decision record that names Q-63 under answers. [Q-63]
-  Q-63:
+  # specarch-problem: question: open_question: (must, decision) What values does each path parameter of /members/{cardNumber} take: cardNumber? Decided by system-owner. Answer with a decision record that names Q-66 under answers. [Q-66]
+  Q-66:
     question: 'What values does each path parameter of /members/{cardNumber} take: cardNumber?'
     kind: decision
     priority: must
     blocks: ['#/paths/~1members~1{cardNumber}/parameters/0/schema']
     decidedBy: system-owner
     why: A path names its parameters and not the values they take.
-  # specarch-problem: question: open_question: (must, decision) chirouter/router.go:17: no implementation file names the project's permission check, so the reader does not know which permission GET /members/{cardNumber} checks. Which permission does it check, or is it meant to be open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-64 under answers. [Q-64]
-  Q-64:
+  # specarch-problem: question: open_question: (must, decision) chirouter/router.go:17: no implementation file names the project's permission check, so the reader does not know which permission GET /members/{cardNumber} checks. Which permission does it check, or is it meant to be open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-67 under answers. [Q-67]
+  Q-67:
     question: 'chirouter/router.go:17: no implementation file names the project''s permission check, so the reader does not know which permission GET /members/{cardNumber} checks. Which permission does it check, or is it meant to be open to everyone (public)?'
     kind: decision
     priority: must
     blocks: ['#/paths/~1members~1{cardNumber}/get/permission']
     decidedBy: system-owner
     why: A check is a call the project writes its own way; the implementation file names it (bindings.http.permissionChecks), and without it no permission is read.
-  # specarch-problem: question: open_question: (must, decision) What does GET /members/{cardNumber} do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-65 under answers. [Q-65]
-  Q-65:
+  # specarch-problem: question: open_question: (must, decision) What does GET /members/{cardNumber} do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-68 under answers. [Q-68]
+  Q-68:
     question: What does GET /members/{cardNumber} do, and what does it answer?
     kind: decision
     priority: must
     blocks: ['#/paths/~1members~1{cardNumber}/get/summary', '#/paths/~1members~1{cardNumber}/get/responses']
     decidedBy: system-owner
     why: The source registers a handler and does not say what it does or the responses it gives.
-  # specarch-problem: question: open_question: (must, decision) Does the running system register GET /members/{cardNumber}? It is declared at chirouter/router.go:17, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-66 under answers. [Q-66]
-  Q-66:
+  # specarch-problem: question: open_question: (must, decision) Does the running system register GET /members/{cardNumber}? It is declared at chirouter/router.go:17, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-69 under answers. [Q-69]
+  Q-69:
     question: Does the running system register GET /members/{cardNumber}? It is declared at chirouter/router.go:17, and no list the running system printed was read with it.
     kind: decision
     priority: must
@@ -573,24 +603,24 @@ questions:
     why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
     cites:
       - {source: code, clause: 'chirouter/router.go:17', says: 'Registers GET /members/{cardNumber}.'}
-  # specarch-problem: question: open_question: (must, decision) chirouter/router.go:18: no implementation file names the project's permission check, so the reader does not know which permission DELETE /members/{cardNumber} checks. Which permission does it check, or is it meant to be open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-67 under answers. [Q-67]
-  Q-67:
+  # specarch-problem: question: open_question: (must, decision) chirouter/router.go:18: no implementation file names the project's permission check, so the reader does not know which permission DELETE /members/{cardNumber} checks. Which permission does it check, or is it meant to be open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-70 under answers. [Q-70]
+  Q-70:
     question: 'chirouter/router.go:18: no implementation file names the project''s permission check, so the reader does not know which permission DELETE /members/{cardNumber} checks. Which permission does it check, or is it meant to be open to everyone (public)?'
     kind: decision
     priority: must
     blocks: ['#/paths/~1members~1{cardNumber}/delete/permission']
     decidedBy: system-owner
     why: A check is a call the project writes its own way; the implementation file names it (bindings.http.permissionChecks), and without it no permission is read.
-  # specarch-problem: question: open_question: (must, decision) What does DELETE /members/{cardNumber} do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-68 under answers. [Q-68]
-  Q-68:
+  # specarch-problem: question: open_question: (must, decision) What does DELETE /members/{cardNumber} do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-71 under answers. [Q-71]
+  Q-71:
     question: What does DELETE /members/{cardNumber} do, and what does it answer?
     kind: decision
     priority: must
     blocks: ['#/paths/~1members~1{cardNumber}/delete/summary', '#/paths/~1members~1{cardNumber}/delete/responses']
     decidedBy: system-owner
     why: The source registers a handler and does not say what it does or the responses it gives.
-  # specarch-problem: question: open_question: (must, decision) Does the running system register DELETE /members/{cardNumber}? It is declared at chirouter/router.go:18, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-69 under answers. [Q-69]
-  Q-69:
+  # specarch-problem: question: open_question: (must, decision) Does the running system register DELETE /members/{cardNumber}? It is declared at chirouter/router.go:18, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-72 under answers. [Q-72]
+  Q-72:
     question: Does the running system register DELETE /members/{cardNumber}? It is declared at chirouter/router.go:18, and no list the running system printed was read with it.
     kind: decision
     priority: must
@@ -599,32 +629,32 @@ questions:
     why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
     cites:
       - {source: code, clause: 'chirouter/router.go:18', says: 'Registers DELETE /members/{cardNumber}.'}
-  # specarch-problem: question: open_question: (must, decision) What values does each path parameter of /members/{cardNumber}/address take: cardNumber? Decided by system-owner. Answer with a decision record that names Q-70 under answers. [Q-70]
-  Q-70:
+  # specarch-problem: question: open_question: (must, decision) What values does each path parameter of /members/{cardNumber}/address take: cardNumber? Decided by system-owner. Answer with a decision record that names Q-73 under answers. [Q-73]
+  Q-73:
     question: 'What values does each path parameter of /members/{cardNumber}/address take: cardNumber?'
     kind: decision
     priority: must
     blocks: ['#/paths/~1members~1{cardNumber}~1address/parameters/0/schema']
     decidedBy: system-owner
     why: A path names its parameters and not the values they take.
-  # specarch-problem: question: open_question: (must, decision) chirouter/router.go:22: no implementation file names the project's permission check, so the reader does not know which permission PUT /members/{cardNumber}/address checks. Which permission does it check, or is it meant to be open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-71 under answers. [Q-71]
-  Q-71:
+  # specarch-problem: question: open_question: (must, decision) chirouter/router.go:22: no implementation file names the project's permission check, so the reader does not know which permission PUT /members/{cardNumber}/address checks. Which permission does it check, or is it meant to be open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-74 under answers. [Q-74]
+  Q-74:
     question: 'chirouter/router.go:22: no implementation file names the project''s permission check, so the reader does not know which permission PUT /members/{cardNumber}/address checks. Which permission does it check, or is it meant to be open to everyone (public)?'
     kind: decision
     priority: must
     blocks: ['#/paths/~1members~1{cardNumber}~1address/put/permission']
     decidedBy: system-owner
     why: A check is a call the project writes its own way; the implementation file names it (bindings.http.permissionChecks), and without it no permission is read.
-  # specarch-problem: question: open_question: (must, decision) What does PUT /members/{cardNumber}/address do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-72 under answers. [Q-72]
-  Q-72:
+  # specarch-problem: question: open_question: (must, decision) What does PUT /members/{cardNumber}/address do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-75 under answers. [Q-75]
+  Q-75:
     question: What does PUT /members/{cardNumber}/address do, and what does it answer?
     kind: decision
     priority: must
     blocks: ['#/paths/~1members~1{cardNumber}~1address/put/summary', '#/paths/~1members~1{cardNumber}~1address/put/responses']
     decidedBy: system-owner
     why: The source registers a handler and does not say what it does or the responses it gives.
-  # specarch-problem: question: open_question: (must, decision) Does the running system register PUT /members/{cardNumber}/address? It is declared at chirouter/router.go:22, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-73 under answers. [Q-73]
-  Q-73:
+  # specarch-problem: question: open_question: (must, decision) Does the running system register PUT /members/{cardNumber}/address? It is declared at chirouter/router.go:22, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-76 under answers. [Q-76]
+  Q-76:
     question: Does the running system register PUT /members/{cardNumber}/address? It is declared at chirouter/router.go:22, and no list the running system printed was read with it.
     kind: decision
     priority: must
@@ -633,24 +663,24 @@ questions:
     why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
     cites:
       - {source: code, clause: 'chirouter/router.go:22', says: 'Registers PUT /members/{cardNumber}/address.'}
-  # specarch-problem: question: open_question: (must, decision) stdmux/mux.go:16: no implementation file names the project's permission check, so the reader does not know which permission GET /reports/daily checks. Which permission does it check, or is it meant to be open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-74 under answers. [Q-74]
-  Q-74:
+  # specarch-problem: question: open_question: (must, decision) stdmux/mux.go:16: no implementation file names the project's permission check, so the reader does not know which permission GET /reports/daily checks. Which permission does it check, or is it meant to be open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-77 under answers. [Q-77]
+  Q-77:
     question: 'stdmux/mux.go:16: no implementation file names the project''s permission check, so the reader does not know which permission GET /reports/daily checks. Which permission does it check, or is it meant to be open to everyone (public)?'
     kind: decision
     priority: must
     blocks: ['#/paths/~1reports~1daily/get/permission']
     decidedBy: system-owner
     why: A check is a call the project writes its own way; the implementation file names it (bindings.http.permissionChecks), and without it no permission is read.
-  # specarch-problem: question: open_question: (must, decision) What does GET /reports/daily do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-75 under answers. [Q-75]
-  Q-75:
+  # specarch-problem: question: open_question: (must, decision) What does GET /reports/daily do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-78 under answers. [Q-78]
+  Q-78:
     question: What does GET /reports/daily do, and what does it answer?
     kind: decision
     priority: must
     blocks: ['#/paths/~1reports~1daily/get/summary', '#/paths/~1reports~1daily/get/responses']
     decidedBy: system-owner
     why: The source registers a handler and does not say what it does or the responses it gives.
-  # specarch-problem: question: open_question: (must, decision) Does the running system register GET /reports/daily? It is declared at stdmux/mux.go:16, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-76 under answers. [Q-76]
-  Q-76:
+  # specarch-problem: question: open_question: (must, decision) Does the running system register GET /reports/daily? It is declared at stdmux/mux.go:16, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-79 under answers. [Q-79]
+  Q-79:
     question: Does the running system register GET /reports/daily? It is declared at stdmux/mux.go:16, and no list the running system printed was read with it.
     kind: decision
     priority: must
@@ -659,24 +689,24 @@ questions:
     why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
     cites:
       - {source: code, clause: 'stdmux/mux.go:16', says: Registers GET /reports/daily.}
-  # specarch-problem: question: open_question: (must, decision) ginrouter/router.go:11: no implementation file names the project's permission check, so the reader does not know which permission POST /v1/books checks. Which permission does it check, or is it meant to be open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-77 under answers. [Q-77]
-  Q-77:
+  # specarch-problem: question: open_question: (must, decision) ginrouter/router.go:11: no implementation file names the project's permission check, so the reader does not know which permission POST /v1/books checks. Which permission does it check, or is it meant to be open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-80 under answers. [Q-80]
+  Q-80:
     question: 'ginrouter/router.go:11: no implementation file names the project''s permission check, so the reader does not know which permission POST /v1/books checks. Which permission does it check, or is it meant to be open to everyone (public)?'
     kind: decision
     priority: must
     blocks: ['#/paths/~1v1~1books/post/permission']
     decidedBy: system-owner
     why: A check is a call the project writes its own way; the implementation file names it (bindings.http.permissionChecks), and without it no permission is read.
-  # specarch-problem: question: open_question: (must, decision) What does POST /v1/books do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-78 under answers. [Q-78]
-  Q-78:
+  # specarch-problem: question: open_question: (must, decision) What does POST /v1/books do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-81 under answers. [Q-81]
+  Q-81:
     question: What does POST /v1/books do, and what does it answer?
     kind: decision
     priority: must
     blocks: ['#/paths/~1v1~1books/post/summary', '#/paths/~1v1~1books/post/responses']
     decidedBy: system-owner
     why: The source registers a handler and does not say what it does or the responses it gives.
-  # specarch-problem: question: open_question: (must, decision) Does the running system register POST /v1/books? It is declared at ginrouter/router.go:11, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-79 under answers. [Q-79]
-  Q-79:
+  # specarch-problem: question: open_question: (must, decision) Does the running system register POST /v1/books? It is declared at ginrouter/router.go:11, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-82 under answers. [Q-82]
+  Q-82:
     question: Does the running system register POST /v1/books? It is declared at ginrouter/router.go:11, and no list the running system printed was read with it.
     kind: decision
     priority: must
@@ -685,32 +715,32 @@ questions:
     why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
     cites:
       - {source: code, clause: 'ginrouter/router.go:11', says: Registers POST /v1/books.}
-  # specarch-problem: question: open_question: (must, decision) What values does each path parameter of /v1/books/{isbn} take: isbn? Decided by system-owner. Answer with a decision record that names Q-80 under answers. [Q-80]
-  Q-80:
+  # specarch-problem: question: open_question: (must, decision) What values does each path parameter of /v1/books/{isbn} take: isbn? Decided by system-owner. Answer with a decision record that names Q-83 under answers. [Q-83]
+  Q-83:
     question: 'What values does each path parameter of /v1/books/{isbn} take: isbn?'
     kind: decision
     priority: must
     blocks: ['#/paths/~1v1~1books~1{isbn}/parameters/0/schema']
     decidedBy: system-owner
     why: A path names its parameters and not the values they take.
-  # specarch-problem: question: open_question: (must, decision) ginrouter/router.go:10: no implementation file names the project's permission check, so the reader does not know which permission GET /v1/books/{isbn} checks. Which permission does it check, or is it meant to be open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-81 under answers. [Q-81]
-  Q-81:
+  # specarch-problem: question: open_question: (must, decision) ginrouter/router.go:10: no implementation file names the project's permission check, so the reader does not know which permission GET /v1/books/{isbn} checks. Which permission does it check, or is it meant to be open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-84 under answers. [Q-84]
+  Q-84:
     question: 'ginrouter/router.go:10: no implementation file names the project''s permission check, so the reader does not know which permission GET /v1/books/{isbn} checks. Which permission does it check, or is it meant to be open to everyone (public)?'
     kind: decision
     priority: must
     blocks: ['#/paths/~1v1~1books~1{isbn}/get/permission']
     decidedBy: system-owner
     why: A check is a call the project writes its own way; the implementation file names it (bindings.http.permissionChecks), and without it no permission is read.
-  # specarch-problem: question: open_question: (must, decision) What does GET /v1/books/{isbn} do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-82 under answers. [Q-82]
-  Q-82:
+  # specarch-problem: question: open_question: (must, decision) What does GET /v1/books/{isbn} do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-85 under answers. [Q-85]
+  Q-85:
     question: What does GET /v1/books/{isbn} do, and what does it answer?
     kind: decision
     priority: must
     blocks: ['#/paths/~1v1~1books~1{isbn}/get/summary', '#/paths/~1v1~1books~1{isbn}/get/responses']
     decidedBy: system-owner
     why: The source registers a handler and does not say what it does or the responses it gives.
-  # specarch-problem: question: open_question: (must, decision) Does the running system register GET /v1/books/{isbn}? It is declared at ginrouter/router.go:10, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-83 under answers. [Q-83]
-  Q-83:
+  # specarch-problem: question: open_question: (must, decision) Does the running system register GET /v1/books/{isbn}? It is declared at ginrouter/router.go:10, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-86 under answers. [Q-86]
+  Q-86:
     question: Does the running system register GET /v1/books/{isbn}? It is declared at ginrouter/router.go:10, and no list the running system printed was read with it.
     kind: decision
     priority: must
@@ -719,24 +749,24 @@ questions:
     why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
     cites:
       - {source: code, clause: 'ginrouter/router.go:10', says: 'Registers GET /v1/books/{isbn}.'}
-  # specarch-problem: question: open_question: (must, decision) ginrouter/router.go:13: no implementation file names the project's permission check, so the reader does not know which permission PATCH /v1/books/{isbn} checks. Which permission does it check, or is it meant to be open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-84 under answers. [Q-84]
-  Q-84:
+  # specarch-problem: question: open_question: (must, decision) ginrouter/router.go:13: no implementation file names the project's permission check, so the reader does not know which permission PATCH /v1/books/{isbn} checks. Which permission does it check, or is it meant to be open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-87 under answers. [Q-87]
+  Q-87:
     question: 'ginrouter/router.go:13: no implementation file names the project''s permission check, so the reader does not know which permission PATCH /v1/books/{isbn} checks. Which permission does it check, or is it meant to be open to everyone (public)?'
     kind: decision
     priority: must
     blocks: ['#/paths/~1v1~1books~1{isbn}/patch/permission']
     decidedBy: system-owner
     why: A check is a call the project writes its own way; the implementation file names it (bindings.http.permissionChecks), and without it no permission is read.
-  # specarch-problem: question: open_question: (must, decision) What does PATCH /v1/books/{isbn} do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-85 under answers. [Q-85]
-  Q-85:
+  # specarch-problem: question: open_question: (must, decision) What does PATCH /v1/books/{isbn} do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-88 under answers. [Q-88]
+  Q-88:
     question: What does PATCH /v1/books/{isbn} do, and what does it answer?
     kind: decision
     priority: must
     blocks: ['#/paths/~1v1~1books~1{isbn}/patch/summary', '#/paths/~1v1~1books~1{isbn}/patch/responses']
     decidedBy: system-owner
     why: The source registers a handler and does not say what it does or the responses it gives.
-  # specarch-problem: question: open_question: (must, decision) Does the running system register PATCH /v1/books/{isbn}? It is declared at ginrouter/router.go:13, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-86 under answers. [Q-86]
-  Q-86:
+  # specarch-problem: question: open_question: (must, decision) Does the running system register PATCH /v1/books/{isbn}? It is declared at ginrouter/router.go:13, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-89 under answers. [Q-89]
+  Q-89:
     question: Does the running system register PATCH /v1/books/{isbn}? It is declared at ginrouter/router.go:13, and no list the running system printed was read with it.
     kind: decision
     priority: must
@@ -745,8 +775,8 @@ questions:
     why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
     cites:
       - {source: code, clause: 'ginrouter/router.go:13', says: 'Registers PATCH /v1/books/{isbn}.'}
-  # specarch-problem: question: open_question: (could, decision) Not held: chirouter/router.go:22: the route /members/{cardNumber:[0-9]+}/address: the parameter cardNumber matches the pattern [0-9]+, which is not written as its schema, since the router's pattern syntax is not JSON Schema's. Does the specification need it, written another way or described by hand? It blocks paths. Decided by system-owner. Answer with a decision record that names Q-87 under answers. [Q-87]
-  Q-87:
+  # specarch-problem: question: open_question: (could, decision) Not held: chirouter/router.go:22: the route /members/{cardNumber:[0-9]+}/address: the parameter cardNumber matches the pattern [0-9]+, which is not written as its schema, since the router's pattern syntax is not JSON Schema's. Does the specification need it, written another way or described by hand? It blocks paths. Decided by system-owner. Answer with a decision record that names Q-90 under answers. [Q-90]
+  Q-90:
     question: 'Not held: chirouter/router.go:22: the route /members/{cardNumber:[0-9]+}/address: the parameter cardNumber matches the pattern [0-9]+, which is not written as its schema, since the router''s pattern syntax is not JSON Schema''s. Does the specification need it, written another way or described by hand?'
     kind: decision
     priority: could
@@ -755,28 +785,8 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: code, clause: 'chirouter/router.go:22', says: 'Not held: the route /members/{cardNumber:[0-9]+}/address: the parameter cardNumber matches the pattern [0-9]+, which is not written as its schema, since the router''s pattern syntax is not JSON Schema''s.'}
-  # specarch-problem: question: open_question: (could, decision) Not held: chirouter/router.go:29: the route /assets/*: it ends in the catch-all *, which matches the rest of the path, and a path parameter holds one segment; left out. Does the specification need it, written another way or described by hand? It blocks paths. Decided by system-owner. Answer with a decision record that names Q-88 under answers. [Q-88]
-  Q-88:
-    question: 'Not held: chirouter/router.go:29: the route /assets/*: it ends in the catch-all *, which matches the rest of the path, and a path parameter holds one segment; left out. Does the specification need it, written another way or described by hand?'
-    kind: decision
-    priority: could
-    blocks: [paths]
-    decidedBy: system-owner
-    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
-    cites:
-      - {source: code, clause: 'chirouter/router.go:29', says: 'Not held: the route /assets/*: it ends in the catch-all *, which matches the rest of the path, and a path parameter holds one segment; left out.'}
-  # specarch-problem: question: open_question: (could, decision) Not held: ginrouter/router.go:14: the route /static/*filepath: it ends in the catch-all *filepath, which matches any number of segments, and a path parameter holds one; left out. Does the specification need it, written another way or described by hand? It blocks paths. Decided by system-owner. Answer with a decision record that names Q-89 under answers. [Q-89]
-  Q-89:
-    question: 'Not held: ginrouter/router.go:14: the route /static/*filepath: it ends in the catch-all *filepath, which matches any number of segments, and a path parameter holds one; left out. Does the specification need it, written another way or described by hand?'
-    kind: decision
-    priority: could
-    blocks: [paths]
-    decidedBy: system-owner
-    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
-    cites:
-      - {source: code, clause: 'ginrouter/router.go:14', says: 'Not held: the route /static/*filepath: it ends in the catch-all *filepath, which matches any number of segments, and a path parameter holds one; left out.'}
-  # specarch-problem: question: open_question: (could, decision) Not held: gorillarouter/router.go:14: the route /holds/{holdId:[0-9]+}: the parameter holdId matches the pattern [0-9]+, which is not written as its schema, since the router's pattern syntax is not JSON Schema's. Does the specification need it, written another way or described by hand? It blocks paths. Decided by system-owner. Answer with a decision record that names Q-90 under answers. [Q-90]
-  Q-90:
+  # specarch-problem: question: open_question: (could, decision) Not held: gorillarouter/router.go:14: the route /holds/{holdId:[0-9]+}: the parameter holdId matches the pattern [0-9]+, which is not written as its schema, since the router's pattern syntax is not JSON Schema's. Does the specification need it, written another way or described by hand? It blocks paths. Decided by system-owner. Answer with a decision record that names Q-91 under answers. [Q-91]
+  Q-91:
     question: 'Not held: gorillarouter/router.go:14: the route /holds/{holdId:[0-9]+}: the parameter holdId matches the pattern [0-9]+, which is not written as its schema, since the router''s pattern syntax is not JSON Schema''s. Does the specification need it, written another way or described by hand?'
     kind: decision
     priority: could
@@ -785,8 +795,8 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: code, clause: 'gorillarouter/router.go:14', says: 'Not held: the route /holds/{holdId:[0-9]+}: the parameter holdId matches the pattern [0-9]+, which is not written as its schema, since the router''s pattern syntax is not JSON Schema''s.'}
-  # specarch-problem: question: open_question: (could, decision) Not held: gorillarouter/router.go:18: the route /holds/search matches by Queries as well as by method and path, which the meta-model does not hold; left out. Does the specification need it, written another way or described by hand? It blocks paths. Decided by system-owner. Answer with a decision record that names Q-91 under answers. [Q-91]
-  Q-91:
+  # specarch-problem: question: open_question: (could, decision) Not held: gorillarouter/router.go:18: the route /holds/search matches by Queries as well as by method and path, which the meta-model does not hold; left out. Does the specification need it, written another way or described by hand? It blocks paths. Decided by system-owner. Answer with a decision record that names Q-92 under answers. [Q-92]
+  Q-92:
     question: 'Not held: gorillarouter/router.go:18: the route /holds/search matches by Queries as well as by method and path, which the meta-model does not hold; left out. Does the specification need it, written another way or described by hand?'
     kind: decision
     priority: could
@@ -795,8 +805,8 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: code, clause: 'gorillarouter/router.go:18', says: 'Not held: the route /holds/search matches by Queries as well as by method and path, which the meta-model does not hold; left out.'}
-  # specarch-problem: question: open_question: (could, decision) Not held: stdmux/mux.go:11: the pattern GET desk.example.com/status matches the host desk.example.com as well as the path, which the meta-model does not hold; left out. Does the specification need it, written another way or described by hand? It blocks paths. Decided by system-owner. Answer with a decision record that names Q-92 under answers. [Q-92]
-  Q-92:
+  # specarch-problem: question: open_question: (could, decision) Not held: stdmux/mux.go:11: the pattern GET desk.example.com/status matches the host desk.example.com as well as the path, which the meta-model does not hold; left out. Does the specification need it, written another way or described by hand? It blocks paths. Decided by system-owner. Answer with a decision record that names Q-93 under answers. [Q-93]
+  Q-93:
     question: 'Not held: stdmux/mux.go:11: the pattern GET desk.example.com/status matches the host desk.example.com as well as the path, which the meta-model does not hold; left out. Does the specification need it, written another way or described by hand?'
     kind: decision
     priority: could
@@ -805,16 +815,6 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: code, clause: 'stdmux/mux.go:11', says: 'Not held: the pattern GET desk.example.com/status matches the host desk.example.com as well as the path, which the meta-model does not hold; left out.'}
-  # specarch-problem: question: open_question: (could, decision) Not held: stdmux/mux.go:12: the route /files/{path...}: it ends in the wildcard {path...}, which matches the rest of the path, and a path parameter holds one segment; left out. Does the specification need it, written another way or described by hand? It blocks paths. Decided by system-owner. Answer with a decision record that names Q-93 under answers. [Q-93]
-  Q-93:
-    question: 'Not held: stdmux/mux.go:12: the route /files/{path...}: it ends in the wildcard {path...}, which matches the rest of the path, and a path parameter holds one segment; left out. Does the specification need it, written another way or described by hand?'
-    kind: decision
-    priority: could
-    blocks: [paths]
-    decidedBy: system-owner
-    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
-    cites:
-      - {source: code, clause: 'stdmux/mux.go:12', says: 'Not held: the route /files/{path...}: it ends in the wildcard {path...}, which matches the rest of the path, and a path parameter holds one segment; left out.'}
   # specarch-problem: question: open_question: (could, decision) Not held: stdmux/mux.go:14: the route HEAD /loans: the method HEAD has no operation in the meta-model, which holds GET, POST, PUT, PATCH and DELETE; left out. Does the specification need it, written another way or described by hand? It blocks paths. Decided by system-owner. Answer with a decision record that names Q-94 under answers. [Q-94]
   Q-94:
     question: 'Not held: stdmux/mux.go:14: the route HEAD /loans: the method HEAD has no operation in the meta-model, which holds GET, POST, PUT, PATCH and DELETE; left out. Does the specification need it, written another way or described by hand?'

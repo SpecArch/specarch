@@ -1276,8 +1276,6 @@ Acceptance criteria:
 - extract go writes a route registered with Match on a package-level list of method constants and a path from a package-level constant, in the same package or another of the module, as it writes one with a literal list and path, and asks the must question naming the line for a list assigned in a second place.
 - extract go asks a must question at a NoRoute, NoMethod, NotFound, MethodNotAllowed or NotFoundHandler registration and at a route whose path ends in a catch-all, each counted as a registration, blocking the design stage until the gateways section exists and gateways after; merge leaves it out when a gateway table's tree answers it.
 
-**Problem:** warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SA-76; add verifies: [SA-76] to the test that shows it is met [requirement_unverified@requirements/requirements/refinement.yaml#/requirements/SA-76]
-
 **Insight:** The table a gateway forwards by was readable by nothing, a route registered through the module's own constants was a question where the code was plain, and a handler that takes every unmatched request was dropped with no question, which is the one thing a reader may never do.
 
 ### SA-1

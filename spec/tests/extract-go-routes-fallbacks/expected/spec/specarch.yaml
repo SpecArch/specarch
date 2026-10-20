@@ -1,0 +1,22 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v0.7.1/schema/specarch-design-0.2.schema.json
+specarch: "0.2"
+info:
+  title: Go source of .
+  version: 0.1.0
+  description: |
+    The Go source under ., read at commit 80f5ae0a38db9a350d7ab7db091ab218ad04a2f3 by the standard library's parser, by its syntax alone. Every operation cites the line that registers it; what the source does not say as a literal, or through a call the reader knows, is a question, and so is what the meta-model cannot hold.
+  tracksOrigin: true
+stages: [requirements, design]
+sources:
+  code:
+    kind: code
+    title: The code repository
+    edition: 80f5ae0a38db9a350d7ab7db091ab218ad04a2f3
+    url: ../testdata/service
+    clauses:
+      - {clause: chifallback/router.go, title: 'Go source, read by its syntax'}
+      - {clause: echofallback/router.go, title: 'Go source, read by its syntax'}
+      - {clause: ginfallback/router.go, title: 'Go source, read by its syntax'}
+      - {clause: gorillafallback/router.go, title: 'Go source, read by its syntax'}
+      - {clause: muxfallback/mux.go, title: 'Go source, read by its syntax'}
+    reading: parsed

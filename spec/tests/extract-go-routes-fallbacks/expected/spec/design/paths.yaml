@@ -1,0 +1,50 @@
+paths:
+  /health:
+    get:
+      operationId: getHealth
+      origin: stated
+      cites:
+        - {source: code, clause: 'ginfallback/router.go:8', says: Registers GET /health on a gin router; its handler is health.}
+        - {source: code, clause: 'ginfallback/router.go:18', says: The handler of GET /health reads no path parameter by name.}
+  /loans:
+    get:
+      operationId: loans
+      origin: stated
+      cites:
+        - {source: code, clause: 'muxfallback/mux.go:12', says: Registers GET /loans on a net/http ServeMux; its handler is loans.}
+        - {source: code, clause: 'muxfallback/mux.go:22', says: The handler of GET /loans reads no path parameter by name.}
+  /metrics:
+    get:
+      operationId: getMetrics
+      origin: stated
+      cites:
+        - {source: code, clause: 'muxfallback/mux.go:9', says: Registers GET /metrics on a net/http ServeMux; its handler is health.}
+        - {source: code, clause: 'muxfallback/mux.go:20', says: The handler of GET /metrics reads no path parameter by name.}
+  /ready:
+    get:
+      operationId: getReady
+      origin: stated
+      cites:
+        - {source: code, clause: 'chifallback/router.go:12', says: Registers GET /ready on a chi router; its handler is health.}
+        - {source: code, clause: 'chifallback/router.go:19', says: The handler of GET /ready reads no path parameter by name.}
+  /started:
+    get:
+      operationId: getStarted
+      origin: stated
+      cites:
+        - {source: code, clause: 'gorillafallback/router.go:12', says: Registers GET /started on a gorilla/mux router; its handler is health.}
+        - {source: code, clause: 'gorillafallback/router.go:18', says: The handler of GET /started reads no path parameter by name.}
+  /status:
+    get:
+      operationId: getStatus
+      origin: stated
+      cites:
+        - {source: code, clause: 'muxfallback/mux.go:15', says: Registers GET /status on a net/http ServeMux; its handler is health.}
+        - {source: code, clause: 'muxfallback/mux.go:20', says: The handler of GET /status reads no path parameter by name.}
+  /version:
+    get:
+      operationId: getVersion
+      origin: stated
+      cites:
+        - {source: code, clause: 'echofallback/router.go:8', says: Registers GET /version on an echo router; its handler is health.}
+        - {source: code, clause: 'echofallback/router.go:13', says: The handler of GET /version reads no path parameter by name.}

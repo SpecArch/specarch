@@ -908,6 +908,7 @@ func (sc *routeScope) walk(body ast.Node) {
 func (sc *routeScope) visit(n ast.Node) bool {
 	switch n := n.(type) {
 	case *ast.AssignStmt:
+		sc.fallbackAssign(n)
 		sc.assignResults(n.Lhs, n.Rhs)
 		for i, lhs := range n.Lhs {
 			id, ok := lhs.(*ast.Ident)
@@ -1572,7 +1573,7 @@ func (sc *routeScope) gorilla(recv *routerNode, chain []*ast.CallExpr) {
 		methodsSet = true
 	}
 	if !methodsSet {
-		sc.anyMethod(clause, pathExpr)
+		sc.anyMethod(recv, clause, pathExpr)
 		return
 	}
 	sc.record(recv, chain[0], clause, methods, pathExpr, handler, nil)
@@ -1587,6 +1588,9 @@ func (sc *routeScope) register(recv *routerNode, call *ast.CallExpr, name string
 	var methods []ast.Expr
 	var pathExpr, handler ast.Expr
 	var middleware []ast.Expr
+	if sc.fallbackCall(recv, call, name) {
+		return true
+	}
 	switch recv.lib {
 	case "net/http":
 		if name != "Handle" && name != "HandleFunc" || len(args) != 2 {
@@ -1607,7 +1611,7 @@ func (sc *routeScope) register(recv *routerNode, call *ast.CallExpr, name string
 		case (name == "Handle" || name == "HandleFunc") && len(args) == 2:
 			if sc.countOnce(recv, call) {
 				g.citeFile(sc.file)
-				sc.anyMethod(clause, args[0])
+				sc.anyMethod(recv, clause, args[0])
 			}
 			return true
 		default:
@@ -1635,7 +1639,7 @@ func (sc *routeScope) register(recv *routerNode, call *ast.CallExpr, name string
 		case name == "Any" && len(args) >= 2:
 			if sc.countOnce(recv, call) {
 				g.citeFile(sc.file)
-				sc.anyMethod(clause, args[0])
+				sc.anyMethod(recv, clause, args[0])
 			}
 			return true
 		default:
@@ -1688,6 +1692,24 @@ func (sc *routeScope) countOnce(recv *routerNode, calls ...*ast.CallExpr) bool {
 	return true
 }
 
+// countOnceAt counts a registration that is no call, an assignment to a
+// router's field, once for its router, place and position, as countOnce
+// counts a call.
+func (sc *routeScope) countOnceAt(recv *routerNode, pos gotoken.Pos, text string) bool {
+	root := recv
+	for root.parent != nil {
+		root = root.parent
+	}
+	place, unknown := recv.place()
+	key := fmt.Sprintf("%p|%s|%s|%t|%d|%s", root, place, unknown, sc.branchNode() != nil, pos, text)
+	if sc.g.rt.countedAt[key] {
+		return false
+	}
+	sc.g.rt.countedAt[key] = true
+	sc.g.rt.count++
+	return true
+}
+
 // servemux reads a ServeMux pattern, "[METHOD ][HOST]/[PATH]".
 func (sc *routeScope) servemux(recv *routerNode, call *ast.CallExpr, clause string, patternExpr, handler ast.Expr) bool {
 	g := sc.g
@@ -1717,8 +1739,21 @@ func (sc *routeScope) servemux(recv *routerNode, call *ast.CallExpr, clause stri
 		sc.mount(recv, call, patternExpr, handler, "Handle")
 		return true
 	}
+	if method == "" && p == "/" {
+		// Every request no other pattern answers: a router handed the
+		// whole tree serves its own routes, anything else is a fallback.
+		if sc.eval(handler) != nil {
+			sc.mount(recv, call, patternExpr, handler, "Handle")
+			return true
+		}
+		if sc.branched(clause) {
+			return true
+		}
+		sc.askRootPattern(clause, handler)
+		return true
+	}
 	if method == "" {
-		sc.anyMethod(clause, patternExpr)
+		sc.anyMethod(recv, clause, patternExpr)
 		return true
 	}
 	lit := &ast.BasicLit{Kind: gotoken.STRING, Value: strconv.Quote(p), ValuePos: patternExpr.Pos()}
@@ -1733,8 +1768,9 @@ func (sc *routeScope) unread(clause, what string) {
 		[]string{"paths"}, "A path or a method computed at run time is a guess for syntax; an operation is never written from a guess.", g.at(clause, "Registers a route with the "+what+"."))
 }
 
-// anyMethod asks about a route registered for every method.
-func (sc *routeScope) anyMethod(clause string, pathExpr ast.Expr) {
+// anyMethod asks about a route registered for every method, or, where
+// its path ends in a catch-all, what the handler answers or forwards.
+func (sc *routeScope) anyMethod(recv *routerNode, clause string, pathExpr ast.Expr) {
 	g := sc.g
 	if sc.branched(clause) {
 		return
@@ -1742,6 +1778,9 @@ func (sc *routeScope) anyMethod(clause string, pathExpr ast.Expr) {
 	p := exprText(pathExpr)
 	if s, ok := sc.stringValue(pathExpr); ok {
 		p = s
+		if sc.catchAll(recv, clause, p, nil) {
+			return
+		}
 	}
 	g.question("must", fmt.Sprintf("%s registers %s for every method. Which methods does the running system answer there, and what does each do?", clause, p),
 		[]string{"paths"}, "A route registered for every method answers any method, and an operation has one; writing one per method would write operations the code may refuse.", g.at(clause, "Registers "+p+" for every method."))
@@ -1797,6 +1836,9 @@ func (sc *routeScope) record(recv *routerNode, call ast.Node, clause string, met
 			return
 		}
 		list = append(list, strings.ToUpper(v))
+	}
+	if sc.catchAll(recv, clause, p, list) {
+		return
 	}
 	conv, why, notes := g.routePathNotes(recv.lib, p)
 	if why != "" {

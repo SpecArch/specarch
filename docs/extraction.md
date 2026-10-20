@@ -494,8 +494,13 @@ changes `extract.yaml` first.
     package-level string constant of the module or a package-level
     method list no statement of its package changes among them
     (ADR-143), outside a loop or a condition is an operation named as
-    extract router names one; handlers give the path parameters they
-    read, the JSON body they
+    extract router names one; a fallback handler (gin's `NoRoute` and
+    `NoMethod`, chi's `NotFound` and `MethodNotAllowed`, gorilla/mux's
+    and echo's fallback fields, a `ServeMux` pattern of `/` with no
+    method) and a route whose path ends in a catch-all are each a must
+    question blocking the design stage, counted as a registration, in
+    place of silence or a line (ADR-143); handlers give the path
+    parameters they read, the JSON body they
     decode into a struct of the module or a struct type written in place
     at the variable, by encoding/json's rules, with
     go-playground/validator's and gin's tag rules that have a keyword,

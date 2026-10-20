@@ -387,20 +387,25 @@ or its `links` holding the `link_missing` warning, as ADR-137 says; and
 the handover's links for a deployment with no `infrastructure`
 (BUG-035).
 
-Designed in 0.7.1, not built: the gateway. A gateway in front of an
-estate's services, which verifies the token, reads its audience and
-forwards every other request to the service the audience names, has no
-element, no reader for its table of services, and a Go reader that asks at
-every route registered through the module's own constants;
-`docs/gateway.md` decides the three, proposed for the owner's approval
+Partly built, 0.7.2: the gateway. A gateway in front of an estate's
+services, which verifies the token, reads its audience and forwards every
+other request to the service the audience names, has no element and no
+reader for its table of services; `docs/gateway.md` decides the three
 (ADR-141 to ADR-143): `gateways` in the design with the token, the claim,
 the forwards and the refusals and no permission, the forwards fixing the
 token's audience; a printed gateway table read by `extract gateway` and
 compared by `check`; and the Go reader reading a package-level constant as
-a literal and asking at every fallback handler and catch-all (BUG-028,
-BUG-029, open). It ends with three build items in order, the reader fixes
-first and the element after 0.3's tokens and the diagram keywords'
-dependency and server kinds.
+a literal and asking at every fallback handler and catch-all. The reader
+fixes are built (ADR-143 accepted; BUG-028 and BUG-029 fixed;
+`spec/tests/extract-go-routes-constants` and
+`spec/tests/extract-go-routes-fallbacks`): `extract go` reads a
+package-level string constant as the literal it names and a package-level
+list assigned once as a literal list, and asks a must question blocking the
+design stage at every fallback handler and catch-all route, counted as a
+registration. The element (ADR-141) and the table (ADR-142) are not built,
+each after 0.3's tokens and the diagram keywords' dependency and server
+kinds; until then the fallback question blocks the design stage and the
+table stays under `gaps` as a surface not read.
 
 Partly built, 0.7.1: dxlib's encrypted API type and large files. An
 endpoint whose API type makes its request and response an encrypted

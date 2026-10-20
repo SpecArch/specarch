@@ -19,9 +19,11 @@ fixed as the literal it stands for.
 
 This file is the design: the standards consulted, the decision for each
 of the three with its decision record, what stays out and why, and the
-build items in order. Nothing here is built. The decision records,
-ADR-141 to ADR-143, are proposed until the owner approves this design;
-the item that builds each sets its record accepted. The words follow the
+build items in order. Of the three, the Go reader's rules of section 3
+are built (ADR-143, accepted); the element and the table are not, and
+their decision records, ADR-141 and ADR-142, are proposed until the
+owner approves this design; the item that builds each sets its record
+accepted. The words follow the
 diagram keywords of `docs/diagrams.md`: a forwarded service is a
 dependency with ADR-134's `kind` and `protocol`, the issuer of the tokens
 is a dependency of kind `identityProvider`, and the host of each in an

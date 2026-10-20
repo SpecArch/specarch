@@ -751,7 +751,7 @@ func main() {
 // counted registration is never dropped unsaid: each becomes an
 // operation, a question or a not-held line. The module registers routes
 // the reader places, routes it cannot place (a prefix that is not a
-// literal, a router from nowhere), a catch-all it does not hold, and
+// literal, a router from nowhere), a catch-all it asks about, and
 // routes in a loop and behind a condition.
 func TestGoRegistrationsAccountedFor(t *testing.T) {
 	dir := goModuleRepository(t, map[string]string{
@@ -806,14 +806,14 @@ func list(c *gin.Context) {}
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, said := range []string{"registers POST /hidden on a router whose place the reader does not know", "registers DELETE /stray on a router whose place", "registers a route in a loop", "registers a route behind a condition", "registers /every for every method"} {
+	for _, said := range []string{"registers POST /hidden on a router whose place the reader does not know", "registers DELETE /stray on a router whose place", "registers a route in a loop", "registers a route behind a condition", "registers /every for every method", "registers GET under /files with the rest of the path matched by *path"} {
 		if strings.Contains(string(questions), said) {
 			asked++
 		} else {
 			t.Errorf("no question says %q:\n%s", said, questions)
 		}
 	}
-	if counted != 7 || written != 1 || notHeld != 1 || counted != written+asked+notHeld {
+	if counted != 7 || written != 1 || notHeld != 0 || counted != written+asked+notHeld {
 		t.Errorf("counted %d registrations, wrote %d operations, asked %d questions and printed %d not-held lines; every registration is one of the three\n%s", counted, written, asked, notHeld, strings.Join(res.Lines, "\n"))
 	}
 }

@@ -5,15 +5,6 @@ seen, what was expected and how to repeat it. The next free number is
 BUG-036. When the fix is on `main`, with `Fixes BUG-NNN` in its commit
 message, the entry moves to `BUG_HISTORY.md` with the fixing commit.
 
-## BUG-029 — extract go: a fallback handler is dropped with no question and no line
-
-- Reported: 2026-10-19, from reading a gateway service whose forwarding lives in gin's NoRoute handler
-- Design: `docs/gateway.md`, section 3; ADR-143
-
-The same module registers `r.NoRoute(proxy)` (`main.go:24` of the fixture listed in BUG-028), the handler every request no route matches is given to, which is where the service forwards by the token's audience. `specarch extract go` (0.7.0) writes nothing for it: no operation, no question, no line, and the registration is not counted ("routers: counted 5 registrations" for five routes and the fallback). The same holds for gin's `NoMethod`, chi's `NotFound` and `MethodNotAllowed`, gorilla/mux's `NotFoundHandler` and `MethodNotAllowedHandler` and echo's `HTTPErrorHandler`, none of which `internal/extract/golang_routers.go` names.
-
-Expected: a must question citing the call, as ADR-075 asks for every registration the reader knows on a surface it reads and cannot write, blocking the design stage until the `gateways` section exists and `gateways` after (the validator refuses a `blocks` entry that names no section), and the call counted as a registration. A route whose path ends in a catch-all (`/*path`), which prints a line today, is the other way the same handler is written and takes the same question.
-
 ## BUG-030 — derive: a question that blocks one method of a path holds up the drafts of every method of that path
 
 - Reported: 2026-10-19, found while reviewing the handler records' golden

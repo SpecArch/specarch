@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: extract
+level: system
+scenario: golden
+given: "a repository holding Go packages that each register a health route of their own and a fallback: on gin, NoRoute and NoMethod, Any under a group with a catch-all path, Match with a catch-all path, and Any on a plain path; on chi, NotFound and MethodNotAllowed and Handle with a catch-all; on gorilla/mux, the NotFoundHandler and MethodNotAllowedHandler fields; on echo, the HTTPErrorHandler field; and on net/http's ServeMux, a wildcard pattern, the pattern / with no method handing every request to another mux, and the pattern / with no method given a handler that is no router"
+when: "extract go is run on the module"
+then: "it writes one operation per health route and one for the route of the mux handed every request under /, which is mounted under no prefix; asks a must question blocking the design stage, counted as a registration, for each fallback registration and field, naming the handler and the requests it takes, for the pattern / given a handler that is no router, and for each route whose path ends in a catch-all, naming its prefix and its methods, every method for Any and Handle; asks the question for every method for the plain Any as before; and exits 0"
+verifies: [SA-76]

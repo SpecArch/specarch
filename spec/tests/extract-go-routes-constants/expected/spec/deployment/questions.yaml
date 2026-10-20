@@ -1,6 +1,6 @@
 questions:
-  # specarch-problem: question: open_question: (must, decision) What is each setting for, where does its value come from, and is it a secret: SHADOW? Decided by system-owner. Answer with a decision record that names Q-5 under answers. [Q-5]
-  Q-5:
+  # specarch-problem: question: open_question: (must, decision) What is each setting for, where does its value come from, and is it a secret: SHADOW? Decided by system-owner. Answer with a decision record that names Q-6 under answers. [Q-6]
+  Q-6:
     question: 'What is each setting for, where does its value come from, and is it a secret: SHADOW?'
     kind: decision
     priority: must

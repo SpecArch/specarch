@@ -1,0 +1,47 @@
+specarch: "0.3"
+info: { title: Core, version: 1.0.0, name: core }
+stages: [tests]
+stakeholders:
+  finance: { description: "The finance office, which answers for every invoice." }
+requirements:
+  INV-1:
+    statement: An invoice manager shall delete an invoice only from the administration application, since a deleted invoice is money no longer asked for.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance: [A deleted invoice is gone from the list.]
+    harm: [money]
+entities:
+  Invoice:
+    type: object
+    properties:
+      id: { type: string, maxLength: 36 }
+    required: [id]
+    primaryKey: [id]
+permissions:
+  invoices.read: { description: See invoices. }
+  invoices.delete: { description: Delete invoices. }
+dependencies:
+  identity: { description: Issues the estate's tokens and holds its clients and roles., timeout: PT2S, kind: identityProvider, specification: identity, version: 1.0.0 }
+tokens:
+  access:
+    description: What a person presents when they call the core.
+    format: jwt
+    lifetime: PT15M
+    signature: ES256
+    claims:
+      sub: { description: The caller's identifier. }
+      aud: { const: "https://core.estate.example.org" }
+      client_id: { description: The application the person signed in through. }
+    default: true
+paths:
+  /invoices/{invoiceId}:
+    parameters:
+      - { name: invoiceId, in: path, required: true, schema: { type: string, maxLength: 36 } }
+    delete:
+      operationId: deleteInvoice
+      summary: Delete an invoice
+      permission: invoices.delete
+      satisfies: [INV-1]
+      responses:
+        "204": { description: Deleted. }

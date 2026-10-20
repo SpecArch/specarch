@@ -1,0 +1,11 @@
+arguments: [derive, specarch-estate.yaml]
+exitStatus: 0
+standardOutput: |
+  core/tests/delete-invoice-invoice-id-longer-than-36-characters/test.yaml
+  core/tests/delete-invoice-invoice-id-of-36-characters/test.yaml
+  core/tests/delete-invoice-not-found-invoice-id/test.yaml
+  core/tests/delete-invoice-denied-without-invoices-delete/test.yaml
+  core/tests/delete-invoice-refused-through-a-client-not-listed-for-invoice-manager-of-identity/test.yaml
+  core/tests/delete-invoice-denied-with-expired-access/test.yaml
+  core/tests/delete-invoice-refused-with-a-token-for-another-audience/test.yaml
+  core/tests/inv-1-acceptance-1/test.yaml

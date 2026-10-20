@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: validate
+level: system
+scenario: golden
+given: "the core of derive-caller-estate with every test derive wrote, among them the one for a caller through a client a role of the identity module does not list, and the identity module not given"
+when: "validate is run on the core alone"
+then: "it takes the test's case as waiting for the identity module, as a reference to it waits, reports nothing, and exits 0"
+verifies: [SA-88]

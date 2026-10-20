@@ -126,13 +126,18 @@ func (d *design) claimType(name string, claim *yaml.Node) expr.Type {
 }
 
 // event is the clause a derived refusal's then ends with once the
-// specification declares where security events go: the event's rule and
-// severity (ADR-109).
+// specification, or the identity module given with it, declares where
+// security events go: the event's rule and severity (ADR-109), and its
+// identifier under the trust domain when one is known (ADR-171).
 func (d *design) event(rule string) string {
-	if source.Child(d.root, "securityEvents") == nil {
+	if source.Child(d.root, "securityEvents") == nil && (d.identity == nil || source.Child(d.identity.design.root, "securityEvents") == nil) {
 		return ""
 	}
-	return ", and the security event " + rule + " (" + eventSeverity[rule] + ") is written"
+	clause := ", and the security event " + rule + " (" + eventSeverity[rule] + ")"
+	if domain := d.trustDomain(); domain != "" {
+		clause += ", " + strings.TrimRight(domain, "/") + "/events/" + rule + ","
+	}
+	return clause + " is written"
 }
 
 // hasThrough reports whether any role narrows a grant by client.

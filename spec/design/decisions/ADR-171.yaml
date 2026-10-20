@@ -1,0 +1,70 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.3.schema.json
+decisions:
+  ADR-171:
+    title: A module's derived cases read the identity module given in the same run, for the through of its roles and for the security events and trust domain it holds, and each event names its identifier under the trust domain
+    status: accepted
+    date: "2026-10-21"
+    context: |
+      Roadmap 5, caller context. ADR-107 keeps the roles, their through
+      and the trust domain in the identity module, and ADR-109 has the
+      identity module declare securityEvents. The derived cases read one
+      specification: a module whose roles and security events live in the
+      identity module derived no case for a caller through a client the
+      role's through does not list, and its refusals named no security
+      event, although validate resolved the same references in the same
+      run. The event clause named the rule and the severity, and not the
+      identifier <trustDomain>/events/<rule> that ADR-109 gives each
+      event.
+    decision: |
+      The derived cases of a specification read the identity module when
+      it is given in the same run: the dependency of kind
+      identityProvider, resolved as every reference is, in an estate or
+      among the folders given. A role of the identity module whose through
+      names a permission of the module by reference,
+      <dependency>#/permissions/<name>, derives at each route or command
+      that permission guards the case refused through a client not listed
+      for <role> of <identity module>, as a role of the module's own does.
+      A refusal's then names its security event when the module or the
+      identity module declares securityEvents, and the event's identifier,
+      the trust domain with /events/<rule> after it, when the module or
+      the identity module declares trustDomain, the module's own first:
+      "it is refused as not allowed, and the security event through
+      (medium), https://estate.example.org/events/through, is written".
+      validate, derive, the documents' cases left out and the problems
+      target read the cases so in both builds. A module checked alone,
+      without the identity module, accepts a test that covers a through
+      case of a role of the identity module named so, as waiting for that
+      module, as a reference into it waits.
+    consequences: |
+      derive over an estate, or over the folders of a module and its
+      identity module, writes the through cases of the identity module's
+      roles into the module's tests, and the security event and its
+      identifier in each refusal's then; the drafts carry no problem mark,
+      since the check that marks them is given the same modules. A module
+      with neither key and no identity module given derives as before.
+      A test that covers a through case of a role of the identity module
+      is checked against the derived cases when the identity module is
+      given, and waits when it is not.
+    why: |
+      One meaning per key: a role's through narrows its grant wherever
+      the role is written, so a refusal the validator derives from a
+      local role is derived from a referenced one too, and a
+      specification split into modules by ADR-107 gets the cases it would
+      have had in one file. Read from the run, not from a path the
+      dependency names, because the references already resolve only
+      against the specifications given together, and a second way of
+      finding the identity module would find another one. The role is
+      named with its module because a module may have a role of the same
+      name, and two cases of one name would be one test for two
+      refusals. The identifier in the then, because ADR-109 makes it the
+      name a reviewer and the event store use, and a test that checks
+      the refusal wrote the event checks it under that name. The case
+      waits when the module is alone, as ADR-107's references do,
+      because the compiler reads an incomplete estate: a test the
+      estate run checks is not an error in a run that cannot tell.
+      Compiler test: a module validated alone keeps its tests of the
+      identity module's cases and reports nothing of them; the estate run
+      checks them at the entry. Acceptance test: derive over an estate
+      writes the drafts of every refusal a role of the identity module
+      narrows, each naming the event a security reviewer looks for.
+    satisfies: [SA-83, SA-88]

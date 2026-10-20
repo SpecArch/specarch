@@ -28,6 +28,16 @@ func runProblems(paths []string, out string, check bool, stdout, stderr io.Write
 	marked := map[string]bool{} // fragments whose marks were written
 	invalid := false
 	skipped := 0
+	// Each specification is checked with the others of the run, as
+	// validate checks it, so references and the identity module's cases
+	// resolve the same way.
+	var all []*spec.Spec
+	for _, in := range inputs {
+		if in.estate == nil && in.root != "" {
+			all = append(all, spec.Load(in.root))
+		}
+	}
+	given := validate.NewGiven(all)
 	for _, in := range inputs {
 		if in.estate != nil {
 			// An estate has no problems file of its own: what is wrong in
@@ -46,7 +56,7 @@ func runProblems(paths []string, out string, check bool, stdout, stderr io.Write
 			return 2
 		}
 		s := spec.Load(in.root)
-		diags, covered := validate.CheckSpecCovered(s)
+		diags, covered := validate.CheckSpecCovered(s, given)
 		invalid = invalid || validate.Errors(diags) > 0
 		l := loaded{spec: s}
 		for _, impl := range s.Implementations {
@@ -82,7 +92,7 @@ func runProblems(paths []string, out string, check bool, stdout, stderr io.Write
 				}
 			}
 			s = spec.Load(in.root)
-			diags, covered = validate.CheckSpecCovered(s)
+			diags, covered = validate.CheckSpecCovered(s, given)
 			ps = problems.Collect(s, diags, covered, folder)
 			fragments, moved = problems.Mark(s, ps, problems.Files(s, ps))
 		}
@@ -144,13 +154,14 @@ func changed(fragments []problems.Fragment) bool {
 // files of it that a command has just written (ADR-066): every YAML file
 // of the tree when files is nil, as extract and merge write one, or only
 // the files given, as derive writes draft tests into a specification an
-// author keeps.
-func markWritten(dir string, files []string) error {
+// author keeps. given are the specifications of the run, which the check
+// reads references and the identity module from; nil for a tree alone.
+func markWritten(dir string, files []string, given validate.Given) error {
 	// As in runProblems, a message that names a line moves with the
 	// marks, so they are written until they agree with the problems.
 	for round := 0; round < 4; round++ {
 		s := spec.Load(dir)
-		diags, covered := validate.CheckSpecCovered(s)
+		diags, covered := validate.CheckSpecCovered(s, given)
 		ps := problems.Collect(s, diags, covered, s.Dir)
 		marking := files
 		if marking == nil {

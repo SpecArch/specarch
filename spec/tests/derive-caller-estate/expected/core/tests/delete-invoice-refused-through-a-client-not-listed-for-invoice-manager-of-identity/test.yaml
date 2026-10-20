@@ -1,0 +1,10 @@
+operation: deleteInvoice
+level: system
+scenario: red
+covers: [refused through a client not listed for invoice-manager of identity]
+given: "a caller holding invoice-manager of identity who signed in through a client other than admin-web"
+when: "deleteInvoice is called"
+then: "it is refused as not allowed, and the security event through (medium), https://estate.example.org/events/through, is written"
+verifies: [INV-1]
+origin: inferred
+why: "Written by specarch derive: operation deleteInvoice is at stake in a requirement that names a harm, so its cases are written. A draft: complete the given, when and then, and remove what does not hold."

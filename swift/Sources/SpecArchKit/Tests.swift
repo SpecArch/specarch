@@ -920,7 +920,7 @@ extension Checker {
     }
 
     func checkTests(_ d: Design) {
-        let subjects = d.subjects()
+        let subjects = d.withIdentity(given).subjects()
         var byKey: [String: Subject] = [:]
         for s in subjects { byKey[s.yamlKey] = s }
         var golden = Set<ObjectIdentifier>(), red = Set<ObjectIdentifier>()
@@ -949,6 +949,7 @@ extension Checker {
             for (i, item) in items(t.child("covers")).enumerated() {
                 let ptr = pointer(base + ["covers", "\(i)"])
                 guard let dc = known[item.value] else {
+                    if d.identityCaseWaits(item.value) { continue }
                     add(item, ptr, .testCase, "\(quote(item.value)) is not a case of \(s.label); \(listCases(s))")
                     continue
                 }

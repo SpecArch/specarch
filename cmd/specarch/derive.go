@@ -51,7 +51,7 @@ func runDerive(args []string, stdout, stderr io.Writer) int {
 	written, collisions := 0, 0
 	for _, l := range specs {
 		var drafts []string
-		for _, dr := range validate.Drafts(l.spec.Root) {
+		for _, dr := range validate.Drafts(l.spec.Root, l.given) {
 			folder := filepath.Join(l.spec.Dir, "tests", dr.Name)
 			if len(dr.BlockedBy) > 0 {
 				fmt.Fprintf(stderr, "specarch derive: left out %s for %s, which %s holds up\n", dr.Name, dr.Subject, strings.Join(dr.BlockedBy, ", "))
@@ -83,7 +83,7 @@ func runDerive(args []string, stdout, stderr io.Writer) int {
 			written++
 		}
 		if len(drafts) > 0 {
-			if err := markWritten(l.spec.Dir, drafts); err != nil {
+			if err := markWritten(l.spec.Dir, drafts, l.given); err != nil {
 				fmt.Fprintf(stderr, "specarch derive: cannot mark the problems in the drafts of %s: %v\n", l.spec.Dir, err)
 				return 2
 			}
@@ -108,7 +108,7 @@ func deriveInto(out string, tree *extract.Tree) ([]string, error) {
 	held := map[string][]string{} // subject to the questions holding it up
 	heldDrafts := map[string]int{}
 	var heldOrder []string
-	for _, dr := range validate.Drafts(s.Root) {
+	for _, dr := range validate.Drafts(s.Root, nil) {
 		switch {
 		case len(dr.BlockedBy) > 0:
 			if held[dr.Subject] == nil {

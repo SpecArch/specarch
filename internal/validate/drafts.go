@@ -29,8 +29,9 @@ type Draft struct {
 // Drafts lists the tests a valid specification implies and has not got:
 // the success test of every subject without a golden test, and every
 // chosen derived case no test covers, in the order the warnings name them.
-func Drafts(root *yaml.Node) []Draft {
-	d := newDesign(root)
+// The cases read the identity module among the specifications given.
+func Drafts(root *yaml.Node, given Given) []Draft {
+	d := newDesign(root).withIdentity(given)
 	subjects := d.subjects()
 	golden := map[string]bool{}
 	covered := map[string]map[string]bool{}

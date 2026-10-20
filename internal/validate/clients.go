@@ -349,7 +349,9 @@ func (d *design) callerCases(s *subject, n *yaml.Node, perm, what string, atEdge
 }
 
 // throughCases adds, for every role whose through narrows the permission,
-// the case of a caller through a client it does not list.
+// the case of a caller through a client it does not list: the roles of
+// the specification, and the roles of the identity module given with it
+// whose through names the permission by reference (ADR-171).
 func (d *design) throughCases(s *subject, perm, what string) {
 	for _, r := range source.Pairs(source.Child(d.root, "roles")) {
 		list := source.Child(source.Child(r.Value, "through"), perm)
@@ -357,6 +359,21 @@ func (d *design) throughCases(s *subject, perm, what string) {
 			continue
 		}
 		s.red("refused through a client not listed for "+r.Key.Value, occasional, "a caller holding "+r.Key.Value+" who signed in through a client other than "+joinAnd(itemValues(list)), what, "it is refused as not allowed"+d.event("through"))
+	}
+	module := SpecName(d.root)
+	if d.identity == nil || module == "" || perm == "" {
+		return
+	}
+	od := d.identity.design
+	for _, r := range source.Pairs(source.Child(od.root, "roles")) {
+		for _, t := range source.Pairs(source.Child(r.Value, "through")) {
+			dep, ptr, ok := crossRef(t.Key.Value)
+			if !ok || od.specificationOf(dep) != module || ptr != "/permissions/"+perm {
+				continue
+			}
+			role := r.Key.Value + " of " + d.identity.name
+			s.red("refused through a client not listed for "+role, occasional, "a caller holding "+role+" who signed in through a client other than "+joinAnd(itemValues(t.Value)), what, "it is refused as not allowed"+d.event("through"))
+		}
 	}
 }
 

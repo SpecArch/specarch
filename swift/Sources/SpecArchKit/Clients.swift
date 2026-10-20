@@ -99,11 +99,23 @@ extension Design {
     }
 
     /// For every role whose through narrows the permission, the case of a
-    /// caller through a client it does not list.
+    /// caller through a client it does not list: the roles of the
+    /// specification, and those of the identity module given with it whose
+    /// through names the permission by reference (ADR-171).
     func throughCases(_ s: Subject, _ perm: String, _ what: String) {
         for r in pairs(root.child("roles")) {
             guard let list = r.value.child("through")?.child(perm) else { continue }
             s.red("refused through a client not listed for " + r.key.value, occasional, "a caller holding " + r.key.value + " who signed in through a client other than " + joinAnd(items(list).map { $0.value }), what, "it is refused as not allowed" + event("through"))
+        }
+        let module = specName(root)
+        guard let identity, !module.isEmpty, !perm.isEmpty else { return }
+        let od = identity.design
+        for r in pairs(od.root.child("roles")) {
+            for t in pairs(r.value.child("through")) {
+                guard let (dep, ptr) = crossRef(t.key.value), od.specificationOf(dep) == module, ptr == "/permissions/" + perm else { continue }
+                let role = r.key.value + " of " + identity.name
+                s.red("refused through a client not listed for " + role, occasional, "a caller holding " + role + " who signed in through a client other than " + joinAnd(items(t.value).map { $0.value }), what, "it is refused as not allowed" + event("through"))
+            }
         }
     }
 

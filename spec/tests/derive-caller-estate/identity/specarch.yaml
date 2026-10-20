@@ -1,0 +1,45 @@
+specarch: "0.3"
+info: { title: Identity, version: 1.0.0, name: identity }
+stages: [tests]
+trustDomain: https://estate.example.org/
+clients:
+  admin-web:
+    description: The administration application in the browser, where staff sign in.
+    kind: application
+  member-app:
+    description: The application on a member's phone.
+    kind: application
+roles:
+  invoice-manager:
+    description: Staff who manage invoices, who may delete them only from the administration application.
+    permissions: [core#/permissions/invoices.read, core#/permissions/invoices.delete]
+    through:
+      core#/permissions/invoices.delete: [admin-web]
+permissions:
+  public: { description: Open to everyone. }
+dependencies:
+  core: { description: Keeps the invoices., timeout: PT2S, kind: system, specification: core, version: 1.0.0 }
+  securityLog: { description: The append-only store of security events., timeout: PT2S }
+  pager: { description: The alarm channel., timeout: PT2S }
+securityEvents:
+  store: securityLog
+  alarm: pager
+tokens:
+  access:
+    description: What a signed-in person presents at the edge.
+    format: jwt
+    lifetime: PT15M
+    signature: ES256
+    claims:
+      sub: { description: The person's identifier. }
+      aud: { const: "https://identity.estate.example.org" }
+      client_id: { description: The application the person signed in through. }
+    default: true
+paths:
+  /status:
+    get:
+      operationId: status
+      summary: Whether the identity service is up
+      permission: public
+      responses:
+        "200": { description: Up. }

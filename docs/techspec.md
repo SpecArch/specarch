@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.7.3-dev of the specification: 90 requirements, 5 entities, 16 commands, 7 algorithms, 638 tests, 161 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.7.3-dev of the specification: 90 requirements, 5 entities, 16 commands, 7 algorithms, 641 tests, 162 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -847,7 +847,12 @@ validator suggests, with the subject, the scenario, the level,
 `verifies` from what the subject satisfies, `origin: inferred` and a
 `why` that says why the case was chosen, and the expected status or
 exit, or the caller of a denied case, where the design says them for
-certain.
+certain. The cases read the identity module when it is given in the
+same run, in an estate or among the folders given (ADR-171): the
+through of its roles that names a permission of the specification,
+and the security events and trust domain it declares, so each
+refusal's `then` names its event and the event's identifier under
+the trust domain.
 
 A test is named after its subject, then its case: `create-loan-succeeds`.
 The subject's name is made a valid test name first, kebab-case with
@@ -12779,6 +12784,53 @@ holds the reading.
 
 **Insight:** One meaning per key: through is the one client a grant holds through whatever row gives the grant, so a rule says it with the same key and the reader writes it with the same code, and the questions read the same in both. A row with no through beside one with it is asked, never read as either, because the check reads them in an order the table does not show and through is never guessed. Compiler test: a rule through a client is written on the role, a disagreeing pair is a must question at the role's through, and a malformed through is refused naming the rule. Acceptance test: the first techspec of a service whose policy narrows rows to one application shows the narrowing in the matrix.
 
+### ADR-171: A module's derived cases read the identity module given in the same run, for the through of its roles and for the security events and trust domain it holds, and each event names its identifier under the trust domain
+
+Status: accepted, 2026-10-21.
+
+Context: Roadmap 5, caller context. ADR-107 keeps the roles, their through
+and the trust domain in the identity module, and ADR-109 has the
+identity module declare securityEvents. The derived cases read one
+specification: a module whose roles and security events live in the
+identity module derived no case for a caller through a client the
+role's through does not list, and its refusals named no security
+event, although validate resolved the same references in the same
+run. The event clause named the rule and the severity, and not the
+identifier <trustDomain>/events/<rule> that ADR-109 gives each
+event.
+
+Decision: The derived cases of a specification read the identity module when
+it is given in the same run: the dependency of kind
+identityProvider, resolved as every reference is, in an estate or
+among the folders given. A role of the identity module whose through
+names a permission of the module by reference,
+<dependency>#/permissions/<name>, derives at each route or command
+that permission guards the case refused through a client not listed
+for <role> of <identity module>, as a role of the module's own does.
+A refusal's then names its security event when the module or the
+identity module declares securityEvents, and the event's identifier,
+the trust domain with /events/<rule> after it, when the module or
+the identity module declares trustDomain, the module's own first:
+"it is refused as not allowed, and the security event through
+(medium), https://estate.example.org/events/through, is written".
+validate, derive, the documents' cases left out and the problems
+target read the cases so in both builds. A module checked alone,
+without the identity module, accepts a test that covers a through
+case of a role of the identity module named so, as waiting for that
+module, as a reference into it waits.
+
+Consequences: derive over an estate, or over the folders of a module and its
+identity module, writes the through cases of the identity module's
+roles into the module's tests, and the security event and its
+identifier in each refusal's then; the drafts carry no problem mark,
+since the check that marks them is given the same modules. A module
+with neither key and no identity module given derives as before.
+A test that covers a through case of a role of the identity module
+is checked against the derived cases when the identity module is
+given, and waits when it is not.
+
+**Insight:** One meaning per key: a role's through narrows its grant wherever the role is written, so a refusal the validator derives from a local role is derived from a referenced one too, and a specification split into modules by ADR-107 gets the cases it would have had in one file. Read from the run, not from a path the dependency names, because the references already resolve only against the specifications given together, and a second way of finding the identity module would find another one. The role is named with its module because a module may have a role of the same name, and two cases of one name would be one test for two refusals. The identifier in the then, because ADR-109 makes it the name a reviewer and the event store use, and a test that checks the refusal wrote the event checks it under that name. The case waits when the module is alone, as ADR-107's references do, because the compiler reads an incomplete estate: a test the estate run checks is not an error in a run that cannot tell. Compiler test: a module validated alone keeps its tests of the identity module's cases and reports nothing of them; the estate run checks them at the entry. Acceptance test: derive over an estate writes the drafts of every refusal a role of the identity module narrows, each naming the event a security reviewer looks for.
+
 ## 10. Quality requirements
 
 The design tests: what must hold on every implementation. Golden scenarios succeed; red scenarios are refused.
@@ -12806,6 +12858,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | derive-0-3-clients | command derive | system | golden | the specification of validate-0-3-clients-valid with only the list's golden test | derive is run | it writes the drafts of the callers, signature, closed-route and service's-own-token cases of each operation beside the permission ones, none for the closed route's success, and exits 0 |
 | derive-0-3-rows | command derive | system | golden | a specification on 0.3 with a member role whose rows rule limits Loan, a list, a read by key and a delete by key with no body of loans, and a job acting as member over loans, with no tests | derive is run | it writes a draft for the list showing only the member's rows, for the read by key answering not found outside them, for the delete, which names Loan only by its path key, refusing a change outside them, and for the job acting on them only, beside the drafts of the permission and the key, and exits 0 |
 | derive-0-3-tokens | command derive | system | golden | the specification of validate-0-3-tokens-valid with only the list's golden test, and an import only the reconciliation service calls, which proves itself with a signed request and presents no token | derive is run | it writes denied with expired access on the list and denied with expired transaction on the delete, each ending with the event token (low), beside the permission and key drafts, and no token case on the import, since the default token is a person's and its only caller presents none; and exits 0 |
+| derive-caller-estate | command derive | system | golden | an estate of two modules: an identity module with the trust domain, the security events, the clients and a role that grants the core's delete by reference and narrows it to the administration application; and the core, which declares no roles and no security events, whose delete satisfies a requirement with a harm | derive is run on the estate file | it writes the core's drafts with the case of a caller through a client the identity module's role does not list, each refusal's then naming its security event with the identifier under the identity module's trust domain, marks no problem in them, and exits 0 |
 | derive-invalid-spec | command derive | system | red | a specification whose operation names a permission that is not declared | derive is run | it prints the error, writes nothing and exits 1 |
 | derive-keeps-existing | command derive | system | golden | the same specification, with a test folder already named as the missing-name draft would be | derive is run | it keeps that folder as it is, says so on standard error, writes the other drafts and exits 0 |
 | derive-meta-model-0-2 | command derive | system | golden | a specification that says specarch 0.2, whose only errors are the tests derive writes, with a must question holding up one operation | derive is run | it writes the drafts of the operation and the requirement no test covers, leaves out the held-up operation's drafts, and exits 0 |
@@ -13186,6 +13239,8 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | validate-caller-chain-wrong | command validate | system | red | the estate of validate-caller-estate with the core's via naming the front ends' backend instead of the middleware, and the front ends' backend accepting no token | validate is run on the estate file | the induction through calls reports, as via, the backend that does not call the core, the middleware that calls the core and is not in its via, and the backend that calls the middleware with no person's token to carry on, the same in both builds, and exits 1 |
 | validate-caller-estate | command validate | system | golden | an estate of four modules: an identity module with the trust domain, the clients and the roles, whose roles grant each hop's permission by reference and narrow the delete to the administration application; the front ends' backend as the edge; the middleware and the core, each naming its immediate caller in via, and the core admitting the reporting service by reference in callers; and tests whose caller is a role of the identity module | validate is run on the estate file | it resolves every reference to a client, a role and a permission, finds every permission granted by a role of the identity module, finds the chain bff, middleware, core by induction through calls, accepts a test covering the scope case at the core, reports nothing, and exits 0 |
 | validate-caller-estate-wrong | command validate | system | red | the estate of validate-caller-estate with a trust domain that is no URI, a role granting a permission the core does not declare, a core permission no role of the identity module grants, callers naming a service with no roles, an application with no granting role and a client the identity module lacks, via naming an application, a service proving itself with a token and a role, a test whose caller is a role the identity module lacks, and one whose caller names a client where a role is meant | validate is run on the estate file | it reports each at the entry, as token_audience, reference (each a name the identity module lacks or an element of the wrong kind), permission_ungranted, callers, via and schema, the same in both builds, and exits 1 |
+| validate-caller-identity-case-waits | command validate | system | golden | the core of derive-caller-estate with every test derive wrote, among them the one for a caller through a client a role of the identity module does not list, and the identity module not given | validate is run on the core alone | it takes the test's case as waiting for the identity module, as a reference to it waits, reports nothing, and exits 0 |
+| validate-caller-identity-cases | command validate | system | red | the estate of derive-caller-estate with the core's tests derive wrote, less the one for a caller through a client the identity module's role does not list | validate is run on the estate file | it reports that one missing test as an error at the core's delete, its then naming the security event with the identifier under the identity module's trust domain, and exits 1 |
 | validate-change-applied | command validate | system | red | an implemented change whose addition is missing and whose removal is still there, and an approved change that changes a missing requirement and adds a test that already exists | validate is run | it reports change_applied errors for the first and the missing requirement, a change_applied warning for the test, and exits 1 |
 | validate-change-decision | command validate | system | red | an approved change without a decision, and a rejected change whose decision's outcome is approved | validate is run | it reports change_decision for each and exits 1 |
 | validate-change-log-warning | command validate | system | golden | a description that says how the file changed | validate is run | it warns with change_log and exits 0, since the file is still valid |
@@ -13833,12 +13888,12 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-80 | decisions ADR-152 | tests generate-ui-view; tests generate-ui-view-refused |
 | SA-81 | decisions ADR-153 | tests generate-ui-form; tests generate-ui-form-refused |
 | SA-82 | enums Rule | tests derive-0-3-rows; tests generate-sql-0-3-rows; tests generate-sql-0-3-rows-changed; tests generate-sql-0-3-rows-mariadb; tests validate-0-3-caller-property; tests validate-0-3-meta-model-0-2; tests validate-0-3-reserved-name; tests validate-0-3-rows; tests validate-0-3-rows-valid |
-| SA-83 | enums Rule | tests derive-0-3-clients; tests document-techspec-0-3-clients; tests validate-0-3-callers; tests validate-0-3-clients; tests validate-0-3-clients-valid; tests validate-0-3-nobody; tests validate-0-3-through |
+| SA-83 | enums Rule; decisions ADR-171 | tests derive-0-3-clients; tests derive-caller-estate; tests document-techspec-0-3-clients; tests validate-0-3-callers; tests validate-0-3-clients; tests validate-0-3-clients-valid; tests validate-0-3-nobody; tests validate-0-3-through; tests validate-caller-identity-cases |
 | SA-84 | enums Rule | tests derive-0-3-tokens; tests document-techspec-0-3-tokens; tests generate-openapi-0-3-tokens; tests validate-0-3-claims; tests validate-0-3-security-events; tests validate-0-3-token-audience; tests validate-0-3-tokens; tests validate-0-3-tokens-valid; tests validate-0-3-txn-token; tests validate-0-3-via |
 | SA-85 | commands decide; decisions ADR-155; decisions ADR-156 | tests decide-needs-source; tests decide-removes-questions-file; tests decide-unknown-question; tests decide-unknown-source; tests decide-unknown-stakeholder; tests decide-usage-error; tests decide-writes-decision; tests document-problems-lists |
 | SA-86 | enums DocumentTarget; commands document; decisions ADR-157 | tests document-writes-comparison; tests document-writes-comparison-citation-without-source |
 | SA-87 | decisions ADR-158; decisions ADR-167; decisions ADR-168 | tests generate-scripts; tests generate-scripts-dialect-refused; tests generate-scripts-hand-written-refused; tests generate-scripts-mariadb |
-| SA-88 | enums Rule | tests document-techspec-caller-estate; tests gaps-caller-alone; tests validate-caller-chain-gap; tests validate-caller-chain-wrong; tests validate-caller-estate; tests validate-caller-estate-wrong |
+| SA-88 | enums Rule; decisions ADR-171 | tests derive-caller-estate; tests document-techspec-caller-estate; tests gaps-caller-alone; tests validate-caller-chain-gap; tests validate-caller-chain-wrong; tests validate-caller-estate; tests validate-caller-estate-wrong; tests validate-caller-identity-case-waits; tests validate-caller-identity-cases |
 | SA-89 | decisions ADR-159; decisions ADR-169; decisions ADR-170 | tests extract-dart-caller-checks; tests extract-go-caller-checks; tests extract-javascript-caller-checks; tests extract-permissions-client-through; tests extract-permissions-pattern-through; tests extract-swift-caller-checks |
 | SA-90 | enums DocumentTarget; decisions ADR-160; decisions ADR-165; decisions ADR-166 | tests document-manual-none; tests document-operations-none; tests document-writes-manual; tests document-writes-manual-cli; tests document-writes-manual-cli-unnamed; tests document-writes-operations; tests validate-command-remedies; tests validate-jobs-dead-letter; tests validate-remedy-and-response |
 

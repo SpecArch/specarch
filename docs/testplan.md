@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.3-dev of the specification: 638 design tests, 300 golden and 338 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.3-dev of the specification: 641 design tests, 302 golden and 339 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.7.3-dev of the specification: 638 design tests, 300 golden and 338 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 634 |
+| system | 637 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -220,6 +220,14 @@ Scenario: golden; level: system; verifies SA-84.
 - Given: the specification of validate-0-3-tokens-valid with only the list's golden test, and an import only the reconciliation service calls, which proves itself with a signed request and presents no token
 - When: derive is run
 - Then: it writes denied with expired access on the list and denied with expired transaction on the delete, each ending with the event token (low), beside the permission and key drafts, and no token case on the import, since the default token is a person's and its only caller presents none; and exits 0
+
+#### derive-caller-estate
+
+Scenario: golden; level: system; verifies SA-83, SA-88.
+
+- Given: an estate of two modules: an identity module with the trust domain, the security events, the clients and a role that grants the core's delete by reference and narrows it to the administration application; and the core, which declares no roles and no security events, whose delete satisfies a requirement with a harm
+- When: derive is run on the estate file
+- Then: it writes the core's drafts with the case of a caller through a client the identity module's role does not list, each refusal's then naming its security event with the identifier under the identity module's trust domain, marks no problem in them, and exits 0
 
 #### derive-invalid-spec
 
@@ -3286,6 +3294,22 @@ Scenario: red; level: system; verifies SA-88.
 - Given: the estate of validate-caller-estate with a trust domain that is no URI, a role granting a permission the core does not declare, a core permission no role of the identity module grants, callers naming a service with no roles, an application with no granting role and a client the identity module lacks, via naming an application, a service proving itself with a token and a role, a test whose caller is a role the identity module lacks, and one whose caller names a client where a role is meant
 - When: validate is run on the estate file
 - Then: it reports each at the entry, as token_audience, reference (each a name the identity module lacks or an element of the wrong kind), permission_ungranted, callers, via and schema, the same in both builds, and exits 1
+
+#### validate-caller-identity-case-waits
+
+Scenario: golden; level: system; verifies SA-88.
+
+- Given: the core of derive-caller-estate with every test derive wrote, among them the one for a caller through a client a role of the identity module does not list, and the identity module not given
+- When: validate is run on the core alone
+- Then: it takes the test's case as waiting for the identity module, as a reference to it waits, reports nothing, and exits 0
+
+#### validate-caller-identity-cases
+
+Scenario: red; level: system; verifies SA-83, SA-88.
+
+- Given: the estate of derive-caller-estate with the core's tests derive wrote, less the one for a caller through a client the identity module's role does not list
+- When: validate is run on the estate file
+- Then: it reports that one missing test as an error at the core's delete, its then naming the security event with the identifier under the identity module's trust domain, and exits 1
 
 #### validate-change-applied
 

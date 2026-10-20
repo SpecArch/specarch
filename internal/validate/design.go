@@ -40,6 +40,9 @@ type design struct {
 	questions    map[string]*yaml.Node
 	operations   map[string]operation // by operationId, the first definition
 	opList       []operation          // every operation in document order
+	// identity is the identity module given in the same run, when the
+	// design names one and it is given (ADR-171).
+	identity *other
 }
 
 type operation struct {

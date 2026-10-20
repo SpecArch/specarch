@@ -340,7 +340,12 @@ validator suggests, with the subject, the scenario, the level,
 `verifies` from what the subject satisfies, `origin: inferred` and a
 `why` that says why the case was chosen, and the expected status or
 exit, or the caller of a denied case, where the design says them for
-certain.
+certain. The cases read the identity module when it is given in the
+same run, in an estate or among the folders given (ADR-171): the
+through of its roles that names a permission of the specification,
+and the security events and trust domain it declares, so each
+refusal's `then` names its event and the event's identifier under
+the trust domain.
 
 A test is named after its subject, then its case: `create-loan-succeeds`.
 The subject's name is made a valid test name first, kebab-case with

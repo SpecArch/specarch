@@ -70,7 +70,14 @@ extension Design {
     /// The clause a derived refusal's then ends with once the specification
     /// says where security events go (ADR-109).
     func event(_ rule: String) -> String {
-        root.child("securityEvents") == nil ? "" : ", and the security event " + rule + " (" + (eventSeverity[rule] ?? "") + ") is written"
+        if root.child("securityEvents") == nil && identity?.design.root.child("securityEvents") == nil { return "" }
+        var clause = ", and the security event " + rule + " (" + (eventSeverity[rule] ?? "") + ")"
+        var domain = trustDomain
+        if !domain.isEmpty {
+            while domain.hasSuffix("/") { domain.removeLast() }
+            clause += ", " + domain + "/events/" + rule + ","
+        }
+        return clause + " is written"
     }
 
     func versionEvent(_ cl: YNode) -> String {

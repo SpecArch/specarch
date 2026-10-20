@@ -48,6 +48,9 @@ type loaded struct {
 	// roles that reach its permissions.
 	chains []validate.Chain
 	grants []validate.RoleColumn
+	// given are the specifications of the run, by name, which the derived
+	// cases read the identity module from.
+	given validate.Given
 }
 
 // marks are the errors and warnings of the specification as the documents
@@ -105,7 +108,7 @@ func (l loaded) state() *generate.State {
 	for _, g := range l.grants {
 		st.Grants = append(st.Grants, generate.RoleColumn(g))
 	}
-	for _, c := range validate.LeftOutCases(l.spec.Root) {
+	for _, c := range validate.LeftOutCases(l.spec.Root, l.given) {
 		st.LeftOut = append(st.LeftOut, generate.LeftOut{Subject: c.Subject, Case: c.Case, Scenario: c.Scenario, Reason: c.Reason})
 	}
 	return st
@@ -223,7 +226,7 @@ func runDocument(args []string, stdout, stderr io.Writer) int {
 		}
 		root := l.spec.Root
 		if everyone {
-			root = forEveryone(root, st)
+			root = forEveryone(root, st, l.given)
 			for i := range impls {
 				impls[i].Node = st.Withheld.ForEveryoneImplementation(impls[i].Node)
 			}
@@ -309,7 +312,7 @@ func audienceArg(args []string) (everyone bool, rest []string, msg string) {
 // the state cut to it: the marks, the references that wait, the keys a
 // question covers, the state machines' paths and the derived cases left
 // out, none of them about an element left out.
-func forEveryone(root *yaml.Node, st *generate.State) *yaml.Node {
+func forEveryone(root *yaml.Node, st *generate.State, given validate.Given) *yaml.Node {
 	root, w := generate.ForEveryone(root)
 	st.Withheld = w
 	var marks []generate.Mark
@@ -342,7 +345,7 @@ func forEveryone(root *yaml.Node, st *generate.State) *yaml.Node {
 	}
 	st.StatePaths = validate.StatePaths(root)
 	st.LeftOut = nil
-	for _, c := range validate.LeftOutCases(root) {
+	for _, c := range validate.LeftOutCases(root, given) {
 		st.LeftOut = append(st.LeftOut, generate.LeftOut{Subject: c.Subject, Case: c.Case, Scenario: c.Scenario, Reason: c.Reason})
 	}
 	return root
@@ -428,7 +431,7 @@ func readInputs(paths []string, verb string, stdout, stderr io.Writer, settles f
 				invalid = true
 			}
 		}
-		l := loaded{spec: s, diags: diags, covered: covered, unresolved: validate.References(s, given), chains: validate.Chains(s, given), grants: validate.ReferencedGrants(s, given)}
+		l := loaded{spec: s, diags: diags, covered: covered, unresolved: validate.References(s, given), chains: validate.Chains(s, given), grants: validate.ReferencedGrants(s, given), given: given}
 		for _, impl := range s.Implementations {
 			doc := source.Parse(impl.Data)
 			if doc.Root == nil {

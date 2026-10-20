@@ -611,8 +611,14 @@ draft, section 15.2; ASVS 16.2.5). An event of severity high, or a
 repeat of any event for one client within a window, goes to the alarm
 channel too; the count and the window are deployment values of the
 implementation file. The validator derives the event beside the red
-case, so the generated tests check that the refusal wrote it, and the
-techspec lists the events with their severities.
+case, with its identifier, so the generated tests check that the refusal
+wrote it, and the techspec lists the events with their severities. A
+module whose `securityEvents` and `trustDomain` are the identity
+module's takes them from it when the identity module is given in the
+same run, and derives the `through` cases of the identity module's
+roles that name its permissions, `refused through a client not listed
+for <role> of <identity module>` (ADR-171); validated alone, a test of
+such a case waits for the identity module, as its references do.
 
 Compiler test: a refusal whose event the project does not write is a
 derived red case that fails, never a silent gap, and a missing

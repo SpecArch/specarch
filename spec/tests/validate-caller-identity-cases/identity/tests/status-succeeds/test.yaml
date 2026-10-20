@@ -1,0 +1,6 @@
+operation: status
+level: system
+scenario: golden
+given: the identity service is up
+when: status is called
+then: "it answers 200: Up."

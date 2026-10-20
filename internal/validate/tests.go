@@ -55,7 +55,7 @@ func testSubjectKey(t *yaml.Node) string {
 }
 
 func (c *checker) checkTests(d *design) {
-	subjects := d.subjects()
+	subjects := d.withIdentity(c.given).subjects()
 	byKey := map[string]*subject{}
 	for _, s := range subjects {
 		byKey[subjectKeyOf(s)] = s
@@ -99,6 +99,9 @@ func (c *checker) checkTests(d *design) {
 		for i, item := range source.Items(source.Child(t, "covers")) {
 			ptr := source.Pointer(append(base, "covers", fmt.Sprint(i))...)
 			dc, ok := known[item.Value]
+			if !ok && d.identityCaseWaits(item.Value) {
+				continue
+			}
 			if !ok {
 				c.add(item, ptr, RuleTestCase, "%q is not a case of %s; %s", item.Value, s.label, listCases(s))
 				continue
@@ -251,8 +254,8 @@ type LeftOut struct {
 
 // LeftOutCases lists the derived cases of a valid specification that are
 // not chosen and that no test covers, by subject in document order.
-func LeftOutCases(root *yaml.Node) []LeftOut {
-	d := newDesign(root)
+func LeftOutCases(root *yaml.Node, given Given) []LeftOut {
+	d := newDesign(root).withIdentity(given)
 	subjects := d.subjects()
 	covered := map[string]map[string]bool{}
 	for _, p := range source.Pairs(source.Child(d.root, "tests")) {

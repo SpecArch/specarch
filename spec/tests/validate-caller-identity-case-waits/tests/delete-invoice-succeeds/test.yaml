@@ -1,0 +1,7 @@
+operation: deleteInvoice
+level: system
+scenario: golden
+given: an invoice manager signed in through admin-web, and an invoice
+when: deleteInvoice is called with that invoice's invoiceId
+then: "it answers 204: Deleted."
+verifies: [INV-1]

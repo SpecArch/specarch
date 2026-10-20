@@ -30,6 +30,41 @@ func (d *design) identityDependency() string {
 	return ""
 }
 
+// withIdentity gives the design the identity module given with it, so
+// that its derived cases read the through of the identity module's roles
+// and the security events and trust domain it holds (ADR-171).
+func (d *design) withIdentity(given Given) *design {
+	dep := d.identityDependency()
+	if dep == "" || len(given) == 0 {
+		return d
+	}
+	if o, problem := newResolver(d, given).otherOf(d.specificationOf(dep)); o != nil && problem == "" && o.name != SpecName(d.root) {
+		d.identity = o
+	}
+	return d
+}
+
+// identityCaseWaits says whether a case a test covers is one the identity
+// module derives while that module is not given: the through case of one
+// of its roles, which a run with the module checks, as a reference waits
+// for the specification it names (ADR-107, ADR-171).
+func (d *design) identityCaseWaits(name string) bool {
+	dep := d.identityDependency()
+	if dep == "" || d.identity != nil {
+		return false
+	}
+	return strings.HasPrefix(name, "refused through a client not listed for ") && strings.HasSuffix(name, " of "+d.specificationOf(dep))
+}
+
+// trustDomain is the trust domain of the design, or of the identity
+// module given with it; "" when neither says one.
+func (d *design) trustDomain() string {
+	if t := source.Str(source.Child(d.root, "trustDomain")); t != "" || d.identity == nil {
+		return t
+	}
+	return source.Str(source.Child(d.identity.design.root, "trustDomain"))
+}
+
 // specificationOf is the specification a dependency names, or "".
 func (d *design) specificationOf(dep string) string {
 	return source.Str(source.Child(d.dependencies[dep], "specification"))

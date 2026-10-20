@@ -2872,7 +2872,7 @@ func withoutTests(root *yaml.Node) *yaml.Node {
 // above its entries do not count.
 func notDerived(root *yaml.Node) string {
 	drafts := map[string]any{}
-	for _, dr := range validate.Drafts(withoutTests(root)) {
+	for _, dr := range validate.Drafts(withoutTests(root), nil) {
 		var v any
 		if yaml.Unmarshal([]byte(dr.Text), &v) == nil {
 			drafts[dr.Name] = v

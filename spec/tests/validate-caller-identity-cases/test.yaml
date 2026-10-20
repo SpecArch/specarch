@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: validate
+level: system
+scenario: red
+given: "the estate of derive-caller-estate with the core's tests derive wrote, less the one for a caller through a client the identity module's role does not list"
+when: "validate is run on the estate file"
+then: "it reports that one missing test as an error at the core's delete, its then naming the security event with the identifier under the identity module's trust domain, and exits 1"
+verifies: [SA-83, SA-88]

@@ -30,6 +30,9 @@ final class Design {
     let stakeholders, needs, requirements, environments, settings, checks, monitors, questions: [String: YNode]
     var operations: [String: Operation] = [:] // by operationId, the first definition
     var opList: [Operation] = []              // every operation in document order
+    /// The identity module given in the same run, when the design names one
+    /// and it is given (ADR-171).
+    var identity: (name: String, design: Design)?
 
     init(_ root: YNode) {
         func topMap(_ key: String) -> [String: YNode] {

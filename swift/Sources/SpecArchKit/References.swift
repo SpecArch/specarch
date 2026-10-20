@@ -381,6 +381,38 @@ extension Design {
     /// The specification a dependency names, or "".
     func specificationOf(_ dep: String) -> String { str(dependencies[dep]?.child("specification")) }
 
+    /// Gives the design the identity module given with it, so that its
+    /// derived cases read the through of the identity module's roles and
+    /// the security events and trust domain it holds (ADR-171).
+    @discardableResult
+    func withIdentity(_ given: Given) -> Design {
+        let dep = identityDependency
+        if dep.isEmpty || given.isEmpty { return self }
+        let (found, problem) = Resolver(self, given).otherOf(specificationOf(dep))
+        if let o = found, problem.isEmpty, o.name != specName(root) {
+            identity = (o.name, o.design)
+        }
+        return self
+    }
+
+    /// Whether a case a test covers is one the identity module derives
+    /// while that module is not given: the through case of one of its
+    /// roles, which a run with the module checks, as a reference waits for
+    /// the specification it names (ADR-107, ADR-171).
+    func identityCaseWaits(_ name: String) -> Bool {
+        let dep = identityDependency
+        if dep.isEmpty || identity != nil { return false }
+        return name.hasPrefix("refused through a client not listed for ") && name.hasSuffix(" of " + specificationOf(dep))
+    }
+
+    /// The trust domain of the design, or of the identity module given with
+    /// it; "" when neither says one.
+    var trustDomain: String {
+        let t = str(root.child("trustDomain"))
+        guard t.isEmpty, let identity else { return t }
+        return str(identity.design.root.child("trustDomain"))
+    }
+
     /// Every permission a role of the specification grants, directly or by
     /// implies.
     var grantedHere: Set<String> {

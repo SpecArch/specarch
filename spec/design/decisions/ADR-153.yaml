@@ -32,7 +32,8 @@ decisions:
       that it breaks. A hidden field is disabled, so it is neither checked
       nor sent: the record is read again once the conditions are applied,
       and a field entered twice is hidden and disabled with its second
-      entry.
+      entry; a second entry is not asked for while the record locks its
+      field.
       A picker keeps the value a loaded record gives it, as an option of
       its own while its list is not read or does not hold it, so the order
       of the two reads does not lose it. An empty field is null

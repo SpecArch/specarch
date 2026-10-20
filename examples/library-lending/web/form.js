@@ -152,20 +152,21 @@ export function form(page) {
     record = read(element);
     for (const [name, rule] of Object.entries(page.conditions)) {
       const control = field(name);
-      // A hidden field is disabled too, so the browser does not ask for it,
-      // and so is its second entry, which has a label of its own.
-      if (rule.hiddenWhen) {
-        const hidden = rule.hiddenWhen(record);
-        for (const shown of [control, ...own(element, `[data-again="${name}"]`)]) {
-          shown.closest("label").hidden = hidden;
-          shown.disabled = hidden;
-        }
-      }
+      const hidden = rule.hiddenWhen?.(record) ?? false;
+      const locked = rule.readOnlyWhen?.(record) ?? false;
+      // A hidden field is disabled too, so the browser does not ask for it.
       // A list or a box has no read-only state of its own; it is disabled.
-      if (rule.readOnlyWhen && "readOnly" in control && control.type !== "checkbox") {
-        control.readOnly = rule.readOnlyWhen(record);
-      } else if (rule.readOnlyWhen) {
-        control.disabled = rule.readOnlyWhen(record);
+      const lockable = "readOnly" in control && control.type !== "checkbox";
+      control.closest("label").hidden = hidden;
+      control.disabled = hidden || (locked && !lockable);
+      if (lockable) {
+        control.readOnly = locked;
+      }
+      // A second entry has a label of its own, and is not asked for while
+      // its field is hidden or locked.
+      for (const again of element.querySelectorAll(`[data-again="${name}"]`)) {
+        again.closest("label").hidden = hidden;
+        again.disabled = hidden || locked;
       }
     }
     record = read(element);

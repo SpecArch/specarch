@@ -53,5 +53,6 @@ What can be made from the specification now. A document is a draft while a must 
 | deployment document | ready | |
 | commissioning document | ready | |
 | html document | draft | 1 in requirements (Q-1), 1 in design (Q-2) |
+| manual document | ready | |
 | code generation | waits | 1 in requirements (Q-1), 1 in design (Q-2); not approved: there is no records/approvals/1.0.0.yaml beside the specification |
 

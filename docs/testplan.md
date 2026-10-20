@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.2-dev of the specification: 581 design tests, 267 golden and 314 red, about 17 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.2-dev of the specification: 583 design tests, 269 golden and 314 red, about 17 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 3 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -17,7 +17,7 @@ Version 0.7.2-dev of the specification: 581 design tests, 267 golden and 314 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 577 |
+| system | 579 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -519,6 +519,14 @@ Scenario: red; level: system; covers exit 1.
 - When: document techspec is run
 - Then: it prints the error, writes the technical specification with a Problems notice and a Problem paragraph at the relation, and exits 1
 
+#### document-manual-none
+
+Scenario: golden; level: system; verifies SA-90.
+
+- Given: a specification with no role, menu, flow or page, and an implementation file naming an output folder for manual
+- When: document manual is run
+- Then: it writes manual.md all the same, each empty section one sentence naming the key that fills it, and exits 0
+
 #### document-marker-unclosed
 
 Scenario: red; level: system; covers exit 1.
@@ -652,7 +660,7 @@ Scenario: golden; level: system.
 Scenario: red; level: system; covers exit 2.
 
 - Given: a document target of the design that this build does not offer
-- When: document manual is run
+- When: document operations is run
 - Then: it says which targets it has and exits 2
 
 #### document-techspec-0-3-clients
@@ -854,6 +862,14 @@ Scenario: golden; level: system; verifies SA-60.
 - Given: a specification with a requirement, three entities, two of them related, a decision, a permission a role grants, and must and could questions that block an entity, a field and a requirement's keys
 - When: document html is run
 - Then: it writes site/index.html, one page with the overview first, the entity diagram as SVG, every element under an id that is its pointer, a mark at each element a question blocks linking to the question, and each question in the problems linked to its entry, and exits 0
+
+#### document-writes-manual
+
+Scenario: golden; level: system; verifies SA-90.
+
+- Given: people's roles, a role a job acts as and one a client holds, a menu, a flow, a list with a filter and a row that opens a view, a view in sections with an operation action under a confirmation and a condition, a form with a required field and a check, a public task answering two ways, and problem types, one with a remedy
+- When: document manual is run
+- Then: it writes manual.md with the people's roles and the pages each opens, the job's and the client's roles left out, the public page, the menu, the flow as numbered steps starting from the menu, and each page with how it is reached, who opens it, its columns or fields, its actions, what follows a submission and, per problem it names, the message, the condition and the remedy, and exits 0
 
 #### document-writes-questions
 

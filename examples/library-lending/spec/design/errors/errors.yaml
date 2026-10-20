@@ -4,6 +4,7 @@ errors:
     status: 409
     title: Email address already registered
     condition: A member with the same email address exists.
+    remedy: Look the member up by the email address in the list of members; they are registered already.
   member-not-found:
     status: 404
     title: No such member
@@ -12,22 +13,27 @@ errors:
     status: 409
     title: The copy cannot be lent
     condition: The member is inactive, holds the most open loans their tier allows or has outstanding fees, or the book has no copy available.
+    remedy: "Open the member's record: return a copy first, settle the fees, or pick an earlier due day; for a book with no copy left, the member waits for one to come back."
   loan-closed:
     status: 409
     title: The loan is already closed
     condition: The loan was returned or reported lost before.
+    remedy: "Nothing to do: the loan is closed already. Refresh the list to see it as it is."
   fee-ledger-unavailable:
     status: 503
     title: The fee ledger is unavailable
     condition: The fee ledger failed or did not answer in time, and the loan stays as it was.
+    remedy: Wait a minute and try again; nothing was changed. Tell the IT staff if it goes on.
   sign-in-refused:
     status: 401
     title: Sign-in refused
     condition: No one has the email address, or the password does not match it.
+    remedy: Type the email address and the password again; after a forgotten password, reset it.
   second-factor-refused:
     status: 401
     title: Second factor refused
     condition: The code is not the one the authenticator app shows now, or the sign-in challenge is closed after five wrong codes or five minutes.
+    remedy: Type the code the authenticator app shows now, or sign in again.
   reset-code-refused:
     status: 409
     title: Reset code refused

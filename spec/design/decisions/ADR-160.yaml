@@ -32,9 +32,10 @@ decisions:
       event and the action; and a section per page with what it is for,
       who opens it, the fields to fill in or the columns shown, the
       actions with their confirmation, and for each problem the page
-      names its message, the problem's condition and its remedy. A role
-      only a job acts as, and one only a client holds, is a program, not
-      a person, and is left out of who uses the system.
+      names its message, the problem's condition and its remedy. A role a
+      job acts as or a client holds is a program, not a person, and is
+      left out of who uses the system, unless a flow names it as its
+      actor.
       specarch document operations writes operations.md: the
       environments and the hosts each implementation file deploys there;
       a checklist of what to look at on the live system, one row per

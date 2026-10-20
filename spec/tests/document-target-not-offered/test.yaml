@@ -4,5 +4,5 @@ level: system
 scenario: red
 covers: [exit 2]
 given: a document target of the design that this build does not offer
-when: document manual is run
+when: document operations is run
 then: it says which targets it has and exits 2

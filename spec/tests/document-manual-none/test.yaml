@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: document
+level: system
+scenario: golden
+given: "a specification with no role, menu, flow or page, and an implementation file naming an output folder for manual"
+when: "document manual is run"
+then: "it writes manual.md all the same, each empty section one sentence naming the key that fills it, and exits 0"
+verifies: [SA-90]

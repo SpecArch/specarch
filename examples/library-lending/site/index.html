@@ -3298,54 +3298,63 @@ ol.problems p{margin:2px 0}
 <th scope="col">status</th>
 <th scope="col">title</th>
 <th scope="col">condition</th>
+<th scope="col">remedy</th>
 </tr></thead><tbody>
 <tr data-search id="/errors/email-taken"><th scope="row">email-taken <a class="ptr" href="#/errors/email-taken">/errors/email-taken</a>
 </th>
 <td>409</td>
 <td>Email address already registered</td>
 <td>A member with the same email address exists.</td>
+<td>Look the member up by the email address in the list of members; they are registered already.</td>
 </tr>
 <tr data-search id="/errors/member-not-found"><th scope="row">member-not-found <a class="ptr" href="#/errors/member-not-found">/errors/member-not-found</a>
 </th>
 <td>404</td>
 <td>No such member</td>
 <td>No member has the id in the path.</td>
+<td></td>
 </tr>
 <tr data-search id="/errors/lending-refused"><th scope="row">lending-refused <a class="ptr" href="#/errors/lending-refused">/errors/lending-refused</a>
 </th>
 <td>409</td>
 <td>The copy cannot be lent</td>
 <td>The member is inactive, holds the most open loans their tier allows or has outstanding fees, or the book has no copy available.</td>
+<td>Open the member&#39;s record: return a copy first, settle the fees, or pick an earlier due day; for a book with no copy left, the member waits for one to come back.</td>
 </tr>
 <tr data-search id="/errors/loan-closed"><th scope="row">loan-closed <a class="ptr" href="#/errors/loan-closed">/errors/loan-closed</a>
 </th>
 <td>409</td>
 <td>The loan is already closed</td>
 <td>The loan was returned or reported lost before.</td>
+<td>Nothing to do: the loan is closed already. Refresh the list to see it as it is.</td>
 </tr>
 <tr data-search id="/errors/fee-ledger-unavailable"><th scope="row">fee-ledger-unavailable <a class="ptr" href="#/errors/fee-ledger-unavailable">/errors/fee-ledger-unavailable</a>
 </th>
 <td>503</td>
 <td>The fee ledger is unavailable</td>
 <td>The fee ledger failed or did not answer in time, and the loan stays as it was.</td>
+<td>Wait a minute and try again; nothing was changed. Tell the IT staff if it goes on.</td>
 </tr>
 <tr data-search id="/errors/sign-in-refused"><th scope="row">sign-in-refused <a class="ptr" href="#/errors/sign-in-refused">/errors/sign-in-refused</a>
 </th>
 <td>401</td>
 <td>Sign-in refused</td>
 <td>No one has the email address, or the password does not match it.</td>
+<td>Type the email address and the password again; after a forgotten password, reset it.</td>
 </tr>
 <tr data-search id="/errors/second-factor-refused"><th scope="row">second-factor-refused <a class="ptr" href="#/errors/second-factor-refused">/errors/second-factor-refused</a>
 </th>
 <td>401</td>
 <td>Second factor refused</td>
 <td>The code is not the one the authenticator app shows now, or the sign-in challenge is closed after five wrong codes or five minutes.</td>
+<td>Type the code the authenticator app shows now, or sign in again.</td>
 </tr>
 <tr data-search id="/errors/reset-code-refused"><th scope="row">reset-code-refused <a class="ptr" href="#/errors/reset-code-refused">/errors/reset-code-refused</a>
 </th>
 <td>409</td>
 <td>Reset code refused</td>
 <td>No one was sent the reset code, or it was used or has expired.</td>
+<td></td>
 </tr>
 </tbody></table></div>
 </section>

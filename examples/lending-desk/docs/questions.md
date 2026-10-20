@@ -181,6 +181,7 @@ What can be made from the specification now. A document is a draft while a must 
 | deployment document | ready | |
 | commissioning document | ready | |
 | html document | draft | 3 in requirements (Q-1, Q-3 and Q-2), 1 in design (Q-8), 3 in implementation (Q-6, Q-7 and Q-4), 1 in tests (Q-5) |
+| manual document | ready | |
 | code target openapi | waits | not approved: there is no records/approvals/0.1.0.yaml beside the specification |
 | code target sql | waits | not approved: there is no records/approvals/0.1.0.yaml beside the specification |
 | code target sqlc | waits | not approved: there is no records/approvals/0.1.0.yaml beside the specification |

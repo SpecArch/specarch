@@ -157,7 +157,7 @@ requirements:
     priority: should
     status: accepted
     acceptance:
-      - specarch document manual writes manual.md with the roles that open a page, each with the pages it opens, a role only a job acts as or only a client holds left out; the menus; each flow's steps as numbered instructions; and each page's purpose, who opens it, its fields or columns, its actions with their confirmation, and per problem it names the message, the condition and the remedy.
+      - specarch document manual writes manual.md with the roles that open a page, each with the pages it opens, a role a job acts as or a client holds left out unless a flow names it as its actor; the menus; each flow's steps as numbered instructions; and each page's purpose, who opens it, its fields or columns, its actions with their confirmation, and per problem it names the message, the condition and the remedy.
       - specarch document operations writes operations.md with the environments and their hosts, a checklist row per monitor, job and dependency, each monitor's response, each job's trigger, role and retries, each channel's carrier, publishers and consumers, each dependency's callers, the endpoints with their permissions, the settings, and the backup, restore and rollback steps.
       - A specification with no pages, flows, monitors or jobs still gets both documents, each empty section one sentence naming the key that fills it, and its errors marked as in every document.
       - A problem type without remedy and a monitor without response are read as before, with no error or warning, the same in both builds.

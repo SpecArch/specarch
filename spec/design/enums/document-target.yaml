@@ -6,8 +6,7 @@ enums:
       The documents `specarch document` writes from a specification, one per
       stage of the life cycle, the open questions, the problems, and from the records
       beside the specification the change register and the release notes.
-      manual and operations answer with status 2 until the specification
-      holds what they need (ADR-016).
+      operations answers with status 2 until it is built (ADR-160).
     enum: [techspec, requirements, testplan, traceability, deployment, commissioning, handover, questions, problems, changes, releases, html, manual, operations]
     valueDescriptions:
       techspec: arc42 technical specification in Markdown with generated Mermaid diagrams
@@ -22,9 +21,9 @@ enums:
       changes: the change and defect register, open items first, from the records beside the specification
       releases: release notes, newest first, each release's changes and fixes grouped as added, changed, removed and fixed, from the records
       html: "index.html, the whole specification as one page that needs no server and makes no request: an overview first, every element under an anchor named by its pointer, the entity diagram, each workflow's BPMN diagram, each generated screen, the traceability matrix, the open questions, and the problems linked both ways with the entries they mark"
-      manual: user manual, from the pages and permissions
+      manual: "user manual, for the people who use the system: the roles a person holds and the pages each opens, the menus, each flow as numbered steps, and each page with how it is reached, who opens it, its fields or columns, its actions, and for each problem it names the message, the condition and the remedy (ADR-160)"
       operations: operations guide, from the endpoints, channels and deployments
-    satisfies: [SA-7, SA-16, SA-19, SA-26, SA-51, SA-60, SA-73]
+    satisfies: [SA-7, SA-16, SA-19, SA-26, SA-51, SA-60, SA-73, SA-90]
     cites:
       - source: iso-29119-3
         clause: "7.2 and 8.3"

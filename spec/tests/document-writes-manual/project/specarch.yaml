@@ -1,0 +1,191 @@
+specarch: "0.1"
+info:
+  title: Shop
+  version: 1.0.0
+  description: A small shop that takes orders and payments.
+sources:
+  till-guide: { kind: document, title: The till's guide, edition: "2" }
+enums:
+  OrderState:
+    type: string
+    enum: [open, paid]
+    valueDescriptions: { open: Being filled., paid: Paid in full. }
+entities:
+  Order:
+    type: object
+    properties:
+      id: { type: string, format: uuid, readOnly: true }
+      customer: { title: Customer, type: string, minLength: 1, maxLength: 80, description: The name the customer gives at the till. }
+      state: { title: State, $ref: "#/enums/OrderState" }
+      total: { title: Total, type: string, format: decimal, precision: 10, scale: 2 }
+      note: { title: Note, type: string, maxLength: 200 }
+    required: [id, customer, state, total]
+    primaryKey: [id]
+permissions:
+  orders.read: { description: See orders. }
+  orders.write: { description: Take an order. }
+  orders.pay: { description: Take payment for an order., implies: [orders.read] }
+  public: { description: Everyone. }
+roles:
+  clerk: { description: Staff at the till., permissions: [orders.read, orders.write] }
+  cashier:
+    description: Staff who take payment.
+    permissions: [orders.pay]
+    why: Only the cashier holds the drawer's key.
+    cites:
+      - { source: till-guide, clause: "3.1", says: The drawer opens for the cashier alone. }
+  night-batch: { description: The nightly job., permissions: [orders.read] }
+  bookkeeping: { description: The accounts system., permissions: [orders.read] }
+clients:
+  accounts:
+    description: The accounts system.
+    kind: service
+    roles: [bookkeeping]
+    proof: { kind: mutualTls }
+jobs:
+  closeDay:
+    description: Every night, closes the day's open orders.
+    trigger: { schedule: "0 1 * * *" }
+    role: night-batch
+    reads: [Order]
+errors:
+  order-paid:
+    status: 409
+    title: The order is already paid
+    condition: Someone took payment for the order before.
+    remedy: Refresh the list; the order shows as paid.
+  pin-refused:
+    status: 401
+    title: PIN refused
+    condition: The PIN does not match the till's.
+paths:
+  /orders:
+    get:
+      operationId: listOrders
+      summary: List orders
+      permission: orders.read
+      responses:
+        "200":
+          description: The orders.
+          content: { application/json: { schema: { type: array, items: { $ref: "#/entities/Order" } } } }
+    post:
+      operationId: createOrder
+      summary: Take an order
+      permission: orders.write
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: "#/entities/Order" } } }
+      responses:
+        "201":
+          description: The order.
+          content: { application/json: { schema: { $ref: "#/entities/Order" } } }
+  /orders/{orderId}:
+    parameters:
+      - { name: orderId, in: path, required: true, schema: { type: string, format: uuid } }
+    get:
+      operationId: getOrder
+      summary: Show an order
+      permission: orders.read
+      responses:
+        "200":
+          description: The order.
+          content: { application/json: { schema: { $ref: "#/entities/Order" } } }
+  /orders/{orderId}/pay:
+    parameters:
+      - { name: orderId, in: path, required: true, schema: { type: string, format: uuid } }
+    post:
+      operationId: payOrder
+      summary: Take payment for an order
+      permission: orders.pay
+      responses:
+        "200":
+          description: The paid order.
+          content: { application/json: { schema: { $ref: "#/entities/Order" } } }
+        "409": { description: The order is already paid., problem: order-paid }
+  /till/unlock:
+    post:
+      operationId: unlockTill
+      summary: Unlock the till with its PIN
+      permission: public
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                pin: { title: PIN, type: string, minLength: 4, maxLength: 8, description: The four to eight digits on the back office's card. }
+              required: [pin]
+      responses:
+        "200": { description: Unlocked. }
+        "202": { description: "Unlocked, and the manager is told." }
+        "401": { description: Wrong PIN., problem: pin-refused }
+pages:
+  orders-list:
+    kind: list
+    title: Orders
+    route: /orders
+    entity: Order
+    permission: orders.read
+    source: listOrders
+    columns: [customer, state, total]
+    filters: [state]
+    onSelect: { navigate: order-view, with: { orderId: id } }
+    actions:
+      - { label: New order, kind: navigate, target: order-form, permission: orders.write }
+    states:
+      empty: { message: No order yet. }
+      filteredEmpty: { message: No order is in this state. }
+  order-view:
+    kind: view
+    title: Order
+    description: One order, with what is owed.
+    route: /orders/{orderId}
+    entity: Order
+    permission: orders.read
+    source: getOrder
+    sections:
+      - { title: Order, fields: [customer, total] }
+      - { title: State, fields: [state] }
+    actions:
+      - { label: Pay, kind: operation, target: payOrder, permission: orders.pay, when: 'state == "open"', confirm: "Take payment now?", then: { message: The order is paid. } }
+    states:
+      failed:
+        order-paid: { message: This order was paid already. }
+  order-form:
+    kind: form
+    title: New order
+    route: /orders/new
+    entity: Order
+    permission: orders.write
+    submit: createOrder
+    fields: [customer, total, note]
+    checks:
+      total-positive: { expression: "total > decimal(0, 2)", message: The total is more than zero., field: total }
+    onSubmitted: { navigate: order-view, with: { orderId: id }, message: The order is taken. }
+  unlock:
+    kind: task
+    title: Unlock the till
+    route: /unlock
+    permission: public
+    submit: unlockTill
+    fields: [pin]
+    states:
+      failed:
+        pin-refused: { message: The PIN is wrong., field: pin }
+    onSubmitted:
+      "200": { navigate: orders-list, message: The till is unlocked. }
+      "202": { navigate: orders-list }
+menus:
+  orders:
+    title: Orders
+    items:
+      all: { title: All orders, page: orders-list }
+      new: { title: New order, page: order-form }
+flows:
+  take-payment:
+    description: A cashier finds the order and takes payment for it.
+    actor: cashier
+    steps:
+      - { page: orders-list, event: select }
+      - { page: order-view, event: action, action: Pay }

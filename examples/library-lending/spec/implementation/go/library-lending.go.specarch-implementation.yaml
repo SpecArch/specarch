@@ -87,6 +87,9 @@ targets:
   handover:
     output: ../../../docs
     description: What the library's IT staff receive to build and run production, kept current by CI.
+  manual:
+    output: ../../../docs
+    description: The desk's manual, from the flows, menus and pages, kept current by CI.
   questions:
     output: ../../../docs
   problems:

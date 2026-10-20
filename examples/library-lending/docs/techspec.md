@@ -1199,6 +1199,7 @@ storage: github.com/jackc/pgx/v5. Money columns are `numeric(10,2)`.
 | deployment | ../../../docs |   |
 | commissioning | ../../../docs |   |
 | handover | ../../../docs |   |
+| manual | ../../../docs |   |
 | questions | ../../../docs |   |
 | problems | ../../../docs |   |
 | changes | ../../../docs |   |

@@ -1,12 +1,12 @@
 # Written by specarch decide; answers Q-3. Edit it as any decision.
 decisions:
   ADR-003:
-    title: Does the running system register POST /exportVault? It is declared at api/endpoints.go:58, and no list the running system printed was read with it.
+    title: Does the running system register POST /exportVault? It is declared at api/endpoints.go:62, and no list the running system printed was read with it.
     status: accepted
     date: "2026-10-20"
     context: |-
       Q-3 asked: Does the running system register POST /exportVault? It is
-      declared at api/endpoints.go:58, and no list the running system printed
+      declared at api/endpoints.go:62, and no list the running system printed
       was read with it. It blocked #/paths/~1exportVault/post. Syntax shows a
       declaration and not what runs; the document dxlib emits, or a route
       table, says what the running system registers, and merging it answers

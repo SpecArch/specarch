@@ -81,7 +81,14 @@ paths:
       operationId: uploadAttachment
       summary: Upload an attachment
       permission: notes.write
-      stream: { direction: upload }
+      stream:
+        direction: upload
+        parameters:
+          type: object
+          properties:
+            noteId: { type: string, minLength: 1, maxLength: 64, description: The note the attachment belongs to. }
+            tags: { type: array, maxItems: 10, items: { type: string, maxLength: 40 }, description: Words to find the attachment by. }
+          required: [noteId]
       limits: { maxRequestBytes: 1073741824 }
       requestBody:
         required: true

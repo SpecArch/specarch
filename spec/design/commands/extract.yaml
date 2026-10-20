@@ -558,8 +558,9 @@ commands:
         POST or PUT whose content type is JSON, a form or multipart takes
         the parameters as the fields of its body; one of an octet stream
         or plain text takes that body, and with no content type it takes
-        none, its parameters, which dxlib reads from the X-Var header,
-        printing a line. A GET or DELETE takes them as query parameters,
+        none; the parameters of an upload stream, which dxlib reads from
+        the X-Var header, are written as stream.parameters (ADR-162), and
+        those of any other such endpoint print a line. A GET or DELETE takes them as query parameters,
         as dxlib reads them; dxlib refuses any other method with 422
         before the handler, so its parameters are not written and a must
         question on the operation asks for them. A declared response is written under its

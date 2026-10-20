@@ -116,7 +116,34 @@ paths:
       responses:
         "204": { description: The note is done. }
         "404": { description: No such note., problem: note-gone }
+  /attachments:
+    post:
+      operationId: uploadAttachment
+      summary: Upload an attachment
+      permission: public
+      stream:
+        direction: upload
+        parameters:
+          type: object
+          properties:
+            caption: { type: string, title: Caption, maxLength: 120 }
+      requestBody:
+        required: true
+        content:
+          application/octet-stream:
+            schema: { type: string, format: binary }
+      responses:
+        "200": { description: The attachment is stored. }
 pages:
+  attach:
+    kind: task
+    title: Attach a file
+    route: /attach
+    permission: public
+    submit: uploadAttachment
+    fields: [caption]
+    onSubmitted:
+      "200": { message: The file is attached. }
   add-note:
     kind: task
     title: Add a note

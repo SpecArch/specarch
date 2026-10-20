@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: an upload whose parameters, sent beside the file, include one named as the path's folderId, an upload whose parameters are a string, a download that declares parameters, a task page on the first upload that shows no field, and one that shows tags and size
+when: validate is run on its folder
+then: it reports stream at folderId as a path parameter and a parameter of the upload, at the string as not an object and at the download's parameters as an upload's only; it reports the first page for not showing the required name and the second for size, which is not a parameter, and for not showing name; it exits 1
+verifies: [SA-77]

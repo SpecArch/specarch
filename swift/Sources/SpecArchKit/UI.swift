@@ -79,25 +79,30 @@ extension Checker {
             return
         }
         let (props, required) = d.requestFields(op)
+        // A task that uploads may show no field (checkSections), but not when
+        // the upload requires parameters (ADR-162).
+        let upload = str(op.child("stream")?.child("direction")) == "upload"
+        let of = upload ? "the parameters \(submit) takes beside the file it uploads" : "the request body of \(submit)"
+        let holds = upload ? "whose upload requires the parameter" : "whose request body requires"
         var shown = Set<String>()
         for (i, f) in items(pg.child("fields")).enumerated() {
             shown.insert(f.value)
             if props[f.value] == nil {
-                add(f, pointer(base + ["fields", "\(i)"]), .page, "\(f.value) is not a property of the request body of \(submit), which \(name) submits to\(suggest(f.value, props))")
+                add(f, pointer(base + ["fields", "\(i)"]), .page, "\(f.value) is not a property of \(of), which \(name) submits to\(suggest(f.value, props))")
             }
         }
         for (i, sec) in items(pg.child("sections")).enumerated() {
             for (j, f) in items(sec.child("fields")).enumerated() {
                 shown.insert(f.value)
                 if props[f.value] == nil {
-                    add(f, pointer(base + ["sections", "\(i)", "fields", "\(j)"]), .page, "\(f.value) is not a property of the request body of \(submit), which \(name) submits to\(suggest(f.value, props))")
+                    add(f, pointer(base + ["sections", "\(i)", "fields", "\(j)"]), .page, "\(f.value) is not a property of \(of), which \(name) submits to\(suggest(f.value, props))")
                 }
             }
         }
         let missing = required.filter { !shown.contains($0) }
-        if !missing.isEmpty && !shown.isEmpty {
+        if !missing.isEmpty && (!shown.isEmpty || upload) {
             let it = missing.count == 1 ? "it" : "them"
-            add(pg.key("fields") ?? pg.key("sections"), pointer(base), .page, "\(name) submits to \(submit), whose request body requires \(missing.joined(separator: " and ")); show \(it) on the page, since the request cannot succeed without \(it)")
+            add(pg.key("fields") ?? pg.key("sections") ?? pg.child("submit"), pointer(base), .page, "\(name) submits to \(submit), \(holds) \(missing.joined(separator: " and ")); show \(it) on the page, since the request cannot succeed without \(it)")
         }
     }
 

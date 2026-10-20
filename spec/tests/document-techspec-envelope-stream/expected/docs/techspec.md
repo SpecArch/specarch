@@ -4,7 +4,7 @@
 
 Version 1.0.0 of the specification: 5 HTTP operations. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
-**Problems:** 19 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
+**Problems:** 20 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
 **Problem:** warning: meta_model_version: the specification is written against meta-model 0.1, which is read until 1.0, and its missing tests are warnings; run specarch derive to write the tests 0.2 asks for, then change the line to specarch: "0.3" once nothing an expression can name is called caller [meta_model_version@specarch.yaml#/specarch]
 
@@ -149,13 +149,22 @@ sequenceDiagram
 
 ### uploadAttachment (POST /attachments)
 
-**Problem:** warning: test_case_missing: operation uploadAttachment has no red scenario for "denied without notes.write"; add under tests upload-attachment-denied-without-notes-write: { operation: uploadAttachment, scenario: red, covers: [denied without notes.write], given: "a caller without notes.write", when: "uploadAttachment is called", then: "it is refused as not allowed" } [test_case_missing@specarch.yaml#/paths/~1attachments/post]
+**Problem:** warning: test_case_missing: operation uploadAttachment has no red scenario for "denied without notes.write"; add under tests upload-attachment-denied-without-notes-write: { operation: uploadAttachment, scenario: red, covers: [denied without notes.write], given: "a caller without notes.write", when: "uploadAttachment is called", then: "it is refused as not allowed" } [test_case_missing.d7b5e7bf@specarch.yaml#/paths/~1attachments/post]
+
+**Problem:** warning: test_case_missing: operation uploadAttachment has no red scenario for "missing noteId"; add under tests upload-attachment-missing-note-id: { operation: uploadAttachment, scenario: red, covers: [missing noteId], given: "...", when: "uploadAttachment is called without noteId", then: "it is refused" } [test_case_missing.f405bd3c@specarch.yaml#/paths/~1attachments/post]
 
 **Problem:** warning: test_golden_missing: operation uploadAttachment has no golden scenario; add one under tests, for example upload-attachment-succeeds: { operation: uploadAttachment, scenario: golden, given: "a caller with notes.write", when: "uploadAttachment is called with values inside every limit", then: "it answers 200: The attachment is stored." } [test_golden_missing@specarch.yaml#/paths/~1attachments/post]
 
-Streams the request body in as a file, application/octet-stream, of at most 1073741824 bytes, read as it arrives and never held whole; the body is the file and carries no fields.
+Streams the request body in as a file, application/octet-stream, of at most 1073741824 bytes, read as it arrives and never held whole; the body is the file, and the parameters listed below travel beside it.
 
-Takes no parameters.
+Takes no path or query parameters.
+
+Parameters, sent beside the file as one JSON object in a header the stack names:
+
+| Field | Type | Required | Limits | Description |
+|---|---|---|---|---|
+| noteId | string | yes | at least 1 character, at most 64 characters | The note the attachment belongs to. |
+| tags | list of string |   | at most 10 items | Words to find the attachment by. |
 
 Limits: a request body of at most 1073741824 bytes.
 

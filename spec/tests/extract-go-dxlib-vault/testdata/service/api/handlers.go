@@ -24,8 +24,16 @@ func AddNote(aepr *api.DXAPIEndPointRequest) (err error) {
 	return nil
 }
 
-// UploadAttachment reads the stream to its end.
+// UploadAttachment reads the note and tags, then the stream to its end.
 func UploadAttachment(aepr *api.DXAPIEndPointRequest) (err error) {
+	_, _, err = aepr.GetParameterValueAsString("note_id")
+	if err != nil {
+		return err
+	}
+	_, _, err = aepr.GetParameterValueAsStrings("tags")
+	if err != nil {
+		return err
+	}
 	var n int64
 	n, err = io.Copy(io.Discard, aepr.Request.Body)
 	if err != nil {

@@ -434,6 +434,9 @@ func (g *Gen) TaskPage(pageName string, pg map[string]any) (*Page, bool) {
 	if PathParam.MatchString(path) {
 		g.Problem("error", at+"/submit", "%s submits to %s at %s, whose path takes a parameter, and this version of %s sends a task's fields in the body only", pageName, submit, path, name)
 	}
+	if upload && len(props) > 0 && g.Dialect != "dxlib" {
+		g.Problem("error", at+"/submit", "%s submits to %s, which takes parameters beside the file it uploads (%s), and they travel in a header the stack names; the standard dialect names none, so %s would send the file without them (ADR-162)", pageName, submit, strings.Join(sortedKeys(props), ", "), name)
+	}
 	if pg["sections"] != nil {
 		g.Problem("error", at+"/sections", "%s gives its fields in sections, and this version of %s writes a task's fields as one list; list them under fields", pageName, name)
 	}
@@ -672,6 +675,11 @@ func wireOf(wires map[string]string, fname string) string {
 // it refers to read in its place.
 func (g *Gen) BodySchema(op map[string]any) map[string]any {
 	s := obj0(obj0(obj0(obj0(obj0(op["requestBody"])["content"])["application/json"])["schema"]))
+	if st := obj0(op["stream"]); text(st["direction"]) == "upload" {
+		// The body is the file; a task's fields are the parameters sent
+		// beside it (ADR-162).
+		s = obj0(st["parameters"])
+	}
 	if ref, ok := strings.CutPrefix(text(s["$ref"]), "#/entities/"); ok {
 		return obj0(obj0(g.Spec["entities"])[ref])
 	}

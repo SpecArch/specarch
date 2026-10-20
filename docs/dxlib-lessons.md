@@ -600,7 +600,9 @@ generator does it better.
 - **Header-carried parameters** (`X-Var` beside a raw body), the
   include-deleted flag, the search-columns override, the download formats:
   runtime details of one library. They live in the go-dxlib idioms, not in
-  the design.
+  the design. The design says only that an upload's parameters travel
+  beside the file (`stream.parameters`, ADR-162); the header's name is the
+  stack's.
 - **Country-specific formats as types.** A tax-number type is a `pattern`
   on a field of one project.
 - **The deprecated and legacy rows.** The string-backed decimal and the

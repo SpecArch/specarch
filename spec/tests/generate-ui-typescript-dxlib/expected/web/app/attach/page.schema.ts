@@ -14,7 +14,7 @@ export const schema = {
     mediaType: "application/pdf",
     file: { label: "attach.file.label", button: "attach.file.button", maxBytes: 104857600, tooLarge: "attach.file.tooLarge" },
   },
-  fields: [],
+  fields: [{ type: "text", name: "caption", label: "attach.fields.caption", required: false, maxLength: 120 }],
   checks: [],
   failed: [],
   events: [{ status: 200, message: "attach.onSubmitted.200" }],

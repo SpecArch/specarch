@@ -542,8 +542,7 @@ func (g *gen) dxOperation(path, method string, op, item map[string]any) *yaml.No
 			required = append(required, text(pm["name"]))
 		}
 	}
-	for _, c := range obj(obj(op["requestBody"])["content"]) {
-		schema := obj(obj(c)["schema"])
+	fold := func(schema map[string]any) {
 		if r := text(schema["$ref"]); strings.HasPrefix(r, "#/entities/") || strings.HasPrefix(r, "#/schemas/") {
 			section, name, _ := strings.Cut(strings.TrimPrefix(r, "#/"), "/")
 			e := obj(obj(g.spec[section])[name])
@@ -566,7 +565,15 @@ func (g *gen) dxOperation(path, method string, op, item map[string]any) *yaml.No
 			}
 			required = append(required, list(schema["required"])...)
 		}
+	}
+	for _, c := range obj(obj(op["requestBody"])["content"]) {
+		fold(obj(obj(c)["schema"]))
 		break
+	}
+	// An upload's parameters travel in X-Var with the path's and the
+	// query's, which dxlib reads from there too (ADR-162).
+	if ps := obj(obj(op["stream"])["parameters"]); ps != nil {
+		fold(ps)
 	}
 	l, isList := op["listOf"].(map[string]any)
 	if isList && !g.dxListParameters(at, l, props) {
@@ -578,10 +585,7 @@ func (g *gen) dxOperation(path, method string, op, item map[string]any) *yaml.No
 	case stream == "upload":
 		// dxlib hands an upload stream's body to the handler unread, and
 		// reads the parameters of such a request from the X-Var header,
-		// which the meta-model does not hold (ADR-146).
-		if len(props) > 0 {
-			g.diags = append(g.diags, g.problem(at, "%s streams an upload and takes parameters (%s); dxlib reads an upload stream's parameters from the X-Var header, which the meta-model does not hold, so an upload in the dxlib dialect takes none", id, strings.Join(sortedKeys(props), ", ")))
-		}
+		// written as x-dxlib-parameters below (ADR-162).
 		// The validator leaves the design one binary media type; dxlib
 		// takes an upload stream only as octet-stream, so another is
 		// written as that and said, and the go-dxlib client sends the
@@ -603,6 +607,9 @@ func (g *gen) dxOperation(path, method string, op, item map[string]any) *yaml.No
 		add(c, "application/octet-stream", m)
 		add(body, "content", c)
 		add(n, "requestBody", body)
+		if len(props) > 0 {
+			add(n, "x-dxlib-parameters", g.dxSchema(map[string]any{"type": "object", "properties": props, "required": uniqueSorted(required)}, at+"/stream/parameters"))
+		}
 	case len(props) > 0:
 		body := mapping()
 		add(body, "required", boolean(true))

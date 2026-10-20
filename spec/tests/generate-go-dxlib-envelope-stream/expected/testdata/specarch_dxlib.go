@@ -263,19 +263,36 @@ func IssuePreKey(aepr *api.DXAPIEndPointRequest) error {
 	return nil
 }
 
-// specarch-problem: warning: test_case_missing: operation uploadAttachment has no red scenario for "denied without notes.write"; add under tests upload-attachment-denied-without-notes-write: { operation: uploadAttachment, scenario: red, covers: [denied without notes.write], given: "a caller without notes.write", when: "uploadAttachment is called", then: "it is refused as not allowed" } [test_case_missing@specarch.yaml#/paths/~1attachments/post]
+// specarch-problem: warning: test_case_missing: operation uploadAttachment has no red scenario for "denied without notes.write"; add under tests upload-attachment-denied-without-notes-write: { operation: uploadAttachment, scenario: red, covers: [denied without notes.write], given: "a caller without notes.write", when: "uploadAttachment is called", then: "it is refused as not allowed" } [test_case_missing.d7b5e7bf@specarch.yaml#/paths/~1attachments/post]
+// specarch-problem: warning: test_case_missing: operation uploadAttachment has no red scenario for "missing noteId"; add under tests upload-attachment-missing-note-id: { operation: uploadAttachment, scenario: red, covers: [missing noteId], given: "...", when: "uploadAttachment is called without noteId", then: "it is refused" } [test_case_missing.f405bd3c@specarch.yaml#/paths/~1attachments/post]
 // specarch-problem: warning: test_golden_missing: operation uploadAttachment has no golden scenario; add one under tests, for example upload-attachment-succeeds: { operation: uploadAttachment, scenario: golden, given: "a caller with notes.write", when: "uploadAttachment is called with values inside every limit", then: "it answers 200: The attachment is stored." } [test_golden_missing@specarch.yaml#/paths/~1attachments/post]
 // UploadAttachmentRequest holds the parameters of uploadAttachment; Has says whether one was given.
 type UploadAttachmentRequest struct {
+	NoteId    string
+	HasNoteId bool
+	Tags      []string
+	HasTags   bool
 }
 
 func readUploadAttachmentRequest(aepr *api.DXAPIEndPointRequest) (r UploadAttachmentRequest, err error) {
+	if r.HasNoteId, r.NoteId, err = aepr.GetParameterValueAsString("note_id"); err != nil {
+		return r, err
+	}
+	if r.HasTags, r.Tags, err = aepr.GetParameterValueAsStrings("tags"); err != nil {
+		return r, err
+	}
 	return r, nil
 }
 
 // checkUploadAttachment checks what dxlib's validator does not: the constraints the
 // document lists under x-specarch-unenforced.
 func checkUploadAttachment(aepr *api.DXAPIEndPointRequest, r UploadAttachmentRequest) error {
+	if r.HasNoteId && utf8.RuneCountInString(r.NoteId) > 64 {
+		return aepr.WriteResponseAndNewErrorf(http.StatusUnprocessableEntity, "", "%s", "INVALID_PARAMETER:note_id:maxLength: 64")
+	}
+	if r.HasTags && len(r.Tags) > 10 {
+		return aepr.WriteResponseAndNewErrorf(http.StatusUnprocessableEntity, "", "%s", "INVALID_PARAMETER:tags:maxItems: 10")
+	}
 	return nil
 }
 

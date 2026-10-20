@@ -12,6 +12,8 @@ export type Language = (typeof languages)[number];
 export const languageCookie = "language";
 
 export const strings = {
+  "attach.fields.caption": "Caption",
+  "attach.onSubmitted.200": "The file is attached.",
   "screens.actions": "Actions",
   "screens.addItem": "Add an item",
   "screens.addRow": "Add a row",

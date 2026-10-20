@@ -68,7 +68,11 @@ func operationRequest(d *doc, root *yaml.Node, o operation, explained map[*yaml.
 		d.explainRows(rows)
 	}
 	if len(params) == 0 {
-		d.openUnder(o, told, "Takes no parameters", "parameters")
+		text := "Takes no parameters"
+		if get(get(o.node, "stream"), "parameters") != nil {
+			text = "Takes no path or query parameters"
+		}
+		d.openUnder(o, told, text, "parameters")
 	}
 	if body == nil {
 		if bodyMethods[o.method] {
@@ -77,7 +81,11 @@ func operationRequest(d *doc, root *yaml.Node, o operation, explained map[*yaml.
 		return
 	}
 	if streamDirection(o.node) == "upload" {
-		// The transport paragraph says the body is the file, streamed.
+		// The transport paragraph says the body is the file, streamed; the
+		// parameters sent beside it are listed here (ADR-162).
+		if ps := get(get(o.node, "stream"), "parameters"); ps != nil {
+			d.body(root, "Parameters, sent beside the file as one JSON object in a header the stack names", "upload parameters", ps)
+		}
 		d.explainRows([]row{{"the request body", body}})
 		return
 	}

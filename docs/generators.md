@@ -295,9 +295,10 @@ dxlib hands a handler an upload's body unread only as that type: a design
 that names another binary media type for it gets octet-stream and a
 warning at the operation, and the go-dxlib client sends the design's
 type, which dxlib accepts, as it does not read an upload stream's
-Content-Type. An upload takes no parameter, since dxlib reads an upload's
-parameters from the X-Var header, which the meta-model does not hold
-(`docs/roadmap.md`, 5a); a download stream is
+Content-Type. An upload's parameters, `stream.parameters` with the path's
+and the query's folded in, are written as `x-dxlib-parameters`, the object
+dxlib reads from the X-Var header beside an upload's body (ADR-162); a
+download stream is
 `EndPointTypeHTTPDownloadStream` with its success response described and
 carrying no content, since dxlib's reader takes a response's content only
 as a JSON object. Every other operation is `EndPointTypeHTTPJSON`. The
@@ -379,7 +380,8 @@ A stream (ADR-146) changes the handler's body call. An upload's body takes
 the request body as a reader, `body<Operation>(aepr, r, UploadStream(aepr,
 limit))`, held to `limits.maxRequestBytes` by `UploadStream`, since dxlib
 caps a streamed upload only by its declared Content-Length and a chunked
-upload declares none; an upload takes no parameter, as in the dialect. A
+upload declares none; an upload's parameters are read into the request
+struct as a body's are, from the values dxlib fills from X-Var. A
 download's body streams the file through `SendStream` with the status and
 the media type the design gives the file and `limits.maxResponseBytes`,
 written as constants beside the handler: the headers, the status, then the
@@ -393,12 +395,14 @@ it, a POST at `/<operationId>`. `Handshake` performs the exchange and holds
 the keys; an operation in the envelope is sealed and opened as the hooks
 do, the status and the answer being the ones inside, and a plain refusal
 (dxlib's `REFRESH_PREKEY`) is answered as it came; an upload streams from a
-reader with its size as the media type the design gives it, a download
+reader with its size as the media type the design gives it, its parameters
+sent as one JSON object in X-Var, a download
 streams into a writer and answers a refusal's JSON instead of the file. The round-trip test of this repository
 generates the vault fixture, binds the service to a dxlib API through the
 document the dialect writes, and drives the client through the handshake,
-an encrypted call, a refused second envelope, a 40 MiB upload and download
-hashed on both sides, and an encrypted request answered with a stream; it
+an encrypted call, a refused second envelope, a 40 MiB upload with its
+parameters and download hashed on both sides, an upload refused without the
+parameter it requires, and an encrypted request answered with a stream; it
 runs when `SPECARCH_DXLIB` names a dxlib checkout, and also drives the
 TypeScript screens' `transport.ts` on Node when `node` is on PATH. Its
 extract leg reads the same vault written by hand on dxlib

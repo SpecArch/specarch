@@ -120,7 +120,11 @@ func operationTransport(d *doc, root *yaml.Node, op *yaml.Node) {
 		if n := str(get(op, "limits"), "maxRequestBytes"); n != "" {
 			text += ", of at most " + n + " bytes"
 		}
-		d.para(text + ", read as it arrives and never held whole; the body is the file and carries no fields.")
+		if get(get(op, "stream"), "parameters") != nil {
+			d.para(text + ", read as it arrives and never held whole; the body is the file, and the parameters listed below travel beside it.")
+		} else {
+			d.para(text + ", read as it arrives and never held whole; the body is the file and carries no fields.")
+		}
 	case "download":
 		text := "Streams the response body out as a file"
 		if mt := streamMediaType(op); mt != "" {

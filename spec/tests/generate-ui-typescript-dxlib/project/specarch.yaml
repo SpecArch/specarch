@@ -121,7 +121,12 @@ paths:
       operationId: uploadAttachment
       summary: Upload an attachment
       permission: public
-      stream: { direction: upload }
+      stream:
+        direction: upload
+        parameters:
+          type: object
+          properties:
+            caption: { type: string, title: Caption, maxLength: 120 }
       limits: { maxRequestBytes: 104857600 }
       requestBody:
         required: true
@@ -162,6 +167,7 @@ pages:
     route: /attach
     permission: public
     submit: uploadAttachment
+    fields: [caption]
     onSubmitted:
       "200": { message: The file is attached. }
   add-note:

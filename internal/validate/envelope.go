@@ -67,6 +67,7 @@ func (c *checker) checkStream(o operation) {
 		return
 	}
 	ptr := o.pointer("stream")
+	c.checkStreamParameters(o, s, dir)
 	switch dir {
 	case "upload":
 		if !streamMethods[o.method] {
@@ -93,6 +94,46 @@ func (c *checker) checkStream(o operation) {
 		}
 		if !found {
 			c.add(s, ptr, RuleStream, "%s streams a download and declares no success response to carry it; declare a 2xx response with the file's media type and a schema of type string and format binary", o.id)
+		}
+	}
+}
+
+// checkStreamParameters checks an upload's parameters (ADR-162): beside an
+// upload only, an object, and no property named as a path or query
+// parameter of the operation, since a stack that folds them together
+// would carry two values under one name.
+func (c *checker) checkStreamParameters(o operation, s *yaml.Node, dir string) {
+	params := source.Child(s, "parameters")
+	if params == nil {
+		return
+	}
+	ptr := o.pointer("stream", "parameters")
+	if dir != "upload" {
+		c.add(source.Key(s, "parameters"), ptr, RuleStream, "%s streams a %s, and parameters travel beside the file of an upload only; send them in the request body, or leave them out", o.id, dir)
+		return
+	}
+	if source.Child(params, "$ref") != nil {
+		return
+	}
+	if t := source.Str(source.Child(params, "type")); t != "object" {
+		what := "of no type"
+		if t != "" {
+			what = "of type " + t
+		}
+		c.add(params, ptr, RuleStream, "the parameters of %s's upload are one JSON object sent beside the file, and its schema is %s; give it type: object with its properties, or a $ref to a schema", o.id, what)
+		return
+	}
+	taken := map[string]string{}
+	for _, list := range []*yaml.Node{source.Child(o.pathItem, "parameters"), source.Child(o.node, "parameters")} {
+		for _, p := range source.Items(list) {
+			if in := source.Str(source.Child(p, "in")); in == "path" || in == "query" {
+				taken[source.Str(source.Child(p, "name"))] = in
+			}
+		}
+	}
+	for _, p := range source.Pairs(source.Child(params, "properties")) {
+		if in, ok := taken[p.Key.Value]; ok {
+			c.add(p.Key, o.pointer("stream", "parameters", "properties", p.Key.Value), RuleStream, "%s is a %s parameter of %s and a parameter of its upload; a stack that sends them together would carry two values under one name, so name one of them otherwise", p.Key.Value, in, o.id)
 		}
 	}
 }

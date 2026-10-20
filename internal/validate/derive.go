@@ -665,6 +665,11 @@ func (d *design) requestFields(op *yaml.Node) (map[string]*yaml.Node, []string) 
 		return nil, nil
 	}
 	schema := source.Child(content[0].Value, "schema")
+	if s := source.Child(op, "stream"); source.Str(source.Child(s, "direction")) == "upload" {
+		// The body is the file; the fields are the parameters sent beside
+		// it (ADR-162).
+		schema = source.Child(s, "parameters")
+	}
 	readOnlyLeftOut := false
 	if ref := source.Str(source.Child(schema, "$ref")); strings.HasPrefix(ref, "#/entities/") {
 		schema = d.entities[strings.TrimPrefix(ref, "#/entities/")]

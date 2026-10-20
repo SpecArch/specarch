@@ -170,8 +170,11 @@ service in the standard dialect, is an error at the page that calls it.
 round trip in `internal/gendxlib` drives it against a generated dxlib
 service. Files stream where a page takes one: a task page whose submit
 streams an upload shows Carbon's `FileUploader` and sends the file picked
-as the body, refusing one above `maxRequestBytes` before it is sent, and
-may show no field; an action whose operation streams a download saves the
+as the body, refusing one above `maxRequestBytes` before it is sent; its
+fields are the upload's parameters, sent beside the file in X-Var in the
+dxlib dialect, and it may show none when none is required, while in the
+standard dialect, which names no header for them, an upload with
+parameters is an error at the page (ADR-162); an action whose operation streams a download saves the
 file under the name its `Content-Disposition` gives. A page that loads,
 reads or submits a stream anywhere else is an error at the page. The session is still read at its path as a plain GET, and a
 server route that pages a list the service answers whole is refused

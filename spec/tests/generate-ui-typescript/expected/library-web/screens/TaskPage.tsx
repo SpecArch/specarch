@@ -52,7 +52,8 @@ function destination(event: EventSchema, routes: Readonly<Record<string, string>
 
 /**
  * A form that sends its fields to an operation without loading a record,
- * or streams the file picked to an upload, and goes where the answer leads.
+ * or streams the file picked to an upload with its fields beside it, and goes
+ * where the answer leads.
  */
 export function TaskPage({ schema, texts, routes, returnTo }: TaskPageProps) {
   const router = useRouter();
@@ -82,7 +83,7 @@ export function TaskPage({ schema, texts, routes, returnTo }: TaskPageProps) {
     const body = Object.fromEntries(Object.entries(values).filter(([, value]) => value !== ""));
     let response: Response;
     try {
-      response = picks !== undefined && file !== undefined ? await upload(schema.submit, file) : await call(schema.submit, { body });
+      response = picks !== undefined && file !== undefined ? await upload(schema.submit, file, { body }) : await call(schema.submit, { body });
     } catch {
       setBusy(false);
       setProblems({ "": say(texts, "screens.failed") });

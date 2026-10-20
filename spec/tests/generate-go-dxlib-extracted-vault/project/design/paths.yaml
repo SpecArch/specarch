@@ -9,7 +9,7 @@ permissions:
     origin: decided
     why: 'dxlib names the privilege NOTES.READ, and by the rule of ADR-076 a privilege named in capitals, digits and underscores, in segments joined by dots, is the permission of that name in lower case with every underscore a dot: notes.read.'
     cites:
-      - {source: code, clause: 'api/endpoints.go:49', says: POST /downloadAttachment and POST /exportVault check NOTES.READ in its privileges.}
+      - {source: code, clause: 'api/endpoints.go:53', says: POST /downloadAttachment and POST /exportVault check NOTES.READ in its privileges.}
   notes.write:
     description: Add notes and attachments.
     decidedIn: ADR-009
@@ -98,8 +98,8 @@ paths:
           problem: attachment-not-found
       origin: stated
       cites:
-        - {source: code, clause: 'api/endpoints.go:49', says: 'NewEndPoint registers POST /downloadAttachment; its handler is DownloadAttachment, it has no middleware, it declares the parameter attachment_id and the responses 200 and 404, and it checks NOTES.READ; it streams its response body as a file.'}
-        - {source: code, clause: 'api/handlers.go:39', says: The handler of POST /downloadAttachment reads the parameter attachment_id and answers 404 ATTACHMENT_NOT_FOUND.}
+        - {source: code, clause: 'api/endpoints.go:53', says: 'NewEndPoint registers POST /downloadAttachment; its handler is DownloadAttachment, it has no middleware, it declares the parameter attachment_id and the responses 200 and 404, and it checks NOTES.READ; it streams its response body as a file.'}
+        - {source: code, clause: 'api/handlers.go:47', says: The handler of POST /downloadAttachment reads the parameter attachment_id and answers 404 ATTACHMENT_NOT_FOUND.}
   /exportVault:
     post:
       operationId: exportVault
@@ -128,8 +128,8 @@ paths:
               schema: {type: string, format: binary}
       origin: stated
       cites:
-        - {source: code, clause: 'api/endpoints.go:58', says: 'NewEndPoint registers POST /exportVault; its handler is ExportVault, it has no middleware, it declares the parameter format and the response 200, and it checks NOTES.READ; its request travels in the pre-key envelope, and it streams its response body as a file.'}
-        - {source: code, clause: 'api/handlers.go:48', says: The handler of POST /exportVault reads the parameter format.}
+        - {source: code, clause: 'api/endpoints.go:62', says: 'NewEndPoint registers POST /exportVault; its handler is ExportVault, it has no middleware, it declares the parameter format and the response 200, and it checks NOTES.READ; its request travels in the pre-key envelope, and it streams its response body as a file.'}
+        - {source: code, clause: 'api/handlers.go:56', says: The handler of POST /exportVault reads the parameter format.}
   /issuePreKey:
     post:
       operationId: issuePreKey
@@ -180,7 +180,20 @@ paths:
       description: Streams a file into the vault.
       permission: notes.write
       middlewares: []
-      stream: {direction: upload}
+      stream:
+        direction: upload
+        parameters:
+          type: object
+          properties:
+            noteId:
+              type: string
+              description: The note the attachment belongs to.
+              minLength: 1
+            tags:
+              type: array
+              description: Words to find the attachment by.
+              items: {type: string}
+          required: [noteId]
       limits: {maxRequestBytes: 1073741824}
       requestBody:
         content:
@@ -199,9 +212,9 @@ paths:
                 required: [attachmentId, size]
       origin: stated
       cites:
-        - {source: code, clause: 'api/endpoints.go:41', says: 'NewEndPoint registers POST /uploadAttachment; its handler is UploadAttachment, it has no middleware, it declares no parameter and the response 200, and it checks NOTES.WRITE; it streams its request body as a file.'}
-        - {source: code, clause: 'api/handlers.go:28', says: The handler of POST /uploadAttachment reads no parameter by name.}
-        - {source: code, clause: 'api/handlers.go:34', says: 'The handler of POST /uploadAttachment answers with WriteResponseAsJSON(http.StatusOK, nil, utils.JSON{"attachment_id", "size"}).'}
+        - {source: code, clause: 'api/endpoints.go:41', says: 'NewEndPoint registers POST /uploadAttachment; its handler is UploadAttachment, it has no middleware, it declares the parameters note_id and tags and the response 200, and it checks NOTES.WRITE; it streams its request body as a file.'}
+        - {source: code, clause: 'api/handlers.go:28', says: The handler of POST /uploadAttachment reads the parameters note_id and tags.}
+        - {source: code, clause: 'api/handlers.go:42', says: 'The handler of POST /uploadAttachment answers with WriteResponseAsJSON(http.StatusOK, nil, utils.JSON{"attachment_id", "size"}).'}
 errors:
   attachment-not-found:
     status: 404
@@ -210,4 +223,4 @@ errors:
     decidedIn: ADR-012
     origin: decided
     cites:
-      - {source: code, clause: 'api/handlers.go:44', says: Answers 404 with the reason ATTACHMENT_NOT_FOUND.}
+      - {source: code, clause: 'api/handlers.go:52', says: Answers 404 with the reason ATTACHMENT_NOT_FOUND.}

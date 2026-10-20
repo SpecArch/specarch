@@ -1,12 +1,12 @@
 # Written by specarch decide; answers Q-14. Edit it as any decision.
 decisions:
   ADR-014:
-    title: 'api/handlers.go:38: the registration of POST /downloadAttachment at api/endpoints.go:49 declares the response 200, and the handler api.DownloadAttachment of POST /downloadAttachment answers it nowhere in its own body, which calls no function of the module, nor does a middleware of its chain. Does the operation answer 200, or is the declaration stale?'
+    title: 'api/handlers.go:46: the registration of POST /downloadAttachment at api/endpoints.go:53 declares the response 200, and the handler api.DownloadAttachment of POST /downloadAttachment answers it nowhere in its own body, which calls no function of the module, nor does a middleware of its chain. Does the operation answer 200, or is the declaration stale?'
     status: accepted
     date: "2026-10-20"
     context: |-
-      Q-14 asked: api/handlers.go:38: the registration of POST
-      /downloadAttachment at api/endpoints.go:49 declares the response 200,
+      Q-14 asked: api/handlers.go:46: the registration of POST
+      /downloadAttachment at api/endpoints.go:53 declares the response 200,
       and the handler api.DownloadAttachment of POST /downloadAttachment
       answers it nowhere in its own body, which calls no function of the
       module, nor does a middleware of its chain. Does the operation answer

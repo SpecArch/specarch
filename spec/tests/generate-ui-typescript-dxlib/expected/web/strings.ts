@@ -15,6 +15,7 @@ export const strings = {
   "add-note.fields.title": "Title",
   "add-note.onSubmitted.201": "The note is added.",
   "add-note.title": "Add a note",
+  "attach.fields.caption": "Caption",
   "attach.file.button": "Choose a file",
   "attach.file.label": "The attachment",
   "attach.file.tooLarge": "The file is larger than 104857600 bytes.",

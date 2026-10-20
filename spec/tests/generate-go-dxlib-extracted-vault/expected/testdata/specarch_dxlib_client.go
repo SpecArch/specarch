@@ -239,14 +239,23 @@ func (c *Client) callEncrypted(ctx context.Context, operationId string, body map
 
 // upload posts a file as the request body, streamed from r, with size as its
 // Content-Length (below 0 for unknown, sent chunked) and mediaType as its
-// Content-Type, and reads the JSON answer.
-func (c *Client) upload(ctx context.Context, operationId, mediaType string, r io.Reader, size int64) (int, map[string]any, error) {
+// Content-Type, and the parameters, when there are any, as one JSON object in
+// the X-Var header, where dxlib reads an upload's parameters; it reads the JSON
+// answer.
+func (c *Client) upload(ctx context.Context, operationId, mediaType string, parameters map[string]any, r io.Reader, size int64) (int, map[string]any, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.BaseURL+"/"+operationId, r)
 	if err != nil {
 		return 0, nil, err
 	}
 	req.ContentLength = size
 	req.Header.Set("Content-Type", mediaType)
+	if len(parameters) > 0 {
+		values, err := json.Marshal(parameters)
+		if err != nil {
+			return 0, nil, err
+		}
+		req.Header.Set("X-Var", string(values))
+	}
 	resp, err := c.do(req)
 	if err != nil {
 		return 0, nil, err
@@ -310,8 +319,8 @@ func (c *Client) ExportVault(ctx context.Context, body map[string]any, w io.Writ
 }
 
 // UploadAttachment calls uploadAttachment: it streams the file from r as the request body, of the media
-// type the design gives it, with size as its length (below 0 for unknown), and
-// answers the status and the JSON answer.
-func (c *Client) UploadAttachment(ctx context.Context, r io.Reader, size int64) (int, map[string]any, error) {
-	return c.upload(ctx, "uploadAttachment", "application/octet-stream", r, size)
+// type the design gives it, with size as its length (below 0 for unknown) and
+// the parameters beside it, and answers the status and the JSON answer.
+func (c *Client) UploadAttachment(ctx context.Context, parameters map[string]any, r io.Reader, size int64) (int, map[string]any, error) {
+	return c.upload(ctx, "uploadAttachment", "application/octet-stream", parameters, r, size)
 }

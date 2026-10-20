@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.2-dev of the specification: 614 design tests, 286 golden and 328 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.2-dev of the specification: 615 design tests, 286 golden and 329 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.7.2-dev of the specification: 614 design tests, 286 golden and 328 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 610 |
+| system | 611 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -769,9 +769,9 @@ Scenario: golden; level: system; verifies SA-16.
 
 Scenario: golden; level: system; verifies SA-77, SA-7.
 
-- Given: the vault: a pre-key handshake established by a plain operation, an operation in its envelope, an upload stream with a request limit, a download stream with a response limit and a refusal, and a download stream in the envelope
+- Given: the vault: a pre-key handshake established by a plain operation, an operation in its envelope, an upload stream with a request limit and parameters sent beside the file, a download stream with a response limit and a refusal, and a download stream in the envelope
 - When: document techspec is run
-- Then: the runtime view lists the handshake with its key agreement, signature, cipher, establishing operation with its method and path, lifetime and envelopes, and what a client does for it in five steps; says of the encrypted operation that it travels in the envelope, naming the establishing operation, and notes the envelope in its sequence diagram with the request and the answer sealed; says of the upload that it streams the request body in as a file with its media type and bound in place of a body table; says of each download that it streams the response body out, its success response reading the file, streamed, with the bound where one is declared, and of the encrypted download that the file comes back outside the envelope; and exits 0
+- Then: the runtime view lists the handshake with its key agreement, signature, cipher, establishing operation with its method and path, lifetime and envelopes, and what a client does for it in five steps; says of the encrypted operation that it travels in the envelope, naming the establishing operation, and notes the envelope in its sequence diagram with the request and the answer sealed; says of the upload that it streams the request body in as a file with its media type and bound in place of a body table, and lists the parameters that travel beside it in a header; says of each download that it streams the response body out, its success response reading the file, streamed, with the bound where one is declared, and of the encrypted download that the file comes back outside the envelope; and exits 0
 
 #### document-techspec-gateway
 
@@ -2457,9 +2457,9 @@ Scenario: red; level: system; covers exit 1; verifies SA-61.
 
 Scenario: red; level: system; verifies SA-77.
 
-- Given: the notes specification, whose task page, list page and view call operations that travel in the envelope of the pre-key handshake, with one implementation file in TypeScript whose ui target is nextjs-carbon and none that serves the API in the dxlib dialect; and specarch-gen-ui-typescript built from this repository on PATH
+- Given: the notes specification, whose task page, list page and view call operations that travel in the envelope of the pre-key handshake and whose other task page uploads a file with a caption sent beside it, with one implementation file in TypeScript whose ui target is nextjs-carbon and none that serves the API in the dxlib dialect; and specarch-gen-ui-typescript built from this repository on PATH
 - When: generate ui is run with --unapproved
-- Then: it reports an error at each page's call that the screens seal an envelope in the dxlib dialect only and no implementation file serves the API in it, writes the shared files, and exits 1
+- Then: it reports an error at each page's call that the screens seal an envelope in the dxlib dialect only and no implementation file serves the API in it, and at the upload page's submit that the standard dialect names no header for the caption, writes the shared files, and exits 1
 
 #### generate-ui-typescript-refused
 
@@ -4654,6 +4654,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-77.
 - Given: an upload stream on a GET with no request body, one on a POST whose body is a JSON object, a download stream whose success response carries two media types, a maxResponseBytes on an operation that streams nothing, and a download stream with no success response
 - When: validate is run
 - Then: it reports stream for each, naming the method, the missing body, the body declared, the two media types, the limit that bounds nothing and the missing success response, and exits 1
+
+#### validate-stream-parameters
+
+Scenario: red; level: system; covers exit 1; verifies SA-77.
+
+- Given: an upload whose parameters, sent beside the file, include one named as the path's folderId, an upload whose parameters are a string, a download that declares parameters, a task page on the first upload that shows no field, and one that shows tags and size
+- When: validate is run on its folder
+- Then: it reports stream at folderId as a path parameter and a parameter of the upload, at the string as not an object and at the download's parameters as an upload's only; it reports the first page for not showing the required name and the second for size, which is not a parameter, and for not showing name; it exits 1
 
 #### validate-suite
 

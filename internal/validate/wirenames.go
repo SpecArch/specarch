@@ -37,6 +37,7 @@ func (c *checker) checkWireNames(d *design) {
 			at := []string{"paths", p.Key.Value, m}
 			w.parameters(source.Child(op, "parameters"), at)
 			w.content(source.Child(source.Child(op, "requestBody"), "content"), append(at, "requestBody"))
+			w.field(source.Child(source.Child(op, "stream"), "parameters"), append(append([]string{}, at...), "stream", "parameters"))
 			for _, r := range source.Pairs(source.Child(op, "responses")) {
 				w.content(source.Child(r.Value, "content"), append(append([]string{}, at...), "responses", r.Key.Value))
 			}

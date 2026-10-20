@@ -245,9 +245,19 @@ func IssuePreKey(aepr *api.DXAPIEndPointRequest) error {
 
 // UploadAttachmentRequest holds the parameters of uploadAttachment; Has says whether one was given.
 type UploadAttachmentRequest struct {
+	NoteId    string
+	HasNoteId bool
+	Tags      []string
+	HasTags   bool
 }
 
 func readUploadAttachmentRequest(aepr *api.DXAPIEndPointRequest) (r UploadAttachmentRequest, err error) {
+	if r.HasNoteId, r.NoteId, err = aepr.GetParameterValueAsString("note_id"); err != nil {
+		return r, err
+	}
+	if r.HasTags, r.Tags, err = aepr.GetParameterValueAsStrings("tags"); err != nil {
+		return r, err
+	}
 	return r, nil
 }
 

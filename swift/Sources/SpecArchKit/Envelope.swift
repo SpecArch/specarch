@@ -52,6 +52,7 @@ extension Checker {
         }
         guard let s else { return }
         let ptr = o.pointer("stream")
+        checkStreamParameters(o, s, dir)
         switch dir {
         case "upload":
             if !streamMethods.contains(o.method) {
@@ -79,6 +80,42 @@ extension Checker {
             }
         default:
             break
+        }
+    }
+}
+
+extension Checker {
+    /// Checks an upload's parameters (ADR-162): beside an upload only, an
+    /// object, and no property named as a path or query parameter of the
+    /// operation, since a stack that folds them together would carry two
+    /// values under one name.
+    func checkStreamParameters(_ o: Operation, _ s: YNode, _ dir: String) {
+        guard let params = s.child("parameters") else { return }
+        let ptr = o.pointer("stream", "parameters")
+        if dir != "upload" {
+            add(s.key("parameters"), ptr, .stream, "\(o.id) streams a \(dir), and parameters travel beside the file of an upload only; send them in the request body, or leave them out")
+            return
+        }
+        if params.child("$ref") != nil { return }
+        let t = str(params.child("type"))
+        if t != "object" {
+            let what = t.isEmpty ? "of no type" : "of type " + t
+            add(params, ptr, .stream, "the parameters of \(o.id)'s upload are one JSON object sent beside the file, and its schema is \(what); give it type: object with its properties, or a $ref to a schema")
+            return
+        }
+        var taken: [String: String] = [:]
+        for list in [o.pathItem.child("parameters"), o.node.child("parameters")] {
+            for p in items(list) {
+                let inValue = str(p.child("in"))
+                if inValue == "path" || inValue == "query" {
+                    taken[str(p.child("name"))] = inValue
+                }
+            }
+        }
+        for p in pairs(params.child("properties")) {
+            if let inValue = taken[p.key.value] {
+                add(p.key, o.pointer("stream", "parameters", "properties", p.key.value), .stream, "\(p.key.value) is a \(inValue) parameter of \(o.id) and a parameter of its upload; a stack that sends them together would carry two values under one name, so name one of them otherwise")
+            }
         }
     }
 }

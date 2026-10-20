@@ -1,0 +1,79 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.3.schema.json
+decisions:
+  ADR-162:
+    title: An upload's parameters travel beside the file as one JSON object in a header the stack names, declared under stream as parameters
+    status: accepted
+    date: "2026-10-20"
+    context: |
+      An upload stream's body is the file (ADR-146), so the values that
+      say what the file is, such as the record it belongs to, its name or
+      its tags, cannot travel in it. dxlib reads them from the request's
+      X-Var header, one JSON object beside the streamed body, and checks
+      each against the type the endpoint declares, of any of its types: a
+      list, an object, a JSON value, a nullable number. The meta-model had
+      no word for a parameter carried that way, so extract go left such
+      parameters out with a note, the dxlib dialect and the go-dxlib
+      target refused an upload that declared any, and a client could not
+      send them.
+    decision: |
+      stream takes a second key, parameters, beside direction upload only:
+      a schema of type object with its properties, or a $ref to a schema
+      or an entity, as a request body's is. Its properties are the
+      upload's parameters, sent together as one JSON object in one header
+      of the request beside the file. The design names no header: which
+      one is the stack's, as the bytes of an envelope are (ADR-145). For
+      dxlib it is X-Var.
+
+      The validator refuses parameters beside a download, a schema that
+      is not an object, and a property that shares a name with a path or
+      query parameter of the operation. A task page that submits to such
+      an upload shows the parameters as its fields and the file beside
+      them; the fields a page may show and must show are the parameters'.
+
+      In the dxlib dialect an upload's parameters are written as
+      x-dxlib-parameters, the object dxlib's own document gives the
+      parameters of a raw body, with the operation's path and query
+      parameters folded in, since dxlib reads every parameter of an upload
+      from X-Var as the dialect folds them into the body of any other
+      operation (ADR-031). generate go-dxlib reads them in the handler as
+      it reads a body's, through the parameter values dxlib fills from the
+      header, and the client it writes sends them as X-Var. extract go
+      writes the parameters a registration of EndPointTypeHTTPUploadStream
+      declares as stream.parameters. The TypeScript screens send a task's
+      fields in X-Var in the dxlib dialect; in the standard dialect, which
+      names no header, a page that submits to an upload with parameters is
+      an error at the page. The plain openapi target writes them inside
+      x-specarch-stream, and the technical specification lists them in a
+      table under the upload.
+
+      An endpoint that reads a raw body whole, not as a stream, with
+      parameters in X-Var stays outside this word: extract go leaves its
+      parameters out with the note it writes today.
+    consequences: |
+      A file goes up with the values that describe it, typed as the
+      design gives them, and a reader of the specification sees them
+      beside the upload. A stack other than dxlib that serves an upload
+      with parameters names its header in its own generator; until one
+      does, the standard dialect's targets report such an upload rather
+      than drop its parameters.
+    why: |
+      OpenAPI 3 can describe a JSON object in one header: a parameter in
+      header whose content holds an application/json schema. The design
+      cannot use it as it is, since that parameter must carry the header's
+      name, which is the stack's; so the design keeps the schema under
+      stream and the dialect writes the name. A query string would carry
+      the values in the URL, where they are logged and bounded in length,
+      and flattens a list, an object or a null into text that each stack
+      parses its own way, so the types the design gives would not survive.
+      A multipart body would carry them typed, but makes the request a
+      different content type that dxlib reads whole rather than streams,
+      which is what stream exists to avoid. Path and query parameters stay
+      what they are in the standard dialect; the dxlib dialect folds them
+      in because dxlib reads nothing else on an upload, the same fold it
+      makes for every other body.
+    cites:
+      - source: openapi
+        says: "A parameter in header may give its schema under content, one media type such as application/json, for a value that is a structure rather than a scalar."
+      - source: rfc-9110
+        says: "Header fields carry metadata about the message beside its content; the content is the representation itself."
+    satisfies: [SA-77]

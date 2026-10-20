@@ -20,7 +20,8 @@ import (
 // document the dxlib dialect writes, and drives the generated client against
 // it: the handshake, an encrypted call whose answer is opened, a second
 // envelope on the one-use handshake refused as dxlib refuses it, an upload
-// larger than any buffer streamed in and hashed, the same bytes streamed
+// larger than any buffer streamed in and hashed with its parameters in X-Var
+// (ADR-162), one refused without them, the same bytes streamed
 // back and hashed, a refusal on a download, and an encrypted request
 // answered with a plain stream. It needs a dxlib checkout, named by
 // SPECARCH_DXLIB, and is skipped without one (ADR-145, ADR-146).
@@ -178,6 +179,7 @@ import (
 	"encoding/hex"
 	"io"
 	"net/http"
+	"strings"
 	"sync"
 
 	"github.com/donnyhardyanto/dxlib/api"
@@ -215,7 +217,9 @@ func bodyUploadAttachment(aepr *api.DXAPIEndPointRequest, r UploadAttachmentRequ
 	if err != nil {
 		return aepr.WriteResponseAndNewErrorf(http.StatusRequestEntityTooLarge, "", "UPLOAD_FAILED:%s", err.Error())
 	}
-	id := hex.EncodeToString(h.Sum(nil))[:16]
+	// The id names the note and the tags that came in X-Var beside the file,
+	// so the client sees them arrive as the values it sent.
+	id := r.NoteId + "." + strings.Join(r.Tags, "+") + "." + hex.EncodeToString(h.Sum(nil))[:16]
 	storedMu.Lock()
 	stored[id] = n
 	storedMu.Unlock()
@@ -375,13 +379,17 @@ func TestRoundTrip(t *testing.T) {
 		}
 		copy(expected[:], sent.h.Sum(nil))
 	}
-	status, answer, err = c.UploadAttachment(ctx, &pattern{n: size}, size)
+	status, answer, err = c.UploadAttachment(ctx, map[string]any{"note_id": "n-1", "tags": []string{"red", "green"}}, &pattern{n: size}, size)
 	if err != nil || status != 200 {
 		t.Fatalf("UploadAttachment: status %d, answer %v, err %v", status, answer, err)
 	}
 	id, _ := answer["attachment_id"].(string)
-	if id != hex.EncodeToString(expected[:])[:16] {
-		t.Fatalf("the service hashed the upload as %s, the client as %s", id, hex.EncodeToString(expected[:])[:16])
+	if want := "n-1.red+green." + hex.EncodeToString(expected[:])[:16]; id != want {
+		t.Fatalf("the service named the upload %s, and its note, tags and hash make %s", id, want)
+	}
+	// An upload without the note it requires is refused before its body is read.
+	if status, refusal, err := c.UploadAttachment(ctx, nil, &pattern{n: 16}, 16); err != nil || status != 422 {
+		t.Fatalf("an upload without note_id: status %d, answer %v, err %v", status, refusal, err)
 	}
 	if got, _ := answer["size"].(float64); int64(got) != size {
 		t.Fatalf("the service counted %v bytes, %d were sent", answer["size"], size)
@@ -488,14 +496,16 @@ test("a file uploaded as a Blob and as a stream is streamed back whole", async (
   const transport = createTransport({ service, dialect: "dxlib", handshakes });
   const bytes = pattern(3 << 20);
   const sent = createHash("sha256").update(bytes).digest("hex");
-  const asBlob = await transport.upload(uploadAttachment, new Blob([bytes]));
+  const asBlob = await transport.upload(uploadAttachment, new Blob([bytes]), { body: { note_id: "n-2", tags: ["blue"] } });
   assert.equal(asBlob.status, 200);
   const stored = await asBlob.json();
-  assert.equal(stored.attachment_id, sent.slice(0, 16));
+  assert.equal(stored.attachment_id, "n-2.blue." + sent.slice(0, 16));
   assert.equal(stored.size, bytes.length);
-  const asStream = await transport.upload(uploadAttachment, new Blob([bytes]).stream());
+  const asStream = await transport.upload(uploadAttachment, new Blob([bytes]).stream(), { body: { note_id: "n-3" } });
   assert.equal(asStream.status, 200);
-  assert.equal((await asStream.json()).attachment_id, sent.slice(0, 16));
+  assert.equal((await asStream.json()).attachment_id, "n-3.." + sent.slice(0, 16));
+  const refused = await transport.upload(uploadAttachment, new Blob([bytes.slice(0, 16)]));
+  assert.equal(refused.status, 422);
   const back = await transport.call(downloadAttachment, { body: { attachment_id: stored.attachment_id } });
   assert.equal(back.status, 200);
   assert.deepEqual(await digest(back.body), { hash: sent, size: bytes.length });

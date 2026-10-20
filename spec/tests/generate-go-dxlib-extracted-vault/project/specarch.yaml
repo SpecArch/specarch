@@ -4,7 +4,7 @@ info:
   title: Go source of .
   version: 0.1.0
   description: |
-    The Go source under ., read at commit 0f6dc0f7b1876106d8cda244ea0c64e76d1601bb by the standard library's parser, by its syntax alone. Every operation cites the line that registers it; what the source does not say as a literal, or through a call the reader knows, is a question, and so is what the meta-model cannot hold.
+    The Go source under ., read at commit f05ff06519d8daad421cd5edf852a403deca243a by the standard library's parser, by its syntax alone. Every operation cites the line that registers it; what the source does not say as a literal, or through a call the reader knows, is a question, and so is what the meta-model cannot hold.
   tracksOrigin: true
   wireNames: snake_case
 stages: [requirements, design, tests, implementation]
@@ -12,7 +12,7 @@ sources:
   code:
     kind: code
     title: The code repository
-    edition: 0f6dc0f7b1876106d8cda244ea0c64e76d1601bb
+    edition: f05ff06519d8daad421cd5edf852a403deca243a
     url: ../../extract-go-dxlib-vault/testdata/service
     clauses:
       - {clause: api/endpoints.go, title: 'Go source, read by its syntax'}

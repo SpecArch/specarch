@@ -261,6 +261,30 @@ paths:
             schema:
               type: string
               format: binary
+      x-dxlib-parameters:
+        type: object
+        properties:
+          note_id:
+            type: string
+            description: The note the attachment belongs to.
+            minLength: 1
+            x-dxlib-type: non-empty-string
+            x-specarch-unenforced:
+              - 'maxLength: 64'
+          tags:
+            type: array
+            description: Words to find the attachment by.
+            items:
+              type: string
+              x-dxlib-type: string
+              x-specarch-unenforced:
+                - 'maxLength: 40'
+            x-dxlib-type: array-string
+            x-specarch-unenforced:
+              - 'maxItems: 10'
+        required:
+          - note_id
+        x-dxlib-type: json
       responses:
         "200":
           description: The attachment is stored.
@@ -290,10 +314,14 @@ paths:
       x-dxlib-max-content-length: 1073741824
       x-specarch-permission: notes.write
       x-specarch-marks:
-        - id: test_case_missing@specarch.yaml#/paths/~1attachments/post
+        - id: test_case_missing.d7b5e7bf@specarch.yaml#/paths/~1attachments/post
           severity: warning
           rule: test_case_missing
           message: 'operation uploadAttachment has no red scenario for "denied without notes.write"; add under tests upload-attachment-denied-without-notes-write: { operation: uploadAttachment, scenario: red, covers: [denied without notes.write], given: "a caller without notes.write", when: "uploadAttachment is called", then: "it is refused as not allowed" }'
+        - id: test_case_missing.f405bd3c@specarch.yaml#/paths/~1attachments/post
+          severity: warning
+          rule: test_case_missing
+          message: 'operation uploadAttachment has no red scenario for "missing noteId"; add under tests upload-attachment-missing-note-id: { operation: uploadAttachment, scenario: red, covers: [missing noteId], given: "...", when: "uploadAttachment is called without noteId", then: "it is refused" }'
         - id: test_golden_missing@specarch.yaml#/paths/~1attachments/post
           severity: warning
           rule: test_golden_missing

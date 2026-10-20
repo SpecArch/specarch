@@ -360,7 +360,7 @@ func TestStreamDeclared(t *testing.T) {
 			t.Errorf("the service file has no %q", want)
 		}
 	}
-	if !strings.Contains(client, `return c.upload(ctx, "uploadAttachment", "image/png", r, size)`) {
+	if !strings.Contains(client, `return c.upload(ctx, "uploadAttachment", "image/png", parameters, r, size)`) {
 		t.Error("the client does not send the upload as image/png, the media type the design gives it")
 	}
 	if dxlib := os.Getenv("SPECARCH_DXLIB"); dxlib != "" {

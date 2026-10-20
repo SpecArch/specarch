@@ -836,6 +836,20 @@ func (w *declaredWriter) request(ep *goEndpoint, op *yaml.Node, regAt, label str
 			}
 			set(op, "requestBody", mapping("content", mapping(d.contentType, mapping("schema", flow(body)))))
 		}
+		if s := child(op, "stream"); ep.stream == "upload" && s != nil && len(d.params) > 0 {
+			// dxlib reads an upload stream's parameters from X-Var, which
+			// stream.parameters holds (ADR-162).
+			at := ep.at + "/stream/parameters"
+			obj, unread := w.parametersObject(ep, label, at)
+			schema := w.o.field(obj, "operation "+label+", upload parameters", at, 0)
+			if schema == nil {
+				return
+			}
+			s.Style = 0
+			set(s, "parameters", schema)
+			w.askUnread(unread, label, at, schema)
+			return
+		}
 		if len(d.params) > 0 {
 			var names []string
 			for _, p := range d.params {
@@ -880,32 +894,7 @@ func (w *declaredWriter) request(ep *goEndpoint, op *yaml.Node, regAt, label str
 				[]string{schemaAt}, "The registration declares the parameters dxlib reads and checks, and is written; the handler decodes the body itself, and the two name other fields.", g.at(decode.clause, "Decodes the body into "+decode.text+"."))
 		}
 	}
-	obj := mapping("type", "object")
-	props := mapping()
-	var required []string
-	var unread []dxUnread
-	for _, p := range d.params {
-		if p.name == "" {
-			g.question("must", fmt.Sprintf("%s: a parameter %s declares cannot be read: %s. Which parameter is it, with its type?", p.clause, label, p.why),
-				[]string{ep.at + "/requestBody"}, "A parameter is read only from a declaration that names it with a literal.", g.at(p.clause, "Declares a parameter the reader cannot read."))
-			continue
-		}
-		if p.why != "" {
-			unread = append(unread, dxUnread{path: []string{"properties", p.name}, name: p.name, required: p.required, clause: p.clause, why: p.why})
-			continue
-		}
-		recordUnread(p, []string{"properties", p.name}, &unread)
-		set(props, p.name, p.schema)
-		if p.required {
-			required = append(required, p.name)
-		}
-	}
-	if len(props.Content) > 0 {
-		set(obj, "properties", props)
-	}
-	if len(required) > 0 {
-		set(obj, "required", required)
-	}
+	obj, unread := w.parametersObject(ep, label, ep.at+"/requestBody")
 	rb := w.o.requestBody(mapping("content", mapping(d.contentType, mapping("schema", obj))), label, at)
 	if rb == nil {
 		return
@@ -924,6 +913,40 @@ func (w *declaredWriter) request(ep *goEndpoint, op *yaml.Node, regAt, label str
 		g.question("must", fmt.Sprintf("%s declares no parameter where %s registers it, and its handler reads none by name (%s), so its body is written as any object. Which fields does its body take, with their types?", label, regAt, nonEmptyText(ep.handlerAt, "its handler is not found")),
 			[]string{schemaAt}, "dxlib reads and checks only the parameters an endpoint declares; a handler that reads its body in another way, such as decoding it itself, gives its fields only in code syntax does not follow.", g.at(regAt, "Declares no parameter."))
 	}
+}
+
+// parametersObject is the object schema of the parameters a registration
+// declares, one property each, with those it could not read to be asked
+// about at their place; one it cannot even name is asked about at at.
+func (w *declaredWriter) parametersObject(ep *goEndpoint, label, at string) (*yaml.Node, []dxUnread) {
+	g, d := w.g, ep.decl
+	obj := mapping("type", "object")
+	props := mapping()
+	var required []string
+	var unread []dxUnread
+	for _, p := range d.params {
+		if p.name == "" {
+			g.question("must", fmt.Sprintf("%s: a parameter %s declares cannot be read: %s. Which parameter is it, with its type?", p.clause, label, p.why),
+				[]string{at}, "A parameter is read only from a declaration that names it with a literal.", g.at(p.clause, "Declares a parameter the reader cannot read."))
+			continue
+		}
+		if p.why != "" {
+			unread = append(unread, dxUnread{path: []string{"properties", p.name}, name: p.name, required: p.required, clause: p.clause, why: p.why})
+			continue
+		}
+		recordUnread(p, []string{"properties", p.name}, &unread)
+		set(props, p.name, p.schema)
+		if p.required {
+			required = append(required, p.name)
+		}
+	}
+	if len(props.Content) > 0 {
+		set(obj, "properties", props)
+	}
+	if len(required) > 0 {
+		set(obj, "required", required)
+	}
+	return obj, unread
 }
 
 // askUnread writes each parameter inside a declaration that was not read

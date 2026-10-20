@@ -139,18 +139,25 @@ func (c *checker) checkTaskPage(d *design, name string, pg *yaml.Node) {
 		return
 	}
 	props, required := d.requestFields(op)
+	// A task that uploads may show no field (checkSections), but not when
+	// the upload requires parameters (ADR-162).
+	upload := source.Str(source.Child(source.Child(op, "stream"), "direction")) == "upload"
+	of, holds := "the request body of "+submit, "whose request body requires"
+	if upload {
+		of, holds = "the parameters "+submit+" takes beside the file it uploads", "whose upload requires the parameter"
+	}
 	shown := map[string]bool{}
 	for i, f := range source.Items(source.Child(pg, "fields")) {
 		shown[f.Value] = true
 		if props[f.Value] == nil {
-			c.add(f, source.Pointer(append(base, "fields", fmt.Sprint(i))...), RulePage, "%s is not a property of the request body of %s, which %s submits to%s", f.Value, submit, name, suggest(f.Value, props))
+			c.add(f, source.Pointer(append(base, "fields", fmt.Sprint(i))...), RulePage, "%s is not a property of %s, which %s submits to%s", f.Value, of, name, suggest(f.Value, props))
 		}
 	}
 	for i, sec := range source.Items(source.Child(pg, "sections")) {
 		for j, f := range source.Items(source.Child(sec, "fields")) {
 			shown[f.Value] = true
 			if props[f.Value] == nil {
-				c.add(f, source.Pointer(append(base, "sections", fmt.Sprint(i), "fields", fmt.Sprint(j))...), RulePage, "%s is not a property of the request body of %s, which %s submits to%s", f.Value, submit, name, suggest(f.Value, props))
+				c.add(f, source.Pointer(append(base, "sections", fmt.Sprint(i), "fields", fmt.Sprint(j))...), RulePage, "%s is not a property of %s, which %s submits to%s", f.Value, of, name, suggest(f.Value, props))
 			}
 		}
 	}
@@ -160,12 +167,15 @@ func (c *checker) checkTaskPage(d *design, name string, pg *yaml.Node) {
 			missing = append(missing, r)
 		}
 	}
-	if len(missing) > 0 && len(shown) > 0 {
+	if len(missing) > 0 && (len(shown) > 0 || upload) {
 		at := source.Key(pg, "fields")
 		if at == nil {
 			at = source.Key(pg, "sections")
 		}
-		c.add(at, source.Pointer(base...), RulePage, "%s submits to %s, whose request body requires %s; show %s on the page, since the request cannot succeed without %s", name, submit, strings.Join(missing, " and "), map[bool]string{true: "it", false: "them"}[len(missing) == 1], map[bool]string{true: "it", false: "them"}[len(missing) == 1])
+		if at == nil {
+			at = source.Child(pg, "submit")
+		}
+		c.add(at, source.Pointer(base...), RulePage, "%s submits to %s, %s %s; show %s on the page, since the request cannot succeed without %s", name, submit, holds, strings.Join(missing, " and "), map[bool]string{true: "it", false: "them"}[len(missing) == 1], map[bool]string{true: "it", false: "them"}[len(missing) == 1])
 	}
 }
 

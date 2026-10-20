@@ -1,12 +1,12 @@
 # Written by specarch decide; answers Q-2. Edit it as any decision.
 decisions:
   ADR-002:
-    title: Does the running system register POST /downloadAttachment? It is declared at api/endpoints.go:49, and no list the running system printed was read with it.
+    title: Does the running system register POST /downloadAttachment? It is declared at api/endpoints.go:53, and no list the running system printed was read with it.
     status: accepted
     date: "2026-10-20"
     context: |-
       Q-2 asked: Does the running system register POST /downloadAttachment? It
-      is declared at api/endpoints.go:49, and no list the running system
+      is declared at api/endpoints.go:53, and no list the running system
       printed was read with it. It blocked #/paths/~1downloadAttachment/post.
       Syntax shows a declaration and not what runs; the document dxlib emits,
       or a route table, says what the running system registers, and merging it

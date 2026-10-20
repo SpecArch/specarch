@@ -383,8 +383,7 @@ func (g *gen) params(o operation) []param {
 			addp(text(pm["name"]), obj(pm["schema"]), pm["required"] == true)
 		}
 	}
-	for _, c := range obj(obj(o.node["requestBody"])["content"]) {
-		s := obj(obj(c)["schema"])
+	fold := func(s map[string]any) {
 		required := map[string]bool{}
 		props := obj(s["properties"])
 		if r := text(s["$ref"]); strings.HasPrefix(r, "#/entities/") || strings.HasPrefix(r, "#/schemas/") {
@@ -406,7 +405,15 @@ func (g *gen) params(o operation) []param {
 		for _, k := range sortedKeys(props) {
 			addp(k, obj(props[k]), required[k])
 		}
+	}
+	for _, c := range obj(obj(o.node["requestBody"])["content"]) {
+		fold(obj(obj(c)["schema"]))
 		break
+	}
+	// An upload's parameters arrive in X-Var, which dxlib reads into the
+	// same parameter values as a body's (ADR-162).
+	if s := obj(obj(o.node["stream"])["parameters"]); s != nil {
+		fold(s)
 	}
 	sort.SliceStable(out, func(i, j int) bool { return out[i].wire < out[j].wire })
 	return out
@@ -581,9 +588,6 @@ func (g *gen) operation(o operation) {
 		// dxlib hands an upload stream's body to the handler unread; the
 		// service's body takes it as a reader held to the declared limit.
 		g.helper("uploadStream")
-		if len(params) > 0 {
-			g.problem("error", o.pointer(), "%s streams an upload and takes parameters; dxlib reads an upload stream's parameters from the X-Var header, which the meta-model does not hold, so an upload takes none", o.id)
-		}
 		g.line("\treturn body%s(aepr, r, UploadStream(aepr, %d))", name, limitOf(o, "maxRequestBytes"))
 	case "download":
 		// The service's body streams the file through SendStream with the

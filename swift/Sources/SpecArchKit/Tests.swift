@@ -516,6 +516,11 @@ extension Design {
         let content = pairs(child(op.child("requestBody"), "content"))
         guard let first = content.first else { return ([:], []) }
         var schema = first.value.child("schema")
+        if let s = op.child("stream"), str(s.child("direction")) == "upload" {
+            // The body is the file; the fields are the parameters sent beside
+            // it (ADR-162).
+            schema = s.child("parameters")
+        }
         var readOnlyLeftOut = false
         let ref = str(child(schema, "$ref"))
         if ref.hasPrefix("#/entities/") {

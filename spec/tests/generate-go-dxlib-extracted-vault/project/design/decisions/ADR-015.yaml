@@ -1,12 +1,12 @@
 # Written by specarch decide; answers Q-15. Edit it as any decision.
 decisions:
   ADR-015:
-    title: 'api/handlers.go:47: the registration of POST /exportVault at api/endpoints.go:58 declares the response 200, and the handler api.ExportVault of POST /exportVault answers it nowhere in its own body, which calls no function of the module, nor does a middleware of its chain. Does the operation answer 200, or is the declaration stale?'
+    title: 'api/handlers.go:55: the registration of POST /exportVault at api/endpoints.go:62 declares the response 200, and the handler api.ExportVault of POST /exportVault answers it nowhere in its own body, which calls no function of the module, nor does a middleware of its chain. Does the operation answer 200, or is the declaration stale?'
     status: accepted
     date: "2026-10-20"
     context: |-
-      Q-15 asked: api/handlers.go:47: the registration of POST /exportVault at
-      api/endpoints.go:58 declares the response 200, and the handler
+      Q-15 asked: api/handlers.go:55: the registration of POST /exportVault at
+      api/endpoints.go:62 declares the response 200, and the handler
       api.ExportVault of POST /exportVault answers it nowhere in its own body,
       which calls no function of the module, nor does a middleware of its
       chain. Does the operation answer 200, or is the declaration stale? It

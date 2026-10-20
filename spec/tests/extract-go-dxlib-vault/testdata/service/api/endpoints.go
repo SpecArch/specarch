@@ -9,8 +9,8 @@ import (
 )
 
 // Define registers the vault's endpoints: a pre-key exchange, a note added
-// in its envelope, an attachment streamed in and out, and an export asked
-// for in the envelope and streamed out.
+// in its envelope, an attachment streamed in with the note it belongs to and
+// streamed out, and an export asked for in the envelope and streamed out.
 func Define(a *api.DXAPI) {
 	a.NewEndPoint("Issue a pre-key", "The client sends its signing key and two agreement keys and receives the vault's with the pre-key's index.", "/issuePreKey", http.MethodPost, api.EndPointTypeHTTPJSON, dxhttp.RequestContentTypeApplicationJSON,
 		[]api.DXAPIEndPointParameter{
@@ -39,7 +39,11 @@ func Define(a *api.DXAPI) {
 		}, nil, []string{"NOTES.WRITE"}, 0, "")
 
 	a.NewEndPoint("Upload an attachment", "Streams a file into the vault.", "/uploadAttachment", http.MethodPost, api.EndPointTypeHTTPUploadStream, dxhttp.RequestContentTypeApplicationOctetStream,
-		nil, UploadAttachment, nil, &api.DXAPIEndPointResponsePossibilities{
+		[]api.DXAPIEndPointParameter{
+			{NameId: "note_id", Type: types.APIParameterTypeNonEmptyString, IsMustExist: true, Description: "The note the attachment belongs to."},
+			{NameId: "tags", Type: types.APIParameterTypeArrayString, Description: "Words to find the attachment by."},
+		},
+		UploadAttachment, nil, &api.DXAPIEndPointResponsePossibilities{
 			"success": {StatusCode: http.StatusOK, Description: "The attachment is stored.", DataTemplate: []*api.DXAPIEndPointParameter{
 				{NameId: "attachment_id", Type: types.APIParameterTypeNonEmptyString, IsMustExist: true},
 				{NameId: "size", Type: types.APIParameterTypeInt64ZP, IsMustExist: true},

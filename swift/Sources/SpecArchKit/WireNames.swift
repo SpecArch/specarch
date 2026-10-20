@@ -81,6 +81,7 @@ extension Checker {
                 let at = ["paths", p.key.value, m]
                 wireParameters(rule, op.child("parameters"), at)
                 wireContent(rule, op.child("requestBody")?.child("content"), at + ["requestBody"])
+                wireField(rule, op.child("stream")?.child("parameters"), at + ["stream", "parameters"])
                 for r in pairs(op.child("responses")) {
                     wireContent(rule, r.value.child("content"), at + ["responses", r.key.value])
                 }

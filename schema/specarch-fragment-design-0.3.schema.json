@@ -1854,7 +1854,7 @@
           "$ref": "#/$defs/memberName"
         },
         "stream": {
-          "description": "SpecArch keyword. The operation carries a file as a stream rather than a body read whole: an upload reads the request body from its first byte to its last as it arrives, a download writes the response body the same way. The media type and that it is binary stay where OpenAPI puts them, in the request body of an upload and the success response of a download, as a string of format binary. The largest upload is limits.maxRequestBytes, the largest download limits.maxResponseBytes.",
+          "description": "SpecArch keyword. The operation carries a file as a stream rather than a body read whole: an upload reads the request body from its first byte to its last as it arrives, a download writes the response body the same way. The media type and that it is binary stay where OpenAPI puts them, in the request body of an upload and the success response of a download, as a string of format binary. An upload's parameters, which cannot travel in a body that is the file, go under parameters. The largest upload is limits.maxRequestBytes, the largest download limits.maxResponseBytes.",
           "type": "object",
           "properties": {
             "direction": {
@@ -1864,6 +1864,10 @@
                 "upload",
                 "download"
               ]
+            },
+            "parameters": {
+              "description": "SpecArch keyword. An upload's parameters, sent together as one JSON object in one header of the request beside the file: a schema of type object with its properties, or a $ref to a schema or an entity, as a request body's. Allowed beside direction upload only. Which header carries them is the stack's (ADR-162).",
+              "$ref": "#/$defs/field"
             }
           },
           "required": [

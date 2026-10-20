@@ -1,0 +1,74 @@
+specarch: "0.1"
+info: { title: Uploads, version: 1.0.0 }
+permissions:
+  public: { description: Open to everyone. }
+paths:
+  /folders/{folderId}/files:
+    parameters:
+      - { name: folderId, in: path, required: true, schema: { type: string } }
+    post:
+      operationId: uploadFile
+      summary: Upload a file with what describes it
+      permission: public
+      stream:
+        direction: upload
+        parameters:
+          type: object
+          properties:
+            name: { type: string, maxLength: 200 }
+            tags: { type: array, items: { type: string, maxLength: 40 }, maxItems: 10 }
+            folderId: { type: string }
+          required: [name]
+      requestBody:
+        required: true
+        content:
+          application/octet-stream:
+            schema: { type: string, format: binary }
+      responses:
+        "200": { description: The file is stored. }
+    put:
+      operationId: replaceFile
+      summary: Replace a file
+      permission: public
+      stream: { direction: upload, parameters: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/octet-stream:
+            schema: { type: string, format: binary }
+      responses:
+        "200": { description: The file is replaced. }
+  /files/{name}:
+    parameters:
+      - { name: name, in: path, required: true, schema: { type: string } }
+    get:
+      operationId: downloadFile
+      summary: Download a file
+      permission: public
+      stream:
+        direction: download
+        parameters: { type: object, properties: { version: { type: integer, format: int32 } } }
+      responses:
+        "200":
+          description: The file.
+          content:
+            application/octet-stream:
+              schema: { type: string, format: binary }
+pages:
+  upload:
+    kind: task
+    title: Upload a file
+    route: /upload
+    permission: public
+    submit: uploadFile
+    onSubmitted:
+      "200": { message: The file is stored. }
+  upload-tagged:
+    kind: task
+    title: Upload a tagged file
+    route: /upload-tagged
+    permission: public
+    submit: uploadFile
+    fields: [tags, size]
+    onSubmitted:
+      "200": { message: The file is stored. }

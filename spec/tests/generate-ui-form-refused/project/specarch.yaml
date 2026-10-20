@@ -176,7 +176,8 @@ pages:
     fieldConditions:
       withdrawnOn: { hiddenWhen: "lendable == true" }
       notes: { readOnlyWhen: 'shelf == "reference"' }
-    enteredTwice: [location]
+      title: { readOnly: true }
+    enteredTwice: [location, shelf, notes, lendable]
     checks:
       titled: { expression: "size(title) > 0", message: Give the book a title. }
       withdrawn-after-bought: { expression: "withdrawnOn == null || withdrawnOn > boughtOn", message: A book is withdrawn after it is bought., field: withdrawnOn }

@@ -27,8 +27,13 @@ decisions:
       record a form loads and the child rows loaded with it, what follows
       each success and each refusal. A check's or a refusal's message is
       the field's own validity message, so the browser shows it beside the
-      field and the form is not sent while one stands. A hidden field is
-      disabled, so it is neither checked nor sent. An empty field is null
+      field and the form is not sent while one stands; each control's
+      message is the first of its pattern, its second entry and its checks
+      that it breaks. A hidden field is disabled, so it is neither checked
+      nor sent: the record is read again once the conditions are applied.
+      A picker keeps the value a loaded record gives it, as an option of
+      its own while its list is not read or does not hold it, so the order
+      of the two reads does not lose it. An empty field is null
       in the record the rules read and is left out of what is sent. A
       form's onSubmitted follows every success its operation answers,
       a workflow trigger's 202 among them; a task's are by status. A
@@ -46,7 +51,10 @@ decisions:
       count of rows is the service's to refuse. A check that names no
       field has nowhere to show its message, so it is refused; the
       validator does not ask for one, since the Next.js target shows it
-      above the form. The settings of the Next.js target, hooks and
+      above the form. A field drawn as a list, a long text or a box is not
+      entered twice, and a field the request body requires is not shown
+      read-only, since it would not be sent; each is an error at the field,
+      and the field is drawn once. The settings of the Next.js target, hooks and
       layouts, have no counterpart here: a form's sections sit as one
       page.
     why: |

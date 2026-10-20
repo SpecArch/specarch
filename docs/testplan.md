@@ -2449,9 +2449,9 @@ Scenario: golden; level: system; verifies SA-81.
 
 Scenario: red; level: system; verifies SA-81.
 
-- Given: the specification of generate-ui-form, whose form also shows a date-time and a list of plain values, asks for its value to be entered twice and has a check that names no field; whose edit form leaves out a field its request body requires; whose task says nothing of a success its operation answers; an implementation file whose ui target is platform web in plain-javascript; and specarch-gen-ui built from this repository on PATH
+- Given: the specification of generate-ui-form, whose form also shows a date-time and a list of plain values, asks for its value, its enum, its long text and its box to be entered twice, shows its required title read-only and has a check that names no field; whose edit form leaves out a field its request body requires; whose task says nothing of a success its operation answers; an implementation file whose ui target is platform web in plain-javascript; and specarch-gen-ui built from this repository on PATH
 - When: generate ui is run with --unapproved
-- Then: it reports as errors the date-time and the list at their fields, the value entered twice at its field, the check at the check, the field left out at the edit form and the success at the task's onSubmitted; leaves out the edit form and, as a warning, the form's success that would open it; writes the form and the task without what it reports, each marked at its page; and exits 1
+- Then: it reports as errors the date-time and the list at their fields, the value, the enum, the long text and the box entered twice and the required title shown read-only at their fields, the check at the check, the field left out at the edit form and the success at the task's onSubmitted; leaves out the edit form and, as a warning, the form's success that would open it; writes the form and the task without what it reports, each marked at its page; and exits 1
 
 #### generate-ui-swiftui
 

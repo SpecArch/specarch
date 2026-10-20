@@ -136,6 +136,9 @@ func (g *gen) fieldControl(f formField, optional bool) ([]string, bool) {
 			out = append(out, "<input type=\"search\" data-search="+quoted(f.name)+" aria-label="+quoted("Find "+f.label)+">")
 		}
 		out = append(out, "<label>"+label, "<select"+name+required+readOnly+">", `<option value="">`+choose+"</option>")
+		if f.twice {
+			g.problem("error", f.at, "%s is chosen from a list, which is not entered twice; it is shown once", f.name)
+		}
 		for _, v := range g.enumValues(prop) {
 			if !f.picked {
 				out = append(out, "<option value="+quoted(v)+">"+html.EscapeString(v)+"</option>")
@@ -163,6 +166,9 @@ func (g *gen) fieldControl(f formField, optional bool) ([]string, bool) {
 	case format == "" || format == "uuid" || format == "uri":
 		lengths := attribute(prop, "minLength", "minlength") + attribute(prop, "maxLength", "maxlength")
 		if m, err := strconv.Atoi(text(prop["maxLength"])); format == "" && (err != nil || m > 255) {
+			if f.twice {
+				g.problem("error", f.at, "%s is a long text, which is not entered twice; it is shown once", f.name)
+			}
 			return []string{"<label>" + label, "<textarea" + name + required + lengths + pattern(prop) + readOnly + "></textarea>", "</label>"}, true
 		}
 		input = "<input" + name + ` type="text"` + required + lengths + pattern(prop) + readOnly + ">"
@@ -171,7 +177,9 @@ func (g *gen) fieldControl(f formField, optional bool) ([]string, bool) {
 		return nil, false
 	}
 	out := []string{"<label>" + label, input, "</label>"}
-	if f.twice {
+	if f.twice && t == "boolean" {
+		g.problem("error", f.at, "%s is a box to tick, which is not entered twice; it is shown once", f.name)
+	} else if f.twice {
 		again := strings.Replace(strings.Replace(input, name, " data-again="+quoted(f.name), 1), " readonly", "", 1)
 		if !strings.Contains(again, " required") {
 			again = strings.Replace(again, " data-again=", " required data-again=", 1)
@@ -334,6 +342,9 @@ func (g *gen) form(name string, pg map[string]any) *formPage {
 			if bodyProps[f.name] == nil && !readOnly {
 				g.problem("error", ptr, "%s shows %s, which the request body of %s does not take; add it to the body, or make it read-only under fieldConditions. It is left out", name, f.name, fp.submit)
 				continue
+			}
+			if readOnly && required[f.name] {
+				g.problem("error", ptr, "%s shows %s read-only, so it does not send it, and the request body of %s requires it; take it off read-only, or drop it from the body's required", name, f.name, fp.submit)
 			}
 			label := text(prop["title"])
 			if label == "" {

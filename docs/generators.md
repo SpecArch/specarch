@@ -717,8 +717,9 @@ success, a form's one `onSubmitted` for every success its operation
 answers, a workflow trigger's 202 among them, and a task's by status, and
 each refusal by status with the field it is about, whose message the
 browser shows beside it. A field of a type or format a form does not
-draw, a value entered twice or read-only, a body field required and not
-shown, and a check that names no field are refused at their entry, and
+draw, a value entered twice or read-only, a list, a long text or a box
+entered twice, a body field required and not shown or shown read-only,
+and a check that names no field are refused at their entry, and
 the rest of the page is still written.
 
 Modes other than dark are reported and left out of this version. The

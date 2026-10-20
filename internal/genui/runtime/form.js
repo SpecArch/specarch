@@ -145,6 +145,8 @@ export function form(page) {
 
   // The rules HTML cannot say, as each field's own message.
   function check() {
+    // The conditions read the record as entered; the checks and what is
+    // sent read it again once a field they hide is left out.
     record = read(element);
     for (const [name, rule] of Object.entries(page.conditions)) {
       const control = field(name);
@@ -161,23 +163,40 @@ export function form(page) {
         control.disabled = rule.readOnlyWhen(record);
       }
     }
+    record = read(element);
     required();
+    // Each control's message is its first rule broken, set once.
+    const messages = new Map();
+    const fail = (control, message) => {
+      if (!messages.get(control)) {
+        messages.set(control, message);
+      }
+    };
     for (const control of element.querySelectorAll("[data-pattern]")) {
       const wrong = control.value !== "" && !new RegExp(control.dataset.pattern, "u").test(control.value);
-      control.setCustomValidity(wrong ? page.messages.pattern : "");
+      fail(control, wrong ? page.messages.pattern : "");
     }
     for (const again of element.querySelectorAll("[data-again]")) {
-      again.setCustomValidity(again.value !== field(again.dataset.again).value ? page.messages.twice : "");
-    }
-    const failing = new Map();
-    for (const rule of page.checks) {
-      if (!rule.rule(record) && !failing.has(rule.field)) {
-        failing.set(rule.field, rule.message);
-      }
+      fail(again, again.value !== field(again.dataset.again).value ? page.messages.twice : "");
     }
     for (const rule of page.checks) {
-      field(rule.field).setCustomValidity(failing.get(rule.field) ?? "");
+      fail(field(rule.field), rule.rule(record) ? "" : rule.message);
     }
+    for (const [control, message] of messages) {
+      control.setCustomValidity(message);
+    }
+  }
+
+  // Chooses a value in a picker, kept as an option of its own while its
+  // list is not read or does not hold it.
+  function choose(control, value, shown) {
+    if (value !== "" && ![...control.options].some((option) => option.value === value)) {
+      const option = document.createElement("option");
+      option.value = value;
+      option.textContent = shown || value;
+      control.append(option);
+    }
+    control.value = value;
   }
 
   async function pick(name, picker, search) {
@@ -194,6 +213,7 @@ export function form(page) {
       }
       const items = (await response.json())[picker.items];
       const chosen = control.value;
+      const shown = control.selectedOptions[0]?.textContent;
       control.replaceChildren(control.options[0]);
       for (const item of items) {
         const option = document.createElement("option");
@@ -201,7 +221,7 @@ export function form(page) {
         option.textContent = picker.shows.map((shown) => item[shown] ?? "").join(" · ");
         control.append(option);
       }
-      control.value = chosen;
+      choose(control, chosen, shown);
       control.picked = new Map(items.map((item) => [String(item[picker.value]), item]));
     } catch {
       show(page.messages.failed, true);
@@ -227,6 +247,7 @@ export function form(page) {
   });
   element.addEventListener("submit", async (event) => {
     event.preventDefault();
+    record = read(element);
     const body = {};
     for (const name of page.submit.sent) {
       const value = sent(record[name]);
@@ -286,6 +307,10 @@ export function form(page) {
         }
         loaded = await response.json();
         fill(element, loaded);
+        // A picker's list may come after the record; its value is kept.
+        for (const name of Object.keys(page.pickers)) {
+          choose(field(name), String(loaded[name] ?? ""));
+        }
         for (const [name, from] of Object.entries(page.source.rows ?? {})) {
           for (const row of loaded[from] ?? []) {
             lists.get(name)(row, true);

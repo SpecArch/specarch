@@ -2,11 +2,15 @@
 
 # SpecArch toolchain: traceability matrix
 
-Version 0.7.2-dev of the specification: 10 needs, 85 requirements, and 1 gap. Each requirement is traced back to the needs it refines and forward to what satisfies it in the design and what verifies it in the tests and commissioning checks.
+Version 0.7.2-dev of the specification: 10 needs, 86 requirements, and 3 gaps. Each requirement is traced back to the needs it refines and forward to what satisfies it in the design and what verifies it in the tests and commissioning checks.
 
-**Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
+**Problems:** 3 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
+
+**Problem:** warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SA-75; add verifies: [SA-75] to the test that shows it is met [requirement_unverified@requirements/requirements/design-keywords.yaml#/requirements/SA-75]
 
 **Problem:** warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SA-57; add verifies: [SA-57] to the test that shows it is met [requirement_unverified@requirements/requirements/refinement.yaml#/requirements/SA-57]
+
+**Problem:** warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SA-76; add verifies: [SA-76] to the test that shows it is met [requirement_unverified@requirements/requirements/refinement.yaml#/requirements/SA-76]
 
 ## 1. Needs to requirements
 
@@ -19,7 +23,7 @@ Version 0.7.2-dev of the specification: 10 needs, 85 requirements, and 1 gap. Ea
 | NEED-5 | accepted | SA-35, SA-47, SA-68, SA-26, SA-16, SA-90, SA-12, SA-23, SA-24, SA-25, SA-73 |
 | NEED-6 | accepted | SA-15, SA-13 |
 | NEED-7 | accepted | SA-14, SA-74 |
-| NEED-8 | accepted | SA-69, SA-70, SA-46, SA-59, SA-71, SA-17, SA-18, SA-19, SA-20, SA-30, SA-44, SA-45, SA-64, SA-72, SA-76, SA-79, SA-85, SA-51 |
+| NEED-8 | accepted | SA-69, SA-70, SA-46, SA-59, SA-71, SA-17, SA-18, SA-19, SA-20, SA-30, SA-44, SA-45, SA-64, SA-72, SA-76, SA-79, SA-85, SA-86, SA-51 |
 | NEED-9 | accepted | SA-31, SA-29, SA-28, SA-27, SA-21, SA-22, SA-75 |
 | NEED-10 | accepted | SA-58, SA-60, SA-57 |
 
@@ -101,8 +105,8 @@ Version 0.7.2-dev of the specification: 10 needs, 85 requirements, and 1 gap. Ea
 | SA-72 | NEED-1, NEED-8 | commands check; decisions ADR-124; decisions ADR-128 | tests check-dump-of-no-format; tests check-fails-on-a-difference; tests check-skips-a-partition; tests check-succeeds; tests check-usage-error |
 | SA-73 | NEED-5 | enums DocumentTarget; enums Rule; commands document; decisions ADR-129; decisions ADR-136; decisions ADR-137 | tests document-handover-none; tests document-writes-handover; tests validate-build-task-unknown; tests validate-handover-build-missing; tests validate-handover-incomplete; tests validate-handover-missing; tests validate-handover-no-customer; tests validate-handover-valid |
 | SA-74 | NEED-3, NEED-7 | commands model; decisions ADR-138 | tests model-exit-2; tests model-usage-error; tests model-writes-json |
-| SA-75 | NEED-1, NEED-3, NEED-9 | decisions ADR-141 | tests document-techspec-gateway; tests document-testplan-gateway; tests generate-openapi-gateway; tests validate-gateway; tests validate-gateway-estate-wrong; tests validate-gateway-wrong |
-| SA-76 | NEED-8 | commands check; commands extract; decisions ADR-142 | tests check-gateway-forward-moved; tests check-gateway-forward-removed; tests extract-gateway; tests extract-gateway-value-twice; tests merge-gateway-catch-all-kept; tests merge-gateway-fallback; tests merge-gateway-fallback-across-trees; tests merge-gateway-two-trees |
+| SA-75 | NEED-1, NEED-3, NEED-9 | decisions ADR-141 |   |
+| SA-76 | NEED-8 | decisions ADR-142 |   |
 | SA-77 | NEED-1, NEED-2, NEED-3 | enums Rule; decisions ADR-145; decisions ADR-146 | tests document-techspec-envelope-stream; tests extract-go-dxlib-envelope-stream; tests generate-go-dxlib-envelope-stream; tests generate-openapi-dxlib-envelope-stream; tests validate-handshake; tests validate-stream |
 | SA-78 | NEED-2 | decisions ADR-147 | tests generate-framework-plugin; tests generate-ui-swiftui; tests generate-ui-swiftui-refused |
 | SA-79 | NEED-8 | decisions ADR-143 | tests extract-go-routes-constants; tests extract-go-routes-fallbacks |
@@ -110,6 +114,7 @@ Version 0.7.2-dev of the specification: 10 needs, 85 requirements, and 1 gap. Ea
 | SA-83 | NEED-1, NEED-2, NEED-3 | enums Rule | tests derive-0-3-clients; tests document-techspec-0-3-clients; tests validate-0-3-callers; tests validate-0-3-clients; tests validate-0-3-clients-valid; tests validate-0-3-nobody; tests validate-0-3-through |
 | SA-84 | NEED-1, NEED-2, NEED-3 | enums Rule | tests derive-0-3-tokens; tests document-techspec-0-3-tokens; tests generate-openapi-0-3-tokens; tests validate-0-3-claims; tests validate-0-3-security-events; tests validate-0-3-token-audience; tests validate-0-3-tokens; tests validate-0-3-tokens-valid; tests validate-0-3-txn-token; tests validate-0-3-via |
 | SA-85 | NEED-8 | commands decide; decisions ADR-155; decisions ADR-156 | tests decide-needs-source; tests decide-removes-questions-file; tests decide-unknown-question; tests decide-unknown-source; tests decide-unknown-stakeholder; tests decide-usage-error; tests decide-writes-decision; tests document-problems-lists |
+| SA-86 | NEED-8 | enums DocumentTarget; commands document; decisions ADR-157 | tests document-writes-comparison |
 | SA-88 | NEED-2, NEED-3 | enums Rule | tests document-techspec-caller-estate; tests gaps-caller-alone; tests validate-caller-chain-gap; tests validate-caller-chain-wrong; tests validate-caller-estate; tests validate-caller-estate-wrong |
 | SA-89 | NEED-2 | decisions ADR-159 | tests extract-go-caller-checks; tests extract-permissions-client-through |
 | SA-90 | NEED-3, NEED-5 | enums DocumentTarget; decisions ADR-160 | tests document-manual-none; tests document-operations-none; tests document-writes-manual; tests document-writes-operations; tests validate-remedy-and-response |
@@ -118,5 +123,5 @@ Version 0.7.2-dev of the specification: 10 needs, 85 requirements, and 1 gap. Ea
 
 The work the specification still owes, the same gaps the validator warns about. Rejected needs and rejected or retired requirements are left out.
 
-- Requirements no test, check or monitor verifies: SA-57.
+- Requirements no test, check or monitor verifies: SA-75, SA-57, SA-76.
 

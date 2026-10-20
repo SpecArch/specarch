@@ -408,6 +408,9 @@ now; run it before each commit.
   with its Origin line and the open questions that concern it in place.
   A document that a question concerns starts with a Draft line.
 - `traceability.md`: what each requirement is built by.
+- `comparison.md`: the old documents against the refined specification,
+  what was kept from each by clause, clarified, added or corrected, and
+  which of their clauses no element cites.
 
 The owner answers in words. The agent declares the answers as a source of
 kind `interview` with the date, records each answer with `specarch decide
@@ -458,5 +461,3 @@ with the pinned version and checksum filled in:
 - The dispatcher's reading of `problems.sarif`: the log carries what it
   needs (`docs/refinement.md`, Fit with the agent queue); until the
   dispatcher reads it, it reads the text.
-- The document target `comparison`, which would set the old document
-  beside the refined one.

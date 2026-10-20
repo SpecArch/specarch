@@ -1,0 +1,15 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0, tracksOrigin: true }
+stages: [requirements, design]
+sources:
+  manual:
+    kind: document
+    title: The desk manual
+    edition: "2025"
+    clauses:
+      - { clause: "1", title: Members }
+      - { clause: "2", title: Loans }
+      - { clause: "2.1", title: The loan limit }
+      - { clause: "3", title: Opening hours }
+      - { clause: "4", title: Fines }
+  owner-answer: { kind: interview, title: The owner's answers in the agents panel, date: "2026-10-20" }

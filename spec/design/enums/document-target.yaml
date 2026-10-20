@@ -4,11 +4,12 @@ enums:
     type: string
     description: |
       The documents `specarch document` writes from a specification, one per
-      stage of the life cycle, the open questions, the problems, and from the records
-      beside the specification the change register and the release notes,
-      and for the people who use and run the system the user manual and the
-      operations guide (ADR-160).
-    enum: [techspec, requirements, testplan, traceability, deployment, commissioning, handover, questions, problems, changes, releases, html, manual, operations]
+      stage of the life cycle, the open questions, the problems, the
+      comparison of the old documents with the refined specification, and
+      from the records beside the specification the change register and
+      the release notes, and for the people who use and run the system the
+      user manual and the operations guide (ADR-160).
+    enum: [techspec, requirements, testplan, traceability, deployment, commissioning, handover, questions, problems, comparison, changes, releases, html, manual, operations]
     valueDescriptions:
       techspec: arc42 technical specification in Markdown with generated Mermaid diagrams
       requirements: requirements specification, in the layout of ISO/IEC/IEEE 29148
@@ -19,12 +20,13 @@ enums:
       handover: "handover document for the engineers of the customer who runs an environment from the source: what they receive, the responsibilities, how each implementation builds a release and the licences of its dependencies, what the hosts must provide, the settings, the migrations, the release, rollback, backup and restore steps, the monitors, the checks and acceptance tests in that environment and the sign-off sheet (ADR-129)"
       questions: the open questions by stage, what each blocks and who decides, and which outputs are ready, drafts or waiting
       problems: "problems.txt, every error, warning and open question one line each with its notes, and problems.sarif, the same as a SARIF 2.1.0 log; written for an invalid specification too"
+      comparison: "the old documents against the refined specification: the elements kept from each source by clause, the clarified ones with what they were concluded from, the added or corrected ones with their decision, and the clauses of each source's outline no element cites (ADR-157)"
       changes: the change and defect register, open items first, from the records beside the specification
       releases: release notes, newest first, each release's changes and fixes grouped as added, changed, removed and fixed, from the records
       html: "index.html, the whole specification as one page that needs no server and makes no request: an overview first, every element under an anchor named by its pointer, the entity diagram, each workflow's BPMN diagram, each generated screen, the traceability matrix, the open questions, and the problems linked both ways with the entries they mark"
       manual: "user manual, for the people who use the system: the roles a person holds and the pages each opens, the menus, each flow as numbered steps, and each page with how it is reached, who opens it, its fields or columns, its actions, and for each problem it names the message, the condition and the remedy (ADR-160)"
       operations: "operations guide, for the people who run the live system: the environments and the hosts each implementation deploys there, a daily checklist of the monitors, jobs and dependencies, each monitor with how it is watched and the response when its objective is missed, the jobs, the channels with their carriers, publishers and consumers, the dependencies with what uses them, the endpoints with their permissions, the settings, and the backup, restore and rollback steps (ADR-160)"
-    satisfies: [SA-7, SA-16, SA-19, SA-26, SA-51, SA-60, SA-73, SA-90]
+    satisfies: [SA-7, SA-16, SA-19, SA-26, SA-51, SA-60, SA-73, SA-86, SA-90]
     cites:
       - source: iso-29119-3
         clause: "7.2 and 8.3"

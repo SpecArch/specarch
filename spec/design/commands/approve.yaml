@@ -8,7 +8,8 @@ commands:
       stakeholder of the specification, when no document target is
       configured, and when any configured document on disk is not what the
       specification generates now, so that what was read is what is
-      approved. Otherwise writes `records/approvals/<version>.yaml` beside
+      approved; the questions, problems and comparison targets are the
+      refinement's own documents and are not among them (ADR-157). Otherwise writes `records/approvals/<version>.yaml` beside
       the specification's folder: the record kind, the version, who
       approved, the date, the documents that were current, and the digest
       of the specification's files (the SHA-256 of every `.yaml` file under

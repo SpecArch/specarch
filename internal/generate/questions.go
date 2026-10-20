@@ -14,8 +14,8 @@ import (
 // DocumentTargets are the document targets of the design, in the order
 // they are listed; BuiltDocuments says which this program has.
 var (
-	DocumentTargets = []string{"techspec", "requirements", "testplan", "traceability", "deployment", "commissioning", "handover", "questions", "problems", "changes", "releases", "html", "manual", "operations"}
-	BuiltDocuments  = map[string]bool{"techspec": true, "requirements": true, "testplan": true, "traceability": true, "deployment": true, "commissioning": true, "handover": true, "questions": true, "problems": true, "changes": true, "releases": true, "html": true, "manual": true, "operations": true}
+	DocumentTargets = []string{"techspec", "requirements", "testplan", "traceability", "deployment", "commissioning", "handover", "questions", "problems", "comparison", "changes", "releases", "html", "manual", "operations"}
+	BuiltDocuments  = map[string]bool{"techspec": true, "requirements": true, "testplan": true, "traceability": true, "deployment": true, "commissioning": true, "handover": true, "questions": true, "problems": true, "comparison": true, "changes": true, "releases": true, "html": true, "manual": true, "operations": true}
 )
 
 // documentReads says which sections each document reads, so that a
@@ -33,6 +33,11 @@ var documentReads = map[string][]string{
 	"manual":        {"flows", "menus", "pages", "roles", "permissions", "errors"},
 	"operations":    {"environments", "monitors", "jobs", "channels", "dependencies", "paths", "configuration", "backup", "restore", "rollback"},
 }
+
+// RefinementDocuments are the documents about the refinement itself, read
+// while questions are open: never a draft, never in the outputs table, and
+// not among the documents an approval is of (ADR-157).
+var RefinementDocuments = map[string]bool{"questions": true, "problems": true, "comparison": true}
 
 // IsDocumentTarget reports whether a target name is a document's.
 func IsDocumentTarget(t string) bool {
@@ -445,7 +450,7 @@ func Questions(root *yaml.Node, relRoot string, impls []Implementation, state *S
 	d.line("| Output | State | Waits on |")
 	d.line("|---|---|---|")
 	for _, t := range DocumentTargets {
-		if !BuiltDocuments[t] || t == "questions" || t == "problems" || recordDocuments[t] {
+		if !BuiltDocuments[t] || RefinementDocuments[t] || recordDocuments[t] {
 			continue
 		}
 		if t == "handover" && get(root, "handover") == nil {

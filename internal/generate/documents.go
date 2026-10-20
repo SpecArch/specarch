@@ -39,6 +39,8 @@ func Document(target string, root *yaml.Node, relRoot string, impls []Implementa
 		write = func() string { return Operations(root, relRoot, impls, state) }
 	case "questions":
 		return Questions(root, relRoot, impls, state), true
+	case "comparison":
+		write = func() string { return Comparison(root, relRoot, impls, state) }
 	case "changes":
 		return Changes(root, relRoot, state), true
 	case "releases":

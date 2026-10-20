@@ -1,0 +1,67 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
+decisions:
+  ADR-157:
+    title: The comparison of the old documents with the refined specification is derived from origin, citations and decisions, tells added from corrected by whether the element cites a source, and is a refinement document like the questions and the problems
+    status: proposed
+    date: "2026-10-20"
+    context: |
+      Before approving, a reviewer wants to see what the refinement
+      changed against the old documents: what was kept, clarified, added
+      or corrected, and what of the old documents was dropped. The design
+      of refinement planned a document target for it with four groups
+      and no format of its own, since origin, the citations and the
+      decisions already hold the facts, and the outline a source lists as
+      its clauses already lets gaps show which clauses produced nothing.
+      Three things had to be settled: how an added element is told from a
+      corrected one, which elements the document compares, and whether
+      it is a draft while questions are open.
+    decision: |
+      The document target comparison writes comparison.md with four
+      numbered groups. Kept: every element with origin stated, under each
+      source it cites, with the clause and what the source says. Clarified:
+      every element with origin inferred, with its why. Added or
+      corrected: every element with origin decided, with its decision and
+      the decision's why; it is corrected when it cites a source other
+      than an interview, since that source said something at that place,
+      and added otherwise. Dropped: for every source that lists its
+      clauses, the clauses that no element cites; a clause only a
+      question cites is named as asked about, not dropped. Elements
+      without an origin are listed after the four groups. The elements
+      compared are the named elements of every section but decisions and
+      questions, which are the refinement's own record. Problems are
+      marked at the element's row, as in every document.
+
+      The comparison is a refinement document, like the questions
+      document and the problems files: it is read while questions are
+      open, so it is never a draft, it is not a row of the outputs table,
+      and it is not among the documents an approval is of.
+    consequences: |
+      A reviewer reads one document to see what changed and what was left
+      behind, and a clause of the manual nobody read shows up before
+      approval rather than after. A decided element that cites the old
+      document shows as a correction of it; one that cites only the
+      interview, or nothing, as an addition. A specification that lists
+      no outline gets a Dropped section that says to list one. The
+      coverage section of the questions document keeps showing which
+      elements each clause produced; the comparison shows the clauses
+      that produced nothing, which is what a reviewer looks for.
+    why: |
+      Whether a decided element corrects the old document or adds to it
+      cannot be read from the decision's prose without reading it, so
+      the rule rests on a fact the specification holds: a citation of the
+      old document at that element means the document said something
+      there. The interview is set apart because an answer given in words
+      is the decision's own ground, not an old document. The decisions
+      and the questions are left out because the document compares the
+      system's elements with the sources, and a decision stated by an
+      interview would otherwise read as kept from the interview. The
+      comparison is never a draft because a draft notice says the
+      document is not what will be approved, and this document is never
+      approved: it is the account of the refinement, read while it is
+      going on, and listing it among the outputs would put it beside the
+      documents that are.
+    cites:
+      - source: iso-29148
+        clause: "6.3.3.6"
+        says: "Requirements validation is subject to approval by the project authority and the key stakeholders."
+    satisfies: [SA-86]

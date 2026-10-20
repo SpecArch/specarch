@@ -181,7 +181,11 @@ sheet; a specification with no handover is passed over with a warning
 (ADR-129). `questions` writes `questions.md`: the open
 questions by stage with what each blocks and who decides, and a table of
 the outputs, each ready, a draft or waiting; `specarch gaps` prints the
-same text and exits 1 while a must or should question is open. `manual`
+same text and exits 1 while a must or should question is open.
+`comparison` writes `comparison.md`: the old documents against the refined
+specification, derived from origin, citations and decisions, what was
+kept from each source by clause, clarified, added or corrected, and which
+clauses of each source's outline no element cites (ADR-157). `manual`
 and `operations` wait until the specification holds what they need.
 
 `html` writes `index.html`: the whole specification as one page that opens

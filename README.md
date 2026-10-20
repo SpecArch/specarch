@@ -289,8 +289,10 @@ requirements specification), `testplan` (the test plan and test cases),
 `traceability` (the matrix and its gaps), `deployment` (the deployment
 guide), `commissioning` (the commissioning procedure and sign-off sheet),
 `handover` (what a customer who builds and runs an environment from the
-source receives) and `questions` (the open questions and what they hold
-up), each as `<target>.md`. Wherever the specification says why an element is so, or
+source receives), `questions` (the open questions and what they hold
+up) and `comparison` (the old documents against the refined
+specification: kept, clarified, added or corrected, and dropped), each as
+`<target>.md`. Wherever the specification says why an element is so, or
 cites a standard for it, the document shows an Insight or a Note next to
 the element; wherever it says how an element is known, an Origin line; and
 wherever an open question blocks an element, the question.

@@ -418,23 +418,26 @@ questions document, where the people who read it look.
 
 Before approving, the reviewer wants to see what the refinement changed
 against the old document: what was clarified, added, corrected or dropped, and why.
-The documentor can derive that from what this design adds, without a
-separate comparison format:
+`specarch document comparison` writes it as `comparison.md` (ADR-157),
+derived from what this design adds, without a separate comparison format:
 
 | Bucket | How it is known |
 |---|---|
 | kept | elements with `origin: stated`, with the clause of the old document they cite |
 | clarified | elements with `origin: inferred`: the old document left them implicit; the Insight says from what they were concluded |
-| added or corrected | elements with `origin: decided`: added when the decision's context says the source was silent, corrected when it says the source was wrong; the decision's `why` is the reason |
-| dropped | clauses of the old document that no element cites |
+| added or corrected | elements with `origin: decided`, each with its decision and the decision's `why`: corrected when the element cites a source other than an interview, since that source said something at that place; added otherwise |
+| dropped | clauses of the old document that no element cites; a clause only a question cites is named as asked about |
 
 The fourth bucket needs the outline of the old document, so that an
 uncited clause can be found. A source lists it as its `clauses`, each a
-number and a title, and `specarch gaps` already shows, per source, the
-elements each clause produced and the clauses that produced nothing
-(`docs/from-sources.md`). The document target `comparison` that writes the
-four buckets side by side is a follow-up item; the first three buckets need
-nothing beyond `origin`, `cites` and the decisions.
+number and a title; `specarch gaps` shows, per source, the elements each
+clause produced, and the comparison the clauses that produced nothing
+(`docs/from-sources.md`). A citation that names a clause the source does
+not list is the warning `source_clause`. The decisions and the questions
+are not compared: they are the refinement's own record. The comparison
+is a refinement document like the questions document and the problems
+files: never a draft, not in the outputs table, and not among the
+documents an approval is of.
 
 ## Stack-neutral and stack-specific
 
@@ -493,9 +496,9 @@ For the dispatcher to queue, in this order:
    (ADR-156): the log carries what Fit with the agent queue lists. The
    dispatcher's reading of it, and its putting the questions to the people
    who decide, is the agent queue's own item.
-3. The document target `comparison` with the four buckets above, and a
-   validator rule for a citation that names a clause its source does not
-   list.
+3. The document target `comparison` is built (ADR-157,
+   `spec/tests/document-writes-comparison`); the rule for a citation that
+   names a clause its source does not list is `source_clause`.
 4. The approval record in the record schema of `docs/maintenance.md`, when
    that schema is built (its item 2), with the rule that an approval's
    version is the specification's.

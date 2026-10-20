@@ -1,0 +1,41 @@
+entities:
+  Loan:
+    type: object
+    properties:
+      id: { type: string }
+      dueOn: { type: string, format: date }
+    primaryKey: [id]
+    satisfies: [CASE-1]
+    origin: decided
+    decidedIn: ADR-002
+    cites: [{ source: manual, clause: "2", says: "A loan is due after 14 days." }]
+  Member:
+    type: object
+    properties: { id: { type: string } }
+    primaryKey: [id]
+    satisfies: [CASE-2]
+decisions:
+  ADR-001:
+    title: Overdue loans are notified
+    status: accepted
+    date: "2026-10-20"
+    context: Q-5 asked whether a member is told of an overdue loan; the manual says nothing of notices.
+    decision: Yes, by a notice the day after the due date.
+    consequences: CASE-3 is written from this answer.
+    answers: [Q-5]
+    decidedBy: owner
+    why: The manual is silent on notices, and the owner wants them.
+    origin: stated
+    cites: [{ source: owner-answer, says: "Tell them the day after." }]
+  ADR-002:
+    title: The loan period is 21 days
+    status: accepted
+    date: "2026-10-20"
+    context: Q-6 asked which loan period holds, since the manual says 14 days at clause 2 and the desk uses 21.
+    decision: 21 days.
+    consequences: Loan.dueOn is written from this answer.
+    answers: [Q-6]
+    decidedBy: owner
+    why: The manual was written before the period changed, and was never corrected.
+    origin: stated
+    cites: [{ source: owner-answer, says: "21 days, as the desk does." }]

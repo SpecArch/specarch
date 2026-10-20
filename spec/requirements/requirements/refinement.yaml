@@ -188,3 +188,18 @@ requirements:
       - source: ieee-830
         clause: "4.3.3"
         says: "A to-be-determined item is accompanied by why it is open, what must be done to close it, who is responsible and by when."
+  SA-86:
+    statement: specarch document comparison shall write the old documents against the refined specification, derived from the elements' origin, their citations and the decisions and from no other input - the stated elements kept from each source by clause, the inferred ones clarified with what they were concluded from, the decided ones added or corrected with their decision and its reason, and the clauses of each source's outline that no element cites - so that a reviewer sees what the refinement changed before approving.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance:
+      - A specification whose manual lists five clauses, with two stated elements citing it, an inferred requirement, a decided requirement citing nothing, a decided entity citing the manual and a could question citing a clause gets a comparison with the stated elements under the manual by clause, the inferred requirement with its reason, the decided requirement as added and the decided entity as corrected with their decisions, the clause only the question cites as asked about, the clause nothing cites as dropped, and an element without origin listed with its warning.
+      - The comparison is never a draft, is not a row of the outputs table and is not among the documents an approval is of.
+    verification: test
+    needs: [NEED-8]
+    why: Before approving, the reviewer wants to see what the refinement changed against what the old documents said, and whether anything of them was left behind; read by hand from the citations that is slow and skipped where the two look alike.
+    cites:
+      - source: iso-29148
+        clause: "6.3.3.6"
+        says: "Requirements validation is subject to approval by the project authority and the key stakeholders."

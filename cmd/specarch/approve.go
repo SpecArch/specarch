@@ -95,7 +95,7 @@ func approve(l loaded, by, date string, stdout, stderr io.Writer) int {
 	var documents []string
 	stale := 0
 	for _, target := range generate.DocumentTargets {
-		if !generate.BuiltDocuments[target] || target == "questions" || target == "problems" {
+		if !generate.BuiltDocuments[target] || generate.RefinementDocuments[target] {
 			continue
 		}
 		folder := configuredFolder(l, target)

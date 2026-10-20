@@ -1,0 +1,35 @@
+stakeholders:
+  owner: { description: The product owner., origin: stated, cites: [{ source: manual, clause: "1", says: "The owner decides." }] }
+requirements:
+  CASE-1:
+    statement: A member shall borrow at most five books.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance: [A sixth loan is refused.]
+    origin: stated
+    cites: [{ source: manual, clause: "2.1", says: "Five books at a time." }]
+  CASE-2:
+    statement: A loan shall name the member who holds it.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance: [A loan without a member is refused.]
+    origin: inferred
+    why: The manual's loan table has a member column, so a loan is tied to one member, although no sentence says so.
+  CASE-3:
+    statement: A member shall be told when a loan is overdue.
+    kind: functional
+    priority: should
+    status: accepted
+    acceptance: [A notice is sent the day after the due date.]
+    origin: decided
+    decidedIn: ADR-001
+questions:
+  Q-7:
+    question: What does the desk do at closing time with a loan not returned?
+    kind: decision
+    priority: could
+    blocks: [requirements]
+    decidedBy: owner
+    cites: [{ source: manual, clause: "3", says: "The desk closes at five." }]

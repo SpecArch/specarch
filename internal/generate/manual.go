@@ -393,7 +393,7 @@ func whoOpens(root *yaml.Node, perm string) string {
 		}
 	}
 	if len(roles) == 0 {
-		return "Opened by who holds the permission " + perm + "; no role of a person grants it."
+		return "Opened by who holds the permission " + perm + "; no role a person holds in this specification grants it."
 	}
 	return "Opened by " + joinAnd(roles) + " (the permission " + perm + ")."
 }

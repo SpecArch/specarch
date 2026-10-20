@@ -124,6 +124,17 @@ func (wf *workflow) bpmn(header, draft string) string {
 	if wf.description != "" {
 		fmt.Fprintf(&b, "    <documentation>%s</documentation>\n", esc(strings.Join(strings.Fields(wf.description), " ")))
 	}
+	b.WriteString("    <laneSet id=\"lanes\">\n")
+	for i, l := range wf.lanes {
+		fmt.Fprintf(&b, "      <lane id=\"%s\" name=\"%s\">\n", esc(l.id), esc(l.name))
+		for _, s := range wf.shapes {
+			if s.lane == i {
+				fmt.Fprintf(&b, "        <flowNodeRef>%s</flowNodeRef>\n", esc(s.id))
+			}
+		}
+		b.WriteString("      </lane>\n")
+	}
+	b.WriteString("    </laneSet>\n")
 	for _, s := range wf.shapes {
 		mark(s.id, "    ")
 		switch s.kind {
@@ -160,6 +171,10 @@ func (wf *workflow) bpmn(header, draft string) string {
 	}
 	b.WriteString("  </process>\n")
 	fmt.Fprintf(&b, "  <bpmndi:BPMNDiagram id=\"diagram-%s\">\n    <bpmndi:BPMNPlane id=\"plane-%s\" bpmnElement=\"%s\">\n", esc(wf.name), esc(wf.name), processID)
+	for _, l := range wf.lanes {
+		fmt.Fprintf(&b, "      <bpmndi:BPMNShape id=\"shape-%s\" bpmnElement=\"%s\" isHorizontal=\"true\">\n        <dc:Bounds x=\"%d\" y=\"%d\" width=\"%d\" height=\"%d\"/>\n      </bpmndi:BPMNShape>\n",
+			esc(l.id), esc(l.id), laneX, l.y, wf.width-2*laneX, l.h)
+	}
 	for _, s := range wf.shapes {
 		marker := ""
 		if s.kind == "exclusiveGateway" {
@@ -200,6 +215,7 @@ func (wf *workflow) svg(header, draft string) string {
     .name { font-weight: 600; }
     .small { font-size: 11px; fill: #57606a; }
     .draft { fill: #9a6700; font-weight: 600; }
+    .lane { fill: none; stroke: #d1d9e0; stroke-width: 1; }
     @media (prefers-color-scheme: dark) {
       .line { stroke: #d1d7e0; }
       .shape, .end { fill: #151b23; stroke: #d1d7e0; }
@@ -207,6 +223,7 @@ func (wf *workflow) svg(header, draft string) string {
       text { fill: #d1d7e0; }
       .small { fill: #9198a1; }
       .draft { fill: #d29922; }
+      .lane { stroke: #3d444d; }
     }
   </style>
   <defs>
@@ -225,53 +242,76 @@ func (wf *workflow) svg(header, draft string) string {
 	for _, m := range wf.marks[processID] {
 		b.WriteString("    " + m + "\n")
 	}
+	// Every element is a group with the BPMN element's id, so a click maps
+	// to the element and, through data-step and data-role, to the entry of
+	// the specification (ADR-139).
+	b.WriteString("    <g id=\"lanes\">\n")
+	for _, l := range wf.lanes {
+		role := ""
+		if l.role != "" {
+			role = fmt.Sprintf(" data-role=\"%s\"", esc(l.role))
+		}
+		fmt.Fprintf(&b, "      <g id=\"%s\"%s>\n", esc(l.id), role)
+		fmt.Fprintf(&b, "        <rect class=\"lane\" x=\"%d\" y=\"%d\" width=\"%d\" height=\"%d\"/>\n", laneX, l.y, wf.width-2*laneX, l.h)
+		fmt.Fprintf(&b, "        <text class=\"small\" x=\"%d\" y=\"%d\">%s</text>\n", laneX+8, l.y+15, esc(l.name))
+		b.WriteString("      </g>\n")
+	}
+	b.WriteString("    </g>\n")
 	for _, f := range wf.flows {
 		var pts []string
 		for _, p := range f.points {
 			pts = append(pts, fmt.Sprintf("%d,%d", p[0], p[1]))
 		}
-		fmt.Fprintf(&b, "    <polyline class=\"line\" points=\"%s\" marker-end=\"url(#head)\"/>\n", strings.Join(pts, " "))
+		fmt.Fprintf(&b, "    <g id=\"%s\">\n", f.id)
+		fmt.Fprintf(&b, "      <polyline class=\"line\" points=\"%s\" marker-end=\"url(#head)\"/>\n", strings.Join(pts, " "))
 		if f.label != "" {
 			a, c := f.points[0], f.points[1]
 			x, y := a[0]+6, a[1]-6
 			if a[0] == c[0] { // a flow that goes down first is labelled beside it
 				x, y = a[0]+6, a[1]+16
 			}
-			fmt.Fprintf(&b, "    <text class=\"small\" x=\"%d\" y=\"%d\">%s</text>\n", x, y, esc(f.label))
+			fmt.Fprintf(&b, "      <text class=\"small\" x=\"%d\" y=\"%d\">%s</text>\n", x, y, esc(f.label))
 		}
+		b.WriteString("    </g>\n")
 	}
 	for _, s := range wf.shapes {
 		for _, m := range wf.shapeMarks(s) {
 			b.WriteString("    " + m + "\n")
 		}
+		step := ""
+		if s.step != nil {
+			step = fmt.Sprintf(" data-step=\"%s\"", esc(text(s.step["name"])))
+		}
+		fmt.Fprintf(&b, "    <g id=\"%s\"%s>\n", esc(s.id), step)
 		switch s.kind {
 		case "startEvent", "endEvent":
 			class := "shape"
 			if s.kind == "endEvent" {
 				class = "end"
 			}
-			fmt.Fprintf(&b, "    <circle class=\"%s\" cx=\"%d\" cy=\"%d\" r=\"%d\"/>\n", class, s.cx(), s.cy(), s.w/2)
-			fmt.Fprintf(&b, "    <text x=\"%d\" y=\"%d\" text-anchor=\"middle\">%s</text>\n", s.cx(), s.bottom()+16, esc(s.name))
+			fmt.Fprintf(&b, "      <circle class=\"%s\" cx=\"%d\" cy=\"%d\" r=\"%d\"/>\n", class, s.cx(), s.cy(), s.w/2)
+			fmt.Fprintf(&b, "      <text x=\"%d\" y=\"%d\" text-anchor=\"middle\">%s</text>\n", s.cx(), s.bottom()+16, esc(s.name))
 		case "userTask", "serviceTask":
 			kind := "approval"
 			if s.kind == "serviceTask" {
 				kind = "operation"
 			}
-			fmt.Fprintf(&b, "    <rect class=\"shape\" x=\"%d\" y=\"%d\" width=\"%d\" height=\"%d\" rx=\"10\"/>\n", s.x, s.y, s.w, s.h)
-			fmt.Fprintf(&b, "    <text class=\"small\" x=\"%d\" y=\"%d\">%s</text>\n", s.x+8, s.y+16, kind)
-			fmt.Fprintf(&b, "    <text class=\"name\" x=\"%d\" y=\"%d\" text-anchor=\"middle\">%s</text>\n", s.cx(), s.cy()+2, esc(s.name))
+			fmt.Fprintf(&b, "      <rect class=\"shape\" x=\"%d\" y=\"%d\" width=\"%d\" height=\"%d\" rx=\"10\"/>\n", s.x, s.y, s.w, s.h)
+			fmt.Fprintf(&b, "      <text class=\"small\" x=\"%d\" y=\"%d\">%s</text>\n", s.x+8, s.y+16, kind)
+			fmt.Fprintf(&b, "      <text class=\"name\" x=\"%d\" y=\"%d\" text-anchor=\"middle\">%s</text>\n", s.cx(), s.cy()+2, esc(s.name))
 			if s.sub != "" {
-				fmt.Fprintf(&b, "    <text class=\"small\" x=\"%d\" y=\"%d\" text-anchor=\"middle\">%s</text>\n", s.cx(), s.cy()+20, esc(s.sub))
+				fmt.Fprintf(&b, "      <text class=\"small\" x=\"%d\" y=\"%d\" text-anchor=\"middle\">%s</text>\n", s.cx(), s.cy()+20, esc(s.sub))
 			}
 		case "boundaryEvent":
-			fmt.Fprintf(&b, "    <circle class=\"shape\" cx=\"%d\" cy=\"%d\" r=\"%d\"/>\n", s.cx(), s.cy(), s.w/2)
-			fmt.Fprintf(&b, "    <circle class=\"line\" cx=\"%d\" cy=\"%d\" r=\"%d\"/>\n", s.cx(), s.cy(), s.w/2-4)
-			fmt.Fprintf(&b, "    <polyline class=\"line\" points=\"%d,%d %d,%d %d,%d\"/>\n", s.cx(), s.cy()-9, s.cx(), s.cy(), s.cx()+7, s.cy())
+			fmt.Fprintf(&b, "      <circle class=\"shape\" cx=\"%d\" cy=\"%d\" r=\"%d\"/>\n", s.cx(), s.cy(), s.w/2)
+			fmt.Fprintf(&b, "      <circle class=\"line\" cx=\"%d\" cy=\"%d\" r=\"%d\"/>\n", s.cx(), s.cy(), s.w/2-4)
+			fmt.Fprintf(&b, "      <polyline class=\"line\" points=\"%d,%d %d,%d %d,%d\"/>\n", s.cx(), s.cy()-9, s.cx(), s.cy(), s.cx()+7, s.cy())
 		case "exclusiveGateway":
 			cx, cy, r := s.cx(), s.cy(), s.w/2
-			fmt.Fprintf(&b, "    <polygon class=\"shape\" points=\"%d,%d %d,%d %d,%d %d,%d\"/>\n", cx, cy-r, cx+r, cy, cx, cy+r, cx-r, cy)
-			fmt.Fprintf(&b, "    <path class=\"line\" d=\"M%d,%d L%d,%d M%d,%d L%d,%d\"/>\n", cx-8, cy-8, cx+8, cy+8, cx+8, cy-8, cx-8, cy+8)
+			fmt.Fprintf(&b, "      <polygon class=\"shape\" points=\"%d,%d %d,%d %d,%d %d,%d\"/>\n", cx, cy-r, cx+r, cy, cx, cy+r, cx-r, cy)
+			fmt.Fprintf(&b, "      <path class=\"line\" d=\"M%d,%d L%d,%d M%d,%d L%d,%d\"/>\n", cx-8, cy-8, cx+8, cy+8, cx+8, cy-8, cx-8, cy+8)
 		}
+		b.WriteString("    </g>\n")
 	}
 	b.WriteString("  </g>\n</svg>\n")
 	return b.String()

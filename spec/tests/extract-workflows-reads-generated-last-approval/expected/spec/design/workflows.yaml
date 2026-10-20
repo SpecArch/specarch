@@ -2,7 +2,7 @@ roles:
   desk-supervisor:
     origin: stated
     cites:
-      - {source: code, clause: workflows/reinstate.bpmn, says: 'Line 29: Role desk-supervisor is a potential owner of user task step-confirmFound.'}
+      - {source: code, clause: workflows/reinstate.bpmn, says: 'Line 41: Role desk-supervisor is a potential owner of user task step-confirmFound.'}
 workflows:
   # specarch-problem: warning: test_case_missing: workflow reinstate has no red scenario for "approval without the permission of confirmFound"; add under tests reinstate-approval-without-the-permission-of-confirm-found: { workflow: reinstate, scenario: red, covers: [approval without the permission of confirmFound], given: "a caller without the permission of confirmFound", when: "they approve a request waiting at confirmFound", then: "it is refused as not allowed, and the request still waits" } [test_case_missing.0c88678f@design/workflows.yaml#/workflows/reinstate]
   # specarch-problem: warning: test_case_missing: workflow reinstate has no red scenario for "deadline passes at confirmFound"; add under tests reinstate-deadline-passes-at-confirm-found: { workflow: reinstate, scenario: red, covers: [deadline passes at confirmFound], given: "a request waiting at confirmFound", when: "PT8H passes with no answer", then: "the request ends refused" } [test_case_missing.190ce40e@design/workflows.yaml#/workflows/reinstate]

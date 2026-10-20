@@ -20,6 +20,18 @@
   <!-- specarch-problem: warning: test_golden_missing: workflow reinstate has no golden scenario; add one under tests, for example reinstate-succeeds: { workflow: reinstate, scenario: golden, given: "a caller with writeoffs.request", when: "a request is made through requestReinstatement and is approved at confirmFound", then: "it answers 202, and the request ends approved" } [test_golden_missing@specarch.yaml#/workflows/reinstate] -->
   <process id="process" name="reinstate" isExecutable="false">
     <documentation>A written-off loan is reinstated when a desk supervisor confirms the book was found, within a day.</documentation>
+    <laneSet id="lanes">
+      <lane id="lane" name="Desk">
+        <flowNodeRef>start</flowNodeRef>
+        <flowNodeRef>decision-confirmFound</flowNodeRef>
+        <flowNodeRef>end-done</flowNodeRef>
+        <flowNodeRef>end-refused</flowNodeRef>
+      </lane>
+      <lane id="lane-desk-supervisor" name="desk-supervisor">
+        <flowNodeRef>step-confirmFound</flowNodeRef>
+        <flowNodeRef>deadline-confirmFound</flowNodeRef>
+      </lane>
+    </laneSet>
     <startEvent id="start" name="requestReinstatement">
       <messageEventDefinition messageRef="message-requestReinstatement">
         <operationRef>operation-requestReinstatement</operationRef>
@@ -48,45 +60,57 @@
   </process>
   <bpmndi:BPMNDiagram id="diagram-reinstate">
     <bpmndi:BPMNPlane id="plane-reinstate" bpmnElement="process">
+      <bpmndi:BPMNShape id="shape-lane" bpmnElement="lane" isHorizontal="true">
+        <dc:Bounds x="10" y="10" width="527" height="188"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="shape-lane-desk-supervisor" bpmnElement="lane-desk-supervisor" isHorizontal="true">
+        <dc:Bounds x="10" y="198" width="527" height="160"/>
+      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="shape-start" bpmnElement="start">
-        <dc:Bounds x="60" y="62" width="36" height="36"/>
+        <dc:Bounds x="60" y="54" width="36" height="36"/>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="shape-step-confirmFound" bpmnElement="step-confirmFound">
-        <dc:Bounds x="156" y="40" width="125" height="80"/>
+        <dc:Bounds x="156" y="220" width="125" height="80"/>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="shape-deadline-confirmFound" bpmnElement="deadline-confirmFound">
-        <dc:Bounds x="233" y="102" width="36" height="36"/>
+        <dc:Bounds x="233" y="282" width="36" height="36"/>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="shape-decision-confirmFound" bpmnElement="decision-confirmFound" isMarkerVisible="true">
-        <dc:Bounds x="341" y="55" width="50" height="50"/>
+        <dc:Bounds x="341" y="47" width="50" height="50"/>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="shape-end-done" bpmnElement="end-done">
-        <dc:Bounds x="451" y="62" width="36" height="36"/>
+        <dc:Bounds x="451" y="54" width="36" height="36"/>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="shape-end-refused" bpmnElement="end-refused">
-        <dc:Bounds x="451" y="172" width="36" height="36"/>
+        <dc:Bounds x="451" y="134" width="36" height="36"/>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="edge-flow-1" bpmnElement="flow-1">
-        <di:waypoint x="96" y="80"/>
-        <di:waypoint x="156" y="80"/>
+        <di:waypoint x="96" y="72"/>
+        <di:waypoint x="126" y="72"/>
+        <di:waypoint x="126" y="260"/>
+        <di:waypoint x="156" y="260"/>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="edge-flow-2" bpmnElement="flow-2">
-        <di:waypoint x="281" y="80"/>
-        <di:waypoint x="341" y="80"/>
+        <di:waypoint x="281" y="260"/>
+        <di:waypoint x="311" y="260"/>
+        <di:waypoint x="311" y="72"/>
+        <di:waypoint x="341" y="72"/>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="edge-flow-3" bpmnElement="flow-3">
-        <di:waypoint x="391" y="80"/>
-        <di:waypoint x="451" y="80"/>
+        <di:waypoint x="391" y="72"/>
+        <di:waypoint x="451" y="72"/>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="edge-flow-4" bpmnElement="flow-4">
-        <di:waypoint x="366" y="105"/>
-        <di:waypoint x="366" y="190"/>
-        <di:waypoint x="451" y="190"/>
+        <di:waypoint x="366" y="97"/>
+        <di:waypoint x="366" y="152"/>
+        <di:waypoint x="451" y="152"/>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="edge-flow-5" bpmnElement="flow-5">
-        <di:waypoint x="251" y="138"/>
-        <di:waypoint x="251" y="190"/>
-        <di:waypoint x="451" y="190"/>
+        <di:waypoint x="251" y="318"/>
+        <di:waypoint x="251" y="332"/>
+        <di:waypoint x="507" y="332"/>
+        <di:waypoint x="507" y="152"/>
+        <di:waypoint x="487" y="152"/>
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>

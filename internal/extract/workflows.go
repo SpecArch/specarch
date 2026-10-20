@@ -323,6 +323,7 @@ func (wr *workflowReader) process(p *xmlElement) {
 	outgoing := map[string][]*xmlElement{}
 	var starts []*xmlElement
 	var boundaries []*xmlElement
+	var laneSets []*xmlElement
 	for _, c := range p.children {
 		if c.space != bpmnModel {
 			wr.gap(c, "", "%s in process %s is not in BPMN's semantic model; left out", c.name, label)
@@ -339,7 +340,15 @@ func (wr *workflowReader) process(p *xmlElement) {
 		case c.name == "boundaryEvent":
 			boundaries = append(boundaries, c)
 		case c.name == "laneSet":
-			wr.gap(c, "", "the lanes of process %s are not read: a potential owner on each user task names who approves; left out", label)
+			laneSets = append(laneSets, c)
+		}
+	}
+	// Lanes that put each user task in the lane of one of its potential
+	// owners, as generate bpmn writes them (ADR-139), say nothing the
+	// potential owners do not, and are read past.
+	for _, ls := range laneSets {
+		if !wr.lanesFollowOwners(ls, byID) {
+			wr.gap(ls, "", "the lanes of process %s are not read: a potential owner on each user task names who approves; left out", label)
 		}
 	}
 	w := mapping()
@@ -702,4 +711,36 @@ func source0Has(m *yaml.Node, key string) bool {
 		}
 	}
 	return false
+}
+
+// lanesFollowOwners says whether a lane set has lanes and every lane that
+// holds a user task is named after one of that task's potential owners,
+// with no lane set nested in a lane and no reference to an element the
+// process does not have.
+func (wr *workflowReader) lanesFollowOwners(ls *xmlElement, byID map[string]*xmlElement) bool {
+	if len(ls.all("lane")) == 0 {
+		return false
+	}
+	for _, l := range ls.all("lane") {
+		if l.first("childLaneSet") != nil {
+			return false
+		}
+		for _, ref := range l.all("flowNodeRef") {
+			node := byID[strings.TrimSpace(ref.text)]
+			if node == nil {
+				return false
+			}
+			if node.name != "userTask" {
+				continue
+			}
+			owned := false
+			for _, po := range node.all("potentialOwner") {
+				owned = owned || l.attr("name") != "" && wr.resources[refOf(po, "resourceRef")] == l.attr("name")
+			}
+			if !owned {
+				return false
+			}
+		}
+	}
+	return true
 }

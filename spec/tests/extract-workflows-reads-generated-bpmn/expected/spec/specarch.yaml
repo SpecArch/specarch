@@ -4,14 +4,14 @@ info:
   title: Workflows of workflows/waiver.bpmn
   version: 0.1.0
   description: |
-    The workflows the BPMN 2.0 file workflows/waiver.bpmn defines at commit e3fcb15a4c0dfcfea0b54dc649286713ec0efbf4, in the sequential subset the meta-model holds: approvals, operation steps and deadlines. Every workflow cites the file; what it does not say, or says outside the subset, is a question.
+    The workflows the BPMN 2.0 file workflows/waiver.bpmn defines at commit a894336a911fa05b396ea7b5b45c6b4a13a25da1, in the sequential subset the meta-model holds: approvals, operation steps and deadlines. Every workflow cites the file; what it does not say, or says outside the subset, is a question.
   tracksOrigin: true
 stages: [requirements, design]
 sources:
   code:
     kind: code
     title: The code repository
-    edition: e3fcb15a4c0dfcfea0b54dc649286713ec0efbf4
+    edition: a894336a911fa05b396ea7b5b45c6b4a13a25da1
     url: ../repo
     clauses:
       - {clause: workflows/waiver.bpmn, title: The BPMN 2.0 process definitions}

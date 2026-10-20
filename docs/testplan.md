@@ -1581,9 +1581,9 @@ Scenario: red; level: system; covers exit 1; verifies SA-44.
 
 Scenario: golden; level: system; verifies SA-58.
 
-- Given: a repository holding waiver.bpmn exactly as generate bpmn writes it in the case generate-bpmn: two approvals, the first escalating to the second after a day, and an operation step, with its diagram
+- Given: a repository holding waiver.bpmn exactly as generate bpmn writes it in the case generate-bpmn: two approvals, the first escalating to the second after a day, and an operation step, with its lane set and its diagram
 - When: extract workflows is run on the file
-- Then: it writes workflow waiver with the description, the step names and kinds, the approvers, the deadlines and the escalation of the specification it was generated from, a question naming askWaiver for the trigger and grantWaiver for the operation step, reports that the file says it is generated and that the diagram is left out, and exits 0
+- Then: it writes workflow waiver with the description, the step names and kinds, the approvers, the deadlines and the escalation of the specification it was generated from, a question naming askWaiver for the trigger and grantWaiver for the operation step, reads the lane set past, since each approval sits in the lane of one of its potential owners, reports that the file says it is generated and that the diagram is left out, and exits 0
 
 #### extract-workflows-reads-generated-last-approval
 
@@ -1765,7 +1765,7 @@ Scenario: golden; level: system; verifies SA-58.
 
 - Given: a specification with no approval record, a workflow of two approvals, the first escalating to the second after a day, and an operation step, warnings at the workflow and its operations, and a could question on the second approval's deadline; specarch-gen-bpmn built from this repository on PATH
 - When: generate bpmn is run with --unapproved
-- Then: it writes waiver.bpmn, BPMN 2.0 with its diagram, and waiver.svg, both labelled as a draft, with each warning marked before the element it concerns and the question before the deadline's timer, and exits 0
+- Then: it writes waiver.bpmn, BPMN 2.0 with its diagram and a lane set of three lanes, the system's holding the start, the gateways, the operation and the ends and one per approving role holding its approval and timer, and waiver.svg, with the same lanes and every element in a group whose id is the BPMN element's, data-step naming the step and data-role the lane's role, both labelled as a draft, with each warning marked before the element it concerns and the question before the deadline's timer, and exits 0
 
 #### generate-bpmn-approved
 

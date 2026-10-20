@@ -30,6 +30,24 @@
   <!-- specarch-problem: warning: test_golden_missing: workflow waiver has no golden scenario; add one under tests, for example waiver-succeeds: { workflow: waiver, scenario: golden, given: "a caller with waivers.ask", when: "a request is made through askWaiver and is approved at lead and manager", then: "it answers 202, then grantWaiver is called, and the request ends approved" } [test_golden_missing@specarch.yaml#/workflows/waiver] -->
   <process id="process" name="waiver" isExecutable="false">
     <documentation>A waiver is approved by the desk lead, or by the manager once a day has passed, before it is granted.</documentation>
+    <laneSet id="lanes">
+      <lane id="lane" name="Case">
+        <flowNodeRef>start</flowNodeRef>
+        <flowNodeRef>decision-lead</flowNodeRef>
+        <flowNodeRef>decision-manager</flowNodeRef>
+        <flowNodeRef>step-grant</flowNodeRef>
+        <flowNodeRef>end-done</flowNodeRef>
+        <flowNodeRef>end-refused</flowNodeRef>
+      </lane>
+      <lane id="lane-lead" name="lead">
+        <flowNodeRef>step-lead</flowNodeRef>
+        <flowNodeRef>deadline-lead</flowNodeRef>
+      </lane>
+      <lane id="lane-manager" name="manager">
+        <flowNodeRef>step-manager</flowNodeRef>
+        <flowNodeRef>deadline-manager</flowNodeRef>
+      </lane>
+    </laneSet>
     <startEvent id="start" name="askWaiver">
       <messageEventDefinition messageRef="message-askWaiver">
         <operationRef>operation-askWaiver</operationRef>
@@ -78,80 +96,99 @@
   </process>
   <bpmndi:BPMNDiagram id="diagram-waiver">
     <bpmndi:BPMNPlane id="plane-waiver" bpmnElement="process">
+      <bpmndi:BPMNShape id="shape-lane" bpmnElement="lane" isHorizontal="true">
+        <dc:Bounds x="10" y="10" width="942" height="188"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="shape-lane-lead" bpmnElement="lane-lead" isHorizontal="true">
+        <dc:Bounds x="10" y="198" width="942" height="160"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="shape-lane-manager" bpmnElement="lane-manager" isHorizontal="true">
+        <dc:Bounds x="10" y="358" width="942" height="160"/>
+      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="shape-start" bpmnElement="start">
-        <dc:Bounds x="40" y="62" width="36" height="36"/>
+        <dc:Bounds x="40" y="54" width="36" height="36"/>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="shape-step-lead" bpmnElement="step-lead">
-        <dc:Bounds x="136" y="40" width="110" height="80"/>
+        <dc:Bounds x="136" y="220" width="110" height="80"/>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="shape-deadline-lead" bpmnElement="deadline-lead">
-        <dc:Bounds x="198" y="102" width="36" height="36"/>
+        <dc:Bounds x="198" y="282" width="36" height="36"/>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="shape-decision-lead" bpmnElement="decision-lead" isMarkerVisible="true">
-        <dc:Bounds x="306" y="55" width="50" height="50"/>
+        <dc:Bounds x="306" y="47" width="50" height="50"/>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="shape-step-manager" bpmnElement="step-manager">
-        <dc:Bounds x="416" y="40" width="110" height="80"/>
+        <dc:Bounds x="416" y="380" width="110" height="80"/>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="shape-deadline-manager" bpmnElement="deadline-manager">
-        <dc:Bounds x="478" y="102" width="36" height="36"/>
+        <dc:Bounds x="478" y="442" width="36" height="36"/>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="shape-decision-manager" bpmnElement="decision-manager" isMarkerVisible="true">
-        <dc:Bounds x="586" y="55" width="50" height="50"/>
+        <dc:Bounds x="586" y="47" width="50" height="50"/>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="shape-step-grant" bpmnElement="step-grant">
-        <dc:Bounds x="696" y="40" width="110" height="80"/>
+        <dc:Bounds x="696" y="32" width="110" height="80"/>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="shape-end-done" bpmnElement="end-done">
-        <dc:Bounds x="866" y="62" width="36" height="36"/>
+        <dc:Bounds x="866" y="54" width="36" height="36"/>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="shape-end-refused" bpmnElement="end-refused">
-        <dc:Bounds x="866" y="188" width="36" height="36"/>
+        <dc:Bounds x="866" y="134" width="36" height="36"/>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="edge-flow-1" bpmnElement="flow-1">
-        <di:waypoint x="76" y="80"/>
-        <di:waypoint x="136" y="80"/>
+        <di:waypoint x="76" y="72"/>
+        <di:waypoint x="106" y="72"/>
+        <di:waypoint x="106" y="260"/>
+        <di:waypoint x="136" y="260"/>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="edge-flow-2" bpmnElement="flow-2">
-        <di:waypoint x="246" y="80"/>
-        <di:waypoint x="306" y="80"/>
+        <di:waypoint x="246" y="260"/>
+        <di:waypoint x="276" y="260"/>
+        <di:waypoint x="276" y="72"/>
+        <di:waypoint x="306" y="72"/>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="edge-flow-3" bpmnElement="flow-3">
-        <di:waypoint x="356" y="80"/>
-        <di:waypoint x="416" y="80"/>
+        <di:waypoint x="356" y="72"/>
+        <di:waypoint x="386" y="72"/>
+        <di:waypoint x="386" y="420"/>
+        <di:waypoint x="416" y="420"/>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="edge-flow-4" bpmnElement="flow-4">
-        <di:waypoint x="526" y="80"/>
-        <di:waypoint x="586" y="80"/>
+        <di:waypoint x="526" y="420"/>
+        <di:waypoint x="556" y="420"/>
+        <di:waypoint x="556" y="72"/>
+        <di:waypoint x="586" y="72"/>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="edge-flow-5" bpmnElement="flow-5">
-        <di:waypoint x="636" y="80"/>
-        <di:waypoint x="696" y="80"/>
+        <di:waypoint x="636" y="72"/>
+        <di:waypoint x="696" y="72"/>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="edge-flow-6" bpmnElement="flow-6">
-        <di:waypoint x="806" y="80"/>
-        <di:waypoint x="866" y="80"/>
+        <di:waypoint x="806" y="72"/>
+        <di:waypoint x="866" y="72"/>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="edge-flow-7" bpmnElement="flow-7">
-        <di:waypoint x="331" y="105"/>
-        <di:waypoint x="331" y="206"/>
-        <di:waypoint x="866" y="206"/>
+        <di:waypoint x="331" y="97"/>
+        <di:waypoint x="331" y="152"/>
+        <di:waypoint x="866" y="152"/>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="edge-flow-8" bpmnElement="flow-8">
-        <di:waypoint x="611" y="105"/>
-        <di:waypoint x="611" y="206"/>
-        <di:waypoint x="866" y="206"/>
+        <di:waypoint x="611" y="97"/>
+        <di:waypoint x="611" y="152"/>
+        <di:waypoint x="866" y="152"/>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="edge-flow-9" bpmnElement="flow-9">
-        <di:waypoint x="216" y="138"/>
-        <di:waypoint x="216" y="160"/>
-        <di:waypoint x="440" y="160"/>
-        <di:waypoint x="440" y="120"/>
+        <di:waypoint x="216" y="318"/>
+        <di:waypoint x="216" y="332"/>
+        <di:waypoint x="440" y="332"/>
+        <di:waypoint x="440" y="380"/>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="edge-flow-10" bpmnElement="flow-10">
-        <di:waypoint x="496" y="138"/>
-        <di:waypoint x="496" y="206"/>
-        <di:waypoint x="866" y="206"/>
+        <di:waypoint x="496" y="478"/>
+        <di:waypoint x="496" y="492"/>
+        <di:waypoint x="922" y="492"/>
+        <di:waypoint x="922" y="152"/>
+        <di:waypoint x="902" y="152"/>
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>

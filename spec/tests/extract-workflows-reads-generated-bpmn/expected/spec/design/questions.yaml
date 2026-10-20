@@ -73,13 +73,13 @@ questions:
     blocks: ['#/roles/manager/description']
     decidedBy: system-owner
     why: The BPMN file names the role and does not describe it.
-  # specarch-problem: question: open_question: (could, decision) Not held: workflows/waiver.bpmn:79: BPMNDiagram is not in BPMN's semantic model (its namespace is http://www.omg.org/spec/BPMN/20100524/DI), such as diagram layout or a tool's extension; left out. Does the specification need it, written another way or described by hand? It blocks workflows. Decided by system-owner. Answer with a decision record that names Q-10 under answers. [Q-10]
+  # specarch-problem: question: open_question: (could, decision) Not held: workflows/waiver.bpmn:97: BPMNDiagram is not in BPMN's semantic model (its namespace is http://www.omg.org/spec/BPMN/20100524/DI), such as diagram layout or a tool's extension; left out. Does the specification need it, written another way or described by hand? It blocks workflows. Decided by system-owner. Answer with a decision record that names Q-10 under answers. [Q-10]
   Q-10:
-    question: 'Not held: workflows/waiver.bpmn:79: BPMNDiagram is not in BPMN''s semantic model (its namespace is http://www.omg.org/spec/BPMN/20100524/DI), such as diagram layout or a tool''s extension; left out. Does the specification need it, written another way or described by hand?'
+    question: 'Not held: workflows/waiver.bpmn:97: BPMNDiagram is not in BPMN''s semantic model (its namespace is http://www.omg.org/spec/BPMN/20100524/DI), such as diagram layout or a tool''s extension; left out. Does the specification need it, written another way or described by hand?'
     kind: decision
     priority: could
     blocks: [workflows]
     decidedBy: system-owner
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
-      - {source: code, clause: 'workflows/waiver.bpmn:79', says: 'Not held: BPMNDiagram is not in BPMN''s semantic model (its namespace is http://www.omg.org/spec/BPMN/20100524/DI), such as diagram layout or a tool''s extension; left out.'}
+      - {source: code, clause: 'workflows/waiver.bpmn:97', says: 'Not held: BPMNDiagram is not in BPMN''s semantic model (its namespace is http://www.omg.org/spec/BPMN/20100524/DI), such as diagram layout or a tool''s extension; left out.'}

@@ -4,5 +4,5 @@ level: system
 scenario: golden
 given: "a specification with no approval record, a workflow of two approvals, the first escalating to the second after a day, and an operation step, warnings at the workflow and its operations, and a could question on the second approval's deadline; specarch-gen-bpmn built from this repository on PATH"
 when: "generate bpmn is run with --unapproved"
-then: "it writes waiver.bpmn, BPMN 2.0 with its diagram, and waiver.svg, both labelled as a draft, with each warning marked before the element it concerns and the question before the deadline's timer, and exits 0"
+then: "it writes waiver.bpmn, BPMN 2.0 with its diagram and a lane set of three lanes, the system's holding the start, the gateways, the operation and the ends and one per approving role holding its approval and timer, and waiver.svg, with the same lanes and every element in a group whose id is the BPMN element's, data-step naming the step and data-role the lane's role, both labelled as a draft, with each warning marked before the element it concerns and the question before the deadline's timer, and exits 0"
 verifies: [SA-58]

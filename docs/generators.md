@@ -960,19 +960,34 @@ form `specarch extract workflows` reads:
 | `onDeadline: refuse`, `escalate` | the timer's flow to the refused end, or to the approval it escalates to |
 | an operation step | a service task naming the operation on the interface |
 | the end | one end event for the approved request and one for every refusal |
+| the system and the approving roles | a lane set `lanes`: the lane `lane`, named after `info.title`, with the start, the operation steps, the gateways and the ends, and a lane `lane-<role>` per role that approves first on a step, in the order of its first approval, with those approvals and their timers |
 
 The references are written as the BPMN schema writes them, child elements
 (`operationRef` in a message event definition, `resourceRef` in a
-potential owner). BPMN DI lays the steps out left to right on one row with
-fixed sizes, each timer on its task's bottom edge and every refusal on a
-line below, so the same workflow is always the same bytes; the SVG draws
-the same coordinates and follows the reader's light or dark scheme.
+potential owner). An approval with several approvers sits in the lane of
+its first-listed role and keeps every role as a potential owner, since a
+BPMN flow node is in one lane; a role never listed first gets no lane of
+its own. Every workflow has the lane set, one lane or many (ADR-139).
+BPMN DI lays the lanes out as rows, the system's on top, and the steps
+left to right with fixed sizes, a flow between two lanes turning halfway
+between its shapes, each timer on its task's bottom edge with its flow
+along the bottom of its lane, and every refusal on a line under the
+system's row, so the same workflow is always the same bytes. The SVG
+draws the same coordinates and follows the reader's light or dark
+scheme; every element is a group whose `id` is the BPMN element's id
+(`start`, `step-<step>`, `deadline-<step>`, `decision-<step>`,
+`end-done`, `end-refused`, `flow-<n>`, `lanes`, `lane`, `lane-<role>`),
+a step's shapes carry `data-step` with the step's name and a role's lane
+`data-role`, so a viewer maps a click to the step and the step to the
+specification's entry.
 
 A header comment says what the file holds: the subject, the permission
 each approval checks, the events and the requirements have no BPMN element
 and stay in the specification. Read back with `extract workflows`, the
 file gives the same description, steps, approvers, deadlines and
-escalations, and the trigger's and steps' operations by name in the
+escalations, the lanes read past since each approval sits in the lane of
+one of its potential owners (a lane set that does not is reported as left
+out), and the trigger's and steps' operations by name in the
 questions that `specarch merge` fills from the specification's tree; the
 cases `generate-bpmn` and `extract-workflows-reads-generated-bpmn` show
 the round trip. Each warning and open question is marked before the

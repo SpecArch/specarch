@@ -24,6 +24,13 @@
   <!-- specarch-problem: warning: test_red_missing: workflow file-note has no red scenario; add one under tests, for example file-note-refused: { workflow: file-note, scenario: red, given: "...", when: "...", then: "it is refused" } [test_red_missing@specarch.yaml#/workflows/file-note] -->
   <process id="process" name="file-note" isExecutable="false">
     <documentation>A note on a write-off is filed &amp; sent to the &lt;desk&gt; log, with no approval.</documentation>
+    <laneSet id="lanes">
+      <lane id="lane" name="Desk">
+        <flowNodeRef>start</flowNodeRef>
+        <flowNodeRef>step-file</flowNodeRef>
+        <flowNodeRef>end-done</flowNodeRef>
+      </lane>
+    </laneSet>
     <startEvent id="start" name="requestNote">
       <messageEventDefinition messageRef="message-requestNote">
         <operationRef>operation-requestNote</operationRef>
@@ -36,22 +43,25 @@
   </process>
   <bpmndi:BPMNDiagram id="diagram-file-note">
     <bpmndi:BPMNPlane id="plane-file-note" bpmnElement="process">
+      <bpmndi:BPMNShape id="shape-lane" bpmnElement="lane" isHorizontal="true">
+        <dc:Bounds x="10" y="10" width="382" height="132"/>
+      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="shape-start" bpmnElement="start">
-        <dc:Bounds x="40" y="62" width="36" height="36"/>
+        <dc:Bounds x="40" y="54" width="36" height="36"/>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="shape-step-file" bpmnElement="step-file">
-        <dc:Bounds x="136" y="40" width="110" height="80"/>
+        <dc:Bounds x="136" y="32" width="110" height="80"/>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="shape-end-done" bpmnElement="end-done">
-        <dc:Bounds x="306" y="62" width="36" height="36"/>
+        <dc:Bounds x="306" y="54" width="36" height="36"/>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="edge-flow-1" bpmnElement="flow-1">
-        <di:waypoint x="76" y="80"/>
-        <di:waypoint x="136" y="80"/>
+        <di:waypoint x="76" y="72"/>
+        <di:waypoint x="136" y="72"/>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="edge-flow-2" bpmnElement="flow-2">
-        <di:waypoint x="246" y="80"/>
-        <di:waypoint x="306" y="80"/>
+        <di:waypoint x="246" y="72"/>
+        <di:waypoint x="306" y="72"/>
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>

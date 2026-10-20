@@ -261,7 +261,7 @@ rows:
     scheduler:
       role: scheduler
       using: "true"
-typeRendering: 1.4.0
+typeRendering: 1.4.1
 views:
   MemberWithLoans:
     from: Member

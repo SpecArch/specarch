@@ -3,7 +3,7 @@ name: type-rendering
 version: 1.3.0
 description: Oracle text under MAX_STRING_SIZE = EXTENDED.
 why: The database runs with MAX_STRING_SIZE = EXTENDED, so VARCHAR2 always holds 8191 characters.
-overrides: { idiom: type-rendering, version: 1.4.0, parts: [types] }
+overrides: { idiom: type-rendering, version: 1.4.1, parts: [types] }
 parts:
   types:
     description: The Oracle rows for EXTENDED.

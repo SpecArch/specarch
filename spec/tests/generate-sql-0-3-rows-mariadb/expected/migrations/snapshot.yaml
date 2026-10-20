@@ -24,4 +24,4 @@ entities:
 enums: {}
 mappings:
   '#/entities/Loan': table loans
-typeRendering: 1.4.0
+typeRendering: 1.4.1

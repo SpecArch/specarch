@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.7.3-dev of the specification: 90 requirements, 5 entities, 16 commands, 7 algorithms, 647 tests, 163 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.7.3-dev of the specification: 90 requirements, 5 entities, 16 commands, 7 algorithms, 648 tests, 163 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -3970,7 +3970,7 @@ How this implementation does each recurring concern: the idioms SpecArch ships a
 | error-response | 1.1.0 | shipped |   |
 | identifiers | 1.1.0 | shipped |   |
 | migrations | 1.0.0 | shipped |   |
-| type-rendering | 1.4.0 | shipped |   |
+| type-rendering | 1.4.1 | shipped |   |
 
 #### Implementation decisions
 
@@ -4120,7 +4120,7 @@ How this implementation does each recurring concern: the idioms SpecArch ships a
 | audit-fields | 1.1.0 | shipped |   |
 | error-response | 1.1.0 | shipped |   |
 | identifiers | 1.1.0 | shipped |   |
-| type-rendering | 1.4.0 | shipped |   |
+| type-rendering | 1.4.1 | shipped |   |
 
 #### Implementation decisions
 
@@ -12624,7 +12624,12 @@ writes a MariaDB check constraint. Each script is:
   prints under the column message.
 gensql.Column carries the format of the field a column holds, so an
 audit column is known as an instant whatever type the dialect gives
-it. SQL Server and Oracle stay an error at the target.
+it. SQL Server and Oracle stay an error at the target. The
+type-rendering idiom, from version 1.4.1, names the same expression,
+in parentheses, as currentTime on MariaDB, so a date-time column
+filled by its generatedDefault holds the instant in the form the
+scripts write and every other value of the column has (BUG-044); a
+test of the scripts' package keeps the two equal.
 
 Consequences: The scripts run through the mariadb client, not through a driver or
 another client that does not read DELIMITER.
@@ -13170,6 +13175,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | generate-sql-0-3-rows-mariadb | command generate | system | golden | the specification of generate-sql-0-3-rows with its sql target on MariaDB; specarch-gen-sql built from this repository on PATH | generate sql is run with --unapproved | it writes 0001_expand.sql with the loans table and no policy, a comment at the table for each rule saying MariaDB has no row security policy this version writes, warns once per rule at the rule, keeps the snapshot without policies, and exits 0 |
 | generate-sql-expand | command generate | system | golden | the specification of generate-sql with its first migration and snapshot in the output folder, and one new field, a subtitle that may be left out; specarch-gen-sql built from this repository on PATH | generate sql is run with --unapproved | it writes 0002_expand.sql, which adds the subtitle column, leaves 0001_expand.sql as it was, writes the snapshot again, and exits 0 |
 | generate-sql-generated-default | command generate | system | golden | a specification whose Note entity has an identifier the database generates and a time it writes, and whose implementation file lists two indexes of its table, one with a name of its own; specarch-gen-sql built from this repository on PATH | generate sql is run with --unapproved | it writes the id column with DEFAULT gen_random_uuid() and written_at with DEFAULT CURRENT_TIMESTAMP, both NOT NULL, CREATE INDEX ix_notes_author_id_written_at and notes_by_shelf after the table, and a snapshot that keeps generatedDefault and lists both indexes, and exits 0 |
+| generate-sql-generated-default-mariadb | command generate | system | golden | a specification whose Note entity has an identifier the database generates and a time it writes, and whose implementation file targets MariaDB; specarch-gen-sql built from this repository on PATH | generate sql is run with --unapproved | it writes the id column with DEFAULT (UUID()) and written_at as VARCHAR(35) with DEFAULT (DATE_FORMAT(UTC_TIMESTAMP(6), '%Y-%m-%dT%H:%i:%s.%f000Z')), the type-rendering idiom's UTC text with nine fractional digits, both NOT NULL, and exits 0 |
 | generate-sql-generated-default-refused | command generate | system | red | the specification of generate-sql-generated-default with its sql target on Oracle, for which type-rendering names no expression of a generated identifier; specarch-gen-sql built from this repository on PATH | generate sql is run with --unapproved | it writes nothing, reports at the id field's generatedDefault that type-rendering names no oracle expression for identifier and that an override of its defaults part can add one, and exits 1 |
 | generate-sql-identifier-length | command generate | system | red | a member whose correspondence address, kept in columns, holds courier instructions with a part whose column name passes the 64 characters MariaDB takes, and an implementation file whose sql target is MariaDB; specarch-gen-sql built from this repository on PATH | generate sql is run with --unapproved | it reports the column at the field that holds the value, with its length and the limit, writes nothing, and exits 1 |
 | generate-sql-index-changed | command generate | system | golden | the specification of generate-sql-generated-default with its first migration and snapshot in the output folder, and its implementation file now listing an index of shelf and writtenAt in place of notes_by_shelf; specarch-gen-sql built from this repository on PATH | generate sql is run with --unapproved | it writes 0002_expand.sql, which drops notes_by_shelf and creates ix_notes_shelf_written_at, leaves the index that did not change alone, writes the snapshot again, and exits 0 |
@@ -13929,7 +13935,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-67 | enums Rule; commands document; decisions ADR-119 | tests document-audience-external; tests document-audience-marked; tests document-audience-needs-out; tests document-audience-problems-refused; tests document-audience-value-refused; tests validate-audience |
 | SA-68 | enums Rule; commands document; decisions ADR-119 | tests document-audience-external; tests document-audience-marked; tests gaps-references-fulfilled-by; tests validate-requirement-fulfilled-by; tests validate-requirement-owned |
 | SA-69 | enums Rule; commands gaps; decisions ADR-120 | tests document-writes-questions; tests gaps-link-missing-held; tests gaps-lists-questions; tests gaps-names-question; tests gaps-question-opened; tests validate-question-opened |
-| SA-70 | commands extract; decisions ADR-121; decisions ADR-144 | tests extract-database-generated-default; tests extract-database-implementation-out; tests extract-go-handlers; tests extract-go-handlers-changed; tests extract-router-list-twin; tests generate-openapi-list-twin; tests generate-sql-generated-default; tests generate-sql-generated-default-refused; tests generate-sql-index-changed; tests validate-generated-default; tests validate-index-field |
+| SA-70 | commands extract; decisions ADR-121; decisions ADR-144 | tests extract-database-generated-default; tests extract-database-implementation-out; tests extract-go-handlers; tests extract-go-handlers-changed; tests extract-router-list-twin; tests generate-openapi-list-twin; tests generate-sql-generated-default; tests generate-sql-generated-default-mariadb; tests generate-sql-generated-default-refused; tests generate-sql-index-changed; tests validate-generated-default; tests validate-index-field |
 | SA-71 | decisions ADR-123 | tests generate-sqlc-check-hand-written; tests generate-sqlc-dialect-refused; tests generate-sqlc-hand-written-refused; tests generate-sqlc-queries |
 | SA-72 | commands check; decisions ADR-124; decisions ADR-128 | tests check-dump-of-no-format; tests check-fails-on-a-difference; tests check-skips-a-partition; tests check-succeeds; tests check-usage-error |
 | SA-73 | enums DocumentTarget; enums Rule; commands document; decisions ADR-129; decisions ADR-136; decisions ADR-137; decisions ADR-172 | tests document-handover-links-without-infrastructure; tests document-handover-none; tests document-writes-handover; tests validate-build-task-unknown; tests validate-handover-build-missing; tests validate-handover-incomplete; tests validate-handover-missing; tests validate-handover-no-customer; tests validate-handover-valid |

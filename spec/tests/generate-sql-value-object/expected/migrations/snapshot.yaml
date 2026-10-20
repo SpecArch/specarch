@@ -17,4 +17,4 @@ entities:
 enums: {}
 mappings:
   '#/entities/Book': table books
-typeRendering: 1.4.0
+typeRendering: 1.4.1

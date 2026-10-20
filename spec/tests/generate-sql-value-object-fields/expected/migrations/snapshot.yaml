@@ -65,4 +65,4 @@ entities:
 enums: {}
 mappings:
   '#/entities/Member': table members
-typeRendering: 1.4.0
+typeRendering: 1.4.1

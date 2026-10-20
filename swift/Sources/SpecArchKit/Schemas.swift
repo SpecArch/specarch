@@ -10730,7 +10730,7 @@ parts:
 # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-0.1.schema.json
 specarchIdiom: "0.1"
 name: type-rendering
-version: 1.4.0
+version: 1.4.1
 concern: type-rendering
 stacks: [go, postgresql, sqlserver, oracle, mariadb, any]
 reads: [entities]
@@ -10793,6 +10793,16 @@ sources:
     title: MariaDB Server Documentation, CREATE TABLE, DEFAULT Column Option
     author: MariaDB
     url: https://mariadb.com/kb/en/create-table/#default-column-option
+  mariadb-utc-timestamp:
+    kind: standard
+    title: MariaDB Server Documentation, UTC_TIMESTAMP
+    author: MariaDB
+    url: https://mariadb.com/kb/en/utc_timestamp/
+  mariadb-date-format:
+    kind: standard
+    title: MariaDB Server Documentation, DATE_FORMAT
+    author: MariaDB
+    url: https://mariadb.com/kb/en/date_format/
   ieee-754:
     kind: standard
     title: IEEE Standard for Floating-Point Arithmetic, IEEE 754
@@ -11020,11 +11030,21 @@ parts:
           not a version 4 UUID, so a project names its own expression in an
           override of this part.
       mariadb:
-        names: { "true": "true", "false": "false", identifier: (UUID()), currentTime: CURRENT_TIMESTAMP }
-        why: UUID gives the 36-character text form a uuid's CHAR(36) column holds; an expression default is written in parentheses.
+        names: { "true": "true", "false": "false", identifier: (UUID()), currentTime: "(DATE_FORMAT(UTC_TIMESTAMP(6), '%Y-%m-%dT%H:%i:%s.%f000Z'))" }
+        why: |
+          UUID gives the 36-character text form a uuid's CHAR(36) column
+          holds; an expression default is written in parentheses.
+          currentTime fills a date-time, which is VARCHAR(35) UTC text with
+          nine fractional digits here, so it is written in that form:
+          CURRENT_TIMESTAMP in a text column gives the server's own form,
+          2006-01-02 15:04:05 in the session's time zone with no fraction,
+          which sorts apart from every other value of the column. The
+          server keeps microseconds, so the last three digits are zeros.
         cites:
           - { source: mariadb-uuid, says: "UUID returns a Universally Unique Identifier as a string of five hexadecimal numbers, aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee." }
           - { source: mariadb-create-table, says: "The DEFAULT clause takes an expression or a function." }
+          - { source: mariadb-utc-timestamp, says: "Returns the current UTC date and time." }
+          - { source: mariadb-date-format, says: "%f: Microseconds (6 digits)." }
 
   money:
     description: How a money amount is declared, so that every stack holds it exactly.

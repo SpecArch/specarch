@@ -35,16 +35,6 @@ Expected: one rule in both builds. `docs/conventions.md` says a test is named ke
 
 To repeat: validate a specification with `operationId: uploadJSON` and no tests with both builds and compare the `test_golden_missing` lines.
 
-## BUG-044 — generate sql: a date-time field with generatedDefault currentTime gets the server's own text form on MariaDB
-
-- Reported: 2026-10-21, found while writing the MariaDB scripts (ADR-167)
-
-On MariaDB the type-rendering idiom renders a date-time as `VARCHAR(35)` holding UTC text with nine fractional digits, `2006-01-02T15:04:05.000000000Z`, the one form whose byte order is time order. Its `defaults` part names `CURRENT_TIMESTAMP` as `currentTime`, so a date-time field with `generatedDefault: currentTime` becomes `VARCHAR(35) DEFAULT CURRENT_TIMESTAMP`, and MariaDB 11.4 fills it with `2026-10-20 17:30:29`: no `T`, no fraction, no `Z`, in the server's time zone. Such a value sorts apart from the values written in the idiom's form.
-
-Expected: the default writes the idiom's form, for instance `(DATE_FORMAT(UTC_TIMESTAMP(6), '%Y-%m-%dT%H:%i:%s.%f000Z'))`, as the MariaDB scripts write the audit instant; or the idiom says why not and a reader is warned.
-
-To repeat: on MariaDB 11.4, `CREATE TABLE dt (id INT PRIMARY KEY, at VARCHAR(35) DEFAULT CURRENT_TIMESTAMP NOT NULL); INSERT INTO dt (id) VALUES (1); SELECT * FROM dt`.
-
 ## BUG-045 — extract javascript: a use() on the application before a mount does not reach the mounted router's routes
 
 - Reported: 2026-10-21, found while adding a mounted gate to extract-javascript-caller-checks

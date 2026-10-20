@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: generate
+level: system
+scenario: golden
+given: "a specification whose Note entity has an identifier the database generates and a time it writes, and whose implementation file targets MariaDB; specarch-gen-sql built from this repository on PATH"
+when: "generate sql is run with --unapproved"
+then: "it writes the id column with DEFAULT (UUID()) and written_at as VARCHAR(35) with DEFAULT (DATE_FORMAT(UTC_TIMESTAMP(6), '%Y-%m-%dT%H:%i:%s.%f000Z')), the type-rendering idiom's UTC text with nine fractional digits, both NOT NULL, and exits 0"
+verifies: [SA-70]

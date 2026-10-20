@@ -32,4 +32,4 @@ rows:
     member:
       role: member
       using: ((member_id = CAST(NULLIF(current_setting('app.member_id', true), '') AS UUID)) AND NOT archived)
-typeRendering: 1.4.0
+typeRendering: 1.4.1

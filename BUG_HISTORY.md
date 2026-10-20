@@ -596,3 +596,17 @@ Expected: a parameter keeps its own name and the idiom's names go on the wire by
 To repeat: give the ui target of `spec/tests/generate-ui-wire-names` platform `web` on `nextjs-carbon` with a session, run `specarch generate ui --unapproved`, and read `app/books/page.schema.ts`: the filter's `query` is `"shelf_name"` and `wire.pageSize` is `"pageSize"`.
 
 Fix: `ListNames` maps the idiom's names for any stack through `internal/wirename`, and keeps the dxlib dialect's names as the idiom writes them (ADR-164); a filter by a query parameter is sent under the parameter's own name. The picker's page size and the Next.js server routes' paging read the same names. The cases `generate-ui-typescript-wire-names` and `generate-ui-swiftui-wire-names` pin it.
+
+## BUG-044 — generate sql: a date-time field with generatedDefault currentTime gets the server's own text form on MariaDB
+
+- Reported: 2026-10-21, found while writing the MariaDB scripts (ADR-167)
+- Closed: 2026-10-21, completed
+- Fixed by: the commit on `main` whose message says `Fixes BUG-044`
+
+On MariaDB the type-rendering idiom renders a date-time as `VARCHAR(35)` holding UTC text with nine fractional digits, `2006-01-02T15:04:05.000000000Z`, the one form whose byte order is time order. Its `defaults` part names `CURRENT_TIMESTAMP` as `currentTime`, so a date-time field with `generatedDefault: currentTime` becomes `VARCHAR(35) DEFAULT CURRENT_TIMESTAMP`, and MariaDB 11.4 fills it with `2026-10-20 17:30:29`: no `T`, no fraction, no `Z`, in the server's time zone. Such a value sorts apart from the values written in the idiom's form.
+
+Expected: the default writes the idiom's form, for instance `(DATE_FORMAT(UTC_TIMESTAMP(6), '%Y-%m-%dT%H:%i:%s.%f000Z'))`, as the MariaDB scripts write the audit instant; or the idiom says why not and a reader is warned.
+
+To repeat: on MariaDB 11.4, `CREATE TABLE dt (id INT PRIMARY KEY, at VARCHAR(35) DEFAULT CURRENT_TIMESTAMP NOT NULL); INSERT INTO dt (id) VALUES (1); SELECT * FROM dt`.
+
+Fix: the type-rendering idiom, version 1.4.1, names `(DATE_FORMAT(UTC_TIMESTAMP(6), '%Y-%m-%dT%H:%i:%s.%f000Z'))` as `currentTime` on MariaDB, with the reason beside it, so `generate sql` writes that default and the column fills `2026-10-20T21:07:05.301287000Z`, UTC whatever the session's time zone. The case `generate-sql-generated-default-mariadb` pins it, and a test of `internal/genscripts` keeps the scripts' audit instant equal to the idiom's expression. Tried on MariaDB 11.4.4.

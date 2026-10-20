@@ -53,7 +53,12 @@ decisions:
         prints under the column message.
       gensql.Column carries the format of the field a column holds, so an
       audit column is known as an instant whatever type the dialect gives
-      it. SQL Server and Oracle stay an error at the target.
+      it. SQL Server and Oracle stay an error at the target. The
+      type-rendering idiom, from version 1.4.1, names the same expression,
+      in parentheses, as currentTime on MariaDB, so a date-time column
+      filled by its generatedDefault holds the instant in the form the
+      scripts write and every other value of the column has (BUG-044); a
+      test of the scripts' package keeps the two equal.
     why: |
       The mariadb client has no variables of its own and no conditional
       lines, so the values come in as user variables and every decision is

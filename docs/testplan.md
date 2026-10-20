@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.3-dev of the specification: 647 design tests, 307 golden and 340 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.3-dev of the specification: 648 design tests, 308 golden and 340 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.7.3-dev of the specification: 647 design tests, 307 golden and 340 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 643 |
+| system | 644 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -2348,6 +2348,14 @@ Scenario: golden; level: system; verifies SA-70.
 - Given: a specification whose Note entity has an identifier the database generates and a time it writes, and whose implementation file lists two indexes of its table, one with a name of its own; specarch-gen-sql built from this repository on PATH
 - When: generate sql is run with --unapproved
 - Then: it writes the id column with DEFAULT gen_random_uuid() and written_at with DEFAULT CURRENT_TIMESTAMP, both NOT NULL, CREATE INDEX ix_notes_author_id_written_at and notes_by_shelf after the table, and a snapshot that keeps generatedDefault and lists both indexes, and exits 0
+
+#### generate-sql-generated-default-mariadb
+
+Scenario: golden; level: system; verifies SA-70.
+
+- Given: a specification whose Note entity has an identifier the database generates and a time it writes, and whose implementation file targets MariaDB; specarch-gen-sql built from this repository on PATH
+- When: generate sql is run with --unapproved
+- Then: it writes the id column with DEFAULT (UUID()) and written_at as VARCHAR(35) with DEFAULT (DATE_FORMAT(UTC_TIMESTAMP(6), '%Y-%m-%dT%H:%i:%s.%f000Z')), the type-rendering idiom's UTC text with nine fractional digits, both NOT NULL, and exits 0
 
 #### generate-sql-generated-default-refused
 

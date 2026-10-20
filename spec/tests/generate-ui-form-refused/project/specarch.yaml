@@ -35,6 +35,7 @@ entities:
       code: { type: string, title: Shelf code, pattern: "^[A-Z]{2}[0-9]{3}$", maxLength: 5 }
       notes: { type: string, title: Notes, maxLength: 2000 }
       seenAt: { type: string, format: date-time, title: Seen at }
+      blurb: { type: string, title: Blurb, maxLength: 100 }
       labels: { type: array, title: Labels, items: { type: string, maxLength: 20 }, maxItems: 3 }
       addedOn: { type: string, format: date, title: Added on, readOnly: true }
       location: { $ref: "#/schemas/Location", title: Location }
@@ -168,22 +169,23 @@ pages:
     permission: books.write
     submit: addBook
     sections:
-      - { title: The book, fields: [title, shelf, authorId, pages, lendable, code, notes, seenAt, labels] }
+      - { title: The book, fields: [title, shelf, authorId, pages, lendable, code, notes, seenAt, labels, blurb] }
       - { title: Its history, fields: [boughtOn, withdrawnOn, addedOn] }
       - { title: Where it stands, fields: [location, copies] }
     pickers:
-      authorId: { source: listAuthors, shows: [name] }
+      authorId: { source: listAuthors, shows: [name], fills: { blurb: name } }
     fieldConditions:
       withdrawnOn: { hiddenWhen: "lendable == true" }
       notes: { readOnlyWhen: 'shelf == "reference"' }
       title: { readOnly: true }
-    enteredTwice: [location, shelf, notes, lendable]
+    enteredTwice: [location, shelf, notes, lendable, title]
     checks:
       titled: { expression: "size(title) > 0", message: Give the book a title. }
+      labelled: { expression: "size(labels) > 0", message: Give the book a label., field: labels }
       withdrawn-after-bought: { expression: "withdrawnOn == null || withdrawnOn > boughtOn", message: A book is withdrawn after it is bought., field: withdrawnOn }
     states:
       failed:
-        title-taken: { message: Another book has this title., field: title }
+        title-taken: { message: Another book has this title., field: seenAt }
     onSubmitted: { navigate: book-edit, with: { bookId: id }, message: The book is added. }
   book-edit:
     kind: form

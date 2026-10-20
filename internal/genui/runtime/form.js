@@ -150,11 +150,14 @@ export function form(page) {
     record = read(element);
     for (const [name, rule] of Object.entries(page.conditions)) {
       const control = field(name);
-      // A hidden field is disabled too, so the browser does not ask for it.
+      // A hidden field is disabled too, so the browser does not ask for it,
+      // and so is its second entry, which has a label of its own.
       if (rule.hiddenWhen) {
         const hidden = rule.hiddenWhen(record);
-        control.closest("label").hidden = hidden;
-        control.disabled = hidden;
+        for (const shown of [control, ...own(element, `[data-again="${name}"]`)]) {
+          shown.closest("label").hidden = hidden;
+          shown.disabled = hidden;
+        }
       }
       // A list or a box has no read-only state of its own; it is disabled.
       if (rule.readOnlyWhen && "readOnly" in control && control.type !== "checkbox") {

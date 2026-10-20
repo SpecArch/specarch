@@ -30,7 +30,9 @@ decisions:
       field and the form is not sent while one stands; each control's
       message is the first of its pattern, its second entry and its checks
       that it breaks. A hidden field is disabled, so it is neither checked
-      nor sent: the record is read again once the conditions are applied.
+      nor sent: the record is read again once the conditions are applied,
+      and a field entered twice is hidden and disabled with its second
+      entry.
       A picker keeps the value a loaded record gives it, as an option of
       its own while its list is not read or does not hold it, so the order
       of the two reads does not lose it. An empty field is null
@@ -51,10 +53,15 @@ decisions:
       count of rows is the service's to refuse. A check that names no
       field has nowhere to show its message, so it is refused; the
       validator does not ask for one, since the Next.js target shows it
-      above the form. A field drawn as a list, a long text or a box is not
-      entered twice, and a field the request body requires is not shown
-      read-only, since it would not be sent; each is an error at the field,
-      and the field is drawn once. The settings of the Next.js target, hooks and
+      above the form. A check, a refusal's field or a picker's fill that
+      names a field the page does not draw as one control (a field left
+      out, or one that holds a value) has no control to show its message
+      or take its value, so it is an error at that name and left out; a
+      refusal's message is still shown with the page's. A field drawn as a
+      list, a long text, a box or read-only is not entered twice, and a
+      field the request body requires is not shown read-only, since it
+      would not be sent; each is an error at the field, and the field is
+      drawn once. The settings of the Next.js target, hooks and
       layouts, have no counterpart here: a form's sections sit as one
       page.
     why: |

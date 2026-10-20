@@ -179,6 +179,8 @@ func (g *gen) fieldControl(f formField, optional bool) ([]string, bool) {
 	out := []string{"<label>" + label, input, "</label>"}
 	if f.twice && t == "boolean" {
 		g.problem("error", f.at, "%s is a box to tick, which is not entered twice; it is shown once", f.name)
+	} else if f.twice && f.readOnly {
+		g.problem("error", f.at, "%s is shown read-only, so it is not entered, and not entered twice; it is shown once", f.name)
 	} else if f.twice {
 		again := strings.Replace(strings.Replace(input, name, " data-again="+quoted(f.name), 1), " readonly", "", 1)
 		if !strings.Contains(again, " required") {
@@ -321,6 +323,10 @@ func (g *gen) form(name string, pg map[string]any) *formPage {
 		fp.sourceRefusals = refusals(src, obj0(obj0(pg["states"])["failed"]))
 	}
 	shown := map[string]bool{}
+	// drawn holds the fields written as one named control, the only ones
+	// form.js finds by name for a check, a refusal or a picker's fills.
+	drawn := map[string]bool{}
+	pickerFills := map[string]map[string]any{}
 	conditions := obj0(pg["fieldConditions"])
 	pickers := obj0(pg["pickers"])
 	twice := map[string]bool{}
@@ -352,12 +358,11 @@ func (g *gen) form(name string, pg map[string]any) *formPage {
 				label = f.name
 			}
 			field := formField{at: ptr, name: f.name, label: label, prop: prop, required: required[f.name] && !readOnly, readOnly: readOnly, twice: twice[f.name]}
+			data := ""
 			if pk, ok := obj(pickers[f.name]); ok {
-				data, ok := g.picker(name, f.name, pk, entity)
-				if !ok {
+				if data, ok = g.picker(name, f.name, pk, entity); !ok {
 					continue
 				}
-				fp.pickers[f.name] = data
 				field.picked, field.search = true, strings.Contains(data, "search: ")
 			}
 			control, ok := g.fieldControl(field, false)
@@ -376,6 +381,13 @@ func (g *gen) form(name string, pg map[string]any) *formPage {
 				continue
 			}
 			lines = append(lines, control...)
+			if ref, _ := valueRef(prop); ref == "" {
+				drawn[f.name] = true
+			}
+			if data != "" {
+				fp.pickers[f.name] = data
+				pickerFills[f.name] = obj0(obj0(pickers[f.name])["fills"])
+			}
 			if !readOnly {
 				fp.sent = append(fp.sent, f.name)
 			}
@@ -395,6 +407,22 @@ func (g *gen) form(name string, pg map[string]any) *formPage {
 			fp.controls = append(fp.controls, lines...)
 		}
 	}
+	for _, field := range sortedKeys(anyStrings(fp.pickers)) {
+		var fills []string
+		fm := pickerFills[field]
+		for _, into := range sortedKeys(fm) {
+			if !drawn[into] {
+				g.problem("error", at+"/pickers/"+field+"/fills/"+into, "the picker of %s fills %s, which the page does not draw as a field of its own; it is left out", field, into)
+				continue
+			}
+			fills = append(fills, into+": "+jsString(text(fm[into])))
+		}
+		if len(fills) == 0 {
+			fp.pickers[field] += ", fills: {} }"
+		} else {
+			fp.pickers[field] += ", fills: { " + strings.Join(fills, ", ") + " } }"
+		}
+	}
 	for _, r := range sortedSet(required) {
 		if !shown[r] {
 			g.problem("error", at, "%s submits to %s, whose request body requires %s, which the page does not show", name, fp.submit, r)
@@ -407,6 +435,10 @@ func (g *gen) form(name string, pg map[string]any) *formPage {
 		ptr := at + "/checks/" + key
 		if text(c["field"]) == "" {
 			g.problem("error", ptr, "the check %s names no field, and specarch-gen-ui shows a check's message beside its field; name it under field. It is left out", key)
+			continue
+		}
+		if !drawn[text(c["field"])] {
+			g.problem("error", ptr+"/field", "the check %s shows its message beside %s, which the page does not draw as a field of its own; it is left out", key, text(c["field"]))
 			continue
 		}
 		rule, ok := g.rule(text(c["expression"]), ptr+"/expression", "the check "+key, props)
@@ -435,7 +467,12 @@ func (g *gen) form(name string, pg map[string]any) *formPage {
 			}
 			continue
 		}
-		fp.refusals = append(fp.refusals, [3]string{status, text(st["message"]), text(st["field"])})
+		field := text(st["field"])
+		if field != "" && !drawn[field] {
+			g.problem("error", at+"/states/failed/"+problem+"/field", "%s shows the message for %s beside %s, which the page does not draw as a field of its own; the message is shown with the page's", name, problem, field)
+			field = ""
+		}
+		fp.refusals = append(fp.refusals, [3]string{status, text(st["message"]), field})
 	}
 	sort.SliceStable(fp.refusals, func(i, j int) bool { return fp.refusals[i][0] < fp.refusals[j][0] })
 	g.formNext(fp, at, pg, op, props)
@@ -517,8 +554,9 @@ func (g *gen) formNext(fp *formPage, at string, pg, op, props map[string]any) {
 }
 
 // picker reads a field's picker: the list operation it reads, the key of
-// the record picked, the fields shown to choose by and those it fills, as
-// the data form.js takes.
+// the record picked and the fields shown to choose by, as the data form.js
+// takes, left open for the fields it fills, which form reads once every
+// field is drawn.
 func (g *gen) picker(pageName, field string, pk, entity map[string]any) (string, bool) {
 	at := "/pages/" + pageName + "/pickers/" + field
 	var target string
@@ -564,17 +602,7 @@ func (g *gen) picker(pageName, field string, pk, entity map[string]any) (string,
 		shows = append(shows, jsString(text(s)))
 	}
 	parts = append(parts, "value: "+jsString(text(key[0])), "shows: ["+strings.Join(shows, ", ")+"]")
-	var fills []string
-	fm := obj0(pk["fills"])
-	for _, into := range sortedKeys(fm) {
-		fills = append(fills, into+": "+jsString(text(fm[into])))
-	}
-	if len(fills) == 0 {
-		parts = append(parts, "fills: {}")
-	} else {
-		parts = append(parts, "fills: { "+strings.Join(fills, ", ")+" }")
-	}
-	return "{ " + strings.Join(parts, ", ") + " }", true
+	return "{ " + strings.Join(parts, ", "), true
 }
 
 // childRows writes a form's rows of a relation: the body's array of that

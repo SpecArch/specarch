@@ -126,6 +126,7 @@ extension Checker {
                 checkDesignRef(specRoot, ref, ref.value, pointer("layout", p.key.value, "implements", "\(i)"))
             }
         }
+        checkDependsOn()
         for p in pairs(root.child("mappings")) {
             checkDesignRef(specRoot, p.key, p.key.value, pointer("mappings", p.key.value))
             if let by = p.value.child("ownedBy"), !by.value.isEmpty, d.stakeholders[by.value] == nil {
@@ -388,4 +389,25 @@ func carriesAs(_ n: YNode, _ t: String) -> Bool {
 func bound(_ n: YNode, _ key: String) -> Decimal? {
     guard let v = n.child(key) else { return nil }
     return Decimal(string: v.value)
+}
+
+extension Checker {
+    /// Checks that every package a layout entry depends on is another key
+    /// of the layout (ADR-133). A cycle is no error: Go forbids one and
+    /// other stacks allow it, and the file describes the code as it is.
+    func checkDependsOn() {
+        let layout = root.child("layout")
+        var keys: [String: YNode] = [:]
+        for p in pairs(layout) { keys[p.key.value] = p.value }
+        for p in pairs(layout) {
+            for (i, e) in items(p.value.child("dependsOn")).enumerated() {
+                let ptr = pointer("layout", p.key.value, "dependsOn", "\(i)")
+                if e.value == p.key.value {
+                    add(e, ptr, .dependsOn, "\(e.value) names itself; a package does not depend on itself, so remove the entry")
+                } else if keys[e.value] == nil {
+                    add(e, ptr, .dependsOn, "\(e.value) is not a key of layout; add it to layout, or remove the entry when it is a library, which goes under libraries\(suggest(e.value, keys))")
+                }
+            }
+        }
+    }
 }

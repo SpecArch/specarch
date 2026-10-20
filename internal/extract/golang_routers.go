@@ -3149,6 +3149,7 @@ func (g *goReader) loadChecks(file string) error {
 	}
 	g.rt.checkFile = file
 	g.loadHandlers(doc.Content[0])
+	g.layout = child(doc.Content[0], "layout")
 	binding := child(child(doc.Content[0], "bindings"), "http")
 	g.loadPermissionChecks(file, binding)
 	g.loadGates(file, binding)

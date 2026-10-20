@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.2-dev of the specification: 565 design tests, 257 golden and 308 red, about 17 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.2-dev of the specification: 567 design tests, 258 golden and 309 red, about 17 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 3 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -17,7 +17,7 @@ Version 0.7.2-dev of the specification: 565 design tests, 257 golden and 308 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 561 |
+| system | 563 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -1128,6 +1128,14 @@ Scenario: golden; level: system; verifies SA-44.
 - Given: a repository holding a Go module on chi whose server registers routes through a field of its struct, an implementation file whose bindings.http.permissionChecks name a check that wraps a handler, one used as middleware, one called in a handler and one named without its permission argument; routes checked by each, one by three permissions, one by a permission that is not a literal and one by none; a check that lets every request through while a setting is empty; handlers that decode a JSON body into a struct of the module with snake_case json tags and go-playground/validator tags (required, len, max, min, oneof, email, numeric, alphanum, dive and a rule with no keyword), a pointer, a list of structs, a time, an int, an int64, a map of strings, an unexported field, a field left out with -, a struct that embeds another and a field with no json tag; a client call with a literal URL in a handler, one outside any handler, one with a computed URL and one with a relative URL; a path parameter read by a computed name; and flags declared with literal names
 - When: extract go is run on the module with the implementation file
 - Then: it writes each operation with the one permission the named checks give it, declared with the check that reads it first; asks a must question for the three permissions, the computed one, the operation with none, the check named in part, the gate on the setting in the words extract permissions uses, the width of the int and of the int64, and each dependency's description and time limit; writes each body as an object of the struct's fields in camelCase, with info.wireNames snake_case, nullable for the pointer, the validator's rules as required, lengths, items, bounds, an enum, a format and patterns, writes the map as an object whose additionalProperties is a string, and asks a should question for the embedded struct, the computed parameter name, the computed and relative URLs and the dependency called outside a handler; prints a line and asks a could question for dive, the rule with no keyword and the field with no json tag; declares each system called with a literal URL as a dependency named after its host, listed under calls of the operation whose handler calls it; writes each flag and each environment variable read as a setting; and exits 0
+
+#### extract-go-layout-depends-on
+
+Scenario: golden; level: system; verifies SA-44.
+
+- Given: a repository holding a Go module of three packages, a command importing the two others, the loan rules importing the store and a test of the store importing the loan rules, and an implementation file whose layout names the three, the command with a wrong dependsOn, and a documents folder with no Go source
+- When: extract go is run on the module with --implementation naming the file and --implementation-out naming a new file
+- Then: the implementation fragment holds the three packages with their descriptions and, under dependsOn, the packages of the module each one's files import by their layout keys, the command's both, the loan rules' the store and the store's none, the test's import left out and the documents folder not written; it says how many entries and dependencies it read, and exits 0
 
 #### extract-go-request-bodies
 
@@ -3024,6 +3032,14 @@ Scenario: golden; level: system; verifies SA-29.
 - Given: dependencies of kind system with a specification, messageBroker, fileStore and none, each with a protocol or none, and channels carried by the broker and by a system
 - When: validate is run
 - Then: it reports nothing and exits 0
+
+#### validate-diagram-depends-on
+
+Scenario: red; level: system; covers exit 1; verifies SA-10.
+
+- Given: an implementation file whose layout's dependsOn names a package the layout does not have, names the entry itself, repeats a package, and makes a cycle of two packages
+- When: validate is run
+- Then: it reports the unknown package as depends_on with the key it may mean, the entry naming itself as depends_on, the repeat as a schema error, nothing for the cycle, and exits 1
 
 #### validate-duplicate-key
 

@@ -221,7 +221,7 @@ func runDocument(args []string, stdout, stderr io.Writer) int {
 
 		companion := filepath.Join(l.spec.Dir, generate.CompanionName)
 		if text, err := os.ReadFile(companion); err == nil {
-			rewritten, errs := generate.RewriteMarkers(string(text), l.spec.Root)
+			rewritten, errs := generate.RewriteMarkers(string(text), l.spec.Root, impls)
 			for _, e := range errs {
 				fmt.Fprintf(stdout, "%s:%d: error: %s\n", companion, e.Line, e.Message)
 				failed = true

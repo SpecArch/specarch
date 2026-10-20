@@ -126,7 +126,8 @@ specification. It names the root file and the `info.version` it was written
 against under `implements`, and holds everything that depends on the stack
 and nothing else: the language and toolchain with versions (`stack`), every
 library with its version and licence (`libraries`), the package layout and
-the design objects each package implements (`layout`), how each design
+the design objects each package implements with the packages it depends on
+(`layout`), how each design
 object maps onto the stack (`mappings`, each of which may carry `why`,
 `cites` and `origin` like any element, and `ownedBy`, below), the framework per interface kind
 (`bindings`), the document and code targets with their folders and settings
@@ -145,6 +146,18 @@ entity, an operation or any other design object, so an implementation file
 cannot add or change design. One specification can have several
 implementation files, one per stack; the `<stack>` part of the name tells
 them apart (`library-lending.go.specarch-implementation.yaml`).
+
+A layout entry's `dependsOn`, CycloneDX's word, lists the other layout
+keys the package calls, imports or links against; the technical
+specification draws them as the implementation's component diagram, and
+the marker `components <stack>` draws it in a hand-written `specarch.md`.
+A name that is no key of the layout, or the entry's own key, is an error
+at the entry (`depends_on`); a cycle is not, since Go forbids one and
+other stacks allow it. An entry without `dependsOn` says nothing of what
+it depends on, and the diagram draws no arrow from it. `extract go
+--implementation <file> --implementation-out <new file>` writes, for each
+layout entry whose Go files it reads, the packages of the same module
+they import, test files left out (ADR-133).
 
 Pointers from an implementation file into its specification are JSON
 pointers written from the merged document's root: `#/entities/Loan`,
@@ -564,6 +577,7 @@ redefined.
 | `dependencies`, `timeout`, `calls` | SpecArch | external systems an operation calls, each with a time limit per call |
 | `kind` on a dependency, `carriedBy` on a channel | SpecArch | what a dependency is (five kinds, after C4's software system and containers), and the dependencies a channel lives on; AsyncAPI's channel `servers` names hosts, which a design file excludes (ADR-134) |
 | `protocol` on a dependency | AsyncAPI, the server object | how the dependency is reached, a lowercase URI scheme name, kept open |
+| `dependsOn` on a layout entry, in an implementation file | CycloneDX, a component's dependencies | the other packages of the layout this one calls, imports or links against (ADR-133) |
 | `specification`, `version` (on a dependency), `name` (in `info`) | SpecArch, after JSON Schema's `$ref` as a URI reference | a dependency that is another specification, named by its `info.name` and pinned to its `info.version`; its elements are named `<dependency>#/<pointer>` |
 | `specarchEstate`, `modules`, `location` | SpecArch | an estate file: the modules' specifications by `info.name`, each with its folder and the version held |
 | `idempotencyKey` | SpecArch, after RFC 9110 9.2.2 and the IETF Idempotency-Key header draft | a header that tells a repeated request from a new one, on a method that is not idempotent by itself |
@@ -2232,6 +2246,7 @@ edit inside the markers; edit the YAML.
 | `sequenceDiagram` of one operation: client, service, algorithm, channels, answer | `sequenceDiagram <operationId>` | `paths`, `emits`, `algorithm` | generated |
 | `sequenceDiagram` of one command: user, program, files read and written, exit statuses | `sequenceDiagram <command>` | `commands` | generated |
 | `flowchart` of pages and their `actions` | `flowchart pages` | `pages` | generated |
+| `flowchart` of one implementation's components: a node per layout entry, an edge per `dependsOn`, the libraries apart | `components <stack>` | an implementation file's `layout`, `dependsOn`, `libraries` (ADR-133) | generated |
 | `flowchart` of one function of an operation's handler, a node per step by its id | | an implementation file's `mappings`, `handler` (ADR-144) | generated, in the technical specification only |
 | permissions matrix (a Markdown table, not a diagram) | `permissions` | `roles`, `permissions` | generated |
 | `flowchart` of the system's context in C4's style: a person per role, a system per service client, the dependencies by kind with their protocol, the channels they carry | `context` | `roles`, `clients`, `dependencies`, `channels`, `calls`, `emits`, `consumes` (ADR-134, ADR-135) | generated |

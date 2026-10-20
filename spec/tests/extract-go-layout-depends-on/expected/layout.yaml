@@ -1,0 +1,14 @@
+# The layout entries specarch extract go read from the Go source under . at
+# commit fafb4f3cd38ea4c3c885426a46f9dce98afe88db, each with the entries of
+# the same module its files import under dependsOn; they replace the dependsOn
+# of the same keys under layout in the implementation file.
+layout:
+  cmd/shelf:
+    description: The command.
+    dependsOn: [internal/loans, internal/store]
+  internal/loans:
+    description: The loan rules.
+    dependsOn: [internal/store]
+  internal/store:
+    description: The store.
+    dependsOn: []

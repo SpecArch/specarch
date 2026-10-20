@@ -43,6 +43,7 @@ layout:
   internal/lending:
     description: Hand-written handlers that implement the generated interface, and the late-fee algorithm.
     implements: ["#/algorithms/lateFee", "#/entities/Loan"]
+    dependsOn: [internal/api]
   migrations:
     description: Generated forward migrations, new files only.
 

@@ -324,6 +324,24 @@ A number the desk may call a member on.
 | MembershipTier | standard | up to 3 open loans, 21-day loan period |
 | MembershipTier | extended | up to 6 open loans, 28-day loan period |
 
+### Components: Library Lending in Go and PostgreSQL
+
+The packages of ../spec/implementation/go/library-lending.go.specarch-implementation.yaml and which calls which, from its layout's dependsOn, with the libraries it uses apart.
+
+```mermaid
+flowchart LR
+  package_internal_api["internal/api, implements 3"]
+  package_internal_lending["internal/lending, implements 2"]
+  package_migrations["migrations"]
+  package_internal_lending --> package_internal_api
+  subgraph libraries
+    library_github_com_oapi_codegen_oapi_codegen_v2["github.com/oapi-codegen/oapi-codegen/v2 v2.8.0"]
+    library_github_com_oapi_codegen_runtime["github.com/oapi-codegen/runtime v1.7.0"]
+    library_github_com_go_chi_chi_v5["github.com/go-chi/chi/v5 v5.3.2"]
+    library_github_com_jackc_pgx_v5["github.com/jackc/pgx/v5 v5.11.0"]
+  end
+```
+
 ## 6. Runtime view
 
 ### States of Loan

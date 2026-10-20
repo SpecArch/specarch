@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "an implementation file whose layout's dependsOn names a package the layout does not have, names the entry itself, repeats a package, and makes a cycle of two packages"
+when: validate is run
+then: "it reports the unknown package as depends_on with the key it may mean, the entry naming itself as depends_on, the repeat as a schema error, nothing for the cycle, and exits 1"
+verifies: [SA-10]

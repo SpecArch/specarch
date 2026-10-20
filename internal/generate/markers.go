@@ -20,11 +20,12 @@ var (
 )
 
 // RewriteMarkers replaces the text between each pair of markers with what
-// the begin marker names, drawn from the design file, and leaves every
+// the begin marker names, drawn from the design file and the implementation
+// files, and leaves every
 // other line as it is. It follows the markersWellFormed algorithm: regions
 // never nest, every begin has an end, and a marker for an object that does
 // not exist is an error, never an empty block.
-func RewriteMarkers(text string, design *yaml.Node) (string, []MarkerError) {
+func RewriteMarkers(text string, design *yaml.Node, impls []Implementation) (string, []MarkerError) {
 	lines := strings.SplitAfter(text, "\n")
 	var out strings.Builder
 	var errs []MarkerError
@@ -47,7 +48,7 @@ func RewriteMarkers(text string, design *yaml.Node) (string, []MarkerError) {
 				out.WriteString(line)
 				continue
 			}
-			body, err := region(design, openWhat)
+			body, err := region(design, impls, openWhat)
 			if err != nil {
 				errs = append(errs, MarkerError{openLine, err.Error() + "; correct the marker or the design file"})
 			}

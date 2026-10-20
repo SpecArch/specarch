@@ -1,0 +1,13 @@
+arguments: [extract, go, --implementation, implementation/shelf.go.specarch-implementation.yaml, --implementation-out, layout.yaml, --out, spec, testdata/service]
+repository:
+  folder: testdata/service
+  commits:
+    - [.]
+exitStatus: 0
+standardOutput: |
+  commit fafb4f3cd38ea4c3c885426a46f9dce98afe88db: the last change to .
+  counted 3 Go files, 0 of them importing dxlib's api package and 0 that do not parse, and left out 1: every tracked Go file under . but test files and files in a folder below it named testdata or vendor, or that the go command ignores
+  checks: implementation/shelf.go.specarch-implementation.yaml names no permission check under bindings.http.permissionChecks
+  wrote 0 permissions and 0 questions: one permission per name a route checks with a literal, one question per thing the source does not say, and one per thing the meta-model cannot hold
+  layout: read the imports of 3 entries of the implementation file's layout, 3 dependencies within the module
+  derived 0 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers

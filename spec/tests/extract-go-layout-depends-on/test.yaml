@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: extract
+level: system
+scenario: golden
+given: "a repository holding a Go module of three packages, a command importing the two others, the loan rules importing the store and a test of the store importing the loan rules, and an implementation file whose layout names the three, the command with a wrong dependsOn, and a documents folder with no Go source"
+when: "extract go is run on the module with --implementation naming the file and --implementation-out naming a new file"
+then: "the implementation fragment holds the three packages with their descriptions and, under dependsOn, the packages of the module each one's files import by their layout keys, the command's both, the loan rules' the store and the store's none, the test's import left out and the documents folder not written; it says how many entries and dependencies it read, and exits 0"
+verifies: [SA-44]

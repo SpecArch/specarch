@@ -66,6 +66,7 @@ const (
 	RuleChangeLog              Rule = "change_log"
 	RuleUnsafeInteger          Rule = "unsafe_integer"
 	RuleLayout                 Rule = "layout"
+	RuleDependsOn              Rule = "depends_on"
 	RuleNeed                   Rule = "need"
 	RuleStakeholder            Rule = "stakeholder"
 	RuleSource                 Rule = "source"
@@ -206,6 +207,7 @@ var Rules = []Rule{
 	RuleChangeLog,
 	RuleUnsafeInteger,
 	RuleLayout,
+	RuleDependsOn,
 	RuleNeed,
 	RuleStakeholder,
 	RuleSource,

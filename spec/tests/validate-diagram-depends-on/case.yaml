@@ -1,0 +1,6 @@
+arguments: [validate, .]
+exitStatus: 1
+standardOutput: |
+  case.go.specarch-implementation.yaml:8:17: error: /layout/cmd~1shelf/dependsOn/0: depends_on: internal/loan is not a key of layout; add it to layout, or remove the entry when it is a library, which goes under libraries; did you mean internal/loans? [depends_on@case.go.specarch-implementation.yaml#/layout/cmd~1shelf/dependsOn/0]
+  case.go.specarch-implementation.yaml:8:48: error: /layout/cmd~1shelf/dependsOn/2: depends_on: cmd/shelf names itself; a package does not depend on itself, so remove the entry [depends_on@case.go.specarch-implementation.yaml#/layout/cmd~1shelf/dependsOn/2]
+  case.go.specarch-implementation.yaml:11:16: error: /layout/internal~1loans/dependsOn: schema: items 0 and 1 are the same; remove the repeat [schema@case.go.specarch-implementation.yaml#/layout/internal~1loans/dependsOn]

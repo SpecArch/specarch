@@ -2,6 +2,8 @@ package generate
 
 import (
 	"fmt"
+	"path"
+	"path/filepath"
 	"sort"
 	"strings"
 
@@ -9,6 +11,7 @@ import (
 
 	"github.com/SpecArch/specarch/internal/implies"
 	"github.com/SpecArch/specarch/internal/source"
+	"github.com/SpecArch/specarch/internal/spec"
 )
 
 func fence(body string) string {
@@ -377,9 +380,9 @@ func permissionsTable(root *yaml.Node) string {
 }
 
 // region renders what a marker names: "erDiagram", "stateDiagram Loan",
-// "sequenceDiagram returnLoan", "flowchart pages", "permissions" or
-// "context".
-func region(root *yaml.Node, what string) (string, error) {
+// "sequenceDiagram returnLoan", "flowchart pages", "permissions",
+// "context" or "components go".
+func region(root *yaml.Node, impls []Implementation, what string) (string, error) {
 	kind, arg, _ := strings.Cut(strings.TrimSpace(what), " ")
 	arg = strings.TrimSpace(arg)
 	var out string
@@ -407,13 +410,15 @@ func region(root *yaml.Node, what string) (string, error) {
 		if out == "" {
 			err = fmt.Errorf("the design file has no permissions")
 		}
+	case "components":
+		out, err = componentsRegion(impls, arg)
 	case "context":
 		out = contextDiagram(root)
 		if out == "" {
 			err = fmt.Errorf("the design file has no roles, dependencies or channels to draw")
 		}
 	default:
-		names := []string{"context", "erDiagram", "stateDiagram <Entity>", "sequenceDiagram <operationId or command>", "flowchart pages", "permissions"}
+		names := []string{"components <stack>", "context", "erDiagram", "stateDiagram <Entity>", "sequenceDiagram <operationId or command>", "flowchart pages", "permissions"}
 		sort.Strings(names)
 		return "", fmt.Errorf("%q is not something the generator draws; use one of %s", kind, strings.Join(names, ", "))
 	}
@@ -968,4 +973,88 @@ func contextDiagram(root *yaml.Node) string {
 		}
 	}
 	return fence(b.String())
+}
+
+// implementationStack is the stack an implementation file is written for,
+// the <stack> of <name>.<stack>.specarch-implementation.yaml.
+func implementationStack(i Implementation) string {
+	name := strings.TrimSuffix(path.Base(filepath.ToSlash(i.Path)), spec.ImplementationSuffix)
+	if dot := strings.LastIndex(name, "."); dot >= 0 {
+		return name[dot+1:]
+	}
+	return name
+}
+
+// usesDependsOn says whether any layout entry of the file names what it
+// depends on, so that the technical specification draws the component
+// diagram only then and a file without the key renders as before.
+func usesDependsOn(impl *yaml.Node) bool {
+	for _, l := range pairs(impl, "layout") {
+		if get(l.Value, "dependsOn") != nil {
+			return true
+		}
+	}
+	return false
+}
+
+// componentsDiagram is the component diagram of one implementation, C4's
+// third level (ADR-133): a node per layout entry with the count of design
+// objects it implements, an edge per dependsOn entry that names another
+// entry, and the libraries apart. An entry naming no layout key is the
+// validator's error and draws no edge.
+func componentsDiagram(impl *yaml.Node) string {
+	layout := pairs(impl, "layout")
+	if len(layout) == 0 {
+		return ""
+	}
+	keys := map[string]bool{}
+	for _, l := range layout {
+		keys[l.Key.Value] = true
+	}
+	var b strings.Builder
+	b.WriteString("flowchart LR\n")
+	for _, l := range layout {
+		label := mermaidText(l.Key.Value)
+		if n := len(strs(l.Value, "implements")); n > 0 {
+			label += fmt.Sprintf(", implements %d", n)
+		}
+		fmt.Fprintf(&b, "  %s[\"%s\"]\n", "package_"+mermaidID(l.Key.Value), label)
+	}
+	for _, l := range layout {
+		for _, to := range strs(l.Value, "dependsOn") {
+			if keys[to] && to != l.Key.Value {
+				fmt.Fprintf(&b, "  package_%s --> package_%s\n", mermaidID(l.Key.Value), mermaidID(to))
+			}
+		}
+	}
+	if libs := pairs(impl, "libraries"); len(libs) > 0 {
+		b.WriteString("  subgraph libraries\n")
+		for _, l := range libs {
+			fmt.Fprintf(&b, "    library_%s[\"%s %s\"]\n", mermaidID(l.Key.Value), mermaidText(l.Key.Value), mermaidText(str(l.Value, "version")))
+		}
+		b.WriteString("  end\n")
+	}
+	return fence(b.String())
+}
+
+// componentsRegion draws the component diagram of the implementation file
+// of the stack a components marker names.
+func componentsRegion(impls []Implementation, stack string) (string, error) {
+	var stacks []string
+	for _, i := range impls {
+		s := implementationStack(i)
+		if s == stack {
+			out := componentsDiagram(i.Node)
+			if out == "" {
+				return "", fmt.Errorf("the implementation file %s has no layout to draw", i.Rel)
+			}
+			return out, nil
+		}
+		stacks = append(stacks, s)
+	}
+	if len(stacks) == 0 {
+		return "", fmt.Errorf("the specification has no implementation file, so there are no components of %s to draw", stack)
+	}
+	sort.Strings(stacks)
+	return "", fmt.Errorf("no implementation file is written for the stack %q; use one of %s", stack, strings.Join(stacks, ", "))
 }

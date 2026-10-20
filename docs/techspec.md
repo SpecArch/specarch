@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.7.2-dev of the specification: 81 requirements, 5 entities, 15 commands, 7 algorithms, 565 tests, 143 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.7.2-dev of the specification: 81 requirements, 5 entities, 15 commands, 7 algorithms, 567 tests, 143 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 **Problems:** 3 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -308,6 +308,7 @@ Primary key: path.
 | Rule | suite | an implementation's test suite names a design test or subject that does not exist |
 | Rule | test_data | a test's fixture, input or expect names what the design does not have, carries a value of the wrong type, holds a record a check constraint refuses, or says the same thing as a data folder beside it |
 | Rule | layout | a file or a section is not where the tree layout puts it; the root file's `stages` and the folders disagree, a test folder has no `test.yaml`, or a folder is not a stage |
+| Rule | depends_on | a layout entry's `dependsOn` names no key of the layout, or the entry itself |
 | Rule | need | a requirement's `needs` names a need that does not exist |
 | Rule | stakeholder | a need's `stakeholders`, a question's `decidedBy`, a requirement's `ownedBy`, a mapping's `ownedBy` or the handover's `to` names a stakeholder that does not exist |
 | Rule | source | a citation names a source that is not declared under `sources` |
@@ -394,6 +395,161 @@ Primary key: path.
 | Severity | warning | printed, but the file stays valid; missing test scenarios, change-log phrases, traceability gaps and elements without origin |
 
 **Note on DocumentTarget:** From ISO/IEC/IEEE 29119-3, Software and systems engineering, Software testing, Part 3, Test documentation, 2021, clause 7.2 and 8.3: A test plan and test case specifications are the test documentation items of a project. <https://www.iso.org/standard/79429.html>
+
+### Components: SpecArch toolchain in Go
+
+The packages of ../spec/implementation/go/specarch.go.specarch-implementation.yaml and which calls which, from its layout's dependsOn, with the libraries it uses apart.
+
+```mermaid
+flowchart LR
+  package_cmd_specarch["cmd/specarch, implements 18"]
+  package_schema["schema"]
+  package_idioms["idioms"]
+  package_internal_extract["internal/extract"]
+  package_internal_facts["internal/facts"]
+  package_third_party_typescript_go["third_party/typescript-go"]
+  package_readers["readers"]
+  package_readers_dart["readers/dart"]
+  package_internal_canonical["internal/canonical"]
+  package_internal_source["internal/source"]
+  package_internal_spec["internal/spec"]
+  package_cmd_specarch_gen_sql["cmd/specarch-gen-sql, implements 1"]
+  package_internal_gensql["internal/gensql"]
+  package_cmd_specarch_gen_sqlc["cmd/specarch-gen-sqlc, implements 1"]
+  package_internal_gensqlc["internal/gensqlc"]
+  package_internal_ownership["internal/ownership"]
+  package_internal_mark["internal/mark"]
+  package_internal_typerows["internal/typerows"]
+  package_cmd_specarch_gen_openapi["cmd/specarch-gen-openapi, implements 1"]
+  package_internal_genopenapi["internal/genopenapi"]
+  package_cmd_specarch_gen_go_dxlib["cmd/specarch-gen-go-dxlib, implements 1"]
+  package_cmd_specarch_gen_bpmn["cmd/specarch-gen-bpmn, implements 1"]
+  package_internal_genbpmn["internal/genbpmn"]
+  package_cmd_specarch_gen_ui["cmd/specarch-gen-ui, implements 1"]
+  package_internal_genui["internal/genui"]
+  package_cmd_specarch_gen_ui_typescript["cmd/specarch-gen-ui-typescript, implements 1"]
+  package_internal_genuits["internal/genuits"]
+  package_cmd_specarch_gen_ui_swiftui["cmd/specarch-gen-ui-swiftui, implements 1"]
+  package_internal_genswiftui["internal/genswiftui"]
+  package_internal_genscreens["internal/genscreens"]
+  package_internal_literal["internal/literal"]
+  package_internal_gendxlib["internal/gendxlib"]
+  package_cmd_specarch_gen_tests_go["cmd/specarch-gen-tests-go, implements 1"]
+  package_cmd_specarch_gen_tests_swift["cmd/specarch-gen-tests-swift, implements 1"]
+  package_cmd_specarch_gen_tests_dart["cmd/specarch-gen-tests-dart, implements 1"]
+  package_internal_gentests["internal/gentests"]
+  package_internal_semver["internal/semver"]
+  package_internal_diff["internal/diff"]
+  package_internal_approval["internal/approval"]
+  package_internal_expr["internal/expr"]
+  package_internal_generate["internal/generate, implements 1"]
+  package_internal_problems["internal/problems, implements 3"]
+  package_internal_validate["internal/validate, implements 6"]
+  package_cmd_specarch --> package_internal_approval
+  package_cmd_specarch --> package_internal_canonical
+  package_cmd_specarch --> package_internal_diff
+  package_cmd_specarch --> package_internal_extract
+  package_cmd_specarch --> package_internal_facts
+  package_cmd_specarch --> package_internal_genbpmn
+  package_cmd_specarch --> package_internal_generate
+  package_cmd_specarch --> package_internal_genscreens
+  package_cmd_specarch --> package_internal_gensql
+  package_cmd_specarch --> package_internal_genui
+  package_cmd_specarch --> package_internal_literal
+  package_cmd_specarch --> package_internal_mark
+  package_cmd_specarch --> package_internal_problems
+  package_cmd_specarch --> package_internal_semver
+  package_cmd_specarch --> package_internal_source
+  package_cmd_specarch --> package_internal_spec
+  package_cmd_specarch --> package_internal_validate
+  package_internal_extract --> package_idioms
+  package_internal_extract --> package_internal_expr
+  package_internal_extract --> package_internal_facts
+  package_internal_extract --> package_internal_gensql
+  package_internal_extract --> package_internal_ownership
+  package_internal_extract --> package_internal_source
+  package_internal_extract --> package_internal_spec
+  package_internal_extract --> package_internal_validate
+  package_internal_facts --> package_readers
+  package_internal_facts --> package_third_party_typescript_go
+  package_internal_spec --> package_internal_source
+  package_cmd_specarch_gen_sql --> package_internal_gensql
+  package_internal_gensql --> package_internal_expr
+  package_internal_gensql --> package_internal_mark
+  package_internal_gensql --> package_internal_ownership
+  package_internal_gensql --> package_internal_typerows
+  package_cmd_specarch_gen_sqlc --> package_internal_gensqlc
+  package_internal_gensqlc --> package_internal_gensql
+  package_internal_gensqlc --> package_internal_mark
+  package_internal_gensqlc --> package_internal_ownership
+  package_cmd_specarch_gen_openapi --> package_internal_genopenapi
+  package_internal_genopenapi --> package_internal_mark
+  package_internal_genopenapi --> package_internal_ownership
+  package_cmd_specarch_gen_go_dxlib --> package_internal_gendxlib
+  package_cmd_specarch_gen_go_dxlib --> package_internal_genopenapi
+  package_cmd_specarch_gen_bpmn --> package_internal_genbpmn
+  package_internal_genbpmn --> package_internal_mark
+  package_internal_genbpmn --> package_internal_ownership
+  package_cmd_specarch_gen_ui --> package_internal_genui
+  package_internal_genui --> package_internal_mark
+  package_internal_genui --> package_internal_ownership
+  package_cmd_specarch_gen_ui_typescript --> package_internal_genuits
+  package_internal_genuits --> package_internal_genscreens
+  package_internal_genuits --> package_internal_genui
+  package_internal_genuits --> package_internal_ownership
+  package_cmd_specarch_gen_ui_swiftui --> package_internal_genswiftui
+  package_internal_genswiftui --> package_internal_genscreens
+  package_internal_genswiftui --> package_internal_genui
+  package_internal_genswiftui --> package_internal_ownership
+  package_internal_genscreens --> package_internal_expr
+  package_internal_genscreens --> package_internal_genui
+  package_internal_genscreens --> package_internal_mark
+  package_internal_genscreens --> package_internal_ownership
+  package_internal_gendxlib --> package_internal_genopenapi
+  package_internal_gendxlib --> package_internal_gensql
+  package_internal_gendxlib --> package_internal_mark
+  package_internal_gendxlib --> package_internal_ownership
+  package_cmd_specarch_gen_tests_go --> package_internal_gentests
+  package_cmd_specarch_gen_tests_swift --> package_internal_gentests
+  package_cmd_specarch_gen_tests_dart --> package_internal_gentests
+  package_internal_gentests --> package_internal_mark
+  package_internal_diff --> package_internal_semver
+  package_internal_diff --> package_internal_source
+  package_internal_approval --> package_internal_source
+  package_internal_generate --> package_internal_semver
+  package_internal_generate --> package_internal_source
+  package_internal_generate --> package_internal_spec
+  package_internal_generate --> package_internal_validate
+  package_internal_problems --> package_internal_source
+  package_internal_problems --> package_internal_spec
+  package_internal_problems --> package_internal_validate
+  package_internal_validate --> package_idioms
+  package_internal_validate --> package_internal_expr
+  package_internal_validate --> package_internal_semver
+  package_internal_validate --> package_internal_source
+  package_internal_validate --> package_internal_spec
+  package_internal_validate --> package_internal_typerows
+  package_internal_validate --> package_schema
+  subgraph libraries
+    library_github_com_santhosh_tekuri_jsonschema_v6["github.com/santhosh-tekuri/jsonschema/v6 v6.0.3"]
+    library_golang_org_x_text["golang.org/x/text v0.43.0"]
+    library_go_yaml_in_yaml_v3["go.yaml.in/yaml/v3 v3.0.5"]
+    library_cel_dev_cel_go["cel.dev/cel-go v0.32.0"]
+    library_cel_dev_expr["cel.dev/expr v0.25.3"]
+    library_github_com_antlr4_go_antlr_v4["github.com/antlr4-go/antlr/v4 v4.13.1"]
+    library_google_golang_org_protobuf["google.golang.org/protobuf v1.36.12"]
+    library_google_golang_org_genproto_googleapis_api["google.golang.org/genproto/googleapis/api v0.0.0-20261005182115-fad411399dd8"]
+    library_google_golang_org_genproto_googleapis_rpc["google.golang.org/genproto/googleapis/rpc v0.0.0-20261005182115-fad411399dd8"]
+    library_golang_org_x_exp["golang.org/x/exp v0.0.0-20261009195045-ca0d7ba23607"]
+    library_github_com_microsoft_typescript_go["github.com/microsoft/typescript-go typescript/v7.0.2 (2bd066d87f5bafd315be9f40889d0a60b9e58e0b)"]
+    library_github_com_go_json_experiment_json["github.com/go-json-experiment/json v0.0.0-20260623181947-01eb4420fa68"]
+    library_github_com_zeebo_xxh3["github.com/zeebo/xxh3 v1.1.0"]
+    library_github_com_klauspost_cpuid_v2["github.com/klauspost/cpuid/v2 v2.2.10"]
+    library_golang_org_x_sync["golang.org/x/sync v0.24.0"]
+    library_golang_org_x_sys["golang.org/x/sys v0.47.0"]
+    library_analyzer["analyzer 14.4.0"]
+  end
+```
 
 ## 6. Runtime view
 
@@ -11345,6 +11501,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | extract-go-handlers | command extract | system | golden | a repository holding a Go module on net/http's ServeMux and database/sql, a parcel-locker service whose handlers decode a body, read a path parameter, a query parameter and a header, branch, loop and switch, break out of a switch and out of a labelled loop, pass a function literal to a sort, define a function literal that refuses and call it by its name on some paths while another path returns bare, go to a label on an if that holds a loop, fall through from one case into the one that answers, read and write two tables with literal statements, one in a transaction, call functions of the module in two packages down to four calls deep, call a function value and an interface's method, call another system over HTTP, refuse and answer; most routes are wrapped in the permission check the implementation file names, one is not and writes a table after it answered, one writes two tables with no transaction, one has code after its return, one has a TODO note, a constant condition and a dropped result, and one panics as not implemented | extract go is run on the module with --implementation naming the file and --implementation-out naming a new file | it writes the tree as before, follows every handler into the functions of the module it calls to three calls deep, and the function literal passed to the sort and the one assigned to a local as functions of their own whose returns are not the handler's, each call step of a literal saying how it is reached (passed, defined, called), writes the implementation fragment with one mapping per operation holding the handler's commit, depth and functions, each with its steps (id, kind, text, file and lines, with the parameter, table and access, transaction, function or why it stopped, dependency, status and the label of a labelled loop and of the break that leaves it) and its source as it was at the commit, records the header read as an input, says that the break in the switch leaves the switch and the labelled one leaves the loop, gives the loop inside the labelled if no label, records the fallthrough as a statement, says on each call not followed why (a fourth call deep, a function value, an interface's method), asks a should question with its certainty for each fault found (the write after the response, the unchecked write, the writes with no transaction, the dropped results, the code never run, the constant condition, the note, the panic and the paths with no response, among them the bare return after the failed query but not the paths that call the refusing literal or fall through into the answer) and none for the handler that sorts and answers, counts the handlers followed and the records written, says the file holds no record to compare with, and exits 0 |
 | extract-go-handlers-changed | command extract | system | golden | the parcel-locker module of extract-go-handlers, and an implementation file holding handler records read at an earlier commit: one whose handler has since gained a call and grown by a line, one unchanged, and one of an operation the module no longer registers; the other operations have no record | extract go is run on the module with --implementation naming the file and without --implementation-out | it writes the tree as extract-go-handlers does and no fragment, compares each handler with the file's record and prints one line counting the unchanged, the changed, the operations not recorded and the records whose operation is gone, then for the changed handler the function, its lines now and before and the step lines added and removed, each step line marked + or -, and one line naming the record whose operation the source does not register, and exits 0 |
 | extract-go-http-handlers | command extract | system | golden | a repository holding a Go module on chi whose server registers routes through a field of its struct, an implementation file whose bindings.http.permissionChecks name a check that wraps a handler, one used as middleware, one called in a handler and one named without its permission argument; routes checked by each, one by three permissions, one by a permission that is not a literal and one by none; a check that lets every request through while a setting is empty; handlers that decode a JSON body into a struct of the module with snake_case json tags and go-playground/validator tags (required, len, max, min, oneof, email, numeric, alphanum, dive and a rule with no keyword), a pointer, a list of structs, a time, an int, an int64, a map of strings, an unexported field, a field left out with -, a struct that embeds another and a field with no json tag; a client call with a literal URL in a handler, one outside any handler, one with a computed URL and one with a relative URL; a path parameter read by a computed name; and flags declared with literal names | extract go is run on the module with the implementation file | it writes each operation with the one permission the named checks give it, declared with the check that reads it first; asks a must question for the three permissions, the computed one, the operation with none, the check named in part, the gate on the setting in the words extract permissions uses, the width of the int and of the int64, and each dependency's description and time limit; writes each body as an object of the struct's fields in camelCase, with info.wireNames snake_case, nullable for the pointer, the validator's rules as required, lengths, items, bounds, an enum, a format and patterns, writes the map as an object whose additionalProperties is a string, and asks a should question for the embedded struct, the computed parameter name, the computed and relative URLs and the dependency called outside a handler; prints a line and asks a could question for dive, the rule with no keyword and the field with no json tag; declares each system called with a literal URL as a dependency named after its host, listed under calls of the operation whose handler calls it; writes each flag and each environment variable read as a setting; and exits 0 |
+| extract-go-layout-depends-on | command extract | system | golden | a repository holding a Go module of three packages, a command importing the two others, the loan rules importing the store and a test of the store importing the loan rules, and an implementation file whose layout names the three, the command with a wrong dependsOn, and a documents folder with no Go source | extract go is run on the module with --implementation naming the file and --implementation-out naming a new file | the implementation fragment holds the three packages with their descriptions and, under dependsOn, the packages of the module each one's files import by their layout keys, the command's both, the loan rules' the store and the store's none, the test's import left out and the documents folder not written; it says how many entries and dependencies it read, and exits 0 |
 | extract-go-request-bodies | command extract | system | golden | a repository holding a Go module on gin whose engine registers routes through a method of a server made in place; handlers that decode a JSON body into a variable declared with a struct type written in place, with json tags, a binding tag, a nested struct written in place, a pointer to one, a slice of them, a named struct of the module, a map of strings and a field with no json tag; one that names its variable body and binds with BindJSON; one that decodes into a type of another module; one into a named struct whose only field is a map of any value; and one into a struct whose only field is an interface; with no implementation file | extract go is run on the module | it writes each operation with the body its handler decodes as an object of the struct's fields by encoding/json's rules, whether the struct is named or written in place, the nested struct in place, the pointer nullable, the slice an array of objects, the map of strings an object whose additionalProperties is a string, the map of any value an object with additionalProperties true and a should question naming the Go type and blocking its values, and the binding tag's required; asks a should question for the type of another module, blocking the operation's missing requestBody, and for the interface, blocking the object's missing properties, so that no question points below a key the tree does not have and the tree passes validate on its own; prints a line and asks a could question for the field with no json tag; asks a must question for each operation's permission, summary and responses, each path parameter's values and whether the running system registers it; and exits 0 |
 | extract-go-routers | command extract | system | golden | a repository holding a Go module whose files register routes on net/http's ServeMux (method patterns, a pattern with no method, one with a host, a rest wildcard, the exact root, a HEAD route, a mux handed a subtree through StripPrefix, a subtree handed to a handler that is not a router, and a pattern built in a loop), on chi (Route, Group, With, Method, Mount of a router a function returns, Handle for every method, a route behind a condition, a parameter with a pattern, a catch-all and a Route with a computed prefix), on gin (nested groups, Handle, Any and a catch-all), on echo (Group, Add and Match) and on gorilla/mux (HandleFunc with Methods, a subrouter under PathPrefix, Path with HandlerFunc, a route with no Methods and one with Queries); handlers that read a path parameter their path does not have; a function given a router that nothing in the module calls; and a file that imports echo and registers nothing; with no implementation file | extract go is run on the module | it writes one operation per route whose method and path it reads as literals, outside a loop or a condition, with the prefixes of groups, routes, mounts, subrouters and StripPrefix joined and each library's parameters written {name}, named after its handler as extract router names one, citing its registration and its handler; asks a must question for the route in a loop, the one behind a condition, the routes for every method, the subtree handed to a handler that is not a router, the computed prefix, the router given to a function nothing calls, each parameter read that the path does not have, each operation's permission, since no implementation file names the check, its summary and responses, and whether the running system registers it; prints a line and asks a could question for the host, the wildcards and catch-alls, the HEAD route, the Queries route, the parameters' patterns and each handler that serves more than one route; names the file that registers nothing; and exits 0 |
 | extract-javascript-express-routes | command extract | system | golden | a code-facts dump of an Express service in TypeScript whose application mounts a router under /api, which mounts an imported router under /tickets; that router's use() adds the check the implementation file names, one route adds a second check, one route is made with route(), and one check is given a permission that is not a literal; its handlers declare their request and reply types with Express's Request and Response, one by a type of the files read, which holds a record of strings and a record of unknown values, and one by a type written in place, and one reads a path parameter its path lacks; the application registers a wildcard, an optional parameter, all, the same route twice, a route in a loop, one behind a condition and one whose path is not a literal, and hands itself to a function; and a router nothing mounts | extract javascript is run on the dump with the implementation file | it writes one operation per route with literal segments under a router it follows, named by method and path or after its handler, citing its registration, its mounts and its handler, with the permission of the one check that guards it and the request body its declared type names; writes the declared types the routes name as schemas and the union of strings as an enum, a Date as a date-time, a nullable field, an optional field, an array, and each record as a map whose additionalProperties is its values' field, the record of unknown values open with a should question on its values; asks a must question on each route's summary and responses, naming the declared reply, its parameters' values, whether the running system registers it, its permission where no one check gives it, the route twice, the loop, the condition, the computed path, the router handed to a function, the router nothing mounts, the parameter read that the path lacks and the width of each number; prints a line for the wildcard, the optional parameter and all, and for each file that imports Express and gives nothing; and exits 0 |
@@ -11580,6 +11737,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | validate-design-ref | command validate | system | red | an implementation mapping that points at an entity the design does not have | validate is run | it reports design_ref and exits 1 |
 | validate-diagram-context | command validate | system | red | a dependency of a kind the meta-model does not have, a protocol in capitals, a file store with a specification, a channel carried by an undeclared dependency and by a file store, and one naming its carrier twice | validate is run | it reports the kind and the protocol as schema errors, the specification as dependency, each wrong carrier as channel with the dependency it may mean, and the repeat, and exits 1 |
 | validate-diagram-context-valid | command validate | system | golden | dependencies of kind system with a specification, messageBroker, fileStore and none, each with a protocol or none, and channels carried by the broker and by a system | validate is run | it reports nothing and exits 0 |
+| validate-diagram-depends-on | command validate | system | red | an implementation file whose layout's dependsOn names a package the layout does not have, names the entry itself, repeats a package, and makes a cycle of two packages | validate is run | it reports the unknown package as depends_on with the key it may mean, the entry naming itself as depends_on, the repeat as a schema error, nothing for the cycle, and exits 1 |
 | validate-duplicate-key | command validate | system | red | a file with info twice | validate is run | it reports duplicate_key at the second info and exits 1 |
 | validate-duplicate-name-across-files | command validate | system | red | an entity defined in two files of the design stage | validate is run | it reports duplicate_key at the second definition, naming the first file, and exits 1 |
 | validate-duplicate-operation | command validate | system | red | two operations with the same operationId | validate is run | it reports duplicate_operation at the second and exits 1 |
@@ -12085,7 +12243,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-7 | enums DocumentTarget; enums GeneratorTarget; entities GeneratedFile; commands document; commands generate; algorithms checkStatus; decisions ADR-013; decisions ADR-073; decisions ADR-131; decisions ADR-144 | tests document-check-differs; tests document-check-invalid; tests document-techspec-envelope-stream; tests document-techspec-handler; tests document-techspec-middlewares; tests document-techspec-requests; tests document-techspec-shared-name; tests document-two-implementations; tests document-writes-techspec; tests generate-plugin-path-outside; tests generate-with-plugin; checks checks-the-examples; monitors main-stays-green |
 | SA-8 | entities GeneratedFile; commands document; commands generate; algorithms markersWellFormed | tests document-entity-diagram; tests document-techspec-middlewares; tests document-techspec-requests; tests document-two-implementations; tests document-writes-techspec |
 | SA-9 | enums DocumentKind; enums Rule; commands validate; decisions ADR-001; decisions ADR-002; decisions ADR-007; decisions ADR-133; decisions ADR-136 | tests validate-design-key; tests validate-map-values; tests validate-stack-key; tests validate-type-list |
-| SA-10 | enums Rule; commands validate | tests validate-deployment-environment-missing; tests validate-design-ref; tests validate-implements; tests validate-permission-checks; tests validate-setting; tests validate-tree-valid; tests validate-ui-components; tests validate-ui-schema-file |
+| SA-10 | enums Rule; commands validate | tests validate-deployment-environment-missing; tests validate-design-ref; tests validate-diagram-depends-on; tests validate-implements; tests validate-permission-checks; tests validate-setting; tests validate-tree-valid; tests validate-ui-components; tests validate-ui-schema-file |
 | SA-11 | enums Rule; entities SpecFile; commands extract; commands validate; decisions ADR-010; decisions ADR-042; decisions ADR-048; decisions ADR-049; decisions ADR-050; decisions ADR-057 | tests merge-documents-days; tests merge-openapi-placeholder; tests merge-openapi-unserved; tests merge-refuses-edited-test; tests merge-takes-derived-drafts; tests validate-duplicate-name-across-files; tests validate-layout-folder-missing; tests validate-layout-not-a-stage; tests validate-layout-section-folder-in-root; tests validate-layout-section-in-root; tests validate-layout-section-in-wrong-stage; tests validate-layout-stack-mismatch; tests validate-layout-stage-not-listed; tests validate-layout-subfolder-section; tests validate-layout-test-file-unreadable; tests validate-layout-test-without-file; tests validate-tree-valid; checks checks-the-examples |
 | SA-12 | enums Rule; commands validate; decisions ADR-011; decisions ADR-014; decisions ADR-052; decisions ADR-129 | tests validate-deployment-valid; tests validate-monitor-environment; tests validate-monitor-not-declared; tests validate-monitor-valid; tests validate-need-rejected; tests validate-requirements-only; tests validate-secret-in-deployment; tests validate-secret-value; tests validate-traceability-warnings |
 | SA-13 | enums Rule; commands validate; decisions ADR-012 | tests document-citation-unknown-source; tests validate-cites; tests validate-source; tests validate-source-clause |
@@ -12119,7 +12277,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-41 | enums Rule; decisions ADR-033; decisions ADR-070 | tests validate-question-covers-namespace; tests validate-views; tests validate-views-valid |
 | SA-42 | enums Rule; decisions ADR-034; decisions ADR-035; decisions ADR-036; decisions ADR-037; decisions ADR-038; decisions ADR-039; decisions ADR-056; decisions ADR-058; decisions ADR-064; decisions ADR-082 | tests derive-page-elements; tests derive-task-page-checks; tests validate-accessibility; tests validate-child-rows; tests validate-compact-columns; tests validate-flows; tests validate-page-action-with; tests validate-page-elements-unresolved; tests validate-page-events; tests validate-page-states; tests validate-sections; tests validate-task-page-checks; tests validate-task-page-checks-valid; tests validate-task-pages; tests validate-theme |
 | SA-43 | decisions ADR-040 | tests generate-ui |
-| SA-44 | commands extract; commands facts; decisions ADR-043; decisions ADR-044; decisions ADR-048; decisions ADR-049; decisions ADR-050; decisions ADR-057; decisions ADR-062; decisions ADR-075; decisions ADR-076; decisions ADR-081; decisions ADR-084; decisions ADR-087; decisions ADR-089; decisions ADR-090; decisions ADR-091; decisions ADR-092; decisions ADR-098; decisions ADR-114; decisions ADR-115; decisions ADR-116; decisions ADR-118; decisions ADR-125; decisions ADR-128; decisions ADR-130; decisions ADR-131; decisions ADR-140; decisions ADR-144; decisions ADR-154 | tests extract-dart-flutter-screens; tests extract-dart-models; tests extract-dart-parser-version; tests extract-dart-server-clients; tests extract-database-json-column; tests extract-database-partitioned-table; tests extract-database-stale-dump; tests extract-database-writes-tree; tests extract-documents-not-markdown; tests extract-documents-upper-case-name; tests extract-documents-writes-tree; tests extract-exit-1; tests extract-go-bypassed-check; tests extract-go-client-gates; tests extract-go-dxlib-declared; tests extract-go-dxlib-endpoints; tests extract-go-dxlib-envelope-stream; tests extract-go-dxlib-handler-shapes; tests extract-go-dxlib-middlewares; tests extract-go-dxlib-tables-seeds; tests extract-go-handlers; tests extract-go-handlers-changed; tests extract-go-http-handlers; tests extract-go-request-bodies; tests extract-go-routers; tests extract-javascript-express-routes; tests extract-javascript-fastify-validators; tests extract-javascript-parser-version; tests extract-javascript-plain-checkjs; tests extract-javascript-react-screens; tests extract-javascript-stale-dump; tests extract-javascript-template-parser-version; tests extract-javascript-vue-router; tests extract-openapi-dxlib-privileges; tests extract-openapi-not-openapi; tests extract-openapi-snake-case; tests extract-openapi-writes-tree; tests extract-outline-shallow-clone; tests extract-outline-uncommitted; tests extract-outline-writes-clauses; tests extract-pages-next-api-facts; tests extract-pages-next-app-facts; tests extract-pages-next-pages-router; tests extract-pages-nuxt-facts; tests extract-pages-nuxt-pages; tests extract-pages-nuxt-server; tests extract-pages-nuxt-server-facts; tests extract-pages-route-twice; tests extract-pages-router-guess; tests extract-pages-schema-file; tests extract-pages-schema-file-asked; tests extract-pages-task; tests extract-pages-writes-tree; tests extract-permissions-bypassed-gate; tests extract-permissions-gate-both-forms; tests extract-permissions-gate-people; tests extract-permissions-grant-twice; tests extract-permissions-writes-tree; tests extract-router-dump-repository-not-gitlink; tests extract-router-dump-through-gitlink; tests extract-router-route-twice; tests extract-router-stale-gitlink; tests extract-router-stale-table; tests extract-router-writes-tree; tests extract-swift-clients-settings; tests extract-swift-models; tests extract-swift-parser-version; tests extract-swift-screens; tests extract-swift-stale-dump; tests extract-swift-vapor-routes; tests extract-workflows-not-bpmn; tests extract-workflows-table; tests extract-workflows-table-not-held; tests extract-workflows-table-not-offered; tests extract-workflows-table-refused; tests extract-workflows-writes-tree; tests facts-javascript; tests facts-javascript-uncommitted; tests facts-unknown-language; tests gaps-outline-not-read; tests validate-source-reading |
+| SA-44 | commands extract; commands facts; decisions ADR-043; decisions ADR-044; decisions ADR-048; decisions ADR-049; decisions ADR-050; decisions ADR-057; decisions ADR-062; decisions ADR-075; decisions ADR-076; decisions ADR-081; decisions ADR-084; decisions ADR-087; decisions ADR-089; decisions ADR-090; decisions ADR-091; decisions ADR-092; decisions ADR-098; decisions ADR-114; decisions ADR-115; decisions ADR-116; decisions ADR-118; decisions ADR-125; decisions ADR-128; decisions ADR-130; decisions ADR-131; decisions ADR-140; decisions ADR-144; decisions ADR-154 | tests extract-dart-flutter-screens; tests extract-dart-models; tests extract-dart-parser-version; tests extract-dart-server-clients; tests extract-database-json-column; tests extract-database-partitioned-table; tests extract-database-stale-dump; tests extract-database-writes-tree; tests extract-documents-not-markdown; tests extract-documents-upper-case-name; tests extract-documents-writes-tree; tests extract-exit-1; tests extract-go-bypassed-check; tests extract-go-client-gates; tests extract-go-dxlib-declared; tests extract-go-dxlib-endpoints; tests extract-go-dxlib-envelope-stream; tests extract-go-dxlib-handler-shapes; tests extract-go-dxlib-middlewares; tests extract-go-dxlib-tables-seeds; tests extract-go-handlers; tests extract-go-handlers-changed; tests extract-go-http-handlers; tests extract-go-layout-depends-on; tests extract-go-request-bodies; tests extract-go-routers; tests extract-javascript-express-routes; tests extract-javascript-fastify-validators; tests extract-javascript-parser-version; tests extract-javascript-plain-checkjs; tests extract-javascript-react-screens; tests extract-javascript-stale-dump; tests extract-javascript-template-parser-version; tests extract-javascript-vue-router; tests extract-openapi-dxlib-privileges; tests extract-openapi-not-openapi; tests extract-openapi-snake-case; tests extract-openapi-writes-tree; tests extract-outline-shallow-clone; tests extract-outline-uncommitted; tests extract-outline-writes-clauses; tests extract-pages-next-api-facts; tests extract-pages-next-app-facts; tests extract-pages-next-pages-router; tests extract-pages-nuxt-facts; tests extract-pages-nuxt-pages; tests extract-pages-nuxt-server; tests extract-pages-nuxt-server-facts; tests extract-pages-route-twice; tests extract-pages-router-guess; tests extract-pages-schema-file; tests extract-pages-schema-file-asked; tests extract-pages-task; tests extract-pages-writes-tree; tests extract-permissions-bypassed-gate; tests extract-permissions-gate-both-forms; tests extract-permissions-gate-people; tests extract-permissions-grant-twice; tests extract-permissions-writes-tree; tests extract-router-dump-repository-not-gitlink; tests extract-router-dump-through-gitlink; tests extract-router-route-twice; tests extract-router-stale-gitlink; tests extract-router-stale-table; tests extract-router-writes-tree; tests extract-swift-clients-settings; tests extract-swift-models; tests extract-swift-parser-version; tests extract-swift-screens; tests extract-swift-stale-dump; tests extract-swift-vapor-routes; tests extract-workflows-not-bpmn; tests extract-workflows-table; tests extract-workflows-table-not-held; tests extract-workflows-table-not-offered; tests extract-workflows-table-refused; tests extract-workflows-writes-tree; tests facts-javascript; tests facts-javascript-uncommitted; tests facts-unknown-language; tests gaps-outline-not-read; tests validate-source-reading |
 | SA-45 | commands merge; decisions ADR-045; decisions ADR-048; decisions ADR-049; decisions ADR-050; decisions ADR-057; decisions ADR-062; decisions ADR-075; decisions ADR-077; decisions ADR-114; decisions ADR-117; decisions ADR-118; decisions ADR-122; decisions ADR-126; decisions ADR-127; decisions ADR-132 | tests merge-bypassed-check; tests merge-documents-and-code; tests merge-joins-commits; tests merge-keeps-could-questions; tests merge-map-open-then-typed; tests merge-map-typed-then-open; tests merge-map-values; tests merge-pages-field-by-name; tests merge-pages-joins-source; tests merge-path-changed; tests merge-permissions-asked-twice; tests merge-permissions-unchecked; tests merge-printed-parsed; tests merge-printed-parsed-grants; tests merge-role-grants-add-up; tests merge-role-grants-withheld; tests merge-schema-named-as-entity; tests merge-schema-reference-agrees; tests merge-schema-reference-agrees-code-first; tests merge-schema-reference-differs; tests merge-schema-reference-field-differs; tests merge-source-differs; tests merge-tree-invalid; tests merge-type-differs; tests merge-value-object-columns; tests merge-value-object-differs; tests merge-value-object-unnamed; tests merge-workflows-joins-trigger; tests merge-workflows-table-and-bpmn; tests validate-source-given-outside |
 | SA-46 | commands generate; decisions ADR-046; decisions ADR-068 | tests generate-openapi-owned; tests generate-sql-owned; tests generate-sql-owned-handed-over; tests validate-mapping-menu-entry; tests validate-owned-by-unknown |
 | SA-47 | enums Rule; decisions ADR-054 | tests document-techspec-open-workflow; tests validate-maker-checker; tests validate-workflow; tests validate-workflow-valid |

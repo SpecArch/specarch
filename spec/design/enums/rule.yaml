@@ -60,6 +60,7 @@ enums:
       - suite
       - test_data
       - layout
+      - depends_on
       - need
       - stakeholder
       - source
@@ -196,6 +197,7 @@ enums:
       test_case_missing: a chosen case derived from the design has no test; a case is chosen when its subject satisfies a requirement with `harm`, when it is a failing dependency, or when users get it wrong often; an error in a 0.2 file unless an open must or should question holds the subject up, and a warning otherwise
       test_data: a test's fixture, input or expect names what the design does not have, carries a value of the wrong type, holds a record a check constraint refuses, or says the same thing as a data folder beside it
       suite: an implementation's test suite names a design test or subject that does not exist
+      depends_on: a layout entry's `dependsOn` names no key of the layout, or the entry itself
       layout: a file or a section is not where the tree layout puts it; the root file's `stages` and the folders disagree, a test folder has no `test.yaml`, or a folder is not a stage
       need: a requirement's `needs` names a need that does not exist
       stakeholder: a need's `stakeholders`, a question's `decidedBy`, a requirement's `ownedBy`, a mapping's `ownedBy` or the handover's `to` names a stakeholder that does not exist

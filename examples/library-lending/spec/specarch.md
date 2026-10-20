@@ -106,6 +106,24 @@ erDiagram
 ```
 <!-- specarch:end -->
 
+The Go service's packages, and which calls which:
+
+<!-- specarch:generate components go -->
+```mermaid
+flowchart LR
+  package_internal_api["internal/api, implements 3"]
+  package_internal_lending["internal/lending, implements 2"]
+  package_migrations["migrations"]
+  package_internal_lending --> package_internal_api
+  subgraph libraries
+    library_github_com_oapi_codegen_oapi_codegen_v2["github.com/oapi-codegen/oapi-codegen/v2 v2.8.0"]
+    library_github_com_oapi_codegen_runtime["github.com/oapi-codegen/runtime v1.7.0"]
+    library_github_com_go_chi_chi_v5["github.com/go-chi/chi/v5 v5.3.2"]
+    library_github_com_jackc_pgx_v5["github.com/jackc/pgx/v5 v5.11.0"]
+  end
+```
+<!-- specarch:end -->
+
 A `Book` is a title with a count of copies, not an individual copy; the
 example does not track copies by barcode. `copiesAvailable` is derived and
 maintained by the service on every loan and return.

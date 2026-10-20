@@ -1,0 +1,14 @@
+specarchImplementation: "0.1"
+info: { title: Case in Go, version: 1.0.0 }
+implements: { file: specarch.yaml, version: 1.0.0 }
+stack: { language: { name: Go, version: "1.26" } }
+layout:
+  cmd/shelf:
+    description: The command.
+    dependsOn: [internal/loan, internal/store, cmd/shelf]
+  internal/loans:
+    description: The loan rules.
+    dependsOn: [internal/store, internal/store]
+  internal/store:
+    description: The store, which calls back into the loan rules; a cycle is no error.
+    dependsOn: [internal/loans]

@@ -102,6 +102,7 @@ func (c *checker) checkImplementation(s *spec.Spec, load Loader) {
 			c.checkDesignRef(s.Root, ref, ref.Value, source.Pointer("layout", p.Key.Value, "implements", fmt.Sprint(i)), rel)
 		}
 	}
+	c.checkDependsOn()
 	for _, p := range source.Pairs(source.Child(c.root, "mappings")) {
 		c.checkDesignRef(s.Root, p.Key, p.Key.Value, source.Pointer("mappings", p.Key.Value), rel)
 		if by := source.Child(p.Value, "ownedBy"); by != nil && by.Value != "" && d.stakeholders[by.Value] == nil {
@@ -382,5 +383,23 @@ func (c *checker) checkDesignRef(designRoot, at *yaml.Node, ref, ptr, rel string
 	}
 	if _, ok := source.Resolve(designRoot, tokens); !ok {
 		c.add(at, ptr, RuleDesignRef, "%s does not point at anything in the specification; correct the pointer (a / inside a name is written ~1)", ref)
+	}
+}
+
+// checkDependsOn checks that every package a layout entry depends on is
+// another key of the layout (ADR-133). A cycle is no error: Go forbids
+// one and other stacks allow it, and the file describes the code as it is.
+func (c *checker) checkDependsOn() {
+	layout := source.Child(c.root, "layout")
+	for _, p := range source.Pairs(layout) {
+		for i, e := range source.Items(source.Child(p.Value, "dependsOn")) {
+			ptr := source.Pointer("layout", p.Key.Value, "dependsOn", fmt.Sprint(i))
+			switch {
+			case e.Value == p.Key.Value:
+				c.add(e, ptr, RuleDependsOn, "%s names itself; a package does not depend on itself, so remove the entry", e.Value)
+			case source.Child(layout, e.Value) == nil:
+				c.add(e, ptr, RuleDependsOn, "%s is not a key of layout; add it to layout, or remove the entry when it is a library, which goes under libraries%s", e.Value, suggestPairs(e.Value, layout))
+			}
+		}
 	}
 }

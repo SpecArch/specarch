@@ -49,7 +49,7 @@ func Techspec(root *yaml.Node, relRoot string, impls []Implementation, state *St
 	introduction(d, root)
 	constraints(d, root)
 	context(d, root)
-	buildingBlocks(d, root)
+	buildingBlocks(d, root, impls)
 	runtime(d, root, impls)
 	deployment(d, root, impls)
 	crossCutting(d, root)
@@ -326,12 +326,21 @@ func context(d *doc, root *yaml.Node) {
 	}
 }
 
-func buildingBlocks(d *doc, root *yaml.Node) {
+func buildingBlocks(d *doc, root *yaml.Node, impls []Implementation) {
 	entities := pairs(root, "entities")
 	enums := pairs(root, "enums")
 	views := pairs(root, "views")
 	schemas := pairs(root, "schemas")
-	if len(entities)+len(enums)+len(views)+len(schemas) == 0 {
+	// An implementation whose layout says what depends on what is drawn
+	// as its components; one without dependsOn renders as before
+	// (ADR-133).
+	var components []Implementation
+	for _, i := range impls {
+		if usesDependsOn(i.Node) {
+			components = append(components, i)
+		}
+	}
+	if len(entities)+len(enums)+len(views)+len(schemas)+len(components) == 0 {
 		return
 	}
 	d.heading(2, "5. Building blocks")
@@ -463,6 +472,11 @@ func buildingBlocks(d *doc, root *yaml.Node) {
 		}
 		d.blank()
 		d.explainRows(pairRows(root, "enums"))
+	}
+	for _, i := range components {
+		d.heading(3, "Components: "+str(get(i.Node, "info"), "title"))
+		d.para(fmt.Sprintf("The packages of %s and which calls which, from its layout's dependsOn, with the libraries it uses apart.", i.Rel))
+		d.block(componentsDiagram(i.Node))
 	}
 }
 

@@ -90,14 +90,17 @@ layout:
   cmd/specarch:
     description: The command line. Argument handling, finding the specifications under folders, running plug-ins, printing the diagnostics and the exit status.
     implements: ["#/commands/validate", "#/commands/gaps", "#/commands/document", "#/commands/approve", "#/commands/generate", "#/commands/extract", "#/commands/merge", "#/commands/diff", "#/commands/check", "#/commands/derive", "#/commands/idioms", "#/commands/idioms diff", "#/commands/model", "#/commands/version", "#/entities/SpecFile", "#/entities/GeneratedFile", "#/algorithms/exitStatus", "#/algorithms/checkStatus"]
+    dependsOn: [internal/approval, internal/canonical, internal/diff, internal/extract, internal/facts, internal/genbpmn, internal/generate, internal/genscreens, internal/gensql, internal/genui, internal/literal, internal/mark, internal/problems, internal/semver, internal/source, internal/spec, internal/validate]
   schema:
     description: The JSON Schemas, embedded into the binary from the files editors use.
   idioms:
     description: The shipped idioms, one folder per concern, embedded into the binary; a release fixes the set.
   internal/extract:
     description: "The readers of specarch extract: the commit read (git, run with no user or system configuration), the outline, database, router, documents, OpenAPI, permissions, pages and workflows readers, the Go reader on the standard library's go/parser with dxlib's registration calls and the rule that maps dxlib_module's privilege names, the Swift reader of a code-facts dump with the property lists, build settings and Core Data models it reads as data, the JavaScript and TypeScript reader of a code-facts dump with the message catalogues it reads as data, the Dart reader of a code-facts dump, the subset of TypeScript a page schema is read in, the subset of BPMN 2.0 a workflow is read in, the workflow table read into the same workflows (ADR-118), the check of a dump against the commit it names, the translation of SQL checks into the expression subset, and the tree writer; and the merge of their trees, with the newest commit of a repository read at several found by git's ancestry, a requirement that gives a number of days joined to the one check that names it, a question another tree answers, by giving a key or an element the asking tree gives only by name, or a question kept before it asks left out, the name a question gives written at the key it blocks once another tree declares it, a placeholder source reported, a permission granted and checked by nothing reported, and an operation a printed and a parsed tree do not both give asked about; and specarch check's comparison of a route table, a permission table and a catalogue dump with a specification, each difference with its rule and subject (ADR-124)."
+    dependsOn: [idioms, internal/expr, internal/facts, internal/gensql, internal/ownership, internal/source, internal/spec, internal/validate]
   internal/facts:
     description: "specarch facts: the git checks of a committed folder, its tracked files and the repository key of a dump in another repository; the JavaScript and TypeScript reader on the TypeScript compiler of third_party/typescript-go, which builds one program over the files it is given, a .vue file's script blocks among them, and writes the facts specarch extract javascript reads as a code-facts dump (ADR-089, ADR-116); the Vue reader, which splits a single-file component into its blocks and parses its template as Vue 3's compiler-sfc does; and the Swift and Dart readers written from the binary into the user's cache, built there and run."
+    dependsOn: [readers, third_party/typescript-go]
   third_party/typescript-go:
     description: "The Go source of the TypeScript compiler, typescript-go at the tag UPSTREAM names: the packages its program and checker need, copied out of internal/ by tools/typescript-go/pull.sh with their import paths rewritten and nothing else changed, with upstream's LICENSE and NOTICE.txt (Apache-2.0)."
   readers:
@@ -110,16 +113,21 @@ layout:
     description: Reads a YAML file into a node tree and a plain value, with the line of every node; finds unquoted dates and duplicate keys.
   internal/spec:
     description: Reads a specification from disk, the root file and the stage folders, and merges it into one document in which every node remembers its file; reports the layout problems.
+    dependsOn: [internal/source]
   cmd/specarch-gen-sql:
     description: The plug-in behind generate sql. Reads the request on standard input, answers the migration and the snapshot on standard output, and never touches the disk.
     implements: ["#/commands/generate"]
+    dependsOn: [internal/gensql]
   internal/gensql:
     description: The SQL migrations in four dialects, each column through the type-rendering idiom, with check expressions translated per dialect, the views after the tables, and a snapshot of the schema; an entity or view another stakeholder owns gets no statement, and the snapshot lists it as owned. Schema answers the tables and columns it writes, with their keys, constraints and listed indexes, for the queries generator and specarch check.
+    dependsOn: [internal/expr, internal/mark, internal/ownership, internal/typerows]
   cmd/specarch-gen-sqlc:
     description: The plug-in behind generate sqlc. Reads the request on standard input, answers the query files on standard output, and never touches the disk.
     implements: ["#/commands/generate"]
+    dependsOn: [internal/gensqlc]
   internal/gensqlc:
     description: "The sqlc queries the design derives, in PostgreSQL, one file per table: an insert per operation that posts an entity, a read, a replacement or an amendment by a key of one field, and a page of a list with its filters, search and sorts and the list's total, against the tables internal/gensql writes; every other query is written by hand beside them, and a file written by hand is compared, never overwritten (ADR-123)."
+    dependsOn: [internal/gensql, internal/mark, internal/ownership]
   internal/ownership:
     description: Reads the ownedBy marks of an implementation file's mappings, which every generator that builds code or data follows by leaving the owned elements out.
   internal/mark:
@@ -129,65 +137,87 @@ layout:
   cmd/specarch-gen-openapi:
     description: The plug-in behind generate openapi. Reads the request on standard input, answers the OpenAPI document on standard output, and never touches the disk.
     implements: ["#/commands/generate"]
+    dependsOn: [internal/genopenapi]
   internal/genopenapi:
     description: The OpenAPI 3.1 document in the standard dialect, the design field for field, with the problem catalogue and lists paged through the paginated-list idiom; and in the dxlib dialect, what dxlib's reader binds.
+    dependsOn: [internal/mark, internal/ownership]
   cmd/specarch-gen-go-dxlib:
     description: The plug-in behind generate go-dxlib. Reads the request on standard input, answers the Go file on standard output, and never touches the disk.
     implements: ["#/commands/generate"]
+    dependsOn: [internal/gendxlib, internal/genopenapi]
   cmd/specarch-gen-bpmn:
     description: The plug-in behind generate bpmn. Reads the request on standard input, answers each workflow's BPMN file and SVG on standard output, and never touches the disk.
     implements: ["#/commands/generate"]
+    dependsOn: [internal/genbpmn]
   internal/genbpmn:
     description: Each workflow as a BPMN 2.0 process in the subset extract workflows reads, with BPMN DI laid out by a fixed rule, the same diagram as SVG, and the problems marked as XML comments before their elements.
+    dependsOn: [internal/mark, internal/ownership]
   cmd/specarch-gen-ui:
     description: The plug-in behind generate ui. Reads the request on standard input, answers the screens on standard output, and never touches the disk.
     implements: ["#/commands/generate"]
+    dependsOn: [internal/genui]
   internal/genui:
     description: The list pages for the web in plain JavaScript, the events they raise, and the theme as CSS custom properties.
+    dependsOn: [internal/mark, internal/ownership]
   cmd/specarch-gen-ui-typescript:
     description: The plug-in behind generate ui for an implementation file in TypeScript. Reads the request on standard input, answers the screens on standard output, and never touches the disk.
     implements: ["#/commands/generate"]
+    dependsOn: [internal/genuits]
   internal/genuits:
     description: The task, list and form pages and the views for the web on Next.js and Carbon, read through internal/genscreens, with child rows, actions that run an operation after a confirmation and its reason, forms that start an approval and inboxes, each a schema of data and a thin page.tsx, a client file that hands on the hooks a project writes, the guard and the menu from one decision, the derived tests, the components that read the schemas, the strings in every language the settings name with the check that each key has an entry, the server routes that forward the operations the pages call with the session's token, and the theme over Carbon's through the design-tokens idiom, drawn through the ui-components idiom's names.
+    dependsOn: [internal/genscreens, internal/genui, internal/ownership]
   cmd/specarch-gen-ui-swiftui:
     description: The plug-in behind generate ui for a ui target of platform iphone in an implementation file in Swift. Reads the request on standard input, answers the screens on standard output, and never touches the disk.
     implements: ["#/commands/generate"]
+    dependsOn: [internal/genswiftui]
   internal/genswiftui:
     description: "The task, list and form pages and the views for the iPhone in SwiftUI, read through internal/genscreens, with child rows, actions that run an operation after a confirmation and its reason, forms that start an approval and inboxes, lookups and value objects: each a schema of data, one Swift literal typed by its component's schema type, and a thin view behind the guard, a form's hooks read from a type the project writes; the derived tests in Swift Testing; the components that read the schemas on SwiftUI alone, the routes as one enum the app's navigation stack follows, the application with the session and the menu, the strings in every language the settings name, and the theme through the design-tokens idiom, written into a Swift package the project writes the Package.swift of."
+    dependsOn: [internal/genscreens, internal/genui, internal/ownership]
   internal/genscreens:
     description: "The screens both UI generators that write a page as data read, keyed by the ui-components idiom's names for the generator's framework, the project's override first: the task, list and form pages and the views with their routes, hooks and permission, the session the target's settings name, the menu, the translations the settings name, the theme's colours through the design-tokens idiom, the problems each reports, the draft notice and the problem marks, and the refusal of a file in the output folder the plug-in did not write; a generator gives its profile, its name, platform, framework and language, and writes the pages in its stack's files."
+    dependsOn: [internal/expr, internal/genui, internal/mark, internal/ownership]
   internal/literal:
     description: Reads a TypeScript file holding one object literal of data in the subset of TypeScript that is also JSON5, refusing anything else with its line, and compares two such files by value, for generate --check on screens built by hand (ADR-093).
   internal/gendxlib:
     description: The Go file of a service on dxlib, its tables, handlers, seeds and tasks, read from the design through the dxlib dialect's names and types.
+    dependsOn: [internal/genopenapi, internal/gensql, internal/mark, internal/ownership]
   cmd/specarch-gen-tests-go:
     description: The plug-in behind generate tests for a Go implementation file. Reads the request on standard input, answers the Go test file on standard output, and never touches the disk.
     implements: ["#/commands/generate"]
+    dependsOn: [internal/gentests]
   cmd/specarch-gen-tests-swift:
     description: The plug-in behind generate tests for a Swift implementation file. Reads the request on standard input, answers the Swift Testing file on standard output, and never touches the disk.
     implements: ["#/commands/generate"]
+    dependsOn: [internal/gentests]
   cmd/specarch-gen-tests-dart:
     description: The plug-in behind generate tests for a Dart implementation file, a Flutter app's included. Reads the request on standard input, answers the Dart library and test file on standard output, and never touches the disk.
     implements: ["#/commands/generate"]
+    dependsOn: [internal/gentests]
   internal/gentests:
     description: The tests a specification implies, as the three test plug-ins write them. The specification is read once into a model of tests and worked examples, and written in Go, in Swift for Swift Testing, or in Dart for package:test or flutter_test, each with the Harness the project implements beside it; design tests become tests through it, worked examples unit tests of the algorithm's mapping.
+    dependsOn: [internal/mark]
   internal/semver:
     description: Semantic Versioning 2.0.0 versions, their precedence, and the step one needs from another, with the step before 1.0.0; the release rules and diff measure a release with it.
   internal/diff:
     description: Compares two merged specifications element by element, finds the public interface, and classifies each difference by the version step it needs.
+    dependsOn: [internal/semver, internal/source]
   internal/approval:
     description: The approval record beside a specification, its digest of the specification's files, and where a version's approval stands against the files now.
+    dependsOn: [internal/source]
   internal/expr:
     description: The expression subset. Parses with the cel-go parser, refuses what is outside the subset, type-checks with CEL's strict rules, and evaluates with exact integers and decimals.
   internal/generate:
     description: The document targets. techspec writes the arc42 document and its Mermaid diagrams and rewrites the regions between markers in hand-written Markdown; requirements, testplan, traceability, deployment and commissioning write the other documents; questions writes the open questions and what they hold up, the text gaps prints; html writes the whole specification as one page, with the entity diagram as SVG and the workflows and screens made in memory with internal/genbpmn and internal/genui. Every one renders why as an Insight, each citation as a Note, an element's origin as an Origin line and the open questions about it as Open question paragraphs, and marks an internal element; ForEveryone cuts the specification to what a document for everyone shows, counting what it left out.
     implements: ["#/algorithms/markersWellFormed"]
+    dependsOn: [internal/semver, internal/source, internal/spec, internal/validate]
   internal/problems:
     description: The problems of a specification, valid or not, gathered from validate's diagnostics and the open questions into one list with ids, columns and notes, written as problems.txt and as a SARIF 2.1.0 log, and marked above their entries in the YAML files of the specification.
     implements: ["#/entities/Problem", "#/entities/ProblemNote", "#/enums/ProblemSeverity"]
+    dependsOn: [internal/source, internal/spec, internal/validate]
   internal/validate:
     description: Schema validation with plain messages, the interface boundary, cross-references across the tree, fail-closed access, concrete integers, expressions, worked examples, tests and their derived cases with the rank of each and the cases left out, the life-cycle links and traceability warnings with the requirements another stakeholder owns exempt, the audience of what an element for everyone names, the open questions and what they cover, origin, implementation references, the records beside the specification, and the positions, resolved references and layout problems specarch model prints.
     implements: ["#/entities/Diagnostic", "#/enums/Rule", "#/enums/Severity", "#/algorithms/referenceResolves", "#/algorithms/permissionGranted", "#/algorithms/workedExampleHolds"]
+    dependsOn: [idioms, internal/expr, internal/semver, internal/source, internal/spec, internal/typerows, schema]
 
 mappings:
   "#/entities/Diagnostic": { target: validate.Diagnostic, description: "A struct; `String()` prints the one-line form." }

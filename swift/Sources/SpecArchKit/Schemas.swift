@@ -6645,6 +6645,15 @@ let implementationSchemaJSON = #"""
               "$ref": "#/$defs/designRef"
             },
             "uniqueItems": true
+          },
+          "dependsOn": {
+            "description": "CycloneDX keyword. The packages of this layout, by their keys, that this one calls, imports or links against. Left out, the entry says nothing of what it depends on, and the component diagram draws no arrow from it (ADR-133).",
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "uniqueItems": true
           }
         },
         "required": [

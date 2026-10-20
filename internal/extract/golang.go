@@ -247,6 +247,7 @@ func Go(paths []string, out, key, implementation string, writeImplementation boo
 	}
 	res.Tree.put("specarch.yaml", root)
 	g.sayHandlers(writeImplementation)
+	g.writeLayout(writeImplementation)
 	return res, nil
 }
 
@@ -322,6 +323,7 @@ type goReader struct {
 
 	handlers []*goHandler                // every operation's handler, as read (ADR-144)
 	previous map[string]*previousHandler // the handler records the implementation file holds, by pointer
+	layout   *yaml.Node                  // the implementation file's layout, nil when none is given
 	faults   []*goFault                  // the faults found in the handlers, in order
 	faultAt  map[string]*goFault
 }

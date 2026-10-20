@@ -1,0 +1,14 @@
+specarchImplementation: "0.1"
+info: { title: Shelf in Go, version: 0.1.0 }
+implements: { file: ../spec/specarch.yaml, version: 0.1.0 }
+stack: { language: { name: Go, version: "1.27" } }
+layout:
+  cmd/shelf:
+    description: The command.
+    dependsOn: [internal/store]
+  internal/loans:
+    description: The loan rules.
+  internal/store:
+    description: The store.
+  docs:
+    description: The documents, with no Go source.

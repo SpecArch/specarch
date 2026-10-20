@@ -47,6 +47,11 @@ func Generate(r *genopenapi.Request) genopenapi.Response {
 			g.openapiSettings = obj(t["settings"])
 		}
 	}
+	if r.APIEnvelopes != nil {
+		// specarch generate reads it from the file whose openapi target
+		// serves the dxlib dialect, which need not be one of this target's.
+		g.openapiSettings = map[string]any{"envelopes": r.APIEnvelopes}
+	}
 	pkg := text(g.settings["package"])
 	if pkg == "" {
 		pkg = "service"

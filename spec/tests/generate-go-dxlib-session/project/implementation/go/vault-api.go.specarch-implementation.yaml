@@ -1,0 +1,11 @@
+specarchImplementation: "0.1"
+info: { title: Vault's document on dxlib, version: 1.0.0 }
+implements: { file: ../../specarch.yaml, version: 1.0.0 }
+stack: { language: { name: Go, version: "1.26" } }
+targets:
+  # The document is written from a file of its own, which the go-dxlib
+  # target does not read; its envelopes still reach that target.
+  openapi:
+    output: ../../../out
+    dialect: dxlib
+    settings: { envelopes: { preKey: v4 } }

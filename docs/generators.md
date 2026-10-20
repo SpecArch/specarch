@@ -79,6 +79,7 @@ object:
 | `draft` | the notice every file of a draft carries, from "Draft:" to "this file is not the approved output", naming the questions that block what the target reads and the approval's state; empty for the approved output |
 | `problems` | the specification's warnings and open questions in the order of its problems file, each with its `id`, `severity`, `rule`, `message`, the `pointer` into the merged specification it is marked at (empty for one outside it) and, for a question, what it `blocks`, so the output marks each one at its entry (`docs/diagnostics.md`, section 5); on a second run also the plug-in's own diagnostics, with `target: true` |
 | `apiDialect` | `dxlib` when an implementation file's openapi target serves the API in the dxlib dialect, left out for the standard one, so a client target calls the operations as the service serves them although the service's file is not among its own |
+| `apiEnvelopes` | the `settings.envelopes` of that openapi target, the dxlib type each handshake is served in (ADR-163), left out when it has none, so a target that writes the service's hooks serves the types the document names |
 | `check` | true when the run is `--check`, which writes nothing, so a plug-in that refuses to write over a file built by hand answers its files for the comparison |
 
 The plug-in answers on its standard output with one JSON object: `files`,

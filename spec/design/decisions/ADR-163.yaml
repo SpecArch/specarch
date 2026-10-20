@@ -48,6 +48,9 @@ decisions:
       for an operation under such a handshake. A download stream under
       one is an error at the operation: dxlib's only download type in an
       envelope is EndPointTypeHTTPDownloadStreamV2, the pre-key one.
+      specarch generate hands the setting to every plug-in as
+      apiEnvelopes, beside apiDialect (ADR-161), since the file that holds
+      the openapi target need not be one the go-dxlib target reads.
       generate go-dxlib sets OnE2EEV3Unpack and OnE2EEV3Pack, or the V4
       pair, to hooks that read {i, d} from the body, open it as the V2
       hook opens it, hand the shared key and the service's signing key to

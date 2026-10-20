@@ -2025,7 +2025,7 @@ Scenario: golden; level: system; verifies SA-77, SA-44.
 
 Scenario: golden; level: system; verifies SA-77, SA-40.
 
-- Given: the vault of generate-go-dxlib-envelope-stream with its export asked for plain, and an implementation file whose openapi target serves the handshake preKey as v4; specarch-gen-go-dxlib built from this repository on PATH
+- Given: the vault of generate-go-dxlib-envelope-stream with its export asked for plain, and an implementation file whose go-dxlib target names the package and the database beside another whose openapi target serves the handshake preKey as v4; specarch-gen-go-dxlib built from this repository on PATH
 - When: generate go-dxlib is run with --unapproved
 - Then: it writes Register setting dxlib's OnE2EEV4Unpack and OnE2EEV4Pack to hooks that read {i, d} from the body, open the envelope as the pre-key hook opens it, convert the elements to the little-endian framing, keep the keys the answer needs in the state, and seal the answer as {d}; the exchange, the store and the client as for the pre-key envelope; and exits 0
 

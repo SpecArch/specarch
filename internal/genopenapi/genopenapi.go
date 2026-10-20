@@ -33,6 +33,10 @@ type Request struct {
 	Draft string `json:"draft"`
 	// Problems are the problems to mark, in the order of the problems file.
 	Problems []mark.Problem `json:"problems"`
+	// APIEnvelopes is the settings.envelopes of the openapi target that
+	// serves the API in the dxlib dialect, from whichever implementation
+	// file holds it (ADR-163).
+	APIEnvelopes any `json:"apiEnvelopes,omitempty"`
 }
 
 // Implementation is one implementation file in the request.

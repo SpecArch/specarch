@@ -64,6 +64,11 @@ type pluginRequest struct {
 	// service serves them, though the service's file is not among its own
 	// (ADR-161).
 	APIDialect string `json:"apiDialect,omitempty"`
+	// APIEnvelopes is the settings.envelopes of the openapi target that
+	// serves the API in the dxlib dialect, the dxlib type each handshake is
+	// served in, so a target that writes the service's hooks serves the
+	// same types the document names (ADR-163).
+	APIEnvelopes any `json:"apiEnvelopes,omitempty"`
 	// Check is true when the run only compares the output with the disk
 	// and writes nothing, so a plug-in that refuses to write over a file
 	// built by hand answers its files for the comparison (ADR-093).
@@ -430,8 +435,11 @@ func newPluginRequest(l loaded, target, folder string, impls []generate.Implemen
 	existing, notes := existingFiles(folder)
 	req := pluginRequest{Specarch: source.Str(source.Child(l.spec.Root, "specarch")), Target: target, Root: filepath.ToSlash(l.spec.RootFile), Specification: l.spec.Value, Output: filepath.ToSlash(folder), Implementations: []pluginImplementation{}, Existing: existing, Problems: pluginProblems(l, folder)}
 	for _, i := range l.spec.Implementations {
-		if source.Str(source.Child(source.Child(source.Child(source.Parse(i.Data).Root, "targets"), "openapi"), "dialect")) == "dxlib" {
+		if openapi := source.Child(source.Child(source.Parse(i.Data).Root, "targets"), "openapi"); source.Str(source.Child(openapi, "dialect")) == "dxlib" {
 			req.APIDialect = "dxlib"
+			if e := source.Child(source.Child(openapi, "settings"), "envelopes"); e != nil {
+				req.APIEnvelopes = source.ValueOf(e)
+			}
 		}
 	}
 	for _, i := range impls {

@@ -2,7 +2,7 @@
 
 Open bugs, one entry per bug, each as `BUG-NNN — <title>` with what was
 seen, what was expected and how to repeat it. The next free number is
-BUG-048. When the fix is on `main`, with `Fixes BUG-NNN` in its commit
+BUG-049. When the fix is on `main`, with `Fixes BUG-NNN` in its commit
 message, the entry moves to `BUG_HISTORY.md` with the fixing commit.
 
 ## BUG-030 — derive: a question that blocks one method of a path holds up the drafts of every method of that path
@@ -45,16 +45,6 @@ Expected: every deployment with links or listens has its links, ports and networ
 
 To repeat: copy `examples/library-lending/spec`, delete the `infrastructure` block of the production deployment in `implementation/go/library-lending.go.specarch-implementation.yaml`, and run `specarch document handover --out out spec`. `out/handover.md` has no "allowed connections" sentence and no port 5671, where the example's own handover has both.
 
-## BUG-038 — model: an operation's via and a role's through are not listed as references
-
-- Reported: 2026-10-20, found while building the identity module (item 1004)
-
-`specarch model` lists every name a reference keyword gives as a reference to the element it names (ADR-138). Its table of reference places (`referencePlaces` in `internal/validate/model.go`, and the Swift build's) has `callers` on an operation and a command, but not `via` on an operation, which names clients too, nor a role's `through`, whose keys name permissions and whose values name clients. An editor reading the model therefore draws no link from a hop to the service its `via` names, or from a narrowed grant to its applications.
-
-Expected: `paths/*/*/via` listed as references to clients, and `roles/*/through` keys as references to permissions and their items as references to clients, in both builds.
-
-To repeat: run `specarch model spec/tests/validate-0-3-tokens-valid` and look at `references`: `/paths/~1invoices~1{invoiceId}/delete/via/0` (naming `middleware`) and `/roles/invoice-manager/through` (naming `invoices.delete` and `admin-web`) are absent.
-
 ## BUG-044 — generate sql: a date-time field with generatedDefault currentTime gets the server's own text form on MariaDB
 
 - Reported: 2026-10-21, found while writing the MariaDB scripts (ADR-167)
@@ -94,3 +84,13 @@ To repeat: give an estate whose core names `identity#/clients/<name>` in an oper
 Expected: "an" before a name that starts with a vowel sound, in both builds, the same text from each.
 
 To repeat: run `specarch derive` on `spec/tests/derive-caller-estate` as its `case.yaml` does. The golden `expected/core/tests/delete-invoice-refused-with-a-token-for-another-audience/test.yaml`, and the same test in `validate-caller-identity-cases` and `validate-caller-identity-case-waits`, record this until the fix; those three goldens move with it.
+
+## BUG-048 — model (Swift): a hexadecimal integer in the document is printed as text
+
+- Reported: 2026-10-21, found while comparing the two builds' `specarch model` on every specification in `spec/tests` and `examples`
+
+YAML 1.2's core schema reads `0x1` as the integer 1. The Go build's `specarch model` prints it so in `document`; the Swift build prints the string `"0x1"`. The two builds print different bytes for the same specification, which the conformance suite does not see because no model case holds a hexadecimal number.
+
+Expected: both builds print `1`, as YAML 1.2 reads it, or the same text from each with the reason written next to the choice.
+
+To repeat: run `specarch model spec/tests/validate-theme` with each build and compare `/tokens/color/hexInt/$value/components/0`.

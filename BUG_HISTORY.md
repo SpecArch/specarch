@@ -554,3 +554,17 @@ Expected: "tried again up to 1 time" for a limit of 1, and "times" for any other
 To repeat: give a job `retries: { limit: 1, then: discard }` and run `specarch document operations`.
 
 Fix: `retriesText` writes "time" when the limit is 1. The case `document-writes-operations` gives its job `countStock` a limit of 1 and pins it.
+
+## BUG-038 — model: an operation's via and a role's through are not listed as references
+
+- Reported: 2026-10-20, found while building the identity module
+- Closed: 2026-10-21, completed
+- Fixed by: the commit on `main` whose message says `Fixes BUG-038`
+
+`specarch model` lists every name a reference keyword gives as a reference to the element it names (ADR-138). Its table of reference places (`referencePlaces` in `internal/validate/model.go`, and the Swift build's) has `callers` on an operation and a command, but not `via` on an operation, which names clients too, nor a role's `through`, whose keys name permissions and whose values name clients. An editor reading the model therefore draws no link from a hop to the service its `via` names, or from a narrowed grant to its applications.
+
+Expected: `paths/*/*/via` listed as references to clients, and `roles/*/through` keys as references to permissions and their items as references to clients, in both builds.
+
+To repeat: run `specarch model spec/tests/validate-0-3-tokens-valid` and look at `references`: `/paths/~1invoices~1{invoiceId}/delete/via/0` (naming `middleware`) and `/roles/invoice-manager/through` (naming `invoices.delete` and `admin-web`) are absent.
+
+Fix: the table of reference places has `paths/*/*/via` and `roles/*/through/*`, both naming clients, and a table of key places has `roles/*/through/*`, whose key names a permission; a place's keyword is its last key that is not `*`, so all three are listed with `via` or `through` as their keyword, in both builds. A client or permission of the identity module (`identity#/clients/<name>`) is a reference into another specification and is left out, as `callers` leaves it out. The case `model-lists-via-and-through` pins it.

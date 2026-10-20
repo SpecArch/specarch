@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: model
+level: system
+scenario: golden
+given: "a specification whose operation names a client of its own and one of the identity module in via, and whose role narrows a permission through a client of its own and one of the identity module"
+when: model is run on it
+then: "it lists the via item naming its own client, the through key naming the permission and the through item naming its own client, each with its keyword, leaves out the two clients of the identity module, and exits 0"
+verifies: [SA-74]

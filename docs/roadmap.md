@@ -403,10 +403,11 @@ derived cases read the identity module given in the same run: the
 `through` cases of its roles and the event clause with its identifier
 under the trust domain (ADR-171, `derive-caller-estate`,
 `validate-caller-identity-cases`, `validate-caller-identity-case-waits`).
+`specarch model` lists an operation's `via` and a role's `through` among
+its references (`model-lists-via-and-through`).
 Left to build: the `Txn-Token` header read in the swift, javascript and dart
 readers; `through` on a pattern row of the permission table; and
-BUG-038, `via` and `through` missing from `specarch model`'s references;
-and BUG-046, the cases of a client named in `callers` by reference to the
+BUG-046, the cases of a client named in `callers` by reference to the
 identity module.
 
 Built, 0.7.2: the diagram keywords. An editor that draws every diagram

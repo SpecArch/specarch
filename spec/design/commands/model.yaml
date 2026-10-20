@@ -46,9 +46,12 @@ commands:
       message; `calls` names a dependency; a menu's or a flow step's `page`
       and a test's `page` name a page; a workflow's `trigger`, a workflow
       step's `operation` and a test's `operation` name an operation by its
-      operationId; and `callers`, `token`, `handshake`, `middlewares`, and a
-      test's `command`, `job`, `workflow`, `flow` and `requirement` name the
-      element of their section. A reference that does not resolve is a
+      operationId; an operation's `via` names a client, and a role's
+      `through` names a permission by each key and a client by each item,
+      with `through` as the keyword of both; and `callers`, `token`,
+      `handshake`, `middlewares`, and a test's `command`, `job`,
+      `workflow`, `flow` and `requirement` name the element of their
+      section. A reference that does not resolve is a
       problem of validate and is not listed; nor is a reference into
       another specification.
 

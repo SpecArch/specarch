@@ -49,7 +49,8 @@ struct ModelReference {
 /// Where a keyword names an element of the specification by its name: a
 /// path of keys, * for any key or item, and the kind of element named.
 /// satisfies, verifies and decidedIn name a requirement or a decision
-/// wherever they stand, and $ref a pointer. The Go build has the same list.
+/// wherever they stand, and $ref a pointer. The keyword of a place is its
+/// last key that is not *. The Go build has the same list.
 private let referencePlaces: [(path: [String], kind: String)] = [
     (["entities", "*", "relations", "*", "target"], "entity"),
     (["paths", "*", "*", "guard", "entity"], "entity"),
@@ -94,6 +95,8 @@ private let referencePlaces: [(path: [String], kind: String)] = [
     (["tests", "*", "command"], "command"),
     (["paths", "*", "*", "callers"], "client"),
     (["commands", "*", "callers"], "client"),
+    (["paths", "*", "*", "via"], "client"),
+    (["roles", "*", "through", "*"], "client"),
     (["paths", "*", "*", "token"], "token"),
     (["clients", "*", "proof", "token"], "token"),
     (["gateways", "*", "token"], "token"),
@@ -106,6 +109,17 @@ private let referencePlaces: [(path: [String], kind: String)] = [
     (["tests", "*", "flow"], "flow"),
     (["tests", "*", "requirement"], "requirement"),
 ]
+
+/// Where a key, not its value, names an element: a role's through is keyed
+/// by the permissions it narrows.
+private let keyPlaces: [(path: [String], kind: String)] = [
+    (["roles", "*", "through", "*"], "permission"),
+]
+
+/// The keyword of a place: its last key that is not *.
+private func placeKeyword(_ pattern: [String]) -> String {
+    pattern.last(where: { $0 != "*" }) ?? ""
+}
 
 /// The keywords that name an element wherever they stand.
 private let anywhere = ["satisfies": "requirement", "verifies": "requirement", "decidedIn": "decision"]
@@ -176,8 +190,12 @@ func modelReferences(_ root: YNode?) -> [ModelReference] {
                 names(p.value, at, kind, key)
                 continue
             }
+            if let place = keyPlaces.first(where: { placeMatches($0.path, at) }) {
+                let to = target(place.kind, key)
+                if !to.isEmpty { out.append(ModelReference(from: pointer(at), to: to, through: placeKeyword(place.path))) }
+            }
             if let place = referencePlaces.first(where: { placeMatches($0.path, at) }) {
-                names(p.value, at, place.kind, key)
+                names(p.value, at, place.kind, placeKeyword(place.path))
             }
         }
     }

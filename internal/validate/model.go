@@ -97,7 +97,8 @@ const (
 // referencePlaces are where a keyword names an element of the
 // specification by its name: a path of keys, * for any key or item, and
 // the kind of element named. satisfies, verifies and decidedIn name a
-// requirement or a decision wherever they stand, and $ref a pointer.
+// requirement or a decision wherever they stand, and $ref a pointer. The
+// keyword of a place is its last key that is not *.
 var referencePlaces = []struct {
 	path []string
 	kind string
@@ -145,6 +146,8 @@ var referencePlaces = []struct {
 	{[]string{"tests", "*", "command"}, toCommand},
 	{[]string{"paths", "*", "*", "callers"}, toClient},
 	{[]string{"commands", "*", "callers"}, toClient},
+	{[]string{"paths", "*", "*", "via"}, toClient},
+	{[]string{"roles", "*", "through", "*"}, toClient},
 	{[]string{"paths", "*", "*", "token"}, toToken},
 	{[]string{"clients", "*", "proof", "token"}, toToken},
 	{[]string{"gateways", "*", "token"}, toToken},
@@ -156,6 +159,25 @@ var referencePlaces = []struct {
 	{[]string{"tests", "*", "workflow"}, toWorkflow},
 	{[]string{"tests", "*", "flow"}, toFlow},
 	{[]string{"tests", "*", "requirement"}, toRequirement},
+}
+
+// keyPlaces are where a key, not its value, names an element: a role's
+// through is keyed by the permissions it narrows.
+var keyPlaces = []struct {
+	path []string
+	kind string
+}{
+	{[]string{"roles", "*", "through", "*"}, toPermission},
+}
+
+// placeKeyword is the keyword of a place: its last key that is not *.
+func placeKeyword(pattern []string) string {
+	for i := len(pattern) - 1; i >= 0; i-- {
+		if pattern[i] != "*" {
+			return pattern[i]
+		}
+	}
+	return ""
 }
 
 // anywhere are the keywords that name an element wherever they stand.
@@ -270,9 +292,17 @@ func ModelReferences(root *yaml.Node) []ModelReference {
 				names(p.Value, at, kind, key)
 				continue
 			}
+			for _, place := range keyPlaces {
+				if placeMatches(place.path, at) {
+					if to := target(place.kind, key); to != "" {
+						out = append(out, ModelReference{From: source.Pointer(at...), To: to, Through: placeKeyword(place.path)})
+					}
+					break
+				}
+			}
 			for _, place := range referencePlaces {
 				if placeMatches(place.path, at) {
-					names(p.Value, at, place.kind, key)
+					names(p.Value, at, place.kind, placeKeyword(place.path))
 					break
 				}
 			}

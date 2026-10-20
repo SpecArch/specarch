@@ -514,3 +514,15 @@ Fix: both builds build the two lines from the schemas they embed, the `specarch`
 Expected: the three places name the 0.2 files, `schema/specarch-design-0.2.schema.json` and `schema/specarch-fragment-*-0.2.schema.json`. The 0.3 references elsewhere in `docs/` (`conventions.md`, `from-sources.md`, the generated documents' headers) describe the schema in use today and stay 0.3.
 
 To repeat: `grep -n '0.3.schema' docs/roadmap.md`, and read the 0.6.0 row and section 5.
+
+## BUG-042 — docs/roadmap.md: four statements do not match the code
+
+- Reported: 2026-10-20, found in the roadmap audit, row by row against the code
+- Closed: 2026-10-20, completed
+- Fixed by: the commit on `main` whose message says `Fixes BUG-042`
+
+Four statements in `docs/roadmap.md` said less or more than the code does. Section 1 said the Swift build has the `validate` and `version` verbs, and it also has `model` (`swift/Sources/SpecArchKit/Command.swift`, ADR-138), which section 5's diagram keywords rely on. Section 1 said CI runs `specarch validate spec examples` on every push, and `.github/workflows/ci.yml` runs on a push to `main` and on a pull request. Section 2 said CI runs `--check` on every document and code target the examples use, and the library lending example's `tests` target is left out, as the CI step's own comment says, since it writes into the service's own tree the example does not hold. Section 4 named ADR-155, ADR-156 and ADR-157 without their status, though they are proposed, while every other proposed decision in the roadmap says so.
+
+Expected: the Swift build's three verbs; push to `main` and pull requests; the `tests` target named as the one left out of the regeneration gate; "proposed" beside ADR-155 to ADR-157. Section 2 item 7 also says now what is missing for a dead-letter item: what a person does with it, since the operations guide says only that it is kept apart.
+
+To repeat: compare `docs/roadmap.md` sections 1, 2 and 4 with `swift/Sources/SpecArchKit/Command.swift`, the `on:` block and the "Generated code and data are current" step of `.github/workflows/ci.yml`, and the `status:` of `spec/design/decisions/ADR-155.yaml` to `ADR-157.yaml`.

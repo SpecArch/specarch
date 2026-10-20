@@ -38,7 +38,7 @@ nothing in the design changed for the second. Both pass the same
 conformance suite, the tests stage `spec/tests/`, which holds only inputs
 and the expected exit status, output and files, with no code from either
 language. The documents and generators are built in Go; the Swift build
-has the `validate` and `version` verbs.
+has the `validate`, `model` (0.7.2, ADR-138) and `version` verbs.
 
 A single binary, `specarch validate <files>`, written in Go in this
 repository. It checks design and implementation files and does what
@@ -65,7 +65,8 @@ JSON Schema cannot:
 The Go build reads the JSON Schemas in `schema/` with
 `santhosh-tekuri/jsonschema`, so the schema stays the single definition. The
 conformance suite holds valid and invalid trees for every rule, and the
-repository's CI runs `specarch validate spec examples` on every push. The
+repository's CI runs `specarch validate spec examples`, in both builds, on
+every push to `main` and every pull request. The
 validator is the first thing to be in version control and runnable by
 anyone, which the lessons from an earlier in-house language made the first
 requirement.
@@ -91,7 +92,8 @@ version they came from. A generator never edits a hand-written file;
 Markdown documents are updated only between the `specarch:generate` markers.
 Every emitter has a `--check` form that regenerates and fails on a
 difference, and CI runs it on every document and code target the examples
-use. The rules and the pattern each target follows are in
+use but the library lending example's `tests` target, which writes into
+the service's own tree the example does not hold. The rules and the pattern each target follows are in
 `docs/generators.md`. `specarch idioms` (0.4.0) lists the idioms each
 implementation file uses and compares an override with the shipped idiom.
 
@@ -209,8 +211,9 @@ implementation file uses and compares an override with the shipped idiom.
    section said in one sentence naming its key (`spec/tests/document-writes-manual`,
    `document-manual-none`, `document-writes-operations`,
    `document-operations-none`). Not built: a command-line tool's commands
-   in the manual, the handling of a dead-letter item in the operations
-   guide, and other project documents. The handover document (0.7.0) says
+   in the manual, what a person does with a dead-letter item in the
+   operations guide (it says only that the item is kept apart), and other
+   project documents. The handover document (0.7.0) says
    what a customer who runs the system receives.
 8. Built: guarded operational scripts for data changes on live systems:
    preconditions, dry run by default, postconditions with exact counts,
@@ -266,11 +269,11 @@ cannot settle becomes open questions, and the path from there to approved
 code is `docs/refinement.md`: `gaps`, the decisions that answer questions,
 `approve` and the gate on `generate` are built (0.2.0); `specarch decide`,
 which answers a question with the decision record and takes the question
-out (ADR-155, `spec/tests/decide-*`), SpecArch's side of the dispatcher
-reading `problems.sarif`, the log carrying what the agent queue needs of
-each question (ADR-156), and the document target `comparison`, the old
-documents against the refined specification (ADR-157,
-`document-writes-comparison`), are built (0.7.2). The dispatcher's own
+out (ADR-155, proposed, `spec/tests/decide-*`), SpecArch's side of the
+dispatcher reading `problems.sarif`, the log carrying what the agent queue
+needs of each question (ADR-156, proposed), and the document target
+`comparison`, the old documents against the refined specification
+(ADR-157, proposed, `document-writes-comparison`), are built (0.7.2). The dispatcher's own
 reading of the log is the agent queue's item. A
 system with both documents and code is written by the procedure in
 `docs/from-sources.md`, and `gaps` shows which section of each source

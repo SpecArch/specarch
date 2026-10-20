@@ -1,0 +1,11 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0 }
+stages: [implementation]
+stakeholders:
+  owner: { description: The product owner. }
+entities:
+  Item:
+    type: object
+    properties:
+      id: { type: string, format: uuid }
+    primaryKey: [id]

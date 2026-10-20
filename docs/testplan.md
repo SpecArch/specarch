@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.2-dev of the specification: 529 design tests, 238 golden and 291 red, about 16 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.2-dev of the specification: 530 design tests, 239 golden and 291 red, about 16 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 4 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -19,7 +19,7 @@ Version 0.7.2-dev of the specification: 529 design tests, 238 golden and 291 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 525 |
+| system | 526 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -1721,6 +1721,14 @@ Scenario: golden; level: system; verifies SA-59.
 - When: generate openapi --unapproved is run
 - Then: it writes the document as a draft: the notice names both questions and the missing approval, the entity's schema carries the must question in x-specarch-marks, the document carries the should question, and it exits 0
 
+#### generate-framework-plugin
+
+Scenario: golden; level: system; verifies SA-78.
+
+- Given: a specification whose implementation file is in Swift with a ui target of platform iphone and no framework, with specarch-gen-ui-swiftui, specarch-gen-ui-swift and specarch-gen-ui all on PATH
+- When: generate ui is run with --unapproved
+- Then: it runs specarch-gen-ui-swiftui, the plug-in for the target's framework, swiftui by the platform's default, before the one for the file's language, writes its file into the output the implementation file names, and exits 0
+
 #### generate-go-dxlib
 
 Scenario: golden; level: system; verifies SA-40.
@@ -2185,9 +2193,9 @@ Scenario: golden; level: system; verifies SA-32.
 
 Scenario: golden; level: system; verifies SA-32.
 
-- Given: a specification with a list page and two implementation files: one in TypeScript whose ui target is platform web, framework nextjs-carbon, and one in JavaScript whose ui target is platform web and names no framework, so plain-javascript
+- Given: a specification with a list page and three implementation files: one in TypeScript whose ui target is platform web, framework nextjs-carbon, one in JavaScript whose ui target is platform web and names no framework, so plain-javascript, and one in Swift whose ui target is platform iphone and names no framework, so swiftui
 - When: idioms is run
-- Then: it lists ui-components 1.7.0 as shipped for the TypeScript file, whose framework nextjs-carbon is a stack the idiom renders, and not for the JavaScript file, and exits 0
+- Then: it lists ui-components 1.8.0 as shipped for the TypeScript file, whose framework nextjs-carbon is a stack the idiom renders, and for the Swift file, whose framework swiftui by the platform's default is one too, and not for the JavaScript file, and exits 0
 
 #### idioms-usage-error
 
@@ -4317,7 +4325,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-314 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+319 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -4491,6 +4499,11 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-77 | acceptance 4 | golden | SA-77 names no harm |
 | requirement SA-77 | acceptance 5 | golden | SA-77 names no harm |
 | requirement SA-77 | acceptance 6 | golden | SA-77 names no harm |
+| requirement SA-78 | acceptance 1 | golden | SA-78 names no harm |
+| requirement SA-78 | acceptance 2 | golden | SA-78 names no harm |
+| requirement SA-78 | acceptance 3 | golden | SA-78 names no harm |
+| requirement SA-78 | acceptance 4 | golden | SA-78 names no harm |
+| requirement SA-78 | acceptance 5 | golden | SA-78 names no harm |
 | requirement SA-7 | acceptance 1 | golden | SA-7 names no harm |
 | requirement SA-7 | acceptance 2 | golden | SA-7 names no harm |
 | requirement SA-8 | acceptance 1 | golden | SA-8 names no harm |

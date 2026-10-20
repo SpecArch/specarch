@@ -292,7 +292,8 @@ func targetOutput(i generate.Implementation, target string) string {
 // pluginGroups finds the plug-in for each implementation file that names
 // the target (every implementation file when none does):
 // specarch-gen-<target>-<stack> when it is on PATH, where the stack is the
-// file's language in lower case, and specarch-gen-<target> otherwise. Files
+// target's framework in lower case, then its language, and
+// specarch-gen-<target> otherwise. Files
 // that find the same plug-in and name the same output folder run it
 // together, once; a file that names none joins the others of its plug-in.
 func pluginGroups(l loaded, target string, stderr io.Writer) ([]pluginGroup, int) {
@@ -339,26 +340,59 @@ func pluginGroups(l loaded, target string, stderr io.Writer) ([]pluginGroup, int
 		return groups, 0
 	}
 	for k := range impls {
-		stack := stackName(impls[k].Node)
 		tried := []string{}
-		if stack != "" {
+		found := false
+		for _, stack := range []string{frameworkName(impls[k].Node, target), stackName(impls[k].Node)} {
+			if stack == "" {
+				continue
+			}
 			name := generic + "-" + stack
 			tried = append(tried, name)
 			if exe, err := exec.LookPath(name); err == nil {
 				add(name, exe, &impls[k])
-				continue
+				found = true
+				break
 			}
+		}
+		if found {
+			continue
 		}
 		tried = append(tried, generic)
 		exe, err := exec.LookPath(generic)
 		if err != nil {
-			fmt.Fprintf(stderr, "specarch generate: no generator for %s: this build has none built in, and neither %s was found on PATH; install the plug-in or check its name\n", target, strings.Join(tried, " nor "))
+			fmt.Fprintf(stderr, "specarch generate: no generator for %s: this build has none built in, and neither %s was found on PATH; install the plug-in or check its name\n", target, joinNor(tried))
 			return nil, 2
 		}
 		add(generic, exe, &impls[k])
 	}
 	return groups, 0
 }
+
+// joinNor joins the names tried as "a, b nor c", or "a nor b".
+func joinNor(names []string) string {
+	if len(names) <= 2 {
+		return strings.Join(names, " nor ")
+	}
+	return strings.Join(names[:len(names)-1], ", ") + " nor " + names[len(names)-1]
+}
+
+// frameworkName is the framework of an implementation file's target as a
+// plug-in name ends with it: targets.<target>.framework, or the
+// platform's default when the target names a platform and no framework
+// (plain-javascript on web, swiftui on iphone); "" for a target with
+// neither. A framework is a stack of the file, as a dialect is
+// (docs/idioms.md), so a plug-in may serve one framework of a language.
+func frameworkName(impl *yaml.Node, target string) string {
+	t := source.Child(source.Child(impl, "targets"), target)
+	if f := strings.TrimSpace(source.Str(source.Child(t, "framework"))); f != "" {
+		return strings.ToLower(f)
+	}
+	return defaultFramework[strings.TrimSpace(source.Str(source.Child(t, "platform")))]
+}
+
+// defaultFramework is a ui target's framework when it names none, by its
+// platform, as the implementation schema's defaults give it.
+var defaultFramework = map[string]string{"web": "plain-javascript", "iphone": "swiftui"}
 
 // pluginProblems are the warnings and open questions of a specification in
 // the order of its problems file, each with the pointer a mark is placed by.

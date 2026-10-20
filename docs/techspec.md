@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.7.2-dev of the specification: 77 requirements, 5 entities, 14 commands, 7 algorithms, 529 tests, 141 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.7.2-dev of the specification: 78 requirements, 5 entities, 14 commands, 7 algorithms, 530 tests, 142 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 **Problems:** 4 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -2631,8 +2631,13 @@ A target this program does not build in is produced by a plug-in found
 on PATH. For each implementation file that names the target under
 `targets` (every implementation file when none does), the plug-in is
 `specarch-gen-<target>-<stack>` when there is one, where the stack is
-the file's `stack.language.name` in lower case with a dash for a space,
-and `specarch-gen-<target>` otherwise; neither found is status 2. Files
+first the target's `framework` in lower case, given under
+`targets.<target>.framework` or the platform's default when the
+target names a platform and no framework (plain-javascript on web,
+swiftui on iphone), then the file's `stack.language.name` in lower
+case with a dash for a space, and `specarch-gen-<target>` otherwise;
+none found is status 2. A framework is a stack of the file, as a
+dialect is, so one language may have a plug-in per framework. Files
 that find the same plug-in and name the same output folder run it
 together, a file that names none joining the others of its plug-in,
 and each run writes into the folder its files name, so `--out` is
@@ -10946,6 +10951,84 @@ handled, which is what stream says.
 
 **Note:** From RFC 9110, HTTP Semantics, 2022: A representation's media type is given by Content-Type and its size by Content-Length; a message body may be of any length, transferred as it is produced. <https://www.rfc-editor.org/rfc/rfc9110>
 
+### ADR-147: The SwiftUI generator writes the same pages as data, each a Swift literal typed by its component's schema type in a package the project writes, found by the target's framework, with the pages read through the one analysis the TypeScript generator reads them through
+
+Status: accepted, 2026-10-20.
+
+Context: Roadmap target 4 names SwiftUI the default for the iPhone and had
+no generator for it. The Next.js and Carbon generator (ADR-067 to
+ADR-074, ADR-079, ADR-093) writes each page as a schema of data a
+component reads, the components once, the strings once, and the
+theme through the design-tokens idiom, and reads the design through
+the ui-components idiom's names so a project renders through its
+own library by an override. The owner asked for the SwiftUI target
+as the same pages, lists, forms, views, navigation, strings and
+theme, as a plug-in named specarch-gen-ui-swiftui, an idiom a
+project overrides as for Carbon. specarch generate found a plug-in
+by the implementation file's language only, so a Swift file would
+find specarch-gen-ui-swift, and the TypeScript generator's analysis
+of the pages, three thousand lines of what a page holds and what is
+refused, was written into that generator.
+
+Decision: The analysis of the pages moves to internal/genscreens: the task,
+list, form and view pages as members keyed by the ui-components
+idiom's names for the generator's framework, with the routes their
+events lead to, their hooks and permission; the session, the menu,
+the translations, the theme's colours, the marks and the refusal of
+a file built by hand. A generator gives a profile (its name,
+platform, framework, language, where its rules run, whether its
+screens compare decimals exactly, and how a server of its own pages
+a list) and writes the members in its stack; the TypeScript output
+is unchanged. specarch generate looks a plug-in up by the target's
+framework first, specarch-gen-<target>-<framework>, the framework
+given under the target or the platform's default, then by the
+language, then the plain name; a framework is a stack of the file
+as a dialect is (ADR-023), so the owner's name holds and a language
+may have a plug-in per framework. specarch-gen-ui-swiftui writes,
+for a ui target of platform iphone and framework swiftui in a Swift
+implementation file, into a Swift package the project writes the
+Package.swift of, under the module the target's settings.module
+names (Screens when none): per page Pages/<Page>Schema.swift, one
+literal of the part's schema type whose labels are the idiom's
+names, nested values as .init, dictionaries as Swift dictionaries
+and rules as Rule literals, and Pages/<Page>View.swift, a view that
+hands the schema and its texts to the component behind the guard
+with the routes its events lead to; once per package the components
+under Screens/ on SwiftUI and Foundation alone, Routes.swift with
+one Route enum of every page written and the view each case opens,
+Application.swift with the service, the session and the menu,
+Strings.swift with every text in every language, Theme.swift
+through the design-tokens idiom's swiftui rendering, and a derived
+test per guarded page and for the menu under Tests/<module>Tests in
+Swift Testing. The page sign-in was asked for from is kept by the
+router, not a query, so returnTo is a route; a message crosses a
+navigation in the router too. A form's hooks are read from
+<Page>Hooks, a type the project writes beside the page, so a missing
+hook fails the build. The language chosen is kept under a key in
+the app's defaults. The server routes of settings.server are refused
+for swiftui, since an app calls the service directly, and a schema
+built by hand is compared byte for byte, the object-literal
+comparison being TypeScript's; both are said in docs/ui-swiftui.md.
+Both idioms render swiftui: ui-components names the SwiftUI
+components and the same keys, and design-tokens names a Color per
+part. The example's sign-in and second-factor screens are written by
+hand in a Swift package first, committed alone, and the generator
+reproduces them but for the header; CI builds and tests the package
+on the macOS job, with no simulator.
+
+Consequences: One specification drives three front ends, plain JavaScript,
+Next.js and SwiftUI, with the same pages read once; a rule the
+analysis gains reaches both generators that read pages as data, and
+a message names the generator that reports it. The TypeScript
+generator's goldens hold byte for byte. A Swift project renders
+through its own components by overriding the idiom's swiftui parts,
+as a TypeScript project overrides nextjs-carbon's. The app wrapper
+around the generated package (the App, its navigation stack, its
+tint and where it sets the service's URL) stays the project's, as
+the Next.js layout does.
+
+**Insight:** The owner named the plug-in for the framework, and a framework is what decides the components (ADR-023, Q1 of docs/ui-nextjs-carbon.md); a lookup by the language alone would have forced specarch-gen-ui-swift and bound every Swift front end to one framework. Reading the pages once keeps the two generators from drifting apart in what they accept and refuse, which three thousand duplicated lines would have done on the first change. A typed Swift literal is Swift's satisfies: the compiler checks the data against the component's type, and .init in a nested value lets the literal stay data with no type name a project's override would have to supply. A router that keeps the page sign-in was asked for from needs no open-redirect check, since an app's routes are an enum. A package with no dependency needs no scan, builds on a Mac without a simulator, and is what a SwiftUI project adds as a local package.
+
 ## 10. Quality requirements
 
 The design tests: what must hold on every implementation. Golden scenarios succeed; red scenarios are refused.
@@ -11158,6 +11241,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | generate-bpmn | command generate | system | golden | a specification with no approval record, a workflow of two approvals, the first escalating to the second after a day, and an operation step, warnings at the workflow and its operations, and a could question on the second approval's deadline; specarch-gen-bpmn built from this repository on PATH | generate bpmn is run with --unapproved | it writes waiver.bpmn, BPMN 2.0 with its diagram, and waiver.svg, both labelled as a draft, with each warning marked before the element it concerns and the question before the deadline's timer, and exits 0 |
 | generate-bpmn-approved | command generate | system | golden | an approved specification with a write-off workflow, an approval then an operation step, a reinstatement workflow whose one step is an approval, and a workflow of one operation step whose description holds & and angle brackets; specarch-gen-bpmn built from this repository on PATH | generate bpmn is run | it writes one BPMN file and one SVG per workflow, with no draft label, each marking only its own workflow's warnings, the last approval's gateway ending the request approved or, by its default flow, refused, the operation-only workflow with no refused end and its description escaped, and exits 0 |
 | generate-draft-open-questions | command generate | system | golden | a specification with a must question that blocks an entity and a should question that blocks the paths, no approval, and specarch-gen-openapi on PATH | generate openapi --unapproved is run | it writes the document as a draft: the notice names both questions and the missing approval, the entity's schema carries the must question in x-specarch-marks, the document carries the should question, and it exits 0 |
+| generate-framework-plugin | command generate | system | golden | a specification whose implementation file is in Swift with a ui target of platform iphone and no framework, with specarch-gen-ui-swiftui, specarch-gen-ui-swift and specarch-gen-ui all on PATH | generate ui is run with --unapproved | it runs specarch-gen-ui-swiftui, the plug-in for the target's framework, swiftui by the platform's default, before the one for the file's language, writes its file into the output the implementation file names, and exits 0 |
 | generate-go-dxlib | command generate | system | golden | the specification of generate-openapi-dxlib plus a job run every hour, and an implementation file with a go-dxlib target naming the package and the database; specarch-gen-go-dxlib built from this repository on PATH | generate go-dxlib is run with --unapproved | it writes one Go file for dxlib: the tables, the handlers registered by operationId that read every parameter with dxlib's getters, check the constraints dxlib does not enforce, and run the standard list, create and read operations, the privilege, role and menu seeds, and the job registered as a task, and exits 0 |
 | generate-go-dxlib-envelope-stream | command generate | system | golden | the vault of generate-openapi-dxlib-envelope-stream, and an implementation file with a go-dxlib target naming the package and the database; specarch-gen-go-dxlib built from this repository on PATH | generate go-dxlib is run with --unapproved | it writes the service file with Register binding every handler and setting dxlib's hooks that open and seal the pre-key envelope, the exchange's handler that reads a0, a1 and a2, makes the service's keys, derives the two shared keys, stores the handshake with its lifetime and answers i, b0, b1 and b2, the handshake's record, store and in-memory store, the upload handler calling its body with the request body as a stream held to the limit, the download handlers with their media type and limit as constants, and the stream helpers; and a client file with Handshake, a method per operation that seals and opens the envelope, streams an upload in and a download out as the design says; and exits 0 |
 | generate-go-dxlib-value-objects | command generate | system | golden | a member whose address is kept in columns with a location inside it, whose preferences are kept as JSON and whose phones are a list, listed, created and read by standard operations, and an implementation file with a go-dxlib target; specarch-gen-go-dxlib built from this repository on PATH | generate go-dxlib is run with --unapproved | it writes a Go struct for each schema with a pointer per part, reads the address into one and the phones into a slice, refuses a value without a required part, writes the address into the column of each part and the preferences and phones as JSON, answers a created or read member with its columns folded back into the address and its JSON read, warns that the paging list answers the row as stored, and exits 0 |
@@ -11215,7 +11299,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | idioms-diff-unknown | command idioms diff | system | red | a specification, and an idiom name SpecArch does not ship | idioms diff paginated-lists is run | it says the idiom is not shipped and exits 2 |
 | idioms-diff-usage-error | command idioms diff | system | red | an idiom's name and no folder | idioms diff type-rendering is run | it prints how to use it and exits 2 |
 | idioms-lists | command idioms | system | golden | a specification with one implementation file in Go with an Oracle sql target, whose override of type-rendering replaces its types part, with the reason | idioms is run | it prints the file's path and type-rendering as overridden by the file, copied from 1.4.0, replacing types, with the reason, and exits 0 |
-| idioms-lists-ui-framework | command idioms | system | golden | a specification with a list page and two implementation files: one in TypeScript whose ui target is platform web, framework nextjs-carbon, and one in JavaScript whose ui target is platform web and names no framework, so plain-javascript | idioms is run | it lists ui-components 1.7.0 as shipped for the TypeScript file, whose framework nextjs-carbon is a stack the idiom renders, and not for the JavaScript file, and exits 0 |
+| idioms-lists-ui-framework | command idioms | system | golden | a specification with a list page and three implementation files: one in TypeScript whose ui target is platform web, framework nextjs-carbon, one in JavaScript whose ui target is platform web and names no framework, so plain-javascript, and one in Swift whose ui target is platform iphone and names no framework, so swiftui | idioms is run | it lists ui-components 1.8.0 as shipped for the TypeScript file, whose framework nextjs-carbon is a stack the idiom renders, and for the Swift file, whose framework swiftui by the platform's default is one too, and not for the JavaScript file, and exits 0 |
 | idioms-usage-error | command idioms | system | red | no folder | idioms is run without arguments | it prints the usage and exits 2 |
 | merge-bypassed-check | command merge | system | golden | a tree extract permissions wrote, reading: printed, whose permission table says the check Require is skipped for every client and whose route table gives it three operations with a permission; and a tree extract go wrote, reading: parsed, whose implementation file says the same of Require, which it finds guarding two of those operations | merge is run on the two trees | it asks the question on the bypassed check once, blocking the permission of every operation either tree says the check guards, with both trees' citations, never leaves it out as answered by a tree that gives those permissions, prints a line for the join, and exits 0 |
 | merge-documents-and-code | command merge | system | golden | a tree read from code and a tree written from a manual and a published interface, the interface marked givenOutside: they give one entity's card number and one path parameter different lengths, require different fields and describe one permission differently; only the code has a plain entity and an operation, and only the documents have a personal field and an entity from the interface | merge is run on the two trees | it writes the elements of both with both citations, leaves out each key they disagree on with a must question citing both, writes the code's entity and operation inferred as undocumented, with a should question for the entity and a must question for the operation, keeps the documents' field and entity with a must Not built yet question for each in implementation/questions.yaml, and exits 0 |
@@ -11554,6 +11638,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | SA-70 | specarch shall carry a column default the database computes, a table's plain indexes and a list served two ways from the sources into the specification and back into the generated SQL and OpenAPI, with no question for any of them. | functional | should | accepted | test | A field's generatedDefault, identifier or currentTime, is written by generate sql as the expression the type-rendering idiom names for the dialect; a dialect with none for it is an error at the field. A default beside generatedDefault, or generatedDefault on a field of another format, is refused by the schema in both builds. specarch extract database writes generatedDefault where the catalogue's default is the expression the idiom names for PostgreSQL, and keeps the could question for any other expression. An entity's mapping lists the plain indexes of its table under indexes; generate sql writes each, and the next migration creates an index added and drops one removed. A field an index names that the entity lacks, or indexes under a mapping that is not an entity's, is refused as field in both builds. specarch extract database writes each plain index of the catalogue into the implementation fragment that --implementation-out names, with no question for it; an index the mapping cannot hold stays a could question. specarch extract router reads a handler that serves a GET on a path and a POST on that path with a literal last segment as two operations named after the handler, the POST's with Post added, each citing both routes, with no question about the name. With bindings.http.listRoutes, generate openapi writes that POST twin of each list operation served by GET. | NEED-2, NEED-8 |
 | SA-75 | A specification shall be able to declare a gateway, a service that verifies a token, reads one claim of it and forwards every request no operation answers, as received, to the dependency the claim's value selects, with the refusals it answers itself and no permission of its own; specarch validate shall check it against the design, the forwards shall fix the audience of the token it forwards by, and a gateway shall be a subject of tests with the cases it implies. | functional | should | proposed | test | A gateway naming a token the specification lacks, a claim the token does not declare, an empty forwards, a value twice, a dependency not declared or of kind database, messageBroker or fileStore, or a forward's dependency under calls is reported as gateway in both builds; with claim aud, so is the token marked default or named by an operation, and const or enum on that token's aud is reported as token_audience. In an umbrella run, a forward whose value is none of the aud values the module its dependency names accepts is reported as gateway, and that token is left out of the refusal of two modules accepting one aud value. A test may name a gateway as its subject, and a gateway gets the cases forwarded to each dependency, no token, a bad signature, an expired token, an unknown claim value, a claim naming two forwarded services, and a dependency failing or timing out for each it forwards to or calls. The technical specification draws each forward in the context diagram and writes a section per gateway with its token, claim, forwards, middlewares, refusals and cases; generate openapi writes nothing for a gateway and prints a line naming it; a specification without one renders byte for byte as before. | NEED-1, NEED-3, NEED-9 |
 | SA-77 | A specification shall be able to declare the handshakes a client performs before calling an encrypted operation, with the key agreement, the signature, the cipher, the operation that establishes one, its lifetime and how many envelopes it carries, to name on an operation the handshake whose envelope it travels in, and to say that an operation streams a file as an upload or a download rather than reading a body whole; specarch validate shall check each against the design, the readers shall read them from code, the generators shall produce a server and a client that perform them, and the documents shall show them. | functional | must | accepted | test | An operation naming a handshake the specification does not declare, a handshake whose establishedBy names no operation or an operation that itself travels in an envelope, and an upload stream that names a handshake are each reported as handshake in both builds, with the same words. An upload stream on a method other than post or put, or whose request body is not one media type of a binary string, a download stream whose success response is not one such media type, and a maxResponseBytes beside no download are each reported as stream in both builds, with the same words. Every operation that names a handshake derives the red case expired handshake <name>, which names the lifetime's end and, when the handshake declares uses, the envelopes it has carried. extract go writes a dxlib endpoint registered with an end-to-end-encryption type as an operation under a handshake of dxlib's pre-key exchange, asking which operation establishes it, an upload or download stream type as a stream, and asks at a type it does not read. generate openapi with the dxlib dialect writes the endpoint type each operation's handshake and stream give; generate go-dxlib writes the exchange's handler, the hooks that seal and open the envelope, the helpers that stream a body in and out, and a client that performs the handshake, the encrypted call and both streams; a generated client calls a generated server over the encrypted API and streams a file larger than its buffers both ways. The technical specification lists each handshake with what a client does and marks each operation that travels in one or streams a file, in place of a request body and JSON responses. | NEED-1, NEED-2, NEED-3 |
+| SA-78 | specarch generate ui shall write, through specarch-gen-ui-swiftui, the task, list and form pages and the views of a specification for the iPhone in SwiftUI, from an implementation file in Swift whose ui target is platform iphone, so that the screens follow the design's fields, checks, refusals, events and permissions as the Next.js and Carbon screens do, drawn by the components the ui-components idiom names for swiftui. | functional | should | accepted | test | generate looks up specarch-gen-<target>-<framework> for an implementation file whose target names a framework, or a platform with a default one, before specarch-gen-<target>-<language> and specarch-gen-<target>, and falls back in that order when one is not on PATH. Each page becomes a schema file under Sources/<module>/Pages that holds data only, one Swift literal typed by the part's schema type, with the idiom's names as its labels, and a view file that hands the schema to the part's component behind the guard with the routes its events lead to; the components that read the schemas are written once under Sources/<module>/Screens on SwiftUI alone, the routes once as one enum the app's navigation stack follows, every text once in Strings.swift in the target's language and in each translation the settings name, and the theme as Theme.swift through the design-tokens idiom. A task page, a list, a form and a view take the same design keywords, settings, hooks, checks as rules in the data, refusals and events, and report the same errors, as the TypeScript generator does, but for the server routes, which an app does not have, and the comparison of a schema built by hand, which is TypeScript's. Each list, form and view that needs a permission gets a derived test under Tests/<module>Tests that it is refused to someone signed in without it, sends someone signed out to sign in and opens to someone who holds it, and the menu a test that no entry shows without the permission of the page it opens, in Swift Testing. The library lending example's generated package builds with swift build and passes swift test on a Mac, and generated over its sign-in and second-factor screens written by hand it differs only by the header. | NEED-2 |
 | SA-7 | specarch document and specarch generate shall write only into the folder the target owns, and with --check shall fail when the committed output differs. | functional | must | accepted | test | A run writes the target's files into its folder and nothing elsewhere. A run with --check on output edited by hand names the file and exits 1, writing nothing. | NEED-3 |
 | SA-8 | Every generated file shall name its source specification, version and meta-model, and a hand-written Markdown document shall change only between its markers. | functional | must | accepted | test | The first line of a generated document names the root file, its version and the meta-model. A marked region is rewritten and every other line of the document is unchanged. | NEED-3 |
 | SA-26 | specarch document shall write the change and defect register and the release notes from the records beside a specification, kept current with --check like the other documents. | functional | should | accepted | test | The register lists open change requests and defects before the closed ones, each with its status, what it affects and its decision. The release notes list the releases newest first, each with its changes and fixes grouped as added, changed, removed and fixed. | NEED-3, NEED-5 |
@@ -11681,6 +11766,8 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 **Insight on SA-75:** A service that forwards by the token's audience had no place in its own specification, so the one behaviour it exists for was recorded as a surface not read; written as an element, its token, its table and its refusals are checked, drawn and tested like an operation's.
 
 **Insight on SA-77:** A service whose operations travel in an encrypted envelope, or that streams large files, could not say so in its specification, so a client built from it would send plain JSON to an endpoint that expects an envelope, and a document would show a field table where a stream of bytes travels.
+
+**Insight on SA-78:** The iPhone is the platform the owner's own apps are built for, and a screen written by hand there drifts from the design as one on the web does; the roadmap names SwiftUI the default for the iPhone, and the same pages drawn twice from one specification are the check that the design, not a stack, holds the screens.
 
 **Insight on SA-26:** Reviewers and operators read what changed and why in documents; kept apart from the specification, the history stays out of it and still reaches them.
 
@@ -11847,6 +11934,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-75 | decisions ADR-141 |   |
 | SA-76 | decisions ADR-142; decisions ADR-143 |   |
 | SA-77 | enums Rule; decisions ADR-145; decisions ADR-146 | tests document-techspec-envelope-stream; tests extract-go-dxlib-envelope-stream; tests generate-go-dxlib-envelope-stream; tests generate-openapi-dxlib-envelope-stream; tests validate-handshake; tests validate-stream |
+| SA-78 | decisions ADR-147 | tests generate-framework-plugin |
 
 ## Sources
 

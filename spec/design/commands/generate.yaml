@@ -40,8 +40,13 @@ commands:
       on PATH. For each implementation file that names the target under
       `targets` (every implementation file when none does), the plug-in is
       `specarch-gen-<target>-<stack>` when there is one, where the stack is
-      the file's `stack.language.name` in lower case with a dash for a space,
-      and `specarch-gen-<target>` otherwise; neither found is status 2. Files
+      first the target's `framework` in lower case, given under
+      `targets.<target>.framework` or the platform's default when the
+      target names a platform and no framework (plain-javascript on web,
+      swiftui on iphone), then the file's `stack.language.name` in lower
+      case with a dash for a space, and `specarch-gen-<target>` otherwise;
+      none found is status 2. A framework is a stack of the file, as a
+      dialect is, so one language may have a plug-in per framework. Files
       that find the same plug-in and name the same output folder run it
       together, a file that names none joining the others of its plug-in,
       and each run writes into the folder its files name, so `--out` is

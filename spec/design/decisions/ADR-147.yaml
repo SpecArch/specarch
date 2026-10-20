@@ -1,0 +1,94 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
+decisions:
+  ADR-147:
+    title: The SwiftUI generator writes the same pages as data, each a Swift literal typed by its component's schema type in a package the project writes, found by the target's framework, with the pages read through the one analysis the TypeScript generator reads them through
+    status: accepted
+    date: "2026-10-20"
+    context: |
+      Roadmap target 4 names SwiftUI the default for the iPhone and had
+      no generator for it. The Next.js and Carbon generator (ADR-067 to
+      ADR-074, ADR-079, ADR-093) writes each page as a schema of data a
+      component reads, the components once, the strings once, and the
+      theme through the design-tokens idiom, and reads the design through
+      the ui-components idiom's names so a project renders through its
+      own library by an override. The owner asked for the SwiftUI target
+      as the same pages, lists, forms, views, navigation, strings and
+      theme, as a plug-in named specarch-gen-ui-swiftui, an idiom a
+      project overrides as for Carbon. specarch generate found a plug-in
+      by the implementation file's language only, so a Swift file would
+      find specarch-gen-ui-swift, and the TypeScript generator's analysis
+      of the pages, three thousand lines of what a page holds and what is
+      refused, was written into that generator.
+    decision: |
+      The analysis of the pages moves to internal/genscreens: the task,
+      list, form and view pages as members keyed by the ui-components
+      idiom's names for the generator's framework, with the routes their
+      events lead to, their hooks and permission; the session, the menu,
+      the translations, the theme's colours, the marks and the refusal of
+      a file built by hand. A generator gives a profile (its name,
+      platform, framework, language, where its rules run, whether its
+      screens compare decimals exactly, and how a server of its own pages
+      a list) and writes the members in its stack; the TypeScript output
+      is unchanged. specarch generate looks a plug-in up by the target's
+      framework first, specarch-gen-<target>-<framework>, the framework
+      given under the target or the platform's default, then by the
+      language, then the plain name; a framework is a stack of the file
+      as a dialect is (ADR-023), so the owner's name holds and a language
+      may have a plug-in per framework. specarch-gen-ui-swiftui writes,
+      for a ui target of platform iphone and framework swiftui in a Swift
+      implementation file, into a Swift package the project writes the
+      Package.swift of, under the module the target's settings.module
+      names (Screens when none): per page Pages/<Page>Schema.swift, one
+      literal of the part's schema type whose labels are the idiom's
+      names, nested values as .init, dictionaries as Swift dictionaries
+      and rules as Rule literals, and Pages/<Page>View.swift, a view that
+      hands the schema and its texts to the component behind the guard
+      with the routes its events lead to; once per package the components
+      under Screens/ on SwiftUI and Foundation alone, Routes.swift with
+      one Route enum of every page written and the view each case opens,
+      Application.swift with the service, the session and the menu,
+      Strings.swift with every text in every language, Theme.swift
+      through the design-tokens idiom's swiftui rendering, and a derived
+      test per guarded page and for the menu under Tests/<module>Tests in
+      Swift Testing. The page sign-in was asked for from is kept by the
+      router, not a query, so returnTo is a route; a message crosses a
+      navigation in the router too. A form's hooks are read from
+      <Page>Hooks, a type the project writes beside the page, so a missing
+      hook fails the build. The language chosen is kept under a key in
+      the app's defaults. The server routes of settings.server are refused
+      for swiftui, since an app calls the service directly, and a schema
+      built by hand is compared byte for byte, the object-literal
+      comparison being TypeScript's; both are said in docs/ui-swiftui.md.
+      Both idioms render swiftui: ui-components names the SwiftUI
+      components and the same keys, and design-tokens names a Color per
+      part. The example's sign-in and second-factor screens are written by
+      hand in a Swift package first, committed alone, and the generator
+      reproduces them but for the header; CI builds and tests the package
+      on the macOS job, with no simulator.
+    consequences: |
+      One specification drives three front ends, plain JavaScript,
+      Next.js and SwiftUI, with the same pages read once; a rule the
+      analysis gains reaches both generators that read pages as data, and
+      a message names the generator that reports it. The TypeScript
+      generator's goldens hold byte for byte. A Swift project renders
+      through its own components by overriding the idiom's swiftui parts,
+      as a TypeScript project overrides nextjs-carbon's. The app wrapper
+      around the generated package (the App, its navigation stack, its
+      tint and where it sets the service's URL) stays the project's, as
+      the Next.js layout does.
+    why: |
+      The owner named the plug-in for the framework, and a framework is
+      what decides the components (ADR-023, Q1 of docs/ui-nextjs-carbon.md);
+      a lookup by the language alone would have forced specarch-gen-ui-swift
+      and bound every Swift front end to one framework. Reading the pages
+      once keeps the two generators from drifting apart in what they
+      accept and refuse, which three thousand duplicated lines would have
+      done on the first change. A typed Swift literal is Swift's satisfies:
+      the compiler checks the data against the component's type, and
+      .init in a nested value lets the literal stay data with no type
+      name a project's override would have to supply. A router that keeps
+      the page sign-in was asked for from needs no open-redirect check,
+      since an app's routes are an enum. A package with no dependency
+      needs no scan, builds on a Mac without a simulator, and is what a
+      SwiftUI project adds as a local package.
+    satisfies: [SA-78]

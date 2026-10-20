@@ -426,3 +426,17 @@ requirements:
     verification: test
     needs: [NEED-1, NEED-2, NEED-3]
     why: A service whose operations travel in an encrypted envelope, or that streams large files, could not say so in its specification, so a client built from it would send plain JSON to an endpoint that expects an envelope, and a document would show a field table where a stream of bytes travels.
+  SA-78:
+    statement: specarch generate ui shall write, through specarch-gen-ui-swiftui, the task, list and form pages and the views of a specification for the iPhone in SwiftUI, from an implementation file in Swift whose ui target is platform iphone, so that the screens follow the design's fields, checks, refusals, events and permissions as the Next.js and Carbon screens do, drawn by the components the ui-components idiom names for swiftui.
+    kind: functional
+    priority: should
+    status: accepted
+    acceptance:
+      - generate looks up specarch-gen-<target>-<framework> for an implementation file whose target names a framework, or a platform with a default one, before specarch-gen-<target>-<language> and specarch-gen-<target>, and falls back in that order when one is not on PATH.
+      - Each page becomes a schema file under Sources/<module>/Pages that holds data only, one Swift literal typed by the part's schema type, with the idiom's names as its labels, and a view file that hands the schema to the part's component behind the guard with the routes its events lead to; the components that read the schemas are written once under Sources/<module>/Screens on SwiftUI alone, the routes once as one enum the app's navigation stack follows, every text once in Strings.swift in the target's language and in each translation the settings name, and the theme as Theme.swift through the design-tokens idiom.
+      - A task page, a list, a form and a view take the same design keywords, settings, hooks, checks as rules in the data, refusals and events, and report the same errors, as the TypeScript generator does, but for the server routes, which an app does not have, and the comparison of a schema built by hand, which is TypeScript's.
+      - Each list, form and view that needs a permission gets a derived test under Tests/<module>Tests that it is refused to someone signed in without it, sends someone signed out to sign in and opens to someone who holds it, and the menu a test that no entry shows without the permission of the page it opens, in Swift Testing.
+      - The library lending example's generated package builds with swift build and passes swift test on a Mac, and generated over its sign-in and second-factor screens written by hand it differs only by the header.
+    verification: test
+    needs: [NEED-2]
+    why: The iPhone is the platform the owner's own apps are built for, and a screen written by hand there drifts from the design as one on the web does; the roadmap names SwiftUI the default for the iPhone, and the same pages drawn twice from one specification are the check that the design, not a stack, holds the screens.

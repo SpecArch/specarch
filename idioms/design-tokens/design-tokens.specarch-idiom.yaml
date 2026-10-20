@@ -1,9 +1,9 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-0.1.schema.json
 specarchIdiom: "0.1"
 name: design-tokens
-version: 1.0.0
+version: 1.1.0
 concern: design-tokens
-stacks: [nextjs-carbon]
+stacks: [nextjs-carbon, swiftui]
 reads: [theme]
 description: |
   How the theme's design tokens become a stack's own tokens. The design
@@ -63,6 +63,20 @@ parts:
           Carbon's component tokens, such as button-primary, are resolved
           from its theme after it and keep Carbon's values; so do the hover
           and active shades of every token.
+      swiftui:
+        names:
+          text: text
+          background: background
+          accent: accent
+          link: link
+          danger: danger
+          border: border
+        code: |
+          Each key is a static Color of Theme, named for the part it takes;
+          each value is a part the ui target's settings.tokens maps to a
+          token of the specification's theme. SwiftUI's own controls keep
+          the system's colours but for the accent, which the app sets as
+          its tint.
 
 tests:
   - { case: theme with a dark mode, scenario: golden, then: "theme.scss holds the light theme with the parts' colours and, under prefers-color-scheme dark, the dark theme with the dark mode's" }

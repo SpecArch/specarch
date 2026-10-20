@@ -6828,7 +6828,7 @@ let implementationSchemaJSON = #"""
           ]
         },
         "framework": {
-          "description": "For the ui target: the component library or UI framework. The default for platform web is plain-javascript: native ES modules in the browser, no package install, no bundler or build step, every third-party library a pinned file committed beside the generated code, and pages and components that talk through one small generated event bus (event names declared once as UPPERCASE constants with their payload shape, subscriptions registered where a component is created, no wildcard or computed names, an optional debug log of every event). For platform iphone the default is swiftui. The framework, given or by default, is also a stack of the implementation file for its idioms, as a dialect is: the ui-components idiom renders nextjs-carbon, Next.js's app router drawn with IBM's Carbon, where a page's events are navigation in its page.tsx and no event bus is written.",
+          "description": "For the ui target: the component library or UI framework. The default for platform web is plain-javascript: native ES modules in the browser, no package install, no bundler or build step, every third-party library a pinned file committed beside the generated code, and pages and components that talk through one small generated event bus (event names declared once as UPPERCASE constants with their payload shape, subscriptions registered where a component is created, no wildcard or computed names, an optional debug log of every event). For platform iphone the default is swiftui. The framework, given or by default, is also a stack of the implementation file for its idioms, as a dialect is: the ui-components idiom renders nextjs-carbon, Next.js's app router drawn with IBM's Carbon, where a page's events are navigation in its page.tsx and no event bus is written, and swiftui, where a page's events are navigation through the app's router. A plug-in named for the framework, specarch-gen-<target>-<framework>, is found before one named for the language.",
           "type": "string",
           "minLength": 1
         },
@@ -9068,9 +9068,9 @@ parts:
 # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-0.1.schema.json
 specarchIdiom: "0.1"
 name: design-tokens
-version: 1.0.0
+version: 1.1.0
 concern: design-tokens
-stacks: [nextjs-carbon]
+stacks: [nextjs-carbon, swiftui]
 reads: [theme]
 description: |
   How the theme's design tokens become a stack's own tokens. The design
@@ -9130,6 +9130,20 @@ parts:
           Carbon's component tokens, such as button-primary, are resolved
           from its theme after it and keep Carbon's values; so do the hover
           and active shades of every token.
+      swiftui:
+        names:
+          text: text
+          background: background
+          accent: accent
+          link: link
+          danger: danger
+          border: border
+        code: |
+          Each key is a static Color of Theme, named for the part it takes;
+          each value is a part the ui target's settings.tokens maps to a
+          token of the specification's theme. SwiftUI's own controls keep
+          the system's colours but for the accent, which the app sets as
+          its tint.
 
 tests:
   - { case: theme with a dark mode, scenario: golden, then: "theme.scss holds the light theme with the parts' colours and, under prefers-color-scheme dark, the dark theme with the dark mode's" }
@@ -9924,20 +9938,21 @@ parts:
 # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-0.1.schema.json
 specarchIdiom: "0.1"
 name: ui-components
-version: 1.7.0
+version: 1.8.0
 concern: ui-components
-stacks: [nextjs-carbon]
+stacks: [nextjs-carbon, swiftui]
 reads: [pages]
 description: |
-  What draws each page kind and each field type of a web front end on
-  Next.js's app router and IBM's Carbon design system. The design says what
-  a page holds and how it behaves (pages, menus); this idiom names, per
-  thing drawn, the component, where it is imported from, the schema type it
-  takes and the keys of that schema, so a generated page is data handed to
-  a component. The shipped rendering draws with plain Carbon, through thin
-  components the generator writes once per application under its screens
-  folder. A project that draws through a library of its own overrides the
-  parts, naming its package, its components and the keys its schemas use.
+  What draws each page kind and each field type of a front end: on the
+  web, Next.js's app router and IBM's Carbon design system; on the iPhone,
+  SwiftUI. The design says what a page holds and how it behaves (pages,
+  menus); this idiom names, per thing drawn, the component, where it is
+  imported from, the schema type it takes and the keys of that schema, so
+  a generated page is data handed to a component. The shipped renderings
+  draw with plain Carbon and with plain SwiftUI, through thin components
+  the generator writes once per application under its screens folder. A
+  project that draws through a library of its own overrides the parts,
+  naming its package, its components and the keys its schemas use.
 why: |
   A screen built by hand and a generated one look and work alike only when
   both are drawn by the same components. Naming them in one idiom keeps
@@ -9984,6 +9999,15 @@ parts:
           a Next.js TypeScript project maps to its root. The versions are
           the ones checked; the example's package.json pins the newest at
           the time and the implementation file records them.
+      swiftui:
+        names: { components: Screens, swiftui: SwiftUI }
+        code: |
+          The generator writes the components that read the schemas once
+          per package, under Sources/<module>/Screens in the target's
+          output, built on SwiftUI and Foundation alone, so the package
+          takes no dependency; components is the module the pages import
+          nothing from, since they are in it, and the name a project's own
+          library replaces in an override.
   list-page:
     description: A page of kind list.
     stack:
@@ -10005,6 +10029,24 @@ parts:
           route filled from the row's fields its with names.
           import, when a part names one, is where its component and schema
           type come from in place of the application's components.
+      swiftui:
+        names: { component: ListPage, schemaType: ListPageSchema, swiftuiList: List, swiftuiSearch: searchable, swiftuiMenu: Menu, swiftuiColumns: Toggle, swiftuiRefresh: refreshable, swiftuiPicker: Picker, title: title, permission: permission, source: source, columns: columns, filters: filters, search: search, actions: actions, rowActions: rowActions, select: select, pageSize: pageSize, pageSizes: pageSizes, empty: empty, filteredEmpty: filteredEmpty, failed: failed, wire: wire }
+        code: |
+          The rows of source in a List, each row its columns' values in a
+          row of labels, with searchable for the search, a toolbar Menu
+          for the column picker, the actions that open a page whose route
+          takes no parameter and the page sizes, refreshable to read the
+          page again, and the filters in a Section above the rows; the
+          page after the last row with the row count under it. The service
+          pages, sorts, searches and filters, through the paginated-list
+          idiom's names on the wire, a sort chosen from a Picker of the
+          sortable columns. Each row's actions are in a swipe Menu,
+          offered while their rule holds for the row and their permission
+          is held: one that runs an operation after its confirmation in a
+          confirmationDialog that asks for the reason it sends, and one
+          that opens a page whose route takes a parameter as a
+          NavigationLink, its route filled from the row's fields its with
+          names.
   form-page:
     description: A page of kind form, which creates a record or, with source, loads one and changes it.
     stack:
@@ -10034,6 +10076,32 @@ parts:
           added row is checked by its fields' keywords, and the rows are
           sent as the array of the body named for the relation, each with
           the fields its items take; a loaded row is never sent.
+      swiftui:
+        names: { component: FormPage, schemaType: FormPageSchema, swiftuiForm: Form, swiftuiSection: Section, swiftuiTabs: TabView, swiftuiSteps: ProgressView, swiftuiSubmit: Button, swiftuiError: Text, swiftuiRows: Section, swiftuiRemove: Button, title: title, permission: permission, source: source, submit: submit, layout: layout, sections: sections, rows: rows, checks: checks, failed: failed, events: events }
+        code: |
+          The sections in a Form, each a Section under its title, laid out
+          as the ui target's settings.layouts say: on one page, as a
+          TabView, or as steps under a ProgressView, each step checked
+          before the next. A form with source loads its record first, its
+          path filled from the route's parameters. Each field is drawn by
+          its field part, read-only or hidden while its rule holds, and
+          checked by its keywords, its second entry and the page's checks
+          before the request is sent with the fields its body takes, an
+          idempotency key in the header the operation names, kept while a
+          request goes unanswered and chosen anew after an answer. A
+          refusal shows under the field it names or above the form, and a
+          success leads where onSubmitted says. A field the settings name
+          under hooks starts with the value of the hook of its name, which
+          the page's view reads from <Page>Hooks beside it, a type the
+          project writes, so a missing hook fails the build.
+
+          Child rows follow the sections, each set in a Section under its
+          title: the loaded rows read-only, and the rows added on the form
+          drawn inline by their field parts, each with a Button that
+          removes it, up to the maximum, loaded and added together. Each
+          added row is checked by its fields' keywords, and the rows are
+          sent as the array of the body named for the relation, each with
+          the fields its items take; a loaded row is never sent.
   view-page:
     description: A page of kind view, one record's sections read-only.
     stack:
@@ -10051,6 +10119,21 @@ parts:
           confirmation in a Modal, with a TextArea for the reason it
           requires and sends; a success says its message and reads the
           record again, and a refusal shows in an InlineNotification.
+      swiftui:
+        names: { component: ViewPage, schemaType: ViewPageSchema, swiftuiList: List, swiftuiRow: LabeledContent, swiftuiActions: Menu, swiftuiDialog: confirmationDialog, title: title, permission: permission, source: source, sections: sections, actions: actions, operations: operations }
+        code: |
+          The record source answers, its path filled from the route's
+          parameters, each section a Section of LabeledContent rows under
+          its title, a field hidden while its rule holds for the record.
+          The actions that open a page are NavigationLinks in the toolbar,
+          offered to whoever holds their permission, their route's
+          parameters taken from the record's fields of their names or the
+          view's route. The actions that run an operation on the record
+          are buttons too, offered while their rule holds for the record,
+          each asking its confirmation in a confirmationDialog, with a
+          TextField for the reason it requires and sends; a success says
+          its message and reads the record again, and a refusal shows
+          above the sections.
   task-page:
     description: A form that submits to an operation without loading a record, such as sign-in.
     stack:
@@ -10064,46 +10147,71 @@ parts:
           An event to another task page hands on returnTo, the page
           sign-in was asked for from; an event to any other page gives way
           to it.
+      swiftui:
+        names: { component: TaskPage, schemaType: TaskPageSchema, swiftuiForm: Form, swiftuiSubmit: Button, swiftuiError: Text, title: title, submit: submit, fields: fields, checks: checks, failed: failed, events: events }
+        code: |
+          The fields in a Form, each drawn by its field part, checked by
+          their keywords and the page's checks before the request is sent;
+          a refusal under the field it names or above the form; each
+          success the operation answers leads where its event says, through
+          the router. An event to another task page keeps the page sign-in
+          was asked for from; an event to any other page gives way to it.
   text-field:
     description: A field of type string with no format the other field parts take.
     stack:
       nextjs-carbon:
         names: { type: text, schemaType: TextFieldSchema, carbon: TextInput, name: name, label: label, required: required, minLength: minLength, maxLength: maxLength, pattern: pattern, readOnly: readOnly, readOnlyWhen: readOnlyWhen, hiddenWhen: hiddenWhen, hook: hook, twice: twice }
+      swiftui:
+        names: { type: text, schemaType: FieldSchema, swiftui: TextField, name: name, label: label, required: required, minLength: minLength, maxLength: maxLength, pattern: pattern, readOnly: readOnly, readOnlyWhen: readOnlyWhen, hiddenWhen: hiddenWhen, hook: hook, twice: twice }
   text-area-field:
     description: A field of type string wider than one line holds, a maxLength above 255 or none.
     stack:
       nextjs-carbon:
         names: { type: textArea, schemaType: TextAreaFieldSchema, carbon: TextArea, name: name, label: label, required: required, maxLength: maxLength, readOnly: readOnly, readOnlyWhen: readOnlyWhen, hiddenWhen: hiddenWhen, hook: hook, twice: twice }
+      swiftui:
+        names: { type: textArea, schemaType: FieldSchema, swiftui: TextEditor, name: name, label: label, required: required, maxLength: maxLength, readOnly: readOnly, readOnlyWhen: readOnlyWhen, hiddenWhen: hiddenWhen, hook: hook, twice: twice }
   email-field:
     description: A field of format email.
     stack:
       nextjs-carbon:
         names: { type: email, schemaType: EmailFieldSchema, carbon: TextInput, name: name, label: label, required: required, maxLength: maxLength, readOnly: readOnly, readOnlyWhen: readOnlyWhen, hiddenWhen: hiddenWhen, hook: hook, twice: twice }
+      swiftui:
+        names: { type: email, schemaType: FieldSchema, swiftui: TextField, name: name, label: label, required: required, maxLength: maxLength, readOnly: readOnly, readOnlyWhen: readOnlyWhen, hiddenWhen: hiddenWhen, hook: hook, twice: twice }
   password-field:
     description: A field of format password, its rules shown under it.
     stack:
       nextjs-carbon:
         names: { type: password, schemaType: PasswordFieldSchema, carbon: PasswordInput, name: name, label: label, required: required, minLength: minLength, maxLength: maxLength, pattern: pattern, rules: rules, readOnly: readOnly, readOnlyWhen: readOnlyWhen, hiddenWhen: hiddenWhen, hook: hook, twice: twice }
+      swiftui:
+        names: { type: password, schemaType: FieldSchema, swiftui: SecureField, name: name, label: label, required: required, minLength: minLength, maxLength: maxLength, pattern: pattern, rules: rules, readOnly: readOnly, readOnlyWhen: readOnlyWhen, hiddenWhen: hiddenWhen, hook: hook, twice: twice }
   number-field:
     description: A field of type integer or number.
     stack:
       nextjs-carbon:
         names: { type: number, schemaType: NumberFieldSchema, carbon: NumberInput, name: name, label: label, required: required, minimum: min, maximum: max, step: step, readOnly: readOnly, readOnlyWhen: readOnlyWhen, hiddenWhen: hiddenWhen, hook: hook, twice: twice }
+      swiftui:
+        names: { type: number, schemaType: FieldSchema, swiftui: TextField, name: name, label: label, required: required, minimum: minimum, maximum: maximum, step: step, readOnly: readOnly, readOnlyWhen: readOnlyWhen, hiddenWhen: hiddenWhen, hook: hook, twice: twice }
   date-field:
     description: A field of format date.
     stack:
       nextjs-carbon:
         names: { type: date, schemaType: DateFieldSchema, carbon: DatePicker, carbonInput: DatePickerInput, name: name, label: label, required: required, readOnly: readOnly, readOnlyWhen: readOnlyWhen, hiddenWhen: hiddenWhen, hook: hook, twice: twice }
+      swiftui:
+        names: { type: date, schemaType: FieldSchema, swiftui: DatePicker, name: name, label: label, required: required, readOnly: readOnly, readOnlyWhen: readOnlyWhen, hiddenWhen: hiddenWhen, hook: hook, twice: twice }
   select-field:
     description: A field whose values are an enum.
     stack:
       nextjs-carbon:
         names: { type: select, schemaType: SelectFieldSchema, carbon: Select, carbonItem: SelectItem, name: name, label: label, required: required, options: options, readOnly: readOnly, readOnlyWhen: readOnlyWhen, hiddenWhen: hiddenWhen, hook: hook, twice: twice }
+      swiftui:
+        names: { type: select, schemaType: FieldSchema, swiftui: Picker, name: name, label: label, required: required, options: options, readOnly: readOnly, readOnlyWhen: readOnlyWhen, hiddenWhen: hiddenWhen, hook: hook, twice: twice }
   checkbox-field:
     description: A field of type boolean.
     stack:
       nextjs-carbon:
         names: { type: checkbox, schemaType: CheckboxFieldSchema, carbon: Checkbox, name: name, label: label, required: required, readOnly: readOnly, readOnlyWhen: readOnlyWhen, hiddenWhen: hiddenWhen, hook: hook, twice: twice }
+      swiftui:
+        names: { type: checkbox, schemaType: FieldSchema, swiftui: Toggle, name: name, label: label, required: required, readOnly: readOnly, readOnlyWhen: readOnlyWhen, hiddenWhen: hiddenWhen, hook: hook, twice: twice }
   lookup-field:
     description: A field that holds the key of another entity's record, picked from a list an operation reads.
     stack:
@@ -10116,6 +10224,16 @@ parts:
           one page read. value is the field of the record the key is, text
           the fields shown to choose by, and fills the fields of the form
           the chosen record fills, each from one of its own.
+      swiftui:
+        names: { type: lookup, schemaType: FieldSchema, swiftui: NavigationLink, name: name, label: label, required: required, source: source, value: value, text: text, fills: fills, readOnly: readOnly, readOnlyWhen: readOnlyWhen, hiddenWhen: hiddenWhen, hook: hook, twice: twice }
+        code: |
+          A NavigationLink to a List of the records source lists, a page at
+          a time through the paginated-list idiom's names: searched by the
+          service as the person types when source names search, and
+          otherwise among the one page read. value is the field of the
+          record the key is, text the fields shown to choose by, and fills
+          the fields of the form the chosen record fills, each from one of
+          its own.
   value-field:
     description: A field holding a value of a schema, its parts drawn in a section of their own.
     stack:
@@ -10123,6 +10241,14 @@ parts:
         names: { type: value, schemaType: ValueFieldSchema, carbon: FormGroup, name: name, label: label, required: required, parts: parts, readOnly: readOnly, readOnlyWhen: readOnlyWhen, hiddenWhen: hiddenWhen }
         code: |
           A FormGroup under the field's label holding a field for each part
+          of the schema, each drawn by its own field part, a part holding a
+          value or a list nested in its turn. An optional value is left out
+          of the request while none of its parts is given, and has its
+          required parts required once one is.
+      swiftui:
+        names: { type: value, schemaType: FieldSchema, swiftui: Section, name: name, label: label, required: required, parts: parts, readOnly: readOnly, readOnlyWhen: readOnlyWhen, hiddenWhen: hiddenWhen }
+        code: |
+          A Section under the field's label holding a field for each part
           of the schema, each drawn by its own field part, a part holding a
           value or a list nested in its turn. An optional value is left out
           of the request while none of its parts is given, and has its
@@ -10138,16 +10264,28 @@ parts:
           removes it, and a Button that adds an item while there are fewer
           than maximum; it starts with minimum items. The list is sent as
           an array of its items, each with the parts given.
+      swiftui:
+        names: { type: valueList, schemaType: FieldSchema, swiftui: Section, swiftuiAdd: Button, swiftuiRemove: Button, name: name, label: label, required: required, parts: parts, minimum: minimum, maximum: maximum, readOnly: readOnly, readOnlyWhen: readOnlyWhen, hiddenWhen: hiddenWhen }
+        code: |
+          A Section under the field's label with an item per value, each
+          the schema's parts drawn by their field parts and a Button that
+          removes it, and a Button that adds an item while there are fewer
+          than maximum; it starts with minimum items. The list is sent as
+          an array of its items, each with the parts given.
   confirm-dialog:
     description: The confirmation an action asks for before it runs.
     stack:
       nextjs-carbon:
         names: { component: ConfirmDialog, schemaType: ConfirmDialogSchema, carbon: Modal, title: title, body: body, confirm: confirm, cancel: cancel, danger: danger }
+      swiftui:
+        names: { component: ConfirmDialog, schemaType: ConfirmDialogSchema, swiftui: confirmationDialog, title: title, body: body, confirm: confirm, cancel: cancel, danger: danger }
   notification:
     description: The message an event shows.
     stack:
       nextjs-carbon:
         names: { component: Notice, schemaType: NoticeSchema, carbon: ToastNotification, kind: kind, title: title }
+      swiftui:
+        names: { component: Notice, schemaType: NoticeSchema, swiftui: Text, kind: kind, title: title }
   language-choice:
     description: The choice of the language the screens are shown in, kept across sessions.
     stack:
@@ -10159,11 +10297,21 @@ parts:
           page again in it; the pages read it on the server through
           chosenLanguage in language.ts, the specification's language when
           the cookie holds none. The application's layout places it.
+      swiftui:
+        names: { component: LanguageChoice, swiftui: Picker, key: language }
+        code: |
+          A Picker of the languages Strings holds, each by its own name,
+          which keeps the one chosen under the key in the app's defaults
+          (AppStorage) and draws the screens again in it; the pages read
+          it through Language.chosen, the specification's language when
+          the defaults hold none. The app's settings place it.
   menu:
     description: The application's menu, from menus.
     stack:
       nextjs-carbon:
         names: { component: Menu, schemaType: MenuSchema, carbonNav: SideNav, carbonGroup: SideNavMenu, carbonLink: SideNavLink, items: items, title: title, route: route, permission: permission }
+      swiftui:
+        names: { component: MainMenu, schemaType: MenuSchema, swiftuiList: List, swiftuiSection: Section, swiftuiLink: NavigationLink, items: items, title: title, route: route, permission: permission }
 
 tests:
   - { case: page opened without its permission, scenario: red, then: "the page's failed state, and no call to its operation" }

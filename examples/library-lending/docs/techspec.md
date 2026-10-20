@@ -1284,7 +1284,7 @@ How this implementation does each recurring concern: the idioms SpecArch ships a
 | Idiom | Version | Applies as | Parts the project replaces |
 |---|---|---|---|
 | audit-fields | 1.1.0 | shipped |   |
-| design-tokens | 1.0.0 | shipped |   |
+| design-tokens | 1.1.0 | shipped |   |
 | encrypted-column | 1.1.0 | shipped |   |
 | error-response | 1.1.0 | shipped |   |
 | identifiers | 1.1.0 | shipped |   |
@@ -1292,7 +1292,7 @@ How this implementation does each recurring concern: the idioms SpecArch ships a
 | request-validation | 1.1.0 | shipped |   |
 | soft-delete | 1.1.0 | shipped |   |
 | type-rendering | 1.4.0 | shipped |   |
-| ui-components | 1.7.0 | overridden, copied from 1.7.0 | list-page |
+| ui-components | 1.8.0 | overridden, copied from 1.8.0 | list-page |
 
 **Insight on ui-components:** A project whose screens are drawn by a library of its own renders its generated lists through that library, so they look and work like the screens built by hand; this file shows how, with the library's component, import and schema keys.
 
@@ -1354,7 +1354,7 @@ How this implementation does each recurring concern: the idioms SpecArch ships a
 | Idiom | Version | Applies as | Parts the project replaces |
 |---|---|---|---|
 | audit-fields | 1.1.0 | shipped |   |
-| design-tokens | 1.0.0 | shipped |   |
+| design-tokens | 1.1.0 | shipped |   |
 | encrypted-column | 1.1.0 | shipped |   |
 | error-response | 1.1.0 | shipped |   |
 | identifiers | 1.1.0 | shipped |   |
@@ -1362,7 +1362,7 @@ How this implementation does each recurring concern: the idioms SpecArch ships a
 | request-validation | 1.1.0 | shipped |   |
 | soft-delete | 1.1.0 | shipped |   |
 | type-rendering | 1.4.0 | shipped |   |
-| ui-components | 1.7.0 | shipped |   |
+| ui-components | 1.8.0 | shipped |   |
 
 #### Implementation decisions
 

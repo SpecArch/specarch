@@ -291,11 +291,12 @@ table, and the document marks them as what they are.
 
 ## The screens: ui-components
 
-`ui-components` says what draws each page kind and field type of a web
-front end on Next.js's app router and IBM's Carbon design system, the
-stack `nextjs-carbon`; `docs/ui-nextjs-carbon.md` is the generator that
-reads it. It applies to a file with that framework whose specification
-has `pages`. Its parts are one per thing drawn: `application` (the
+`ui-components` says what draws each page kind and field type of a
+front end: on the web, Next.js's app router and IBM's Carbon design
+system, the stack `nextjs-carbon`, which `docs/ui-nextjs-carbon.md`
+reads; on the iPhone, SwiftUI, the stack `swiftui`, which
+`docs/ui-swiftui.md` reads. It applies to a file with one of those
+frameworks whose specification has `pages`. Its parts are one per thing drawn: `application` (the
 packages every screen imports, and where the components that read the
 schemas live), `list-page`, `form-page`, `view-page`, `task-page`, a part
 per field type (`text-field`, `text-area-field`, `email-field`, `password-field`,
@@ -303,17 +304,19 @@ per field type (`text-field`, `text-area-field`, `email-field`, `password-field`
 `lookup-field`, and `value-field` and `value-list-field` for a field
 holding a value object or a list of them), `confirm-dialog`, `notification`, `language-choice` and
 `menu`. Each names,
-under `names`, the component, the schema type it takes, the Carbon
-components it is built on and the keys of its schema; `names` stays a flat
-map of strings, a key per role. The shipped rendering draws with plain
-Carbon, so an example builds with public packages only. A project that
+under `names`, the component, the schema type it takes, the Carbon or
+SwiftUI components it is built on and the keys of its schema; `names`
+stays a flat map of strings, a key per role. The shipped renderings draw
+with plain Carbon and with plain SwiftUI, so an example builds with
+public packages only, and the SwiftUI one with none. A project that
 draws through a library of its own overrides the parts it changes, naming
 its package under `import`, its component, schema type and keys, and
 records that library with SPDX's `LicenseRef-<name>` when its own
 organisation writes it; a name the override leaves out is the shipped
 part's, so an override is as small as the keys that differ. A project whose
 schema shape `names` cannot say installs its own
-`specarch-gen-ui-typescript` ahead of the shipped one.
+`specarch-gen-ui-typescript` or `specarch-gen-ui-swiftui` ahead of the
+shipped one.
 
 | Contract, checked | Contract, guidance |
 |---|---|
@@ -328,12 +331,16 @@ border) is the `ui` target's `settings.tokens`, and the idiom names, per
 part, the library's token that takes it, and the library's own themes
 the colours are laid over in each mode. It applies to a file whose
 framework it renders and whose specification has a `theme`. The shipped
-rendering is for `nextjs-carbon`: the part `themes` names Carbon's `white`
+rendering for `nextjs-carbon` has the part `themes` name Carbon's `white`
 and `g100` themes and the Sass modules that hold them, and the part
-`tokens` maps each Carbon theme token to the part it takes, such as
+`tokens` map each Carbon theme token to the part it takes, such as
 `text-primary` from text and `interactive`, `focus` and
 `border-interactive` from accent. Carbon's component tokens and its hover
-and active shades keep Carbon's values. The plain JavaScript generator
+and active shades keep Carbon's values. The rendering for `swiftui` names
+the light and dark modes and a `Color` of `Theme.swift` per part, each the
+light or the dark mode's colour by the environment's colour scheme;
+SwiftUI's own controls keep the system's colours but for the accent, the
+app's tint. The plain JavaScript generator
 writes the theme as CSS custom properties directly (ADR-040).
 
 | Contract, checked | Contract, guidance |

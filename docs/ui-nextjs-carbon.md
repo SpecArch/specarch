@@ -38,8 +38,9 @@ source, submit, columns, fields, filters and actions; `menus`; the
 states, events, flows, sections, compact columns, accessibility target
 and theme of `docs/ui-design.md` (ADR-034 to ADR-039). `specarch generate`
 finds a plug-in per implementation file, `specarch-gen-<target>-<stack>`
-before `specarch-gen-<target>`, the stack being the file's language in
-lower case, and hands it the idioms that apply with any override, so a
+before `specarch-gen-<target>`, the stack being the target's framework
+and then the file's language in lower case, and hands it the idioms that
+apply with any override, so a
 plug-in reads no disk. `ownedBy` on a mapping (ADR-046) marks an element
 another stakeholder owns, which every generator leaves out.
 

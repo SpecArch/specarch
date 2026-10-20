@@ -47,10 +47,13 @@ A code target that `specarch` does not build in is produced by an
 executable found on PATH, the pattern of `protoc-gen-*`, `git-*` and
 `kubectl-*`, with protoc's protocol: the plug-in never touches the disk.
 For each implementation file that names the target, the executable is
-`specarch-gen-<target>-<stack>` when there is one, the stack being the
-file's language in lower case (`specarch-gen-tests-go`), and
-`specarch-gen-<target>` otherwise. One target can then have a plug-in per
-stack and one that serves every stack; files that find the same plug-in
+`specarch-gen-<target>-<stack>` when there is one, the stack being first
+the target's framework in lower case (`specarch-gen-ui-swiftui`, the
+framework given under the target or the platform's default), then the
+file's language in lower case (`specarch-gen-tests-go`,
+`specarch-gen-ui-typescript`), and `specarch-gen-<target>` otherwise. One
+target can then have a plug-in per framework, one per language and one
+that serves every stack; files that find the same plug-in
 and name the same output folder run it together, each run writing into the
 folder its files name, so two front ends of one stack are two
 implementation files, each with its own output. `specarch` validates the specification, passes

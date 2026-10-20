@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: generate
+level: system
+scenario: golden
+given: "a specification whose implementation file is in Swift with a ui target of platform iphone and no framework, with specarch-gen-ui-swiftui, specarch-gen-ui-swift and specarch-gen-ui all on PATH"
+when: "generate ui is run with --unapproved"
+then: "it runs specarch-gen-ui-swiftui, the plug-in for the target's framework, swiftui by the platform's default, before the one for the file's language, writes its file into the output the implementation file names, and exits 0"
+verifies: [SA-78]

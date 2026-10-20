@@ -1,0 +1,2 @@
+requirements:
+  LEND-1: { statement: The desk shall list the loans., kind: functional, priority: must, status: accepted }

@@ -4,7 +4,7 @@
 
 Version 0.7.2-dev of the specification: 5 stakeholders, 10 needs and 81 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
 
-**Problems:** 4 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
+**Problems:** 3 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
 ## 1. Purpose and scope
 
@@ -128,7 +128,7 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | SA-9 | constraint | must | accepted | A specification and its implementations shall be separate files; a specification holds no stack-specific key and an implementation file adds no design. |
 | SA-10 | functional | must | accepted | An implementation file's implements and pointers shall resolve in the specification it names, at the same version. |
 | SA-51 | interface | must | accepted | specarch shall list every problem of a specification, valid or not, in one problems file and its SARIF 2.1.0 form, each error, warning and open question with a stable id, file, line and column, JSON pointer, rule, a message saying how to fix it, and notes at the sources it came from and the entries it blocks, and every file specarch writes shall mark the entry a problem touches. |
-| SA-74 | interface | must | proposed | specarch model shall print, in both builds, one JSON document in RFC 8785's canonical form that holds, for every specification of the folders given, the merged document, every node's file, line and column, every resolved reference with the keyword that made it, the layout problems, and each implementation file and estate, so that a program reads a specification as specarch does without a loader of its own. |
+| SA-74 | interface | must | accepted | specarch model shall print, in both builds, one JSON document in RFC 8785's canonical form that holds, for every specification of the folders given, the merged document, every node's file, line and column, every resolved reference with the keyword that made it, the layout problems, and each implementation file and estate, so that a program reads a specification as specarch does without a loader of its own. |
 
 ### SA-31
 
@@ -1359,15 +1359,13 @@ Acceptance criteria:
 
 specarch model shall print, in both builds, one JSON document in RFC 8785's canonical form that holds, for every specification of the folders given, the merged document, every node's file, line and column, every resolved reference with the keyword that made it, the layout problems, and each implementation file and estate, so that a program reads a specification as specarch does without a loader of its own.
 
-Kind: interface; priority: must; status: proposed; verified by test; refines NEED-3, NEED-7.
+Kind: interface; priority: must; status: accepted; verified by test; refines NEED-3, NEED-7.
 
 Acceptance criteria:
 
 - specarch model on a folder with a valid specification prints one JSON document whose positions name, for every entry the problems file could name, the file, line and column the problems file would report, and whose references list every satisfies, verifies, $ref, target, permission, emits, calls, decidedIn and implements link with its from, to and through; the Go build and the Swift build print the same bytes.
 - A folder with a layout problem is printed with that problem in the problems file's form and exit status 0; a folder with no specification, or one that cannot be read, is exit status 2 and the reason on standard error.
 - The validator's errors, warnings and open questions are not in the document; the problems file is their one list.
-
-**Problem:** warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SA-74; add verifies: [SA-74] to the test that shows it is met [requirement_unverified@requirements/requirements/validator.yaml#/requirements/SA-74]
 
 **Insight:** An editor or any other program that draws from a specification would otherwise load the files itself, a second loader in another language that drifts from the first; one command in both builds, printing one byte form, gives it what specarch reads and lets the conformance suite hold the two builds to the same document.
 

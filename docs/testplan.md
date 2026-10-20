@@ -2,9 +2,9 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.2-dev of the specification: 559 design tests, 254 golden and 305 red, about 16 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.2-dev of the specification: 562 design tests, 255 golden and 307 red, about 17 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
-**Problems:** 4 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
+**Problems:** 3 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
 **Problem:** warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SA-75; add verifies: [SA-75] to the test that shows it is met [requirement_unverified@requirements/requirements/design-keywords.yaml#/requirements/SA-75]
 
@@ -12,14 +12,12 @@ Version 0.7.2-dev of the specification: 559 design tests, 254 golden and 305 red
 
 **Problem:** warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SA-76; add verifies: [SA-76] to the test that shows it is met [requirement_unverified@requirements/requirements/refinement.yaml#/requirements/SA-76]
 
-**Problem:** warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SA-74; add verifies: [SA-74] to the test that shows it is met [requirement_unverified@requirements/requirements/validator.yaml#/requirements/SA-74]
-
 ## 1. Levels and how the tests run
 
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 555 |
+| system | 558 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -2606,6 +2604,32 @@ Scenario: golden; level: system; verifies SA-45.
 - Given: the tree extract workflows wrote of a BPMN file defining the write-off workflow, and the tree extract workflows --table wrote of the workflow table of the same workflow in an engine's own format, both read from one repository at one commit
 - When: merge is run on the two trees
 - Then: it writes one workflow write-off whose description and steps both trees give alike, citing the BPMN file and the table's definition file, role desk-supervisor citing both, the source's clauses joined, each question the table's tree asks again at the same key left out as asked twice, the could question for the form kept, and exits 0
+
+### Command model
+
+#### model-exit-2
+
+Scenario: red; level: system; covers exit 2; verifies SA-74.
+
+- Given: a path that does not exist
+- When: model is run on it
+- Then: it names the path it cannot read on standard error, prints nothing, and exits 2
+
+#### model-usage-error
+
+Scenario: red; level: system; covers usage error; verifies SA-74.
+
+- Given: no folder or file
+- When: model is run with no argument
+- Then: it prints how to use it and exits 2
+
+#### model-writes-json
+
+Scenario: golden; level: system; verifies SA-74.
+
+- Given: a specification with a requirement, an entity, a permission, a role, an operation, two tests, an implementation file that names an operation and an element the specification lacks, and a folder that is not a stage
+- When: model is run on it
+- Then: it prints one JSON document in canonical form with the merged document, the position of every node, the references that resolve and the keyword of each, the layout problem of the folder, and the implementation file with its one resolved reference, and exits 0
 
 ### Command validate
 

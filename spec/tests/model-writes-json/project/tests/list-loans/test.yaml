@@ -1,0 +1,7 @@
+operation: listLoans
+level: system
+scenario: golden
+given: a clerk and one loan
+when: listLoans is called
+then: it answers 200 with the loan
+verifies: [LEND-1]

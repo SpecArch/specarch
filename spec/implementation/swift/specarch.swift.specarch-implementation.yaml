@@ -35,8 +35,8 @@ layout:
   swift/Sources/specarch:
     description: The executable; it passes the arguments to the library and exits with its status.
   swift/Sources/SpecArchKit:
-    description: Everything else. Reading YAML, reading a specification tree into one document, the JSON Schema evaluator and its messages, the specification and implementation checks, the expression subset, tests and their derived cases with the rank of each, the life-cycle links, the open questions and origin, the records beside the specification, and the commands.
-    implements: ["#/commands/validate", "#/commands/version", "#/entities/Diagnostic", "#/entities/SpecFile", "#/enums/Rule", "#/enums/Severity", "#/algorithms/exitStatus", "#/algorithms/referenceResolves", "#/algorithms/permissionGranted", "#/algorithms/workedExampleHolds"]
+    description: Everything else. Reading YAML, reading a specification tree into one document, the JSON Schema evaluator and its messages, the specification and implementation checks, the expression subset, tests and their derived cases with the rank of each, the life-cycle links, the open questions and origin, the records beside the specification, the model of specarch model in RFC 8785's canonical form, and the commands.
+    implements: ["#/commands/validate", "#/commands/model", "#/commands/version", "#/entities/Diagnostic", "#/entities/SpecFile", "#/enums/Rule", "#/enums/Severity", "#/algorithms/exitStatus", "#/algorithms/referenceResolves", "#/algorithms/permissionGranted", "#/algorithms/workedExampleHolds"]
   swift/embed-schemas.sh:
     description: Writes the schemas of schema/ into the library as Swift source; a test fails when they differ.
   readers/swift:
@@ -48,6 +48,7 @@ mappings:
   "#/enums/Rule": { target: SpecArchKit.Rule, description: A String enum with one case per value; a test checks they equal the design's enum. }
   "#/enums/Severity": { target: SpecArchKit.Severity }
   "#/commands/validate": { target: SpecArchKit.runValidate }
+  "#/commands/model": { target: SpecArchKit.runModel }
   "#/commands/version": { target: SpecArchKit.run }
   "#/commands/document": { target: SpecArchKit.run, description: "Exits 2: this build offers no document target." }
   "#/commands/gaps": { target: SpecArchKit.run, description: "Exits 2: the report is a document, built in Go only; the rules about questions are in this build." }

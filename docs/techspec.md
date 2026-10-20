@@ -2,9 +2,9 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.7.2-dev of the specification: 81 requirements, 5 entities, 14 commands, 7 algorithms, 559 tests, 143 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.7.2-dev of the specification: 81 requirements, 5 entities, 15 commands, 7 algorithms, 562 tests, 143 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
-**Problems:** 4 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
+**Problems:** 3 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
 ## 1. Introduction and goals
 
@@ -71,6 +71,7 @@ The interfaces the system offers, as its clients see them.
 | idioms | List the idioms each implementation file uses, and how | public | 0: the idioms were listed; 2: usage error, a path that could not be read, or a specification with errors |
 | idioms diff | Print a shipped idiom's parts beside each override's | public | 0: the overrides were printed, or there was none; 2: usage error, an idiom this program does not ship, a path that could not be read, or a specification with errors |
 | merge | Merge the partial specifications the readers wrote into one | public | 0: the merged specification was written; 1: a tree could not be merged: it does not track origin, validate reports an error in it, it holds implementation files or records or a test that is not the draft derive writes for it, or it declares a source another tree declares differently, or whose paths changed after the commit a tree read them at; or a vocabulary that is not one this build reads; 2: usage error, fewer than two trees, two vocabularies of one language, or a folder or file that could not be read or written |
+| model | Print the specifications as one JSON document, for a program | public | 0: printed; 2: usage error, a path could not be read, or a folder holds no specification, no implementation file and no estate |
 | validate | Check specifications and implementation files | public | 0: every input is valid; 1: at least one input has an error; 2: usage error, a path could not be read, or a folder holds no specification, no implementation file and no estate |
 | version | Print the program version and the meta-model versions it reads | public | 0: printed |
 
@@ -3128,6 +3129,93 @@ sequenceDiagram
   P-->>U: exit status 0, 1, 2
 ```
 
+### Command model
+
+Reads the specifications, implementation files and estates found
+under the paths given, as validate finds them, and prints one JSON
+document in RFC 8785's canonical form: object members sorted by
+their names as UTF-16 code units, no whitespace, every number as
+ECMAScript prints a double, then a newline. It is how an editor or
+another program reads a specification as specarch reads it, without
+a loader of its own, and both builds print the same bytes.
+
+The document holds `specarchModel`, the version of its shape, `0.1`;
+`program`, the program version; `specifications`, one per root file,
+sorted by it; `implementations`, the implementation files outside
+any specification; and `estates`, each estate file with its modules.
+
+A specification has its `root` file, its `name` and `version` from
+`info` and its `metaModel` from `specarch`, each null when the file
+gives none; the merged `document` as plain values, what the schema
+validates; `positions`, which maps the JSON pointer of every node,
+`/` for the whole document as the problems file writes it, to the
+`file`, `line` and `column` where it starts: its key in a mapping, or
+the item in a list; `references`, every reference that resolves to an
+element of the specification, in document order, each with `from`,
+the pointer of the entry that refers, `to`, the pointer of the element,
+and `through`, the keyword that made it; `problems`, the problems
+found while reading it, such as a folder that is not a stage, a
+section in the wrong stage or a file that does not parse, in the
+problems file's form (`file`, `line`, `column`, `severity`, `path`,
+`rule`, `message`, `id`); and `implementations`, each implementation
+file inside it.
+
+The references are made by `$ref`, when it is a pointer into the
+specification; by `satisfies`, `verifies` and `decidedIn` wherever
+they stand; and by the keywords that name an element by its name
+where the meta-model puts them: a relation's `target`, a guard's or a
+list's `entity`, a page's `entity`, a job's or a command's `reads` and
+`writes`, a workflow's `subject` and a test's `entity` name an entity
+or a view; `permission` on an operation, a command, a page, a page's
+action and a workflow's step, and a role's `permissions`, name a
+permission; a job's `role`, an approval's `approvers`, a client's
+`roles` and a signer's `role` name a role; `emits` on an operation, a
+job and a workflow, and a job trigger's `consumes`, name a channel's
+message; `calls` names a dependency; a menu's or a flow step's `page`
+and a test's `page` name a page; a workflow's `trigger`, a workflow
+step's `operation` and a test's `operation` name an operation by its
+operationId; and `callers`, `token`, `handshake`, `middlewares`, and a
+test's `command`, `job`, `workflow`, `flow` and `requirement` name the
+element of their section. A reference that does not resolve is a
+problem of validate and is not listed; nor is a reference into
+another specification.
+
+An implementation file has its `file`, its `stack`, its `document`,
+its `positions`, its `references`, the design pointers under
+`implements` and a mapping's `design` that resolve in the
+specification it is in, and its `problems`, what of its YAML does
+not parse. An estate's module has its `name`, its `location` and
+`version` as the estate writes them, and `specification`, the root
+file of the specification read for it, or null.
+
+The validator's errors and warnings are not in the document: the
+problems file and its SARIF form are their one list. A specification
+that does not validate is printed all the same, with every problem
+found while reading it.
+
+**Insight:** An editor shows a specification as specarch reads it only when it reads it through specarch; a second loader in another language would drift from the first.
+
+| Argument or option | Type | Required | Description |
+|---|---|---|---|
+| `<paths>` | string, one or more | yes | Folders and files, as validate takes them. |
+
+Reads `{paths}`: Root files, the files under their stage folders, implementation files and estates; `each estate's modules, at their location`: The specification of every module an estate lists, read with the estate.
+
+Standard output: One JSON document in RFC 8785's canonical form, then a newline.
+
+Standard error: A usage message on a usage error, and the reason on a path that could not be read.
+
+```mermaid
+sequenceDiagram
+  participant U as User
+  participant P as SpecArch toolchain
+  participant F as Files
+  U->>P: model <paths>
+  P->>F: read {paths}
+  P->>F: read each estate's modules, at their location
+  P-->>U: exit status 0, 2
+```
+
 ### Command validate
 
 Checks every specification found under the paths given: a folder that
@@ -3320,7 +3408,7 @@ Stack: language Go 1.27; toolchain go 1.27.2; platforms darwin/arm64, darwin/amd
 
 | Path | Holds | Implements |
 |---|---|---|
-| cmd/specarch | The command line. Argument handling, finding the specifications under folders, running plug-ins, printing the diagnostics and the exit status. | #/commands/validate, #/commands/gaps, #/commands/document, #/commands/approve, #/commands/generate, #/commands/extract, #/commands/merge, #/commands/diff, #/commands/check, #/commands/derive, #/commands/idioms, #/commands/idioms diff, #/commands/version, #/entities/SpecFile, #/entities/GeneratedFile, #/algorithms/exitStatus, #/algorithms/checkStatus |
+| cmd/specarch | The command line. Argument handling, finding the specifications under folders, running plug-ins, printing the diagnostics and the exit status. | #/commands/validate, #/commands/gaps, #/commands/document, #/commands/approve, #/commands/generate, #/commands/extract, #/commands/merge, #/commands/diff, #/commands/check, #/commands/derive, #/commands/idioms, #/commands/idioms diff, #/commands/model, #/commands/version, #/entities/SpecFile, #/entities/GeneratedFile, #/algorithms/exitStatus, #/algorithms/checkStatus |
 | schema | The JSON Schemas, embedded into the binary from the files editors use. |   |
 | idioms | The shipped idioms, one folder per concern, embedded into the binary; a release fixes the set. |   |
 | internal/extract | The readers of specarch extract: the commit read (git, run with no user or system configuration), the outline, database, router, documents, OpenAPI, permissions, pages and workflows readers, the Go reader on the standard library's go/parser with dxlib's registration calls and the rule that maps dxlib_module's privilege names, the Swift reader of a code-facts dump with the property lists, build settings and Core Data models it reads as data, the JavaScript and TypeScript reader of a code-facts dump with the message catalogues it reads as data, the Dart reader of a code-facts dump, the subset of TypeScript a page schema is read in, the subset of BPMN 2.0 a workflow is read in, the workflow table read into the same workflows (ADR-118), the check of a dump against the commit it names, the translation of SQL checks into the expression subset, and the tree writer; and the merge of their trees, with the newest commit of a repository read at several found by git's ancestry, a requirement that gives a number of days joined to the one check that names it, a question another tree answers, by giving a key or an element the asking tree gives only by name, or a question kept before it asks left out, the name a question gives written at the key it blocks once another tree declares it, a placeholder source reported, a permission granted and checked by nothing reported, and an operation a printed and a parsed tree do not both give asked about; and specarch check's comparison of a route table, a permission table and a catalogue dump with a specification, each difference with its rule and subject (ADR-124). |   |
@@ -3328,6 +3416,7 @@ Stack: language Go 1.27; toolchain go 1.27.2; platforms darwin/arm64, darwin/amd
 | third_party/typescript-go | The Go source of the TypeScript compiler, typescript-go at the tag UPSTREAM names: the packages its program and checker need, copied out of internal/ by tools/typescript-go/pull.sh with their import paths rewritten and nothing else changed, with upstream's LICENSE and NOTICE.txt (Apache-2.0). |   |
 | readers | The embedded files of the Swift and Dart readers (readers/embed.go), which specarch facts writes into the user's cache. |   |
 | readers/dart | The Dart reader of specarch extract, a Dart package with one program, bin/code_facts_dart.dart: it parses Dart source with the analyzer's parseString and writes the facts specarch extract dart reads as a code-facts dump (ADR-092). specarch facts dart builds it in the user's cache and runs it on the tracked Dart files of a committed folder. |   |
+| internal/canonical | Writes a JSON value in RFC 8785's canonical form, the bytes specarch model prints and the Swift build prints the same. |   |
 | internal/source | Reads a YAML file into a node tree and a plain value, with the line of every node; finds unquoted dates and duplicate keys. |   |
 | internal/spec | Reads a specification from disk, the root file and the stage folders, and merges it into one document in which every node remembers its file; reports the layout problems. |   |
 | cmd/specarch-gen-sql | The plug-in behind generate sql. Reads the request on standard input, answers the migration and the snapshot on standard output, and never touches the disk. | #/commands/generate |
@@ -3361,7 +3450,7 @@ Stack: language Go 1.27; toolchain go 1.27.2; platforms darwin/arm64, darwin/amd
 | internal/expr | The expression subset. Parses with the cel-go parser, refuses what is outside the subset, type-checks with CEL's strict rules, and evaluates with exact integers and decimals. |   |
 | internal/generate | The document targets. techspec writes the arc42 document and its Mermaid diagrams and rewrites the regions between markers in hand-written Markdown; requirements, testplan, traceability, deployment and commissioning write the other documents; questions writes the open questions and what they hold up, the text gaps prints; html writes the whole specification as one page, with the entity diagram as SVG and the workflows and screens made in memory with internal/genbpmn and internal/genui. Every one renders why as an Insight, each citation as a Note, an element's origin as an Origin line and the open questions about it as Open question paragraphs, and marks an internal element; ForEveryone cuts the specification to what a document for everyone shows, counting what it left out. | #/algorithms/markersWellFormed |
 | internal/problems | The problems of a specification, valid or not, gathered from validate's diagnostics and the open questions into one list with ids, columns and notes, written as problems.txt and as a SARIF 2.1.0 log, and marked above their entries in the YAML files of the specification. | #/entities/Problem, #/entities/ProblemNote, #/enums/ProblemSeverity |
-| internal/validate | Schema validation with plain messages, the interface boundary, cross-references across the tree, fail-closed access, concrete integers, expressions, worked examples, tests and their derived cases with the rank of each and the cases left out, the life-cycle links and traceability warnings with the requirements another stakeholder owns exempt, the audience of what an element for everyone names, the open questions and what they cover, origin, implementation references, and the records beside the specification. | #/entities/Diagnostic, #/enums/Rule, #/enums/Severity, #/algorithms/referenceResolves, #/algorithms/permissionGranted, #/algorithms/workedExampleHolds |
+| internal/validate | Schema validation with plain messages, the interface boundary, cross-references across the tree, fail-closed access, concrete integers, expressions, worked examples, tests and their derived cases with the rank of each and the cases left out, the life-cycle links and traceability warnings with the requirements another stakeholder owns exempt, the audience of what an element for everyone names, the open questions and what they cover, origin, implementation references, the records beside the specification, and the positions, resolved references and layout problems specarch model prints. | #/entities/Diagnostic, #/enums/Rule, #/enums/Severity, #/algorithms/referenceResolves, #/algorithms/permissionGranted, #/algorithms/workedExampleHolds |
 
 #### Mappings
 
@@ -3375,6 +3464,7 @@ Stack: language Go 1.27; toolchain go 1.27.2; platforms darwin/arm64, darwin/amd
 | #/entities/ProblemNote | problems.Note | A struct inside its problem, in order; `String()` prints the note line. |
 | #/enums/ProblemSeverity | problems.Severity |   |
 | #/commands/validate | main.runValidate |   |
+| #/commands/model | main.runModel |   |
 | #/commands/gaps | main.runGaps | Prints generate.Questions, the text the questions document target writes. |
 | #/commands/approve | main.runApprove | Writes the record through the approval package after checking the documents with generate.Document. |
 | #/commands/version | main.runVersion |   |
@@ -3545,7 +3635,7 @@ Stack: language Swift 6.0; toolchain Swift Package Manager 6.0; platforms darwin
 |---|---|---|
 | swift/Package.swift | The package. One library, one executable, one test target. |   |
 | swift/Sources/specarch | The executable; it passes the arguments to the library and exits with its status. |   |
-| swift/Sources/SpecArchKit | Everything else. Reading YAML, reading a specification tree into one document, the JSON Schema evaluator and its messages, the specification and implementation checks, the expression subset, tests and their derived cases with the rank of each, the life-cycle links, the open questions and origin, the records beside the specification, and the commands. | #/commands/validate, #/commands/version, #/entities/Diagnostic, #/entities/SpecFile, #/enums/Rule, #/enums/Severity, #/algorithms/exitStatus, #/algorithms/referenceResolves, #/algorithms/permissionGranted, #/algorithms/workedExampleHolds |
+| swift/Sources/SpecArchKit | Everything else. Reading YAML, reading a specification tree into one document, the JSON Schema evaluator and its messages, the specification and implementation checks, the expression subset, tests and their derived cases with the rank of each, the life-cycle links, the open questions and origin, the records beside the specification, the model of specarch model in RFC 8785's canonical form, and the commands. | #/commands/validate, #/commands/model, #/commands/version, #/entities/Diagnostic, #/entities/SpecFile, #/enums/Rule, #/enums/Severity, #/algorithms/exitStatus, #/algorithms/referenceResolves, #/algorithms/permissionGranted, #/algorithms/workedExampleHolds |
 | swift/embed-schemas.sh | Writes the schemas of schema/ into the library as Swift source; a test fails when they differ. |   |
 | readers/swift | The Swift reader of specarch extract, a package of its own with one executable, code-facts-swift: it parses Swift source with SwiftSyntax and writes the facts specarch extract swift reads as a code-facts dump (ADR-087). specarch facts swift builds it in the user's cache and runs it on the tracked Swift files of a committed folder. |   |
 
@@ -3558,6 +3648,7 @@ Stack: language Swift 6.0; toolchain Swift Package Manager 6.0; platforms darwin
 | #/enums/Rule | SpecArchKit.Rule | A String enum with one case per value; a test checks they equal the design's enum. |
 | #/enums/Severity | SpecArchKit.Severity |   |
 | #/commands/validate | SpecArchKit.runValidate |   |
+| #/commands/model | SpecArchKit.runModel |   |
 | #/commands/version | SpecArchKit.run |   |
 | #/commands/document | SpecArchKit.run | Exits 2: this build offers no document target. |
 | #/commands/gaps | SpecArchKit.run | Exits 2: the report is a document, built in Go only; the rules about questions are in this build. |
@@ -11436,6 +11527,9 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | merge-value-object-unnamed | command merge | system | golden | a tree read from a database whose members table has address_street, address_city, address_postcode, created_at and created_by, and an interface tree whose Members has no address and which holds the schema Address of a street, a city and a postcode | merge is run on the two trees | it joins nothing and asks one should question at the three address fields whether they are one value, a field address holding Address, or fields of their own; created_at and created_by, which no schema's parts match, get only their undocumented questions; it exits 0 |
 | merge-workflows-joins-trigger | command merge | system | golden | the tree of a route table that declares requestWriteOff, and the tree of a BPMN file whose workflow leaves its trigger and its service task's operation out, each with a must question naming the operation, requestWriteOff and writeOffLoan | merge is run on the two trees | the trigger is written as requestWriteOff after the workflow's description and its question is left out as joined, naming the tree that declares it; the question for writeOffLoan, which no tree declares, stays open; it exits 0 |
 | merge-workflows-table-and-bpmn | command merge | system | golden | the tree extract workflows wrote of a BPMN file defining the write-off workflow, and the tree extract workflows --table wrote of the workflow table of the same workflow in an engine's own format, both read from one repository at one commit | merge is run on the two trees | it writes one workflow write-off whose description and steps both trees give alike, citing the BPMN file and the table's definition file, role desk-supervisor citing both, the source's clauses joined, each question the table's tree asks again at the same key left out as asked twice, the could question for the form kept, and exits 0 |
+| model-exit-2 | command model | system | red | a path that does not exist | model is run on it | it names the path it cannot read on standard error, prints nothing, and exits 2 |
+| model-usage-error | command model | system | red | no folder or file | model is run with no argument | it prints how to use it and exits 2 |
+| model-writes-json | command model | system | golden | a specification with a requirement, an entity, a permission, a role, an operation, two tests, an implementation file that names an operation and an element the specification lacks, and a folder that is not a stage | model is run on it | it prints one JSON document in canonical form with the merged document, the position of every node, the references that resolve and the keyword of each, the layout problem of the folder, and the implementation file with its one resolved reference, and exits 0 |
 | validate-0-3-caller-property | command validate | system | red | a check constraint reading a field's property with a dot, a check constraint naming caller.memberId, a rows rule naming the caller's property in the wrong case, and one naming a property the caller does not declare | validate is run | it reports caller_property for each of the four, naming the one place a dot may appear, the rows rule as the one place the caller is named, the property's right case and the properties the caller has, and exits 1 |
 | validate-0-3-callers | command validate | system | red | an operation whose callers is empty, one listing people twice, a client none of whose roles grants its permission, a service with no roles and a name that is no client, and a route closed with nobody that lists callers | validate is run | it reports callers for the empty list, the client without a granting role, the service without roles, the unknown name with the nearest client, the repeated people, and the closed route, and exits 1 |
 | validate-0-3-claims | command validate | system | red | an access token whose exp is written as a string, whose own claim is in snake case, and whose aud lists two URIs and a value with a colon that is no URI | validate is run | it reports claim for the retyped exp and the snake-case claim, token_audience for the value that is no URI and nothing for the two URIs, and exits 1 |
@@ -11796,7 +11890,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | SA-9 | A specification and its implementations shall be separate files; a specification holds no stack-specific key and an implementation file adds no design. | constraint | must | accepted | test | A stack-specific extension key in a specification is reported as stack_key. A design keyword in an implementation file is reported as design_key. | NEED-2 |
 | SA-10 | An implementation file's implements and pointers shall resolve in the specification it names, at the same version. | functional | must | accepted | test | An implementation written against an older version of its specification is reported as implements. A pointer to an object the specification does not have is reported as design_ref. | NEED-2 |
 | SA-51 | specarch shall list every problem of a specification, valid or not, in one problems file and its SARIF 2.1.0 form, each error, warning and open question with a stable id, file, line and column, JSON pointer, rule, a message saying how to fix it, and notes at the sources it came from and the entries it blocks, and every file specarch writes shall mark the entry a problem touches. | interface | must | accepted | test | specarch document problems on a specification with an error, a warning and a must question writes problems.txt with one line each in the form file:line:column: severity: pointer: rule: message [id], sorted by file and line, the question followed by a note at each source it cites and each entry it blocks, and exits 1. The same run writes problems.sarif, a SARIF 2.1.0 log with the same results, the question as kind open and level none, and each id as a partial fingerprint; a second run writes the same bytes. A specification with no problem gets a problems file that says so. A fragment with one entry that does not parse reports one yaml_syntax error at that entry's line and pointer, keeps its other entries, and reports no reference to the broken entry's name; an implementation file with a broken entry still names the problems file's folder. | NEED-1, NEED-8 |
-| SA-74 | specarch model shall print, in both builds, one JSON document in RFC 8785's canonical form that holds, for every specification of the folders given, the merged document, every node's file, line and column, every resolved reference with the keyword that made it, the layout problems, and each implementation file and estate, so that a program reads a specification as specarch does without a loader of its own. | interface | must | proposed | test | specarch model on a folder with a valid specification prints one JSON document whose positions name, for every entry the problems file could name, the file, line and column the problems file would report, and whose references list every satisfies, verifies, $ref, target, permission, emits, calls, decidedIn and implements link with its from, to and through; the Go build and the Swift build print the same bytes. A folder with a layout problem is printed with that problem in the problems file's form and exit status 0; a folder with no specification, or one that cannot be read, is exit status 2 and the reason on standard error. The validator's errors, warnings and open questions are not in the document; the problems file is their one list. | NEED-3, NEED-7 |
+| SA-74 | specarch model shall print, in both builds, one JSON document in RFC 8785's canonical form that holds, for every specification of the folders given, the merged document, every node's file, line and column, every resolved reference with the keyword that made it, the layout problems, and each implementation file and estate, so that a program reads a specification as specarch does without a loader of its own. | interface | must | accepted | test | specarch model on a folder with a valid specification prints one JSON document whose positions name, for every entry the problems file could name, the file, line and column the problems file would report, and whose references list every satisfies, verifies, $ref, target, permission, emits, calls, decidedIn and implements link with its from, to and through; the Go build and the Swift build print the same bytes. A folder with a layout problem is printed with that problem in the problems file's form and exit status 0; a folder with no specification, or one that cannot be read, is exit status 2 and the reason on standard error. The validator's errors, warnings and open questions are not in the document; the problems file is their one list. | NEED-3, NEED-7 |
 
 **Insight on SA-31:** A test the specification implies is worth most when it runs; what differs between two projects in one language (how a caller signs in, how a record is stored, how a request is sent) is the harness, so the generated file needs nothing but it.
 
@@ -11970,8 +12064,6 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 
 **Note on SA-51:** From Static Analysis Results Interchange Format (SARIF) Version 2.1.0, 2020, clause result: A result names its rule, its kind and level, its locations, and partial fingerprints that recognise it in a later run. <https://docs.oasis-open.org/sarif/sarif/v2.1.0/sarif-v2.1.0.html>
 
-**Problem on SA-74:** warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SA-74; add verifies: [SA-74] to the test that shows it is met [requirement_unverified@requirements/requirements/validator.yaml#/requirements/SA-74]
-
 **Insight on SA-74:** An editor or any other program that draws from a specification would otherwise load the files itself, a second loader in another language that drifts from the first; one command in both builds, printing one byte form, gives it what specarch reads and lets the conformance suite hold the two builds to the same document.
 
 ### Traceability
@@ -12053,7 +12145,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-71 | decisions ADR-123 | tests generate-sqlc-check-hand-written; tests generate-sqlc-dialect-refused; tests generate-sqlc-hand-written-refused; tests generate-sqlc-queries |
 | SA-72 | commands check; decisions ADR-124; decisions ADR-128 | tests check-dump-of-no-format; tests check-fails-on-a-difference; tests check-skips-a-partition; tests check-succeeds; tests check-usage-error |
 | SA-73 | enums DocumentTarget; enums Rule; commands document; decisions ADR-129; decisions ADR-136; decisions ADR-137 | tests document-handover-none; tests document-writes-handover; tests validate-build-task-unknown; tests validate-handover-build-missing; tests validate-handover-incomplete; tests validate-handover-missing; tests validate-handover-no-customer; tests validate-handover-valid |
-| SA-74 | decisions ADR-138 |   |
+| SA-74 | commands model; decisions ADR-138 | tests model-exit-2; tests model-usage-error; tests model-writes-json |
 | SA-75 | decisions ADR-141 |   |
 | SA-76 | decisions ADR-142; decisions ADR-143 |   |
 | SA-77 | enums Rule; decisions ADR-145; decisions ADR-146 | tests document-techspec-envelope-stream; tests extract-go-dxlib-envelope-stream; tests generate-go-dxlib-envelope-stream; tests generate-openapi-dxlib-envelope-stream; tests validate-handshake; tests validate-stream |

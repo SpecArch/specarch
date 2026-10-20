@@ -1,0 +1,9 @@
+entities:
+  Loan:
+    type: object
+    properties:
+      id: { type: string, maxLength: 36 }
+      fee: { type: number, format: double, minimum: 0.5 }
+    required: [id]
+    primaryKey: [id]
+    satisfies: [LEND-1]

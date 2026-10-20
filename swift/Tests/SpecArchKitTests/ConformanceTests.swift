@@ -10,7 +10,7 @@ private let repository = URL(fileURLWithPath: #filePath)
 private let conformance = repository.appendingPathComponent("spec/tests")
 
 /// The commands this implementation offers. Documents and generators are built in Go only.
-private let offered: Set<String> = ["validate", "version"]
+private let offered: Set<String> = ["validate", "model", "version"]
 
 /// Every file under dir, keyed by its slash path, leaving out the top-level
 /// names given.

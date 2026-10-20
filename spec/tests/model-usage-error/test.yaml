@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: model
+level: system
+scenario: red
+covers: [usage error]
+given: "no folder or file"
+when: model is run with no argument
+then: "it prints how to use it and exits 2"
+verifies: [SA-74]

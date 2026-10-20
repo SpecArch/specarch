@@ -1,0 +1,16 @@
+permissions:
+  loans.read: { description: See loans. }
+roles:
+  clerk: { description: Staff at the desk., permissions: [loans.read] }
+paths:
+  /loans:
+    get:
+      operationId: listLoans
+      summary: List loans
+      permission: loans.read
+      responses:
+        "200":
+          description: The loans.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/entities/Loan" } }

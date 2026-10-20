@@ -1,0 +1,83 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.3.schema.json
+commands:
+  model:
+    summary: Print the specifications as one JSON document, for a program
+    description: |
+      Reads the specifications, implementation files and estates found
+      under the paths given, as validate finds them, and prints one JSON
+      document in RFC 8785's canonical form: object members sorted by
+      their names as UTF-16 code units, no whitespace, every number as
+      ECMAScript prints a double, then a newline. It is how an editor or
+      another program reads a specification as specarch reads it, without
+      a loader of its own, and both builds print the same bytes.
+
+      The document holds `specarchModel`, the version of its shape, `0.1`;
+      `program`, the program version; `specifications`, one per root file,
+      sorted by it; `implementations`, the implementation files outside
+      any specification; and `estates`, each estate file with its modules.
+
+      A specification has its `root` file, its `name` and `version` from
+      `info` and its `metaModel` from `specarch`, each null when the file
+      gives none; the merged `document` as plain values, what the schema
+      validates; `positions`, which maps the JSON pointer of every node,
+      `/` for the whole document as the problems file writes it, to the
+      `file`, `line` and `column` where it starts: its key in a mapping, or
+      the item in a list; `references`, every reference that resolves to an
+      element of the specification, in document order, each with `from`,
+      the pointer of the entry that refers, `to`, the pointer of the element,
+      and `through`, the keyword that made it; `problems`, the problems
+      found while reading it, such as a folder that is not a stage, a
+      section in the wrong stage or a file that does not parse, in the
+      problems file's form (`file`, `line`, `column`, `severity`, `path`,
+      `rule`, `message`, `id`); and `implementations`, each implementation
+      file inside it.
+
+      The references are made by `$ref`, when it is a pointer into the
+      specification; by `satisfies`, `verifies` and `decidedIn` wherever
+      they stand; and by the keywords that name an element by its name
+      where the meta-model puts them: a relation's `target`, a guard's or a
+      list's `entity`, a page's `entity`, a job's or a command's `reads` and
+      `writes`, a workflow's `subject` and a test's `entity` name an entity
+      or a view; `permission` on an operation, a command, a page, a page's
+      action and a workflow's step, and a role's `permissions`, name a
+      permission; a job's `role`, an approval's `approvers`, a client's
+      `roles` and a signer's `role` name a role; `emits` on an operation, a
+      job and a workflow, and a job trigger's `consumes`, name a channel's
+      message; `calls` names a dependency; a menu's or a flow step's `page`
+      and a test's `page` name a page; a workflow's `trigger`, a workflow
+      step's `operation` and a test's `operation` name an operation by its
+      operationId; and `callers`, `token`, `handshake`, `middlewares`, and a
+      test's `command`, `job`, `workflow`, `flow` and `requirement` name the
+      element of their section. A reference that does not resolve is a
+      problem of validate and is not listed; nor is a reference into
+      another specification.
+
+      An implementation file has its `file`, its `stack`, its `document`,
+      its `positions`, its `references`, the design pointers under
+      `implements` and a mapping's `design` that resolve in the
+      specification it is in, and its `problems`, what of its YAML does
+      not parse. An estate's module has its `name`, its `location` and
+      `version` as the estate writes them, and `specification`, the root
+      file of the specification read for it, or null.
+
+      The validator's errors and warnings are not in the document: the
+      problems file and its SARIF form are their one list. A specification
+      that does not validate is printed all the same, with every problem
+      found while reading it.
+    permission: public
+    arguments:
+      - name: paths
+        description: Folders and files, as validate takes them.
+        required: true
+        repeatable: true
+        schema: { type: string }
+    reads:
+      - { path: "{paths}", description: "Root files, the files under their stage folders, implementation files and estates." }
+      - { path: "each estate's modules, at their location", description: "The specification of every module an estate lists, read with the estate." }
+    standardOutput: One JSON document in RFC 8785's canonical form, then a newline.
+    standardError: A usage message on a usage error, and the reason on a path that could not be read.
+    exitCodes:
+      "0": printed
+      "2": usage error, a path could not be read, or a folder holds no specification, no implementation file and no estate
+    satisfies: [SA-74]
+    why: An editor shows a specification as specarch reads it only when it reads it through specarch; a second loader in another language would drift from the first.

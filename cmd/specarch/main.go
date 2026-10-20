@@ -10,6 +10,7 @@
 //	specarch check [--allowlist <file>] [--since <revision>] <specification> <dump>...
 //	specarch derive <folder>...
 //	specarch idioms [diff <idiom>] <folder>...
+//	specarch model <folder or file>...
 //	specarch version
 package main
 
@@ -58,6 +59,7 @@ const usage = `usage:
   specarch derive <folder>...               write a draft test for every derived case no test covers
   specarch idioms <folder>...               list the idioms each implementation file uses, and how
   specarch idioms diff <idiom> <folder>...  print a shipped idiom's parts beside each override's
+  specarch model <folder or file>...        print the specifications as one JSON document, for a program
   specarch version                          print the program version
 
 A specification is a folder holding specarch.yaml. A folder given here is
@@ -100,6 +102,8 @@ func run(args []string, stdout, stderr io.Writer) int {
 		return runIdioms(args[1:], stdout, stderr)
 	case "facts":
 		return runFacts(args[1:], stdout, stderr)
+	case "model":
+		return runModel(args[1:], stdout, stderr)
 	case "version":
 		if len(args) > 1 {
 			fmt.Fprintf(stderr, "specarch version takes no arguments\n\n%s", usage)

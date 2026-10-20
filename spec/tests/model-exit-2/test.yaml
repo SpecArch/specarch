@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: model
+level: system
+scenario: red
+covers: [exit 2]
+given: "a path that does not exist"
+when: model is run on it
+then: "it names the path it cannot read on standard error, prints nothing, and exits 2"
+verifies: [SA-74]

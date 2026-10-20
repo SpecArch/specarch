@@ -6,6 +6,7 @@ public let programVersion = "0.7.1"
 let usage = """
 usage:
   specarch validate <folder or file>...    check specifications and implementation files
+  specarch model <folder or file>...        print the specifications as one JSON document, for a program
   specarch version                          print the program version
 
 A specification is a folder holding specarch.yaml. A folder given here is
@@ -42,6 +43,8 @@ public func run(_ args: [String], stdout: TextSink, stderr: TextSink) -> Int32 {
     switch command {
     case "validate":
         return runValidate(Array(args.dropFirst()), stdout, stderr)
+    case "model":
+        return runModel(Array(args.dropFirst()), stdout, stderr)
     case "version":
         if args.count > 1 {
             stderr.write("specarch version takes no arguments\n\n\(usage)")

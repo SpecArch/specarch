@@ -89,7 +89,7 @@ libraries:
 layout:
   cmd/specarch:
     description: The command line. Argument handling, finding the specifications under folders, running plug-ins, printing the diagnostics and the exit status.
-    implements: ["#/commands/validate", "#/commands/gaps", "#/commands/document", "#/commands/approve", "#/commands/generate", "#/commands/extract", "#/commands/merge", "#/commands/diff", "#/commands/check", "#/commands/derive", "#/commands/idioms", "#/commands/idioms diff", "#/commands/version", "#/entities/SpecFile", "#/entities/GeneratedFile", "#/algorithms/exitStatus", "#/algorithms/checkStatus"]
+    implements: ["#/commands/validate", "#/commands/gaps", "#/commands/document", "#/commands/approve", "#/commands/generate", "#/commands/extract", "#/commands/merge", "#/commands/diff", "#/commands/check", "#/commands/derive", "#/commands/idioms", "#/commands/idioms diff", "#/commands/model", "#/commands/version", "#/entities/SpecFile", "#/entities/GeneratedFile", "#/algorithms/exitStatus", "#/algorithms/checkStatus"]
   schema:
     description: The JSON Schemas, embedded into the binary from the files editors use.
   idioms:
@@ -104,6 +104,8 @@ layout:
     description: "The embedded files of the Swift and Dart readers (readers/embed.go), which specarch facts writes into the user's cache."
   readers/dart:
     description: "The Dart reader of specarch extract, a Dart package with one program, bin/code_facts_dart.dart: it parses Dart source with the analyzer's parseString and writes the facts specarch extract dart reads as a code-facts dump (ADR-092). specarch facts dart builds it in the user's cache and runs it on the tracked Dart files of a committed folder."
+  internal/canonical:
+    description: Writes a JSON value in RFC 8785's canonical form, the bytes specarch model prints and the Swift build prints the same.
   internal/source:
     description: Reads a YAML file into a node tree and a plain value, with the line of every node; finds unquoted dates and duplicate keys.
   internal/spec:
@@ -184,7 +186,7 @@ layout:
     description: The problems of a specification, valid or not, gathered from validate's diagnostics and the open questions into one list with ids, columns and notes, written as problems.txt and as a SARIF 2.1.0 log, and marked above their entries in the YAML files of the specification.
     implements: ["#/entities/Problem", "#/entities/ProblemNote", "#/enums/ProblemSeverity"]
   internal/validate:
-    description: Schema validation with plain messages, the interface boundary, cross-references across the tree, fail-closed access, concrete integers, expressions, worked examples, tests and their derived cases with the rank of each and the cases left out, the life-cycle links and traceability warnings with the requirements another stakeholder owns exempt, the audience of what an element for everyone names, the open questions and what they cover, origin, implementation references, and the records beside the specification.
+    description: Schema validation with plain messages, the interface boundary, cross-references across the tree, fail-closed access, concrete integers, expressions, worked examples, tests and their derived cases with the rank of each and the cases left out, the life-cycle links and traceability warnings with the requirements another stakeholder owns exempt, the audience of what an element for everyone names, the open questions and what they cover, origin, implementation references, the records beside the specification, and the positions, resolved references and layout problems specarch model prints.
     implements: ["#/entities/Diagnostic", "#/enums/Rule", "#/enums/Severity", "#/algorithms/referenceResolves", "#/algorithms/permissionGranted", "#/algorithms/workedExampleHolds"]
 
 mappings:
@@ -196,6 +198,7 @@ mappings:
   "#/entities/ProblemNote": { target: problems.Note, description: "A struct inside its problem, in order; `String()` prints the note line." }
   "#/enums/ProblemSeverity": { target: problems.Severity }
   "#/commands/validate": { target: main.runValidate }
+  "#/commands/model": { target: main.runModel }
   "#/commands/gaps": { target: main.runGaps, description: "Prints generate.Questions, the text the questions document target writes." }
   "#/commands/approve": { target: main.runApprove, description: "Writes the record through the approval package after checking the documents with generate.Document." }
   "#/commands/version": { target: main.runVersion }

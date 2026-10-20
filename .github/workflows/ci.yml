@@ -389,6 +389,20 @@ jobs:
         run: swift test --package-path swift
       - name: Validate SpecArch's own specification and every example
         run: swift/.build/release/specarch validate spec examples
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: stable
+          check-latest: true
+      - name: Both builds print the same model of SpecArch's own specification, every example and the estate
+        # specarch model is an editor's loader; the two builds must print
+        # the same bytes for it to read either (ADR-138).
+        run: |
+          go build -o "$RUNNER_TEMP/specarch-go" ./cmd/specarch
+          for paths in "spec examples" examples/estate/specarch-estate.yaml; do
+            "$RUNNER_TEMP/specarch-go" model $paths > "$RUNNER_TEMP/go.json" || exit 1
+            swift/.build/release/specarch model $paths > "$RUNNER_TEMP/swift.json" || exit 1
+            cmp "$RUNNER_TEMP/go.json" "$RUNNER_TEMP/swift.json" || exit 1
+          done
       - name: The library lending example's iPhone screens build and their tests pass
         # The Swift package of the generated SwiftUI screens, with the app
         # around it written by hand, built as a library and run as tests

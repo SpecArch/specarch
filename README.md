@@ -180,7 +180,10 @@ dumps of its code and fails on a difference its allowlist does not name,
 and `diff` compares two versions of a
 specification and checks the release between them, and `derive` writes a
 draft test for every derived case no test covers, `idioms` lists the
-idioms each implementation file uses, and `facts` writes the code-facts
+idioms each implementation file uses, `model` prints the specifications
+as one JSON document for a program such as an editor (the merged
+document, where every node came from, the references and the layout
+problems), and `facts` writes the code-facts
 dump extract reads of a committed folder of JavaScript, TypeScript and
 Vue (its reader is inside the program, on the TypeScript compiler's own
 Go source, so it needs no Node), Swift or Dart (their readers come with
@@ -233,8 +236,8 @@ built from main:
 
     go install github.com/SpecArch/specarch/cmd/specarch-gen-ui-swiftui@main
 
-The Swift build, for macOS, has the validate and version verbs and gives
-the same output. With Swift 6:
+The Swift build, for macOS, has the validate, model and version verbs and
+gives the same output. With Swift 6:
 
     swift build -c release --package-path swift
     swift/.build/release/specarch validate spec examples

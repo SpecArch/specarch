@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.3.schema.json
 decisions:
   ADR-155:
     title: specarch decide writes the decision as a file of its own under the next ID, takes the question out of its file as text, prints the entries to write rather than writing them, and asks for a source when the specification tracks origin

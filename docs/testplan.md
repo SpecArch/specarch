@@ -2861,9 +2861,9 @@ Scenario: golden; level: system; verifies SA-88.
 
 Scenario: red; level: system; verifies SA-88.
 
-- Given: the estate of validate-caller-estate with a trust domain that is no URI, a role granting a permission the core does not declare, a core permission no role of the identity module grants, callers naming a service with no roles, an application with no granting role and a client the identity module lacks, via naming an application, a service proving itself with a token and a role, and a test whose caller is a role the identity module lacks
+- Given: the estate of validate-caller-estate with a trust domain that is no URI, a role granting a permission the core does not declare, a core permission no role of the identity module grants, callers naming a service with no roles, an application with no granting role and a client the identity module lacks, via naming an application, a service proving itself with a token and a role, a test whose caller is a role the identity module lacks, and one whose caller names a client where a role is meant
 - When: validate is run on the estate file
-- Then: it reports each at the entry, as token_audience, reference, permission_ungranted, callers, via and schema, the same in both builds, and exits 1
+- Then: it reports each at the entry, as token_audience, reference (each a name the identity module lacks or an element of the wrong kind), permission_ungranted, callers, via and schema, the same in both builds, and exits 1
 
 #### validate-change-applied
 

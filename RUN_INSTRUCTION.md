@@ -80,8 +80,11 @@ format and its printer's contract. Every code reader takes `--source-key
 These commands run in zsh and in bash, from the project's root. They
 assume Go 1.27.2 or later, git, and Podman for the database and
 permission dumps. Give your own paths in place of `docs/`, `code/`,
-`web/` and `workflows/`; any layout works, since every path is an
-argument. Leave out the lines of a source your project does not have.
+`web/`, `workflows/` and the others; any layout works, since every path
+is an argument. Leave out the lines of a source your project does not
+have. In sections 2 and 3 the first blocks are the sources of the worked
+example below; the blocks headed "Other sources" cover the readers it has
+no source for.
 
 ### 1. Install
 
@@ -113,6 +116,21 @@ readers write, `trees/`, is ignored.
 project's own printers; each runs in the folder given before the dump
 file.
 
+Other sources: a SwiftUI or Swift server folder (`ios/`), a Flutter or
+Dart folder (`mobile/`), workflow definitions in a format of the
+project's own (`flows/`, read by a printer of the project's) and a
+gateway's table of services (`gateway/`):
+
+    specarch facts swift ios dumps/ios.json
+    specarch facts dart mobile dumps/mobile.json
+    sh "$SA/tools/workflows/dump-workflows.sh" flows dumps/workflows.json sh ../tools/print-workflows.sh
+    sh "$SA/tools/gateways/dump-gateway.sh" gateway dumps/gateway.json sh ../tools/print-gateway.sh
+    git add dumps && git commit -m "Dumps of the other sources"
+
+`sh ../tools/print-workflows.sh` and `sh ../tools/print-gateway.sh` stand
+for the project's own printers, as above; each script's first lines give
+what its printer writes.
+
 ### 3. Read each source
 
 The go reader needs an implementation file that names the permission
@@ -140,7 +158,38 @@ Then one reader per source, each into a tree of its own:
     specarch extract pages --facts dumps/web.json --out trees/pages web/app
     specarch extract workflows --out trees/workflows workflows/write-off.bpmn
 
-Each prints what it counted, what it wrote and every thing the
+Other sources, each into a tree of its own as well:
+
+    specarch extract javascript --out trees/web dumps/web.json
+    specarch extract swift --out trees/ios dumps/ios.json
+    specarch extract dart --out trees/mobile dumps/mobile.json
+    specarch extract workflows --table --out trees/flows dumps/workflows.json
+    specarch extract gateway --out trees/gateway dumps/gateway.json
+    specarch extract outline --out trees/outline docs workflows
+
+`extract javascript` reads Express and Fastify servers and React Router
+and vue-router apps (`examples/room-booking` is one); for a Next.js or
+Nuxt file router, `extract pages` above reads the same dump. The
+`javascript`, `swift` and `dart` readers take `--implementation <file>`
+for the permission check, as the go reader does. `extract outline`
+lists every file it is given as a clause and reads nothing in it, so that
+`gaps` shows what no reader has read yet.
+
+The flags that change how a document is named or read go on its line, in
+place of the plain `documents` line above:
+
+    specarch extract documents --given-outside --source-key manual --language en --out trees/manual docs/manual.md
+    specarch extract documents --vocabulary de.specarch-vocabulary.yaml --out trees/handbook docs/handbuch.md
+
+`--given-outside` marks the manual as given to parties outside the
+project. `--source-key manual` names the source `manual` in the tree, in
+place of the file's name (for a code reader, in place of `code`).
+`--language <tag>` reads with a vocabulary SpecArch ships (English only,
+at v0.7.2); `--vocabulary <file>` reads with a vocabulary the project
+writes, as [`docs/vocabularies.md`](docs/vocabularies.md) says, and the
+same file goes to `merge --vocabulary`.
+
+Each reader prints what it counted, what it wrote and every thing the
 specification cannot hold, with the question that asks about it.
 
 ### 4. Merge, validate, read
@@ -161,8 +210,10 @@ reads the sources:
 `must` or `should` question is open, which is the normal state of a
 specification read from sources. `review/` gets `problems.txt` and
 `problems.sarif`, `questions.md`, `requirements.md`, `techspec.md` and
-`index.html`. A merge given `--vocabulary <file>` reads the documents'
-days with that file's words, for documents not written in English.
+`index.html`. Add the tree of each other source to the merge, after the
+documents' trees. A merge given `--vocabulary <file>` reads the
+documents' days with that file's words, for documents not written in
+English.
 
 ### 5. Answer the questions
 
@@ -187,13 +238,14 @@ again: it reports an error at each entry not written yet.
 
 ### 6. After the documents or the code change
 
-Commit the change, make the dumps of what changed again, read every
-source into a new trees folder and merge into a new folder, then compare
-the two specifications:
+Commit the change. Then, for each source that changed, make its dump
+again (section 2) and read it into a new tree under `trees/`; reuse the
+tree of every source that did not change. Merge into a new folder and
+compare the two specifications. Here only the manual changed:
 
     git add -A && git commit -m "The change"
-    specarch extract documents --out trees2/manual docs/manual.md
-    specarch merge --out spec-next trees2/manual trees/openapi trees/database trees/router trees/go trees/permissions trees/pages trees/workflows
+    specarch extract documents --out trees/manual-next docs/manual.md
+    specarch merge --out spec-next trees/manual-next trees/openapi trees/database trees/router trees/go trees/permissions trees/pages trees/workflows
     specarch diff spec spec-next
 
 `merge` writes a new specification from the trees and carries nothing
@@ -201,16 +253,16 @@ over from an earlier one. `diff` lists what changed, including the
 decision records and decided entries that `spec` has and `spec-next`
 lacks: copy those across, then validate again. `diff` also reports an
 error while no release record exists for the version, which matters only
-when a version is released. A tree whose source did not change can be
-merged again as it is, as `trees/openapi` and the others are above.
+when a version is released.
 
 ## Worked example
 
 `examples/lending-desk/sources/` in the clone holds a small public sample:
 a desk manual, the OpenAPI file it was given, a Go service with
 migrations, seeds and both printers, a Next.js front end and a BPMN
-workflow. They disagree on purpose. To run every command above on it,
-make the project folder from the sample, then run sections 2 to 6 in it:
+workflow. They disagree on purpose. To run the commands above on it,
+make the project folder from the sample, then run sections 2 to 6 in it,
+the "Other sources" blocks and the flagged `documents` lines left out:
 
     mkdir -p "$HOME/lending-desk/docs" "$HOME/lending-desk/workflows"
     cd "$HOME/lending-desk"
@@ -251,6 +303,26 @@ What the run gives, at v0.7.2:
 - After the manual's change, `diff spec spec-next` lists MANUAL-2 and the
   manual's source as changed, and ADR-001 and the `owner-answers` source
   as present only in `spec`.
+
+- Of the other lines, those with a source in the sample were run in a
+  second copy of it: `extract javascript` counts the 6 files of `web`
+  and writes nothing, since the front end is a Next.js router that
+  `extract pages` reads; `extract outline` lists the 3 files of `docs`
+  and `workflows`; `extract documents --given-outside --source-key manual
+  --language en` writes the same 4 requirements and 1 entity as the plain
+  line.
+
+The sample has no Swift, Dart, workflow-table or gateway source. Their
+lines in the "Other sources" blocks were run at v0.7.2 on the sources of
+the conformance cases `spec/tests/extract-swift-screens`,
+`extract-dart-models`, `extract-workflows-table` and `extract-gateway`,
+copied into a new git project, with printers that print the cases'
+tables: `extract swift` wrote 9 pages, 1 entity, 1 schema and 25
+questions; `extract dart` 3 schemas, 1 enum and 7 questions;
+`extract workflows --table` 1 workflow, 1 role and 7 questions;
+`extract gateway` 1 gateway, 3 dependencies, 3 settings and 10
+questions. The `--vocabulary` line was not run: SpecArch ships no
+vocabulary but English at v0.7.2, and the file is the project's own.
 
 `examples/lending-desk/extract.sh` runs the same readers and merge on the
 committed sample in place.

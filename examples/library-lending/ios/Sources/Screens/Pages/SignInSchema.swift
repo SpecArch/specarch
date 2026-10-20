@@ -1,0 +1,28 @@
+import Foundation
+
+/// The sign-in page as data, read by TaskPage.
+let signInSchema = TaskPageSchema(
+    title: "sign-in.title",
+    submit: .init(operation: "signIn", method: "POST", path: "/sessions"),
+    fields: [
+        .init(type: "email", name: "email", label: "sign-in.fields.email", required: true),
+        .init(
+            type: "password",
+            name: "password",
+            label: "sign-in.fields.password",
+            required: true,
+            minLength: 8,
+            maxLength: 200,
+            rules: [
+                .init(text: "screens.minLength", count: 8),
+                .init(text: "screens.maxLength", count: 200)
+            ]
+        )
+    ],
+    checks: [],
+    failed: [.init(status: 401, problem: "sign-in-refused", message: "sign-in.failed.sign-in-refused", field: "password")],
+    events: [
+        .init(status: 200, navigate: "members-list", message: "sign-in.onSubmitted.200"),
+        .init(status: 201, navigate: "second-factor", keepsReturnTo: true)
+    ]
+)

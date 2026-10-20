@@ -389,3 +389,10 @@ jobs:
         run: swift test --package-path swift
       - name: Validate SpecArch's own specification and every example
         run: swift/.build/release/specarch validate spec examples
+      - name: The library lending example's iPhone screens build and their tests pass
+        # The Swift package of the generated SwiftUI screens, with the app
+        # around it written by hand, built as a library and run as tests
+        # on the Mac, with no simulator (docs/ui-swiftui.md).
+        run: |
+          swift build --package-path examples/library-lending/ios
+          swift test --package-path examples/library-lending/ios

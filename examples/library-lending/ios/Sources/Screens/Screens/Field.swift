@@ -1,0 +1,98 @@
+import SwiftUI
+
+/// One field of a page, drawn by the SwiftUI control its type takes, with
+/// the problem found with its value under it.
+public struct Field: View {
+    let field: FieldSchema
+    @Binding var value: String
+    let problem: String?
+    let texts: Texts
+    /// Shown and not changed, while the field's own rule holds.
+    var readOnly = false
+    /// The label of a second entry of the field, in place of its own.
+    var again: String? = nil
+    /// The record a lookup picked, for the fields it fills.
+    var onPick: ((Fields) -> Void)? = nil
+
+    public init(field: FieldSchema, value: Binding<String>, problem: String?, texts: Texts, readOnly: Bool = false, again: String? = nil, onPick: ((Fields) -> Void)? = nil) {
+        self.field = field
+        self._value = value
+        self.problem = problem
+        self.texts = texts
+        self.readOnly = readOnly
+        self.again = again
+        self.onPick = onPick
+    }
+
+    var label: String { again ?? say(texts, field.label) }
+
+    public var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            control
+            if field.type == .password, let rules = field.rules, !rules.isEmpty {
+                Text(rules.map { say(texts, $0) }.joined(separator: " ")).font(.footnote).foregroundStyle(.secondary)
+            }
+            if let problem {
+                Text(problem).font(.footnote).foregroundStyle(.red).accessibilityLabel(label + ": " + problem)
+            }
+        }
+        .disabled(readOnly)
+    }
+
+    @ViewBuilder private var control: some View {
+        switch field.type {
+        case .password:
+            SecureField(label, text: $value)
+        case .email:
+            TextField(label, text: $value)
+                .textContentType(.emailAddress)
+                #if os(iOS)
+                .keyboardType(.emailAddress)
+                .textInputAutocapitalization(.never)
+                #endif
+                .autocorrectionDisabled()
+        case .text:
+            TextField(label, text: $value)
+        case .textArea:
+            VStack(alignment: .leading) {
+                Text(label)
+                TextEditor(text: $value).frame(minHeight: 80)
+            }
+        case .number:
+            TextField(label, text: $value)
+                #if os(iOS)
+                .keyboardType(.decimalPad)
+                #endif
+        case .date:
+            DateField(label: label, value: $value)
+        case .select:
+            Picker(label, selection: $value) {
+                Text(say(texts, "screens.none")).tag("")
+                ForEach(field.options ?? [], id: \.self) { option in
+                    Text(option).tag(option)
+                }
+            }
+        case .checkbox:
+            Toggle(label, isOn: Binding(get: { value == "true" }, set: { value = $0 ? "true" : "false" }))
+        case .lookup:
+            Lookup(field: field, label: label, value: $value, texts: texts, readOnly: readOnly, onPick: onPick)
+        case .value, .valueList:
+            Text(label)
+        }
+    }
+}
+
+/// A day written yyyy-mm-dd, picked from a calendar; empty until one is picked.
+struct DateField: View {
+    let label: String
+    @Binding var value: String
+
+    static let format: Date.ISO8601FormatStyle = .iso8601.year().month().day()
+
+    var body: some View {
+        DatePicker(label, selection: Binding(
+            get: { (try? Self.format.parse(value)) ?? Date() },
+            set: { value = $0.formatted(Self.format) }
+        ), displayedComponents: .date)
+    }
+}

@@ -98,6 +98,9 @@ type gen struct {
 	root     string
 	diags    []Diagnostic
 	list     map[string]string // the paginated-list idiom's names
+	// opened are the pages a link may open: those written and those
+	// another stakeholder owns; menuEntry the menu entries written.
+	opened, menuEntry map[string]bool
 }
 
 func (g *gen) problem(severity, path, format string, args ...any) {
@@ -142,31 +145,77 @@ func Generate(r *Request) Response {
 	if g.failed() {
 		return g.response(nil)
 	}
-	var events []event
 	pages := obj0(g.spec["pages"])
 	owned := ownership.Of(g.impl.Content)
+	// screen is one page written: its HTML, its module and its events.
+	type screen interface {
+		html(g *gen) string
+		js() string
+		events() []event
+	}
 	type written struct {
 		name string
-		p    *page
+		p    screen
 	}
 	var ws []written
 	var elements []string
+	var lists []*page
+	var views []*viewPage
+	g.opened = map[string]bool{}
 	for _, name := range sortedKeys(pages) {
 		pg := obj0(pages[name])
 		if owned.Covers(ownership.Entity("pages", name)) {
+			g.opened[name] = true
 			continue // another stakeholder's page; a link to it stays
 		}
-		if text(pg["kind"]) != "list" {
-			g.problem("warning", "/pages/"+name, "%s is a %s, and this version of specarch-gen-ui writes lists only; it is left out", name, text(pg["kind"]))
+		switch text(pg["kind"]) {
+		case "list":
+			if p := g.page(name, pg); p != nil {
+				lists = append(lists, p)
+				ws = append(ws, written{name, p})
+			}
+		case "view":
+			if v := g.view(name, pg); v != nil {
+				views = append(views, v)
+				ws = append(ws, written{name, v})
+			}
+		default:
+			g.problem("warning", "/pages/"+name, "%s is a %s, and this version of specarch-gen-ui writes lists and views only; it is left out", name, text(pg["kind"]))
 			continue
 		}
-		p := g.page(name, pg)
-		if p == nil {
-			continue
+	}
+	for _, w := range ws {
+		g.opened[w.name] = true
+		elements = append(elements, "/pages/"+mark.Escape(w.name))
+	}
+	// A link to a page that is not written is left out, reported at it.
+	keepActions := func(actions []action) []action {
+		var out []action
+		for _, a := range actions {
+			if a.link != nil && len(g.keep([]link{*a.link})) == 0 {
+				continue
+			}
+			if a.navigate != nil && len(g.keep([]link{*a.navigate})) == 0 {
+				a.navigate = nil
+			}
+			out = append(out, a)
 		}
-		events = append(events, p.events()...)
-		ws = append(ws, written{name, p})
-		elements = append(elements, "/pages/"+mark.Escape(name))
+		return out
+	}
+	for _, p := range lists {
+		p.links = g.keep(p.links)
+		p.actions = keepActions(p.actions)
+		if p.selected != nil && len(g.keep([]link{*p.selected})) == 0 {
+			p.selected = nil
+		}
+	}
+	for _, v := range views {
+		v.actions = keepActions(v.actions)
+	}
+	g.checkMenus()
+	var events []event
+	for _, w := range ws {
+		events = append(events, w.p.events()...)
 	}
 	docs := map[string]string{}
 	for _, e := range events {
@@ -212,6 +261,20 @@ func Generate(r *Request) Response {
 			File{Path: w.name + ".js", Content: header("// ", "", placed["/pages/"+mark.Escape(w.name)]) + w.p.js()})
 	}
 	files = append(files, File{Path: "events.js", Content: header("// ", "", placed[mark.File]) + eventsJS(events)})
+	files = append(files, File{Path: "pages.js", Content: header("// ", "", nil) + g.pagesJS(sortedSet(g.opened))})
+	asks := false
+	for _, p := range lists {
+		asks = asks || len(operations(p.actions)) > 0
+	}
+	for _, v := range views {
+		asks = asks || len(operations(v.actions)) > 0
+	}
+	if asks {
+		files = append(files, File{Path: "ask.js", Content: header("// ", "", nil) + askRuntime})
+	}
+	if len(views) > 0 {
+		files = append(files, File{Path: "view.js", Content: header("// ", "", nil) + viewRuntime})
+	}
 	files = append(files, File{Path: "theme.css", Content: header("/* ", " */", nil) + g.themeCSS()})
 	sort.Slice(files, func(i, j int) bool { return files[i].Path < files[j].Path })
 	return g.response(files)
@@ -256,7 +319,16 @@ type event struct{ name, doc string }
 type action struct {
 	label, operation, method, path, confirm, message string
 	refusals                                         [][2]string // status and message
+	when                                             string      // a function of the record, or ""
+	reason                                           *reason
+	// navigate is the page the action leads to once it succeeds; link is
+	// set instead on an action that opens a page and runs nothing.
+	navigate, link *link
 }
+
+// reason is the property of an action's request body that carries the
+// reason its confirmation asks for.
+type reason struct{ name, label, minLength, maxLength string }
 
 // page is what one list page needs.
 type page struct {
@@ -270,6 +342,8 @@ type page struct {
 	empty, filteredEmpty, failed           string
 	sourceRefusals                         [][2]string
 	actions                                []action
+	links                                  []link // pages the list opens, above its table
+	selected                               *link  // the page a selected row opens
 	list                                   map[string]string
 }
 
@@ -361,39 +435,27 @@ func (g *gen) page(name string, pg map[string]any) *page {
 	}
 	for i, a := range list(pg["actions"]) {
 		am := obj0(a)
-		if text(am["kind"]) != "operation" {
-			g.problem("warning", fmt.Sprintf("%s/actions/%d", at, i), "the action %s navigates, and this version of specarch-gen-ui writes only actions that run an operation; it is left out", text(am["label"]))
+		at := fmt.Sprintf("%s/actions/%d", at, i)
+		if text(am["kind"]) == "navigate" {
+			l, row, ok := g.listLink(at, am, fields)
+			switch {
+			case !ok:
+			case row:
+				p.actions = append(p.actions, action{label: l.label, link: &l, when: l.when})
+			default:
+				p.links = append(p.links, l)
+			}
 			continue
 		}
-		op, path, method := g.operation(text(am["target"]))
-		if op == nil {
-			continue
+		if a, ok := g.operationAction(at, am, fields, p.key, failed, nil, "row"); ok {
+			p.actions = append(p.actions, a)
 		}
-		if !g.plainOnly(fmt.Sprintf("%s/actions/%d", at, i), "the action "+text(am["label"]), "runs", text(am["target"]), op) {
-			continue
-		}
-		if body := obj0(op["requestBody"]); body != nil {
-			g.problem("warning", fmt.Sprintf("%s/actions/%d", at, i), "the action %s runs %s, which takes a request body, and this version of specarch-gen-ui sends none; it is left out", text(am["label"]), text(am["target"]))
-			continue
-		}
-		then := obj0(am["then"])
-		if text(then["navigate"]) != "" {
-			g.problem("warning", fmt.Sprintf("%s/actions/%d/then", at, i), "the action %s leads to %s, and this version of specarch-gen-ui stays on the page and shows the message only", text(am["label"]), text(then["navigate"]))
-		}
-		if n := len(pathParam.FindAllString(path, -1)); n > 1 || n == 1 && p.key == "" {
-			g.problem("error", fmt.Sprintf("%s/actions/%d", at, i), "%s takes %d path parameters, and this version of specarch-gen-ui gives one, the row's primary key of one field", text(am["target"]), n)
-			continue
-		}
-		parts := pathParam.Split(path, -1)
-		path = jsTemplate(parts[0])
-		if len(parts) == 2 {
-			path += "${encodeURIComponent(row." + p.key + ")}" + jsTemplate(parts[1])
-		}
-		p.actions = append(p.actions, action{label: text(am["label"]), operation: text(am["target"]), method: strings.ToUpper(method), path: path,
-			confirm: text(am["confirm"]), message: text(then["message"]), refusals: refusals(op, failed)})
 	}
-	if pg["onSelect"] != nil {
-		g.problem("warning", at+"/onSelect", "%s leads somewhere when a row is selected, and this version of specarch-gen-ui does not write it yet", name)
+	if sel := obj0(pg["onSelect"]); text(sel["navigate"]) != "" {
+		target := text(sel["navigate"])
+		if with, ok := g.withJS(at+"/onSelect", name+"'s selected row", target, obj0(sel["with"]), fields, nil, "row"); ok {
+			p.selected = &link{label: name + "'s selected row", page: target, with: with, at: at + "/onSelect"}
+		}
 	}
 	return p
 }
@@ -491,9 +553,17 @@ func (p *page) events() []event {
 		{p.upper + "_LOADED", "A page of " + p.lowerTitle() + " arrived: { items, totalItems, totalPages, page, filtered }"},
 		{p.upper + "_FAILED", "The " + p.lowerTitle() + " could not be read: { status }"},
 	}
-	for _, a := range p.actions {
-		out = append(out, event{upperSnake(a.operation) + "_SUCCEEDED", a.operation + " succeeded: { id }"},
-			event{upperSnake(a.operation) + "_FAILED", a.operation + " was refused or failed: { id, status }"})
+	return append(out, actionEvents(p.actions)...)
+}
+
+// actionEvents are the events of the actions that run an operation.
+func actionEvents(actions []action) []event {
+	var out []event
+	for _, a := range actions {
+		if a.link == nil {
+			out = append(out, event{upperSnake(a.operation) + "_SUCCEEDED", a.operation + " succeeded: { id }"},
+				event{upperSnake(a.operation) + "_FAILED", a.operation + " was refused or failed: { id, status }"})
+		}
 	}
 	return out
 }
@@ -551,372 +621,6 @@ export function emit(name, payload) {
 // built, so the value cannot end the attribute whatever the escape does.
 func quoted(s string) string {
 	return `"` + strings.ReplaceAll(html.EscapeString(s), `"`, "&quot;") + `"`
-}
-
-// html writes the page's HTML.
-func (p *page) html(g *gen) string {
-	var b strings.Builder
-	w := func(s string) { b.WriteString(s + "\n") }
-	w("<!doctype html>")
-	w("<html lang=" + quoted(p.language) + ">")
-	w("<head>")
-	w(`<meta charset="utf-8">`)
-	w(`<meta name="viewport" content="width=device-width, initial-scale=1">`)
-	w("<title>" + html.EscapeString(p.title) + "</title>")
-	w(`<link rel="stylesheet" href="theme.css">`)
-	w(`<script type="module" src="` + p.name + `.js"></script>`)
-	w("</head>")
-	w("<body>")
-	w("<main>")
-	w(`<h1 id="title">` + html.EscapeString(p.title) + "</h1>")
-	if len(p.filters) > 0 {
-		w(`<form id="filters" aria-label="Filters">`)
-		for _, l := range p.filterHTML {
-			w(l)
-		}
-		w(`<button type="submit">Filter</button>`)
-		w("</form>")
-	}
-	w(`<p id="status" role="status" aria-live="polite"></p>`)
-	w(`<table id="rows" aria-labelledby="title" tabindex="-1">`)
-	w("<thead>")
-	w("<tr>")
-	for i, c := range p.columns {
-		class := ""
-		if p.wide[c] {
-			class = ` class="wide"`
-		}
-		w(`<th scope="col"` + class + `>` + html.EscapeString(p.titles[i]) + `</th>`)
-	}
-	if len(p.actions) > 0 {
-		w(`<th scope="col">Actions</th>`)
-	}
-	w("</tr>")
-	w("</thead>")
-	w("<tbody></tbody>")
-	w("</table>")
-	w(`<nav id="pager" aria-label="Pages">`)
-	w(`<button type="button" data-step="-1">Previous page</button>`)
-	w("<span></span>")
-	w(`<button type="button" data-step="1">Next page</button>`)
-	w("</nav>")
-	w("</main>")
-	w("</body>")
-	w("</html>")
-	return b.String()
-}
-
-// js writes the page's module.
-func (p *page) js() string {
-	var b strings.Builder
-	w := func(s string) { b.WriteString(s + "\n") }
-	intro := "The page " + p.name + ": " + p.title + ". It lists " + p.lowerTitle() + " through " + p.source + ", a page at a time"
-	if len(p.actions) > 0 {
-		var ops []string
-		for _, a := range p.actions {
-			ops = append(ops, a.operation)
-		}
-		intro += ", and runs " + joinAnd(ops) + " on a row"
-	}
-	for _, l := range wrap(intro+".", 72-3) {
-		w("// " + l)
-	}
-	w("")
-	w("import {")
-	w("  on, emit,")
-	w("  " + p.upper + "_FILTERED, " + p.upper + "_PAGED, " + p.upper + "_LOADED, " + p.upper + "_FAILED,")
-	for _, a := range p.actions {
-		u := upperSnake(a.operation)
-		w("  " + u + "_SUCCEEDED, " + u + "_FAILED,")
-	}
-	w(`} from "./events.js";`)
-	w("")
-	var cols []string
-	for _, c := range p.columns {
-		cols = append(cols, jsString(c))
-	}
-	w("const columns = [" + strings.Join(cols, ", ") + "];")
-	w("const pageSize = " + p.pageSize + ";")
-	w("")
-	w("const messages = {")
-	w("  empty: " + jsString(p.empty) + ",")
-	w("  filteredEmpty: " + jsString(p.filteredEmpty) + ",")
-	w("  failed: " + jsString(p.failed) + ",")
-	w("};")
-	w("")
-	w("// What each operation's refusals say, by status: the page's failed states.")
-	w("const refusals = {")
-	writeRefusals := func(op string, rs [][2]string) {
-		if len(rs) == 0 {
-			w("  " + op + ": {},")
-			return
-		}
-		w("  " + op + ": {")
-		for _, r := range rs {
-			w("    " + jsString(r[0]) + ": " + jsString(r[1]) + ",")
-		}
-		w("  },")
-	}
-	writeRefusals(p.source, p.sourceRefusals)
-	seen := map[string]bool{p.source: true}
-	for _, a := range p.actions {
-		if !seen[a.operation] {
-			seen[a.operation] = true
-			writeRefusals(a.operation, a.refusals)
-		}
-	}
-	w("};")
-	w("")
-	w("const actions = [")
-	allConfirm := true
-	for _, a := range p.actions {
-		u := upperSnake(a.operation)
-		w("  {")
-		w("    label: " + jsString(a.label) + ",")
-		w("    operation: " + jsString(a.operation) + ",")
-		w("    method: " + jsString(a.method) + ",")
-		w("    path: (row) => `" + a.path + "`,")
-		if a.confirm != "" {
-			w("    confirm: " + jsString(a.confirm) + ",")
-		} else {
-			allConfirm = false
-		}
-		w("    message: " + jsString(a.message) + ",")
-		w("    succeeded: " + u + "_SUCCEEDED,")
-		w("    failed: " + u + "_FAILED,")
-		w("  },")
-	}
-	w("];")
-	if len(p.filterKeys) > 0 {
-		w("")
-		w("// The filters the list's operation takes by the paginated-list idiom's name.")
-		w("const filterKeys = {")
-		for _, f := range p.filters {
-			if k := p.filterKeys[f]; k != "" {
-				w("  " + f + ": " + jsString(k) + ",")
-			}
-		}
-		w("};")
-	}
-	b.WriteString(strings.NewReplacer(
-		"{{UPPER}}", p.upper,
-		"{{PATH}}", p.sourcePath,
-		"{{PAGE}}", p.list["page"],
-		"{{PAGESIZE}}", p.list["pageSize"],
-		"{{ITEMS}}", p.list["items"],
-		"{{TOTALITEMS}}", p.list["totalItems"],
-		"{{TOTALPAGES}}", p.list["totalPages"],
-		"{{SOURCE}}", p.source,
-		"{{TITLE}}", p.lowerTitle(),
-		"{{KEY}}", p.key,
-	).Replace(listBody(len(p.filters) > 0, len(p.filterKeys) > 0, len(p.actions) > 0, allConfirm)))
-	return b.String()
-}
-
-// listBody is the part of a list's module that is the same for every list,
-// with the parts it has.
-func listBody(filters, filterKeys, actions, allConfirm bool) string {
-	var b strings.Builder
-	key := "name"
-	if filterKeys {
-		key = "filterKeys[name] ?? name"
-	}
-	b.WriteString(`
-/** The message of a refusal of an operation, or the page's default. */
-function refusal(operation, status) {
-  return refusals[operation][String(status)] ?? messages.failed;
-}
-
-/** Reads the list: the filters given, then the page. Only the answer to
-    the latest request counts, and a page becomes the list's page once it
-    has arrived. */
-function loader() {
-  let filters = {};
-  let page = 1;
-  let latest = 0;
-  async function load(wanted) {
-    const ask = ++latest;
-    const query = new URLSearchParams();
-    for (const [name, value] of Object.entries(filters)) {
-      if (value !== "") {
-        query.set(` + key + `, value);
-      }
-    }
-    const filtered = [...query.keys()].length > 0;
-    query.set("{{PAGE}}", String(wanted));
-    query.set("{{PAGESIZE}}", String(pageSize));
-    try {
-      const response = await fetch(` + "`{{PATH}}?${query}`" + `, { headers: { Accept: "application/json" } });
-      if (ask !== latest) {
-        return;
-      }
-      if (!response.ok) {
-        emit({{UPPER}}_FAILED, { status: response.status });
-        return;
-      }
-      const body = await response.json();
-      if (ask !== latest) {
-        return;
-      }
-      if (body.{{ITEMS}}.length === 0 && wanted > 1 && body.{{TOTALPAGES}} > 0 && wanted > body.{{TOTALPAGES}}) {
-        load(body.{{TOTALPAGES}}); // the page asked for is past the last
-        return;
-      }
-      page = wanted;
-      emit({{UPPER}}_LOADED, { items: body.{{ITEMS}}, totalItems: body.{{TOTALITEMS}}, totalPages: body.{{TOTALPAGES}}, page, filtered });
-    } catch {
-      if (ask === latest) {
-        emit({{UPPER}}_FAILED, { status: 0 });
-      }
-    }
-  }
-  on({{UPPER}}_FILTERED, (payload) => {
-    filters = payload;
-    load(1);
-  });
-  on({{UPPER}}_PAGED, (payload) => load(payload.page));
-  for (const action of actions) {
-    on(action.succeeded, () => load(page));
-  }
-  load(1);
-}
-`)
-	if filters {
-		b.WriteString(`
-/** The filters form. */
-function filterForm() {
-  const form = document.getElementById("filters");
-  form.addEventListener("submit", (event) => {
-    event.preventDefault();
-    const given = [...new FormData(form)].map(([name, value]) => [name, String(value).trim()]);
-    emit({{UPPER}}_FILTERED, Object.fromEntries(given));
-  });
-}
-`)
-	}
-	if actions {
-		check := "!window.confirm(action.confirm)"
-		if !allConfirm {
-			check = "action.confirm && " + check
-		}
-		b.WriteString(`
-/** Runs an action on a row, once the person confirms it, its button
-    disabled while it runs. */
-async function run(action, row, button) {
-  if (` + check + `) {
-    return;
-  }
-  button.disabled = true;
-  try {
-    const response = await fetch(action.path(row), { method: action.method, headers: { Accept: "application/json" } });
-    if (response.ok) {
-      emit(action.succeeded, { id: row.{{KEY}} });
-    } else {
-      button.disabled = false;
-      emit(action.failed, { id: row.{{KEY}}, status: response.status });
-    }
-  } catch {
-    button.disabled = false;
-    emit(action.failed, { id: row.{{KEY}}, status: 0 });
-  }
-}
-`)
-	}
-	b.WriteString(`
-/** The table of {{TITLE}}. Focus in it stays on the same button, or moves
-    to the table when its row is gone. */
-function table() {
-  const body = document.querySelector("#rows tbody");
-  const head = document.querySelectorAll("#rows thead th");
-  on({{UPPER}}_LOADED, ({ items }) => {
-    const focused = body.contains(document.activeElement) ? document.activeElement.dataset.key : undefined;
-    body.replaceChildren();
-    for (const row of items) {
-      const tr = document.createElement("tr");
-      columns.forEach((name, i) => {
-        const td = document.createElement("td");
-        td.className = head[i].className;
-        td.textContent = row[name] ?? "";
-        tr.append(td);
-      });
-`)
-	if actions {
-		b.WriteString(`      const cell = document.createElement("td");
-      for (const action of actions) {
-        const button = document.createElement("button");
-        button.type = "button";
-        button.textContent = action.label;
-        button.setAttribute("aria-label", ` + "`${action.label} ${row[columns[0]] ?? \"\"}`" + `.trim());
-        button.dataset.key = ` + "`${action.operation} ${row.{{KEY}}}`" + `;
-        button.addEventListener("click", () => run(action, row, button));
-        cell.append(button);
-      }
-      tr.append(cell);
-`)
-	}
-	b.WriteString(`      body.append(tr);
-    }
-    if (focused !== undefined) {
-      const again = [...body.querySelectorAll("button")].find((button) => button.dataset.key === focused);
-      (again ?? document.getElementById("rows")).focus();
-    }
-  });
-}
-
-/** The status line: states and the messages of events, announced without moving focus. */
-function statusLine() {
-  const line = document.getElementById("status");
-  // An event's message stays until the person filters or pages; a state
-  // gives way to the list it describes.
-  let kept = false;
-  function show(text, failed, keep) {
-    line.textContent = text;
-    line.classList.toggle("failed", failed);
-    kept = keep;
-  }
-  on({{UPPER}}_FILTERED, () => show("", false, false));
-  on({{UPPER}}_PAGED, () => show("", false, false));
-  on({{UPPER}}_LOADED, ({ items, filtered }) => {
-    if (kept) {
-      return;
-    }
-    show(items.length === 0 ? (filtered ? messages.filteredEmpty : messages.empty) : "", false, false);
-  });
-  on({{UPPER}}_FAILED, ({ status }) => show(refusal("{{SOURCE}}", status), true, false));
-  for (const action of actions) {
-    on(action.succeeded, () => show(action.message, false, true));
-    on(action.failed, ({ status }) => show(refusal(action.operation, status), true, true));
-  }
-}
-
-/** The pager. A button that is disabled while it has focus hands focus on. */
-function pager() {
-  const nav = document.getElementById("pager");
-  const where = nav.querySelector("span");
-  const [previous, next] = nav.querySelectorAll("button");
-  let page = 1;
-  on({{UPPER}}_LOADED, (payload) => {
-    page = payload.page;
-    where.textContent = ` + "`Page ${payload.page} of ${Math.max(payload.totalPages, 1)}`" + `;
-    const focused = document.activeElement;
-    previous.disabled = payload.page <= 1;
-    next.disabled = payload.page >= payload.totalPages;
-    if (focused instanceof HTMLButtonElement && nav.contains(focused) && focused.disabled) {
-      const other = focused === previous ? next : previous;
-      (other.disabled ? document.getElementById("rows") : other).focus();
-    }
-  });
-  for (const button of [previous, next]) {
-    button.addEventListener("click", () => emit({{UPPER}}_PAGED, { page: page + Number(button.dataset.step) }));
-  }
-}
-
-`)
-	if filters {
-		b.WriteString("filterForm();\n")
-	}
-	b.WriteString("table();\nstatusLine();\npager();\nloader();\n")
-	return b.String()
 }
 
 // themeCSS writes the theme's tokens as custom properties, the modes, and

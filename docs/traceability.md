@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: traceability matrix
 
-Version 0.7.2-dev of the specification: 10 needs, 88 requirements, and 1 gap. Each requirement is traced back to the needs it refines and forward to what satisfies it in the design and what verifies it in the tests and commissioning checks.
+Version 0.7.2-dev of the specification: 10 needs, 89 requirements, and 1 gap. Each requirement is traced back to the needs it refines and forward to what satisfies it in the design and what verifies it in the tests and commissioning checks.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.7.2-dev of the specification: 10 needs, 88 requirements, and 1 gap. Ea
 | Need | Status | Refined by |
 |---|---|---|
 | NEED-1 | accepted | SA-33, SA-34, SA-35, SA-47, SA-48, SA-50, SA-75, SA-77, SA-82, SA-83, SA-84, SA-72, SA-1, SA-2, SA-3, SA-4, SA-5, SA-6, SA-51 |
-| NEED-2 | accepted | SA-33, SA-34, SA-36, SA-37, SA-38, SA-39, SA-40, SA-41, SA-42, SA-43, SA-52, SA-53, SA-54, SA-55, SA-56, SA-49, SA-62, SA-63, SA-65, SA-66, SA-70, SA-77, SA-78, SA-82, SA-83, SA-84, SA-88, SA-89, SA-46, SA-61, SA-71, SA-87, SA-32, SA-9, SA-10 |
+| NEED-2 | accepted | SA-33, SA-34, SA-36, SA-37, SA-38, SA-39, SA-40, SA-41, SA-42, SA-43, SA-80, SA-52, SA-53, SA-54, SA-55, SA-56, SA-49, SA-62, SA-63, SA-65, SA-66, SA-70, SA-77, SA-78, SA-82, SA-83, SA-84, SA-88, SA-89, SA-46, SA-61, SA-71, SA-87, SA-32, SA-9, SA-10 |
 | NEED-3 | accepted | SA-22, SA-36, SA-67, SA-75, SA-77, SA-82, SA-83, SA-84, SA-88, SA-7, SA-8, SA-26, SA-16, SA-58, SA-59, SA-60, SA-90, SA-19, SA-74 |
 | NEED-4 | accepted | SA-11, SA-2 |
 | NEED-5 | accepted | SA-35, SA-47, SA-68, SA-26, SA-16, SA-90, SA-12, SA-23, SA-24, SA-25, SA-73 |
@@ -106,6 +106,7 @@ Version 0.7.2-dev of the specification: 10 needs, 88 requirements, and 1 gap. Ea
 | SA-77 | NEED-1, NEED-2, NEED-3 | enums Rule; decisions ADR-145; decisions ADR-146; decisions ADR-161; decisions ADR-162; decisions ADR-163 | tests document-techspec-envelope-stream; tests extract-go-dxlib-envelope-stream; tests extract-go-dxlib-session; tests extract-go-dxlib-vault; tests generate-go-dxlib-envelope-stream; tests generate-go-dxlib-extracted-vault; tests generate-go-dxlib-session; tests generate-openapi-dxlib-envelope-stream; tests generate-openapi-dxlib-session; tests generate-ui-swiftui-dxlib-refused; tests generate-ui-typescript-dxlib; tests generate-ui-typescript-dxlib-refused; tests generate-ui-typescript-handshake-refused; tests validate-handshake; tests validate-stream; tests validate-stream-parameters; tests validate-task-page-upload |
 | SA-78 | NEED-2 | decisions ADR-147 | tests generate-framework-plugin; tests generate-ui-swiftui; tests generate-ui-swiftui-refused |
 | SA-79 | NEED-8 | decisions ADR-143 | tests extract-go-routes-constants; tests extract-go-routes-fallbacks |
+| SA-80 | NEED-2 | decisions ADR-152 | tests generate-ui-view; tests generate-ui-view-refused |
 | SA-82 | NEED-1, NEED-2, NEED-3 | enums Rule | tests derive-0-3-rows; tests generate-sql-0-3-rows; tests generate-sql-0-3-rows-changed; tests generate-sql-0-3-rows-mariadb; tests validate-0-3-caller-property; tests validate-0-3-meta-model-0-2; tests validate-0-3-reserved-name; tests validate-0-3-rows; tests validate-0-3-rows-valid |
 | SA-83 | NEED-1, NEED-2, NEED-3 | enums Rule | tests derive-0-3-clients; tests document-techspec-0-3-clients; tests validate-0-3-callers; tests validate-0-3-clients; tests validate-0-3-clients-valid; tests validate-0-3-nobody; tests validate-0-3-through |
 | SA-84 | NEED-1, NEED-2, NEED-3 | enums Rule | tests derive-0-3-tokens; tests document-techspec-0-3-tokens; tests generate-openapi-0-3-tokens; tests validate-0-3-claims; tests validate-0-3-security-events; tests validate-0-3-token-audience; tests validate-0-3-tokens; tests validate-0-3-tokens-valid; tests validate-0-3-txn-token; tests validate-0-3-via |

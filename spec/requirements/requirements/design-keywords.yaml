@@ -164,11 +164,26 @@ requirements:
       - Each list page becomes an HTML page and an ES module that reads its list a page at a time by the paginated-list idiom, filters by the source operation's query parameters, hides on a compact screen the columns compactColumns leaves out, runs its operation actions with their confirmation and message, and shows its states in a status line announced without moving focus.
       - Every event of the screens is declared once in events.js as an UPPERCASE constant with its payload, and each component subscribes where it is created.
       - The theme's tokens become CSS custom properties with the dark mode under prefers-color-scheme, and the target's settings say which tokens play which part.
-      - A target that is not platform web in plain-javascript, one without a language, a filter that is neither a query parameter of the list's operation nor filterable in its listOf, a list whose path takes a parameter or that does not page, a service whose API is in the dxlib dialect, two events with one name, and a token name that cannot be a custom property are refused; forms, views, navigation, actions that take a request body and modes other than dark are reported and left out.
+      - A target that is not platform web in plain-javascript, one without a language, a filter that is neither a query parameter of the list's operation nor filterable in its listOf, a list whose path takes a parameter or that does not page, a service whose API is in the dxlib dialect, two events with one name, and a token name that cannot be a custom property are refused; forms, task pages and modes other than dark are reported and left out. Views and navigation between pages are SA-80's.
       - The library lending example's loans list, written by hand before the generator, was reproduced by it apart from its header.
     verification: test
     needs: [NEED-2]
     why: A screen written by hand drifts from the pages, states and messages the owner reviewed; written from them, it says what the design says, and a change to the design reaches the screen on the next run.
+  SA-80:
+    statement: specarch generate ui shall write, through specarch-gen-ui, the view pages of a specification for the web in plain JavaScript and the navigation between its pages, with no package, bundler or build step, so that a person moves between the screens as the design's actions, selected rows, menus and events lead.
+    kind: functional
+    priority: should
+    status: accepted
+    acceptance:
+      - Every page written, and every page another stakeholder owns, is declared once in pages.js with its file, name.html, and the parameters its route takes, which travel in the query; a page opens another by a link or, once an operation has succeeded, by go, and the message for the page it opens is shown in that page's status line once.
+      - Every page carries the menu from menus, its own entry marked as the current one; a list's action that opens a page whose route takes no parameter is a link above its table, one that gives a row's fields is a link on each row, and a selected row opens its page from its first column.
+      - Each view page becomes an HTML page with its sections, each field's label and the place of its value, a value's parts and a list's items inside it, and an ES module that hands view.js the operation it loads its record from by the route's parameters, the fields hidden while their hiddenWhen holds, its actions, its failed states and its events.
+      - An action that runs an operation is offered while its when holds, asks its confirmation and the reason it sends in one dialog, ask.js, and leads to its then's page once it succeeds; each expression is written as a JavaScript function of the record, of names, constants, comparisons, &&, ||, ! and size.
+      - A link to a page that is not written, and a menu entry for one or for a page whose route takes a parameter, are reported and left out; an action that takes a request body other than its reason is reported and left out; a confirmation before a page opens, a when on a link drawn once for the whole list, an expression with any other operator or function or that orders a decimal, a view that loads its record by a parameter its route does not have, and a parameter of a page opened that nothing gives are refused at their entry.
+      - The library lending example's member view, written by hand before the generator, is written by it apart from its header and the order of the menu's entries, which a plug-in receives by name.
+    verification: test
+    needs: [NEED-2]
+    why: A list on its own is a screen nobody can act from; the first things a person does with it are open a record and go back, and a design whose pages cannot be reached from each other cannot be shown at the user acceptance test.
   SA-52:
     statement: specarch generate ui shall write, through specarch-gen-ui-typescript, the task pages of a specification for the web on Next.js's app router and IBM's Carbon design system, from an implementation file in TypeScript, so that sign-in and the forms like it follow the design's fields, checks, refusals and events, drawn by the components the ui-components idiom names.
     kind: functional

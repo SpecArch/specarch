@@ -641,13 +641,15 @@ the answer to its latest request counting and a page past the last
 falling back to the last, filters by a query parameter of its source
 operation or, through the idiom's `filter` name, a field its `listOf`
 makes filterable (any other filter is refused), hides on a compact screen, below 600 CSS pixels, the columns
-`compactColumns` leaves out, and runs each operation action on a row,
-taking a path parameter from the row's primary key, after its confirmation
-and with its message, its button disabled while it runs; each row's
-buttons are named with the row's first column, and focus stays on the
-same button when the list is read again. A list whose operation's path
-takes a parameter, or whose operation does not page, is refused; an
-action whose operation takes a request body is reported and left out. A
+`compactColumns` leaves out, and runs each operation action on a row
+while its `when` holds, taking a path parameter from the row's field of
+that name or its primary key, after its confirmation and with the reason
+it sends and its message, its button disabled while it runs; each row's
+buttons and links are named with the row's first column, and focus stays
+on the same one when the list is read again. A list whose operation's
+path takes a parameter, or whose operation does not page, is refused; an
+action whose operation takes a request body other than the reason it
+names is reported and left out. A
 service whose OpenAPI target is in the dxlib dialect is refused, since
 its lists are not the standard dialect's. Its states and the messages of its events show in a
 status line announced without moving focus; a refusal shows the failed
@@ -666,12 +668,41 @@ tokens may not make one custom property; a font family other than CSS's
 generic ones is written as a string. Two events of the screens with one
 name, a page's and an operation's, are refused.
 
-Forms, views, navigation (`onSelect`, actions of kind navigate, an
-action's `then.navigate`) and modes other than dark are reported and left
-out of this version. The screen it is checked against is the library
-lending example's loans list, written by hand before the generator; the
-first real plain JavaScript project repeats the check against its own
-first screen (ADR-040).
+Pages open each other by their files (ADR-147). `pages.js` declares every
+page written, and every page another stakeholder owns, once: its file,
+`<page>.html`, and its route's parameters, which travel in the query, so
+`/members/{memberId}` is `member-view.html?memberId=...` and the folder is
+served as it is. A list's action that opens a page whose route takes no
+parameter is a link above its table, one that gives a row's fields under
+`with` is a link on each row, and `onSelect` makes a row's first column a
+link; an operation's `then.navigate` opens its page once it succeeds. A
+link's parameters come from the fields `with` names, then the record's
+field of that name, then a view's own route parameter; one nothing gives
+is refused at the link. The message an event leaves for the page it opens
+travels in the browser's session storage for that one load and shows in
+that page's status line. Every page carries the menu from `menus`, its own
+entry marked current; a menu entry or a link to a page that is not
+written, and a menu entry for a page whose route takes a parameter, are
+reported and left out. The screens check no permission: the service
+refuses, and the page shows the refusal as its failed state.
+
+A view is `<page>.html` with its sections, each field's label and the
+place of its value, a value's parts inside its place and a list's item as
+a template, so the page reads without its scripts; `<page>.js` hands
+`view.js` the operation that loads the record by the route's parameters,
+the fields `fieldConditions` hides while `hiddenWhen` holds, its actions,
+its failed states and its two events. Every confirmation is the one dialog
+of `ask.js`, which also asks for the reason an action sends. An action's
+`when` and a field's `hiddenWhen` become JavaScript functions of the
+record, of names, constants, comparisons, `&&`, `||`, `!` and `size`; any
+other operator or function, or an ordering of a decimal, is refused at the
+expression. Forms, task pages and modes other than dark are reported and
+left out of this version. The screens it is checked against are the
+library lending example's loans list, written by hand before the
+generator (ADR-040), and its member view, written by hand in
+`examples/library-lending/web/reference/` before views were generated;
+the first real plain JavaScript project repeats the check against its own
+first screen.
 
 ### TypeScript on Next.js and Carbon
 

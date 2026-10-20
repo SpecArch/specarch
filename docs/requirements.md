@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: requirements specification
 
-Version 0.7.2-dev of the specification: 5 stakeholders, 10 needs and 88 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
+Version 0.7.2-dev of the specification: 5 stakeholders, 10 needs and 89 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -34,7 +34,7 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | Need | Statement | Stakeholders | Status | Refined by |
 |---|---|---|---|---|
 | NEED-1 | I want a specification that cannot quietly be wrong, so that the code built from it is right. | specification-author, implementer | accepted | SA-33, SA-34, SA-35, SA-47, SA-48, SA-50, SA-75, SA-77, SA-82, SA-83, SA-84, SA-72, SA-1, SA-2, SA-3, SA-4, SA-5, SA-6, SA-51 |
-| NEED-2 | I want to write a design once and build it in more than one language. | implementer | accepted | SA-33, SA-34, SA-36, SA-37, SA-38, SA-39, SA-40, SA-41, SA-42, SA-43, SA-52, SA-53, SA-54, SA-55, SA-56, SA-49, SA-62, SA-63, SA-65, SA-66, SA-70, SA-77, SA-78, SA-82, SA-83, SA-84, SA-88, SA-89, SA-46, SA-61, SA-71, SA-87, SA-32, SA-9, SA-10 |
+| NEED-2 | I want to write a design once and build it in more than one language. | implementer | accepted | SA-33, SA-34, SA-36, SA-37, SA-38, SA-39, SA-40, SA-41, SA-42, SA-43, SA-80, SA-52, SA-53, SA-54, SA-55, SA-56, SA-49, SA-62, SA-63, SA-65, SA-66, SA-70, SA-77, SA-78, SA-82, SA-83, SA-84, SA-88, SA-89, SA-46, SA-61, SA-71, SA-87, SA-32, SA-9, SA-10 |
 | NEED-3 | I want the documents and diagrams to come from the specification, so they never drift from it. | reviewer, specification-author | accepted | SA-22, SA-36, SA-67, SA-75, SA-77, SA-82, SA-83, SA-84, SA-88, SA-7, SA-8, SA-26, SA-16, SA-58, SA-59, SA-60, SA-90, SA-19, SA-74 |
 | NEED-4 | I want a big specification split over many files, each about one thing, so I can find what I am looking for. | specification-author, reviewer | accepted | SA-11, SA-2 |
 | NEED-5 | I want the whole life of the system in one place, from the first requirement to the day it is accepted. | reviewer, operator | accepted | SA-35, SA-47, SA-68, SA-26, SA-16, SA-90, SA-12, SA-23, SA-24, SA-25, SA-73 |
@@ -66,6 +66,7 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | SA-41 | functional | should | accepted | A specification shall declare a read model under views, an entity's row with fields read through its relations, counts of its related records and the rows of a one-to-many relation added, which is never written, and specarch validate shall check every path, count, rows and use of a view. |
 | SA-42 | functional | should | accepted | A specification shall define the behaviour, structure and rules of a user interface without naming a stack, the events of a page and where each leads among them, and specarch validate shall check them. |
 | SA-43 | functional | should | accepted | specarch generate ui shall write, through a plug-in, the list pages of a specification for the web in plain JavaScript, with no package, bundler or build step, so that the screens follow the design's pages, events, states, accessibility and theme. |
+| SA-80 | functional | should | accepted | specarch generate ui shall write, through specarch-gen-ui, the view pages of a specification for the web in plain JavaScript and the navigation between its pages, with no package, bundler or build step, so that a person moves between the screens as the design's actions, selected rows, menus and events lead. |
 | SA-52 | functional | should | accepted | specarch generate ui shall write, through specarch-gen-ui-typescript, the task pages of a specification for the web on Next.js's app router and IBM's Carbon design system, from an implementation file in TypeScript, so that sign-in and the forms like it follow the design's fields, checks, refusals and events, drawn by the components the ui-components idiom names. |
 | SA-53 | functional | should | accepted | specarch generate ui shall write, through specarch-gen-ui-typescript, the list pages of a specification on Next.js and Carbon, the menu, and a guard that opens each page only to someone who holds its permission, from one permission each, with a derived test per page and of the menu, drawn through the ui-components idiom a project may override. |
 | SA-54 | functional | should | accepted | specarch generate ui shall write, through specarch-gen-ui-typescript, the forms and views of a specification on Next.js and Carbon, each field drawn by its type and format or picked from a list, checked by its keywords and the page's checks across fields, read-only or hidden by its conditions, and started by a hook the project writes where the ui target's settings name one. |
@@ -418,10 +419,27 @@ Acceptance criteria:
 - Each list page becomes an HTML page and an ES module that reads its list a page at a time by the paginated-list idiom, filters by the source operation's query parameters, hides on a compact screen the columns compactColumns leaves out, runs its operation actions with their confirmation and message, and shows its states in a status line announced without moving focus.
 - Every event of the screens is declared once in events.js as an UPPERCASE constant with its payload, and each component subscribes where it is created.
 - The theme's tokens become CSS custom properties with the dark mode under prefers-color-scheme, and the target's settings say which tokens play which part.
-- A target that is not platform web in plain-javascript, one without a language, a filter that is neither a query parameter of the list's operation nor filterable in its listOf, a list whose path takes a parameter or that does not page, a service whose API is in the dxlib dialect, two events with one name, and a token name that cannot be a custom property are refused; forms, views, navigation, actions that take a request body and modes other than dark are reported and left out.
+- A target that is not platform web in plain-javascript, one without a language, a filter that is neither a query parameter of the list's operation nor filterable in its listOf, a list whose path takes a parameter or that does not page, a service whose API is in the dxlib dialect, two events with one name, and a token name that cannot be a custom property are refused; forms, task pages and modes other than dark are reported and left out. Views and navigation between pages are SA-80's.
 - The library lending example's loans list, written by hand before the generator, was reproduced by it apart from its header.
 
 **Insight:** A screen written by hand drifts from the pages, states and messages the owner reviewed; written from them, it says what the design says, and a change to the design reaches the screen on the next run.
+
+### SA-80
+
+specarch generate ui shall write, through specarch-gen-ui, the view pages of a specification for the web in plain JavaScript and the navigation between its pages, with no package, bundler or build step, so that a person moves between the screens as the design's actions, selected rows, menus and events lead.
+
+Kind: functional; priority: should; status: accepted; verified by test; refines NEED-2.
+
+Acceptance criteria:
+
+- Every page written, and every page another stakeholder owns, is declared once in pages.js with its file, name.html, and the parameters its route takes, which travel in the query; a page opens another by a link or, once an operation has succeeded, by go, and the message for the page it opens is shown in that page's status line once.
+- Every page carries the menu from menus, its own entry marked as the current one; a list's action that opens a page whose route takes no parameter is a link above its table, one that gives a row's fields is a link on each row, and a selected row opens its page from its first column.
+- Each view page becomes an HTML page with its sections, each field's label and the place of its value, a value's parts and a list's items inside it, and an ES module that hands view.js the operation it loads its record from by the route's parameters, the fields hidden while their hiddenWhen holds, its actions, its failed states and its events.
+- An action that runs an operation is offered while its when holds, asks its confirmation and the reason it sends in one dialog, ask.js, and leads to its then's page once it succeeds; each expression is written as a JavaScript function of the record, of names, constants, comparisons, &&, ||, ! and size.
+- A link to a page that is not written, and a menu entry for one or for a page whose route takes a parameter, are reported and left out; an action that takes a request body other than its reason is reported and left out; a confirmation before a page opens, a when on a link drawn once for the whole list, an expression with any other operator or function or that orders a decimal, a view that loads its record by a parameter its route does not have, and a parameter of a page opened that nothing gives are refused at their entry.
+- The library lending example's member view, written by hand before the generator, is written by it apart from its header and the order of the menu's entries, which a plug-in receives by name.
+
+**Insight:** A list on its own is a screen nobody can act from; the first things a person does with it are open a record and go back, and a design whose pages cannot be reached from each other cannot be shown at the user acceptance test.
 
 ### SA-52
 

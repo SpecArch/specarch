@@ -10,6 +10,8 @@ import {
   BOOKS_LIST_FILTERED, BOOKS_LIST_PAGED, BOOKS_LIST_LOADED, BOOKS_LIST_FAILED,
   WITHDRAW_BOOK_SUCCEEDED, WITHDRAW_BOOK_FAILED,
 } from "./events.js";
+import { arrived, go, href } from "./pages.js";
+import { ask } from "./ask.js";
 
 const columns = ["title", "shelf"];
 const pageSize = 25;
@@ -53,7 +55,7 @@ function loader() {
   let page = 1;
   let latest = 0;
   async function load(wanted) {
-    const ask = ++latest;
+    const asked = ++latest;
     const query = new URLSearchParams();
     for (const [name, value] of Object.entries(filters)) {
       if (value !== "") {
@@ -65,7 +67,7 @@ function loader() {
     query.set("pageSize", String(pageSize));
     try {
       const response = await fetch(`/books?${query}`, { headers: { Accept: "application/json" } });
-      if (ask !== latest) {
+      if (asked !== latest) {
         return;
       }
       if (!response.ok) {
@@ -73,7 +75,7 @@ function loader() {
         return;
       }
       const body = await response.json();
-      if (ask !== latest) {
+      if (asked !== latest) {
         return;
       }
       if (body.items.length === 0 && wanted > 1 && body.totalPages > 0 && wanted > body.totalPages) {
@@ -83,7 +85,7 @@ function loader() {
       page = wanted;
       emit(BOOKS_LIST_LOADED, { items: body.items, totalItems: body.totalItems, totalPages: body.totalPages, page, filtered });
     } catch {
-      if (ask === latest) {
+      if (asked === latest) {
         emit(BOOKS_LIST_FAILED, { status: 0 });
       }
     }
@@ -109,17 +111,27 @@ function filterForm() {
   });
 }
 
-/** Runs an action on a row, once the person confirms it, its button
-    disabled while it runs. */
+/** Runs an action on a row once the person confirms it and gives the
+    reason it asks for, its button disabled while it runs; an action that
+    leads to another page opens it once it has succeeded. */
 async function run(action, row, button) {
-  if (action.confirm && !window.confirm(action.confirm)) {
+  const reason = await ask(action.confirm, action.reason);
+  if (reason === null) {
     return;
+  }
+  const init = { method: action.method, headers: { Accept: "application/json" } };
+  if (action.reason) {
+    init.headers["Content-Type"] = "application/json";
+    init.body = JSON.stringify({ [action.reason.name]: reason });
   }
   button.disabled = true;
   try {
-    const response = await fetch(action.path(row), { method: action.method, headers: { Accept: "application/json" } });
+    const response = await fetch(action.path(row), init);
     if (response.ok) {
       emit(action.succeeded, { id: row.id });
+      if (action.navigate) {
+        go(action.navigate.page, action.navigate.with(row), action.message);
+      }
     } else {
       button.disabled = false;
       emit(action.failed, { id: row.id, status: response.status });
@@ -130,7 +142,7 @@ async function run(action, row, button) {
   }
 }
 
-/** The table of books. Focus in it stays on the same button, or moves
+/** The table of books. Focus in it stays on the same control, or moves
     to the table when its row is gone. */
 function table() {
   const body = document.querySelector("#rows tbody");
@@ -148,10 +160,23 @@ function table() {
       });
       const cell = document.createElement("td");
       for (const action of actions) {
+        if (action.when && !action.when(row)) {
+          continue;
+        }
+        const label = `${action.label} ${row[columns[0]] ?? ""}`.trim();
+        if (action.page) {
+          const link = document.createElement("a");
+          link.href = href(action.page, action.with(row));
+          link.textContent = action.label;
+          link.setAttribute("aria-label", label);
+          link.dataset.key = `${action.page} ${row.id}`;
+          cell.append(link);
+          continue;
+        }
         const button = document.createElement("button");
         button.type = "button";
         button.textContent = action.label;
-        button.setAttribute("aria-label", `${action.label} ${row[columns[0]] ?? ""}`.trim());
+        button.setAttribute("aria-label", label);
         button.dataset.key = `${action.operation} ${row.id}`;
         button.addEventListener("click", () => run(action, row, button));
         cell.append(button);
@@ -160,13 +185,14 @@ function table() {
       body.append(tr);
     }
     if (focused !== undefined) {
-      const again = [...body.querySelectorAll("button")].find((button) => button.dataset.key === focused);
+      const again = [...body.querySelectorAll("a, button")].find((control) => control.dataset.key === focused);
       (again ?? document.getElementById("rows")).focus();
     }
   });
 }
 
-/** The status line: states and the messages of events, announced without moving focus. */
+/** The status line: states and the messages of events, announced without
+    moving focus, the message the page that opened this one left first. */
 function statusLine() {
   const line = document.getElementById("status");
   // An event's message stays until the person filters or pages; a state
@@ -190,6 +216,8 @@ function statusLine() {
     on(action.succeeded, () => show(action.message, false, true));
     on(action.failed, ({ status }) => show(refusal(action.operation, status), true, true));
   }
+  const carried = arrived();
+  show(carried, false, carried !== "");
 }
 
 /** The pager. A button that is disabled while it has focus hands focus on. */

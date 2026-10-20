@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: generate
+level: system
+scenario: golden
+given: "a specification with a list whose selected row opens a view, which offers an action that opens a form and one that runs an operation on a row while its when holds, after a confirmation that asks for the reason the operation's body takes; a view at a route with a parameter, which loads its record by it, shows it in two sections with a value of parts and a list of plain values, hides the value while the record's status says so, and offers a link back to the list and the same operation, which leads back to the list once it succeeds; a form; a menu with entries for the list, the form and the view; an implementation file whose ui target is platform web in plain-javascript; and specarch-gen-ui built from this repository on PATH"
+when: "generate ui is run with --unapproved"
+then: "it writes pages.js with the list and the view, the view's file and the parameter its address takes, the list's HTML with the menu and its module with the row's link to the view, the operation's when, confirmation and reason, the view's HTML with its sections, labels and the places of its values and its module with the condition, the link and the operation, view.js, ask.js, events.js and theme.css; it reports as warnings, and leaves out, the form, the list's action that opens it, the menu entry for it and the menu entry for the view, whose route takes a parameter a menu cannot give; and exits 0"
+verifies: [SA-80]

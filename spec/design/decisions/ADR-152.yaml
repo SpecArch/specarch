@@ -1,0 +1,76 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.3.schema.json
+decisions:
+  ADR-152:
+    title: The plain JavaScript screens address a page as its file with its route's parameters in the query, carry a message to the page they open for one load, and hold a view's sections in its HTML
+    status: proposed
+    date: "2026-10-20"
+    context: |
+      specarch-gen-ui wrote list pages only (ADR-040): an action that
+      opens a page, a selected row, a menu and a view were reported and
+      left out, and an action whose operation takes the reason its
+      confirmation asks for was left out too. The plain JavaScript stack
+      has no router and no build step: the screens are files a static
+      server hands out, so nothing reads a path such as
+      /members/{memberId} and finds its page. Pages talk through the
+      event bus, which lives in one page's module and ends when another
+      page loads. The html document shows each screen's HTML without
+      its scripts, to show at the user acceptance test what a page holds
+      before any service answers. The browser's own confirm cannot take
+      a reason.
+    decision: |
+      A page is the file name.html, and its route's parameters travel in
+      the query by their names: /members/{memberId} is
+      member-view.html?memberId=... pages.js declares every page the
+      screens write, and every page another stakeholder owns, once, with
+      its file and parameters, as events.js declares the events, and
+      offers href, which writes a page's address, go, which opens it with
+      a message, and arrived, which a page reads once when it opens. The
+      message travels in the browser's session storage for that one
+      load; where storage is off the page opens without it. A link's
+      parameters come from the fields its with names, then the record's
+      field of that name, then, on a view, its own route's parameter. A
+      list's action that opens a page whose route takes no parameter is
+      one link above the table; one that gives a row's fields is a link
+      on each row, and onSelect makes the first column a link. Every page
+      carries the menu from menus. A view's sections, labels and the
+      places of its values are in its HTML, a value's parts and a list's
+      item template inside its place, and view.js fills them from the
+      record its source reads by the route's parameters. Every
+      confirmation is one dialog, ask.js, which asks for the reason when
+      the action sends one. A when, a hiddenWhen and later a check are
+      written as JavaScript functions of the record, of the operators
+      whose meaning the browser shares: comparisons, &&, ||, ! and size;
+      a field compared with null counts as null when the record leaves
+      it out. A link to a page not written is reported where it stands
+      and left out, as is a menu entry for one; anything the screens
+      cannot do, an expression they cannot evaluate, a parameter nothing
+      gives, is an error at its entry, and the rest of the page is still
+      written, marked.
+    consequences: |
+      A plain JavaScript project serves the folder as it is, with no
+      rewrite rule, and a page's address is still one a person can
+      bookmark and share. A permission is not checked by the screens: a
+      page or an action the caller may not use is refused by the service,
+      and the page shows that refusal as its failed state, as the lists
+      already did. The menu comes in the order of the menus' and entries'
+      names, since a plug-in receives every object with its keys sorted;
+      the hand-built reference keeps the order it was written in, and
+      the check against it leaves the menu out. The lists now ask every
+      confirmation through ask.js rather than the browser's confirm, and
+      show the message a page that opened them left. An action whose
+      when the browser cannot evaluate is left out, not offered on every
+      row.
+    why: |
+      The query keeps the stack's rule of no server and no build step,
+      and names each parameter as the route does, so a link reads as the
+      design wrote it. One declaration of the pages, as of the events,
+      keeps a page's name and parameters in one place a reader can check.
+      Session storage, not the query, carries the message, so a reload
+      or a shared address does not repeat "The member is registered.".
+      The sections in the HTML keep the screens readable without their
+      scripts, which is what the html document shows a reviewer before
+      any service exists (docs/acceptance.md), and keep the module to the
+      behaviour. Expressions as functions keep the generated code free of
+      an evaluator, and the operators allowed are the ones whose result
+      is the same in the browser and in the specification's language.
+    satisfies: [SA-80]

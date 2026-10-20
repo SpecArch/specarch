@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.2-dev of the specification: 621 design tests, 289 golden and 332 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.2-dev of the specification: 623 design tests, 290 golden and 333 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.7.2-dev of the specification: 621 design tests, 289 golden and 332 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 617 |
+| system | 619 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -2435,7 +2435,7 @@ Scenario: golden; level: system; verifies SA-43.
 
 - Given: a specification with a list page that filters by an enum, keeps one column on a compact screen, declares its empty, filtered empty and failed states, runs an operation on a row with a message and no confirmation, and a theme of two colours; an implementation file whose ui target is platform web in plain-javascript; and specarch-gen-ui built from this repository on PATH
 - When: generate ui is run with --unapproved
-- Then: it writes the page's HTML and module, events.js with the page's and the operation's events, and theme.css with the tokens as custom properties and the rules the target's token settings name, and exits 0
+- Then: it writes the page's HTML and module, events.js with the page's and the operation's events, pages.js with the page's file, ask.js, which confirms an action, and theme.css with the tokens as custom properties and the rules the target's token settings name, and exits 0
 
 #### generate-ui-swiftui
 
@@ -2532,6 +2532,22 @@ Scenario: red; level: system; verifies SA-54.
 - Given: a specification whose member holds an address, a contact whose one part is a moment of format date-time, and a tree kept as JSON whose nodes hold a list of nodes; a list of members with the address as a column; a form that shows the address, the contact and the tree, asks for the address twice and edits visits as rows whose one field holds an address; an implementation file in TypeScript whose ui target is nextjs-carbon and whose settings give the address a hook; and specarch-gen-ui-typescript built from this repository on PATH
 - When: generate ui is run with --unapproved
 - Then: it refuses, each at its entry, the value among a row's fields, the hook and the second entry on the address, the contact's part of format date-time by its path, the tree's children as the schema met again inside itself, and the address as a column; writes the files it can as a draft, with these errors marked in application.ts, and exits 1
+
+#### generate-ui-view
+
+Scenario: golden; level: system; verifies SA-80.
+
+- Given: a specification with a list whose selected row opens a view, which offers an action that opens a form and one that runs an operation on a row while its when holds, after a confirmation that asks for the reason the operation's body takes; a view at a route with a parameter, which loads its record by it, shows it in two sections with a value of parts and a list of plain values, hides the value while the record's status says so, and offers a link back to the list and the same operation, which leads back to the list once it succeeds; a form; a menu with entries for the list, the form and the view; an implementation file whose ui target is platform web in plain-javascript; and specarch-gen-ui built from this repository on PATH
+- When: generate ui is run with --unapproved
+- Then: it writes pages.js with the list and the view, the view's file and the parameter its address takes, the list's HTML with the menu and its module with the row's link to the view, the operation's when, confirmation and reason, the view's HTML with its sections, labels and the places of its values and its module with the condition, the link and the operation, view.js, ask.js, events.js and theme.css; it reports as warnings, and leaves out, the form, the list's action that opens it, the menu entry for it and the menu entry for the view, whose route takes a parameter a menu cannot give; and exits 0
+
+#### generate-ui-view-refused
+
+Scenario: red; level: system; verifies SA-80.
+
+- Given: the specification of generate-ui-view, whose list asks a confirmation before it opens the form, offers its operation while an expression that calls int holds, runs the operation with no reason although it takes a body, and opens a view whose source takes a parameter its route does not have; whose view hides a field by ordering a decimal and opens that view while nothing gives its route's parameter; an implementation file whose ui target is platform web in plain-javascript; and specarch-gen-ui built from this repository on PATH
+- When: generate ui is run with --unapproved
+- Then: it reports as errors the confirmation at the action's confirm, the call at its when, the source at the view's source, the decimal at the condition and the parameter nothing gives at the view's action, and as warnings the action that sends no reason, the form and the links and menu entries to the pages it does not write; writes the list and the view without what it reports, each marked at its page; and exits 1
 
 #### generate-unapproved
 
@@ -5051,7 +5067,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-365 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+371 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -5131,6 +5147,12 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-43 | acceptance 3 | golden | SA-43 names no harm |
 | requirement SA-43 | acceptance 4 | golden | SA-43 names no harm |
 | requirement SA-43 | acceptance 5 | golden | SA-43 names no harm |
+| requirement SA-80 | acceptance 1 | golden | SA-80 names no harm |
+| requirement SA-80 | acceptance 2 | golden | SA-80 names no harm |
+| requirement SA-80 | acceptance 3 | golden | SA-80 names no harm |
+| requirement SA-80 | acceptance 4 | golden | SA-80 names no harm |
+| requirement SA-80 | acceptance 5 | golden | SA-80 names no harm |
+| requirement SA-80 | acceptance 6 | golden | SA-80 names no harm |
 | requirement SA-52 | acceptance 1 | golden | SA-52 names no harm |
 | requirement SA-52 | acceptance 2 | golden | SA-52 names no harm |
 | requirement SA-52 | acceptance 3 | golden | SA-52 names no harm |

@@ -108,7 +108,7 @@ Each message, what carries it and who publishes and consumes it. A channel no de
 
 ## 6. Dependencies
 
-What fails or waits when a dependency is down: every operation, job and channel that uses it.
+What fails or waits when a dependency is down: every operation, job, gateway and channel that uses it.
 
 | Dependency | Kind | Protocol | Time limit | Used by | Description |
 |---|---|---|---|---|---|

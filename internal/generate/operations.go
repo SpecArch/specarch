@@ -202,12 +202,17 @@ func Operations(root *yaml.Node, relRoot string, impls []Implementation, state *
 				callers[calledDependency(c)] = append(callers[calledDependency(c)], "job "+j.Key.Value)
 			}
 		}
+		for _, g := range pairs(root, "gateways") {
+			for _, dp := range gatewayDependencies(g.Value) {
+				callers[dp] = append(callers[dp], "gateway "+g.Key.Value)
+			}
+		}
 		for _, c := range pairs(root, "channels") {
 			for _, dp := range strs(c.Value, "carriedBy") {
 				callers[dp] = append(callers[dp], "channel "+c.Key.Value)
 			}
 		}
-		d.para("What fails or waits when a dependency is down: every operation, job and channel that uses it.")
+		d.para("What fails or waits when a dependency is down: every operation, job, gateway and channel that uses it.")
 		d.line("| Dependency | Kind | Protocol | Time limit | Used by | Description |")
 		d.line("|---|---|---|---|---|---|")
 		for _, dp := range deps {

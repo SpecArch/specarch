@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: document
+level: system
+scenario: golden
+given: "the specification of validate-gateway, whose three tests name the gateway api"
+when: "document testplan is run"
+then: "the gateway is a subject of its own, Gateway api, with its three tests beside the operation's, and its occasional and rare cases no test covers are listed among the derived cases left out"
+verifies: [SA-75]

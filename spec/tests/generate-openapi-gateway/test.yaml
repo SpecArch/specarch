@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: generate
+level: system
+scenario: golden
+given: "the specification of validate-gateway, whose only token is the one the gateway forwards by aud, with an implementation file naming the openapi target; specarch-gen-openapi built from this repository on PATH"
+when: "generate openapi is run with --unapproved"
+then: "it writes openapi.yaml with the health operation and no security scheme, since no operation accepts a token, warns at the gateway that OpenAPI cannot describe what it forwards, and exits 0"
+verifies: [SA-75]

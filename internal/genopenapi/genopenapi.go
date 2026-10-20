@@ -147,6 +147,7 @@ func Generate(r *Request) Response {
 			g.listSegment = seg
 		}
 	}
+	g.gatewayLines()
 	for _, impl := range r.Implementations {
 		if text(obj(obj(impl.Content["targets"])[r.Target])["dialect"]) == "dxlib" {
 			if g.listSegment != "" {
@@ -997,6 +998,18 @@ func (g *gen) tokenScheme(op map[string]any) string {
 		return name
 	}
 	return g.defaultToken()
+}
+
+// gatewayLines names each gateway: OpenAPI has no catch-all, since a path
+// template's parameter holds one segment, so the document holds the
+// operations only and the forwarding is in the technical specification
+// (ADR-141).
+func (g *gen) gatewayLines() {
+	gateways := obj(g.spec["gateways"])
+	for _, name := range sortedKeys(gateways) {
+		g.diags = append(g.diags, Diagnostic{File: g.root, Line: 1, Severity: "warning", Path: "/gateways/" + name, Rule: "generator",
+			Message: fmt.Sprintf("gateway %s forwards every request no operation answers, which OpenAPI cannot describe, since a path template's parameter holds one segment; the document holds the operations only, and the gateway is in the technical specification", name)})
+	}
 }
 
 // tokenSchemes are the security schemes the accepted tokens give: a

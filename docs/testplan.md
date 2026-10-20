@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.2-dev of the specification: 586 design tests, 272 golden and 314 red, about 17 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.2-dev of the specification: 589 design tests, 275 golden and 314 red, about 17 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -15,7 +15,7 @@ Version 0.7.2-dev of the specification: 586 design tests, 272 golden and 314 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 582 |
+| system | 585 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -701,6 +701,14 @@ Scenario: golden; level: system; verifies SA-77, SA-7.
 - When: document techspec is run
 - Then: the runtime view lists the handshake with its key agreement, signature, cipher, establishing operation with its method and path, lifetime and envelopes, and what a client does for it in five steps; says of the encrypted operation that it travels in the envelope, naming the establishing operation, and notes the envelope in its sequence diagram with the request and the answer sealed; says of the upload that it streams the request body in as a file with its media type and bound in place of a body table; says of each download that it streams the response body out, its success response reading the file, streamed, with the bound where one is declared, and of the encrypted download that the file comes back outside the envelope; and exits 0
 
+#### document-techspec-gateway
+
+Scenario: golden; level: system; verifies SA-75.
+
+- Given: the specification of validate-gateway: a gateway api that verifies serviceAccess, reads aud, forwards to loans and catalogue and calls the identity provider, with three refusals and three tests
+- When: document techspec is run
+- Then: the context diagram draws an edge labelled api by aud to loans and to catalogue and one labelled api to the identity provider, the dependencies table names gateway api as the caller of each, and chapter 6 has a section Gateway api with the token's format, algorithm and issuer, the claim, the forwards as a table, the call, the refusals, the tests that name it and the sequence of one forwarded request
+
 #### document-techspec-handler
 
 Scenario: golden; level: system; verifies SA-7.
@@ -772,6 +780,14 @@ Scenario: golden; level: system; verifies SA-16, SA-24.
 - Given: requirements meant for a released and a planned release, and one with no release, verified by design tests
 - When: document testplan is run
 - Then: it writes testplan.md with the requirements grouped by release, oldest first, each with the tests that verify it, the one with no release last, and exits 0
+
+#### document-testplan-gateway
+
+Scenario: golden; level: system; verifies SA-75.
+
+- Given: the specification of validate-gateway, whose three tests name the gateway api
+- When: document testplan is run
+- Then: the gateway is a subject of its own, Gateway api, with its three tests beside the operation's, and its occasional and rare cases no test covers are listed among the derived cases left out
 
 #### document-testplan-left-out
 
@@ -1940,6 +1956,14 @@ Scenario: red; level: system; verifies SA-39.
 - Given: a specification whose field names an enum by $ref and narrows it with an enum beside it, and an implementation file whose openapi target has the dxlib dialect; specarch-gen-openapi built from this repository on PATH
 - When: generate openapi is run with --unapproved
 - Then: it reports at the field that the enum beside the $ref cannot be carried in the dxlib dialect, writes the document as a draft with that error in x-specarch-marks on the field, and exits 1
+
+#### generate-openapi-gateway
+
+Scenario: golden; level: system; verifies SA-75.
+
+- Given: the specification of validate-gateway, whose only token is the one the gateway forwards by aud, with an implementation file naming the openapi target; specarch-gen-openapi built from this repository on PATH
+- When: generate openapi is run with --unapproved
+- Then: it writes openapi.yaml with the health operation and no security scheme, since no operation accepts a token, warns at the gateway that OpenAPI cannot describe what it forwards, and exits 0
 
 #### generate-openapi-list-twin
 

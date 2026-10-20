@@ -847,7 +847,8 @@ func usesContextKeys(root *yaml.Node) bool {
 // for anyone when an operation or a page is public; a system per client of
 // kind service, with the roles it holds; this system in the middle; and
 // the dependencies by kind, with their protocol, each edge labelled with
-// the operations and jobs that call it and the channels it carries.
+// the operations, jobs and gateways that call it, a gateway's forwards
+// with the claim it forwards by, and the channels it carries.
 func contextDiagram(root *yaml.Node) string {
 	deps := pairs(root, "dependencies")
 	chans := pairs(root, "channels")
@@ -940,6 +941,17 @@ func contextDiagram(root *yaml.Node) string {
 	}
 	for _, w := range pairs(root, "workflows") {
 		call(w.Key.Value, w.Value)
+	}
+	// A gateway calls what it lists under calls, and each dependency it
+	// forwards to, labelled with the claim it forwards by (ADR-141).
+	for _, g := range pairs(root, "gateways") {
+		call(g.Key.Value, g.Value)
+		label := g.Key.Value + " by " + str(g.Value, "claim")
+		for _, row := range items(g.Value, "forwards") {
+			if dep := str(row, "dependency"); dep != "" && !contains(callers[dep], label) {
+				callers[dep] = append(callers[dep], label)
+			}
+		}
 	}
 	declared := map[string]bool{}
 	for _, kind := range dependencyKinds {

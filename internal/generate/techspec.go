@@ -315,6 +315,11 @@ func context(d *doc, root *yaml.Node) {
 					}
 				}
 			}
+			for _, g := range pairs(root, "gateways") {
+				if contains(gatewayDependencies(g.Value), dep.Key.Value) {
+					callers = append(callers, "gateway "+g.Key.Value)
+				}
+			}
 			description := str(dep.Value, "description")
 			if sp := str(dep.Value, "specification"); sp != "" {
 				description = fmt.Sprintf("Specified on its own as %s; the references were written against version %s. %s", sp, str(dep.Value, "version"), description)
@@ -491,7 +496,8 @@ func runtime(d *doc, root *yaml.Node, impls []Implementation) {
 	cmds := pairs(root, "commands")
 	jobs := pairs(root, "jobs")
 	workflows := pairs(root, "workflows")
-	if len(states)+len(ops)+len(cmds)+len(jobs)+len(workflows) == 0 {
+	gateways := pairs(root, "gateways")
+	if len(states)+len(ops)+len(cmds)+len(jobs)+len(workflows)+len(gateways) == 0 {
 		return
 	}
 	d.heading(2, "6. Runtime view")
@@ -536,6 +542,9 @@ func runtime(d *doc, root *yaml.Node, impls []Implementation) {
 		d.para(str(j.Value, "description"))
 		d.explain(j.Value)
 		jobDetails(d, root, j.Value)
+	}
+	for _, g := range gateways {
+		gatewaySection(d, root, g.Key.Value, g.Value)
 	}
 	for _, w := range workflows {
 		d.heading(3, "Workflow "+w.Key.Value)
@@ -1130,7 +1139,7 @@ func qualityTests(d *doc, root *yaml.Node) {
 }
 
 func testSubject(t *yaml.Node) string {
-	for _, k := range []string{"operation", "command", "page", "job", "workflow"} {
+	for _, k := range []string{"operation", "command", "page", "job", "gateway", "workflow"} {
 		if v := str(t, k); v != "" {
 			return k + " " + v
 		}

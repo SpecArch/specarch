@@ -1,0 +1,5 @@
+arguments: [generate, openapi, --unapproved, project]
+exitStatus: 0
+standardOutput: |
+  project/specarch.yaml:45:3: warning: /gateways/api: generator: gateway api forwards every request no operation answers, which OpenAPI cannot describe, since a path template's parameter holds one segment; the document holds the operations only, and the gateway is in the technical specification [generator@specarch.yaml#/gateways/api]
+plugins: [openapi]

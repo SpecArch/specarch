@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: document
+level: system
+scenario: golden
+given: "the specification of validate-gateway: a gateway api that verifies serviceAccess, reads aud, forwards to loans and catalogue and calls the identity provider, with three refusals and three tests"
+when: "document techspec is run"
+then: "the context diagram draws an edge labelled api by aud to loans and to catalogue and one labelled api to the identity provider, the dependencies table names gateway api as the caller of each, and chapter 6 has a section Gateway api with the token's format, algorithm and issuer, the claim, the forwards as a table, the call, the refusals, the tests that name it and the sequence of one forwarded request"
+verifies: [SA-75]

@@ -1,0 +1,61 @@
+specarch: "0.3"
+info: { title: Case, version: 1.0.0 }
+permissions:
+  public: { description: Open to everyone. }
+tokens:
+  serviceAccess:
+    description: The access token a client holds for one of the forwarded services.
+    format: jwt
+    signature: RS256
+    lifetime: PT15M
+    claims:
+      iss: { const: "https://identity.library.example" }
+      aud: { description: "The service the token is for, one of the gateway's forwards." }
+      sub: { description: The person or the client the token was minted for. }
+errors:
+  token-invalid: { status: 401, title: The token is not valid, condition: "The token is missing, badly signed or expired." }
+  service-unknown: { status: 404, title: No service has this audience, condition: "The audience names no forwarded service, or names two." }
+  service-failed: { status: 502, title: The service did not answer, condition: The forwarded service failed or did not answer in time. }
+paths:
+  /health:
+    get:
+      operationId: getHealth
+      summary: The gateway's health
+      permission: public
+      responses:
+        "200": { description: The gateway is up. }
+dependencies:
+  identity:
+    description: The identity provider whose keys sign the tokens.
+    timeout: PT2S
+    kind: identityProvider
+    protocol: https
+  loans:
+    description: The lending desk.
+    timeout: PT10S
+    kind: system
+    protocol: https
+  catalogue:
+    description: The catalogue service.
+    timeout: PT10S
+    kind: system
+    protocol: https
+gateways:
+  api:
+    description: Forwards every request no path answers, as received, to the service the token's audience names.
+    token: serviceAccess
+    claim: aud
+    forwards:
+      - { value: "https://loans.library.example", dependency: loans }
+      - { value: "https://catalogue.library.example", dependency: catalogue }
+    calls: [identity]
+    refusals:
+      - { status: 401, problem: token-invalid, condition: "The token is missing, is not signed by the issuer's key, or has expired." }
+      - { status: 404, problem: service-unknown, condition: "The audience names no forwarded service, or names two." }
+      - { status: 502, problem: service-failed, condition: The forwarded service did not answer. }
+tests:
+  get-health-succeeds: { level: system, operation: getHealth, scenario: golden, given: "any caller", when: "getHealth is called", then: "it answers 200" }
+  get-health-unknown-path: { level: system, operation: getHealth, scenario: red, given: "a request for a path below /health", when: "getHealth is called", then: "it is not answered by getHealth" }
+  api-forwards: { level: system, gateway: api, scenario: golden, covers: [forwarded to loans, forwarded to catalogue], given: "a serviceAccess token whose aud is a value of the forwards", when: "a request no operation answers reaches the gateway api", then: "it reaches the service the value names as received" }
+  api-refuses-tokens: { level: system, gateway: api, scenario: red, covers: [refused with no token, refused with a bad signature, denied with expired serviceAccess], given: "no token, a badly signed one or an expired one", when: "a request no operation answers reaches the gateway api", then: "it answers 401 token-invalid" }
+  api-dependencies-fail: { level: system, gateway: api, scenario: red, covers: [dependency fails identity, dependency times out identity, dependency fails loans, dependency times out loans, dependency fails catalogue, dependency times out catalogue], given: "a dependency fails or does not answer in time", when: "a request no operation answers reaches the gateway api", then: "it answers 502 service-failed" }

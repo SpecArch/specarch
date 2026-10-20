@@ -282,8 +282,9 @@ middle, named by `info.title`; the dependencies on the right, grouped by
 kind with a shape per kind (a cylinder for a database, a double box for
 a broker, a slanted box for a file store, a hexagon for an identity
 provider, a box for a system) and labelled with the protocol; an edge
-from the system to each dependency labelled with the operations and jobs
-that call it, three names and then a count; an edge from the system to
+from the system to each dependency labelled with the operations, jobs
+and gateways that call it, a gateway's forwards as `<gateway> by
+<claim>` (ADR-141), three names and then a count; an edge from the system to
 each dependency a channel is carried by for each channel the system
 emits on, labelled with the channel's name, and one the other way for
 each channel a job consumes from it. The hand-drawn context picture of

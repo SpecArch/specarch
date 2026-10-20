@@ -151,10 +151,14 @@ func (d *design) hasThrough() bool {
 func (c *checker) checkTokens(d *design) {
 	tokens := d.tokens()
 	accepted := d.acceptedTokens()
-	defaults := 0
+	forwarded := d.forwardedByAudience()
+	defaults, own := 0, 0
 	for _, t := range tokens {
 		name := t.Key.Value
 		at := source.Pointer("tokens", name)
+		if _, ok := forwarded[name]; !ok {
+			own++
+		}
 		format := source.Str(source.Child(t.Value, "format"))
 		sig := source.Child(t.Value, "signature")
 		switch {
@@ -192,11 +196,13 @@ func (c *checker) checkTokens(d *design) {
 			if accepted[name] && d.hasThrough() && source.Child(source.Child(source.Child(claims, "tctx"), "properties"), "application") == nil {
 				c.add(t.Key, at, RuleToken, "%s is accepted where a role's through reaches, and declares no tctx.application, the application the person signed in through, immutable from the edge on; add tctx with properties.application", name)
 			}
+		} else if gw, ok := forwarded[name]; ok {
+			c.checkForwardedAudience(name, gw, claims, at)
 		} else if accepted[name] {
 			c.checkTokenAudience(name, claims, at)
 		}
 	}
-	if len(tokens) > 0 && defaults == 0 {
+	if own > 0 && defaults == 0 {
 		c.add(source.Key(d.root, "tokens"), "/tokens", RuleToken, "no token is marked default, so an operation naming no token accepts none; mark one default: true")
 	}
 	for _, o := range d.opList {
@@ -302,6 +308,19 @@ func (c *checker) checkTokenAudience(token string, claims *yaml.Node, at string)
 			if u, err := url.Parse(s); err != nil || u.Scheme == "" {
 				c.add(v, at+"/claims/aud", RuleTokenAudience, "%s has a colon and is not a URI; an audience with a colon is a URI (RFC 7519, section 2), such as https://loans.example.org", s)
 			}
+		}
+	}
+}
+
+// checkForwardedAudience refuses const or enum on the aud of a token a
+// gateway forwards by aud: the forwards are its fixed audience, and the
+// list written twice would be a disagreement to report instead of a fact
+// (ADR-141).
+func (c *checker) checkForwardedAudience(token, gateway string, claims *yaml.Node, at string) {
+	aud := source.Child(claims, "aud")
+	for _, key := range []string{"const", "enum"} {
+		if n := source.Child(aud, key); n != nil {
+			c.add(source.Key(aud, key), at+"/claims/aud/"+key, RuleTokenAudience, "%s is forwarded by aud by gateway %s, whose forwards are its fixed audience; remove %s, which says the list a second time", token, gateway, key)
 		}
 	}
 }

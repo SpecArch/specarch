@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: validate
+level: system
+scenario: golden
+given: "a gateway that verifies serviceAccess, reads aud and forwards to the lending desk and the catalogue service, calling the identity provider; the token declares aud with no const or enum and no token is the default; the gateway server links to the identity provider and the desk but not to the catalogue"
+when: validate is run
+then: "it reports nothing of the gateway, the token or the default, warns as link_missing at the gateway server for the catalogue, and exits 0"
+verifies: [SA-75]

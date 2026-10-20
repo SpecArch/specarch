@@ -72,7 +72,7 @@ private func collectRefs(_ d: Design) -> [Ref] {
             add(n.child("source"), path + ["source"], "source", n, nil)
         } else if path.count == 4 && path[0] == "pages" && path[2] == "pickers" {
             add(n.child("source"), path + ["source"], "picker", n, d.pages[path[1]])
-        } else if path.count == 3 && path[0] == "paths" || path.count == 2 && path[0] == "jobs" {
+        } else if path.count == 3 && path[0] == "paths" || path.count == 2 && (path[0] == "jobs" || path[0] == "gateways") {
             for (i, e) in items(n.child("calls")).enumerated() {
                 add(e, path + ["calls", "\(i)"], "calls", n, nil)
             }

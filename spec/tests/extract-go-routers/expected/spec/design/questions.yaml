@@ -19,12 +19,12 @@ questions:
     why: Syntax does not run the code; only the running system's own list of routes, such as a route table, says what a loop or a condition registers.
     cites:
       - {source: code, clause: 'chirouter/router.go:27', says: Registers a route behind a condition.}
-  # specarch-problem: question: open_question: (must, decision) chirouter/router.go:29 registers GET under /assets with the rest of the path matched by *, a catch-all that takes every request under the prefix. What does its handler answer or forward, and by which claim of the token does it pick the service? It blocks design. Decided by system-owner. Answer with a decision record that names Q-3 under answers. [Q-3]
+  # specarch-problem: question: open_question: (must, decision) chirouter/router.go:29 registers GET under /assets with the rest of the path matched by *, a catch-all that takes every request under the prefix. What does its handler answer or forward, and by which claim of the token does it pick the service? It blocks gateways. Decided by system-owner. Answer with a decision record that names Q-3 under answers. [Q-3]
   Q-3:
     question: chirouter/router.go:29 registers GET under /assets with the rest of the path matched by *, a catch-all that takes every request under the prefix. What does its handler answer or forward, and by which claim of the token does it pick the service?
     kind: decision
     priority: must
-    blocks: [design]
+    blocks: [gateways]
     decidedBy: system-owner
     why: A route whose path ends in a catch-all takes every request under its prefix, as a fallback handler takes every request no route answers; a path parameter holds one segment, so no operation is written, and syntax cannot tell a gateway from a file server.
     cites:
@@ -39,12 +39,12 @@ questions:
     why: A route registered for every method answers any method, and an operation has one; writing one per method would write operations the code may refuse.
     cites:
       - {source: code, clause: 'ginrouter/router.go:12', says: Registers /search for every method.}
-  # specarch-problem: question: open_question: (must, decision) ginrouter/router.go:14 registers GET under /static with the rest of the path matched by *filepath, a catch-all that takes every request under the prefix. What does its handler answer or forward, and by which claim of the token does it pick the service? It blocks design. Decided by system-owner. Answer with a decision record that names Q-5 under answers. [Q-5]
+  # specarch-problem: question: open_question: (must, decision) ginrouter/router.go:14 registers GET under /static with the rest of the path matched by *filepath, a catch-all that takes every request under the prefix. What does its handler answer or forward, and by which claim of the token does it pick the service? It blocks gateways. Decided by system-owner. Answer with a decision record that names Q-5 under answers. [Q-5]
   Q-5:
     question: ginrouter/router.go:14 registers GET under /static with the rest of the path matched by *filepath, a catch-all that takes every request under the prefix. What does its handler answer or forward, and by which claim of the token does it pick the service?
     kind: decision
     priority: must
-    blocks: [design]
+    blocks: [gateways]
     decidedBy: system-owner
     why: A route whose path ends in a catch-all takes every request under its prefix, as a fallback handler takes every request no route answers; a path parameter holds one segment, so no operation is written, and syntax cannot tell a gateway from a file server.
     cites:
@@ -69,12 +69,12 @@ questions:
     why: A route registered for every method answers any method, and an operation has one; writing one per method would write operations the code may refuse.
     cites:
       - {source: code, clause: 'stdmux/mux.go:10', says: Registers /health for every method.}
-  # specarch-problem: question: open_question: (must, decision) stdmux/mux.go:12 registers GET under /files with the rest of the path matched by {path...}, a catch-all that takes every request under the prefix. What does its handler answer or forward, and by which claim of the token does it pick the service? It blocks design. Decided by system-owner. Answer with a decision record that names Q-8 under answers. [Q-8]
+  # specarch-problem: question: open_question: (must, decision) stdmux/mux.go:12 registers GET under /files with the rest of the path matched by {path...}, a catch-all that takes every request under the prefix. What does its handler answer or forward, and by which claim of the token does it pick the service? It blocks gateways. Decided by system-owner. Answer with a decision record that names Q-8 under answers. [Q-8]
   Q-8:
     question: stdmux/mux.go:12 registers GET under /files with the rest of the path matched by {path...}, a catch-all that takes every request under the prefix. What does its handler answer or forward, and by which claim of the token does it pick the service?
     kind: decision
     priority: must
-    blocks: [design]
+    blocks: [gateways]
     decidedBy: system-owner
     why: A route whose path ends in a catch-all takes every request under its prefix, as a fallback handler takes every request no route answers; a path parameter holds one segment, so no operation is written, and syntax cannot tell a gateway from a file server.
     cites:

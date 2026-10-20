@@ -104,6 +104,7 @@ public enum Rule: String, CaseIterable, Sendable {
     case limits = "limits"
     case problem = "problem"
     case job = "job"
+    case gateway = "gateway"
     case menu = "menu"
     case view = "view"
     case flow = "flow"

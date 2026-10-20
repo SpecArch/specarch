@@ -1,0 +1,19 @@
+specarchImplementation: "0.1"
+info: { title: Case in Go, version: 1.0.0 }
+implements: { file: specarch.yaml, version: 1.0.0 }
+stack: { language: { name: Go, version: "1.26" } }
+layout:
+  internal/gateway:
+    description: Verifies the token and forwards by its audience.
+    implements: ["#/gateways/api", "#/paths/~1health"]
+deployments:
+  production:
+    description: The hosts.
+    servers:
+      - { name: gateway, url: "https://api.library.example", zone: edge, listens: [{ port: 443, protocol: https }], runs: { packages: [internal/gateway] } }
+      - { name: identity, dependency: identity, url: "https://identity.library.example", zone: application, listens: [{ port: 443, protocol: https }] }
+      - { name: desk, dependency: loans, url: "https://loans.library.example", zone: application, listens: [{ port: 443, protocol: https }] }
+      - { name: books, dependency: catalogue, url: "https://catalogue.library.example", zone: application, listens: [{ port: 443, protocol: https }] }
+    links:
+      - { from: gateway, to: identity, port: 443 }
+      - { from: gateway, to: desk, port: 443 }

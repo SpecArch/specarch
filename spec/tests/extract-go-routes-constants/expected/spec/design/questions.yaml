@@ -1,10 +1,10 @@
 questions:
-  # specarch-problem: question: open_question: (must, decision) main.go:24 registers proxy with NoRoute as the handler of every request no route answers. What does it answer or forward, and by which claim of the token does it pick the service? It blocks design. Decided by system-owner. Answer with a decision record that names Q-1 under answers. [Q-1]
+  # specarch-problem: question: open_question: (must, decision) main.go:24 registers proxy with NoRoute as the handler of every request no route answers. What does it answer or forward, and by which claim of the token does it pick the service? It blocks gateways. Decided by system-owner. Answer with a decision record that names Q-1 under answers. [Q-1]
   Q-1:
     question: main.go:24 registers proxy with NoRoute as the handler of every request no route answers. What does it answer or forward, and by which claim of the token does it pick the service?
     kind: decision
     priority: must
-    blocks: [design]
+    blocks: [gateways]
     decidedBy: system-owner
     why: A handler that takes every request no route answers is where a gateway lives, and where a plain 404 lives too; syntax cannot tell which, and a registration the reader knows is written or asked about, never dropped.
     cites:

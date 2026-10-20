@@ -13,7 +13,7 @@ let designKeys: Set<String> = [
     "properties", "primaryKey", "stateField", "messages", "payload",
     "calls", "idempotencyKey", "guard", "validity",
     "sensitivity", "atRest", "lookup", "audited", "deletion",
-    "listOf", "limits", "problem", "errors", "jobs", "menus", "workflows",
+    "listOf", "limits", "problem", "errors", "jobs", "gateways", "menus", "workflows",
     "views", "count", "schemas",
 ]
 
@@ -552,7 +552,8 @@ extension Checker {
 
     /// Follows the design objects the packages implement: an operation or
     /// a job reaches the dependencies it calls and those carrying the
-    /// channels it emits on or consumes from; an entity, or a job that
+    /// channels it emits on or consumes from, a gateway those it forwards
+    /// to and calls; an entity, or a job that
     /// reads or writes one, reaches the database.
     func serverReach(_ d: Design, _ layout: [String: YNode], _ packages: [YNode]) -> ServerReach {
         var r = ServerReach()
@@ -586,6 +587,9 @@ extension Checker {
                     if (node.child("reads") != nil || node.child("writes") != nil) && !r.data.contains(tokens[1]) {
                         r.data.append(tokens[1])
                     }
+                case "gateways":
+                    uses(node, tokens[1])
+                    for dep in forwardedDependencies(node) { reached(dep, tokens[1]) }
                 case "paths":
                     if tokens.count == 3 {
                         uses(node, str(node.child("operationId")))

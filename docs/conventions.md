@@ -454,7 +454,7 @@ folder and only the first four are in the root file.
 5. `permissions`, `roles`, `session`
 6. `paths`
 7. `commands`
-8. `channels`, `dependencies`, `jobs`, `workflows`, `errors`
+8. `channels`, `dependencies`, `jobs`, `gateways`, `workflows`, `errors`
 9. `pages`, `menus`
 10. `algorithms`
 11. `tests`
@@ -647,6 +647,10 @@ redefined.
 | `handshakes`, `keyAgreement`, `signature`, `cipher`, `establishedBy`, `lifetime`, `uses`, `handshake` | SpecArch, after RFC 7748 (the key agreements), RFC 8032 (the signatures) and OpenSSL's cipher names | a key exchange a client performs once, after which the operations that name it travel in an encrypted, signed envelope; declared once, named by each operation that travels in it (ADR-145) |
 | `stream`, `direction` | SpecArch | an operation whose request body (`upload`) or success response (`download`) is a file passed through as it arrives, never read whole; the media type and the binary string stay in OpenAPI's `requestBody` and `responses` (ADR-146) |
 | `jobs`, `trigger`, `schedule`, `every`, `consumes`, `role`, `retries`, `limit`, `then` | SpecArch | work the system does on its own; a schedule is the five fields of cron, in UTC |
+| `gateways` | SpecArch, after RFC 9110's gateway (section 3.7) | an intermediary that forwards every request no operation answers, as received, to the service a claim of the verified token names; it names no permission (ADR-141) |
+| `claim`, `value` on a gateway | SpecArch, after RFC 7519's claim | the claim whose value selects the service, and one value of it; for `aud` an absolute URI (RFC 8707, section 2) |
+| `forwards` | SpecArch | a gateway's table of services, one row per value with the dependency it selects |
+| `token`, `calls`, `middlewares`, `refusals`, `dependency` on a gateway | SpecArch | as on an operation, a middleware and a server: the token verified, the dependencies called besides the forwards, the middlewares run first, the answers given in place of the service's, the dependency a row forwards to |
 | `menus`, `title`, `page`, `items` | SpecArch | the navigation: a tree whose leaves open pages |
 | `workflows`, `trigger`, `subject`, `steps`, `approvers`, `deadline`, `onDeadline`, `escalateTo` | BPMN 2.0, a sequential subset | a request that finishes after people approve it: an approval is a user task with its potential owners and a timer, an operation step a service task |
 | `views`, `from`, `path`, `count`, `rows` | SpecArch, after the SQL view of ISO/IEC 9075 | a read model: an entity's row with fields read through its relations, counts and the rows of a one-to-many relation added, never written |
@@ -1380,6 +1384,62 @@ and `an item fails every try` when it retries.
 or with `items` of its own. Every page an entry opens must exist (`menu`).
 An entry is shown to who may open its page.
 
+### Gateways
+
+A service that registers routes only for its health and its metrics and
+forwards every other request, whatever its method and path, to the
+service a claim of the bearer token names is a gateway, after RFC 9110's
+word, under `gateways` (ADR-141, `docs/gateway.md`):
+
+    api:
+      description: Forwards every request no path answers, as received, to the service the token's audience names.
+      token: serviceAccess
+      claim: aud
+      forwards:
+        - { value: "https://loans.library.example", dependency: loans }
+        - { value: "https://catalogue.library.example", dependency: catalogue }
+      calls: [identity]
+      middlewares: [audit-log]
+      refusals:
+        - { status: 401, problem: token-invalid, condition: "The token is missing, badly signed or expired." }
+
+`token` names the token verified, under `tokens`; `claim` one it declares,
+read from the verified token only; `forwards` the table, each row a
+`value` of the claim and the `dependency`, of kind `system` or
+`identityProvider`, a request with it goes to as received. `calls` lists
+the dependencies called besides, the identity provider whose keys the
+gateway fetches among them; `middlewares` and `refusals` are an
+operation's and a middleware's. A gateway names no permission: it decides
+nothing, and the service behind it checks every path it serves. Every
+request no operation under `paths` answers is forwarded, so a path the
+gateway must not forward is an operation that answers it, closed with
+`nobody` when nobody may reach it.
+
+A token named, a claim it declares, a non-empty `forwards`, each value
+once, a declared dependency of a kind that is an HTTP origin, and no
+forward's dependency under `calls` too are checked (`gateway`). When the
+claim is `aud`, the forwards are the token's fixed audience: the token is
+the services' and not this system's, so it is not `default`, no operation
+names it (`gateway`), and its `aud` declares no `const` or `enum`
+(`token_audience`); ADR-097's one default is counted among the other
+tokens, so a gateway module whose only token is the forwarded one has no
+default. `middleware`, `middleware_missing`, `dependency` and `problem`
+reach a gateway as they reach an operation, and a server running a
+package that implements it is warned of with `link_missing` when no link
+leads to a forwarded or called dependency's server. In an estate, a
+forward whose dependency names a module given in the run must be one of
+the `aud` values that module's access tokens declare (`gateway`), and a
+token forwarded by `aud` is left out of the refusal of two modules
+accepting one audience.
+
+A test names a gateway as its subject with `gateway: <name>`. A gateway
+gets the golden case `forwarded to <dependency>` per forward; `refused
+with no token`, `refused with a bad signature` and `denied with expired
+<token>`, frequent; `refused with an unknown <claim>`, occasional; for
+`aud` or a claim whose type is an array, `refused with a <claim> naming
+two forwarded services`, rare; and the dependency cases for every
+dependency forwarded to or called, critical.
+
 ### Workflows
 
 A request that finishes later, after people approve it, is a workflow,
@@ -2006,7 +2066,7 @@ the tests of its own code (unit and integration suites, fixtures, mocks,
 performance targets, platforms).
 
 A design test is about one subject: an `operation`, a `command`, a `page`,
-a `job`, a `flow`, a `workflow`, a `requirement`, or an `entity`, with one of its `constraint`s or
+a `job`, a `gateway`, a `flow`, a `workflow`, a `requirement`, or an `entity`, with one of its `constraint`s or
 `transition`s or alone for its state machine. It has a
 `level`, `system` (the test exercises the system through its interfaces as a
 client would) or `acceptance` (it shows a stakeholder that a requirement is

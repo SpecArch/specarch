@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "a gateway reading aud whose token is the default, is named by an operation and writes enum on its aud, with a value twice, a forward to a database, one to a dependency not declared, a forward also under calls, a call to nothing declared, a middleware not declared and two refusals naming wrong problems; a gateway with an undeclared token and no forwards; and one reading a claim its token lacks"
+when: validate is run
+then: "it reports gateway at each, token_audience at the enum, dependency, middleware and problem as for an operation, middleware_missing at the gateway that names no middlewares, and exits 1"
+verifies: [SA-75]

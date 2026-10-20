@@ -105,7 +105,7 @@ func collectRefs(d *design) []ref {
 			add(source.Child(n, "source"), at("source"), "source", n, nil)
 		case len(path) == 4 && path[0] == "pages" && path[2] == "pickers":
 			add(source.Child(n, "source"), at("source"), "picker", n, d.pages[path[1]])
-		case len(path) == 3 && path[0] == "paths" || len(path) == 2 && path[0] == "jobs":
+		case len(path) == 3 && path[0] == "paths" || len(path) == 2 && (path[0] == "jobs" || path[0] == "gateways"):
 			for i, e := range source.Items(source.Child(n, "calls")) {
 				add(e, append(at("calls"), fmt.Sprint(i)), "calls", n, nil)
 			}

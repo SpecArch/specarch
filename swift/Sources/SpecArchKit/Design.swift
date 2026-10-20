@@ -212,6 +212,7 @@ extension Checker {
         checkLookups(d)
         checkOperations(d)
         checkMiddlewares(d)
+        checkGateways(d)
         checkHandshakes(d)
         checkCommands(d)
         checkDependencies(d)

@@ -17,7 +17,8 @@ import (
 // match a slash among them, or gorilla/mux's PathPrefix given a handler
 // that is no router, is the other way the same thing is written. The
 // reader cannot tell which, so each is a must question blocking the
-// design stage, counted as a registration, in place of silence or a line.
+// gateways section, counted as a registration, in place of silence or a
+// line.
 
 // fallbackWhy is the why of every question at a fallback handler.
 const fallbackWhy = "A handler that takes every request no route answers is where a gateway lives, and where a plain 404 lives too; syntax cannot tell which, and a registration the reader knows is written or asked about, never dropped."
@@ -25,9 +26,9 @@ const fallbackWhy = "A handler that takes every request no route answers is wher
 // catchAllWhy is the why of every question at a catch-all route.
 const catchAllWhy = "A route whose path ends in a catch-all takes every request under its prefix, as a fallback handler takes every request no route answers; a path parameter holds one segment, so no operation is written, and syntax cannot tell a gateway from a file server."
 
-// fallbackStage is what a fallback question blocks: the design stage,
-// until the meta-model has a section for a gateway.
-var fallbackStage = []string{"design"}
+// fallbackStage is what a fallback question blocks: the gateways
+// section, which the gateway table answers in the merge (ADR-142).
+var fallbackStage = []string{"gateways"}
 
 // fallbacks is what each library's fallback registration takes, by the
 // method or field that sets it: the requests it is given.

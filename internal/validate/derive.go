@@ -147,6 +147,9 @@ func (d *design) subjects() []*subject {
 	for _, p := range source.Pairs(source.Child(d.root, "jobs")) {
 		out = append(out, d.withHarm(d.jobSubject(p), p.Value))
 	}
+	for _, p := range d.gateways() {
+		out = append(out, d.withHarm(d.gatewaySubject(p), p.Value))
+	}
 	for _, p := range source.Pairs(source.Child(d.root, "workflows")) {
 		out = append(out, d.withHarm(d.workflowSubject(p), p.Value))
 	}

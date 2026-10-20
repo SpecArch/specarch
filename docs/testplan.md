@@ -2,11 +2,9 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.2-dev of the specification: 584 design tests, 271 golden and 313 red, about 17 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.2-dev of the specification: 586 design tests, 272 golden and 314 red, about 17 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
-**Problems:** 3 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
-
-**Problem:** warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SA-75; add verifies: [SA-75] to the test that shows it is met [requirement_unverified@requirements/requirements/design-keywords.yaml#/requirements/SA-75]
+**Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
 **Problem:** warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SA-57; add verifies: [SA-57] to the test that shows it is met [requirement_unverified@requirements/requirements/refinement.yaml#/requirements/SA-57]
 
@@ -17,7 +15,7 @@ Version 0.7.2-dev of the specification: 584 design tests, 271 golden and 313 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 580 |
+| system | 582 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -1191,7 +1189,7 @@ Scenario: golden; level: system; verifies SA-44.
 
 - Given: a repository holding a Go module whose files register routes on net/http's ServeMux (method patterns, a pattern with no method, one with a host, a rest wildcard, the exact root, a HEAD route, a mux handed a subtree through StripPrefix, a subtree handed to a handler that is not a router, and a pattern built in a loop), on chi (Route, Group, With, Method, Mount of a router a function returns, Handle for every method, a route behind a condition, a parameter with a pattern, a catch-all and a Route with a computed prefix), on gin (nested groups, Handle, Any and a catch-all), on echo (Group, Add and Match) and on gorilla/mux (HandleFunc with Methods, a subrouter under PathPrefix, Path with HandlerFunc, a route with no Methods and one with Queries); handlers that read a path parameter their path does not have; a function given a router that nothing in the module calls; and a file that imports echo and registers nothing; with no implementation file
 - When: extract go is run on the module
-- Then: it writes one operation per route whose method and path it reads as literals, outside a loop or a condition, with the prefixes of groups, routes, mounts, subrouters and StripPrefix joined and each library's parameters written {name}, named after its handler as extract router names one, citing its registration and its handler; asks a must question for the route in a loop, the one behind a condition, the routes for every method, the subtree handed to a handler that is not a router, the computed prefix, the router given to a function nothing calls, each parameter read that the path does not have, each operation's permission, since no implementation file names the check, its summary and responses, and whether the running system registers it; asks a must question blocking the design stage for each route whose path ends in a wildcard or a catch-all, naming its prefix and methods; prints a line and asks a could question for the host, the HEAD route, the Queries route, the parameters' patterns and each handler that serves more than one route; names the file that registers nothing; and exits 0
+- Then: it writes one operation per route whose method and path it reads as literals, outside a loop or a condition, with the prefixes of groups, routes, mounts, subrouters and StripPrefix joined and each library's parameters written {name}, named after its handler as extract router names one, citing its registration and its handler; asks a must question for the route in a loop, the one behind a condition, the routes for every method, the subtree handed to a handler that is not a router, the computed prefix, the router given to a function nothing calls, each parameter read that the path does not have, each operation's permission, since no implementation file names the check, its summary and responses, and whether the running system registers it; asks a must question blocking gateways for each route whose path ends in a wildcard or a catch-all, naming its prefix and methods; prints a line and asks a could question for the host, the HEAD route, the Queries route, the parameters' patterns and each handler that serves more than one route; names the file that registers nothing; and exits 0
 
 #### extract-go-routes-constants
 
@@ -1207,7 +1205,7 @@ Scenario: golden; level: system; verifies SA-79.
 
 - Given: a repository holding Go packages that each register a health route of their own and a fallback: on gin, NoRoute and NoMethod, Any under a group with a catch-all path, Match with a catch-all path, and Any on a plain path; on chi, NotFound and MethodNotAllowed and Handle with a catch-all; on gorilla/mux, PathPrefix given a router of the module with a route of its own, PathPrefix with Methods given another router of the module, PathPrefix given a handler that is no router, five routes whose last variable has a pattern that can match a slash, one with a literal slash in it, one that matches only a path of its own shape and one holding braces, and a route whose variable's pattern holds braces and cannot match a slash, and the NotFoundHandler and MethodNotAllowedHandler fields set through a struct field that keeps the router, the second behind a condition; on echo, the HTTPErrorHandler field; and on net/http's ServeMux, a wildcard pattern, the pattern / with no method handing every request to another mux, and the pattern / with no method given a handler that is no router
 - When: extract go is run on the module
-- Then: it writes one operation per health route, one for the route whose variable's pattern holds braces, named by the variable alone with a line for its pattern, one for the route of the mux handed every request under /, and one for the route of each router PathPrefix is given, each mounted under no prefix, with a line for the Methods on the second mount; asks a must question blocking the design stage, counted as a registration, for each fallback registration and field, through the struct field too, naming the handler and the requests it takes, for the pattern / given a handler that is no router, for each route whose path ends in a catch-all, the gorilla/mux variables whose pattern matches a slash among them, and for PathPrefix given a handler that is no router, naming its prefix and its methods, every method for Any, Handle and PathPrefix; asks the question for a registration behind a condition for the field set behind one; asks the question for every method for the plain Any as before; and exits 0
+- Then: it writes one operation per health route, one for the route whose variable's pattern holds braces, named by the variable alone with a line for its pattern, one for the route of the mux handed every request under /, and one for the route of each router PathPrefix is given, each mounted under no prefix, with a line for the Methods on the second mount; asks a must question blocking gateways, counted as a registration, for each fallback registration and field, through the struct field too, naming the handler and the requests it takes, for the pattern / given a handler that is no router, for each route whose path ends in a catch-all, the gorilla/mux variables whose pattern matches a slash among them, and for PathPrefix given a handler that is no router, naming its prefix and its methods, every method for Any, Handle and PathPrefix; asks the question for a registration behind a condition for the field set behind one; asks the question for every method for the plain Any as before; and exits 0
 
 #### extract-javascript-express-routes
 
@@ -3400,6 +3398,22 @@ Scenario: red; level: system; covers exit 1.
 - Given: a file of a tree given by name instead of the tree's folder
 - When: validate is run on it
 - Then: it reports file_kind naming the folder to run on and exits 1
+
+#### validate-gateway
+
+Scenario: golden; level: system; verifies SA-75.
+
+- Given: a gateway that verifies serviceAccess, reads aud and forwards to the lending desk and the catalogue service, calling the identity provider; the token declares aud with no const or enum and no token is the default; the gateway server links to the identity provider and the desk but not to the catalogue
+- When: validate is run
+- Then: it reports nothing of the gateway, the token or the default, warns as link_missing at the gateway server for the catalogue, and exits 0
+
+#### validate-gateway-wrong
+
+Scenario: red; level: system; covers exit 1; verifies SA-75.
+
+- Given: a gateway reading aud whose token is the default, is named by an operation and writes enum on its aud, with a value twice, a forward to a database, one to a dependency not declared, a forward also under calls, a call to nothing declared, a middleware not declared and two refusals naming wrong problems; a gateway with an undeclared token and no forwards; and one reading a claim its token lacks
+- When: validate is run
+- Then: it reports gateway at each, token_audience at the enum, dependency, middleware and problem as for an operation, middleware_missing at the gateway that names no middlewares, and exits 1
 
 #### validate-generated-default
 

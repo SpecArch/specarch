@@ -78,6 +78,8 @@ private let referencePlaces: [(path: [String], kind: String)] = [
     (["jobs", "*", "trigger", "consumes"], "message"),
     (["paths", "*", "*", "calls"], "dependency"),
     (["jobs", "*", "calls"], "dependency"),
+    (["gateways", "*", "calls"], "dependency"),
+    (["gateways", "*", "forwards", "*", "dependency"], "dependency"),
     (["channels", "*", "carriedBy"], "dependency"),
     (["menus", "*", "page"], "page"),
     (["menus", "*", "items", "*", "page"], "page"),
@@ -93,9 +95,12 @@ private let referencePlaces: [(path: [String], kind: String)] = [
     (["commands", "*", "callers"], "client"),
     (["paths", "*", "*", "token"], "token"),
     (["clients", "*", "proof", "token"], "token"),
+    (["gateways", "*", "token"], "token"),
     (["paths", "*", "*", "handshake"], "handshake"),
     (["paths", "*", "*", "middlewares"], "middleware"),
+    (["gateways", "*", "middlewares"], "middleware"),
     (["tests", "*", "job"], "job"),
+    (["tests", "*", "gateway"], "gateway"),
     (["tests", "*", "workflow"], "workflow"),
     (["tests", "*", "flow"], "flow"),
     (["tests", "*", "requirement"], "requirement"),
@@ -107,7 +112,7 @@ private let anywhere = ["satisfies": "requirement", "verifies": "requirement", "
 private let sectionOfKind = [
     "requirement": "requirements", "decision": "decisions", "permission": "permissions", "role": "roles",
     "page": "pages", "command": "commands", "client": "clients", "token": "tokens", "handshake": "handshakes",
-    "middleware": "middlewares", "job": "jobs", "workflow": "workflows", "flow": "flows",
+    "middleware": "middlewares", "job": "jobs", "gateway": "gateways", "workflow": "workflows", "flow": "flows",
 ]
 
 private func placeMatches(_ pattern: [String], _ path: [String]) -> Bool {

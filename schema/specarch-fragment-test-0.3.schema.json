@@ -132,6 +132,10 @@
           "description": "The job the test is about.",
           "$ref": "#/$defs/memberName"
         },
+        "gateway": {
+          "description": "The gateway the test is about (ADR-141).",
+          "$ref": "#/$defs/memberName"
+        },
         "workflow": {
           "description": "The workflow the test is about.",
           "type": "string",
@@ -378,6 +382,11 @@
         {
           "required": [
             "job"
+          ]
+        },
+        {
+          "required": [
+            "gateway"
           ]
         },
         {

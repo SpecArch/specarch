@@ -113,6 +113,7 @@ const (
 	RuleLimits                 Rule = "limits"
 	RuleProblem                Rule = "problem"
 	RuleJob                    Rule = "job"
+	RuleGateway                Rule = "gateway"
 	RuleMenu                   Rule = "menu"
 	RuleView                   Rule = "view"
 	RuleFlow                   Rule = "flow"
@@ -257,6 +258,7 @@ var Rules = []Rule{
 	RuleLimits,
 	RuleProblem,
 	RuleJob,
+	RuleGateway,
 	RuleMenu,
 	RuleView,
 	RuleFlow,

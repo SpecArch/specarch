@@ -165,27 +165,8 @@ func (c *checker) checkInterface(o operation) {
 // checkMiddlewares checks each middleware's refusals against the catalogue
 // of problem types, as a response's are checked (ADR-131).
 func (c *checker) checkMiddlewares(d *design) {
-	errors := source.Child(d.root, "errors")
 	for _, m := range source.Pairs(source.Child(d.root, "middlewares")) {
-		for i, r := range source.Items(source.Child(m.Value, "refusals")) {
-			status := source.Str(source.Child(r, "status"))
-			at := source.Pointer("middlewares", m.Key.Value, "refusals", fmt.Sprint(i))
-			p := source.Child(r, "problem")
-			if p == nil {
-				if len(source.Pairs(errors)) > 0 {
-					c.add(r, at, RuleProblem, "the specification declares its problem types under errors, so the %s refusal of middleware %s names one under problem", status, m.Key.Value)
-				}
-				continue
-			}
-			t := source.Child(errors, p.Value)
-			if t == nil {
-				c.add(p, at+"/problem", RuleProblem, "%s is not a problem type under errors%s", p.Value, suggestPairs(p.Value, errors))
-				continue
-			}
-			if s := source.Str(source.Child(t, "status")); s != status {
-				c.add(p, at+"/problem", RuleProblem, "%s is a %s problem, and this is a %s refusal; name a problem type of status %s", p.Value, s, status, status)
-			}
-		}
+		c.checkRefusals(d, source.Child(m.Value, "refusals"), source.Pointer("middlewares", m.Key.Value, "refusals"), "middleware "+m.Key.Value)
 	}
 }
 

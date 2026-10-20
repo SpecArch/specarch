@@ -127,28 +127,8 @@ extension Checker {
     /// Checks each middleware's refusals against the catalogue of problem
     /// types, as a response's are checked (ADR-131).
     func checkMiddlewares(_ d: Design) {
-        let errors = d.root.child("errors")
         for m in pairs(d.root.child("middlewares")) {
-            for (i, r) in items(m.value.child("refusals")).enumerated() {
-                let status = str(r.child("status"))
-                let at = pointer("middlewares", m.key.value, "refusals", "\(i)")
-                guard let p = r.child("problem") else {
-                    if !pairs(errors).isEmpty {
-                        add(r, at, .problem, "the specification declares its problem types under errors, so the \(status) refusal of middleware \(m.key.value) names one under problem")
-                    }
-                    continue
-                }
-                guard let t = errors?.child(p.value) else {
-                    var valid: [String: YNode] = [:]
-                    for e in pairs(errors) { valid[e.key.value] = e.value }
-                    add(p, at + "/problem", .problem, "\(p.value) is not a problem type under errors\(suggest(p.value, valid))")
-                    continue
-                }
-                let s = str(t.child("status"))
-                if s != status {
-                    add(p, at + "/problem", .problem, "\(p.value) is a \(s) problem, and this is a \(status) refusal; name a problem type of status \(status)")
-                }
-            }
+            checkRefusals(d, m.value.child("refusals"), pointer("middlewares", m.key.value, "refusals"), "middleware " + m.key.value)
         }
     }
 

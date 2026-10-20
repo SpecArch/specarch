@@ -1,0 +1,4 @@
+arguments: [validate, .]
+exitStatus: 0
+standardOutput: |
+  case.go.specarch-implementation.yaml:13:9: warning: /deployments/production/servers/0: link_missing: gateway runs the packages implementing api, which reach the dependency catalogue, and no link leads from gateway to books, the server that is catalogue here; add a link from gateway to books on a port it listens on [link_missing@case.go.specarch-implementation.yaml#/deployments/production/servers/0]

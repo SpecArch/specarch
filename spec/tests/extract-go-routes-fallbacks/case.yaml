@@ -20,13 +20,13 @@ standardOutput: |
   not held: muxfallback/mux.go:15: the route GET /status: its handler health serves more than one route; the operation is named getStatus; could question Q-58
   handlers: followed 10 of 10 handlers into 10 functions, to 3 calls deep, and left 0 calls not followed: the handler of each operation, where it is a function literal, a function of the same package or one of another package of the module, and each function of the module its steps call
   derived 0 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers
-  not derived: 1 draft test for operation items, held up by Q-1, Q-10, Q-11, Q-12, Q-13, Q-14, Q-15, Q-16, Q-17, Q-18, Q-19, Q-2, Q-20, Q-21, Q-22, Q-3, Q-4, Q-5, Q-59, Q-6, Q-7, Q-8, Q-9; the validator warns for them until the questions are answered
-  not derived: 2 draft tests for operation code, held up by Q-1, Q-10, Q-11, Q-12, Q-13, Q-14, Q-15, Q-16, Q-17, Q-18, Q-19, Q-2, Q-23, Q-24, Q-25, Q-26, Q-3, Q-4, Q-5, Q-6, Q-60, Q-7, Q-8, Q-9; the validator warns for them until the questions are answered
-  not derived: 1 draft test for operation getHealth, held up by Q-1, Q-10, Q-11, Q-12, Q-13, Q-14, Q-15, Q-16, Q-17, Q-18, Q-19, Q-2, Q-27, Q-28, Q-29, Q-3, Q-4, Q-5, Q-6, Q-7, Q-8, Q-9; the validator warns for them until the questions are answered
-  not derived: 1 draft test for operation loans, held up by Q-1, Q-10, Q-11, Q-12, Q-13, Q-14, Q-15, Q-16, Q-17, Q-18, Q-19, Q-2, Q-3, Q-30, Q-31, Q-32, Q-4, Q-5, Q-6, Q-61, Q-7, Q-8, Q-9; the validator warns for them until the questions are answered
-  not derived: 1 draft test for operation getMetrics, held up by Q-1, Q-10, Q-11, Q-12, Q-13, Q-14, Q-15, Q-16, Q-17, Q-18, Q-19, Q-2, Q-3, Q-33, Q-34, Q-35, Q-4, Q-5, Q-6, Q-62, Q-7, Q-8, Q-9; the validator warns for them until the questions are answered
-  not derived: 1 draft test for operation getReady, held up by Q-1, Q-10, Q-11, Q-12, Q-13, Q-14, Q-15, Q-16, Q-17, Q-18, Q-19, Q-2, Q-3, Q-36, Q-37, Q-38, Q-4, Q-5, Q-6, Q-63, Q-7, Q-8, Q-9; the validator warns for them until the questions are answered
-  not derived: 1 draft test for operation getStarted, held up by Q-1, Q-10, Q-11, Q-12, Q-13, Q-14, Q-15, Q-16, Q-17, Q-18, Q-19, Q-2, Q-3, Q-39, Q-4, Q-40, Q-41, Q-5, Q-6, Q-64, Q-7, Q-8, Q-9; the validator warns for them until the questions are answered
-  not derived: 1 draft test for operation getStatus, held up by Q-1, Q-10, Q-11, Q-12, Q-13, Q-14, Q-15, Q-16, Q-17, Q-18, Q-19, Q-2, Q-3, Q-4, Q-42, Q-43, Q-44, Q-5, Q-6, Q-62, Q-7, Q-8, Q-9; the validator warns for them until the questions are answered
-  not derived: 1 draft test for operation itemsV2, held up by Q-1, Q-10, Q-11, Q-12, Q-13, Q-14, Q-15, Q-16, Q-17, Q-18, Q-19, Q-2, Q-3, Q-4, Q-45, Q-46, Q-47, Q-5, Q-6, Q-65, Q-7, Q-8, Q-9; the validator warns for them until the questions are answered
-  not derived: 1 draft test for operation getVersion, held up by Q-1, Q-10, Q-11, Q-12, Q-13, Q-14, Q-15, Q-16, Q-17, Q-18, Q-19, Q-2, Q-3, Q-4, Q-48, Q-49, Q-5, Q-50, Q-6, Q-66, Q-7, Q-8, Q-9; the validator warns for them until the questions are answered
+  not derived: 1 draft test for operation items, held up by Q-17, Q-20, Q-21, Q-22, Q-5, Q-59; the validator warns for them until the questions are answered
+  not derived: 2 draft tests for operation code, held up by Q-17, Q-23, Q-24, Q-25, Q-26, Q-5, Q-60; the validator warns for them until the questions are answered
+  not derived: 1 draft test for operation getHealth, held up by Q-17, Q-27, Q-28, Q-29, Q-5; the validator warns for them until the questions are answered
+  not derived: 1 draft test for operation loans, held up by Q-17, Q-30, Q-31, Q-32, Q-5, Q-61; the validator warns for them until the questions are answered
+  not derived: 1 draft test for operation getMetrics, held up by Q-17, Q-33, Q-34, Q-35, Q-5, Q-62; the validator warns for them until the questions are answered
+  not derived: 1 draft test for operation getReady, held up by Q-17, Q-36, Q-37, Q-38, Q-5, Q-63; the validator warns for them until the questions are answered
+  not derived: 1 draft test for operation getStarted, held up by Q-17, Q-39, Q-40, Q-41, Q-5, Q-64; the validator warns for them until the questions are answered
+  not derived: 1 draft test for operation getStatus, held up by Q-17, Q-42, Q-43, Q-44, Q-5, Q-62; the validator warns for them until the questions are answered
+  not derived: 1 draft test for operation itemsV2, held up by Q-17, Q-45, Q-46, Q-47, Q-5, Q-65; the validator warns for them until the questions are answered
+  not derived: 1 draft test for operation getVersion, held up by Q-17, Q-48, Q-49, Q-5, Q-50, Q-66; the validator warns for them until the questions are answered

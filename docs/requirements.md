@@ -4,7 +4,7 @@
 
 Version 0.7.2-dev of the specification: 5 stakeholders, 10 needs and 85 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
 
-**Problems:** 3 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
+**Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
 ## 1. Purpose and scope
 
@@ -692,8 +692,6 @@ Acceptance criteria:
 - A gateway naming a token the specification lacks, a claim the token does not declare, an empty forwards, a value twice, a dependency not declared or of kind database, messageBroker or fileStore, or a forward's dependency under calls is reported as gateway in both builds; with claim aud, so is the token marked default or named by an operation, and const or enum on that token's aud is reported as token_audience. In an umbrella run, a forward whose value is none of the aud values the module its dependency names accepts is reported as gateway, and that token is left out of the refusal of two modules accepting one aud value.
 - A test may name a gateway as its subject, and a gateway gets the cases forwarded to each dependency, no token, a bad signature, an expired token, an unknown claim value, a claim naming two forwarded services, and a dependency failing or timing out for each it forwards to or calls.
 - The technical specification draws each forward in the context diagram and writes a section per gateway with its token, claim, forwards, middlewares, refusals and cases; generate openapi writes nothing for a gateway and prints a line naming it; a specification without one renders byte for byte as before.
-
-**Problem:** warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SA-75; add verifies: [SA-75] to the test that shows it is met [requirement_unverified@requirements/requirements/design-keywords.yaml#/requirements/SA-75]
 
 **Insight:** A service that forwards by the token's audience had no place in its own specification, so the one behaviour it exists for was recorded as a surface not read; written as an element, its token, its table and its refusals are checked, drawn and tested like an operation's.
 

@@ -186,6 +186,9 @@ not a user mistake.
 | a check fails on a token, refused with a token for another audience | occasional | a token minted elsewhere, or for another service |
 | refused when the actor is the subject, refused with a caller not listed in via, the confused deputy's token forms | rare | an attack rather than a mistake |
 | refused with a bad signature, refused for a service's own token | rare | an attack rather than a mistake; chosen through the harm of the requirements the route satisfies |
+| forwarded to a dependency (golden), refused with no token, refused with a bad signature, at a gateway | frequent | every request through a gateway carries a token, and the gateway is the one place it is checked before the service (ADR-141) |
+| refused with an unknown claim value, at a gateway | occasional | a token minted for a service the table does not hold |
+| refused with a claim naming two forwarded services | rare | a token minted for two services at once |
 | guard precondition fails | occasional | a stale screen |
 | concurrent write | rare | but critical by nature, see below |
 | response 4xx or 5xx not covered above | occasional | |
@@ -296,6 +299,7 @@ meta-model it is derived from (`docs/conventions.md` has each concept):
 | tokens | the token an operation accepts (`denied with expired <token>`, `<check> fails on <token>`, `refused when the actor is the subject`, `refused with a token for another audience`), its `via` (`refused with a caller not listed in via`) and, once a service exists, the deputy's token forms (`refused for a person's token requested by a service with no actor`, `refused with a req_wl that is not an edge`, `refused with a txn differing from the one received`, `refused with a scope no edge of its chain checked`); each ends with its security event once `securityEvents` is declared |
 | rows | a role's `rows` rule over the entity an operation reads or writes, where the role holds the operation's permission (`shows only the rows of <role>` for a list, `a record outside the rows of <role> is not found` for a read by key, `a change outside the rows of <role> is refused` for a write), and over an entity a job acting as the role reads or writes (`acts only on the rows of <role> in <entity>`) |
 | concurrency | the `guard` on the operation or command (`concurrent write`, and `guard precondition fails`) |
+| gateways | a gateway's token, claim and forwards (`forwarded to <dependency>`, golden, per forward; `refused with no token`, `refused with a bad signature`, `denied with expired <token>`, `refused with an unknown <claim>`, and `refused with a <claim> naming two forwarded services` for `aud` or a claim whose type is an array) and every dependency it forwards to or calls (`dependency fails`, `dependency times out`) |
 
 Each concept was chosen for what a test can set up from outside: a
 dependency that fails or stalls, a key sent twice, a record past its

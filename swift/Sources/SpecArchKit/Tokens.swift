@@ -124,10 +124,12 @@ extension Checker {
     func checkTokens(_ d: Design) {
         let tokens = d.tokenList
         let accepted = d.acceptedTokens
-        var defaults = 0
+        let forwarded = d.forwardedByAudience
+        var defaults = 0, own = 0
         for t in tokens {
             let name = t.key.value
             let at = pointer("tokens", name)
+            if forwarded[name] == nil { own += 1 }
             let format = str(t.value.child("format"))
             let sig = t.value.child("signature")
             if format == "jwt" && sig == nil {
@@ -161,11 +163,13 @@ extension Checker {
                 if accepted.contains(name) && d.hasThrough && claims?.child("tctx")?.child("properties")?.child("application") == nil {
                     add(t.key, at, .token, "\(name) is accepted where a role's through reaches, and declares no tctx.application, the application the person signed in through, immutable from the edge on; add tctx with properties.application")
                 }
+            } else if let gw = forwarded[name] {
+                checkForwardedAudience(name, gw, claims, at)
             } else if accepted.contains(name) {
                 checkTokenAudience(name, claims, at)
             }
         }
-        if !tokens.isEmpty && defaults == 0 {
+        if own > 0 && defaults == 0 {
             add(d.root.key("tokens"), "/tokens", .token, "no token is marked default, so an operation naming no token accepts none; mark one default: true")
         }
         for o in d.opList {

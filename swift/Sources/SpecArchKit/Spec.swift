@@ -24,7 +24,7 @@ public let sections: [String: String] = [
     "stakeholders": "requirements", "needs": "requirements", "requirements": "requirements",
     "glossary": "requirements", "assumptions": "requirements", "constraints": "requirements",
     "enums": "design", "entities": "design", "views": "design", "schemas": "design", "permissions": "design", "roles": "design", "caller": "design", "clients": "design", "tokens": "design", "securityEvents": "design", "separationOfDuties": "design", "session": "design", "middlewares": "design", "handshakes": "design", "paths": "design",
-    "commands": "design", "channels": "design", "dependencies": "design", "jobs": "design", "workflows": "design", "errors": "design", "pages": "design", "menus": "design", "flows": "design", "accessibility": "design", "theme": "design", "algorithms": "design", "decisions": "design",
+    "commands": "design", "channels": "design", "dependencies": "design", "jobs": "design", "gateways": "design", "workflows": "design", "errors": "design", "pages": "design", "menus": "design", "flows": "design", "accessibility": "design", "theme": "design", "algorithms": "design", "decisions": "design",
     "tests": "tests",
     "environments": "deployment", "configuration": "deployment", "release": "deployment",
     "rollback": "deployment", "migrations": "deployment", "handover": "deployment",
@@ -36,7 +36,7 @@ public let sections: [String: String] = [
 /// questions last.
 let sectionOrder = [
     "stakeholders", "needs", "requirements", "glossary", "assumptions", "constraints",
-    "enums", "entities", "views", "schemas", "permissions", "roles", "caller", "clients", "tokens", "securityEvents", "separationOfDuties", "session", "middlewares", "handshakes", "paths", "commands", "channels", "dependencies", "jobs", "workflows", "errors", "pages", "menus", "flows", "accessibility", "theme", "algorithms",
+    "enums", "entities", "views", "schemas", "permissions", "roles", "caller", "clients", "tokens", "securityEvents", "separationOfDuties", "session", "middlewares", "handshakes", "paths", "commands", "channels", "dependencies", "jobs", "gateways", "workflows", "errors", "pages", "menus", "flows", "accessibility", "theme", "algorithms",
     "tests", "decisions",
     "environments", "configuration", "release", "rollback", "migrations", "handover",
     "checks", "signoff",

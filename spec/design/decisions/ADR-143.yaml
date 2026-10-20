@@ -42,12 +42,10 @@ decisions:
       forwards and by which claim, and are counted as registrations; one
       in a loop or behind a condition asks the question every
       registration there asks. The
-      question blocks the stage design until the element exists, since
-      the validator refuses a blocks entry that is no section of the
-      schema, and is written in the design folder's questions file beside
-      the tree's other design questions, where question_stage wants a
-      question about that stage; it blocks gateways once ADR-141's item
-      has added the section. A route whose path ends in a catch-all is
+      question blocks gateways, the section of ADR-141, which the gateway
+      table answers in the merge (ADR-142), and is written in the design
+      folder's questions file beside the tree's other design questions,
+      where question_stage wants a question about that stage. A route whose path ends in a catch-all is
       the same must question, naming the prefix and the methods, in place
       of a line. gorilla/mux has two catch-alls, and both take the
       question: a route variable whose pattern can match a slash
@@ -84,11 +82,8 @@ decisions:
       where a plain 404 lives too; the reader cannot tell which, and
       ADR-075 forbids dropping a registration the table knows on a
       surface it reads, so a must question is the one record, and
-      blocking gateways, once the section exists, is right because a
-      handler that takes every unmatched request is the shape of a
-      gateway or of nothing; until then it blocks the design stage,
-      from the design folder's questions file, which question_block and
-      question_stage admit, checked with the 0.7.0 build. The
+      blocking gateways is right because a handler that takes every
+      unmatched request is the shape of a gateway or of nothing. The
       catch-all is the other way the same thing is written, so it takes
       the same question in place of a line that said only that the
       meta-model does not hold it.

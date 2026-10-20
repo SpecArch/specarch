@@ -107,6 +107,7 @@ enums:
       - limits
       - problem
       - job
+      - gateway
       - menu
       - view
       - flow
@@ -202,7 +203,7 @@ enums:
       suite: an implementation's test suite names a design test or subject that does not exist
       depends_on: a layout entry's `dependsOn` names no key of the layout, or the entry itself
       link: a deployment's link names no named server of the deployment as `from` or `to`, goes from a server to itself, or names a port the target does not listen on
-      link_missing: "as a warning, at a server of a deployment that declares links: its packages implement an operation or a job that calls a dependency, or emits on or consumes from a channel a dependency carries, and no link leads from it to the server that is that dependency; or they implement an entity, or a job that reads or writes one, and no link leads from it to the deployment's database server that runs the `sql` target"
+      link_missing: "as a warning, at a server of a deployment that declares links: its packages implement an operation or a job that calls a dependency, or a gateway that forwards to or calls one, or emits on or consumes from a channel a dependency carries, and no link leads from it to the server that is that dependency; or they implement an entity, or a job that reads or writes one, and no link leads from it to the deployment's database server that runs the `sql` target"
       server: a deployment's server name is used twice, its `runs` names a package or target the file does not have, it runs packages and is not of kind `service`, it names a `dependency` and has a `kind` or `runs`, or its `dependency` is not declared
       layout: a file or a section is not where the tree layout puts it; the root file's `stages` and the folders disagree, a test folder has no `test.yaml`, or a folder is not a stage
       need: a requirement's `needs` names a need that does not exist
@@ -248,6 +249,7 @@ enums:
       limits: "a rate's time is zero, or its burst is below its requests"
       problem: "a response or a middleware's refusal names a problem type not under errors, or one of another status, or the specification declares errors and a 4xx or 5xx response or a refusal names none"
       job: "a job acts as a role the specification does not have, reads or writes an entity it does not have, or consumes a message no channel declares"
+      gateway: "a gateway names a token the specification does not declare or a claim its token does not declare, has no forwards, writes one value twice, forwards to a dependency not declared or of kind database, messageBroker or fileStore, lists a forward's dependency under calls too, or, reading aud, verifies a token marked default or named by an operation; in the umbrella run, a forward whose value is none of the aud values the module its dependency names accepts (ADR-141)"
       menu: "a menu entry opens a page the specification does not have"
       view: "a view reads from an entity the specification does not have, follows a path, counts a relation or carries the rows of a relation that does not lead where it must, repeats a field of its entity, shares an entity's name, or is used where it would be written"
       flow: "a page event is on a page or an action that does not raise it, leads to a page the specification does not have, does not give that page exactly its route parameters from fields of the page's entity, or carries a message that is not a full sentence; a list's action that opens a page does not give that page exactly its route parameters under with, from fields of the page's entity, or another page's action has with; or a flow's actor is not a role or may not open a page or take an action on the way, a step's page does not exist or does not raise its event, or an event leads somewhere other than the next step's page"
@@ -282,9 +284,9 @@ enums:
       through: "a role's through names a permission the role does not grant, directly or by implies, a client the specification does not declare, or an empty list, or the specification carries no application a caller signed in through: no token declares client_id or tctx and a session carries none (ADR-106, ADR-108)"
       callers: "an operation's or command's callers is empty, is on a route closed with nobody, names what is neither people nor a declared client, lists a name twice, lists a service with no roles, or lists a client none of whose roles grants the permission (ADR-110)"
       proof: "a signedRequest proof names no algorithm, an algorithm RFC 9421 does not register or a covered component that is neither a derived component nor a header field name; a mutualTls, spiffe or wimse proof names an algorithm, covered components or a token; a token proof names no token, an undeclared one or a transaction token, which a workload must not authenticate itself with (ADR-096, ADR-111)"
-      token: "a JWT with no signature, an opaque token with one, the algorithm none or one RFC 7518 does not register, two tokens marked default or none, an operation naming an undeclared token, a check that names what is not a claim or gives no bool, a transaction token that is not a JWT, lacks txn, sub, scope or req_wl, writes aud, or is accepted where a role's through reaches without tctx.application (ADR-097, ADR-111)"
+      token: "a JWT with no signature, an opaque token with one, the algorithm none or one RFC 7518 does not register, two tokens marked default, or none among the tokens no gateway forwards by aud, an operation naming an undeclared token, a check that names what is not a claim or gives no bool, a transaction token that is not a JWT, lacks txn, sub, scope or req_wl, writes aud, or is accepted where a role's through reaches without tctx.application (ADR-097, ADR-111)"
       claim: "a registered claim of the JSON Web Token Claims registry retyped, a claim with an underscore outside the registry, or a claim of a caller property's name with another type (ADR-097, ADR-111)"
       via: "an operation accepting a transaction token or a token declaring act names no via, one accepting neither names it, or via is empty, names an undeclared client, an application, a client twice or a service without a workload-identity proof (ADR-111)"
-      token_audience: "an access token some operation accepts declares no aud with const or enum, or an audience value with a colon that is not a URI (ADR-109)"
+      token_audience: "an access token some operation accepts declares no aud with const or enum, an audience value with a colon that is not a URI, or a token a gateway forwards by aud declares const or enum on its aud, which the forwards fix (ADR-109, ADR-141)"
       security_events: "a specification with tokens and clients declares no securityEvents, or its store or alarm is not a dependency (ADR-109)"
     satisfies: [SA-2, SA-3, SA-4, SA-5, SA-6, SA-9, SA-10, SA-11, SA-12, SA-13, SA-17, SA-18, SA-23, SA-24, SA-27, SA-29, SA-41, SA-42, SA-47, SA-48, SA-49, SA-50, SA-62, SA-63, SA-67, SA-68, SA-69, SA-73, SA-77, SA-82, SA-83, SA-84, SA-88]

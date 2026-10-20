@@ -1,0 +1,88 @@
+specarch: "0.3"
+info: { title: Case, version: 1.0.0 }
+permissions:
+  status.read: { description: Read the status. }
+roles:
+  operator:
+    description: Runs the gateway.
+    permissions: [status.read]
+tokens:
+  serviceAccess:
+    description: The access token a client holds for one of the forwarded services, written with a list of audiences and marked default.
+    format: jwt
+    signature: RS256
+    lifetime: PT15M
+    claims:
+      aud: { enum: ["https://loans.library.example"] }
+      sub: { description: The person. }
+    default: true
+  staffAccess:
+    description: A token that declares no tenant.
+    format: jwt
+    signature: ES256
+    lifetime: PT15M
+    claims:
+      aud: { const: "https://status.library.example" }
+      sub: { description: The person. }
+middlewares:
+  audit-log: { description: Writes one line per request. }
+errors:
+  token-invalid: { status: 401, title: The token is not valid, condition: The token is missing or expired. }
+paths:
+  /status:
+    get:
+      operationId: getStatus
+      summary: The status
+      permission: status.read
+      token: serviceAccess
+      middlewares: [audit-log]
+      responses:
+        "200": { description: The status. }
+dependencies:
+  identity:
+    description: The identity provider.
+    timeout: PT2S
+    kind: identityProvider
+  loans:
+    description: The lending desk.
+    timeout: PT10S
+  ledger:
+    description: The finance system's database.
+    timeout: PT5S
+    kind: database
+gateways:
+  api:
+    description: Forwards by audience, with a row twice, a row to a database, a row to nothing declared and a forward called too.
+    token: serviceAccess
+    claim: aud
+    forwards:
+      - { value: "https://loans.library.example", dependency: loans }
+      - { value: "https://loans.library.example", dependency: loans }
+      - { value: "https://ledger.finance.example", dependency: ledger }
+      - { value: "https://books.library.example", dependency: catalog }
+    calls: [identity, loans, directory]
+    middlewares: [audit-log, rate-limit]
+    refusals:
+      - { status: 404, problem: token-invalid, condition: The audience names no service. }
+      - { status: 502, problem: service-down, condition: The service did not answer. }
+  tenants:
+    description: Forwards by a tenant claim the token does not declare, through a token not declared, to nothing.
+    token: tenantAccess
+    claim: tenant
+    forwards: []
+  staff:
+    description: Forwards by a claim the token does not declare.
+    token: staffAccess
+    claim: tenant
+    middlewares: []
+    forwards:
+      - { value: north, dependency: loans }
+tests:
+  get-status-succeeds: { level: system, operation: getStatus, scenario: golden, given: "a caller with status.read", when: "getStatus is called", then: "it answers 200" }
+  get-status-denied: { level: system, operation: getStatus, scenario: red, covers: [denied without status.read, denied with expired serviceAccess], given: "a caller without status.read or with an expired token", when: "getStatus is called", then: "it is refused" }
+  api-forwards: { level: system, gateway: api, scenario: golden, covers: [forwarded to loans, forwarded to ledger, forwarded to catalog], given: "a serviceAccess token whose aud is a value of the forwards", when: "a request no operation answers reaches the gateway api", then: "it reaches the service the value names" }
+  api-refuses: { level: system, gateway: api, scenario: red, covers: [refused with no token, refused with a bad signature, denied with expired serviceAccess, dependency fails identity, dependency times out identity, dependency fails loans, dependency times out loans, dependency fails ledger, dependency times out ledger], given: "a bad token or a failing service", when: "a request no operation answers reaches the gateway api", then: "it is refused" }
+  tenants-forwards: { level: system, gateway: tenants, scenario: golden, given: "a tenantAccess token", when: "a request no operation answers reaches the gateway tenants", then: "it is refused, since nothing is forwarded" }
+  tenants-refuses: { level: system, gateway: tenants, scenario: red, covers: [refused with no token, refused with a bad signature], given: "no token or a badly signed one", when: "a request no operation answers reaches the gateway tenants", then: "it is refused" }
+  staff-forwards: { level: system, gateway: staff, scenario: golden, covers: [forwarded to loans], given: "a staffAccess token whose tenant is north", when: "a request no operation answers reaches the gateway staff", then: "it reaches loans" }
+  staff-refuses: { level: system, gateway: staff, scenario: red, covers: [refused with no token, refused with a bad signature, denied with expired staffAccess, dependency fails loans, dependency times out loans], given: "a bad token or a failing service", when: "a request no operation answers reaches the gateway staff", then: "it is refused" }

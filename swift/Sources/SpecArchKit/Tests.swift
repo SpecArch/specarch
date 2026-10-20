@@ -143,7 +143,7 @@ private func caller(_ perm: String) -> String {
     return "a caller with " + perm
 }
 
-private func golden(_ given: String, _ when: String, _ then: String) -> DerivedCase {
+func golden(_ given: String, _ when: String, _ then: String) -> DerivedCase {
     DerivedCase(name: "succeeds", scenario: "golden", given: given, when: when, then: then, frequency: "")
 }
 
@@ -237,6 +237,7 @@ extension Design {
         for o in opList where !o.id.isEmpty { out.append(withHarm(operationSubject(o), o.node)) }
         for p in pairs(root.child("commands")) { out.append(withHarm(commandSubject(p), p.value)) }
         for p in pairs(root.child("jobs")) { out.append(withHarm(jobSubject(p), p.value)) }
+        for p in gatewayList { out.append(withHarm(gatewaySubject(p), p.value)) }
         for p in pairs(root.child("workflows")) { out.append(withHarm(workflowSubject(p), p.value)) }
         for p in pairs(root.child("pages")) { out.append(withHarm(pageSubject(p), p.value)) }
         for p in pairs(root.child("flows")) { out.append(withHarm(screenFlowSubject(p), p.value)) }
@@ -844,6 +845,7 @@ func testSubjectKey(_ t: YNode) -> String {
     if let v = t.child("command"), !v.str.isEmpty { return "command: " + v.str }
     if let v = t.child("page"), !v.str.isEmpty { return "page: " + v.str }
     if let v = t.child("job"), !v.str.isEmpty { return "job: " + v.str }
+    if let v = t.child("gateway"), !v.str.isEmpty { return "gateway: " + v.str }
     if let v = t.child("flow"), !v.str.isEmpty { return "flow: " + v.str }
     if let v = t.child("workflow"), !v.str.isEmpty { return "workflow: " + v.str }
     if let v = t.child("requirement"), !v.str.isEmpty { return "requirement: " + v.str }
@@ -931,7 +933,7 @@ extension Checker {
             }
             guard let s = byKey[key] else {
                 add(p.key, pointer(base), .testSubject,
-                    "test \(name) is about \(key.replacingOccurrences(of: ": ", with: " ")), which is not in the specification; name an operationId, command, page, job, flow, workflow, requirement with acceptance criteria, entity with a state machine, or an entity's constraint or transition that exists")
+                    "test \(name) is about \(key.replacingOccurrences(of: ": ", with: " ")), which is not in the specification; name an operationId, command, page, job, gateway, flow, workflow, requirement with acceptance criteria, entity with a state machine, or an entity's constraint or transition that exists")
                 continue
             }
             let id = ObjectIdentifier(s)

@@ -282,6 +282,16 @@
         "$ref": "#/$defs/job"
       }
     },
+    "gateways": {
+      "description": "SpecArch keyword, after RFC 9110's gateway (section 3.7). The intermediaries that forward every request no operation under paths answers, whatever its method and path, as received, to the service a claim of the verified bearer token names, keyed by camelCase name: the token verified, the claim read, the dependency each value of it selects, the dependencies called besides, the middlewares run and the refusals the gateway answers itself. A gateway names no permission: it decides nothing, and the service it forwards to checks the permission of every path it serves (ADR-141).",
+      "type": "object",
+      "propertyNames": {
+        "$ref": "#/$defs/memberName"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/gateway"
+      }
+    },
     "workflows": {
       "description": "SpecArch keyword, a sequential subset of BPMN 2.0. Requests that finish later, after people approve them, keyed by kebab-case name: the operation that starts each, answering 202, the entity that holds the request while it waits, and its approval and operation steps in order. The person who made a request never approves it. A workflow is a test subject.",
       "type": "object",
@@ -4573,6 +4583,10 @@
           "description": "The job the test is about.",
           "$ref": "#/$defs/memberName"
         },
+        "gateway": {
+          "description": "The gateway the test is about (ADR-141).",
+          "$ref": "#/$defs/memberName"
+        },
         "workflow": {
           "description": "The workflow the test is about.",
           "type": "string",
@@ -4819,6 +4833,11 @@
         {
           "required": [
             "job"
+          ]
+        },
+        {
+          "required": [
+            "gateway"
           ]
         },
         {
@@ -5912,6 +5931,123 @@
         "description",
         "trigger",
         "role"
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "gateway": {
+      "description": "SpecArch keyword. One gateway: the token it verifies before it reads anything else, the claim whose value selects the service, the table of forwards from a value to a dependency, the dependencies it calls besides, the middlewares it runs first and the refusals it answers in place of the forwarded service (ADR-141).",
+      "type": "object",
+      "properties": {
+        "description": {
+          "$ref": "#/$defs/markdown"
+        },
+        "token": {
+          "description": "SpecArch keyword. The token the gateway verifies, by its key under tokens, with the meaning an operation's token has: its format, its signature algorithm and its claims are the token's own (ADR-097). When the claim is aud, the forwards are the token's fixed audience, so its aud declares no const or enum, it is not the default, and no operation names it (ADR-141).",
+          "$ref": "#/$defs/memberName"
+        },
+        "claim": {
+          "description": "RFC 7519 keyword. The name of the claim, one the token declares under claims, whose value selects the service; it is read from the verified token only. A claim whose value is a list, as aud may be, selects a service when exactly one of its values is a forward's.",
+          "type": "string",
+          "pattern": "^[a-z][A-Za-z0-9_]*$"
+        },
+        "forwards": {
+          "description": "SpecArch keyword. The table of services, one row per value: value, the claim's value, and dependency, the key under dependencies of the service a request with that value is forwarded to, of kind system or identityProvider. Each value appears once. The dependency's timeout is how long the gateway waits for the service; where the service is in an environment is a server of the implementation file's deployment (ADR-136).",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "value": {
+                "description": "RFC 7519 keyword. The claim's value, for aud an absolute URI naming the service (RFC 8707, section 2).",
+                "type": "string",
+                "minLength": 1
+              },
+              "dependency": {
+                "description": "SpecArch keyword. The dependency the request is forwarded to, by its key under dependencies.",
+                "$ref": "#/$defs/memberName"
+              }
+            },
+            "required": [
+              "value",
+              "dependency"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "calls": {
+          "description": "SpecArch keyword. The dependencies the gateway calls besides the ones it forwards to, as an operation's calls: the identity provider whose keys it fetches among them. A forward's dependency is not listed here too.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/operationRef"
+          },
+          "uniqueItems": true
+        },
+        "middlewares": {
+          "description": "SpecArch keyword. The middlewares the gateway runs before its own steps, in the order they run, by their names under middlewares; an empty list says it runs none.",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+          }
+        },
+        "refusals": {
+          "description": "SpecArch keyword. What the gateway answers itself, in place of the forwarded service's answer, in a middleware's form: a status, the problem type under errors and the condition.",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "type": "integer",
+                "minimum": 400,
+                "maximum": 599
+              },
+              "problem": {
+                "description": "The problem type under errors that the refusal names.",
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+              },
+              "condition": {
+                "$ref": "#/$defs/markdown"
+              }
+            },
+            "required": [
+              "status"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 1
+        },
+        "satisfies": {
+          "$ref": "#/$defs/satisfies"
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
+        },
+        "audience": {
+          "$ref": "#/$defs/audience"
+        }
+      },
+      "required": [
+        "description",
+        "token",
+        "claim",
+        "forwards"
       ],
       "propertyNames": {
         "not": {

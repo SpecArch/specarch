@@ -500,7 +500,7 @@ changes `extract.yaml` first.
     method) and a route whose path ends in a catch-all, gorilla/mux's
     variable whose pattern can match a slash and its `PathPrefix` given
     a handler that is no router among them, are each
-    a must question blocking the design stage, counted as a registration, in
+    a must question blocking `gateways`, counted as a registration, in
     place of silence or a line (ADR-143); handlers give the path
     parameters they read, the JSON body they
     decode into a struct of the module or a struct type written in place

@@ -27,7 +27,7 @@ var designKeys = map[string]bool{
 	"properties": true, "primaryKey": true, "stateField": true, "messages": true, "payload": true,
 	"calls": true, "idempotencyKey": true, "guard": true, "validity": true,
 	"sensitivity": true, "atRest": true, "lookup": true, "audited": true, "deletion": true,
-	"listOf": true, "limits": true, "problem": true, "errors": true, "jobs": true, "menus": true, "workflows": true,
+	"listOf": true, "limits": true, "problem": true, "errors": true, "jobs": true, "gateways": true, "menus": true, "workflows": true,
 	"views": true, "count": true, "schemas": true,
 }
 
@@ -571,7 +571,8 @@ type reach struct {
 
 // serverReach follows the design objects the packages implement: an
 // operation or a job reaches the dependencies it calls and those carrying
-// the channels it emits on or consumes from; an entity, or a job that
+// the channels it emits on or consumes from, a gateway those it forwards
+// to and calls; an entity, or a job that
 // reads or writes one, reaches the database.
 func (c *checker) serverReach(d *design, layout map[string]*yaml.Node, packages []*yaml.Node) reach {
 	r := reach{dependencies: map[string][]string{}}
@@ -620,6 +621,11 @@ func (c *checker) serverReach(d *design, layout map[string]*yaml.Node, packages 
 				}
 				if (source.Child(node, "reads") != nil || source.Child(node, "writes") != nil) && !contains(r.data, tokens[1]) {
 					r.data = append(r.data, tokens[1])
+				}
+			case "gateways":
+				uses(node, tokens[1])
+				for _, dep := range forwardedDependencies(node) {
+					add(dep, tokens[1])
 				}
 			case "paths":
 				if len(tokens) == 3 {

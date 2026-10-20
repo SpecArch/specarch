@@ -60,7 +60,7 @@ func (c *checker) checkTestData(d *design) {
 // testKindOf is the kind of subject a test names, and how a message names
 // it.
 func testKindOf(t *yaml.Node) (kind, label string) {
-	for _, k := range []string{"operation", "command", "page", "job", "workflow", "requirement"} {
+	for _, k := range []string{"operation", "command", "page", "job", "gateway", "workflow", "requirement"} {
 		if v := source.Str(source.Child(t, k)); v != "" {
 			return k, k + " " + v
 		}

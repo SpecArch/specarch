@@ -89,6 +89,7 @@ const (
 	toHandshake   = "handshake"
 	toMiddleware  = "middleware"
 	toJob         = "job"
+	toGateway     = "gateway"
 	toWorkflow    = "workflow"
 	toFlow        = "flow"
 )
@@ -128,6 +129,8 @@ var referencePlaces = []struct {
 	{[]string{"jobs", "*", "trigger", "consumes"}, toMessage},
 	{[]string{"paths", "*", "*", "calls"}, toDependency},
 	{[]string{"jobs", "*", "calls"}, toDependency},
+	{[]string{"gateways", "*", "calls"}, toDependency},
+	{[]string{"gateways", "*", "forwards", "*", "dependency"}, toDependency},
 	{[]string{"channels", "*", "carriedBy"}, toDependency},
 	{[]string{"menus", "*", "page"}, toPage},
 	{[]string{"menus", "*", "items", "*", "page"}, toPage},
@@ -143,9 +146,12 @@ var referencePlaces = []struct {
 	{[]string{"commands", "*", "callers"}, toClient},
 	{[]string{"paths", "*", "*", "token"}, toToken},
 	{[]string{"clients", "*", "proof", "token"}, toToken},
+	{[]string{"gateways", "*", "token"}, toToken},
 	{[]string{"paths", "*", "*", "handshake"}, toHandshake},
 	{[]string{"paths", "*", "*", "middlewares"}, toMiddleware},
+	{[]string{"gateways", "*", "middlewares"}, toMiddleware},
 	{[]string{"tests", "*", "job"}, toJob},
+	{[]string{"tests", "*", "gateway"}, toGateway},
 	{[]string{"tests", "*", "workflow"}, toWorkflow},
 	{[]string{"tests", "*", "flow"}, toFlow},
 	{[]string{"tests", "*", "requirement"}, toRequirement},
@@ -220,6 +226,8 @@ func ModelReferences(root *yaml.Node) []ModelReference {
 			section = "middlewares"
 		case toJob:
 			section = "jobs"
+		case toGateway:
+			section = "gateways"
 		case toWorkflow:
 			section = "workflows"
 		case toFlow:

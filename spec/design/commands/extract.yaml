@@ -884,8 +884,8 @@ commands:
         methods, every method for `Any` and `Handle`, and so is
         gorilla/mux's `PathPrefix` given a handler that is no router,
         its other catch-all, naming the prefix and its `Methods`; both
-        block the design stage, since a
-        fallback is where a gateway lives and where a plain 404 lives
+        block gateways, which the gateway table answers in the merge
+        (ADR-142), since a fallback is where a gateway lives and where a plain 404 lives
         too, and syntax cannot tell which (ADR-143). A `ServeMux`
         pattern of `/` with no method, or gorilla/mux's `PathPrefix`,
         handing every request to a router of the module mounts that

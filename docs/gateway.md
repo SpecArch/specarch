@@ -503,14 +503,10 @@ so each is a must question citing the call, or the assignment where the
 library's fallback is a field, on a router a name holds or a struct of
 the module keeps in a field, asking what the handler answers or
 forwards and by which claim, counted as a registration so that it shows
-in the coverage. The question blocks the stage `design` until the
-element exists, because the validator refuses a `blocks` entry that is
-no section of the schema (`question_block`), and is written in
-`design/questions.yaml` beside the tree's other design questions, where
-`question_stage` wants a question about the design stage, since the
-extracted tree lists the stages `requirements` and `design`; both
-checked with the 0.7.0 build. It blocks `gateways` once the element's
-item has added the section, which is when a table can answer it. A route whose path ends
+in the coverage. The question blocks `gateways`, which a gateway table
+answers in the merge, and is written in `design/questions.yaml` beside
+the tree's other design questions, where `question_stage` wants a
+question about the design stage. A route whose path ends
 in a catch-all (`/*path`, `{path...}`, chi's `/*`, a gorilla/mux
 variable whose pattern can match a slash, `{rest:.*}`), or gorilla/mux's
 `PathPrefix` given a handler that is no router, its other catch-all, is
@@ -519,7 +515,7 @@ with `Any` or `Match`; it is the same must question, naming the prefix
 and the methods, in place of a line. `PathPrefix` given a router of the
 module mounts it under no prefix, as a `ServeMux` pattern of `/` does,
 since gorilla/mux hands the whole path on; `Methods` or another matcher
-on that mount is a line, since the meta-model holds no match on a mount. Once the question blocks `gateways`, the
+on that mount is a line, since the meta-model holds no match on a mount. The
 gateway table answers it in the merge (ADR-142), and an answer that the
 handler answers a problem document is a decision that closes it with
 nothing written.
@@ -621,11 +617,10 @@ surface not read, which is the right record.
    fixture gives five operations and no question on their paths or
    methods, a `var` assigned in a second place gives the question naming
    that line, `NoRoute` and a catch-all each give the must question,
-   blocking `design` and written in `design/questions.yaml` beside the
-   paths' questions, so that the extracted tree, which lists the stages
-   `requirements` and `design`, validates with no `question_block` or
-   `question_stage` error, and `Any` and the plain registrations read as
-   today.
+   written in `design/questions.yaml` beside the paths' questions, so
+   that the extracted tree, which lists the stages `requirements` and
+   `design`, validates with no `question_block` or `question_stage`
+   error, and `Any` and the plain registrations read as today.
 2. **The element** (ADR-141, SA-75), after 0.3's step 4 and the diagram
    keywords' items 2 and 4. `gateways` in the design schema, its fragment
    schema and the Swift embed; `gateways` in the implementation schema's

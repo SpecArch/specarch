@@ -2,7 +2,7 @@
 command: document
 level: system
 scenario: golden
-given: "a specification that tracks origin, with a manual source listing five clauses and an interview source, two stated elements citing the manual, an inferred requirement, a decided requirement citing nothing and a decided entity citing the manual, an entity without origin, and a could question citing a clause no element cites"
+given: "a specification that tracks origin, with a manual source listing five clauses and an interview source, two stated elements citing the manual, an inferred requirement, a decided requirement citing nothing and a decided entity citing the manual, an entity without origin, a could question citing a clause no element cites, and a decision citing another clause no element cites"
 when: "document comparison is run"
-then: "it writes comparison.md with the stated elements under the manual by clause as kept, the inferred requirement as clarified with its reason, the decided requirement as added and the decided entity as corrected, each with its decision and why, the clause only the question cites as asked about and the clause nothing cites as dropped, the entity without origin listed with its warning, and exits 0"
+then: "it writes comparison.md with the stated elements under the manual by clause as kept, the inferred requirement as clarified with its reason, the decided requirement as added and the decided entity as corrected, each with its decision and why, the clause only the question cites as asked about and the clause only the decision cites as dropped, the entity without origin listed with its warning, and exits 0"
 verifies: [SA-86]

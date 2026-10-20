@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: document
+level: system
+scenario: red
+covers: [exit 1]
+given: "a specification that tracks origin, with a manual source listing two clauses, a stated stakeholder citing the manual, and a stated requirement whose citation names a clause and no source"
+when: "document comparison is run"
+then: "it prints the validator's schema error, writes comparison.md with the stakeholder under the manual as kept, the requirement under Kept as citing without naming a source with the error marked at it, and the clause it meant as dropped, and exits 1"
+verifies: [SA-86]

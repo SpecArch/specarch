@@ -423,10 +423,10 @@ derived from what this design adds, without a separate comparison format:
 
 | Bucket | How it is known |
 |---|---|
-| kept | elements with `origin: stated`, with the clause of the old document they cite |
+| kept | elements with `origin: stated`, with the clause of the old document they cite; one whose citation names no source is listed apart, with the validator's error at it |
 | clarified | elements with `origin: inferred`: the old document left them implicit; the Insight says from what they were concluded |
 | added or corrected | elements with `origin: decided`, each with its decision and the decision's `why`: corrected when the element cites a source other than an interview, since that source said something at that place; added otherwise |
-| dropped | clauses of the old document that no element cites; a clause only a question cites is named as asked about |
+| dropped | clauses of the old document that no element cites; a clause only a question cites is named as asked about, and a decision's citation does not count, since the decisions are not compared |
 
 The fourth bucket needs the outline of the old document, so that an
 uncited clause can be found. A source lists it as its `clauses`, each a

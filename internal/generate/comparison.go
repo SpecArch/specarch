@@ -59,7 +59,7 @@ func Comparison(root *yaml.Node, relRoot string, impls []Implementation, state *
 		summary += fmt.Sprintf(" %s without an origin %s left out of the four groups.", countText(len(none), "element", "elements"), isAre(len(none)))
 	}
 	d.para(summary)
-	d.para("Kept: a source says it, and the element cites where. Clarified: the sources left it implicit, and the element says from what it was concluded. Added or corrected: a stakeholder decided it, answering a question; corrected when the element also cites a source, which said something else there, added when no source said anything. Dropped: a clause of a source's outline that no element cites, either not read yet or holding nothing the specification needs.")
+	d.para("Kept: a source says it, and the element cites where. Clarified: the sources left it implicit, and the element says from what it was concluded. Added or corrected: a stakeholder decided it, answering a question; corrected when the element also cites a source, which said something else there, added when no source said anything. Dropped: a clause of a source's outline that no element cites, either not read yet or holding nothing the specification needs; a citation from a decision or a question does not count, since neither is compared, and a clause only a question cites is named as asked about.")
 	d.para(d.withheld.audienceNotice())
 	d.problemsNotice("comparison")
 
@@ -105,7 +105,22 @@ func Comparison(root *yaml.Node, relRoot string, impls []Implementation, state *
 			d.blank()
 			d.rowMarks(in)
 		}
-		delete(bySource, "")
+		if in := bySource[""]; len(in) > 0 {
+			delete(bySource, "")
+			d.heading(3, "Stated, citing without naming a source")
+			d.para("These elements cite a clause and name no source for it; the validator reports each (schema). Name the source at the citation.")
+			d.line("| Element | Clause | Says |")
+			d.line("|---|---|---|")
+			for _, e := range in {
+				for _, c := range items(e.node, "cites") {
+					if str(c, "source") == "" {
+						d.line("| %s | %s | %s |", cell(e.label), cell(str(c, "clause")), cell(oneParagraph(str(c, "says"))))
+					}
+				}
+			}
+			d.blank()
+			d.rowMarks(in)
+		}
 		var unknown []string
 		for key := range bySource {
 			if get(d.sources, key) == nil {
@@ -318,7 +333,8 @@ type outlineClause struct {
 // outlines finds, for every source that lists its clauses, which clauses
 // no element cites: a citation falls under the longest listed clause it
 // equals or starts with, as the coverage does. A citation from a question
-// counts for asked, not for produced.
+// counts for asked, not for produced; one from a decision counts for
+// neither, since the decisions are not compared.
 func (d *doc) outlines(root *yaml.Node) []outline {
 	var out []outline
 	byElements := citers(root, nil)
@@ -351,8 +367,8 @@ func (d *doc) outlines(root *yaml.Node) []outline {
 			return best
 		}
 		for _, c := range byElements[key] {
-			if strings.HasPrefix(c.element, "#/questions/") {
-				continue
+			if strings.HasPrefix(c.element, "#/questions/") || strings.HasPrefix(c.element, "#/decisions/") {
+				continue // neither is compared, so a citation from one makes no clause produced
 			}
 			if i := under(c.clause); i >= 0 {
 				produced[i] = true

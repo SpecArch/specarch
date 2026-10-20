@@ -1335,6 +1335,7 @@ Kind: functional; priority: must; status: accepted; verified by test; refines NE
 Acceptance criteria:
 
 - A specification whose manual lists five clauses, with two stated elements citing it, an inferred requirement, a decided requirement citing nothing, a decided entity citing the manual and a could question citing a clause gets a comparison with the stated elements under the manual by clause, the inferred requirement with its reason, the decided requirement as added and the decided entity as corrected with their decisions, the clause only the question cites as asked about, the clause nothing cites as dropped, and an element without origin listed with its warning.
+- A decision's citation of a clause leaves the clause dropped when no element cites it, and a stated element whose citation names no source is listed under Kept with the validator's error at it.
 - The comparison is never a draft, is not a row of the outputs table and is not among the documents an approval is of.
 
 **Insight:** Before approving, the reviewer wants to see what the refinement changed against what the old documents said, and whether anything of them was left behind; read by hand from the citations that is slow and skipped where the two look alike.

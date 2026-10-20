@@ -25,8 +25,12 @@ decisions:
       than an interview, since that source said something at that place,
       and added otherwise. Dropped: for every source that lists its
       clauses, the clauses that no element cites; a clause only a
-      question cites is named as asked about, not dropped. Elements
-      without an origin are listed after the four groups. The elements
+      question cites is named as asked about, not dropped, and a
+      decision's citation makes no clause produced, since the decisions
+      are not compared. A stated element whose citation names no source
+      is listed under Kept under a heading of its own, with the
+      validator's error at it. Elements without an origin are listed
+      after the four groups. The elements
       compared are the named elements of every section but decisions and
       questions, which are the refinement's own record. Problems are
       marked at the element's row, as in every document.

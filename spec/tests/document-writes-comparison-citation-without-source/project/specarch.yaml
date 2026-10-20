@@ -1,0 +1,11 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0, tracksOrigin: true }
+stages: [requirements]
+sources:
+  manual:
+    kind: document
+    title: The desk manual
+    edition: "2025"
+    clauses:
+      - { clause: "1", title: Members }
+      - { clause: "2", title: Loans }

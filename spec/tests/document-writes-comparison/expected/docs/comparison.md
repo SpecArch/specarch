@@ -4,7 +4,7 @@
 
 Version 1.0.0 of the specification against its 2 sources: 2 elements kept from them, 1 element clarified, 1 element added, 1 element corrected, and of the clauses the sources list, 1 clause produced nothing. 1 element without an origin is left out of the four groups.
 
-Kept: a source says it, and the element cites where. Clarified: the sources left it implicit, and the element says from what it was concluded. Added or corrected: a stakeholder decided it, answering a question; corrected when the element also cites a source, which said something else there, added when no source said anything. Dropped: a clause of a source's outline that no element cites, either not read yet or holding nothing the specification needs.
+Kept: a source says it, and the element cites where. Clarified: the sources left it implicit, and the element says from what it was concluded. Added or corrected: a stakeholder decided it, answering a question; corrected when the element also cites a source, which said something else there, added when no source said anything. Dropped: a clause of a source's outline that no element cites, either not read yet or holding nothing the specification needs; a citation from a decision or a question does not count, since neither is compared, and a clause only a question cites is named as asked about.
 
 **Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 

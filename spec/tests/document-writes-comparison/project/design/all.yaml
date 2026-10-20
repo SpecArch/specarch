@@ -26,7 +26,7 @@ decisions:
     decidedBy: owner
     why: The manual is silent on notices, and the owner wants them.
     origin: stated
-    cites: [{ source: owner-answer, says: "Tell them the day after." }]
+    cites: [{ source: owner-answer, says: "Tell them the day after." }, { source: manual, clause: "4", says: "A fine is charged for each day a loan is overdue." }]
   ADR-002:
     title: The loan period is 21 days
     status: accepted

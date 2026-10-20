@@ -1,0 +1,11 @@
+stakeholders:
+  owner: { description: The product owner., origin: stated, cites: [{ source: manual, clause: "1", says: "The owner decides." }] }
+requirements:
+  CASE-1:
+    statement: A member shall borrow at most five books.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance: [A sixth loan is refused.]
+    origin: stated
+    cites: [{ clause: "2", says: "Five books at a time." }]

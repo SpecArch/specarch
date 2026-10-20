@@ -1,0 +1,62 @@
+// Where each page is and the parameters its address takes, every page of
+// the screens declared once. The screens are files with no server to read
+// a path, so a route's parameters travel in the query:
+// /members/{memberId} is member-view.html?memberId=...
+
+export const PAGES = {
+  "fee-waiver-form": { file: "fee-waiver-form.html", parameters: ["loanId"] },
+  "fee-waivers-inbox": { file: "fee-waivers-inbox.html", parameters: [] },
+  "loan-form": { file: "loan-form.html", parameters: [] },
+  "loans-list": { file: "loans-list.html", parameters: [] },
+  "member-form": { file: "member-form.html", parameters: [] },
+  "member-loans": { file: "member-loans.html", parameters: ["memberId"] },
+  "member-view": { file: "member-view.html", parameters: ["memberId"] },
+  "members-list": { file: "members-list.html", parameters: [] },
+  "reset-password": { file: "reset-password.html", parameters: [] },
+  "second-factor": { file: "second-factor.html", parameters: [] },
+  "sign-in": { file: "sign-in.html", parameters: [] },
+};
+
+// The message a page leaves for the page it opens, kept for that one load.
+const CARRIED = "specarch-message";
+
+/** The address of a page, with the parameters its route takes. */
+export function href(page, parameters) {
+  const query = new URLSearchParams();
+  for (const name of PAGES[page].parameters) {
+    const value = parameters[name];
+    if (value !== undefined && value !== null) {
+      query.set(name, String(value));
+    }
+  }
+  const given = String(query);
+  return given === "" ? PAGES[page].file : `${PAGES[page].file}?${given}`;
+}
+
+/** Opens a page, which shows the message once it has opened. */
+export function go(page, parameters, message) {
+  if (message) {
+    try {
+      sessionStorage.setItem(CARRIED, message);
+    } catch {
+      // Storage is off in this browser: the page opens without the message.
+    }
+  }
+  location.assign(href(page, parameters));
+}
+
+/** The parameters of this page's address. */
+export function parameters() {
+  return Object.fromEntries(new URLSearchParams(location.search));
+}
+
+/** The message the page that opened this one left, once; "" when none. */
+export function arrived() {
+  try {
+    const message = sessionStorage.getItem(CARRIED) ?? "";
+    sessionStorage.removeItem(CARRIED);
+    return message;
+  } catch {
+    return "";
+  }
+}

@@ -33,7 +33,9 @@ decisions:
       after the four groups. The elements
       compared are the named elements of every section but decisions and
       questions, which are the refinement's own record. Problems are
-      marked at the element's row, as in every document.
+      marked at the element's row, as in every document; an element
+      that is in two tables of Kept, citing two sources or a named and
+      a nameless one, is marked once, under the first.
 
       The comparison is a refinement document, like the questions
       document and the problems files: it is read while questions are

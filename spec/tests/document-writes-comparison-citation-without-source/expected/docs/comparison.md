@@ -15,6 +15,9 @@ Kept: a source says it, and the element cites where. Clarified: the sources left
 | Element | Clause | Says |
 |---|---|---|
 | #/stakeholders/owner | 1 | The owner decides. |
+| #/requirements/CASE-1 | 1 | A member borrows. |
+
+**Problem on #/requirements/CASE-1:** error: schema: source is missing; add it here [schema@requirements/all.yaml#/requirements/CASE-1/cites/1]
 
 ### Stated, citing without naming a source
 
@@ -23,8 +26,6 @@ These elements cite a clause and name no source for it; the validator reports ea
 | Element | Clause | Says |
 |---|---|---|
 | #/requirements/CASE-1 | 2 | Five books at a time. |
-
-**Problem on #/requirements/CASE-1:** error: schema: source is missing; add it here [schema@requirements/all.yaml#/requirements/CASE-1/cites/0]
 
 ## 2. Clarified
 

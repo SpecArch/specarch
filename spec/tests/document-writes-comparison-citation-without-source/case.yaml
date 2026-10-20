@@ -1,4 +1,4 @@
 arguments: [document, comparison, --out, docs, project]
 exitStatus: 1
 standardOutput: |
-  project/requirements/all.yaml:11:13: error: /requirements/CASE-1/cites/0: schema: source is missing; add it here [schema@requirements/all.yaml#/requirements/CASE-1/cites/0]
+  project/requirements/all.yaml:11:73: error: /requirements/CASE-1/cites/1: schema: source is missing; add it here [schema@requirements/all.yaml#/requirements/CASE-1/cites/1]

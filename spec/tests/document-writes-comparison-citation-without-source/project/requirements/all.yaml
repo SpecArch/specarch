@@ -8,4 +8,4 @@ requirements:
     status: accepted
     acceptance: [A sixth loan is refused.]
     origin: stated
-    cites: [{ clause: "2", says: "Five books at a time." }]
+    cites: [{ source: manual, clause: "1", says: "A member borrows." }, { clause: "2", says: "Five books at a time." }]

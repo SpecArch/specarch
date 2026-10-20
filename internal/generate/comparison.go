@@ -69,6 +69,19 @@ func Comparison(root *yaml.Node, relRoot string, impls []Implementation, state *
 	} else {
 		bySource := map[string][]element{}
 		var uncited []element
+		// An element citing two sources, or a named and a nameless one, is
+		// in two tables; its marks are written once, under the first.
+		marked := map[string]bool{}
+		marksOnce := func(rows []element) {
+			var first []element
+			for _, e := range rows {
+				if !marked[e.label] {
+					marked[e.label] = true
+					first = append(first, e)
+				}
+			}
+			d.rowMarks(first)
+		}
 		for _, e := range stated {
 			cites := items(e.node, "cites")
 			if len(cites) == 0 {
@@ -103,7 +116,7 @@ func Comparison(root *yaml.Node, relRoot string, impls []Implementation, state *
 				}
 			}
 			d.blank()
-			d.rowMarks(in)
+			marksOnce(in)
 		}
 		if in := bySource[""]; len(in) > 0 {
 			delete(bySource, "")
@@ -119,7 +132,7 @@ func Comparison(root *yaml.Node, relRoot string, impls []Implementation, state *
 				}
 			}
 			d.blank()
-			d.rowMarks(in)
+			marksOnce(in)
 		}
 		var unknown []string
 		for key := range bySource {
@@ -140,7 +153,7 @@ func Comparison(root *yaml.Node, relRoot string, impls []Implementation, state *
 				}
 			}
 			d.blank()
-			d.rowMarks(bySource[key])
+			marksOnce(bySource[key])
 		}
 		if len(uncited) > 0 {
 			d.heading(3, "Stated, citing nothing")

@@ -47,7 +47,12 @@
             "specarchId/v1": "yaml_syntax@case.go.specarch-implementation.yaml#/mappings/#~1entities~1Book"
           }
         }
-      ]
+      ],
+      "properties": {
+        "specification": "../project",
+        "title": "Case",
+        "version": "1.0.0"
+      }
     }
   ]
 }

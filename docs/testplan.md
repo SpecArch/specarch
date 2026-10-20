@@ -621,11 +621,11 @@ Scenario: red; level: system; covers exit 1; verifies SA-51.
 
 #### document-problems-lists
 
-Scenario: red; level: system; covers exit 1; verifies SA-51.
+Scenario: red; level: system; covers exit 1; verifies SA-51, SA-85.
 
 - Given: a specification with an error at a requirement that cites a line of code beside it, a warning, and a must question that blocks two keys a requirement leaves out and cites the code
 - When: document problems is run
-- Then: it prints the error, writes problems.txt with each problem on a file:line:column line with its id, the question at its entry followed by a note at each blocked entry and at each cited line, and problems.sarif with the same problems, the question as kind open and level none, and exits 1
+- Then: it prints the error, writes problems.txt with each problem on a file:line:column line with its id, the question at its entry followed by a note at each blocked entry and at each cited line, and problems.sarif with the same problems, the question as kind open and level none with its text, priority, kind, decider and blocked entries as properties and the specification's folder, title and version as the run's, and exits 1
 
 #### document-problems-marks-current
 

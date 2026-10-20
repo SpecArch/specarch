@@ -104,7 +104,7 @@ func runProblems(paths []string, out string, check bool, stdout, stderr io.Write
 		}
 		plan = append(plan,
 			planned{path: filepath.Join(folder, problems.TextName), content: problems.Text(name, version, relSlash(folder, s.RootFile), ps)},
-			planned{path: filepath.Join(folder, problems.SARIFName), content: problems.SARIF(ps)})
+			planned{path: filepath.Join(folder, problems.SARIFName), content: problems.SARIF(name, version, relSlash(folder, s.RootFile), ps)})
 	}
 	if len(plan) == 0 && skipped > 0 {
 		fmt.Fprintln(stderr, "specarch: no output folder for problems in any specification given; give --out, or an implementation file whose targets name problems and its output")

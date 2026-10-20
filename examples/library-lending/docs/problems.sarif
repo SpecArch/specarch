@@ -11,7 +11,12 @@
         }
       },
       "columnKind": "unicodeCodePoints",
-      "results": []
+      "results": [],
+      "properties": {
+        "specification": "../spec",
+        "title": "Library Lending",
+        "version": "0.1.0"
+      }
     }
   ]
 }

@@ -1,0 +1,51 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
+decisions:
+  ADR-156:
+    title: problems.sarif is the agent queue's interface to the open questions, and its property keys are stable
+    status: proposed
+    date: "2026-10-20"
+    context: |
+      The design of refinement has a dispatcher read the open questions of
+      a specification, put each to the person who decides it, with the
+      options, and feed the answer back. The machine form it reads is
+      problems.sarif (ADR-065), which carried a question's priority, kind,
+      certainty, decider, options and blocked entries as properties of
+      its result, but the question's own text only inside the message,
+      with the priority, the decider and the way to answer around it, and
+      nothing named the folder the specification is in, which specarch
+      decide needs. A dispatcher that parses a message, or opens the
+      specification to find its folder, is one that reads the text, and
+      one that reads a key a later release renames breaks without a word.
+    decision: |
+      A question's result carries, under properties, the question as one
+      paragraph (question), its priority, kind (questionKind), certainty,
+      decider (decidedBy), options, blocked entries (blocks) and its
+      Insight (why); the run carries, under properties, the
+      specification's folder relative to the log (specification), its
+      title and its version. The result's message, locations, related
+      locations and the partial fingerprint specarchId/v1 stay as they
+      were. These keys are the interface: a later release adds a key and
+      never renames or takes one away, and the fingerprint is how a
+      question is known again between runs. docs/refinement.md writes
+      the interface down, with what the agent queue's side reads and
+      runs.
+    consequences: |
+      A dispatcher reads the log, takes every result of kind open, puts
+      question and options to decidedBy, and runs specarch decide with
+      the fingerprint as the question's ID, decidedBy, the answer and
+      the folder from the run's properties, all from the log alone. Every
+      committed problems.sarif gains the new keys.
+    why: |
+      SARIF's property bag is the standard's own place for what a tool
+      knows beyond the result, so the fields go there rather than into a
+      second file of SpecArch's own, which ADR-065 refused; the folder
+      goes on the run, since it is one fact about every result, and is
+      relative to the log for the reason the locations are, that an
+      absolute path differs between machines and breaks byte-identical
+      runs. The keys are promised stable because the dispatcher is
+      another program, released on its own, and a key it reads is a
+      contract.
+    cites:
+      - source: sarif
+        says: "A property bag holds properties a tool wants to convey beyond those the standard defines, and a run may carry one as a result may."
+    satisfies: [SA-85]

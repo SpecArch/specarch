@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
+	"path"
 	"sort"
 	"strings"
 )
@@ -83,6 +84,16 @@ type sarifRun struct {
 	Tool       sarifTool     `json:"tool"`
 	ColumnKind string        `json:"columnKind"`
 	Results    []sarifResult `json:"results"`
+	Properties sarifRunProps `json:"properties"`
+}
+
+// sarifRunProps is what an agent queue needs of the specification as a
+// whole: the folder to run specarch decide on, relative to the log, and
+// the specification's name and version (ADR-156).
+type sarifRunProps struct {
+	Specification string `json:"specification"`
+	Title         string `json:"title"`
+	Version       string `json:"version,omitempty"`
 }
 
 type sarifTool struct {
@@ -141,17 +152,25 @@ type sarifLogicalLocation struct {
 	Kind               string `json:"kind"`
 }
 
+// sarifQuestionFields are a question's own fields, the interface an agent
+// queue reads (ADR-156): a key is added in a later release, never renamed
+// or taken away.
 type sarifQuestionFields struct {
+	Question     string   `json:"question"`
 	Priority     string   `json:"priority"`
 	QuestionKind string   `json:"questionKind"`
 	Certainty    string   `json:"certainty,omitempty"`
 	DecidedBy    string   `json:"decidedBy,omitempty"`
 	Options      []string `json:"options,omitempty"`
 	Blocks       []string `json:"blocks"`
+	Why          string   `json:"why,omitempty"`
 }
 
-// SARIF is the same problems as one SARIF 2.1.0 run.
-func SARIF(ps []Problem) string {
+// SARIF is the same problems as one SARIF 2.1.0 run. name is the
+// specification's title, or its root file when it has none; version may be
+// empty; relRoot is the root file relative to the folder the log is
+// written in.
+func SARIF(name, version, relRoot string, ps []Problem) string {
 	run := sarifRun{
 		Tool: sarifTool{Driver: sarifDriver{
 			Name:           "specarch",
@@ -160,6 +179,7 @@ func SARIF(ps []Problem) string {
 		}},
 		ColumnKind: "unicodeCodePoints",
 		Results:    []sarifResult{},
+		Properties: sarifRunProps{Specification: path.Dir(relRoot), Title: name, Version: version},
 	}
 	rules := map[string]bool{}
 	for _, p := range ps {
@@ -177,7 +197,7 @@ func SARIF(ps []Problem) string {
 			if blocks == nil {
 				blocks = []string{}
 			}
-			r.Properties = &sarifQuestionFields{Priority: p.Priority, QuestionKind: p.Kind, Certainty: p.Certainty, DecidedBy: p.DecidedBy, Options: p.Options, Blocks: blocks}
+			r.Properties = &sarifQuestionFields{Question: p.Question, Priority: p.Priority, QuestionKind: p.Kind, Certainty: p.Certainty, DecidedBy: p.DecidedBy, Options: p.Options, Blocks: blocks, Why: p.Why}
 		}
 		r.Locations = []sarifLocation{{
 			PhysicalLocation: physical(p.File, p.Line, p.Column),

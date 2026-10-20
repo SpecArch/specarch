@@ -377,11 +377,42 @@ to the agent, which records the decision and removes the question with
 nothing is re-extracted. A `could` question is listed in the
 report and asked when there is time for it.
 
-For that the report needs a machine-readable form: `problems.sarif`, which
+For that the report has a machine-readable form: `problems.sarif`, which
 `specarch document problems` writes beside `problems.txt`
-(`docs/diagnostics.md`), holds every question as a result with its fields,
-the entries it blocks and the keys missing there. The outputs table stays in
-the questions document. The dispatcher's side of it is a follow-up item.
+(`docs/diagnostics.md`, section 4), holds every question as a result of
+kind `open`. The interface is the property bags, and their keys stay: a
+later release adds a key and never renames or takes one away (ADR-156).
+
+| Where | Key | Holds |
+|---|---|---|
+| `runs[0].properties` | `specification` | the specification's folder, relative to the folder the log is in; what `specarch decide` is run on |
+| | `title`, `version` | the specification's title and version, to name it to a person |
+| a result with `kind: open` | `partialFingerprints.specarchId/v1` | the question's ID, such as `Q-12`; the same between runs, and what `specarch decide` is given |
+| | `message.text` | the question with its priority, kind, decider and how to answer, as one sentence, for a reader who sees only the message |
+| | `locations[0]` | the questions file and line, and the pointer `/questions/<ID>` |
+| | `relatedLocations` | each entry the question blocks, with the keys missing there, and each source it cites, one note each |
+| `…properties` | `question` | the question as one paragraph |
+| | `priority` | `must`, `should` or `could` |
+| | `questionKind` | `decision` or `material` |
+| | `certainty` | `certain` or `suspected`, for a question a reader asked about code; absent otherwise |
+| | `decidedBy` | the stakeholder's key; absent when the question names none, which the dispatcher asks the owner about |
+| | `options` | the options, in the question's order; absent when there are none |
+| | `blocks` | the `blocks` entries as written, a stage, a section or a pointer each |
+| | `why` | the question's Insight, why it is open; absent when there is none |
+
+The agent queue's side reads the log after `specarch document problems`,
+takes every result of kind `open`, and for each `must` and `should` one
+puts `question` and `options` to the person who holds the role
+`decidedBy`, with `blocks` saying what waits and `why` saying why it is
+asked; a `could` one it lists and asks when there is time. With the answer
+it declares the answer as a source of kind `interview` in the root file,
+and runs, in the folder `specification` resolved from the log's folder:
+
+    specarch decide <specarchId/v1> --by <decidedBy> --answer "<the answer>" --source <that source> .
+
+Then it hands the lines `decide` printed to the agent, which writes the
+entries from the answer and validates. The outputs table stays in the
+questions document, where the people who read it look.
 
 ## Old document against refined document
 
@@ -458,9 +489,10 @@ For the dispatcher to queue, in this order:
 
 1. `specarch decide` is built (ADR-155, `spec/tests/decide-*`), as The
    decision that closes a question describes it.
-2. The dispatcher reading `problems.sarif` and turning its questions into
-   questions to the people who decide, with options, and feeding the
-   answers back.
+2. SpecArch's side of the dispatcher reading `problems.sarif` is built
+   (ADR-156): the log carries what Fit with the agent queue lists. The
+   dispatcher's reading of it, and its putting the questions to the people
+   who decide, is the agent queue's own item.
 3. The document target `comparison` with the four buckets above, and a
    validator rule for a citation that names a clause its source does not
    list.

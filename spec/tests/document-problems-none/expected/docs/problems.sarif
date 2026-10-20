@@ -11,7 +11,12 @@
         }
       },
       "columnKind": "unicodeCodePoints",
-      "results": []
+      "results": [],
+      "properties": {
+        "specification": "../project",
+        "title": "Case",
+        "version": "1.0.0"
+      }
     }
   ]
 }

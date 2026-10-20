@@ -100,6 +100,7 @@
             }
           ],
           "properties": {
+            "question": "Does the desk read the book records through the catalogue service's operations, and with what time limit per call, or from the books table as the service does today?",
             "priority": "must",
             "questionKind": "decision",
             "decidedBy": "desk-manager",
@@ -109,7 +110,8 @@
             ],
             "blocks": [
               "#/dependencies/catalogue/timeout"
-            ]
+            ],
+            "why": "The manual names the catalogue team as the keeper of the book records and says nothing of how the desk reads them; the code reads a books table in the desk's own database."
           }
         },
         {
@@ -177,6 +179,7 @@
             }
           ],
           "properties": {
+            "question": "Renewing a loan is in the manual but not in the service. Build it as the manual describes, or take it out of the manual?",
             "priority": "should",
             "questionKind": "decision",
             "decidedBy": "desk-manager",
@@ -186,7 +189,8 @@
             ],
             "blocks": [
               "implementation"
-            ]
+            ],
+            "why": "Not built yet. The manual describes renewal (clause 4.1); the service serves no renew route and has no handler for one (lending/routes.go:36)."
           }
         },
         {
@@ -254,6 +258,7 @@
             }
           ],
           "properties": {
+            "question": "The manual has a phone number for each member, which is personal, and the database has no column for it. Build it as the manual describes, or take it out of the manual?",
             "priority": "must",
             "questionKind": "decision",
             "decidedBy": "desk-manager",
@@ -263,7 +268,8 @@
             ],
             "blocks": [
               "implementation"
-            ]
+            ],
+            "why": "Not built yet, and the field is personal, so it is not left at should."
           }
         },
         {
@@ -331,6 +337,7 @@
             }
           ],
           "properties": {
+            "question": "The service serves GET /members/{cardNumber}, which answers a member's card number and full name to anyone, checking no permission, and neither the manual nor the API document mentions it. Is it to stay, and behind which permission? It is left out of this specification until this is answered.",
             "priority": "must",
             "questionKind": "decision",
             "decidedBy": "desk-manager",
@@ -341,7 +348,8 @@
             ],
             "blocks": [
               "implementation"
-            ]
+            ],
+            "why": "Undocumented, from code, and it answers a personal field to a caller who shows no permission, which is how an open endpoint is usually found. An operation's permission cannot be left out of the design, so the route waits here rather than as a guess."
           }
         },
         {
@@ -522,6 +530,7 @@
             }
           ],
           "properties": {
+            "question": "Is the loan period 21 days, as the manual says, or 14 days, as the service does?",
             "priority": "must",
             "questionKind": "decision",
             "decidedBy": "desk-manager",
@@ -531,7 +540,8 @@
             ],
             "blocks": [
               "#/requirements/LEND-4/statement"
-            ]
+            ],
+            "why": "The manual and the code disagree, and neither says which is current."
           }
         },
         {
@@ -583,6 +593,7 @@
             }
           ],
           "properties": {
+            "question": "The service lists a member's loans, which the manual never mentions. Is that wanted, and who may use it?",
             "priority": "should",
             "questionKind": "decision",
             "decidedBy": "desk-manager",
@@ -592,7 +603,8 @@
             ],
             "blocks": [
               "#/requirements/LEND-7"
-            ]
+            ],
+            "why": "Undocumented, from code."
           }
         },
         {
@@ -740,6 +752,7 @@
             }
           ],
           "properties": {
+            "question": "How is each requirement shown to be met?",
             "priority": "must",
             "questionKind": "decision",
             "decidedBy": "desk-manager",
@@ -751,7 +764,8 @@
               "#/requirements/LEND-5/acceptance",
               "#/requirements/LEND-6/acceptance",
               "#/requirements/LEND-7/acceptance"
-            ]
+            ],
+            "why": "Neither the manual nor the code gives acceptance criteria, and the code has no tests to read them from."
           }
         },
         {
@@ -785,15 +799,22 @@
             "specarchId/v1": "Q-5"
           },
           "properties": {
+            "question": "Which data must the service be tested with? specarch derive wrote the cases that follow from the design as draft tests under tests/; each says what it checks, and none names the members, books or loans it runs on.",
             "priority": "should",
             "questionKind": "material",
             "decidedBy": "desk-manager",
             "blocks": [
               "tests"
-            ]
+            ],
+            "why": "The code has no tests to read cases or data from, and the manual describes no checks."
           }
         }
-      ]
+      ],
+      "properties": {
+        "specification": "../spec",
+        "title": "Lending Desk",
+        "version": "0.1.0"
+      }
     }
   ]
 }

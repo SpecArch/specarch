@@ -47,7 +47,12 @@
             "specarchId/v1": "requirement_unverified@requirements/requirements/refinement.yaml#/requirements/SA-57"
           }
         }
-      ]
+      ],
+      "properties": {
+        "specification": "../spec",
+        "title": "SpecArch toolchain",
+        "version": "0.7.2-dev"
+      }
     }
   ]
 }

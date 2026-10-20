@@ -235,6 +235,7 @@
             }
           ],
           "properties": {
+            "question": "How important is the five-book limit, and how is it shown to be met?",
             "priority": "must",
             "questionKind": "decision",
             "decidedBy": "owner",
@@ -248,7 +249,12 @@
             ]
           }
         }
-      ]
+      ],
+      "properties": {
+        "specification": "../project",
+        "title": "Case",
+        "version": "1.0.0"
+      }
     }
   ]
 }

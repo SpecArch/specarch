@@ -52,7 +52,9 @@ type Problem struct {
 	Rule     string
 	Message  string
 	Notes    []Note
-	// A question's own fields, for the SARIF properties.
+	// A question's own fields, for the SARIF properties: the question as
+	// one paragraph and its Insight beside the rest.
+	Question, Why                        string
 	Priority, Kind, Certainty, DecidedBy string
 	Options, Blocks                      []string
 	disk                                 string // the file as read, for its marks
@@ -243,6 +245,8 @@ func (c *collector) question(q source.Pair, missing map[string][]string) Problem
 		Column:    q.Key.Column,
 		Path:      source.Pointer("questions", id),
 		Rule:      RuleOpenQuestion,
+		Question:  oneParagraph(str("question")),
+		Why:       oneParagraph(str("why")),
 		Priority:  str("priority"),
 		Kind:      str("kind"),
 		Certainty: str("certainty"),

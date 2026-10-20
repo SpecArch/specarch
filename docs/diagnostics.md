@@ -203,11 +203,14 @@ Why SARIF is the way it is, and how SpecArch keeps its rules:
 
 The rest of the mapping: the pointer is a logical location
 (`fullyQualifiedName`, kind `element`); notes are `relatedLocations`; a
-question's priority, kind, decider, options and blocked entries are in the
-result's `properties`. `tool.driver.rules` lists the rules the log uses.
-That is everything the agent queue needs of a question, so the queue reads
-this log and has no JSON form of SpecArch's own; the outputs table stays in
-the questions document.
+question's text, priority, kind, certainty, decider, options, blocked
+entries and Insight are in the result's `properties`, and the
+specification's folder relative to the log, its title and its version in
+the run's. `tool.driver.rules` lists the rules the log uses. That is
+everything the agent queue needs of a question, so the queue reads this
+log and has no JSON form of SpecArch's own; the property keys are its
+interface and stay (ADR-156; `docs/refinement.md`, Fit with the agent
+queue, lists them). The outputs table stays in the questions document.
 
 ## 5. Marks at the entry
 

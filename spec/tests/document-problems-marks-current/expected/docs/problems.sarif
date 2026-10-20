@@ -192,6 +192,7 @@
             "specarchId/v1": "Q-1"
           },
           "properties": {
+            "question": "Is the loan period 14 days or 21?",
             "priority": "should",
             "questionKind": "decision",
             "decidedBy": "owner",
@@ -201,7 +202,8 @@
             ],
             "blocks": [
               "design"
-            ]
+            ],
+            "why": "The manual and the service differ."
           }
         },
         {
@@ -297,7 +299,12 @@
             "specarchId/v1": "meta_model_version@specarch.yaml#/specarch"
           }
         }
-      ]
+      ],
+      "properties": {
+        "specification": "../project",
+        "title": "Case",
+        "version": "1.0.0"
+      }
     }
   ]
 }

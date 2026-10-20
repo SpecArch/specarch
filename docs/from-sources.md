@@ -455,6 +455,8 @@ with the pinned version and checksum filled in:
 - `specarch extract` for pages: the agent reads that surface by hand into
   a tree of its own and merges it with the readers' trees with
   `specarch merge`.
-- The dispatcher's reading of `problems.sarif`: it reads the text.
+- The dispatcher's reading of `problems.sarif`: the log carries what it
+  needs (`docs/refinement.md`, Fit with the agent queue); until the
+  dispatcher reads it, it reads the text.
 - The document target `comparison`, which would set the old document
   beside the refined one.

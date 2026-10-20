@@ -11602,7 +11602,7 @@ the Next.js layout does.
 
 ### ADR-152: The plain JavaScript screens address a page as its file with its route's parameters in the query, carry a message to the page they open for one load, and hold a view's sections in its HTML
 
-Status: proposed, 2026-10-20.
+Status: accepted, 2026-10-20.
 
 Context: specarch-gen-ui wrote list pages only (ADR-040): an action that
 opens a page, a selected row, a menu and a view were reported and
@@ -11660,11 +11660,13 @@ show the message a page that opened them left. An action whose
 when the browser cannot evaluate is left out, not offered on every
 row.
 
+Shipped in 0.7.2.
+
 **Insight:** The query keeps the stack's rule of no server and no build step, and names each parameter as the route does, so a link reads as the design wrote it. One declaration of the pages, as of the events, keeps a page's name and parameters in one place a reader can check. Session storage, not the query, carries the message, so a reload or a shared address does not repeat "The member is registered.". The sections in the HTML keep the screens readable without their scripts, which is what the html document shows a reviewer before any service exists (docs/acceptance.md), and keep the module to the behaviour. Expressions as functions keep the generated code free of an evaluator, and the operators allowed are the ones whose result is the same in the browser and in the specification's language.
 
 ### ADR-153: The plain JavaScript forms hold their fields as native controls in the HTML, checked by the browser, and one form.js adds what HTML cannot say
 
-Status: proposed, 2026-10-20.
+Status: accepted, 2026-10-20.
 
 Context: Forms and task pages were reported and left out by specarch-gen-ui.
 The Next.js target draws its forms through a component library a
@@ -11727,6 +11729,8 @@ drawn once. The settings of the Next.js target, hooks and
 layouts, have no counterpart here: a form's sections sit as one
 page.
 
+Shipped in 0.7.2.
+
 **Insight:** Native controls are what the stack's rule of no package asks for, and they carry the browser's own accessibility: the label, the focus order of the sections, the message beside the field. One form.js keeps each page's module to data, as view.js does for views and events.js for events, so a reader checks one engine once. Reading a pattern as JSON Schema does keeps the browser and the service in agreement on what passes, which the HTML attribute would not.
 
 ### ADR-154: extract go asks for the callers of a route a client check or a signature check guards, each named under the implementation file's http binding, and lists the claims where golang-jwt mints a token; it writes no callers, client or token of its own
@@ -11779,7 +11783,7 @@ clientChecks that names the clients, are ADR-159's.
 
 ### ADR-155: specarch decide writes the decision as a file of its own under the next ID, takes the question out of its file as text, prints the entries to write rather than writing them, and asks for a source when the specification tracks origin
 
-Status: proposed, 2026-10-20.
+Status: accepted, 2026-10-20.
 
 Context: Answering an open question was two edits by hand: a decision record
 under the next free number, with the question's ID under answers,
@@ -11834,13 +11838,15 @@ that keeps its decisions in one file gets its first command-written
 decision in a file beside it, which the loader merges as it merges
 any fragment.
 
+Shipped in 0.7.2.
+
 **Insight:** A file of its own is the one layout that needs no knowledge of how the specification keeps its decisions: appending to the file that holds the last one would have to find the end of its decisions mapping in text, which a mapping that is not last in its file, or one written in flow style, defeats. Text editing is chosen over re-encoding the questions file for the reason the marks are: a file written out again by a YAML encoder loses the author's comments, quoting and line breaks, and the refinement is done on files people edit. The command does not write the blocked entries because the answer is prose and the entry is data: what a loan period of 21 days becomes in the entity is the agent's reading of the answer, which the validator then checks; the command would have to guess, and a guess in the specification is a placeholder. The origin rule follows the design: an answer given in words is a source of kind interview with its date, and a decision in a specification that tracks origin without one would be a warning the command itself caused.
 
 **Note:** From Documenting architecture decisions, 2011: A decision record states the context, the decision and the consequences. <https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions>
 
 ### ADR-156: problems.sarif is the agent queue's interface to the open questions, and its property keys are stable
 
-Status: proposed, 2026-10-20.
+Status: accepted, 2026-10-20.
 
 Context: The design of refinement has a dispatcher read the open questions of
 a specification, put each to the person who decides it, with the
@@ -11873,13 +11879,15 @@ the fingerprint as the question's ID, decidedBy, the answer and
 the folder from the run's properties, all from the log alone. Every
 committed problems.sarif gains the new keys.
 
+Shipped in 0.7.2.
+
 **Insight:** SARIF's property bag is the standard's own place for what a tool knows beyond the result, so the fields go there rather than into a second file of SpecArch's own, which ADR-065 refused; the folder goes on the run, since it is one fact about every result, and is relative to the log for the reason the locations are, that an absolute path differs between machines and breaks byte-identical runs. The keys are promised stable because the dispatcher is another program, released on its own, and a key it reads is a contract.
 
 **Note:** From Static Analysis Results Interchange Format (SARIF) Version 2.1.0, 2020: A property bag holds properties a tool wants to convey beyond those the standard defines, and a run may carry one as a result may. <https://docs.oasis-open.org/sarif/sarif/v2.1.0/sarif-v2.1.0.html>
 
 ### ADR-157: The comparison of the old documents with the refined specification is derived from origin, citations and decisions, tells added from corrected by whether the element cites a source, and is a refinement document like the questions and the problems
 
-Status: proposed, 2026-10-20.
+Status: accepted, 2026-10-20.
 
 Context: Before approving, a reviewer wants to see what the refinement
 changed against the old documents: what was kept, clarified, added
@@ -11928,13 +11936,15 @@ coverage section of the questions document keeps showing which
 elements each clause produced; the comparison shows the clauses
 that produced nothing, which is what a reviewer looks for.
 
+Shipped in 0.7.2.
+
 **Insight:** Whether a decided element corrects the old document or adds to it cannot be read from the decision's prose without reading it, so the rule rests on a fact the specification holds: a citation of the old document at that element means the document said something there. The interview is set apart because an answer given in words is the decision's own ground, not an old document. The decisions and the questions are left out because the document compares the system's elements with the sources, and a decision stated by an interview would otherwise read as kept from the interview. The comparison is never a draft because a draft notice says the document is not what will be approved, and this document is never approved: it is the account of the refinement, read while it is going on, and listing it among the outputs would put it beside the documents that are.
 
 **Note:** From ISO/IEC/IEEE 29148, Systems and software engineering, Life cycle processes, Requirements engineering, 2018, clause 6.3.3.6: Requirements validation is subject to approval by the project authority and the key stakeholders. <https://www.iso.org/standard/72089.html>
 
 ### ADR-158: specarch-gen-scripts writes one guarded psql script per guarded entry whose change the design says, checks the precondition and the exact count inside the change, rolls back unless told to apply, and leaves every other change to be written by hand
 
-Status: proposed, 2026-10-20.
+Status: accepted, 2026-10-20.
 
 Context: Target 8 of the roadmap. A data change run by hand against a live
 system (a correction, a backfill, a record moved on by an operator)
@@ -12017,6 +12027,8 @@ scripts are run against a real PostgreSQL only by hand; a project
 with guards on its live data changes decides whether CI runs them in
 a disposable database. A change the design does not say stays a
 warning at its guard; the guard's writes says one (ADR-168).
+
+Shipped in 0.7.2.
 
 **Insight:** Keywords only, as for the sqlc queries (ADR-123): a transition says which state a trigger moves a record to, a PUT with an entity body and a key says the record is replaced, and a DELETE with a key says it goes. A POST or a PATCH says no more than that a record is made or partly changed with values the caller sends, and a command no transition names says nothing of what it writes, so guessing would put a meaning in the specification nobody wrote; the warning at the guard keeps that visible and the script the project's. A placeholder in a generated file would be edited by hand and break generate --check, so there is none. The precondition and the count are checked inside the change, not only before it, because the guard's promise is that the checks run with the change: under PostgreSQL's read committed isolation an UPDATE or DELETE re-evaluates its WHERE on a row another writer changed, so a record that no longer holds the precondition is skipped and the count comes out short, which the postcondition refuses. The count before the change locks the records (FOR UPDATE) so the refusal names the state found rather than a short count. Dry run by default because the safe mistake is forgetting to apply: the dry run runs every check against the live data and rolls back, so it shows exactly what an applied run would do. A second run finds the record by the key already changed and says so. A hard delete leaves no record to find, and a key whose record was deleted cannot be told from a key that never named one, so its second run is refused by the count (none found, one expected) and exits non-zero, as a change of many records is when it finds none left in a from state; either way nothing changes. psql rather than a program because a database administrator can read every statement the script runs before running it, and psql is what is at hand on a host that runs PostgreSQL. The variables are named after columns because the script is about the table, which the operator reads.
 

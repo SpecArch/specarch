@@ -152,10 +152,10 @@ implementation file uses and compares an override with the shipped idiom.
    - Built for the web in plain JavaScript: `specarch-gen-ui` writes list
      pages (0.5.0, ADR-040, `spec/tests/generate-ui`), and, in 0.7.2, view
      pages and the navigation between pages, from a menu, a link, a
-     selected row and an event (ADR-152, proposed,
+     selected row and an event (ADR-152,
      `spec/tests/generate-ui-view`), and form and task pages with their
      checks, conditions, pickers, values and child rows (ADR-153,
-     proposed, `spec/tests/generate-ui-form`), every page of
+     `spec/tests/generate-ui-form`), every page of
      `examples/library-lending/web/`, checked against the member view and
      form written by hand first
      (`examples/library-lending/web/reference/`); and, in 0.7.3, the
@@ -223,14 +223,14 @@ implementation file uses and compares an override with the shipped idiom.
    `docs/manual.md`. What a person does with an item a job keeps apart came
    in 0.7.3 (ADR-166, `spec/tests/document-writes-operations`): the job's
    `deadLetter` names the role that handles it, where it is kept and the
-   steps to look at it, try it again or discard it. Not built: other
-   project documents. The handover document (0.7.0) says
-   what a customer who runs the system receives.
+   steps to look at it, try it again or discard it. The handover document (0.7.0) says what a customer who
+   runs the system receives. Not planned until a project asks: other
+   project documents.
 8. Built: guarded operational scripts for data changes on live systems:
    preconditions, dry run by default, postconditions with exact counts,
    idempotent. The `guard` on an operation or a command they are emitted
    from came in 0.3.0 (`spec/tests/validate-guard`); `specarch-gen-scripts`
-   (0.7.2, ADR-158 proposed, `spec/tests/generate-scripts`) writes a psql script for
+   (0.7.2, ADR-158, `spec/tests/generate-scripts`) writes a psql script for
    PostgreSQL per guarded entry whose change a transition it triggers, a PUT
    by its key or a DELETE by its key says, and warns at the guard for every
    other change with no `writes`, left to be written by hand; the same scripts for the
@@ -285,11 +285,11 @@ cannot settle becomes open questions, and the path from there to approved
 code is `docs/refinement.md`: `gaps`, the decisions that answer questions,
 `approve` and the gate on `generate` are built (0.2.0); `specarch decide`,
 which answers a question with the decision record and takes the question
-out (ADR-155, proposed, `spec/tests/decide-*`), SpecArch's side of the
+out (ADR-155, `spec/tests/decide-*`), SpecArch's side of the
 dispatcher reading `problems.sarif`, the log carrying what the agent queue
-needs of each question (ADR-156, proposed), and the document target
+needs of each question (ADR-156), and the document target
 `comparison`, the old documents against the refined specification
-(ADR-157, proposed, `document-writes-comparison`), are built (0.7.2). The dispatcher's own
+(ADR-157, `document-writes-comparison`), are built (0.7.2). The dispatcher's own
 reading of the log is the agent queue's item. A
 system with both documents and code is written by the procedure in
 `docs/from-sources.md`, and `gaps` shows which section of each source

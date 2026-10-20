@@ -2,7 +2,7 @@
 decisions:
   ADR-156:
     title: problems.sarif is the agent queue's interface to the open questions, and its property keys are stable
-    status: proposed
+    status: accepted
     date: "2026-10-20"
     context: |
       The design of refinement has a dispatcher read the open questions of
@@ -35,6 +35,8 @@ decisions:
       the fingerprint as the question's ID, decidedBy, the answer and
       the folder from the run's properties, all from the log alone. Every
       committed problems.sarif gains the new keys.
+
+      Shipped in 0.7.2.
     why: |
       SARIF's property bag is the standard's own place for what a tool
       knows beyond the result, so the fields go there rather than into a

@@ -2,7 +2,7 @@
 decisions:
   ADR-152:
     title: The plain JavaScript screens address a page as its file with its route's parameters in the query, carry a message to the page they open for one load, and hold a view's sections in its HTML
-    status: proposed
+    status: accepted
     date: "2026-10-20"
     context: |
       specarch-gen-ui wrote list pages only (ADR-040): an action that
@@ -60,6 +60,8 @@ decisions:
       show the message a page that opened them left. An action whose
       when the browser cannot evaluate is left out, not offered on every
       row.
+
+      Shipped in 0.7.2.
     why: |
       The query keeps the stack's rule of no server and no build step,
       and names each parameter as the route does, so a link reads as the

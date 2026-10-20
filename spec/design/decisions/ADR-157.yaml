@@ -2,7 +2,7 @@
 decisions:
   ADR-157:
     title: The comparison of the old documents with the refined specification is derived from origin, citations and decisions, tells added from corrected by whether the element cites a source, and is a refinement document like the questions and the problems
-    status: proposed
+    status: accepted
     date: "2026-10-20"
     context: |
       Before approving, a reviewer wants to see what the refinement
@@ -51,6 +51,8 @@ decisions:
       coverage section of the questions document keeps showing which
       elements each clause produced; the comparison shows the clauses
       that produced nothing, which is what a reviewer looks for.
+
+      Shipped in 0.7.2.
     why: |
       Whether a decided element corrects the old document or adds to it
       cannot be read from the decision's prose without reading it, so

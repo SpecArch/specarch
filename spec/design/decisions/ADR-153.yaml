@@ -2,7 +2,7 @@
 decisions:
   ADR-153:
     title: The plain JavaScript forms hold their fields as native controls in the HTML, checked by the browser, and one form.js adds what HTML cannot say
-    status: proposed
+    status: accepted
     date: "2026-10-20"
     context: |
       Forms and task pages were reported and left out by specarch-gen-ui.
@@ -65,6 +65,8 @@ decisions:
       drawn once. The settings of the Next.js target, hooks and
       layouts, have no counterpart here: a form's sections sit as one
       page.
+
+      Shipped in 0.7.2.
     why: |
       Native controls are what the stack's rule of no package asks for, and
       they carry the browser's own accessibility: the label, the focus

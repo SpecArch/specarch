@@ -2,7 +2,7 @@
 decisions:
   ADR-158:
     title: specarch-gen-scripts writes one guarded psql script per guarded entry whose change the design says, checks the precondition and the exact count inside the change, rolls back unless told to apply, and leaves every other change to be written by hand
-    status: proposed
+    status: accepted
     date: "2026-10-20"
     context: |
       Target 8 of the roadmap. A data change run by hand against a live
@@ -118,4 +118,6 @@ decisions:
       with guards on its live data changes decides whether CI runs them in
       a disposable database. A change the design does not say stays a
       warning at its guard; the guard's writes says one (ADR-168).
+
+      Shipped in 0.7.2.
     satisfies: [SA-87]

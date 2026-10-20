@@ -2,7 +2,7 @@
 decisions:
   ADR-155:
     title: specarch decide writes the decision as a file of its own under the next ID, takes the question out of its file as text, prints the entries to write rather than writing them, and asks for a source when the specification tracks origin
-    status: proposed
+    status: accepted
     date: "2026-10-20"
     context: |
       Answering an open question was two edits by hand: a decision record
@@ -57,6 +57,8 @@ decisions:
       that keeps its decisions in one file gets its first command-written
       decision in a file beside it, which the loader merges as it merges
       any fragment.
+
+      Shipped in 0.7.2.
     why: |
       A file of its own is the one layout that needs no knowledge of how
       the specification keeps its decisions: appending to the file that

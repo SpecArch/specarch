@@ -5,4 +5,4 @@ scenario: golden
 given: "the specification of validate-0-3-tokens-valid with an implementation file whose openapi target still names a securityScheme setting; specarch-gen-openapi built from this repository on PATH"
 when: "generate openapi is run with --unapproved"
 then: "it writes openapi.yaml with a bearer scheme named access with bearerFormat JWT and an apiKey scheme named transaction in the Txn-Token header, the list requiring access and the delete requiring transaction, warns that the securityScheme setting is not used, and exits 0"
-verifies: [SA-80]
+verifies: [SA-84]

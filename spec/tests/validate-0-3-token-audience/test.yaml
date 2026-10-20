@@ -6,4 +6,4 @@ covers: [exit 1]
 given: "an accepted access token whose aud fixes no value, and a token the service issues and no operation accepts, whose aud fixes none either"
 when: validate is run
 then: "it reports token_audience at the accepted token's aud and nothing at the issued token's, and exits 1"
-verifies: [SA-80]
+verifies: [SA-84]

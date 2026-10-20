@@ -6,4 +6,4 @@ covers: [exit 1]
 given: "a transaction token that is opaque, declares neither scope nor req_wl, writes aud, and declares no tctx.application while a role's through reaches the operation that accepts it"
 when: validate is run
 then: "it reports token for the format, each missing claim, the aud and the missing tctx.application, and exits 1"
-verifies: [SA-80]
+verifies: [SA-84]

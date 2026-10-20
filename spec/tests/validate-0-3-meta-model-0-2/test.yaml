@@ -5,4 +5,4 @@ scenario: golden
 given: "the same specification on 0.2: a field, a view's property, a schema's property and an algorithm's input each named caller"
 when: validate is run
 then: "it reads the file, warns once at the specarch line that 0.2 is read until 1.0 and that 0.3 reserves the name caller, reports no error and exits 0"
-verifies: [SA-78]
+verifies: [SA-82]

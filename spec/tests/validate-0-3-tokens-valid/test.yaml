@@ -5,4 +5,4 @@ scenario: golden
 given: "the three-hop example in one module: an access token with its audience fixed, the client_id and softwareVersion claims and a check, a transaction token with the draft's claims and tctx.application, an application admitted at a version range with a software statement, a role whose through narrows a grant to it, a service with a SPIFFE proof named in the delete's via, the security events' store and alarm, and a test of each chosen case"
 when: validate is run
 then: "it reports nothing and exits 0"
-verifies: [SA-80]
+verifies: [SA-84]

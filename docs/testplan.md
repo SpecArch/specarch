@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.2-dev of the specification: 556 design tests, 252 golden and 304 red, about 16 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.2-dev of the specification: 559 design tests, 254 golden and 305 red, about 16 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 4 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -19,7 +19,7 @@ Version 0.7.2-dev of the specification: 556 design tests, 252 golden and 304 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 552 |
+| system | 555 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -131,7 +131,7 @@ Scenario: red; level: system; covers usage error; verifies SA-72.
 
 #### derive-0-3-clients
 
-Scenario: golden; level: system; verifies SA-79.
+Scenario: golden; level: system; verifies SA-83.
 
 - Given: the specification of validate-0-3-clients-valid with only the list's golden test
 - When: derive is run
@@ -139,7 +139,7 @@ Scenario: golden; level: system; verifies SA-79.
 
 #### derive-0-3-rows
 
-Scenario: golden; level: system; verifies SA-78.
+Scenario: golden; level: system; verifies SA-82.
 
 - Given: a specification on 0.3 with a member role whose rows rule limits Loan, a list and a read by key of loans, and a job acting as member over loans, with no tests
 - When: derive is run
@@ -147,7 +147,7 @@ Scenario: golden; level: system; verifies SA-78.
 
 #### derive-0-3-tokens
 
-Scenario: golden; level: system; verifies SA-80.
+Scenario: golden; level: system; verifies SA-84.
 
 - Given: the specification of validate-0-3-tokens-valid with only the list's golden test
 - When: derive is run
@@ -659,7 +659,7 @@ Scenario: red; level: system; covers exit 2.
 
 #### document-techspec-0-3-clients
 
-Scenario: golden; level: system; verifies SA-79.
+Scenario: golden; level: system; verifies SA-83.
 
 - Given: the specification of validate-0-3-clients-valid
 - When: document techspec is run with --out
@@ -667,7 +667,7 @@ Scenario: golden; level: system; verifies SA-79.
 
 #### document-techspec-0-3-tokens
 
-Scenario: golden; level: system; verifies SA-80.
+Scenario: golden; level: system; verifies SA-84.
 
 - Given: the specification of validate-0-3-tokens-valid
 - When: document techspec is run with --out
@@ -1819,7 +1819,7 @@ Scenario: golden; level: system; verifies SA-36.
 
 #### generate-openapi-0-3-tokens
 
-Scenario: golden; level: system; verifies SA-80.
+Scenario: golden; level: system; verifies SA-84.
 
 - Given: the specification of validate-0-3-tokens-valid with an implementation file whose openapi target still names a securityScheme setting; specarch-gen-openapi built from this repository on PATH
 - When: generate openapi is run with --unapproved
@@ -1955,7 +1955,7 @@ Scenario: golden; level: system; verifies SA-37.
 
 #### generate-sql-0-3-rows
 
-Scenario: golden; level: system; verifies SA-78.
+Scenario: golden; level: system; verifies SA-82.
 
 - Given: a specification on 0.3 with a caller of two properties and two roles whose rows rules limit Loan, one by the member's identifier and one by the organisation and a boolean field; an implementation file in Go with a PostgreSQL sql target that maps one caller property to its own expression and one role to its own database role; specarch-gen-sql built from this repository on PATH
 - When: generate sql is run with --unapproved
@@ -1963,7 +1963,7 @@ Scenario: golden; level: system; verifies SA-78.
 
 #### generate-sql-0-3-rows-changed
 
-Scenario: golden; level: system; verifies SA-78.
+Scenario: golden; level: system; verifies SA-82.
 
 - Given: the specification of generate-sql-0-3-rows with its first migration and snapshot in the output folder, the member's rule now also keeping archived loans out and the desk staff's rule gone; specarch-gen-sql built from this repository on PATH
 - When: generate sql is run with --unapproved
@@ -1971,7 +1971,7 @@ Scenario: golden; level: system; verifies SA-78.
 
 #### generate-sql-0-3-rows-mariadb
 
-Scenario: golden; level: system; verifies SA-78.
+Scenario: golden; level: system; verifies SA-82.
 
 - Given: the specification of generate-sql-0-3-rows with its sql target on MariaDB; specarch-gen-sql built from this repository on PATH
 - When: generate sql is run with --unapproved
@@ -2611,7 +2611,7 @@ Scenario: golden; level: system; verifies SA-45.
 
 #### validate-0-3-caller-property
 
-Scenario: red; level: system; covers exit 1; verifies SA-78.
+Scenario: red; level: system; covers exit 1; verifies SA-82.
 
 - Given: a check constraint reading a field's property with a dot, a check constraint naming caller.memberId, a rows rule naming the caller's property in the wrong case, and one naming a property the caller does not declare
 - When: validate is run
@@ -2619,7 +2619,7 @@ Scenario: red; level: system; covers exit 1; verifies SA-78.
 
 #### validate-0-3-callers
 
-Scenario: red; level: system; covers exit 1; verifies SA-79.
+Scenario: red; level: system; covers exit 1; verifies SA-83.
 
 - Given: an operation whose callers is empty, one listing people twice, a client none of whose roles grants its permission, a service with no roles and a name that is no client, and a route closed with nobody that lists callers
 - When: validate is run
@@ -2627,7 +2627,7 @@ Scenario: red; level: system; covers exit 1; verifies SA-79.
 
 #### validate-0-3-claims
 
-Scenario: red; level: system; covers exit 1; verifies SA-80.
+Scenario: red; level: system; covers exit 1; verifies SA-84.
 
 - Given: an access token whose exp is written as a string, whose own claim is in snake case, and whose aud lists two URIs and a value with a colon that is no URI
 - When: validate is run
@@ -2635,7 +2635,7 @@ Scenario: red; level: system; covers exit 1; verifies SA-80.
 
 #### validate-0-3-clients
 
-Scenario: red; level: system; covers exit 1; verifies SA-79.
+Scenario: red; level: system; covers exit 1; verifies SA-83.
 
 - Given: clients named people, of a kind that is neither application nor service, holding roles with no proof and naming an undeclared role, a service with no proof and no roles, a version range that does not parse, a version with no claim to be checked against, a signed request with an unregistered algorithm and a covered component that is not a request part, one with no algorithm and nothing covered, and a client certificate naming an algorithm
 - When: validate is run
@@ -2643,7 +2643,7 @@ Scenario: red; level: system; covers exit 1; verifies SA-79.
 
 #### validate-0-3-clients-valid
 
-Scenario: golden; level: system; verifies SA-79.
+Scenario: golden; level: system; verifies SA-83.
 
 - Given: a specification on 0.3 with a service that signs its requests, a service with a client certificate, a public application, a route people and the signing service share, a machine route for the two services, a route closed with nobody, a public route, and a test of each derived case
 - When: validate is run
@@ -2651,7 +2651,7 @@ Scenario: golden; level: system; verifies SA-79.
 
 #### validate-0-3-meta-model-0-2
 
-Scenario: golden; level: system; verifies SA-78.
+Scenario: golden; level: system; verifies SA-82.
 
 - Given: the same specification on 0.2: a field, a view's property, a schema's property and an algorithm's input each named caller
 - When: validate is run
@@ -2659,7 +2659,7 @@ Scenario: golden; level: system; verifies SA-78.
 
 #### validate-0-3-nobody
 
-Scenario: red; level: system; covers exit 1; verifies SA-79.
+Scenario: red; level: system; covers exit 1; verifies SA-83.
 
 - Given: a role that grants nobody, and an operation and a command closed with nobody that a setting switches on
 - When: validate is run
@@ -2667,7 +2667,7 @@ Scenario: red; level: system; covers exit 1; verifies SA-79.
 
 #### validate-0-3-reserved-name
 
-Scenario: red; level: system; covers exit 1; verifies SA-78.
+Scenario: red; level: system; covers exit 1; verifies SA-82.
 
 - Given: a specification on 0.3 with a field, a view's property, a schema's property and an algorithm's input each named caller
 - When: validate is run
@@ -2675,7 +2675,7 @@ Scenario: red; level: system; covers exit 1; verifies SA-78.
 
 #### validate-0-3-rows
 
-Scenario: red; level: system; covers exit 1; verifies SA-78.
+Scenario: red; level: system; covers exit 1; verifies SA-82.
 
 - Given: a rows rule keyed by a name that is not an entity, one that gives a string rather than true or false, and one naming a field the entity does not have
 - When: validate is run
@@ -2683,7 +2683,7 @@ Scenario: red; level: system; covers exit 1; verifies SA-78.
 
 #### validate-0-3-rows-valid
 
-Scenario: golden; level: system; verifies SA-78.
+Scenario: golden; level: system; verifies SA-82.
 
 - Given: a specification on 0.3 with a caller of two properties, one allowing null, two roles whose rows rules name the entity's fields and the caller's properties, a list, a read by key, a write and a job over the entity, and a test of each derived case, one with the caller's object form in its fixture
 - When: validate is run
@@ -2691,7 +2691,7 @@ Scenario: golden; level: system; verifies SA-78.
 
 #### validate-0-3-security-events
 
-Scenario: red; level: system; covers exit 1; verifies SA-80.
+Scenario: red; level: system; covers exit 1; verifies SA-84.
 
 - Given: a specification with a token and a client and no securityEvents
 - When: validate is run
@@ -2699,7 +2699,7 @@ Scenario: red; level: system; covers exit 1; verifies SA-80.
 
 #### validate-0-3-through
 
-Scenario: red; level: system; covers exit 1; verifies SA-79.
+Scenario: red; level: system; covers exit 1; verifies SA-83.
 
 - Given: a specification whose only sign-in is a session, with a role whose through names a permission another role grants and a client that is not declared, and another whose through lists no client
 - When: validate is run
@@ -2707,7 +2707,7 @@ Scenario: red; level: system; covers exit 1; verifies SA-79.
 
 #### validate-0-3-token-audience
 
-Scenario: red; level: system; covers exit 1; verifies SA-80.
+Scenario: red; level: system; covers exit 1; verifies SA-84.
 
 - Given: an accepted access token whose aud fixes no value, and a token the service issues and no operation accepts, whose aud fixes none either
 - When: validate is run
@@ -2715,7 +2715,7 @@ Scenario: red; level: system; covers exit 1; verifies SA-80.
 
 #### validate-0-3-tokens
 
-Scenario: red; level: system; covers exit 1; verifies SA-80.
+Scenario: red; level: system; covers exit 1; verifies SA-84.
 
 - Given: tokens signed with none and with an algorithm the RFC does not register, a JWT with no signature, an opaque token with one, two defaults, a claim typed unlike the caller property of its name, a check over an undeclared claim and one giving no bool, and an operation naming a token that is not declared
 - When: validate is run
@@ -2723,7 +2723,7 @@ Scenario: red; level: system; covers exit 1; verifies SA-80.
 
 #### validate-0-3-tokens-valid
 
-Scenario: golden; level: system; verifies SA-80.
+Scenario: golden; level: system; verifies SA-84.
 
 - Given: the three-hop example in one module: an access token with its audience fixed, the client_id and softwareVersion claims and a check, a transaction token with the draft's claims and tctx.application, an application admitted at a version range with a software statement, a role whose through narrows a grant to it, a service with a SPIFFE proof named in the delete's via, the security events' store and alarm, and a test of each chosen case
 - When: validate is run
@@ -2731,7 +2731,7 @@ Scenario: golden; level: system; verifies SA-80.
 
 #### validate-0-3-txn-token
 
-Scenario: red; level: system; covers exit 1; verifies SA-80.
+Scenario: red; level: system; covers exit 1; verifies SA-84.
 
 - Given: a transaction token that is opaque, declares neither scope nor req_wl, writes aud, and declares no tctx.application while a role's through reaches the operation that accepts it
 - When: validate is run
@@ -2739,7 +2739,7 @@ Scenario: red; level: system; covers exit 1; verifies SA-80.
 
 #### validate-0-3-via
 
-Scenario: red; level: system; covers exit 1; verifies SA-80.
+Scenario: red; level: system; covers exit 1; verifies SA-84.
 
 - Given: a via on an operation accepting the access token, an operation accepting the transaction token with no via, a via naming an undeclared client, an application, a service with a signed-request proof and a service twice, an empty via, and proofs of kind token naming the transaction token and an undeclared token, and a wimse proof naming a token
 - When: validate is run
@@ -4557,7 +4557,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-331 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+336 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -4736,18 +4736,23 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-78 | acceptance 3 | golden | SA-78 names no harm |
 | requirement SA-78 | acceptance 4 | golden | SA-78 names no harm |
 | requirement SA-78 | acceptance 5 | golden | SA-78 names no harm |
-| requirement SA-78 | acceptance 6 | golden | SA-78 names no harm |
-| requirement SA-79 | acceptance 1 | golden | SA-79 names no harm |
-| requirement SA-79 | acceptance 2 | golden | SA-79 names no harm |
-| requirement SA-79 | acceptance 3 | golden | SA-79 names no harm |
-| requirement SA-79 | acceptance 4 | golden | SA-79 names no harm |
-| requirement SA-79 | acceptance 5 | golden | SA-79 names no harm |
-| requirement SA-79 | acceptance 6 | golden | SA-79 names no harm |
-| requirement SA-80 | acceptance 1 | golden | SA-80 names no harm |
-| requirement SA-80 | acceptance 2 | golden | SA-80 names no harm |
-| requirement SA-80 | acceptance 3 | golden | SA-80 names no harm |
-| requirement SA-80 | acceptance 4 | golden | SA-80 names no harm |
-| requirement SA-80 | acceptance 5 | golden | SA-80 names no harm |
+| requirement SA-82 | acceptance 1 | golden | SA-82 names no harm |
+| requirement SA-82 | acceptance 2 | golden | SA-82 names no harm |
+| requirement SA-82 | acceptance 3 | golden | SA-82 names no harm |
+| requirement SA-82 | acceptance 4 | golden | SA-82 names no harm |
+| requirement SA-82 | acceptance 5 | golden | SA-82 names no harm |
+| requirement SA-82 | acceptance 6 | golden | SA-82 names no harm |
+| requirement SA-83 | acceptance 1 | golden | SA-83 names no harm |
+| requirement SA-83 | acceptance 2 | golden | SA-83 names no harm |
+| requirement SA-83 | acceptance 3 | golden | SA-83 names no harm |
+| requirement SA-83 | acceptance 4 | golden | SA-83 names no harm |
+| requirement SA-83 | acceptance 5 | golden | SA-83 names no harm |
+| requirement SA-83 | acceptance 6 | golden | SA-83 names no harm |
+| requirement SA-84 | acceptance 1 | golden | SA-84 names no harm |
+| requirement SA-84 | acceptance 2 | golden | SA-84 names no harm |
+| requirement SA-84 | acceptance 3 | golden | SA-84 names no harm |
+| requirement SA-84 | acceptance 4 | golden | SA-84 names no harm |
+| requirement SA-84 | acceptance 5 | golden | SA-84 names no harm |
 | requirement SA-7 | acceptance 1 | golden | SA-7 names no harm |
 | requirement SA-7 | acceptance 2 | golden | SA-7 names no harm |
 | requirement SA-8 | acceptance 1 | golden | SA-8 names no harm |

@@ -6,4 +6,4 @@ covers: [exit 1]
 given: "an access token whose exp is written as a string, whose own claim is in snake case, and whose aud lists two URIs and a value with a colon that is no URI"
 when: validate is run
 then: "it reports claim for the retyped exp and the snake-case claim, token_audience for the value that is no URI and nothing for the two URIs, and exits 1"
-verifies: [SA-80]
+verifies: [SA-84]

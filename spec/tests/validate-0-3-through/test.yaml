@@ -6,4 +6,4 @@ covers: [exit 1]
 given: "a specification whose only sign-in is a session, with a role whose through names a permission another role grants and a client that is not declared, and another whose through lists no client"
 when: validate is run
 then: "it reports through at each role for the session carrying no application, at the permission not granted, at the undeclared client with the nearest name, and at the empty list, and exits 1"
-verifies: [SA-79]
+verifies: [SA-83]

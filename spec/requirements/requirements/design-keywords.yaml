@@ -427,6 +427,20 @@ requirements:
     needs: [NEED-1, NEED-2, NEED-3]
     why: A service whose operations travel in an encrypted envelope, or that streams large files, could not say so in its specification, so a client built from it would send plain JSON to an endpoint that expects an envelope, and a document would show a field table where a stream of bytes travels.
   SA-78:
+    statement: specarch generate ui shall write, through specarch-gen-ui-swiftui, the task, list and form pages and the views of a specification for the iPhone in SwiftUI, from an implementation file in Swift whose ui target is platform iphone, so that the screens follow the design's fields, checks, refusals, events and permissions as the Next.js and Carbon screens do, drawn by the components the ui-components idiom names for swiftui.
+    kind: functional
+    priority: should
+    status: accepted
+    acceptance:
+      - generate looks up specarch-gen-<target>-<framework> for an implementation file whose target names a framework, or a platform with a default one, before specarch-gen-<target>-<language> and specarch-gen-<target>, and falls back in that order when one is not on PATH.
+      - Each page becomes a schema file under Sources/<module>/Pages that holds data only, one Swift literal typed by the part's schema type, with the idiom's names as its labels, and a view file that hands the schema to the part's component behind the guard with the routes its events lead to; the components that read the schemas are written once under Sources/<module>/Screens on SwiftUI alone, the routes once as one enum the app's navigation stack follows, every text once in Strings.swift in the target's language and in each translation the settings name, and the theme as Theme.swift through the design-tokens idiom.
+      - A task page, a list, a form and a view take the same design keywords, settings, hooks, checks as rules in the data, refusals and events, and report the same errors, as the TypeScript generator does, but for the server routes, which an app does not have, and the comparison of a schema built by hand, which is TypeScript's.
+      - Each list, form and view that needs a permission gets a derived test under Tests/<module>Tests that it is refused to someone signed in without it, sends someone signed out to sign in and opens to someone who holds it, and the menu a test that no entry shows without the permission of the page it opens, in Swift Testing.
+      - The library lending example's generated package builds with swift build and passes swift test on a Mac, and generated over its sign-in and second-factor screens written by hand it differs only by the header.
+    verification: test
+    needs: [NEED-2]
+    why: The iPhone is the platform the owner's own apps are built for, and a screen written by hand there drifts from the design as one on the web does; the roadmap names SwiftUI the default for the iPhone, and the same pages drawn twice from one specification are the check that the design, not a stack, holds the screens.
+  SA-82:
     statement: A specification shall be able to declare the caller, one record of who is making the call with properties typed as fields, and on a role the rows it reaches in an entity, one expression over the entity's fields and the caller's properties written caller.<property>; specarch validate shall check both in both builds and reserve the name caller in a file on meta-model 0.3, reading a 0.2 file with a warning, the derived cases shall cover what a caller sees outside their rows, generate sql shall write each rule as a row security policy where the engine has one, and the technical specification shall show the caller and the rows each role reaches.
     kind: functional
     priority: must
@@ -441,7 +455,7 @@ requirements:
     verification: test
     needs: [NEED-1, NEED-2, NEED-3]
     why: A member sees only their own loans, and a tenant's staff only their organisation's records, and the meta-model could say neither, so the rule lived in prose beside the role and the service enforced what no test derived and no policy carried.
-  SA-79:
+  SA-83:
     statement: A specification shall be able to declare its machine clients, each by its software_id with its kind, the versions it is admitted at, the roles it holds and how it proves its identity on each request; to say on an operation or command the explicit subset of who may call it, people and clients by name; to close a route on purpose with the reserved permission nobody; and to narrow a role's grant to the clients it holds through; specarch validate shall check each in both builds, the derived cases shall cover every refusal, and the technical specification shall show the clients beside the roles, the callers of each route and the grants narrowed by client.
     kind: functional
     priority: must
@@ -456,7 +470,7 @@ requirements:
     verification: test
     needs: [NEED-1, NEED-2, NEED-3]
     why: An identity service served routes open only to named machine clients, routes that also required a signed request, and a route closed to everyone, and each had to be written as a permission with prose, which lost the default-deny caller list and the signature, and a closed route needed a placeholder role, since a permission no role grants is a fail-closed error.
-  SA-80:
+  SA-84:
     statement: A specification shall be able to declare the token formats its service issues and accepts, each with its kind, lifetime, signature algorithm, claims and checks, one of them the default, and on an operation the token it accepts and the immediate callers of a transaction token; to fix the audience of every accepted access token; and to say where the security event every refusal of a caller writes goes; specarch validate shall check each in both builds, the derived cases shall cover the expired token, each check, the actor as subject, the audience, the chain and the confused deputy's token forms, each naming its security event, generate openapi shall write the schemes the tokens give, and the technical specification shall show the tokens, the chain and the events.
     kind: functional
     priority: must

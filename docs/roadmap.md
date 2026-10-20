@@ -286,7 +286,7 @@ Built, in the order they were built:
   (`spec/tests/validate-unique-where`, `spec/tests/validate-enabled-by`,
   `spec/tests/validate-requirement-release`,
   `spec/tests/validate-wire-names`);
-- a schema per fragment file (`schema/specarch-fragment-*-0.2.schema.json`);
+- a schema per fragment file (`schema/specarch-fragment-*-0.3.schema.json`);
 - missing test scenarios as errors, the one change that breaks a 0.1 file
   and so the one that moved the version
   (`spec/tests/validate-meta-model-0-2-missing-test`);

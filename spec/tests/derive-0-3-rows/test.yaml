@@ -5,4 +5,4 @@ scenario: golden
 given: "a specification on 0.3 with a member role whose rows rule limits Loan, a list and a read by key of loans, and a job acting as member over loans, with no tests"
 when: derive is run
 then: "it writes a draft for the list showing only the member's rows, for the read by key answering not found outside them, and for the job acting on them only, beside the drafts of the permission and the key, and exits 0"
-verifies: [SA-78]
+verifies: [SA-82]

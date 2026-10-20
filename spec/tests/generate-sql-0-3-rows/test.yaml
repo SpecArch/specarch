@@ -5,4 +5,4 @@ scenario: golden
 given: "a specification on 0.3 with a caller of two properties and two roles whose rows rules limit Loan, one by the member's identifier and one by the organisation and a boolean field; an implementation file in Go with a PostgreSQL sql target that maps one caller property to its own expression and one role to its own database role; specarch-gen-sql built from this repository on PATH"
 when: "generate sql is run with --unapproved"
 then: "it writes 0001_expand.sql with the loans table, row security enabled and forced on it, and one policy per role, the mapped property read as mapped and the other from the setting named after it, the mapped role under its database role and the other under its own name with underscores; writes the snapshot with the policies, and exits 0"
-verifies: [SA-78]
+verifies: [SA-82]

@@ -5,4 +5,4 @@ scenario: golden
 given: "the specification of generate-sql-0-3-rows with its sql target on MariaDB; specarch-gen-sql built from this repository on PATH"
 when: "generate sql is run with --unapproved"
 then: "it writes 0001_expand.sql with the loans table and no policy, a comment at the table for each rule saying MariaDB has no row security policy this version writes, warns once per rule at the rule, keeps the snapshot without policies, and exits 0"
-verifies: [SA-78]
+verifies: [SA-82]

@@ -5,4 +5,4 @@ scenario: golden
 given: "a specification on 0.3 with a caller of two properties, one allowing null, two roles whose rows rules name the entity's fields and the caller's properties, a list, a read by key, a write and a job over the entity, and a test of each derived case, one with the caller's object form in its fixture"
 when: validate is run
 then: "it reports nothing and exits 0"
-verifies: [SA-78]
+verifies: [SA-82]

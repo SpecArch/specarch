@@ -5,4 +5,4 @@ scenario: golden
 given: "a specification on 0.3 with a service that signs its requests, a service with a client certificate, a public application, a route people and the signing service share, a machine route for the two services, a route closed with nobody, a public route, and a test of each derived case"
 when: validate is run
 then: "it reports nothing and exits 0"
-verifies: [SA-79]
+verifies: [SA-83]

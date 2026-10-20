@@ -6,4 +6,4 @@ covers: [exit 1]
 given: "a role that grants nobody, and an operation and a command closed with nobody that a setting switches on"
 when: validate is run
 then: "it reports reserved_name at the role's grant and setting at each enabledBy, asks no golden scenario of the closed route and the closed command, and exits 1"
-verifies: [SA-79]
+verifies: [SA-83]

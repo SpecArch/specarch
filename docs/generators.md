@@ -668,7 +668,7 @@ tokens may not make one custom property; a font family other than CSS's
 generic ones is written as a string. Two events of the screens with one
 name, a page's and an operation's, are refused.
 
-Pages open each other by their files (ADR-147). `pages.js` declares every
+Pages open each other by their files (ADR-152). `pages.js` declares every
 page written, and every page another stakeholder owns, once: its file,
 `<page>.html`, and its route's parameters, which travel in the query, so
 `/members/{memberId}` is `member-view.html?memberId=...` and the folder is
@@ -701,7 +701,7 @@ expression.
 A form or a task is `<page>.html` whose fields are native controls, in
 its sections as fieldsets, each with the attributes the browser checks
 from the property's keywords and `required` from the request body
-(ADR-148): text, a long text as a text area, email, password, a date, a
+(ADR-153): text, a long text as a text area, email, password, a date, a
 number with its range, a box for a boolean, a list of an enum's values,
 and a field a picker fills as a list of the picker's records, read at its
 list's largest page size and searched through the service when its

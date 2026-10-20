@@ -10,7 +10,7 @@ import (
 	"github.com/SpecArch/specarch/internal/mark"
 )
 
-// Navigation between pages (ADR-147). The screens are files with no server
+// Navigation between pages (ADR-152). The screens are files with no server
 // to read a path, so a page is <name>.html and its route's parameters
 // travel in the query; pages.js declares every page's file and parameters
 // once, as events.js declares the events. A page opens another with a

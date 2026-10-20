@@ -150,9 +150,9 @@ implementation file uses and compares an override with the shipped idiom.
    - Built for the web in plain JavaScript: `specarch-gen-ui` writes list
      pages (0.5.0, ADR-040, `spec/tests/generate-ui`), and, in 0.7.2, view
      pages and the navigation between pages, from a menu, a link, a
-     selected row and an event (ADR-147, proposed,
+     selected row and an event (ADR-152, proposed,
      `spec/tests/generate-ui-view`), and form and task pages with their
-     checks, conditions, pickers, values and child rows (ADR-148,
+     checks, conditions, pickers, values and child rows (ADR-153,
      proposed, `spec/tests/generate-ui-form`), every page of
      `examples/library-lending/web/`, checked against the member view and
      form written by hand first

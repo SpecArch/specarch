@@ -405,7 +405,7 @@ before it.
 
 Items 1 to 5 are built. Item 6 is built for the web in plain JavaScript,
 the owner's pick (D9): list pages first (ADR-040), then views and the
-navigation between pages (ADR-147), then forms and task pages (ADR-148).
+navigation between pages (ADR-152), then forms and task pages (ADR-153).
 
 1. The keywords of D2 to D7 in the schema, `docs/conventions.md` and the
    rule enum (`state`, `flow`, `accessibility`, `theme`), spec first, with

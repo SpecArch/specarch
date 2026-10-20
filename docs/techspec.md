@@ -11565,57 +11565,6 @@ the Next.js layout does.
 
 **Insight:** The owner named the plug-in for the framework, and a framework is what decides the components (ADR-023, Q1 of docs/ui-nextjs-carbon.md); a lookup by the language alone would have forced specarch-gen-ui-swift and bound every Swift front end to one framework. Reading the pages once keeps the two generators from drifting apart in what they accept and refuse, which three thousand duplicated lines would have done on the first change. A typed Swift literal is Swift's satisfies: the compiler checks the data against the component's type, and .init in a nested value lets the literal stay data with no type name a project's override would have to supply. A router that keeps the page sign-in was asked for from needs no open-redirect check, since an app's routes are an enum. A package with no dependency needs no scan, builds on a Mac without a simulator, and is what a SwiftUI project adds as a local package.
 
-### ADR-148: The plain JavaScript forms hold their fields as native controls in the HTML, checked by the browser, and one form.js adds what HTML cannot say
-
-Status: proposed, 2026-10-20.
-
-Context: Forms and task pages were reported and left out by specarch-gen-ui.
-The Next.js target draws its forms through a component library a
-project overrides (ADR-069), which plain JavaScript has none of. The
-browser checks required, lengths, ranges and types itself and shows
-its own message, but it cannot check a rule across fields, compare
-two entries, read a JSON Schema pattern as JSON Schema does (HTML
-anchors a pattern and reads it with the v flag), ask for a part of a
-value only once the value is given, or fill a list from the service.
-
-Decision: A form's fields are native controls in its HTML, each with the
-attributes the browser checks from the property's keywords and the
-request body's required; a pattern is written as data-pattern and
-checked with the u flag, unanchored. A value of a schema is a
-fieldset of its parts, in the order of their names, whose required
-parts are asked for once any part is given when the value itself may
-be left out; a list of values and a form's child rows are rows a
-person adds from a template and removes, up to their maximum. The
-module hands form.js, written once, what it sends, the checks and
-conditions as functions of the record (ADR-147), the pickers, the
-record a form loads and the child rows loaded with it, what follows
-each success and each refusal. A check's or a refusal's message is
-the field's own validity message, so the browser shows it beside the
-field and the form is not sent while one stands. A hidden field is
-disabled, so it is neither checked nor sent. An empty field is null
-in the record the rules read and is left out of what is sent. A
-form's onSubmitted follows every success its operation answers,
-a workflow trigger's 202 among them; a task's are by status. A
-success's page takes its route's parameters from the answer, then
-the fields sent, the record loaded, and the page's own address. A
-picker reads one page of its list at the list's largest page size,
-and through the service's search when the list searches; otherwise
-it offers that page, with a warning at the picker.
-
-Consequences: The forms read and work without a script for what HTML checks, and
-the html document shows each form with all its fields. A message
-the browser writes, for a field left empty or too long, is in the
-browser's language, not the page's; the generator's own words, for
-a pattern and a second entry, are in English. A list's minimum
-count of rows is the service's to refuse. A check that names no
-field has nowhere to show its message, so it is refused; the
-validator does not ask for one, since the Next.js target shows it
-above the form. The settings of the Next.js target, hooks and
-layouts, have no counterpart here: a form's sections sit as one
-page.
-
-**Insight:** Native controls are what the stack's rule of no package asks for, and they carry the browser's own accessibility: the label, the focus order of the sections, the message beside the field. One form.js keeps each page's module to data, as view.js does for views and events.js for events, so a reader checks one engine once. Reading a pattern as JSON Schema does keeps the browser and the service in agreement on what passes, which the HTML attribute would not.
-
 ### ADR-152: The plain JavaScript screens address a page as its file with its route's parameters in the query, carry a message to the page they open for one load, and hold a view's sections in its HTML
 
 Status: proposed, 2026-10-20.
@@ -11677,6 +11626,57 @@ when the browser cannot evaluate is left out, not offered on every
 row.
 
 **Insight:** The query keeps the stack's rule of no server and no build step, and names each parameter as the route does, so a link reads as the design wrote it. One declaration of the pages, as of the events, keeps a page's name and parameters in one place a reader can check. Session storage, not the query, carries the message, so a reload or a shared address does not repeat "The member is registered.". The sections in the HTML keep the screens readable without their scripts, which is what the html document shows a reviewer before any service exists (docs/acceptance.md), and keep the module to the behaviour. Expressions as functions keep the generated code free of an evaluator, and the operators allowed are the ones whose result is the same in the browser and in the specification's language.
+
+### ADR-153: The plain JavaScript forms hold their fields as native controls in the HTML, checked by the browser, and one form.js adds what HTML cannot say
+
+Status: proposed, 2026-10-20.
+
+Context: Forms and task pages were reported and left out by specarch-gen-ui.
+The Next.js target draws its forms through a component library a
+project overrides (ADR-069), which plain JavaScript has none of. The
+browser checks required, lengths, ranges and types itself and shows
+its own message, but it cannot check a rule across fields, compare
+two entries, read a JSON Schema pattern as JSON Schema does (HTML
+anchors a pattern and reads it with the v flag), ask for a part of a
+value only once the value is given, or fill a list from the service.
+
+Decision: A form's fields are native controls in its HTML, each with the
+attributes the browser checks from the property's keywords and the
+request body's required; a pattern is written as data-pattern and
+checked with the u flag, unanchored. A value of a schema is a
+fieldset of its parts, in the order of their names, whose required
+parts are asked for once any part is given when the value itself may
+be left out; a list of values and a form's child rows are rows a
+person adds from a template and removes, up to their maximum. The
+module hands form.js, written once, what it sends, the checks and
+conditions as functions of the record (ADR-152), the pickers, the
+record a form loads and the child rows loaded with it, what follows
+each success and each refusal. A check's or a refusal's message is
+the field's own validity message, so the browser shows it beside the
+field and the form is not sent while one stands. A hidden field is
+disabled, so it is neither checked nor sent. An empty field is null
+in the record the rules read and is left out of what is sent. A
+form's onSubmitted follows every success its operation answers,
+a workflow trigger's 202 among them; a task's are by status. A
+success's page takes its route's parameters from the answer, then
+the fields sent, the record loaded, and the page's own address. A
+picker reads one page of its list at the list's largest page size,
+and through the service's search when the list searches; otherwise
+it offers that page, with a warning at the picker.
+
+Consequences: The forms read and work without a script for what HTML checks, and
+the html document shows each form with all its fields. A message
+the browser writes, for a field left empty or too long, is in the
+browser's language, not the page's; the generator's own words, for
+a pattern and a second entry, are in English. A list's minimum
+count of rows is the service's to refuse. A check that names no
+field has nowhere to show its message, so it is refused; the
+validator does not ask for one, since the Next.js target shows it
+above the form. The settings of the Next.js target, hooks and
+layouts, have no counterpart here: a form's sections sit as one
+page.
+
+**Insight:** Native controls are what the stack's rule of no package asks for, and they carry the browser's own accessibility: the label, the focus order of the sections, the message beside the field. One form.js keeps each page's module to data, as view.js does for views and events.js for events, so a reader checks one engine once. Reading a pattern as JSON Schema does keeps the browser and the service in agreement on what passes, which the HTML attribute would not.
 
 ### ADR-154: extract go asks for the callers of a route a client check or a signature check guards, each named under the implementation file's http binding, and lists the claims where golang-jwt mints a token; it writes no callers, client or token of its own
 
@@ -13376,7 +13376,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-78 | decisions ADR-147 | tests generate-framework-plugin; tests generate-ui-swiftui; tests generate-ui-swiftui-refused |
 | SA-79 | decisions ADR-143 | tests extract-go-routes-constants; tests extract-go-routes-fallbacks |
 | SA-80 | decisions ADR-152 | tests generate-ui-view; tests generate-ui-view-refused |
-| SA-81 | decisions ADR-148 | tests generate-ui-form; tests generate-ui-form-refused |
+| SA-81 | decisions ADR-153 | tests generate-ui-form; tests generate-ui-form-refused |
 | SA-82 | enums Rule | tests derive-0-3-rows; tests generate-sql-0-3-rows; tests generate-sql-0-3-rows-changed; tests generate-sql-0-3-rows-mariadb; tests validate-0-3-caller-property; tests validate-0-3-meta-model-0-2; tests validate-0-3-reserved-name; tests validate-0-3-rows; tests validate-0-3-rows-valid |
 | SA-83 | enums Rule | tests derive-0-3-clients; tests document-techspec-0-3-clients; tests validate-0-3-callers; tests validate-0-3-clients; tests validate-0-3-clients-valid; tests validate-0-3-nobody; tests validate-0-3-through |
 | SA-84 | enums Rule | tests derive-0-3-tokens; tests document-techspec-0-3-tokens; tests generate-openapi-0-3-tokens; tests validate-0-3-claims; tests validate-0-3-security-events; tests validate-0-3-token-audience; tests validate-0-3-tokens; tests validate-0-3-tokens-valid; tests validate-0-3-txn-token; tests validate-0-3-via |

@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-// View pages (ADR-147). A view's module is the page as data and one call
+// View pages (ADR-152). A view's module is the page as data and one call
 // to view.js, which draws the record its operation reads by sections, its
 // values with parts as lists of them, and its actions.
 

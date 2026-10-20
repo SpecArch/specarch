@@ -1,6 +1,6 @@
 # yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
 decisions:
-  ADR-148:
+  ADR-153:
     title: The plain JavaScript forms hold their fields as native controls in the HTML, checked by the browser, and one form.js adds what HTML cannot say
     status: proposed
     date: "2026-10-20"
@@ -23,7 +23,7 @@ decisions:
       be left out; a list of values and a form's child rows are rows a
       person adds from a template and removes, up to their maximum. The
       module hands form.js, written once, what it sends, the checks and
-      conditions as functions of the record (ADR-147), the pickers, the
+      conditions as functions of the record (ADR-152), the pickers, the
       record a form loads and the child rows loaded with it, what follows
       each success and each refusal. A check's or a refusal's message is
       the field's own validity message, so the browser shows it beside the

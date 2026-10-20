@@ -11521,7 +11521,8 @@ with its steps as numbered instructions written from the page, the
 event and the action; and a section per page with what it is for,
 who opens it, the fields to fill in or the columns shown, the
 actions with their confirmation, and for each problem the page
-names its message, the problem's condition and its remedy. A role a
+names its message, the problem's condition and its remedy, with a
+default message given as the answer to any other problem. A role a
 job acts as or a client holds is a program, not a person, and is
 left out of who uses the system, unless a flow names it as its
 actor.
@@ -11531,7 +11532,8 @@ a checklist of what to look at on the live system, one row per
 monitor, job and dependency; the monitors with their responses;
 the jobs with their triggers, roles, retries and what becomes of
 an item after the last try; the channels with what carries them,
-who publishes and who consumes each message; the dependencies with
+which operations, jobs and workflows publish each message and which
+jobs consume it; the dependencies with
 what calls them; the endpoints with their permissions; the
 settings; and the backup, restore and rollback steps.
 Both are written for every specification whose implementation file
@@ -11544,7 +11546,14 @@ optional and no rule refuses their absence. Every document target
 of the design is built, the manual and the operations guide among
 them. A command-line tool's
 commands are not in the manual, and a dead-letter item's handling
-is not in the operations guide: both are left to build. The library
+is not in the operations guide: both are left to build. The
+sections that make the manual or the guide a draft, and whose
+problems they carry, are the ones each shows: the manual reads jobs
+and clients only to tell a program's role from a person's, and the
+guide reads workflows only to name a message's publisher, so a
+question or a problem on a job, a client or a workflow neither
+makes them a draft nor is marked in them; it is marked in the
+technical specification. The library
 lending example gains remedies, a monitor's response and both
 documents, kept current by CI.
 
@@ -11658,8 +11667,8 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | document-writes-deployment | command document | system | golden | two environments, a plain and a secret setting, release and rollback steps (one with a why and a citation), a migration that cannot be reversed, and an implementation file with two installations | document deployment is run | it writes deployment.md with the path a release takes, each installation's servers and setting values with the secret only named and an unset value marked, the steps, and exits 0 |
 | document-writes-handover | command document | system | golden | an environment the customer runs with a handover (with a why and a citation) to a stakeholder, settings including one internal, a migration, release, rollback, backup and restore steps, checks in both environments, a monitor, an acceptance and a system test, a sign-off, and an implementation file whose deployment of that environment has build, method, infrastructure, values and a monitor | document handover is run | it writes handover.md for the customer's engineers: what they receive, the responsibilities, the build with its toolchain, base image and licences, what the hosts must provide, every setting with the internal one marked, the migration, the release with the vendor's install method, rollback, backup, restore, the monitor and how the vendor watches it, only the check in that environment with a Result column, only the acceptance test, and the sign-off sheet, and exits 0 |
 | document-writes-html | command document | system | golden | a specification with a requirement, three entities, two of them related, a decision, a permission a role grants, and must and could questions that block an entity, a field and a requirement's keys | document html is run | it writes site/index.html, one page with the overview first, the entity diagram as SVG, every element under an id that is its pointer, a mark at each element a question blocks linking to the question, and each question in the problems linked to its entry, and exits 0 |
-| document-writes-manual | command document | system | golden | people's roles, a role a job acts as and one a client holds, a menu, a flow, a list with a filter and a row that opens a view, a view in sections with an operation action under a confirmation and a condition, a form with a required field and a check, a public task answering two ways, and problem types, one with a remedy | document manual is run | it writes manual.md with the people's roles and the pages each opens, the job's and the client's roles left out, the public page, the menu, the flow as numbered steps starting from the menu, and each page with how it is reached, who opens it, its columns or fields, its actions, what follows a submission and, per problem it names, the message, the condition and the remedy, and exits 0 |
-| document-writes-operations | command document | system | golden | two environments, a deployment with a named and an unnamed host and a watched monitor, a monitor with a response and one without, jobs on a schedule with dead letters, on a channel dropping after its retries and every hour with none, a carried channel and the system's own, a dependency an operation and a job call and one that carries a channel, a setting and a secret, and a backup with no restore or rollback | document operations is run | it writes operations.md with the environments and the deployment's hosts, a checklist row per monitor, job and dependency, each monitor with how it is watched and its response or a sentence naming response, the jobs' triggers, roles and retries, each message's carrier, publishers and consumers, each dependency's users, the endpoints with their warnings under them, the settings, the backup, and a sentence each for restore and rollback, and exits 0 |
+| document-writes-manual | command document | system | golden | people's roles, a role a job acts as and one a client holds, a menu, a flow, a list with a filter and a row that opens a view, a view in sections with an operation action under a confirmation and a condition, a form with a required field and a check, a public task answering two ways, problem types, one with a remedy, and a default message for any other problem | document manual is run | it writes manual.md with the people's roles and the pages each opens, the job's and the client's roles left out, the public page, the menu, the flow as numbered steps starting from the menu, and each page with how it is reached, who opens it, its columns or fields, its actions, what follows a submission and, per problem it names, the message, the condition and the remedy, the default row answering any other problem, and exits 0 |
+| document-writes-operations | command document | system | golden | two environments, a deployment with a named and an unnamed host and a watched monitor, a monitor with a response and one without, jobs on a schedule with dead letters, on a channel dropping after its retries and every hour with none, a carried channel and the system's own, a workflow publishing a message, a dependency an operation and a job call and one that carries a channel, a setting and a secret, and a backup with no restore or rollback | document operations is run | it writes operations.md with the environments and the deployment's hosts, a checklist row per monitor, job and dependency, each monitor with how it is watched and its response or a sentence naming response, the jobs' triggers, roles and retries, each message's carrier, its publishers among operations, jobs and workflows, and its consumers, each dependency's users, the endpoints with their warnings under them, the settings, the backup, and a sentence each for restore and rollback, and exits 0 |
 | document-writes-questions | command document | system | golden | a specification with two must questions in two stages, one of them a material question, and a could question, and no implementation file | document questions is run | it writes questions.md with the decisions by stage, the material question in a group of its own, and the outputs, where code generation waits on the questions and the approval, and exits 0 |
 | document-writes-releases | command document | system | golden | a released 1.0.0 that includes a change, and a planned 1.1.0 that includes a change and a defect | document releases is run | it writes releases.md with 1.1.0 first, each release's items grouped as changed and fixed, and exits 0 |
 | document-writes-requirements | command document | system | golden | a specification whose elements have an Insight only, a Note only, both, several Notes and neither | document requirements is run | it writes requirements.md with an Insight for every why and a Note for every citation, after the table for a row, ends with the two sources cited, and exits 0 |

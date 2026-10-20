@@ -152,6 +152,7 @@ pages:
     states:
       failed:
         order-paid: { message: This order was paid already. }
+        default: { message: The order cannot be paid right now. Try again in a moment. }
   order-form:
     kind: form
     title: New order

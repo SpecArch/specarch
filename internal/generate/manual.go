@@ -372,7 +372,12 @@ func manualPage(d *doc, root *yaml.Node, name string, page *yaml.Node) {
 		d.line("|---|---|---|")
 		for _, f := range failed {
 			problem := get(get(root, "errors"), f.Key.Value)
-			d.line("| %s | %s | %s |", cell(str(f.Value, "message")), cell(str(problem, "condition")), cell(str(problem, "remedy")))
+			why := str(problem, "condition")
+			if f.Key.Value == "default" {
+				// default is every problem type the page does not name.
+				why = "Any other problem the system reports."
+			}
+			d.line("| %s | %s | %s |", cell(str(f.Value, "message")), cell(why), cell(str(problem, "remedy")))
 		}
 		d.blank()
 	}

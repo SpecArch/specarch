@@ -165,6 +165,11 @@ func Operations(root *yaml.Node, relRoot string, impls []Implementation, state *
 				consumers[c] = append(consumers[c], "job "+j.Key.Value)
 			}
 		}
+		for _, w := range pairs(root, "workflows") {
+			for _, e := range strs(w.Value, "emits") {
+				publishers[e] = append(publishers[e], "workflow "+w.Key.Value)
+			}
+		}
 		d.para("Each message, what carries it and who publishes and consumes it. A channel no dependency carries is the system's own.")
 		d.line("| Channel | Carried by | Message | Published by | Consumed by |")
 		d.line("|---|---|---|---|---|")

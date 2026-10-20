@@ -100,7 +100,7 @@ Each message, what carries it and who publishes and consumes it. A channel no de
 
 | Channel | Carried by | Message | Published by | Consumed by |
 |---|---|---|---|---|
-| fee.waivers | the system itself | FeeWaiverDecided |   |   |
+| fee.waivers | the system itself | FeeWaiverDecided | workflow fee-waiver |   |
 | loan.lifecycle | eventBus | LoanCreated | operation createLoan |   |
 | loan.lifecycle | eventBus | LoanReturned | operation returnLoan |   |
 | loan.lifecycle | eventBus | LoanLost | operation reportLost |   |

@@ -2,9 +2,9 @@
 
 # Shop: operations guide
 
-Version 1.0.0 of the specification: 2 monitors, 3 jobs, 2 dependencies and 1 endpoint. For the people who run the live system: where it runs, what to look at each day, what to do when a monitor's objective is missed, what runs on its own, what it depends on, and how its data is saved and brought back.
+Version 1.0.0 of the specification: 2 monitors, 3 jobs, 2 dependencies and 2 endpoints. For the people who run the live system: where it runs, what to look at each day, what to do when a monitor's objective is missed, what runs on its own, what it depends on, and how its data is saved and brought back.
 
-**Problems:** 16 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
+**Problems:** 20 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
 ## 1. Where it runs
 
@@ -92,6 +92,7 @@ Each message, what carries it and who publishes and consumes it. A channel no de
 | Channel | Carried by | Message | Published by | Consumed by |
 |---|---|---|---|---|
 | order.events | broker | OrderTaken | operation createOrder | job printReceipt |
+| order.events | broker | OrderApproved | workflow large-order |   |
 | till.local | the system itself | ReceiptPrinted | job printReceipt |   |
 
 ## 6. Dependencies
@@ -112,6 +113,7 @@ Every endpoint the system serves, with the permission a caller needs; public is 
 | Method | Path | Operation | Permission | Summary |
 |---|---|---|---|---|
 | POST | /orders | createOrder | orders.write | Take an order |
+| POST | /orders/{orderId}/approval | askApproval | orders.write | Ask the manager to approve a large order |
 
 **Problem on createOrder:** warning: test_case_missing: operation createOrder has no red scenario for "denied without orders.write"; add under tests create-order-denied-without-orders-write: { operation: createOrder, scenario: red, covers: [denied without orders.write], given: "a caller without orders.write", when: "createOrder is called", then: "it is refused as not allowed" } [test_case_missing.9c7453eb@specarch.yaml#/paths/~1orders/post]
 
@@ -126,6 +128,14 @@ Every endpoint the system serves, with the permission a caller needs; public is 
 **Problem on createOrder:** warning: test_case_missing: operation createOrder has no red scenario for "total not a valid decimal"; add under tests create-order-total-not-a-valid-decimal: { operation: createOrder, scenario: red, covers: [total not a valid decimal], given: "...", when: "createOrder is called with total that is not a valid decimal", then: "it is refused" } [test_case_missing.e99a54e7@specarch.yaml#/paths/~1orders/post]
 
 **Problem on createOrder:** warning: test_golden_missing: operation createOrder has no golden scenario; add one under tests, for example create-order-succeeds: { operation: createOrder, scenario: golden, given: "a caller with orders.write", when: "createOrder is called with values inside every limit", then: "it answers 201: The order." } [test_golden_missing@specarch.yaml#/paths/~1orders/post]
+
+**Problem on askApproval:** warning: test_case_missing: operation askApproval has no red scenario for "denied without orders.write"; add under tests ask-approval-denied-without-orders-write: { operation: askApproval, scenario: red, covers: [denied without orders.write], given: "a caller without orders.write", when: "askApproval is called", then: "it is refused as not allowed" } [test_case_missing.d93019af@specarch.yaml#/paths/~1orders~1{orderId}~1approval/post]
+
+**Problem on askApproval:** warning: test_case_missing: operation askApproval has no red scenario for "not found orderId"; add under tests ask-approval-not-found-order-id: { operation: askApproval, scenario: red, covers: [not found orderId], given: "no record has that orderId", when: "askApproval is called with that orderId", then: "it is refused as not found" } [test_case_missing.40185c92@specarch.yaml#/paths/~1orders~1{orderId}~1approval/post]
+
+**Problem on askApproval:** warning: test_case_missing: operation askApproval has no red scenario for "orderId not a valid uuid"; add under tests ask-approval-order-id-not-a-valid-uuid: { operation: askApproval, scenario: red, covers: [orderId not a valid uuid], given: "...", when: "askApproval is called with orderId that is not a valid uuid", then: "it is refused" } [test_case_missing.cf0712f0@specarch.yaml#/paths/~1orders~1{orderId}~1approval/post]
+
+**Problem on askApproval:** warning: test_golden_missing: operation askApproval has no golden scenario; add one under tests, for example ask-approval-succeeds: { operation: askApproval, scenario: golden, given: "a caller with orders.write", when: "askApproval is called with values inside every limit", then: "it answers 202: The order waits for the manager." } [test_golden_missing@specarch.yaml#/paths/~1orders~1{orderId}~1approval/post]
 
 ## 8. Settings
 

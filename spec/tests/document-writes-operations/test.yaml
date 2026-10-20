@@ -2,7 +2,7 @@
 command: document
 level: system
 scenario: golden
-given: "two environments, a deployment with a named and an unnamed host and a watched monitor, a monitor with a response and one without, jobs on a schedule with dead letters, on a channel dropping after its retries and every hour with none, a carried channel and the system's own, a dependency an operation and a job call and one that carries a channel, a setting and a secret, and a backup with no restore or rollback"
+given: "two environments, a deployment with a named and an unnamed host and a watched monitor, a monitor with a response and one without, jobs on a schedule with dead letters, on a channel dropping after its retries and every hour with none, a carried channel and the system's own, a workflow publishing a message, a dependency an operation and a job call and one that carries a channel, a setting and a secret, and a backup with no restore or rollback"
 when: "document operations is run"
-then: "it writes operations.md with the environments and the deployment's hosts, a checklist row per monitor, job and dependency, each monitor with how it is watched and its response or a sentence naming response, the jobs' triggers, roles and retries, each message's carrier, publishers and consumers, each dependency's users, the endpoints with their warnings under them, the settings, the backup, and a sentence each for restore and rollback, and exits 0"
+then: "it writes operations.md with the environments and the deployment's hosts, a checklist row per monitor, job and dependency, each monitor with how it is watched and its response or a sentence naming response, the jobs' triggers, roles and retries, each message's carrier, its publishers among operations, jobs and workflows, and its consumers, each dependency's users, the endpoints with their warnings under them, the settings, the backup, and a sentence each for restore and rollback, and exits 0"
 verifies: [SA-90]

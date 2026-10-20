@@ -133,7 +133,7 @@ When the system refuses:
 | You see | Why | What to do |
 |---|---|---|
 | This loan was already closed, so nothing changed. | The loan was returned or reported lost before. | Nothing to do: the loan is closed already. Refresh the list to see it as it is. |
-| The loans cannot be shown or changed right now. Try again in a moment. |   |   |
+| The loans cannot be shown or changed right now. Try again in a moment. | Any other problem the system reports. |   |
 
 ### Register member
 

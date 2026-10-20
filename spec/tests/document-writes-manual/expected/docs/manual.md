@@ -100,6 +100,7 @@ When the system refuses:
 | You see | Why | What to do |
 |---|---|---|
 | This order was paid already. | Someone took payment for the order before. | Refresh the list; the order shows as paid. |
+| The order cannot be paid right now. Try again in a moment. | Any other problem the system reports. |   |
 
 ### New order
 

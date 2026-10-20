@@ -14,9 +14,11 @@ entities:
 permissions:
   orders.write: { description: Take an order. }
   orders.read: { description: See orders. }
+  orders.approve: { description: Approve a large order. }
 roles:
   clerk: { description: Staff at the till., permissions: [orders.write] }
   night-batch: { description: The nightly jobs., permissions: [orders.read] }
+  manager: { description: The shop's manager., permissions: [orders.approve] }
 dependencies:
   broker:
     description: The shop's message broker.
@@ -34,6 +36,7 @@ channels:
     carriedBy: [broker]
     messages:
       OrderTaken: { summary: An order was taken., payload: { $ref: "#/entities/Order" } }
+      OrderApproved: { summary: A large order was approved., payload: { $ref: "#/entities/Order" } }
   till.local:
     description: The till's own queue.
     messages:
@@ -53,6 +56,23 @@ paths:
         "201":
           description: The order.
           content: { application/json: { schema: { $ref: "#/entities/Order" } } }
+  /orders/{orderId}/approval:
+    parameters:
+      - { name: orderId, in: path, required: true, schema: { type: string, format: uuid } }
+    post:
+      operationId: askApproval
+      summary: Ask the manager to approve a large order
+      permission: orders.write
+      responses:
+        "202": { description: The order waits for the manager. }
+workflows:
+  large-order:
+    description: An order is approved by the manager within a day after it is taken.
+    trigger: askApproval
+    subject: Order
+    steps:
+      - { name: approve, kind: approval, approvers: [manager], permission: orders.approve, deadline: P1D, onDeadline: refuse }
+    emits: [order.events/OrderApproved]
 jobs:
   settleDay:
     description: Every night, settles the day's card payments.

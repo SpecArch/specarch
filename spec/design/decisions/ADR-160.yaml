@@ -32,7 +32,8 @@ decisions:
       event and the action; and a section per page with what it is for,
       who opens it, the fields to fill in or the columns shown, the
       actions with their confirmation, and for each problem the page
-      names its message, the problem's condition and its remedy. A role a
+      names its message, the problem's condition and its remedy, with a
+      default message given as the answer to any other problem. A role a
       job acts as or a client holds is a program, not a person, and is
       left out of who uses the system, unless a flow names it as its
       actor.
@@ -42,7 +43,8 @@ decisions:
       monitor, job and dependency; the monitors with their responses;
       the jobs with their triggers, roles, retries and what becomes of
       an item after the last try; the channels with what carries them,
-      who publishes and who consumes each message; the dependencies with
+      which operations, jobs and workflows publish each message and which
+      jobs consume it; the dependencies with
       what calls them; the endpoints with their permissions; the
       settings; and the backup, restore and rollback steps.
       Both are written for every specification whose implementation file
@@ -55,7 +57,14 @@ decisions:
       of the design is built, the manual and the operations guide among
       them. A command-line tool's
       commands are not in the manual, and a dead-letter item's handling
-      is not in the operations guide: both are left to build. The library
+      is not in the operations guide: both are left to build. The
+      sections that make the manual or the guide a draft, and whose
+      problems they carry, are the ones each shows: the manual reads jobs
+      and clients only to tell a program's role from a person's, and the
+      guide reads workflows only to name a message's publisher, so a
+      question or a problem on a job, a client or a workflow neither
+      makes them a draft nor is marked in them; it is marked in the
+      technical specification. The library
       lending example gains remedies, a monitor's response and both
       documents, kept current by CI.
     why: |

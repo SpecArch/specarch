@@ -17,6 +17,7 @@ var jsRouteMethods = map[string]string{"get": "GET", "post": "POST", "put": "PUT
 type jsMount struct {
 	segments []string
 	chain    []jsValue
+	chainAt  []string // where each middleware of the chain is added
 	at       []string
 }
 
@@ -129,7 +130,11 @@ func (js *jsReader) readRoutes() {
 				return nil, reason
 			}
 			for _, b := range base {
-				mounts = append(mounts, jsMount{segments: append(append([]string{}, b.segments...), segs...), chain: append(append([]jsValue{}, b.chain...), chain...), at: append(append([]string{}, b.at...), js.clause(f))})
+				chainAt := append([]string{}, b.chainAt...)
+				for range chain {
+					chainAt = append(chainAt, js.clause(f))
+				}
+				mounts = append(mounts, jsMount{segments: append(append([]string{}, b.segments...), segs...), chain: append(append([]jsValue{}, b.chain...), chain...), chainAt: chainAt, at: append(append([]string{}, b.at...), js.clause(f))})
 			}
 		}
 		if len(mounts) == 0 {
@@ -166,7 +171,7 @@ func (js *jsReader) readRoutes() {
 				return nil, reason
 			}
 			for _, b := range base {
-				mounts = append(mounts, jsMount{segments: append(append([]string{}, b.segments...), segs...), chain: b.chain, at: append(append([]string{}, b.at...), js.clause(f))})
+				mounts = append(mounts, jsMount{segments: append(append([]string{}, b.segments...), segs...), chain: b.chain, chainAt: b.chainAt, at: append(append([]string{}, b.at...), js.clause(f))})
 			}
 		}
 		if len(mounts) == 0 {
@@ -233,7 +238,7 @@ func (js *jsReader) readRoutes() {
 			}
 			var out []jsMount
 			for _, b := range base {
-				out = append(out, jsMount{segments: append(append([]string{}, b.segments...), splitSegments(s)...), chain: b.chain, at: b.at})
+				out = append(out, jsMount{segments: append(append([]string{}, b.segments...), splitSegments(s)...), chain: b.chain, chainAt: b.chainAt, at: b.at})
 			}
 			return out, ""
 		}
@@ -396,7 +401,7 @@ func (js *jsReader) readRoutes() {
 			r.params, _ = pathParameters(path)
 			r.mounts = m.at
 			chain := append(append(append([]jsValue{}, m.chain...), used...), r.middleware...)
-			r.chainAt = append(append(make([]string, len(m.chain)), usedAt...), make([]string, len(r.middleware))...)
+			r.chainAt = append(append(append([]string{}, m.chainAt...), usedAt...), make([]string, len(r.middleware))...)
 			js.routePermission(r, chain, m.at)
 			routes = append(routes, r)
 		}

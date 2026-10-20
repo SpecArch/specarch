@@ -1,14 +1,14 @@
 questions:
-  # specarch-problem: question: open_question: (must, decision) What is each setting for, where does its value come from, and is it a secret: TOKEN_AUDIENCE, VOID_CALLERS? Decided by system-owner. Answer with a decision record that names Q-25 under answers. [Q-25]
-  Q-25:
+  # specarch-problem: question: open_question: (must, decision) What is each setting for, where does its value come from, and is it a secret: TOKEN_AUDIENCE, VOID_CALLERS? Decided by system-owner. Answer with a decision record that names Q-28 under answers. [Q-28]
+  Q-28:
     question: 'What is each setting for, where does its value come from, and is it a secret: TOKEN_AUDIENCE, VOID_CALLERS?'
     kind: decision
     priority: must
     blocks: ['#/configuration/tokenAudience/description', '#/configuration/voidCallers/description', '#/configuration/voidCallers/secret']
     decidedBy: system-owner
     why: The source names the settings it reads and not what they are for.
-  # specarch-problem: question: open_question: (must, decision) Is each of these settings a secret: TOKEN_AUDIENCE? Each name says it may hold a credential, and the source does not say. Decided by system-owner. Answer with a decision record that names Q-26 under answers. [Q-26]
-  Q-26:
+  # specarch-problem: question: open_question: (must, decision) Is each of these settings a secret: TOKEN_AUDIENCE? Each name says it may hold a credential, and the source does not say. Decided by system-owner. Answer with a decision record that names Q-29 under answers. [Q-29]
+  Q-29:
     question: 'Is each of these settings a secret: TOKEN_AUDIENCE? Each name says it may hold a credential, and the source does not say.'
     kind: decision
     priority: must

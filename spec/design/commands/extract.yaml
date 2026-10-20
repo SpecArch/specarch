@@ -1258,8 +1258,8 @@ commands:
         `clientChecks`, `signatureChecks`, `applicationChecks`,
         `callerChecks`, `audienceChecks` and `eventWriters` are found in
         the same places, called or, as middleware, named without a call,
-        their names a string, a const or an array literal, and an earlier
-        `use` cited where it is made; a gate is never read as a permission
+        their names a string, a const or an array literal, a gate passed
+        on a mount or an earlier `use` cited where it is made; a gate is never read as a permission
         check, and each is written and asked as extract go does (ADR-154,
         ADR-159, ADR-169).
 

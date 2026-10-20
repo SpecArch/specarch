@@ -2,12 +2,28 @@ permissions:
   invoices.delete:
     origin: stated
     cites:
-      - {source: code, clause: 'server/src/app.ts:10', says: 'DELETE /invoices/{invoiceId}, POST /invoices/{invoiceId}/archive and POST /invoices/{invoiceId}/void check invoices.delete.'}
+      - {source: code, clause: 'server/src/app.ts:11', says: 'DELETE /invoices/{invoiceId}, POST /invoices/{invoiceId}/archive and POST /invoices/{invoiceId}/void check invoices.delete.'}
   invoices.read:
     origin: stated
     cites:
-      - {source: code, clause: 'server/src/app.ts:9', says: 'GET /invoices and POST /invoices/{invoiceId}/send check invoices.read.'}
+      - {source: code, clause: 'server/src/app.ts:10', says: 'GET /invoices and POST /invoices/{invoiceId}/send check invoices.read.'}
+  invoices.restore:
+    origin: stated
+    cites:
+      - {source: code, clause: 'server/src/app.ts:15', says: 'POST /admin/invoices/{invoiceId}/restore checks invoices.restore.'}
 paths:
+  /admin/invoices/{invoiceId}/restore:
+    parameters:
+      - {name: invoiceId, in: path, required: true}
+    post:
+      operationId: restoreInvoice
+      permission: invoices.restore
+      callers: [admin-console]
+      origin: stated
+      cites:
+        - {source: code, clause: 'server/src/app.ts:15', says: 'Registers POST /admin/invoices/{invoiceId}/restore; its handler is restoreInvoice; its middleware checks invoices.restore; it is gated by requireClient.'}
+        - {source: code, clause: 'server/src/app.ts:16', says: 'Mounts the router that registers POST /admin/invoices/{invoiceId}/restore.'}
+        - {source: code, clause: 'server/src/app.ts:38', says: The handler restoreInvoice.}
   /invoices:
     get:
       operationId: listInvoices
@@ -15,8 +31,8 @@ paths:
       callers: [reporting, archive]
       origin: stated
       cites:
-        - {source: code, clause: 'server/src/app.ts:9', says: Registers GET /invoices; its handler is listInvoices; its middleware checks invoices.read; it is gated by requireAudience and requireClients.}
-        - {source: code, clause: 'server/src/app.ts:15', says: The handler listInvoices.}
+        - {source: code, clause: 'server/src/app.ts:10', says: Registers GET /invoices; its handler is listInvoices; its middleware checks invoices.read; it is gated by requireAudience and requireClients.}
+        - {source: code, clause: 'server/src/app.ts:18', says: The handler listInvoices.}
   /invoices/{invoiceId}:
     parameters:
       - {name: invoiceId, in: path, required: true}
@@ -26,8 +42,8 @@ paths:
       via: [middleware]
       origin: stated
       cites:
-        - {source: code, clause: 'server/src/app.ts:10', says: 'Registers DELETE /invoices/{invoiceId}; its handler is deleteInvoice; its middleware checks invoices.delete; it is gated by requireAudience, requireCaller, requireApplication and audit.'}
-        - {source: code, clause: 'server/src/app.ts:19', says: The handler deleteInvoice.}
+        - {source: code, clause: 'server/src/app.ts:11', says: 'Registers DELETE /invoices/{invoiceId}; its handler is deleteInvoice; its middleware checks invoices.delete; it is gated by requireAudience, requireCaller, requireApplication and audit.'}
+        - {source: code, clause: 'server/src/app.ts:22', says: The handler deleteInvoice.}
   /invoices/{invoiceId}/archive:
     parameters:
       - {name: invoiceId, in: path, required: true}
@@ -36,8 +52,8 @@ paths:
       permission: invoices.delete
       origin: stated
       cites:
-        - {source: code, clause: 'server/src/app.ts:12', says: 'Registers POST /invoices/{invoiceId}/archive; its handler is archiveInvoice; its middleware checks invoices.delete; it is gated by requireAudience.'}
-        - {source: code, clause: 'server/src/app.ts:27', says: The handler archiveInvoice.}
+        - {source: code, clause: 'server/src/app.ts:13', says: 'Registers POST /invoices/{invoiceId}/archive; its handler is archiveInvoice; its middleware checks invoices.delete; it is gated by requireAudience.'}
+        - {source: code, clause: 'server/src/app.ts:30', says: The handler archiveInvoice.}
   /invoices/{invoiceId}/send:
     parameters:
       - {name: invoiceId, in: path, required: true}
@@ -47,8 +63,8 @@ paths:
       callers: [mailer]
       origin: stated
       cites:
-        - {source: code, clause: 'server/src/app.ts:13', says: 'Registers POST /invoices/{invoiceId}/send; its handler is sendInvoice; its middleware checks invoices.read; it is gated by requireAudience, requireClients and requireClient.'}
-        - {source: code, clause: 'server/src/app.ts:31', says: The handler sendInvoice.}
+        - {source: code, clause: 'server/src/app.ts:14', says: 'Registers POST /invoices/{invoiceId}/send; its handler is sendInvoice; its middleware checks invoices.read; it is gated by requireAudience, requireClients and requireClient.'}
+        - {source: code, clause: 'server/src/app.ts:34', says: The handler sendInvoice.}
   /invoices/{invoiceId}/void:
     parameters:
       - {name: invoiceId, in: path, required: true}
@@ -57,5 +73,5 @@ paths:
       permission: invoices.delete
       origin: stated
       cites:
-        - {source: code, clause: 'server/src/app.ts:11', says: 'Registers POST /invoices/{invoiceId}/void; its handler is voidInvoice; its middleware checks invoices.delete; it is gated by requireAudience and requireCaller.'}
-        - {source: code, clause: 'server/src/app.ts:23', says: The handler voidInvoice.}
+        - {source: code, clause: 'server/src/app.ts:12', says: 'Registers POST /invoices/{invoiceId}/void; its handler is voidInvoice; its middleware checks invoices.delete; it is gated by requireAudience and requireCaller.'}
+        - {source: code, clause: 'server/src/app.ts:26', says: The handler voidInvoice.}

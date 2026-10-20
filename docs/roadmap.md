@@ -22,7 +22,7 @@ latest.
 | 0.6.1 to 0.6.4, 2026-10-14 | the plans for the estate and for meta-model 0.3; the first estate points (a dump committed outside the code's repository, role names on the wire); a request body decoded into a struct in `extract go`; fixes to `merge` and the readers |
 | 0.7.0, 2026-10-19 | the estate (`specarch-estate.yaml`, references between specifications, the module map); `specarch check`; `specarch facts`; `specarch-gen-sqlc`; indexes in `generate sql`; `implies`, `audience`, `middlewares`, the workflow table, documents in another language; the `handover` document |
 | 0.7.1, 2026-10-20 | the techspec's parameters, request body and responses per operation; `extract go` reading a dxlib handler's decoded body and JSON answers where the registration declares none (ADR-140); every operation's handler followed into the code, recorded with its source and drawn as a flowchart (ADR-144); the designs of the diagram keywords (`docs/diagrams.md`) and of the gateway (`docs/gateway.md`), proposed; dxlib's encrypted API type as a handshake an operation names and large files as a stream it declares (ADR-145, ADR-146), read by `extract go`, served by the dxlib dialect and the go-dxlib target with a Go client, and shown in the techspec; this roadmap matched to the code |
-| 0.7.2, open | `specarch-gen-ui-swiftui`, the screens for the iPhone in SwiftUI (ADR-147), with `generate` finding a plug-in by the target's framework before the file's language, and the pages read once for both UI generators that write a page as data (`internal/genscreens`) |
+| 0.7.2, open | `specarch-gen-ui-swiftui`, the screens for the iPhone in SwiftUI (ADR-147), with `generate` finding a plug-in by the target's framework before the file's language, and the pages read once for both UI generators that write a page as data (`internal/genscreens`); the diagram keywords (ADR-133 to ADR-139): `specarch model`, the context, component, deployment and network diagrams with their markers, the rules `channel`, `depends_on`, `server`, `link` and `link_missing`, and lanes and ids in the BPMN output |
 
 ## 1. Validator CLI
 
@@ -346,17 +346,27 @@ induction through `calls`, waits for the umbrella, and item 5, the
 readers writing `through`, `via` and `aud`, for the permission table's
 `client` and `through` keys.
 
-Designed in 0.7.1, not built: the diagram keywords. An editor that draws
-every diagram from a specification could not draw the system context, the
-components of an implementation, the deployment topology or the network,
-and `docs/diagrams.md` decides the keywords those pictures need, accepted
-by the owner (ADR-133 to ADR-139): which package depends on
-which, what a dependency is and how it is reached, what a server is and
-what runs on it, zones, ports and allowed links with a check that every
-declared call has a link, the model a program reads the specification
-through, and lanes and ids in the BPMN output. Of its gaps, the
-cross-system view is built (the estate's module map, ADR-113). It ends with
-six build items in order.
+Built, 0.7.2: the diagram keywords. An editor that draws every diagram
+from a specification can draw the system context, the components of an
+implementation, the deployment topology and the network, by the keywords
+`docs/diagrams.md` decides (ADR-133 to ADR-139), built in its six items in
+order: `specarch model`, one canonical JSON document a program reads the
+specification through, the same bytes from both builds; `kind` and
+`protocol` on a dependency and `carriedBy` on a channel, with the context
+diagram in the technical specification's chapter 3 and the rule
+`channel`; `dependsOn` on a layout entry, filled by `extract go` from the
+imports, with the component diagram in chapter 5 and the rule
+`depends_on`; `name`, `kind`, `runs` and `dependency` on a server, with the
+deployment diagram in chapter 7 and the deployment guide and the rule
+`server`; `zone`, `listens` and `links`, with the network diagram, the
+handover's links and ports, the rule `link` and the warning
+`link_missing`, the check that every declared call and data access has a
+link; and a lane set and an id per element in the BPMN output and its SVG.
+Every diagram has its marker (`context`, `components <stack>`,
+`deployment <deployment>`, `network <deployment>`), and a file without the
+keys renders as before. Of its gaps, the cross-system view was built
+before (the estate's module map, ADR-113). The library-lending example
+uses every key.
 
 Designed in 0.7.1, not built: the gateway. A gateway in front of an
 estate's services, which verifies the token, reads its audience and

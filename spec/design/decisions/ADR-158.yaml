@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.3.schema.json
 decisions:
   ADR-158:
     title: specarch-gen-scripts writes one guarded psql script per guarded entry whose change the design says, checks the precondition and the exact count inside the change, rolls back unless told to apply, and leaves every other change to be written by hand

@@ -123,7 +123,7 @@ func (g *gen) fieldControl(f formField, optional bool) ([]string, bool) {
 	if f.readOnly {
 		readOnly = " readonly"
 	}
-	name := " name=" + quoted(f.name)
+	name := " name=" + quoted(g.wire(f.name))
 	var input string
 	t := propertyType(prop)
 	switch format := text(prop["format"]); {
@@ -133,7 +133,7 @@ func (g *gen) fieldControl(f formField, optional bool) ([]string, bool) {
 		}
 		out := []string{}
 		if f.search {
-			out = append(out, "<input type=\"search\" data-search="+quoted(f.name)+" aria-label="+quoted("Find "+f.label)+">")
+			out = append(out, "<input type=\"search\" data-search="+quoted(g.wire(f.name))+" aria-label="+quoted("Find "+f.label)+">")
 		}
 		out = append(out, "<label>"+label, "<select"+name+required+readOnly+">", `<option value="">`+choose+"</option>")
 		if f.twice {
@@ -182,7 +182,7 @@ func (g *gen) fieldControl(f formField, optional bool) ([]string, bool) {
 	} else if f.twice && f.readOnly {
 		g.problem("error", f.at, "%s is shown read-only, so it is not entered, and not entered twice; it is shown once", f.name)
 	} else if f.twice {
-		again := strings.Replace(strings.Replace(input, name, " data-again="+quoted(f.name), 1), " readonly", "", 1)
+		again := strings.Replace(strings.Replace(input, name, " data-again="+quoted(g.wire(f.name)), 1), " readonly", "", 1)
 		if !strings.Contains(again, " required") {
 			again = strings.Replace(again, " data-again=", " required data-again=", 1)
 		}
@@ -244,14 +244,14 @@ func (g *gen) valueControl(f formField, ref string, many, optional bool) ([]stri
 		parts = append(parts, lines...)
 	}
 	if !many {
-		out := []string{"<fieldset data-value=" + quoted(f.name) + ">", "<legend>" + html.EscapeString(f.label) + "</legend>"}
+		out := []string{"<fieldset data-value=" + quoted(g.wire(f.name)) + ">", "<legend>" + html.EscapeString(f.label) + "</legend>"}
 		return append(append(out, parts...), "</fieldset>"), true
 	}
 	maximum := ""
 	if m := text(f.prop["maxItems"]); m != "" {
 		maximum = " data-maximum=" + quoted(m)
 	}
-	out := []string{"<fieldset data-list=" + quoted(f.name) + maximum + ">", "<legend>" + html.EscapeString(f.label) + "</legend>", "<div data-rows></div>", "<template>", "<fieldset data-row>", "<legend></legend>"}
+	out := []string{"<fieldset data-list=" + quoted(g.wire(f.name)) + maximum + ">", "<legend>" + html.EscapeString(f.label) + "</legend>", "<div data-rows></div>", "<template>", "<fieldset data-row>", "<legend></legend>"}
 	out = append(out, parts...)
 	return append(out, `<button type="button" data-remove>Remove</button>`, "</fieldset>", "</template>",
 		"<button type=\"button\" data-add>"+html.EscapeString("Add to "+f.label)+"</button>", "</fieldset>"), true
@@ -375,7 +375,7 @@ func (g *gen) form(name string, pg map[string]any) *formPage {
 						g.problem("error", at+"/fieldConditions/"+f.name, "%s holds a value, and specarch-gen-ui hides or locks a field that holds none; it is left out", f.name)
 						continue
 					}
-					fp.conditions[f.name] = c
+					fp.conditions[g.wire(f.name)] = c
 				}
 			} else {
 				continue
@@ -389,7 +389,7 @@ func (g *gen) form(name string, pg map[string]any) *formPage {
 				pickerFills[f.name] = obj0(obj0(pickers[f.name])["fills"])
 			}
 			if !readOnly {
-				fp.sent = append(fp.sent, f.name)
+				fp.sent = append(fp.sent, g.wire(f.name))
 			}
 		}
 		if s.title != "" {
@@ -407,6 +407,9 @@ func (g *gen) form(name string, pg map[string]any) *formPage {
 			fp.controls = append(fp.controls, lines...)
 		}
 	}
+	// The pickers are keyed by their fields' names on the wire once their
+	// fills are read.
+	wired := map[string]string{}
 	for _, field := range sortedKeys(anyStrings(fp.pickers)) {
 		var fills []string
 		fm := pickerFills[field]
@@ -415,14 +418,15 @@ func (g *gen) form(name string, pg map[string]any) *formPage {
 				g.problem("error", at+"/pickers/"+field+"/fills/"+into, "the picker of %s fills %s, which the page does not draw as a field of its own; it is left out", field, into)
 				continue
 			}
-			fills = append(fills, into+": "+jsString(text(fm[into])))
+			fills = append(fills, g.wire(into)+": "+jsString(g.wire(text(fm[into]))))
 		}
 		if len(fills) == 0 {
-			fp.pickers[field] += ", fills: {} }"
+			wired[g.wire(field)] = fp.pickers[field] + ", fills: {} }"
 		} else {
-			fp.pickers[field] += ", fills: { " + strings.Join(fills, ", ") + " } }"
+			wired[g.wire(field)] = fp.pickers[field] + ", fills: { " + strings.Join(fills, ", ") + " } }"
 		}
 	}
+	fp.pickers = wired
 	for _, r := range sortedSet(required) {
 		if !shown[r] {
 			g.problem("error", at, "%s submits to %s, whose request body requires %s, which the page does not show", name, fp.submit, r)
@@ -443,7 +447,7 @@ func (g *gen) form(name string, pg map[string]any) *formPage {
 		}
 		rule, ok := g.rule(text(c["expression"]), ptr+"/expression", "the check "+key, props)
 		if ok {
-			fp.checks = append(fp.checks, formCheck{field: text(c["field"]), rule: rule, message: text(c["message"])})
+			fp.checks = append(fp.checks, formCheck{field: g.wire(text(c["field"])), rule: rule, message: text(c["message"])})
 		}
 	}
 	states := obj0(pg["states"])
@@ -471,6 +475,9 @@ func (g *gen) form(name string, pg map[string]any) *formPage {
 		if field != "" && !drawn[field] {
 			g.problem("error", at+"/states/failed/"+problem+"/field", "%s shows the message for %s beside %s, which the page does not draw as a field of its own; the message is shown with the page's", name, problem, field)
 			field = ""
+		}
+		if field != "" {
+			field = g.wire(field)
 		}
 		fp.refusals = append(fp.refusals, [3]string{status, text(st["message"]), field})
 	}
@@ -520,8 +527,10 @@ func (g *gen) formNext(fp *formPage, at string, pg, op, props map[string]any) {
 		for _, p := range routeParameters(text(tp["route"])) {
 			switch {
 			case text(with[p]) != "":
-				n.with[p] = text(with[p])
-			case props[p] != nil || own[p]:
+				n.with[p] = g.wire(text(with[p]))
+			case props[p] != nil:
+				n.with[p] = g.wire(p)
+			case own[p]:
 				n.with[p] = p
 			default:
 				g.problem("error", ptr+"/navigate", "%s leads to %s at %s, and nothing gives {%s}: name the field of the answer that does under with", fp.name, target, text(tp["route"]), p)
@@ -599,9 +608,9 @@ func (g *gen) picker(pageName, field string, pk, entity map[string]any) (string,
 	}
 	var shows []string
 	for _, s := range list(pk["shows"]) {
-		shows = append(shows, jsString(text(s)))
+		shows = append(shows, jsString(g.wire(text(s))))
 	}
-	parts = append(parts, "value: "+jsString(text(key[0])), "shows: ["+strings.Join(shows, ", ")+"]")
+	parts = append(parts, "value: "+jsString(g.wire(text(key[0]))), "shows: ["+strings.Join(shows, ", ")+"]")
 	return "{ " + strings.Join(parts, ", "), true
 }
 
@@ -635,7 +644,7 @@ func (g *gen) childRows(ptr, pageName string, pg, row, entity, bodyProps map[str
 			g.problem("error", ptr+"/relation", "%s loads its record from %s, whose answer carries no rows of %s, so the loaded rows cannot be shown; answer a view that adds rows: %s. They are left out", pageName, text(pg["source"]), rel, rel)
 			return nil, false
 		}
-		fp.rows[rel] = loaded
+		fp.rows[g.wire(rel)] = g.wire(loaded)
 	}
 	shownRow := map[string]bool{}
 	var parts []string
@@ -660,13 +669,13 @@ func (g *gen) childRows(ptr, pageName string, pg, row, entity, bodyProps map[str
 			return nil, false
 		}
 	}
-	fp.sent = append(fp.sent, rel)
+	fp.sent = append(fp.sent, g.wire(rel))
 	maximum := orText(text(row["maximum"]), text(arr["maxItems"]))
 	if maximum != "" {
 		maximum = " data-maximum=" + quoted(maximum)
 	}
 	title := orText(text(row["title"]), rel)
-	out := []string{"<fieldset data-list=" + quoted(rel) + maximum + ">", "<legend>" + html.EscapeString(title) + "</legend>", "<div data-rows></div>", "<template>", "<fieldset data-row>", "<legend></legend>"}
+	out := []string{"<fieldset data-list=" + quoted(g.wire(rel)) + maximum + ">", "<legend>" + html.EscapeString(title) + "</legend>", "<div data-rows></div>", "<template>", "<fieldset data-row>", "<legend></legend>"}
 	out = append(out, parts...)
 	return append(out, `<button type="button" data-remove>Remove</button>`, "</fieldset>", "</template>",
 		"<button type=\"button\" data-add>"+html.EscapeString("Add to "+title)+"</button>", "</fieldset>"), true

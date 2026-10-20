@@ -45,16 +45,6 @@ Expected: every deployment with links or listens has its links, ports and networ
 
 To repeat: copy `examples/library-lending/spec`, delete the `infrastructure` block of the production deployment in `implementation/go/library-lending.go.specarch-implementation.yaml`, and run `specarch document handover --out out spec`. `out/handover.md` has no "allowed connections" sentence and no port 5671, where the example's own handover has both.
 
-## BUG-036 — generate ui (plain JavaScript): the screens use the design's field names on the wire whatever wireNames says
-
-- Reported: 2026-10-20, found while writing forms and views for the plain JavaScript screens (item 1007)
-
-`specarch-gen-ui` never reads `wireNames`: a list reads `row.cardNumber`, a filter is sent as `cardNumber`, a form sends `{ "fullName": ... }` and a view fills `data-field="fullName"`, all by the design's names. A specification whose `wireNames` is `snake_case` serves `card_number` and `full_name`, so the screens show empty cells and send bodies the service refuses, and nothing is reported. The Next.js generator maps every name through `internal/wirename`.
-
-Expected: every name the screens read or send is the wire name `internal/wirename` gives, or, until that is built, a specification whose `wireNames` is not the design's own names is an error at the ui target saying so.
-
-To repeat: in a copy of `spec/tests/generate-ui/project/specarch.yaml`, add `wireNames: snake_case` to `info` and rename the field `title` to `bookTitle` (in the entity, its `required` and the page's columns), then run `specarch generate ui --unapproved`; `books-list.js` lists `"bookTitle"` where the service sends `book_title`, and nothing is reported.
-
 ## BUG-038 — model: an operation's via and a role's through are not listed as references
 
 - Reported: 2026-10-20, found while building the identity module (item 1004)

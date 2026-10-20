@@ -77,9 +77,9 @@ func (g *gen) withJS(at, label, target string, with map[string]any, props map[st
 	for _, p := range routeParameters(route) {
 		switch {
 		case text(with[p]) != "":
-			parts = append(parts, p+": "+record+"."+text(with[p]))
+			parts = append(parts, p+": "+record+"."+g.wire(text(with[p])))
 		case props[p] != nil:
-			parts = append(parts, p+": "+record+"."+p)
+			parts = append(parts, p+": "+record+"."+g.wire(p))
 		case owned[p]:
 			parts = append(parts, p+": parameters."+p)
 			usesOwn = true

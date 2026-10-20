@@ -20,6 +20,7 @@ import (
 
 	"github.com/SpecArch/specarch/internal/mark"
 	"github.com/SpecArch/specarch/internal/ownership"
+	"github.com/SpecArch/specarch/internal/wirename"
 )
 
 // Request is what specarch writes on a plug-in's standard input.
@@ -96,12 +97,18 @@ type gen struct {
 	impl     Implementation
 	settings map[string]any
 	root     string
-	diags    []Diagnostic
-	list     map[string]string // the paginated-list idiom's names
+	// wireNames is the specification's info.wireNames, the rule a field's
+	// name follows on the wire (ADR-062).
+	wireNames string
+	diags     []Diagnostic
+	list      map[string]string // the paginated-list idiom's names
 	// opened are the pages a link may open: those written and those
 	// another stakeholder owns; menuEntry the menu entries written.
 	opened, menuEntry map[string]bool
 }
+
+// wire is a field's name as the service sends and reads it.
+func (g *gen) wire(name string) string { return wirename.Of(g.wireNames, name) }
 
 func (g *gen) problem(severity, path, format string, args ...any) {
 	g.diags = append(g.diags, Diagnostic{File: g.root, Line: 1, Severity: severity, Path: path, Rule: "generator", Message: fmt.Sprintf(format, args...)})
@@ -119,6 +126,7 @@ func (g *gen) failed() bool {
 // Generate writes the screens of a request.
 func Generate(r *Request) Response {
 	g := &gen{spec: r.Specification, root: r.Root}
+	g.wireNames = text(obj0(g.spec["info"])["wireNames"])
 	for _, impl := range r.Implementations {
 		if t, ok := obj(obj0(impl.Content["targets"])[r.Target]); ok || len(r.Implementations) == 1 {
 			g.impl = impl
@@ -141,6 +149,11 @@ func Generate(r *Request) Response {
 	g.list = g.idiomNames("paginated-list", "parameters")
 	for k, v := range g.idiomNames("paginated-list", "envelope") {
 		g.list[k] = v
+	}
+	// The idiom's names go on the wire by the rule, as a body's properties
+	// and a query's parameters do (ADR-062).
+	for k, v := range g.list {
+		g.list[k] = g.wire(v)
 	}
 	if g.failed() {
 		return g.response(nil)
@@ -411,10 +424,10 @@ func (g *gen) page(name string, pg map[string]any) *page {
 		compact[text(c)] = true
 	}
 	for _, c := range list(pg["columns"]) {
-		p.columns = append(p.columns, text(c))
+		p.columns = append(p.columns, g.wire(text(c)))
 		p.titles = append(p.titles, fieldTitle(fields, text(c)))
 		if len(compact) > 0 && !compact[text(c)] {
-			p.wide[text(c)] = true
+			p.wide[g.wire(text(c))] = true
 		}
 	}
 	params := map[string]bool{}
@@ -431,13 +444,18 @@ func (g *gen) page(name string, pg map[string]any) *page {
 		name := text(f)
 		switch {
 		case params[name]:
+			// A parameter's own name is not mapped (ADR-062), while the
+			// filter's control is named as the field it filters.
+			if g.wire(name) != name {
+				p.filterKeys[g.wire(name)] = name
+			}
 		case filterable[name] && g.list["filter"] != "":
-			p.filterKeys[name] = g.list["filter"] + "[" + name + "]"
+			p.filterKeys[g.wire(name)] = g.list["filter"] + "[" + g.wire(name) + "]"
 		default:
 			g.problem("error", at+"/filters", "%s filters by %s, which is neither a query parameter of %s nor filterable in its listOf, so the screen cannot ask for it; add it to the operation", p.name, name, p.source)
 			continue
 		}
-		p.filters = append(p.filters, name)
+		p.filters = append(p.filters, g.wire(name))
 		p.filterHTML = append(p.filterHTML, g.control(fields, name)...)
 	}
 	states := obj0(pg["states"])
@@ -448,7 +466,7 @@ func (g *gen) page(name string, pg map[string]any) *page {
 	p.sourceRefusals = refusals(src, failed)
 	pk := list(entity["primaryKey"])
 	if len(pk) == 1 {
-		p.key = text(pk[0])
+		p.key = g.wire(text(pk[0]))
 	}
 	for i, a := range list(pg["actions"]) {
 		am := obj0(a)
@@ -546,14 +564,14 @@ func (g *gen) control(fields map[string]any, name string) []string {
 	}
 	out := []string{"<label>" + html.EscapeString(fieldTitle(fields, name))}
 	if len(values) > 0 {
-		out = append(out, "<select name="+quoted(name)+">", `<option value="">Any</option>`)
+		out = append(out, "<select name="+quoted(g.wire(name))+">", `<option value="">Any</option>`)
 		for _, v := range values {
 			e := html.EscapeString(text(v))
 			out = append(out, "<option value="+quoted(text(v))+">"+e+"</option>")
 		}
 		out = append(out, "</select>")
 	} else {
-		out = append(out, "<input name="+quoted(name)+` type="text">`)
+		out = append(out, "<input name="+quoted(g.wire(name))+` type="text">`)
 	}
 	return append(out, "</label>")
 }

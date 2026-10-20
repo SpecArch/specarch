@@ -526,3 +526,17 @@ Four statements in `docs/roadmap.md` said less or more than the code does. Secti
 Expected: the Swift build's three verbs; push to `main` and pull requests; the `tests` target named as the one left out of the regeneration gate; "proposed" beside ADR-155 to ADR-157. Section 2 item 7 also says now what is missing for a dead-letter item: what a person does with it, since the operations guide says only that it is kept apart.
 
 To repeat: compare `docs/roadmap.md` sections 1, 2 and 4 with `swift/Sources/SpecArchKit/Command.swift`, the `on:` block and the "Generated code and data are current" step of `.github/workflows/ci.yml`, and the `status:` of `spec/design/decisions/ADR-155.yaml` to `ADR-157.yaml`.
+
+## BUG-036 — generate ui (plain JavaScript): the screens use the design's field names on the wire whatever wireNames says
+
+- Reported: 2026-10-20, found while writing forms and views for the plain JavaScript screens
+- Closed: 2026-10-20, completed
+- Fixed by: the commit on `main` whose message says `Fixes BUG-036`
+
+`specarch-gen-ui` never reads `wireNames`: a list reads `row.cardNumber`, a filter is sent as `cardNumber`, a form sends `{ "fullName": ... }` and a view fills `data-field="fullName"`, all by the design's names. A specification whose `wireNames` is `snake_case` serves `card_number` and `full_name`, so the screens show empty cells and send bodies the service refuses, and nothing is reported. The Next.js generator maps every name through `internal/wirename`.
+
+Expected: every name the screens read or send is the wire name `internal/wirename` gives, or, until that is built, a specification whose `wireNames` is not the design's own names is an error at the ui target saying so.
+
+To repeat: in a copy of `spec/tests/generate-ui/project/specarch.yaml`, add `wireNames: snake_case` to `info` and rename the field `title` to `bookTitle` (in the entity, its `required` and the page's columns), then run `specarch generate ui --unapproved`; `books-list.js` lists `"bookTitle"` where the service sends `book_title`, and nothing is reported.
+
+Fix: `specarch-gen-ui` maps every name its pages read from a record or send through `internal/wirename`, as the other generators do: a list's columns, row key, path parameters, `with`, `when`, reason and filters by `filterable`, a view's places, parts and conditions, and a form's controls, sent fields, checks, conditions, pickers, child rows, refusals and next page's parameters, with the paginated-list idiom's names mapped too (ADR-062). A query parameter keeps its own name, and a route's parameters theirs. The case `generate-ui-wire-names` pins it.

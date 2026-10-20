@@ -160,7 +160,7 @@ func (p *page) js() string {
 	}
 	if len(p.filterKeys) > 0 {
 		w("")
-		w("// The filters the list's operation takes by the paginated-list idiom's name.")
+		w("// The filters the list's operation takes under a name other than their field's.")
 		w("const filterKeys = {")
 		for _, f := range p.filters {
 			if k := p.filterKeys[f]; k != "" {

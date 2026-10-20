@@ -422,6 +422,7 @@ Acceptance criteria:
 - The theme's tokens become CSS custom properties with the dark mode under prefers-color-scheme, and the target's settings say which tokens play which part.
 - A target that is not platform web in plain-javascript, one without a language, a filter that is neither a query parameter of the list's operation nor filterable in its listOf, a list whose path takes a parameter or that does not page, a service whose API is in the dxlib dialect, two events with one name, and a token name that cannot be a custom property are refused; modes other than dark are reported and left out. Views and navigation between pages are SA-80's, forms and task pages SA-81's.
 - The library lending example's loans list, written by hand before the generator, was reproduced by it apart from its header.
+- Under info.wireNames snake_case every name a page reads from a record or sends, on a list, a view or a form, is the field's name on the wire, and so are the paginated-list idiom's names; a parameter's own name and a route's parameters are not mapped.
 
 **Insight:** A screen written by hand drifts from the pages, states and messages the owner reviewed; written from them, it says what the design says, and a change to the design reaches the screen on the next run.
 

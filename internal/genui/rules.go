@@ -37,7 +37,7 @@ func (g *gen) js(n *expr.Node, at, what string) (string, bool) {
 	sub := func(i int) (string, bool) { return g.js(n.Args[i], at, what) }
 	switch n.Op {
 	case expr.OpName:
-		return "record." + n.Text, true
+		return "record." + g.wire(n.Text), true
 	case expr.OpInt, expr.OpUint:
 		return n.Int.String(), true
 	case expr.OpDouble:

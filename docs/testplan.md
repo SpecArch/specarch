@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.3-dev of the specification: 625 design tests, 291 golden and 334 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.3-dev of the specification: 626 design tests, 292 golden and 334 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.7.3-dev of the specification: 625 design tests, 291 golden and 334 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 621 |
+| system | 622 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -2565,6 +2565,14 @@ Scenario: red; level: system; verifies SA-80.
 - When: generate ui is run with --unapproved
 - Then: it reports as errors the confirmation at the action's confirm, the call at its when, the source at the view's source, the decimal at the condition and the parameter nothing gives at the view's action, and as warnings the action that sends no reason, the list's link to the view it does not write and the menu entry for the view whose route takes a parameter; writes the list and the view without what it reports, each marked at its page; and exits 1
 
+#### generate-ui-wire-names
+
+Scenario: golden; level: system; verifies SA-43, SA-49.
+
+- Given: a specification whose info.wireNames is snake_case and whose fields are named in camelCase: a list with a column of each, a filter by a query parameter and one by a field its listOf makes filterable, a row that opens a view and an operation on a row that takes its path parameter from the row, holds while its when does and sends the reason its body takes; a view whose fields include a value of parts, hidden while the record's status says so, with a link to a form; a form that loads its record, sends its fields and a value of parts, checks a field and locks another by the record, fills two fields from a picker that searches, shows a refusal beside its field and opens the view from the answer's field; an implementation file whose ui target is platform web in plain-javascript; and specarch-gen-ui built from this repository on PATH
+- When: generate ui is run with --unapproved
+- Then: every name the screens read from a record or send is the field's snake_case name on the wire: the columns, the row's key and path parameter, the when and the reason, the filterable field's filter, each place of the view's values and the parts of its value, the condition, the form's controls, what it sends, its check, its condition, the picker's value, shown fields and fills, the refusal's field and the field the next page's parameter comes from; the paginated-list idiom's names go on the wire mapped too; the query parameter keeps its own name, the routes' parameters theirs; and it exits 0
+
 #### generate-unapproved
 
 Scenario: golden; level: system; verifies SA-20.
@@ -5083,7 +5091,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-376 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+377 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -5163,6 +5171,7 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-43 | acceptance 3 | golden | SA-43 names no harm |
 | requirement SA-43 | acceptance 4 | golden | SA-43 names no harm |
 | requirement SA-43 | acceptance 5 | golden | SA-43 names no harm |
+| requirement SA-43 | acceptance 6 | golden | SA-43 names no harm |
 | requirement SA-80 | acceptance 1 | golden | SA-80 names no harm |
 | requirement SA-80 | acceptance 2 | golden | SA-80 names no harm |
 | requirement SA-80 | acceptance 3 | golden | SA-80 names no harm |

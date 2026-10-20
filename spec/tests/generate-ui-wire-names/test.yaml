@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: generate
+level: system
+scenario: golden
+given: "a specification whose info.wireNames is snake_case and whose fields are named in camelCase: a list with a column of each, a filter by a query parameter and one by a field its listOf makes filterable, a row that opens a view and an operation on a row that takes its path parameter from the row, holds while its when does and sends the reason its body takes; a view whose fields include a value of parts, hidden while the record's status says so, with a link to a form; a form that loads its record, sends its fields and a value of parts, checks a field and locks another by the record, fills two fields from a picker that searches, shows a refusal beside its field and opens the view from the answer's field; an implementation file whose ui target is platform web in plain-javascript; and specarch-gen-ui built from this repository on PATH"
+when: "generate ui is run with --unapproved"
+then: "every name the screens read from a record or send is the field's snake_case name on the wire: the columns, the row's key and path parameter, the when and the reason, the filterable field's filter, each place of the view's values and the parts of its value, the condition, the form's controls, what it sends, its check, its condition, the picker's value, shown fields and fills, the refusal's field and the field the next page's parameter comes from; the paginated-list idiom's names go on the wire mapped too; the query parameter keeps its own name, the routes' parameters theirs; and it exits 0"
+verifies: [SA-43, SA-49]

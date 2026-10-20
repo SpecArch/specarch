@@ -158,9 +158,10 @@ implementation file uses and compares an override with the shipped idiom.
      proposed, `spec/tests/generate-ui-form`), every page of
      `examples/library-lending/web/`, checked against the member view and
      form written by hand first
-     (`examples/library-lending/web/reference/`). Not built: the names on
-     the wire when `wireNames` is not the design's own (BUG-036), and the
-     first real project's screen to check it against.
+     (`examples/library-lending/web/reference/`); and, in 0.7.3, the
+     names on the wire by `wireNames`
+     (`spec/tests/generate-ui-wire-names`). Not built: the first real
+     project's screen to check it against.
    - Built, 0.6.0, for the web on Next.js and Carbon, for a project whose
      screens are built there: `specarch-gen-ui-typescript` writes task pages
      such as sign-in (ADR-067), lists, forms, views, server routes, strings

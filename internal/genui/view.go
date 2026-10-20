@@ -114,9 +114,10 @@ func (g *gen) valueParts(prop map[string]any, within map[string]bool) (string, m
 	return ref, obj0(obj0(obj0(g.spec["schemas"])[ref])["properties"]), many
 }
 
-// viewField reads a field a view shows, with the parts of a value it holds.
+// viewField reads a field a view shows, with the parts of a value it holds,
+// each by its name on the wire.
 func (g *gen) viewField(name string, prop map[string]any, within map[string]bool) viewField {
-	f := viewField{name: name, label: orText(text(prop["title"]), name)}
+	f := viewField{name: g.wire(name), label: orText(text(prop["title"]), name)}
 	ref, parts, many := g.valueParts(prop, within)
 	f.list = many
 	if ref == "" {
@@ -147,7 +148,7 @@ func (g *gen) view(name string, pg map[string]any) *viewPage {
 	v := &viewPage{name: name, title: text(pg["title"]), upper: upperSnake(name), language: text(g.settings["language"]),
 		source: text(pg["source"]), path: path}
 	if pk := list(entity["primaryKey"]); len(pk) == 1 {
-		v.key = text(pk[0])
+		v.key = g.wire(text(pk[0]))
 	}
 	states := obj0(pg["states"])
 	failed := obj0(states["failed"])

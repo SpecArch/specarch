@@ -724,6 +724,16 @@ that names a field the page does not draw are refused at their entry, and
 the rest of the page is still written. A body field required and not
 shown is refused at the page, and that page is left out.
 
+Every name the screens read from a record or send goes on the wire by
+`info.wireNames` (ADR-062): under `snake_case` a list's columns, its
+row's key, the fields a path parameter, a `with`, a `when` or a filter
+by `filterable` names, the reason an action sends, a view's places and
+the parts of its values, a form's controls, what it sends, its checks,
+conditions, pickers, child rows and refusals, and the field the next
+page's parameter comes from, are all the fields' snake_case names, and
+the paginated-list idiom's names are mapped too. A query parameter keeps
+its own name, and a route's parameters theirs, since neither is mapped.
+
 Modes other than dark are reported and left out of this version. The
 screens it is checked against are the library lending example's loans
 list, written by hand before the generator (ADR-040), and its member view

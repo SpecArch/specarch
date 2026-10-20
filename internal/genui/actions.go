@@ -36,7 +36,7 @@ func (g *gen) operationAction(at string, am, props map[string]any, key string, f
 			g.problem("error", at, "%s takes {%s} in its path, which is neither a field of the record nor its primary key of one field", target, p)
 			return action{}, false
 		}
-		js += "${encodeURIComponent(" + record + "." + field + ")}" + jsTemplate(parts[i+1])
+		js += "${encodeURIComponent(" + record + "." + g.wire(field) + ")}" + jsTemplate(parts[i+1])
 	}
 	a := action{label: label, operation: target, method: strings.ToUpper(method), path: js, confirm: text(am["confirm"]), refusals: refusals(op, failed)}
 	if body := g.bodySchema(op); body != nil {
@@ -47,7 +47,7 @@ func (g *gen) operationAction(at string, am, props map[string]any, key string, f
 			g.problem("warning", at, "the action %s runs %s, which takes a request body, and an action sends only the reason its confirmation asks for; name that property under reason. It is left out", label, target)
 			return action{}, false
 		}
-		a.reason = &reason{name: name, label: orText(text(prop["title"]), "Reason"), minLength: text(prop["minLength"]), maxLength: text(prop["maxLength"])}
+		a.reason = &reason{name: g.wire(name), label: orText(text(prop["title"]), "Reason"), minLength: text(prop["minLength"]), maxLength: text(prop["maxLength"])}
 	} else if text(am["reason"]) != "" {
 		g.problem("error", at+"/reason", "the action %s asks for a reason, and %s takes no request body to send it in", label, target)
 		return action{}, false

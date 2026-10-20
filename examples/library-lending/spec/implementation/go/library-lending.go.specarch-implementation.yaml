@@ -139,7 +139,8 @@ deployments:
     description: A developer's machine.
     environment: development
     servers:
-      - { url: "http://localhost:8080", description: The API. }
+      - { name: api, url: "http://localhost:8080", runs: { packages: [internal/api, internal/lending] }, description: The API. }
+      - { name: db, kind: database, url: "postgresql://localhost:5432", runs: { targets: [sql] }, description: A PostgreSQL 16 container the developer starts. }
     configuration:
       dailyRate: "0.50"
       notificationChannelUrl: "http://localhost:8081/events"
@@ -147,7 +148,8 @@ deployments:
     description: The staging host the librarians try a release on.
     environment: staging
     servers:
-      - { url: "https://staging.library.example", description: The API behind the staging screens. }
+      - { name: api, url: "https://staging.library.example", runs: { packages: [internal/api, internal/lending] }, description: The API behind the staging screens. }
+      - { name: db, kind: database, url: "postgresql://db.staging.library.internal:5432", runs: { targets: [sql] }, description: The staging loans database. }
     configuration:
       dailyRate: "0.50"
       notificationChannelUrl: "https://notify-staging.library.example/events"
@@ -155,7 +157,9 @@ deployments:
     description: The library's own hosts, which its IT staff build for and run.
     environment: production
     servers:
-      - { url: "https://library.example", description: The API behind the desk screens. }
+      - { name: api, url: "https://library.example", runs: { packages: [internal/api, internal/lending] }, description: The API behind the desk screens. }
+      - { name: db, kind: database, url: "postgresql://db.library.internal:5432", runs: { targets: [sql] }, description: The loans database. }
+      - { name: bus, dependency: eventBus, url: "amqps://bus.library.internal:5671", description: "The library's broker in this environment." }
     build:
       description: The image is built from the tagged commit with the build task, on any machine with the pinned toolchain; the binary is built with -trimpath and the module cache verified against go.sum, so the image's layers do not depend on the machine.
       task: build

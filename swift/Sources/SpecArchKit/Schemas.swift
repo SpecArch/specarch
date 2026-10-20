@@ -7600,6 +7600,52 @@ let implementationSchemaJSON = #"""
           "items": {
             "type": "object",
             "properties": {
+              "name": {
+                "description": "SpecArch keyword. The server's name, unique within the deployment, by which a link names it. Left out, nothing can refer to the server (ADR-136).",
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+              },
+              "kind": {
+                "description": "SpecArch keyword. What the server is: service, a host that runs this implementation's packages; database, the store its migrations run on; messageBroker, the broker this system runs for its channels; proxy, a reverse proxy or load balancer in front of a service; fileStore, the store its files land in. Left out, it is service. It sets the server's shape in the deployment diagram (ADR-136).",
+                "enum": [
+                  "service",
+                  "database",
+                  "messageBroker",
+                  "proxy",
+                  "fileStore"
+                ]
+              },
+              "runs": {
+                "description": "SpecArch keyword. What of this implementation runs on the server: keys of layout under packages, keys of targets under targets (ADR-136).",
+                "type": "object",
+                "properties": {
+                  "packages": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "minItems": 1,
+                    "uniqueItems": true
+                  },
+                  "targets": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "minItems": 1,
+                    "uniqueItems": true
+                  }
+                },
+                "minProperties": 1,
+                "additionalProperties": false
+              },
+              "dependency": {
+                "description": "SpecArch keyword. The dependency of the design, by its key under dependencies, that this server is in this environment: it runs nothing of this implementation and is drawn as that dependency, in its kind's shape (ADR-136).",
+                "type": "string",
+                "minLength": 1
+              },
               "url": {
                 "type": "string",
                 "minLength": 1

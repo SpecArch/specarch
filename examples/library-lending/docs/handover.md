@@ -97,6 +97,8 @@ The library's own hosts, which its IT staff build for and run. Environment: prod
 | Server | Description |
 |---|---|
 | https://library.example | The API behind the desk screens. |
+| postgresql://db.library.internal:5432 | The loans database. |
+| amqps://bus.library.internal:5671 | The library's broker in this environment. |
 
 ## 5. Configuration
 

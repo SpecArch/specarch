@@ -617,6 +617,7 @@ func DeploymentGuide(root *yaml.Node, relRoot string, impls []Implementation, st
 					d.line("| %s | %s |", cell(str(s, "url")), cell(str(s, "description")))
 				}
 				d.blank()
+				deploymentPicture(d, root, dep.Key.Value, dep.Value)
 			}
 			buildDetails(d, i.Node, get(dep.Value, "build"), 4)
 			methodPara(d, get(dep.Value, "method"))

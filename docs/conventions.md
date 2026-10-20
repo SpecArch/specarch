@@ -159,6 +159,28 @@ it depends on, and the diagram draws no arrow from it. `extract go
 layout entry whose Go files it reads, the packages of the same module
 they import, test files left out (ADR-133).
 
+A deployment's server may say what it is and what runs on it, for the
+deployment diagram (ADR-136):
+
+    servers:
+      - { name: api, url: "https://library.example", runs: { packages: [internal/api] } }
+      - { name: db, kind: database, url: "postgresql://db.internal:5432", runs: { targets: [sql] } }
+      - { name: bus, dependency: eventBus, url: "amqps://bus.internal:5671" }
+
+`name` is kebab-case and unique within the deployment. `kind` is one of
+`service` (a host that runs this implementation's packages; left out, a
+server is one), `database`, `messageBroker`, `proxy` and `fileStore`, the
+dependency's words where the thing is the same. `runs` lists layout keys
+under `packages` and target keys under `targets`. `dependency` names the
+design's dependency the server is in this environment; it is then drawn
+as that dependency and says no `kind` or `runs` of its own. Each of these
+is checked at the entry under the rule `server`: a name used twice, a
+package or target the file lacks, packages on a server not of kind
+`service`, a `kind` or `runs` beside `dependency`, and an undeclared
+dependency. The technical specification and the deployment guide draw a
+deployment once one of its servers uses a key; a deployment without them
+renders as before.
+
 Pointers from an implementation file into its specification are JSON
 pointers written from the merged document's root: `#/entities/Loan`,
 `#/commands/validate`, `#/paths/~1loans/post` (a `/` inside a key is
@@ -578,6 +600,7 @@ redefined.
 | `kind` on a dependency, `carriedBy` on a channel | SpecArch | what a dependency is (five kinds, after C4's software system and containers), and the dependencies a channel lives on; AsyncAPI's channel `servers` names hosts, which a design file excludes (ADR-134) |
 | `protocol` on a dependency | AsyncAPI, the server object | how the dependency is reached, a lowercase URI scheme name, kept open |
 | `dependsOn` on a layout entry, in an implementation file | CycloneDX, a component's dependencies | the other packages of the layout this one calls, imports or links against (ADR-133) |
+| `name`, `kind`, `runs`, `dependency` on a deployment's server, in an implementation file | SpecArch, after C4's deployment node and container instance | what a server is, what of the implementation runs on it, and which dependency it is in that environment; C4's words name the thing placed, not the placing (ADR-136) |
 | `specification`, `version` (on a dependency), `name` (in `info`) | SpecArch, after JSON Schema's `$ref` as a URI reference | a dependency that is another specification, named by its `info.name` and pinned to its `info.version`; its elements are named `<dependency>#/<pointer>` |
 | `specarchEstate`, `modules`, `location` | SpecArch | an estate file: the modules' specifications by `info.name`, each with its folder and the version held |
 | `idempotencyKey` | SpecArch, after RFC 9110 9.2.2 and the IETF Idempotency-Key header draft | a header that tells a repeated request from a new one, on a method that is not idempotent by itself |
@@ -2210,8 +2233,9 @@ know where to look.
 6. Runtime view: for each operation, generated tables of its parameters,
    its request body and its responses, and a generated sequence diagram;
    generated state diagram for each entity with a `stateField`.
-7. Deployment: hand-drawn picture; the environments, release and
-   commissioning checks are in their stages.
+7. Deployment: the generated deployment diagram of each deployment whose
+   servers are named; the environments, release and commissioning checks
+   are in their stages.
 8. Cross-cutting concepts: permissions table (generated), money, time,
    identifiers, error handling.
 9. Architecture decisions: generated list from `decisions`, with a link to
@@ -2250,7 +2274,7 @@ edit inside the markers; edit the YAML.
 | `flowchart` of one function of an operation's handler, a node per step by its id | | an implementation file's `mappings`, `handler` (ADR-144) | generated, in the technical specification only |
 | permissions matrix (a Markdown table, not a diagram) | `permissions` | `roles`, `permissions` | generated |
 | `flowchart` of the system's context in C4's style: a person per role, a system per service client, the dependencies by kind with their protocol, the channels they carry | `context` | `roles`, `clients`, `dependencies`, `channels`, `calls`, `emits`, `consumes` (ADR-134, ADR-135) | generated |
-| deployment picture | | prose | hand-drawn |
+| `flowchart` of one deployment: a node per server with its name, kind, host and what it runs, a server that is a dependency drawn as that dependency | `deployment <deployment>` | an implementation file's `deployments`, `servers` with `name`, `kind`, `runs`, `dependency` (ADR-136) | generated |
 | any explanatory sketch of an algorithm or a flow | | prose | hand-drawn |
 
 `specarch document techspec` fills every marked region of the `specarch.md`

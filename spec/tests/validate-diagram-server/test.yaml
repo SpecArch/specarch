@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "a deployment whose servers run a package and a target the file does not have, share a name, run a package on a database, name an undeclared dependency with a kind and what it runs beside it, have a name in capitals and a kind the meta-model lacks, and one server with none of the keys"
+when: validate is run
+then: "it reports each wrong package and target, the repeated name, the package on the database, the undeclared dependency and the kind and runs beside it as server at the entry with the name each may mean, the name and the kind as schema errors, nothing for the server without the keys, and exits 1"
+verifies: [SA-10]

@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.2-dev of the specification: 567 design tests, 258 golden and 309 red, about 17 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.2-dev of the specification: 568 design tests, 258 golden and 310 red, about 17 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 3 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -17,7 +17,7 @@ Version 0.7.2-dev of the specification: 567 design tests, 258 golden and 309 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 563 |
+| system | 564 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -3040,6 +3040,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-10.
 - Given: an implementation file whose layout's dependsOn names a package the layout does not have, names the entry itself, repeats a package, and makes a cycle of two packages
 - When: validate is run
 - Then: it reports the unknown package as depends_on with the key it may mean, the entry naming itself as depends_on, the repeat as a schema error, nothing for the cycle, and exits 1
+
+#### validate-diagram-server
+
+Scenario: red; level: system; covers exit 1; verifies SA-10.
+
+- Given: a deployment whose servers run a package and a target the file does not have, share a name, run a package on a database, name an undeclared dependency with a kind and what it runs beside it, have a name in capitals and a kind the meta-model lacks, and one server with none of the keys
+- When: validate is run
+- Then: it reports each wrong package and target, the repeated name, the package on the database, the undeclared dependency and the kind and runs beside it as server at the entry with the name each may mean, the name and the kind as schema errors, nothing for the server without the keys, and exits 1
 
 #### validate-duplicate-key
 

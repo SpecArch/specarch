@@ -139,7 +139,7 @@ func deployment(d *doc, root *yaml.Node, impls []Implementation) {
 		monitorsTable(d, mons)
 	}
 	for _, i := range impls {
-		implementation(d, i.Node, i.Idioms)
+		implementation(d, root, i.Node, i.Idioms)
 	}
 }
 
@@ -186,7 +186,7 @@ func stepsTable(d *doc, steps *yaml.Node) {
 }
 
 // implementation is one implementation file's part of chapter 7.
-func implementation(d *doc, impl *yaml.Node, idioms []IdiomUse) {
+func implementation(d *doc, root, impl *yaml.Node, idioms []IdiomUse) {
 	info := get(impl, "info")
 	d.heading(3, "Implementation: "+str(info, "title"))
 	d.para(fmt.Sprintf("From the implementation file version %s.", str(info, "version")))
@@ -379,6 +379,7 @@ func implementation(d *doc, impl *yaml.Node, idioms []IdiomUse) {
 				line += "."
 			}
 			d.para(line)
+			deploymentPicture(d, root, dep.Key.Value, dep.Value)
 			infrastructureTable(d, get(dep.Value, "infrastructure"))
 			deploymentMonitors(d, dep.Value)
 		}

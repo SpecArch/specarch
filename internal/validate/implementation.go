@@ -320,6 +320,7 @@ func (c *checker) checkDeployments(d *design) {
 				}
 			}
 		}
+		c.checkServers(d, base, source.Child(p.Value, "servers"))
 		for _, m := range source.Pairs(source.Child(p.Value, "monitors")) {
 			if d.monitors[m.Key.Value] == nil {
 				c.add(m.Key, source.Pointer(append(base, "monitors", m.Key.Value)...), RuleMonitor, "%s is not a monitor of the specification%s", m.Key.Value, suggest(m.Key.Value, d.monitors))
@@ -399,6 +400,55 @@ func (c *checker) checkDependsOn() {
 				c.add(e, ptr, RuleDependsOn, "%s names itself; a package does not depend on itself, so remove the entry", e.Value)
 			case source.Child(layout, e.Value) == nil:
 				c.add(e, ptr, RuleDependsOn, "%s is not a key of layout; add it to layout, or remove the entry when it is a library, which goes under libraries%s", e.Value, suggestPairs(e.Value, layout))
+			}
+		}
+	}
+}
+
+// checkServers checks a deployment's servers (ADR-136): a name used once,
+// what each runs is in the file, packages only on a service, and a server
+// that is a dependency names a declared one and says nothing of its own
+// kind or what it runs.
+func (c *checker) checkServers(d *design, base []string, servers *yaml.Node) {
+	layout := topMap(c.root, "layout")
+	targets := topMap(c.root, "targets")
+	named := map[string]bool{}
+	for i, srv := range source.Items(servers) {
+		at := append(append([]string{}, base...), "servers", fmt.Sprint(i))
+		if n := source.Child(srv, "name"); n != nil && n.Value != "" {
+			if named[n.Value] {
+				c.add(n, source.Pointer(append(at, "name")...), RuleServer, "%s names another server of this deployment already; give each server its own name", n.Value)
+			}
+			named[n.Value] = true
+		}
+		kindNode, runs := source.Child(srv, "kind"), source.Child(srv, "runs")
+		kind := source.Str(kindNode)
+		if kind == "" {
+			kind = "service"
+		}
+		if dep := source.Child(srv, "dependency"); dep != nil && dep.Value != "" {
+			if d.dependencies[dep.Value] == nil {
+				c.add(dep, source.Pointer(append(at, "dependency")...), RuleServer, "%s is not a dependency of the specification%s", dep.Value, suggest(dep.Value, d.dependencies))
+			}
+			for _, key := range []string{"kind", "runs"} {
+				if k := source.Child(srv, key); k != nil {
+					c.add(k, source.Pointer(append(at, key)...), RuleServer, "this server is the dependency %s in this environment, which takes its kind from the dependency and runs nothing of this implementation; remove %s", dep.Value, key)
+				}
+			}
+			continue
+		}
+		for j, pkg := range source.Items(source.Child(runs, "packages")) {
+			ptr := source.Pointer(append(at, "runs", "packages", fmt.Sprint(j))...)
+			switch {
+			case layout[pkg.Value] == nil:
+				c.add(pkg, ptr, RuleServer, "%s is not a key of layout%s", pkg.Value, suggest(pkg.Value, layout))
+			case kind != "service":
+				c.add(pkg, ptr, RuleServer, "a server of kind %s runs no package of this implementation; give it kind service, or move the package to the server that runs it", kind)
+			}
+		}
+		for j, t := range source.Items(source.Child(runs, "targets")) {
+			if targets[t.Value] == nil {
+				c.add(t, source.Pointer(append(at, "runs", "targets", fmt.Sprint(j))...), RuleServer, "%s is not a key of targets%s", t.Value, suggest(t.Value, targets))
 			}
 		}
 	}

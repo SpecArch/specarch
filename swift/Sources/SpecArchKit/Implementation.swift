@@ -287,6 +287,7 @@ extension Checker {
                     add(p.key, pointer(base), .handover, "\(env) is run by the customer, who builds and installs it from this file, and this deployment has no \(key) saying \(what); add \(key)")
                 }
             }
+            checkServers(d, base, p.value.child("servers"))
             for m in pairs(p.value.child("monitors")) where d.monitors[m.key.value] == nil {
                 add(m.key, pointer(base + ["monitors", m.key.value]), .monitor, "\(m.key.value) is not a monitor of the specification\(suggest(m.key.value, d.monitors))")
             }
@@ -407,6 +408,54 @@ extension Checker {
                 } else if keys[e.value] == nil {
                     add(e, ptr, .dependsOn, "\(e.value) is not a key of layout; add it to layout, or remove the entry when it is a library, which goes under libraries\(suggest(e.value, keys))")
                 }
+            }
+        }
+    }
+}
+
+extension Checker {
+    /// Checks a deployment's servers (ADR-136): a name used once, what each
+    /// runs is in the file, packages only on a service, and a server that
+    /// is a dependency names a declared one and says nothing of its own
+    /// kind or what it runs.
+    func checkServers(_ d: Design, _ base: [String], _ servers: YNode?) {
+        var layout: [String: YNode] = [:]
+        for p in pairs(root.child("layout")) { layout[p.key.value] = p.value }
+        var targets: [String: YNode] = [:]
+        for p in pairs(root.child("targets")) { targets[p.key.value] = p.value }
+        var named: Set<String> = []
+        for (i, srv) in items(servers).enumerated() {
+            let at = base + ["servers", "\(i)"]
+            if let n = srv.child("name"), !n.value.isEmpty {
+                if named.contains(n.value) {
+                    add(n, pointer(at + ["name"]), .server, "\(n.value) names another server of this deployment already; give each server its own name")
+                }
+                named.insert(n.value)
+            }
+            var kind = str(srv.child("kind"))
+            if kind.isEmpty { kind = "service" }
+            let runs = srv.child("runs")
+            if let dep = srv.child("dependency"), !dep.value.isEmpty {
+                if d.dependencies[dep.value] == nil {
+                    add(dep, pointer(at + ["dependency"]), .server, "\(dep.value) is not a dependency of the specification\(suggest(dep.value, d.dependencies))")
+                }
+                for key in ["kind", "runs"] {
+                    if let k = srv.child(key) {
+                        add(k, pointer(at + [key]), .server, "this server is the dependency \(dep.value) in this environment, which takes its kind from the dependency and runs nothing of this implementation; remove \(key)")
+                    }
+                }
+                continue
+            }
+            for (j, pkg) in items(child(runs, "packages")).enumerated() {
+                let ptr = pointer(at + ["runs", "packages", "\(j)"])
+                if layout[pkg.value] == nil {
+                    add(pkg, ptr, .server, "\(pkg.value) is not a key of layout\(suggest(pkg.value, layout))")
+                } else if kind != "service" {
+                    add(pkg, ptr, .server, "a server of kind \(kind) runs no package of this implementation; give it kind service, or move the package to the server that runs it")
+                }
+            }
+            for (j, t) in items(child(runs, "targets")).enumerated() where targets[t.value] == nil {
+                add(t, pointer(at + ["runs", "targets", "\(j)"]), .server, "\(t.value) is not a key of targets\(suggest(t.value, targets))")
             }
         }
     }

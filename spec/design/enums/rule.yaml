@@ -61,6 +61,7 @@ enums:
       - test_data
       - layout
       - depends_on
+      - server
       - need
       - stakeholder
       - source
@@ -198,6 +199,7 @@ enums:
       test_data: a test's fixture, input or expect names what the design does not have, carries a value of the wrong type, holds a record a check constraint refuses, or says the same thing as a data folder beside it
       suite: an implementation's test suite names a design test or subject that does not exist
       depends_on: a layout entry's `dependsOn` names no key of the layout, or the entry itself
+      server: a deployment's server name is used twice, its `runs` names a package or target the file does not have, it runs packages and is not of kind `service`, it names a `dependency` and has a `kind` or `runs`, or its `dependency` is not declared
       layout: a file or a section is not where the tree layout puts it; the root file's `stages` and the folders disagree, a test folder has no `test.yaml`, or a folder is not a stage
       need: a requirement's `needs` names a need that does not exist
       stakeholder: a need's `stakeholders`, a question's `decidedBy`, a requirement's `ownedBy`, a mapping's `ownedBy` or the handover's `to` names a stakeholder that does not exist

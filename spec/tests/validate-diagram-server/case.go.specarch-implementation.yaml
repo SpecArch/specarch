@@ -1,0 +1,19 @@
+specarchImplementation: "0.1"
+info: { title: Case in Go, version: 1.0.0 }
+implements: { file: specarch.yaml, version: 1.0.0 }
+stack: { language: { name: Go, version: "1.26" } }
+layout:
+  internal/api:
+    description: The API.
+targets:
+  sql:
+    output: migrations
+deployments:
+  production:
+    description: The hosts.
+    servers:
+      - { name: api, url: "https://library.example", runs: { packages: [internal/apis], targets: [sql, openapi] } }
+      - { name: api, kind: database, url: "postgresql://db:5432", runs: { packages: [internal/api] } }
+      - { name: bus, dependency: eventBuss, kind: messageBroker, runs: { targets: [sql] }, url: "amqps://bus:5671" }
+      - { name: Proxy, kind: gateway, url: "https://edge" }
+      - { url: "https://legacy.example" }

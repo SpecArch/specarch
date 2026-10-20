@@ -1241,11 +1241,42 @@ How this implementation does each recurring concern: the idioms SpecArch ships a
 
 #### Deployments
 
-local: A developer's machine. Environment: development. Servers: http://localhost:8080. Settings: dailyRate 0.50, notificationChannelUrl http://localhost:8081/events.
+local: A developer's machine. Environment: development. Servers: http://localhost:8080, postgresql://localhost:5432. Settings: dailyRate 0.50, notificationChannelUrl http://localhost:8081/events.
 
-staging: The staging host the librarians try a release on. Environment: staging. Servers: https://staging.library.example. Settings: dailyRate 0.50, notificationChannelUrl https://notify-staging.library.example/events.
+```mermaid
+flowchart LR
+  subgraph deployment_local["local, environment development"]
+    server_api["api, service, localhost:8080<br/>runs internal/api, internal/lending"]
+    server_db[("db, database, localhost:5432<br/>runs target sql")]
+  end
+```
 
-production: The library's own hosts, which its IT staff build for and run. Environment: production. Servers: https://library.example. Settings: dailyRate 0.50, notificationChannelUrl https://notify.library.example/events. Built by the task build from 2 base images pinned by digest. Installed with podman-compose 1.4 from ../../../deploy/compose.
+The deployment declares no links between its servers, so the diagram draws none.
+
+staging: The staging host the librarians try a release on. Environment: staging. Servers: https://staging.library.example, postgresql://db.staging.library.internal:5432. Settings: dailyRate 0.50, notificationChannelUrl https://notify-staging.library.example/events.
+
+```mermaid
+flowchart LR
+  subgraph deployment_staging["staging, environment staging"]
+    server_api["api, service, staging.library.example<br/>runs internal/api, internal/lending"]
+    server_db[("db, database, db.staging.library.internal:5432<br/>runs target sql")]
+  end
+```
+
+The deployment declares no links between its servers, so the diagram draws none.
+
+production: The library's own hosts, which its IT staff build for and run. Environment: production. Servers: https://library.example, postgresql://db.library.internal:5432, amqps://bus.library.internal:5671. Settings: dailyRate 0.50, notificationChannelUrl https://notify.library.example/events. Built by the task build from 2 base images pinned by digest. Installed with podman-compose 1.4 from ../../../deploy/compose.
+
+```mermaid
+flowchart LR
+  subgraph deployment_production["production, environment production"]
+    server_api["api, service, library.example<br/>runs internal/api, internal/lending"]
+    server_db[("db, database, db.library.internal:5432<br/>runs target sql")]
+    server_bus[["bus, dependency eventBus, bus.library.internal:5671"]]
+  end
+```
+
+The deployment declares no links between its servers, so the diagram draws none.
 
 | Resource | What the hosts must provide |
 |---|---|

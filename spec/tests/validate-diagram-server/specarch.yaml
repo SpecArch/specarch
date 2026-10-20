@@ -1,0 +1,8 @@
+specarch: "0.3"
+info: { title: Case, version: 1.0.0 }
+dependencies:
+  eventBus:
+    description: The broker.
+    timeout: PT1S
+    kind: messageBroker
+    protocol: amqp

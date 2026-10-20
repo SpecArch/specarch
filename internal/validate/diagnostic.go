@@ -67,6 +67,7 @@ const (
 	RuleUnsafeInteger          Rule = "unsafe_integer"
 	RuleLayout                 Rule = "layout"
 	RuleDependsOn              Rule = "depends_on"
+	RuleServer                 Rule = "server"
 	RuleNeed                   Rule = "need"
 	RuleStakeholder            Rule = "stakeholder"
 	RuleSource                 Rule = "source"
@@ -208,6 +209,7 @@ var Rules = []Rule{
 	RuleUnsafeInteger,
 	RuleLayout,
 	RuleDependsOn,
+	RuleServer,
 	RuleNeed,
 	RuleStakeholder,
 	RuleSource,

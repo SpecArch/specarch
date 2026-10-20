@@ -2,6 +2,7 @@ package generate
 
 import (
 	"fmt"
+	"net/url"
 	"path"
 	"path/filepath"
 	"sort"
@@ -381,7 +382,7 @@ func permissionsTable(root *yaml.Node) string {
 
 // region renders what a marker names: "erDiagram", "stateDiagram Loan",
 // "sequenceDiagram returnLoan", "flowchart pages", "permissions",
-// "context" or "components go".
+// "context", "components go" or "deployment production".
 func region(root *yaml.Node, impls []Implementation, what string) (string, error) {
 	kind, arg, _ := strings.Cut(strings.TrimSpace(what), " ")
 	arg = strings.TrimSpace(arg)
@@ -412,13 +413,15 @@ func region(root *yaml.Node, impls []Implementation, what string) (string, error
 		}
 	case "components":
 		out, err = componentsRegion(impls, arg)
+	case "deployment":
+		out, err = deploymentRegion(root, impls, arg)
 	case "context":
 		out = contextDiagram(root)
 		if out == "" {
 			err = fmt.Errorf("the design file has no roles, dependencies or channels to draw")
 		}
 	default:
-		names := []string{"components <stack>", "context", "erDiagram", "stateDiagram <Entity>", "sequenceDiagram <operationId or command>", "flowchart pages", "permissions"}
+		names := []string{"components <stack>", "context", "deployment <deployment>", "erDiagram", "stateDiagram <Entity>", "sequenceDiagram <operationId or command>", "flowchart pages", "permissions"}
 		sort.Strings(names)
 		return "", fmt.Errorf("%q is not something the generator draws; use one of %s", kind, strings.Join(names, ", "))
 	}
@@ -1057,4 +1060,129 @@ func componentsRegion(impls []Implementation, stack string) (string, error) {
 	}
 	sort.Strings(stacks)
 	return "", fmt.Errorf("no implementation file is written for the stack %q; use one of %s", stack, strings.Join(stacks, ", "))
+}
+
+// usesServerKeys says whether any server of the deployment has a name, a
+// kind, what it runs or the dependency it is, so that the documents draw
+// the deployment diagram only then and a deployment without the keys
+// renders as before.
+func usesServerKeys(dep *yaml.Node) bool {
+	for _, s := range items(dep, "servers") {
+		for _, k := range []string{"name", "kind", "runs", "dependency"} {
+			if get(s, k) != nil {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// serverID is a server's node in the deployment diagram: by its name, or
+// by its place in the list when it has none.
+func serverID(s *yaml.Node, i int) string {
+	if n := str(s, "name"); n != "" {
+		return "server_" + mermaidID(n)
+	}
+	return fmt.Sprintf("server_%d", i+1)
+}
+
+// urlHost is the host of a server's URL, or the URL itself when it has no
+// host to read.
+func urlHost(raw string) string {
+	if u, err := url.Parse(raw); err == nil && u.Host != "" {
+		return u.Host
+	}
+	return raw
+}
+
+// serverShape is a server's node in the shape of its kind: a box for a
+// service, a trapezoid for a proxy, and the dependency's shapes for the
+// others.
+func serverShape(id, label, kind string) string {
+	if kind == "proxy" {
+		return fmt.Sprintf("%s[/\"%s\"\\]", id, label)
+	}
+	return dependencyShape(id, label, kind)
+}
+
+// deploymentDiagram draws one deployment of an implementation (ADR-136): a
+// node per server in the environment's subgraph, labelled with its name,
+// kind, host and what it runs, in its kind's shape; a server that is a
+// dependency drawn as that dependency. It has no edges until the
+// deployment declares its links.
+func deploymentDiagram(root *yaml.Node, name string, dep *yaml.Node) string {
+	servers := items(dep, "servers")
+	if len(servers) == 0 {
+		return ""
+	}
+	var b strings.Builder
+	b.WriteString("flowchart LR\n")
+	title := name
+	if env := str(dep, "environment"); env != "" {
+		title += ", environment " + env
+	}
+	fmt.Fprintf(&b, "  subgraph deployment_%s[\"%s\"]\n", mermaidID(name), mermaidText(title))
+	for i, s := range servers {
+		label := str(s, "name")
+		kind := str(s, "kind")
+		if kind == "" {
+			kind = "service"
+		}
+		if d := str(s, "dependency"); d != "" {
+			kind = str(get(get(root, "dependencies"), d), "kind")
+			if kind == "" {
+				kind = "system"
+			}
+			label = joinLabel(label, "dependency "+d)
+		} else {
+			label = joinLabel(label, kind)
+		}
+		label = joinLabel(label, urlHost(str(s, "url")))
+		var runs []string
+		runs = append(runs, strs(get(s, "runs"), "packages")...)
+		for _, t := range strs(get(s, "runs"), "targets") {
+			runs = append(runs, "target "+t)
+		}
+		if len(runs) > 0 {
+			label += "<br/>runs " + strings.Join(runs, ", ")
+		}
+		fmt.Fprintf(&b, "    %s\n", serverShape(serverID(s, i), mermaidText(label), kind))
+	}
+	b.WriteString("  end\n")
+	return fence(b.String())
+}
+
+// deploymentRegion draws the deployment a deployment marker names, from
+// the first implementation file that has it.
+func deploymentRegion(root *yaml.Node, impls []Implementation, name string) (string, error) {
+	var names []string
+	for _, i := range impls {
+		for _, d := range pairs(i.Node, "deployments") {
+			if d.Key.Value == name {
+				out := deploymentDiagram(root, name, d.Value)
+				if out == "" {
+					return "", fmt.Errorf("the deployment %s of %s has no servers to draw", name, i.Rel)
+				}
+				return out, nil
+			}
+			if !contains(names, d.Key.Value) {
+				names = append(names, d.Key.Value)
+			}
+		}
+	}
+	if len(names) == 0 {
+		return "", fmt.Errorf("no implementation file has deployments, so there is no deployment %s to draw", name)
+	}
+	sort.Strings(names)
+	return "", fmt.Errorf("no implementation file has the deployment %q; use one of %s", name, strings.Join(names, ", "))
+}
+
+// deploymentPicture writes a deployment's diagram, when its servers use
+// the keys, and says when it has no edges.
+func deploymentPicture(d *doc, root *yaml.Node, name string, dep *yaml.Node) {
+	if !usesServerKeys(dep) {
+		return
+	}
+	d.block(deploymentDiagram(root, name, dep))
+	d.para("The deployment declares no links between its servers, so the diagram draws none.")
 }

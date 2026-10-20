@@ -167,6 +167,19 @@ rollback steps, the tier migration and the commissioning checks are in
 `deployment/` and `commissioning/`; the hosts are in the implementation
 file.
 
+Production, from the Go implementation file's servers:
+
+<!-- specarch:generate deployment production -->
+```mermaid
+flowchart LR
+  subgraph deployment_production["production, environment production"]
+    server_api["api, service, library.example<br/>runs internal/api, internal/lending"]
+    server_db[("db, database, db.library.internal:5432<br/>runs target sql")]
+    server_bus[["bus, dependency eventBus, bus.library.internal:5671"]]
+  end
+```
+<!-- specarch:end -->
+
 ## 8. Cross-cutting concepts
 
 <!-- specarch:generate permissions -->

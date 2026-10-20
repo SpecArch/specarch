@@ -4,8 +4,6 @@
 
 Version 0.7.2-dev of the specification: 3 checks run on the installed system before it is handed over, and the sign-off sheet. Fill in the Result column as each step is run; the filled-in run is kept as a record under `records/commissioning/`, beside the specification, not in it.
 
-**Problems:** The specification has 1 error, so it is invalid, and this document shows what could be read of it. None of them is in what this document covers. The problems file lists every problem, and specarch validate prints them.
-
 ## 1. Checks in developer-machine
 
 ### installs-and-answers (smoke)

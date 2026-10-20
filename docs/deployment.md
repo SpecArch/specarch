@@ -4,8 +4,6 @@
 
 Version 0.7.2-dev of the specification: 2 environments, 0 settings and 0 migrations. Secrets are named here with where their value comes from, never with a value.
 
-**Problems:** The specification has 1 error, so it is invalid, and this document shows what could be read of it. None of them is in what this document covers. The problems file lists every problem, and specarch validate prints them.
-
 ## 1. Environments
 
 A release goes to developer-machine, then ci-runner.

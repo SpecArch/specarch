@@ -502,3 +502,15 @@ Expected: the line names 0.3 as the meta-model a specification is written in, an
 To repeat: run `specarch version` with either build.
 
 Fix: both builds build the two lines from the schemas they embed, the `specarch` enum of the specification schema and the `specarchImplementation` value of the implementation schema, the last version being the current one and the earlier ones read until 1.0 with a warning. The Swift copy of the schemas is checked against `schema/` by its own test, so one file sets the line for both builds, and the case `version-prints-versions` pins it for both.
+
+## BUG-041 — docs/roadmap.md: the meta-model 0.2 entries name the 0.3 schema files
+
+- Reported: 2026-10-20, found while bringing the plain JavaScript screens level with meta-model 0.3
+- Closed: 2026-10-20, completed
+- Fixed by: the commit on `main` whose message says `Fixes BUG-041`
+
+`docs/roadmap.md` says what meta-model 0.2 was built with, and three places there name the 0.3 schema files: the 0.6.0 row of the release table and the opening line of section 5 say `schema/specarch-design-0.3.schema.json`, and the bullet on the fragment schemas in section 5's list of what 0.2 built says `schema/specarch-fragment-*-0.3.schema.json`. The move to meta-model 0.3 renamed every 0.2 schema reference to 0.3, and that also changed these, which describe what 0.6.0 carried.
+
+Expected: the three places name the 0.2 files, `schema/specarch-design-0.2.schema.json` and `schema/specarch-fragment-*-0.2.schema.json`. The 0.3 references elsewhere in `docs/` (`conventions.md`, `from-sources.md`, the generated documents' headers) describe the schema in use today and stay 0.3.
+
+To repeat: `grep -n '0.3.schema' docs/roadmap.md`, and read the 0.6.0 row and section 5.

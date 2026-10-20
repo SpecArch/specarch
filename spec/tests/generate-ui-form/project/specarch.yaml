@@ -172,6 +172,7 @@ pages:
     fieldConditions:
       withdrawnOn: { hiddenWhen: "lendable == true" }
       notes: { readOnlyWhen: 'shelf == "reference"' }
+      addedOn: { hiddenWhen: "lendable == false" }
     checks:
       withdrawn-after-bought: { expression: "withdrawnOn == null || withdrawnOn > boughtOn", message: A book is withdrawn after it is bought., field: withdrawnOn }
     states:

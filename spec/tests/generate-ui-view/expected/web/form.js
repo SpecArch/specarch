@@ -145,6 +145,9 @@ export function form(page) {
     }
   }
 
+  // A field drawn read-only stays so whatever its conditions say.
+  const fixed = new Map(Object.keys(page.conditions).map((name) => [name, field(name).readOnly || field(name).disabled]));
+
   // The rules HTML cannot say, as each field's own message.
   function check() {
     // The conditions read the record as entered; the checks and what is
@@ -153,7 +156,7 @@ export function form(page) {
     for (const [name, rule] of Object.entries(page.conditions)) {
       const control = field(name);
       const hidden = rule.hiddenWhen?.(record) ?? false;
-      const locked = rule.readOnlyWhen?.(record) ?? false;
+      const locked = fixed.get(name) || (rule.readOnlyWhen?.(record) ?? false);
       // A hidden field is disabled too, so the browser does not ask for it.
       // A list or a box has no read-only state of its own; it is disabled.
       const lockable = "readOnly" in control && control.type !== "checkbox";

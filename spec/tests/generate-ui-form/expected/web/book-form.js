@@ -21,6 +21,7 @@ form({
     { field: "withdrawnOn", rule: (record) => (record.withdrawnOn ?? null) === null || record.withdrawnOn > record.boughtOn, message: "A book is withdrawn after it is bought." },
   ],
   conditions: {
+    addedOn: { hiddenWhen: (record) => record.lendable === false },
     notes: { readOnlyWhen: (record) => record.shelf === "reference" },
     withdrawnOn: { hiddenWhen: (record) => record.lendable === true },
   },

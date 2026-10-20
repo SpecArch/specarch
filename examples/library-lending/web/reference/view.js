@@ -1,44 +1,49 @@
-// Draws a view page from what its module says of it: the record its
-// operation reads, shown read-only by sections, and its actions, each a
-// link to another page or an operation run on the record once the person
-// confirms it. Every view page uses it.
+// Runs a view page from what its module says of it. The sections and
+// fields are in the page's HTML, each value's place marked data-field;
+// this module reads the record into them, hides a field while its
+// condition holds, and offers the page's actions, each a link to another
+// page or an operation run on the record once the person confirms it.
+// Every view page uses it.
 
 import { on, emit } from "./events.js";
 import { arrived, go, href, parameters } from "./pages.js";
 import { ask } from "./ask.js";
 
-/** A value as the page shows it: a value with parts as a list of them,
-    a list as one entry per item. */
-function shown(value, field) {
-  if (field.list) {
-    const items = document.createElement("ul");
-    for (const item of value ?? []) {
-      const entry = document.createElement("li");
-      entry.append(field.parts ? parts(item, field.parts) : String(item ?? ""));
-      items.append(entry);
+// What holds values: the record, a value with parts and an item of a list.
+const HOLDERS = "#record, [data-field], [data-item]";
+
+/** The places under a holder that are its own, not a holder's within it. */
+function own(holder) {
+  return [...holder.querySelectorAll("[data-field]")].filter((place) => place.parentElement.closest(HOLDERS) === holder);
+}
+
+/** Puts a record's values into a holder's places: a value with parts into
+    its parts, a list as one item per entry. */
+function fill(holder, record) {
+  for (const place of own(holder)) {
+    const value = record?.[place.dataset.field];
+    if (place.dataset.list !== undefined) {
+      const items = place.querySelector(":scope > ul");
+      const template = place.querySelector(":scope > template");
+      items.replaceChildren();
+      for (const entry of value ?? []) {
+        const item = template.content.firstElementChild.cloneNode(true);
+        if (own(item).length > 0) {
+          fill(item, entry);
+        } else {
+          item.textContent = String(entry ?? "");
+        }
+        items.append(item);
+      }
+    } else if (own(place).length > 0) {
+      fill(place, value);
+    } else {
+      place.textContent = String(value ?? "");
     }
-    return items;
   }
-  if (field.parts) {
-    return parts(value ?? {}, field.parts);
-  }
-  return document.createTextNode(String(value ?? ""));
 }
 
-/** The parts of a value, each with its label. */
-function parts(value, fields) {
-  const list = document.createElement("dl");
-  for (const field of fields) {
-    const term = document.createElement("dt");
-    term.textContent = field.label;
-    const detail = document.createElement("dd");
-    detail.append(shown(value[field.name], field));
-    list.append(term, detail);
-  }
-  return list;
-}
-
-/** Draws the view, reads its record and runs its actions. */
+/** Fills the view, reads its record and runs its actions. */
 export function view(page) {
   const given = parameters();
   const record = document.getElementById("record");
@@ -95,19 +100,10 @@ export function view(page) {
 
   on(page.loaded, (payload) => {
     current = payload.record;
-    record.replaceChildren();
-    page.sections.forEach((section, i) => {
-      const part = document.createElement("section");
-      if (section.title) {
-        const heading = document.createElement("h2");
-        heading.id = `section-${i}`;
-        heading.textContent = section.title;
-        part.setAttribute("aria-labelledby", heading.id);
-        part.append(heading);
-      }
-      part.append(parts(current, section.fields.filter((field) => !field.hiddenWhen?.(current))));
-      record.append(part);
-    });
+    fill(record, current);
+    for (const [name, rule] of Object.entries(page.hidden)) {
+      own(record).find((place) => place.dataset.field === name).parentElement.hidden = rule(current);
+    }
     bar.replaceChildren();
     for (const action of page.actions) {
       if (action.when && !action.when(current)) {

@@ -28,7 +28,48 @@
 <main>
 <h1 id="title">Member</h1>
 <p id="status" role="status" aria-live="polite"></p>
-<div id="record"></div>
+<div id="record">
+<section aria-labelledby="section-0">
+<h2 id="section-0">Member</h2>
+<dl>
+<div><dt>Card number</dt><dd data-field="cardNumber"></dd></div>
+<div><dt>Full name</dt><dd data-field="fullName"></dd></div>
+<div><dt>Email address</dt><dd data-field="email"></dd></div>
+<div><dt>Tier</dt><dd data-field="tier"></dd></div>
+</dl>
+</section>
+<section aria-labelledby="section-1">
+<h2 id="section-1">Membership</h2>
+<dl>
+<div><dt>Joined on</dt><dd data-field="joinedOn"></dd></div>
+<div><dt>Membership ends on</dt><dd data-field="membershipEndsOn"></dd></div>
+<div><dt>Outstanding fees</dt><dd data-field="outstandingFees"></dd></div>
+</dl>
+</section>
+<section aria-labelledby="section-2">
+<h2 id="section-2">Contact</h2>
+<dl>
+<div><dt>Address</dt><dd data-field="address">
+<dl>
+<div><dt>City</dt><dd data-field="city"></dd></div>
+<div><dt>Postcode</dt><dd data-field="postcode"></dd></div>
+<div><dt>Street</dt><dd data-field="street"></dd></div>
+</dl>
+</dd></div>
+<div><dt>Phone numbers</dt><dd data-field="phones" data-list>
+<ul></ul>
+<template>
+<li data-item>
+<dl>
+<div><dt>Label</dt><dd data-field="label"></dd></div>
+<div><dt>Number</dt><dd data-field="number"></dd></div>
+</dl>
+</li>
+</template>
+</dd></div>
+</dl>
+</section>
+</div>
 <div id="actions"></div>
 </main>
 </body>

@@ -10,43 +10,7 @@ import { view } from "./view.js";
 view({
   key: "id",
   source: { operation: "getMember", path: (parameters) => `/members/${encodeURIComponent(parameters.memberId)}` },
-  sections: [
-    {
-      title: "Member",
-      fields: [
-        { name: "cardNumber", label: "Card number" },
-        { name: "fullName", label: "Full name" },
-        { name: "email", label: "Email address" },
-        { name: "tier", label: "Tier" },
-      ],
-    },
-    {
-      title: "Membership",
-      fields: [
-        { name: "joinedOn", label: "Joined on" },
-        { name: "membershipEndsOn", label: "Membership ends on" },
-        { name: "outstandingFees", label: "Outstanding fees" },
-      ],
-    },
-    {
-      title: "Contact",
-      fields: [
-        {
-          name: "address", label: "Address", parts: [
-            { name: "city", label: "City" },
-            { name: "postcode", label: "Postcode" },
-            { name: "street", label: "Street" },
-          ],
-        },
-        {
-          name: "phones", label: "Phone numbers", list: true, parts: [
-            { name: "label", label: "Label" },
-            { name: "number", label: "Number" },
-          ],
-        },
-      ],
-    },
-  ],
+  hidden: {},
   actions: [
     {
       label: "Lend a book",

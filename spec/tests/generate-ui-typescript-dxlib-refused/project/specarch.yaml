@@ -133,7 +133,52 @@ paths:
       responses:
         "204": { description: The note is done. }
         "404": { description: No such note., problem: note-gone }
+  /attachments:
+    post:
+      operationId: uploadAttachment
+      summary: Upload an attachment
+      permission: public
+      stream: { direction: upload }
+      limits: { maxRequestBytes: 104857600 }
+      requestBody:
+        required: true
+        description: The attachment
+        content:
+          application/pdf:
+            schema: { type: string, format: binary }
+      responses:
+        "200":
+          description: The attachment is stored.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  attachmentId: { type: string }
+                required: [attachmentId]
+  /notes/{noteId}/raw:
+    get:
+      operationId: getNoteRaw
+      summary: The note's raw text
+      permission: public
+      stream: { direction: download }
+      parameters:
+        - { name: noteId, in: path, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: The text.
+          content:
+            text/plain:
+              schema: { type: string, format: binary }
 pages:
+  note-raw:
+    kind: view
+    title: The note's raw text
+    route: /notes/{noteId}/raw
+    entity: Note
+    permission: public
+    source: getNoteRaw
+    fields: [title]
   add-note:
     kind: task
     title: Add a note

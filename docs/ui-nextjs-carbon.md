@@ -168,7 +168,12 @@ bytes are dxlib's datablock, so a handshake of other primitives, or a
 service in the standard dialect, is an error at the page that calls it.
 `transport.ts` imports nothing, so a test runs it on Node as it is; the
 round trip in `internal/gendxlib` drives it against a generated dxlib
-service. The session is still read at its path as a plain GET, and a
+service. Files stream where a page takes one: a task page whose submit
+streams an upload shows Carbon's `FileUploader` and sends the file picked
+as the body, refusing one above `maxRequestBytes` before it is sent, and
+may show no field; an action whose operation streams a download saves the
+file under the name its `Content-Disposition` gives. A page that loads,
+reads or submits a stream anywhere else is an error at the page. The session is still read at its path as a plain GET, and a
 server route that pages a list the service answers whole is refused
 under the dxlib dialect, whose lists page themselves.
 

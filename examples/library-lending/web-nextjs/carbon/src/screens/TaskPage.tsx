@@ -2,14 +2,14 @@
 // Draft: the specification is not approved: there is no records/approvals/0.1.0.yaml beside the specification; this file is not the approved output.
 "use client";
 
-import { Button, Form, InlineNotification, Stack } from "@carbon/react";
+import { Button, FileUploader, Form, InlineNotification, Stack } from "@carbon/react";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { Field } from "./Field";
 import { leave } from "./Notice";
 import { problemsOf, type Values } from "./rules";
 import type { EventSchema, TaskPageSchema } from "./schema";
-import { call, segment } from "./service";
+import { call, segment, upload } from "./service";
 import { forgetSession } from "./session";
 import { say, type Texts } from "./texts";
 
@@ -52,17 +52,24 @@ function destination(event: EventSchema, routes: Readonly<Record<string, string>
 
 /**
  * A form that sends its fields to an operation without loading a record,
- * and goes where the answer leads.
+ * or streams the file picked to an upload, and goes where the answer leads.
  */
 export function TaskPage({ schema, texts, routes, returnTo }: TaskPageProps) {
   const router = useRouter();
   const [values, setValues] = useState<Values>(() => Object.fromEntries(schema.fields.map((field) => [field.name, ""])));
   const [problems, setProblems] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
+  const [file, setFile] = useState<File | undefined>(undefined);
+  const picks = schema.submit.file;
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const found = problemsOf(schema, values, texts);
+    if (picks !== undefined && file === undefined) {
+      found.file = say(texts, "screens.required");
+    } else if (picks?.maxBytes !== undefined && file !== undefined && file.size > picks.maxBytes) {
+      found.file = say(texts, picks.tooLarge ?? "screens.failed");
+    }
     setProblems(found);
     const first = schema.fields.find((field) => found[field.name] !== undefined);
     if (first !== undefined) {
@@ -75,7 +82,7 @@ export function TaskPage({ schema, texts, routes, returnTo }: TaskPageProps) {
     const body = Object.fromEntries(Object.entries(values).filter(([, value]) => value !== ""));
     let response: Response;
     try {
-      response = await call(schema.submit, { body });
+      response = picks !== undefined && file !== undefined ? await upload(schema.submit, file) : await call(schema.submit, { body });
     } catch {
       setBusy(false);
       setProblems({ "": say(texts, "screens.failed") });
@@ -122,6 +129,19 @@ export function TaskPage({ schema, texts, routes, returnTo }: TaskPageProps) {
         <Stack gap={6}>
           {problems[""] !== undefined && (
             <InlineNotification kind="error" role="alert" lowContrast hideCloseButton title={problems[""]} />
+          )}
+          {picks !== undefined && (
+            <div id="file">
+              <FileUploader
+                labelTitle={say(texts, picks.label)}
+                labelDescription={problems.file}
+                buttonLabel={say(texts, picks.button)}
+                filenameStatus="edit"
+                accept={schema.submit.mediaType === undefined || schema.submit.mediaType === "application/octet-stream" ? undefined : [schema.submit.mediaType]}
+                onChange={(event, data) => setFile(data?.currentFiles[0]?.file ?? (event.target as HTMLInputElement).files?.[0] ?? undefined)}
+                onDelete={() => setFile(undefined)}
+              />
+            </div>
           )}
           {schema.fields.map((field) => (
             <Field

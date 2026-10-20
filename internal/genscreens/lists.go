@@ -162,7 +162,7 @@ func (g *Gen) ListPage(pageName string, pg map[string]any, sess *Session) (*Page
 		g.Problem("error", at+"/source", "%s reads %s, which is not a GET operation of the specification; a list is read by GET", pageName, sourceID)
 		return nil, false
 	}
-	if !g.PlainOnly(at+"/source", pageName, "reads", sourceID, src) {
+	if !g.PlainOnly(at+"/source", pageName, "reads", sourceID, src, "") {
 		return nil, false
 	}
 	if PathParam.MatchString(srcPath) {
@@ -359,7 +359,7 @@ func (g *Gen) rowAction(pageName, ptr string, am map[string]any, labelKey, permi
 		g.Problem("error", ptr, "the action %s runs %s, which is not an operation of the specification that changes something", text(am["label"]), target)
 		return nil, false
 	}
-	if !g.PlainOnly(ptr, "the action "+text(am["label"]), "runs", target, op) {
+	if !g.PlainOnly(ptr, "the action "+text(am["label"]), "runs", target, op, "download") {
 		return nil, false
 	}
 	props := obj0(entity["properties"])

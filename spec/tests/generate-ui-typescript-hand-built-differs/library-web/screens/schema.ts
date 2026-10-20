@@ -208,13 +208,26 @@ export interface EventSchema {
 export interface CallTransport {
   readonly handshake?: string;
   readonly wire?: Readonly<Record<string, string>>;
+  /** The file the operation carries: the request's body on an upload, the answer's on a download. */
+  readonly stream?: "upload" | "download";
+  /** An upload's media type. */
+  readonly mediaType?: string;
 }
 
-/** The operation a page sends its fields to. */
+/** The file a task page streams to an upload: its label, its button, and its largest size with the message above it. */
+export interface FileSchema {
+  readonly label: StringKey;
+  readonly button: StringKey;
+  readonly maxBytes?: number;
+  readonly tooLarge?: StringKey;
+}
+
+/** The operation a page sends its fields to, or the file it streams. */
 export interface SubmitSchema extends CallTransport {
   readonly operation: string;
   readonly method: "POST" | "PUT" | "PATCH" | "DELETE";
   readonly path: string;
+  readonly file?: FileSchema;
 }
 
 /** A form that submits to an operation without loading a record. */

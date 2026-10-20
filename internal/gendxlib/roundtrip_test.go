@@ -374,6 +374,7 @@ func TestRoundTrip(t *testing.T) {
 // screensTest drives the screens' transport against the vault on Node.
 const screensTest = `import assert from "node:assert/strict";
 import { test } from "node:test";
+import { createHash } from "node:crypto";
 import { createTransport } from "./transport.ts";
 
 const service = process.env.VAULT_URL ?? "";
@@ -401,6 +402,53 @@ test("a plain call in the dxlib dialect is a POST at the operation", async () =>
   const response = await transport.call({ operation: "downloadAttachment", path: "/attachments/download" }, { body: { attachment_id: "none" } });
   assert.equal(response.status, 404);
   assert.equal((await response.json()).reason, "ATTACHMENT_NOT_FOUND");
+});
+
+/** n bytes of the vault's pattern, byte i being i modulo 251. */
+function pattern(n: number): Uint8Array {
+  const out = new Uint8Array(n);
+  for (let i = 0; i < n; i++) {
+    out[i] = i % 251;
+  }
+  return out;
+}
+
+async function digest(body: ReadableStream<Uint8Array> | null): Promise<{ hash: string; size: number }> {
+  const hash = createHash("sha256");
+  let size = 0;
+  for await (const chunk of body ?? []) {
+    hash.update(chunk);
+    size += chunk.length;
+  }
+  return { hash: hash.digest("hex"), size };
+}
+
+const uploadAttachment = { operation: "uploadAttachment", path: "/attachments", stream: "upload", mediaType: "application/octet-stream" } as const;
+const downloadAttachment = { operation: "downloadAttachment", path: "/attachments/download", stream: "download" } as const;
+
+test("a file uploaded as a Blob and as a stream is streamed back whole", async () => {
+  const transport = createTransport({ service, dialect: "dxlib", handshakes });
+  const bytes = pattern(3 << 20);
+  const sent = createHash("sha256").update(bytes).digest("hex");
+  const asBlob = await transport.upload(uploadAttachment, new Blob([bytes]));
+  assert.equal(asBlob.status, 200);
+  const stored = await asBlob.json();
+  assert.equal(stored.attachment_id, sent.slice(0, 16));
+  assert.equal(stored.size, bytes.length);
+  const asStream = await transport.upload(uploadAttachment, new Blob([bytes]).stream());
+  assert.equal(asStream.status, 200);
+  assert.equal((await asStream.json()).attachment_id, sent.slice(0, 16));
+  const back = await transport.call(downloadAttachment, { body: { attachment_id: stored.attachment_id } });
+  assert.equal(back.status, 200);
+  assert.deepEqual(await digest(back.body), { hash: sent, size: bytes.length });
+});
+
+test("a download asked for in the envelope answers its bytes plain", async () => {
+  const transport = createTransport({ service, dialect: "dxlib", handshakes });
+  const response = await transport.call({ operation: "exportVault", path: "/vault/export", handshake: "preKey", stream: "download" }, { body: { format: "zip" } });
+  assert.equal(response.status, 200);
+  const size = 24 << 20;
+  assert.deepEqual(await digest(response.body), { hash: createHash("sha256").update(pattern(size)).digest("hex"), size });
 });
 
 test("an envelope another service signed is refused", async () => {

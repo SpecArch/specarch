@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.2-dev of the specification: 611 design tests, 284 golden and 327 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.2-dev of the specification: 612 design tests, 284 golden and 328 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.7.2-dev of the specification: 611 design tests, 284 golden and 327 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 607 |
+| system | 608 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -2409,17 +2409,17 @@ Scenario: golden; level: system; verifies SA-52, SA-53, SA-54, SA-55, SA-56.
 
 Scenario: golden; level: system; verifies SA-77.
 
-- Given: a specification with a pre-key handshake of x25519, ed25519 and aes-256-cbc established by issuePreKey, a task page that submits to addNote, a list page that reads listNotes with a filter, a search, a sort and a row action that runs finishNote on the row's note, and a view that loads getNote by the route's note, each of those operations travelling in the handshake's envelope; an implementation file in TypeScript whose ui target is nextjs-carbon, and one in Go whose openapi target serves the dxlib dialect; and specarch-gen-ui-typescript built from this repository on PATH
+- Given: a specification with a pre-key handshake of x25519, ed25519 and aes-256-cbc established by issuePreKey, a task page that submits to addNote, a list page that reads listNotes with a filter, a search, a sort and a row action that runs finishNote on the row's note, a second row action that runs exportNote, a download stream in the handshake's envelope, a view that loads getNote by the route's note, each of those operations but the download's answer travelling in the handshake's envelope, and a task page attach with no field that submits to uploadAttachment, an upload stream of application/pdf of at most 104857600 bytes; an implementation file in TypeScript whose ui target is nextjs-carbon, and one in Go whose openapi target serves the dxlib dialect; and specarch-gen-ui-typescript built from this repository on PATH
 - When: generate ui is run with --unapproved
-- Then: application.ts names the dxlib dialect and the handshake preKey with the operation that establishes it; each call's schema names the handshake it travels in, and a call whose path takes a parameter names the parameter's snake-case name in the body; the list reads the paginated-list idiom's dxlib names, its filter as a member of filter_key_values, its sort's field and direction names, and its records under list.rows; screens/transport.ts, which seals and opens dxlib's envelope through the Web Crypto API, is written beside the other components; it reports nothing and exits 0
+- Then: application.ts names the dxlib dialect and the handshake preKey with the operation that establishes it; each call's schema names the handshake it travels in, and a call whose path takes a parameter names the parameter's snake-case name in the body; the list reads the paginated-list idiom's dxlib names, its filter as a member of filter_key_values, its sort's field and direction names, and its records under list.rows; the export action names its stream, download, and the attach page's submit names its stream, upload, its media type and a file with its label from the request body's description, its button, its largest size and the message above it; screens/transport.ts, which seals and opens dxlib's envelope through the Web Crypto API and streams uploads and downloads, is written beside the other components; it reports nothing and exits 0
 
 #### generate-ui-typescript-dxlib-refused
 
 Scenario: red; level: system; verifies SA-77.
 
-- Given: the notes specification with a second handshake, sealed, of cipher aes-256-gcm, which the view's getNote travels in; an implementation file in Go whose openapi target serves the dxlib dialect, and one in TypeScript whose ui target names server routes that page listTags, a GET the service answers whole; and specarch-gen-ui-typescript built from this repository on PATH
+- Given: the notes specification with a second handshake, sealed, of cipher aes-256-gcm, which the view's getNote travels in, and a view note-raw that loads its record from getNoteRaw, a GET that streams a download; an implementation file in Go whose openapi target serves the dxlib dialect, and one in TypeScript whose ui target names server routes that page listTags, a GET the service answers whole; and specarch-gen-ui-typescript built from this repository on PATH
 - When: generate ui is run with --unapproved
-- Then: it reports as an error at the view's source that sealed's cipher is not dxlib's envelope, the one the screens seal, and as an error at the root that a server route pages by the standard names while the service serves the dxlib dialect, warns that no list page reads listTags, writes the other pages, and exits 1
+- Then: it reports as an error at the view's source that sealed's cipher is not dxlib's envelope, the one the screens seal, as an error at note-raw's source that the screens stream a download only from an action and an upload only from a task page's submit, and as an error at the root that a server route pages by the standard names while the service serves the dxlib dialect, warns that no list page reads listTags, writes the other pages, and exits 1
 
 #### generate-ui-typescript-hand-built
 
@@ -4662,6 +4662,14 @@ Scenario: golden; level: system; verifies SA-42.
 - Given: a task page that checks that the confirmation equals the new password, checks that two of its fields are given and has the new password entered twice, with a test for each way its checks break
 - When: validate is run
 - Then: it reports nothing and exits 0
+
+#### validate-task-page-upload
+
+Scenario: red; level: system; covers exit 1; verifies SA-77.
+
+- Given: two task pages with no fields, attach, which submits to uploadAttachment, an upload stream, and add-note, which submits to addNote, whose body is JSON
+- When: validate is run on its folder
+- Then: it takes attach, whose input is the file it streams, and reports add-note as a page error at the page that it shows no field, and exits 1
 
 #### validate-task-pages
 

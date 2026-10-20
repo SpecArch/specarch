@@ -5,7 +5,7 @@
 import { Modal, TextArea } from "@carbon/react";
 import type { Fields } from "./rules";
 import type { FailureSchema, RowActionSchema } from "./schema";
-import { call } from "./service";
+import { call, save } from "./service";
 import { say, type Texts } from "./texts";
 
 function refusal(failed: readonly FailureSchema[], status: number): FailureSchema | undefined {
@@ -15,7 +15,8 @@ function refusal(failed: readonly FailureSchema[], status: number): FailureSchem
 /**
  * Runs an action on a record: its path's parameters each from a field of
  * the record, and the reason, when it asks for one, as the property of the
- * body it names. It answers undefined on a success, or the message of the
+ * body it names; an action whose operation streams a download saves the
+ * file it answers. It answers undefined on a success, or the message of the
  * refusal.
  */
 export async function runAction(action: RowActionSchema, record: Fields, reason: string, texts: Texts): Promise<string | undefined> {
@@ -23,6 +24,9 @@ export async function runAction(action: RowActionSchema, record: Fields, reason:
   try {
     const response = await call(action, { parameters, body: action.reason ? { [action.reason.property]: reason.trim() } : undefined });
     if (response.ok) {
+      if (action.stream === "download") {
+        await save(response, action.operation);
+      }
       return undefined;
     }
     return say(texts, refusal(action.failed, response.status)?.message ?? "screens.failed");

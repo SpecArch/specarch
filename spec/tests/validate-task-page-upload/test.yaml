@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: two task pages with no fields, attach, which submits to uploadAttachment, an upload stream, and add-note, which submits to addNote, whose body is JSON
+when: validate is run on its folder
+then: it takes attach, whose input is the file it streams, and reports add-note as a page error at the page that it shows no field, and exits 1
+verifies: [SA-77]

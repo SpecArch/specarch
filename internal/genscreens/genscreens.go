@@ -91,6 +91,9 @@ type Profile struct {
 	// and perform its pre-key handshake, so a page may call an operation
 	// that travels in that envelope (ADR-161).
 	Seals bool
+	// Streams is true when the screens stream a file: an upload from a
+	// task page's submit and a download from an action (ADR-146, ADR-161).
+	Streams bool
 }
 
 // dxlibEnvelope are the primitives of dxlib's pre-key envelope, the one
@@ -418,9 +421,10 @@ func (g *Gen) TaskPage(pageName string, pg map[string]any) (*Page, bool) {
 		g.Problem("error", at+"/submit", "%s submits to %s, which is not an operation of the specification that takes a request body", pageName, submit)
 		return nil, false
 	}
-	if !g.PlainOnly(at+"/submit", pageName, "submits to", submit, op) {
+	if !g.PlainOnly(at+"/submit", pageName, "submits to", submit, op, "upload") {
 		return nil, false
 	}
+	upload := text(obj0(op["stream"])["direction"]) == "upload"
 	body := g.BodySchema(op)
 	props := obj0(body["properties"])
 	required := map[string]bool{}
@@ -536,9 +540,20 @@ func (g *Gen) TaskPage(pageName string, pg map[string]any) (*Page, bool) {
 	for _, f := range fields {
 		fieldValues = append(fieldValues, Object(f.data))
 	}
+	submitMembers := append([]Member{{"operation", Str(submit)}, {"method", Str(strings.ToUpper(method))}, {"path", Str(path)}}, g.Transport(op, path)...)
+	if upload {
+		file := []Member{
+			{"label", Str(g.Say(pageName+".file.label", orText(text(obj0(op["requestBody"])["description"]), "File")))},
+			{"button", Str(g.Say(pageName+".file.button", "Choose a file"))},
+		}
+		if m := text(obj0(op["limits"])["maxRequestBytes"]); m != "" {
+			file = append(file, Member{"maxBytes", Raw(m)}, Member{"tooLarge", Str(g.Say(pageName+".file.tooLarge", "The file is larger than "+m+" bytes."))})
+		}
+		submitMembers = append(submitMembers, Member{"file", Object(file)})
+	}
 	schema := []Member{
 		{g.Name(part, "title"), Str(g.Say(pageName+".title", text(pg["title"])))},
-		{g.Name(part, "submit"), Object(append([]Member{{"operation", Str(submit)}, {"method", Str(strings.ToUpper(method))}, {"path", Str(path)}}, g.Transport(op, path)...))},
+		{g.Name(part, "submit"), Object(submitMembers)},
 		{g.Name(part, "fields"), Array(fieldValues)},
 		{g.Name(part, "checks"), Array(checks)},
 		{g.Name(part, "failed"), Array(failures)},
@@ -680,9 +695,10 @@ var PathParam = regexp.MustCompile(`\{[^{}]+\}`)
 // PlainOnly says whether an operation is one the screens can call: plain,
 // or in the envelope of a handshake the profile seals, dxlib's pre-key
 // envelope in the dxlib dialect (ADR-145, ADR-161); not one that streams a
-// file, which this version does not perform (ADR-146). An error at the page
-// otherwise.
-func (g *Gen) PlainOnly(at, pageName, does, id string, op map[string]any) bool {
+// file, unless the profile streams files and the caller is where that
+// direction is taken, allow: upload for a task page's submit, download for
+// an action (ADR-146). An error at the page otherwise.
+func (g *Gen) PlainOnly(at, pageName, does, id string, op map[string]any, allow string) bool {
 	if h := text(op["handshake"]); h != "" {
 		if !g.Profile.Seals {
 			g.Problem("error", at, "%s %s %s, which travels in the envelope of handshake %s, and this version of %s performs no handshake, so the screen would send plain JSON the service refuses; see docs/roadmap.md", pageName, does, id, h, g.Profile.Name)
@@ -705,8 +721,12 @@ func (g *Gen) PlainOnly(at, pageName, does, id string, op map[string]any) bool {
 		}
 		g.Handshakes[h] = text(hs["establishedBy"])
 	}
-	if s := text(obj0(op["stream"])["direction"]); s != "" {
-		g.Problem("error", at, "%s %s %s, which streams a file (%s), and this version of %s streams no file", pageName, does, id, s, g.Profile.Name)
+	if s := text(obj0(op["stream"])["direction"]); s != "" && (!g.Profile.Streams || s != allow) {
+		if g.Profile.Streams {
+			g.Problem("error", at, "%s %s %s, which streams a file (%s), and %s streams an upload only from a task page's submit and a download only from an action", pageName, does, id, s, g.Profile.Name)
+		} else {
+			g.Problem("error", at, "%s %s %s, which streams a file (%s), and this version of %s streams no file", pageName, does, id, s, g.Profile.Name)
+		}
 		return false
 	}
 	return true
@@ -720,6 +740,16 @@ func (g *Gen) Transport(op map[string]any, path string) []Member {
 	var out []Member
 	if h := text(op["handshake"]); h != "" {
 		out = append(out, Member{"handshake", Str(h)})
+	}
+	switch text(obj0(op["stream"])["direction"]) {
+	case "upload":
+		out = append(out, Member{"stream", Str("upload")})
+		for _, mt := range sortedKeys(obj0(obj0(op["requestBody"])["content"])) {
+			out = append(out, Member{"mediaType", Str(mt)})
+			break
+		}
+	case "download":
+		out = append(out, Member{"stream", Str("download")})
 	}
 	if g.Dialect == "dxlib" {
 		var wire []Member

@@ -2,6 +2,7 @@ import { application } from "@/application";
 import { createTransport, fill, segment, type Ask, type Target } from "./transport";
 
 export { fill, segment };
+export type { Ask, Target };
 
 /** Where the screens call the service, empty when it answers on the page's own origin. */
 export const service = application.service;
@@ -16,6 +17,34 @@ const transport = createTransport({ service, dialect: application.dialect ?? "st
  */
 export function call(target: Target, ask?: Ask): Promise<Response> {
   return transport.call(target, ask);
+}
+
+/** Streams a file to an upload operation as the request's body, and answers the Response. */
+export function upload(target: Target, file: Blob | ReadableStream<Uint8Array>, ask?: Ask): Promise<Response> {
+  return transport.upload(target, file, ask);
+}
+
+/**
+ * Saves a downloaded file under the name its Content-Disposition gives, or
+ * the name given: the bytes are gathered into a Blob, held by the browser
+ * up to the operation's maxResponseBytes, and handed to the browser's own
+ * download through a link.
+ */
+export async function save(response: Response, name: string): Promise<void> {
+  const disposition = response.headers.get("Content-Disposition") ?? "";
+  const given = /filename\*=UTF-8''([^;]+)/i.exec(disposition)?.[1] ?? /filename="?([^";]+)"?/i.exec(disposition)?.[1];
+  let filename = name;
+  try {
+    filename = given === undefined ? name : decodeURIComponent(given);
+  } catch {
+    filename = given ?? name;
+  }
+  const url = URL.createObjectURL(await response.blob());
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  link.click();
+  setTimeout(() => URL.revokeObjectURL(url), 0);
 }
 
 /** The JSON body of an answer, or undefined when it has none or cannot be read. */

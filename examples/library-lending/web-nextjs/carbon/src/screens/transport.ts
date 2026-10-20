@@ -34,6 +34,10 @@ export interface Target {
   readonly path: string;
   readonly handshake?: string;
   readonly wire?: Readonly<Record<string, string>>;
+  /** The file the operation carries: the request's body on an upload, the answer's on a download (ADR-146). */
+  readonly stream?: "upload" | "download";
+  /** An upload's media type, the one the design gives its body. */
+  readonly mediaType?: string;
 }
 
 /** The paginated-list idiom's request names, which the dxlib dialect sends as typed values. */
@@ -263,8 +267,19 @@ function dxlibQuery(query: Readonly<Record<string, string>>, list: ListNames | u
 
 /** The calls of one service, each made as its dialect serves it, with the handshakes held between them. */
 export interface Transport {
-  /** Calls an operation and answers its Response; one in an envelope answers the status and body inside it. */
+  /**
+   * Calls an operation and answers its Response; one in an envelope answers
+   * the status and body inside it, and a download answers its bytes as they
+   * arrive, plain, whatever its request travelled in.
+   */
   call(target: Target, ask?: Ask): Promise<Response>;
+  /**
+   * Streams a file to an upload operation as the request's body, a Blob
+   * read as it is sent or a stream, of the target's media type, and answers
+   * its Response. In the dxlib dialect the parameters travel as JSON in the
+   * X-Var header beside the body, where dxlib reads an upload's parameters.
+   */
+  upload(target: Target, file: Blob | ReadableStream<Uint8Array>, ask?: Ask): Promise<Response>;
 }
 
 /** The transport of a service. */
@@ -324,10 +339,13 @@ export function createTransport(settings: TransportSettings): Transport {
   }
 
   /** One sealed call: the body in the envelope, the answer opened, or the plain answer dxlib gives when it refuses the envelope. */
-  async function sealed(name: string, url: string, body: Record<string, unknown>, headers: Record<string, string>, renew: boolean): Promise<{ response: Response; refresh: boolean }> {
+  async function sealed(name: string, url: string, body: Record<string, unknown>, headers: Record<string, string>, renew: boolean, stream: boolean): Promise<{ response: Response; refresh: boolean }> {
     const keys = await holding(name, renew);
     const d = await seal(keys, [payload({}), payload(body)]);
     const response = await send(url, { method: "POST", credentials: "include", headers: { ...headers, "Content-Type": "application/json" }, body: JSON.stringify({ i: keys.index, d }) });
+    if (stream && !(response.headers.get("Content-Type") ?? "").includes("json")) {
+      return { response, refresh: false }; // the file, which leaves the envelope (ADR-145)
+    }
     const value = (await response.json().catch(() => undefined)) as Record<string, unknown> | undefined;
     if (typeof value?.d !== "string") {
       return { response: answer(response.status, value), refresh: refreshes(value) };
@@ -370,12 +388,43 @@ export function createTransport(settings: TransportSettings): Transport {
     if (target.handshake === undefined) {
       return send(url, { method: "POST", credentials: "include", headers: { ...headers, "Content-Type": "application/json" }, body: JSON.stringify(body) });
     }
-    const once = await sealed(target.handshake, url, body, headers, false);
+    const download = target.stream === "download";
+    const once = await sealed(target.handshake, url, body, headers, false, download);
     if (!once.refresh) {
       return once.response;
     }
-    return (await sealed(target.handshake, url, body, headers, true)).response;
+    return (await sealed(target.handshake, url, body, headers, true, download)).response;
   }
 
-  return { call };
+  async function upload(target: Target, file: Blob | ReadableStream<Uint8Array>, ask: Ask = {}): Promise<Response> {
+    if (target.handshake !== undefined) {
+      throw new Error(`${target.operation} streams an upload in the envelope of handshake ${target.handshake}, and an upload's body is the file, which no envelope carries (ADR-145)`);
+    }
+    const headers: Record<string, string> = { Accept: "application/json, application/problem+json", ...(ask.headers ?? {}), "Content-Type": target.mediaType ?? "application/octet-stream" };
+    let url: string;
+    if (settings.dialect === "standard") {
+      const query = new URLSearchParams(ask.query ?? {}).toString();
+      url = service + fill(target.path, ask.parameters ?? {}) + (query === "" ? "" : "?" + query);
+    } else {
+      const values: Record<string, unknown> = {};
+      for (const [name, value] of Object.entries(ask.parameters ?? {})) {
+        if (target.path.includes("{" + name + "}")) {
+          values[target.wire?.[name] ?? name] = value;
+        }
+      }
+      Object.assign(values, ask.query ?? {}, ask.body ?? {});
+      if (Object.keys(values).length > 0) {
+        headers["X-Var"] = JSON.stringify(values);
+      }
+      url = service + "/" + target.operation;
+    }
+    // A stream as a body needs half duplex; a Blob is read as it is sent and needs nothing.
+    const init: RequestInit & { duplex?: "half" } = { method: settings.dialect === "standard" ? (target.method ?? "POST") : "POST", credentials: "include", headers, body: file };
+    if (!(file instanceof Blob)) {
+      init.duplex = "half";
+    }
+    return send(url, init);
+  }
+
+  return { call, upload };
 }

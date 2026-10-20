@@ -2,6 +2,7 @@ arguments: [generate, ui, --unapproved, project]
 exitStatus: 1
 standardOutput: |
   project/specarch.yaml:1:1: error: /: generator: the ui target's settings.server.pages has a server route page a list the service answers whole, by the paginated-list idiom's standard names, and the service serves the dxlib dialect, whose lists page themselves; take settings.server.pages out [generator.f381ed7a@specarch.yaml#/]
-  project/specarch.yaml:169:13: error: /pages/note-view/source: generator: note-view loads its record from getNote, which travels in the envelope of handshake sealed, whose cipher aes-256-gcm is not dxlib's envelope (x25519, ed25519 and aes-256-cbc), the one specarch-gen-ui-typescript seals [generator@specarch.yaml#/pages/note-view/source]
+  project/specarch.yaml:180:13: error: /pages/note-raw/source: generator: note-raw loads its record from getNoteRaw, which streams a file (download), and specarch-gen-ui-typescript streams an upload only from a task page's submit and a download only from an action [generator@specarch.yaml#/pages/note-raw/source]
+  project/specarch.yaml:214:13: error: /pages/note-view/source: generator: note-view loads its record from getNote, which travels in the envelope of handshake sealed, whose cipher aes-256-gcm is not dxlib's envelope (x25519, ed25519 and aes-256-cbc), the one specarch-gen-ui-typescript seals [generator@specarch.yaml#/pages/note-view/source]
   project/specarch.yaml:1:1: warning: /: generator: the ui target's settings.server.pages names listTags, which no list page reads; its route forwards it whole [generator.ce1125de@specarch.yaml#/]
 plugins: [ui-typescript]

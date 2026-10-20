@@ -1,0 +1,50 @@
+specarch: "0.1"
+info: { title: Uploads, version: 1.0.0 }
+permissions:
+  public: { description: Open to everyone. }
+paths:
+  /attachments:
+    post:
+      operationId: uploadAttachment
+      summary: Upload an attachment
+      permission: public
+      stream: { direction: upload }
+      requestBody:
+        required: true
+        content:
+          application/octet-stream:
+            schema: { type: string, format: binary }
+      responses:
+        "200": { description: The attachment is stored. }
+  /notes:
+    post:
+      operationId: addNote
+      summary: Add a note
+      permission: public
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title: { type: string, maxLength: 120 }
+      responses:
+        "200": { description: The note is stored. }
+pages:
+  attach:
+    kind: task
+    title: Attach a file
+    route: /attach
+    permission: public
+    submit: uploadAttachment
+    onSubmitted:
+      "200": { message: The file is attached. }
+  add-note:
+    kind: task
+    title: Add a note
+    route: /notes/new
+    permission: public
+    submit: addNote
+    onSubmitted:
+      "200": { message: The note is added. }

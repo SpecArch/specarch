@@ -45,6 +45,18 @@ decisions:
       used up, the module establishes a new one and sends the request
       once more. The module imports nothing, so its tests run on Node.
 
+      The screens stream a file where a page takes one (ADR-146). A task
+      page whose submit streams an upload shows a file picker and sends
+      the file picked as the request's body, a Blob the browser reads as
+      it sends it, of the media type the design gives the body, refusing a
+      file above maxRequestBytes before it is sent; since the file is what
+      such a page takes, the validator lets that task show no field. An
+      action, on a list's row or on a view, whose operation streams a
+      download saves the file it answers under the name its
+      Content-Disposition gives; asked for in an envelope, the request is
+      sealed and the bytes come back plain. A page that loads from, reads
+      or submits a stream anywhere else is an error at the page.
+
       The generator reports as an error at the page a call in a
       handshake's envelope when no implementation file serves the dxlib
       dialect, or when the handshake's primitives are not dxlib's three,
@@ -64,6 +76,10 @@ decisions:
       encrypted call establishes a new one. The session is still read at
       its path as a plain GET, which a dxlib service may not serve; that
       is the session operation's own matter, read by settings.session.
+      A download is gathered in the browser before it is saved, since no
+      portable way streams a fetch to a file on disk, so it is held up to
+      the operation's maxResponseBytes; the transport's download answers
+      the bytes as a stream, for a page that writes them elsewhere.
     why: |
       The dialect is a fact of the service, declared once on its openapi
       target; reading it from there through the request keeps one place to

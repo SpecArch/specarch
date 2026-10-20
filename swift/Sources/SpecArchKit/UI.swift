@@ -433,7 +433,8 @@ func pageFields(_ pg: YNode) -> [YNode] {
 extension Checker {
     /// Checks that a form or a view gives its fields once, in fields or in
     /// sections, that no field is in two sections, and that a list, which
-    /// shows columns, has no sections.
+    /// shows columns, has no sections. A task that submits to an upload
+    /// stream may show no field: the file is what it takes (ADR-146).
     func checkSections(_ d: Design) {
         for p in pairs(d.root.child("pages")) {
             let name = p.key.value, pg = p.value
@@ -441,7 +442,8 @@ extension Checker {
             let secsNode = pg.child("sections")
             if kind == "form" || kind == "view" || kind == "task" {
                 let fields = pg.child("fields")
-                if fields == nil && secsNode == nil {
+                let uploads = kind == "task" && str(d.operations[str(pg.child("submit"))]?.node.child("stream")?.child("direction")) == "upload"
+                if fields == nil && secsNode == nil && !uploads {
                     add(p.key, pointer("pages", name), .page, "\(name) is a \(kind) and shows no field; give its fields, or its sections")
                 } else if fields != nil && secsNode != nil {
                     add(pg.key("sections"), pointer("pages", name, "sections"), .page, "\(name) gives both fields and sections; name its fields once, in fields or in sections")

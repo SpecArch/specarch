@@ -590,7 +590,8 @@ func pageFields(pg *yaml.Node) []*yaml.Node {
 
 // checkSections checks that a form or a view gives its fields once, in
 // fields or in sections, that no field is in two sections, and that a list,
-// which shows columns, has no sections.
+// which shows columns, has no sections. A task that submits to an upload
+// stream may show no field: the file is what it takes (ADR-146).
 func (c *checker) checkSections(d *design) {
 	for _, p := range source.Pairs(source.Child(d.root, "pages")) {
 		name, pg := p.Key.Value, p.Value
@@ -598,7 +599,7 @@ func (c *checker) checkSections(d *design) {
 		kind := source.Str(source.Child(pg, "kind"))
 		if kind == "form" || kind == "view" || kind == "task" {
 			switch fields := source.Child(pg, "fields"); {
-			case fields == nil && secs == nil:
+			case fields == nil && secs == nil && !(kind == "task" && source.Str(source.Child(source.Child(d.operations[source.Str(source.Child(pg, "submit"))].node, "stream"), "direction")) == "upload"):
 				c.add(p.Key, source.Pointer("pages", name), RulePage, "%s is a %s and shows no field; give its fields, or its sections", name, kind)
 			case fields != nil && secs != nil:
 				c.add(source.Key(pg, "sections"), source.Pointer("pages", name, "sections"), RulePage, "%s gives both fields and sections; name its fields once, in fields or in sections", name)

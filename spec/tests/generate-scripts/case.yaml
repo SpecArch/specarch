@@ -1,0 +1,8 @@
+arguments: [generate, scripts, --unapproved, project]
+exitStatus: 0
+standardOutput: |
+  project/specarch.yaml:53:14: warning: /paths/~1loans/post/guard: generator: operation openLoan: a POST makes a record from the values its caller sends, which the design does not give a script; its script is left to be written by hand [generator@specarch.yaml#/paths/~1loans/post/guard]
+  project/specarch.yaml:80:14: warning: /paths/~1loans~1{loanId}/patch/guard: generator: operation amendLoan: a PATCH changes the fields its caller sends, which the design does not give a script; its script is left to be written by hand [generator@specarch.yaml#/paths/~1loans~1{loanId}/patch/guard]
+  project/specarch.yaml:112:14: warning: /paths/~1loans~1{loanId}~1renew/post/guard: generator: operation renewLoan: it moves Loan from open to open, so a record it changed cannot be told from one it has not, and a second run would change it again; its script is left to be written by hand [generator@specarch.yaml#/paths/~1loans~1{loanId}~1renew/post/guard]
+  project/specarch.yaml:145:12: warning: /commands/purge returned/guard: generator: command purge returned: no transition of Loan names it as its trigger, so the design does not say what it writes; its script is left to be written by hand [generator@specarch.yaml#/commands/purge returned/guard]
+plugins: [scripts]

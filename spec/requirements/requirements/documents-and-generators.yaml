@@ -151,7 +151,6 @@ requirements:
     verification: test
     needs: [NEED-2, NEED-8]
     why: A project on sqlc writes its queries by hand, and most of them are the same few shapes of every entity; writing those from the design keeps them in step with the tables, and a comparison with the file written by hand shows where the two disagree before the generated one replaces it.
-  # specarch-problem: warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SA-87; add verifies: [SA-87] to the test that shows it is met [requirement_unverified@requirements/requirements/documents-and-generators.yaml#/requirements/SA-87]
   SA-87:
     statement: specarch generate scripts shall write, for each guarded operation or command whose change the design says, a script that refuses unless the guard's precondition holds on exactly the records it names, makes the change only when told to apply it, checks the exact count of records changed, and changes nothing when it is run again; every other guarded change is left to be written by hand.
     kind: functional

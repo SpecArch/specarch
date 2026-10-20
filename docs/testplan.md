@@ -2,11 +2,9 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.2-dev of the specification: 618 design tests, 288 golden and 330 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.2-dev of the specification: 621 design tests, 289 golden and 332 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
-**Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
-
-**Problem:** warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SA-87; add verifies: [SA-87] to the test that shows it is met [requirement_unverified@requirements/requirements/documents-and-generators.yaml#/requirements/SA-87]
+**Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
 **Problem:** warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SA-57; add verifies: [SA-57] to the test that shows it is met [requirement_unverified@requirements/requirements/refinement.yaml#/requirements/SA-57]
 
@@ -15,7 +13,7 @@ Version 0.7.2-dev of the specification: 618 design tests, 288 golden and 330 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 614 |
+| system | 617 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -2190,6 +2188,30 @@ Scenario: red; level: system; covers exit 1; verifies SA-20.
 - Given: a specification without open questions and without an approval record, and specarch-gen-echo on PATH
 - When: generate echo is run
 - Then: it refuses because the specification is not approved, writes nothing and exits 1
+
+#### generate-scripts
+
+Scenario: golden; level: system; verifies SA-87.
+
+- Given: a specification whose loans, audited and deleted softly, move from open or overdue to returned by returnLoan, from open to overdue by the command mark overdue and from overdue or open to open by renewLoan, each guarded; a guarded replacement and removal of a loan by its key, a guarded insert and amendment, a guarded command no transition names, and a guarded removal of a shelf another team owns; specarch-gen-scripts built from this repository on PATH
+- When: generate scripts is run with --unapproved
+- Then: it writes return-loan.sql, which changes the loan by its key from open or overdue to returned, mark-overdue.sql, which changes exactly the two open loans renewed three times, replace-loan.sql, remove-loan.sql, which sets the soft-delete flag, and cancel-hold.sql, which deletes the hold; each refuses an unset variable by name, reports a loan already changed as already applied, counts and locks the loans its condition names and refuses unless their number is recordsChanged, makes the change under the same condition, checks the count it wrote and commits only with apply true; it warns that the insert, the amendment, the renewal from open to open and the command no transition names are left to be written by hand, writes nothing for the shelves, and exits 0
+
+#### generate-scripts-dialect-refused
+
+Scenario: red; level: system; verifies SA-87.
+
+- Given: a specification with a guarded removal of a shelf by its key, whose implementation file names mariadb as the scripts target's dialect; specarch-gen-scripts built from this repository on PATH
+- When: generate scripts is run with --unapproved
+- Then: it writes nothing, reports that it writes psql scripts for PostgreSQL only, and exits 1
+
+#### generate-scripts-hand-written-refused
+
+Scenario: red; level: system; verifies SA-87.
+
+- Given: a specification with a guarded removal of a shelf by its key, and remove-shelf.sql written by hand in the scripts target's folder; specarch-gen-scripts built from this repository on PATH
+- When: generate scripts is run with --unapproved
+- Then: it leaves remove-shelf.sql as it is, writes nothing, reports that the file was not written by specarch-gen-scripts, and exits 1
 
 #### generate-skips-no-output-folder
 

@@ -4,7 +4,7 @@
 
 Version 0.7.2-dev of the specification: 5 stakeholders, 10 needs and 88 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
 
-**Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
+**Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
 ## 1. Purpose and scope
 
@@ -995,8 +995,6 @@ Acceptance criteria:
 - The script counts the records the change would write, with the key, the from states, the precondition and the soft-delete flag in its condition, and refuses unless the count is recordsChanged; the change carries the same condition, and the script refuses unless it wrote recordsChanged records and a record changed by its key holds what was written.
 - Without the variable apply set to true, the script runs every check and rolls back, saying how many records would change; a record by its key that already holds what the change writes is reported as already applied and left as it is.
 - A guarded POST, a guarded PATCH, a guarded command that triggers no transition, transitions of one trigger with two to states, a keyed change whose recordsChanged is not 1 and an entity whose key is not one field are warnings at the guard, and their scripts are left to be written by hand. A dialect other than PostgreSQL is an error at the target, and a script in the output folder that the plug-in did not write is never overwritten.
-
-**Problem:** warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SA-87; add verifies: [SA-87] to the test that shows it is met [requirement_unverified@requirements/requirements/documents-and-generators.yaml#/requirements/SA-87]
 
 **Insight:** A data change typed by hand against a live system is where a wrong condition changes a thousand records instead of one; a script written from the guard checks the state it expects, shows the change before making it and counts what it changed, so the mistake is refused rather than committed.
 

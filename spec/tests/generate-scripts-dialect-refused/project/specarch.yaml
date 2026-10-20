@@ -1,0 +1,26 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0 }
+stages: [implementation]
+stakeholders:
+  owner: { description: The product owner. }
+entities:
+  Shelf:
+    type: object
+    properties:
+      code: { type: string, maxLength: 12 }
+      label: { type: string, maxLength: 80 }
+    required: [code, label]
+    primaryKey: [code]
+permissions:
+  public: { description: Open to everyone. }
+paths:
+  /shelves/{code}:
+    parameters:
+      - { name: code, in: path, required: true, schema: { type: string, maxLength: 12 } }
+    delete:
+      operationId: removeShelf
+      summary: Remove a shelf.
+      permission: public
+      guard: { entity: Shelf, recordsChanged: 1 }
+      responses:
+        "204": { description: The shelf is removed. }

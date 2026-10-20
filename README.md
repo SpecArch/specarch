@@ -198,13 +198,15 @@ or, from a clone of this repository:
 
     go install ./cmd/specarch
 
-Code targets are plug-ins on PATH. This repository has ten:
+Code targets are plug-ins on PATH. This repository has eleven:
 `specarch-gen-openapi`, which `specarch generate openapi` runs to write the
 OpenAPI 3.1 document of a specification, `specarch-gen-sql`, which
 `specarch generate sql` runs to write its migrations in PostgreSQL, SQL
 Server, Oracle or MariaDB, `specarch-gen-sqlc`, which `specarch generate
 sqlc` runs to write the sqlc queries the design derives against those
-migrations, `specarch-gen-tests-go`, which `specarch
+migrations, `specarch-gen-scripts`, which `specarch generate scripts` runs
+to write a guarded psql script for each data change the design guards,
+`specarch-gen-tests-go`, which `specarch
 generate tests` runs to write its Go tests, `specarch-gen-tests-swift` and
 `specarch-gen-tests-dart`, which `specarch generate tests` runs instead of
 the Go one for an implementation file in Swift (Swift Testing) or in Dart
@@ -224,6 +226,7 @@ diagram, and the diagram as SVG. Install them at the same tag as
     go install github.com/SpecArch/specarch/cmd/specarch-gen-openapi@v0.7.1
     go install github.com/SpecArch/specarch/cmd/specarch-gen-sql@v0.7.1
     go install github.com/SpecArch/specarch/cmd/specarch-gen-sqlc@v0.7.1
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-scripts@v0.7.1
     go install github.com/SpecArch/specarch/cmd/specarch-gen-tests-go@v0.7.1
     go install github.com/SpecArch/specarch/cmd/specarch-gen-tests-swift@v0.7.1
     go install github.com/SpecArch/specarch/cmd/specarch-gen-tests-dart@v0.7.1

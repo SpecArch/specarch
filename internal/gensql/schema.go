@@ -110,3 +110,14 @@ func Schema(r *Request) ([]Table, string, []Diagnostic) {
 // RelRoot is the root file's path as seen from the output folder, as the
 // header of a generated file names it.
 func RelRoot(root, output string) string { return relRoot(root, output) }
+
+// Condition is an expression over an entity's fields, such as a guard's
+// precondition, in the request's dialect, written as a check constraint
+// of the entity is; when it cannot be written, the second answer says why.
+func Condition(r *Request, entity, src string) (string, string) {
+	g, failed := prepare(r)
+	if failed != nil {
+		return "", "the tables cannot be written"
+	}
+	return g.check(src, obj0(obj0(obj0(g.spec["entities"])[entity])["properties"]))
+}

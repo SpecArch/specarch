@@ -2,9 +2,9 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.7.2-dev of the specification: 88 requirements, 5 entities, 16 commands, 7 algorithms, 618 tests, 152 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.7.2-dev of the specification: 88 requirements, 5 entities, 16 commands, 7 algorithms, 621 tests, 152 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
-**Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
+**Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
 ## 1. Introduction and goals
 
@@ -423,6 +423,8 @@ flowchart LR
   package_internal_gensql["internal/gensql"]
   package_cmd_specarch_gen_sqlc["cmd/specarch-gen-sqlc, implements 1"]
   package_internal_gensqlc["internal/gensqlc"]
+  package_cmd_specarch_gen_scripts["cmd/specarch-gen-scripts, implements 1"]
+  package_internal_genscripts["internal/genscripts"]
   package_internal_ownership["internal/ownership"]
   package_internal_mark["internal/mark"]
   package_internal_typerows["internal/typerows"]
@@ -490,6 +492,10 @@ flowchart LR
   package_internal_gensqlc --> package_internal_gensql
   package_internal_gensqlc --> package_internal_mark
   package_internal_gensqlc --> package_internal_ownership
+  package_cmd_specarch_gen_scripts --> package_internal_genscripts
+  package_internal_genscripts --> package_internal_gensql
+  package_internal_genscripts --> package_internal_mark
+  package_internal_genscripts --> package_internal_ownership
   package_cmd_specarch_gen_openapi --> package_internal_genopenapi
   package_internal_genopenapi --> package_internal_mark
   package_internal_genopenapi --> package_internal_ownership
@@ -3794,9 +3800,11 @@ Stack: language Go 1.27; toolchain go 1.27.2; platforms darwin/arm64, darwin/amd
 | internal/source | Reads a YAML file into a node tree and a plain value, with the line of every node; finds unquoted dates and duplicate keys. |   |
 | internal/spec | Reads a specification from disk, the root file and the stage folders, and merges it into one document in which every node remembers its file; reports the layout problems. |   |
 | cmd/specarch-gen-sql | The plug-in behind generate sql. Reads the request on standard input, answers the migration and the snapshot on standard output, and never touches the disk. | #/commands/generate |
-| internal/gensql | The SQL migrations in four dialects, each column through the type-rendering idiom, with check expressions translated per dialect, the views after the tables, and a snapshot of the schema; an entity or view another stakeholder owns gets no statement, and the snapshot lists it as owned. Schema answers the tables and columns it writes, with their keys, constraints and listed indexes, for the queries generator and specarch check. |   |
+| internal/gensql | The SQL migrations in four dialects, each column through the type-rendering idiom, with check expressions translated per dialect, the views after the tables, and a snapshot of the schema; an entity or view another stakeholder owns gets no statement, and the snapshot lists it as owned. Schema answers the tables and columns it writes, with their keys, constraints and listed indexes, for the queries generator, the scripts generator and specarch check, and Condition writes an expression over an entity's fields, such as a guard's precondition, as a check constraint is written. |   |
 | cmd/specarch-gen-sqlc | The plug-in behind generate sqlc. Reads the request on standard input, answers the query files on standard output, and never touches the disk. | #/commands/generate |
 | internal/gensqlc | The sqlc queries the design derives, in PostgreSQL, one file per table: an insert per operation that posts an entity, a read, a replacement or an amendment by a key of one field, and a page of a list with its filters, search and sorts and the list's total, against the tables internal/gensql writes; every other query is written by hand beside them, and a file written by hand is compared, never overwritten (ADR-123). |   |
+| cmd/specarch-gen-scripts | The plug-in behind generate scripts. Reads the request on standard input, answers the script files on standard output, and never touches the disk. | #/commands/generate |
+| internal/genscripts | The guarded operational scripts the design derives, one psql script for PostgreSQL per guarded operation or command whose change a transition it triggers, a PUT of the entity by its key or a DELETE by its key says: each refuses an unset variable by name, reports a record already changed, counts and locks the records the change would write and refuses unless their number is the guard's recordsChanged, makes the change under the same condition, checks the count it wrote and commits only with apply true; every other guarded change is a warning at its guard, left to be written by hand, against the tables internal/gensql writes, with the precondition written as a check constraint is (ADR-158). |   |
 | internal/ownership | Reads the ownedBy marks of an implementation file's mappings, which every generator that builds code or data follows by leaving the owned elements out. |   |
 | internal/mark | The rule every generator plug-in places the request's problems by, at the deepest entry its output shows, a question at what it blocks and a target's own problem where the whole output is marked, and the mark's text each target writes in its comment form. |   |
 | internal/typerows | Matches a field to a row of a type rendering, for the validator and the generators alike. |   |
@@ -12480,6 +12488,9 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | generate-plugin-reports-error | command generate | system | red | a plug-in that answers an error diagnostic | generate strict is run | it prints the diagnostic, runs the plug-in again with it among the problems, writes nothing since the plug-in answers no file, and exits 1 |
 | generate-refuses-open-question | command generate | system | red | a specification with a must question that blocks an entity, and specarch-gen-echo on PATH | generate echo is run | it refuses because the question blocks what the target reads, writes nothing and exits 1 |
 | generate-refuses-unapproved | command generate | system | red | a specification without open questions and without an approval record, and specarch-gen-echo on PATH | generate echo is run | it refuses because the specification is not approved, writes nothing and exits 1 |
+| generate-scripts | command generate | system | golden | a specification whose loans, audited and deleted softly, move from open or overdue to returned by returnLoan, from open to overdue by the command mark overdue and from overdue or open to open by renewLoan, each guarded; a guarded replacement and removal of a loan by its key, a guarded insert and amendment, a guarded command no transition names, and a guarded removal of a shelf another team owns; specarch-gen-scripts built from this repository on PATH | generate scripts is run with --unapproved | it writes return-loan.sql, which changes the loan by its key from open or overdue to returned, mark-overdue.sql, which changes exactly the two open loans renewed three times, replace-loan.sql, remove-loan.sql, which sets the soft-delete flag, and cancel-hold.sql, which deletes the hold; each refuses an unset variable by name, reports a loan already changed as already applied, counts and locks the loans its condition names and refuses unless their number is recordsChanged, makes the change under the same condition, checks the count it wrote and commits only with apply true; it warns that the insert, the amendment, the renewal from open to open and the command no transition names are left to be written by hand, writes nothing for the shelves, and exits 0 |
+| generate-scripts-dialect-refused | command generate | system | red | a specification with a guarded removal of a shelf by its key, whose implementation file names mariadb as the scripts target's dialect; specarch-gen-scripts built from this repository on PATH | generate scripts is run with --unapproved | it writes nothing, reports that it writes psql scripts for PostgreSQL only, and exits 1 |
+| generate-scripts-hand-written-refused | command generate | system | red | a specification with a guarded removal of a shelf by its key, and remove-shelf.sql written by hand in the scripts target's folder; specarch-gen-scripts built from this repository on PATH | generate scripts is run with --unapproved | it leaves remove-shelf.sql as it is, writes nothing, reports that the file was not written by specarch-gen-scripts, and exits 1 |
 | generate-skips-no-output-folder | command generate | system | golden | two specifications, one whose implementation file names an output folder for openapi and one with no implementation file, and specarch-gen-openapi on PATH | generate openapi --unapproved is run on both | it warns with output_folder that the second has no openapi output, writes the first one's document, and exits 0 |
 | generate-sql | command generate | system | golden | a specification with an enum, an audited entity with soft deletion, a unique and a check constraint, an encrypted field found by hash, and a relation, an implementation file in Go whose sql target is PostgreSQL, and specarch-gen-sql built from this repository on PATH | generate sql is run with --unapproved | it writes 0001_expand.sql, each column through the type-rendering rows with the enum's check, the audit and deleted columns, the hash column the unique constraint is on, the translated check and the foreign key, and snapshot.yaml beside it, and exits 0 |
 | generate-sql-0-3-rows | command generate | system | golden | a specification on 0.3 with a caller of two properties, two roles whose rows rules limit Loan, one by the member's identifier and one by the organisation and a boolean field, and a third role holding loans.read with no rule; an implementation file in Go with a PostgreSQL sql target that maps one caller property to its own expression and one role to its own database role; specarch-gen-sql built from this repository on PATH | generate sql is run with --unapproved | it writes 0001_expand.sql with the loans table, row security enabled and not forced, so that the owner reaches every row, and one policy per role: the rules with the mapped property read as mapped and the other from the setting named after it, an empty setting read as NULL, and the role with no rule under a policy holding for every row, so that it reaches the table whole; the mapped role under its database role and the other under its own name with underscores; writes the snapshot with the policies, and exits 0 |
@@ -13075,8 +13086,6 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 
 **Insight on SA-71:** A project on sqlc writes its queries by hand, and most of them are the same few shapes of every entity; writing those from the design keeps them in step with the tables, and a comparison with the file written by hand shows where the two disagree before the generated one replaces it.
 
-**Problem on SA-87:** warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SA-87; add verifies: [SA-87] to the test that shows it is met [requirement_unverified@requirements/requirements/documents-and-generators.yaml#/requirements/SA-87]
-
 **Insight on SA-87:** A data change typed by hand against a live system is where a wrong condition changes a thousand records instead of one; a script written from the guard checks the state it expects, shows the change before making it and counts what it changed, so the mistake is refused rather than committed.
 
 **Insight on SA-90:** The people who use a system and the people who run it read a manual and an operations guide, not a technical specification; written by hand both drift from the pages and the procedures, and written from the specification they show early what a page asks of a person, which is where a change request starts.
@@ -13241,7 +13250,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-84 | enums Rule | tests derive-0-3-tokens; tests document-techspec-0-3-tokens; tests generate-openapi-0-3-tokens; tests validate-0-3-claims; tests validate-0-3-security-events; tests validate-0-3-token-audience; tests validate-0-3-tokens; tests validate-0-3-tokens-valid; tests validate-0-3-txn-token; tests validate-0-3-via |
 | SA-85 | commands decide; decisions ADR-155; decisions ADR-156 | tests decide-needs-source; tests decide-removes-questions-file; tests decide-unknown-question; tests decide-unknown-source; tests decide-unknown-stakeholder; tests decide-usage-error; tests decide-writes-decision; tests document-problems-lists |
 | SA-86 | enums DocumentTarget; commands document; decisions ADR-157 | tests document-writes-comparison; tests document-writes-comparison-citation-without-source |
-| SA-87 | decisions ADR-158 |   |
+| SA-87 | decisions ADR-158 | tests generate-scripts; tests generate-scripts-dialect-refused; tests generate-scripts-hand-written-refused |
 | SA-88 | enums Rule | tests document-techspec-caller-estate; tests gaps-caller-alone; tests validate-caller-chain-gap; tests validate-caller-chain-wrong; tests validate-caller-estate; tests validate-caller-estate-wrong |
 | SA-89 | decisions ADR-159 | tests extract-go-caller-checks; tests extract-permissions-client-through |
 | SA-90 | enums DocumentTarget; decisions ADR-160 | tests document-manual-none; tests document-operations-none; tests document-writes-manual; tests document-writes-operations; tests validate-remedy-and-response |

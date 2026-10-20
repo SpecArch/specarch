@@ -1,0 +1,5 @@
+arguments: [generate, scripts, --unapproved, project]
+exitStatus: 1
+standardOutput: |
+  project/specarch.yaml:1:1: error: /: generator: remove-shelf.sql is in the output folder and was not written by specarch-gen-scripts, so it is left as it is and nothing is written; compare it with generate --check, move it, or delete it to have it generated [generator@specarch.yaml#/]
+plugins: [scripts]

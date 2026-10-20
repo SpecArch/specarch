@@ -119,7 +119,7 @@ layout:
     implements: ["#/commands/generate"]
     dependsOn: [internal/gensql]
   internal/gensql:
-    description: The SQL migrations in four dialects, each column through the type-rendering idiom, with check expressions translated per dialect, the views after the tables, and a snapshot of the schema; an entity or view another stakeholder owns gets no statement, and the snapshot lists it as owned. Schema answers the tables and columns it writes, with their keys, constraints and listed indexes, for the queries generator and specarch check.
+    description: The SQL migrations in four dialects, each column through the type-rendering idiom, with check expressions translated per dialect, the views after the tables, and a snapshot of the schema; an entity or view another stakeholder owns gets no statement, and the snapshot lists it as owned. Schema answers the tables and columns it writes, with their keys, constraints and listed indexes, for the queries generator, the scripts generator and specarch check, and Condition writes an expression over an entity's fields, such as a guard's precondition, as a check constraint is written.
     dependsOn: [internal/expr, internal/mark, internal/ownership, internal/typerows]
   cmd/specarch-gen-sqlc:
     description: The plug-in behind generate sqlc. Reads the request on standard input, answers the query files on standard output, and never touches the disk.
@@ -127,6 +127,13 @@ layout:
     dependsOn: [internal/gensqlc]
   internal/gensqlc:
     description: "The sqlc queries the design derives, in PostgreSQL, one file per table: an insert per operation that posts an entity, a read, a replacement or an amendment by a key of one field, and a page of a list with its filters, search and sorts and the list's total, against the tables internal/gensql writes; every other query is written by hand beside them, and a file written by hand is compared, never overwritten (ADR-123)."
+    dependsOn: [internal/gensql, internal/mark, internal/ownership]
+  cmd/specarch-gen-scripts:
+    description: The plug-in behind generate scripts. Reads the request on standard input, answers the script files on standard output, and never touches the disk.
+    implements: ["#/commands/generate"]
+    dependsOn: [internal/genscripts]
+  internal/genscripts:
+    description: "The guarded operational scripts the design derives, one psql script for PostgreSQL per guarded operation or command whose change a transition it triggers, a PUT of the entity by its key or a DELETE by its key says: each refuses an unset variable by name, reports a record already changed, counts and locks the records the change would write and refuses unless their number is the guard's recordsChanged, makes the change under the same condition, checks the count it wrote and commits only with apply true; every other guarded change is a warning at its guard, left to be written by hand, against the tables internal/gensql writes, with the precondition written as a check constraint is (ADR-158)."
     dependsOn: [internal/gensql, internal/mark, internal/ownership]
   internal/ownership:
     description: Reads the ownedBy marks of an implementation file's mappings, which every generator that builds code or data follows by leaving the owned elements out.

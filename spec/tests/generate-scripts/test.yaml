@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: generate
+level: system
+scenario: golden
+given: "a specification whose loans, audited and deleted softly, move from open or overdue to returned by returnLoan, from open to overdue by the command mark overdue and from overdue or open to open by renewLoan, each guarded; a guarded replacement and removal of a loan by its key, a guarded insert and amendment, a guarded command no transition names, and a guarded removal of a shelf another team owns; specarch-gen-scripts built from this repository on PATH"
+when: "generate scripts is run with --unapproved"
+then: "it writes return-loan.sql, which changes the loan by its key from open or overdue to returned, mark-overdue.sql, which changes exactly the two open loans renewed three times, replace-loan.sql, remove-loan.sql, which sets the soft-delete flag, and cancel-hold.sql, which deletes the hold; each refuses an unset variable by name, reports a loan already changed as already applied, counts and locks the loans its condition names and refuses unless their number is recordsChanged, makes the change under the same condition, checks the count it wrote and commits only with apply true; it warns that the insert, the amendment, the renewal from open to open and the command no transition names are left to be written by hand, writes nothing for the shelves, and exits 0"
+verifies: [SA-87]

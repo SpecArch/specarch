@@ -75,7 +75,7 @@ func (g *Gen) ThemeParts(names map[string]map[string]string) Theme {
 	modes := obj0(theme["modes"])
 	for _, m := range sortedKeys(modes) {
 		if m != "dark" {
-			g.Problem("warning", "/theme/modes/"+m, "the mode %s has no media query of its own on the %s, and %s writes the dark mode only; it is left out", m, g.Profile.Platform, g.Profile.Name)
+			g.Problem("warning", "/theme/modes/"+m, "the mode %s %s, and %s writes the dark mode only; it is left out", m, g.Profile.OtherMode, g.Profile.Name)
 		}
 	}
 	// valueIn is a token's value in a mode, an alias read through.

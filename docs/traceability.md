@@ -110,7 +110,7 @@ Version 0.7.2-dev of the specification: 10 needs, 78 requirements, and 4 gaps. E
 | SA-75 | NEED-1, NEED-3, NEED-9 | decisions ADR-141 |   |
 | SA-76 | NEED-8 | decisions ADR-142; decisions ADR-143 |   |
 | SA-77 | NEED-1, NEED-2, NEED-3 | enums Rule; decisions ADR-145; decisions ADR-146 | tests document-techspec-envelope-stream; tests extract-go-dxlib-envelope-stream; tests generate-go-dxlib-envelope-stream; tests generate-openapi-dxlib-envelope-stream; tests validate-handshake; tests validate-stream |
-| SA-78 | NEED-2 | decisions ADR-147 | tests generate-framework-plugin |
+| SA-78 | NEED-2 | decisions ADR-147 | tests generate-framework-plugin; tests generate-ui-swiftui |
 
 ## 3. Gaps
 

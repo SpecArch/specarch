@@ -1,0 +1,42 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v0.7.1/schema/specarch-implementation-0.1.schema.json
+specarchImplementation: "0.1"
+
+info:
+  title: Library Lending's iPhone screens in Swift on SwiftUI
+  version: 0.1.0
+  description: |
+    The librarians' and members' screens as a SwiftUI app. It is a
+    deliverable of its own beside the service and the web screens, so it
+    has its own implementation file; the package around the generated
+    screens (Package.swift, the app, where it sets the service's URL) is
+    written by hand in examples/library-lending/ios.
+
+implements:
+  file: ../../specarch.yaml
+  version: 0.1.0
+
+stack:
+  language: { name: Swift, version: "6.0" }
+  toolchain: { name: swift, version: "6.0" }
+
+targets:
+  ui:
+    output: ../../../ios
+    platform: iphone
+    description: |
+      The pages as schema files and thin views under Sources/Screens/Pages,
+      the components that read the schemas under Sources/Screens/Screens,
+      the routes as one enum, every text in Strings.swift in English and
+      in Indonesian from strings.id.json, which the project writes, and
+      the theme as Theme.swift. The app calls the service directly at the
+      URL it sets at launch.
+    settings:
+      language: en
+      translations: [id]
+      tokens: { text: color.text, background: color.background, accent: color.accent, link: color.link, danger: color.danger, border: color.border }
+      session: { operation: getSession, signedIn: signedIn, permissions: permissions, signIn: sign-in }
+      hooks: { loan-form: [lentOn] }
+
+tasks:
+  build: { run: swift build --package-path ios, ci: true }
+  test: { run: swift test --package-path ios, ci: true }

@@ -147,6 +147,11 @@ layout:
     implements: ["#/commands/generate"]
   internal/genuits:
     description: The task, list and form pages and the views for the web on Next.js and Carbon, read through internal/genscreens, with child rows, actions that run an operation after a confirmation and its reason, forms that start an approval and inboxes, each a schema of data and a thin page.tsx, a client file that hands on the hooks a project writes, the guard and the menu from one decision, the derived tests, the components that read the schemas, the strings in every language the settings name with the check that each key has an entry, the server routes that forward the operations the pages call with the session's token, and the theme over Carbon's through the design-tokens idiom, drawn through the ui-components idiom's names.
+  cmd/specarch-gen-ui-swiftui:
+    description: The plug-in behind generate ui for a ui target of platform iphone in an implementation file in Swift. Reads the request on standard input, answers the screens on standard output, and never touches the disk.
+    implements: ["#/commands/generate"]
+  internal/genswiftui:
+    description: "The task pages for the iPhone in SwiftUI, read through internal/genscreens: each a schema of data, one Swift literal typed by its component's schema type, and a thin view; the components that read the schemas on SwiftUI alone, the routes as one enum the app's navigation stack follows, the application with the session and the menu, the strings in every language the settings name, and the theme through the design-tokens idiom, written into a Swift package the project writes the Package.swift of."
   internal/genscreens:
     description: "The screens both UI generators that write a page as data read, keyed by the ui-components idiom's names for the generator's framework, the project's override first: the task, list and form pages and the views with their routes, hooks and permission, the session the target's settings name, the menu, the translations the settings name, the theme's colours through the design-tokens idiom, the problems each reports, the draft notice and the problem marks, and the refusal of a file in the output folder the plug-in did not write; a generator gives its profile, its name, platform, framework and language, and writes the pages in its stack's files."
   internal/literal:

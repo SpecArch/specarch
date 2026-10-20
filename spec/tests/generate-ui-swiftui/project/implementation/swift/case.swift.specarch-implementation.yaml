@@ -1,0 +1,19 @@
+specarchImplementation: "0.1"
+info: { title: Case in Swift, version: 1.0.0 }
+implements: { file: ../../specarch.yaml, version: 1.0.0 }
+stack: { language: { name: Swift, version: "6.0" } }
+mappings:
+  "#/menus/admin": { target: the administration's own menu, ownedBy: administration }
+  "#/paths/~1sessions/post": { target: the administration's own sign-in route, ownedBy: administration }
+targets:
+  ui:
+    output: ../../../ios
+    platform: iphone
+    settings:
+      language: en
+      module: Screens
+      session: { operation: getSession, signedIn: open, permissions: granted, signIn: sign-in }
+      hooks: { member-form: [joinedOn] }
+      layouts: { member-form: tabs }
+      translations: [en-GB]
+      tokens: { text: color.text, background: color.background, accent: color.accent, link: color.link, space: space.small }

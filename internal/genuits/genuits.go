@@ -77,7 +77,7 @@ func anyMap(m map[string]string) map[string]any {
 // Generate writes the screens of a request.
 func Generate(r *Request) genui.Response {
 	g := &gen{}
-	g.Gen = genscreens.New(r, genscreens.Profile{Name: name, Platform: "web", Framework: framework, Language: "TypeScript", Where: "the browser", PagedByServer: g.pagedByServer})
+	g.Gen = genscreens.New(r, genscreens.Profile{Name: name, Platform: "web", Framework: framework, Language: "TypeScript", Where: "the browser", OtherMode: "has no media query of its own on the web", PagedByServer: g.pagedByServer})
 	g.schemaFile = text(obj0(obj0(obj0(g.Impl.Content["bindings"])["ui"]))["schemaFile"])
 	if g.schemaFile == "" {
 		g.schemaFile = "page.schema.ts"

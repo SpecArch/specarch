@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.2-dev of the specification: 530 design tests, 239 golden and 291 red, about 16 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.2-dev of the specification: 531 design tests, 240 golden and 291 red, about 16 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 4 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -19,7 +19,7 @@ Version 0.7.2-dev of the specification: 530 design tests, 239 golden and 291 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 526 |
+| system | 527 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -2080,6 +2080,14 @@ Scenario: golden; level: system; verifies SA-43.
 - Given: a specification with a list page that filters by an enum, keeps one column on a compact screen, declares its empty, filtered empty and failed states, runs an operation on a row with a message and no confirmation, and a theme of two colours; an implementation file whose ui target is platform web in plain-javascript; and specarch-gen-ui built from this repository on PATH
 - When: generate ui is run with --unapproved
 - Then: it writes the page's HTML and module, events.js with the page's and the operation's events, and theme.css with the tokens as custom properties and the rules the target's token settings name, and exits 0
+
+#### generate-ui-swiftui
+
+Scenario: golden; level: system; verifies SA-78.
+
+- Given: the specification of the generate-ui-typescript case, with two task pages, lists, forms, views, two menus and a theme with a dark mode, a print mode and a dimension; one implementation file in Swift with a ui target of platform iphone and no framework, its output a package folder, the session's operation in its settings, a hook and tabs for the registration form, a translation into en-GB whose file in the package keeps an entry no screen uses, its theme's parts mapped to tokens with a space among them, and the administration menu and the sign-in operation owned by another stakeholder; and specarch-gen-ui-swiftui built from this repository on PATH
+- When: generate ui is run with --unapproved
+- Then: it runs the plug-in once; it writes the two task pages, each a schema of data as one Swift literal and a view that hands it to the task page component with the routes its events lead to, Routes.swift with a case per page written and per page an event leads to, Application.swift with the session, the sign-in page and the menu without the owned one and with the entry that opens a task page, the menu's derived test, the components under Screens, the texts in Strings.swift with the en-GB translation, and Theme.swift with the parts' colours in light and dark; it warns that each list, form and view is left out with the menu entries that open them, that the field with no title is labelled by its name, that the translation's unused entries, the print mode and the space are left out, and exits 0
 
 #### generate-ui-typescript
 

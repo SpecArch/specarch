@@ -782,6 +782,40 @@ handshake's envelope or streams a file is an error at the page, since a
 plain `fetch` would send JSON the service refuses (ADR-145, ADR-146); the
 handshake in the screens is a roadmap item (`docs/roadmap.md`).
 
+### SwiftUI for the iPhone
+
+`specarch-gen-ui-swiftui` writes, for a `ui` target of platform `iphone`
+and framework `swiftui` (the platform's default) in an implementation
+file in Swift, the same pages as data into a Swift package the project
+writes the `Package.swift` of, under the module `settings.module` names
+(`Screens` when none); `docs/ui-swiftui.md` is its design, ADR-147 the
+decision, and the pages are read through `internal/genscreens`, as the
+TypeScript generator reads them, so both accept and refuse the same
+design. Each page is `Sources/<module>/Pages/<Page>Schema.swift`, one
+`let` of the part's schema type whose labels are the `ui-components`
+idiom's names for `swiftui`, nested values as `.init`, dictionaries as
+Swift dictionaries and rules as `Rule` literals, and
+`Pages/<Page>View.swift`, the view that hands the schema to the part's
+component with the routes its events lead to. `Routes.swift` is one
+`Route` enum of every page written and every page an event leads to,
+with the parameters of its route as associated values, and the view
+each case opens, which the app's `NavigationStack` follows;
+`Application.swift` holds how the session is read, the page that signs
+in and the menu; `Strings.swift` every text in every language, the
+chosen one kept under a key in the app's defaults; `Theme.swift` a
+`Color` per part through the `design-tokens` idiom. The components are
+written once under `Screens/`, on SwiftUI and Foundation alone. The
+page sign-in was asked for from is kept by the router, so there is no
+`returnTo` to check. `settings.server` is refused, since an app calls
+the service directly at the URL it sets; a file is compared byte for
+byte, and one built by hand without the header, as every generated file
+is. This version writes the task pages; the lists, forms and views are
+reported and left out, and come with the next steps of
+`docs/ui-swiftui.md`. The reference is the library lending example's
+sign-in and second-factor screens, written by hand first
+(`examples/library-lending/ios`), which `generate --check` reports as
+matching but for the header.
+
 ## Tests from the specification
 
 The specification says what is tested; the implementation file says with

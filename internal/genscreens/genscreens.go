@@ -76,6 +76,10 @@ type Profile struct {
 	// ComparesDecimals is true when the screens compare a decimal exactly,
 	// so a rule may order one; the browser cannot.
 	ComparesDecimals bool
+	// OtherMode says, in a message, why a theme mode other than dark is
+	// left out on this platform, after "the mode <name> ": on the web, it
+	// has no media query of its own.
+	OtherMode string
 	// PagedByServer answers whether a server the generator writes pages an
 	// operation that does not page itself, with the page size and maximum
 	// it pages at; nil for a generator that writes no server.

@@ -42,6 +42,14 @@ parts:
           parts' colours, and under prefers-color-scheme: dark the dark
           theme's map merged with the dark mode's. The application's own
           styles use it after Carbon's, so its custom properties win.
+      swiftui:
+        names: { light: light, dark: dark }
+        code: |
+          The generator writes Theme.swift in the target's output: a Color
+          per token below, each the light mode's colour or, where the
+          system asks for dark, the dark mode's, read through the colour
+          scheme of the environment. The app sets the accent as its tint
+          and draws its own views with the rest.
   tokens:
     description: The library's theme token each part of the theme takes, a name per token with the part it takes.
     stack:

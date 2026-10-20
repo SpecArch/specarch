@@ -820,6 +820,18 @@ a `confirm`, since it asks none; the second runs after its confirmation,
 sending the reason it names as the only property of its body.
 `onSelect` opens its page from the row's first column.
 
+Every name the schemas read from a record or send goes on the wire by
+`info.wireNames` (ADR-062), as the plain JavaScript screens' do: under
+`snake_case` the fields of the columns, filters, rows, views, forms,
+pickers, checks, conditions, refusals and events, the session's
+properties and the paginated-list idiom's names, `page_size` and
+`total_items` among them, are the snake_case names `generate openapi`
+writes. A filter by a query parameter is sent under the parameter's own
+name, and a route's parameters keep theirs, since neither is mapped. In
+the dxlib dialect the idiom's names are dxlib's own, as the idiom writes
+them (ADR-164). The same holds for the SwiftUI screens, which read the
+pages through the same package.
+
 `application.ts` holds the menu and how the session is read:
 `settings.session` names the operation that answers who is signed in, the
 boolean and the list of permissions in its answer, and the page that

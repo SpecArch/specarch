@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.3-dev of the specification: 645 design tests, 305 golden and 340 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.3-dev of the specification: 647 design tests, 307 golden and 340 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.7.3-dev of the specification: 645 design tests, 305 golden and 340 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 641 |
+| system | 643 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -2573,6 +2573,14 @@ Scenario: red; level: system; verifies SA-78.
 - When: generate ui is run with --unapproved
 - Then: it reports the module's name and the server under the settings, the two hooks and the layout, the integer field at the page's field, the addition at the check's expression and the 201 at the page's onSubmitted, the required field left out at the form, the calls at the checks' expressions, the page opened at the action's then, the confirmation at the row's action, the rows at each child row, the group and the parameter at the menu's entries, and the dropped placeholder and the missing key under the settings, each marked at its entry, writes the files it could make with each problem marked at its place, and exits 1; a view that orders a decimal is not refused, since the app compares one exactly
 
+#### generate-ui-swiftui-wire-names
+
+Scenario: golden; level: system; verifies SA-49, SA-78.
+
+- Given: a specification whose info.wireNames is snake_case and whose fields are named in camelCase, the generate-ui-wire-names case's with an operation that answers the session: a list with a column of each, a filter by a query parameter and one by a field its listOf makes filterable, a row that opens a view and an operation on a row that takes its path parameter from the row and sends the reason its body takes; a view whose fields include a value of parts, hidden while the record's status says so; a form that loads its record, sends its fields and a value of parts, checks a field and locks another by the record, fills a field from a picker that searches a list, shows a refusal beside its field and opens the view from the answer's field; an implementation file in Swift whose ui target is platform iphone, with the session in its settings; and specarch-gen-ui-swiftui built from this repository on PATH
+- When: generate ui is run with --unapproved
+- Then: the schemas name every field the screens read from a record or send by its snake_case name on the wire: the columns, the row's key and path parameter, the reason, the filters' fields, the filterable field's filter, the view's places and the parts of its value, the condition, the form's fields, what it sends, its check, the picker's value, shown fields and fills, the refusal's field and the field the next page's parameter comes from; the session's properties are read mapped; the paginated-list idiom's names, the list's and the picker's, are mapped too, page_size and total_items as generate openapi writes them; the filter by the query parameter is sent under the parameter's own name, shelfName, and the routes' parameters keep theirs; and it exits 0
+
 #### generate-ui-typescript
 
 Scenario: golden; level: system; verifies SA-52, SA-53, SA-54, SA-55, SA-56.
@@ -2644,6 +2652,14 @@ Scenario: red; level: system; verifies SA-54.
 - Given: a specification whose member holds an address, a contact whose one part is a moment of format date-time, and a tree kept as JSON whose nodes hold a list of nodes; a list of members with the address as a column; a form that shows the address, the contact and the tree, asks for the address twice and edits visits as rows whose one field holds an address; an implementation file in TypeScript whose ui target is nextjs-carbon and whose settings give the address a hook; and specarch-gen-ui-typescript built from this repository on PATH
 - When: generate ui is run with --unapproved
 - Then: it refuses, each at its entry, the value among a row's fields, the hook and the second entry on the address, the contact's part of format date-time by its path, the tree's children as the schema met again inside itself, and the address as a column; writes the files it can as a draft, with these errors marked in application.ts, and exits 1
+
+#### generate-ui-typescript-wire-names
+
+Scenario: golden; level: system; verifies SA-49, SA-53.
+
+- Given: a specification whose info.wireNames is snake_case and whose fields are named in camelCase, the generate-ui-wire-names case's with an operation that answers the session: a list with a column of each, a filter by a query parameter and one by a field its listOf makes filterable, a row that opens a view and an operation on a row that takes its path parameter from the row and sends the reason its body takes; a view whose fields include a value of parts, hidden while the record's status says so; a form that loads its record, sends its fields and a value of parts, checks a field and locks another by the record, fills a field from a picker that searches a list, shows a refusal beside its field and opens the view from the answer's field; an implementation file in TypeScript whose ui target is platform web on nextjs-carbon, with the session and server routes in its settings; and specarch-gen-ui-typescript built from this repository on PATH
+- When: generate ui is run with --unapproved
+- Then: the schemas name every field the screens read from a record or send by its snake_case name on the wire: the columns, the row's key and path parameter, the reason, the filters' fields, the filterable field's filter, the view's places and the parts of its value, the condition, the form's fields, what it sends, its check, the picker's value, shown fields and fills, the refusal's field and the field the next page's parameter comes from; the session's properties are read mapped; the paginated-list idiom's names, the list's and the picker's, are mapped too, page_size and total_items as generate openapi writes them, in the server routes' settings as well; the filter by the query parameter is sent under the parameter's own name, shelfName, and the routes' parameters keep theirs; and it exits 0
 
 #### generate-ui-view
 
@@ -5243,7 +5259,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-384 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+386 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -5350,6 +5366,7 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-53 | acceptance 5 | golden | SA-53 names no harm |
 | requirement SA-53 | acceptance 6 | golden | SA-53 names no harm |
 | requirement SA-53 | acceptance 7 | golden | SA-53 names no harm |
+| requirement SA-53 | acceptance 8 | golden | SA-53 names no harm |
 | requirement SA-54 | acceptance 1 | golden | SA-54 names no harm |
 | requirement SA-54 | acceptance 2 | golden | SA-54 names no harm |
 | requirement SA-54 | acceptance 3 | golden | SA-54 names no harm |
@@ -5436,6 +5453,7 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-78 | acceptance 3 | golden | SA-78 names no harm |
 | requirement SA-78 | acceptance 4 | golden | SA-78 names no harm |
 | requirement SA-78 | acceptance 5 | golden | SA-78 names no harm |
+| requirement SA-78 | acceptance 6 | golden | SA-78 names no harm |
 | requirement SA-82 | acceptance 1 | golden | SA-82 names no harm |
 | requirement SA-82 | acceptance 2 | golden | SA-82 names no harm |
 | requirement SA-82 | acceptance 3 | golden | SA-82 names no harm |

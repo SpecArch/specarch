@@ -79,8 +79,9 @@ func (g *Gen) ReadSession() *Session {
 }
 
 // ListNames are the paginated-list idiom's names on the wire: its dxlib
-// names when the service serves the dxlib dialect, its names for any stack
-// otherwise.
+// names, as the idiom writes them, when the service serves the dxlib
+// dialect (ADR-164); its names for any stack otherwise, mapped by the
+// wire-name rule as a body's properties are (ADR-062).
 func (g *Gen) ListNames() map[string]string {
 	stacks := []string{"any"}
 	if g.Dialect == "dxlib" {
@@ -97,6 +98,9 @@ func (g *Gen) ListNames() map[string]string {
 					for k, v := range obj0(obj0(obj0(obj0(obj0(src["parts"])[part])["stack"])[stack])["names"]) {
 						if _, ok := out[k]; !ok {
 							out[k] = text(v)
+							if g.Dialect != "dxlib" {
+								out[k] = wirename.Of(g.WireNames, text(v))
+							}
 						}
 					}
 				}
@@ -238,7 +242,8 @@ func (g *Gen) ListPage(pageName string, pg map[string]any, sess *Session) (*Page
 		var query string
 		switch {
 		case params[f]:
-			query = wire(f)
+			// A parameter's own name is not mapped (ADR-062).
+			query = f
 		case filterable[f] && wireNames["filter"] != "":
 			query = wireNames["filter"] + "[" + wire(f) + "]"
 		default:

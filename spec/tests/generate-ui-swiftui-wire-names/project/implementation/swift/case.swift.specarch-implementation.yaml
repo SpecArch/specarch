@@ -1,0 +1,13 @@
+specarchImplementation: "0.1"
+info: { title: Case in Swift, version: 1.0.0 }
+implements: { file: ../../specarch.yaml, version: 1.0.0 }
+stack: { language: { name: Swift, version: "6.0" } }
+targets:
+  ui:
+    output: ../../../ios
+    platform: iphone
+    settings:
+      language: en
+      session: { operation: getSession, signedIn: signedIn, permissions: grantedPermissions }
+      module: Screens
+      tokens: { text: color.ink, background: color.paper }

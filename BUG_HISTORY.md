@@ -582,3 +582,17 @@ Expected: every deployment with links or listens has its links, ports and networ
 To repeat: copy `examples/library-lending/spec`, delete the `infrastructure` block of the production deployment in `implementation/go/library-lending.go.specarch-implementation.yaml`, and run `specarch document handover --out out spec`. `out/handover.md` has no "allowed connections" sentence and no port 5671, where the example's own handover has both.
 
 Fix: "What the hosts must provide" lists every deployment with an `infrastructure`, `links` or `listens` (`hostNeeds` in `internal/generate/handover.go`), each with its links, ports and network diagram first and its infrastructure table when it has one. A deployment the customer runs without `infrastructure` is still a `handover` error. The case `document-handover-links-without-infrastructure` pins it.
+
+## BUG-050 — generate ui (Next.js and SwiftUI): a query parameter's filter and the paginated-list idiom's names disagree with generate openapi under wireNames
+
+- Reported: 2026-10-21, found while fixing BUG-036 for the plain JavaScript screens
+- Closed: 2026-10-21, completed
+- Fixed by: the commit on `main` whose message says `Fixes BUG-050`
+
+`internal/genscreens`, which `specarch-gen-ui-typescript` and `specarch-gen-ui-swiftui` share, maps the fields its pages read and send by `info.wireNames`, but on two names it disagrees with ADR-062 in the standard dialect. A filter by a declared query parameter is sent under the field's wire name, so a parameter `shelfName` is sent as `shelf_name`, while `generate openapi` declares `shelfName`. The paginated-list idiom's names are not mapped, so the screens ask for `pageSize` and read `totalItems`, while `generate openapi` writes `page_size` and `total_items`. The service ignores the filter and the paging, and nothing is reported.
+
+Expected: a parameter keeps its own name and the idiom's names go on the wire by the rule, as `generate openapi` and the plain JavaScript screens have them.
+
+To repeat: give the ui target of `spec/tests/generate-ui-wire-names` platform `web` on `nextjs-carbon` with a session, run `specarch generate ui --unapproved`, and read `app/books/page.schema.ts`: the filter's `query` is `"shelf_name"` and `wire.pageSize` is `"pageSize"`.
+
+Fix: `ListNames` maps the idiom's names for any stack through `internal/wirename`, and keeps the dxlib dialect's names as the idiom writes them (ADR-164); a filter by a query parameter is sent under the parameter's own name. The picker's page size and the Next.js server routes' paging read the same names. The cases `generate-ui-typescript-wire-names` and `generate-ui-swiftui-wire-names` pin it.

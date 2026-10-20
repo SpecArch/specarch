@@ -12814,7 +12814,7 @@ the identity module declares trustDomain, the module's own first:
 "it is refused as not allowed, and the security event through
 (medium), https://estate.example.org/events/through, is written".
 validate, derive, the documents' cases left out and the problems
-target read the cases so in both builds. A module checked alone,
+target read the cases so; validate does in both builds. A module checked alone,
 without the identity module, accepts a test that covers a through
 case of a role of the identity module named so, as waiting for that
 module, as a reference into it waits.

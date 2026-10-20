@@ -4,18 +4,26 @@
 
 Version 0.7.2-dev of the specification has no open question: nothing it says waits on a decision or on material from a stakeholder.
 
-## 1. Outputs
+## 1. Errors
+
+The specification has 1 error, so it is invalid: the questions below are those of what could be read, and nothing is ready until the errors are fixed. Each line gives the file, line and column, the pointer, the rule and how to fix it.
+
+```text
+../spec/requirements/requirements/refinement.yaml:164:3: error: /requirements/SA-78: duplicate_key: SA-78 is already defined in spec/requirements/requirements/design-keywords.yaml on line 429; a name is defined once in the whole specification [duplicate_key@requirements/requirements/refinement.yaml#/requirements/SA-78]
+```
+
+## 2. Outputs
 
 What can be made from the specification now. A document is a draft while a must or should question blocks what it reads, or an error is in it; code generation waits for those questions, for every error to be fixed, and for the approval.
 
 | Output | State | Waits on |
 |---|---|---|
-| techspec document | ready | |
-| requirements document | ready | |
-| testplan document | ready | |
-| traceability document | ready | |
+| techspec document | draft | 1 error |
+| requirements document | draft | 1 error |
+| testplan document | draft | 1 error |
+| traceability document | draft | 1 error |
 | deployment document | ready | |
 | commissioning document | ready | |
-| html document | ready | |
-| code generation | waits | not approved: there is no records/approvals/0.7.2-dev.yaml beside the specification |
+| html document | draft | 1 error |
+| code generation | waits | 1 error; not approved: there is no records/approvals/0.7.2-dev.yaml beside the specification |
 

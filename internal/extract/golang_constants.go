@@ -12,9 +12,10 @@ import (
 // A package-level string constant and a package-level list, as the route
 // reader resolves them (ADR-143). A constant of a string type is a
 // compile-time value, so Go gives it as surely as a literal; a list is a
-// var, which Go lets any statement change, so it is read only when no
-// statement of its package assigns to its name, appends to it or takes
-// its address.
+// var, which Go lets any statement of the module change, in its own
+// package by its name and in another through the import, so it is read
+// only when no statement of the module assigns to it, appends to it or
+// takes its address.
 
 // goConst is one package-level constant: the file that declares it and
 // its value expression, read as a string when the expression is one.
@@ -34,7 +35,7 @@ type goList struct {
 
 // collectPackageValues records, per folder, every package-level constant
 // and every package-level var whose value is a composite literal, then
-// scans each folder's files for the statements that change a var.
+// scans every file of the module for the statements that change a var.
 func (g *goReader) collectPackageValues() {
 	for _, f := range g.files {
 		dir := path.Dir(f.path)
@@ -87,31 +88,41 @@ func (g *goReader) collectPackageValues() {
 			}
 		}
 	}
-	for dir, lists := range g.lists {
-		for _, f := range g.files {
-			if path.Dir(f.path) != dir {
-				continue
-			}
-			g.scanListChanges(f, lists)
-		}
+	if len(g.lists) == 0 {
+		return
+	}
+	for _, f := range g.files {
+		g.scanListChanges(f)
 	}
 }
 
-// scanListChanges marks each list of a folder that a statement of the
-// file assigns to, declares again, appends to or takes the address of,
-// with the first such place; a name declared again in a function counts,
-// since the reader does not resolve which declaration a use names.
-func (g *goReader) scanListChanges(f *goFile, lists map[string]*goList) {
-	stop := func(name string, pos gotoken.Pos, what string) {
-		if l := lists[name]; l != nil && l.stopped == "" && l.lit != nil {
+// scanListChanges marks each list that a statement of the file assigns
+// to, declares again, appends to or takes the address of, with the first
+// such place: a list of the file's own package by its name, one of
+// another package of the module through the import name the file gives
+// it. A name declared again in a function counts, since the reader does
+// not resolve which declaration a use names.
+func (g *goReader) scanListChanges(f *goFile) {
+	own := path.Dir(f.path)
+	stop := func(dir, name string, pos gotoken.Pos, what string) {
+		if l := g.lists[dir][name]; l != nil && l.stopped == "" && l.lit != nil {
 			l.stopped = fmt.Sprintf("is a package-level list %s at %s", what, g.clause(f, pos))
 		}
 	}
-	target := func(e ast.Expr) (string, bool) {
+	// target is the folder and name of the package-level list an
+	// expression changes, through an index, a slice or parentheses.
+	target := func(e ast.Expr) (string, string, bool) {
 		for {
 			switch x := e.(type) {
 			case *ast.Ident:
-				return x.Name, true
+				return own, x.Name, true
+			case *ast.SelectorExpr:
+				if id, ok := x.X.(*ast.Ident); ok {
+					if dir := g.dirOf(f.imports[id.Name]); dir != "" {
+						return dir, x.Sel.Name, true
+					}
+				}
+				return "", "", false
 			case *ast.IndexExpr:
 				e = x.X
 			case *ast.SliceExpr:
@@ -119,7 +130,7 @@ func (g *goReader) scanListChanges(f *goFile, lists map[string]*goList) {
 			case *ast.ParenExpr:
 				e = x.X
 			default:
-				return "", false
+				return "", "", false
 			}
 		}
 	}
@@ -140,38 +151,38 @@ func (g *goReader) scanListChanges(f *goFile, lists map[string]*goList) {
 			switch n := n.(type) {
 			case *ast.AssignStmt:
 				for _, lhs := range n.Lhs {
-					if name, ok := target(lhs); ok {
+					if dir, name, ok := target(lhs); ok {
 						what := "assigned again"
 						if n.Tok == gotoken.DEFINE {
 							what = "declared again"
 						}
-						stop(name, n.Pos(), what)
+						stop(dir, name, n.Pos(), what)
 					}
 				}
 			case *ast.RangeStmt:
 				if n.Tok == gotoken.ASSIGN {
 					for _, e := range []ast.Expr{n.Key, n.Value} {
 						if e != nil {
-							if name, ok := target(e); ok {
-								stop(name, n.Pos(), "assigned again")
+							if dir, name, ok := target(e); ok {
+								stop(dir, name, n.Pos(), "assigned again")
 							}
 						}
 					}
 				}
 			case *ast.IncDecStmt:
-				if name, ok := target(n.X); ok {
-					stop(name, n.Pos(), "assigned again")
+				if dir, name, ok := target(n.X); ok {
+					stop(dir, name, n.Pos(), "assigned again")
 				}
 			case *ast.CallExpr:
 				if id, ok := n.Fun.(*ast.Ident); ok && id.Name == "append" && len(n.Args) > 0 {
-					if name, ok := target(n.Args[0]); ok {
-						stop(name, n.Pos(), "appended to")
+					if dir, name, ok := target(n.Args[0]); ok {
+						stop(dir, name, n.Pos(), "appended to")
 					}
 				}
 			case *ast.UnaryExpr:
 				if n.Op == gotoken.AND {
-					if name, ok := target(n.X); ok {
-						stop(name, n.Pos(), "whose address is taken")
+					if dir, name, ok := target(n.X); ok {
+						stop(dir, name, n.Pos(), "whose address is taken")
 					}
 				}
 			case *ast.ValueSpec:
@@ -179,7 +190,7 @@ func (g *goReader) scanListChanges(f *goFile, lists map[string]*goList) {
 				// not resolve which declaration a use names.
 				if _, inFunc := d.(*ast.FuncDecl); inFunc {
 					for _, id := range n.Names {
-						stop(id.Name, n.Pos(), "declared again")
+						stop(own, id.Name, n.Pos(), "declared again")
 					}
 				}
 			}

@@ -4,7 +4,7 @@
 
 Version 0.7.2-dev of the specification: 5 stakeholders, 10 needs and 83 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
 
-**Problems:** 3 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
+**Problems:** The specification has 1 error, so it is invalid, and this document shows what could be read of it. 1 error and 4 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
 ## 1. Purpose and scope
 
@@ -120,7 +120,7 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | SA-57 | functional | should | proposed | Every output SpecArch generates shall name the element of the specification it came from, and a remark made at the user acceptance test shall be recorded as a change request or a defect that names the build it is about, where it was seen, what was observed and what was expected, and why the result was not what was wanted, and shall enter the specification as a decision, a question or a rejection, with what it reaches listed before anything changes. |
 | SA-64 | functional | must | accepted | specarch extract documents shall read a document in any language whose words a vocabulary gives, the English one SpecArch ships or a project's file, write the language on the source, and give for it the elements it gives for the same document in English; specarch merge shall read a number of days in a requirement by the vocabulary of its source's language. |
 | SA-72 | functional | should | accepted | specarch check shall compare a specification with the route tables, permission tables and catalogue dumps of its code, read by the readers of specarch extract, print every difference as a problem at its entry, and exit 1 on a difference the allowlist does not name or a line of the allowlist that names none. |
-| SA-76 | functional | should | proposed | specarch extract gateway shall read a gateway table the project's printer wrote from what the gateway loads into a gateway with its forwards, dependencies and settings, asking for what the table does not say; specarch check shall compare a specification's gateways with it; and specarch extract go shall read a route whose path is a package-level constant or whose method list is a package-level list assigned once as it reads a literal one, and shall ask a must question at every fallback handler and catch-all route. |
+| SA-76 | functional | should | proposed | specarch extract gateway shall read a gateway table the project's printer wrote from what the gateway loads into a gateway with its forwards, dependencies and settings, asking for what the table does not say; and specarch check shall compare a specification's gateways with it. |
 | SA-1 | functional | must | accepted | specarch validate shall check every specification and implementation file given against the JSON Schema of its kind and meta-model version. |
 | SA-2 | functional | must | accepted | Every reference inside a specification shall resolve to an object of the right kind in the same specification, wherever its file is in the tree. |
 | SA-3 | functional | must | accepted | Every check constraint, condition of a unique constraint and formula shall parse and type-check in the fixed expression language. |
@@ -726,6 +726,8 @@ Acceptance criteria:
 - Each list, form and view that needs a permission gets a derived test under Tests/<module>Tests that it is refused to someone signed in without it, sends someone signed out to sign in and opens to someone who holds it, and the menu a test that no entry shows without the permission of the page it opens, in Swift Testing.
 - The library lending example's generated package builds with swift build and passes swift test on a Mac, and generated over its sign-in and second-factor screens written by hand it differs only by the header.
 
+**Problem:** error: duplicate_key: SA-78 is already defined in spec/requirements/requirements/design-keywords.yaml on line 429; a name is defined once in the whole specification [duplicate_key@requirements/requirements/refinement.yaml#/requirements/SA-78]
+
 **Insight:** The iPhone is the platform the owner's own apps are built for, and a screen written by hand there drifts from the design as one on the web does; the roadmap names SwiftUI the default for the iPhone, and the same pages drawn twice from one specification are the check that the design, not a stack, holds the screens.
 
 ### SA-82
@@ -1265,7 +1267,7 @@ Acceptance criteria:
 
 ### SA-76
 
-specarch extract gateway shall read a gateway table the project's printer wrote from what the gateway loads into a gateway with its forwards, dependencies and settings, asking for what the table does not say; specarch check shall compare a specification's gateways with it; and specarch extract go shall read a route whose path is a package-level constant or whose method list is a package-level list assigned once as it reads a literal one, and shall ask a must question at every fallback handler and catch-all route.
+specarch extract gateway shall read a gateway table the project's printer wrote from what the gateway loads into a gateway with its forwards, dependencies and settings, asking for what the table does not say; and specarch check shall compare a specification's gateways with it.
 
 Kind: functional; priority: should; status: proposed; verified by test; refines NEED-8.
 
@@ -1273,10 +1275,11 @@ Acceptance criteria:
 
 - extract gateway on a table with two rows writes the gateway with its claim and two forwards, two dependencies of kind system with their protocol from the addresses, two settings, and must questions for the gateway's description and token and for each dependency's description and timeout, byte-identical twice; a table with a repeated value or a key the format lacks is refused with the reason; with --implementation-out and an environment it writes that deployment's servers with name, url and dependency.
 - check reports a forward only the specification holds as forward_not_served, one only the table holds as forward_not_specified and a claim that differs as claim_differs, each an error the allowlist may name.
-- extract go writes a route registered with Match on a package-level list of method constants and a path from a package-level constant, in the same package or another of the module, as it writes one with a literal list and path, and asks the must question naming the line for a list assigned in a second place.
-- extract go asks a must question at a NoRoute, NoMethod, NotFound, MethodNotAllowed or NotFoundHandler registration and at a route whose path ends in a catch-all, each counted as a registration, blocking the design stage until the gateways section exists and gateways after; merge leaves it out when a gateway table's tree answers it.
+- merge leaves the fallback question of SA-78 out when a gateway table's tree answers it.
 
-**Insight:** The table a gateway forwards by was readable by nothing, a route registered through the module's own constants was a question where the code was plain, and a handler that takes every unmatched request was dropped with no question, which is the one thing a reader may never do.
+**Problem:** warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SA-76; add verifies: [SA-76] to the test that shows it is met [requirement_unverified@requirements/requirements/refinement.yaml#/requirements/SA-76]
+
+**Insight:** The table a gateway forwards by was readable by nothing, and a gateway no check compares with its table drifts as every other part of a specification nobody compares with its code does.
 
 ### SA-1
 

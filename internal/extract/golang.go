@@ -1417,6 +1417,8 @@ func exprText(e ast.Expr) string {
 		return "*" + exprText(e.X)
 	case *ast.ParenExpr:
 		return exprText(e.X)
+	case *ast.IndexExpr:
+		return exprText(e.X) + "[" + exprText(e.Index) + "]"
 	case *ast.StructType:
 		return "a struct type"
 	case *ast.MapType:

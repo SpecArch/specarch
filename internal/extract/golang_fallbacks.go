@@ -12,8 +12,9 @@ import (
 // NotFoundHandler and MethodNotAllowedHandler, echo's HTTPErrorHandler
 // and a ServeMux pattern of / alone with no method are where a gateway
 // lives in each library, and where a plain 404 lives too; a route whose
-// path ends in a catch-all is the other way the same thing is written.
-// The reader cannot tell which, so each is a must question blocking the
+// path ends in a catch-all, or gorilla/mux's PathPrefix given a handler
+// that is no router, is the other way the same thing is written. The
+// reader cannot tell which, so each is a must question blocking the
 // design stage, counted as a registration, in place of silence or a line.
 
 // fallbackWhy is the why of every question at a fallback handler.
@@ -52,7 +53,11 @@ func (sc *routeScope) fallbackCall(recv *routerNode, call *ast.CallExpr, name st
 		return true
 	}
 	sc.g.citeFile(sc.file)
-	sc.askFallback(sc.g.clause(sc.file, call.Pos()), name, "registers", sc.handlerText(call.Args[len(call.Args)-1]), takes)
+	clause := sc.g.clause(sc.file, call.Pos())
+	if sc.branched(clause) {
+		return true
+	}
+	sc.askFallback(clause, name, "registers", sc.handlerText(call.Args[len(call.Args)-1]), takes)
 	return true
 }
 
@@ -63,17 +68,15 @@ func (sc *routeScope) handlerText(h ast.Expr) string {
 	return exprText(h)
 }
 
-// fallbackAssign reads an assignment to a field of a router a name holds
-// that sets its fallback handler, and says whether it was one.
+// fallbackAssign reads an assignment to a field of a router that sets
+// its fallback handler, the router held in a name or in a field of a
+// struct of the module as eval reads one, and says whether it was one.
 func (sc *routeScope) fallbackAssign(n *ast.AssignStmt) bool {
 	if len(n.Lhs) != 1 || len(n.Rhs) != 1 || n.Tok != gotoken.ASSIGN {
 		return false
 	}
 	sel, ok := n.Lhs[0].(*ast.SelectorExpr)
 	if !ok {
-		return false
-	}
-	if _, ok := sel.X.(*ast.Ident); !ok {
 		return false
 	}
 	recv := sc.eval(sel.X)
@@ -89,6 +92,9 @@ func (sc *routeScope) fallbackAssign(n *ast.AssignStmt) bool {
 		return true
 	}
 	sc.g.citeFile(sc.file)
+	if sc.branched(clause) {
+		return true
+	}
 	sc.askFallback(clause, sel.Sel.Name, "sets", sc.handlerText(n.Rhs[0]), takes)
 	return true
 }
@@ -111,8 +117,9 @@ func (sc *routeScope) askRootPattern(clause string, handler ast.Expr) {
 
 // catchAllSegment is the prefix before, and the segment that is, a
 // catch-all in a route's path as each library writes one: gin's and
-// echo's *name, a ServeMux {name...}, chi's and gorilla/mux's * at the
-// end; ok is false for a path with none.
+// echo's *name, a ServeMux {name...}, chi's * at the end; ok is false
+// for a path with none. gorilla/mux has no catch-all segment: its
+// catch-all is PathPrefix given a handler, which gorilla reads.
 func catchAllSegment(lib, p string) (prefix, segment string, ok bool) {
 	segs := strings.Split(p, "/")
 	for i, s := range segs {
@@ -122,7 +129,7 @@ func catchAllSegment(lib, p string) (prefix, segment string, ok bool) {
 			hit = strings.HasPrefix(s, "*")
 		case "net/http":
 			hit = strings.HasSuffix(s, "...}")
-		default: // chi and gorilla/mux
+		case "chi":
 			hit = s == "*" || strings.HasSuffix(s, "*")
 		}
 		if hit {
@@ -140,6 +147,15 @@ func (sc *routeScope) catchAll(recv *routerNode, clause, p string, methods []str
 	if !ok {
 		return false
 	}
+	sc.askCatchAll(recv, clause, pre, "the rest of the path matched by "+seg, methods, p)
+	return true
+}
+
+// askCatchAll asks what the handler of a catch-all answers or forwards:
+// a route under the prefix pre of the router's place whose rest the
+// catch-all `by` matches, registered for the methods, every method when
+// none is named; `p` is the path or prefix as the code writes it.
+func (sc *routeScope) askCatchAll(recv *routerNode, clause, pre, by string, methods []string, p string) {
 	g := sc.g
 	under := pre
 	if place, unknown := recv.place(); unknown == "" {
@@ -152,7 +168,6 @@ func (sc *routeScope) catchAll(recv *routerNode, clause, p string, methods []str
 	if len(methods) > 0 {
 		what = strings.Join(methods, ", ")
 	}
-	g.question("must", fmt.Sprintf("%s registers %s under %s with the rest of the path matched by %s, a catch-all that takes every request under the prefix. What does its handler answer or forward, and by which claim of the token does it pick the service?", clause, what, under, seg),
+	g.question("must", fmt.Sprintf("%s registers %s under %s with %s, a catch-all that takes every request under the prefix. What does its handler answer or forward, and by which claim of the token does it pick the service?", clause, what, under, by),
 		fallbackStage, catchAllWhy, g.at(clause, fmt.Sprintf("Registers %s %s.", what, p)))
-	return true
 }

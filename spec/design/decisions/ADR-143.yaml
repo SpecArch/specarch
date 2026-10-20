@@ -23,9 +23,10 @@ decisions:
       by +. A package-level var is read as a literal list only when the
       syntax shows it never changes: its value is a composite literal of
       string literals, string constants or net/http method constants, and
-      no statement of the package assigns to the name, appends to it or
-      takes its address, by the test the reader applies to a name a call
-      bound once. Any other name stays the must question it is, and the
+      no statement of the module assigns to the name, in its own package
+      or in another through the import, appends to it or takes its
+      address, by the test the reader applies to a name a call bound
+      once. Any other name stays the must question it is, and the
       question says what stopped the reader: the second assignment and
       its line, or the value that is not a list. The rule holds wherever
       a literal path or method list is read: Match, gin's and echo's
@@ -36,16 +37,23 @@ decisions:
       gorilla/mux's NotFoundHandler and MethodNotAllowedHandler, echo's
       HTTPErrorHandler and a ServeMux pattern of / alone with no method
       are each a must question citing the call, or the assignment where the
-      library's fallback is a field, asking what the handler answers or
-      forwards and by which claim, and are counted as registrations. The
+      library's fallback is a field, on a router a name holds or a struct
+      of the module keeps in a field, asking what the handler answers or
+      forwards and by which claim, and are counted as registrations; one
+      in a loop or behind a condition asks the question every
+      registration there asks. The
       question blocks the stage design until the element exists, since
       the validator refuses a blocks entry that is no section of the
       schema, and is written in the design folder's questions file beside
       the tree's other design questions, where question_stage wants a
       question about that stage; it blocks gateways once ADR-141's item
-      has added the section. A route whose path ends in a catch-all,
-      which prints a line today, is the same must question, naming the
-      prefix and the methods, in place of the line. A gateway table
+      has added the section. A route whose path ends in a catch-all is
+      the same must question, naming the prefix and the methods, in place
+      of a line; so is gorilla/mux's PathPrefix given a handler that is
+      no router, its catch-all, since gorilla/mux has no catch-all
+      segment, while PathPrefix given a router of the module mounts it
+      under no prefix, as a ServeMux pattern of / does, since gorilla/mux
+      hands the whole path on. A gateway table
       answers the question in the merge (ADR-142); an answer that the
       handler answers a problem document is a decision that closes it
       with nothing written.
@@ -56,9 +64,9 @@ decisions:
       found through the import today, so a constant is found the same
       way. Go has no constant lists, so a method list named by a
       package-level name is always a var, which the reader may read only
-      when nothing in the package can change it, and syntax can show that
-      for a whole package where it cannot for a value from outside the
-      module. A name that fails the test stays a question, since a value
+      when nothing in the module can change it, and syntax can show that
+      for a whole module, every file of it read, where it cannot for a
+      value from outside the module. A name that fails the test stays a question, since a value
       assigned twice is a guess, and the question names the line so the
       owner sees why.
 
@@ -87,4 +95,4 @@ decisions:
       docs/reading-code.md and step 15 of docs/extraction.md say so; a
       test with the fixture listed in BUG-028; BUG-028 and
       BUG-029 move to BUG_HISTORY.md with the fixing commit.
-    satisfies: [SA-76]
+    satisfies: [SA-78]

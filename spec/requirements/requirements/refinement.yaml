@@ -148,16 +148,27 @@ requirements:
     verification: test
     needs: [NEED-1, NEED-8]
     why: A specification nobody compares with its code drifts and is then read by nobody; a gate that fails on every old difference is switched off, and one whose allowlist may grow lets the drift back in.
+  # specarch-problem: warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SA-76; add verifies: [SA-76] to the test that shows it is met [requirement_unverified@requirements/requirements/refinement.yaml#/requirements/SA-76]
   SA-76:
-    statement: specarch extract gateway shall read a gateway table the project's printer wrote from what the gateway loads into a gateway with its forwards, dependencies and settings, asking for what the table does not say; specarch check shall compare a specification's gateways with it; and specarch extract go shall read a route whose path is a package-level constant or whose method list is a package-level list assigned once as it reads a literal one, and shall ask a must question at every fallback handler and catch-all route.
+    statement: specarch extract gateway shall read a gateway table the project's printer wrote from what the gateway loads into a gateway with its forwards, dependencies and settings, asking for what the table does not say; and specarch check shall compare a specification's gateways with it.
     kind: functional
     priority: should
     status: proposed
     acceptance:
       - extract gateway on a table with two rows writes the gateway with its claim and two forwards, two dependencies of kind system with their protocol from the addresses, two settings, and must questions for the gateway's description and token and for each dependency's description and timeout, byte-identical twice; a table with a repeated value or a key the format lacks is refused with the reason; with --implementation-out and an environment it writes that deployment's servers with name, url and dependency.
       - check reports a forward only the specification holds as forward_not_served, one only the table holds as forward_not_specified and a claim that differs as claim_differs, each an error the allowlist may name.
-      - extract go writes a route registered with Match on a package-level list of method constants and a path from a package-level constant, in the same package or another of the module, as it writes one with a literal list and path, and asks the must question naming the line for a list assigned in a second place.
-      - extract go asks a must question at a NoRoute, NoMethod, NotFound, MethodNotAllowed or NotFoundHandler registration and at a route whose path ends in a catch-all, each counted as a registration, blocking the design stage until the gateways section exists and gateways after; merge leaves it out when a gateway table's tree answers it.
+      - merge leaves the fallback question of SA-78 out when a gateway table's tree answers it.
     verification: test
     needs: [NEED-8]
-    why: The table a gateway forwards by was readable by nothing, a route registered through the module's own constants was a question where the code was plain, and a handler that takes every unmatched request was dropped with no question, which is the one thing a reader may never do.
+    why: The table a gateway forwards by was readable by nothing, and a gateway no check compares with its table drifts as every other part of a specification nobody compares with its code does.
+  SA-78:
+    statement: specarch extract go shall read a route whose path is a package-level constant of the module or whose method list is a package-level list no statement of the module changes as it reads a literal one, and shall ask a must question at every fallback handler and catch-all route, in place of silence or a line.
+    kind: functional
+    priority: should
+    status: accepted
+    acceptance:
+      - extract go writes a route registered with Match on a package-level list of method constants and a path from a package-level constant, in the same package or another of the module, as it writes one with a literal list and path, and asks the must question naming the line for a list assigned, appended to or declared again in a second place, in its own package or in another package of the module through the import.
+      - extract go asks a must question at a NoRoute, NoMethod, NotFound or MethodNotAllowed registration, at a NotFoundHandler, MethodNotAllowedHandler or HTTPErrorHandler field set on a router a name holds or a struct of the module keeps in a field, at a ServeMux pattern of / with no method given a handler that is no router, at a route whose path ends in a catch-all and at gorilla/mux's PathPrefix given a handler that is no router, each counted as a registration and blocking the design stage until the gateways section exists and gateways after; a fallback in a loop or behind a condition asks the question every registration there asks.
+    verification: test
+    needs: [NEED-8]
+    why: A route registered through the module's own constants was a question where the code was plain, and a handler that takes every unmatched request was dropped with no question, which is the one thing a reader may never do.

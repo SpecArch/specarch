@@ -481,8 +481,9 @@ found today, and so a constant written as literals and constants joined
 by `+`. A package-level `var` is not fixed, so it is read as a literal
 list only when the syntax shows it never changes: its value is a
 composite literal of string literals, string constants or `net/http`
-method constants, and no statement of the package assigns to the name,
-appends to it or takes its address, by the same test the reader applies
+method constants, and no statement of the module assigns to the name, in
+its own package or in another through the import, appends to it or takes
+its address, by the same test the reader applies
 to a name a call bound once. Any other name stays the must question it
 is, and the question now says what stopped the reader: the second
 assignment and its line, or the value that is not a list. Go has no
@@ -500,7 +501,8 @@ and `MethodNotAllowed`, gorilla/mux's `NotFoundHandler` and
 pattern of `/` alone with no method are where a gateway lives in each
 library, and where a plain 404 lives too; the reader cannot tell which,
 so each is a must question citing the call, or the assignment where the
-library's fallback is a field, asking what the handler answers or
+library's fallback is a field, on a router a name holds or a struct of
+the module keeps in a field, asking what the handler answers or
 forwards and by which claim, counted as a registration so that it shows
 in the coverage. The question blocks the stage `design` until the
 element exists, because the validator refuses a `blocks` entry that is
@@ -510,10 +512,13 @@ no section of the schema (`question_block`), and is written in
 extracted tree lists the stages `requirements` and `design`; both
 checked with the 0.7.0 build. It blocks `gateways` once the element's
 item has added the section, which is when a table can answer it. A route whose path ends
-in a catch-all (`/*path`, `{path...}`, chi's `/*`), which prints a line
-today, is the other way a gateway is written, under a prefix with `Any`
-or `Match`; it is the same must question, naming the prefix and the
-methods, in place of the line. Once the question blocks `gateways`, the
+in a catch-all (`/*path`, `{path...}`, chi's `/*`), or gorilla/mux's
+`PathPrefix` given a handler that is no router, since gorilla/mux has no
+catch-all segment, is the other way a gateway is written, under a prefix
+with `Any` or `Match`; it is the same must question, naming the prefix
+and the methods, in place of a line. `PathPrefix` given a router of the
+module mounts it under no prefix, as a `ServeMux` pattern of `/` does,
+since gorilla/mux hands the whole path on. Once the question blocks `gateways`, the
 gateway table answers it in the merge (ADR-142), and an answer that the
 handler answers a problem document is a decision that closes it with
 nothing written.
@@ -609,7 +614,7 @@ and 4 (ADR-134's `kind` and `protocol` on a dependency, ADR-136's
 table stays in `extract outline` and under `gaps` as a surface not
 read, which is the right record.
 
-1. **The Go reader's constants and fallbacks** (ADR-143, BUG-028,
+1. **The Go reader's constants and fallbacks** (ADR-143, SA-78, BUG-028,
    BUG-029). The two rules of section 3 in `internal/extract`, the walk
    paragraph of `spec/design/commands/extract.yaml`, the Go table of
    `docs/reading-code.md` and step 15 of `docs/extraction.md`, a test

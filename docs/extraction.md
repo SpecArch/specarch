@@ -492,13 +492,14 @@ changes `extract.yaml` first.
     `Handle` method is read as a `ServeMux`, so a route printer's
     recorder is one. Each route registered with literal values, a
     package-level string constant of the module or a package-level
-    method list no statement of its package changes among them
+    method list no statement of the module changes among them
     (ADR-143), outside a loop or a condition is an operation named as
     extract router names one; a fallback handler (gin's `NoRoute` and
     `NoMethod`, chi's `NotFound` and `MethodNotAllowed`, gorilla/mux's
     and echo's fallback fields, a `ServeMux` pattern of `/` with no
-    method) and a route whose path ends in a catch-all are each a must
-    question blocking the design stage, counted as a registration, in
+    method) and a route whose path ends in a catch-all, gorilla/mux's
+    `PathPrefix` given a handler that is no router among them, are each
+    a must question blocking the design stage, counted as a registration, in
     place of silence or a line (ADR-143); handlers give the path
     parameters they read, the JSON body they
     decode into a struct of the module or a struct type written in place

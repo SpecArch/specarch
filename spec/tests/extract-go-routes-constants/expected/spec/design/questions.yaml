@@ -29,16 +29,16 @@ questions:
     why: A method computed at run time is a guess for syntax; an operation is never written from a guess.
     cites:
       - {source: code, clause: 'more.go:34', says: 'Calls Match with methods fromCall, which is a package-level var whose value is not a literal list.'}
-  # specarch-problem: question: open_question: (must, decision) more.go:35 registers a route with Match on methods mixed, which is a package-level list holding an expression, which is not a method literal, a string constant or a net/http method constant. Which methods and path does it register? It blocks paths. Decided by system-owner. Answer with a decision record that names Q-4 under answers. [Q-4]
+  # specarch-problem: question: open_question: (must, decision) more.go:35 registers a route with Match on methods mixed, which is a package-level list holding os.Args[0], which is not a method literal, a string constant or a net/http method constant. Which methods and path does it register? It blocks paths. Decided by system-owner. Answer with a decision record that names Q-4 under answers. [Q-4]
   Q-4:
-    question: more.go:35 registers a route with Match on methods mixed, which is a package-level list holding an expression, which is not a method literal, a string constant or a net/http method constant. Which methods and path does it register?
+    question: more.go:35 registers a route with Match on methods mixed, which is a package-level list holding os.Args[0], which is not a method literal, a string constant or a net/http method constant. Which methods and path does it register?
     kind: decision
     priority: must
     blocks: [paths]
     decidedBy: system-owner
     why: A method computed at run time is a guess for syntax; an operation is never written from a guess.
     cites:
-      - {source: code, clause: 'more.go:35', says: 'Calls Match with methods mixed, which is a package-level list holding an expression, which is not a method literal, a string constant or a net/http method constant.'}
+      - {source: code, clause: 'more.go:35', says: 'Calls Match with methods mixed, which is a package-level list holding os.Args[0], which is not a method literal, a string constant or a net/http method constant.'}
   # specarch-problem: question: open_question: (must, decision) more.go:37 registers a route whose path shadowed the reader does not read as a literal. Which method and path does it register? It blocks paths. Decided by system-owner. Answer with a decision record that names Q-5 under answers. [Q-5]
   Q-5:
     question: more.go:37 registers a route whose path shadowed the reader does not read as a literal. Which method and path does it register?

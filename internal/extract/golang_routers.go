@@ -1245,9 +1245,21 @@ func (sc *routeScope) subrouter(call *ast.CallExpr) *routerNode {
 				sc.prefix(child, c.Args[0], "PathPrefix")
 			}
 		case "Methods":
+			// A method is a literal, a net/http constant or a package-level
+			// constant, and a list spread into Methods a package-level list
+			// assigned once, as gorilla reads a route's (ADR-143).
 			child.methods = nil
-			for _, a := range c.Args {
-				m, ok := sc.g.methodValue(sc.file, a)
+			args := c.Args
+			if c.Ellipsis.IsValid() && len(args) == 1 {
+				list, why := sc.methodList(args[0])
+				if why != "" {
+					child.unknown = fmt.Sprintf("%s: Methods is given %s, which %s", sc.g.clause(sc.file, args[0].Pos()), exprText(args[0]), why)
+					break
+				}
+				args = list
+			}
+			for _, a := range args {
+				m, ok := sc.methodValue(a)
 				if !ok {
 					child.unknown = fmt.Sprintf("%s: Methods is given %s, which is not a literal method", sc.g.clause(sc.file, a.Pos()), exprText(a))
 					break
@@ -1450,8 +1462,11 @@ func (sc *routeScope) call(call *ast.CallExpr) bool {
 	return true
 }
 
-// mount places a router under another's prefix: chi's Mount, or a
-// ServeMux pattern that ends in a slash and hands the request to a router.
+// mount places a router under another's prefix: chi's Mount, a ServeMux
+// pattern that ends in a slash and hands the request to a router, or
+// gorilla/mux's PathPrefix given a router. Mount strips the prefix;
+// Handle and PathPrefix hand the whole path on, so the router is placed
+// under no prefix but http.StripPrefix's.
 func (sc *routeScope) mount(recv *routerNode, call *ast.CallExpr, prefix, h ast.Expr, how string) {
 	g := sc.g
 	clause := g.clause(sc.file, call.Pos())
@@ -1482,7 +1497,7 @@ func (sc *routeScope) mount(recv *routerNode, call *ast.CallExpr, prefix, h ast.
 	}
 	target.mounted = clause
 	target.parent = recv
-	if how == "Handle" {
+	if how == "Handle" || how == "PathPrefix" {
 		target.prefix = strip
 		if strip != "" {
 			if p, why := g.routePath(recv.lib, strip); why == "" {
@@ -1512,7 +1527,11 @@ func (g *goReader) gorillaEnd(name string) bool {
 }
 
 // gorilla reads one gorilla/mux route: HandleFunc(path, h).Methods(...), or
-// Path(path).Methods(...).HandlerFunc(h), with any of them in any order.
+// Path(path).Methods(...).HandlerFunc(h), with any of them in any order;
+// and PathPrefix(prefix).Handler(h), gorilla/mux's catch-all, which
+// mounts a router of the module under no prefix, since gorilla/mux
+// strips nothing from the path it hands on, and is the catch-all
+// question for any other handler (ADR-143).
 func (sc *routeScope) gorilla(recv *routerNode, chain []*ast.CallExpr) {
 	g := sc.g
 	clause := g.clause(sc.file, chain[0].Pos())
@@ -1520,7 +1539,7 @@ func (sc *routeScope) gorilla(recv *routerNode, chain []*ast.CallExpr) {
 		return
 	}
 	sc.g.citeFile(sc.file)
-	var pathExpr, handler ast.Expr
+	var pathExpr, prefixExpr, handler ast.Expr
 	var methods []ast.Expr
 	methodsSet := false
 	other := ""
@@ -1534,6 +1553,10 @@ func (sc *routeScope) gorilla(recv *routerNode, chain []*ast.CallExpr) {
 		case "Path":
 			if len(c.Args) == 1 {
 				pathExpr = c.Args[0]
+			}
+		case "PathPrefix":
+			if len(c.Args) == 1 {
+				prefixExpr = c.Args[0]
 			}
 		case "HandlerFunc", "Handler":
 			if len(c.Args) == 1 {
@@ -1555,8 +1578,23 @@ func (sc *routeScope) gorilla(recv *routerNode, chain []*ast.CallExpr) {
 			other = s.Sel.Name
 		}
 	}
-	if pathExpr == nil || handler == nil {
+	if pathExpr == nil && prefixExpr != nil && handler != nil {
+		sc.gorillaPrefix(recv, chain[0], clause, prefixExpr, handler, methods, methodsSet, other)
 		return
+	}
+	if pathExpr == nil || handler == nil {
+		// A route built in more than one statement, Path here and its
+		// handler through a variable, is read as syntax shows it in one.
+		missing := "handler"
+		if pathExpr == nil {
+			missing = "path"
+		}
+		g.question("must", fmt.Sprintf("%s registers a route whose chain names no %s the reader reads. Which method, path and handler does it register?", clause, missing),
+			[]string{"paths"}, "A route built in more than one statement is read as syntax shows it in one; an operation is never written from a guess.", g.at(clause, "Registers a route with no "+missing+" in its chain."))
+		return
+	}
+	if prefixExpr != nil && other == "" {
+		other = "PathPrefix"
 	}
 	if other != "" {
 		p := exprText(pathExpr)
@@ -1577,6 +1615,53 @@ func (sc *routeScope) gorilla(recv *routerNode, chain []*ast.CallExpr) {
 		return
 	}
 	sc.record(recv, chain[0], clause, methods, pathExpr, handler, nil)
+}
+
+// gorillaPrefix reads gorilla/mux's PathPrefix(prefix) given a handler
+// and no Path: a router of the module is mounted under no prefix, with
+// http.StripPrefix's prefix when it wraps the router, since gorilla/mux
+// hands the whole path on; any other handler takes every request under
+// the prefix, so it is the catch-all question naming the prefix and the
+// methods.
+func (sc *routeScope) gorillaPrefix(recv *routerNode, call *ast.CallExpr, clause string, prefixExpr, handler ast.Expr, methods []ast.Expr, methodsSet bool, other string) {
+	g := sc.g
+	target, _ := sc.unwrap(handler)
+	if c, ok := target.(*ast.CallExpr); ok && len(c.Args) == 2 {
+		if s, ok := c.Fun.(*ast.SelectorExpr); ok && exprText(s) == sc.netHTTP()+".StripPrefix" {
+			target = c.Args[1]
+		}
+	}
+	if !methodsSet && other == "" && sc.eval(target) != nil {
+		sc.mount(recv, call, prefixExpr, handler, "PathPrefix")
+		return
+	}
+	if sc.branched(clause) {
+		return
+	}
+	p, ok := sc.stringValue(prefixExpr)
+	if !ok {
+		sc.unread(clause, "prefix "+exprText(prefixExpr))
+		return
+	}
+	if other != "" {
+		g.notHeld = append(g.notHeld, notHeld{text: fmt.Sprintf("%s: the route under %s matches by %s as well as by method and path, which the meta-model does not hold; left out", clause, p, other), clause: clause, blocks: []string{"paths"}})
+		return
+	}
+	if !methodsSet && recv.methods != nil {
+		for _, m := range recv.methods {
+			methods = append(methods, &ast.BasicLit{Kind: gotoken.STRING, Value: strconv.Quote(m), ValuePos: call.Pos()})
+		}
+	}
+	var list []string
+	for _, m := range methods {
+		v, ok := sc.methodValue(m)
+		if !ok {
+			sc.unread(clause, "method "+exprText(m))
+			return
+		}
+		list = append(list, strings.ToUpper(v))
+	}
+	sc.askCatchAll(recv, clause, p, "the rest of the path matched by PathPrefix", list, "under PathPrefix "+p)
 }
 
 // register reads a registration call on a router of a library the reader

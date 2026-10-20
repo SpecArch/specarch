@@ -954,16 +954,30 @@ import (
 func main() {
 	r := mux.NewRouter()
 	r.HandleFunc(paths.Items, h).Methods(paths.Methods...)
+	one := r.PathPrefix("/v1").Methods(paths.Read).Subrouter()
+	one.HandleFunc("/sub", h)
+	two := r.PathPrefix("/v2").Methods(paths.Methods...).Subrouter()
+	two.HandleFunc("/two", h)
 	http.ListenAndServe(":8081", r)
 }
 
 func h(w http.ResponseWriter, r *http.Request) {}
 `,
 	})
-	for _, want := range []string{"/api/users:\n    get:", "/items:\n    get:", "/api/local:\n    get:"} {
+	for _, want := range []string{"/api/users:\n    get:", "/items:\n    get:", "/api/local:\n    get:", "/v1/sub:\n    get:", "/v2/two:\n    get:"} {
 		if !strings.Contains(paths, want) {
 			t.Errorf("the tree does not hold %q:\n%s", want, paths)
 		}
+	}
+	// paths.Methods is GET and HEAD; HEAD is a could question, as the
+	// meta-model does not hold it, so the list read gives gin's
+	// /api/local, mux's /items and the subrouter's /v2/two their GET and
+	// three HEAD questions.
+	if n := len(regexp.MustCompile(`(?m)^    question: .*the route HEAD `).FindAllString(questions, -1)); n != 3 {
+		t.Errorf("the questions name %d HEAD routes, want 3 (/api/local, /items and /v2/two):\n%s", n, questions)
+	}
+	if strings.Contains(questions, "registers /sub for every method") || strings.Contains(questions, "registers /two for every method") || strings.Contains(questions, "not a literal method") {
+		t.Errorf("a subrouter's Methods did not read the constant or the list:\n%s", questions)
 	}
 	if !strings.Contains(questions, "registers a route whose path localPath the reader does not read as a literal") {
 		t.Errorf("the local that hides the constant did not keep the question:\n%s", questions)
@@ -972,5 +986,46 @@ func h(w http.ResponseWriter, r *http.Request) {}
 		if strings.Contains(questions, "whose path "+said) || strings.Contains(questions, "on methods "+said) || strings.Contains(questions, "method "+said) {
 			t.Errorf("a question was asked about %s:\n%s", said, questions)
 		}
+	}
+}
+
+// TestGoListChangedByAnotherPackage keeps the question for a package-level
+// list another package of the module assigns to and appends to through
+// its import, naming that line (ADR-143): a list is read as a literal
+// only when no statement of the module changes it.
+func TestGoListChangedByAnotherPackage(t *testing.T) {
+	paths, questions := goRouterOperations(t, map[string]string{
+		"go.mod": "module example.com/gateway\n\ngo 1.26\n",
+		"paths/paths.go": `package paths
+
+import "net/http"
+
+var Methods = []string{http.MethodGet}
+`,
+		"cmd/mux/main.go": `package main
+
+import (
+	"net/http"
+
+	"github.com/gorilla/mux"
+
+	"example.com/gateway/paths"
+)
+
+func main() {
+	paths.Methods = append(paths.Methods, http.MethodPost)
+	r := mux.NewRouter()
+	r.HandleFunc("/items", h).Methods(paths.Methods...)
+	http.ListenAndServe(":8081", r)
+}
+
+func h(w http.ResponseWriter, r *http.Request) {}
+`,
+	})
+	if strings.Contains(paths, "/items:") {
+		t.Errorf("the route on a list another package appends to was written:\n%s", paths)
+	}
+	if !strings.Contains(questions, "Methods on paths.Methods, which is a package-level list assigned again at cmd/mux/main.go:12") {
+		t.Errorf("the question does not name the append and its line:\n%s", questions)
 	}
 }

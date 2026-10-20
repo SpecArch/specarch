@@ -164,7 +164,7 @@ requirements:
       - Each list page becomes an HTML page and an ES module that reads its list a page at a time by the paginated-list idiom, filters by the source operation's query parameters, hides on a compact screen the columns compactColumns leaves out, runs its operation actions with their confirmation and message, and shows its states in a status line announced without moving focus.
       - Every event of the screens is declared once in events.js as an UPPERCASE constant with its payload, and each component subscribes where it is created.
       - The theme's tokens become CSS custom properties with the dark mode under prefers-color-scheme, and the target's settings say which tokens play which part.
-      - A target that is not platform web in plain-javascript, one without a language, a filter that is neither a query parameter of the list's operation nor filterable in its listOf, a list whose path takes a parameter or that does not page, a service whose API is in the dxlib dialect, two events with one name, and a token name that cannot be a custom property are refused; forms, task pages and modes other than dark are reported and left out. Views and navigation between pages are SA-80's.
+      - A target that is not platform web in plain-javascript, one without a language, a filter that is neither a query parameter of the list's operation nor filterable in its listOf, a list whose path takes a parameter or that does not page, a service whose API is in the dxlib dialect, two events with one name, and a token name that cannot be a custom property are refused; modes other than dark are reported and left out. Views and navigation between pages are SA-80's, forms and task pages SA-81's.
       - The library lending example's loans list, written by hand before the generator, was reproduced by it apart from its header.
     verification: test
     needs: [NEED-2]
@@ -184,6 +184,20 @@ requirements:
     verification: test
     needs: [NEED-2]
     why: A list on its own is a screen nobody can act from; the first things a person does with it are open a record and go back, and a design whose pages cannot be reached from each other cannot be shown at the user acceptance test.
+  SA-81:
+    statement: specarch generate ui shall write, through specarch-gen-ui, the form and task pages of a specification for the web in plain JavaScript, with no package, bundler or build step, so that a record is created, changed and sent as the design's fields, keywords, checks, conditions, pickers, child rows and events say, and a mistake shows before it is sent.
+    kind: functional
+    priority: should
+    status: accepted
+    acceptance:
+      - Each form and task page becomes an HTML page whose fields are controls, in sections as fieldsets, drawn by the property's type and format, a list of the enum's values or the picker's records, with required from the request body and the minimum, maximum and lengths the browser checks; a pattern is checked as JSON Schema reads it, unanchored with the u flag; a value of a schema is a fieldset of its parts, a required part asked for once any part is given, and a list of values and a form's child rows are rows a person adds and removes up to their maximum.
+      - Each module hands form.js what it sends, its path from the route's parameters, the idempotency key its operation names, the checks and the fields hidden or read-only by the record as functions of the record, a field entered twice compared and never sent, each picker's list, the record a form loads by its route's parameters with its loaded child rows shown locked and never sent, what follows each success, a form's one onSubmitted for every success including a workflow trigger's 202 and a task's by status, and each refusal by its status with the field it is about.
+      - A success opens its page with the route's parameters from the answer, the fields sent, the record loaded or the page's own address, and its message shows there once.
+      - A field of a type or format a form does not draw, a value entered twice or read-only, a field the body does not take that is not read-only, a required body field the page does not show, a check that names no field, a picker through no many-to-one relation or on a list that does not page, child rows whose body has no array for them, loaded rows not locked or not carried by the source's answer, a submit path parameter the route does not give, and a success a task's operation answers with no onSubmitted are refused at their entry, and the rest of the page is still written.
+      - The library lending example's member form, written by hand before the generator, is written by it apart from its header and the order of the menu's entries, and the example's forms run in a browser against a stub of the service.
+    verification: test
+    needs: [NEED-2]
+    why: Forms are where people put data into the system, and where a mistake costs most; a design whose forms exist only on Next.js cannot be shown at the user acceptance test by a project on the plain JavaScript stack.
   SA-52:
     statement: specarch generate ui shall write, through specarch-gen-ui-typescript, the task pages of a specification for the web on Next.js's app router and IBM's Carbon design system, from an implementation file in TypeScript, so that sign-in and the forms like it follow the design's fields, checks, refusals and events, drawn by the components the ui-components idiom names.
     kind: functional

@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.2-dev of the specification: 623 design tests, 290 golden and 333 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.2-dev of the specification: 625 design tests, 291 golden and 334 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.7.2-dev of the specification: 623 design tests, 290 golden and 333 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 619 |
+| system | 621 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -2437,6 +2437,22 @@ Scenario: golden; level: system; verifies SA-43.
 - When: generate ui is run with --unapproved
 - Then: it writes the page's HTML and module, events.js with the page's and the operation's events, pages.js with the page's file, ask.js, which confirms an action, and theme.css with the tokens as custom properties and the rules the target's token settings name, and exits 0
 
+#### generate-ui-form
+
+Scenario: golden; level: system; verifies SA-81.
+
+- Given: a specification with a form that creates a record in three sections: text with a length, an enum, a field picked from a list that searches, an integer with a range, a boolean, text with a pattern, long text read-only while the shelf says so, dates of which one is hidden while the boolean holds and checked against the other, a read-only field, a value of parts and a list of values up to four, sending an idempotency key and opening an edit form once it succeeds; an edit form that loads its record by its route's parameter and submits to an operation at that path; a task whose second entry of a password is compared and never sent, whose refusal is shown beside its field, and whose two successes open the form and stay with a message; an implementation file whose ui target is platform web in plain-javascript; and specarch-gen-ui built from this repository on PATH
+- When: generate ui is run with --unapproved
+- Then: it writes each page's HTML with its fields as controls carrying the keywords the browser checks, a pattern as data-pattern, the value as a fieldset whose required part is asked for once any part is given, the list as rows from a template; each module with the fields it sends, the check and the conditions as functions of the record, the picker, what follows each success and the refusals by status; form.js, pages.js, events.js and theme.css; and exits 0
+
+#### generate-ui-form-refused
+
+Scenario: red; level: system; verifies SA-81.
+
+- Given: the specification of generate-ui-form, whose form also shows a date-time and a list of plain values, asks for its value to be entered twice and has a check that names no field; whose edit form leaves out a field its request body requires; whose task says nothing of a success its operation answers; an implementation file whose ui target is platform web in plain-javascript; and specarch-gen-ui built from this repository on PATH
+- When: generate ui is run with --unapproved
+- Then: it reports as errors the date-time and the list at their fields, the value entered twice at its field, the check at the check, the field left out at the edit form and the success at the task's onSubmitted; leaves out the edit form and, as a warning, the form's success that would open it; writes the form and the task without what it reports, each marked at its page; and exits 1
+
 #### generate-ui-swiftui
 
 Scenario: golden; level: system; verifies SA-78.
@@ -2537,9 +2553,9 @@ Scenario: red; level: system; verifies SA-54.
 
 Scenario: golden; level: system; verifies SA-80.
 
-- Given: a specification with a list whose selected row opens a view, which offers an action that opens a form and one that runs an operation on a row while its when holds, after a confirmation that asks for the reason the operation's body takes; a view at a route with a parameter, which loads its record by it, shows it in two sections with a value of parts and a list of plain values, hides the value while the record's status says so, and offers a link back to the list and the same operation, which leads back to the list once it succeeds; a form; a menu with entries for the list, the form and the view; an implementation file whose ui target is platform web in plain-javascript; and specarch-gen-ui built from this repository on PATH
+- Given: a specification with a list whose selected row opens a view, which offers an action that opens a form and one that runs an operation on a row while its when holds, after a confirmation that asks for the reason the operation's body takes; a view at a route with a parameter, which loads its record by it, shows it in two sections with a value of parts and a list of plain values, hides the value while the record's status says so, and offers a link back to the list and the same operation, which leads back to the list once it succeeds; a form that opens the view once it succeeds; a menu with entries for the list, the form and the view; an implementation file whose ui target is platform web in plain-javascript; and specarch-gen-ui built from this repository on PATH
 - When: generate ui is run with --unapproved
-- Then: it writes pages.js with the list and the view, the view's file and the parameter its address takes, the list's HTML with the menu and its module with the row's link to the view, the operation's when, confirmation and reason, the view's HTML with its sections, labels and the places of its values and its module with the condition, the link and the operation, view.js, ask.js, events.js and theme.css; it reports as warnings, and leaves out, the form, the list's action that opens it, the menu entry for it and the menu entry for the view, whose route takes a parameter a menu cannot give; and exits 0
+- Then: it writes pages.js with the list, the form and the view, the view's file and the parameter its address takes, the list's HTML with the menu and the link to the form above its table and its module with the row's link to the view, the operation's when, confirmation and reason, the view's HTML with its sections, labels and the places of its values and its module with the condition, the link and the operation, the form, view.js, form.js, ask.js, events.js and theme.css; it reports as a warning, and leaves out, the menu entry for the view, whose route takes a parameter a menu cannot give; and exits 0
 
 #### generate-ui-view-refused
 
@@ -2547,7 +2563,7 @@ Scenario: red; level: system; verifies SA-80.
 
 - Given: the specification of generate-ui-view, whose list asks a confirmation before it opens the form, offers its operation while an expression that calls int holds, runs the operation with no reason although it takes a body, and opens a view whose source takes a parameter its route does not have; whose view hides a field by ordering a decimal and opens that view while nothing gives its route's parameter; an implementation file whose ui target is platform web in plain-javascript; and specarch-gen-ui built from this repository on PATH
 - When: generate ui is run with --unapproved
-- Then: it reports as errors the confirmation at the action's confirm, the call at its when, the source at the view's source, the decimal at the condition and the parameter nothing gives at the view's action, and as warnings the action that sends no reason, the form and the links and menu entries to the pages it does not write; writes the list and the view without what it reports, each marked at its page; and exits 1
+- Then: it reports as errors the confirmation at the action's confirm, the call at its when, the source at the view's source, the decimal at the condition and the parameter nothing gives at the view's action, and as warnings the action that sends no reason, the list's link to the view it does not write and the menu entry for the view whose route takes a parameter; writes the list and the view without what it reports, each marked at its page; and exits 1
 
 #### generate-unapproved
 
@@ -5067,7 +5083,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-371 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+376 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -5153,6 +5169,11 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-80 | acceptance 4 | golden | SA-80 names no harm |
 | requirement SA-80 | acceptance 5 | golden | SA-80 names no harm |
 | requirement SA-80 | acceptance 6 | golden | SA-80 names no harm |
+| requirement SA-81 | acceptance 1 | golden | SA-81 names no harm |
+| requirement SA-81 | acceptance 2 | golden | SA-81 names no harm |
+| requirement SA-81 | acceptance 3 | golden | SA-81 names no harm |
+| requirement SA-81 | acceptance 4 | golden | SA-81 names no harm |
+| requirement SA-81 | acceptance 5 | golden | SA-81 names no harm |
 | requirement SA-52 | acceptance 1 | golden | SA-52 names no harm |
 | requirement SA-52 | acceptance 2 | golden | SA-52 names no harm |
 | requirement SA-52 | acceptance 3 | golden | SA-52 names no harm |

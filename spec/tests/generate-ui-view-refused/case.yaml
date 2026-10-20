@@ -1,7 +1,6 @@
 arguments: [generate, ui, --unapproved, project]
 exitStatus: 1
 standardOutput: |
-  project/specarch.yaml:156:3: warning: /pages/book-form: generator: book-form is a form, and this version of specarch-gen-ui writes lists and views only; it is left out [generator@specarch.yaml#/pages/book-form]
   project/specarch.yaml:147:27: error: /pages/book-view/fieldConditions/tags/hiddenWhen: generator: the field's hiddenWhen orders price, a decimal, which the browser cannot compare exactly; check it on the server [generator@specarch.yaml#/pages/book-view/fieldConditions/tags/hiddenWhen]
   project/specarch.yaml:154:9: error: /pages/book-view/actions/1: generator: the action Its shelf opens shelf-view at /shelves/{shelfName}, and nothing gives {shelfName}: name the field that does under with [generator@specarch.yaml#/pages/book-view/actions/1]
   project/specarch.yaml:121:99: error: /pages/books-list/actions/0/confirm: generator: the action Add a book opens a page, and specarch-gen-ui asks no confirmation before a page opens; leave confirm out [generator@specarch.yaml#/pages/books-list/actions/0/confirm]
@@ -9,6 +8,5 @@ standardOutput: |
   project/specarch.yaml:123:9: warning: /pages/books-list/actions/2: generator: the action Retire quietly runs retireBook, which takes a request body, and an action sends only the reason its confirmation asks for; name that property under reason. It is left out [generator@specarch.yaml#/pages/books-list/actions/2]
   project/specarch.yaml:131:13: error: /pages/shelf-view/source: generator: shelf-view loads getBook at /books/{bookId}, and its route /shelves/{shelfName} has no parameter {bookId} to fill it from [generator@specarch.yaml#/pages/shelf-view/source]
   project/specarch.yaml:124:9: warning: /pages/books-list/actions/3: generator: Open its shelf opens shelf-view, which specarch-gen-ui does not write, so it is left out [generator@specarch.yaml#/pages/books-list/actions/3]
-  project/specarch.yaml:170:12: warning: /menus/catalogue/items/add: generator: the menu entry Add a book opens book-form, which specarch-gen-ui does not write, so the entry is left out [generator@specarch.yaml#/menus/catalogue/items/add]
   project/specarch.yaml:171:12: warning: /menus/catalogue/items/one: generator: the menu entry One book opens book-view at /books/{bookId}, and a menu gives no parameter, so the entry is left out [generator@specarch.yaml#/menus/catalogue/items/one]
 plugins: [ui]

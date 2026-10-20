@@ -164,7 +164,7 @@ layout:
     implements: ["#/commands/generate"]
     dependsOn: [internal/genui]
   internal/genui:
-    description: The list and view pages for the web in plain JavaScript, the navigation between them in pages.js with the menu on every page, the confirmation that asks for a reason in ask.js, the events they raise, and the theme as CSS custom properties; view.js, ask.js and the functions of pages.js are files under runtime/, written as they are.
+    description: The list, view, form and task pages for the web in plain JavaScript, the navigation between them in pages.js with the menu on every page, the confirmation that asks for a reason in ask.js, the events they raise, and the theme as CSS custom properties; a form's fields are native controls in its HTML and form.js adds the checks, conditions, pickers, values, rows and what follows a success; view.js, form.js, ask.js and the functions of pages.js are files under runtime/, written as they are.
     dependsOn: [internal/mark, internal/ownership]
   cmd/specarch-gen-ui-typescript:
     description: The plug-in behind generate ui for an implementation file in TypeScript. Reads the request on standard input, answers the screens on standard output, and never touches the disk.
@@ -366,7 +366,7 @@ testing:
       implementationOnly: true
       ci: true
     generated-ui:
-      description: Generates the library lending example's screens and checks they are the files committed in the example, the loans list among them written by hand first, and that the member view is the one written by hand in web/reference/ but for its header and menu; and refuses a target that is not plain JavaScript for the web, one without a language, and a filter the list's operation cannot take; and leaves out a page another stakeholder owns.
+      description: Generates the library lending example's screens and checks they are the files committed in the example, the loans list among them written by hand first, and that the member view and the member form are the ones written by hand in web/reference/ but for their header and menu; and refuses a target that is not plain JavaScript for the web, one without a language, and a filter the list's operation cannot take; and leaves out a page another stakeholder owns.
       run: go test ./internal/genui
       level: unit
       implementationOnly: true

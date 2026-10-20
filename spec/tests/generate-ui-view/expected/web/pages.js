@@ -6,6 +6,7 @@
 // /books/{bookId} is book-view.html?bookId=...
 
 export const PAGES = {
+  "book-form": { file: "book-form.html", parameters: [] },
   "book-view": { file: "book-view.html", parameters: ["bookId"] },
   "books-list": { file: "books-list.html", parameters: [] },
 };

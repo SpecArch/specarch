@@ -696,13 +696,38 @@ of `ask.js`, which also asks for the reason an action sends. An action's
 `when` and a field's `hiddenWhen` become JavaScript functions of the
 record, of names, constants, comparisons, `&&`, `||`, `!` and `size`; any
 other operator or function, or an ordering of a decimal, is refused at the
-expression. Forms, task pages and modes other than dark are reported and
-left out of this version. The screens it is checked against are the
-library lending example's loans list, written by hand before the
-generator (ADR-040), and its member view, written by hand in
-`examples/library-lending/web/reference/` before views were generated;
-the first real plain JavaScript project repeats the check against its own
-first screen.
+expression.
+
+A form or a task is `<page>.html` whose fields are native controls, in
+its sections as fieldsets, each with the attributes the browser checks
+from the property's keywords and `required` from the request body
+(ADR-148): text, a long text as a text area, email, password, a date, a
+number with its range, a box for a boolean, a list of an enum's values,
+and a field a picker fills as a list of the picker's records, read at its
+list's largest page size and searched through the service when its
+`listOf` searches. A `pattern` is checked by `form.js` as JSON Schema reads
+it. A value of a schema is a fieldset of its parts, a required part asked
+for once any part is given, and a list of values and `childRows` are rows
+added from a template and removed, up to their maximum; a form with a
+`source` loads its record by its route's parameters, and shows the child
+rows that record carries locked, never sent. `<page>.js` hands `form.js`
+what it sends, the `checks`, the `fieldConditions` and the fields
+`enteredTwice` (compared and never sent), the pickers, what follows each
+success, a form's one `onSubmitted` for every success its operation
+answers, a workflow trigger's 202 among them, and a task's by status, and
+each refusal by status with the field it is about, whose message the
+browser shows beside it. A field of a type or format a form does not
+draw, a value entered twice or read-only, a body field required and not
+shown, and a check that names no field are refused at their entry, and
+the rest of the page is still written.
+
+Modes other than dark are reported and left out of this version. The
+screens it is checked against are the library lending example's loans
+list, written by hand before the generator (ADR-040), and its member view
+and member form, written by hand in `examples/library-lending/web/reference/`
+before views and forms were generated; the example's forms were run in a
+browser against a stub of the service. The first real plain JavaScript
+project repeats the check against its own first screen.
 
 ### TypeScript on Next.js and Carbon
 

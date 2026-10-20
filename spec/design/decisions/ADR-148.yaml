@@ -1,0 +1,60 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
+decisions:
+  ADR-148:
+    title: The plain JavaScript forms hold their fields as native controls in the HTML, checked by the browser, and one form.js adds what HTML cannot say
+    status: proposed
+    date: "2026-10-20"
+    context: |
+      Forms and task pages were reported and left out by specarch-gen-ui.
+      The Next.js target draws its forms through a component library a
+      project overrides (ADR-069), which plain JavaScript has none of. The
+      browser checks required, lengths, ranges and types itself and shows
+      its own message, but it cannot check a rule across fields, compare
+      two entries, read a JSON Schema pattern as JSON Schema does (HTML
+      anchors a pattern and reads it with the v flag), ask for a part of a
+      value only once the value is given, or fill a list from the service.
+    decision: |
+      A form's fields are native controls in its HTML, each with the
+      attributes the browser checks from the property's keywords and the
+      request body's required; a pattern is written as data-pattern and
+      checked with the u flag, unanchored. A value of a schema is a
+      fieldset of its parts, in the order of their names, whose required
+      parts are asked for once any part is given when the value itself may
+      be left out; a list of values and a form's child rows are rows a
+      person adds from a template and removes, up to their maximum. The
+      module hands form.js, written once, what it sends, the checks and
+      conditions as functions of the record (ADR-147), the pickers, the
+      record a form loads and the child rows loaded with it, what follows
+      each success and each refusal. A check's or a refusal's message is
+      the field's own validity message, so the browser shows it beside the
+      field and the form is not sent while one stands. A hidden field is
+      disabled, so it is neither checked nor sent. An empty field is null
+      in the record the rules read and is left out of what is sent. A
+      form's onSubmitted follows every success its operation answers,
+      a workflow trigger's 202 among them; a task's are by status. A
+      success's page takes its route's parameters from the answer, then
+      the fields sent, the record loaded, and the page's own address. A
+      picker reads one page of its list at the list's largest page size,
+      and through the service's search when the list searches; otherwise
+      it offers that page, with a warning at the picker.
+    consequences: |
+      The forms read and work without a script for what HTML checks, and
+      the html document shows each form with all its fields. A message
+      the browser writes, for a field left empty or too long, is in the
+      browser's language, not the page's; the generator's own words, for
+      a pattern and a second entry, are in English. A list's minimum
+      count of rows is the service's to refuse. A check that names no
+      field has nowhere to show its message, so it is refused; the
+      validator does not ask for one, since the Next.js target shows it
+      above the form. The settings of the Next.js target, hooks and
+      layouts, have no counterpart here: a form's sections sit as one
+      page.
+    why: |
+      Native controls are what the stack's rule of no package asks for, and
+      they carry the browser's own accessibility: the label, the focus
+      order of the sections, the message beside the field. One form.js
+      keeps each page's module to data, as view.js does for views and
+      events.js for events, so a reader checks one engine once. Reading a
+      pattern as JSON Schema does keeps the browser and the service in
+      agreement on what passes, which the HTML attribute would not.
+    satisfies: [SA-81]

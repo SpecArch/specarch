@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: generate
+level: system
+scenario: golden
+given: "a specification with a form that creates a record in three sections: text with a length, an enum, a field picked from a list that searches, an integer with a range, a boolean, text with a pattern, long text read-only while the shelf says so, dates of which one is hidden while the boolean holds and checked against the other, a read-only field, a value of parts and a list of values up to four, sending an idempotency key and opening an edit form once it succeeds; an edit form that loads its record by its route's parameter and submits to an operation at that path; a task whose second entry of a password is compared and never sent, whose refusal is shown beside its field, and whose two successes open the form and stay with a message; an implementation file whose ui target is platform web in plain-javascript; and specarch-gen-ui built from this repository on PATH"
+when: "generate ui is run with --unapproved"
+then: "it writes each page's HTML with its fields as controls carrying the keywords the browser checks, a pattern as data-pattern, the value as a fieldset whose required part is asked for once any part is given, the list as rows from a template; each module with the fields it sends, the check and the conditions as functions of the record, the picker, what follows each success and the refusals by status; form.js, pages.js, events.js and theme.css; and exits 0"
+verifies: [SA-81]

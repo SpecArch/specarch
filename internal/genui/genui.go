@@ -161,6 +161,7 @@ func Generate(r *Request) Response {
 	var elements []string
 	var lists []*page
 	var views []*viewPage
+	var forms []*formPage
 	g.opened = map[string]bool{}
 	for _, name := range sortedKeys(pages) {
 		pg := obj0(pages[name])
@@ -179,8 +180,13 @@ func Generate(r *Request) Response {
 				views = append(views, v)
 				ws = append(ws, written{name, v})
 			}
+		case "form", "task":
+			if f := g.form(name, pg); f != nil {
+				forms = append(forms, f)
+				ws = append(ws, written{name, f})
+			}
 		default:
-			g.problem("warning", "/pages/"+name, "%s is a %s, and this version of specarch-gen-ui writes lists and views only; it is left out", name, text(pg["kind"]))
+			g.problem("warning", "/pages/"+name, "%s is a %s, which specarch-gen-ui does not write; it is left out", name, text(pg["kind"]))
 			continue
 		}
 	}
@@ -211,6 +217,14 @@ func Generate(r *Request) Response {
 	}
 	for _, v := range views {
 		v.actions = keepActions(v.actions)
+	}
+	for _, f := range forms {
+		for status, n := range f.next {
+			if n.page != "" && len(g.keep([]link{{label: f.name, page: n.page, at: "/pages/" + mark.Escape(f.name) + "/onSubmitted"}})) == 0 {
+				n.page = ""
+				f.next[status] = n
+			}
+		}
 	}
 	g.checkMenus()
 	var events []event
@@ -274,6 +288,9 @@ func Generate(r *Request) Response {
 	}
 	if len(views) > 0 {
 		files = append(files, File{Path: "view.js", Content: header("// ", "", nil) + viewRuntime})
+	}
+	if len(forms) > 0 {
+		files = append(files, File{Path: "form.js", Content: header("// ", "", nil) + formRuntime})
 	}
 	files = append(files, File{Path: "theme.css", Content: header("/* ", " */", nil) + g.themeCSS()})
 	sort.Slice(files, func(i, j int) bool { return files[i].Path < files[j].Path })

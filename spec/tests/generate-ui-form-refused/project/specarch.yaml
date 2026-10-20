@@ -1,0 +1,221 @@
+specarch: "0.1"
+info: { title: Catalogue, version: 1.0.0 }
+stages: [implementation]
+stakeholders:
+  owner: { description: The product owner. }
+enums:
+  Shelf: { type: string, enum: [fiction, reference] }
+schemas:
+  Location:
+    description: Where a book stands.
+    type: object
+    properties:
+      room: { type: string, title: Room, maxLength: 40 }
+      shelfNumber: { type: integer, format: int32, title: Shelf number, minimum: 1 }
+    required: [room]
+entities:
+  Author:
+    type: object
+    properties:
+      id: { type: string, format: uuid, readOnly: true }
+      name: { type: string, title: Name, minLength: 1, maxLength: 100 }
+    required: [id, name]
+    primaryKey: [id]
+  Book:
+    type: object
+    properties:
+      id: { type: string, format: uuid, readOnly: true }
+      title: { type: string, title: Title, minLength: 1, maxLength: 200 }
+      shelf: { $ref: "#/enums/Shelf", title: Shelf }
+      authorId: { type: string, format: uuid, title: Author }
+      pages: { type: integer, format: int32, title: Pages, minimum: 1, maximum: 5000 }
+      lendable: { type: boolean, title: Lendable }
+      boughtOn: { type: string, format: date, title: Bought on }
+      withdrawnOn: { type: [string, "null"], format: date, title: Withdrawn on }
+      code: { type: string, title: Shelf code, pattern: "^[A-Z]{2}[0-9]{3}$", maxLength: 5 }
+      notes: { type: string, title: Notes, maxLength: 2000 }
+      seenAt: { type: string, format: date-time, title: Seen at }
+      labels: { type: array, title: Labels, items: { type: string, maxLength: 20 }, maxItems: 3 }
+      addedOn: { type: string, format: date, title: Added on, readOnly: true }
+      location: { $ref: "#/schemas/Location", title: Location }
+      copies: { type: array, title: Copies, items: { $ref: "#/schemas/Location" }, maxItems: 4 }
+    required: [id, title, shelf, authorId, addedOn]
+    primaryKey: [id]
+    relations:
+      author: { target: Author, kind: many-to-one, via: authorId }
+errors:
+  title-taken: { status: 409, title: The title is taken, condition: Another book has this title. }
+  book-not-found: { status: 404, title: No such book, condition: No book has this id. }
+  code-refused: { status: 401, title: The code is refused, condition: The code is wrong or old. }
+permissions:
+  books.read: { description: See the catalogue. }
+  books.write: { description: Change the catalogue. }
+  public: { description: Open to everyone. }
+roles:
+  librarian: { description: Keeps the catalogue., permissions: [books.read, books.write] }
+paths:
+  /authors:
+    get:
+      operationId: listAuthors
+      summary: The authors
+      permission: books.read
+      listOf:
+        entity: Author
+        searchable: [name]
+        pageSize: { default: 20, maximum: 50 }
+      responses:
+        "200":
+          description: The authors.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/entities/Author" } }
+  /books:
+    post:
+      operationId: addBook
+      summary: Add a book
+      permission: books.write
+      idempotencyKey: Idempotency-Key
+      parameters:
+        - { name: Idempotency-Key, in: header, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title: { type: string, minLength: 1, maxLength: 200 }
+                shelf: { $ref: "#/enums/Shelf" }
+                authorId: { type: string, format: uuid }
+                pages: { type: integer, format: int32 }
+                lendable: { type: boolean }
+                boughtOn: { type: string, format: date }
+                withdrawnOn: { type: string, format: date }
+                code: { type: string }
+                notes: { type: string }
+                seenAt: { type: string, format: date-time }
+                labels: { type: array, items: { type: string } }
+                location: { $ref: "#/schemas/Location" }
+                copies: { type: array, items: { $ref: "#/schemas/Location" }, maxItems: 4 }
+              required: [title, shelf, authorId]
+      responses:
+        "201":
+          description: The book.
+          content:
+            application/json:
+              schema: { $ref: "#/entities/Book" }
+        "409": { description: The title is taken., problem: title-taken }
+  /books/{bookId}:
+    parameters:
+      - { name: bookId, in: path, required: true, schema: { type: string, format: uuid } }
+    get:
+      operationId: getBook
+      summary: One book
+      permission: books.read
+      responses:
+        "200":
+          description: The book.
+          content:
+            application/json:
+              schema: { $ref: "#/entities/Book" }
+        "404": { description: No such book., problem: book-not-found }
+    put:
+      operationId: changeBook
+      summary: Change a book
+      permission: books.write
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title: { type: string, minLength: 1, maxLength: 200 }
+                shelf: { $ref: "#/enums/Shelf" }
+              required: [title, shelf]
+      responses:
+        "200":
+          description: The book.
+          content:
+            application/json:
+              schema: { $ref: "#/entities/Book" }
+        "404": { description: No such book., problem: book-not-found }
+  /keys:
+    post:
+      operationId: setKey
+      summary: Set the desk's key
+      permission: public
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                code: { type: string, title: Code, minLength: 6, maxLength: 6 }
+                key: { type: string, format: password, title: New key, minLength: 10, maxLength: 100 }
+              required: [code, key]
+      responses:
+        "200": { description: The key is set. }
+        "201": { description: "The key is set, and a second code is needed." }
+        "401": { description: The code is refused., problem: code-refused }
+pages:
+  book-form:
+    kind: form
+    title: Add a book
+    route: /books/new
+    entity: Book
+    permission: books.write
+    submit: addBook
+    sections:
+      - { title: The book, fields: [title, shelf, authorId, pages, lendable, code, notes, seenAt, labels] }
+      - { title: Its history, fields: [boughtOn, withdrawnOn, addedOn] }
+      - { title: Where it stands, fields: [location, copies] }
+    pickers:
+      authorId: { source: listAuthors, shows: [name] }
+    fieldConditions:
+      withdrawnOn: { hiddenWhen: "lendable == true" }
+      notes: { readOnlyWhen: 'shelf == "reference"' }
+    enteredTwice: [location]
+    checks:
+      titled: { expression: "size(title) > 0", message: Give the book a title. }
+      withdrawn-after-bought: { expression: "withdrawnOn == null || withdrawnOn > boughtOn", message: A book is withdrawn after it is bought., field: withdrawnOn }
+    states:
+      failed:
+        title-taken: { message: Another book has this title., field: title }
+    onSubmitted: { navigate: book-edit, with: { bookId: id }, message: The book is added. }
+  book-edit:
+    kind: form
+    title: Change a book
+    route: /books/{bookId}/edit
+    entity: Book
+    permission: books.write
+    source: getBook
+    submit: changeBook
+    fields: [shelf, addedOn]
+    states:
+      failed:
+        book-not-found: { message: There is no such book. }
+    onSubmitted: { message: The book is changed. }
+  set-key:
+    kind: task
+    title: Set the key
+    route: /key
+    permission: public
+    submit: setKey
+    fields: [code, key]
+    enteredTwice: [key]
+    states:
+      failed:
+        code-refused: { message: The code is wrong or old., field: code }
+    onSubmitted:
+      "200": { navigate: book-form, message: The key is set. }
+accessibility: { standard: WCAG 2.2, level: AA }
+theme:
+  tokens:
+    color:
+      $type: color
+      ink: { $value: { colorSpace: srgb, components: [0, 0, 0] } }
+      paper: { $value: { colorSpace: srgb, components: [1, 1, 1] } }
+  pairs:
+    - { text: color.ink, background: color.paper, use: text }

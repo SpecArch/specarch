@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: requirements specification
 
-Version 0.7.2-dev of the specification: 5 stakeholders, 10 needs and 89 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
+Version 0.7.2-dev of the specification: 5 stakeholders, 10 needs and 90 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -34,7 +34,7 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | Need | Statement | Stakeholders | Status | Refined by |
 |---|---|---|---|---|
 | NEED-1 | I want a specification that cannot quietly be wrong, so that the code built from it is right. | specification-author, implementer | accepted | SA-33, SA-34, SA-35, SA-47, SA-48, SA-50, SA-75, SA-77, SA-82, SA-83, SA-84, SA-72, SA-1, SA-2, SA-3, SA-4, SA-5, SA-6, SA-51 |
-| NEED-2 | I want to write a design once and build it in more than one language. | implementer | accepted | SA-33, SA-34, SA-36, SA-37, SA-38, SA-39, SA-40, SA-41, SA-42, SA-43, SA-80, SA-52, SA-53, SA-54, SA-55, SA-56, SA-49, SA-62, SA-63, SA-65, SA-66, SA-70, SA-77, SA-78, SA-82, SA-83, SA-84, SA-88, SA-89, SA-46, SA-61, SA-71, SA-87, SA-32, SA-9, SA-10 |
+| NEED-2 | I want to write a design once and build it in more than one language. | implementer | accepted | SA-33, SA-34, SA-36, SA-37, SA-38, SA-39, SA-40, SA-41, SA-42, SA-43, SA-80, SA-81, SA-52, SA-53, SA-54, SA-55, SA-56, SA-49, SA-62, SA-63, SA-65, SA-66, SA-70, SA-77, SA-78, SA-82, SA-83, SA-84, SA-88, SA-89, SA-46, SA-61, SA-71, SA-87, SA-32, SA-9, SA-10 |
 | NEED-3 | I want the documents and diagrams to come from the specification, so they never drift from it. | reviewer, specification-author | accepted | SA-22, SA-36, SA-67, SA-75, SA-77, SA-82, SA-83, SA-84, SA-88, SA-7, SA-8, SA-26, SA-16, SA-58, SA-59, SA-60, SA-90, SA-19, SA-74 |
 | NEED-4 | I want a big specification split over many files, each about one thing, so I can find what I am looking for. | specification-author, reviewer | accepted | SA-11, SA-2 |
 | NEED-5 | I want the whole life of the system in one place, from the first requirement to the day it is accepted. | reviewer, operator | accepted | SA-35, SA-47, SA-68, SA-26, SA-16, SA-90, SA-12, SA-23, SA-24, SA-25, SA-73 |
@@ -67,6 +67,7 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | SA-42 | functional | should | accepted | A specification shall define the behaviour, structure and rules of a user interface without naming a stack, the events of a page and where each leads among them, and specarch validate shall check them. |
 | SA-43 | functional | should | accepted | specarch generate ui shall write, through a plug-in, the list pages of a specification for the web in plain JavaScript, with no package, bundler or build step, so that the screens follow the design's pages, events, states, accessibility and theme. |
 | SA-80 | functional | should | accepted | specarch generate ui shall write, through specarch-gen-ui, the view pages of a specification for the web in plain JavaScript and the navigation between its pages, with no package, bundler or build step, so that a person moves between the screens as the design's actions, selected rows, menus and events lead. |
+| SA-81 | functional | should | accepted | specarch generate ui shall write, through specarch-gen-ui, the form and task pages of a specification for the web in plain JavaScript, with no package, bundler or build step, so that a record is created, changed and sent as the design's fields, keywords, checks, conditions, pickers, child rows and events say, and a mistake shows before it is sent. |
 | SA-52 | functional | should | accepted | specarch generate ui shall write, through specarch-gen-ui-typescript, the task pages of a specification for the web on Next.js's app router and IBM's Carbon design system, from an implementation file in TypeScript, so that sign-in and the forms like it follow the design's fields, checks, refusals and events, drawn by the components the ui-components idiom names. |
 | SA-53 | functional | should | accepted | specarch generate ui shall write, through specarch-gen-ui-typescript, the list pages of a specification on Next.js and Carbon, the menu, and a guard that opens each page only to someone who holds its permission, from one permission each, with a derived test per page and of the menu, drawn through the ui-components idiom a project may override. |
 | SA-54 | functional | should | accepted | specarch generate ui shall write, through specarch-gen-ui-typescript, the forms and views of a specification on Next.js and Carbon, each field drawn by its type and format or picked from a list, checked by its keywords and the page's checks across fields, read-only or hidden by its conditions, and started by a hook the project writes where the ui target's settings name one. |
@@ -419,7 +420,7 @@ Acceptance criteria:
 - Each list page becomes an HTML page and an ES module that reads its list a page at a time by the paginated-list idiom, filters by the source operation's query parameters, hides on a compact screen the columns compactColumns leaves out, runs its operation actions with their confirmation and message, and shows its states in a status line announced without moving focus.
 - Every event of the screens is declared once in events.js as an UPPERCASE constant with its payload, and each component subscribes where it is created.
 - The theme's tokens become CSS custom properties with the dark mode under prefers-color-scheme, and the target's settings say which tokens play which part.
-- A target that is not platform web in plain-javascript, one without a language, a filter that is neither a query parameter of the list's operation nor filterable in its listOf, a list whose path takes a parameter or that does not page, a service whose API is in the dxlib dialect, two events with one name, and a token name that cannot be a custom property are refused; forms, task pages and modes other than dark are reported and left out. Views and navigation between pages are SA-80's.
+- A target that is not platform web in plain-javascript, one without a language, a filter that is neither a query parameter of the list's operation nor filterable in its listOf, a list whose path takes a parameter or that does not page, a service whose API is in the dxlib dialect, two events with one name, and a token name that cannot be a custom property are refused; modes other than dark are reported and left out. Views and navigation between pages are SA-80's, forms and task pages SA-81's.
 - The library lending example's loans list, written by hand before the generator, was reproduced by it apart from its header.
 
 **Insight:** A screen written by hand drifts from the pages, states and messages the owner reviewed; written from them, it says what the design says, and a change to the design reaches the screen on the next run.
@@ -440,6 +441,22 @@ Acceptance criteria:
 - The library lending example's member view, written by hand before the generator, is written by it apart from its header and the order of the menu's entries, which a plug-in receives by name.
 
 **Insight:** A list on its own is a screen nobody can act from; the first things a person does with it are open a record and go back, and a design whose pages cannot be reached from each other cannot be shown at the user acceptance test.
+
+### SA-81
+
+specarch generate ui shall write, through specarch-gen-ui, the form and task pages of a specification for the web in plain JavaScript, with no package, bundler or build step, so that a record is created, changed and sent as the design's fields, keywords, checks, conditions, pickers, child rows and events say, and a mistake shows before it is sent.
+
+Kind: functional; priority: should; status: accepted; verified by test; refines NEED-2.
+
+Acceptance criteria:
+
+- Each form and task page becomes an HTML page whose fields are controls, in sections as fieldsets, drawn by the property's type and format, a list of the enum's values or the picker's records, with required from the request body and the minimum, maximum and lengths the browser checks; a pattern is checked as JSON Schema reads it, unanchored with the u flag; a value of a schema is a fieldset of its parts, a required part asked for once any part is given, and a list of values and a form's child rows are rows a person adds and removes up to their maximum.
+- Each module hands form.js what it sends, its path from the route's parameters, the idempotency key its operation names, the checks and the fields hidden or read-only by the record as functions of the record, a field entered twice compared and never sent, each picker's list, the record a form loads by its route's parameters with its loaded child rows shown locked and never sent, what follows each success, a form's one onSubmitted for every success including a workflow trigger's 202 and a task's by status, and each refusal by its status with the field it is about.
+- A success opens its page with the route's parameters from the answer, the fields sent, the record loaded or the page's own address, and its message shows there once.
+- A field of a type or format a form does not draw, a value entered twice or read-only, a field the body does not take that is not read-only, a required body field the page does not show, a check that names no field, a picker through no many-to-one relation or on a list that does not page, child rows whose body has no array for them, loaded rows not locked or not carried by the source's answer, a submit path parameter the route does not give, and a success a task's operation answers with no onSubmitted are refused at their entry, and the rest of the page is still written.
+- The library lending example's member form, written by hand before the generator, is written by it apart from its header and the order of the menu's entries, and the example's forms run in a browser against a stub of the service.
+
+**Insight:** Forms are where people put data into the system, and where a mistake costs most; a design whose forms exist only on Next.js cannot be shown at the user acceptance test by a project on the plain JavaScript stack.
 
 ### SA-52
 

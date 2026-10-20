@@ -3,13 +3,20 @@
 // Where each page is and the parameters its address takes, every page of
 // the screens declared once. The screens are files with no server to read
 // a path, so a route's parameters travel in the query:
-// /members/{memberId} is member-view.html?memberId=...
+// /loans/{loanId}/fee-waiver is fee-waiver-form.html?loanId=...
 
 export const PAGES = {
+  "fee-waiver-form": { file: "fee-waiver-form.html", parameters: ["loanId"] },
   "fee-waivers-inbox": { file: "fee-waivers-inbox.html", parameters: [] },
+  "loan-form": { file: "loan-form.html", parameters: [] },
   "loans-list": { file: "loans-list.html", parameters: [] },
+  "member-form": { file: "member-form.html", parameters: [] },
+  "member-loans": { file: "member-loans.html", parameters: ["memberId"] },
   "member-view": { file: "member-view.html", parameters: ["memberId"] },
   "members-list": { file: "members-list.html", parameters: [] },
+  "reset-password": { file: "reset-password.html", parameters: [] },
+  "second-factor": { file: "second-factor.html", parameters: [] },
+  "sign-in": { file: "sign-in.html", parameters: [] },
 };
 
 // The message a page leaves for the page it opens, kept for that one load.

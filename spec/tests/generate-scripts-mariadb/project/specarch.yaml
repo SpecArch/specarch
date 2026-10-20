@@ -1,0 +1,261 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0 }
+stages: [implementation]
+stakeholders:
+  owner: { description: The product owner. }
+  shelf-team: { description: The team that keeps the shelves. }
+enums:
+  LoanStatus:
+    type: string
+    enum: [open, overdue, returned]
+  ReservationStatus:
+    type: string
+    enum: [pending, confirmed, cancelled]
+entities:
+  Loan:
+    type: object
+    properties:
+      id: { type: string, format: uuid, generatedDefault: identifier, readOnly: true }
+      title: { type: string, minLength: 1, maxLength: 200 }
+      note: { type: string, maxLength: 400 }
+      renewals: { type: integer, format: int32, minimum: 0, maximum: 9 }
+      status: { $ref: "#/enums/LoanStatus" }
+    required: [id, title, renewals, status]
+    primaryKey: [id]
+    stateField: status
+    transitions:
+      - { from: open, to: returned, trigger: returnLoan }
+      - { from: overdue, to: returned, trigger: returnLoan }
+      - { from: open, to: overdue, trigger: mark overdue }
+      - { from: overdue, to: open, trigger: renewLoan }
+      - { from: open, to: open, trigger: renewLoan }
+    audited: true
+    deletion: soft
+  Hold:
+    type: object
+    properties:
+      id: { type: string, format: uuid, generatedDefault: identifier, readOnly: true }
+      title: { type: string, minLength: 1, maxLength: 200 }
+    required: [id, title]
+    primaryKey: [id]
+  Reservation:
+    type: object
+    properties:
+      id: { type: string, format: uuid, generatedDefault: identifier, readOnly: true }
+      status: { $ref: "#/enums/ReservationStatus" }
+    required: [id, status]
+    primaryKey: [id]
+    stateField: status
+    transitions:
+      - { from: pending, to: confirmed, trigger: settleReservation }
+      - { from: pending, to: cancelled, trigger: settleReservation }
+  Copy:
+    type: object
+    properties:
+      shelfCode: { type: string, maxLength: 12 }
+      number: { type: integer, format: int32, minimum: 1 }
+    required: [shelfCode, number]
+    primaryKey: [shelfCode, number]
+  Member:
+    type: object
+    properties:
+      id: { type: string, format: uuid, generatedDefault: identifier, readOnly: true }
+      email: { type: string, format: email, maxLength: 320, atRest: encrypted, lookup: hash }
+    required: [id, email]
+    primaryKey: [id]
+  Tag:
+    type: object
+    properties:
+      id: { type: string, format: uuid, generatedDefault: identifier, readOnly: true }
+      name: { type: string, maxLength: 40, readOnly: true }
+    required: [id, name]
+    primaryKey: [id]
+  Shelf:
+    type: object
+    properties:
+      code: { type: string, maxLength: 12 }
+      label: { type: string, maxLength: 80 }
+    required: [code, label]
+    primaryKey: [code]
+  Fine:
+    type: object
+    properties:
+      id: { type: string, format: uint64 }
+      cents: { type: integer, format: int32, minimum: 0 }
+    required: [id, cents]
+    primaryKey: [id]
+permissions:
+  public: { description: Open to everyone. }
+paths:
+  /loans:
+    post:
+      operationId: openLoan
+      summary: Open a loan.
+      permission: public
+      guard: { entity: Loan, recordsChanged: 1 }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/entities/Loan" }
+      responses:
+        "201": { description: The loan is open. }
+  /loans/{loanId}:
+    parameters:
+      - { name: loanId, in: path, required: true, schema: { type: string, format: uuid } }
+    put:
+      operationId: replaceLoan
+      summary: Replace a loan.
+      permission: public
+      guard: { entity: Loan, precondition: 'status != "returned"', recordsChanged: 1 }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/entities/Loan" }
+      responses:
+        "200": { description: The loan is replaced. }
+    patch:
+      operationId: amendLoan
+      summary: Amend a loan.
+      permission: public
+      guard: { entity: Loan, recordsChanged: 1 }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/entities/Loan" }
+      responses:
+        "200": { description: The loan is amended. }
+    delete:
+      operationId: removeLoan
+      summary: Remove a loan.
+      permission: public
+      guard: { entity: Loan, precondition: 'status == "returned"', recordsChanged: 1 }
+      responses:
+        "204": { description: The loan is removed. }
+  /loans/{loanId}/return:
+    parameters:
+      - { name: loanId, in: path, required: true, schema: { type: string, format: uuid } }
+    post:
+      operationId: returnLoan
+      summary: Return a loan.
+      permission: public
+      guard: { entity: Loan, precondition: 'status == "open" || status == "overdue"', recordsChanged: 1 }
+      responses:
+        "200": { description: The loan is returned. }
+  /loans/{loanId}/renew:
+    parameters:
+      - { name: loanId, in: path, required: true, schema: { type: string, format: uuid } }
+    post:
+      operationId: renewLoan
+      summary: Renew a loan.
+      permission: public
+      guard: { entity: Loan, precondition: renewals < 3, recordsChanged: 1 }
+      responses:
+        "200": { description: The loan is renewed. }
+  /holds/{holdId}:
+    parameters:
+      - { name: holdId, in: path, required: true, schema: { type: string, format: uuid } }
+    put:
+      operationId: replaceHold
+      summary: Replace a hold.
+      permission: public
+      guard: { entity: Hold, recordsChanged: 2 }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/entities/Hold" }
+      responses:
+        "200": { description: The hold is replaced. }
+    delete:
+      operationId: cancelHold
+      summary: Cancel a hold.
+      permission: public
+      guard: { entity: Hold, recordsChanged: 1 }
+      responses:
+        "204": { description: The hold is cancelled. }
+  /shelves/{code}:
+    parameters:
+      - { name: code, in: path, required: true, schema: { type: string, maxLength: 12 } }
+    delete:
+      operationId: removeShelf
+      summary: Remove a shelf.
+      permission: public
+      guard: { entity: Shelf, recordsChanged: 1 }
+      responses:
+        "204": { description: The shelf is removed. }
+  /reservations/{reservationId}/settle:
+    parameters:
+      - { name: reservationId, in: path, required: true, schema: { type: string, format: uuid } }
+    post:
+      operationId: settleReservation
+      summary: Settle a reservation.
+      permission: public
+      guard: { entity: Reservation, recordsChanged: 1 }
+      responses:
+        "200": { description: The reservation is settled. }
+  /copies/{copyId}:
+    parameters:
+      - { name: copyId, in: path, required: true, schema: { type: string } }
+    delete:
+      operationId: removeCopy
+      summary: Remove a copy.
+      permission: public
+      guard: { entity: Copy, recordsChanged: 1 }
+      responses:
+        "204": { description: The copy is removed. }
+  /members/{memberId}:
+    parameters:
+      - { name: memberId, in: path, required: true, schema: { type: string, format: uuid } }
+    put:
+      operationId: replaceMember
+      summary: Replace a member.
+      permission: public
+      guard: { entity: Member, recordsChanged: 1 }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/entities/Member" }
+      responses:
+        "200": { description: The member is replaced. }
+  /tags/{tagId}:
+    parameters:
+      - { name: tagId, in: path, required: true, schema: { type: string, format: uuid } }
+    put:
+      operationId: replaceTag
+      summary: Replace a tag.
+      permission: public
+      guard: { entity: Tag, recordsChanged: 1 }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/entities/Tag" }
+      responses:
+        "200": { description: The tag is replaced. }
+  /fines/{fineId}:
+    parameters:
+      - { name: fineId, in: path, required: true, schema: { type: string, format: uint64 } }
+    delete:
+      operationId: waiveFine
+      summary: Waive a fine.
+      permission: public
+      guard: { entity: Fine, recordsChanged: 1 }
+      responses:
+        "204": { description: The fine is waived. }
+commands:
+  mark overdue:
+    summary: Mark the open loans renewed three times as overdue
+    permission: public
+    guard: { entity: Loan, precondition: renewals == 3, recordsChanged: 2 }
+    exitCodes:
+      "0": Marked.
+  purge returned:
+    summary: Delete the returned loans
+    permission: public
+    guard: { entity: Loan, precondition: 'status == "returned"', recordsChanged: 4 }
+    exitCodes:
+      "0": Purged.

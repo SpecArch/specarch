@@ -205,7 +205,8 @@ OpenAPI 3.1 document of a specification, `specarch-gen-sql`, which
 Server, Oracle or MariaDB, `specarch-gen-sqlc`, which `specarch generate
 sqlc` runs to write the sqlc queries the design derives against those
 migrations, `specarch-gen-scripts`, which `specarch generate scripts` runs
-to write a guarded psql script for each data change the design guards,
+to write a guarded script for each data change the design guards, for
+psql on PostgreSQL or the mariadb client on MariaDB,
 `specarch-gen-tests-go`, which `specarch
 generate tests` runs to write its Go tests, `specarch-gen-tests-swift` and
 `specarch-gen-tests-dart`, which `specarch generate tests` runs instead of

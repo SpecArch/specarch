@@ -2,7 +2,7 @@
 command: generate
 level: system
 scenario: red
-given: "a specification with a guarded removal of a shelf by its key, whose implementation file names mariadb as the scripts target's dialect; specarch-gen-scripts built from this repository on PATH"
+given: "a specification with a guarded removal of a shelf by its key, whose implementation file names sqlserver as the scripts target's dialect; specarch-gen-scripts built from this repository on PATH"
 when: "generate scripts is run with --unapproved"
-then: "it writes nothing, reports that it writes psql scripts for PostgreSQL only, and exits 1"
+then: "it writes nothing, reports that it writes scripts for postgresql and mariadb only, and exits 1"
 verifies: [SA-87]

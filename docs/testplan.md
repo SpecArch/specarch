@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.3-dev of the specification: 632 design tests, 295 golden and 337 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.3-dev of the specification: 633 design tests, 296 golden and 337 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.7.3-dev of the specification: 632 design tests, 295 golden and 337 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 628 |
+| system | 629 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -2217,9 +2217,9 @@ Scenario: golden; level: system; verifies SA-87.
 
 Scenario: red; level: system; verifies SA-87.
 
-- Given: a specification with a guarded removal of a shelf by its key, whose implementation file names mariadb as the scripts target's dialect; specarch-gen-scripts built from this repository on PATH
+- Given: a specification with a guarded removal of a shelf by its key, whose implementation file names sqlserver as the scripts target's dialect; specarch-gen-scripts built from this repository on PATH
 - When: generate scripts is run with --unapproved
-- Then: it writes nothing, reports that it writes psql scripts for PostgreSQL only, and exits 1
+- Then: it writes nothing, reports that it writes scripts for postgresql and mariadb only, and exits 1
 
 #### generate-scripts-hand-written-refused
 
@@ -2228,6 +2228,14 @@ Scenario: red; level: system; verifies SA-87.
 - Given: a specification with a guarded removal of a shelf by its key, and remove-shelf.sql written by hand in the scripts target's folder; specarch-gen-scripts built from this repository on PATH
 - When: generate scripts is run with --unapproved
 - Then: it leaves remove-shelf.sql as it is, writes nothing, reports that the file was not written by specarch-gen-scripts, and exits 1
+
+#### generate-scripts-mariadb
+
+Scenario: golden; level: system; verifies SA-87.
+
+- Given: the specification of generate-scripts, whose implementation file names mariadb as the scripts target's dialect; specarch-gen-scripts built from this repository on PATH
+- When: generate scripts is run with --unapproved
+- Then: it writes the six scripts of generate-scripts for the mariadb client, each a strict session and one compound statement: every value a user variable given in --init-command, refused by name when unset, and refused before anything is read when its text is not of its column's form (a uuid for a loan's key, a whole number of zero or more for the fine's uint64 key, so a fractional key names no fine, a whole number for renewals); it reports a loan already changed as already applied, counts with COUNT(*) FOR UPDATE and refuses unless the count is recordsChanged, makes the change under the same condition, writes the audit instant as UTC text with nine fractional digits, checks ROW_COUNT() and commits only with @apply true; it gives the warnings of generate-scripts, writes nothing for the shelves, and exits 0
 
 #### generate-skips-no-output-folder
 

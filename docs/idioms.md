@@ -175,7 +175,7 @@ An implementation file's stacks are its language, from its file name
 (`<name>.go.specarch-implementation.yaml` is `go`), the `dialect` of each
 of its targets, and the `framework` of each target that draws screens. A
 dialect is `postgresql`, `sqlserver`, `oracle` or `mariadb`, and a target
-named `sql` without one is `postgresql`. A framework is, for instance,
+named `sql` or `scripts` without one is `postgresql`. A framework is, for instance,
 `nextjs-carbon`; a target that names none has `plain-javascript` on
 platform web and `swiftui` on platform iphone. A UI framework is to the
 screens what a dialect is to SQL: it, not the language, decides the

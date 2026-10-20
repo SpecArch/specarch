@@ -22,7 +22,11 @@ type Column struct {
 	// GeneratedDefault is the field's generatedDefault, such as
 	// identifier, or "".
 	GeneratedDefault string
-	Role             string
+	// Format is the format of the value the column holds, such as
+	// date-time for an instant, as the design writes it, or "". An audit
+	// time column has date-time, whatever type the dialect renders it as.
+	Format string
+	Role   string
 }
 
 // The roles of a column an idiom adds, or of an encrypted field's hash.

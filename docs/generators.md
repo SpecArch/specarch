@@ -1132,7 +1132,8 @@ A data change run against a live system (a correction, a backfill, a record
 moved on by an operator) is safer emitted than typed. `specarch-gen-scripts`
 writes one script per operation or command that carries a `guard`
 (`docs/conventions.md`, Guards), named after its operationId or its
-command's words in kebab case, as a psql script for PostgreSQL. The guard
+command's words in kebab case, as a psql script for PostgreSQL or a script
+for the mariadb client on MariaDB, as the target's dialect says. The guard
 gives the entity, the precondition and the exact count; the change itself
 is derived by keyword only (ADR-158):
 
@@ -1192,9 +1193,28 @@ be told from one that never named a record, so its second run is refused by
 the count and exits non-zero, as a change of many records is when it finds
 no record left in a `from` state; either way nothing changes. A refusal raises an exception that names the entry,
 the entity, the condition and both counts; psql stops on it and rolls the
-transaction back. A dialect other than PostgreSQL is an error at the
-target, and a script in the output folder that the plug-in did not write is
+transaction back. A dialect other than PostgreSQL or MariaDB is an error at
+the target, and a script in the output folder that the plug-in did not write is
 never written over, as for the sqlc queries.
+
+On MariaDB (ADR-167) the steps and their messages are the same; the form
+follows the mariadb client. Each value is a user variable named after its
+column, given as
+`mariadb --init-command="SET @id = '...'" <database> < <script>.sql`, with
+`@apply = true` to commit. The script makes the session strict
+(`STRICT_ALL_TABLES`), so a value too long for its column is refused
+rather than cut, and runs as one compound statement (`BEGIN NOT ATOMIC`
+between `DELIMITER` lines), so it runs through the mariadb client only.
+MariaDB's `CAST` converts what it can and warns, where PostgreSQL's
+refuses, so before anything is read each variable's text is checked
+against its column's form and refused by name when it does not match: a
+whole number for an integer column, a decimal with no more digits after
+the point than the column's scale, a uuid, a date, `true` or `false`, and
+for a date-time field the type-rendering idiom's UTC text with nine
+fractional digits, the form the audit instant is written in as well. The
+count is `SELECT COUNT(*) ... FOR UPDATE`, the count written
+`ROW_COUNT()`, and a refusal a `SIGNAL` whose message the client prints
+before it stops with exit status 1.
 
 ## Other formats
 

@@ -229,6 +229,16 @@ sources:
     edition: "17"
     author: The PostgreSQL Global Development Group
     url: https://www.postgresql.org/docs/17/ddl-rowsecurity.html
+  mariadb-compound-statements:
+    kind: document
+    title: MariaDB Server documentation, Using Compound Statements Outside of Stored Programs
+    author: MariaDB
+    url: https://mariadb.com/kb/en/using-compound-statements-outside-of-stored-programs/
+  mariadb-cast:
+    kind: document
+    title: MariaDB Server documentation, CAST
+    author: MariaDB
+    url: https://mariadb.com/kb/en/cast/
   owasp-authorization:
     kind: document
     title: OWASP Authorization Cheat Sheet

@@ -19,7 +19,8 @@ decisions:
       The target is scripts, the plug-in specarch-gen-scripts. It writes
       one script per operation or command that has a guard, named after
       the operationId or the command's words in kebab case, as a psql
-      script for PostgreSQL; another dialect is an error at the target.
+      script for PostgreSQL, or for MariaDB as ADR-167 says; another
+      dialect is an error at the target.
       It reads the tables and columns through specarch-gen-sql's model
       (gensql.Schema) and writes the precondition as specarch-gen-sql
       writes a check constraint, so the script names only columns the

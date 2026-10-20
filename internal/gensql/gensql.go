@@ -561,7 +561,7 @@ func (g *gen) table(entity string, e map[string]any) table {
 		t.columns = append(t.columns, fc.lines...)
 		from := g.fieldOf(entity, f)
 		readOnly := obj0(obj0(obj0(g.originalEntities()[entity])["properties"])[from])["readOnly"] == true
-		t.schema = append(t.schema, Column{Name: fc.name, Type: fc.typ, Nullable: fc.nullable, Field: from, Key: inPK[f], ReadOnly: readOnly, Generated: text(field["generatedDefault"]) != "", GeneratedDefault: text(field["generatedDefault"])})
+		t.schema = append(t.schema, Column{Name: fc.name, Type: fc.typ, Nullable: fc.nullable, Field: from, Key: inPK[f], ReadOnly: readOnly, Generated: text(field["generatedDefault"]) != "", GeneratedDefault: text(field["generatedDefault"]), Format: text(field["format"])})
 		if fc.hash != "" {
 			t.schema = append(t.schema, Column{Name: fc.hash, Type: names(g.rendering("encrypted-column", "column", g.dialect))["hash"], Nullable: fc.nullable, Field: from, ReadOnly: readOnly, Role: RoleHash})
 		}
@@ -587,7 +587,7 @@ func (g *gen) table(entity string, e map[string]any) table {
 			if strings.HasPrefix(a.key, "lastModified") {
 				role = RoleModified
 			}
-			t.schema = append(t.schema, Column{Name: name, Type: typ, Role: role})
+			t.schema = append(t.schema, Column{Name: name, Type: typ, Format: a.format, Role: role})
 		}
 	}
 	if text(e["deletion"]) == "soft" {

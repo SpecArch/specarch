@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: generate
+level: system
+scenario: golden
+given: "the specification of generate-scripts, whose implementation file names mariadb as the scripts target's dialect; specarch-gen-scripts built from this repository on PATH"
+when: "generate scripts is run with --unapproved"
+then: "it writes the six scripts of generate-scripts for the mariadb client, each a strict session and one compound statement: every value a user variable given in --init-command, refused by name when unset, and refused before anything is read when its text is not of its column's form (a uuid for a loan's key, a whole number of zero or more for the fine's uint64 key, so a fractional key names no fine, a whole number for renewals); it reports a loan already changed as already applied, counts with COUNT(*) FOR UPDATE and refuses unless the count is recordsChanged, makes the change under the same condition, writes the audit instant as UTC text with nine fractional digits, checks ROW_COUNT() and commits only with @apply true; it gives the warnings of generate-scripts, writes nothing for the shelves, and exits 0"
+verifies: [SA-87]

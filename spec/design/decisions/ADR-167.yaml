@@ -1,0 +1,115 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.3.schema.json
+decisions:
+  ADR-167:
+    title: specarch-gen-scripts writes a guarded script for MariaDB as one compound statement the mariadb client runs, with user variables given in --init-command, each checked against its column's form before anything is read, in a strict session
+    status: proposed
+    date: "2026-10-21"
+    context: |
+      ADR-158 wrote the guarded scripts for PostgreSQL only, and the
+      roadmap's target 8 named another dialect as not built. MariaDB is the
+      dialect closest to that path among the four specarch-gen-sql writes:
+      open source, widely run, with transactions, locking reads and a
+      procedural block a script can run without creating anything. The
+      steps and their promises stay those of ADR-158; what differs is how
+      MariaDB and its client take a value, report a refusal and convert a
+      value.
+    decision: |
+      A scripts target whose dialect is mariadb gets one script per guarded
+      entry, derived as ADR-158 says, against the tables specarch-gen-sql
+      writes for mariadb, with the precondition written as that generator
+      writes a MariaDB check constraint. Each script is:
+      - a SET SESSION that adds STRICT_ALL_TABLES to the session's
+        sql_mode, keeping the rest of it;
+      - one compound statement, BEGIN NOT ATOMIC ... END between DELIMITER
+        lines, so the file runs through the mariadb client only; inside it
+        an exit handler rolls back and raises the error again, the
+        transaction, and a labelled inner block the already-applied step
+        leaves;
+      - every value a user variable named after its column (@id), set by
+        the operator as mariadb --init-command="SET @id = '...'" <database>
+        < script.sql, with @apply = true to commit. A variable that is not
+        set is refused by name, except that of a column that may be null,
+        which left out sets the column to NULL; before anything is read,
+        each variable's text is checked against its column's form, by a
+        pattern: a whole number for an integer column (no sign for an
+        unsigned one), a decimal with at most the column's scale of
+        digits after the point, a number for DOUBLE, true or false
+        (or 1 or 0) for BOOLEAN, a date or time of day that CAST also
+        reads, hexadecimal for a binary column, a uuid's 36 characters for
+        a uuid field, and for a date-time field the type-rendering idiom's
+        UTC text with nine fractional digits. Text of any other column is
+        taken as it is; @apply must be true, false, 1 or 0 when set;
+      - the value cast as the column holds it: a whole number or a
+        decimal through DECIMAL(65,s) with the column's scale, DOUBLE,
+        DATE, TIME(6), UNHEX for binary, a boolean as LOWER(@v) IN
+        ('true', '1'), and CHAR without a length for text;
+      - the five steps of ADR-158, with SELECT COUNT(*) ... FOR UPDATE as
+        the locking count, ROW_COUNT() for the count written, <=> for
+        IS NOT DISTINCT FROM, and an audit instant written as
+        DATE_FORMAT(UTC_TIMESTAMP(6), '%Y-%m-%dT%H:%i:%s.%f000Z');
+      - a refusal raised by SIGNAL SQLSTATE '45000' with the message ADR-158
+        gives, its values joined by CONCAT; a notice is a row the client
+        prints under the column message.
+      gensql.Column carries the format of the field a column holds, so an
+      audit column is known as an instant whatever type the dialect gives
+      it. SQL Server and Oracle stay an error at the target.
+    why: |
+      The mariadb client has no variables of its own and no conditional
+      lines, so the values come in as user variables and every decision is
+      made inside one compound statement. MariaDB runs a compound statement
+      outside a stored program only as BEGIN NOT ATOMIC, and one that
+      starts with a label is refused, so the label is on the inner block.
+      --init-command rather than a SET followed by SOURCE: tried on
+      MariaDB 11.4, a SOURCE after a SET on one -e line does not parse, and
+      an error inside a SOURCEd file does not stop the client, which went
+      on to the next statement and exited 0; a file read on standard input
+      stops at the first error with exit status 1.
+      The checks before the casts stand in for what PostgreSQL's casts do
+      on their own. MariaDB's CAST converts what it can and warns: 123.7
+      cast to UNSIGNED is 123 and to DECIMAL(65,0) is 124, a date that
+      does not exist is NULL, and text that is no number is 0, so a key
+      given wrong would name another record. A pattern the text must
+      match refuses it by name instead, before anything is read, and
+      once the text matches, the cast is exact. A decimal key is held to
+      its column's scale for the same reason ADR-158 casts a PostgreSQL
+      key without its scale. Text is cast without a length so a key too
+      long matches no record; a value too long is refused only by a
+      strict session (without one MariaDB cuts it and warns), and
+      STRICT_TRANS_TABLES is the default but a server may run without it,
+      so the script adds STRICT_ALL_TABLES itself, as a statement of its
+      own before the compound statement, so the whole of it runs under
+      the strict mode; tried on MariaDB 11.4 with the session's mode
+      emptied first, the title too long was still refused. The rest of the session's mode is kept, so the precondition
+      reads as the check constraints do.
+      The locking count holds: tried on MariaDB 11.4, a second session's
+      UPDATE of a row counted with COUNT(*) ... FOR UPDATE waited until it
+      timed out. Under MariaDB's default repeatable read a locking read
+      and an UPDATE read the latest committed row, not the snapshot, and
+      the rows counted are locked, so the change writes what was counted
+      and the postcondition still refuses a short count. ROW_COUNT()
+      counts rows changed rather than rows matched; every change the
+      design derives writes a value the record did not hold (the state
+      leaves a from state, the soft-delete flag turns true, a PUT whose
+      values all match ends at the already-applied step), so the two
+      agree. The audit instant is written in the idiom's text form, whose
+      byte order is time order; MariaDB keeps microseconds, so the last
+      three of the nine digits are zeros.
+    consequences: |
+      The scripts run through the mariadb client, not through a driver or
+      another client that does not read DELIMITER. A deployment that sets
+      NO_BACKSLASH_ESCAPES reads a doubled backslash in a message as two.
+      Compiler test: generate-scripts-mariadb writes the six scripts of
+      the PostgreSQL case for MariaDB, with the same warnings. Acceptance
+      test: the scripts were run by hand on MariaDB 11.4 against the
+      tables specarch-gen-sql writes: an unset variable, a malformed uuid,
+      a fractional unsigned key and a fractional integer were refused
+      before reading; a dry run rolled back; an applied run committed; a
+      second run reported the record already changed or was refused by
+      the count; a title too long and a state outside the check were
+      refused and rolled back.
+    satisfies: [SA-87]
+    cites:
+      - source: mariadb-compound-statements
+        says: "Compound statements can also be used outside of stored programs. BEGIN must use the BEGIN NOT ATOMIC syntax. A compound statement might not start with a label."
+      - source: mariadb-cast
+        says: "The following CAST() gives warnings, because x'aa' and 'X'aa' don't behave as a number: Truncated incorrect INTEGER value."

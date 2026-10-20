@@ -233,8 +233,10 @@ implementation file uses and compares an override with the shipped idiom.
    (0.7.2, ADR-158 proposed, `spec/tests/generate-scripts`) writes a psql script for
    PostgreSQL per guarded entry whose change a transition it triggers, a PUT
    by its key or a DELETE by its key says, and warns at the guard for every
-   other change, left to be written by hand. Not built: another dialect, and
-   a word in the meta-model for what any other change writes.
+   other change, left to be written by hand; the same scripts for the
+   mariadb client on MariaDB (ADR-167 proposed,
+   `spec/tests/generate-scripts-mariadb`). Not built: SQL Server and
+   Oracle, and a word in the meta-model for what any other change writes.
 
 "Any language or framework" means any stack that has a generator written for
 it. Generators are added one stack at a time, driven by the real projects

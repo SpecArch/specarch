@@ -1,5 +1,5 @@
 arguments: [generate, scripts, --unapproved, project]
 exitStatus: 1
 standardOutput: |
-  project/specarch.yaml:1:1: error: /: generator: specarch-gen-scripts writes psql scripts for PostgreSQL only, and the scripts target names mariadb; write those scripts by hand, or generate them for postgresql [generator@specarch.yaml#/]
+  project/specarch.yaml:1:1: error: /: generator: specarch-gen-scripts writes scripts for postgresql and mariadb, and the scripts target names sqlserver; write those scripts by hand, or generate them for postgresql or mariadb [generator@specarch.yaml#/]
 plugins: [scripts]

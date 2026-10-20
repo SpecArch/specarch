@@ -8,7 +8,10 @@ commands:
       stakeholder of the specification, when no document target is
       configured, and when any configured document on disk is not what the
       specification generates now, so that what was read is what is
-      approved; the questions, problems and comparison targets are the
+      approved. Each document is made as `document` makes it, with the
+      records beside the specification, the problem marks and, for the
+      html site, its problems, diagrams and screens, so a document that
+      `document` has just written is current; the questions, problems and comparison targets are the
       refinement's own documents and are not among them (ADR-157). Otherwise writes `records/approvals/<version>.yaml` beside
       the specification's folder: the record kind, the version, who
       approved, the date, the documents that were current, and the digest

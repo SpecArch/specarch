@@ -652,3 +652,17 @@ Expected: "an" before a name that starts with a vowel sound, in both builds, the
 To repeat: run `specarch derive` on `spec/tests/derive-caller-estate` as its `case.yaml` does. The golden `expected/core/tests/delete-invoice-refused-with-a-token-for-another-audience/test.yaml`, and the same test in `validate-caller-identity-cases` and `validate-caller-identity-case-waits`, record this until the fix; those three goldens move with it.
 
 Fix: the token cases put `indefinite(name)` before the token's name in both builds: "an" before a vowel, "a" before a consonant and before a "u" said as "you" ("a user token"). The three goldens now say "an access token minted for another service".
+
+## BUG-052 — approve: changes, releases and html documents are never current, so approve refuses them right after document writes them
+
+- Reported: 2026-10-21, found while approving a specification with change records and an html site
+- Closed: 2026-10-21, completed
+- Fixed by: the commit on `main` whose message says `Fixes BUG-052`
+
+`approve` in `cmd/specarch/approve.go` made each document it compares with `l.state()` alone, while `runDocument` in `cmd/specarch/document.go` also sets the records' path from the output folder, the problem marks and, for the html target, the site's parts. The changes and releases documents link the records, and the site shows the problems, diagrams and screens, so each differed from what `document` had just written, and approve refused with "differs from what the specification says now" however often `document` was run.
+
+Expected: a document that `specarch document` has just written is current for `approve`.
+
+To repeat: in `examples/library-lending`, run `specarch document changes spec`, then `specarch approve --by librarian -- spec`. It printed that `docs/changes.md`, `docs/releases.md` and `site/index.html` differ, and exited 1.
+
+Fix: `loaded.documentInputs` in `cmd/specarch/document.go` gathers the implementation files and the state a document is made with, and both `document` and `approve` use it, so they cannot drift apart. The Swift build has no approve verb. The case `approve-after-document-records-and-site` approves changes, releases and html documents that `document` wrote, and the design of `approve` says each document is made as `document` makes it.

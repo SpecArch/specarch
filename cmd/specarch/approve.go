@@ -102,11 +102,9 @@ func approve(l loaded, by, date string, stdout, stderr io.Writer) int {
 		if folder == "" {
 			continue
 		}
-		var impls []generate.Implementation
-		for _, i := range l.impls {
-			impls = append(impls, generate.Implementation{Node: i.Node, Rel: relSlash(folder, i.Path), Path: i.Path, Idioms: i.Idioms})
-		}
-		text, _ := generate.Document(target, root, relSlash(folder, l.spec.RootFile), impls, l.state())
+		// What cannot be drawn for the site was said when document wrote it.
+		impls, st := l.documentInputs(target, folder, io.Discard)
+		text, _ := generate.Document(target, root, relSlash(folder, l.spec.RootFile), impls, st)
 		p := filepath.Join(folder, generate.DocumentName(target))
 		old, err := os.ReadFile(p)
 		switch {

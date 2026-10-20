@@ -1,0 +1,10 @@
+specarchRecord: "0.1"
+kind: defect
+id: DEF-1
+title: A sixth loan goes through
+reportedBy: owner
+reported: "2026-10-12"
+phase: development
+severity: major
+violates: [CASE-1]
+status: confirmed

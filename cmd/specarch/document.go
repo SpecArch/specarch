@@ -114,6 +114,25 @@ func (l loaded) state() *generate.State {
 	return st
 }
 
+// documentInputs gathers what generate.Document takes beside the
+// specification to write target into folder: the implementation files,
+// named from there, and the state with the records, the marks and, for
+// the html target, the site's parts. document writes with it and approve
+// compares with it, so the two cannot disagree on what a document says.
+func (l loaded) documentInputs(target, folder string, stderr io.Writer) ([]generate.Implementation, *generate.State) {
+	var impls []generate.Implementation
+	for _, i := range l.impls {
+		impls = append(impls, generate.Implementation{Node: i.Node, Rel: relSlash(folder, i.Path), Path: i.Path, Idioms: i.Idioms})
+	}
+	st := l.state()
+	st.RecordsRel = relSlash(folder, l.spec.RecordsDir)
+	st.Marks = l.marks(folder)
+	if target == "html" {
+		st.Site = siteParts(l, folder, stderr)
+	}
+	return impls, st
+}
+
 // namedPlaces finds, for each question that names what the source gives,
 // the file and line of the element whose key it leaves out, from the
 // specification's root.
@@ -214,16 +233,7 @@ func runDocument(args []string, stdout, stderr io.Writer) int {
 		if status != 0 {
 			return status
 		}
-		var impls []generate.Implementation
-		for _, i := range l.impls {
-			impls = append(impls, generate.Implementation{Node: i.Node, Rel: relSlash(folder, i.Path), Path: i.Path, Idioms: i.Idioms})
-		}
-		st := l.state()
-		st.RecordsRel = relSlash(folder, l.spec.RecordsDir)
-		st.Marks = l.marks(folder)
-		if target == "html" {
-			st.Site = siteParts(l, folder, stderr)
-		}
+		impls, st := l.documentInputs(target, folder, stderr)
 		root := l.spec.Root
 		if everyone {
 			root = forEveryone(root, st, l.given)

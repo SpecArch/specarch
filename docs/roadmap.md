@@ -405,7 +405,9 @@ under the trust domain (ADR-171, `derive-caller-estate`,
 `validate-caller-identity-cases`, `validate-caller-identity-case-waits`).
 Left to build: the `Txn-Token` header read in the swift, javascript and dart
 readers; `through` on a pattern row of the permission table; and
-BUG-038, `via` and `through` missing from `specarch model`'s references.
+BUG-038, `via` and `through` missing from `specarch model`'s references;
+and BUG-046, the cases of a client named in `callers` by reference to the
+identity module.
 
 Built, 0.7.2: the diagram keywords. An editor that draws every diagram
 from a specification can draw the system context, the components of an

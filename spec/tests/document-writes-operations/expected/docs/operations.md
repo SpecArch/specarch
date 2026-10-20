@@ -2,9 +2,9 @@
 
 # Shop: operations guide
 
-Version 1.0.0 of the specification: 2 monitors, 3 jobs, 2 dependencies and 2 endpoints. For the people who run the live system: where it runs, what to look at each day, what to do when a monitor's objective is missed, what runs on its own, what it depends on, and how its data is saved and brought back.
+Version 1.0.0 of the specification: 2 monitors, 4 jobs, 2 dependencies and 2 endpoints. For the people who run the live system: where it runs, what to look at each day, what to do when a monitor's objective is missed, what runs on its own, what it depends on, and how its data is saved and brought back.
 
-**Problems:** 20 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
+**Problems:** 22 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
 ## 1. Where it runs
 
@@ -30,7 +30,8 @@ What to look at on the live system each day. Tick the last column as each is see
 |---|---|---|---|
 | Monitor till-latency (production) | How long taking an order takes. | Nine orders in ten are taken within a second over each day. |   |
 | Monitor receipts-printed (production) | Whether every order taken has its receipt. | Every order taken in a day has a printed receipt by closing. |   |
-| Job settleDay | Its last run, on the schedule `0 1 * * *` (UTC). | It ran, and no item is kept apart after its last try. |   |
+| Job settleDay | Its last run, on the schedule `0 1 * * *` (UTC). | It ran, and no item is kept apart after its last try; the section Jobs says where a kept item is. |   |
+| Job countStock | Its last run, on the schedule `0 3 * * *` (UTC). | It ran, and no item is kept apart after its last try; the section Jobs says where a kept item is. |   |
 | Job printReceipt | Its last run, for each order.events/OrderTaken. | It ran, and failed on no item. |   |
 | Job sweep | Its last run, every PT1H. | It ran, and failed on no item. |   |
 | Dependency broker | That it answers over amqp. | It answers within PT1S. |   |
@@ -63,7 +64,8 @@ What the system runs on its own. A job acts as its role and may do only what the
 
 | Job | Starts | Acts as | After a failure | Description |
 |---|---|---|---|---|
-| settleDay | on the schedule `0 1 * * *` (UTC) | night-batch | tried again up to 3 times, then kept apart for a person | Every night, settles the day's card payments. |
+| settleDay | on the schedule `0 1 * * *` (UTC) | night-batch | tried again up to 3 times, then kept apart for the manager role | Every night, settles the day's card payments. |
+| countStock | on the schedule `0 3 * * *` (UTC) | night-batch | tried again up to 2 times, then kept apart for a person | Every night, counts the stock left on the shelves. |
 | printReceipt | for each order.events/OrderTaken | night-batch | tried again up to 2 times, then dropped | Prints a receipt for each order taken. |
 | sweep | every PT1H | night-batch | not tried again | Removes stale sessions. |
 
@@ -75,6 +77,10 @@ What the system runs on its own. A job acts as its role and may do only what the
 
 **Problem on settleDay:** warning: test_golden_missing: job settleDay has no golden scenario; add one under tests, for example settle-day-succeeds: { job: settleDay, scenario: golden, given: "...", when: "the job settleDay runs", then: "it completes" } [test_golden_missing@specarch.yaml#/jobs/settleDay]
 
+**Problem on countStock:** warning: test_case_missing: job countStock has no golden scenario for "runs twice"; add under tests count-stock-runs-twice: { job: countStock, scenario: golden, covers: [runs twice], given: "the job countStock has run", when: "it runs again over the same records", then: "nothing changes a second time" } [test_case_missing@specarch.yaml#/jobs/countStock]
+
+**Problem on countStock:** warning: test_golden_missing: job countStock has no golden scenario; add one under tests, for example count-stock-succeeds: { job: countStock, scenario: golden, given: "...", when: "the job countStock runs", then: "it completes" } [test_golden_missing@specarch.yaml#/jobs/countStock]
+
 **Problem on printReceipt:** warning: test_case_missing: job printReceipt has no golden scenario for "runs twice"; add under tests print-receipt-runs-twice: { job: printReceipt, scenario: golden, covers: [runs twice], given: "the job printReceipt has run", when: "the same order.events/OrderTaken arrives again", then: "nothing changes a second time" } [test_case_missing@specarch.yaml#/jobs/printReceipt]
 
 **Problem on printReceipt:** warning: test_golden_missing: job printReceipt has no golden scenario; add one under tests, for example print-receipt-succeeds: { job: printReceipt, scenario: golden, given: "...", when: "a order.events/OrderTaken arrives for the job printReceipt", then: "it completes" } [test_golden_missing@specarch.yaml#/jobs/printReceipt]
@@ -84,6 +90,22 @@ What the system runs on its own. A job acts as its role and may do only what the
 **Problem on sweep:** warning: test_golden_missing: job sweep has no golden scenario; add one under tests, for example sweep-succeeds: { job: sweep, scenario: golden, given: "...", when: "the job sweep runs", then: "it completes" } [test_golden_missing@specarch.yaml#/jobs/sweep]
 
 **Problem on sweep:** warning: test_red_missing: job sweep has no red scenario; add one under tests, for example sweep-refused: { job: sweep, scenario: red, given: "...", when: "...", then: "it is refused" } [test_red_missing@specarch.yaml#/jobs/sweep]
+
+### settleDay: an item kept apart
+
+A payment that failed every try is kept on the back-office list of unsettled payments, with the provider's answer to its last try.
+
+Handled by the manager role: a person who holds it looks at each kept item, then tries it again or discards it.
+
+| Step | Action | Check |
+|---|---|---|
+| 1. Look at it | Open the unsettled payments, and read the provider's answer to the payment's last try. | Why it failed is known. |
+| 2. Try it again | If the provider has answered since, start settleDay by hand for that payment. | The payment is settled and leaves the list. |
+| 3. Discard it | If the payment is refused for good, discard it from the list and tell the customer. | The list no longer holds it and the customer knows. |
+
+### countStock: an item kept apart
+
+The specification does not say what a person does with an item the job keeps apart; who handles it, where it is kept and the steps to try it again or discard it are written under the job's deadLetter.
 
 ## 5. Channels
 

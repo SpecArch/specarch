@@ -55,9 +55,9 @@ decisions:
       An existing specification reads as before: the new keys are
       optional and no rule refuses their absence. Every document target
       of the design is built, the manual and the operations guide among
-      them. A dead-letter item's handling is not in the operations guide:
-      it is left to build. A command-line tool's commands are in the
-      manual through ADR-165. The
+      them. What a person does with an item a job keeps apart is in the
+      operations guide through ADR-166. A command-line tool's commands are
+      in the manual through ADR-165. The
       sections that make the manual or the guide a draft, and whose
       problems they carry, are the ones each shows: the manual reads jobs
       and clients only to tell a program's role from a person's, and the

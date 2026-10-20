@@ -51,7 +51,7 @@ What to look at on the live system each day. Tick the last column as each is see
 |---|---|---|---|
 | Monitor catalogue-latency (production) | How long listBooks takes to answer at the desk. | Nine calls in ten answer within 200 milliseconds over each opening day. |   |
 | Monitor overdue-notices-sent (production) | Whether the nightly job published LoanOverdue for every loan that became overdue. | Every loan marked overdue in a night has its LoanOverdue message published the same night. |   |
-| Job markOverdue | Its last run, on the schedule `0 2 * * *` (UTC). | It ran, and no item is kept apart after its last try. |   |
+| Job markOverdue | Its last run, on the schedule `0 2 * * *` (UTC). | It ran, and no item is kept apart after its last try; the section Jobs says where a kept item is. |   |
 | Dependency eventBus | That it answers over amqp. | It answers within PT1S. |   |
 | Dependency feeLedger | That it answers over https. | It answers within PT5S. |   |
 
@@ -90,9 +90,21 @@ What the system runs on its own. A job acts as its role and may do only what the
 
 | Job | Starts | Acts as | After a failure | Description |
 |---|---|---|---|---|
-| markOverdue | on the schedule `0 2 * * *` (UTC) | scheduler | tried again up to 3 times, then kept apart for a person | Every night, finds the open loans past their due date, marks each overdue, and publishes LoanOverdue for it, so the member is told. |
+| markOverdue | on the schedule `0 2 * * *` (UTC) | scheduler | tried again up to 3 times, then kept apart for the librarian role | Every night, finds the open loans past their due date, marks each overdue, and publishes LoanOverdue for it, so the member is told. |
 
 **Insight on markOverdue:** Overnight, when no one is at the desk, so a loan is overdue from the first morning after its due date.
+
+### markOverdue: an item kept apart
+
+A loan the job could not mark on any try is kept apart, with the error of its last try, on the list of loans the job could not mark. The member is not told about the loan until it leaves the list.
+
+Handled by the librarian role: a person who holds it looks at each kept item, then tries it again or discards it.
+
+| Step | Action | Check |
+|---|---|---|
+| 1. Look at it | Open the list of loans the job could not mark, and read the error of the loan's last try. | Why the loan was not marked is known. |
+| 2. Try it again | If the error is gone, such as the event bus answering again, try the loan again from the list. | The loan is marked overdue, its LoanOverdue is published, and it leaves the list. |
+| 3. Discard it | If the loan should not be overdue, such as one returned before its due date and recorded late, discard it from the list. | The list no longer holds it, and the loan is as it was. |
 
 ## 5. Channels
 

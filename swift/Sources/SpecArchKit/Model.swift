@@ -69,6 +69,7 @@ private let referencePlaces: [(path: [String], kind: String)] = [
     (["workflows", "*", "steps", "*", "permission"], "permission"),
     (["roles", "*", "permissions"], "permission"),
     (["jobs", "*", "role"], "role"),
+    (["jobs", "*", "deadLetter", "role"], "role"),
     (["workflows", "*", "steps", "*", "approvers"], "role"),
     (["clients", "*", "roles"], "role"),
     (["signoff", "signers", "*", "role"], "role"),

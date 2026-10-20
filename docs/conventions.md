@@ -1370,6 +1370,12 @@ Work the system does on its own is a job, under `jobs`:
       writes: [Loan]
       emits: [loan.overdue/LoanOverdue]
       retries: { limit: 3, then: deadLetter }
+      deadLetter:
+        role: librarian
+        description: A loan the job could not mark is kept on the list of loans the job could not mark, with the error of its last try.
+        steps:
+          - { name: Look at it, action: Open the list and read the error., check: Why the loan was not marked is known. }
+          - { name: Try it again, action: Try the loan again from the list., check: The loan is marked and leaves the list. }
 
 The `trigger` is exactly one of `schedule`, the five fields of cron in UTC,
 `every`, a duration, or `consumes`, a `channel/Message`. The job acts as a
@@ -1379,6 +1385,15 @@ dependencies are checked as an operation's are (`emits`, `dependency`). A
 test names a job as its subject with `job: <name>`. A job gets the cases
 `runs twice`, critical on its own, the dependency cases for what it calls,
 and `an item fails every try` when it retries.
+
+A job whose `retries` say `deadLetter` keeps an item apart after its last
+try; its `deadLetter` says what becomes of that item: the `role` whose
+people handle it, a `description` of where it is kept and how to find it,
+in the design's words, and the `steps` to look at it, then try it again or
+discard it, each with a check (ADR-166). The operations guide writes them
+under the job, or one sentence naming `deadLetter` when the job has none.
+A `deadLetter` role that is not a role, or a `deadLetter` on a job whose
+retries do not keep an item apart, is an error (`job`).
 
 `menus` is the navigation, a tree of entries, each a `title` with a `page`
 or with `items` of its own. Every page an entry opens must exist (`menu`).

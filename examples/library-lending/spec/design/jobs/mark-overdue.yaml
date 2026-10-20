@@ -8,5 +8,12 @@ jobs:
     writes: [Loan]
     emits: [loan.overdue/LoanOverdue]
     retries: { limit: 3, then: deadLetter }
+    deadLetter:
+      role: librarian
+      description: A loan the job could not mark on any try is kept apart, with the error of its last try, on the list of loans the job could not mark. The member is not told about the loan until it leaves the list.
+      steps:
+        - { name: Look at it, action: "Open the list of loans the job could not mark, and read the error of the loan's last try.", check: Why the loan was not marked is known. }
+        - { name: Try it again, action: "If the error is gone, such as the event bus answering again, try the loan again from the list.", check: "The loan is marked overdue, its LoanOverdue is published, and it leaves the list." }
+        - { name: Discard it, action: "If the loan should not be overdue, such as one returned before its due date and recorded late, discard it from the list.", check: "The list no longer holds it, and the loan is as it was." }
     satisfies: [LIB-4]
     why: Overnight, when no one is at the desk, so a loan is overdue from the first morning after its due date.

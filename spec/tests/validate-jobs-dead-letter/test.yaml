@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "a job that discards an item after its last try but says under deadLetter what a person does with a kept one, handled by a role the specification lacks, and a job that keeps an item apart with its deadLetter"
+when: "validate is run"
+then: "it reports job twice for the first job, at its deadLetter and at the deadLetter's role, nothing for the second, and exits 1"
+verifies: [SA-90]

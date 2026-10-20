@@ -3285,6 +3285,52 @@ ol.problems p{margin:2px 0}
 <dd>deadLetter</dd>
 </dl>
 </dd>
+<dt>deadLetter</dt>
+<dd id="/jobs/markOverdue/deadLetter">
+<dl>
+<dt>role</dt>
+<dd><a href="#/roles/librarian">librarian</a></dd>
+<dt>description</dt>
+<dd>
+<p>A loan the job could not mark on any try is kept apart, with the error of its last try, on the list of loans the job could not mark. The member is not told about the loan until it leaves the list.</p>
+</dd>
+<dt>steps</dt>
+<dd>
+<ol class="items">
+<li id="/jobs/markOverdue/deadLetter/steps/0">
+<dl>
+<dt>name</dt>
+<dd>Look at it</dd>
+<dt>action</dt>
+<dd>Open the list of loans the job could not mark, and read the error of the loan&#39;s last try.</dd>
+<dt>check</dt>
+<dd>Why the loan was not marked is known.</dd>
+</dl>
+</li>
+<li id="/jobs/markOverdue/deadLetter/steps/1">
+<dl>
+<dt>name</dt>
+<dd>Try it again</dd>
+<dt>action</dt>
+<dd>If the error is gone, such as the event bus answering again, try the loan again from the list.</dd>
+<dt>check</dt>
+<dd>The loan is marked overdue, its LoanOverdue is published, and it leaves the list.</dd>
+</dl>
+</li>
+<li id="/jobs/markOverdue/deadLetter/steps/2">
+<dl>
+<dt>name</dt>
+<dd>Discard it</dd>
+<dt>action</dt>
+<dd>If the loan should not be overdue, such as one returned before its due date and recorded late, discard it from the list.</dd>
+<dt>check</dt>
+<dd>The list no longer holds it, and the loan is as it was.</dd>
+</dl>
+</li>
+</ol>
+</dd>
+</dl>
+</dd>
 <dt>satisfies</dt>
 <dd>
 <p><a href="#/requirements/LIB-4">LIB-4</a></p>

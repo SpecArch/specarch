@@ -10,8 +10,9 @@ import (
 // Operations writes the operations guide (ADR-160): for the people who
 // run the live system day to day, the environments and their hosts, a
 // checklist of what to look at, the monitors with what to do when one is
-// missed, the jobs, channels, dependencies and endpoints, the settings,
-// and the backup, restore and rollback steps. A section the specification
+// missed, the jobs with what a person does with an item a job keeps
+// apart, the channels, dependencies and endpoints, the settings, and the
+// backup, restore and rollback steps. A section the specification
 // has nothing for is one sentence naming the key that fills it.
 func Operations(root *yaml.Node, relRoot string, impls []Implementation, state *State) string {
 	d := newDoc("operations", root, relRoot, impls, state)
@@ -79,7 +80,7 @@ func Operations(root *yaml.Node, relRoot string, impls []Implementation, state *
 		for _, j := range jobs {
 			expected := "It ran, and failed on no item."
 			if str(get(j.Value, "retries"), "then") == "deadLetter" {
-				expected = "It ran, and no item is kept apart after its last try."
+				expected = "It ran, and no item is kept apart after its last try; the section Jobs says where a kept item is."
 			}
 			d.line("| Job %s | %s | %s | %s |", j.Key.Value, cell("Its last run, "+triggerText(get(j.Value, "trigger"))+"."), cell(expected), cell(""))
 		}
@@ -141,10 +142,24 @@ func Operations(root *yaml.Node, relRoot string, impls []Implementation, state *
 		d.line("| Job | Starts | Acts as | After a failure | Description |")
 		d.line("|---|---|---|---|---|")
 		for _, j := range jobs {
-			d.line("| %s | %s | %s | %s | %s |", j.Key.Value, cell(triggerText(get(j.Value, "trigger"))), cell(str(j.Value, "role")), cell(retriesText(get(j.Value, "retries"))), cell(str(j.Value, "description")))
+			d.line("| %s | %s | %s | %s | %s |", j.Key.Value, cell(triggerText(get(j.Value, "trigger"))), cell(str(j.Value, "role")), cell(retriesText(j.Value)), cell(str(j.Value, "description")))
 		}
 		d.blank()
 		d.explainRows(rowsOf(jobs))
+		for _, j := range jobs {
+			if str(get(j.Value, "retries"), "then") != "deadLetter" {
+				continue
+			}
+			d.heading(3, j.Key.Value+": an item kept apart")
+			dl := get(j.Value, "deadLetter")
+			if dl == nil {
+				d.para("The specification does not say what a person does with an item the job keeps apart; who handles it, where it is kept and the steps to try it again or discard it are written under the job's deadLetter.")
+				continue
+			}
+			d.para(strings.TrimSpace(str(dl, "description")))
+			d.para("Handled by the " + str(dl, "role") + " role: a person who holds it looks at each kept item, then tries it again or discards it.")
+			stepsTable(d, get(dl, "steps"))
+		}
 	}
 
 	d.section("Channels")
@@ -293,13 +308,17 @@ func triggerText(t *yaml.Node) string {
 }
 
 // retriesText says how often a job tries a failed item again and what
-// becomes of it after the last try.
-func retriesText(r *yaml.Node) string {
+// becomes of it after the last try, with the role that handles a kept item.
+func retriesText(job *yaml.Node) string {
+	r := get(job, "retries")
 	if r == nil {
 		return "not tried again"
 	}
 	text := fmt.Sprintf("tried again up to %s times, then ", str(r, "limit"))
 	if str(r, "then") == "deadLetter" {
+		if role := str(get(job, "deadLetter"), "role"); role != "" {
+			return text + "kept apart for the " + role + " role"
+		}
 		return text + "kept apart for a person"
 	}
 	return text + "dropped"

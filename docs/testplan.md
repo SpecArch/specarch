@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.3-dev of the specification: 631 design tests, 295 golden and 336 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.3-dev of the specification: 632 design tests, 295 golden and 337 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.7.3-dev of the specification: 631 design tests, 295 golden and 336 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 627 |
+| system | 628 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -993,9 +993,9 @@ Scenario: golden; level: system; verifies SA-90.
 
 Scenario: golden; level: system; verifies SA-90.
 
-- Given: two environments, a deployment with a named and an unnamed host and a watched monitor, a monitor with a response and one without, jobs on a schedule with dead letters, on a channel dropping after its retries and every hour with none, a carried channel and the system's own, a workflow publishing a message, a dependency an operation and a job call and one that carries a channel, a setting and a secret, and a backup with no restore or rollback
+- Given: two environments, a deployment with a named and an unnamed host and a watched monitor, a monitor with a response and one without, a job on a schedule keeping an item apart with a deadLetter naming a role, a place and three steps, and one keeping an item apart with no deadLetter, a job on a channel dropping after its retries and every hour with none, a carried channel and the system's own, a workflow publishing a message, a dependency an operation and a job call and one that carries a channel, a setting and a secret, and a backup with no restore or rollback
 - When: document operations is run
-- Then: it writes operations.md with the environments and the deployment's hosts, a checklist row per monitor, job and dependency, each monitor with how it is watched and its response or a sentence naming response, the jobs' triggers, roles and retries, each message's carrier, its publishers among operations, jobs and workflows, and its consumers, each dependency's users, the endpoints with their warnings under them, the settings, the backup, and a sentence each for restore and rollback, and exits 0
+- Then: it writes operations.md with the environments and the deployment's hosts, a checklist row per monitor, job and dependency, each monitor with how it is watched and its response or a sentence naming response, the jobs' triggers, roles and retries, with the role a kept item goes to, the place, role and steps of each kept item or a sentence naming deadLetter, each message's carrier, its publishers among operations, jobs and workflows, and its consumers, each dependency's users, the endpoints with their warnings under them, the settings, the backup, and a sentence each for restore and rollback, and exits 0
 
 #### document-writes-questions
 
@@ -3943,6 +3943,14 @@ Scenario: golden; level: system; verifies SA-34.
 - When: validate is run
 - Then: it reports no error, warns that no test covers the cases page beyond last, page size above the maximum, sort and filter outside the lists, a request too large and too many requests, among the others, and exits 0
 
+#### validate-jobs-dead-letter
+
+Scenario: red; level: system; covers exit 1; verifies SA-90.
+
+- Given: a job that discards an item after its last try but says under deadLetter what a person does with a kept one, handled by a role the specification lacks, and a job that keeps an item apart with its deadLetter
+- When: validate is run
+- Then: it reports job twice for the first job, at its deadLetter and at the deadLetter's role, nothing for the second, and exits 1
+
 #### validate-jobs-menus
 
 Scenario: red; level: system; covers exit 1; verifies SA-35.
@@ -5131,7 +5139,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-380 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+382 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -5403,6 +5411,8 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-90 | acceptance 4 | golden | SA-90 names no harm |
 | requirement SA-90 | acceptance 5 | golden | SA-90 names no harm |
 | requirement SA-90 | acceptance 6 | golden | SA-90 names no harm |
+| requirement SA-90 | acceptance 7 | golden | SA-90 names no harm |
+| requirement SA-90 | acceptance 8 | golden | SA-90 names no harm |
 | requirement SA-32 | acceptance 1 | golden | SA-32 names no harm |
 | requirement SA-32 | acceptance 2 | golden | SA-32 names no harm |
 | requirement SA-32 | acceptance 3 | golden | SA-32 names no harm |

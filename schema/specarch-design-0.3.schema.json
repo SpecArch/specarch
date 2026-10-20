@@ -5906,7 +5906,7 @@
           "uniqueItems": true
         },
         "retries": {
-          "description": "How often a failed item is tried again, and what becomes of it after the last try: deadLetter keeps it apart for a person, discard drops it.",
+          "description": "How often a failed item is tried again, and what becomes of it after the last try: deadLetter keeps it apart for a person, as the job's deadLetter says, discard drops it.",
           "type": "object",
           "properties": {
             "limit": {
@@ -5925,6 +5925,30 @@
           "required": [
             "limit",
             "then"
+          ],
+          "additionalProperties": false
+        },
+        "deadLetter": {
+          "description": "SpecArch keyword. What becomes of an item the job keeps apart after its last try, when retries says deadLetter: the role whose people handle it, where it is kept and how to look at it, and the steps to try it again or discard it, each with a check. The operations guide writes it under the job (ADR-166).",
+          "type": "object",
+          "properties": {
+            "role": {
+              "description": "The role whose people look at a kept item and try it again or discard it.",
+              "$ref": "#/$defs/roleName"
+            },
+            "description": {
+              "description": "Where a kept item is, what is kept with it, such as the error of its last try, and how a person finds it, in the design's words; the store a stack uses is the implementation's.",
+              "$ref": "#/$defs/markdown"
+            },
+            "steps": {
+              "description": "What the person does with a kept item, in order, each with a check: look at it, then try it again or discard it.",
+              "$ref": "#/$defs/steps"
+            }
+          },
+          "required": [
+            "role",
+            "description",
+            "steps"
           ],
           "additionalProperties": false
         },

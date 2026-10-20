@@ -166,7 +166,7 @@ requirements:
     needs: [NEED-2]
     why: A data change typed by hand against a live system is where a wrong condition changes a thousand records instead of one; a script written from the guard checks the state it expects, shows the change before making it and counts what it changed, so the mistake is refused rather than committed.
   SA-90:
-    statement: specarch document shall write the user manual from the flows, menus, pages, roles, problem types and commands, and the operations guide from the endpoints, jobs, channels, dependencies, monitors, procedures, settings and deployments, and a problem type shall say what the person who meets it does next, a command what the person who ran it does after each status it fails with, and a monitor what the operator does when its objective is missed.
+    statement: specarch document shall write the user manual from the flows, menus, pages, roles, problem types and commands, and the operations guide from the endpoints, jobs, channels, dependencies, monitors, procedures, settings and deployments, and a problem type shall say what the person who meets it does next, a command what the person who ran it does after each status it fails with, a monitor what the operator does when its objective is missed, and a job that keeps an item apart who handles a kept item, where it is kept and what they do with it.
     kind: functional
     priority: should
     status: accepted
@@ -174,8 +174,10 @@ requirements:
       - specarch document manual writes manual.md with the roles that open a page, each with the pages it opens, a role a job acts as or a client holds left out unless a flow names it as its actor; the menus; each flow's steps as numbered instructions; and each page's purpose, who opens it, its fields or columns, its actions with their confirmation, and per problem it names the message, the condition and the remedy.
       - The manual has a section per command with its usage line from the program's name and the command's words, who runs it, its arguments and options, what it reads, writes and prints, and each exit status with what it means and its remedy.
       - specarch document operations writes operations.md with the environments and their hosts, a checklist row per monitor, job and dependency, each monitor's response, each job's trigger, role and retries, each channel's carrier, publishers and consumers, each dependency's callers, the endpoints with their permissions, the settings, and the backup, restore and rollback steps.
+      - The operations guide writes, under the jobs, for each job that keeps an item apart, where a kept item is, the role that handles it and the steps to look at it, try it again or discard it, or one sentence naming deadLetter when the job has none.
       - A specification with no pages, flows, commands, monitors or jobs still gets both documents, each empty section one sentence naming the key that fills it, and its errors marked as in every document.
       - A problem type without remedy, a command without remedies or a program name, and a monitor without response are read as before, with no error or warning, the same in both builds.
+      - A job's deadLetter whose role is not a role, or on a job whose retries do not keep an item apart, is refused as job, the same in both builds.
       - A command's remedy keyed by status 0, or by a status its exitCodes does not list, is refused as exit_code, the same in both builds.
     verification: test
     needs: [NEED-3, NEED-5]

@@ -1,0 +1,68 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.3.schema.json
+decisions:
+  ADR-166:
+    title: A job that keeps an item apart says, under deadLetter, the role that handles a kept item, where it is kept and the steps to look at it, try it again or discard it, and the operations guide writes them under the job
+    status: accepted
+    date: "2026-10-20"
+    context: |
+      ADR-026 gave a job retries with a limit and what follows the last
+      try, deadLetter or discard, and ADR-160 wrote the jobs into the
+      operations guide. For deadLetter the guide could say only that the
+      item is kept apart for a person: the design had no word for which
+      person, where the item is, or what they do with it. An operator
+      who finds a kept item on the daily checklist had nothing to follow.
+    decision: |
+      A job gains deadLetter, what becomes of an item it keeps apart: role,
+      the role whose people handle a kept item; description, where a kept
+      item is, what is kept with it and how a person finds it, in the
+      design's words; and steps, what the person does, in order, each
+      with a name, an action and a check, as a monitor's response is
+      written: look at the item, then try it again or discard it. All
+      three are required when deadLetter is written. A role that is not a
+      role of the specification, or a deadLetter on a job whose retries do
+      not say deadLetter, is an error at that key, job, the same in both
+      builds.
+
+      specarch document operations writes the role in the job's row of
+      the jobs table, kept apart for that role, and, after the table, a
+      part per job that keeps an item apart: the description, the role
+      that handles it and the steps as a table. A job that keeps an item
+      apart with no deadLetter gets its part as one sentence naming
+      deadLetter. The daily checklist row of such a job sends the reader
+      to that part.
+    consequences: |
+      An existing specification reads as before: deadLetter is optional,
+      and a job that keeps an item apart without it gets a sentence, not
+      an error or a warning. The library lending example's nightly job
+      says what the desk does with a loan it could not mark, kept current
+      by CI. What is still not written: the store a stack keeps a kept
+      item in, such as a queue or a table, which belongs in an
+      implementation file's deployment as a monitor's tool does, and a
+      test case derived from the steps.
+    why: |
+      deadLetter on the job rather than inside retries, because retries
+      says how often and what follows, and the handling is a person's
+      work with its own role and steps; keeping retries to limit and then
+      leaves every existing retries as it is. The same word as the value
+      of then, so a reader finds the handling under the name the retries
+      gave it. The place in words rather than a queue or table name,
+      because the design holds nothing stack-specific
+      (docs/conventions.md) and a person reads where to look before any
+      stack is chosen. steps rather than plain text, unlike a problem
+      type's remedy, because trying an item again or discarding it
+      changes data on the live system, and a check after each step is
+      what tells the operator it worked, as a monitor's response and a
+      rollback do. Required role, description and steps, because a
+      deadLetter with any of them missing leaves the operator where the
+      sentence does, and the schema says which is missing. A deadLetter
+      on a job that discards refused, because the guide would describe
+      kept items that never exist. Compiler test: a job that keeps items
+      apart with no deadLetter still gets its part, as one sentence naming
+      the key. Acceptance test: an operator reads where a kept item is
+      and what to do with it before the system runs, and a remark on a
+      step names the job and the key to change.
+    satisfies: [SA-90]
+    cites:
+      - source: iso-12207
+        clause: "6.4.12"
+        says: "The operation process uses the system in its intended environment and supports its users."

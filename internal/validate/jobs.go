@@ -12,12 +12,21 @@ import (
 // finds a page (docs/dxlib-lessons.md, section 2): jobs and menus.
 
 // checkJobs checks that a job acts as a role, reads and writes entities,
-// consumes and publishes messages, and calls dependencies that exist.
+// consumes and publishes messages, and calls dependencies that exist, and
+// that its deadLetter names a role and follows retries that keep an item.
 func (c *checker) checkJobs(d *design) {
 	for _, j := range source.Pairs(source.Child(d.root, "jobs")) {
 		name := j.Key.Value
 		if r := source.Child(j.Value, "role"); r != nil && d.roles[r.Value] == nil {
 			c.add(r, source.Pointer("jobs", name, "role"), RuleJob, "%s is not a role of the specification%s", r.Value, suggest(r.Value, d.roles))
+		}
+		if dl := source.Child(j.Value, "deadLetter"); dl != nil {
+			if r := source.Child(dl, "role"); r != nil && d.roles[r.Value] == nil {
+				c.add(r, source.Pointer("jobs", name, "deadLetter", "role"), RuleJob, "%s is not a role of the specification%s", r.Value, suggest(r.Value, d.roles))
+			}
+			if source.Str(source.Child(source.Child(j.Value, "retries"), "then")) != "deadLetter" {
+				c.add(source.Key(j.Value, "deadLetter"), source.Pointer("jobs", name, "deadLetter"), RuleJob, "deadLetter says what a person does with a kept item, but the job keeps none apart; write retries with then: deadLetter, or remove deadLetter")
+			}
 		}
 		for _, list := range []string{"reads", "writes"} {
 			for i, e := range source.Items(source.Child(j.Value, list)) {

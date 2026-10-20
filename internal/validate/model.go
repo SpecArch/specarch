@@ -120,6 +120,7 @@ var referencePlaces = []struct {
 	{[]string{"workflows", "*", "steps", "*", "permission"}, toPermission},
 	{[]string{"roles", "*", "permissions"}, toPermission},
 	{[]string{"jobs", "*", "role"}, toRole},
+	{[]string{"jobs", "*", "deadLetter", "role"}, toRole},
 	{[]string{"workflows", "*", "steps", "*", "approvers"}, toRole},
 	{[]string{"clients", "*", "roles"}, toRole},
 	{[]string{"signoff", "signers", "*", "role"}, toRole},

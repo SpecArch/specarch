@@ -1,0 +1,41 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0 }
+requirements:
+  CASE-1: { statement: One., kind: functional, priority: must, status: accepted, acceptance: [One.] }
+entities:
+  Loan:
+    type: object
+    properties:
+      id: { type: string, format: uuid }
+    primaryKey: [id]
+    satisfies: [CASE-1]
+jobs:
+  chaseOverdue:
+    description: Finds loans past their due date.
+    trigger: { every: PT1H }
+    role: desk
+    reads: [Loan]
+    retries: { limit: 3, then: discard }
+    deadLetter:
+      role: night-shift
+      description: A loan that failed every try is listed on the desk's report with the error of its last try.
+      steps:
+        - { name: Look at it, action: Open the report and read the error., check: The error is known. }
+    satisfies: [CASE-1]
+  closeDay:
+    description: Closes the day's loans.
+    trigger: { every: P1D }
+    role: desk
+    reads: [Loan]
+    retries: { limit: 2, then: deadLetter }
+    deadLetter:
+      role: desk
+      description: A loan that failed every try is listed on the desk's report with the error of its last try.
+      steps:
+        - { name: Look at it, action: Open the report and read the error., check: The error is known. }
+        - { name: Try it again, action: Start the job by hand for that loan., check: The loan leaves the report. }
+    satisfies: [CASE-1]
+permissions:
+  loans.read: { description: See loans. }
+roles:
+  desk: { description: The desk., permissions: [loans.read] }

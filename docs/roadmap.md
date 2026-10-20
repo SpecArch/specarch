@@ -220,8 +220,10 @@ implementation file uses and compares an override with the shipped idiom.
    0.7.3 (ADR-165, `spec/tests/document-writes-manual-cli`): each with its
    usage line from `info.program`, its arguments, options, files and exit
    statuses with a command's `remedies`, and SpecArch's own manual is
-   `docs/manual.md`. Not built: what a person does with a dead-letter item in the
-   operations guide (it says only that the item is kept apart), and other
+   `docs/manual.md`. What a person does with an item a job keeps apart came
+   in 0.7.3 (ADR-166, `spec/tests/document-writes-operations`): the job's
+   `deadLetter` names the role that handles it, where it is kept and the
+   steps to look at it, try it again or discard it. Not built: other
    project documents. The handover document (0.7.0) says
    what a customer who runs the system receives.
 8. Built: guarded operational scripts for data changes on live systems:

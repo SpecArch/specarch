@@ -3796,6 +3796,59 @@
       "type": "string",
       "pattern": "^x-(oapi-codegen|ogen|openapi-generator|codegen|protoc|grpc|go|java|kotlin|python|typescript|javascript|rust|swift|dotnet|csharp|php|ruby|framework|router|middleware|cli-library|server|servers|host|port|deploy|deployment|environment)(-|$)"
     },
+    "step": {
+      "description": "SpecArch keyword. One step of a procedure or a check.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "description": "A short name for the step, such as 'Tag the release'.",
+          "type": "string",
+          "minLength": 1
+        },
+        "action": {
+          "description": "What is done, in plain words. The exact command belongs to the implementation file.",
+          "type": "string",
+          "minLength": 1
+        },
+        "check": {
+          "description": "How the person running it knows the step worked.",
+          "type": "string",
+          "minLength": 1
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
+        }
+      },
+      "required": [
+        "name",
+        "action"
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "steps": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/step"
+      },
+      "minItems": 1
+    },
     "listOf": {
       "description": "SpecArch keyword. The operation answers a page of an entity's records, or of a view's rows: which fields a free-text search covers, which may be filtered and sorted by, and the page size. A client must know the lists, and a request outside them is refused, never ignored. The parameter names and the answer's envelope are the paginated-list idiom.",
       "type": "object",
@@ -4206,7 +4259,7 @@
           "uniqueItems": true
         },
         "retries": {
-          "description": "How often a failed item is tried again, and what becomes of it after the last try: deadLetter keeps it apart for a person, discard drops it.",
+          "description": "How often a failed item is tried again, and what becomes of it after the last try: deadLetter keeps it apart for a person, as the job's deadLetter says, discard drops it.",
           "type": "object",
           "properties": {
             "limit": {
@@ -4225,6 +4278,30 @@
           "required": [
             "limit",
             "then"
+          ],
+          "additionalProperties": false
+        },
+        "deadLetter": {
+          "description": "SpecArch keyword. What becomes of an item the job keeps apart after its last try, when retries says deadLetter: the role whose people handle it, where it is kept and how to look at it, and the steps to try it again or discard it, each with a check. The operations guide writes it under the job (ADR-166).",
+          "type": "object",
+          "properties": {
+            "role": {
+              "description": "The role whose people look at a kept item and try it again or discard it.",
+              "$ref": "#/$defs/roleName"
+            },
+            "description": {
+              "description": "Where a kept item is, what is kept with it, such as the error of its last try, and how a person finds it, in the design's words; the store a stack uses is the implementation's.",
+              "$ref": "#/$defs/markdown"
+            },
+            "steps": {
+              "description": "What the person does with a kept item, in order, each with a check: look at it, then try it again or discard it.",
+              "$ref": "#/$defs/steps"
+            }
+          },
+          "required": [
+            "role",
+            "description",
+            "steps"
           ],
           "additionalProperties": false
         },

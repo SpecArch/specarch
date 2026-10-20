@@ -5,12 +5,21 @@ import Foundation
 
 extension Checker {
     /// Checks that a job acts as a role, reads and writes entities, consumes
-    /// and publishes messages, and calls dependencies that exist.
+    /// and publishes messages, and calls dependencies that exist, and that
+    /// its deadLetter names a role and follows retries that keep an item.
     func checkJobs(_ d: Design) {
         for j in pairs(d.root.child("jobs")) {
             let name = j.key.value
             if let r = j.value.child("role"), d.roles[r.value] == nil {
                 add(r, pointer("jobs", name, "role"), .job, "\(r.value) is not a role of the specification\(suggest(r.value, d.roles))")
+            }
+            if let dl = j.value.child("deadLetter") {
+                if let r = dl.child("role"), d.roles[r.value] == nil {
+                    add(r, pointer("jobs", name, "deadLetter", "role"), .job, "\(r.value) is not a role of the specification\(suggest(r.value, d.roles))")
+                }
+                if str(j.value.child("retries")?.child("then")) != "deadLetter" {
+                    add(j.value.key("deadLetter") ?? dl, pointer("jobs", name, "deadLetter"), .job, "deadLetter says what a person does with a kept item, but the job keeps none apart; write retries with then: deadLetter, or remove deadLetter")
+                }
             }
             for list in ["reads", "writes"] {
                 for (i, e) in items(j.value.child(list)).enumerated() where d.entities[e.value] == nil {

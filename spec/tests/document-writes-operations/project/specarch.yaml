@@ -80,6 +80,18 @@ jobs:
     role: night-batch
     calls: [payments]
     retries: { limit: 3, then: deadLetter }
+    deadLetter:
+      role: manager
+      description: A payment that failed every try is kept on the back-office list of unsettled payments, with the provider's answer to its last try.
+      steps:
+        - { name: Look at it, action: "Open the unsettled payments, and read the provider's answer to the payment's last try.", check: Why it failed is known. }
+        - { name: Try it again, action: "If the provider has answered since, start settleDay by hand for that payment.", check: The payment is settled and leaves the list. }
+        - { name: Discard it, action: "If the payment is refused for good, discard it from the list and tell the customer.", check: The list no longer holds it and the customer knows. }
+  countStock:
+    description: Every night, counts the stock left on the shelves.
+    trigger: { schedule: "0 3 * * *" }
+    role: night-batch
+    retries: { limit: 2, then: deadLetter }
   printReceipt:
     description: Prints a receipt for each order taken.
     trigger: { consumes: order.events/OrderTaken }

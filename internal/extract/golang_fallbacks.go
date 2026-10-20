@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"go/ast"
 	gotoken "go/token"
+	"regexp"
 	"strings"
 )
 
@@ -12,7 +13,8 @@ import (
 // NotFoundHandler and MethodNotAllowedHandler, echo's HTTPErrorHandler
 // and a ServeMux pattern of / alone with no method are where a gateway
 // lives in each library, and where a plain 404 lives too; a route whose
-// path ends in a catch-all, or gorilla/mux's PathPrefix given a handler
+// path ends in a catch-all, a gorilla/mux variable whose pattern can
+// match a slash among them, or gorilla/mux's PathPrefix given a handler
 // that is no router, is the other way the same thing is written. The
 // reader cannot tell which, so each is a must question blocking the
 // design stage, counted as a registration, in place of silence or a line.
@@ -117,11 +119,12 @@ func (sc *routeScope) askRootPattern(clause string, handler ast.Expr) {
 
 // catchAllSegment is the prefix before, and the segment that is, a
 // catch-all in a route's path as each library writes one: gin's and
-// echo's *name, a ServeMux {name...}, chi's * at the end; ok is false
-// for a path with none. gorilla/mux has no catch-all segment: its
-// catch-all is PathPrefix given a handler, which gorilla reads.
+// echo's *name, a ServeMux {name...}, chi's * at the end, and a
+// gorilla/mux variable whose pattern can match a slash, {name:.*}; ok
+// is false for a path with none. gorilla/mux's other catch-all is
+// PathPrefix given a handler, which gorilla reads.
 func catchAllSegment(lib, p string) (prefix, segment string, ok bool) {
-	segs := strings.Split(p, "/")
+	segs := pathSegments(p)
 	for i, s := range segs {
 		var hit bool
 		switch lib {
@@ -131,12 +134,51 @@ func catchAllSegment(lib, p string) (prefix, segment string, ok bool) {
 			hit = strings.HasSuffix(s, "...}")
 		case "chi":
 			hit = s == "*" || strings.HasSuffix(s, "*")
+		case "gorilla/mux":
+			hit = gorillaCatchAll(s)
 		}
 		if hit {
 			return strings.Join(segs[:i], "/"), s, true
 		}
 	}
 	return "", "", false
+}
+
+// pathSegments splits a route path at its slashes outside braces, so a
+// variable's pattern holding a slash stays one segment.
+func pathSegments(p string) []string {
+	var segs []string
+	depth, start := 0, 0
+	for i, c := range p {
+		switch c {
+		case '{':
+			depth++
+		case '}':
+			if depth > 0 {
+				depth--
+			}
+		case '/':
+			if depth == 0 {
+				segs = append(segs, p[start:i])
+				start = i + 1
+			}
+		}
+	}
+	return append(segs, p[start:])
+}
+
+// gorillaCatchAll says whether a segment is a gorilla/mux variable whose
+// pattern can match a slash, so that it takes the rest of the path: the
+// pattern is compiled as gorilla/mux compiles it, anchored at both ends,
+// and tried on a/b. A pattern that does not compile is no catch-all,
+// since gorilla/mux refuses the route.
+func gorillaCatchAll(s string) bool {
+	m := routeWildcard.FindStringSubmatch(s)
+	if m == nil || m[0] != s || m[2] == "" {
+		return false
+	}
+	re, err := regexp.Compile("^(?:" + strings.TrimPrefix(m[2], ":") + ")$")
+	return err == nil && re.MatchString("a/b")
 }
 
 // catchAll asks about a route whose path ends in a catch-all, naming

@@ -1528,7 +1528,7 @@ func (g *goReader) gorillaEnd(name string) bool {
 
 // gorilla reads one gorilla/mux route: HandleFunc(path, h).Methods(...), or
 // Path(path).Methods(...).HandlerFunc(h), with any of them in any order;
-// and PathPrefix(prefix).Handler(h), gorilla/mux's catch-all, which
+// and PathPrefix(prefix).Handler(h), one of gorilla/mux's catch-alls, which
 // mounts a router of the module under no prefix, since gorilla/mux
 // strips nothing from the path it hands on, and is the catch-all
 // question for any other handler (ADR-143).
@@ -1620,9 +1620,10 @@ func (sc *routeScope) gorilla(recv *routerNode, chain []*ast.CallExpr) {
 // gorillaPrefix reads gorilla/mux's PathPrefix(prefix) given a handler
 // and no Path: a router of the module is mounted under no prefix, with
 // http.StripPrefix's prefix when it wraps the router, since gorilla/mux
-// hands the whole path on; any other handler takes every request under
-// the prefix, so it is the catch-all question naming the prefix and the
-// methods.
+// hands the whole path on, and Methods or another matcher on the mount
+// is a match the meta-model does not hold, said in a line; any other
+// handler takes every request under the prefix, so it is the catch-all
+// question naming the prefix and the methods.
 func (sc *routeScope) gorillaPrefix(recv *routerNode, call *ast.CallExpr, clause string, prefixExpr, handler ast.Expr, methods []ast.Expr, methodsSet bool, other string) {
 	g := sc.g
 	target, _ := sc.unwrap(handler)
@@ -1631,7 +1632,17 @@ func (sc *routeScope) gorillaPrefix(recv *routerNode, call *ast.CallExpr, clause
 			target = c.Args[1]
 		}
 	}
-	if !methodsSet && other == "" && sc.eval(target) != nil {
+	if sc.eval(target) != nil {
+		if by := other; by != "" || methodsSet {
+			if by == "" {
+				by = "Methods"
+			}
+			p := exprText(prefixExpr)
+			if v, ok := sc.stringValue(prefixExpr); ok {
+				p = v
+			}
+			g.notHeld = append(g.notHeld, notHeld{text: fmt.Sprintf("%s: the router mounted under PathPrefix %s matches by %s as well as by path, which the meta-model does not hold; its routes are written without it", clause, p, by), clause: clause, blocks: []string{"paths"}})
+		}
 		sc.mount(recv, call, prefixExpr, handler, "PathPrefix")
 		return
 	}
@@ -2301,7 +2312,7 @@ func (g *goReader) routePathNotes(lib, p string) (string, string, []string) {
 	if p == "" {
 		return "", "", nil
 	}
-	segs := strings.Split(p, "/")
+	segs := pathSegments(p)
 	for i, s := range segs {
 		switch lib {
 		case "gin", "echo":
@@ -2323,9 +2334,12 @@ func (g *goReader) routePathNotes(lib, p string) (string, string, []string) {
 			if strings.HasSuffix(s, "...}") {
 				return "", "it ends in the wildcard " + s + ", which matches the rest of the path, and a path parameter holds one segment", nil
 			}
-		default: // chi and gorilla/mux
-			if s == "*" || strings.HasSuffix(s, "*") {
+		default: // chi's * and the {name:pattern} variable of chi and gorilla/mux
+			if lib == "chi" && (s == "*" || strings.HasSuffix(s, "*")) {
 				return "", "it ends in the catch-all " + s + ", which matches the rest of the path, and a path parameter holds one segment", nil
+			}
+			if lib == "gorilla/mux" && gorillaCatchAll(s) {
+				return "", "the variable " + s + " matches a slash, so it takes the rest of the path, and a path parameter holds one segment", nil
 			}
 			if m := routeWildcard.FindStringSubmatch(s); m != nil && m[0] == s {
 				if m[2] != "" {

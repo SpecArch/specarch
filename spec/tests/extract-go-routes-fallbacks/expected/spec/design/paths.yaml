@@ -5,7 +5,7 @@ paths:
       origin: stated
       cites:
         - {source: code, clause: 'gorillafallback/router.go:20', says: Registers GET /api/items on a gorilla/mux router; its handler is items.}
-        - {source: code, clause: 'gorillafallback/router.go:32', says: The handler of GET /api/items reads no path parameter by name.}
+        - {source: code, clause: 'gorillafallback/router.go:37', says: The handler of GET /api/items reads no path parameter by name.}
   /health:
     get:
       operationId: getHealth
@@ -40,7 +40,7 @@ paths:
       origin: stated
       cites:
         - {source: code, clause: 'gorillafallback/router.go:18', says: Registers GET /started on a gorilla/mux router; its handler is health.}
-        - {source: code, clause: 'gorillafallback/router.go:31', says: The handler of GET /started reads no path parameter by name.}
+        - {source: code, clause: 'gorillafallback/router.go:36', says: The handler of GET /started reads no path parameter by name.}
   /status:
     get:
       operationId: getStatus
@@ -48,6 +48,13 @@ paths:
       cites:
         - {source: code, clause: 'muxfallback/mux.go:15', says: Registers GET /status on a net/http ServeMux; its handler is health.}
         - {source: code, clause: 'muxfallback/mux.go:20', says: The handler of GET /status reads no path parameter by name.}
+  /v2/items:
+    get:
+      operationId: itemsV2
+      origin: stated
+      cites:
+        - {source: code, clause: 'gorillafallback/router.go:26', says: Registers GET /v2/items on a gorilla/mux router; its handler is itemsV2.}
+        - {source: code, clause: 'gorillafallback/router.go:38', says: The handler of GET /v2/items reads no path parameter by name.}
   /version:
     get:
       operationId: getVersion

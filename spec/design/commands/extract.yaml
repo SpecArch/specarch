@@ -878,17 +878,21 @@ commands:
         answers or forwards and by which claim of the token it picks the
         service, counted as a registration, or, in a loop or behind a
         condition, the question every registration there asks; a route
-        whose path ends in a rest wildcard or a catch-all is the same
-        must question, naming its prefix and its methods, every method
-        for `Any` and `Handle`, and so is gorilla/mux's `PathPrefix`
-        given a handler that is no router, its catch-all, naming the
-        prefix and its `Methods`; both block the design stage, since a
+        whose path ends in a rest wildcard or a catch-all, a gorilla/mux
+        variable whose pattern can match a slash (`{rest:.*}`) among
+        them, is the same must question, naming its prefix and its
+        methods, every method for `Any` and `Handle`, and so is
+        gorilla/mux's `PathPrefix` given a handler that is no router,
+        its other catch-all, naming the prefix and its `Methods`; both
+        block the design stage, since a
         fallback is where a gateway lives and where a plain 404 lives
         too, and syntax cannot tell which (ADR-143). A `ServeMux`
         pattern of `/` with no method, or gorilla/mux's `PathPrefix`,
         handing every request to a router of the module mounts that
         router under no prefix, `http.StripPrefix`'s when it wraps the
-        router, since both hand the whole path on; a gorilla/mux chain
+        router, since both hand the whole path on, and `Methods` or
+        another matcher on such a `PathPrefix` is a line, since the
+        meta-model holds no match on the mount; a gorilla/mux chain
         that names no path or no handler the reader reads is a must
         question. A file that imports chi, gin, echo or gorilla/mux and
         gives nothing read prints a line. Each operation carries a must question on

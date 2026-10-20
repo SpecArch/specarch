@@ -512,13 +512,15 @@ no section of the schema (`question_block`), and is written in
 extracted tree lists the stages `requirements` and `design`; both
 checked with the 0.7.0 build. It blocks `gateways` once the element's
 item has added the section, which is when a table can answer it. A route whose path ends
-in a catch-all (`/*path`, `{path...}`, chi's `/*`), or gorilla/mux's
-`PathPrefix` given a handler that is no router, since gorilla/mux has no
-catch-all segment, is the other way a gateway is written, under a prefix
+in a catch-all (`/*path`, `{path...}`, chi's `/*`, a gorilla/mux
+variable whose pattern can match a slash, `{rest:.*}`), or gorilla/mux's
+`PathPrefix` given a handler that is no router, its other catch-all, is
+the other way a gateway is written, under a prefix
 with `Any` or `Match`; it is the same must question, naming the prefix
 and the methods, in place of a line. `PathPrefix` given a router of the
 module mounts it under no prefix, as a `ServeMux` pattern of `/` does,
-since gorilla/mux hands the whole path on. Once the question blocks `gateways`, the
+since gorilla/mux hands the whole path on; `Methods` or another matcher
+on that mount is a line, since the meta-model holds no match on a mount. Once the question blocks `gateways`, the
 gateway table answers it in the merge (ADR-142), and an answer that the
 handler answers a problem document is a decision that closes it with
 nothing written.

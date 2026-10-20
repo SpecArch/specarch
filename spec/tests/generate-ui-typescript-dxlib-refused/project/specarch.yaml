@@ -1,0 +1,173 @@
+specarch: "0.1"
+info: { title: Notes, version: 1.0.0, wireNames: snake_case }
+stages: [implementation]
+errors:
+  note-gone: { status: 404, title: No such note, condition: No note has the id. }
+permissions:
+  public: { description: Open to everyone. }
+handshakes:
+  preKey:
+    description: The pre-key exchange every call but the exchange itself travels under.
+    keyAgreement: x25519
+    signature: ed25519
+    cipher: aes-256-cbc
+    establishedBy: issuePreKey
+    lifetime: PT5M
+  sealed:
+    description: A session key under an authenticated cipher, which dxlib's datablock does not carry.
+    keyAgreement: x25519
+    signature: ed25519
+    cipher: aes-256-gcm
+    establishedBy: issuePreKey
+entities:
+  Note:
+    type: object
+    properties:
+      noteId: { type: string, readOnly: true, title: Note }
+      title: { type: string, minLength: 1, maxLength: 120, title: Title }
+      status: { type: string, enum: [open, done], title: Status }
+    required: [noteId, title, status]
+    primaryKey: [noteId]
+paths:
+  /prekey:
+    post:
+      operationId: issuePreKey
+      summary: Issue a pre-key
+      permission: public
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                a0: { type: string }
+                a1: { type: string }
+                a2: { type: string }
+              required: [a0, a1, a2]
+      responses:
+        "200":
+          description: The service's keys and the pre-key's index.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  i: { type: string }
+                  b0: { type: string }
+                  b1: { type: string }
+                  b2: { type: string }
+                required: [i, b0, b1, b2]
+  /notes:
+    get:
+      operationId: listNotes
+      summary: The notes
+      permission: public
+      handshake: preKey
+      listOf:
+        entity: Note
+        sortable: [title]
+        searchable: [title]
+        filterable: [status]
+        pageSize: { default: 20, maximum: 50 }
+      responses:
+        "200":
+          description: The notes.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/entities/Note" } }
+    post:
+      operationId: addNote
+      summary: Add a note
+      permission: public
+      handshake: preKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title: { type: string, minLength: 1, maxLength: 120, title: Title }
+              required: [title]
+      responses:
+        "201":
+          description: The note.
+          content:
+            application/json:
+              schema: { $ref: "#/entities/Note" }
+  /tags:
+    get:
+      operationId: listTags
+      summary: The tags, answered whole
+      permission: public
+      responses:
+        "200":
+          description: The tags.
+          content:
+            application/json:
+              schema: { type: array, items: { type: string } }
+  /notes/{noteId}:
+    parameters:
+      - { name: noteId, in: path, required: true, schema: { type: string } }
+    get:
+      operationId: getNote
+      summary: Read a note
+      permission: public
+      handshake: sealed
+      responses:
+        "200":
+          description: The note.
+          content:
+            application/json:
+              schema: { $ref: "#/entities/Note" }
+        "404": { description: No such note., problem: note-gone }
+  /notes/{noteId}/done:
+    post:
+      operationId: finishNote
+      summary: Mark a note done
+      permission: public
+      handshake: preKey
+      parameters:
+        - { name: noteId, in: path, required: true, schema: { type: string } }
+      responses:
+        "204": { description: The note is done. }
+        "404": { description: No such note., problem: note-gone }
+pages:
+  add-note:
+    kind: task
+    title: Add a note
+    route: /notes/new
+    permission: public
+    submit: addNote
+    fields: [title]
+    onSubmitted:
+      "201": { navigate: note-view, with: { noteId: noteId }, message: The note is added. }
+  notes-list:
+    kind: list
+    title: Notes
+    route: /notes
+    entity: Note
+    permission: public
+    source: listNotes
+    columns: [title, status]
+    filters: [status]
+    states:
+      empty: { message: No note yet. }
+      filteredEmpty: { message: No note matches. }
+      failed:
+        note-gone: { message: That note is gone. }
+    onSelect: { navigate: note-view, with: { noteId: noteId } }
+    actions:
+      - { label: Done, kind: operation, target: finishNote, when: 'status == "open"', then: { message: The note is done. } }
+  note-view:
+    kind: view
+    title: Note
+    route: /notes/{noteId}
+    entity: Note
+    permission: public
+    source: getNote
+    fields: [title, status]
+    states:
+      failed:
+        note-gone: { message: That note is gone. }

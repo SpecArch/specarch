@@ -95,12 +95,14 @@ export interface CheckboxFieldSchema extends FieldBase {
  * page at a time through the paginated-list idiom's names, searched by the
  * service when it names search, and otherwise one page searched here.
  */
-export interface LookupSourceSchema {
+export interface LookupSourceSchema extends CallTransport {
   readonly operation: string;
   readonly path: string;
   readonly items: string;
   readonly pageSize: { readonly name: string; readonly value: number };
   readonly search?: string;
+  /** The page's name in the dxlib dialect, which counts pages from 0 and asks for one. */
+  readonly page?: string;
 }
 
 /**
@@ -201,8 +203,17 @@ export interface EventSchema {
   readonly keepsReturnTo?: boolean;
 }
 
+/**
+ * How a call travels: the handshake whose envelope it needs, and in the
+ * dxlib dialect each path parameter's name in the body.
+ */
+export interface CallTransport {
+  readonly handshake?: string;
+  readonly wire?: Readonly<Record<string, string>>;
+}
+
 /** The operation a page sends its fields to. */
-export interface SubmitSchema {
+export interface SubmitSchema extends CallTransport {
   readonly operation: string;
   readonly method: "POST" | "PUT" | "PATCH" | "DELETE";
   readonly path: string;
@@ -254,7 +265,7 @@ export interface ReasonSchema {
  * path with the route parameters each taken from a field of the record, who may run it and while what holds,
  * its confirmation, the reason it asks for, its message and its refusals.
  */
-export interface RowActionSchema {
+export interface RowActionSchema extends CallTransport {
   readonly label: StringKey;
   readonly operation: string;
   readonly method: "POST" | "PUT" | "PATCH" | "DELETE";
@@ -296,13 +307,16 @@ export interface WireSchema {
   readonly items: string;
   readonly totalItems: string;
   readonly totalPages: string;
+  /** A sort's field and direction names, in the dxlib dialect, whose sort is a list of them. */
+  readonly sortField?: string;
+  readonly sortDirection?: string;
 }
 
 /** A list read a page at a time from an operation. */
 export interface ListPageSchema {
   readonly title: StringKey;
   readonly permission: string;
-  readonly source: { readonly operation: string; readonly path: string };
+  readonly source: { readonly operation: string; readonly path: string } & CallTransport;
   readonly columns: readonly ColumnSchema[];
   readonly filters: readonly FilterSchema[];
   readonly search: boolean;
@@ -330,7 +344,7 @@ export type Layout = "page" | "tabs" | "steps";
  * The operation a form loads its record from: the page's route parameters
  * fill its path, and its refusals are the page's failed states it answers.
  */
-export interface LoadSchema {
+export interface LoadSchema extends CallTransport {
   readonly operation: string;
   readonly path: string;
   readonly failed: readonly FailureSchema[];

@@ -1,0 +1,86 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.3.schema.json
+decisions:
+  ADR-161:
+    title: The TypeScript screens call a service in the dxlib dialect as it serves it and perform its pre-key handshake in the browser through the Web Crypto API
+    status: accepted
+    date: "2026-10-20"
+    context: |
+      ADR-145 lets an operation travel in a handshake's envelope and fixes
+      the bytes per stack; the one stack that makes them is dxlib, whose
+      services serve every operation as a POST at /<operationId> with its
+      parameters in one JSON body (the dxlib dialect, ADR-031). The
+      TypeScript screens called the standard dialect only, the operation's
+      method and path, and refused a page that called an encrypted
+      operation, so a web front end of a dxlib service could not be
+      generated at all: its encrypted operations needed the envelope, and
+      its plain ones answered at another URL. The plug-in could not even
+      tell the dialect, since specarch handed it only the implementation
+      files that name the ui target, and the dialect is the service's
+      file's.
+    decision: |
+      specarch generate tells every plug-in the dialect the API is served
+      in: apiDialect in its request is dxlib when an implementation
+      file's openapi target names that dialect, and left out otherwise.
+      specarch-gen-ui-typescript then calls every operation as the
+      dialect serves it. In the standard dialect a call is the
+      operation's method at its path, as before. In the dxlib dialect it
+      is a POST at /<operationId> whose JSON body holds the path's
+      parameters, under the snake-case name the dialect gives them, the
+      query and the body; a list reads the paginated-list idiom's dxlib
+      names, its page counted from 0, its sort a list of a field and a
+      direction, a filter a member of the filter object and its records
+      under a dotted name such as list.rows.
+
+      A call to an operation that names a handshake travels in dxlib's
+      pre-key envelope. The screens' transport module establishes the
+      handshake through its establishedBy operation on the first such
+      call, an Ed25519 and two X25519 key pairs made by the Web Crypto
+      API with a0, a1 and a2 sent and b0, b1, b2 and i read back, seals
+      each request as dxlib's datablock under the first shared key with
+      AES-256-CBC and the client's signature, opens the answer under the
+      second and the service's signature, and hands the page a Response
+      of the status and body inside the envelope, so a page reads an
+      encrypted answer as it reads a plain one. When dxlib answers plain
+      with REFRESH_PREKEY, because the handshake is missing, expired or
+      used up, the module establishes a new one and sends the request
+      once more. The module imports nothing, so its tests run on Node.
+
+      The generator reports as an error at the page a call in a
+      handshake's envelope when no implementation file serves the dxlib
+      dialect, or when the handshake's primitives are not dxlib's three,
+      since the module makes dxlib's bytes only; and a server route that
+      pages a list the service answers whole, under the dxlib dialect,
+      since that route reads the standard names. The plain JavaScript and
+      SwiftUI generators call the standard dialect only, so a service in
+      the dxlib dialect is an error at the root for them.
+    consequences: |
+      A dxlib service gets a web front end from the same specification as
+      its server and its Go client, and the three agree on the envelope by
+      construction; the round trip in internal/gendxlib drives the
+      module, as the generator writes it, against a generated dxlib
+      service on Node. A page in the browser holds its private keys in
+      memory only, as non-exported CryptoKeys for the agreement and the
+      signature, and loses the handshake on a reload, when the next
+      encrypted call establishes a new one. The session is still read at
+      its path as a plain GET, which a dxlib service may not serve; that
+      is the session operation's own matter, read by settings.session.
+    why: |
+      The dialect is a fact of the service, declared once on its openapi
+      target; reading it from there through the request keeps one place to
+      say it, where a ui setting would be a second that could disagree.
+      The Web Crypto API carries X25519, Ed25519 and AES-CBC in every
+      current browser and in Node, so the browser
+      needs no cryptographic library, which would be a dependency to scan,
+      pin and keep for code the platform already ships. The transport
+      answers a Response rather than a value of its own so that every page
+      kind keeps reading the status and the body the way it read them
+      before, and an encrypted call changes no page's code. Renewing once
+      on REFRESH_PREKEY, and not more, follows dxlib's own word for the
+      case: the client is told to establish a new handshake, and a second
+      refusal right after one is a fault worth showing rather than a loop.
+    cites:
+      - source: rfc-7748
+        says: "X25519 and X448 are Diffie-Hellman functions over Curve25519 and Curve448: each party sends its public key and both compute the same shared secret."
+      - source: rfc-8032
+        says: "Ed25519 and Ed448 are EdDSA signature schemes; a signature is verified with the signer's public key."
+    satisfies: [SA-77, SA-3]

@@ -25,7 +25,7 @@ import { Field } from "./Field";
 import { leave } from "./Notice";
 import { againOf, formProblems, hidden, locked, recordOf, typed, type Fields, type Values } from "./rules";
 import type { EventSchema, FailureSchema, FieldSchema, FormFieldSchema, FormPageSchema, SectionSchema } from "./schema";
-import { body, segment, service } from "./service";
+import { body, call, segment } from "./service";
 import { say, type Texts } from "./texts";
 import { ValueField } from "./ValueField";
 import { firstProblem, holdsValue, scalars, sentValue, startValue, valueProblems } from "./values";
@@ -41,11 +41,6 @@ export interface FormPageProps {
   readonly parameters?: Readonly<Record<string, string>>;
   /** The hooks of the fields the schema marks, by field. */
   readonly hooks?: Readonly<Record<string, FieldHook>>;
-}
-
-/** A path with its parameters taken from values by name. */
-function fill(path: string, values: Fields): string {
-  return path.replace(/\{([^}]+)\}/g, (_, name: string) => segment(String(values[name] ?? "")));
 }
 
 /** A field's value as the form holds it: text, with a boolean as "true" or "false". */
@@ -110,7 +105,7 @@ export function FormPage({ schema, texts, routes, parameters, hooks }: FormPageP
     }
     const source = schema.source;
     let current = true;
-    fetch(service + fill(source.path, parameters ?? {}), { credentials: "include", headers: { Accept: "application/json" } })
+    call(source, { parameters: parameters ?? {} })
       .then(async (response) => {
         const answer = response.ok ? await body(response) : undefined;
         if (!current) {
@@ -206,18 +201,13 @@ export function FormPage({ schema, texts, routes, parameters, hooks }: FormPageP
     for (const child of schema.rows) {
       sent[child.name] = rowsSent(child, rows[child.name] ?? { loaded: [], added: [] });
     }
-    const headers: Record<string, string> = { "Content-Type": "application/json", Accept: "application/json, application/problem+json" };
+    const headers: Record<string, string> = {};
     if (schema.submit.idempotencyKey !== undefined) {
       headers[schema.submit.idempotencyKey] = key;
     }
     let response: Response;
     try {
-      response = await fetch(service + fill(schema.submit.path, { ...loaded, ...parameters }), {
-        method: schema.submit.method,
-        headers,
-        credentials: "include",
-        body: JSON.stringify(sent),
-      });
+      response = await call(schema.submit, { parameters: { ...loaded, ...parameters }, headers, body: sent });
     } catch {
       setBusy(false);
       setProblems({ "": say(texts, "screens.failed") });

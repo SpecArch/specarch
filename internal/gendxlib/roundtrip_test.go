@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/SpecArch/specarch/internal/genopenapi"
+	"github.com/SpecArch/specarch/internal/genuits"
 	"github.com/SpecArch/specarch/internal/source"
 	"github.com/SpecArch/specarch/internal/spec"
 	"github.com/SpecArch/specarch/internal/validate"
@@ -39,6 +40,8 @@ func TestEnvelopeStreamRoundTrip(t *testing.T) {
 		"openapi.yaml":      document,
 		"bodies.go":         roundTripBodies,
 		"roundtrip_test.go": roundTripTest,
+		"transport.ts":      genuits.ScreenFile("transport.ts"),
+		"screens.test.ts":   screensTest,
 	}
 	for _, f := range service.Files {
 		files[f.Path] = f.Content
@@ -55,6 +58,11 @@ func TestEnvelopeStreamRoundTrip(t *testing.T) {
 	}
 	run := exec.Command("go", "test", "-count=1", "./...")
 	run.Dir = dir
+	if node, err := exec.LookPath("node"); err == nil {
+		run.Env = append(os.Environ(), "SPECARCH_NODE="+node)
+	} else {
+		t.Log("node is not on PATH, so the screens' transport is not driven against the service")
+	}
 	if out, err := run.CombinedOutput(); err != nil {
 		t.Fatalf("the generated service and client do not pass the round trip: %v\n%s", err, out)
 	}
@@ -185,6 +193,8 @@ import (
 	"encoding/hex"
 	"hash"
 	"net"
+	"os"
+	"os/exec"
 	"testing"
 	"time"
 
@@ -244,6 +254,26 @@ func startVault(t *testing.T) *api.DXAPI {
 	}
 	t.Fatalf("the vault did not start listening at %s", a.Address)
 	return nil
+}
+
+// TestScreensRoundTrip drives the TypeScript screens' transport, as
+// specarch-gen-ui-typescript writes it, against the same service on Node:
+// the handshake established on the first encrypted call through the Web
+// Crypto API, the envelope sealed and opened, and a used-up handshake
+// renewed when the service answers REFRESH_PREKEY.
+func TestScreensRoundTrip(t *testing.T) {
+	node := os.Getenv("SPECARCH_NODE")
+	if node == "" {
+		t.Skip("SPECARCH_NODE names no node, so the screens' transport cannot run here")
+	}
+	a := startVault(t)
+	run := exec.Command(node, "--test", "screens.test.ts")
+	run.Env = append(os.Environ(), "VAULT_URL=http://"+a.Address)
+	out, err := run.CombinedOutput()
+	if err != nil {
+		t.Fatalf("the screens' transport does not pass against the service: %v\n%s", err, out)
+	}
+	t.Logf("%s", out)
 }
 
 func TestRoundTrip(t *testing.T) {
@@ -339,4 +369,59 @@ func TestRoundTrip(t *testing.T) {
 		t.Fatal("the export's bytes are not the pattern")
 	}
 }
+`
+
+// screensTest drives the screens' transport against the vault on Node.
+const screensTest = `import assert from "node:assert/strict";
+import { test } from "node:test";
+import { createTransport } from "./transport.ts";
+
+const service = process.env.VAULT_URL ?? "";
+const handshakes = { preKey: { operation: "issuePreKey" } };
+const addNote = { operation: "addNote", path: "/notes", handshake: "preKey" };
+
+test("the first encrypted call establishes the handshake and opens the answer", async () => {
+  const transport = createTransport({ service, dialect: "dxlib", handshakes });
+  const response = await transport.call(addNote, { body: { title: "hello" } });
+  assert.equal(response.status, 200);
+  assert.equal((await response.json()).note_id, "n-hello");
+});
+
+test("a used-up handshake is renewed when the service answers REFRESH_PREKEY", async () => {
+  const transport = createTransport({ service, dialect: "dxlib", handshakes });
+  for (const title of ["one", "two", "three"]) {
+    const response = await transport.call(addNote, { body: { title } });
+    assert.equal(response.status, 200, title);
+    assert.equal((await response.json()).note_id, "n-" + title);
+  }
+});
+
+test("a plain call in the dxlib dialect is a POST at the operation", async () => {
+  const transport = createTransport({ service, dialect: "dxlib", handshakes });
+  const response = await transport.call({ operation: "downloadAttachment", path: "/attachments/download" }, { body: { attachment_id: "none" } });
+  assert.equal(response.status, 404);
+  assert.equal((await response.json()).reason, "ATTACHMENT_NOT_FOUND");
+});
+
+test("an envelope another service signed is refused", async () => {
+  const transport = createTransport({ service, dialect: "dxlib", handshakes });
+  const tampered = createTransport({
+    service,
+    dialect: "dxlib",
+    handshakes,
+    fetch: async (input, init) => {
+      const response = await fetch(input, init);
+      const text = await response.text();
+      const value = JSON.parse(text);
+      if (typeof value.d === "string") {
+        const last = value.d.slice(-2) === "00" ? "01" : "00";
+        value.d = value.d.slice(0, -2) + last;
+      }
+      return new Response(JSON.stringify(value), { status: response.status, headers: response.headers });
+    },
+  });
+  await assert.rejects(tampered.call(addNote, { body: { title: "x" } }), /signature/);
+  const response = await transport.call(addNote, { body: { title: "after" } });
+  assert.equal(response.status, 200);
+});
 `

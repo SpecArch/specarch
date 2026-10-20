@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: generate
+level: system
+scenario: golden
+given: "a specification with a pre-key handshake of x25519, ed25519 and aes-256-cbc established by issuePreKey, a task page that submits to addNote, a list page that reads listNotes with a filter, a search, a sort and a row action that runs finishNote on the row's note, and a view that loads getNote by the route's note, each of those operations travelling in the handshake's envelope; an implementation file in TypeScript whose ui target is nextjs-carbon, and one in Go whose openapi target serves the dxlib dialect; and specarch-gen-ui-typescript built from this repository on PATH"
+when: "generate ui is run with --unapproved"
+then: "application.ts names the dxlib dialect and the handshake preKey with the operation that establishes it; each call's schema names the handshake it travels in, and a call whose path takes a parameter names the parameter's snake-case name in the body; the list reads the paginated-list idiom's dxlib names, its filter as a member of filter_key_values, its sort's field and direction names, and its records under list.rows; screens/transport.ts, which seals and opens dxlib's envelope through the Web Crypto API, is written beside the other components; it reports nothing and exits 0"
+verifies: [SA-77]

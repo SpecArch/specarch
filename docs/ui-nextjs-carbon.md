@@ -147,6 +147,31 @@ menu entry cannot open a page that turns its reader away. A derived test
 opens each page as someone without its permission and expects the
 refusal.
 
+**A service in the dxlib dialect, and its handshake.** When an
+implementation file's openapi target serves the API in the dxlib dialect,
+`specarch generate` tells the plug-in so (`apiDialect` in its request) and
+the screens call every operation as that dialect serves it: a POST at
+`/<operationId>` with the path's parameters, the query and the body in
+one JSON object, a path parameter under its snake-case name, and a list
+by the paginated-list idiom's dxlib names, its page counted from 0, its
+sort a list of a field and a direction, a filter a member of
+`filter_key_values` and its records under `list.rows` (ADR-161). An
+operation that names a handshake travels in its envelope:
+`screens/transport.ts` establishes the handshake through the operation the
+handshake names under `establishedBy` on the first such call, sends each
+request as dxlib's `{i, d}`, opens the answer and hands the page the status
+and body inside it, and establishes a new handshake and sends once more
+when the service answers `REFRESH_PREKEY`. The keys and the cipher are the
+Web Crypto API's own, X25519 and Ed25519 key pairs that never leave the
+browser and AES-256-CBC, so the module adds no library; the envelope's
+bytes are dxlib's datablock, so a handshake of other primitives, or a
+service in the standard dialect, is an error at the page that calls it.
+`transport.ts` imports nothing, so a test runs it on Node as it is; the
+round trip in `internal/gendxlib` drives it against a generated dxlib
+service. The session is still read at its path as a plain GET, and a
+server route that pages a list the service answers whole is refused
+under the dxlib dialect, whose lists page themselves.
+
 **What the generator does not do.** It writes no `package.json`, no lock
 file and no configuration of Next.js, TypeScript or ESLint; those are the
 project's, and the libraries it needs are the implementation file's

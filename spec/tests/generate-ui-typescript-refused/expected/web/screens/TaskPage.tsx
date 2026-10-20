@@ -9,7 +9,7 @@ import { Field } from "./Field";
 import { leave } from "./Notice";
 import { problemsOf, type Values } from "./rules";
 import type { EventSchema, TaskPageSchema } from "./schema";
-import { segment, service } from "./service";
+import { call, segment } from "./service";
 import { forgetSession } from "./session";
 import { say, type Texts } from "./texts";
 
@@ -75,12 +75,7 @@ export function TaskPage({ schema, texts, routes, returnTo }: TaskPageProps) {
     const body = Object.fromEntries(Object.entries(values).filter(([, value]) => value !== ""));
     let response: Response;
     try {
-      response = await fetch(service + schema.submit.path, {
-        method: schema.submit.method,
-        headers: { "Content-Type": "application/json", Accept: "application/json, application/problem+json" },
-        credentials: "include",
-        body: JSON.stringify(body),
-      });
+      response = await call(schema.submit, { body });
     } catch {
       setBusy(false);
       setProblems({ "": say(texts, "screens.failed") });

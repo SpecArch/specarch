@@ -81,9 +81,10 @@ decisions:
       encrypted call, so a generated client and a generated server agree
       by construction. The other generators refuse an operation that
       names a handshake rather than write a plain call: the tests target
-      says so in the test and leaves the call to the harness, the ui
-      targets report an error at the page, and the plain openapi target
-      writes x-specarch-handshake.
+      says so in the test and leaves the call to the harness, the
+      TypeScript screens seal dxlib's envelope in the browser (ADR-161) and
+      the other ui targets report an error at the page, and the plain
+      openapi target writes x-specarch-handshake.
     consequences: |
       A client built from the specification knows which operations it may
       call plain, which only through an envelope and which operation gives
@@ -92,10 +93,10 @@ decisions:
       its specification instead of losing it to a JSON body. A handshake
       is a fact of the interface boundary like a token, so a service that
       moves from dxlib to another stack keeps the same declaration and
-      changes only how the stack makes the bytes. The front-end targets do
-      not yet perform a handshake: a page that submits to or loads from an
-      encrypted operation is an error at the page until they do, listed in
-      docs/roadmap.md.
+      changes only how the stack makes the bytes. The TypeScript screens
+      perform dxlib's handshake in the browser (ADR-161); the plain
+      JavaScript and SwiftUI screens do not, and a page of theirs that
+      calls an encrypted operation is an error at the page.
     why: |
       The primitives are named by the standards that define them, RFC 7748
       for the curves and RFC 8032 for the signatures, and by OpenSSL's

@@ -3,7 +3,7 @@
 import { Modal, TextArea } from "@carbon/react";
 import type { Fields } from "./rules";
 import type { FailureSchema, RowActionSchema } from "./schema";
-import { segment, service } from "./service";
+import { call } from "./service";
 import { say, type Texts } from "./texts";
 
 function refusal(failed: readonly FailureSchema[], status: number): FailureSchema | undefined {
@@ -17,14 +17,9 @@ function refusal(failed: readonly FailureSchema[], status: number): FailureSchem
  * refusal.
  */
 export async function runAction(action: RowActionSchema, record: Fields, reason: string, texts: Texts): Promise<string | undefined> {
-  const path = action.path.replace(/\{([^}]+)\}/g, (_, name: string) => segment(String(record[action.parameters[name] ?? name] ?? "")));
+  const parameters = Object.fromEntries(Array.from(action.path.matchAll(/\{([^}]+)\}/g), ([, name]) => [name, String(record[action.parameters[name] ?? name] ?? "")]));
   try {
-    const response = await fetch(service + path, {
-      method: action.method,
-      credentials: "include",
-      headers: { Accept: "application/json", ...(action.reason ? { "Content-Type": "application/json" } : {}) },
-      body: action.reason ? JSON.stringify({ [action.reason.property]: reason.trim() }) : undefined,
-    });
+    const response = await call(action, { parameters, body: action.reason ? { [action.reason.property]: reason.trim() } : undefined });
     if (response.ok) {
       return undefined;
     }

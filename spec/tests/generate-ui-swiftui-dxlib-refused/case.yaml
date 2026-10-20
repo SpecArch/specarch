@@ -1,0 +1,5 @@
+arguments: [generate, ui, --unapproved, project]
+exitStatus: 1
+standardOutput: |
+  project/specarch.yaml:1:1: error: /: generator: the service serves its API in the dxlib dialect, a POST at /<operationId> with every parameter in one JSON body and lists counted from page 0, and specarch-gen-ui-swiftui calls the standard dialect only [generator@specarch.yaml#/]
+plugins: [ui-swiftui]

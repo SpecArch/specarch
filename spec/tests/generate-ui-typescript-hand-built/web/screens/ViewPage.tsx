@@ -24,7 +24,7 @@ import { Confirm, runAction } from "./Confirm";
 import { leave } from "./Notice";
 import { evaluate, hidden, type Fields } from "./rules";
 import type { FailureSchema, RowActionSchema, ViewFieldSchema, ViewPageSchema } from "./schema";
-import { body, segment, service } from "./service";
+import { body, call, segment } from "./service";
 import { useSession } from "./session";
 import { say, type Texts } from "./texts";
 
@@ -152,7 +152,7 @@ export function ViewPage({ schema, texts, routes, parameters }: ViewPageProps) {
 
   useEffect(() => {
     let current = true;
-    fetch(service + fill(schema.source.path, parameters ?? {}), { credentials: "include", headers: { Accept: "application/json" } })
+    call(schema.source, { parameters: parameters ?? {} })
       .then(async (response) => {
         const answer = response.ok ? await body(response) : undefined;
         if (!current) {

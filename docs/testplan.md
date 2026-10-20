@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.2-dev of the specification: 607 design tests, 283 golden and 324 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.2-dev of the specification: 611 design tests, 284 golden and 327 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.7.2-dev of the specification: 607 design tests, 283 golden and 324 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 603 |
+| system | 607 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -2381,6 +2381,14 @@ Scenario: golden; level: system; verifies SA-78.
 - When: generate ui is run with --unapproved
 - Then: it runs the plug-in once; it writes each page as a schema of data, one Swift literal typed by its part's schema type with rules as array literals and the route's parameters and the fields a picker fills as dictionaries, and a view that hands it to the part's component, the task pages plain and the rest behind the guard with the route's parameters, the registration form taking each hook from a member of its name of a type the project writes, each guarded page with its derived test that it is refused, sent to sign in or opened by the permission held; Routes.swift with a case per page and the view each opens, the owned branch list the menu reaches among them, opening the missing page, Application.swift with the session, the sign-in page and the menu without the owned one, the menu's derived test, the components under Screens, the texts in Strings.swift with the en-GB translation, and Theme.swift with the parts' colours in light and dark; it warns that the field with no title is labelled by its name and that the translation's unused entries, the print mode and the space are left out, and exits 0
 
+#### generate-ui-swiftui-dxlib-refused
+
+Scenario: red; level: system; verifies SA-77.
+
+- Given: the notes specification with an implementation file in Go whose openapi target serves the dxlib dialect, and one in Swift whose ui target is the iPhone; and specarch-gen-ui-swiftui built from this repository on PATH
+- When: generate ui is run with --unapproved
+- Then: it reports as an error at the root that the service serves the dxlib dialect and specarch-gen-ui-swiftui calls the standard dialect only, writes no file, and exits 1
+
 #### generate-ui-swiftui-refused
 
 Scenario: red; level: system; verifies SA-78.
@@ -2397,6 +2405,22 @@ Scenario: golden; level: system; verifies SA-52, SA-53, SA-54, SA-55, SA-56.
 - When: generate ui is run with --unapproved
 - Then: it runs the plug-in once per output folder; each writes the task pages, the list's schema and page behind the guard, the edit form among its row actions with its route filled from the row, with the derived test that it is refused without its permission, the public list with no such test, each form's and the view's schema and page behind the guard with its derived test, the visits' rows with the loaded ones read from the view's property and only the fields the items take sent, the approval's form with its event under 202, the inbox as a list with its row action, the registration's hook handed on by page.client.tsx from page.hooks.ts, application.ts with the session and the menu without the owned one, the menu's derived test, the components under screens, the texts in strings.ts with the en-GB translation in the first, language.ts, theme.scss with Carbon's themes and, in the first, the parts' colours in light and dark, and in the first a route.ts per path a page calls, the branches paged by their route, none for the owned sign-in, the routes' settings and their derived test; the second imports the list's component and schema type from the library, names its columns by the override, and writes each page's schema as _schema.ts, which its page and derived test import; each warns that the field with no title is labelled by its name and that the print mode is left out, the first that the translation's unused entry and the space are left out, the second that the theme reaches no Carbon token, and exits 0
 
+#### generate-ui-typescript-dxlib
+
+Scenario: golden; level: system; verifies SA-77.
+
+- Given: a specification with a pre-key handshake of x25519, ed25519 and aes-256-cbc established by issuePreKey, a task page that submits to addNote, a list page that reads listNotes with a filter, a search, a sort and a row action that runs finishNote on the row's note, and a view that loads getNote by the route's note, each of those operations travelling in the handshake's envelope; an implementation file in TypeScript whose ui target is nextjs-carbon, and one in Go whose openapi target serves the dxlib dialect; and specarch-gen-ui-typescript built from this repository on PATH
+- When: generate ui is run with --unapproved
+- Then: application.ts names the dxlib dialect and the handshake preKey with the operation that establishes it; each call's schema names the handshake it travels in, and a call whose path takes a parameter names the parameter's snake-case name in the body; the list reads the paginated-list idiom's dxlib names, its filter as a member of filter_key_values, its sort's field and direction names, and its records under list.rows; screens/transport.ts, which seals and opens dxlib's envelope through the Web Crypto API, is written beside the other components; it reports nothing and exits 0
+
+#### generate-ui-typescript-dxlib-refused
+
+Scenario: red; level: system; verifies SA-77.
+
+- Given: the notes specification with a second handshake, sealed, of cipher aes-256-gcm, which the view's getNote travels in; an implementation file in Go whose openapi target serves the dxlib dialect, and one in TypeScript whose ui target names server routes that page listTags, a GET the service answers whole; and specarch-gen-ui-typescript built from this repository on PATH
+- When: generate ui is run with --unapproved
+- Then: it reports as an error at the view's source that sealed's cipher is not dxlib's envelope, the one the screens seal, and as an error at the root that a server route pages by the standard names while the service serves the dxlib dialect, warns that no list page reads listTags, writes the other pages, and exits 1
+
 #### generate-ui-typescript-hand-built
 
 Scenario: golden; level: system; verifies SA-61.
@@ -2412,6 +2436,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-61.
 - Given: the same folders built by hand, with one column of the members list made sortable, the members page's route for the invitation changed, and the branches list's page size given by a name
 - When: generate ui is run with --check and --unapproved
 - Then: it reports the members list's schema with that column's sortable as the one difference, the members page with its first differing line, and the branches list's schema as not comparable at the name's line, names every other file as matching, and exits 1
+
+#### generate-ui-typescript-handshake-refused
+
+Scenario: red; level: system; verifies SA-77.
+
+- Given: the notes specification, whose task page, list page and view call operations that travel in the envelope of the pre-key handshake, with one implementation file in TypeScript whose ui target is nextjs-carbon and none that serves the API in the dxlib dialect; and specarch-gen-ui-typescript built from this repository on PATH
+- When: generate ui is run with --unapproved
+- Then: it reports an error at each page's call that the screens seal an envelope in the dxlib dialect only and no implementation file serves the API in it, writes the shared files, and exits 1
 
 #### generate-ui-typescript-refused
 

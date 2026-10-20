@@ -30,7 +30,7 @@ import { Confirm, runAction } from "./Confirm";
 import { leave } from "./Notice";
 import { evaluate } from "./rules";
 import type { ColumnSchema, FailureSchema, ListPageSchema, RowActionSchema } from "./schema";
-import { body, property, segment, service } from "./service";
+import { body, call, property, segment } from "./service";
 import { useSession } from "./session";
 import { say, type Texts } from "./texts";
 
@@ -130,8 +130,7 @@ export function ListPage({ schema, texts, routes }: ListPageProps) {
 
   useEffect(() => {
     latest.current = key;
-    const url = service + schema.source.path + "?" + key.split("#")[0];
-    fetch(url, { credentials: "include", headers: { Accept: "application/json" } })
+    call(schema.source, { query: Object.fromEntries(new URLSearchParams(key.split("#")[0])), list: schema.wire })
       .then(async (response) => {
         const answer = response.ok ? await body(response) : undefined;
         if (latest.current !== key) {

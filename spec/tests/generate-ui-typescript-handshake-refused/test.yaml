@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: generate
+level: system
+scenario: red
+given: "the notes specification, whose task page, list page and view call operations that travel in the envelope of the pre-key handshake, with one implementation file in TypeScript whose ui target is nextjs-carbon and none that serves the API in the dxlib dialect; and specarch-gen-ui-typescript built from this repository on PATH"
+when: "generate ui is run with --unapproved"
+then: "it reports an error at each page's call that the screens seal an envelope in the dxlib dialect only and no implementation file serves the API in it, writes the shared files, and exits 1"
+verifies: [SA-77]

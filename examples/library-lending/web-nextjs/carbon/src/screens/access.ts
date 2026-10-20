@@ -44,6 +44,10 @@ export function visibleMenu(menu: readonly MenuGroup[], session: Session): MenuG
 export interface Application {
   /** Where the screens call the service: the application's server routes, or the service itself. */
   readonly service: string;
+  /** The dialect the service serves its operations in, standard when left out. */
+  readonly dialect?: "standard" | "dxlib";
+  /** The operation that establishes each handshake an operation's envelope needs. */
+  readonly handshakes?: Readonly<Record<string, { readonly operation: string }>>;
   readonly session: { readonly path: string; readonly signedIn: string; readonly permissions: string } | null;
   readonly signIn: string | null;
   readonly menu: readonly MenuGroup[];

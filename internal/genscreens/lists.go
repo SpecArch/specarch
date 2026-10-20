@@ -78,21 +78,44 @@ func (g *Gen) ReadSession() *Session {
 	return out
 }
 
-// ListNames are the paginated-list idiom's names on the wire.
+// ListNames are the paginated-list idiom's names on the wire: its dxlib
+// names when the service serves the dxlib dialect, its names for any stack
+// otherwise.
 func (g *Gen) ListNames() map[string]string {
+	stacks := []string{"any"}
+	if g.Dialect == "dxlib" {
+		stacks = []string{"dxlib"}
+	}
 	out := map[string]string{}
-	for _, i := range g.Impl.Idioms {
-		if i.Name != "paginated-list" || i.As == "excluded" {
-			continue
-		}
-		for _, src := range []map[string]any{i.Override, i.Content} {
-			for _, part := range []string{"parameters", "envelope"} {
-				for k, v := range obj0(obj0(obj0(obj0(obj0(src["parts"])[part])["stack"])["any"])["names"]) {
-					if _, ok := out[k]; !ok {
-						out[k] = text(v)
+	for _, stack := range stacks {
+		for _, i := range g.Impl.Idioms {
+			if i.Name != "paginated-list" || i.As == "excluded" {
+				continue
+			}
+			for _, src := range []map[string]any{i.Override, i.Content} {
+				for _, part := range []string{"parameters", "envelope"} {
+					for k, v := range obj0(obj0(obj0(obj0(obj0(src["parts"])[part])["stack"])[stack])["names"]) {
+						if _, ok := out[k]; !ok {
+							out[k] = text(v)
+						}
 					}
 				}
 			}
+		}
+	}
+	return out
+}
+
+// sortNames are a list's sort field and direction names in the dxlib
+// dialect, whose sort is a list of them; none in the standard dialect.
+func sortNames(dialect string, wireNames map[string]string) []Member {
+	if dialect != "dxlib" {
+		return nil
+	}
+	var out []Member
+	for _, k := range []string{"sortField", "sortDirection"} {
+		if wireNames[k] != "" {
+			out = append(out, Member{k, Str(wireNames[k])})
 		}
 	}
 	return out
@@ -292,7 +315,7 @@ func (g *Gen) ListPage(pageName string, pg map[string]any, sess *Session) (*Page
 	add := func(role string, v Value) { schema = append(schema, Member{g.Name(part, role), v}) }
 	add("title", Str(g.Say(pageName+".title", text(pg["title"]))))
 	add("permission", Str(permission))
-	add("source", Object([]Member{{"operation", Str(sourceID)}, {"path", Str(srcPath)}}))
+	add("source", Object(append([]Member{{"operation", Str(sourceID)}, {"path", Str(srcPath)}}, g.Transport(src, srcPath)...)))
 	add("columns", Array(columns))
 	add("filters", Array(filters))
 	add("search", Raw(strconv.FormatBool(len(list(listOf["searchable"])) > 0)))
@@ -317,10 +340,10 @@ func (g *Gen) ListPage(pageName string, pg map[string]any, sess *Session) (*Page
 	add("empty", Str(g.Say(pageName+".empty", orText(text(obj0(states["empty"])["message"]), "There is nothing here yet."))))
 	add("filteredEmpty", Str(g.Say(pageName+".filteredEmpty", orText(text(obj0(states["filteredEmpty"])["message"]), "Nothing matches these filters."))))
 	add("failed", Array(g.refusalsOf(pageName, src, failed)))
-	add("wire", Object([]Member{
+	add("wire", Object(append([]Member{
 		{"page", Str(wireNames["page"])}, {"pageSize", Str(wireNames["pageSize"])}, {"sort", Str(wireNames["sort"])}, {"search", Str(wireNames["search"])},
 		{"items", Str(wireNames["items"])}, {"totalItems", Str(wireNames["totalItems"])}, {"totalPages", Str(wireNames["totalPages"])},
-	}))
+	}, sortNames(g.Dialect, wireNames)...)))
 	if g.FailedSince(before) {
 		return nil, false
 	}
@@ -360,9 +383,9 @@ func (g *Gen) rowAction(pageName, ptr string, am map[string]any, labelKey, permi
 		{"operation", Str(target)},
 		{"method", Str(strings.ToUpper(method))},
 		{"path", Str(path)},
-		{"parameters", Dictionary(parameters)},
-		{"permission", Str(permission)},
 	}
+	entry = append(entry, g.Transport(op, path)...)
+	entry = append(entry, Member{"parameters", Dictionary(parameters)}, Member{"permission", Str(permission)})
 	entry, ok := g.whenOf(entry, ptr, am, props)
 	if !ok {
 		return nil, false

@@ -77,7 +77,7 @@ func anyMap(m map[string]string) map[string]any {
 // Generate writes the screens of a request.
 func Generate(r *Request) genui.Response {
 	g := &gen{}
-	g.Gen = genscreens.New(r, genscreens.Profile{Name: name, Platform: "web", Framework: framework, Language: "TypeScript", Where: "the browser", OtherMode: "has no media query of its own on the web", PagedByServer: g.pagedByServer})
+	g.Gen = genscreens.New(r, genscreens.Profile{Name: name, Platform: "web", Framework: framework, Language: "TypeScript", Where: "the browser", OtherMode: "has no media query of its own on the web", PagedByServer: g.pagedByServer, Seals: true})
 	g.schemaFile = text(obj0(obj0(obj0(g.Impl.Content["bindings"])["ui"]))["schemaFile"])
 	if g.schemaFile == "" {
 		g.schemaFile = "page.schema.ts"
@@ -86,6 +86,9 @@ func Generate(r *Request) genui.Response {
 		return g.Response(nil)
 	}
 	g.server = g.readServer()
+	if g.server != nil && len(g.server.pages) > 0 && g.Dialect == "dxlib" {
+		g.Problem("error", "/", "the ui target's settings.server.pages has a server route page a list the service answers whole, by the paginated-list idiom's standard names, and the service serves the dxlib dialect, whose lists page themselves; take settings.server.pages out")
+	}
 	header := "// " + g.Header(r) + "\n"
 	var files []genui.File
 	pageOf := map[string]string{} // the page each page's file is written for, by its path
@@ -303,7 +306,19 @@ func (g *gen) application(sess *genscreens.Session, drawn map[string]bool) (stri
 		}
 	}
 	groups, permissions := g.Menu(drawn)
-	b.WriteString(statement("export const application: Application = ", object([]member{{Key: "service", Val: g.serviceValue()}, {Key: "session", Val: sessionValue}, {Key: "signIn", Val: signIn}, {Key: "menu", Val: array(groups)}}), ";"))
+	members := []member{{Key: "service", Val: g.serviceValue()}}
+	if g.Dialect == "dxlib" {
+		members = append(members, member{Key: "dialect", Val: str("dxlib")})
+		var hs []member
+		for _, h := range sortedKeys(anyMap(g.Handshakes)) {
+			hs = append(hs, member{Key: h, Val: object([]member{{Key: "operation", Val: str(g.Handshakes[h])}})})
+		}
+		if len(hs) > 0 {
+			members = append(members, member{Key: "handshakes", Val: object(hs)})
+		}
+	}
+	members = append(members, member{Key: "session", Val: sessionValue}, member{Key: "signIn", Val: signIn}, member{Key: "menu", Val: array(groups)})
+	b.WriteString(statement("export const application: Application = ", object(members), ";"))
 	return b.String(), permissions
 }
 
@@ -351,4 +366,11 @@ func routeFolder(route string) string {
 // schema file beside it, named without its extension.
 func (g *gen) schemaModule() string {
 	return "./" + strings.TrimSuffix(g.schemaFile, filepath.Ext(g.schemaFile))
+}
+
+// ScreenFile is one of the files written once under screens/, as the
+// generator writes it, header aside: for a test that runs it.
+func ScreenFile(name string) string {
+	data, _ := screens.ReadFile("screens/" + name)
+	return string(data)
 }

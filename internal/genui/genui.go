@@ -29,7 +29,10 @@ type Request struct {
 	Root            string           `json:"root"`
 	Specification   map[string]any   `json:"specification"`
 	Implementations []Implementation `json:"implementations"`
-	Output          string           `json:"output"`
+	// APIDialect is the dialect the service serves its API in, dxlib or ""
+	// for the standard one (ADR-161).
+	APIDialect string `json:"apiDialect"`
+	Output     string `json:"output"`
 	// Draft is the notice a draft carries, or "" for the approved output.
 	Draft string `json:"draft"`
 	// Problems are the problems to mark, in the order of the problems file.
@@ -126,10 +129,8 @@ func Generate(r *Request) Response {
 			break
 		}
 	}
-	for _, impl := range r.Implementations {
-		if text(obj0(obj0(impl.Content["targets"])["openapi"])["dialect"]) == "dxlib" {
-			g.problem("error", "/", "%s serves its API in the dxlib dialect, whose lists are a POST per operation counted from page 0, and specarch-gen-ui writes screens for the standard dialect only", impl.File)
-		}
+	if r.APIDialect == "dxlib" {
+		g.problem("error", "/", "the service serves its API in the dxlib dialect, whose lists are a POST per operation counted from page 0, and specarch-gen-ui writes screens for the standard dialect only")
 	}
 	if text(g.settings["language"]) == "" {
 		g.problem("error", "/", "the %s target's settings name no language, the page's lang (WCAG 2.2, 3.1.1); add language, such as en", r.Target)

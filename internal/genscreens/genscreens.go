@@ -33,8 +33,11 @@ type Request struct {
 	Root            string                 `json:"root"`
 	Specification   map[string]any         `json:"specification"`
 	Implementations []genui.Implementation `json:"implementations"`
-	Output          string                 `json:"output"`
-	Existing        []genui.File           `json:"existing"`
+	// APIDialect is the dialect the service serves its API in, dxlib or ""
+	// for the standard one (ADR-161).
+	APIDialect string       `json:"apiDialect"`
+	Output     string       `json:"output"`
+	Existing   []genui.File `json:"existing"`
 	// Draft is the notice a draft carries, or "" for the approved output.
 	Draft string `json:"draft"`
 	// Problems are the problems to mark, in the order of the problems file.
@@ -84,7 +87,15 @@ type Profile struct {
 	// operation that does not page itself, with the page size and maximum
 	// it pages at; nil for a generator that writes no server.
 	PagedByServer func(id string) (pageSize, maximum string, ok bool)
+	// Seals is true when the screens call a service in the dxlib dialect
+	// and perform its pre-key handshake, so a page may call an operation
+	// that travels in that envelope (ADR-161).
+	Seals bool
 }
+
+// dxlibEnvelope are the primitives of dxlib's pre-key envelope, the one
+// envelope the screens seal (ADR-145).
+var dxlibEnvelope = []struct{ key, value string }{{"keyAgreement", "x25519"}, {"signature", "ed25519"}, {"cipher", "aes-256-cbc"}}
 
 // DefaultFramework is a ui target's framework when it names none, by its
 // platform.
@@ -151,6 +162,12 @@ type Gen struct {
 	Strings map[string]string
 	// Calls are the operations the pages call, by path and method.
 	Calls map[string]map[string]string
+	// Dialect is the dialect an implementation file serves the API in,
+	// dxlib or standard.
+	Dialect string
+	// Handshakes are the handshakes a page's call travels in, by name, with
+	// the operation that establishes each.
+	Handshakes map[string]string
 }
 
 // New reads the request for a generator: the implementation file that
@@ -158,7 +175,13 @@ type Gen struct {
 // and framework checked against the profile, and the idiom's names. An
 // error is reported for what does not fit; the caller checks Failed.
 func New(r *Request, p Profile) *Gen {
-	g := &Gen{Profile: p, Spec: r.Specification, Root: r.Root, Strings: map[string]string{}, Calls: map[string]map[string]string{}}
+	g := &Gen{Profile: p, Spec: r.Specification, Root: r.Root, Strings: map[string]string{}, Calls: map[string]map[string]string{}, Dialect: "standard", Handshakes: map[string]string{}}
+	if r.APIDialect == "dxlib" {
+		g.Dialect = "dxlib"
+		if !p.Seals {
+			g.Problem("error", "/", "the service serves its API in the dxlib dialect, a POST at /<operationId> with every parameter in one JSON body and lists counted from page 0, and %s calls the standard dialect only", p.Name)
+		}
+	}
 	g.WireNames = text(obj0(g.Spec["info"])["wireNames"])
 	found := false
 	for _, impl := range r.Implementations {
@@ -515,7 +538,7 @@ func (g *Gen) TaskPage(pageName string, pg map[string]any) (*Page, bool) {
 	}
 	schema := []Member{
 		{g.Name(part, "title"), Str(g.Say(pageName+".title", text(pg["title"])))},
-		{g.Name(part, "submit"), Object([]Member{{"operation", Str(submit)}, {"method", Str(strings.ToUpper(method))}, {"path", Str(path)}})},
+		{g.Name(part, "submit"), Object(append([]Member{{"operation", Str(submit)}, {"method", Str(strings.ToUpper(method))}, {"path", Str(path)}}, g.Transport(op, path)...))},
 		{g.Name(part, "fields"), Array(fieldValues)},
 		{g.Name(part, "checks"), Array(checks)},
 		{g.Name(part, "failed"), Array(failures)},
@@ -654,19 +677,61 @@ func (g *Gen) ProblemStatus(op map[string]any, problem string) string {
 // PathParam matches a {parameter} of a route or a path.
 var PathParam = regexp.MustCompile(`\{[^{}]+\}`)
 
-// PlainOnly says whether an operation is one the screens can call plain: not
-// one that travels in a handshake's envelope or streams a file, which this
-// version does not perform (ADR-145, ADR-146); an error at the page otherwise.
+// PlainOnly says whether an operation is one the screens can call: plain,
+// or in the envelope of a handshake the profile seals, dxlib's pre-key
+// envelope in the dxlib dialect (ADR-145, ADR-161); not one that streams a
+// file, which this version does not perform (ADR-146). An error at the page
+// otherwise.
 func (g *Gen) PlainOnly(at, pageName, does, id string, op map[string]any) bool {
 	if h := text(op["handshake"]); h != "" {
-		g.Problem("error", at, "%s %s %s, which travels in the envelope of handshake %s, and this version of %s performs no handshake, so the screen would send plain JSON the service refuses; see docs/roadmap.md", pageName, does, id, h, g.Profile.Name)
-		return false
+		if !g.Profile.Seals {
+			g.Problem("error", at, "%s %s %s, which travels in the envelope of handshake %s, and this version of %s performs no handshake, so the screen would send plain JSON the service refuses; see docs/roadmap.md", pageName, does, id, h, g.Profile.Name)
+			return false
+		}
+		if g.Dialect != "dxlib" {
+			g.Problem("error", at, "%s %s %s, which travels in the envelope of handshake %s, and %s seals an envelope in the dxlib dialect only, whose bytes dxlib's datablock fixes; no implementation file serves the API in the dxlib dialect", pageName, does, id, h, g.Profile.Name)
+			return false
+		}
+		hs := obj0(obj0(g.Spec["handshakes"])[h])
+		var differs []string
+		for _, p := range dxlibEnvelope {
+			if text(hs[p.key]) != p.value {
+				differs = append(differs, p.key+" "+orText(text(hs[p.key]), "none"))
+			}
+		}
+		if len(differs) > 0 {
+			g.Problem("error", at, "%s %s %s, which travels in the envelope of handshake %s, whose %s is not dxlib's envelope (x25519, ed25519 and aes-256-cbc), the one %s seals", pageName, does, id, h, strings.Join(differs, " and "), g.Profile.Name)
+			return false
+		}
+		g.Handshakes[h] = text(hs["establishedBy"])
 	}
 	if s := text(obj0(op["stream"])["direction"]); s != "" {
 		g.Problem("error", at, "%s %s %s, which streams a file (%s), and this version of %s streams no file", pageName, does, id, s, g.Profile.Name)
 		return false
 	}
 	return true
+}
+
+// Transport are the members a call's schema carries beside its operation
+// and path: the handshake whose envelope it travels in, and in the dxlib
+// dialect each path parameter's name in the body, the snake-case name the
+// dxlib dialect gives it.
+func (g *Gen) Transport(op map[string]any, path string) []Member {
+	var out []Member
+	if h := text(op["handshake"]); h != "" {
+		out = append(out, Member{"handshake", Str(h)})
+	}
+	if g.Dialect == "dxlib" {
+		var wire []Member
+		for _, p := range PathParam.FindAllString(path, -1) {
+			name := p[1 : len(p)-1]
+			wire = append(wire, Member{name, Str(wirename.Snake(name))})
+		}
+		if len(wire) > 0 {
+			out = append(out, Member{"wire", Object(wire)})
+		}
+	}
+	return out
 }
 
 // Operation finds an operation by its operationId: it, its path and its

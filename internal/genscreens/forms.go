@@ -139,7 +139,7 @@ func (g *Gen) load(pageName, at string, pg map[string]any) (Value, bool) {
 		}
 	}
 	failed := obj0(obj0(pg["states"])["failed"])
-	return Object([]Member{{"operation", Str(sourceID)}, {"path", Str(path)}, {"failed", Array(g.refusalsOf(pageName, op, failed))}}), true
+	return Object(append(append([]Member{{"operation", Str(sourceID)}, {"path", Str(path)}}, g.Transport(op, path)...), Member{"failed", Array(g.refusalsOf(pageName, op, failed))})), true
 }
 
 // ordersDecimal names a field of format decimal that an expression orders
@@ -379,8 +379,12 @@ func (g *Gen) lookup(in formFieldInput) ([]Member, bool) {
 	case !g.PlainOnly(at+"/source", "the picker of "+in.name, "reads", sourceID, op):
 		return nil, false
 	}
-	source := []Member{{"operation", Str(sourceID)}, {"path", Str(path)}, {"items", Str(wireNames["items"])},
-		{"pageSize", Object([]Member{{"name", Str(wireNames["pageSize"])}, {"value", Raw(pageSize)}})}}
+	source := append([]Member{{"operation", Str(sourceID)}, {"path", Str(path)}}, g.Transport(op, path)...)
+	source = append(source, Member{"items", Str(wireNames["items"])},
+		Member{"pageSize", Object([]Member{{"name", Str(wireNames["pageSize"])}, {"value", Raw(pageSize)}})})
+	if g.Dialect == "dxlib" && wireNames["page"] != "" {
+		source = append(source, Member{"page", Str(wireNames["page"])})
+	}
 	if len(list(listOf["searchable"])) > 0 && wireNames["search"] != "" {
 		source = append(source, Member{"search", Str(wireNames["search"])})
 	} else {
@@ -449,7 +453,7 @@ func (g *Gen) FormPage(pageName string, pg map[string]any, sess *Session, hooks 
 			g.Problem("error", at+"/submit", "%s submits to %s at %s, and neither its route nor a record it loads gives %s", pageName, submit, path, p)
 		}
 	}
-	submitMembers := []Member{{"operation", Str(submit)}, {"method", Str(strings.ToUpper(method))}, {"path", Str(path)}}
+	submitMembers := append([]Member{{"operation", Str(submit)}, {"method", Str(strings.ToUpper(method))}, {"path", Str(path)}}, g.Transport(op, path)...)
 	for _, prm := range list(op["parameters"]) {
 		pm := obj0(prm)
 		if in := text(pm["in"]); in != "path" && pm["required"] == true && text(pm["name"]) != text(op["idempotencyKey"]) {

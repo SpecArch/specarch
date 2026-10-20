@@ -108,11 +108,13 @@ func TestRefusals(t *testing.T) {
 			get := s["paths"].(map[string]any)["/loans"].(map[string]any)["get"].(map[string]any)
 			delete(get, "listOf")
 		}, "listLoans has no listOf, so it does not page"},
-		{"dxlib", func(_, c map[string]any) {
-			c["targets"].(map[string]any)["openapi"].(map[string]any)["dialect"] = "dxlib"
-		}, "the standard dialect only"},
+		{"dxlib", func(map[string]any, map[string]any) {}, "the standard dialect only"},
 	} {
-		resp := Generate(request(t, c.change))
+		req := request(t, c.change)
+		if c.name == "dxlib" {
+			req.APIDialect = "dxlib" // another implementation file's openapi target names it
+		}
+		resp := Generate(req)
 		found := false
 		for _, d := range resp.Diagnostics {
 			found = found || d.Severity == "error" && strings.Contains(d.Message, c.want)

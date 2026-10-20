@@ -51,6 +51,7 @@ standardOutput: |
   library-web/screens/service.ts: built by hand, and matches what generate writes but for its header
   library-web/screens/session.ts: built by hand, and matches what generate writes but for its header
   library-web/screens/texts.ts: built by hand, and matches what generate writes but for its header
+  library-web/screens/transport.ts: built by hand, and matches what generate writes but for its header
   library-web/screens/values.ts: built by hand, and matches what generate writes but for its header
   library-web/strings.ts: built by hand, and matches what generate writes but for its header
   library-web/tests/member-edit.test.ts: built by hand, and matches what generate writes but for its header
@@ -119,6 +120,7 @@ standardOutput: |
   web/screens/service.ts: built by hand, and matches what generate writes but for its header
   web/screens/session.ts: built by hand, and matches what generate writes but for its header
   web/screens/texts.ts: built by hand, and matches what generate writes but for its header
+  web/screens/transport.ts: built by hand, and matches what generate writes but for its header
   web/screens/values.ts: built by hand, and matches what generate writes but for its header
   web/server/forward.ts: built by hand, and matches what generate writes but for its header
   web/server/settings.ts: built by hand, and matches what generate writes but for its header

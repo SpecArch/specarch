@@ -4,7 +4,7 @@ import { ComboBox } from "@carbon/react";
 import { useEffect, useRef, useState } from "react";
 import type { Fields } from "./rules";
 import type { LookupFieldSchema } from "./schema";
-import { body, property, service } from "./service";
+import { body, call, property } from "./service";
 import { say, type Texts } from "./texts";
 
 export interface LookupProps {
@@ -45,7 +45,7 @@ export function Lookup({ field, id, label, value, problem, texts, readOnly, onPi
     }
     const key = query.toString();
     latest.current = key;
-    fetch(service + field.source.path + "?" + key, { credentials: "include", headers: { Accept: "application/json" } })
+    call(field.source, { query: Object.fromEntries(query), list: { page: field.source.page, pageSize: field.source.pageSize.name } })
       .then(async (response) => {
         const answer = response.ok ? await body(response) : undefined;
         if (latest.current !== key) {

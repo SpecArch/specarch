@@ -52,8 +52,8 @@ BEGIN
   UPDATE loans
   SET is_deleted = true,
       last_modified_at = now(),
-      last_modified_by_user_id = current_setting('specarch.last_modified_by_user_id', true)::VARCHAR(255),
-      last_modified_by_user_nameid = current_setting('specarch.last_modified_by_user_nameid', true)::VARCHAR(255)
+      last_modified_by_user_id = current_setting('specarch.last_modified_by_user_id', true)::VARCHAR,
+      last_modified_by_user_nameid = current_setting('specarch.last_modified_by_user_nameid', true)::VARCHAR
   WHERE id = current_setting('specarch.id', true)::UUID
     AND (status = 'returned')
     AND is_deleted = false;

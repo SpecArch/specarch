@@ -60,7 +60,7 @@ DECLARE
   changed bigint;
 BEGIN
   -- 1. Already applied: the record already holds what the change writes.
-  IF EXISTS (SELECT 1 FROM loans WHERE id = current_setting('specarch.id', true)::UUID AND note IS NOT DISTINCT FROM current_setting('specarch.note', true)::VARCHAR(400) AND renewals IS NOT DISTINCT FROM current_setting('specarch.renewals', true)::INT AND status IS NOT DISTINCT FROM current_setting('specarch.status', true)::VARCHAR(8) AND title IS NOT DISTINCT FROM current_setting('specarch.title', true)::VARCHAR(200)) THEN
+  IF EXISTS (SELECT 1 FROM loans WHERE id = current_setting('specarch.id', true)::UUID AND note IS NOT DISTINCT FROM current_setting('specarch.note', true)::VARCHAR AND renewals IS NOT DISTINCT FROM current_setting('specarch.renewals', true)::INT AND status IS NOT DISTINCT FROM current_setting('specarch.status', true)::VARCHAR AND title IS NOT DISTINCT FROM current_setting('specarch.title', true)::VARCHAR) THEN
     RAISE NOTICE 'operation replaceLoan: the Loan with id % already holds the values given; nothing to change', current_setting('specarch.id', true)::UUID;
     RETURN;
   END IF;
@@ -73,13 +73,13 @@ BEGIN
   END IF;
   -- 3. The change, under the same condition.
   UPDATE loans
-  SET note = current_setting('specarch.note', true)::VARCHAR(400),
+  SET note = current_setting('specarch.note', true)::VARCHAR,
       renewals = current_setting('specarch.renewals', true)::INT,
-      status = current_setting('specarch.status', true)::VARCHAR(8),
-      title = current_setting('specarch.title', true)::VARCHAR(200),
+      status = current_setting('specarch.status', true)::VARCHAR,
+      title = current_setting('specarch.title', true)::VARCHAR,
       last_modified_at = now(),
-      last_modified_by_user_id = current_setting('specarch.last_modified_by_user_id', true)::VARCHAR(255),
-      last_modified_by_user_nameid = current_setting('specarch.last_modified_by_user_nameid', true)::VARCHAR(255)
+      last_modified_by_user_id = current_setting('specarch.last_modified_by_user_id', true)::VARCHAR,
+      last_modified_by_user_nameid = current_setting('specarch.last_modified_by_user_nameid', true)::VARCHAR
   WHERE id = current_setting('specarch.id', true)::UUID
     AND (status <> 'returned')
     AND is_deleted = false;
@@ -88,7 +88,7 @@ BEGIN
   IF changed <> 1 THEN
     RAISE EXCEPTION 'operation replaceLoan: the change wrote % Loan records, and exactly 1 was expected; another writer may have changed them after they were counted; nothing was changed', changed;
   END IF;
-  IF NOT EXISTS (SELECT 1 FROM loans WHERE id = current_setting('specarch.id', true)::UUID AND note IS NOT DISTINCT FROM current_setting('specarch.note', true)::VARCHAR(400) AND renewals IS NOT DISTINCT FROM current_setting('specarch.renewals', true)::INT AND status IS NOT DISTINCT FROM current_setting('specarch.status', true)::VARCHAR(8) AND title IS NOT DISTINCT FROM current_setting('specarch.title', true)::VARCHAR(200)) THEN
+  IF NOT EXISTS (SELECT 1 FROM loans WHERE id = current_setting('specarch.id', true)::UUID AND note IS NOT DISTINCT FROM current_setting('specarch.note', true)::VARCHAR AND renewals IS NOT DISTINCT FROM current_setting('specarch.renewals', true)::INT AND status IS NOT DISTINCT FROM current_setting('specarch.status', true)::VARCHAR AND title IS NOT DISTINCT FROM current_setting('specarch.title', true)::VARCHAR) THEN
     RAISE EXCEPTION 'operation replaceLoan: after the change the Loan with id % does not hold the values given; nothing was changed', current_setting('specarch.id', true)::UUID;
   END IF;
   -- 5. Dry run unless apply is true.

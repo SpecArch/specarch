@@ -43,7 +43,8 @@ decisions:
       in a from state for which the precondition holds, and their number
       must be recordsChanged. Every other guarded entry (a POST, a PATCH,
       a command no transition names, a transition back to the state it
-      leaves) is a warning at its guard, and its
+      leaves, a PUT that sets a field stored encrypted or sets no column
+      a caller may set) is a warning at its guard, and its
       script is left to be written by hand. An entity another stakeholder
       owns gets no script.
 
@@ -97,9 +98,12 @@ decisions:
       Dry run by default because the safe mistake is forgetting to apply:
       the dry run runs every check against the live data and rolls back,
       so it shows exactly what an applied run would do. A second run finds
-      the record by the key already changed and says so; a change of many
-      records finds none left in a from state and is refused by its
-      precondition, and either way nothing changes. psql rather than a
+      the record by the key already changed and says so. A hard delete
+      leaves no record to find, and a key whose record was deleted cannot
+      be told from a key that never named one, so its second run is
+      refused by the count (none found, one expected) and exits non-zero,
+      as a change of many records is when it finds none left in a from
+      state; either way nothing changes. psql rather than a
       program because a database administrator can read every statement
       the script runs before running it, and psql is what is at hand on a
       host that runs PostgreSQL. The variables are named after columns

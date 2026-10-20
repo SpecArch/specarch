@@ -258,6 +258,9 @@ func (g *gen) derive(e entry, entity string, t gensql.Table) (change, string) {
 			}
 			c.sets = append(c.sets, col)
 		}
+		if len(c.sets) == 0 {
+			return c, fmt.Sprintf("it sets no column a caller may set: every column of %s other than its key is read-only, generated or written by the audit", t.Name)
+		}
 	case e.method == "delete" && e.keys == 1:
 		c.kind = "delete"
 	case e.method == "post":
@@ -524,9 +527,28 @@ func (g *gen) condText(c change) string {
 // keyEquals is the condition on a record's key.
 func keyEquals(k gensql.Column) string { return k.Name + " = " + value(k) }
 
-// value is a variable's value as the column's type.
+// value is a variable's value as the column's type. A character type is
+// cast without its length: PostgreSQL cuts a string cast to varchar(n) or
+// char(n) to n characters without a word, and only an assignment to the
+// column refuses one that is too long, so a key given too long would match
+// the record named by its prefix, and a value too long would be cut.
 func value(col gensql.Column) string {
-	return fmt.Sprintf("current_setting('specarch.%s', true)::%s", col.Name, col.Type)
+	return fmt.Sprintf("current_setting('specarch.%s', true)::%s", col.Name, castType(col.Type))
+}
+
+// castType is a column's type with the length of a character type left out.
+func castType(typ string) string {
+	base, _, sized := strings.Cut(typ, "(")
+	if !sized {
+		return typ
+	}
+	switch strings.ToUpper(strings.TrimSpace(base)) {
+	case "VARCHAR", "CHARACTER VARYING":
+		return "VARCHAR"
+	case "CHAR", "CHARACTER", "BPCHAR":
+		return "text"
+	}
+	return typ
 }
 
 func isTime(col gensql.Column) bool { return strings.Contains(strings.ToUpper(col.Type), "TIMESTAMP") }

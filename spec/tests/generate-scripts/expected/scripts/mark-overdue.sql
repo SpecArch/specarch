@@ -41,8 +41,8 @@ BEGIN
   UPDATE loans
   SET status = 'overdue',
       last_modified_at = now(),
-      last_modified_by_user_id = current_setting('specarch.last_modified_by_user_id', true)::VARCHAR(255),
-      last_modified_by_user_nameid = current_setting('specarch.last_modified_by_user_nameid', true)::VARCHAR(255)
+      last_modified_by_user_id = current_setting('specarch.last_modified_by_user_id', true)::VARCHAR,
+      last_modified_by_user_nameid = current_setting('specarch.last_modified_by_user_nameid', true)::VARCHAR
   WHERE status IN ('open')
     AND (renewals = 3)
     AND is_deleted = false;

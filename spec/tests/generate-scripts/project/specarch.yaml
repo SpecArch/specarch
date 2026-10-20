@@ -8,6 +8,9 @@ enums:
   LoanStatus:
     type: string
     enum: [open, overdue, returned]
+  ReservationStatus:
+    type: string
+    enum: [pending, confirmed, cancelled]
 entities:
   Loan:
     type: object
@@ -34,6 +37,38 @@ entities:
       id: { type: string, format: uuid, generatedDefault: identifier, readOnly: true }
       title: { type: string, minLength: 1, maxLength: 200 }
     required: [id, title]
+    primaryKey: [id]
+  Reservation:
+    type: object
+    properties:
+      id: { type: string, format: uuid, generatedDefault: identifier, readOnly: true }
+      status: { $ref: "#/enums/ReservationStatus" }
+    required: [id, status]
+    primaryKey: [id]
+    stateField: status
+    transitions:
+      - { from: pending, to: confirmed, trigger: settleReservation }
+      - { from: pending, to: cancelled, trigger: settleReservation }
+  Copy:
+    type: object
+    properties:
+      shelfCode: { type: string, maxLength: 12 }
+      number: { type: integer, format: int32, minimum: 1 }
+    required: [shelfCode, number]
+    primaryKey: [shelfCode, number]
+  Member:
+    type: object
+    properties:
+      id: { type: string, format: uuid, generatedDefault: identifier, readOnly: true }
+      email: { type: string, format: email, maxLength: 320, atRest: encrypted, lookup: hash }
+    required: [id, email]
+    primaryKey: [id]
+  Tag:
+    type: object
+    properties:
+      id: { type: string, format: uuid, generatedDefault: identifier, readOnly: true }
+      name: { type: string, maxLength: 40, readOnly: true }
+    required: [id, name]
     primaryKey: [id]
   Shelf:
     type: object
@@ -115,6 +150,18 @@ paths:
   /holds/{holdId}:
     parameters:
       - { name: holdId, in: path, required: true, schema: { type: string, format: uuid } }
+    put:
+      operationId: replaceHold
+      summary: Replace a hold.
+      permission: public
+      guard: { entity: Hold, recordsChanged: 2 }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/entities/Hold" }
+      responses:
+        "200": { description: The hold is replaced. }
     delete:
       operationId: cancelHold
       summary: Cancel a hold.
@@ -132,6 +179,56 @@ paths:
       guard: { entity: Shelf, recordsChanged: 1 }
       responses:
         "204": { description: The shelf is removed. }
+  /reservations/{reservationId}/settle:
+    parameters:
+      - { name: reservationId, in: path, required: true, schema: { type: string, format: uuid } }
+    post:
+      operationId: settleReservation
+      summary: Settle a reservation.
+      permission: public
+      guard: { entity: Reservation, recordsChanged: 1 }
+      responses:
+        "200": { description: The reservation is settled. }
+  /copies/{copyId}:
+    parameters:
+      - { name: copyId, in: path, required: true, schema: { type: string } }
+    delete:
+      operationId: removeCopy
+      summary: Remove a copy.
+      permission: public
+      guard: { entity: Copy, recordsChanged: 1 }
+      responses:
+        "204": { description: The copy is removed. }
+  /members/{memberId}:
+    parameters:
+      - { name: memberId, in: path, required: true, schema: { type: string, format: uuid } }
+    put:
+      operationId: replaceMember
+      summary: Replace a member.
+      permission: public
+      guard: { entity: Member, recordsChanged: 1 }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/entities/Member" }
+      responses:
+        "200": { description: The member is replaced. }
+  /tags/{tagId}:
+    parameters:
+      - { name: tagId, in: path, required: true, schema: { type: string, format: uuid } }
+    put:
+      operationId: replaceTag
+      summary: Replace a tag.
+      permission: public
+      guard: { entity: Tag, recordsChanged: 1 }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/entities/Tag" }
+      responses:
+        "200": { description: The tag is replaced. }
 commands:
   mark overdue:
     summary: Mark the open loans renewed three times as overdue

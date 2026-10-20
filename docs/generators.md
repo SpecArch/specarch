@@ -1051,8 +1051,10 @@ that something is written, so each is a warning at its guard and its script
 is left to be written by hand; so are transitions of one trigger with two
 `to` states, a transition back to the state it leaves (a record already
 moved cannot be told from one not yet moved, so a second run would move it
-again), a keyed change whose `recordsChanged` is not 1 and an entity
-whose key is not one field. An entity another stakeholder owns gets no
+again), a keyed change whose `recordsChanged` is not 1, an entity
+whose key is not one field, a PUT that sets a field stored encrypted (a
+script cannot encrypt the value it is given) and a PUT that sets no column
+a caller may set. An entity another stakeholder owns gets no
 script. The columns are the ones `specarch-gen-sql` creates, read through
 the same model, and the precondition is written as that generator writes a
 check constraint.
@@ -1083,8 +1085,11 @@ The checks run with the change, as the guard promises: PostgreSQL's read
 committed isolation evaluates an `UPDATE`'s or a `DELETE`'s `WHERE` again on
 a row another writer changed, so a record that no longer holds the
 precondition is skipped, and the short count is refused. A second run finds
-the record by its key already changed, or no record left in a `from` state,
-and changes nothing. A refusal raises an exception that names the entry,
+the record by its key already changed, says so and changes nothing. A hard
+delete leaves no record to find, and a key whose record was deleted cannot
+be told from one that never named a record, so its second run is refused by
+the count and exits non-zero, as a change of many records is when it finds
+no record left in a `from` state; either way nothing changes. A refusal raises an exception that names the entry,
 the entity, the condition and both counts; psql stops on it and rolls the
 transaction back. A dialect other than PostgreSQL is an error at the
 target, and a script in the output folder that the plug-in did not write is

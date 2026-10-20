@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/SpecArch/specarch/internal/genopenapi"
+	"github.com/SpecArch/specarch/internal/genui"
 	"github.com/SpecArch/specarch/internal/genuits"
 	"github.com/SpecArch/specarch/internal/source"
 	"github.com/SpecArch/specarch/internal/spec"
@@ -136,6 +137,9 @@ func roundTrip(t *testing.T, fixture, envelope string) {
 		"roundtrip_test.go": roundTripTest,
 		"transport.ts":      genuits.ScreenFile("transport.ts"),
 		"screens.test.ts":   screensTest,
+		// The plain JavaScript screens' transport passes the same tests.
+		"transport.js":          genui.TransportFile(),
+		"screens-plain.test.ts": strings.Replace(screensTest, `from "./transport.ts"`, `from "./transport.js"`, 1),
 	}
 	for _, f := range service.Files {
 		files[f.Path] = f.Content
@@ -360,7 +364,8 @@ func startVault(t *testing.T) *api.DXAPI {
 }
 
 // TestScreensRoundTrip drives the TypeScript screens' transport, as
-// specarch-gen-ui-typescript writes it, against the same service on Node:
+// specarch-gen-ui-typescript writes it, and the plain JavaScript screens',
+// as specarch-gen-ui writes it, against the same service on Node:
 // the handshake established on the first encrypted call through the Web
 // Crypto API, the envelope sealed and opened, and a used-up handshake
 // renewed when the service answers REFRESH_PREKEY, or REFRESH_SESSION from
@@ -371,7 +376,7 @@ func TestScreensRoundTrip(t *testing.T) {
 		t.Skip("SPECARCH_NODE names no node, so the screens' transport cannot run here")
 	}
 	a := startVault(t)
-	run := exec.Command(node, "--test", "screens.test.ts")
+	run := exec.Command(node, "--test", "screens.test.ts", "screens-plain.test.ts")
 	run.Env = append(os.Environ(), "VAULT_URL=http://"+a.Address)
 	out, err := run.CombinedOutput()
 	if err != nil {

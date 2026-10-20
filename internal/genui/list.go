@@ -122,6 +122,23 @@ func (p *page) js() string {
 	if len(ops) > 0 {
 		w(`import { ask } from "./ask.js";`)
 	}
+	downloads := false
+	for _, a := range ops {
+		downloads = downloads || isDownload(a)
+	}
+	if downloads {
+		w(`import { call, property, save } from "./service.js";`)
+	} else {
+		w(`import { call, property } from "./service.js";`)
+	}
+	w("")
+	w("// The operation the list reads.")
+	source := p.sourceTarget
+	if p.dialect == "dxlib" {
+		// The dxlib dialect sends the page from 0 and the page size as numbers.
+		source = strings.TrimSuffix(source, " }") + ", list: { page: " + jsString(p.list["page"]) + ", pageSize: " + jsString(p.list["pageSize"]) + " } }"
+	}
+	w("const source = " + source + ";")
 	w("")
 	var cols []string
 	for _, c := range p.columns {
@@ -175,7 +192,6 @@ func (p *page) js() string {
 	}
 	b.WriteString(strings.NewReplacer(
 		"{{UPPER}}", p.upper,
-		"{{PATH}}", p.sourcePath,
 		"{{PAGE}}", p.list["page"],
 		"{{PAGESIZE}}", p.list["pageSize"],
 		"{{ITEMS}}", p.list["items"],
@@ -184,7 +200,7 @@ func (p *page) js() string {
 		"{{SOURCE}}", p.source,
 		"{{TITLE}}", p.lowerTitle(),
 		"{{ID}}", id,
-	).Replace(listBody(len(p.filters) > 0, len(p.filterKeys) > 0, len(p.actions) > 0, len(ops) != len(p.actions), len(ops) > 0, p.selected != nil)))
+	).Replace(listBody(len(p.filters) > 0, len(p.filterKeys) > 0, len(p.actions) > 0, len(ops) != len(p.actions), len(ops) > 0, p.selected != nil, downloads)))
 	return b.String()
 }
 
@@ -205,7 +221,7 @@ func writeRefusals(w func(string), op string, rs [][2]string) {
 // with the parts it has: filters, filters by the idiom's name, actions,
 // actions that open a page, actions that run an operation, and a row that
 // opens a page when selected.
-func listBody(filters, filterKeys, actions, links, running, selected bool) string {
+func listBody(filters, filterKeys, actions, links, running, selected, downloads bool) string {
 	var b strings.Builder
 	key := "name"
 	if filterKeys {
@@ -240,7 +256,7 @@ function loader() {
     query.set("{{PAGE}}", String(wanted));
     query.set("{{PAGESIZE}}", String(pageSize));
     try {
-      const response = await fetch(` + "`{{PATH}}?${query}`" + `, { headers: { Accept: "application/json" } });
+      const response = await call(source, { query: Object.fromEntries(query), list: source.list });
       if (asked !== latest) {
         return;
       }
@@ -252,12 +268,14 @@ function loader() {
       if (asked !== latest) {
         return;
       }
-      if (body.{{ITEMS}}.length === 0 && wanted > 1 && body.{{TOTALPAGES}} > 0 && wanted > body.{{TOTALPAGES}}) {
-        load(body.{{TOTALPAGES}}); // the page asked for is past the last
+      const items = property(body, "{{ITEMS}}");
+      const totalPages = property(body, "{{TOTALPAGES}}");
+      if (items.length === 0 && wanted > 1 && totalPages > 0 && wanted > totalPages) {
+        load(totalPages); // the page asked for is past the last
         return;
       }
       page = wanted;
-      emit({{UPPER}}_LOADED, { items: body.{{ITEMS}}, totalItems: body.{{TOTALITEMS}}, totalPages: body.{{TOTALPAGES}}, page, filtered });
+      emit({{UPPER}}_LOADED, { items, totalItems: property(body, "{{TOTALITEMS}}"), totalPages, page, filtered });
     } catch {
       if (asked === latest) {
         emit({{UPPER}}_FAILED, { status: 0 });
@@ -289,6 +307,13 @@ function filterForm() {
 `)
 	}
 	if running {
+		saves := ""
+		if downloads {
+			saves = `      if (action.stream === "download") {
+        await save(response, action.operation);
+      }
+`
+		}
 		b.WriteString(`
 /** Runs an action on a row once the person confirms it and gives the
     reason it asks for, its button disabled while it runs; an action that
@@ -298,16 +323,15 @@ async function run(action, row, button) {
   if (reason === null) {
     return;
   }
-  const init = { method: action.method, headers: { Accept: "application/json" } };
+  const given = { parameters: action.parameters(row) };
   if (action.reason) {
-    init.headers["Content-Type"] = "application/json";
-    init.body = JSON.stringify({ [action.reason.name]: reason });
+    given.body = { [action.reason.name]: reason };
   }
   button.disabled = true;
   try {
-    const response = await fetch(action.path(row), init);
+    const response = await call(action, given);
     if (response.ok) {
-      emit(action.succeeded, { id: {{ID}} });
+` + saves + `      emit(action.succeeded, { id: {{ID}} });
       if (action.navigate) {
         go(action.navigate.page, action.navigate.with(row), action.message);
       }

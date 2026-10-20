@@ -1,0 +1,12 @@
+specarchImplementation: "0.1"
+info: { title: Notes on dxlib, version: 1.0.0 }
+implements: { file: ../../specarch.yaml, version: 1.0.0 }
+stack: { language: { name: Go, version: "1.26" } }
+targets:
+  openapi: { output: ../../../out, dialect: dxlib }
+  ui:
+    output: ../../../web
+    platform: web
+    framework: plain-javascript
+    settings:
+      language: en

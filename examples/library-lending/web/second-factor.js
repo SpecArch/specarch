@@ -10,7 +10,7 @@ form({
   submit: {
     operation: "confirmSecondFactor",
     method: "POST",
-    path: () => "/sessions/second-factor",
+    path: "/sessions/second-factor",
     sent: ["code"],
   },
   checks: [],

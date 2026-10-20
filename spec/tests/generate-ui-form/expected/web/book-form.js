@@ -13,7 +13,7 @@ form({
   submit: {
     operation: "addBook",
     method: "POST",
-    path: () => "/books",
+    path: "/books",
     sent: ["title", "shelf", "authorId", "pages", "lendable", "code", "notes", "boughtOn", "withdrawnOn", "location", "copies"],
     idempotencyKey: "Idempotency-Key",
   },
@@ -26,7 +26,7 @@ form({
     withdrawnOn: { hiddenWhen: (record) => record.lendable === true },
   },
   pickers: {
-    authorId: { path: "/authors", items: "items", pageSize: ["pageSize", 50], search: "search", value: "id", shows: ["name"], fills: {} },
+    authorId: { operation: "listAuthors", method: "GET", path: "/authors", items: "items", pageSize: ["pageSize", 50], search: "search", value: "id", shows: ["name"], fills: {} },
   },
   next: {
     success: { page: "book-edit", with: { bookId: "id" }, message: "The book is added." },

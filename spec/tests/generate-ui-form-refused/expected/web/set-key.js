@@ -14,7 +14,7 @@ form({
   submit: {
     operation: "setKey",
     method: "POST",
-    path: () => "/keys",
+    path: "/keys",
     sent: ["code", "key"],
   },
   checks: [],

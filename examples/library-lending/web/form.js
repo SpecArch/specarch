@@ -6,11 +6,13 @@
 // checks across fields, a field entered twice, fields read-only or hidden
 // by the record's values, pickers that read their records, the parts of a
 // value and rows added and removed. It loads the record a form changes,
-// sends the fields its operation takes, and leads on once it succeeds.
-// Every form and task page uses it.
+// sends the fields its operation takes, or on an upload the file chosen with
+// the fields beside it, and leads on once it succeeds. Every form and task
+// page uses it.
 
 import { on, emit } from "./events.js";
 import { arrived, go, parameters } from "./pages.js";
+import { call, property, upload } from "./service.js";
 
 // What holds fields: the form, a value with parts, a list of rows and a row.
 const HOLDERS = "form, [data-value], [data-list], [data-row]";
@@ -191,6 +193,11 @@ export function form(page) {
     for (const rule of page.checks) {
       fail(field(rule.field), rule.rule(record) ? "" : rule.message);
     }
+    // A file above the upload's largest size is refused before it is sent.
+    for (const control of element.querySelectorAll("[data-file]")) {
+      const large = page.submit.file.maxBytes !== undefined && control.files[0]?.size > page.submit.file.maxBytes;
+      fail(control, large ? page.submit.file.tooLarge : "");
+    }
     for (const [control, message] of messages) {
       control.setCustomValidity(message);
     }
@@ -215,12 +222,12 @@ export function form(page) {
       query.set(picker.search, search);
     }
     try {
-      const response = await fetch(`${picker.path}?${query}`, { headers: { Accept: "application/json" } });
+      const response = await call(picker, { query: Object.fromEntries(query), list: picker.list });
       if (!response.ok) {
         show(page.messages.failed, true);
         return;
       }
-      const items = (await response.json())[picker.items];
+      const items = property(await response.json(), picker.items);
       const chosen = control.value;
       const shown = control.selectedOptions[0]?.textContent;
       control.replaceChildren(control.options[0]);
@@ -264,13 +271,16 @@ export function form(page) {
         body[name] = value;
       }
     }
-    const headers = { Accept: "application/json", "Content-Type": "application/json" };
+    const headers = {};
     if (page.submit.idempotencyKey) {
       headers[page.submit.idempotencyKey] = key;
     }
+    const sending = { parameters: given, body, headers };
     button.disabled = true;
     try {
-      const response = await fetch(page.submit.path(given, record), { method: page.submit.method, headers, body: JSON.stringify(body) });
+      const response = page.submit.stream === "upload"
+        ? await upload(page.submit, element.querySelector("[data-file]").files[0], sending)
+        : await call(page.submit, sending);
       button.disabled = false;
       if (response.ok) {
         const answer = response.status === 204 ? {} : await response.json().catch(() => ({}));
@@ -308,7 +318,7 @@ export function form(page) {
   show(arrived(), false);
   if (page.source) {
     button.disabled = true;
-    fetch(page.source.path(given), { headers: { Accept: "application/json" } })
+    call(page.source, { parameters: given })
       .then(async (response) => {
         if (!response.ok) {
           show(page.refusals.source[String(response.status)] ?? page.messages.failed, true);

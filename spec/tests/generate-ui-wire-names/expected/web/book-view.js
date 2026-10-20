@@ -13,7 +13,7 @@ import { view } from "./view.js";
 
 view({
   key: "book_id",
-  source: { operation: "getBook", path: (parameters) => `/books/${encodeURIComponent(parameters.bookId)}` },
+  source: { operation: "getBook", method: "GET", path: "/books/{bookId}" },
   // The fields hidden while their condition holds.
   hidden: {
     shelf_place: (record) => record.book_status === "retired",

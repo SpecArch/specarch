@@ -11,11 +11,11 @@ form({
   submit: {
     operation: "lendCopies",
     method: "POST",
-    path: (parameters) => `/members/${encodeURIComponent(parameters.memberId)}/loans`,
+    path: "/members/{memberId}/loans",
     sent: ["loans"],
     idempotencyKey: "Idempotency-Key",
   },
-  source: { operation: "getMember", path: (parameters) => `/members/${encodeURIComponent(parameters.memberId)}`, rows: { loans: "loans" } },
+  source: { operation: "getMember", method: "GET", path: "/members/{memberId}", rows: { loans: "loans" } },
   checks: [],
   conditions: {},
   pickers: {},

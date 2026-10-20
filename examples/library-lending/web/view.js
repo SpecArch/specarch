@@ -10,6 +10,7 @@
 import { on, emit } from "./events.js";
 import { arrived, go, href, parameters } from "./pages.js";
 import { ask } from "./ask.js";
+import { call, save } from "./service.js";
 
 // What holds values: the record, a value with parts and an item of a list.
 const HOLDERS = "#record, [data-field], [data-item]";
@@ -64,7 +65,7 @@ export function view(page) {
 
   async function load() {
     try {
-      const response = await fetch(page.source.path(given), { headers: { Accept: "application/json" } });
+      const response = await call(page.source, { parameters: given });
       if (!response.ok) {
         emit(page.failed, { status: response.status });
         return;
@@ -80,16 +81,18 @@ export function view(page) {
     if (reason === null) {
       return;
     }
-    const init = { method: action.method, headers: { Accept: "application/json" } };
+    const sent = { parameters: action.parameters(current) };
     if (action.reason) {
-      init.headers["Content-Type"] = "application/json";
-      init.body = JSON.stringify({ [action.reason.name]: reason });
+      sent.body = { [action.reason.name]: reason };
     }
     button.disabled = true;
     try {
-      const response = await fetch(action.path(current), init);
+      const response = await call(action, sent);
       button.disabled = false;
       if (response.ok) {
+        if (action.stream === "download") {
+          await save(response, action.operation);
+        }
         emit(action.succeeded, { id: current[page.key] });
       } else {
         emit(action.failed, { id: current[page.key], status: response.status });

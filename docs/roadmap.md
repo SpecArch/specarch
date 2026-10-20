@@ -160,7 +160,12 @@ implementation file uses and compares an override with the shipped idiom.
      form written by hand first
      (`examples/library-lending/web/reference/`); and, in 0.7.3, the
      names on the wire by `wireNames`
-     (`spec/tests/generate-ui-wire-names`). Not built: the first real
+     (`spec/tests/generate-ui-wire-names`) and every call through
+     `transport.js`, in the dxlib dialect too, with dxlib's pre-key
+     envelope and the streams (ADR-164, `spec/tests/generate-ui-dxlib`).
+     The member view's and form's modules have moved on from the ones
+     written by hand, since their calls name an operation's path with its
+     {parameters} left in. Not built: the first real
      project's screen to check it against.
    - Built, 0.6.0, for the web on Next.js and Carbon, for a project whose
      screens are built there: `specarch-gen-ui-typescript` writes task pages
@@ -473,7 +478,7 @@ built after it.
 
 ## 5a. The handshake and the streams, end to end
 
-Built, 0.7.2, each with its proof:
+Built, 0.7.2 unless named, each with its proof:
 
 - **The handshake in the screens** (ADR-161). The TypeScript screens call
   a service in the dxlib dialect as it serves it, told the dialect by
@@ -484,9 +489,15 @@ Built, 0.7.2, each with its proof:
   upload, and an action saves the file a download answers. The round trip
   drives the transport on Node against the generated vault
   (`generate-ui-typescript-dxlib`, `generate-ui-typescript-dxlib-refused`,
-  `validate-task-page-upload`). The plain JavaScript target still refuses a
-  page that calls an encrypted or streamed operation, as an error at the
-  page.
+  `validate-task-page-upload`).
+- **The handshake and the streams in the plain JavaScript screens**
+  (ADR-164, 0.7.3). Every call of the plain JavaScript pages goes through
+  `transport.js`, the TypeScript transport in plain JavaScript, in either
+  dialect, so a list, a form, a view and their actions call an encrypted
+  operation in dxlib's envelope, a task page uploads the file it picks
+  and an action saves a download. The round trip drives `transport.js`
+  against the generated vault beside `transport.ts`
+  (`generate-ui-dxlib`, `generate-ui-handshake-refused`).
 - **The extract leg of the round trip.** The vault written by hand on dxlib
   (`extract-go-dxlib-vault`) is read with `extract go`, its questions are
   answered by decision records committed beside the tree

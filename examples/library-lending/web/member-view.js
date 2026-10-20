@@ -12,7 +12,7 @@ import { view } from "./view.js";
 
 view({
   key: "id",
-  source: { operation: "getMember", path: (parameters) => `/members/${encodeURIComponent(parameters.memberId)}` },
+  source: { operation: "getMember", method: "GET", path: "/members/{memberId}" },
   hidden: {},
   actions: [
     {
@@ -29,7 +29,8 @@ view({
       label: "Deactivate",
       operation: "deactivateMember",
       method: "POST",
-      path: (record) => `/members/${encodeURIComponent(record.id)}/deactivate`,
+      path: "/members/{memberId}/deactivate",
+      parameters: (record) => ({ memberId: record.id }),
       when: (record) => record.status === "active",
       confirm: "Deactivate this member? They will borrow nothing more.",
       reason: { name: "reason", label: "Reason", minLength: 1, maxLength: 500 },

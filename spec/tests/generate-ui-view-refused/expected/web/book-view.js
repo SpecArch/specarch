@@ -17,7 +17,7 @@ import { view } from "./view.js";
 
 view({
   key: "id",
-  source: { operation: "getBook", path: (parameters) => `/books/${encodeURIComponent(parameters.bookId)}` },
+  source: { operation: "getBook", method: "GET", path: "/books/{bookId}" },
   // The fields hidden while their condition holds.
   hidden: {
     location: (record) => record.status === "retired",
@@ -32,7 +32,8 @@ view({
       label: "Retire",
       operation: "retireBook",
       method: "POST",
-      path: (record) => `/books/${encodeURIComponent(record.id)}/retire`,
+      path: "/books/{bookId}/retire",
+      parameters: (record) => ({ bookId: record.id }),
       when: (record) => record.status === "shelved",
       confirm: "Retire this book?",
       reason: { name: "why", label: "Why it is retired", minLength: 3, maxLength: 300 },

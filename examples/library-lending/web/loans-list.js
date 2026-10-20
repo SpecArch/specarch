@@ -11,6 +11,10 @@ import {
 } from "./events.js";
 import { arrived, go, href } from "./pages.js";
 import { ask } from "./ask.js";
+import { call, property } from "./service.js";
+
+// The operation the list reads.
+const source = { operation: "listLoans", method: "GET", path: "/loans" };
 
 const columns = ["memberId", "bookId", "loanedAt", "dueOn", "status", "lateFee"];
 const pageSize = 20;
@@ -37,7 +41,8 @@ const actions = [
     label: "Return",
     operation: "returnLoan",
     method: "POST",
-    path: (row) => `/loans/${encodeURIComponent(row.id)}/return`,
+    path: "/loans/{loanId}/return",
+    parameters: (row) => ({ loanId: row.id }),
     when: (record) => record.status === "open" || record.status === "overdue",
     confirm: "Record this copy as returned?",
     message: "The copy is recorded as returned.",
@@ -48,7 +53,8 @@ const actions = [
     label: "Lost",
     operation: "reportLost",
     method: "POST",
-    path: (row) => `/loans/${encodeURIComponent(row.id)}/lost`,
+    path: "/loans/{loanId}/lost",
+    parameters: (row) => ({ loanId: row.id }),
     when: (record) => record.status === "open" || record.status === "overdue",
     confirm: "Charge the replacement cost and close this loan?",
     message: "The loan is closed and the replacement cost charged.",
@@ -87,7 +93,7 @@ function loader() {
     query.set("page", String(wanted));
     query.set("pageSize", String(pageSize));
     try {
-      const response = await fetch(`/loans?${query}`, { headers: { Accept: "application/json" } });
+      const response = await call(source, { query: Object.fromEntries(query), list: source.list });
       if (asked !== latest) {
         return;
       }
@@ -99,12 +105,14 @@ function loader() {
       if (asked !== latest) {
         return;
       }
-      if (body.items.length === 0 && wanted > 1 && body.totalPages > 0 && wanted > body.totalPages) {
-        load(body.totalPages); // the page asked for is past the last
+      const items = property(body, "items");
+      const totalPages = property(body, "totalPages");
+      if (items.length === 0 && wanted > 1 && totalPages > 0 && wanted > totalPages) {
+        load(totalPages); // the page asked for is past the last
         return;
       }
       page = wanted;
-      emit(LOANS_LIST_LOADED, { items: body.items, totalItems: body.totalItems, totalPages: body.totalPages, page, filtered });
+      emit(LOANS_LIST_LOADED, { items, totalItems: property(body, "totalItems"), totalPages, page, filtered });
     } catch {
       if (asked === latest) {
         emit(LOANS_LIST_FAILED, { status: 0 });
@@ -140,14 +148,13 @@ async function run(action, row, button) {
   if (reason === null) {
     return;
   }
-  const init = { method: action.method, headers: { Accept: "application/json" } };
+  const given = { parameters: action.parameters(row) };
   if (action.reason) {
-    init.headers["Content-Type"] = "application/json";
-    init.body = JSON.stringify({ [action.reason.name]: reason });
+    given.body = { [action.reason.name]: reason };
   }
   button.disabled = true;
   try {
-    const response = await fetch(action.path(row), init);
+    const response = await call(action, given);
     if (response.ok) {
       emit(action.succeeded, { id: row.id });
       if (action.navigate) {

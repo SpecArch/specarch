@@ -13,6 +13,10 @@ import {
 } from "./events.js";
 import { arrived, go, href } from "./pages.js";
 import { ask } from "./ask.js";
+import { call, property } from "./service.js";
+
+// The operation the list reads.
+const source = { operation: "listBooks", method: "GET", path: "/books" };
 
 const columns = ["title", "shelf", "status"];
 const pageSize = 25;
@@ -34,7 +38,8 @@ const actions = [
     label: "Retire",
     operation: "retireBook",
     method: "POST",
-    path: (row) => `/books/${encodeURIComponent(row.id)}/retire`,
+    path: "/books/{bookId}/retire",
+    parameters: (row) => ({ bookId: row.id }),
     when: (record) => record.status === "shelved",
     confirm: "Retire this book?",
     reason: { name: "why", label: "Why it is retired", minLength: 3, maxLength: 300 },
@@ -71,7 +76,7 @@ function loader() {
     query.set("page", String(wanted));
     query.set("pageSize", String(pageSize));
     try {
-      const response = await fetch(`/books?${query}`, { headers: { Accept: "application/json" } });
+      const response = await call(source, { query: Object.fromEntries(query), list: source.list });
       if (asked !== latest) {
         return;
       }
@@ -83,12 +88,14 @@ function loader() {
       if (asked !== latest) {
         return;
       }
-      if (body.items.length === 0 && wanted > 1 && body.totalPages > 0 && wanted > body.totalPages) {
-        load(body.totalPages); // the page asked for is past the last
+      const items = property(body, "items");
+      const totalPages = property(body, "totalPages");
+      if (items.length === 0 && wanted > 1 && totalPages > 0 && wanted > totalPages) {
+        load(totalPages); // the page asked for is past the last
         return;
       }
       page = wanted;
-      emit(BOOKS_LIST_LOADED, { items: body.items, totalItems: body.totalItems, totalPages: body.totalPages, page, filtered });
+      emit(BOOKS_LIST_LOADED, { items, totalItems: property(body, "totalItems"), totalPages, page, filtered });
     } catch {
       if (asked === latest) {
         emit(BOOKS_LIST_FAILED, { status: 0 });
@@ -124,14 +131,13 @@ async function run(action, row, button) {
   if (reason === null) {
     return;
   }
-  const init = { method: action.method, headers: { Accept: "application/json" } };
+  const given = { parameters: action.parameters(row) };
   if (action.reason) {
-    init.headers["Content-Type"] = "application/json";
-    init.body = JSON.stringify({ [action.reason.name]: reason });
+    given.body = { [action.reason.name]: reason };
   }
   button.disabled = true;
   try {
-    const response = await fetch(action.path(row), init);
+    const response = await call(action, given);
     if (response.ok) {
       emit(action.succeeded, { id: row.id });
       if (action.navigate) {

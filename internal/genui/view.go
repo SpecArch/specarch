@@ -19,11 +19,11 @@ var askRuntime string
 
 // viewPage is what one view page needs.
 type viewPage struct {
-	name, title, upper, language, source, path, key string
-	sections                                        []viewSection
-	actions                                         []action
-	failed                                          string
-	sourceRefusals                                  [][2]string
+	name, title, upper, language, source, target, key string
+	sections                                          []viewSection
+	actions                                           []action
+	failed                                            string
+	sourceRefusals                                    [][2]string
 }
 
 type viewSection struct {
@@ -69,32 +69,30 @@ func fieldAt(at string, pg map[string]any, section, field int) string {
 }
 
 // load reads the operation a form or a view loads its record from: a GET
-// whose path's parameters are each a parameter of the page's route. path
-// is the JavaScript that writes its path from the route's parameters.
-func (g *gen) load(name, at string, pg map[string]any) (op map[string]any, path string, ok bool) {
+// whose path's parameters are each a parameter of the page's route. target
+// is the operation as transport.js calls it, its path's parameters given by
+// the route's of the same names.
+func (g *gen) load(name, at string, pg map[string]any) (op map[string]any, target string, ok bool) {
 	id := text(pg["source"])
 	op, p, method := g.operation(id)
 	if op == nil || method != "get" {
 		g.problem("error", at+"/source", "%s loads its record from %s, which is not a GET operation of the specification", name, id)
 		return nil, "", false
 	}
-	if !g.plainOnly(at+"/source", name, "loads its record from", id, op) {
+	if !g.plainOnly(at+"/source", name, "loads its record from", id, op, "") {
 		return nil, "", false
 	}
 	route := map[string]bool{}
 	for _, r := range routeParameters(text(pg["route"])) {
 		route[r] = true
 	}
-	parts := pathParam.Split(p, -1)
-	path = jsTemplate(parts[0])
-	for i, param := range routeParameters(p) {
+	for _, param := range routeParameters(p) {
 		if !route[param] {
 			g.problem("error", at+"/source", "%s loads %s at %s, and its route %s has no parameter {%s} to fill it from", name, id, p, text(pg["route"]), param)
 			return nil, "", false
 		}
-		path += "${encodeURIComponent(parameters." + param + ")}" + jsTemplate(parts[i+1])
 	}
-	return op, path, true
+	return op, g.target(op, id, method, p), true
 }
 
 // valueParts are the parts of a field that holds a value: a schema's
@@ -146,7 +144,7 @@ func (g *gen) view(name string, pg map[string]any) *viewPage {
 		return nil
 	}
 	v := &viewPage{name: name, title: text(pg["title"]), upper: upperSnake(name), language: text(g.settings["language"]),
-		source: text(pg["source"]), path: path}
+		source: text(pg["source"]), target: path}
 	if pk := list(entity["primaryKey"]); len(pk) == 1 {
 		v.key = g.wire(text(pk[0]))
 	}
@@ -326,7 +324,7 @@ func (v *viewPage) js() string {
 	if v.key != "" {
 		w("  key: " + jsString(v.key) + ",")
 	}
-	w("  source: { operation: " + jsString(v.source) + ", path: (parameters) => `" + v.path + "` },")
+	w("  source: " + v.target + ",")
 	var hidden []viewField
 	for _, sec := range v.sections {
 		for _, f := range sec.fields {

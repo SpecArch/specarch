@@ -129,14 +129,16 @@ func withoutHeader(content string) string {
 // wrapping of a module's opening comment. form.js has moved on from the
 // one written by hand: a success's page also takes its parameters from
 // the record loaded and the page's own address, as the member's loans
-// form needs.
+// form needs. The modules have moved on too: every call goes through
+// transport.js and names its operation's path with the {parameters} left
+// in (ADR-164), so the pages' modules and view.js are not compared.
 func TestReference(t *testing.T) {
 	resp := Generate(request(t, func(map[string]any, map[string]any) {}))
 	got := map[string]string{}
 	for _, f := range resp.Files {
 		got[f.Path] = f.Content
 	}
-	for _, name := range []string{"member-view.html", "member-view.js", "member-form.html", "member-form.js", "view.js", "ask.js"} {
+	for _, name := range []string{"member-view.html", "member-form.html", "ask.js"} {
 		want, err := os.ReadFile(filepath.Join("../../examples/library-lending/web/reference", name))
 		if err != nil {
 			t.Fatal(err)
@@ -147,11 +149,12 @@ func TestReference(t *testing.T) {
 	}
 }
 
-// TestRefusals refuses a target that is not plain JavaScript for the web,
-// a target without a language and an API in the dxlib dialect, with no
-// file, and reports a filter its list cannot ask for and a list that does
-// not page as errors with the files still written, so specarch can mark
-// them there.
+// TestRefusals refuses a target that is not plain JavaScript for the web
+// and a target without a language, with no file, and reports a filter its
+// list cannot ask for, a list that does not page, a list read in a
+// handshake's envelope from a service in the standard dialect and one in
+// an envelope that is not dxlib's as errors
+// with the files still written, so specarch can mark them there.
 func TestRefusals(t *testing.T) {
 	ui := func(content map[string]any) map[string]any {
 		return content["targets"].(map[string]any)["ui"].(map[string]any)
@@ -171,10 +174,19 @@ func TestRefusals(t *testing.T) {
 			get := s["paths"].(map[string]any)["/loans"].(map[string]any)["get"].(map[string]any)
 			delete(get, "listOf")
 		}, "listLoans has no listOf, so it does not page"},
-		{"dxlib", func(map[string]any, map[string]any) {}, "the standard dialect only"},
+		{"handshake", func(s, _ map[string]any) {
+			s["handshakes"] = map[string]any{"preKey": map[string]any{"keyAgreement": "x25519", "signature": "ed25519", "cipher": "aes-256-cbc", "establishedBy": "listBooks"}}
+			get := s["paths"].(map[string]any)["/loans"].(map[string]any)["get"].(map[string]any)
+			get["handshake"] = "preKey"
+		}, "listLoans, which travels in the envelope of handshake preKey, and specarch-gen-ui seals an envelope in the dxlib dialect only"},
+		{"primitives", func(s, _ map[string]any) {
+			s["handshakes"] = map[string]any{"preKey": map[string]any{"keyAgreement": "x25519", "signature": "ed25519", "cipher": "aes-256-gcm", "establishedBy": "listBooks"}}
+			get := s["paths"].(map[string]any)["/loans"].(map[string]any)["get"].(map[string]any)
+			get["handshake"] = "preKey"
+		}, "whose cipher aes-256-gcm is not dxlib's envelope"},
 	} {
 		req := request(t, c.change)
-		if c.name == "dxlib" {
+		if c.name == "primitives" {
 			req.APIDialect = "dxlib" // another implementation file's openapi target names it
 		}
 		resp := Generate(req)
@@ -182,7 +194,7 @@ func TestRefusals(t *testing.T) {
 		for _, d := range resp.Diagnostics {
 			found = found || d.Severity == "error" && strings.Contains(d.Message, c.want)
 		}
-		page := c.name == "filter" || c.name == "paging"
+		page := c.name == "filter" || c.name == "paging" || c.name == "handshake" || c.name == "primitives"
 		written := map[string]bool{}
 		for _, f := range resp.Files {
 			written[f.Path] = true

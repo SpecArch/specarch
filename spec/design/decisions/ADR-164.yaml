@@ -1,0 +1,81 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.3.schema.json
+decisions:
+  ADR-164:
+    title: The plain JavaScript screens call the service through one transport module, the TypeScript screens' transport in plain JavaScript, in either dialect, with the pre-key handshake and the streams
+    status: accepted
+    date: "2026-10-20"
+    context: |
+      ADR-161 gave the TypeScript screens the dxlib dialect, dxlib's
+      pre-key envelope and the streams, and left the plain JavaScript
+      screens on the standard dialect: specarch-gen-ui refused a service
+      in the dxlib dialect at the root, and a page that loads from,
+      submits to or runs an operation that travels in a handshake's
+      envelope or streams a file at the page. Each of its pages called
+      fetch itself, with the operation's path written into the page as a
+      template literal, so the call knew nothing of the dialect, and a
+      service whose operations are encrypted had no plain web front end
+      at all.
+    decision: |
+      specarch-gen-ui writes transport.js beside the pages: the TypeScript
+      screens' transport (ADR-161) in plain JavaScript, with the same
+      createTransport, call and upload, the same bytes of dxlib's
+      envelope through the Web Crypto API, the same renewal on
+      REFRESH_PREKEY and REFRESH_SESSION, and save for a download. It
+      imports nothing. service.js makes the one transport of the screens
+      from what the generator was told: the dialect, from apiDialect in
+      the plug-in request, and each handshake a page's call travels in
+      with the operation that establishes it.
+
+      Every call of a page goes through it: a list's page and its row
+      actions, a picker's list, a form's record and its submit, a view's
+      record and its actions. A call is described once in the page's
+      module as the operation, its method, its path with the {parameters}
+      left in, and the handshake, the stream, the upload's media type and
+      in the dxlib dialect each path parameter's snake-case name, where it
+      applies; the page hands the transport the parameters by name, and
+      the transport fills the path in the standard dialect or puts them
+      in the body in the dxlib dialect. In the dxlib dialect a list and a
+      picker read the paginated-list idiom's dxlib names, the page counted
+      from 0, a filter a member of the filter object, the records under a
+      dotted name such as list.rows; those names are dxlib's own, taken as
+      the idiom writes them and not mapped by info.wireNames, as the
+      TypeScript screens take them.
+
+      A task page whose submit streams an upload shows a file input of
+      the body's media type, labelled by the request body's description,
+      and sends the file chosen as the request's body, refusing one above
+      maxRequestBytes before it is sent; its fields are the stream's
+      parameters and travel in X-Var in the dxlib dialect (ADR-162), an
+      error at the page in the standard dialect, which names no header. An
+      action, on a list's row or on a view, whose operation streams a
+      download saves the file it answers. A page that loads from, reads or
+      submits a stream anywhere else is an error at the page, and so is a
+      call in a handshake's envelope when no implementation file serves
+      the dxlib dialect, or whose handshake's primitives are not dxlib's
+      three, as for the TypeScript screens.
+    consequences: |
+      A service in the dxlib dialect, its operations encrypted or not, gets
+      plain web screens as it gets TypeScript ones, and the round trip in
+      internal/gendxlib drives transport.js, as the generator writes it,
+      against the generated vault on Node beside transport.ts. Every
+      plain JavaScript page changes shape once, the standard dialect's too:
+      its calls name an operation and a path in place of fetch with a
+      template, and the screens gain transport.js and service.js. The
+      transport is written twice, in TypeScript and in JavaScript; the
+      round trip runs the same tests against both, so they cannot drift
+      in what they send. The SwiftUI screens stay on the standard dialect.
+    why: |
+      One module for every call, rather than the envelope inside each
+      page's fetch, keeps the bytes of the envelope in one place a test
+      can reach, as transport.ts does for the TypeScript screens; a page
+      that calls fetch itself would need a second copy per runtime file.
+      The module is the TypeScript one with its types taken out, rather
+      than a design of its own, so the two web stacks agree on the
+      envelope by construction and a fix to one is the same edit to the
+      other. The plain JavaScript screens need no build step, so the
+      module cannot be compiled from transport.ts at generation time
+      without a TypeScript compiler, a dependency the plug-in does not
+      have. The path stays a template with its {parameters} because the
+      dxlib dialect sends the parameters in the body by name, which a path
+      already filled in no longer says.
+    satisfies: [SA-77, SA-43]

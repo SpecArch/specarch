@@ -10,7 +10,7 @@ form({
   submit: {
     operation: "signIn",
     method: "POST",
-    path: () => "/sessions",
+    path: "/sessions",
     sent: ["email", "password"],
   },
   checks: [],

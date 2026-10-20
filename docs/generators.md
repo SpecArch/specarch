@@ -633,8 +633,8 @@ screen in a real project and has to reproduce it before it is accepted.
 
 `specarch-gen-ui` writes, for a `ui` target of platform `web` and
 framework `plain-javascript`, each list page as `<page>.html` and
-`<page>.js`, every event of the screens once in `events.js`, and
-`theme.css`. Nothing needs a package, a bundler or a build step: the pages
+`<page>.js`, every event of the screens once in `events.js`,
+`transport.js` and `service.js`, and `theme.css`. Nothing needs a package, a bundler or a build step: the pages
 load native ES modules, and no third-party file is written. A page reads
 its list a page at a time by the paginated-list idiom's names, with only
 the answer to its latest request counting and a page past the last
@@ -649,9 +649,7 @@ buttons and links are named with the row's first column, and focus stays
 on the same one when the list is read again. A list whose operation's
 path takes a parameter, or whose operation does not page, is refused; an
 action whose operation takes a request body other than the reason it
-names is reported and left out. A
-service whose OpenAPI target is in the dxlib dialect is refused, since
-its lists are not the standard dialect's. Its states and the messages of its events show in a
+names is reported and left out. Its states and the messages of its events show in a
 status line announced without moving focus; a refusal shows the failed
 state of its problem type, matched by the operation's response status. A
 page without states shows the generator's own sentences in English.
@@ -734,11 +732,39 @@ page's parameter comes from, are all the fields' snake_case names, and
 the paginated-list idiom's names are mapped too. A query parameter keeps
 its own name, and a route's parameters theirs, since neither is mapped.
 
+Every call of a page goes through `transport.js` (ADR-164), the
+TypeScript screens' transport in plain JavaScript, made once in
+`service.js` with the service's dialect and the handshakes the pages'
+calls travel in. A page's module names each call's operation, method and
+path with its `{parameters}` left in, and the page hands the parameters
+by name. In the standard dialect the call is the operation's method at
+its filled path; in the dxlib dialect, which `apiDialect` names when an
+implementation file's openapi target serves it, it is a POST at
+`/<operationId>` with the path's parameters under their snake-case names,
+the query and the body in one JSON body, and a list and a picker read the
+paginated-list idiom's dxlib names as dxlib writes them: the page from 0,
+a filter a member of `filter_key_values`, the records under `list.rows`.
+A call to an operation in a handshake's envelope establishes dxlib's
+pre-key handshake through the Web Crypto API on its first call, seals the
+request, opens the answer and renews the handshake once when the service
+answers `REFRESH_PREKEY` or `REFRESH_SESSION`; such a call with no
+implementation file in the dxlib dialect, or whose handshake is not
+x25519, ed25519 and aes-256-cbc, is refused at the page. A task page whose
+submit streams an upload shows a file input of the body's media type,
+labelled by the request body's description, refuses a file above
+`maxRequestBytes` before it is sent and sends the file chosen as the
+request's body, its fields, the stream's parameters, in `X-Var` in the
+dxlib dialect and refused in the standard one, which names no header
+(ADR-162). An action, on a list's row or a view, whose operation streams a
+download saves the file under the name its `Content-Disposition` gives.
+A stream anywhere else is refused at the page.
+
 Modes other than dark are reported and left out of this version. The
 screens it is checked against are the library lending example's loans
 list, written by hand before the generator (ADR-040), and its member view
 and member form, written by hand in `examples/library-lending/web/reference/`
-before views and forms were generated; the example's forms were run in a
+before views and forms were generated, whose HTML and `ask.js` are still
+compared; the example's forms were run in a
 browser against a stub of the service. The first real plain JavaScript
 project repeats the check against its own first screen.
 

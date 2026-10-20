@@ -7,6 +7,7 @@ package genui
 
 import (
 	"bytes"
+	_ "embed"
 	"encoding/json"
 	"fmt"
 	"html"
@@ -22,6 +23,15 @@ import (
 	"github.com/SpecArch/specarch/internal/ownership"
 	"github.com/SpecArch/specarch/internal/wirename"
 )
+
+// transportRuntime is how every page calls the service (ADR-164).
+//
+//go:embed runtime/transport.js
+var transportRuntime string
+
+// TransportFile is transport.js as the generator writes it, header aside:
+// for a test that runs it.
+func TransportFile() string { return transportRuntime }
 
 // Request is what specarch writes on a plug-in's standard input.
 type Request struct {
@@ -102,6 +112,11 @@ type gen struct {
 	wireNames string
 	diags     []Diagnostic
 	list      map[string]string // the paginated-list idiom's names
+	// dialect is the dialect the service serves its API in, standard or
+	// dxlib; handshakes are those a page's call travels in, by name, with
+	// the operation that establishes each (ADR-164).
+	dialect    string
+	handshakes map[string]string
 	// opened are the pages a link may open: those written and those
 	// another stakeholder owns; menuEntry the menu entries written.
 	opened, menuEntry map[string]bool
@@ -125,7 +140,7 @@ func (g *gen) failed() bool {
 
 // Generate writes the screens of a request.
 func Generate(r *Request) Response {
-	g := &gen{spec: r.Specification, root: r.Root}
+	g := &gen{spec: r.Specification, root: r.Root, dialect: "standard", handshakes: map[string]string{}}
 	g.wireNames = text(obj0(g.spec["info"])["wireNames"])
 	for _, impl := range r.Implementations {
 		if t, ok := obj(obj0(impl.Content["targets"])[r.Target]); ok || len(r.Implementations) == 1 {
@@ -141,19 +156,28 @@ func Generate(r *Request) Response {
 		}
 	}
 	if r.APIDialect == "dxlib" {
-		g.problem("error", "/", "the service serves its API in the dxlib dialect, whose lists are a POST per operation counted from page 0, and specarch-gen-ui writes screens for the standard dialect only")
+		g.dialect = "dxlib"
 	}
 	if text(g.settings["language"]) == "" {
 		g.problem("error", "/", "the %s target's settings name no language, the page's lang (WCAG 2.2, 3.1.1); add language, such as en", r.Target)
 	}
-	g.list = g.idiomNames("paginated-list", "parameters")
-	for k, v := range g.idiomNames("paginated-list", "envelope") {
-		g.list[k] = v
-	}
-	// The idiom's names go on the wire by the rule, as a body's properties
-	// and a query's parameters do (ADR-062).
-	for k, v := range g.list {
-		g.list[k] = g.wire(v)
+	if g.dialect == "dxlib" {
+		// The dxlib dialect's names are dxlib's own, taken as the idiom
+		// writes them (ADR-164).
+		g.list = g.idiomNames("paginated-list", "parameters", "dxlib")
+		for k, v := range g.idiomNames("paginated-list", "envelope", "dxlib") {
+			g.list[k] = v
+		}
+	} else {
+		g.list = g.idiomNames("paginated-list", "parameters", "any")
+		for k, v := range g.idiomNames("paginated-list", "envelope", "any") {
+			g.list[k] = v
+		}
+		// The idiom's names go on the wire by the rule, as a body's
+		// properties and a query's parameters do (ADR-062).
+		for k, v := range g.list {
+			g.list[k] = g.wire(v)
+		}
 	}
 	if g.failed() {
 		return g.response(nil)
@@ -289,6 +313,8 @@ func Generate(r *Request) Response {
 	}
 	files = append(files, File{Path: "events.js", Content: header("// ", "", placed[mark.File]) + eventsJS(events)})
 	files = append(files, File{Path: "pages.js", Content: header("// ", "", nil) + g.pagesJS(sortedSet(g.opened))})
+	files = append(files, File{Path: "service.js", Content: header("// ", "", nil) + g.serviceJS()})
+	files = append(files, File{Path: "transport.js", Content: header("// ", "", nil) + transportRuntime})
 	asks := false
 	for _, p := range lists {
 		asks = asks || len(operations(p.actions)) > 0
@@ -321,16 +347,16 @@ func (g *gen) response(files []File) Response {
 	return Response{Files: files, Diagnostics: diags}
 }
 
-// idiomNames reads the names of a part of an idiom for any stack, the
+// idiomNames reads the names of a part of an idiom for a stack, the
 // project's override first.
-func (g *gen) idiomNames(idiom, part string) map[string]string {
+func (g *gen) idiomNames(idiom, part, stack string) map[string]string {
 	out := map[string]string{}
 	for _, i := range g.impl.Idioms {
 		if i.Name != idiom || i.As == "excluded" {
 			continue
 		}
 		for _, src := range []map[string]any{i.Override, i.Content} {
-			if n, ok := obj(obj0(obj0(obj0(obj0(src["parts"])[part])["stack"])["any"])["names"]); ok {
+			if n, ok := obj(obj0(obj0(obj0(obj0(src["parts"])[part])["stack"])[stack])["names"]); ok {
 				for k, v := range n {
 					if out[k] == "" {
 						out[k] = text(v)
@@ -345,12 +371,28 @@ func (g *gen) idiomNames(idiom, part string) map[string]string {
 // event is one event of the screens, as events.js declares it.
 type event struct{ name, doc string }
 
+// isDownload says whether an action runs an operation that streams a
+// download, whose answer the page saves.
+func isDownload(a action) bool {
+	for _, m := range a.target {
+		if m == `stream: "download"` {
+			return true
+		}
+	}
+	return false
+}
+
 // action is an operation a list runs on a row.
 type action struct {
-	label, operation, method, path, confirm, message string
-	refusals                                         [][2]string // status and message
-	when                                             string      // a function of the record, or ""
-	reason                                           *reason
+	label, operation, confirm, message string
+	// target are the members transport.js calls the operation by, and
+	// parameters the function of the record that gives its path's
+	// parameters by name.
+	target     []string
+	parameters string
+	refusals   [][2]string // status and message
+	when       string      // a function of the record, or ""
+	reason     *reason
 	// navigate is the page the action leads to once it succeeds; link is
 	// set instead on an action that opens a page and runs nothing.
 	navigate, link *link
@@ -362,19 +404,20 @@ type reason struct{ name, label, minLength, maxLength string }
 
 // page is what one list page needs.
 type page struct {
-	name, title, source, sourcePath, upper string
-	language                               string
-	columns, titles, filters               []string
-	wide                                   map[string]bool
-	filterHTML                             []string
-	pageSize, key                          string
-	filterKeys                             map[string]string // a filter's name in the query, where it is not its own
-	empty, filteredEmpty, failed           string
-	sourceRefusals                         [][2]string
-	actions                                []action
-	links                                  []link // pages the list opens, above its table
-	selected                               *link  // the page a selected row opens
-	list                                   map[string]string
+	name, title, source, sourceTarget, upper string
+	language                                 string
+	columns, titles, filters                 []string
+	wide                                     map[string]bool
+	filterHTML                               []string
+	pageSize, key                            string
+	filterKeys                               map[string]string // a filter's name in the query, where it is not its own
+	empty, filteredEmpty, failed             string
+	sourceRefusals                           [][2]string
+	actions                                  []action
+	links                                    []link // pages the list opens, above its table
+	selected                                 *link  // the page a selected row opens
+	list                                     map[string]string
+	dialect                                  string
 }
 
 // The generator's own words, where a page declares no state of its own.
@@ -390,20 +433,20 @@ func (g *gen) page(name string, pg map[string]any) *page {
 	entity := obj0(obj0(g.spec["entities"])[text(pg["entity"])])
 	fields := obj0(entity["properties"])
 	p := &page{name: name, title: text(pg["title"]), source: text(pg["source"]), upper: upperSnake(name),
-		language: text(g.settings["language"]), wide: map[string]bool{}, list: g.list}
+		language: text(g.settings["language"]), wide: map[string]bool{}, list: g.list, dialect: g.dialect}
 	src, srcPath, srcMethod := g.operation(p.source)
 	if src == nil || srcMethod != "get" {
 		g.problem("error", at+"/source", "%s reads %s, which is not a GET operation of the specification; this version reads a list by GET", name, p.source)
 		return nil
 	}
-	if !g.plainOnly(at+"/source", name, "reads", p.source, src) {
+	if !g.plainOnly(at+"/source", name, "reads", p.source, src, "") {
 		return nil
 	}
 	if pathParam.MatchString(srcPath) {
 		g.problem("error", at+"/source", "%s reads %s at %s, whose path takes a parameter, and this version of specarch-gen-ui reads a list whose path takes none", name, p.source, srcPath)
 		return nil
 	}
-	p.sourcePath = jsTemplate(srcPath)
+	p.sourceTarget = g.target(src, p.source, srcMethod, srcPath)
 	listOf, ok := obj(src["listOf"])
 	size := obj0(listOf["pageSize"])
 	p.pageSize = orText(text(size["default"]), text(size["maximum"]))
@@ -514,23 +557,105 @@ func refusals(op, failed map[string]any) [][2]string {
 	return out
 }
 
-// operation finds an operation by its operationId: it, its path and its
-// method.
-// plainOnly says whether an operation is one the screens can call plain: not
-// one that travels in a handshake's envelope or streams a file, which this
-// version does not perform (ADR-145, ADR-146); an error at the page otherwise.
-func (g *gen) plainOnly(at, pageName, does, id string, op map[string]any) bool {
+// DXLibEnvelope are the primitives of dxlib's pre-key envelope, the one
+// envelope the web screens seal (ADR-145).
+var DXLibEnvelope = []struct{ Key, Value string }{{"keyAgreement", "x25519"}, {"signature", "ed25519"}, {"cipher", "aes-256-cbc"}}
+
+// plainOnly says whether an operation is one the screens can call: plain,
+// or in the envelope of dxlib's pre-key handshake in the dxlib dialect
+// (ADR-145, ADR-164); not one that streams a file unless the caller is
+// where that direction is taken, allow: upload for a task page's submit,
+// download for an action (ADR-146). An error at the page otherwise.
+func (g *gen) plainOnly(at, pageName, does, id string, op map[string]any, allow string) bool {
 	if h := text(op["handshake"]); h != "" {
-		g.problem("error", at, "%s %s %s, which travels in the envelope of handshake %s, and this version of specarch-gen-ui performs no handshake, so the screen would send plain JSON the service refuses; see docs/roadmap.md", pageName, does, id, h)
-		return false
+		if g.dialect != "dxlib" {
+			g.problem("error", at, "%s %s %s, which travels in the envelope of handshake %s, and specarch-gen-ui seals an envelope in the dxlib dialect only, whose bytes dxlib's datablock fixes; no implementation file serves the API in the dxlib dialect", pageName, does, id, h)
+			return false
+		}
+		hs := obj0(obj0(g.spec["handshakes"])[h])
+		var differs []string
+		for _, p := range DXLibEnvelope {
+			if text(hs[p.Key]) != p.Value {
+				differs = append(differs, p.Key+" "+orText(text(hs[p.Key]), "none"))
+			}
+		}
+		if len(differs) > 0 {
+			g.problem("error", at, "%s %s %s, which travels in the envelope of handshake %s, whose %s is not dxlib's envelope (x25519, ed25519 and aes-256-cbc), the one specarch-gen-ui seals", pageName, does, id, h, strings.Join(differs, " and "))
+			return false
+		}
+		g.handshakes[h] = text(hs["establishedBy"])
 	}
-	if s := text(obj0(op["stream"])["direction"]); s != "" {
-		g.problem("error", at, "%s %s %s, which streams a file (%s), and this version of specarch-gen-ui streams no file", pageName, does, id, s)
+	if s := text(obj0(op["stream"])["direction"]); s != "" && s != allow {
+		g.problem("error", at, "%s %s %s, which streams a file (%s), and specarch-gen-ui streams an upload only from a task page's submit and a download only from an action", pageName, does, id, s)
 		return false
 	}
 	return true
 }
 
+// target writes an operation as transport.js calls it: its id, its method
+// and its path with the {parameters} left in, the handshake whose envelope
+// it travels in, the file it streams and an upload's media type, and in the
+// dxlib dialect each path parameter's snake-case name in the body.
+func (g *gen) target(op map[string]any, id, method, path string) string {
+	return "{ " + strings.Join(g.targetMembers(op, id, method, path), ", ") + " }"
+}
+
+// targetMembers are the members of an operation's target, each written
+// name: value.
+func (g *gen) targetMembers(op map[string]any, id, method, path string) []string {
+	parts := []string{"operation: " + jsString(id), "method: " + jsString(strings.ToUpper(method)), "path: " + jsString(path)}
+	if h := text(op["handshake"]); h != "" {
+		parts = append(parts, "handshake: "+jsString(h))
+	}
+	switch text(obj0(op["stream"])["direction"]) {
+	case "upload":
+		parts = append(parts, `stream: "upload"`)
+		for _, mt := range sortedKeys(obj0(obj0(op["requestBody"])["content"])) {
+			parts = append(parts, "mediaType: "+jsString(mt))
+			break
+		}
+	case "download":
+		parts = append(parts, `stream: "download"`)
+	}
+	if g.dialect == "dxlib" {
+		var wire []string
+		for _, p := range routeParameters(path) {
+			wire = append(wire, p+": "+jsString(wirename.Snake(p)))
+		}
+		if len(wire) > 0 {
+			parts = append(parts, "wire: { "+strings.Join(wire, ", ")+" }")
+		}
+	}
+	return parts
+}
+
+// serviceJS makes the one transport of the screens: the service on the
+// page's own origin, its dialect and the handshakes the pages' calls
+// travel in, each with the operation that establishes it.
+func (g *gen) serviceJS() string {
+	var b strings.Builder
+	b.WriteString(`// The one transport of the screens: the service, on the page's own origin,
+// called as its dialect serves it, with the handshakes its calls travel in.
+
+import { createTransport } from "./transport.js";
+
+export { property, save } from "./transport.js";
+
+`)
+	hs := "{}"
+	if len(g.handshakes) > 0 {
+		var parts []string
+		for _, h := range sortedKeys(anyStrings(g.handshakes)) {
+			parts = append(parts, h+": { operation: "+jsString(g.handshakes[h])+" }")
+		}
+		hs = "{ " + strings.Join(parts, ", ") + " }"
+	}
+	fmt.Fprintf(&b, "export const { call, upload } = createTransport({ service: \"\", dialect: %s, handshakes: %s });\n", jsString(g.dialect), hs)
+	return b.String()
+}
+
+// operation finds an operation by its operationId: it, its path and its
+// method.
 func (g *gen) operation(id string) (map[string]any, string, string) {
 	paths := obj0(g.spec["paths"])
 	for _, p := range sortedKeys(paths) {

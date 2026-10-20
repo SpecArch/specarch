@@ -13,10 +13,10 @@ form({
   submit: {
     operation: "changeBook",
     method: "PUT",
-    path: (parameters) => `/books/${encodeURIComponent(parameters.bookId)}`,
+    path: "/books/{bookId}",
     sent: ["title", "shelf"],
   },
-  source: { operation: "getBook", path: (parameters) => `/books/${encodeURIComponent(parameters.bookId)}` },
+  source: { operation: "getBook", method: "GET", path: "/books/{bookId}" },
   checks: [],
   conditions: {},
   pickers: {},

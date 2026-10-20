@@ -30,22 +30,29 @@ const (
 type formPage struct {
 	name, title, upper, language string
 	task                         bool
-	submit, method, path         string // path is the JavaScript that writes it
-	idempotencyKey               string
-	sent                         []string
-	controls                     []string // the form's HTML inside its element
-	checks                       []formCheck
-	conditions                   map[string][2]string // hiddenWhen and readOnlyWhen, by field
-	pickers                      map[string]string    // a picker's data, by field
-	next                         map[string]formNext  // by status, or success for a form
-	source, sourcePath           string
-	rows                         map[string]string // the loaded record's property of each child row's relation
-	failed                       string
-	refusals                     [][3]string // status, message and field
-	sourceRefusals               [][2]string
+	submit, target               string // target is the operation as transport.js calls it
+	// file is the upload a task page streams, nil on a page that sends
+	// JSON.
+	file                 *fileInput
+	idempotencyKey       string
+	sent                 []string
+	controls             []string // the form's HTML inside its element
+	checks               []formCheck
+	conditions           map[string][2]string // hiddenWhen and readOnlyWhen, by field
+	pickers              map[string]string    // a picker's data, by field
+	next                 map[string]formNext  // by status, or success for a form
+	source, sourceTarget string
+	rows                 map[string]string // the loaded record's property of each child row's relation
+	failed               string
+	refusals             [][3]string // status, message and field
+	sourceRefusals       [][2]string
 }
 
 type formCheck struct{ field, rule, message string }
+
+// fileInput is the file a task page streams to an upload: its label, the
+// media type it takes, and its largest size with the message above it.
+type fileInput struct{ label, mediaType, maxBytes, tooLarge string }
 
 // formNext is what follows a success: the page it opens, with its route's
 // parameters from the answer's or the record's fields, and its message.
@@ -269,11 +276,30 @@ func (g *gen) form(name string, pg map[string]any) *formPage {
 		g.problem("error", at+"/submit", "%s submits to %s, which is not an operation of the specification that takes a request body", name, fp.submit)
 		return nil
 	}
-	if !g.plainOnly(at+"/submit", name, "submits to", fp.submit, op) {
+	streams := ""
+	if task {
+		streams = "upload"
+	}
+	if !g.plainOnly(at+"/submit", name, "submits to", fp.submit, op, streams) {
 		return nil
 	}
-	fp.method = strings.ToUpper(method)
+	fp.target = g.target(op, fp.submit, method, path)
 	body := g.bodySchema(op)
+	if text(obj0(op["stream"])["direction"]) == "upload" {
+		if props := obj0(body["properties"]); len(props) > 0 && g.dialect != "dxlib" {
+			g.problem("error", at+"/submit", "%s submits to %s, which takes parameters beside the file it uploads (%s), and they travel in a header the stack names; the standard dialect names none, so specarch-gen-ui would send the file without them (ADR-162)", name, fp.submit, strings.Join(sortedKeys(props), ", "))
+			return nil
+		}
+		fp.file = &fileInput{label: orText(text(obj0(op["requestBody"])["description"]), "File")}
+		for _, mt := range sortedKeys(obj0(obj0(op["requestBody"])["content"])) {
+			fp.file.mediaType = mt
+			break
+		}
+		if m := text(obj0(op["limits"])["maxRequestBytes"]); m != "" {
+			fp.file.maxBytes, fp.file.tooLarge = m, "The file is larger than "+m+" bytes."
+		}
+		fp.controls = append(fp.controls, "<label>"+html.EscapeString(fp.file.label), "<input type=\"file\" data-file accept="+quoted(fp.file.mediaType)+" required>", "</label>")
+	}
 	bodyProps := obj0(body["properties"])
 	required := map[string]bool{}
 	for _, r := range list(body["required"]) {
@@ -288,19 +314,11 @@ func (g *gen) form(name string, pg map[string]any) *formPage {
 	for _, p := range routeParameters(text(pg["route"])) {
 		route[p] = true
 	}
-	parts := pathParam.Split(path, -1)
-	js := jsTemplate(parts[0])
-	for i, p := range routeParameters(path) {
+	for _, p := range routeParameters(path) {
 		if !route[p] {
 			g.problem("error", at+"/submit", "%s submits to %s at %s, and its route %s gives no {%s}", name, fp.submit, path, text(pg["route"]), p)
 			return nil
 		}
-		js += "${encodeURIComponent(parameters." + p + ")}" + jsTemplate(parts[i+1])
-	}
-	if len(parts) > 1 {
-		fp.path = "(parameters) => `" + js + "`"
-	} else {
-		fp.path = "() => " + jsString(path)
 	}
 	for _, prm := range list(op["parameters"]) {
 		pm := obj0(prm)
@@ -315,11 +333,11 @@ func (g *gen) form(name string, pg map[string]any) *formPage {
 			g.problem("error", at+"/source", "%s is a task, which loads no record; make it a form", name)
 			return nil
 		}
-		src, srcPath, ok := g.load(name, at, pg)
+		src, srcTarget, ok := g.load(name, at, pg)
 		if !ok {
 			return nil
 		}
-		fp.source, fp.sourcePath = text(pg["source"]), srcPath
+		fp.source, fp.sourceTarget = text(pg["source"]), srcTarget
 		fp.sourceRefusals = refusals(src, obj0(obj0(pg["states"])["failed"]))
 	}
 	shown := map[string]bool{}
@@ -597,10 +615,10 @@ func (g *gen) picker(pageName, field string, pk, entity map[string]any) (string,
 	case g.list["items"] == "" || g.list["pageSize"] == "":
 		g.problem("error", at+"/source", "the picker of %s reads a page through the paginated-list idiom, which the implementation file excludes; keep the idiom", field)
 		return "", false
-	case !g.plainOnly(at+"/source", "the picker of "+field, "reads", id, op):
+	case !g.plainOnly(at+"/source", "the picker of "+field, "reads", id, op, ""):
 		return "", false
 	}
-	parts := []string{"path: " + jsString(path), "items: " + jsString(g.list["items"]), "pageSize: [" + jsString(g.list["pageSize"]) + ", " + size + "]"}
+	parts := append(g.targetMembers(op, id, method, path), "items: "+jsString(g.list["items"]), "pageSize: ["+jsString(g.list["pageSize"])+", "+size+"]")
 	if len(list(listOf["searchable"])) > 0 && g.list["search"] != "" {
 		parts = append(parts, "search: "+jsString(g.list["search"]))
 	} else {
@@ -611,6 +629,10 @@ func (g *gen) picker(pageName, field string, pk, entity map[string]any) (string,
 		shows = append(shows, jsString(g.wire(text(s))))
 	}
 	parts = append(parts, "value: "+jsString(g.wire(text(key[0]))), "shows: ["+strings.Join(shows, ", ")+"]")
+	if g.dialect == "dxlib" {
+		// The dxlib dialect sends the page from 0 and the page size as numbers.
+		parts = append(parts, "list: { page: "+jsString(g.list["page"])+", pageSize: "+jsString(g.list["pageSize"])+" }")
+	}
 	return "{ " + strings.Join(parts, ", "), true
 }
 
@@ -747,7 +769,11 @@ func (fp *formPage) js() string {
 	if fp.source != "" {
 		intro += "loads its record through " + fp.source + ", "
 	}
-	intro += "sends its fields to " + fp.submit
+	if fp.file != nil {
+		intro += "uploads the file chosen, with its fields, to " + fp.submit
+	} else {
+		intro += "sends its fields to " + fp.submit
+	}
 	if ps := fp.pages(); len(ps) > 0 {
 		intro += " and opens " + strings.Join(ps, " or ") + " once it succeeds"
 	}
@@ -760,9 +786,9 @@ func (fp *formPage) js() string {
 	w("")
 	w("form({")
 	w("  submit: {")
-	w("    operation: " + jsString(fp.submit) + ",")
-	w("    method: " + jsString(fp.method) + ",")
-	w("    path: " + fp.path + ",")
+	for _, m := range strings.Split(strings.TrimSuffix(strings.TrimPrefix(fp.target, "{ "), " }"), ", ") {
+		w("    " + m + ",")
+	}
 	var sent []string
 	for _, s := range fp.sent {
 		sent = append(sent, jsString(s))
@@ -771,9 +797,14 @@ func (fp *formPage) js() string {
 	if fp.idempotencyKey != "" {
 		w("    idempotencyKey: " + jsString(fp.idempotencyKey) + ",")
 	}
+	if f := fp.file; f != nil && f.maxBytes != "" {
+		w("    file: { maxBytes: " + f.maxBytes + ", tooLarge: " + jsString(f.tooLarge) + " },")
+	} else if f != nil {
+		w("    file: {},")
+	}
 	w("  },")
 	if fp.source != "" {
-		src := "  source: { operation: " + jsString(fp.source) + ", path: (parameters) => `" + fp.sourcePath + "`"
+		src := "  source: " + strings.TrimSuffix(fp.sourceTarget, " }")
 		if len(fp.rows) > 0 {
 			var rs []string
 			for _, k := range sortedKeys(anyStrings(fp.rows)) {

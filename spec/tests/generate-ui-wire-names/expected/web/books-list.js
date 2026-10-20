@@ -13,6 +13,10 @@ import {
 } from "./events.js";
 import { arrived, go, href } from "./pages.js";
 import { ask } from "./ask.js";
+import { call, property } from "./service.js";
+
+// The operation the list reads.
+const source = { operation: "listBooks", method: "GET", path: "/books" };
 
 const columns = ["book_title", "shelf_name", "book_status"];
 const pageSize = 25;
@@ -34,7 +38,8 @@ const actions = [
     label: "Retire",
     operation: "retireBook",
     method: "POST",
-    path: (row) => `/books/${encodeURIComponent(row.book_id)}/retire`,
+    path: "/books/{bookId}/retire",
+    parameters: (row) => ({ bookId: row.book_id }),
     when: (record) => record.book_status === "shelved",
     confirm: "Retire this book?",
     reason: { name: "retire_reason", label: "Why it is retired", minLength: 3, maxLength: 300 },
@@ -77,7 +82,7 @@ function loader() {
     query.set("page", String(wanted));
     query.set("page_size", String(pageSize));
     try {
-      const response = await fetch(`/books?${query}`, { headers: { Accept: "application/json" } });
+      const response = await call(source, { query: Object.fromEntries(query), list: source.list });
       if (asked !== latest) {
         return;
       }
@@ -89,12 +94,14 @@ function loader() {
       if (asked !== latest) {
         return;
       }
-      if (body.items.length === 0 && wanted > 1 && body.total_pages > 0 && wanted > body.total_pages) {
-        load(body.total_pages); // the page asked for is past the last
+      const items = property(body, "items");
+      const totalPages = property(body, "total_pages");
+      if (items.length === 0 && wanted > 1 && totalPages > 0 && wanted > totalPages) {
+        load(totalPages); // the page asked for is past the last
         return;
       }
       page = wanted;
-      emit(BOOKS_LIST_LOADED, { items: body.items, totalItems: body.total_items, totalPages: body.total_pages, page, filtered });
+      emit(BOOKS_LIST_LOADED, { items, totalItems: property(body, "total_items"), totalPages, page, filtered });
     } catch {
       if (asked === latest) {
         emit(BOOKS_LIST_FAILED, { status: 0 });
@@ -130,14 +137,13 @@ async function run(action, row, button) {
   if (reason === null) {
     return;
   }
-  const init = { method: action.method, headers: { Accept: "application/json" } };
+  const given = { parameters: action.parameters(row) };
   if (action.reason) {
-    init.headers["Content-Type"] = "application/json";
-    init.body = JSON.stringify({ [action.reason.name]: reason });
+    given.body = { [action.reason.name]: reason };
   }
   button.disabled = true;
   try {
-    const response = await fetch(action.path(row), init);
+    const response = await call(action, given);
     if (response.ok) {
       emit(action.succeeded, { id: row.book_id });
       if (action.navigate) {

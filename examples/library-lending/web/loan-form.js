@@ -11,7 +11,7 @@ form({
   submit: {
     operation: "createLoan",
     method: "POST",
-    path: () => "/loans",
+    path: "/loans",
     sent: ["memberId", "bookId", "lentOn", "dueOn"],
     idempotencyKey: "Idempotency-Key",
   },
@@ -20,8 +20,8 @@ form({
   ],
   conditions: {},
   pickers: {
-    bookId: { path: "/books", items: "items", pageSize: ["pageSize", 100], value: "id", shows: ["title", "author", "copiesAvailable"], fills: {} },
-    memberId: { path: "/members", items: "items", pageSize: ["pageSize", 100], search: "search", value: "id", shows: ["cardNumber", "fullName"], fills: {} },
+    bookId: { operation: "listBooks", method: "GET", path: "/books", items: "items", pageSize: ["pageSize", 100], value: "id", shows: ["title", "author", "copiesAvailable"], fills: {} },
+    memberId: { operation: "listMembers", method: "GET", path: "/members", items: "items", pageSize: ["pageSize", 100], search: "search", value: "id", shows: ["cardNumber", "fullName"], fills: {} },
   },
   next: {
     success: { page: "member-view", with: { memberId: "memberId" }, message: "The copy is lent." },

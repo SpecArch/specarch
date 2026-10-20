@@ -96,10 +96,6 @@ type Profile struct {
 	Streams bool
 }
 
-// dxlibEnvelope are the primitives of dxlib's pre-key envelope, the one
-// envelope the screens seal (ADR-145).
-var dxlibEnvelope = []struct{ key, value string }{{"keyAgreement", "x25519"}, {"signature", "ed25519"}, {"cipher", "aes-256-cbc"}}
-
 // DefaultFramework is a ui target's framework when it names none, by its
 // platform.
 var DefaultFramework = map[string]string{"web": "plain-javascript", "iphone": "swiftui"}
@@ -718,9 +714,9 @@ func (g *Gen) PlainOnly(at, pageName, does, id string, op map[string]any, allow 
 		}
 		hs := obj0(obj0(g.Spec["handshakes"])[h])
 		var differs []string
-		for _, p := range dxlibEnvelope {
-			if text(hs[p.key]) != p.value {
-				differs = append(differs, p.key+" "+orText(text(hs[p.key]), "none"))
+		for _, p := range genui.DXLibEnvelope {
+			if text(hs[p.Key]) != p.Value {
+				differs = append(differs, p.Key+" "+orText(text(hs[p.Key]), "none"))
 			}
 		}
 		if len(differs) > 0 {

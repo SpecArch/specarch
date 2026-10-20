@@ -10,7 +10,7 @@ form({
   submit: {
     operation: "resetPassword",
     method: "POST",
-    path: () => "/password-resets",
+    path: "/password-resets",
     sent: ["code", "newPassword", "confirmPassword"],
   },
   checks: [

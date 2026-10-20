@@ -10,7 +10,7 @@ form({
   submit: {
     operation: "createMember",
     method: "POST",
-    path: () => "/members",
+    path: "/members",
     sent: ["fullName", "email", "tier", "address", "phones"],
   },
   checks: [],

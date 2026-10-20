@@ -12,7 +12,7 @@ form({
   submit: {
     operation: "addBook",
     method: "POST",
-    path: () => "/books",
+    path: "/books",
     sent: ["title", "shelf"],
   },
   checks: [],

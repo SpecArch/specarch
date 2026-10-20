@@ -15,10 +15,10 @@ form({
   submit: {
     operation: "changeBook",
     method: "PUT",
-    path: (parameters) => `/books/${encodeURIComponent(parameters.bookId)}`,
+    path: "/books/{bookId}",
     sent: ["book_title", "shelf_name", "keeper_id", "keeper_name", "shelf_place"],
   },
-  source: { operation: "getBook", path: (parameters) => `/books/${encodeURIComponent(parameters.bookId)}` },
+  source: { operation: "getBook", method: "GET", path: "/books/{bookId}" },
   checks: [
     { field: "book_title", rule: (record) => [...(record.book_title ?? [])].length >= 2, message: "A title has two letters or more." },
   ],
@@ -26,7 +26,7 @@ form({
     shelf_name: { readOnlyWhen: (record) => [...(record.book_title ?? [])].length === 0 },
   },
   pickers: {
-    keeper_id: { path: "/keepers", items: "items", pageSize: ["page_size", 50], search: "search", value: "keeper_id", shows: ["full_name"], fills: { keeper_name: "full_name" } },
+    keeper_id: { operation: "listKeepers", method: "GET", path: "/keepers", items: "items", pageSize: ["page_size", 50], search: "search", value: "keeper_id", shows: ["full_name"], fills: { keeper_name: "full_name" } },
   },
   next: {
     success: { page: "book-view", with: { bookId: "book_id" }, message: "The book is changed." },

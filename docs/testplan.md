@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.3-dev of the specification: 626 design tests, 292 golden and 334 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.3-dev of the specification: 628 design tests, 293 golden and 335 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.7.3-dev of the specification: 626 design tests, 292 golden and 334 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 622 |
+| system | 624 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -2437,6 +2437,14 @@ Scenario: golden; level: system; verifies SA-43.
 - When: generate ui is run with --unapproved
 - Then: it writes the page's HTML and module, events.js with the page's and the operation's events, pages.js with the page's file, ask.js, which confirms an action, and theme.css with the tokens as custom properties and the rules the target's token settings name, and exits 0
 
+#### generate-ui-dxlib
+
+Scenario: golden; level: system; verifies SA-77, SA-43.
+
+- Given: a specification with a pre-key handshake of x25519, ed25519 and aes-256-cbc established by issuePreKey, a task page that submits to addNote, a list page that reads listNotes with a filter and a row action that runs finishNote on the row's note, a second row action that runs exportNote, a download stream in the handshake's envelope, a view that loads getNote by the route's note, each of those operations travelling in the handshake's envelope, and a task page attach that submits its caption to uploadAttachment, an upload stream of application/pdf of at most 104857600 bytes; one implementation file in Go whose openapi target serves the dxlib dialect and whose ui target is platform web in plain-javascript; and specarch-gen-ui built from this repository on PATH
+- When: generate ui is run with --unapproved
+- Then: service.js makes the transport in the dxlib dialect with the handshake preKey and the operation that establishes it; each page's call names its operation, method, path with its {parameters} left in and the handshake it travels in, and a call whose path takes a parameter names the parameter's snake-case name in the body and gives it from the row or the route; the list reads the paginated-list idiom's dxlib names, its page from 0, its filter as a member of filter_key_values and its records under list.rows; the export action names its stream, download, and is saved; the attach page shows a file input of application/pdf labelled by the request body's description and its submit names its stream, upload, its media type and the file's largest size with the message above it; transport.js, which seals and opens dxlib's envelope through the Web Crypto API and streams uploads and downloads, is written beside the pages; it reports nothing and exits 0
+
 #### generate-ui-form
 
 Scenario: golden; level: system; verifies SA-81.
@@ -2452,6 +2460,14 @@ Scenario: red; level: system; verifies SA-81.
 - Given: the specification of generate-ui-form, whose form also shows a date-time, a list of plain values and a field its request body does not take, asks for its value, its enum, its long text, its box and its read-only title to be entered twice, shows its required title read-only, has a check that names no field, a check, a refusal and a picker's fill that name a field it leaves out; whose edit form leaves out a field its request body requires; whose task says nothing of a success its operation answers; an implementation file whose ui target is platform web in plain-javascript; and specarch-gen-ui built from this repository on PATH
 - When: generate ui is run with --unapproved
 - Then: it reports as errors the date-time, the list and the field the body does not take at their fields, the value, the enum, the long text, the box and the read-only title entered twice and the required title shown read-only at their fields, the check that names no field at the check, the check, the refusal and the fill that name a field left out at that name, the field left out at the edit form and the success at the task's onSubmitted; leaves out the edit form and, as a warning, the form's success that would open it; writes the form and the task without what it reports, the read-only title drawn once, each marked at its page; and exits 1
+
+#### generate-ui-handshake-refused
+
+Scenario: red; level: system; verifies SA-77, SA-43.
+
+- Given: the notes specification, whose task page, list page and view call operations that travel in the envelope of the pre-key handshake and whose other task page uploads a file with a caption sent beside it, with one implementation file whose ui target is platform web in plain-javascript and none that serves the API in the dxlib dialect; and specarch-gen-ui built from this repository on PATH
+- When: generate ui is run with --unapproved
+- Then: it reports an error at each page's call that the screens seal an envelope in the dxlib dialect only and no implementation file serves the API in it, and at the upload page's submit that the standard dialect names no header for the caption, writes the shared files with service.js in the standard dialect, and exits 1
 
 #### generate-ui-swiftui
 
@@ -5091,7 +5107,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-377 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+378 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -5172,6 +5188,7 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-43 | acceptance 4 | golden | SA-43 names no harm |
 | requirement SA-43 | acceptance 5 | golden | SA-43 names no harm |
 | requirement SA-43 | acceptance 6 | golden | SA-43 names no harm |
+| requirement SA-43 | acceptance 7 | golden | SA-43 names no harm |
 | requirement SA-80 | acceptance 1 | golden | SA-80 names no harm |
 | requirement SA-80 | acceptance 2 | golden | SA-80 names no harm |
 | requirement SA-80 | acceptance 3 | golden | SA-80 names no harm |

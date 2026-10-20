@@ -10,7 +10,7 @@ form({
   submit: {
     operation: "requestFeeWaiver",
     method: "POST",
-    path: (parameters) => `/loans/${encodeURIComponent(parameters.loanId)}/fee-waivers`,
+    path: "/loans/{loanId}/fee-waivers",
     sent: ["amount", "reason"],
   },
   checks: [],

@@ -20,12 +20,11 @@ func (g *gen) operationAction(at string, am, props map[string]any, key string, f
 	case method == "get":
 		g.problem("error", at, "the action %s runs %s, a GET, which changes nothing; open a page with kind navigate instead", label, target)
 		return action{}, false
-	case !g.plainOnly(at, "the action "+label, "runs", target, op):
+	case !g.plainOnly(at, "the action "+label, "runs", target, op, "download"):
 		return action{}, false
 	}
-	parts := pathParam.Split(path, -1)
-	js := jsTemplate(parts[0])
-	for i, p := range routeParameters(path) {
+	var given []string
+	for _, p := range routeParameters(path) {
 		field := ""
 		switch {
 		case props[p] != nil:
@@ -36,9 +35,14 @@ func (g *gen) operationAction(at string, am, props map[string]any, key string, f
 			g.problem("error", at, "%s takes {%s} in its path, which is neither a field of the record nor its primary key of one field", target, p)
 			return action{}, false
 		}
-		js += "${encodeURIComponent(" + record + "." + g.wire(field) + ")}" + jsTemplate(parts[i+1])
+		given = append(given, p+": "+record+"."+g.wire(field))
 	}
-	a := action{label: label, operation: target, method: strings.ToUpper(method), path: js, confirm: text(am["confirm"]), refusals: refusals(op, failed)}
+	parameters := "() => ({})"
+	if len(given) > 0 {
+		parameters = "(" + record + ") => ({ " + strings.Join(given, ", ") + " })"
+	}
+	a := action{label: label, operation: target, target: g.targetMembers(op, target, method, path), parameters: parameters,
+		confirm: text(am["confirm"]), refusals: refusals(op, failed)}
 	if body := g.bodySchema(op); body != nil {
 		name := text(am["reason"])
 		required := list(body["required"])
@@ -113,6 +117,11 @@ func (g *gen) listLink(at string, am, props map[string]any) (link, bool, bool) {
 // or a schema it refers to read in its place; nil when it takes none.
 func (g *gen) bodySchema(op map[string]any) map[string]any {
 	s := obj0(obj0(obj0(obj0(op["requestBody"])["content"])["application/json"])["schema"])
+	if st := obj0(op["stream"]); text(st["direction"]) == "upload" {
+		// The body is the file; a task's fields are the parameters sent
+		// beside it (ADR-162).
+		s = obj0(st["parameters"])
+	}
 	if s == nil {
 		return nil
 	}
@@ -145,9 +154,10 @@ func actionJS(w func(string), a action, indent, record string) {
 		return
 	}
 	u := upperSnake(a.operation)
-	w(in + "operation: " + jsString(a.operation) + ",")
-	w(in + "method: " + jsString(a.method) + ",")
-	w(in + "path: (" + record + ") => `" + a.path + "`,")
+	for _, m := range a.target {
+		w(in + m + ",")
+	}
+	w(in + "parameters: " + a.parameters + ",")
 	if a.when != "" {
 		w(in + "when: " + a.when + ",")
 	}

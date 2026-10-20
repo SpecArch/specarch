@@ -62,9 +62,10 @@ decisions:
       dialect, or when the handshake's primitives are not dxlib's three,
       since the module makes dxlib's bytes only; and a server route that
       pages a list the service answers whole, under the dxlib dialect,
-      since that route reads the standard names. The plain JavaScript and
-      SwiftUI generators call the standard dialect only, so a service in
-      the dxlib dialect is an error at the root for them.
+      since that route reads the standard names. The SwiftUI generator
+      calls the standard dialect only, so a service in the dxlib dialect
+      is an error at the root for it; the plain JavaScript screens call
+      both (ADR-164).
     consequences: |
       A dxlib service gets a web front end from the same specification as
       its server and its Go client, and the three agree on the envelope by

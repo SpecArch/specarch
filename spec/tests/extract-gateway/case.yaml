@@ -1,0 +1,14 @@
+arguments: [extract, gateway, --implementation-out, servers.yaml, --out, spec, repo/gateway-table.json]
+repository:
+  folder: repo
+  commits:
+    - [gateway]
+    - [gateway-table.json]
+exitStatus: 0
+standardOutput: |
+  commit d8b6894bd326d1c8217e2edad2184cf5a7a7d112: the last change to gateway, as the gateway table gateway-table.json names it
+  counted 3 forwards: every row of the gateway table, which holds every service the gateway api loads
+  wrote 1 gateway, 3 dependencies, 3 settings and 10 questions: the gateway with its claim and one forward per row, one dependency per service a row names, one setting per address a row reads, and one question per thing the table does not say
+  wrote the deployment production: 2 servers and 2 setting values
+  derived 0 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers
+  not derived: 12 draft tests for gateway api, held up by Q-1, Q-2, Q-3; the validator warns for them until the questions are answered

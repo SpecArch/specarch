@@ -1,0 +1,75 @@
+questions:
+  # specarch-problem: question: open_question: (must, decision) What does gateway api do, in a sentence a reviewer can check? Decided by system-owner. Answer with a decision record that names Q-1 under answers. [Q-1]
+  Q-1:
+    question: What does gateway api do, in a sentence a reviewer can check?
+    kind: decision
+    priority: must
+    blocks: ['#/gateways/api/description']
+    decidedBy: system-owner
+    why: The gateway table is a lookup and says nothing of what the gateway is for.
+  # specarch-problem: question: open_question: (must, decision) Which token does gateway api verify before it reads aud, with its format, its signature algorithm and its claims? Decided by system-owner. Answer with a decision record that names Q-2 under answers. [Q-2]
+  Q-2:
+    question: Which token does gateway api verify before it reads aud, with its format, its signature algorithm and its claims?
+    kind: decision
+    priority: must
+    blocks: ['#/gateways/api/token']
+    decidedBy: system-owner
+    why: The gateway table shows a lookup by a claim and not the verifier that checks the token first; a claim read before the signature is checked is no gateway the meta-model holds.
+  # specarch-problem: question: open_question: (should, decision) What does gateway api answer itself, with which status and problem type, when the token is missing or wrong, when the aud names no service, and when the service fails or does not answer in time? Decided by system-owner. Answer with a decision record that names Q-3 under answers. [Q-3]
+  Q-3:
+    question: What does gateway api answer itself, with which status and problem type, when the token is missing or wrong, when the aud names no service, and when the service fails or does not answer in time?
+    kind: decision
+    priority: should
+    blocks: ['#/gateways/api/refusals']
+    decidedBy: system-owner
+    why: The gateway table holds the services and not the gateway's own answers.
+  # specarch-problem: question: open_question: (must, decision) What is the service loans, and how long does the gateway wait for its answer? Decided by system-owner. Answer with a decision record that names Q-4 under answers. [Q-4]
+  Q-4:
+    question: What is the service loans, and how long does the gateway wait for its answer?
+    kind: decision
+    priority: must
+    blocks: ['#/dependencies/loans/description', '#/dependencies/loans/timeout']
+    decidedBy: system-owner
+    why: The gateway table names the service and not what it is or how long a request to it may take.
+    cites:
+      - {source: code, clause: gateway, says: 'Row 1 of the gateway table: Forwards https://loans.library.example.'}
+  # specarch-problem: question: open_question: (must, decision) What is the service catalogue, and how long does the gateway wait for its answer? Decided by system-owner. Answer with a decision record that names Q-5 under answers. [Q-5]
+  Q-5:
+    question: What is the service catalogue, and how long does the gateway wait for its answer?
+    kind: decision
+    priority: must
+    blocks: ['#/dependencies/catalogue/description', '#/dependencies/catalogue/timeout']
+    decidedBy: system-owner
+    why: The gateway table names the service and not what it is or how long a request to it may take.
+    cites:
+      - {source: code, clause: gateway, says: 'Row 2 of the gateway table: Forwards https://catalogue.library.example.'}
+  # specarch-problem: question: open_question: (could, decision) The dependency catalogue is named after the value https://catalogue.library.example, since the gateway table gives the service no name. Is there a better name for it? Decided by system-owner. Answer with a decision record that names Q-6 under answers. [Q-6]
+  Q-6:
+    question: The dependency catalogue is named after the value https://catalogue.library.example, since the gateway table gives the service no name. Is there a better name for it?
+    kind: decision
+    priority: could
+    blocks: ['#/dependencies/catalogue']
+    decidedBy: system-owner
+    why: A name made from an address is a guess at what the service is called.
+    cites:
+      - {source: code, clause: gateway, says: 'Row 2 of the gateway table: Forwards https://catalogue.library.example.'}
+  # specarch-problem: question: open_question: (must, decision) What is the service reports, and how long does the gateway wait for its answer? Decided by system-owner. Answer with a decision record that names Q-7 under answers. [Q-7]
+  Q-7:
+    question: What is the service reports, and how long does the gateway wait for its answer?
+    kind: decision
+    priority: must
+    blocks: ['#/dependencies/reports/description', '#/dependencies/reports/timeout']
+    decidedBy: system-owner
+    why: The gateway table names the service and not what it is or how long a request to it may take.
+    cites:
+      - {source: code, clause: gateway, says: 'Row 3 of the gateway table: Forwards https://reports.library.example.'}
+  # specarch-problem: question: open_question: (should, decision) How is the service reports reached: over https, or another protocol? Decided by system-owner. Answer with a decision record that names Q-8 under answers. [Q-8]
+  Q-8:
+    question: 'How is the service reports reached: over https, or another protocol?'
+    kind: decision
+    priority: should
+    blocks: ['#/dependencies/reports/protocol']
+    decidedBy: system-owner
+    why: The row gives no address, so no scheme says how the service is reached.
+    cites:
+      - {source: code, clause: gateway, says: 'Row 3 of the gateway table: Forwards https://reports.library.example with no address.'}

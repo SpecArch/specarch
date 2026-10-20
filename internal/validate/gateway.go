@@ -171,21 +171,25 @@ func (d *design) gatewaySubject(p source.Pair) *subject {
 	tokName := source.Str(source.Child(p.Value, "token"))
 	tok := d.token(tokName)
 	claim := source.Str(source.Child(p.Value, "claim"))
+	aToken := "a token"
+	if tokName != "" {
+		aToken = "a " + tokName + " token"
+	}
 	when := "a request no operation answers reaches the gateway " + name
-	s.success = golden("a "+tokName+" token whose "+claim+" is a value of the gateway's forwards", when, "it reaches the service the value names as received")
+	s.success = golden(aToken+" whose "+claim+" is a value of the gateway's forwards", when, "it reaches the service the value names as received")
 	for _, row := range source.Items(source.Child(p.Value, "forwards")) {
 		dep := source.Str(source.Child(row, "dependency"))
-		s.cases = append(s.cases, derivedCase{name: "forwarded to " + dep, scenario: "golden", given: "a " + tokName + " token whose " + claim + " is " + source.Str(source.Child(row, "value")),
+		s.cases = append(s.cases, derivedCase{name: "forwarded to " + dep, scenario: "golden", given: aToken + " whose " + claim + " is " + source.Str(source.Child(row, "value")),
 			when: when, then: "it reaches " + dep + " as received", frequency: frequent})
 	}
 	s.red("refused with no token", frequent, "a request with no bearer token", when, "it is refused as not signed in and nothing is forwarded")
-	s.red("refused with a bad signature", frequent, "a "+tokName+" token not signed by the issuer's key", when, "it is refused as not signed in and nothing is forwarded")
+	s.red("refused with a bad signature", frequent, aToken+" not signed by the issuer's key", when, "it is refused as not signed in and nothing is forwarded")
 	if tok != nil {
-		s.red("denied with expired "+tokName, frequent, "a "+tokName+" token that has expired after "+source.Str(source.Child(tok, "lifetime")), when, "it is refused as not signed in and nothing is forwarded")
+		s.red("denied with expired "+tokName, frequent, aToken+" that has expired after "+source.Str(source.Child(tok, "lifetime")), when, "it is refused as not signed in and nothing is forwarded")
 	}
-	s.red("refused with an unknown "+claim, occasional, "a "+tokName+" token whose "+claim+" is no value of the gateway's forwards", when, "it is refused and nothing is forwarded")
+	s.red("refused with an unknown "+claim, occasional, aToken+" whose "+claim+" is no value of the gateway's forwards", when, "it is refused and nothing is forwarded")
 	if claimSchema := source.Child(source.Child(tok, "claims"), claim); claim == "aud" || typeIs(claimSchema, "array") {
-		s.red("refused with a "+claim+" naming two forwarded services", rare, "a "+tokName+" token whose "+claim+" holds two values of the gateway's forwards", when, "it is refused and nothing is forwarded")
+		s.red("refused with a "+claim+" naming two forwarded services", rare, aToken+" whose "+claim+" holds two values of the gateway's forwards", when, "it is refused and nothing is forwarded")
 	}
 	deps := forwardedDependencies(p.Value)
 	for _, dep := range calledDependencies(p.Value) {

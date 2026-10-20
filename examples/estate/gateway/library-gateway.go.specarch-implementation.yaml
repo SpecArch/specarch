@@ -16,8 +16,8 @@ deployments:
     servers:
       - { name: gateway, url: "https://api.library.example", zone: edge, listens: [{ port: 443, protocol: https }], runs: { packages: [internal/gateway] } }
       - { name: identity, dependency: identity, url: "https://identity.library.example", zone: application, listens: [{ port: 443, protocol: https }] }
-      - { name: desk, dependency: loans, url: "https://loans.library.example", zone: application, listens: [{ port: 443, protocol: https }] }
-      - { name: books, dependency: catalogue, url: "https://catalogue.library.example", zone: application, listens: [{ port: 443, protocol: https }] }
+      - { name: desk, dependency: loans, url: "https://desk.internal.library.example", zone: application, listens: [{ port: 443, protocol: https }] }
+      - { name: books, dependency: catalogue, url: "https://books.internal.library.example", zone: application, listens: [{ port: 443, protocol: https }] }
     links:
       - { from: gateway, to: identity, port: 443 }
       - { from: gateway, to: desk, port: 443 }

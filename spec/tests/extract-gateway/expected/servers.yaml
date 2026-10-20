@@ -1,0 +1,14 @@
+# The servers specarch extract gateway read from the gateway table
+# gateway-table.json, made at commit d8b6894bd326d1c8217e2edad2184cf5a7a7d112:
+# the address of each service the gateway api forwards to in production, and
+# the settings that hold them. They go under deployments in an implementation
+# file of the specification.
+deployments:
+  production:
+    description: Where the services the gateway api forwards to are in production, as the gateway table resolved their addresses.
+    servers:
+      - {name: loans, url: 'https://desk.internal.library.example', dependency: loans}
+      - {name: catalogue, url: 'https://books.internal.library.example', dependency: catalogue}
+    configuration:
+      catalogueUrl: https://books.internal.library.example
+      loansUrl: https://desk.internal.library.example

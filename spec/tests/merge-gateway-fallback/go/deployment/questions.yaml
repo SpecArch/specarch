@@ -1,0 +1,9 @@
+questions:
+  # specarch-problem: question: open_question: (must, decision) What is each setting for, where does its value come from, and is it a secret: SHADOW? Decided by system-owner. Answer with a decision record that names Q-6 under answers. [Q-6]
+  Q-6:
+    question: 'What is each setting for, where does its value come from, and is it a secret: SHADOW?'
+    kind: decision
+    priority: must
+    blocks: ['#/configuration/shadow/description', '#/configuration/shadow/secret']
+    decidedBy: system-owner
+    why: The source names the settings it reads and not what they are for; whether one is a secret is said only where the source marks it sensitive.

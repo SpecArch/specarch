@@ -1,0 +1,5 @@
+# The services the gateway forwards to, one per line: the audience a token
+# names, the service, and the setting its address is read from, separated
+# by tabs.
+https://loans.library.example	loans	LOANS_URL
+https://catalogue.library.example	catalogue	CATALOGUE_URL

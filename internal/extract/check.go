@@ -24,6 +24,7 @@ const (
 	RouteTableDump      = "route table"
 	PermissionTableDump = "permission table"
 	CatalogueDump       = "catalogue dump"
+	GatewayTableDump    = "gateway table"
 )
 
 // RuleFormats are the rules of check's differences, each with the format
@@ -52,6 +53,9 @@ var RuleFormats = map[string]string{
 	"index_not_in_database":            CatalogueDump,
 	"index_differs":                    CatalogueDump,
 	"index_not_listed":                 CatalogueDump,
+	"forward_not_served":               GatewayTableDump,
+	"forward_not_specified":            GatewayTableDump,
+	"claim_differs":                    GatewayTableDump,
 }
 
 // Difference is one thing a dump and the specification disagree on.
@@ -89,8 +93,56 @@ func DumpFormat(path string) (string, error) {
 		return PermissionTableDump, nil
 	case keys["catalogue"] != nil:
 		return CatalogueDump, nil
+	case keys["gatewayTable"] != nil:
+		return GatewayTableDump, nil
 	}
-	return "", refuse("%s is no dump check reads: it has none of the keys routeTable (a route table), permissionTable (a permission table) and catalogue (a catalogue dump)", path)
+	return "", refuse("%s is no dump check reads: it has none of the keys routeTable (a route table), permissionTable (a permission table), catalogue (a catalogue dump) and gatewayTable (a gateway table)", path)
+}
+
+// CheckGateway compares a gateway table with the specification's gateway
+// of its name: each forward by its value, and the claim (ADR-142).
+func CheckGateway(dumpPath string, root *yaml.Node) ([]Difference, error) {
+	t, _, name, err := openGatewayTable(dumpPath)
+	if err != nil {
+		return nil, err
+	}
+	nodes := readDumpNodes(dumpPath)
+	gwName := settingName(t.Gateway)
+	gw := source.Child(source.Child(root, "gateways"), gwName)
+	at := "/gateways/" + escapeToken(gwName)
+	var out []Difference
+	specified := map[string]bool{}
+	if gw != nil {
+		if claim := source.Str(source.Child(gw, "claim")); claim != t.Claim {
+			out = append(out, Difference{Rule: "claim_differs", Subject: gwName, Pointer: at + "/claim",
+				Message: fmt.Sprintf("gateway %s reads the claim %s in the specification, and the gateway table %s says it reads %s", gwName, claim, name, t.Claim)})
+		}
+		served := map[string]bool{}
+		for _, f := range t.Forwards {
+			served[f.Value] = true
+		}
+		for i, row := range source.Items(source.Child(gw, "forwards")) {
+			v := source.Str(source.Child(row, "value"))
+			specified[v] = true
+			if !served[v] {
+				out = append(out, Difference{Rule: "forward_not_served", Subject: gwName + " " + v, Pointer: fmt.Sprintf("%s/forwards/%d", at, i),
+					Message: fmt.Sprintf("gateway %s forwards %s to %s in the specification, and the gateway table %s holds no row for it", gwName, v, source.Str(source.Child(row, "dependency")), name)})
+			}
+		}
+	}
+	for i, f := range t.Forwards {
+		if specified[f.Value] {
+			continue
+		}
+		d := Difference{Rule: "forward_not_specified", Subject: gwName + " " + f.Value,
+			Message: fmt.Sprintf("the gateway table forwards %s, and gateway %s of the specification holds no forward for it; specify the forward, or take the row out", f.Value, gwName)}
+		if gw == nil {
+			d.Message = fmt.Sprintf("the gateway table forwards %s for the gateway %s, which the specification does not declare; specify the gateway, or take the table out", f.Value, gwName)
+		}
+		nodes.place(&d, dumpPath, "forwards", i)
+		out = append(out, d)
+	}
+	return out, nil
 }
 
 // dumpNodes is a dump read as YAML nodes, for the line and column of an

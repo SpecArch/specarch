@@ -1174,6 +1174,43 @@ func itemNamed(n *yaml.Node, name string) *yaml.Node {
 
 // --- Questions -------------------------------------------------------------
 
+// gatewayAnswers leaves out a question whose every block is the section
+// gateways, the question a code reader asks at a fallback handler or a
+// catch-all route, when another tree declares a gateway: the gateway
+// table's tree says what that handler forwards and by which claim
+// (ADR-142, ADR-143).
+func (m *merger) gatewayAnswers(asking int, t *mergeTree, id string, blocks []*yaml.Node) bool {
+	if len(blocks) == 0 {
+		return false
+	}
+	for _, b := range blocks {
+		if b.Value != "gateways" {
+			return false
+		}
+	}
+	var givers, names []string
+	for ti, o := range m.trees {
+		if ti == asking {
+			continue
+		}
+		gws := source.Pairs(source.Child(o.s.Root, "gateways"))
+		if len(gws) == 0 {
+			continue
+		}
+		givers = append(givers, o.title)
+		for _, g := range gws {
+			if !contains(names, g.Key.Value) {
+				names = append(names, g.Key.Value)
+			}
+		}
+	}
+	if len(givers) == 0 {
+		return false
+	}
+	m.res.say("answered: %s of %s, on gateways, is left out; %s %s the gateway %s", id, t.s.Dir, joinAnd(givers), giveOrGives(len(givers)), joinAnd(names))
+	return true
+}
+
 // treeQuestions takes every tree's questions, in the order the trees are
 // given, with their pointers following the merged lists. A question whose
 // every blocked key another tree gives is left out: that tree answers it
@@ -1199,6 +1236,9 @@ func (m *merger) treeQuestions() {
 				continue
 			}
 			if m.readBackAnswers(ti, t, p.Key.Value, blocks) {
+				continue
+			}
+			if m.gatewayAnswers(ti, t, p.Key.Value, blocks) {
 				continue
 			}
 			var givers []string

@@ -1,0 +1,11 @@
+arguments: [check, project, repo/gateway-table.json]
+repository:
+  folder: repo
+  commits:
+    - [gateway]
+    - [gateway-table.json]
+exitStatus: 1
+standardOutput: |
+  specarch check: 1 dump compared: 2 differences, 0 allowed by the allowlist, 0 reports, 0 allowlist lines that fail
+  project/specarch.yaml:50:9: error: /gateways/api/forwards/1: forward_not_served: gateway api forwards https://reports.library.example to reports in the specification, and the gateway table gateway-table.json holds no row for it [forward_not_served api https://reports.library.example]
+  repo/gateway-table.json:10:9: error: /forwards/1: forward_not_specified: the gateway table forwards https://catalogue.library.example, and gateway api of the specification holds no forward for it; specify the forward, or take the row out [forward_not_specified api https://catalogue.library.example]

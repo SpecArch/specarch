@@ -2,13 +2,11 @@
 
 # SpecArch toolchain: traceability matrix
 
-Version 0.7.2-dev of the specification: 10 needs, 85 requirements, and 2 gaps. Each requirement is traced back to the needs it refines and forward to what satisfies it in the design and what verifies it in the tests and commissioning checks.
+Version 0.7.2-dev of the specification: 10 needs, 85 requirements, and 1 gap. Each requirement is traced back to the needs it refines and forward to what satisfies it in the design and what verifies it in the tests and commissioning checks.
 
-**Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
+**Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
 **Problem:** warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SA-57; add verifies: [SA-57] to the test that shows it is met [requirement_unverified@requirements/requirements/refinement.yaml#/requirements/SA-57]
-
-**Problem:** warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SA-76; add verifies: [SA-76] to the test that shows it is met [requirement_unverified@requirements/requirements/refinement.yaml#/requirements/SA-76]
 
 ## 1. Needs to requirements
 
@@ -104,7 +102,7 @@ Version 0.7.2-dev of the specification: 10 needs, 85 requirements, and 2 gaps. E
 | SA-73 | NEED-5 | enums DocumentTarget; enums Rule; commands document; decisions ADR-129; decisions ADR-136; decisions ADR-137 | tests document-handover-none; tests document-writes-handover; tests validate-build-task-unknown; tests validate-handover-build-missing; tests validate-handover-incomplete; tests validate-handover-missing; tests validate-handover-no-customer; tests validate-handover-valid |
 | SA-74 | NEED-3, NEED-7 | commands model; decisions ADR-138 | tests model-exit-2; tests model-usage-error; tests model-writes-json |
 | SA-75 | NEED-1, NEED-3, NEED-9 | decisions ADR-141 | tests document-techspec-gateway; tests document-testplan-gateway; tests generate-openapi-gateway; tests validate-gateway; tests validate-gateway-estate-wrong; tests validate-gateway-wrong |
-| SA-76 | NEED-8 | decisions ADR-142 |   |
+| SA-76 | NEED-8 | commands check; commands extract; decisions ADR-142 | tests check-gateway-forward-removed; tests extract-gateway; tests extract-gateway-value-twice; tests merge-gateway-fallback |
 | SA-77 | NEED-1, NEED-2, NEED-3 | enums Rule; decisions ADR-145; decisions ADR-146 | tests document-techspec-envelope-stream; tests extract-go-dxlib-envelope-stream; tests generate-go-dxlib-envelope-stream; tests generate-openapi-dxlib-envelope-stream; tests validate-handshake; tests validate-stream |
 | SA-78 | NEED-2 | decisions ADR-147 | tests generate-framework-plugin; tests generate-ui-swiftui; tests generate-ui-swiftui-refused |
 | SA-79 | NEED-8 | decisions ADR-143 | tests extract-go-routes-constants; tests extract-go-routes-fallbacks |
@@ -119,5 +117,5 @@ Version 0.7.2-dev of the specification: 10 needs, 85 requirements, and 2 gaps. E
 
 The work the specification still owes, the same gaps the validator warns about. Rejected needs and rejected or retired requirements are left out.
 
-- Requirements no test, check or monitor verifies: SA-57, SA-76.
+- Requirements no test, check or monitor verifies: SA-57.
 

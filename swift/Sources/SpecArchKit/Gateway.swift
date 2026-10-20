@@ -46,21 +46,22 @@ extension Design {
         let tokName = str(p.value.child("token"))
         let tok = token(tokName)
         let claim = str(p.value.child("claim"))
+        let aToken = tokName.isEmpty ? "a token" : "a " + tokName + " token"
         let when = "a request no operation answers reaches the gateway " + name
-        s.success = golden("a " + tokName + " token whose " + claim + " is a value of the gateway's forwards", when, "it reaches the service the value names as received")
+        s.success = golden(aToken + " whose " + claim + " is a value of the gateway's forwards", when, "it reaches the service the value names as received")
         for row in items(p.value.child("forwards")) {
             let dep = str(row.child("dependency"))
-            s.cases.append(DerivedCase(name: "forwarded to " + dep, scenario: "golden", given: "a " + tokName + " token whose " + claim + " is " + str(row.child("value")),
+            s.cases.append(DerivedCase(name: "forwarded to " + dep, scenario: "golden", given: aToken + " whose " + claim + " is " + str(row.child("value")),
                                        when: when, then: "it reaches " + dep + " as received", frequency: frequent))
         }
         s.red("refused with no token", frequent, "a request with no bearer token", when, "it is refused as not signed in and nothing is forwarded")
-        s.red("refused with a bad signature", frequent, "a " + tokName + " token not signed by the issuer's key", when, "it is refused as not signed in and nothing is forwarded")
+        s.red("refused with a bad signature", frequent, aToken + " not signed by the issuer's key", when, "it is refused as not signed in and nothing is forwarded")
         if let tok {
-            s.red("denied with expired " + tokName, frequent, "a " + tokName + " token that has expired after " + str(tok.child("lifetime")), when, "it is refused as not signed in and nothing is forwarded")
+            s.red("denied with expired " + tokName, frequent, aToken + " that has expired after " + str(tok.child("lifetime")), when, "it is refused as not signed in and nothing is forwarded")
         }
-        s.red("refused with an unknown " + claim, occasional, "a " + tokName + " token whose " + claim + " is no value of the gateway's forwards", when, "it is refused and nothing is forwarded")
+        s.red("refused with an unknown " + claim, occasional, aToken + " whose " + claim + " is no value of the gateway's forwards", when, "it is refused and nothing is forwarded")
         if claim == "aud" || typeIs(tok?.child("claims")?.child(claim), "array") {
-            s.red("refused with a " + claim + " naming two forwarded services", rare, "a " + tokName + " token whose " + claim + " holds two values of the gateway's forwards", when, "it is refused and nothing is forwarded")
+            s.red("refused with a " + claim + " naming two forwarded services", rare, aToken + " whose " + claim + " holds two values of the gateway's forwards", when, "it is refused and nothing is forwarded")
         }
         var deps = forwardedDependencies(p.value)
         for dep in calledDependencies(p.value) where !deps.contains(dep) { deps.append(dep) }

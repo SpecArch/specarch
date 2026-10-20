@@ -2,20 +2,18 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.2-dev of the specification: 590 design tests, 275 golden and 315 red, about 17 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.2-dev of the specification: 594 design tests, 277 golden and 317 red, about 17 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
-**Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
+**Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
 **Problem:** warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SA-57; add verifies: [SA-57] to the test that shows it is met [requirement_unverified@requirements/requirements/refinement.yaml#/requirements/SA-57]
-
-**Problem:** warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SA-76; add verifies: [SA-76] to the test that shows it is met [requirement_unverified@requirements/requirements/refinement.yaml#/requirements/SA-76]
 
 ## 1. Levels and how the tests run
 
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 586 |
+| system | 590 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -98,6 +96,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-72.
 - Given: the branches and copies of the golden case, where the route table's GET /copies/{copyId} checks no permission, the permission table grants nothing to the visitor and grants a role the specification does not declare, and the allowlist repeats a line and holds a line for a difference there is not, a line for a report and a line that is no id
 - When: check is run with the allowlist on the three dumps
 - Then: it prints the CHAR column the allowlist no longer names, the permission that differs, the visitor's grant the code does not hold and the undeclared role's grant at its line of the dump as errors, the two reports as warnings, and each of the five lines of the allowlist that allow nothing as allowlist_stale at its line, and exits 1
+
+#### check-gateway-forward-removed
+
+Scenario: red; level: system; covers exit 1; verifies SA-76.
+
+- Given: a specification whose gateway api forwards to loans and to reports, and a committed gateway table forwarding to loans and to catalogue
+- When: check is run with the table
+- Then: it reports forward_not_served at the specification's forward to reports and forward_not_specified at the table's row for catalogue, and exits 1
 
 #### check-skips-a-partition
 
@@ -1078,6 +1084,22 @@ Scenario: red; level: system; covers exit 1; verifies SA-44.
 - Given: a file that is not a catalogue dump
 - When: extract database is run on it
 - Then: it says the file is not a catalogue dump, writes nothing and exits 1
+
+#### extract-gateway
+
+Scenario: golden; level: system; verifies SA-76.
+
+- Given: a gateway table of the gateway api, reading aud, resolved in production, with a row naming loans with its setting and address, a row with no name whose setting and address are given, and a row naming reports whose setting's name holds key and which gives no address; the table and the folder it names committed in a repository
+- When: extract gateway is run with --implementation-out
+- Then: it writes the gateway api with its claim and three forwards, cited at the table and each row, a must question for its description and one for its token and a should question for its refusals; the dependencies loans, catalogue, named after the host, and reports, of kind system, the first two over https, with a must question each for the description and timeout, a should question for the protocol of reports and a could question to rename catalogue; three settings under configuration, strings of format uri and no secret, with a should question to confirm two are no secret and a must question for the one whose name holds key; and the fragment of the deployment production with the two servers that have an address and the two settings' values
+
+#### extract-gateway-value-twice
+
+Scenario: red; level: system; covers exit 1; verifies SA-76.
+
+- Given: a gateway table whose two rows hold one value
+- When: extract gateway is run
+- Then: it refuses the table, naming both rows, since a request goes to one service, writes nothing and exits 1
 
 #### extract-go-bypassed-check
 
@@ -2450,6 +2472,14 @@ Scenario: golden; level: system; verifies SA-64.
 - Given: the trees of merge-documents-days-vocabulary, whose handbook is in language de, and no vocabulary for it
 - When: merge is run on the two trees without --vocabulary
 - Then: it prints that the handbook's requirements are not compared, naming the language and the option, keeps every statement as it is, asks nothing about days, and exits 0
+
+#### merge-gateway-fallback
+
+Scenario: golden; level: system; verifies SA-76.
+
+- Given: the tree extract go wrote of a router with a NoRoute handler, whose question blocks gateways, and the tree extract gateway wrote of the gateway table
+- When: merge is run on both
+- Then: the fallback question is left out as answered, with a line naming the gateway tree and the gateway api, and the rest is merged as before
 
 #### merge-joins-commits
 

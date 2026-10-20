@@ -1,0 +1,27 @@
+configuration:
+  shadow:
+    schema: {type: string}
+    origin: stated
+    cites:
+      - {source: code, clause: 'more.go:36', says: Reads SHADOW from the environment with Getenv.}
+  catalogueUrl:
+    description: The address of catalogue, the service the gateway api forwards to, read from CATALOGUE_URL.
+    secret: false
+    schema: {type: string, format: uri}
+    origin: stated
+    cites:
+      - {source: gateway-table, clause: gateway, says: 'Row 2 of the gateway table: Reads the address of the service https://catalogue.library.example forwards to from CATALOGUE_URL.'}
+  loansUrl:
+    description: The address of loans, the service the gateway api forwards to, read from LOANS_URL.
+    secret: false
+    schema: {type: string, format: uri}
+    origin: stated
+    cites:
+      - {source: gateway-table, clause: gateway, says: 'Row 1 of the gateway table: Reads the address of the service https://loans.library.example forwards to from LOANS_URL.'}
+  reportsApiKey:
+    description: The address of reports, the service the gateway api forwards to, read from REPORTS_API_KEY.
+    secret: false
+    schema: {type: string, format: uri}
+    origin: stated
+    cites:
+      - {source: gateway-table, clause: gateway, says: 'Row 3 of the gateway table: Reads the address of the service https://reports.library.example forwards to from REPORTS_API_KEY.'}

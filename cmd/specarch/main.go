@@ -39,12 +39,13 @@ const usage = `usage:
   specarch extract <source> [--source-key <key>] [--implementation <file>] [--implementation-out <file>] [--facts <dump>] [--routes <dump>] [--language <tag>] [--vocabulary <file>] [--given-outside] [--table] --out <folder> <path>...
                                             write a specification from one surface of existing code or
                                             documents; the sources are outline, database, router, documents, openapi,
-                                            permissions, pages, workflows, go, swift, javascript and dart; go, swift,
+                                            permissions, pages, workflows, gateway, go, swift, javascript and dart; go, swift,
                                             javascript, dart and pages read the permission checks the implementation
                                             file names, pages reads Next.js and Nuxt files' code through --facts, and
                                             permissions gives each route of the route table --routes its permission;
                                             documents reads the words of --language or --vocabulary, English by default;
-                                            workflows reads a BPMN 2.0 XML file, or with --table a workflow table
+                                            workflows reads a BPMN 2.0 XML file, or with --table a workflow table;
+                                            gateway reads a gateway table
   specarch facts <language> <folder> <dump>
                                             write the code-facts dump extract reads of a committed folder;
                                             the languages are javascript, swift and dart
@@ -52,8 +53,8 @@ const usage = `usage:
                                             merge the trees extract wrote into one specification
   specarch diff <old folder> <new folder>   list what changed between two versions and check the release
   specarch check [--allowlist <file>] [--since <revision>] <specification> <dump>...
-                                            compare a specification with the route tables, permission tables
-                                            and catalogue dumps of its code, and fail on a difference the
+                                            compare a specification with the route tables, permission tables,
+                                            catalogue dumps and gateway tables of its code, and fail on a difference the
                                             allowlist does not name or a line of it that names none or was
                                             added since the revision
   specarch derive <folder>...               write a draft test for every derived case no test covers

@@ -11,8 +11,9 @@ commands:
       refused, as generate refuses it.
 
       A dump is told by the key that names its format: `routeTable` for a
-      route table, `permissionTable` for a permission table, and
-      `catalogue` for a catalogue dump. Each is compared by the merge's own
+      route table, `permissionTable` for a permission table,
+      `catalogue` for a catalogue dump, and `gatewayTable` for a gateway
+      table. Each is compared by the merge's own
       matching:
 
       - A route table: an operation by its method and path. An operation
@@ -72,6 +73,14 @@ commands:
         which is compared, and an index of a partitioned table, which the
         catalogue prints with `ON ONLY`, is a plain index as any other
         (ADR-128).
+      - A gateway table: the specification's gateway of the table's
+        name, in camelCase as `specarch extract gateway` writes it, and
+        a forward by its value (ADR-142). A forward of the specification
+        the table does not hold is `forward_not_served` at the forward,
+        a row of the table the specification does not hold is
+        `forward_not_specified` at the row in the dump, every row when
+        the specification declares no gateway of that name, and a claim
+        that differs is `claim_differs` at the gateway's claim.
 
       Each problem is printed in validate's form, the file, line and
       column of the entry, the severity, the pointer, the rule and the
@@ -103,7 +112,7 @@ commands:
         required: true
         schema: { type: string }
       - name: dumps
-        description: The dumps to compare it with, each a route table, a permission table or a catalogue dump, committed beside the code they were made from.
+        description: The dumps to compare it with, each a route table, a permission table, a catalogue dump or a gateway table, committed beside the code they were made from.
         required: true
         repeatable: true
         schema: { type: string }
@@ -130,5 +139,5 @@ commands:
       "0": every difference is one the allowlist names or a report, and every line of the allowlist names a difference and was there at --since
       "1": "a difference the allowlist does not name, a line of the allowlist that names none, repeats one or was added since --since, or a specification validate reports an error in"
       "2": "usage error; a dump, the specification or the allowlist that could not be read; a dump of no format check reads, or one its reader refuses; a catalogue dump with no implementation file to compare it through, or with one whose tables cannot be written for PostgreSQL; or a revision git does not know"
-    satisfies: [SA-72]
+    satisfies: [SA-72, SA-76]
     why: A specification that is not compared with its code drifts within months; the readers already read the running code and the merge already matches its elements, so the gate is the comparison with a status, and an allowlist that may only shrink lets a gate be turned on for a service that predates its specification without letting a new difference in.

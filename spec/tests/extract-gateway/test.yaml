@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: extract
+level: system
+scenario: golden
+given: "a gateway table of the gateway api, reading aud, resolved in production, with a row naming loans with its setting and address, a row with no name whose setting and address are given, and a row naming reports whose setting's name holds key and which gives no address; the table and the folder it names committed in a repository"
+when: "extract gateway is run with --implementation-out"
+then: "it writes the gateway api with its claim and three forwards, cited at the table and each row, a must question for its description and one for its token and a should question for its refusals; the dependencies loans, catalogue, named after the host, and reports, of kind system, the first two over https, with a must question each for the description and timeout, a should question for the protocol of reports and a could question to rename catalogue; three settings under configuration, strings of format uri and no secret, with a should question to confirm two are no secret and a must question for the one whose name holds key; and the fragment of the deployment production with the two servers that have an address and the two settings' values"
+verifies: [SA-76]

@@ -1,0 +1,43 @@
+dependencies:
+  loans:
+    kind: system
+    protocol: https
+    origin: stated
+    cites:
+      - {source: code, clause: gateway, says: 'Row 1 of the gateway table: Forwards https://loans.library.example to the service loans.'}
+  catalogue:
+    kind: system
+    protocol: https
+    origin: stated
+    cites:
+      - {source: code, clause: gateway, says: 'Row 2 of the gateway table: Forwards https://catalogue.library.example to the service.'}
+  reports:
+    kind: system
+    origin: stated
+    cites:
+      - {source: code, clause: gateway, says: 'Row 3 of the gateway table: Forwards https://reports.library.example to the service reports.'}
+gateways:
+  # specarch-problem: warning: test_case_missing: gateway api has no red scenario for "refused with a bad signature"; add under tests api-refused-with-a-bad-signature: { gateway: api, scenario: red, covers: [refused with a bad signature], given: "a token not signed by the issuer's key", when: "a request no operation answers reaches the gateway api", then: "it is refused as not signed in and nothing is forwarded" } [test_case_missing.022190d6@design/gateway.yaml#/gateways/api]
+  # specarch-problem: warning: test_case_missing: gateway api has no red scenario for "dependency fails loans"; add under tests api-dependency-fails-loans: { gateway: api, scenario: red, covers: [dependency fails loans], given: "loans answers with an error", when: "a request no operation answers reaches the gateway api", then: "..." } [test_case_missing.22f5210c@design/gateway.yaml#/gateways/api]
+  # specarch-problem: warning: test_case_missing: gateway api has no golden scenario for "forwarded to loans"; add under tests api-forwarded-to-loans: { gateway: api, scenario: golden, covers: [forwarded to loans], given: "a token whose aud is https://loans.library.example", when: "a request no operation answers reaches the gateway api", then: "it reaches loans as received" } [test_case_missing.504bf273@design/gateway.yaml#/gateways/api]
+  # specarch-problem: warning: test_case_missing: gateway api has no red scenario for "dependency fails catalogue"; add under tests api-dependency-fails-catalogue: { gateway: api, scenario: red, covers: [dependency fails catalogue], given: "catalogue answers with an error", when: "a request no operation answers reaches the gateway api", then: "..." } [test_case_missing.51137898@design/gateway.yaml#/gateways/api]
+  # specarch-problem: warning: test_case_missing: gateway api has no golden scenario for "forwarded to reports"; add under tests api-forwarded-to-reports: { gateway: api, scenario: golden, covers: [forwarded to reports], given: "a token whose aud is https://reports.library.example", when: "a request no operation answers reaches the gateway api", then: "it reaches reports as received" } [test_case_missing.6077e0fb@design/gateway.yaml#/gateways/api]
+  # specarch-problem: warning: test_case_missing: gateway api has no golden scenario for "forwarded to catalogue"; add under tests api-forwarded-to-catalogue: { gateway: api, scenario: golden, covers: [forwarded to catalogue], given: "a token whose aud is https://catalogue.library.example", when: "a request no operation answers reaches the gateway api", then: "it reaches catalogue as received" } [test_case_missing.7666db91@design/gateway.yaml#/gateways/api]
+  # specarch-problem: warning: test_case_missing: gateway api has no red scenario for "dependency fails reports"; add under tests api-dependency-fails-reports: { gateway: api, scenario: red, covers: [dependency fails reports], given: "reports answers with an error", when: "a request no operation answers reaches the gateway api", then: "..." } [test_case_missing.a433004c@design/gateway.yaml#/gateways/api]
+  # specarch-problem: warning: test_case_missing: gateway api has no red scenario for "refused with no token"; add under tests api-refused-with-no-token: { gateway: api, scenario: red, covers: [refused with no token], given: "a request with no bearer token", when: "a request no operation answers reaches the gateway api", then: "it is refused as not signed in and nothing is forwarded" } [test_case_missing.b0f1161b@design/gateway.yaml#/gateways/api]
+  # specarch-problem: warning: test_case_missing: gateway api has no red scenario for "dependency times out catalogue"; add under tests api-dependency-times-out-catalogue: { gateway: api, scenario: red, covers: [dependency times out catalogue], given: "catalogue does not answer within ", when: "a request no operation answers reaches the gateway api", then: "..." } [test_case_missing.c585b8f9@design/gateway.yaml#/gateways/api]
+  # specarch-problem: warning: test_case_missing: gateway api has no red scenario for "dependency times out loans"; add under tests api-dependency-times-out-loans: { gateway: api, scenario: red, covers: [dependency times out loans], given: "loans does not answer within ", when: "a request no operation answers reaches the gateway api", then: "..." } [test_case_missing.f6992975@design/gateway.yaml#/gateways/api]
+  # specarch-problem: warning: test_case_missing: gateway api has no red scenario for "dependency times out reports"; add under tests api-dependency-times-out-reports: { gateway: api, scenario: red, covers: [dependency times out reports], given: "reports does not answer within ", when: "a request no operation answers reaches the gateway api", then: "..." } [test_case_missing.fc6ee17d@design/gateway.yaml#/gateways/api]
+  # specarch-problem: warning: test_golden_missing: gateway api has no golden scenario; add one under tests, for example api-succeeds: { gateway: api, scenario: golden, given: "a token whose aud is a value of the gateway's forwards", when: "a request no operation answers reaches the gateway api", then: "it reaches the service the value names as received" } [test_golden_missing@design/gateway.yaml#/gateways/api]
+  api:
+    claim: aud
+    forwards:
+      - {value: 'https://loans.library.example', dependency: loans}
+      - {value: 'https://catalogue.library.example', dependency: catalogue}
+      - {value: 'https://reports.library.example', dependency: reports}
+    origin: stated
+    cites:
+      - {source: code, clause: gateway, says: 'The gateway api forwards by the claim aud, to the services of 3 rows.'}
+      - {source: code, clause: gateway, says: 'Row 1 of the gateway table: Forwards a request whose aud is https://loans.library.example to loans.'}
+      - {source: code, clause: gateway, says: 'Row 2 of the gateway table: Forwards a request whose aud is https://catalogue.library.example to catalogue.'}
+      - {source: code, clause: gateway, says: 'Row 3 of the gateway table: Forwards a request whose aud is https://reports.library.example to reports.'}

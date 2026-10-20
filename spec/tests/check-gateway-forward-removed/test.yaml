@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: check
+level: system
+scenario: red
+covers: [exit 1]
+given: "a specification whose gateway api forwards to loans and to reports, and a committed gateway table forwarding to loans and to catalogue"
+when: "check is run with the table"
+then: "it reports forward_not_served at the specification's forward to reports and forward_not_specified at the table's row for catalogue, and exits 1"
+verifies: [SA-76]

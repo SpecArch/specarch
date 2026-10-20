@@ -481,6 +481,43 @@ commands:
         another tree declares, and the messages emitted, which name
         channels the table does not declare.
 
+      - `gateway`: one gateway table (ADR-142), written by
+        `tools/gateways/dump-gateway.sh` around the project's own
+        printer, which loads the gateway's table of services as the
+        gateway does: the version of the format, the folder the table is
+        loaded from, the commit that last changed it, the gateway's name,
+        the claim it reads, the environment the addresses were resolved
+        in or null, and one row per forward, each the claim's value, the
+        project's name for the service or null, the setting its address
+        is read from or null, and the address as resolved or null. Every
+        key is written, null where the format allows it; a table with
+        another key or without one, a row with no value, a value written
+        twice, a gateway's name that gives no camelCase name and a claim
+        that is no claim's name are refused. The gateway is written
+        stated, named in camelCase, citing the table and each row, with
+        its claim and a forward per row; its description and its token
+        are must questions, the token's asking which token it verifies
+        with its format, algorithm and claims, since the table shows a
+        lookup and not a verifier, and its refusals a should question.
+        Each row's dependency is named by the row's name in camelCase,
+        else by the host's first label for a URI value and the value
+        itself otherwise, with a could question to rename it; it is of
+        kind system, its protocol is the address's scheme, or a should
+        question when the row gives no address, and its description and
+        timeout are a must question. Two rows naming one dependency are a
+        must question at the gateway's forwards, since the table does not
+        say whether one service answers both audiences. A row's setting
+        is written under configuration by the camelCase rule the Go
+        reader uses for an environment variable, no secret, its schema a
+        string of format uri and its description the service whose
+        address it holds, with a should question to confirm it is no
+        secret, must when its name says it may hold a credential. With
+        `--implementation-out` and an environment, the fragment holds
+        that deployment: a server per service with an address, named in
+        kebab-case, with its url and the dependency it is, and the value
+        of each setting; with no environment it is not written and a
+        line says so.
+
       - `go`: the tracked Go files under the paths, in one repository,
         each read by the standard library's parser by its syntax alone
         (ADR-075), as one code source with `reading: parsed` whose clauses
@@ -1505,7 +1542,7 @@ commands:
         required: true
         schema: { type: string, pattern: "^[a-z][a-z0-9]*(-[a-z0-9]+)*$" }
       - name: paths
-        description: "What to read it from: for outline, files or folders in one repository; for database, one catalogue dump; for router, one route table; for documents, one Markdown file; for openapi, one OpenAPI document; for permissions, one permission table; for pages, one file-system router's root folder, such as app, pages or server; for workflows, one BPMN 2.0 XML file, or with --table one workflow table; for go, files or folders of Go source in one repository; for swift, javascript and dart, one code-facts dump."
+        description: "What to read it from: for outline, files or folders in one repository; for database, one catalogue dump; for router, one route table; for documents, one Markdown file; for openapi, one OpenAPI document; for permissions, one permission table; for pages, one file-system router's root folder, such as app, pages or server; for workflows, one BPMN 2.0 XML file, or with --table one workflow table; for gateway, one gateway table; for go, files or folders of Go source in one repository; for swift, javascript and dart, one code-facts dump."
         required: true
         repeatable: true
         schema: { type: string }
@@ -1533,7 +1570,7 @@ commands:
         description: For documents, marks the source givenOutside, a document the system's owners gave to parties outside, so that merge gives its promises their priority.
         schema: { type: boolean, default: false }
       implementation-out:
-        description: For database and go, a new YAML file the reader writes the mappings it knows into, an implementation fragment that is not a whole implementation file. For database, each entity's table as its target and its plain indexes, each citing the catalogue (ADR-121). For go, each operation's handler as its target and, under handler, the record of what it does, function by function with its steps and its source at the commit read (ADR-144). The mappings go into an implementation file of the specification under mappings.
+        description: For database, go and gateway, a new YAML file the reader writes what it knows of the implementation into, an implementation fragment that is not a whole implementation file. For gateway, the deployment of the environment the table's addresses were resolved in, with a server per forwarded service and the value of each setting (ADR-142). For database, each entity's table as its target and its plain indexes, each citing the catalogue (ADR-121). For go, each operation's handler as its target and, under handler, the record of what it does, function by function with its steps and its source at the commit read (ADR-144). The mappings go into an implementation file of the specification under mappings.
         schema: { type: string }
       table:
         description: For workflows, read the file as a workflow table (ADR-118) that tools/workflows/dump-workflows.sh wrote around the project's printer, for definitions in a format of the project's own, in place of BPMN 2.0 XML.
@@ -1582,7 +1619,7 @@ commands:
     standardError: A usage message on a usage error, and the reason a source could not be read.
     exitCodes:
       "0": the specification was written
-      "1": "the surface could not be read as the source expects: a dump that does not parse or is stale, a dump whose repository is no gitlink of the repository holding it, is not checked out, pins a commit its history does not hold or whose checkout under the path is not the pinned commit's, a code-facts dump another parser version made, whose files are not the tracked files of its folder the reader reads, or, for pages, whose folder does not hold the router's folder, a route table that lists a method and path pair twice, a permission table that lists a grant, a rule or a gate twice, holds a gate with no check, with both a setting and a kind of caller or neither, or skipped for a kind other than client, names a matcher the reader does not know, or holds a rule without one of its four keys, a vocabulary that does not parse, lacks a key, holds one it does not have, gives a number, a duration or a language tag in another form, or lists one word twice in a list or in two lists of one group, a route table given with --routes from another repository or from a commit on another line of history than the permission table's, a router root that gives one route twice or holds no page, a path with changes not committed, untracked files, a shallow clone, a path outside a git repository, a document that is not Markdown, a file that is not an OpenAPI 3.0 or 3.1 document, a file that is not BPMN 2.0 XML or holds no process, a workflow table that does not parse, is stale, lacks a key of the format or holds another, names a step kind other than approval, operation or other, lists a workflow twice or gives a workflow, a step or a form field no name, or an implementation file that does not parse as YAML"
-      "2": usage error, a source this build does not offer, --implementation given to a source other than go, swift, javascript, dart or pages, --facts given to a source other than pages, --routes given to a source other than permissions, --language, --vocabulary or --given-outside given to a source other than documents, --table given to a source other than workflows, --implementation-out given to a source other than database or go, or naming a file that exists or whose name does not end in .yaml, a language that is not a BCP 47 tag, a language SpecArch ships no vocabulary for given without --vocabulary, a --language other than the vocabulary's own, more than one permission table, or a path that could not be read or written
-    satisfies: [SA-11, SA-44, SA-63, SA-64, SA-70]
+      "1": "the surface could not be read as the source expects: a dump that does not parse or is stale, a dump whose repository is no gitlink of the repository holding it, is not checked out, pins a commit its history does not hold or whose checkout under the path is not the pinned commit's, a code-facts dump another parser version made, whose files are not the tracked files of its folder the reader reads, or, for pages, whose folder does not hold the router's folder, a route table that lists a method and path pair twice, a permission table that lists a grant, a rule or a gate twice, holds a gate with no check, with both a setting and a kind of caller or neither, or skipped for a kind other than client, names a matcher the reader does not know, or holds a rule without one of its four keys, a vocabulary that does not parse, lacks a key, holds one it does not have, gives a number, a duration or a language tag in another form, or lists one word twice in a list or in two lists of one group, a route table given with --routes from another repository or from a commit on another line of history than the permission table's, a router root that gives one route twice or holds no page, a path with changes not committed, untracked files, a shallow clone, a path outside a git repository, a document that is not Markdown, a file that is not an OpenAPI 3.0 or 3.1 document, a file that is not BPMN 2.0 XML or holds no process, a workflow table that does not parse, is stale, lacks a key of the format or holds another, names a step kind other than approval, operation or other, lists a workflow twice or gives a workflow, a step or a form field no name, a gateway table that does not parse, is stale, lacks a key of the format or holds another, gives a row no value or a value twice, or names a gateway or a claim that is no name, or an implementation file that does not parse as YAML"
+      "2": usage error, a source this build does not offer, --implementation given to a source other than go, swift, javascript, dart or pages, --facts given to a source other than pages, --routes given to a source other than permissions, --language, --vocabulary or --given-outside given to a source other than documents, --table given to a source other than workflows, --implementation-out given to a source other than database, go or gateway, or naming a file that exists or whose name does not end in .yaml, a language that is not a BCP 47 tag, a language SpecArch ships no vocabulary for given without --vocabulary, a --language other than the vocabulary's own, more than one permission table, or a path that could not be read or written
+    satisfies: [SA-11, SA-44, SA-63, SA-64, SA-70, SA-76]
     why: Existing systems enter SpecArch by extraction, so the verb exists from the start; it is built one reader at a time for the first real project that needs it, and every reader keeps the same rules so that the merge can trust their trees.

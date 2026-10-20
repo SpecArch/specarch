@@ -1,0 +1,7 @@
+arguments: [extract, gateway, --out, spec, repo/gateway-table.json]
+repository:
+  folder: repo
+  commits:
+    - [gateway]
+    - [gateway-table.json]
+exitStatus: 1

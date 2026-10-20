@@ -83,6 +83,8 @@ func runCheck(args []string, stdout, stderr io.Writer) int {
 			found, err = extract.CheckRoutes(dump, l.spec.Root, impls)
 		case extract.PermissionTableDump:
 			found, err = extract.CheckGrants(dump, l.spec.Root)
+		case extract.GatewayTableDump:
+			found, err = extract.CheckGateway(dump, l.spec.Root)
 		case extract.CatalogueDump:
 			tables, why := checkTables(l)
 			if why != "" {

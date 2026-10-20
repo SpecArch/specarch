@@ -216,6 +216,13 @@ commands:
         name, as an empty mapping, is one it does not give, so a tree that
         gives it with content answers the question, such as a field a page
         shows whose type the database gives (ADR-057).
+      - A question whose every block is the section `gateways`, the
+        question a code reader asks at a fallback handler or a catch-all
+        route, is left out as answered when another tree declares a
+        gateway, as the tree `specarch extract gateway` writes from a
+        gateway table does: that tree says what the handler forwards and
+        by which claim, and the line names the trees and the gateways
+        (ADR-142, ADR-143).
       - A map one tree writes open, `additionalProperties: true`, with a
         question of that tree blocking that key, and another tree writes
         with a value type, takes the value type with no disagreement, in

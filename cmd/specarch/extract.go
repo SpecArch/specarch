@@ -14,7 +14,7 @@ import (
 
 // extractSources are the surfaces this build reads, in the order the usage
 // text lists them.
-var extractSources = []string{"outline", "database", "router", "documents", "openapi", "permissions", "pages", "workflows", "go", "swift", "javascript", "dart"}
+var extractSources = []string{"outline", "database", "router", "documents", "openapi", "permissions", "pages", "workflows", "gateway", "go", "swift", "javascript", "dart"}
 
 var sourceKey = regexp.MustCompile(`^[a-z][a-z0-9]*(-[a-z0-9]+)*$`)
 
@@ -97,6 +97,9 @@ func runExtract(args []string, stdout, stderr io.Writer) int {
 	case source == "router" && len(paths) != 1:
 		fmt.Fprintf(stderr, "specarch extract router reads one route table, and was given %d paths\n", len(paths))
 		return 2
+	case source == "gateway" && len(paths) != 1:
+		fmt.Fprintf(stderr, "specarch extract gateway reads one gateway table, and was given %d paths\n", len(paths))
+		return 2
 	case source == "documents" && len(paths) != 1:
 		fmt.Fprintf(stderr, "specarch extract documents reads one document, and was given %d paths; one source is written per document file\n", len(paths))
 		return 2
@@ -139,8 +142,8 @@ func runExtract(args []string, stdout, stderr io.Writer) int {
 	case implementation != "" && source != "go" && source != "swift" && source != "javascript" && source != "dart" && source != "pages":
 		fmt.Fprintf(stderr, "specarch extract %s takes no --implementation; only go, swift, javascript, dart and pages read the permission checks an implementation file names, and pages the name of its schema file\n", source)
 		return 2
-	case implementationOut != "" && source != "database" && source != "go":
-		fmt.Fprintf(stderr, "specarch extract %s takes no --implementation-out; only database writes an implementation fragment, the mappings of its tables and their indexes, and go, the mappings of its operations' handlers with their logic and source\n", source)
+	case implementationOut != "" && source != "database" && source != "go" && source != "gateway":
+		fmt.Fprintf(stderr, "specarch extract %s takes no --implementation-out; only database writes an implementation fragment, the mappings of its tables and their indexes, go, the mappings of its operations' handlers with their logic and source, and gateway, the servers of the services its table resolved in one environment\n", source)
 		return 2
 	case implementationOut != "" && !strings.HasSuffix(implementationOut, ".yaml"):
 		fmt.Fprintf(stderr, "specarch extract %s: --implementation-out %s is not a YAML file's name; name a new file ending in .yaml\n", source, implementationOut)
@@ -185,6 +188,8 @@ func runExtract(args []string, stdout, stderr io.Writer) int {
 		} else {
 			res, err = extract.Workflows(paths[0], out, key)
 		}
+	case "gateway":
+		res, err = extract.GatewayTable(paths[0], out, key, implementationOut != "")
 	case "go":
 		res, err = extract.Go(paths, out, key, implementation, implementationOut != "")
 	case "swift":

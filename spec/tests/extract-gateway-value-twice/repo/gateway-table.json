@@ -1,0 +1,12 @@
+{
+    "gatewayTable": 1,
+    "path": "gateway",
+    "commit": "d8b6894bd326d1c8217e2edad2184cf5a7a7d112",
+    "gateway": "api",
+    "claim": "aud",
+    "environment": null,
+    "forwards": [
+        {"value": "https://loans.library.example", "name": "loans", "setting": null, "url": null},
+        {"value": "https://loans.library.example", "name": "desk", "setting": null, "url": null}
+    ]
+}

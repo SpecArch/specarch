@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: merge
+level: system
+scenario: golden
+given: "the tree extract go wrote of a router with a NoRoute handler, whose question blocks gateways, and the tree extract gateway wrote of the gateway table"
+when: "merge is run on both"
+then: "the fallback question is left out as answered, with a line naming the gateway tree and the gateway api, and the rest is merged as before"
+verifies: [SA-76]

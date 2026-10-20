@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: gaps
+level: system
+scenario: golden
+given: "the specification of validate-link-missing-held, whose open must question blocks the environment production and so holds the link_missing warning of the deployment that installs it"
+when: "gaps is run on it"
+then: "it lists the question under the deployment stage with what it blocks, shows the deployment, technical specification, html and operations documents as drafts and code generation waiting on it, and exits 1"
+verifies: [SA-19, SA-69]

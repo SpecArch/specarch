@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.3-dev of the specification: 641 design tests, 302 golden and 339 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.3-dev of the specification: 644 design tests, 305 golden and 339 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.7.3-dev of the specification: 641 design tests, 302 golden and 339 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 637 |
+| system | 640 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -1947,6 +1947,14 @@ Scenario: red; level: system; covers exit 1.
 - When: gaps is run
 - Then: it prints the open questions document with the error listed after the summary, every output waiting on it, and exits 1
 
+#### gaps-link-missing-held
+
+Scenario: golden; level: system; verifies SA-19, SA-69.
+
+- Given: the specification of validate-link-missing-held, whose open must question blocks the environment production and so holds the link_missing warning of the deployment that installs it
+- When: gaps is run on it
+- Then: it lists the question under the deployment stage with what it blocks, shows the deployment, technical specification, html and operations documents as drafts and code generation waiting on it, and exits 1
+
 #### gaps-lists-questions
 
 Scenario: red; level: system; covers exit 1; verifies SA-19, SA-69.
@@ -3077,6 +3085,14 @@ Scenario: red; level: system; covers exit 2; verifies SA-74.
 - When: model is run on it
 - Then: it names the path it cannot read on standard error, prints nothing, and exits 2
 
+#### model-lists-via-and-through
+
+Scenario: golden; level: system; verifies SA-74.
+
+- Given: a specification whose operation names a client of its own and one of the identity module in via, and whose role narrows a permission through a client of its own and one of the identity module
+- When: model is run on it
+- Then: it lists the via item naming its own client, the through key naming the permission and the through item naming its own client, each with its keyword, leaves out the two clients of the identity module, and exits 0
+
 #### model-usage-error
 
 Scenario: red; level: system; covers usage error; verifies SA-74.
@@ -4126,6 +4142,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-11.
 - Given: a test folder that holds data but no test.yaml
 - When: validate is run
 - Then: it reports layout at the folder and exits 1
+
+#### validate-link-missing-held
+
+Scenario: golden; level: system; verifies SA-10.
+
+- Given: two deployments with links, each running loans, whose operation calls the ledger, with no link from loans to the ledger: staging installs the environment staging, production the environment production, which an open must question blocks
+- When: validate is run
+- Then: it warns as link_missing at loans in staging for the ledger, holds the warning in production, reports nothing else, and exits 0
 
 #### validate-maker-checker
 

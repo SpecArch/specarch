@@ -92,6 +92,21 @@ final class Design {
         return false
     }
 
+    /// Reports whether an open must question holds up an environment: it
+    /// blocks the environment itself, the environments section or the
+    /// deployment stage (ADR-172).
+    func mustBlockedEnvironment(_ env: String) -> Bool {
+        if mustBlocked("environments") { return true }
+        if env.isEmpty { return false }
+        for (_, q) in questions where str(q.child("priority")) == "must" {
+            for item in items(q.child("blocks")) {
+                guard let b = parseBlock(item.value) else { continue }
+                if b.tokens == ["environments", env] { return true }
+            }
+        }
+        return false
+    }
+
     /// A channel's message node for "channel/Message", or nil.
     func message(_ ref: String) -> YNode? {
         guard let slash = ref.firstIndex(of: "/") else { return nil }

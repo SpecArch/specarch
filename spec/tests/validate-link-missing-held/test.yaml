@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: validate
+level: system
+scenario: golden
+given: "two deployments with links, each running loans, whose operation calls the ledger, with no link from loans to the ledger: staging installs the environment staging, production the environment production, which an open must question blocks"
+when: validate is run
+then: "it warns as link_missing at loans in staging for the ledger, holds the warning in production, reports nothing else, and exits 0"
+verifies: [SA-10]

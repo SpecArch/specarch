@@ -1,0 +1,55 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.3.schema.json
+decisions:
+  ADR-172:
+    title: A must question that blocks the environment a deployment installs, the environments section or the deployment stage holds the deployment's link_missing warnings
+    status: accepted
+    date: "2026-10-21"
+    context: |
+      Roadmap 5, diagram keywords. ADR-137 makes a missing link the
+      warning link_missing at the server and says that a must question
+      that blocks the deployment or its links holds it. A question lives
+      in the specification and its blocks name a stage, a section or a
+      pointer into a section of the specification; a deployment, its
+      servers and its links live in an implementation file, so no
+      question could block them and nothing held the warning.
+    decision: |
+      An open must question holds every link_missing warning of a
+      deployment when it blocks the environment the deployment installs
+      (#/environments/<name>, the element itself), the environments
+      section, or the deployment stage. A key of the environment
+      blocked alone (#/environments/<name>/runBy) holds nothing of the
+      links. A deployment that names no environment is held by the
+      section or the stage. The link errors stay: a link that names no
+      server, joins a server to itself or names a port the target does
+      not listen on is reported whatever the question. The validator
+      raises no question of its own; the question is the author's, as
+      for middleware_missing.
+    why: |
+      The owner chose the environment over a pointer into the
+      implementation file (#/deployments/<name>/links). The environment
+      is the design's word for where the system runs, so the question
+      stays in the specification and points at what the specification
+      declares, and design and implementation stay apart: one question
+      holds the deployment of that environment in every stack's file.
+      The blocks grammar does not change, so decide, gaps, the documents
+      and the problems file read the question as they read any other,
+      and the deployment documents are drafts while it is open, which is
+      right, since they draw the network the question leaves open. The
+      section and the stage hold as ADR-129's handover checks are held,
+      the one other hold in the deployment stage. A key of the
+      environment does not hold the links because it is about that key,
+      not about how the hosts reach each other.
+
+      The compiler test holds: nothing is refused or left unread; the
+      deployment is read, its wrong links are errors at the entry, and
+      only the warning that the open question explains is held. The
+      acceptance test holds: an operator who does not yet know the
+      firewall rules writes one question on the environment, and
+      answering it, then writing the links, brings the warnings back
+      where a link is still missing.
+    consequences: |
+      Both builds hold link_missing so, with the cases
+      validate-link-missing-held and gaps-link-missing-held; the rule's
+      description, the conventions and docs/diagrams.md say it, and the
+      roadmap's gap for it is closed.
+    satisfies: [SA-73, SA-16]

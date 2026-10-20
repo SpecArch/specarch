@@ -518,8 +518,9 @@ gateway package, one that only emits, or a worker that reaches only a
 dependency needs no link to the database and gets no warning for it. It
 is a warning, not an error, because a deployment is written in order and
 the links are its to-do list, as the handover's checks and monitors are
-(ADR-129); a must question that blocks the deployment or its `links`
-holds it.
+(ADR-129). A must question that blocks the environment the deployment
+installs (`#/environments/production`), the `environments` section or the
+`deployment` stage holds it (ADR-172); the `link` errors stay.
 
 **The network diagram.** The deployment guide, the handover document and
 the technical specification's chapter 7 gain, per deployment that has a
@@ -693,7 +694,7 @@ Both builds, each with a case in `spec/tests/` and its design test:
 | `channel` | a channel's `carriedBy` entry that is no declared dependency, or one of kind `database`, `fileStore` or `identityProvider` |
 | `server` | a server's name used twice in one deployment; a `runs` package or target the file does not have; `packages` on a server not of kind `service`; `kind` or `runs` on a server that names a `dependency`; a `dependency` that is not declared |
 | `link` | a `from` or `to` that is no named server of the deployment, a link from a server to itself, or a port the target does not listen on |
-| `link_missing` (warning) | a server whose packages call a dependency or use a channel it carries with no link to a server that is that dependency, or whose packages implement an entity or a job that reads or writes one with no link to the deployment's database server that runs the `sql` target |
+| `link_missing` (warning) | a server whose packages call a dependency or use a channel it carries with no link to a server that is that dependency, or whose packages implement an entity or a job that reads or writes one with no link to the deployment's database server that runs the `sql` target; held by a must question that blocks the environment the deployment installs, the `environments` section or the `deployment` stage |
 
 ## The documents
 

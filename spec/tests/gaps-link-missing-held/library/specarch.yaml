@@ -1,0 +1,38 @@
+specarch: "0.3"
+info: { title: Case, version: 1.0.0 }
+stakeholders:
+  operator: { description: Runs the library's hosts. }
+dependencies:
+  ledger:
+    description: The finance system's ledger.
+    timeout: PT5S
+permissions:
+  loans.write: { description: Open loans. }
+roles:
+  clerk:
+    description: Staff at the desk.
+    permissions: [loans.write]
+paths:
+  /loans:
+    post:
+      operationId: openLoan
+      summary: Open a loan
+      permission: loans.write
+      calls: [ledger]
+      responses:
+        "201": { description: The loan is open. }
+tests:
+  open-loan-succeeds: { level: system, operation: openLoan, scenario: golden, given: "a caller with loans.write", when: "openLoan is called", then: "it answers 201" }
+  open-loan-denied: { level: system, operation: openLoan, scenario: red, covers: [denied without loans.write], given: "a caller without loans.write", when: "openLoan is called", then: "it is refused as not allowed" }
+  open-loan-ledger-fails: { level: system, operation: openLoan, scenario: red, covers: [dependency fails ledger], given: "ledger answers with an error", when: "openLoan is called", then: "it answers 502" }
+  open-loan-ledger-times-out: { level: system, operation: openLoan, scenario: red, covers: [dependency times out ledger], given: "ledger does not answer within PT5S", when: "openLoan is called", then: "it answers 504" }
+environments:
+  staging: { description: Where a release is tried., promotesTo: production }
+  production: { description: The library's own hosts. }
+questions:
+  Q-1:
+    question: Does production reach the ledger through the finance network's proxy, or straight?
+    kind: decision
+    priority: must
+    blocks: ["#/environments/production"]
+    decidedBy: operator

@@ -516,7 +516,9 @@ extension Checker {
                 }
             }
         }
-        guard linksNode != nil else { return }
+        // A must question on the environment the deployment installs holds
+        // the links still to write (ADR-137, ADR-172).
+        guard linksNode != nil, !d.mustBlockedEnvironment(str(dep.child("environment"))) else { return }
         // What each dependency is in this deployment, and its database.
         var depServer: [String: String] = [:]
         var database = ""

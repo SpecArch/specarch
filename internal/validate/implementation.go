@@ -511,7 +511,9 @@ func (c *checker) checkLinks(d *design, base []string, dep *yaml.Node) {
 			}
 		}
 	}
-	if linksNode == nil {
+	// A must question on the environment the deployment installs holds
+	// the links still to write (ADR-137, ADR-172).
+	if linksNode == nil || d.mustBlockedEnvironment(source.Str(source.Child(dep, "environment"))) {
 		return
 	}
 	// What each dependency is in this deployment, and its database.

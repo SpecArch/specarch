@@ -1,0 +1,4 @@
+arguments: [validate, .]
+exitStatus: 0
+standardOutput: |
+  case.go.specarch-implementation.yaml:14:9: warning: /deployments/staging/servers/0: link_missing: loans runs the packages implementing openLoan, which reach the dependency ledger, and no link leads from loans to ledger, the server that is ledger here; add a link from loans to ledger on a port it listens on [link_missing@case.go.specarch-implementation.yaml#/deployments/staging/servers/0]

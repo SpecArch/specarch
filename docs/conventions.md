@@ -203,7 +203,11 @@ implement an operation or a job that calls a dependency, or emits on or
 consumes from a channel a dependency carries, with no link to the server
 that is that dependency in the deployment; and at one whose packages
 implement an entity, or a job that reads or writes one, with no link to
-the deployment's database server that runs the `sql` target. A job is
+the deployment's database server that runs the `sql` target. An open
+must question that blocks the environment the deployment installs
+(`#/environments/production`), the `environments` section or the
+`deployment` stage holds the warning, and the `link` errors stay
+(ADR-172). A job is
 placed by the package that implements it (`implements:
 ["#/jobs/markOverdue"]`). The documents then draw the deployment as its
 network: a subgraph per zone, an edge per link with its port and the

@@ -1,0 +1,35 @@
+arguments: [gaps, library]
+exitStatus: 1
+standardOutput: |+
+  # Case: open questions
+
+  Version 1.0.0 of the specification: 1 open question (1 must, 0 should, 0 could). A must question holds up everything that reads what it blocks; a should question holds up code generation and approval until the stakeholder confirms what was inferred; a could question holds up nothing. Each is answered by the stakeholder named, with a decision record that names the question under answers; the question is then removed.
+
+  Decisions to take: operator 1.
+
+  ## 1. Deployment
+
+  ### Q-1 (must, decision)
+
+  Does production reach the ledger through the finance network's proxy, or straight?
+
+  - Decided by: operator
+  - Blocks: #/environments/production
+
+  ## 2. Outputs
+
+  What can be made from the specification now. A document is a draft while a must or should question blocks what it reads, or an error is in it; code generation waits for those questions, for every error to be fixed, and for the approval.
+
+  | Output | State | Waits on |
+  |---|---|---|
+  | techspec document | draft | 1 in deployment (Q-1) |
+  | requirements document | ready | |
+  | testplan document | ready | |
+  | traceability document | ready | |
+  | deployment document | draft | 1 in deployment (Q-1) |
+  | commissioning document | ready | |
+  | html document | draft | 1 in deployment (Q-1) |
+  | manual document | ready | |
+  | operations document | draft | 1 in deployment (Q-1) |
+  | code generation | waits | 1 in deployment (Q-1); not approved: there is no records/approvals/1.0.0.yaml beside the specification |
+

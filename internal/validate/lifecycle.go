@@ -150,6 +150,30 @@ func (d *design) mustBlocked(section string) bool {
 	return false
 }
 
+// mustBlockedEnvironment reports whether an open must question holds up an
+// environment: it blocks the environment itself, the environments section
+// or the deployment stage (ADR-172).
+func (d *design) mustBlockedEnvironment(env string) bool {
+	if d.mustBlocked("environments") {
+		return true
+	}
+	if env == "" {
+		return false
+	}
+	for _, q := range d.questions {
+		if source.Str(source.Child(q, "priority")) != "must" {
+			continue
+		}
+		for _, item := range source.Items(source.Child(q, "blocks")) {
+			b, ok := spec.ParseBlock(item.Value)
+			if ok && len(b.Tokens) == 2 && b.Tokens[0] == "environments" && b.Tokens[1] == env {
+				return true
+			}
+		}
+	}
+	return false
+}
+
 // checkTraceability reports what the stages a specification covers leave
 // open: a need no requirement refines, a requirement without acceptance
 // criteria, a requirement nothing satisfies once there is a design, and a

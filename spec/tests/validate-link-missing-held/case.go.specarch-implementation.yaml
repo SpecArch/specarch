@@ -1,0 +1,25 @@
+specarchImplementation: "0.1"
+info: { title: Case in Go, version: 1.0.0 }
+implements: { file: specarch.yaml, version: 1.0.0 }
+stack: { language: { name: Go, version: "1.26" } }
+layout:
+  internal/loans:
+    description: Opens loans.
+    implements: ["#/paths/~1loans"]
+deployments:
+  staging:
+    description: The trial hosts.
+    environment: staging
+    servers:
+      - { name: loans, url: "https://loans.staging.library.example", listens: [{ port: 8080, protocol: http }], runs: { packages: [internal/loans] } }
+      - { name: ledger, dependency: ledger, url: "https://ledger.test.finance.example", listens: [{ port: 443, protocol: https }] }
+    links:
+      - { from: ledger, to: loans, port: 8080 }
+  production:
+    description: The hosts.
+    environment: production
+    servers:
+      - { name: loans, url: "https://loans.library.example", listens: [{ port: 8080, protocol: http }], runs: { packages: [internal/loans] } }
+      - { name: ledger, dependency: ledger, url: "https://ledger.finance.example", listens: [{ port: 443, protocol: https }] }
+    links:
+      - { from: ledger, to: loans, port: 8080 }

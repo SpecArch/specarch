@@ -425,15 +425,14 @@ deployment diagram in chapter 7 and the deployment guide and the rule
 `server`; `zone`, `listens` and `links`, with the network diagram, the
 handover's links and ports, the rule `link` and the warning
 `link_missing`, the check that every declared call and data access has a
-link; and a lane set and an id per element in the BPMN output and its SVG.
+link, held by a must question that blocks the environment the
+deployment installs (ADR-172); and a lane set and an id per element in the BPMN output and its SVG.
 Every diagram has its marker (`context`, `components <stack>`,
 `deployment <deployment>`, `network <deployment>`), and a file without the
 keys renders as before. Of its gaps, the cross-system view was built
 before (the estate's module map, ADR-113). The library-lending example
-uses every key. Left to build: a must question that blocks a deployment
-or its `links` holding the `link_missing` warning, as ADR-137 says; and
-the handover's links for a deployment with no `infrastructure`
-(BUG-035).
+uses every key. Left to build: the handover's links for a deployment
+with no `infrastructure` (BUG-035).
 
 Built, 0.7.2: the gateway (`docs/gateway.md`, ADR-141 to ADR-143). A
 gateway in front of an estate's services, which verifies the token, reads

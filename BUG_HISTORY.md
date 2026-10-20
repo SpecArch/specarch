@@ -666,3 +666,15 @@ Expected: a document that `specarch document` has just written is current for `a
 To repeat: in `examples/library-lending`, run `specarch document changes spec`, then `specarch approve --by librarian -- spec`. It printed that `docs/changes.md`, `docs/releases.md` and `site/index.html` differ, and exited 1.
 
 Fix: `loaded.documentInputs` in `cmd/specarch/document.go` gathers the implementation files and the state a document is made with, and both `document` and `approve` use it, so they cannot drift apart. The Swift build has no approve verb. The case `approve-after-document-records-and-site` approves changes, releases and html documents that `document` wrote, and the design of `approve` says each document is made as `document` makes it.
+
+## BUG-053 — docs/roadmap.md: caller context lists BUG-046 as left to build after its fix
+
+- Reported: 2026-10-21, found while writing the 0.7.3 row of the release table
+- Closed: 2026-10-21, completed
+- Fixed by: the commit on `main` whose message says `Fixes BUG-053`
+
+Section 5's caller context entry ends "Left to build: ... and BUG-046, the cases of a client named in `callers` by reference to the identity module", but the commit that fixed BUG-046 derives those cases, and BUG-046 is in this file.
+
+Expected: the entry says that such a client gets the same cases as a client of the module's own (ADR-171), and its "Left to build" names only the `Txn-Token` header in the swift, javascript and dart readers and `through` on a pattern row of the permission table.
+
+To repeat: `grep -n 'BUG-046' docs/roadmap.md`.

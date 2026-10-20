@@ -51,7 +51,7 @@
       "properties": {
         "specification": "../spec",
         "title": "SpecArch toolchain",
-        "version": "0.7.3-dev"
+        "version": "0.7.3"
       }
     }
   ]

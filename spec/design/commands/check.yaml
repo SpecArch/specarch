@@ -145,5 +145,8 @@ commands:
       "0": every difference is one the allowlist names or a report, and every line of the allowlist names a difference and was there at --since
       "1": "a difference the allowlist does not name, a line of the allowlist that names none, repeats one or was added since --since, or a specification validate reports an error in"
       "2": "usage error; a dump, the specification or the allowlist that could not be read; a dump of no format check reads, or one its reader refuses; a catalogue dump with no implementation file to compare it through, or with one whose tables cannot be written for PostgreSQL; or a revision git does not know"
+    remedies:
+      "1": "Change the specification or the code until the difference is gone, or name a difference that is meant in the allowlist, then run it again."
+      "2": "Read the reason on standard error; remake a dump that cannot be read with specarch facts, or correct the command line or the path it names, and run it again."
     satisfies: [SA-72, SA-76]
     why: A specification that is not compared with its code drifts within months; the readers already read the running code and the merge already matches its elements, so the gate is the comparison with a status, and an allowlist that may only shrink lets a gate be turned on for a service that predates its specification without letting a new difference in.

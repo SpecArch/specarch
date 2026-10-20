@@ -105,7 +105,7 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | SA-61 | functional | should | accepted | specarch generate --check shall compare a folder of pages built by hand with what the target writes, saying for each file whether it matches and, for a page's data, which values differ. |
 | SA-71 | functional | should | accepted | specarch generate sqlc shall write the sqlc queries the design derives against the tables generate sql writes, and leave every other query to be written by hand beside them. |
 | SA-87 | functional | should | accepted | specarch generate scripts shall write, for each guarded operation or command whose change the design says, a script that refuses unless the guard's precondition holds on exactly the records it names, makes the change only when told to apply it, checks the exact count of records changed, and changes nothing when it is run again; every other guarded change is left to be written by hand. |
-| SA-90 | functional | should | accepted | specarch document shall write the user manual from the flows, menus, pages, roles and problem types, and the operations guide from the endpoints, jobs, channels, dependencies, monitors, procedures, settings and deployments, and a problem type shall say what the person who meets it does next and a monitor what the operator does when its objective is missed. |
+| SA-90 | functional | should | accepted | specarch document shall write the user manual from the flows, menus, pages, roles, problem types and commands, and the operations guide from the endpoints, jobs, channels, dependencies, monitors, procedures, settings and deployments, and a problem type shall say what the person who meets it does next, a command what the person who ran it does after each status it fails with, and a monitor what the operator does when its objective is missed. |
 | SA-32 | functional | must | accepted | SpecArch shall ship versioned idioms that say how each recurring implementation concern is done per stack, apply them to every implementation file by default, let a file exclude or override one with the reason, and check the result, starting with the type rendering of every field on Go and on PostgreSQL, SQL Server, Oracle and MariaDB. |
 | SA-11 | functional | must | accepted | A specification shall be a folder tree with one root file, specarch.yaml, and one folder per life-cycle stage it keeps, in which a file holds one or a few objects of one kind. |
 | SA-12 | functional | must | accepted | A specification shall be able to hold every stage of the life cycle, from stakeholders and needs through requirements, design, implementation, tests, deployment, commissioning and operation, each optional until the project reaches it. |
@@ -1038,16 +1038,18 @@ Acceptance criteria:
 
 ### SA-90
 
-specarch document shall write the user manual from the flows, menus, pages, roles and problem types, and the operations guide from the endpoints, jobs, channels, dependencies, monitors, procedures, settings and deployments, and a problem type shall say what the person who meets it does next and a monitor what the operator does when its objective is missed.
+specarch document shall write the user manual from the flows, menus, pages, roles, problem types and commands, and the operations guide from the endpoints, jobs, channels, dependencies, monitors, procedures, settings and deployments, and a problem type shall say what the person who meets it does next, a command what the person who ran it does after each status it fails with, and a monitor what the operator does when its objective is missed.
 
 Kind: functional; priority: should; status: accepted; verified by test; refines NEED-3, NEED-5.
 
 Acceptance criteria:
 
 - specarch document manual writes manual.md with the roles that open a page, each with the pages it opens, a role a job acts as or a client holds left out unless a flow names it as its actor; the menus; each flow's steps as numbered instructions; and each page's purpose, who opens it, its fields or columns, its actions with their confirmation, and per problem it names the message, the condition and the remedy.
+- The manual has a section per command with its usage line from the program's name and the command's words, who runs it, its arguments and options, what it reads, writes and prints, and each exit status with what it means and its remedy.
 - specarch document operations writes operations.md with the environments and their hosts, a checklist row per monitor, job and dependency, each monitor's response, each job's trigger, role and retries, each channel's carrier, publishers and consumers, each dependency's callers, the endpoints with their permissions, the settings, and the backup, restore and rollback steps.
-- A specification with no pages, flows, monitors or jobs still gets both documents, each empty section one sentence naming the key that fills it, and its errors marked as in every document.
-- A problem type without remedy and a monitor without response are read as before, with no error or warning, the same in both builds.
+- A specification with no pages, flows, commands, monitors or jobs still gets both documents, each empty section one sentence naming the key that fills it, and its errors marked as in every document.
+- A problem type without remedy, a command without remedies or a program name, and a monitor without response are read as before, with no error or warning, the same in both builds.
+- A command's remedy keyed by status 0, or by a status its exitCodes does not list, is refused as exit_code, the same in both builds.
 
 **Insight:** The people who use a system and the people who run it read a manual and an operations guide, not a technical specification; written by hand both drift from the pages and the procedures, and written from the specification they show early what a page asks of a person, which is where a change request starts.
 

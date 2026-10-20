@@ -1,0 +1,83 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.3.schema.json
+decisions:
+  ADR-165:
+    title: The user manual writes a section per command, from the commands the design already holds, info gains program, the name typed before a command's words, and a command gains remedies, what the person does after each status it fails with
+    status: accepted
+    date: "2026-10-20"
+    context: |
+      ADR-160 wrote the user manual from the flows, menus, pages, roles and
+      problem types, and left a command-line tool's commands out of it.
+      The design already says most of what a person needs to run a
+      command: commands, keyed by the words typed after the program's
+      name, each with its summary, description, permission, arguments in
+      order, options, the files it reads and writes, what it prints and
+      every exit status with what it means. Two things have no home: the
+      program's name, so no command can be written as a person types it,
+      and what a person does after a command exits with a status other
+      than 0, the command's answer to a problem type's remedy.
+    decision: |
+      info gains program, the name a person types to run the system's
+      command-line interface; a command gains remedies, keyed by an exit
+      status its exitCodes lists, what the person who ran it does next, in
+      their words. Both are optional plain text with no reference in them.
+      A remedy keyed by status 0, which is success, or by a status the
+      command's exitCodes does not list is an error at that remedy,
+      exit_code, the same in both builds.
+
+      specarch document manual gains a Commands section after the pages,
+      a section per command in the order of their words: its summary and
+      description; its usage line, the program's name, the command's
+      words, each argument in angle brackets, square brackets around one
+      that may be left out and ... after one that is repeatable, and each
+      option, a boolean one as the switch alone; who runs it, anyone for
+      the permission public, otherwise the roles a person holds that grant
+      its permission; whether it is deprecated or switched by a setting;
+      a table of its arguments and one of its options, an option's enum
+      values named; what it reads and writes, or that it writes no file;
+      what it prints on standard output and on standard error; and a table
+      of its exit statuses in number order, each with what it means and
+      its remedy. A specification with no commands gets the section as one
+      sentence naming commands, and one with commands and no program
+      writes each command by its words alone and says that info.program
+      names the program. The manual reads commands, so a question blocking
+      them makes it a draft and their problems are marked in it.
+    consequences: |
+      An existing specification reads as before: both keys are optional
+      and no rule refuses their absence. Every manual gains the Commands
+      section, a sentence where the specification has no commands, and
+      its opening line counts the commands beside the tasks and pages.
+      SpecArch's own specification names its program and gives its
+      commands their remedies, and its implementation file names an output
+      folder for the manual, so docs/manual.md is SpecArch's command-line
+      manual, kept current by CI; its sections for roles, menus, flows and
+      pages are each one sentence, since SpecArch has none. What is still
+      not written: an example of a command line with what it answers, and
+      a command's shorter option names.
+    why: |
+      program under info rather than on commands or in an implementation
+      file, because the name a person types is part of the interface, the
+      same in every stack, and one name holds for the whole specification;
+      commands keeps its keys the words after it, as it did. remedies as
+      a mapping beside exitCodes rather than an object in place of each
+      exitCodes string, because every specification with commands writes
+      exitCodes as strings, and retyping it would turn each into an error;
+      a mapping keyed by status keeps the strings and gives the rule
+      something to check. Plain text, optional, with no reference, as a
+      problem type's remedy is (ADR-160): it is advice to a person,
+      nothing generates from it, and a status's meaning often already
+      says what to do. Status 0 refused, because a remedy for success
+      would read as a failure in the manual. Commands sorted by their
+      words, because a reader looks a command up by name; the technical
+      specification keeps the design's order. The program's name taken
+      from the specification, not from the binary a stack builds, because
+      the manual is written before any is built. Compiler test: a
+      specification with commands and no program still gets every
+      command, by its words, and the sentence naming the key. Acceptance
+      test: a person reads the usage line, the options and what to do
+      after a failure before the program exists, and a remark on one
+      names the command and the key to change.
+    satisfies: [SA-90]
+    cites:
+      - source: iso-12207
+        clause: "6.4.12"
+        says: "The operation process uses the system in its intended environment and supports its users."

@@ -293,6 +293,9 @@ targets:
   releases:
     output: ../../../docs
     description: The release notes, from the records beside the specification, kept current by CI.
+  manual:
+    output: ../../../docs
+    description: The user manual, kept current by CI. SpecArch has no pages, so it is the commands, each with its usage line, arguments, options, files and exit statuses.
 
 bindings:
   cli:

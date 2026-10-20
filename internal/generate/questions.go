@@ -30,7 +30,7 @@ var documentReads = map[string][]string{
 	"commissioning": {"checks", "signoff"},
 	"handover":      {"environments", "configuration", "release", "rollback", "migrations", "handover", "checks", "signoff", "monitors", "backup", "restore", "tests"},
 	"html":          {"*"},
-	"manual":        {"flows", "menus", "pages", "roles", "permissions", "errors"},
+	"manual":        {"flows", "menus", "pages", "roles", "permissions", "errors", "commands"},
 	"operations":    {"environments", "monitors", "jobs", "channels", "dependencies", "paths", "configuration", "backup", "restore", "rollback"},
 }
 

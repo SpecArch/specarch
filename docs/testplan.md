@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.3-dev of the specification: 628 design tests, 293 golden and 335 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.3-dev of the specification: 630 design tests, 294 golden and 336 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.7.3-dev of the specification: 628 design tests, 293 golden and 335 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 624 |
+| system | 626 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -593,7 +593,7 @@ Scenario: red; level: system; covers exit 1.
 
 Scenario: golden; level: system; verifies SA-90.
 
-- Given: a specification with no role, menu, flow or page, and an implementation file naming an output folder for manual
+- Given: a specification with no role, menu, flow, page or command, and an implementation file naming an output folder for manual
 - When: document manual is run
 - Then: it writes manual.md all the same, each empty section one sentence naming the key that fills it, and exits 0
 
@@ -972,6 +972,14 @@ Scenario: golden; level: system; verifies SA-90.
 - Given: people's roles, a role a job acts as and one a client holds, a menu, a flow, a list with a filter and a row that opens a view, a view in sections with an operation action under a confirmation and a condition, a form with a required field and a check, a public task answering two ways, problem types, one with a remedy, and a default message for any other problem
 - When: document manual is run
 - Then: it writes manual.md with the people's roles and the pages each opens, the job's and the client's roles left out, the public page, the menu, the flow as numbered steps starting from the menu, and each page with how it is reached, who opens it, its columns or fields, its actions, what follows a submission and, per problem it names, the message, the condition and the remedy, the default row answering any other problem, and exits 0
+
+#### document-writes-manual-cli
+
+Scenario: golden; level: system; verifies SA-90.
+
+- Given: a specification with no pages that names its program and holds three commands: a public one with a repeatable argument, a required option, an option of enum values, a boolean option, the files it reads and writes, what it prints and a remedy for a failing status; a public one that writes no file; and a deprecated one whose permission a role a person holds grants
+- When: document manual is run
+- Then: it writes manual.md with the role and the command it runs, the public commands named, the page sections each one sentence, and a section per command in the order of their words with its usage line after the program's name, who runs it, its arguments and options tables, what it reads and writes or that it writes no file, what it prints, and its exit statuses in order with their meaning and remedy, and exits 0
 
 #### document-writes-operations
 
@@ -3279,6 +3287,14 @@ Scenario: red; level: system; covers exit 1.
 - When: validate is run
 - Then: it reports the version at its column counted in Unicode characters, and the name at its column inside the block, and exits 1
 
+#### validate-command-remedies
+
+Scenario: red; level: system; covers exit 1; verifies SA-90.
+
+- Given: a command whose remedies name status 0 and a status its exitCodes does not list, beside a remedy for a listed status
+- When: validate is run
+- Then: it reports exit_code at the remedy for 0 and at the one for the unlisted status, takes the listed one, and exits 1
+
 #### validate-commissioning-record
 
 Scenario: red; level: system; covers exit 1; verifies SA-23.
@@ -5107,7 +5123,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-378 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+380 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -5377,6 +5393,8 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-90 | acceptance 2 | golden | SA-90 names no harm |
 | requirement SA-90 | acceptance 3 | golden | SA-90 names no harm |
 | requirement SA-90 | acceptance 4 | golden | SA-90 names no harm |
+| requirement SA-90 | acceptance 5 | golden | SA-90 names no harm |
+| requirement SA-90 | acceptance 6 | golden | SA-90 names no harm |
 | requirement SA-32 | acceptance 1 | golden | SA-32 names no harm |
 | requirement SA-32 | acceptance 2 | golden | SA-32 names no harm |
 | requirement SA-32 | acceptance 3 | golden | SA-32 names no harm |

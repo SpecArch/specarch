@@ -188,7 +188,12 @@ same text and exits 1 while a must or should question is open.
 specification, derived from origin, citations and decisions, what was
 kept from each source by clause, clarified, added or corrected, and which
 clauses of each source's outline no element cites (ADR-157). `manual`
-and `operations` wait until the specification holds what they need.
+writes `manual.md` for the people who use the system: who opens which
+page, the menus, each flow as numbered steps, each page with its fields,
+actions and what to do when it refuses, and each command with its usage
+line from `info.program`, its arguments, options, files, output and exit
+statuses, each with its remedy (ADR-160, ADR-165). `operations` writes
+`operations.md` for the people who run it (ADR-160).
 
 `html` writes `index.html`: the whole specification as one page that opens
 from the disk and makes no request, its styles, script and diagrams inside

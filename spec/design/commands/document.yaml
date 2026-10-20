@@ -303,6 +303,9 @@ commands:
       "0": written, or with `--check` the output is current
       "1": a specification has an error (after its files are written, or with `--check` compared), a marker is wrong, or with `--check` the output differs
       "2": usage error, a target this build does not offer, --audience with a value other than external, without --out or for the problems target, no output folder in any specification given (or, for the handover target, no handover in any), the implementation files of one naming different output folders, or a file that could not be read or written
+    remedies:
+      "1": "Settle the errors and the markers it prints; with --check, run it once without --check to write the current output, then run it again."
+      "2": "Read the usage message or the reason on standard error, correct the command line or the path it names, and run it again."
     algorithm: checkStatus
     satisfies: [SA-7, SA-8, SA-15, SA-16, SA-19, SA-22, SA-26, SA-51, SA-60, SA-66, SA-67, SA-68, SA-73, SA-86]
     why: Documents are read by more people than the YAML, so they come first among the targets and are made from the specification rather than kept beside it.

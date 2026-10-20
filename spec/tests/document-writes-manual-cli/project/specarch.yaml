@@ -1,0 +1,64 @@
+specarch: "0.3"
+info:
+  title: Archive tool
+  version: 1.0.0
+  program: archive
+permissions:
+  public: { description: Anyone who has the program may run it. }
+  archive.purge: { description: Delete archives for good. }
+roles:
+  keeper: { description: Looks after the archives of the team., permissions: [archive.purge] }
+commands:
+  pack:
+    summary: Pack folders into one archive file
+    description: Reads every file under the folders given and writes them into one archive, compressed.
+    permission: public
+    arguments:
+      - { name: folders, description: The folders to pack., required: true, repeatable: true, schema: { type: string } }
+    options:
+      out: { description: The archive file to write., required: true, schema: { type: string } }
+      level: { description: How hard to compress., schema: { type: string, enum: [fast, small] } }
+      verbose: { description: Name each file as it is packed., schema: { type: boolean, default: false } }
+    reads:
+      - { path: "{folders}", description: Every file under each folder. }
+    writes:
+      - { path: "{out}", description: The archive. }
+    standardOutput: The name of each file packed, with --verbose.
+    standardError: A usage message on a usage error, and the file that could not be read.
+    exitCodes:
+      "0": the archive is written
+      "1": a file under a folder could not be read
+      "2": usage error
+    remedies:
+      "1": Give yourself read access to the file named on standard error, then run it again.
+  list:
+    summary: List what an archive holds
+    permission: public
+    arguments:
+      - { name: archive, description: The archive file., required: true, schema: { type: string } }
+    reads:
+      - { path: "{archive}", description: The archive. }
+    standardOutput: One line per file, its path and its size.
+    exitCodes:
+      "0": listed
+      "2": usage error, or the archive could not be read
+  purge:
+    summary: Delete the archives older than a date
+    permission: archive.purge
+    deprecated: true
+    options:
+      before: { description: "The date, as YYYY-MM-DD.", required: true, schema: { type: string, format: date } }
+    writes:
+      - { path: "archives/", description: The archives older than the date are removed. }
+    exitCodes:
+      "0": purged
+      "2": usage error
+tests:
+  pack-succeeds: { command: pack, level: system, scenario: golden, given: a readable folder, when: pack is run, then: it writes the archive and exits 0 }
+  pack-unreadable-file: { command: pack, level: system, scenario: red, covers: [exit 1], given: a folder with a file no one may read, when: pack is run, then: it names the file and exits 1 }
+  pack-usage-error: { command: pack, level: system, scenario: red, covers: [usage error, exit 2], given: no folder, when: pack is run with arguments it does not accept, then: it prints how to use it and exits 2 }
+  list-succeeds: { command: list, level: system, scenario: golden, given: an archive, when: list is run, then: it prints each file and exits 0 }
+  list-usage-error: { command: list, level: system, scenario: red, covers: [usage error, exit 2], given: no archive, when: list is run with arguments it does not accept, then: it prints how to use it and exits 2 }
+  purge-succeeds: { command: purge, level: system, scenario: golden, given: archives older than the date, when: purge is run, then: it removes them and exits 0 }
+  purge-usage-error: { command: purge, level: system, scenario: red, covers: [usage error, exit 2], given: no date, when: purge is run with arguments it does not accept, then: it prints how to use it and exits 2 }
+  purge-denied: { command: purge, level: system, scenario: red, covers: [denied without archive.purge], given: a caller without archive.purge, when: purge is run, then: it is refused as not allowed }

@@ -1,0 +1,5 @@
+arguments: [validate, .]
+exitStatus: 1
+standardOutput: |
+  specarch.yaml:19:12: error: /commands/pack/remedies/0: exit_code: status 0 is success and needs no remedy; remove it, or key the remedy by the status it answers [exit_code@specarch.yaml#/commands/pack/remedies/0]
+  specarch.yaml:21:12: error: /commands/pack/remedies/3: exit_code: 3 is not an exit status of pack; list it under exitCodes or key the remedy by one that is [exit_code@specarch.yaml#/commands/pack/remedies/3]

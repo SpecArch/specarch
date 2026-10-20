@@ -25,6 +25,8 @@ commands:
     exitCodes:
       "0": the idioms were listed
       "2": usage error, a path that could not be read, or a specification with errors
+    remedies:
+      "2": "Run specarch validate and settle its errors, or correct the path it names, then run it again."
     satisfies: [SA-32]
     why: The shipped idioms apply without a word in the implementation file, so a reader needs one place that says which ones do, and where the project deviates.
   idioms diff:
@@ -54,5 +56,7 @@ commands:
     exitCodes:
       "0": the overrides were printed, or there was none
       "2": usage error, an idiom this program does not ship, a path that could not be read, or a specification with errors
+    remedies:
+      "2": "Run specarch validate and settle its errors, or correct the idiom's name or the path it names, then run it again."
     satisfies: [SA-32]
     why: An override records the version it was copied from, and the validator warns when a newer one ships; this is how the project sees what changed before it moves.

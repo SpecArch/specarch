@@ -216,8 +216,11 @@ implementation file uses and compares an override with the shipped idiom.
    are written for any specification that names their folder, an empty
    section said in one sentence naming its key (`spec/tests/document-writes-manual`,
    `document-manual-none`, `document-writes-operations`,
-   `document-operations-none`). Not built: a command-line tool's commands
-   in the manual, what a person does with a dead-letter item in the
+   `document-operations-none`). A command-line tool's commands came in
+   0.7.3 (ADR-165, `spec/tests/document-writes-manual-cli`): each with its
+   usage line from `info.program`, its arguments, options, files and exit
+   statuses with a command's `remedies`, and SpecArch's own manual is
+   `docs/manual.md`. Not built: what a person does with a dead-letter item in the
    operations guide (it says only that the item is kept apart), and other
    project documents. The handover document (0.7.0) says
    what a customer who runs the system receives.

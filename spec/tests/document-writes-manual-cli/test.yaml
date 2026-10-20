@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: document
+level: system
+scenario: golden
+given: "a specification with no pages that names its program and holds three commands: a public one with a repeatable argument, a required option, an option of enum values, a boolean option, the files it reads and writes, what it prints and a remedy for a failing status; a public one that writes no file; and a deprecated one whose permission a role a person holds grants"
+when: "document manual is run"
+then: "it writes manual.md with the role and the command it runs, the public commands named, the page sections each one sentence, and a section per command in the order of their words with its usage line after the program's name, who runs it, its arguments and options tables, what it reads and writes or that it writes no file, what it prints, and its exit statuses in order with their meaning and remedy, and exits 0"
+verifies: [SA-90]

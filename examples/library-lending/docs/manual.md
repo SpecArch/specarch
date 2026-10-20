@@ -2,7 +2,7 @@
 
 # Library Lending: user manual
 
-Version 0.1.0 of the specification: 1 task and 11 pages. For the people who use the system: who may open which page, how to reach it, the tasks done across pages step by step, and what each page asks for and answers.
+Version 0.1.0 of the specification: 1 task, 11 pages and 0 commands. For the people who use the system: who may open which page, how to reach it, the tasks done across pages step by step, what each page asks for and answers, and what each command takes, does and answers.
 
 A small public library lends books to its members. Members borrow a copy,
 keep it for a fixed loan period, and pay a late fee when they return it
@@ -291,4 +291,8 @@ When the system refuses:
 | You see | Why | What to do |
 |---|---|---|
 | The email address or the password is wrong. | No one has the email address, or the password does not match it. | Type the email address and the password again; after a forgotten password, reset it. |
+
+## 5. Commands
+
+The specification has no commands; each command a person types, with its arguments, options and exit statuses, is written under commands.
 

@@ -60,5 +60,8 @@ commands:
       "0": the dump was written
       "1": "the folder could not be read as committed code: it is in no git repository, it has changes not committed or files not tracked, no commit has changed it, the dump file is in a repository that does not hold the code's, or the reader's toolchain failed to build or to run it"
       "2": usage error, a language this build does not read, a folder that does not exist, a dump file whose folder does not exist or that could not be written, or a submodule folder with a quote or a backslash
+    remedies:
+      "1": "Commit the folder's changes and track its files, or install the toolchain of the reader named on standard error, then run it again."
+      "2": "Read the usage message or the reason on standard error, correct the command line or the path it names, and run it again."
     satisfies: [SA-44]
     why: A team that installs the binary has no checkout of this repository, so the readers come with the binary; the JavaScript reader is the TypeScript compiler's own Go source inside it, and the Swift and Dart readers, which need their own toolchains, are built from the pinned files it carries.

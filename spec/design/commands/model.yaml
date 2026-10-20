@@ -79,5 +79,7 @@ commands:
     exitCodes:
       "0": printed
       "2": usage error, a path could not be read, or a folder holds no specification, no implementation file and no estate
+    remedies:
+      "2": "Read the usage message or the reason on standard error, correct the command line or the path it names, and run it again."
     satisfies: [SA-74]
     why: An editor shows a specification as specarch reads it only when it reads it through specarch; a second loader in another language would drift from the first.

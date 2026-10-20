@@ -76,6 +76,9 @@ commands:
       "0": the record is written and the question taken out
       "1": refused; the question, the stakeholder or the source is unknown, the specification tracks origin and no source is given, design is not a stage, or the entry cannot be edited as text; or written, while the specification has errors
       "2": usage error, or a file that could not be read or written
+    remedies:
+      "1": "Read the refusal on standard error and correct the question, stakeholder or source it names, then run it again; when the record was written while the specification has errors, run specarch validate and settle them."
+      "2": "Read the usage message or the reason on standard error, correct the command line or the path it names, and run it again."
     satisfies: [SA-85]
     why: |
       An answered question is a decision with a context, a decision and

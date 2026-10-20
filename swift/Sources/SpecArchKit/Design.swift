@@ -680,6 +680,15 @@ extension Checker {
                     "only the last argument may be repeatable; move this argument to the end or make it a single value")
             }
             checkGuard(d, cmd.child("guard"), pointer("commands", name, "guard"))
+            let codes = cmd.child("exitCodes")
+            for r in pairs(cmd.child("remedies")) {
+                let ptr = pointer("commands", name, "remedies", r.key.value)
+                if r.key.value == "0" {
+                    add(r.key, ptr, .exitCode, "status 0 is success and needs no remedy; remove it, or key the remedy by the status it answers")
+                } else if let codes, codes.child(r.key.value) == nil {
+                    add(r.key, ptr, .exitCode, "\(r.key.value) is not an exit status of \(name); list it under exitCodes or key the remedy by one that is")
+                }
+            }
         }
     }
 

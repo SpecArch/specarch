@@ -144,6 +144,7 @@ public enum Rule: String, CaseIterable, Sendable {
     case via = "via"
     case tokenAudience = "token_audience"
     case securityEvents = "security_events"
+    case exitCode = "exit_code"
 }
 
 /// Whether a diagnostic makes the file invalid.

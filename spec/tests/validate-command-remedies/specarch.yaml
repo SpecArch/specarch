@@ -1,0 +1,25 @@
+specarch: "0.3"
+info:
+  title: Archive tool
+  version: 1.0.0
+  program: archive
+permissions:
+  public: { description: Anyone who has the program may run it. }
+commands:
+  pack:
+    summary: Pack a folder into one archive file
+    permission: public
+    arguments:
+      - { name: folder, required: true, schema: { type: string } }
+    exitCodes:
+      "0": the archive is written
+      "1": a file in the folder could not be read
+      "2": usage error
+    remedies:
+      "0": Open the archive.
+      "1": Give yourself read access to the file named, then run it again.
+      "3": Free some disk space.
+tests:
+  pack-succeeds: { command: pack, level: system, scenario: golden, given: a readable folder, when: pack is run, then: it writes the archive and exits 0 }
+  pack-unreadable-file: { command: pack, level: system, scenario: red, covers: [exit 1], given: a folder with a file no one may read, when: pack is run, then: it names the file and exits 1 }
+  pack-usage-error: { command: pack, level: system, scenario: red, covers: [usage error, exit 2], given: no folder, when: pack is run with arguments it does not accept, then: it prints how to use it and exits 2 }

@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: a command whose remedies name status 0 and a status its exitCodes does not list, beside a remedy for a listed status
+when: validate is run
+then: it reports exit_code at the remedy for 0 and at the one for the unlisted status, takes the listed one, and exits 1
+verifies: [SA-90]

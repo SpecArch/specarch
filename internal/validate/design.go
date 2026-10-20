@@ -622,6 +622,16 @@ func (c *checker) checkCommands(d *design) {
 			}
 		}
 		c.checkGuard(d, source.Child(cmd, "guard"), source.Pointer("commands", name, "guard"))
+		codes := source.Child(cmd, "exitCodes")
+		for _, r := range source.Pairs(source.Child(cmd, "remedies")) {
+			ptr := source.Pointer("commands", name, "remedies", r.Key.Value)
+			switch {
+			case r.Key.Value == "0":
+				c.add(r.Key, ptr, RuleExitCode, "status 0 is success and needs no remedy; remove it, or key the remedy by the status it answers")
+			case codes != nil && source.Child(codes, r.Key.Value) == nil:
+				c.add(r.Key, ptr, RuleExitCode, "%s is not an exit status of %s; list it under exitCodes or key the remedy by one that is", r.Key.Value, name)
+			}
+		}
 	}
 }
 

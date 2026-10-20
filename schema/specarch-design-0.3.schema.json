@@ -719,6 +719,11 @@
             "upper_snake"
           ]
         },
+        "program": {
+          "description": "SpecArch keyword. The name a person types to run the system's command-line interface, such as specarch: the word before every command's words, which the user manual writes in each command's usage line. Left out, the manual writes each command by its words alone and says that this key names the program (ADR-165).",
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9]*([-_.][a-z0-9]+)*$"
+        },
         "wireNames": {
           "description": "SpecArch keyword. How the interface writes a property's name on the wire, when not as the specification names it. snake_case: every property of every entity, view, body, parameter schema and message payload goes on the wire in snake_case (loanedOn is loaned_on, userId and userID are user_id), and so do the property names an idiom gives, such as a list's paging; the validator refuses two properties of one object that map to one wire name (wire_name). A parameter's own name is written as it is on the wire and is not mapped. Left out, every name goes on the wire as written.",
           "type": "string",
@@ -4424,6 +4429,17 @@
           "required": [
             "0"
           ]
+        },
+        "remedies": {
+          "description": "SpecArch keyword. What the person who ran the command does next after it exits with a status, in their words, keyed by a status exitCodes lists other than 0; the user manual writes it beside that status. Plain text with no reference in it (ADR-165).",
+          "type": "object",
+          "propertyNames": {
+            "pattern": "^(0|[1-9][0-9]?|1[0-9][0-9]|2[0-4][0-9]|25[0-5])$"
+          },
+          "additionalProperties": {
+            "type": "string",
+            "minLength": 1
+          }
         },
         "guard": {
           "$ref": "#/$defs/guard"

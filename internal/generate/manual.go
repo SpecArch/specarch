@@ -2,6 +2,8 @@ package generate
 
 import (
 	"fmt"
+	"sort"
+	"strconv"
 	"strings"
 
 	"go.yaml.in/yaml/v3"
@@ -19,8 +21,10 @@ func Manual(root *yaml.Node, relRoot string, impls []Implementation, state *Stat
 	flows := pairs(root, "flows")
 	d.line("# %s: user manual", str(info, "title"))
 	d.blank()
-	d.para(fmt.Sprintf("Version %s of the specification: %s and %s. For the people who use the system: who may open which page, how to reach it, the tasks done across pages step by step, and what each page asks for and answers.",
-		str(info, "version"), countText(len(flows), "task", "tasks"), countText(len(pages), "page", "pages")))
+	commands := pairs(root, "commands")
+	sort.SliceStable(commands, func(i, j int) bool { return commands[i].Key.Value < commands[j].Key.Value })
+	d.para(fmt.Sprintf("Version %s of the specification: %s, %s and %s. For the people who use the system: who may open which page, how to reach it, the tasks done across pages step by step, what each page asks for and answers, and what each command takes, does and answers.",
+		str(info, "version"), countText(len(flows), "task", "tasks"), countText(len(pages), "page", "pages"), countText(len(commands), "command", "commands")))
 	d.draftNotice("manual")
 	d.para(str(info, "description"))
 
@@ -29,21 +33,39 @@ func Manual(root *yaml.Node, relRoot string, impls []Implementation, state *Stat
 	if len(people) == 0 {
 		d.para("The specification has no role a person holds; the roles under roles, with the permissions the pages need, say who may open each page.")
 	} else {
-		d.para("Each role a person holds, and the pages it opens. A person holding several roles opens the pages of each.")
-		d.line("| Role | Who they are | Pages they open |")
-		d.line("|---|---|---|")
+		if len(commands) == 0 {
+			d.para("Each role a person holds, and the pages it opens. A person holding several roles opens the pages of each.")
+			d.line("| Role | Who they are | Pages they open |")
+			d.line("|---|---|---|")
+		} else {
+			d.para("Each role a person holds, and the pages it opens and the commands it runs. A person holding several roles opens the pages and runs the commands of each.")
+			d.line("| Role | Who they are | Pages they open | Commands they run |")
+			d.line("|---|---|---|---|")
+		}
 		for _, r := range people {
-			var opens []string
+			var opens, runs []string
 			held := roleHolds(root, r.Value)
 			for _, p := range pages {
 				if perm := str(p.Value, "permission"); perm != "" && perm != "public" && held[perm] {
 					opens = append(opens, pageTitle(p.Key.Value, p.Value))
 				}
 			}
+			for _, c := range commands {
+				if perm := str(c.Value, "permission"); perm != "" && perm != "public" && held[perm] {
+					runs = append(runs, c.Key.Value)
+				}
+			}
 			if len(opens) == 0 {
 				opens = []string{"none"}
 			}
-			d.line("| %s | %s | %s |", markInternal(r.Key.Value, r.Value), cell(str(r.Value, "description")), cell(strings.Join(opens, ", ")))
+			if len(commands) == 0 {
+				d.line("| %s | %s | %s |", markInternal(r.Key.Value, r.Value), cell(str(r.Value, "description")), cell(strings.Join(opens, ", ")))
+				continue
+			}
+			if len(runs) == 0 {
+				runs = []string{"none"}
+			}
+			d.line("| %s | %s | %s | %s |", markInternal(r.Key.Value, r.Value), cell(str(r.Value, "description")), cell(strings.Join(opens, ", ")), cell(strings.Join(runs, ", ")))
 		}
 		d.blank()
 		d.explainRows(rowsOf(people))
@@ -56,6 +78,16 @@ func Manual(root *yaml.Node, relRoot string, impls []Implementation, state *Stat
 	}
 	if len(open) > 0 {
 		d.para("Anyone opens these pages, signed in or not: " + strings.Join(open, ", ") + ".")
+	}
+	var anyone []string
+	for _, c := range commands {
+		if str(c.Value, "permission") == "public" {
+			anyone = append(anyone, c.Key.Value)
+		}
+	}
+	if len(anyone) > 0 {
+		sort.Strings(anyone)
+		d.para("Anyone who has the program runs these commands: " + strings.Join(anyone, ", ") + ".")
 	}
 
 	d.section("Finding your way")
@@ -103,6 +135,20 @@ func Manual(root *yaml.Node, relRoot string, impls []Implementation, state *Stat
 	}
 	for _, p := range pages {
 		manualPage(d, root, p.Key.Value, p.Value)
+	}
+
+	d.section("Commands")
+	program := str(info, "program")
+	switch {
+	case len(commands) == 0:
+		d.para("The specification has no commands; each command a person types, with its arguments, options and exit statuses, is written under commands.")
+	case program == "":
+		d.para("The specification names no program, so each command is written by its words alone; the name a person types before them is written under info.program.")
+	default:
+		d.para("Each command is typed after the program's name, " + program + ", in a terminal. A word in angle brackets is a value to give, one in square brackets may be left out, and ... means one or more.")
+	}
+	for _, c := range commands {
+		manualCommand(d, root, program, c.Key.Value, c.Value)
 	}
 	d.sourcesIndex("Sources")
 	return d.String()
@@ -462,4 +508,133 @@ func afterSubmit(root, on *yaml.Node) string {
 		}
 	}
 	return strings.Join(parts, " Or: ")
+}
+
+// manualCommand writes one command: what it does, how it is typed, who
+// runs it, what to give it, what it reads, writes and prints, and each
+// exit status with what to do next.
+func manualCommand(d *doc, root *yaml.Node, program, name string, c *yaml.Node) {
+	words := name
+	if program != "" {
+		words = program + " " + name
+	}
+	d.heading(3, words)
+	d.para(sentence(str(c, "summary")))
+	d.para(str(c, "description"))
+	d.explain(c)
+	d.block("```\n" + usageLine(words, c) + "\n```\n")
+	d.para(whoRuns(root, str(c, "permission")))
+	if str(c, "deprecated") == "true" {
+		d.para("This command is deprecated: it still runs, and is kept only until it is removed.")
+	}
+	if s := str(c, "enabledBy"); s != "" {
+		d.para("It runs only while the setting " + s + " is on.")
+	}
+	if args := items(c, "arguments"); len(args) > 0 {
+		d.line("| Argument | What to give | Required |")
+		d.line("|---|---|---|")
+		for _, a := range args {
+			what := strings.TrimSpace(str(a, "description"))
+			if str(a, "repeatable") == "true" {
+				what = strings.TrimSpace(what + " One or more.")
+			}
+			req := ""
+			if str(a, "required") == "true" {
+				req = "yes"
+			}
+			d.line("| `<%s>` | %s | %s |", str(a, "name"), cell(what), req)
+		}
+		d.blank()
+	}
+	if opts := pairs(c, "options"); len(opts) > 0 {
+		d.line("| Option | What it does | Required |")
+		d.line("|---|---|---|")
+		for _, o := range opts {
+			req := ""
+			if str(o.Value, "required") == "true" {
+				req = "yes"
+			}
+			what := strings.TrimSpace(str(o.Value, "description"))
+			if values := strs(get(o.Value, "schema"), "enum"); len(values) > 0 {
+				what = strings.TrimSpace(what + " One of: " + strings.Join(values, ", ") + ".")
+			}
+			d.line("| `%s` | %s | %s |", optionText(o.Key.Value, o.Value), cell(what), req)
+		}
+		d.blank()
+	}
+	for _, f := range [][2]string{{"reads", "It reads:"}, {"writes", "It writes:"}} {
+		if list := items(c, f[0]); len(list) > 0 {
+			d.para(f[1])
+			for _, u := range list {
+				d.line("- `%s`: %s", str(u, "path"), oneParagraph(str(u, "description")))
+			}
+			d.blank()
+		}
+	}
+	if get(c, "writes") == nil {
+		d.para("It writes no file.")
+	}
+	for _, f := range [][2]string{{"standardOutput", "On standard output"}, {"standardError", "On standard error"}} {
+		if s := str(c, f[0]); s != "" {
+			d.para(f[1] + ": " + s)
+		}
+	}
+	codes := pairs(c, "exitCodes")
+	sort.SliceStable(codes, func(i, j int) bool {
+		a, _ := strconv.Atoi(codes[i].Key.Value)
+		b, _ := strconv.Atoi(codes[j].Key.Value)
+		return a < b
+	})
+	if len(codes) > 0 {
+		remedies := get(c, "remedies")
+		d.line("| Exit status | It means | What to do |")
+		d.line("|---|---|---|")
+		for _, e := range codes {
+			d.line("| %s | %s | %s |", e.Key.Value, cell(e.Value.Value), cell(str(remedies, e.Key.Value)))
+		}
+		d.blank()
+	}
+}
+
+// usageLine is how a command is typed: its words, its arguments in
+// order, and its options, an optional one in square brackets.
+func usageLine(words string, c *yaml.Node) string {
+	parts := []string{words}
+	for _, a := range items(c, "arguments") {
+		arg := "<" + str(a, "name") + ">"
+		if str(a, "repeatable") == "true" {
+			arg += "..."
+		}
+		if str(a, "required") != "true" {
+			arg = "[" + arg + "]"
+		}
+		parts = append(parts, arg)
+	}
+	for _, o := range pairs(c, "options") {
+		opt := optionText(o.Key.Value, o.Value)
+		if str(o.Value, "required") != "true" {
+			opt = "[" + opt + "]"
+		}
+		parts = append(parts, opt)
+	}
+	return strings.Join(parts, " ")
+}
+
+// optionText is an option as typed: a switch alone, or with the value it
+// takes.
+func optionText(name string, o *yaml.Node) string {
+	if str(get(o, "schema"), "type") == "boolean" {
+		return "--" + name
+	}
+	return "--" + name + " <" + name + ">"
+}
+
+// whoRuns says who may run a command with a permission.
+func whoRuns(root *yaml.Node, perm string) string {
+	if perm == "public" {
+		return "Anyone who has the program runs it."
+	}
+	text := whoOpens(root, perm)
+	text = strings.Replace(text, "Opened by", "Run by", 1)
+	return text
 }

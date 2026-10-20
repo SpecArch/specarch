@@ -2,7 +2,7 @@
 
 # Ledger: user manual
 
-Version 1.0.0 of the specification: 0 tasks and 0 pages. For the people who use the system: who may open which page, how to reach it, the tasks done across pages step by step, and what each page asks for and answers.
+Version 1.0.0 of the specification: 0 tasks, 0 pages and 0 commands. For the people who use the system: who may open which page, how to reach it, the tasks done across pages step by step, what each page asks for and answers, and what each command takes, does and answers.
 
 A service with no screens yet.
 
@@ -21,4 +21,8 @@ The specification has no flows; a task a person does across pages, with who does
 ## 4. Pages
 
 The specification has no pages; each screen a person opens, with its fields and actions, is written under pages.
+
+## 5. Commands
+
+The specification has no commands; each command a person types, with its arguments, options and exit statuses, is written under commands.
 

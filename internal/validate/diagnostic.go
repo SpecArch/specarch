@@ -153,6 +153,7 @@ const (
 	RuleVia                    Rule = "via"
 	RuleTokenAudience          Rule = "token_audience"
 	RuleSecurityEvents         Rule = "security_events"
+	RuleExitCode               Rule = "exit_code"
 )
 
 // Rules lists every rule, in the order of the design's Rule enum.
@@ -298,6 +299,7 @@ var Rules = []Rule{
 	RuleVia,
 	RuleTokenAudience,
 	RuleSecurityEvents,
+	RuleExitCode,
 }
 
 // Severity says whether a diagnostic makes the file invalid.

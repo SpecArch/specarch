@@ -311,5 +311,8 @@ commands:
       "0": the merged specification was written
       "1": "a tree could not be merged: it does not track origin, validate reports an error in it, it holds implementation files or records or a test that is not the draft derive writes for it, or it declares a source another tree declares differently, or whose paths changed after the commit a tree read them at; or a vocabulary that is not one this build reads"
       "2": usage error, fewer than two trees, two vocabularies of one language, or a folder or file that could not be read or written
+    remedies:
+      "1": "Read the reason on standard error and settle the tree it names, running specarch validate on it, then run it again."
+      "2": "Read the usage message or the reason on standard error, correct the command line or the path it names, and run it again."
     satisfies: [SA-45, SA-64]
     why: The readers write one tree per surface so that each is checked on its own; the comparison between surfaces, and between the documents and the code, is made once, here, where a disagreement becomes a question rather than a choice.

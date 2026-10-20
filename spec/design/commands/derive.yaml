@@ -61,6 +61,9 @@ commands:
       "0": the tests were written, or there was nothing to write
       "1": a specification has errors other than the missing tests it writes, or a draft's name is taken by another draft or by a test of another subject
       "2": usage error, a path that could not be read or written, or a specification that keeps its tests in the root file
+    remedies:
+      "1": "Run specarch validate and settle the errors it prints, or rename the draft it names, then run it again."
+      "2": "Read the reason on standard error; move tests kept in the root file into the tests stage's folder, or correct the command line or the path it names, and run it again."
     satisfies: [SA-28]
     why: |
       The validator already says which tests a specification implies and

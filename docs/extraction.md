@@ -490,9 +490,12 @@ changes `extract.yaml` first.
     subrouters and `ServeMux` subtrees: `http.ServeMux` patterns, chi,
     gin, echo and gorilla/mux. A type of the module with `ServeMux`'s
     `Handle` method is read as a `ServeMux`, so a route printer's
-    recorder is one. Each route registered with literal values outside
-    a loop or a condition is an operation named as extract router names
-    one; handlers give the path parameters they read, the JSON body they
+    recorder is one. Each route registered with literal values, a
+    package-level string constant of the module or a package-level
+    method list no statement of its package changes among them
+    (ADR-143), outside a loop or a condition is an operation named as
+    extract router names one; handlers give the path parameters they
+    read, the JSON body they
     decode into a struct of the module or a struct type written in place
     at the variable, by encoding/json's rules, with
     go-playground/validator's and gin's tag rules that have a keyword,

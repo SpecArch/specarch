@@ -843,12 +843,25 @@ commands:
         `METHOD /path`, chi's `Get` and the other method calls and
         `Method`, gin's and echo's `GET` and the others, `Handle`, `Add`
         and `Match` with a literal list, and gorilla/mux's `HandleFunc`,
-        `Handle`, `Path` and `HandlerFunc` with `Methods`. Its parameters,
+        `Handle`, `Path` and `HandlerFunc` with `Methods`. A path, a
+        method or a prefix written as a package-level constant of a
+        string type is the literal it names, of the same package by its
+        name where no parameter or statement of the function declares
+        that name, or of another package of the module through its
+        import, and so is one of literals and constants joined by `+`;
+        a method list written as a package-level var is a literal list
+        when its value is a composite literal of string literals, string
+        constants or `net/http` method constants and no statement of its
+        package assigns to the name, declares it again, appends to it or
+        takes its address, and the question for any other list says what
+        stopped the reader: the second assignment and its line, or the
+        value that is not a list (ADR-143). Its parameters,
         written `{name}`, `:name` or `{name:pattern}`, are written
         `{name}`, a pattern with a line. It is named as extract router
         names a route, after its handler, and cites its registration and
         its handler's first line. A route for every method, a path,
-        method or prefix that is not a literal, a router given from code
+        method or prefix that is neither a literal nor a constant the
+        reader reads, a router given from code
         not followed, a handler handed a subtree that is not a router, a
         registration in a loop or behind a condition and the same method
         and path twice are must questions; a host in a pattern, a rest

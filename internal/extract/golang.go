@@ -146,7 +146,7 @@ func Go(paths []string, out, key, implementation string, writeImplementation boo
 	res := &Result{Tree: newTree()}
 	commitLine(res, r)
 	g := &goReader{r: r, key: key, res: res, questions: &yaml.Node{Kind: yaml.MappingNode}, fset: gotoken.NewFileSet(),
-		funcs: map[string]map[string]*ast.FuncDecl{}, funcFile: map[*ast.FuncDecl]*goFile{}, rt: &routeState{}, faultAt: map[string]*goFault{}}
+		funcs: map[string]map[string]*ast.FuncDecl{}, funcFile: map[*ast.FuncDecl]*goFile{}, consts: map[string]map[string]*goConst{}, lists: map[string]map[string]*goList{}, rt: &routeState{}, faultAt: map[string]*goFault{}}
 	if err := g.parse(); err != nil {
 		return nil, err
 	}
@@ -289,6 +289,8 @@ type goReader struct {
 	modRoot   string                              // go.mod's folder from the repository's root
 	funcs     map[string]map[string]*ast.FuncDecl // folder -> function name -> declaration
 	funcFile  map[*ast.FuncDecl]*goFile
+	consts    map[string]map[string]*goConst // folder -> constant name -> the package-level constant (ADR-143)
+	lists     map[string]map[string]*goList  // folder -> var name -> the package-level list
 	endpoints []*goEndpoint
 	methodsOn map[string]map[string]bool // URI -> the methods registered on it, as dxlib counts them
 	paths     *yaml.Node
@@ -463,6 +465,7 @@ func (g *goReader) parse() error {
 			}
 		}
 	}
+	g.collectPackageValues()
 	dxlib := 0
 	for _, f := range g.files {
 		if f.importName(dxlibAPI) != "" {

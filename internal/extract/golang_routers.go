@@ -497,6 +497,10 @@ type routeScope struct {
 	// function walked, or a function of the module).
 	strs  map[string]string
 	funcs map[string]heldFunc
+	// locals holds each name a parameter or a statement of the function
+	// declares, so that a package-level constant of that name is not read
+	// where the local hides it (ADR-143).
+	locals map[string]bool
 	// The function literals held in local names, in order; each is walked
 	// at every call of its name with the arguments bound, and one no call
 	// names is walked once with nothing bound, after the function.
@@ -522,16 +526,17 @@ type walkBlock struct {
 
 // heldName is what a name held before a block declared it again.
 type heldName struct {
-	env                         *routerNode
-	typ, str                    string
-	fn                          heldFunc
-	hadEnv, hadTyp, hadStr, had bool
+	env                                   *routerNode
+	typ, str                              string
+	fn                                    heldFunc
+	hadEnv, hadTyp, hadStr, had, hadLocal bool
 }
 
 // declare notes that name is declared in the innermost block being
 // walked, so what it held before comes back at the block's end.
 func (sc *routeScope) declare(name string) {
 	if len(sc.blocks) == 0 {
+		sc.locals[name] = true
 		return
 	}
 	top := sc.blocks[len(sc.blocks)-1].saved
@@ -541,8 +546,10 @@ func (sc *routeScope) declare(name string) {
 		h.typ, h.hadTyp = sc.types[name]
 		h.str, h.hadStr = sc.strs[name]
 		h.fn, h.had = sc.funcs[name]
+		h.hadLocal = sc.locals[name]
 		top[name] = h
 	}
+	sc.locals[name] = true
 }
 
 // endBlock walks each function literal declared in the block that no
@@ -562,6 +569,7 @@ func (sc *routeScope) endBlock() {
 		restoreName(h.hadTyp, func() { sc.types[name] = h.typ }, func() { delete(sc.types, name) })
 		restoreName(h.hadStr, func() { sc.strs[name] = h.str }, func() { delete(sc.strs, name) })
 		restoreName(h.had, func() { sc.funcs[name] = h.fn }, func() { delete(sc.funcs, name) })
+		restoreName(h.hadLocal, func() { sc.locals[name] = true }, func() { delete(sc.locals, name) })
 	}
 	sc.blocks = sc.blocks[:len(sc.blocks)-1]
 }
@@ -644,6 +652,7 @@ func (g *goReader) walkFunc(f *goFile, fd *ast.FuncDecl, bound map[int]binding, 
 	sc := g.newScope(f)
 	if fd.Recv != nil && len(fd.Recv.List) == 1 && len(fd.Recv.List[0].Names) == 1 {
 		sc.types[fd.Recv.List[0].Names[0].Name] = g.typeKey(f, fd.Recv.List[0].Type)
+		sc.locals[fd.Recv.List[0].Names[0].Name] = true
 	}
 	sc.bindParams(fd.Type, bound, given, fd.Pos())
 	sc.walk(fd.Body)
@@ -654,7 +663,7 @@ func (g *goReader) walkFunc(f *goFile, fd *ast.FuncDecl, bound map[int]binding, 
 
 func (g *goReader) newScope(f *goFile) *routeScope {
 	return &routeScope{g: g, file: f, env: map[string]*routerNode{}, types: map[string]string{}, nodes: map[ast.Expr]*routerNode{}, skip: map[ast.Node]bool{},
-		strs: map[string]string{}, funcs: map[string]heldFunc{}, active: map[*ast.FuncLit]bool{}}
+		strs: map[string]string{}, funcs: map[string]heldFunc{}, locals: map[string]bool{}, active: map[*ast.FuncLit]bool{}}
 }
 
 // bindParams binds a function's parameters to what a call passes them, and
@@ -672,6 +681,7 @@ func (sc *routeScope) bindParams(ft *ast.FuncType, bound map[int]binding, given 
 		hadTyp   bool
 		hadStr   bool
 		hadFn    bool
+		hadLocal bool
 	}
 	before := map[string]held{}
 	i := 0
@@ -689,11 +699,13 @@ func (sc *routeScope) bindParams(ft *ast.FuncType, bound map[int]binding, given 
 				h.typ, h.hadTyp = sc.types[name]
 				h.str, h.hadStr = sc.strs[name]
 				h.fn, h.hadFn = sc.funcs[name]
+				h.hadLocal = sc.locals[name]
 				before[name] = h
 				delete(sc.env, name)
 				delete(sc.types, name)
 				delete(sc.strs, name)
 				delete(sc.funcs, name)
+				sc.locals[name] = true
 				if t != "" {
 					sc.types[name] = t
 				}
@@ -724,6 +736,7 @@ func (sc *routeScope) bindParams(ft *ast.FuncType, bound map[int]binding, given 
 			restore(h.hadTyp, func() { sc.types[name] = h.typ }, func() { delete(sc.types, name) })
 			restore(h.hadStr, func() { sc.strs[name] = h.str }, func() { delete(sc.strs, name) })
 			restore(h.hadFn, func() { sc.funcs[name] = h.fn }, func() { delete(sc.funcs, name) })
+			restore(h.hadLocal, func() { sc.locals[name] = true }, func() { delete(sc.locals, name) })
 		}
 	}
 }
@@ -791,13 +804,26 @@ func (sc *routeScope) walkUnused(bound map[int]binding) {
 	}
 }
 
-// stringValue is a string literal, a concatenation of them, or a name a
-// call bound to one.
+// stringValue is a string literal, a concatenation of them, a name a call
+// bound to one, or a package-level constant of the module whose value is
+// one (ADR-143): one of this package by its name, where no parameter or
+// statement of the function declares that name, or of another package
+// through its import.
 func (sc *routeScope) stringValue(e ast.Expr) (string, bool) {
 	switch e := e.(type) {
 	case *ast.Ident:
-		s, ok := sc.strs[e.Name]
-		return s, ok
+		if s, ok := sc.strs[e.Name]; ok {
+			return s, true
+		}
+		if sc.locals[e.Name] {
+			return "", false
+		}
+		return sc.g.constString(sc.file, e, 0)
+	case *ast.SelectorExpr:
+		if x, ok := e.X.(*ast.Ident); ok && !sc.locals[x.Name] && sc.env[x.Name] == nil {
+			return sc.g.constString(sc.file, e, 0)
+		}
+		return "", false
 	case *ast.ParenExpr:
 		return sc.stringValue(e.X)
 	case *ast.BinaryExpr:
@@ -808,6 +834,44 @@ func (sc *routeScope) stringValue(e ast.Expr) (string, bool) {
 		}
 	}
 	return sc.g.stringValue(sc.file, e)
+}
+
+// methodValue is a method as a string literal, a net/http constant, or a
+// string the scope reads, a package-level constant among them.
+func (sc *routeScope) methodValue(e ast.Expr) (string, bool) {
+	if m, ok := sc.g.methodValue(sc.file, e); ok {
+		return m, true
+	}
+	if s, ok := sc.stringValue(e); ok {
+		return s, routeMethod.MatchString(strings.ToUpper(s))
+	}
+	return "", false
+}
+
+// methodList is a list of methods as the code writes it: a composite
+// literal, or a package-level list the reader reads as one (ADR-143);
+// why says what stopped the reader from reading a name as a list.
+func (sc *routeScope) methodList(e ast.Expr) (list []ast.Expr, why string) {
+	if cl, ok := e.(*ast.CompositeLit); ok {
+		return cl.Elts, ""
+	}
+	switch x := e.(type) {
+	case *ast.Ident:
+		if sc.locals[x.Name] || sc.strs[x.Name] != "" || sc.env[x.Name] != nil {
+			return nil, "is not a literal list"
+		}
+	case *ast.SelectorExpr:
+		if id, ok := x.X.(*ast.Ident); !ok || sc.locals[id.Name] || sc.env[id.Name] != nil {
+			return nil, "is not a literal list"
+		}
+	default:
+		return nil, "is not a literal list"
+	}
+	list, why, found := sc.g.methodList(sc.file, e)
+	if !found {
+		return nil, "is not a literal list"
+	}
+	return list, why
 }
 
 // hasRouterParam says whether a function takes a router.
@@ -872,6 +936,14 @@ func (sc *routeScope) visit(n ast.Node) bool {
 			names = append(names, id)
 		}
 		sc.assignResults(names, n.Values)
+	case *ast.RangeStmt:
+		if n.Tok == gotoken.DEFINE {
+			for _, e := range []ast.Expr{n.Key, n.Value} {
+				if id, ok := e.(*ast.Ident); ok {
+					sc.declare(id.Name)
+				}
+			}
+		}
 	case *ast.ReturnStmt:
 		if len(n.Results) == 1 && sc.ret == nil {
 			sc.ret = sc.eval(n.Results[0])
@@ -1468,6 +1540,15 @@ func (sc *routeScope) gorilla(recv *routerNode, chain []*ast.CallExpr) {
 			}
 		case "Methods":
 			methods, methodsSet = c.Args, true
+			if c.Ellipsis.IsValid() && len(c.Args) == 1 {
+				list, why := sc.methodList(c.Args[0])
+				if why != "" {
+					g.question("must", fmt.Sprintf("%s registers a route with Methods on %s, which %s. Which methods and path does it register?", clause, exprText(c.Args[0]), why),
+						[]string{"paths"}, "A method computed at run time is a guess for syntax; an operation is never written from a guess.", g.at(clause, fmt.Sprintf("Calls Methods with %s, which %s.", exprText(c.Args[0]), why)))
+					return
+				}
+				methods = list
+			}
 		case "Name":
 		default:
 			other = s.Sel.Name
@@ -1540,17 +1621,17 @@ func (sc *routeScope) register(recv *routerNode, call *ast.CallExpr, name string
 		case (name == "Handle" && recv.lib == "gin" || name == "Add" && recv.lib == "echo") && len(args) >= 3:
 			methods, pathExpr, args = args[:1], args[1], args[1:]
 		case name == "Match" && len(args) >= 3:
-			list, ok := args[0].(*ast.CompositeLit)
-			if !ok {
+			list, why := sc.methodList(args[0])
+			if why != "" {
 				if !sc.countOnce(recv, call) {
 					return true
 				}
 				g.citeFile(sc.file)
-				g.question("must", fmt.Sprintf("%s registers a route with Match on methods %s, which is not a literal list. Which methods and path does it register?", clause, exprText(args[0])),
-					[]string{"paths"}, "A method computed at run time is a guess for syntax; an operation is never written from a guess.", g.at(clause, "Calls Match with methods that are not a literal list."))
+				g.question("must", fmt.Sprintf("%s registers a route with Match on methods %s, which %s. Which methods and path does it register?", clause, exprText(args[0]), why),
+					[]string{"paths"}, "A method computed at run time is a guess for syntax; an operation is never written from a guess.", g.at(clause, fmt.Sprintf("Calls Match with methods %s, which %s.", exprText(args[0]), why)))
 				return true
 			}
-			methods, pathExpr, args = list.Elts, args[1], args[1:]
+			methods, pathExpr, args = list, args[1], args[1:]
 		case name == "Any" && len(args) >= 2:
 			if sc.countOnce(recv, call) {
 				g.citeFile(sc.file)
@@ -1710,7 +1791,7 @@ func (sc *routeScope) record(recv *routerNode, call ast.Node, clause string, met
 	}
 	var list []string
 	for _, m := range methods {
-		v, ok := g.methodValue(sc.file, m)
+		v, ok := sc.methodValue(m)
 		if !ok {
 			sc.unread(clause, "method "+exprText(m))
 			return

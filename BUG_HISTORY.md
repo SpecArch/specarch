@@ -402,6 +402,58 @@ An OpenAPI document declares a schema that no operation creates, so `extract ope
 
 Expected: the merge keeps both entries and asks a must question at the schema whether the name is one element or two, citing both, and the merged tree passes `validate` with the question open. The same for a view named like an entity, and a schema like a view.
 
+## BUG-028 — extract go: a route whose path is a package-level constant, or whose Match method list is a package-level list, is a question instead of an operation
+
+- Reported: 2026-10-19, from reading a gateway service whose routes are registered through the module's own constants
+- Design: `docs/gateway.md`, section 3; ADR-143
+- Closed: 2026-10-20, completed
+- Fixed by: the commit on `main` whose message says `Fixes BUG-028`; ADR-143
+
+A Go module registers its routes on a gin router with the paths and the method list declared at package level. The fixture is this one file, `main.go`, complete, as the only file of a module committed in a repository of its own and read with `specarch extract go --out <folder> <repository>`; the line numbers cited here and in BUG-029 are its:
+
+    package main
+
+    import (
+    	"net/http"
+
+    	"github.com/gin-gonic/gin"
+    )
+
+    const (
+    	healthLivePath  = "/live"
+    	healthReadyPath = "/ready"
+    	metricsPath     = "/metrics"
+    )
+
+    var healthMethods = []string{http.MethodGet, http.MethodHead}
+
+    func main() {
+    	r := gin.New()
+    	r.Match(healthMethods, healthLivePath, live)
+    	r.Match([]string{"GET", "HEAD"}, healthReadyPath, ready)
+    	r.Match([]string{"GET", "HEAD"}, "/started", started)
+    	r.GET(metricsPath, metrics)
+    	r.GET("/version", version)
+    	r.NoRoute(proxy)
+    	r.Run(":8080")
+    }
+
+    func live(c *gin.Context)    { c.Status(204) }
+    func ready(c *gin.Context)   { c.Status(204) }
+    func started(c *gin.Context) { c.Status(204) }
+    func metrics(c *gin.Context) { c.String(200, "") }
+    func version(c *gin.Context) { c.String(200, "") }
+
+    // proxy forwards every request no route answers to the service the
+    // token's audience names.
+    func proxy(c *gin.Context) {
+    	c.Status(502)
+    }
+
+Expected 5 operations. `specarch extract go` (0.7.0) writes 2, the two whose path is a literal, and asks a must question for each of the other three: "registers a route with Match on methods healthMethods, which is not a literal list" and "registers a route whose path healthReadyPath the reader does not read as a literal", at `main.go:19`, `main.go:20` and `main.go:22`.
+
+Cause: `stringValue` in `internal/extract/golang.go` reads a string literal, literals joined by `+` and a name a call bound, and never a package-level `const`; `register` in `internal/extract/golang_routers.go` reads `Match`'s methods only from a composite literal written in the call, never from a package-level `var` holding one. Go gives a constant one value at compile time, and a list assigned once and never changed is as plain to syntax. The fix is ADR-143's rule: a package-level string constant is the literal it names, and a package-level list is a literal list when nothing in the package assigns to it, appends to it or takes its address.
+
 ## BUG-032 — validate (Swift build): an all-digit commit past 64 bits, written without quotes, passes as a string, and no check reads the fixture that holds one
 
 - Reported: 2026-10-20, found by an outside schema check of this repository's own specifications

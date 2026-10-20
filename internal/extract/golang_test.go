@@ -895,3 +895,82 @@ func (s *Server) Save(c *gin.Context) {
 		t.Errorf("a typed map is asked about:\n%s", questions)
 	}
 }
+
+// TestGoConstantsAcrossPackages reads a path from a constant of another
+// package of the module through its import, one joined from it by +, a
+// method list of that package assigned once, a list spread into
+// gorilla/mux's Methods, and a method from a constant (ADR-143); and keeps
+// the question where a local of the function hides a constant.
+func TestGoConstantsAcrossPackages(t *testing.T) {
+	paths, questions := goRouterOperations(t, map[string]string{
+		"go.mod": "module example.com/gateway\n\ngo 1.26\n",
+		"paths/paths.go": `package paths
+
+import "net/http"
+
+const (
+	Base  = "/api"
+	Users = Base + "/users"
+	Items = "/items"
+	Read  = "GET"
+)
+
+var Methods = []string{http.MethodGet, http.MethodHead}
+`,
+		"cmd/gin/main.go": `package main
+
+import (
+	"os"
+
+	"github.com/gin-gonic/gin"
+
+	"example.com/gateway/paths"
+)
+
+const localPath = paths.Base + "/local"
+
+func main() {
+	r := gin.New()
+	r.GET(paths.Users, h)
+	r.Handle(paths.Read, paths.Items, h)
+	r.Match(paths.Methods, localPath, h)
+	localPath := os.Getenv("LOCAL")
+	r.POST(localPath, h)
+	r.Run(":8080")
+}
+
+func h(c *gin.Context) {}
+`,
+		"cmd/mux/main.go": `package main
+
+import (
+	"net/http"
+
+	"github.com/gorilla/mux"
+
+	"example.com/gateway/paths"
+)
+
+func main() {
+	r := mux.NewRouter()
+	r.HandleFunc(paths.Items, h).Methods(paths.Methods...)
+	http.ListenAndServe(":8081", r)
+}
+
+func h(w http.ResponseWriter, r *http.Request) {}
+`,
+	})
+	for _, want := range []string{"/api/users:\n    get:", "/items:\n    get:", "/api/local:\n    get:"} {
+		if !strings.Contains(paths, want) {
+			t.Errorf("the tree does not hold %q:\n%s", want, paths)
+		}
+	}
+	if !strings.Contains(questions, "registers a route whose path localPath the reader does not read as a literal") {
+		t.Errorf("the local that hides the constant did not keep the question:\n%s", questions)
+	}
+	for _, said := range []string{"paths.Users", "paths.Items", "paths.Methods", "paths.Read"} {
+		if strings.Contains(questions, "whose path "+said) || strings.Contains(questions, "on methods "+said) || strings.Contains(questions, "method "+said) {
+			t.Errorf("a question was asked about %s:\n%s", said, questions)
+		}
+	}
+}

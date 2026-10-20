@@ -1,0 +1,9 @@
+specarchImplementation: "0.1"
+info: { title: Vault on dxlib, version: 1.0.0 }
+implements: { file: ../../specarch.yaml, version: 1.0.0 }
+stack: { language: { name: Go, version: "1.26" } }
+targets:
+  openapi:
+    output: ../../../out
+    dialect: dxlib
+    settings: { envelopes: { preKey: v3, session: v4 } }

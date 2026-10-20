@@ -18,6 +18,109 @@ import (
 // envelope, and EndPointTypeHTTPDownloadStreamV2 sends its request in it.
 const preKeyHandshake = "preKey"
 
+// sessionHandshake is the name the reader gives the handshake dxlib's
+// persistent-session types V3 and V4 carry when the module's hooks open and
+// seal dxlib's datablock, the pre-key envelope's bytes (ADR-163).
+const sessionHandshake = "session"
+
+// dxlibDatablock is dxlib's package that packs the pre-key envelope.
+const dxlibDatablock = "github.com/donnyhardyanto/dxlib/utils/crypto/datablock"
+
+// goHook is a function the module sets as one of dxlib's V3 or V4 hooks.
+type goHook struct {
+	at    string // where it is set
+	fn    string // the expression set
+	opens bool   // it opens (an unpack hook) or seals (a pack hook) dxlib's datablock
+	why   string // why not, when it does not
+}
+
+// sessionHook records an assignment of dxlib's V3 or V4 envelope hooks, and
+// whether the function set opens or seals dxlib's datablock, followed
+// through the functions of the module it calls, three deep.
+func (g *goReader) sessionHook(f *goFile, as *ast.AssignStmt) {
+	apiName := f.importName(dxlibAPI)
+	for i, l := range as.Lhs {
+		sel, ok := l.(*ast.SelectorExpr)
+		if !ok || i >= len(as.Rhs) {
+			continue
+		}
+		if x, ok := sel.X.(*ast.Ident); !ok || x.Name != apiName {
+			continue
+		}
+		var want string
+		switch sel.Sel.Name {
+		case "OnE2EEV3Unpack", "OnE2EEV4Unpack":
+			want = "UnpackLVPayload"
+		case "OnE2EEV3Pack", "OnE2EEV4Pack":
+			want = "PackLVPayload"
+		default:
+			continue
+		}
+		f.cited = true // the hook is cited by the handshake or asked about
+		h := &goHook{at: g.clause(f, as.Pos()), fn: exprText(as.Rhs[i])}
+		fd, file := g.funcOf(f, as.Rhs[i])
+		switch {
+		case fd == nil || fd.Body == nil:
+			h.why = fmt.Sprintf("%s sets it to %s, which is not a function of the module the reader can follow", h.at, h.fn)
+		case !g.callsDatablock(file, fd, want, 3, map[*ast.FuncDecl]bool{}):
+			h.why = fmt.Sprintf("%s sets it to %s, which does not call dxlib's datablock.%s, followed through the functions it calls three deep", h.at, h.fn, want)
+		default:
+			h.opens = true
+		}
+		if g.sessionHooks == nil {
+			g.sessionHooks = map[string]*goHook{}
+		}
+		g.sessionHooks[sel.Sel.Name] = h
+	}
+}
+
+// callsDatablock says whether a function calls dxlib's datablock function
+// want, itself or through the functions of the module it calls, to depth.
+func (g *goReader) callsDatablock(f *goFile, fd *ast.FuncDecl, want string, depth int, seen map[*ast.FuncDecl]bool) bool {
+	if seen[fd] || f == nil {
+		return false
+	}
+	seen[fd] = true
+	pkg := f.importName(dxlibDatablock)
+	found := false
+	ast.Inspect(fd.Body, func(n ast.Node) bool {
+		call, ok := n.(*ast.CallExpr)
+		if found || !ok {
+			return !found
+		}
+		if sel, ok := call.Fun.(*ast.SelectorExpr); ok && pkg != "" {
+			if x, ok := sel.X.(*ast.Ident); ok && x.Name == pkg && sel.Sel.Name == want {
+				found = true
+				return false
+			}
+		}
+		if depth > 1 {
+			if next, file := g.funcOf(f, call.Fun); next != nil && next.Body != nil && g.callsDatablock(file, next, want, depth-1, seen) {
+				found = true
+				return false
+			}
+		}
+		return true
+	})
+	return found
+}
+
+// sessionHooksFor says whether the module's hooks of a version open and
+// seal dxlib's datablock, or what the reader found instead.
+func (g *goReader) sessionHooksFor(version string) (bool, string) {
+	var missing []string
+	for _, name := range []string{"OnE2EE" + version + "Unpack", "OnE2EE" + version + "Pack"} {
+		h := g.sessionHooks[name]
+		switch {
+		case h == nil:
+			missing = append(missing, "the module sets no "+name)
+		case !h.opens:
+			missing = append(missing, name+": "+h.why)
+		}
+	}
+	return len(missing) == 0, strings.Join(missing, "; ")
+}
+
 // preKeyParameters are the parameters dxlib_module's pre-login declares, the
 // client's signing key and its two agreement keys; a registration that
 // declares exactly these establishes the handshake.
@@ -57,7 +160,22 @@ func (g *goReader) writeTransport(ep *goEndpoint, op *yaml.Node, regAt, label st
 		return
 	case ep.typeName == "EndPointTypeHTTPEndToEndEncryptionV3", ep.typeName == "EndPointTypeHTTPEndToEndEncryptionV4":
 		version := strings.TrimPrefix(ep.typeName, "EndPointTypeHTTPEndToEndEncryption")
-		g.question("must", fmt.Sprintf("%s registers %s with %s, a persistent-session envelope whose key exchange, cipher and session store the service supplies through dxlib's OnE2EE%sUnpack and OnE2EE%sPack hooks. Which handshake does it travel in, with its key agreement, signature, cipher and the operation that establishes it?", regAt, label, ep.typeName, version, version),
+		ok, found := g.sessionHooksFor(version)
+		if ok {
+			ep.handshake = sessionHandshake
+			set(op, "handshake", sessionHandshake)
+			if _, seen := g.handshakeAt[sessionHandshake]; !seen {
+				if g.handshakeAt == nil {
+					g.handshakeAt = map[string]string{}
+				}
+				g.handshakeAt[sessionHandshake] = regAt
+			}
+			if !contains(g.sessionTypes, ep.typeName) {
+				g.sessionTypes = append(g.sessionTypes, ep.typeName)
+			}
+			return
+		}
+		g.question("must", fmt.Sprintf("%s registers %s with %s, a persistent-session envelope whose key exchange, cipher and session store the service supplies through dxlib's OnE2EE%sUnpack and OnE2EE%sPack hooks, and the reader knows the envelope only when they open and seal dxlib's datablock: %s. Which handshake does it travel in, with its key agreement, signature, cipher and the operation that establishes it?", regAt, label, ep.typeName, version, version, found),
 			[]string{ep.at + "/handshake"}, "dxlib routes a "+version+" body to the host's hooks and fixes nothing of the envelope, so the reader cannot write the handshake from the type.", g.at(regAt, "Registers "+label+" with "+ep.typeName+"."))
 		return
 	default:
@@ -186,15 +304,55 @@ func transportSays(ep *goEndpoint) string {
 }
 
 // writeHandshakes writes the handshakes the endpoints travel in: dxlib's
-// pre-key exchange, whose primitives its type fixes, established by the
-// registration that declares the exchange's parameters, or asked for.
+// pre-key exchange, whose primitives its type fixes, and the session dxlib's
+// persistent-session types carry through hooks that open and seal the same
+// datablock (ADR-163); each established by the registration that declares
+// the exchange's parameters, or asked for.
 func (g *goReader) writeHandshakes() {
-	regAt, used := g.handshakeAt[preKeyHandshake]
-	if !used {
-		return
+	out := mapping()
+	if regAt, used := g.handshakeAt[preKeyHandshake]; used {
+		h := mapping("description", "dxlib's pre-key exchange: the client sends its Ed25519 signing key and two X25519 agreement keys, receives the service's three and the pre-key's index, and both derive one shared key for requests and one for answers; every envelope after names the index.")
+		cites := []*yaml.Node{g.at(regAt, "Registers an endpoint with dxlib's pre-key envelope, EndPointTypeHTTPEndToEndEncryptionV2 or EndPointTypeHTTPDownloadStreamV2, whose type fixes X25519, Ed25519 and AES-256-CBC.")}
+		g.writeHandshake(out, preKeyHandshake, h, regAt, cites, "Registers an endpoint with dxlib's pre-key envelope.",
+			"How long is a pre-key of handshake %s accepted, and how many envelopes does one carry? The lifetime is the service's configuration (sessions.prekey_ttl_in_seconds in dxlib_module), and whether a pre-key is deleted after its first envelope is the service's own code.",
+			"The endpoint type EndPointTypeHTTPEndToEndEncryptionV2 is dxlib's pre-key envelope, packed by its datablock with X25519 shared keys, an Ed25519 signature and AES-256-CBC; the type fixes the primitives, and the registration that declares the exchange's parameters establishes it.")
 	}
-	at := "#/handshakes/" + preKeyHandshake
-	h := mapping("description", "dxlib's pre-key exchange: the client sends its Ed25519 signing key and two X25519 agreement keys, receives the service's three and the pre-key's index, and both derive one shared key for requests and one for answers; every envelope after names the index.")
+	if regAt, used := g.handshakeAt[sessionHandshake]; used {
+		types := strings.Join(g.sessionTypes, " and ")
+		h := mapping("description", "The pre-key exchange's envelope carried through dxlib's persistent-session type: the client sends its Ed25519 signing key and two X25519 agreement keys, receives the service's three and an index, and every envelope after names the index, sealed and opened by the service's hooks with dxlib's datablock.")
+		cites := []*yaml.Node{g.at(regAt, "Registers an endpoint with "+types+", whose body dxlib hands to the hooks the service sets.")}
+		var versions []string
+		for _, t := range g.sessionTypes {
+			v := strings.TrimPrefix(t, "EndPointTypeHTTPEndToEndEncryption")
+			versions = append(versions, strings.ToLower(v))
+			for _, name := range []string{"OnE2EE" + v + "Unpack", "OnE2EE" + v + "Pack"} {
+				hook := g.sessionHooks[name]
+				what := "opens"
+				if strings.HasSuffix(name, "Pack") {
+					what = "seals"
+				}
+				cites = append(cites, g.at(hook.at, fmt.Sprintf("Sets dxlib's %s to %s, which %s dxlib's datablock.", name, hook.fn, what)))
+			}
+		}
+		setting := fmt.Sprintf("targets.openapi.settings.envelopes: {%s: %s}", sessionHandshake, versions[0])
+		if len(versions) > 1 {
+			setting = fmt.Sprintf("one of %s, since a handshake is served in one type", joinAnd(versions))
+		}
+		g.notHeld = append(g.notHeld, notHeld{text: fmt.Sprintf("%s: the endpoints of handshake %s are registered with %s, dxlib's persistent-session type, and which of dxlib's types serves a handshake is the stack's, not the design's; the implementation file serves it with %s (ADR-163)", regAt, sessionHandshake, types, setting), clause: regAt, blocks: []string{"#/handshakes/" + sessionHandshake}})
+		g.writeHandshake(out, sessionHandshake, h, regAt, cites, "Registers an endpoint with dxlib's persistent-session envelope.",
+			"How long is a handshake %s accepted, and how many envelopes does one carry? Both are the service's own code in the store its hooks read.",
+			"The module sets dxlib's persistent-session hooks to functions that open and seal dxlib's datablock, which packs the pre-key envelope with X25519 shared keys, an Ed25519 signature and AES-256-CBC; the datablock fixes the primitives, and the registration that declares the exchange's parameters establishes it.")
+	}
+	if len(out.Content) > 0 {
+		g.handshakes = out
+	}
+}
+
+// writeHandshake writes one handshake of dxlib's datablock primitives: its
+// establishing operation found by the exchange's parameters or asked for,
+// and a should question on its lifetime and uses.
+func (g *goReader) writeHandshake(out *yaml.Node, name string, h *yaml.Node, regAt string, cites []*yaml.Node, asked, lifetime, why string) {
+	at := "#/handshakes/" + name
 	set(h, "keyAgreement", "x25519")
 	set(h, "signature", "ed25519")
 	set(h, "cipher", "aes-256-cbc")
@@ -212,27 +370,26 @@ func (g *goReader) writeHandshakes() {
 			establishing = append(establishing, ep)
 		}
 	}
-	cites := []*yaml.Node{g.at(regAt, "Registers an endpoint with dxlib's pre-key envelope, EndPointTypeHTTPEndToEndEncryptionV2 or EndPointTypeHTTPDownloadStreamV2, whose type fixes X25519, Ed25519 and AES-256-CBC.")}
 	switch len(establishing) {
 	case 1:
 		ep := establishing[0]
 		set(h, "establishedBy", ep.id)
 		cites = append(cites, g.at(fmt.Sprintf("%s:%d", ep.file.path, ep.line), fmt.Sprintf("Registers %s %s with the parameters %s, the client's keys of the pre-key exchange, so it establishes the handshake.", ep.method, ep.uri, joinAnd(preKeyParameters))))
 	case 0:
-		g.question("must", fmt.Sprintf("Which operation establishes the handshake %s? Its envelope is opened with the keys a pre-key exchange stored, and no registration of the module declares the exchange's parameters %s.", preKeyHandshake, joinAnd(preKeyParameters)),
-			[]string{at + "/establishedBy"}, "A handshake names the operation a client calls to establish it, and the reader finds that operation only by the parameters dxlib_module's pre-login declares.", g.at(regAt, "Registers an endpoint with dxlib's pre-key envelope."))
+		g.question("must", fmt.Sprintf("Which operation establishes the handshake %s? Its envelope is opened with the keys a pre-key exchange stored, and no registration of the module declares the exchange's parameters %s.", name, joinAnd(preKeyParameters)),
+			[]string{at + "/establishedBy"}, "A handshake names the operation a client calls to establish it, and the reader finds that operation only by the parameters dxlib_module's pre-login declares.", g.at(regAt, asked))
 	default:
 		var labels []string
 		for _, ep := range establishing {
 			labels = append(labels, ep.method+" "+ep.uri)
 		}
-		g.question("must", fmt.Sprintf("Which operation establishes the handshake %s? %s each declare the exchange's parameters %s, and a handshake names one.", preKeyHandshake, joinAnd(labels), joinAnd(preKeyParameters)),
-			[]string{at + "/establishedBy"}, "A handshake is established by one operation, and two registrations declare the exchange's parameters.", g.at(regAt, "Registers an endpoint with dxlib's pre-key envelope."))
+		g.question("must", fmt.Sprintf("Which operation establishes the handshake %s? %s each declare the exchange's parameters %s, and a handshake names one.", name, joinAnd(labels), joinAnd(preKeyParameters)),
+			[]string{at + "/establishedBy"}, "A handshake is established by one operation, and two registrations declare the exchange's parameters.", g.at(regAt, asked))
 	}
-	g.question("should", fmt.Sprintf("How long is a pre-key of handshake %s accepted, and how many envelopes does one carry? The lifetime is the service's configuration (sessions.prekey_ttl_in_seconds in dxlib_module), and whether a pre-key is deleted after its first envelope is the service's own code.", preKeyHandshake),
-		[]string{at + "/lifetime", at + "/uses"}, "dxlib's type fixes the exchange and the cipher, not how long a pre-key lives or how often it is used, and a client must know both.", g.at(regAt, "Registers an endpoint with dxlib's pre-key envelope."))
+	g.question("should", fmt.Sprintf(lifetime, name),
+		[]string{at + "/lifetime", at + "/uses"}, "dxlib's type fixes the exchange and the cipher, not how long a pre-key lives or how often it is used, and a client must know both.", g.at(regAt, asked))
 	set(h, "origin", "inferred")
-	set(h, "why", "The endpoint type EndPointTypeHTTPEndToEndEncryptionV2 is dxlib's pre-key envelope, packed by its datablock with X25519 shared keys, an Ed25519 signature and AES-256-CBC; the type fixes the primitives, and the registration that declares the exchange's parameters establishes it.")
+	set(h, "why", why)
 	set(h, "cites", cites)
-	g.handshakes = mapping(preKeyHandshake, h)
+	set(out, name, h)
 }

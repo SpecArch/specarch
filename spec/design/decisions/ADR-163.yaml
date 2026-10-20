@@ -1,0 +1,92 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.3.schema.json
+decisions:
+  ADR-163:
+    title: A handshake may be served in dxlib's persistent-session types V3 or V4, chosen in the implementation file, and specarch's hooks carry the pre-key envelope's bytes through them
+    status: accepted
+    date: "2026-10-20"
+    context: |
+      dxlib has two more envelope types beside the pre-key one (ADR-145):
+      an endpoint of type EndPointTypeHTTPEndToEndEncryptionV3 hands its
+      JSON body to a hook the service sets, OnE2EEV3Unpack, which answers
+      the request's header and body as two length-prefixed elements and a
+      state of its own, and hands the answer's status, header and body to
+      OnE2EEV3Pack, which answers the bytes dxlib writes as JSON with the
+      inner status. V4 is the same with little-endian length prefixes
+      inside the process. When the unpack hook refuses, dxlib answers a
+      plain 422 whose reason is REFRESH_SESSION. dxlib fixes nothing else:
+      not the exchange, the cipher, the session store nor the bytes on the
+      wire. extract go asked a must question at every such operation, and
+      no generator served either type, so a service built on them could
+      not be read back or regenerated.
+    decision: |
+      The design does not change: a handshake declares its key agreement,
+      signature, cipher, establishing operation, lifetime and uses, and an
+      operation names the handshake it travels in. Which of dxlib's types
+      serves a handshake is the stack's, so the implementation file says
+      it: the openapi target's settings.envelopes maps a handshake's name
+      to v2, v3 or v4. A handshake it does not name is v2, so every
+      specification written before generates as it did. A name that is
+      not a handshake of the specification, or a value other than those
+      three, is an error at the implementation file.
+
+      Over V3 and V4, specarch's envelope is the one dxlib's V2 carries:
+      the request is {i, d}, the index of a handshake and the hex envelope
+      dxlib's datablock packs under the first shared key with the client's
+      Ed25519 signature, and the answer is {d} under the second shared key
+      and the service's signature. So a handshake served in V3 or V4 takes
+      the same primitives as one in V2, x25519, ed25519 and aes-256-cbc,
+      and is established the same way, by its establishedBy operation, a
+      plain JSON call of a0, a1 and a2 answered with i, b0, b1 and b2;
+      dxlib's own bootstrap path through the hook, an unpack that answers
+      no element, is never used. The hooks keep the handshake in the same
+      store, so lifetime and uses hold as they do under V2. A client
+      cannot tell the three apart but by the reason of the plain refusal,
+      REFRESH_PREKEY or REFRESH_SESSION, and the Go client and the
+      TypeScript screens' transport establish a new handshake on either.
+
+      The dxlib dialect writes EndPointTypeHTTPEndToEndEncryptionV3 or V4
+      for an operation under such a handshake. A download stream under
+      one is an error at the operation: dxlib's only download type in an
+      envelope is EndPointTypeHTTPDownloadStreamV2, the pre-key one.
+      generate go-dxlib sets OnE2EEV3Unpack and OnE2EEV3Pack, or the V4
+      pair, to hooks that read {i, d} from the body, open it as the V2
+      hook opens it, hand the shared key and the service's signing key to
+      the pack hook in the state, and seal the answer as {d}; the V4 hooks
+      convert the elements to and from the little-endian framing.
+
+      extract go reads an endpoint of type V3 or V4 as travelling in the
+      handshake session when the module sets the matching unpack hook to
+      a function of the module that opens dxlib's datablock
+      (datablock.UnpackLVPayload, followed through the functions it calls
+      up to three deep) and the pack hook to one that seals with it
+      (datablock.PackLVPayload): the datablock fixes x25519, ed25519 and
+      aes-256-cbc, inferred, and the establishing operation is found by
+      a0, a1 and a2 as for preKey, with the same should question on the
+      lifetime and uses. That the type is V3 or V4 is not held in the
+      design; it is a could question at the handshake naming the setting
+      that serves it. A module that sets no such hook, or one that does
+      not open the datablock, keeps the must question, now saying which
+      of the two the reader did not find.
+    consequences: |
+      A service on dxlib's persistent-session types is read into a
+      specification and regenerated to a service and a client that call
+      each other, with the same round trip as the pre-key envelope, and a
+      handshake moves between V2, V3 and V4 by one line of the
+      implementation file without touching the design. A service whose V3
+      or V4 hooks make their own bytes, another cipher or a bootstrap
+      through the hook is still read as a question, since the reader can
+      say nothing of an envelope it does not recognise.
+    why: |
+      ADR-145 puts the bytes on the wire in the stack, and the three types
+      differ only there: a client of each runs the same exchange, seals
+      and opens the same way and renews on a refusal. A word in the design
+      for the type would make the design name a library's internals and
+      give two ways to say one handshake. specarch defines no new envelope
+      over the hooks: reusing the datablock keeps one cryptographic
+      construction to implement in each client and to audit, which the
+      round trip already proves against dxlib and the browser, where a
+      second would add a format with nothing the design could say about
+      the difference. The establishing operation stays a plain call, as
+      ADR-145 requires, so a handshake is established one way whatever
+      type serves it.
+    satisfies: [SA-77]

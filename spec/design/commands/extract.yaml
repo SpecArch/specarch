@@ -671,9 +671,16 @@ commands:
         question; `EndPointTypeHTTPDownloadStreamV2` is both the
         handshake and the download; the V1 type, which dxlib refuses as
         not implemented, prints a line and is written plain; the V3 and V4
-        types, whose envelope the host's hooks make, and a type that is
-        not one of dxlib's constants are must questions on the
-        operation's handshake, the latter on its stream too. Each operation carries a must
+        types travel in the handshake `session` when the module sets that
+        type's unpack and pack hooks to functions of the module that open
+        and seal dxlib's datablock, followed three calls deep: it is
+        declared like `preKey`, citing the hooks, with a could question
+        that the type is the implementation file's setting
+        `targets.openapi.settings.envelopes` (ADR-163); with any other
+        hooks, or none, the V3 and V4 types are must questions on the
+        operation's handshake naming what the reader found, as is a type
+        that is not one of dxlib's constants, the latter on its stream
+        too. Each operation carries a must
         question on whether the running system registers it, which a
         printed tree answers in the merge, and one on its success
         response and what each response means, or on the descriptions

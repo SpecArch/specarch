@@ -1,0 +1,100 @@
+handshakes:
+  session:
+    description: 'The pre-key exchange''s envelope carried through dxlib''s persistent-session type: the client sends its Ed25519 signing key and two X25519 agreement keys, receives the service''s three and an index, and every envelope after names the index, sealed and opened by the service''s hooks with dxlib''s datablock.'
+    keyAgreement: x25519
+    signature: ed25519
+    cipher: aes-256-cbc
+    establishedBy: startSession
+    origin: inferred
+    why: The module sets dxlib's persistent-session hooks to functions that open and seal dxlib's datablock, which packs the pre-key envelope with X25519 shared keys, an Ed25519 signature and AES-256-CBC; the datablock fixes the primitives, and the registration that declares the exchange's parameters establishes it.
+    cites:
+      - {source: code, clause: 'api/endpoints.go:30', says: 'Registers an endpoint with EndPointTypeHTTPEndToEndEncryptionV4, whose body dxlib hands to the hooks the service sets.'}
+      - {source: code, clause: 'api/hooks.go:23', says: 'Sets dxlib''s OnE2EEV4Unpack to openSession, which opens dxlib''s datablock.'}
+      - {source: code, clause: 'api/hooks.go:24', says: 'Sets dxlib''s OnE2EEV4Pack to sealSession, which seals dxlib''s datablock.'}
+      - {source: code, clause: 'api/endpoints.go:15', says: 'Registers POST /startSession with the parameters a0, a1 and a2, the client''s keys of the pre-key exchange, so it establishes the handshake.'}
+paths:
+  /addEntry:
+    post:
+      operationId: addEntry
+      summary: Add an entry
+      description: Stores an entry in the journal.
+      middlewares: []
+      handshake: session
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                text: {type: string, minLength: 1}
+              required: [text]
+      responses:
+        "200":
+          description: The entry is stored.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  entryId: {type: string, minLength: 1}
+                required: [entryId]
+      origin: stated
+      cites:
+        - {source: code, clause: 'api/endpoints.go:30', says: 'NewEndPoint registers POST /addEntry; its handler is AddEntry, it has no middleware, it declares the parameter text and the response 200, and it checks no privilege; it travels in the pre-key envelope.'}
+        - {source: code, clause: 'api/handlers.go:16', says: The handler of POST /addEntry reads the parameter text.}
+        - {source: code, clause: 'api/handlers.go:21', says: 'The handler of POST /addEntry answers with WriteResponseAsJSON(http.StatusOK, nil, utils.JSON{"entry_id"}).'}
+  /startSession:
+    post:
+      operationId: startSession
+      summary: Start a session
+      description: The client sends its signing key and two agreement keys and receives the journal's with the session's index.
+      middlewares: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                a0: {type: string, minLength: 1}
+                a1: {type: string, minLength: 1}
+                a2: {type: string, minLength: 1}
+              required: [a0, a1, a2]
+      responses:
+        "200":
+          description: The journal's keys and the session's index.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  i: {type: string, minLength: 1}
+                  b0: {type: string, minLength: 1}
+                  b1: {type: string, minLength: 1}
+                  b2: {type: string, minLength: 1}
+                required: [i, b0, b1, b2]
+      origin: stated
+      cites:
+        - {source: code, clause: 'api/endpoints.go:15', says: 'NewEndPoint registers POST /startSession; its handler is StartSession, it has no middleware, it declares the parameters a0, a1 and a2 and the response 200, and it checks no privilege.'}
+        - {source: code, clause: 'api/handlers.go:11', says: The handler of POST /startSession reads no parameter by name.}
+  /sync:
+    post:
+      operationId: sync
+      summary: Sync
+      description: Sends what changed since the last sync.
+      middlewares: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                since: {type: string, minLength: 1}
+              required: [since]
+      responses:
+        "200":
+          description: What changed.
+      origin: stated
+      cites:
+        - {source: code, clause: 'api/endpoints.go:40', says: 'NewEndPoint registers POST /sync; its handler is Sync, it has no middleware, it declares the parameter since and the response 200, and it checks no privilege.'}
+        - {source: code, clause: 'api/handlers.go:26', says: The handler of POST /sync reads the parameter since.}
+        - {source: code, clause: 'api/handlers.go:31', says: 'The handler of POST /sync answers with WriteResponseAsJSON(http.StatusOK, nil, utils.JSON{}).'}

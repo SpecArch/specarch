@@ -323,6 +323,8 @@ type goReader struct {
 	middlewares     *yaml.Node
 	handshakes      *yaml.Node        // the handshakes the endpoints travel in (ADR-145)
 	handshakeAt     map[string]string // a handshake -> the registration that first names its envelope
+	sessionHooks    map[string]*goHook // dxlib's V3 and V4 hooks the module sets, by the hook's name (ADR-163)
+	sessionTypes    []string           // the persistent-session types the endpoints of handshake session are registered with
 
 	handlers []*goHandler                // every operation's handler, as read (ADR-144)
 	previous map[string]*previousHandler // the handler records the implementation file holds, by pointer
@@ -525,6 +527,9 @@ func (g *goReader) read() {
 						g.registration(f, call, sel.Sel.Name, stack)
 					}
 				}
+			}
+			if as, ok := n.(*ast.AssignStmt); ok {
+				g.sessionHook(f, as)
 			}
 			stack = append(stack, n)
 			return true

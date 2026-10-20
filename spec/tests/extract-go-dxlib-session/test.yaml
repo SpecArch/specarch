@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: extract
+level: system
+scenario: golden
+given: "a repository holding a Go module on dxlib with a plain JSON POST /startSession that declares a0, a1 and a2 and answers i, b0, b1 and b2, a POST /addEntry of type EndPointTypeHTTPEndToEndEncryptionV4, a POST /sync of type EndPointTypeHTTPEndToEndEncryptionV3, and a function that sets dxlib's V4 hooks to functions that open dxlib's datablock, one through a helper, and seal with it, and its V3 hooks to functions that pass the body through"
+when: "extract go is run on the module"
+then: "it writes the handshake session with keyAgreement x25519, signature ed25519 and cipher aes-256-cbc, inferred, established by startSession and citing the registration and both V4 hooks, names it on addEntry, asks a could question that the V4 type is the implementation file's setting targets.openapi.settings.envelopes, a should question on the lifetime and uses, and a must question on sync naming each V3 hook and that it does not call the datablock; it exits 0"
+verifies: [SA-77, SA-44]

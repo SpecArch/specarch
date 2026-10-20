@@ -161,7 +161,9 @@ operation that names a handshake travels in its envelope:
 handshake names under `establishedBy` on the first such call, sends each
 request as dxlib's `{i, d}`, opens the answer and hands the page the status
 and body inside it, and establishes a new handshake and sends once more
-when the service answers `REFRESH_PREKEY`. The keys and the cipher are the
+when the service answers `REFRESH_PREKEY`, or `REFRESH_SESSION` from a
+handshake served in dxlib's persistent-session types, which carry the same
+envelope (ADR-163). The keys and the cipher are the
 Web Crypto API's own, X25519 and Ed25519 key pairs that never leave the
 browser and AES-256-CBC, so the module adds no library; the envelope's
 bytes are dxlib's datablock, so a handshake of other primitives, or a

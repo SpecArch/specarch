@@ -228,13 +228,16 @@ function answer(status: number, value: unknown): Response {
   return new Response(empty ? null : JSON.stringify(value), { status, headers: empty ? {} : { "Content-Type": "application/json" } });
 }
 
-/** Whether a plain answer tells the client to establish a new handshake, as dxlib answers a missing, expired or used one. */
+/**
+ * Whether a plain answer tells the client to establish a new handshake, as dxlib answers a missing, expired or used one:
+ * REFRESH_PREKEY from its pre-key type, REFRESH_SESSION from the persistent-session types that carry the same envelope (ADR-163).
+ */
 function refreshes(value: unknown): boolean {
   if (typeof value !== "object" || value === null) {
     return false;
   }
   const v = value as Record<string, unknown>;
-  return v.reason === "REFRESH_PREKEY" || (typeof v.type === "string" && /refresh[-_]prekey$/i.test(v.type));
+  return v.reason === "REFRESH_PREKEY" || v.reason === "REFRESH_SESSION" || (typeof v.type === "string" && /refresh[-_](prekey|session)$/i.test(v.type));
 }
 
 /** The members of a query as the dxlib dialect's body takes them: a list's numbers as numbers, its page from 0, its sort as a list, a name[key] as an object. */

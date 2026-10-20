@@ -1,0 +1,154 @@
+specarch: "0.1"
+info: { title: Vault, version: 1.0.0, wireNames: snake_case }
+stages: [implementation]
+stakeholders:
+  owner: { description: The product owner. }
+errors:
+  attachment-not-found: { status: 404, title: No such attachment, condition: No attachment has the id. }
+permissions:
+  notes.read: { description: Read notes and attachments. }
+  notes.write: { description: Add notes and attachments. }
+  public: { description: Open to everyone. }
+roles:
+  member: { description: A member of the vault., permissions: [notes.read, notes.write] }
+handshakes:
+  preKey:
+    description: The pre-key exchange every call but the exchange itself travels under; a pre-key carries one envelope.
+    keyAgreement: x25519
+    signature: ed25519
+    cipher: aes-256-cbc
+    establishedBy: issuePreKey
+    lifetime: PT5M
+    uses: 1
+paths:
+  /prekey:
+    post:
+      operationId: issuePreKey
+      summary: Issue a pre-key
+      description: The client sends its signing key and two agreement keys and receives the vault's with the pre-key's index.
+      permission: public
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                a0: { type: string, description: "The client's Ed25519 public key, hex." }
+                a1: { type: string, description: "The client's first X25519 public key, hex." }
+                a2: { type: string, description: "The client's second X25519 public key, hex." }
+              required: [a0, a1, a2]
+      responses:
+        "200":
+          description: The vault's keys and the pre-key's index.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  i: { type: string }
+                  b0: { type: string }
+                  b1: { type: string }
+                  b2: { type: string }
+                required: [i, b0, b1, b2]
+  /notes:
+    post:
+      operationId: addNote
+      summary: Add a note
+      permission: notes.write
+      handshake: preKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title: { type: string, minLength: 1, maxLength: 120 }
+                text: { type: string }
+              required: [title]
+      responses:
+        "200":
+          description: The note is stored.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  noteId: { type: string }
+                required: [noteId]
+  /attachments:
+    post:
+      operationId: uploadAttachment
+      summary: Upload an attachment
+      permission: notes.write
+      stream:
+        direction: upload
+        parameters:
+          type: object
+          properties:
+            noteId: { type: string, minLength: 1, maxLength: 64, description: The note the attachment belongs to. }
+            tags: { type: array, maxItems: 10, items: { type: string, maxLength: 40 }, description: Words to find the attachment by. }
+          required: [noteId]
+      limits: { maxRequestBytes: 1073741824 }
+      requestBody:
+        required: true
+        content:
+          application/octet-stream:
+            schema: { type: string, format: binary }
+      responses:
+        "200":
+          description: The attachment is stored.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  attachmentId: { type: string }
+                  size: { type: integer, format: int64, minimum: 0, maximum: 9007199254740991 }
+                required: [attachmentId, size]
+  /attachments/download:
+    post:
+      operationId: downloadAttachment
+      summary: Download an attachment
+      permission: notes.read
+      stream: { direction: download }
+      limits: { maxResponseBytes: 1073741824 }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                attachmentId: { type: string }
+              required: [attachmentId]
+      responses:
+        "200":
+          description: The attachment's bytes.
+          content:
+            application/octet-stream:
+              schema: { type: string, format: binary }
+        "404": { description: No such attachment., problem: attachment-not-found }
+  /vault/export:
+    post:
+      operationId: exportVault
+      summary: Export the vault
+      description: Asked for plain and answered as a stream, since dxlib has no download type in a persistent-session envelope.
+      permission: notes.read
+      stream: { direction: download }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                format: { type: string, enum: [zip, tar] }
+              required: [format]
+      responses:
+        "200":
+          description: The archive.
+          content:
+            application/octet-stream:
+              schema: { type: string, format: binary }

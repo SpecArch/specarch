@@ -1,0 +1,6 @@
+arguments: [generate, openapi, --unapproved, project]
+exitStatus: 1
+standardOutput: |
+  project/specarch.yaml:1:1: error: /: generator: the openapi target's settings.envelopes names session, which is not a handshake of the specification (preKey); take it out, or name a handshake [generator@specarch.yaml#/]
+  project/specarch.yaml:139:18: error: /paths/~1vault~1export/post/handshake: generator: exportVault streams a download in the envelope of handshake preKey, which settings.envelopes serves as v3, and dxlib's one download type in an envelope is EndPointTypeHTTPDownloadStreamV2, the pre-key envelope; serve preKey as v2, or take the download out of the envelope [generator@specarch.yaml#/paths/~1vault~1export/post/handshake]
+plugins: [openapi]

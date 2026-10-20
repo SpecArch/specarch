@@ -49,6 +49,13 @@ func generateOwning(t *testing.T, change func(specification map[string]any), own
 // generateFrom runs the generator on the specification in a folder.
 func generateFrom(t *testing.T, fixture string, change func(specification map[string]any), owned []string) genopenapi.Response {
 	t.Helper()
+	return generateImpl(t, fixture, change, owned, func(map[string]any) {})
+}
+
+// generateImpl is generateFrom with a change to the implementation file's
+// content as well.
+func generateImpl(t *testing.T, fixture string, change func(specification map[string]any), owned []string, changeImpl func(content map[string]any)) genopenapi.Response {
+	t.Helper()
 	s := spec.Load(fixture)
 	if len(s.Problems) > 0 {
 		t.Fatalf("the fixture does not load: %v", s.Problems)
@@ -76,6 +83,7 @@ func generateFrom(t *testing.T, fixture string, change func(specification map[st
 		}
 	}
 	change(s.Value.(map[string]any))
+	changeImpl(content)
 	data, err := json.Marshal(map[string]any{"specarch": "0.3", "target": "go-dxlib", "root": filepath.ToSlash(s.RootFile),
 		"specification": s.Value, "output": filepath.Join(fixture, "..", "testdata"),
 		"implementations": []any{map[string]any{"file": impl.Path, "content": content, "settings": settings, "idioms": idioms}}})

@@ -37,8 +37,9 @@ type handshake struct {
 	name          string
 	node          map[string]any
 	establishedBy string
-	lifetime      int64 // seconds, 0 for none
-	uses          int64 // 0 for any number
+	lifetime      int64  // seconds, 0 for none
+	uses          int64  // 0 for any number
+	envelope      string // the dxlib type it is served in: v2, v3 or v4 (ADR-163)
 }
 
 // readHandshake finds the handshake the file serves: the design's one
@@ -66,7 +67,11 @@ func (g *gen) readHandshake() {
 		return
 	}
 	h := obj(hs[names[0]])
-	g.handshake = &handshake{name: names[0], node: h, establishedBy: text(h["establishedBy"])}
+	envelopes, wrong := genopenapi.Envelopes(g.openapiSettings, hs)
+	for _, w := range wrong {
+		g.problem("error", "/", "%s", w)
+	}
+	g.handshake = &handshake{name: names[0], node: h, establishedBy: text(h["establishedBy"]), envelope: envelopes[names[0]]}
 	if d := text(h["lifetime"]); d != "" {
 		if s, ok := seconds(d); ok {
 			g.handshake.lifetime = s
@@ -365,7 +370,11 @@ func (g *gen) hooks() {
 	g.line("\treturn key, nil")
 	g.line("}")
 	g.line("")
-	g.line("// openPreKeyEnvelope is dxlib's OnE2EEPrekeyUnPack: it finds the handshake the")
+	openRole, sealRole := "is dxlib's OnE2EEPrekeyUnPack", "is dxlib's OnE2EEPrekeyPack"
+	if h.envelope != "v2" {
+		openRole, sealRole = "opens the pre-key envelope for the hooks below", "seals it for them"
+	}
+	g.line("// openPreKeyEnvelope %s: it finds the handshake the", openRole)
 	g.line("// envelope names, refuses one that has expired or carried its envelopes, counts")
 	g.line("// this one, and opens the envelope with the client's signing key and the first")
 	g.line("// shared key. dxlib answers a refusal here as a plain 422 that tells the client")
@@ -402,10 +411,85 @@ func (g *gen) hooks() {
 	g.line("\treturn elements, key.SharedKey2, []byte(key.SigningKey), utils.JSON{\"index\": index}, nil")
 	g.line("}")
 	g.line("")
-	g.line("// sealPreKeyEnvelope is dxlib's OnE2EEPrekeyPack: it seals the answer with the")
+	g.line("// sealPreKeyEnvelope %s: it seals the answer with the", sealRole)
 	g.line("// service's signing key and the second shared key, as dxlib's datablock does.")
 	g.line("func sealPreKeyEnvelope(aepr *api.DXAPIEndPointRequest, index string, signingKey []byte, sharedKey2 []byte, payloads ...*lv.LV) (string, error) {")
 	g.line("\treturn datablock.PackLVPayload(index, signingKey, sharedKey2, payloads...)")
+	g.line("}")
+	g.line("")
+	if h.envelope != "v2" {
+		g.sessionHooks(strings.ToUpper(h.envelope))
+	}
+}
+
+// sessionHooks writes the hooks of dxlib's persistent-session type V3 or V4
+// (ADR-163): they carry the pre-key envelope's bytes, a request of {i, d}
+// opened as openPreKeyEnvelope opens it and an answer of {d} sealed as
+// sealPreKeyEnvelope seals it, with the keys the answer needs in the state
+// dxlib hands from the one hook to the other; V4's elements are converted to
+// and from its little-endian framing.
+func (g *gen) sessionHooks(v string) {
+	g.imports["encoding/json"] = true
+	elem := "lv.LV"
+	if v == "V4" {
+		elem = "lv.LVLE"
+	}
+	g.line("// open%sEnvelope is dxlib's OnE2EE%sUnpack: the body is {i, d}, the handshake's", v, v)
+	g.line("// index and the envelope, opened as openPreKeyEnvelope opens it. A refusal makes")
+	g.line("// dxlib answer a plain 422 whose reason REFRESH_SESSION tells the client to")
+	g.line("// establish a new handshake.")
+	g.line("func open%sEnvelope(aepr *api.DXAPIEndPointRequest, body utils.JSON) ([]*%s, utils.JSON, error) {", v, elem)
+	g.line("\tindex, _ := body[\"i\"].(string)")
+	g.line("\tdata, _ := body[\"d\"].(string)")
+	g.line("\tif index == \"\" || data == \"\" {")
+	g.line("\t\treturn nil, nil, errors.New(\"ENVELOPE_WITHOUT_I_AND_D\")")
+	g.line("\t}")
+	g.line("\telements, sharedKey2, signingKey, _, err := openPreKeyEnvelope(aepr, index, data)")
+	g.line("\tif err != nil {")
+	g.line("\t\treturn nil, nil, err")
+	g.line("\t}")
+	g.line("\tif len(elements) == 0 {")
+	g.line("\t\treturn nil, nil, errors.New(\"ENVELOPE_EMPTY\")")
+	g.line("\t}")
+	g.line("\tstate := utils.JSON{\"index\": index, \"sharedKey2\": sharedKey2, \"signingKey\": signingKey}")
+	if v == "V3" {
+		g.line("\treturn elements, state, nil")
+	} else {
+		g.line("\tout := make([]*lv.LVLE, 0, len(elements))")
+		g.line("\tfor _, e := range elements {")
+		g.line("\t\tle, err := lv.NewLVLE(e.Value)")
+		g.line("\t\tif err != nil {")
+		g.line("\t\t\treturn nil, nil, err")
+		g.line("\t\t}")
+		g.line("\t\tout = append(out, le)")
+		g.line("\t}")
+		g.line("\treturn out, state, nil")
+	}
+	g.line("}")
+	g.line("")
+	g.line("// seal%sEnvelope is dxlib's OnE2EE%sPack: the answer is {d}, sealed as", v, v)
+	g.line("// sealPreKeyEnvelope seals it under the keys open%sEnvelope kept in the state.", v)
+	g.line("func seal%sEnvelope(aepr *api.DXAPIEndPointRequest, state utils.JSON, payloads ...*%s) ([]byte, error) {", v, elem)
+	g.line("\tindex, _ := state[\"index\"].(string)")
+	g.line("\tsharedKey2, _ := state[\"sharedKey2\"].([]byte)")
+	g.line("\tsigningKey, _ := state[\"signingKey\"].([]byte)")
+	if v == "V3" {
+		g.line("\tdata, err := sealPreKeyEnvelope(aepr, index, signingKey, sharedKey2, payloads...)")
+	} else {
+		g.line("\telements := make([]*lv.LV, 0, len(payloads))")
+		g.line("\tfor _, p := range payloads {")
+		g.line("\t\te, err := lv.NewLV(p.Value)")
+		g.line("\t\tif err != nil {")
+		g.line("\t\t\treturn nil, err")
+		g.line("\t\t}")
+		g.line("\t\telements = append(elements, e)")
+		g.line("\t}")
+		g.line("\tdata, err := sealPreKeyEnvelope(aepr, index, signingKey, sharedKey2, elements...)")
+	}
+	g.line("\tif err != nil {")
+	g.line("\t\treturn nil, err")
+	g.line("\t}")
+	g.line("\treturn json.Marshal(utils.JSON{\"d\": data})")
 	g.line("}")
 	g.line("")
 }

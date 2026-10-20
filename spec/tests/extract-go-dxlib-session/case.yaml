@@ -1,0 +1,17 @@
+arguments: [extract, go, --out, spec, testdata/service]
+repository:
+  folder: testdata/service
+  commits:
+    - [.]
+exitStatus: 0
+standardOutput: |
+  commit 699c825343edbdf8162db3b9abfc80ee2a7cf343: the last change to .
+  counted 3 Go files, 3 of them importing dxlib's api package and 0 that do not parse, and left out 0: every tracked Go file under . but test files and files in a folder below it named testdata or vendor, or that the go command ignores
+  dxlib: counted 3 NewEndPoint calls, 0 NewWSEndPoint calls and 0 RegisterHandler calls: every call by that name in a file that imports dxlib's api package
+  wrote 3 operations on 3 paths, 0 permissions, 0 problems and 10 questions: one operation per endpoint NewEndPoint registers with a literal method and URI, outside a loop or a condition, one permission per privilege an endpoint names alone, one problem per literal reason a handler answers, one question per thing the source does not say, and one per thing the meta-model cannot hold
+  not held: api/endpoints.go:30: the endpoints of handshake session are registered with EndPointTypeHTTPEndToEndEncryptionV4, dxlib's persistent-session type, and which of dxlib's types serves a handshake is the stack's, not the design's; the implementation file serves it with targets.openapi.settings.envelopes: {session: v4} (ADR-163); could question Q-10
+  handlers: followed 3 of 3 handlers into 3 functions, to 3 calls deep, and left 0 calls not followed: the handler of each operation, where it is a function literal, a function of the same package or one of another package of the module, and each function of the module its steps call
+  derived 0 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers
+  not derived: 3 draft tests for operation addEntry, held up by Q-1, Q-2, Q-3; the validator warns for them until the questions are answered
+  not derived: 4 draft tests for operation startSession, held up by Q-11, Q-4, Q-5; the validator warns for them until the questions are answered
+  not derived: 2 draft tests for operation sync, held up by Q-6, Q-7, Q-8; the validator warns for them until the questions are answered

@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/SpecArch/specarch/internal/genopenapi"
@@ -26,7 +27,21 @@ import (
 // answered with a plain stream. It needs a dxlib checkout, named by
 // SPECARCH_DXLIB, and is skipped without one (ADR-145, ADR-146).
 func TestEnvelopeStreamRoundTrip(t *testing.T) {
-	roundTrip(t, envelopeFixture)
+	roundTrip(t, envelopeFixture, "v2")
+}
+
+// TestSessionV3RoundTrip and TestSessionV4RoundTrip serve the vault's
+// handshake in dxlib's persistent-session types, through the hooks
+// go-dxlib writes for them (ADR-163), and run the same round trip: the
+// envelope's bytes are the pre-key one's, and a used-up handshake is
+// refused with REFRESH_SESSION. dxlib has no download type in such an
+// envelope, so the export is asked for plain.
+func TestSessionV3RoundTrip(t *testing.T) {
+	roundTrip(t, envelopeFixture, "v3")
+}
+
+func TestSessionV4RoundTrip(t *testing.T) {
+	roundTrip(t, envelopeFixture, "v4")
 }
 
 // extractedFixture is the vault read back: the tree extract go writes from
@@ -76,23 +91,43 @@ func TestExtractedRoundTrip(t *testing.T) {
 			t.Errorf("a decision answers %s, which extract go no longer asks; take it out or extract again", q)
 		}
 	}
-	roundTrip(t, extractedFixture)
+	roundTrip(t, extractedFixture, "v2")
 }
 
-// roundTrip generates a fixture's service and client, binds the service to
-// a real dxlib API through the document the dxlib dialect writes, and runs
-// roundTripTest and screensTest against it.
-func roundTrip(t *testing.T, fixture string) {
+// roundTrip generates a fixture's service and client with its handshake
+// served as envelope (v2, v3 or v4), binds the service to a real dxlib API
+// through the document the dxlib dialect writes, and runs roundTripTest and
+// screensTest against it.
+func roundTrip(t *testing.T, fixture, envelope string) {
 	t.Helper()
 	dxlib := os.Getenv("SPECARCH_DXLIB")
 	if dxlib == "" {
 		t.Skip("SPECARCH_DXLIB names no dxlib checkout, so the generated service cannot run here")
 	}
-	service := generateFrom(t, fixture, func(map[string]any) {}, nil)
+	change, changeImpl := func(map[string]any) {}, func(map[string]any) {}
+	if envelope != "v2" {
+		change = func(s map[string]any) {
+			for _, item := range s["paths"].(map[string]any) {
+				for _, op := range item.(map[string]any) {
+					if o, ok := op.(map[string]any); ok && o["operationId"] == "exportVault" {
+						delete(o, "handshake")
+					}
+				}
+			}
+		}
+		changeImpl = func(content map[string]any) {
+			openapi := content["targets"].(map[string]any)["openapi"].(map[string]any)
+			openapi["settings"] = map[string]any{"envelopes": map[string]any{"preKey": envelope}}
+		}
+	}
+	service := generateImpl(t, fixture, change, nil, changeImpl)
 	if len(service.Files) != 2 || len(service.Diagnostics) != 0 {
 		t.Fatalf("want the service file and the client with no diagnostic, got %d files and %v", len(service.Files), service.Diagnostics)
 	}
-	document := openapiDocument(t, fixture)
+	document := openapiDocument(t, fixture, change, changeImpl)
+	if want := "EndPointTypeHTTPEndToEndEncryption" + strings.ToUpper(envelope); !strings.Contains(document, want) {
+		t.Fatalf("the document serves no operation as %s", want)
+	}
 	dir := t.TempDir()
 	files := map[string]string{
 		"go.mod":            "module vault\n\ngo 1.27.1\n\nrequire github.com/donnyhardyanto/dxlib v0.0.0\n\nreplace github.com/donnyhardyanto/dxlib => " + dxlib + "\n",
@@ -117,8 +152,9 @@ func roundTrip(t *testing.T, fixture string) {
 	}
 	run := exec.Command("go", "test", "-count=1", "./...")
 	run.Dir = dir
+	run.Env = append(os.Environ(), "VAULT_ENVELOPE="+envelope)
 	if node, err := exec.LookPath("node"); err == nil {
-		run.Env = append(os.Environ(), "SPECARCH_NODE="+node)
+		run.Env = append(run.Env, "SPECARCH_NODE="+node)
 	} else {
 		t.Log("node is not on PATH, so the screens' transport is not driven against the service")
 	}
@@ -128,13 +164,15 @@ func roundTrip(t *testing.T, fixture string) {
 }
 
 // openapiDocument is the dxlib-dialect document of a fixture, as specarch
-// generate openapi writes it.
-func openapiDocument(t *testing.T, fixture string) string {
+// generate openapi writes it, after the changes to the specification and
+// the implementation files.
+func openapiDocument(t *testing.T, fixture string, change, changeImpl func(map[string]any)) string {
 	t.Helper()
 	s := spec.Load(fixture)
 	if len(s.Problems) > 0 {
 		t.Fatalf("the fixture does not load: %v", s.Problems)
 	}
+	change(s.Value.(map[string]any))
 	var impls []map[string]any
 	for _, impl := range s.Implementations {
 		root := source.Parse(impl.Data).Root
@@ -146,7 +184,10 @@ func openapiDocument(t *testing.T, fixture string) string {
 			}
 			idioms = append(idioms, i)
 		}
-		impls = append(impls, map[string]any{"file": impl.Path, "content": source.ValueOf(root), "idioms": idioms})
+		content := source.ValueOf(root).(map[string]any)
+		changeImpl(content)
+		settings := content["targets"].(map[string]any)["openapi"].(map[string]any)["settings"]
+		impls = append(impls, map[string]any{"file": impl.Path, "content": content, "settings": settings, "idioms": idioms})
 	}
 	data, err := json.Marshal(map[string]any{"specarch": "0.3", "target": "openapi", "root": filepath.ToSlash(s.RootFile),
 		"specification": s.Value, "implementations": impls, "output": filepath.ToSlash(filepath.Join(fixture, "..", "out"))})
@@ -322,7 +363,8 @@ func startVault(t *testing.T) *api.DXAPI {
 // specarch-gen-ui-typescript writes it, against the same service on Node:
 // the handshake established on the first encrypted call through the Web
 // Crypto API, the envelope sealed and opened, and a used-up handshake
-// renewed when the service answers REFRESH_PREKEY.
+// renewed when the service answers REFRESH_PREKEY, or REFRESH_SESSION from
+// a persistent-session type.
 func TestScreensRoundTrip(t *testing.T) {
 	node := os.Getenv("SPECARCH_NODE")
 	if node == "" {
@@ -357,7 +399,11 @@ func TestRoundTrip(t *testing.T) {
 	// The handshake carries one envelope: a second is refused plain, telling
 	// the client to establish a new one.
 	status, answer, err = c.AddNote(ctx, map[string]any{"title": "again"})
-	if err != nil || status != 422 || answer["reason"] != "REFRESH_PREKEY" {
+	reason := "REFRESH_PREKEY"
+	if os.Getenv("VAULT_ENVELOPE") != "v2" {
+		reason = "REFRESH_SESSION"
+	}
+	if err != nil || status != 422 || answer["reason"] != reason {
 		t.Fatalf("a second envelope on a one-use handshake: status %d, answer %v, err %v", status, answer, err)
 	}
 
@@ -454,7 +500,7 @@ test("the first encrypted call establishes the handshake and opens the answer", 
   assert.equal((await response.json()).note_id, "n-hello");
 });
 
-test("a used-up handshake is renewed when the service answers REFRESH_PREKEY", async () => {
+test("a used-up handshake is renewed when the service answers REFRESH_PREKEY or REFRESH_SESSION", async () => {
   const transport = createTransport({ service, dialect: "dxlib", handshakes });
   for (const title of ["one", "two", "three"]) {
     const response = await transport.call(addNote, { body: { title } });
@@ -513,7 +559,11 @@ test("a file uploaded as a Blob and as a stream is streamed back whole", async (
 
 test("a download asked for in the envelope answers its bytes plain", async () => {
   const transport = createTransport({ service, dialect: "dxlib", handshakes });
-  const response = await transport.call({ operation: "exportVault", path: "/vault/export", handshake: "preKey", stream: "download" }, { body: { format: "zip" } });
+  // dxlib has no download type in a persistent-session envelope, so there the export is asked for plain.
+  const exportVault = process.env.VAULT_ENVELOPE === "v2"
+    ? { operation: "exportVault", path: "/vault/export", handshake: "preKey", stream: "download" } as const
+    : { operation: "exportVault", path: "/vault/export", stream: "download" } as const;
+  const response = await transport.call(exportVault, { body: { format: "zip" } });
   assert.equal(response.status, 200);
   const size = 24 << 20;
   assert.deepEqual(await digest(response.body), { hash: createHash("sha256").update(pattern(size)).digest("hex"), size });

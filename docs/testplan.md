@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.2-dev of the specification: 615 design tests, 286 golden and 329 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.2-dev of the specification: 618 design tests, 288 golden and 330 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.7.2-dev of the specification: 615 design tests, 286 golden and 329 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 611 |
+| system | 614 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -1247,6 +1247,14 @@ Scenario: golden; level: system; verifies SA-44.
 - When: extract go is run on the module
 - Then: it declares each middleware once under middlewares by its function's name in kebab-case, with its doc comment as its description and each refusal's status and problem, citing the function and the first registration that runs it, and declares the problems; each operation lists its middlewares in order; it asks a must question for the middleware outside the module, for the one with no doc comment for the chain built with statements and for the list holding a function literal, each of which leaves its operation without middlewares, lists the middleware run twice twice, and a should question for the refusal whose status is computed; and exits 0
 
+#### extract-go-dxlib-session
+
+Scenario: golden; level: system; verifies SA-77, SA-44.
+
+- Given: a repository holding a Go module on dxlib with a plain JSON POST /startSession that declares a0, a1 and a2 and answers i, b0, b1 and b2, a POST /addEntry of type EndPointTypeHTTPEndToEndEncryptionV4, a POST /sync of type EndPointTypeHTTPEndToEndEncryptionV3, and a function that sets dxlib's V4 hooks to functions that open dxlib's datablock, one through a helper, and seal with it, and its V3 hooks to functions that pass the body through
+- When: extract go is run on the module
+- Then: it writes the handshake session with keyAgreement x25519, signature ed25519 and cipher aes-256-cbc, inferred, established by startSession and citing the registration and both V4 hooks, names it on addEntry, asks a could question that the V4 type is the implementation file's setting targets.openapi.settings.envelopes, a should question on the lifetime and uses, and a must question on sync naming each V3 hook and that it does not call the datablock; it exits 0
+
 #### extract-go-dxlib-tables-seeds
 
 Scenario: golden; level: system; verifies SA-44.
@@ -2013,6 +2021,14 @@ Scenario: golden; level: system; verifies SA-77, SA-44.
 - When: generate go-dxlib is run with --unapproved
 - Then: it writes the service and the client with the same operations, request types, stream helpers, handshake and limits as the vault written as a specification, which TestExtractedRoundTrip runs against a real dxlib API with the vault's round-trip test, and exits 0
 
+#### generate-go-dxlib-session
+
+Scenario: golden; level: system; verifies SA-77, SA-40.
+
+- Given: the vault of generate-go-dxlib-envelope-stream with its export asked for plain, and an implementation file whose openapi target serves the handshake preKey as v4; specarch-gen-go-dxlib built from this repository on PATH
+- When: generate go-dxlib is run with --unapproved
+- Then: it writes Register setting dxlib's OnE2EEV4Unpack and OnE2EEV4Pack to hooks that read {i, d} from the body, open the envelope as the pre-key hook opens it, convert the elements to the little-endian framing, keep the keys the answer needs in the state, and seal the answer as {d}; the exchange, the store and the client as for the pre-key envelope; and exits 0
+
 #### generate-go-dxlib-value-objects
 
 Scenario: golden; level: system; verifies SA-40, SA-50.
@@ -2076,6 +2092,14 @@ Scenario: red; level: system; verifies SA-39.
 - Given: a specification whose field names an enum by $ref and narrows it with an enum beside it, and an implementation file whose openapi target has the dxlib dialect; specarch-gen-openapi built from this repository on PATH
 - When: generate openapi is run with --unapproved
 - Then: it reports at the field that the enum beside the $ref cannot be carried in the dxlib dialect, writes the document as a draft with that error in x-specarch-marks on the field, and exits 1
+
+#### generate-openapi-dxlib-session
+
+Scenario: red; level: system; covers exit 1; verifies SA-77.
+
+- Given: the vault of generate-openapi-dxlib-envelope-stream, with an implementation file whose openapi target serves the handshake preKey as v3 and names a handshake session the specification does not declare; specarch-gen-openapi built from this repository on PATH
+- When: generate openapi is run with --unapproved
+- Then: it writes each operation in preKey's envelope as EndPointTypeHTTPEndToEndEncryptionV3, reports as errors the setting that names a handshake that is not declared and, at its handshake, the export that streams a download in a v3 envelope, which no dxlib type carries, writes the document with both marked, and exits 1
 
 #### generate-openapi-gateway
 

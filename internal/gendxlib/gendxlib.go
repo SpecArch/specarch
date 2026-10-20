@@ -43,6 +43,9 @@ func Generate(r *genopenapi.Request) genopenapi.Response {
 			g.settings = s
 			g.mappings = obj(impl.Content["mappings"])
 		}
+		if t := obj(obj(impl.Content["targets"])["openapi"]); t != nil && g.openapiSettings == nil {
+			g.openapiSettings = obj(t["settings"])
+		}
 	}
 	pkg := text(g.settings["package"])
 	if pkg == "" {
@@ -127,6 +130,7 @@ func Generate(r *genopenapi.Request) genopenapi.Response {
 type gen struct {
 	spec, settings, entities map[string]any
 	mappings                 map[string]any
+	openapiSettings          map[string]any // the openapi target's settings, which choose each handshake's envelope (ADR-163)
 	owned                    ownership.Owned // operations and jobs another stakeholder owns get no code
 	root, db                 string
 	diags                    []genopenapi.Diagnostic
@@ -513,7 +517,14 @@ func (g *gen) handlers() {
 	for _, o := range ops {
 		g.line("\ta.RegisterHandler(%q, %s)", o.id, pascal(o.id))
 	}
-	if g.handshake != nil {
+	switch {
+	case g.handshake != nil && g.handshake.envelope != "v2":
+		v := strings.ToUpper(g.handshake.envelope)
+		g.line("\t// The hooks dxlib calls to open a request's envelope and seal the answer's,")
+		g.line("\t// for every operation of type EndPointTypeHTTPEndToEndEncryption%s.", v)
+		g.line("\tapi.OnE2EE%sUnpack = open%sEnvelope", v, v)
+		g.line("\tapi.OnE2EE%sPack = seal%sEnvelope", v, v)
+	case g.handshake != nil:
 		g.line("\t// The hooks dxlib calls to open a request's envelope and seal the answer's,")
 		g.line("\t// for every operation of type EndPointTypeHTTPEndToEndEncryptionV2 or")
 		g.line("\t// EndPointTypeHTTPDownloadStreamV2.")
@@ -530,6 +541,9 @@ func (g *gen) handlers() {
 func (g *gen) operation(o operation) {
 	name := pascal(o.id)
 	params := g.params(o)
+	if h := g.handshake; h != nil && h.envelope != "v2" && stream(o) == "download" && text(o.node["handshake"]) == h.name {
+		g.problem("error", o.pointer()+"/handshake", "%s streams a download in the envelope of handshake %s, which settings.envelopes serves as %s, and dxlib's one download type in an envelope is EndPointTypeHTTPDownloadStreamV2, the pre-key envelope; serve %s as v2, or take the download out of the envelope", o.id, h.name, h.envelope, h.name)
+	}
 	req := name + "Request"
 	g.w.WriteString(g.marks(o.pointer(), ""))
 	g.line("// %s holds the parameters of %s; Has says whether one was given.", req, o.id)

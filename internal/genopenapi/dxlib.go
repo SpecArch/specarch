@@ -357,6 +357,11 @@ func nullable(f map[string]any) bool {
 
 // generateDxlib writes the document in the dxlib dialect.
 func (g *gen) generateDxlib(r *Request) Response {
+	envelopes, wrong := Envelopes(g.settings, obj(g.spec["handshakes"]))
+	g.envelopes = envelopes
+	for _, w := range wrong {
+		g.diags = append(g.diags, g.problem("/", "%s", w))
+	}
 	doc := mapping()
 	add(doc, "openapi", str("3.1.0"))
 	info := mapping()
@@ -792,10 +797,56 @@ func (g *gen) dxEndpointType(at string, op map[string]any, stream string) string
 		g.diags = append(g.diags, g.problem(at+"/handshake", "%s travels in the envelope of handshake %s, whose %s is not what dxlib's envelope carries (x25519, ed25519 and aes-256-cbc, its datablock), so no endpoint type of dxlib's serves it", text(op["operationId"]), name, strings.Join(differs, " and ")))
 		return "EndPointTypeHTTPJSON"
 	}
+	switch env := g.envelopes[name]; env {
+	case "v3", "v4":
+		if stream == "download" {
+			g.diags = append(g.diags, g.problem(at+"/handshake", "%s streams a download in the envelope of handshake %s, which settings.envelopes serves as %s, and dxlib's one download type in an envelope is EndPointTypeHTTPDownloadStreamV2, the pre-key envelope; serve %s as v2, or take the download out of the envelope", text(op["operationId"]), name, env, name))
+			return "EndPointTypeHTTPJSON"
+		}
+		return "EndPointTypeHTTPEndToEndEncryption" + strings.ToUpper(env)
+	}
 	if stream == "download" {
 		return "EndPointTypeHTTPDownloadStreamV2"
 	}
 	return "EndPointTypeHTTPEndToEndEncryptionV2"
+}
+
+// Envelopes is the dxlib type each handshake is served in, by the openapi
+// target's settings.envelopes (ADR-163): v2, v3 or v4, and v2 for a
+// handshake it does not name; with what is wrong in the setting.
+func Envelopes(settings, handshakes map[string]any) (map[string]string, []string) {
+	out := map[string]string{}
+	for name := range handshakes {
+		out[name] = "v2"
+	}
+	raw, set := settings["envelopes"]
+	if !set {
+		return out, nil
+	}
+	m, ok := raw.(map[string]any)
+	if !ok {
+		return out, []string{"the openapi target's settings.envelopes is not a map of a handshake's name to v2, v3 or v4, so every handshake is served as v2"}
+	}
+	var wrong []string
+	for _, name := range sortedKeys(m) {
+		switch v := text(m[name]); {
+		case handshakes[name] == nil:
+			wrong = append(wrong, fmt.Sprintf("the openapi target's settings.envelopes names %s, which is not a handshake of the specification (%s); take it out, or name a handshake", name, strings.Join(orNone(sortedKeys(handshakes)), ", ")))
+		case v != "v2" && v != "v3" && v != "v4":
+			wrong = append(wrong, fmt.Sprintf("the openapi target's settings.envelopes serves handshake %s as %q, and dxlib serves a handshake as v2, v3 or v4; it is served as v2", name, v))
+		default:
+			out[name] = v
+		}
+	}
+	return out, wrong
+}
+
+// orNone is a list, or one word saying it is empty.
+func orNone(list []string) []string {
+	if len(list) == 0 {
+		return []string{"it declares none"}
+	}
+	return list
 }
 
 // dxErrorBody is dxlib's error body, by the names of the error-response

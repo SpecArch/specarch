@@ -1,0 +1,106 @@
+questions:
+  # specarch-problem: question: open_question: (must, decision) POST /addEntry checks no privilege: it registers it with none, so dxlib lets through every caller its middlewares admit (it has no middleware). Is it meant to be open to everyone (public), or which permission should it check? Decided by system-owner. Answer with a decision record that names Q-1 under answers. [Q-1]
+  Q-1:
+    question: 'POST /addEntry checks no privilege: it registers it with none, so dxlib lets through every caller its middlewares admit (it has no middleware). Is it meant to be open to everyone (public), or which permission should it check?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1addEntry/post/permission']
+    decidedBy: system-owner
+    why: dxlib checks no privilege on an endpoint that names none, and whether a caller must sign in is decided by its middlewares, which are code; an open endpoint is never written as public without the owner's word.
+  # specarch-problem: question: open_question: (must, decision) api/handlers.go:21: operation POST /addEntry, response 200, property entryId is an expression, which is not a literal, nor a name the handler declares with its type. Which type does it take? Decided by system-owner. Answer with a decision record that names Q-2 under answers. [Q-2]
+  Q-2:
+    question: 'api/handlers.go:21: operation POST /addEntry, response 200, property entryId is an expression, which is not a literal, nor a name the handler declares with its type. Which type does it take?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1addEntry/post/responses/200/content/application~1json/schema/properties/entryId']
+    decidedBy: system-owner
+    why: A value's type is read from a literal or from a declaration the handler makes; a value a call returns is not known by syntax.
+    cites:
+      - {source: code, clause: 'api/handlers.go:21', says: 'operation POST /addEntry, response 200, property entryId: an expression.'}
+  # specarch-problem: question: open_question: (must, decision) Does the running system register POST /addEntry? It is declared at api/endpoints.go:30, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-3 under answers. [Q-3]
+  Q-3:
+    question: Does the running system register POST /addEntry? It is declared at api/endpoints.go:30, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1addEntry/post']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; the document dxlib emits, or a route table, says what the running system registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'api/endpoints.go:30', says: Registers POST /addEntry with NewEndPoint.}
+  # specarch-problem: question: open_question: (must, decision) POST /startSession checks no privilege: it registers it with none, so dxlib lets through every caller its middlewares admit (it has no middleware). Is it meant to be open to everyone (public), or which permission should it check? Decided by system-owner. Answer with a decision record that names Q-4 under answers. [Q-4]
+  Q-4:
+    question: 'POST /startSession checks no privilege: it registers it with none, so dxlib lets through every caller its middlewares admit (it has no middleware). Is it meant to be open to everyone (public), or which permission should it check?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1startSession/post/permission']
+    decidedBy: system-owner
+    why: dxlib checks no privilege on an endpoint that names none, and whether a caller must sign in is decided by its middlewares, which are code; an open endpoint is never written as public without the owner's word.
+  # specarch-problem: question: open_question: (must, decision) Does the running system register POST /startSession? It is declared at api/endpoints.go:15, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-5 under answers. [Q-5]
+  Q-5:
+    question: Does the running system register POST /startSession? It is declared at api/endpoints.go:15, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1startSession/post']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; the document dxlib emits, or a route table, says what the running system registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'api/endpoints.go:15', says: Registers POST /startSession with NewEndPoint.}
+  # specarch-problem: question: open_question: (must, decision) POST /sync checks no privilege: it registers it with none, so dxlib lets through every caller its middlewares admit (it has no middleware). Is it meant to be open to everyone (public), or which permission should it check? Decided by system-owner. Answer with a decision record that names Q-6 under answers. [Q-6]
+  Q-6:
+    question: 'POST /sync checks no privilege: it registers it with none, so dxlib lets through every caller its middlewares admit (it has no middleware). Is it meant to be open to everyone (public), or which permission should it check?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1sync/post/permission']
+    decidedBy: system-owner
+    why: dxlib checks no privilege on an endpoint that names none, and whether a caller must sign in is decided by its middlewares, which are code; an open endpoint is never written as public without the owner's word.
+  # specarch-problem: question: open_question: (must, decision) api/endpoints.go:40 registers POST /sync with EndPointTypeHTTPEndToEndEncryptionV3, a persistent-session envelope whose key exchange, cipher and session store the service supplies through dxlib's OnE2EEV3Unpack and OnE2EEV3Pack hooks, and the reader knows the envelope only when they open and seal dxlib's datablock: OnE2EEV3Unpack: api/hooks.go:25 sets it to passThrough, which does not call dxlib's datablock.UnpackLVPayload, followed through the functions it calls three deep; OnE2EEV3Pack: api/hooks.go:26 sets it to passBack, which does not call dxlib's datablock.PackLVPayload, followed through the functions it calls three deep. Which handshake does it travel in, with its key agreement, signature, cipher and the operation that establishes it? Decided by system-owner. Answer with a decision record that names Q-7 under answers. [Q-7]
+  Q-7:
+    question: 'api/endpoints.go:40 registers POST /sync with EndPointTypeHTTPEndToEndEncryptionV3, a persistent-session envelope whose key exchange, cipher and session store the service supplies through dxlib''s OnE2EEV3Unpack and OnE2EEV3Pack hooks, and the reader knows the envelope only when they open and seal dxlib''s datablock: OnE2EEV3Unpack: api/hooks.go:25 sets it to passThrough, which does not call dxlib''s datablock.UnpackLVPayload, followed through the functions it calls three deep; OnE2EEV3Pack: api/hooks.go:26 sets it to passBack, which does not call dxlib''s datablock.PackLVPayload, followed through the functions it calls three deep. Which handshake does it travel in, with its key agreement, signature, cipher and the operation that establishes it?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1sync/post/handshake']
+    decidedBy: system-owner
+    why: dxlib routes a V3 body to the host's hooks and fixes nothing of the envelope, so the reader cannot write the handshake from the type.
+    cites:
+      - {source: code, clause: 'api/endpoints.go:40', says: Registers POST /sync with EndPointTypeHTTPEndToEndEncryptionV3.}
+  # specarch-problem: question: open_question: (must, decision) Does the running system register POST /sync? It is declared at api/endpoints.go:40, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-8 under answers. [Q-8]
+  Q-8:
+    question: Does the running system register POST /sync? It is declared at api/endpoints.go:40, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1sync/post']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; the document dxlib emits, or a route table, says what the running system registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'api/endpoints.go:40', says: Registers POST /sync with NewEndPoint.}
+  # specarch-problem: question: open_question: (should, decision) How long is a handshake session accepted, and how many envelopes does one carry? Both are the service's own code in the store its hooks read. Decided by system-owner. Answer with a decision record that names Q-9 under answers. [Q-9]
+  Q-9:
+    question: How long is a handshake session accepted, and how many envelopes does one carry? Both are the service's own code in the store its hooks read.
+    kind: decision
+    priority: should
+    blocks: ['#/handshakes/session/lifetime', '#/handshakes/session/uses']
+    decidedBy: system-owner
+    why: dxlib's type fixes the exchange and the cipher, not how long a pre-key lives or how often it is used, and a client must know both.
+    cites:
+      - {source: code, clause: 'api/endpoints.go:30', says: Registers an endpoint with dxlib's persistent-session envelope.}
+  # specarch-problem: question: open_question: (could, decision) Not held: api/endpoints.go:30: the endpoints of handshake session are registered with EndPointTypeHTTPEndToEndEncryptionV4, dxlib's persistent-session type, and which of dxlib's types serves a handshake is the stack's, not the design's; the implementation file serves it with targets.openapi.settings.envelopes: {session: v4} (ADR-163). Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-10 under answers. [Q-10]
+  Q-10:
+    question: 'Not held: api/endpoints.go:30: the endpoints of handshake session are registered with EndPointTypeHTTPEndToEndEncryptionV4, dxlib''s persistent-session type, and which of dxlib''s types serves a handshake is the stack''s, not the design''s; the implementation file serves it with targets.openapi.settings.envelopes: {session: v4} (ADR-163). Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/handshakes/session']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'api/endpoints.go:30', says: 'Not held: the endpoints of handshake session are registered with EndPointTypeHTTPEndToEndEncryptionV4, dxlib''s persistent-session type, and which of dxlib''s types serves a handshake is the stack''s, not the design''s; the implementation file serves it with targets.openapi.settings.envelopes: {session: v4} (ADR-163).'}
+  # specarch-problem: question: open_question: (should, decision, suspected) api/handlers.go:10: the handler api.StartSession of POST /startSession does nothing: its body has no step but a return. Is it a stub, with the operation not built yet? Decided by system-owner. Answer with a decision record that names Q-11 under answers. [Q-11]
+  Q-11:
+    question: 'api/handlers.go:10: the handler api.StartSession of POST /startSession does nothing: its body has no step but a return. Is it a stub, with the operation not built yet?'
+    kind: decision
+    priority: should
+    certainty: suspected
+    blocks: ['#/paths/~1startSession/post']
+    decidedBy: system-owner
+    why: A handler that does nothing answers every request the same way, whatever the specification says the operation does.
+    cites:
+      - {source: code, clause: 'api/handlers.go:10', says: The body holds no step but a return.}

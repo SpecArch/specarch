@@ -435,7 +435,7 @@ design: a prefix or a method list on a gateway, routing by a header,
 rewriting the request, and a code reader of the forwarding, which waits
 for an http binding that names the verifier and the lookup.
 
-Partly built, 0.7.1: dxlib's encrypted API type and large files. An
+Built, 0.7.1 and 0.7.2: dxlib's encrypted API type and large files. An
 endpoint whose API type makes its request and response an encrypted
 envelope after a Diffie-Hellman key exchange is an operation with a
 `handshake`, and one that uploads or downloads a file as a stream rather
@@ -452,61 +452,55 @@ a file, proved over a real dxlib service (`generate-openapi-dxlib-envelope-strea
 `generate-go-dxlib-envelope-stream`, `internal/gendxlib/roundtrip_test.go`);
 the technical specification shows the handshake in five steps, each
 encrypted operation's envelope and a streamed file in place of a body table
-(`document-techspec-envelope-stream`). Four parts are not built, in 5a.
+(`document-techspec-envelope-stream`). Section 5a lists the four parts
+built after it.
 
-## 5a. What the handshake and the streams still owe
+## 5a. The handshake and the streams, end to end
 
-The design declares the handshakes a client performs before it may call
-an encrypted operation and the files an operation streams (ADR-145,
-ADR-146); `extract go` reads both from a dxlib registration, the dxlib
-dialect and the go-dxlib target serve them with a Go client, and the
-documents show them. Four parts are not built, each with what done looks
-like:
+Built, 0.7.2, each with its proof:
 
-- **The handshake in the screens.** Not built. The two UI targets, plain
-  JavaScript and TypeScript on Next.js, refuse a page that submits to,
-  loads from or picks from an encrypted or streamed operation, as an error
-  at the page. Done: a browser client of the handshake in the TypeScript
-  screens' service module, X25519 and Ed25519 through the Web Crypto API
-  where the browser has them (both are in current browsers) and
-  AES-256-CBC through `subtle.encrypt`, the length-prefixed envelope
-  dxlib's datablock packs, a handshake established on the first encrypted
-  call and renewed when the service answers `REFRESH_PREKEY`, and the same
-  for a streamed upload (`fetch` with a `ReadableStream` body) and
-  download; the round trip the Go client passes, a generated screen
-  against a generated service, is the acceptance test.
-- **The extract leg of the round trip.** Not built. The round trip proved
-  runs from a written specification to a generated service and client
-  over a real dxlib API (`internal/gendxlib/roundtrip_test.go`); a tree
-  `extract go` reads from a service's code carries must questions on
-  every operation (whether the running system registers it, among
-  others), which hold `generate` back until they are answered. Done: a
-  fixture service read with `extract go`, a decisions file committed
-  beside the extracted tree that answers its must questions, `generate`
-  run on that tree, and the regenerated service and client passing the
-  same round-trip test as the vault fixture, which shows that code read
-  into a specification regenerates to code that behaves the same.
-- **An upload's parameters.** Not built. dxlib reads the parameters of an
-  upload stream from the request's `X-Var` header, a JSON object sent
-  beside the streamed body, and the meta-model has no word for a
-  parameter carried that way, so the dxlib dialect and the go-dxlib target
-  refuse an upload that declares parameters, as an error at the operation,
-  and the Go client takes none. Done: a meta-model word for where an
-  upload's parameters travel (a header holding them as JSON, named by the
-  stack), the dialect writing them as dxlib's parameters, the go-dxlib
-  handler reading them from the header, the client sending it, and
-  `extract go` writing them from the registration.
-- **The V3 and V4 envelopes.** Not built. dxlib routes the body of an
-  endpoint of type `EndPointTypeHTTPEndToEndEncryptionV3` or `V4`, a
-  persistent-session envelope, to hooks the service supplies
-  (`OnE2EEV3Unpack` and `OnE2EEV3Pack`, and the V4 pair) and fixes
-  nothing of the exchange, the cipher or the session store, so `extract
-  go` asks a must question at the operation's handshake and the generators
-  serve neither type. Done: a handshake declared with the key agreement,
-  signature and cipher the hooks use and the operation that establishes
-  it, `extract go` reading the hooks the service registers to answer that,
-  the dxlib dialect writing the type, the go-dxlib target writing the
-  hooks and the client's side, and a round trip over each.
+- **The handshake in the screens** (ADR-161). The TypeScript screens call
+  a service in the dxlib dialect as it serves it, told the dialect by
+  `apiDialect` in the plug-in request, and `screens/transport.ts` performs
+  dxlib's pre-key handshake in the browser through the Web Crypto API,
+  seals and opens the envelope and renews the handshake when the service
+  answers that it is used up. A task page streams the file it picks to an
+  upload, and an action saves the file a download answers. The round trip
+  drives the transport on Node against the generated vault
+  (`generate-ui-typescript-dxlib`, `generate-ui-typescript-dxlib-refused`,
+  `validate-task-page-upload`). The plain JavaScript target still refuses a
+  page that calls an encrypted or streamed operation, as an error at the
+  page.
+- **The extract leg of the round trip.** The vault written by hand on dxlib
+  (`extract-go-dxlib-vault`) is read with `extract go`, its questions are
+  answered by decision records committed beside the tree
+  (`generate-go-dxlib-extracted-vault`), and the service and client
+  regenerated from it pass the same round trip as the vault written as a
+  specification (`TestExtractedRoundTrip`).
+- **An upload's parameters** (ADR-162). `stream.parameters` holds the
+  values that travel beside the file, as one JSON object in a header the
+  stack names, X-Var for dxlib. Both validators check it
+  (`validate-stream-parameters`); the dxlib dialect writes it as
+  `x-dxlib-parameters`, the go-dxlib handler reads it and its client sends
+  it, `extract go` writes it from an upload stream's registration, the
+  TypeScript task page sends its fields beside the file (an error in the
+  standard dialect, which names no header) and the technical specification
+  lists it. Both vault round trips upload with a required parameter.
+- **The V3 and V4 envelopes** (ADR-163). The implementation file serves a
+  handshake in dxlib's persistent-session types with the openapi target's
+  `settings.envelopes`; the dxlib dialect writes the type, go-dxlib writes
+  the hooks, which carry the pre-key envelope's bytes, and the clients
+  renew on `REFRESH_SESSION` as on `REFRESH_PREKEY`
+  (`generate-openapi-dxlib-session`, `generate-go-dxlib-session`, and the
+  round trip run in V2, V3 and V4). `extract go` reads a V3 or V4 endpoint
+  as the handshake `session` when the module's hooks open and seal dxlib's
+  datablock (`extract-go-dxlib-session`).
+
+Left out by design: a download stream in a V3 or V4 envelope, which no
+dxlib type carries; hooks that make their own bytes, another cipher or a
+bootstrap through the hook, which `extract go` asks about rather than
+reads; and parameters beside a body read whole as raw bytes, which stay a
+note.
 
 ## 6. Changes, defects, releases and operation
 

@@ -289,7 +289,13 @@ travels in the envelope of a handshake of dxlib's primitives (x25519,
 ed25519, aes-256-cbc) is `EndPointTypeHTTPEndToEndEncryptionV2`, and
 `EndPointTypeHTTPDownloadStreamV2` when it also streams a download; a
 handshake of other primitives is an error at the operation, since no type
-of dxlib's carries it. An upload stream is `EndPointTypeHTTPUploadStream`
+of dxlib's carries it. The openapi target's `settings.envelopes` may serve
+a handshake in dxlib's persistent-session types instead, `{<handshake>:
+v3}` or `v4` (ADR-163): its operations are then
+`EndPointTypeHTTPEndToEndEncryptionV3` or `V4`, a download stream under it
+is an error at the operation, since dxlib's one download type in an
+envelope is the pre-key one, and a setting that names no handshake or
+another type is an error at the implementation file. An upload stream is `EndPointTypeHTTPUploadStream`
 with a required `application/octet-stream` body of a binary string, since
 dxlib hands a handler an upload's body unread only as that type: a design
 that names another binary media type for it gets octet-stream and a
@@ -372,7 +378,13 @@ share; the in-memory store is written beside it. A handshake past its
 lifetime or its declared `uses` is refused when its envelope is opened, which
 dxlib answers as the plain 422 that tells the client to establish a new one.
 Two handshakes of dxlib's primitives are refused, since dxlib sets one pair
-of hooks. The handler of an operation in the envelope is the same as any
+of hooks. A handshake served as v3 or v4 sets `OnE2EEV3Unpack` and
+`OnE2EEV3Pack`, or the V4 pair, instead: the hooks read `{i, d}` from the
+body, open it as the pre-key hook does, keep the keys the answer needs in
+the state dxlib passes between them and seal the answer as `{d}`, so the
+bytes and the client are the pre-key envelope's, and dxlib refuses a used
+or expired handshake with `REFRESH_SESSION` in place of `REFRESH_PREKEY`.
+The round trip runs the vault in all three types. The handler of an operation in the envelope is the same as any
 other's: dxlib opens the envelope before the parameters are read and seals
 what the handler answers.
 

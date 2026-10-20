@@ -102,6 +102,7 @@ var auditFields = []struct{ name, format, description string }{
 type gen struct {
 	spec      map[string]any
 	settings  map[string]any
+	envelopes map[string]string // the dxlib type each handshake is served in (ADR-163)
 	idioms    []Idiom
 	diags     []Diagnostic
 	root      string
@@ -155,6 +156,10 @@ func Generate(r *Request) Response {
 			}
 			return g.generateDxlib(r)
 		}
+	}
+	if _, set := g.settings["envelopes"]; set {
+		g.diags = append(g.diags, Diagnostic{File: g.root, Line: 1, Severity: "warning", Path: "/", Rule: "generator",
+			Message: "the openapi target's settings.envelopes chooses the dxlib type a handshake is served in, and this target writes the standard dialect, which names none; it is not read (ADR-163)"})
 	}
 	doc := mapping()
 	add(doc, "openapi", str("3.1.0"))

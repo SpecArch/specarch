@@ -35,6 +35,9 @@ is `route_not_specified` at its line in the route table, and a permission
 that differs is `operation_permission_differs`. With the permission table it
 also matches each grant by its role and permission, each side widened
 through `implies`, as `grant_not_in_code` and `grant_not_specified`.
+With a gateway table it matches the gateway by its name and each forward by
+its value, as `forward_not_served` and `forward_not_specified`, and the
+claim the gateway reads, as `claim_differs` (ADR-142).
 
 ## 2. Spec against the database
 

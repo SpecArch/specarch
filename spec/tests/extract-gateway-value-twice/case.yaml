@@ -5,3 +5,4 @@ repository:
     - [gateway]
     - [gateway-table.json]
 exitStatus: 1
+standardOutput: ""

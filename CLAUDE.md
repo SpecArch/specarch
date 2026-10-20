@@ -1,88 +1,82 @@
 # CLAUDE.md
 
-Standing rules for agents working in this repository.
-
-## History
-
-Every item appends to that day's file in `history/` (`history/YYYY-MM-DD.md`)
-in the same commit as its work: what changed and why, the owner's decisions,
-commit hashes, handoffs processed and deleted, what was left out on purpose,
-and open questions. Summary first, newest last, plain words.
-
-Design files, schemas, docs and the README carry no change log: no
-"previously", "changed from", "updated on" or "new in". They always read as
-the current truth; how they got there belongs only in `history/` and git.
-Version numbers stay.
-
-## No de-ai pass, and no AI traces
-
-No de-ai pass is run on anything in this repository: not on the history,
-the docs, the README, commit messages or reports. This overrides the
-global instruction to invoke the de-ai skill on prose. The rule against
-AI traces still holds in full: no `Co-Authored-By` line naming the
-assistant, no "Generated with" footer, and no model name or reference to
-the assistant or the session in files, commits or pull requests.
+Rules for agents here. The umbrella `MyOwnApps/CLAUDE.md` and
+`~/.claude/CLAUDE.md` also apply; this file holds what is SpecArch's own.
 
 ## Public repository
 
-This repository is public. It holds generic material only. Never put an
-employer's, client's or product's name, data, code or internal detail in it;
-generalise or leave it out, and name what was left out in the item report and
-the history file.
+- Generic material only: no employer's, client's or product's name, data,
+  code or internal detail. Generalise or leave it out, and name what was
+  left out in the item report and the history file.
+- No AI traces, in full (the umbrella's public-repo rule): no
+  `Co-Authored-By` naming the assistant, no "Generated with" footer, no
+  model name or reference to the assistant or the session in files,
+  commits or pull requests. No de-ai pass on anything here (umbrella,
+  overriding the global de-ai rule).
+- Handoffs: mailbox and rules in the umbrella `CLAUDE.md` (specarch
+  handoffs). Read the mailbox at the start of each SpecArch item and check
+  each handoff for leaks. Once a handoff is fully processed and its work
+  pushed, delete the file and name it in the report and the history file.
+  No other change in that folder.
+- Commits and pushes follow `agentq policy specarch`. Contributions from
+  outside are the owner's decision; never merge one.
 
-## Handoffs
+## History
 
-Handoffs arrive as files in the handoff mailbox folder named in the umbrella
-repository's `CLAUDE.md`. Read it at the start of each SpecArch item. Check a
-handoff for leaks before it becomes work here. Once a handoff is fully
-processed and its work is pushed, delete that file and name it in the report
-and the history file. Make no other change in that folder.
+- Every item appends to `history/YYYY-MM-DD.md` (that day) in the same
+  commit as its work: what changed and why, the owner's decisions, commit
+  hashes, handoffs processed and deleted, what was left out on purpose,
+  open questions. Summary first, newest last, plain words.
+- Design files, schemas, docs and the README read as the current truth: no
+  "previously", "changed from", "updated on", "new in". That belongs only
+  in `history/` and git. Version numbers stay.
+
+## Bugs
+
+- In `BUG_OUTSTANDING.md` and `BUG_HISTORY.md`, one `BUG-NNN` entry each;
+  not in GitHub issues (turned off). A new bug takes the next free number
+  in `BUG_OUTSTANDING.md`.
+- The fixing commit says `Fixes BUG-NNN` and moves the entry to
+  `BUG_HISTORY.md` with that commit's hash, in the same commit.
+- An outside pull request that claims to fix a listed bug is reported to
+  the owner, never taken on that ground.
 
 ## How SpecArch is built
 
-- SpecArch is a compiler for specifications (`docs/principles.md`): it
-  reads an incomplete or wrong definition, never refuses to read it and
-  never silently drops it; every problem goes into the one problems file
-  and is marked at the entry in every output. Every design choice and
-  decision record checks it: does this keep the definition readable when
-  it is incomplete, and does every problem surface in the problems file
-  and at the entry? A rule that refuses something is an error at that
-  entry, never a definition left unread.
-- A specification is never complete (`docs/principles.md`, A
-  specification is never complete): people leave things out, and end
-  users see the system only at the user acceptance test, where they ask
-  for changes. Every design choice and decision record also checks: does
-  this make a result fast to show early, and is a change request from
-  someone looking at that result cheap to take back into the
-  specification (`docs/acceptance.md`)?
-- Follow `docs/principles.md` (the Low IQ Tax): full-word keys, one way to
-  say one thing, no placeholders, ambiguity is an error, summary first.
-- Design and implementation stay apart: `*.specarch-design.yaml` holds the
-  design, `<name>.<stack>.specarch-implementation.yaml` holds one stack's
-  choices. Nothing stack-specific goes into a design file.
-- Spec first: a change to the `specarch` command changes
-  `spec/specarch.specarch-design.yaml` (and its implementation file) before
-  or with the code, and the validator must pass on `spec/` and `examples/`.
-- Dependencies: OSI licences only, pinned, with an SBOM scan (syft, grype or
-  osv-scanner, govulncheck) recorded in the commit message and in the Go
-  implementation file's `libraries`.
-- Before adopting a standard (CEL, JSON Schema, OpenAPI, SQL, a language's
-  rules) or deviating from one, find out why it is the way it is, and write
-  that reason next to the choice in the design decisions. Never relax a
-  standard's rule for convenience without saying what it protects against
-  and why that does not apply.
+- **A compiler for specifications** (`docs/principles.md`): it reads an
+  incomplete or wrong definition, never refuses to read it, never silently
+  drops it. Every problem goes into the one problems file and is marked at
+  the entry in every output. A rule that refuses something is an error at
+  that entry, never a definition left unread.
+- **A specification is never complete** (`docs/principles.md`): people
+  leave things out, and end users see the system only at the user
+  acceptance test, where they ask for changes.
+- Every design choice and decision record checks both: is an incomplete
+  definition still readable, with every problem in the problems file and
+  at the entry? Is a result fast to show early, and a change request on it
+  cheap to take back into the specification (`docs/acceptance.md`)?
+- The Low IQ Tax (`docs/principles.md`): full-word keys, one way to say
+  one thing, no placeholders, ambiguity is an error, summary first.
+- Design and implementation stay apart (`docs/conventions.md`): a
+  specification's root `specarch.yaml` and stage folders hold the design;
+  `implementation/<stack>/<name>.<stack>.specarch-implementation.yaml`
+  holds one stack's choices. Nothing stack-specific goes into the design.
+- **Spec first**: a change to the `specarch` command changes its design
+  in `spec/` (and its implementation files) before or with the code, and
+  this must pass:
+
+      specarch validate spec examples
+
+- Before adopting or deviating from a standard (CEL, JSON Schema, OpenAPI,
+  SQL, a language's rules), find out why it is the way it is and write
+  that reason next to the choice in the design decisions. Never relax its
+  rule for convenience without saying what it protects against and why
+  that does not apply.
 - Types are concrete and width-aware (`docs/conventions.md`, Types).
-- The validator has two builds, Go (root) and Swift (`swift/`). A change to
-  the validator is made in both, a new case goes into `spec/tests/` with
-  its design test, and both must print the same output. The documents and
-  generators are Go only.
-- Contributions from outside are the owner's decision; never merge one.
-- Bugs are kept in `BUG_OUTSTANDING.md` and `BUG_HISTORY.md`, one
-  BUG-NNN entry per bug, not in GitHub issues (the repository has them
-  turned off). A new bug takes the next free number in
-  `BUG_OUTSTANDING.md`; the fixing commit says `Fixes BUG-NNN`, and the
-  entry moves to `BUG_HISTORY.md` with that commit's hash in the same
-  commit. An outside pull request that claims to fix a listed bug is
-  reported to the owner, never taken on that ground.
-- Commits and pushes follow the repository's switches (`agentq policy
-  specarch`).
+- Two validator builds, Go (root) and Swift (`swift/`): a validator change
+  goes into both, a new case into `spec/tests/` with its design test, and
+  both print the same output. Documents and generators are Go only.
+- Dependencies, beyond the umbrella's SBOM and licence rules: OSI licences
+  only, pinned, scanned (syft, grype or osv-scanner, govulncheck), and the
+  result recorded in the commit message and in `libraries` of
+  `spec/implementation/go/specarch.go.specarch-implementation.yaml`.

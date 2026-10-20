@@ -12509,8 +12509,9 @@ the jobs table, kept apart for that role, and, after the table, a
 part per job that keeps an item apart: the description, the role
 that handles it and the steps as a table. A job that keeps an item
 apart with no deadLetter gets its part as one sentence naming
-deadLetter. The daily checklist row of such a job sends the reader
-to that part.
+deadLetter. The daily checklist row of a job with a deadLetter
+sends the reader to that part; a job without one keeps the plain
+row.
 
 Consequences: An existing specification reads as before: deadLetter is optional,
 and a job that keeps an item apart without it gets a sentence, not

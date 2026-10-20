@@ -1,0 +1,81 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
+decisions:
+  ADR-155:
+    title: specarch decide writes the decision as a file of its own under the next ID, takes the question out of its file as text, prints the entries to write rather than writing them, and asks for a source when the specification tracks origin
+    status: proposed
+    date: "2026-10-20"
+    context: |
+      Answering an open question was two edits by hand: a decision record
+      under the next free number, with the question's ID under answers,
+      and the question taken out of whichever file holds it, since the
+      validator refuses an accepted decision that answers a question still
+      present. The design of refinement planned a command for it that
+      prints the elements the question blocked so the agent edits them.
+      Four things had to be settled: where the record goes, how the
+      question leaves its file, what the command writes into the blocked
+      entries, and what origin the record carries in a specification that
+      tracks origin.
+    decision: |
+      The record is always a file of its own, design/decisions/<ID>.yaml,
+      which the loader reads as any fragment of the design stage; the
+      command refuses a specification whose stages do not list design,
+      saying to list it, rather than editing the root file's stages. The
+      ID is ADR- and the largest number any decision carries plus one, at
+      least three digits. The title is the question's text, the context
+      the question with its options, what it blocked and its Insight, the
+      decision the answer, the consequences the entries that are to be
+      written from it, so that a reader of the decisions sees what was
+      asked and what was settled without the question, which is gone.
+
+      The question's entry leaves its file by an edit of the text, as the
+      marks are written: from the problem marks above its key to the last
+      line of its value, found by indentation, and the questions key with
+      it when the entry was the only one; a file left with only blank and
+      comment lines is removed. An entry whose key does not start its line
+      is refused with the line. The edited text is parsed again and the
+      file is written only when it holds every other entry it held.
+
+      The command writes nothing into the entries the question blocked.
+      It prints each with the file and line of the deepest entry that
+      exists, the pointer and the keys missing there, and what the entry
+      is to carry: origin decided and decidedIn the new ID. From that run
+      on, the keys a must question covered are errors at their entries
+      until they are written.
+
+      With --source the record is stated and cites that source with the
+      answer as what it says; the source must be declared in the root
+      file. When the specification tracks origin, --source is required,
+      since every element of such a specification says where it came
+      from and the record would otherwise be the one without.
+    consequences: |
+      An agent or a dispatcher answers a question with one command and
+      gets back the list of what to write; the record and the question
+      never disagree, and the number is never taken. A specification's
+      hand-written questions files keep their formatting and comments. A
+      decision written by the command reads as any other decision and is
+      edited like one: a better title, a fuller context. A specification
+      that keeps its decisions in one file gets its first command-written
+      decision in a file beside it, which the loader merges as it merges
+      any fragment.
+    why: |
+      A file of its own is the one layout that needs no knowledge of how
+      the specification keeps its decisions: appending to the file that
+      holds the last one would have to find the end of its decisions
+      mapping in text, which a mapping that is not last in its file, or
+      one written in flow style, defeats. Text editing is chosen over
+      re-encoding the questions file for the reason the marks are: a
+      file written out again by a YAML encoder loses the author's
+      comments, quoting and line breaks, and the refinement is done on
+      files people edit. The command does not write the blocked entries
+      because the answer is prose and the entry is data: what a loan
+      period of 21 days becomes in the entity is the agent's reading of
+      the answer, which the validator then checks; the command would have
+      to guess, and a guess in the specification is a placeholder. The
+      origin rule follows the design: an answer given in words is a
+      source of kind interview with its date, and a decision in a
+      specification that tracks origin without one would be a warning the
+      command itself caused.
+    cites:
+      - source: adr-nygard
+        says: "A decision record states the context, the decision and the consequences."
+    satisfies: [SA-85]

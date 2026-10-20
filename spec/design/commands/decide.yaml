@@ -1,0 +1,92 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
+commands:
+  decide:
+    summary: Answer an open question with a decision record and take the question out
+    description: |
+      Validates its input first and prints the errors of an invalid
+      specification, then works on what could be read (ADR-065). Finds the
+      question by its ID in the merged `questions` section; refuses when
+      there is none of that ID, naming the open ones, when `--by` is not a
+      stakeholder of the specification, when `--source` names a source the
+      root file does not declare, when the specification tracks origin and
+      `--source` is not given, since the answer must then be citable, and
+      when `stages` does not list design, where decisions live (ADR-155).
+
+      Writes the decision record as `design/decisions/<ID>.yaml`, a file of
+      its own, under the next ID: `ADR-` and the largest number any
+      decision carries plus one, at least three digits, `ADR-001` for the
+      first. The record is accepted, dated `--date` or today, titled with
+      the question, its context the question with its options, what it
+      blocked and its Insight, its decision the answer, its consequences
+      the entries the question blocked, which are to be written from the
+      answer, `answers` the question's ID and `decidedBy` the stakeholder;
+      with `--source` it is stated, citing that source with the answer as
+      what it says.
+
+      Takes the question's entry out of the file that holds it by editing
+      the text, as the marks are written (ADR-066): the lines from the
+      entry's key to the last line of its value, with the problem marks
+      above it, and the `questions` key with them when the entry was its
+      only one; a file left with nothing but blank and comment lines is
+      removed. An entry not written in block style, whose key does not
+      start its line, is refused with the line, to be taken out by hand.
+      The edited text is read again before it is written, and refused
+      when it does not hold every other entry the file held.
+
+      Prints one line per entry the question blocked, so that the agent
+      writes them: for a pointer, the file and line of the deepest entry
+      that exists, the pointer, and the keys missing there; for a stage or
+      a section, its name; each ending with the origin and decision the
+      entry is to carry. A must question's covering ends with the question,
+      so the keys it covered are errors until they are written; `validate`
+      holds the agent to it.
+    permission: public
+    arguments:
+      - name: question
+        description: The ID of the open question, such as Q-12.
+        required: true
+        schema: { type: string, pattern: "^[A-Z][A-Z0-9]{0,15}-[A-Za-z0-9._]+$" }
+      - name: folder
+        description: The folder holding the specification.
+        required: true
+        schema: { type: string }
+    options:
+      by:
+        description: The stakeholder who decided, by key; a role, never a person.
+        schema: { type: string, pattern: "^[a-z][a-z0-9]*(-[a-z0-9]+)*$" }
+        required: true
+      answer:
+        description: The answer, as the stakeholder gave it; the record's decision.
+        schema: { type: string, minLength: 1 }
+        required: true
+      source:
+        description: The key of the source the answer rests on, declared in the root file; an interview for an answer given in words, a document for material provided. Required when the specification tracks origin.
+        schema: { type: string, pattern: "^[a-z][a-z0-9]*(-[a-z0-9]+)*$" }
+      date:
+        description: The date of the decision, as YYYY-MM-DD. Today when not given.
+        schema: { type: string, format: date }
+    reads:
+      - { path: "{folder}", description: The specification and its implementation files. }
+    writes:
+      - { path: "design/decisions/<ID>.yaml", description: "The decision record, under the next ID; refused when a file of that name exists." }
+      - { path: "the file that holds the question", description: "Without the question's entry, and without the questions key when the entry was its only one; removed when nothing but blank and comment lines is left." }
+    standardOutput: The errors of an invalid specification, then one line per entry the question blocked, with the file and line, the pointer and the keys missing there.
+    standardError: A usage message on a usage error, the reason a refusal, and one line naming the record written, the file the question left and what to do next.
+    exitCodes:
+      "0": the record is written and the question taken out
+      "1": refused; the question, the stakeholder or the source is unknown, the specification tracks origin and no source is given, design is not a stage, or the entry cannot be edited as text; or written, while the specification has errors
+      "2": usage error, or a file that could not be read or written
+    satisfies: [SA-85]
+    why: |
+      An answered question is a decision with a context, a decision and
+      consequences, and the question leaves the specification because it
+      is no longer true that the thing is unknown; writing both by hand
+      is the step an agent got wrong most often, the record under a taken
+      number or the question left in. The command writes what can be
+      derived and prints what cannot, the entries to write from the
+      answer, rather than guessing at them. The file is edited as text so
+      that the author's own formatting and comments stay, as the marks
+      leave them.
+    cites:
+      - source: adr-nygard
+        says: "A decision record holds the context, the decision and its consequences; a decision is superseded by a later one rather than edited."

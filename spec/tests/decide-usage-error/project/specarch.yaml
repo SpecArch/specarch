@@ -1,0 +1,6 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0, tracksOrigin: true }
+stages: [requirements, design, implementation]
+sources:
+  old-doc: { kind: document, title: The old design document, edition: "2024", author: The team }
+  owner-answer: { kind: interview, title: The owner's answer in the agents panel, date: "2026-10-08" }

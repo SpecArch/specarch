@@ -204,6 +204,40 @@ itself is gone. The validator refuses an accepted decision that `answers` a
 question still present (`question_answered`): either the question is open,
 and the decision is `proposed`, or it is answered, and the question goes.
 
+`specarch decide` does the two edits in one step (ADR-155):
+
+    specarch decide Q-12 --by head-librarian --answer "14 days, as for an ordinary copy." --source head-librarian-interview spec
+
+It writes the record as `design/decisions/<ID>.yaml`, a file of its own
+under the next ID (`ADR-` and the largest number any decision carries
+plus one, at least three digits), accepted and dated `--date` or today:
+the question as its title, the question with its options, what it blocked
+and its Insight as the context, the answer as the decision, the entries
+to be written from it as the consequences, the question's ID under
+`answers` and the role under `decidedBy`; with `--source` the record is
+stated and cites that source with the answer as what it says. It takes the
+question's entry out of the file that holds it by editing the text, the
+way the marks are written: the lines from the problem marks above its key
+to the last line of its value, and the `questions` key with them when the
+entry was its only one; a file left with nothing but blank and comment
+lines is removed, and an entry not in block style is refused with its
+line, to be taken out by hand. Then it prints one line per entry the
+question blocked, with the file and line of the deepest entry that exists
+and the keys missing there, and what the entry is to carry:
+
+    requirements/all.yaml:4: #/requirements/CASE-1/priority: write priority from ADR-002; mark #/requirements/CASE-1 with origin: decided and decidedIn: ADR-002
+
+The command writes nothing into those entries: the answer is prose and the
+entry is data, so what the answer becomes there is the agent's reading of
+it, which the validator checks. From that run on, the keys a `must`
+question covered are errors at their entries until they are written. It
+refuses a question ID the specification does not hold, naming the open
+ones, a `--by` that is not a stakeholder, a `--source` the root file does
+not declare, and, when the specification tracks origin, a run without
+`--source`, since the record would be the one element without an origin;
+and it refuses a specification whose `stages` do not list design, where
+decisions live, rather than editing the root file.
+
 Decisions follow Nygard's form because they already did, and because the
 form fits: an answered question is a decision with a context (the question),
 a decision (the answer) and consequences (what changed). A decision is
@@ -338,8 +372,9 @@ it goes, and ends its item with `specarch gaps`. The dispatcher turns each
 `must` and `should` question into one question to the person it is for,
 with the options when the question has them, the `decidedBy` role saying
 whose answer it is, and `blocks` saying what waits. The answer comes back
-to the agent, which records the decision, edits the elements, removes the question
-and validates; nothing is re-extracted. A `could` question is listed in the
+to the agent, which records the decision and removes the question with
+`specarch decide`, edits the elements the command printed and validates;
+nothing is re-extracted. A `could` question is listed in the
 report and asked when there is time for it.
 
 For that the report needs a machine-readable form: `problems.sarif`, which
@@ -421,11 +456,8 @@ Built in the item that wrote this design, specification first:
 
 For the dispatcher to queue, in this order:
 
-1. `specarch decide <question> --by <stakeholder> --answer <text>
-   [--source <key>]`: writes the decision record with the next ADR number,
-   removes the question from its file, and prints the elements it blocked so
-   the agent edits them. Until then the agent writes the decision by hand and
-   the validator holds it to the rules.
+1. `specarch decide` is built (ADR-155, `spec/tests/decide-*`), as The
+   decision that closes a question describes it.
 2. The dispatcher reading `problems.sarif` and turning its questions into
    questions to the people who decide, with options, and feeding the
    answers back.

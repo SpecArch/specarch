@@ -1,0 +1,3 @@
+arguments: [decide, Q-1, --by, owner, --answer, must, --source, meeting, project]
+exitStatus: 1
+standardOutput: ""

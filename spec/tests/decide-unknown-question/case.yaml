@@ -1,0 +1,3 @@
+arguments: [decide, Q-9, --by, owner, --answer, An opaque id., --source, owner-answer, project]
+exitStatus: 1
+standardOutput: ""

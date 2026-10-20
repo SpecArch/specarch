@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: decide
+level: system
+scenario: golden
+given: "a specification that tracks origin, with a decision ADR-001 in design/all.yaml, an interview source owner-answer, a stakeholder owner, and a must question Q-1 that blocks the priority and the acceptance of a requirement, the only question of requirements/all.yaml"
+when: "decide is run for Q-1 with --by owner, the answer, --source owner-answer and a date"
+then: "it writes design/decisions/ADR-002.yaml, accepted, titled with the question, with the answer as decision, Q-1 under answers, owner under decidedBy and the source cited, takes Q-1 and the questions key out of requirements/all.yaml leaving every other line as it was, prints the requirement's file and line with each key to write, and exits 0"
+verifies: [SA-85]

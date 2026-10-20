@@ -1,0 +1,6 @@
+entities:
+  Member:
+    type: object
+    properties: { id: { type: string } }
+    primaryKey: [id]
+    satisfies: [CASE-1]

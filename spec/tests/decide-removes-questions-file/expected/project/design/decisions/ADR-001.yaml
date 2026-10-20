@@ -1,0 +1,15 @@
+# Written by specarch decide; answers Q-3. Edit it as any decision.
+decisions:
+  ADR-001:
+    title: Is the member id a UUID?
+    status: accepted
+    date: "2026-10-20"
+    context: |-
+      Q-3 asked: Is the member id a UUID? It blocked
+      #/entities/Member/properties/id.
+    decision: No. An opaque string the catalogue assigns; its form is not promised.
+    consequences: |-
+      #/entities/Member/properties/id is written from this answer, carrying
+      origin decided and decidedIn ADR-001.
+    answers: [Q-3]
+    decidedBy: owner

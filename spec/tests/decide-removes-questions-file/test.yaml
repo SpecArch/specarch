@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: decide
+level: system
+scenario: golden
+given: "a specification that does not track origin, with no decision yet and one could question Q-3, alone in design/questions.yaml under a comment line, blocking a key that is written"
+when: "decide is run for Q-3 with --by owner, the answer and a date, with no --source"
+then: "it writes design/decisions/ADR-001.yaml without origin or cites, removes design/questions.yaml since nothing but the comment was left, prints the entity's file and line with the key to write, and exits 0"
+verifies: [SA-85]

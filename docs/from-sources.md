@@ -409,10 +409,13 @@ now; run it before each commit.
   A document that a question concerns starts with a Draft line.
 - `traceability.md`: what each requirement is built by.
 
-The owner answers in words. The agent records each answer as a decision
-(`answers` names the question, `decidedBy` the role, the answer cited as a
-source of kind `interview`), changes the elements to `origin: decided`
-with `decidedIn`, removes the question and validates again. When no `must`
+The owner answers in words. The agent declares the answers as a source of
+kind `interview` with the date, records each answer with `specarch decide
+<question> --by <role> --answer "<the answer>" --source <that source>
+spec`, which writes the decision (`answers` names the question,
+`decidedBy` the role, the answer cited), removes the question and prints
+the entries it blocked; the agent writes those from the answer, with
+`origin: decided` and `decidedIn`, and validates again. When no `must`
 or `should` question is left, `specarch approve` records the owner's
 approval, and code generation may start.
 
@@ -452,7 +455,6 @@ with the pinned version and checksum filled in:
 - `specarch extract` for pages: the agent reads that surface by hand into
   a tree of its own and merges it with the readers' trees with
   `specarch merge`.
-- `specarch decide`: the agent writes the decision record by hand.
 - The dispatcher's reading of `problems.sarif`: it reads the text.
 - The document target `comparison`, which would set the old document
   beside the refined one.

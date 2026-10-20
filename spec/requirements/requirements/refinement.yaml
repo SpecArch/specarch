@@ -171,3 +171,20 @@ requirements:
     verification: test
     needs: [NEED-8]
     why: A route registered through the module's own constants was a question where the code was plain, and a handler that takes every unmatched request was dropped with no question, which is the one thing a reader may never do.
+  SA-85:
+    statement: specarch decide shall answer an open question in one step, writing an accepted decision record under the next ID that names the question under answers and the stakeholder under decidedBy, taking the question out of its file with the author's other lines left as they were, and printing the entries the question blocked with the keys missing there; and problems.sarif shall carry for every open question, as properties of its result and of the run, what an agent queue needs to put the question to the person who decides and to feed the answer back without reading any other file.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance:
+      - decide on a must question that blocks two keys of a requirement writes design/decisions/ADR-002.yaml beside ADR-001 with the question as title, the answer as decision, the question's ID under answers and the stakeholder under decidedBy, leaves the requirements file without the question and with every other line unchanged, prints the requirement's file and line with the pointer of each key, and exits 0.
+      - decide on a question that is the only one of its file removes the questions key with it, and removes the file when nothing but comments is left.
+      - decide is refused, with nothing written, for a question ID the specification does not hold, naming the open ones; for a stakeholder it does not declare; for a source the root file does not declare; and, when the specification tracks origin, without --source.
+      - A question's result in problems.sarif carries the question's text and its Insight beside its priority, kind, decider, options and blocked entries, and the run names the specification's folder relative to the log, so that a dispatcher runs specarch decide from the log alone.
+    verification: test
+    needs: [NEED-8]
+    why: Writing the decision and removing the question by hand is two edits in two files under a number that must be the next one, which an agent got wrong often enough; and a dispatcher that must parse the question out of a message, or open the specification to find its folder, is one that reads the text instead.
+    cites:
+      - source: ieee-830
+        clause: "4.3.3"
+        says: "A to-be-determined item is accompanied by why it is open, what must be done to close it, who is responsible and by when."

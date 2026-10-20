@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: decide
+level: system
+scenario: red
+covers: [exit 1]
+given: "a specification with the open questions Q-1, Q-2 and Q-3"
+when: "decide is run for Q-9"
+then: "it refuses, naming the open questions, writes nothing and exits 1"
+verifies: [SA-85]

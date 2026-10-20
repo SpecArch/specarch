@@ -1,0 +1,18 @@
+stakeholders:
+  owner: { description: The product owner., origin: stated, cites: [{ source: old-doc, clause: "1", says: "The owner decides." }] }
+requirements:
+  CASE-1:
+    statement: A member shall borrow at most five books.
+    kind: functional
+    status: accepted
+    origin: stated
+    cites: [{ source: old-doc, clause: "4.2", says: "Five books at a time." }]
+questions:
+  Q-1:
+    question: How important is the five-book limit, and how is it shown to be met?
+    kind: decision
+    priority: must
+    blocks: ["#/requirements/CASE-1/priority", "#/requirements/CASE-1/acceptance"]
+    decidedBy: owner
+    options: [must, should]
+    why: The old document lists the limit under "rules" without saying whether a release without it is acceptable.

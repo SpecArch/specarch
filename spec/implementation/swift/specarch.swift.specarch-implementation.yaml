@@ -8,7 +8,7 @@ info:
     A second implementation of the specification in `spec/`, for macOS,
     built from the same specification as the Go one. It offers the validate
     and version commands and passes the same conformance cases; the
-    documents, the generators, gaps, approve, diff, derive and idioms are built in Go only.
+    documents, the generators, gaps, decide, approve, diff, derive and idioms are built in Go only.
 
 implements:
   file: ../../specarch.yaml
@@ -52,6 +52,7 @@ mappings:
   "#/commands/version": { target: SpecArchKit.run }
   "#/commands/document": { target: SpecArchKit.run, description: "Exits 2: this build offers no document target." }
   "#/commands/gaps": { target: SpecArchKit.run, description: "Exits 2: the report is a document, built in Go only; the rules about questions are in this build." }
+  "#/commands/decide": { target: SpecArchKit.run, description: "Exits 2: the record is written and the question taken out by the Go build only." }
   "#/commands/approve": { target: SpecArchKit.run, description: "Exits 2: the record is written by the Go build only." }
   "#/commands/generate": { target: SpecArchKit.run, description: "Exits 2: this build runs no generator." }
   "#/commands/extract": { target: SpecArchKit.run, description: "Exits 2: the readers are built in Go only." }

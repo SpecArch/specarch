@@ -1,0 +1,5 @@
+arguments: [decide, Q-3, --by, owner, --answer, "No. An opaque string the catalogue assigns; its form is not promised.", --date, "2026-10-20", project]
+exitStatus: 0
+standardOutput: |
+  design/entities.yaml:4: #/entities/Member/properties/id: write it from ADR-001; mark #/entities/Member with origin: decided and decidedIn: ADR-001
+removed: [project/design/questions.yaml]

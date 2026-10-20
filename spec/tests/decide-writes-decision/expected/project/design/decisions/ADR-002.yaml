@@ -1,0 +1,24 @@
+# Written by specarch decide; answers Q-1. Edit it as any decision.
+decisions:
+  ADR-002:
+    title: How important is the five-book limit, and how is it shown to be met?
+    status: accepted
+    date: "2026-10-20"
+    context: |-
+      Q-1 asked: How important is the five-book limit, and how is it shown to
+      be met? The options were: must; should. It blocked
+      #/requirements/CASE-1/priority and #/requirements/CASE-1/acceptance. The
+      old document lists the limit under "rules" without saying whether a
+      release without it is acceptable.
+    decision: |-
+      Must: a release without the limit is not acceptable. It is shown met by
+      refusing a sixth loan.
+    consequences: |-
+      #/requirements/CASE-1/priority and #/requirements/CASE-1/acceptance are
+      written from this answer, each entry carrying origin decided and
+      decidedIn ADR-002.
+    answers: [Q-1]
+    decidedBy: owner
+    origin: stated
+    cites:
+      - {source: owner-answer, says: 'Must: a release without the limit is not acceptable. It is shown met by refusing a sixth loan.'}

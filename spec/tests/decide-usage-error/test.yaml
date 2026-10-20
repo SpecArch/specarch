@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: decide
+level: system
+scenario: red
+covers: [usage error, exit 2]
+given: "no --answer"
+when: "decide is run without the answer"
+then: "it prints how to use it and exits 2"
+verifies: [SA-85]

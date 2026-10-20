@@ -12,7 +12,7 @@ usage:
 A specification is a folder holding specarch.yaml. A folder given here is
 searched for specifications, for *.specarch-implementation.yaml files
 outside one, and for estates (specarch-estate.yaml), which bring the
-specifications of the modules they list. This build has no gaps, document, approve, generate, extract,
+specifications of the modules they list. This build has no gaps, document, decide, approve, generate, extract,
 merge, diff, derive or idioms verbs; the Go build of specarch has them.
 
 """
@@ -52,7 +52,7 @@ public func run(_ args: [String], stdout: TextSink, stderr: TextSink) -> Int32 {
         }
         stdout.write("specarch \(programVersion)\nspecifications: meta-model 0.2, and 0.1 until 1.0\nimplementation files: meta-model 0.1\n")
         return 0
-    case "document", "generate", "gaps", "approve", "extract", "merge", "diff", "derive", "idioms", "check":
+    case "document", "generate", "gaps", "decide", "approve", "extract", "merge", "diff", "derive", "idioms", "check":
         stderr.write("specarch \(command): this build has no \(command) verb; the Go build of specarch has it\n")
         return 2
     case "help", "-h", "--help":

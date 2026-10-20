@@ -169,8 +169,9 @@ a defect in the roadmap, not an accepted state.
 
 `specarch` is one program with verbs named by direction: `validate`
 checks, `gaps` lists the open questions and what they hold up, `document`
-goes from the specification to a document, `approve` records that the
-documents were read and the specification is approved, `generate` from
+goes from the specification to a document, `decide` answers an open
+question with a decision record and takes the question out, `approve`
+records that the documents were read and the specification is approved, `generate` from
 the approved specification to code, `extract` from one surface of
 existing code or documents to a specification (its outline, database,
 router, Markdown documents, OpenAPI, permissions, pages, workflows, Go,
@@ -320,8 +321,10 @@ carries its `origin` (stated, with a citation; inferred, with a reason; or
 decided), and what is not known is an open question that names who decides
 and what it blocks. `specarch gaps` lists the questions by stage and says
 which documents and code targets are ready, drafts or waiting. The owner
-answers with decisions and material, the questions shrink, the documents
-are regenerated and read, and `specarch approve --by <stakeholder>` records
+answers with decisions and material; `specarch decide <question> --by
+<stakeholder> --answer <text>` records each as a decision, takes the
+question out and prints the entries to write from it; the questions
+shrink, the documents are regenerated and read, and `specarch approve --by <stakeholder>` records
 the approval with a digest of the files. `specarch generate` runs only
 then. `docs/refinement.md` is the design.
 

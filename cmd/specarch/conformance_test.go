@@ -26,6 +26,9 @@ type conformanceCase struct {
 	// case runs with, such as openapi for cmd/specarch-gen-openapi: each is
 	// built once and put on PATH.
 	Plugins []string `yaml:"plugins"`
+	// Removed names the files of the case the run must remove, for decide,
+	// which removes a questions file left with nothing but comments.
+	Removed []string `yaml:"removed"`
 	// Repository makes a folder of the case a git repository before the
 	// run, for the cases of extract, which read a commit.
 	Repository *caseRepository `yaml:"repository"`
@@ -234,6 +237,12 @@ func TestConformance(t *testing.T) {
 			}
 			for k, v := range expected {
 				want[k] = v
+			}
+			for _, name := range c.Removed {
+				if _, ok := after[name]; ok {
+					t.Errorf("%s is still there, and the case expects the run to remove it", name)
+				}
+				delete(want, name)
 			}
 			for name, content := range after {
 				w, ok := want[name]

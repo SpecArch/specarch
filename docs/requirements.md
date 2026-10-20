@@ -40,7 +40,7 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | NEED-5 | I want the whole life of the system in one place, from the first requirement to the day it is accepted. | reviewer, operator | accepted | SA-35, SA-47, SA-68, SA-26, SA-16, SA-90, SA-12, SA-23, SA-24, SA-25, SA-73 |
 | NEED-6 | I want to see why something is the way it is, and which standard asks for it. | reviewer | accepted | SA-15, SA-13 |
 | NEED-7 | I want one tool to learn and install, not one program per task. | specification-author, ci-job | accepted | SA-14, SA-74 |
-| NEED-8 | I want to build a specification from the documents and code that exist, without inventing what they do not say, and to see at every step what is still missing and what can already be made. | specification-author, reviewer | accepted | SA-69, SA-70, SA-46, SA-59, SA-71, SA-17, SA-18, SA-19, SA-20, SA-30, SA-44, SA-45, SA-64, SA-72, SA-76, SA-79, SA-51 |
+| NEED-8 | I want to build a specification from the documents and code that exist, without inventing what they do not say, and to see at every step what is still missing and what can already be made. | specification-author, reviewer | accepted | SA-69, SA-70, SA-46, SA-59, SA-71, SA-17, SA-18, SA-19, SA-20, SA-30, SA-44, SA-45, SA-64, SA-72, SA-76, SA-79, SA-85, SA-51 |
 | NEED-9 | I want the tests a specification implies, with the ones that matter most written first and the rest listed with the reason they were left out. | specification-author, implementer | accepted | SA-31, SA-29, SA-28, SA-27, SA-21, SA-22, SA-75 |
 | NEED-10 | I want to show what a specification builds long before it is finished, and to take a remark from someone looking at the result back into the specification, knowing what it reaches, and out again in the next build. | reviewer, specification-author | accepted | SA-58, SA-60, SA-57 |
 
@@ -123,6 +123,7 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | SA-72 | functional | should | accepted | specarch check shall compare a specification with the route tables, permission tables and catalogue dumps of its code, read by the readers of specarch extract, print every difference as a problem at its entry, and exit 1 on a difference the allowlist does not name or a line of the allowlist that names none. |
 | SA-76 | functional | should | proposed | specarch extract gateway shall read a gateway table the project's printer wrote from what the gateway loads into a gateway with its forwards, dependencies and settings, asking for what the table does not say; and specarch check shall compare a specification's gateways with it. |
 | SA-79 | functional | should | accepted | specarch extract go shall read a route whose path is a package-level constant of the module or whose method list is a package-level list no statement of the module changes as it reads a literal one, and shall ask a must question at every fallback handler and catch-all route, in place of silence or a line. |
+| SA-85 | functional | must | accepted | specarch decide shall answer an open question in one step, writing an accepted decision record under the next ID that names the question under answers and the stakeholder under decidedBy, taking the question out of its file with the author's other lines left as they were, and printing the entries the question blocked with the keys missing there; and problems.sarif shall carry for every open question, as properties of its result and of the run, what an agent queue needs to put the question to the person who decides and to feed the answer back without reading any other file. |
 | SA-1 | functional | must | accepted | specarch validate shall check every specification and implementation file given against the JSON Schema of its kind and meta-model version. |
 | SA-2 | functional | must | accepted | Every reference inside a specification shall resolve to an object of the right kind in the same specification, wherever its file is in the tree. |
 | SA-3 | functional | must | accepted | Every check constraint, condition of a unique constraint and formula shall parse and type-check in the fixed expression language. |
@@ -1306,6 +1307,23 @@ Acceptance criteria:
 - extract go asks a must question at a NoRoute, NoMethod, NotFound or MethodNotAllowed registration, at a NotFoundHandler, MethodNotAllowedHandler or HTTPErrorHandler field set on a router a name holds or a struct of the module keeps in a field, at a ServeMux pattern of / with no method given a handler that is no router, at a route whose path ends in a catch-all, a gorilla/mux variable whose pattern can match a slash among them, and at gorilla/mux's PathPrefix given a handler that is no router, each counted as a registration and blocking the design stage until the gateways section exists and gateways after; a fallback in a loop or behind a condition asks the question every registration there asks.
 
 **Insight:** A route registered through the module's own constants was a question where the code was plain, and a handler that takes every unmatched request was dropped with no question, which is the one thing a reader may never do.
+
+### SA-85
+
+specarch decide shall answer an open question in one step, writing an accepted decision record under the next ID that names the question under answers and the stakeholder under decidedBy, taking the question out of its file with the author's other lines left as they were, and printing the entries the question blocked with the keys missing there; and problems.sarif shall carry for every open question, as properties of its result and of the run, what an agent queue needs to put the question to the person who decides and to feed the answer back without reading any other file.
+
+Kind: functional; priority: must; status: accepted; verified by test; refines NEED-8.
+
+Acceptance criteria:
+
+- decide on a must question that blocks two keys of a requirement writes design/decisions/ADR-002.yaml beside ADR-001 with the question as title, the answer as decision, the question's ID under answers and the stakeholder under decidedBy, leaves the requirements file without the question and with every other line unchanged, prints the requirement's file and line with the pointer of each key, and exits 0.
+- decide on a question that is the only one of its file removes the questions key with it, and removes the file when nothing but comments is left.
+- decide is refused, with nothing written, for a question ID the specification does not hold, naming the open ones; for a stakeholder it does not declare; for a source the root file does not declare; and, when the specification tracks origin, without --source.
+- A question's result in problems.sarif carries the question's text and its Insight beside its priority, kind, decider, options and blocked entries, and the run names the specification's folder relative to the log, so that a dispatcher runs specarch decide from the log alone.
+
+**Insight:** Writing the decision and removing the question by hand is two edits in two files under a number that must be the next one, which an agent got wrong often enough; and a dispatcher that must parse the question out of a message, or open the specification to find its folder, is one that reads the text instead.
+
+**Note:** From IEEE Std 830-1998, IEEE Recommended Practice for Software Requirements Specifications, 1998, clause 4.3.3: A to-be-determined item is accompanied by why it is open, what must be done to close it, who is responsible and by when.
 
 ### SA-1
 

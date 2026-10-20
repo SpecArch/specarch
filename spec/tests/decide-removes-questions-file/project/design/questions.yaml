@@ -1,0 +1,8 @@
+# The questions of the design stage.
+questions:
+  Q-3:
+    question: Is the member id a UUID?
+    kind: decision
+    priority: could
+    blocks: ["#/entities/Member/properties/id"]
+    decidedBy: owner

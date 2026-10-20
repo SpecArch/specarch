@@ -32,6 +32,8 @@ const usage = `usage:
   specarch gaps <folder>...                 list the open questions and what they hold up
   specarch document <target> [--out <folder>] [--check] [--audience external] <folder>...
                                             write a document from a specification
+  specarch decide <question> --by <stakeholder> --answer <text> [--source <key>] [--date <date>] <folder>
+                                            answer an open question: write the decision record and take the question out
   specarch approve --by <stakeholder> [--date <date>] <folder>...
                                             record that the documents were read and the specification is approved
   specarch generate <target> [--out <folder>] [--check] [--unapproved] <folder>...
@@ -83,6 +85,8 @@ func run(args []string, stdout, stderr io.Writer) int {
 		return runValidate(args[1:], stdout, stderr)
 	case "gaps":
 		return runGaps(args[1:], stdout, stderr)
+	case "decide":
+		return runDecide(args[1:], stdout, stderr)
 	case "approve":
 		return runApprove(args[1:], stdout, stderr)
 	case "document":

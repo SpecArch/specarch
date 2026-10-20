@@ -144,8 +144,9 @@ type checkUse struct {
 // permissionCheck is one check the implementation file names.
 type permissionCheck struct {
 	pkg, function string // the function, or Type.Method
-	argument      int    // the permission's argument, from 1
+	argument      int    // the permission's argument, from 1, 0 for a gate
 	bypassedFor   string // the kind of caller the check skips, "" when none (ADR-114)
+	gate          string // client or signature for a check that is not a permission's, "" for one that is (ADR-154)
 }
 
 // name is the check's name in a gate's question: the function's, or the
@@ -1774,9 +1775,28 @@ func (sc *routeScope) checksIn(list []ast.Expr) []checkUse {
 			if c, ok := sc.checkCall(call); ok {
 				out = append(out, c)
 			}
+		} else if c, ok := sc.gateValue(e); ok {
+			out = append(out, c)
 		}
 	}
 	return out
+}
+
+// gateValue says whether a middleware named without a call, such as
+// r.Use(s.RequireClient), is one of the gates the implementation file
+// names; a permission check always takes its permission in a call.
+func (sc *routeScope) gateValue(e ast.Expr) (checkUse, bool) {
+	pkg, name := sc.target(e)
+	if name == "" {
+		return checkUse{}, false
+	}
+	for i, c := range sc.g.rt.checks {
+		if c.gate != "" && c.pkg == pkg && c.function == name {
+			sc.g.citeFile(sc.file)
+			return checkUse{clause: sc.g.clause(sc.file, e.Pos()), check: exprText(e), bound: &sc.g.rt.checks[i]}, true
+		}
+	}
+	return checkUse{}, false
 }
 
 // checkCall says whether a call is one of the named checks, and reads its
@@ -1792,6 +1812,10 @@ func (sc *routeScope) checkCall(call *ast.CallExpr) (checkUse, bool) {
 		}
 		clause := sc.g.clause(sc.file, call.Pos())
 		use := checkUse{clause: clause, check: exprText(call.Fun), bound: &sc.g.rt.checks[i]}
+		if c.gate != "" {
+			sc.g.citeFile(sc.file)
+			return use, true
+		}
 		if c.argument > len(call.Args) {
 			use.argument = "nothing"
 			return use, true
@@ -2315,6 +2339,7 @@ func (g *goReader) writeRoutes(items map[string]*yaml.Node, uris *[]string, chec
 		return methodRank(held[i].key) < methodRank(held[j].key)
 	})
 	bypassed := map[*permissionCheck]*bypassedCheck{}
+	gated := map[*permissionCheck]*bypassedCheck{}
 	for _, r := range held {
 		at := "#/paths/" + escapeToken(r.full)
 		r.at = at + "/" + r.key
@@ -2343,6 +2368,17 @@ func (g *goReader) writeRoutes(items map[string]*yaml.Node, uris *[]string, chec
 			}
 		}
 		for _, c := range r.checks {
+			if c.bound.gate != "" {
+				b := gated[c.bound]
+				if b == nil {
+					b = &bypassedCheck{check: c.bound, clause: c.clause}
+					gated[c.bound] = b
+				}
+				if !contains(b.at, r.at+"/callers") {
+					b.at = append(b.at, r.at+"/callers")
+				}
+				continue
+			}
 			if c.bound.bypassedFor != "" {
 				b := bypassed[c.bound]
 				if b == nil {
@@ -2360,7 +2396,7 @@ func (g *goReader) writeRoutes(items map[string]*yaml.Node, uris *[]string, chec
 			set(op, "permission", permission)
 			if _, seen := firstAt[permission]; !seen {
 				firstAt[permission] = r.clause
-				firstVia[permission] = r.checks[0].check
+				firstVia[permission] = permissionUses(r)[0].check
 			}
 			checkedBy[permission] = append(checkedBy[permission], label)
 		}
@@ -2394,6 +2430,7 @@ func (g *goReader) writeRoutes(items map[string]*yaml.Node, uris *[]string, chec
 		g.wireSnake = true
 	}
 	g.writeBypassed(bypassed)
+	g.writeGated(gated)
 	g.writeDependencies(held)
 	g.res.say("routes: wrote %s: one operation per route a router of net/http, chi, gin, echo or gorilla/mux registers with a literal method and path, outside a loop or a condition, under a prefix the reader knows", plural(len(held), "operation"))
 }
@@ -2431,6 +2468,57 @@ func (g *goReader) writeBypassed(bypassed map[*permissionCheck]*bypassedCheck) {
 	}
 }
 
+// writeGated asks about every check the implementation file names as a
+// client's or a signature's, once per check, blocking the callers of each
+// operation it guards (ADR-154). Syntax shows that a check admits clients
+// or verifies a signature, and not which clients, which algorithm or which
+// parts of the request: those are in a key or a token the code reads at
+// run time. callers names its clients one by one (ADR-110), so the reader
+// writes none and asks.
+func (g *goReader) writeGated(gated map[*permissionCheck]*bypassedCheck) {
+	var list []*bypassedCheck
+	for _, b := range gated {
+		list = append(list, b)
+	}
+	sort.Slice(list, func(i, j int) bool {
+		if list[i].check.gate != list[j].check.gate {
+			return list[i].check.gate < list[j].check.gate
+		}
+		if list[i].check.function != list[j].check.function {
+			return list[i].check.function < list[j].check.function
+		}
+		return list[i].check.pkg < list[j].check.pkg
+	})
+	for _, b := range list {
+		c := b.check
+		guards := plural(len(b.at), "operation")
+		switch c.gate {
+		case "client":
+			g.res.say("gate: %s names %s.%s as a client check, and it guards %s", g.rt.checkFile, c.pkg, c.function, guards)
+			g.question("must", fmt.Sprintf("The check %s admits only a client, a caller on its own account rather than a person's, and it guards %s. Which clients call each of them, and do people call any?", c.name(), guards),
+				b.at, "Syntax shows that a check admits clients and not which ones, which a key or a token read at run time says. callers names who may call one by one, people and each client, with no word for every client, since a client added later would then be admitted without anyone writing it (ADR-110).",
+				g.at(b.clause, fmt.Sprintf("Calls %s, which the implementation file names as a client check.", c.function)))
+		case "signature":
+			g.res.say("gate: %s names %s.%s as a signature check, and it guards %s", g.rt.checkFile, c.pkg, c.function, guards)
+			g.question("must", fmt.Sprintf("The check %s verifies a request's signature, and it guards %s. Which client signs the requests, with which algorithm, and over which parts of the request: the client's proof?", c.name(), guards),
+				b.at, "A signature's signer, algorithm and covered parts are in a key and a header the code reads at run time, never in syntax. A client's proof names them (ADR-096), and the operation names the client in callers.",
+				g.at(b.clause, fmt.Sprintf("Calls %s, which the implementation file names as a signature check.", c.function)))
+		}
+	}
+}
+
+// permissionUses is the checks of a route that read a permission, without
+// the gates that read none.
+func permissionUses(r *goRoute) []checkUse {
+	var out []checkUse
+	for _, c := range r.checks {
+		if c.bound.gate == "" {
+			out = append(out, c)
+		}
+	}
+	return out
+}
+
 // routePermission is the permission a route checks, or "" with a question.
 func (g *goReader) routePermission(r *goRoute, label string) string {
 	at := r.at + "/permission"
@@ -2440,7 +2528,7 @@ func (g *goReader) routePermission(r *goRoute, label string) string {
 		return ""
 	}
 	var names []string
-	for _, c := range r.checks {
+	for _, c := range permissionUses(r) {
 		if c.permission == "" {
 			g.question("must", fmt.Sprintf("%s: %s checks a permission %s gives as %s, which is not a literal. Which permission does it check?", c.clause, label, c.check, c.argument),
 				[]string{at}, "A permission computed at run time is not known by syntax, and an operation's permission is never guessed.", g.at(c.clause, fmt.Sprintf("Calls %s with %s.", c.check, c.argument)))
@@ -2472,12 +2560,19 @@ func (g *goReader) routeSays(r *goRoute) string {
 	if len(r.middleware) > 0 {
 		s += ", its middleware " + joinAnd(r.middleware)
 	}
-	var checks []string
+	var checks, gates []string
 	for _, c := range r.checks {
+		if c.bound.gate != "" {
+			gates = append(gates, c.check)
+			continue
+		}
 		checks = append(checks, fmt.Sprintf("%s(%s)", c.check, c.argument))
 	}
 	if len(checks) > 0 {
 		s += ", and it is checked by " + joinAnd(checks)
+	}
+	if len(gates) > 0 {
+		s += ", and gated by " + joinAnd(gates)
 	}
 	return s + "."
 }
@@ -3054,10 +3149,19 @@ func (g *goReader) loadChecks(file string) error {
 	}
 	g.rt.checkFile = file
 	g.loadHandlers(doc.Content[0])
-	list := child(child(child(doc.Content[0], "bindings"), "http"), "permissionChecks")
+	binding := child(child(doc.Content[0], "bindings"), "http")
+	g.loadPermissionChecks(file, binding)
+	g.loadGates(file, binding)
+	return nil
+}
+
+// loadPermissionChecks reads the checks an implementation file names under
+// bindings.http.permissionChecks.
+func (g *goReader) loadPermissionChecks(file string, binding *yaml.Node) {
+	list := child(binding, "permissionChecks")
 	if list == nil {
 		g.res.say("checks: %s names no permission check under bindings.http.permissionChecks", file)
-		return nil
+		return
 	}
 	for i, item := range list.Content {
 		pkg, fn := scalar(child(item, "package")), scalar(child(item, "function"))
@@ -3080,7 +3184,9 @@ func (g *goReader) loadChecks(file string) error {
 	}
 	var names []string
 	for _, c := range g.rt.checks {
-		names = append(names, c.pkg+"."+c.function)
+		if c.gate == "" {
+			names = append(names, c.pkg+"."+c.function)
+		}
 	}
 	if len(names) > 0 {
 		word := "check"
@@ -3089,5 +3195,37 @@ func (g *goReader) loadChecks(file string) error {
 		}
 		g.res.say("checks: %s names the permission %s %s", file, word, joinAnd(names))
 	}
-	return nil
+}
+
+// loadGates reads the checks an implementation file names under
+// bindings.http.clientChecks and bindings.http.signatureChecks: gates on a
+// route that read no permission (ADR-154).
+func (g *goReader) loadGates(file string, binding *yaml.Node) {
+	for _, kind := range []struct{ key, gate, word string }{
+		{"clientChecks", "client", "client"},
+		{"signatureChecks", "signature", "signature"},
+	} {
+		list := child(binding, kind.key)
+		if list == nil {
+			continue
+		}
+		var names []string
+		for i, item := range list.Content {
+			pkg, fn := scalar(child(item, "package")), scalar(child(item, "function"))
+			if pkg == "" || fn == "" {
+				g.question("must", fmt.Sprintf("The implementation file %s names a %s check (item %d of bindings.http.%s) without its package and its function. Which check is it?", file, kind.word, i+1, kind.key),
+					[]string{"paths"}, "A check named in part cannot be found in the source, and the operations it guards would be read as open to people.")
+				continue
+			}
+			g.rt.checks = append(g.rt.checks, permissionCheck{pkg: pkg, function: fn, gate: kind.gate})
+			names = append(names, pkg+"."+fn)
+		}
+		if len(names) > 0 {
+			word := "check"
+			if len(names) > 1 {
+				word = "checks"
+			}
+			g.res.say("checks: %s names the %s %s %s", file, kind.word, word, joinAnd(names))
+		}
+	}
 }

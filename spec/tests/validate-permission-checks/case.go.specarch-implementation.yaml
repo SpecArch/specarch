@@ -9,3 +9,7 @@ bindings:
       - { package: example.com/desk/lending, function: Server.Require, permissionArgument: 1, bypassedFor: client }
       - { package: example.com/desk/lending, function: Allow, permissionArgument: 0 }
       - { package: example.com/desk/lending, function: Gate, permissionArgument: 1, bypassedFor: people }
+    clientChecks:
+      - { package: example.com/desk/lending, function: Server.RequireClient }
+    signatureChecks:
+      - { package: example.com/desk/lending, function: VerifySignature, permissionArgument: 1 }

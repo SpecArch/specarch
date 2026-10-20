@@ -6722,6 +6722,27 @@ let implementationSchemaJSON = #"""
   },
   "additionalProperties": false,
   "$defs": {
+    "gateCheck": {
+      "description": "A check of the project's own that gates a route by something other than a permission: where it is declared and its name there.",
+      "type": "object",
+      "properties": {
+        "package": {
+          "description": "Where the check is declared, as the language names it: a Go import path, or the folder from the repository's root where no go.mod is read.",
+          "type": "string",
+          "minLength": 1
+        },
+        "function": {
+          "description": "The check's name in that package: a function, or a type and its method joined by a dot, such as Server.RequireClient.",
+          "type": "string",
+          "pattern": "^[A-Za-z_$][A-Za-z0-9_$]*(\\.[A-Za-z_$][A-Za-z0-9_$]*)?$"
+        }
+      },
+      "required": [
+        "package",
+        "function"
+      ],
+      "additionalProperties": false
+    },
     "markdown": {
       "description": "Prose in Markdown.",
       "type": "string"
@@ -7278,6 +7299,22 @@ let implementationSchemaJSON = #"""
               "permissionArgument"
             ],
             "additionalProperties": false
+          },
+          "minItems": 1
+        },
+        "clientChecks": {
+          "description": "SpecArch keyword. The project's own checks that admit a client, a caller on its own account rather than a person's, and refuse everyone else, such as a check of an API key or a client-credentials token. specarch extract go asks, at each operation a call of one wraps, guards as middleware or is made in, which clients call it and whether people do, for callers, which names them one by one (ADR-110, ADR-154). Read for the http binding.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/gateCheck"
+          },
+          "minItems": 1
+        },
+        "signatureChecks": {
+          "description": "SpecArch keyword. The project's own checks that verify a request's signature, such as an HTTP Message Signatures or HMAC verifier. specarch extract go asks, at each operation one guards, which client signs and with which proof: the algorithm and the request parts the signature covers (ADR-154). Read for the http binding.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/gateCheck"
           },
           "minItems": 1
         },

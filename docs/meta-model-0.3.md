@@ -340,19 +340,24 @@ and a history entry.
    over an undeclared claim, two defaults and an operation naming an
    undeclared token are each refused in both builds, and a valid tree with
    two tokens derives `denied with expired access` on each operation.
-5. The readers. `extract router` and `extract go` write `callers: clients`
-   where a middleware the implementation file's bindings name as a client
-   check guards a route, and ask for the client list; a signature
-   middleware becomes a question naming the proof; a table of clients the
-   seeds reader finds becomes `clients`; the claims found where a token is
-   minted become a question listing them. Done when the lending desk's
-   sources extract the same twice with the new questions counted in CI.
+5. The readers. `extract go` asks for the callers of every operation a
+   check the implementation file names under `bindings.http.clientChecks`
+   guards, since `callers` names its clients one by one (ADR-110); a
+   check named under `bindings.http.signatureChecks` is a question naming
+   the proof; the claims found where golang-jwt mints a token become a
+   question listing them (ADR-154). `extract router` reads a route table
+   that carries no middleware, and the seeds reader reads dxlib_module's
+   tables, which hold no client, so neither has a gate or a client to
+   find. Done when a module with a client check, a signature check and a
+   minted token extracts with each question in both runs
+   (`spec/tests/extract-go-client-gates`).
 
 ## How 0.3 meets the extract readers
 
-Until step 5 lands, a gate that is not a permission is what it is today: a
-must question at the operation naming the middleware, and the operation is
-written with the permission the question asks for. A client record in a
-seed is read as a row of a table. The readers never write a `rows` rule or
-a token on their own: both are design, and the code shows only that a
-filter or a verifier exists.
+A gate that is not a permission and that the implementation file does
+not name is a must question at the operation naming the middleware, and
+the operation is written with the permission the question asks for; a
+gate it names is the question of step 5. A client record in a seed is
+read as a row of a table. The readers never write `callers`, a client, a
+`rows` rule or a token on their own: each is design, and the code shows
+only that a check, a filter or a verifier exists.

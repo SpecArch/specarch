@@ -161,6 +161,7 @@ func Go(paths []string, out, key, implementation string, writeImplementation boo
 	g.readSettings()
 	g.readFlags()
 	g.read()
+	g.readMinted()
 	var clauses []*yaml.Node
 	for _, f := range g.files {
 		clauses = append(clauses, flow(mapping("clause", f.path, "title", "Go source, read by its syntax")))

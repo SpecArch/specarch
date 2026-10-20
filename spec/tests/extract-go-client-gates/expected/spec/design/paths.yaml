@@ -1,0 +1,41 @@
+permissions:
+  fees.settle:
+    origin: stated
+    cites:
+      - {source: code, clause: 'desk/server.go:27', says: POST /fees/settlements checks fees.settle with s.Require.}
+  loans.read:
+    origin: stated
+    cites:
+      - {source: code, clause: 'desk/server.go:25', says: GET /loans and GET /reconciliation/loans check loans.read with s.Require.}
+paths:
+  /fees/settlements:
+    post:
+      operationId: settleFees
+      permission: fees.settle
+      origin: stated
+      cites:
+        - {source: code, clause: 'desk/server.go:27', says: 'Registers POST /fees/settlements on a chi router; its handler is s.settleFees, and it is checked by s.Require("fees.settle"), and gated by VerifySignature.'}
+        - {source: code, clause: 'desk/server.go:67', says: The handler of POST /fees/settlements reads no path parameter by name.}
+  /loans:
+    get:
+      operationId: getLoans
+      permission: loans.read
+      origin: stated
+      cites:
+        - {source: code, clause: 'desk/server.go:25', says: 'Registers GET /loans on a chi router; its handler is s.listLoans, and it is checked by s.Require("loans.read").'}
+        - {source: code, clause: 'desk/server.go:65', says: The handler of GET /loans reads no path parameter by name.}
+  /reconciliation/loans:
+    get:
+      operationId: getReconciliationLoans
+      permission: loans.read
+      origin: stated
+      cites:
+        - {source: code, clause: 'desk/server.go:26', says: 'Registers GET /reconciliation/loans on a chi router; its handler is s.listLoans, and it is checked by s.Require("loans.read"), and gated by s.RequireClient.'}
+        - {source: code, clause: 'desk/server.go:65', says: The handler of GET /reconciliation/loans reads no path parameter by name.}
+  /sessions:
+    post:
+      operationId: signIn
+      origin: stated
+      cites:
+        - {source: code, clause: 'desk/server.go:28', says: Registers POST /sessions on a chi router; its handler is s.signIn.}
+        - {source: code, clause: 'desk/server.go:69', says: The handler of POST /sessions reads no path parameter by name.}

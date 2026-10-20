@@ -915,6 +915,24 @@ commands:
         Another kind is a must question naming the item, and the check is
         read as skipping no caller.
 
+        A gate that reads no permission is named under
+        `bindings.http.clientChecks`, a check that admits only a client,
+        and `bindings.http.signatureChecks`, a check that verifies a
+        request's signature, each by its package and function, and found
+        as a permission check is, and also as middleware named without a
+        call. Each prints a line counting the operations it guards and is
+        one must question per check blocking the callers of each of them:
+        for a client check which clients call them and whether people do,
+        since callers names its clients one by one (ADR-110); for a
+        signature check which client signs, with which algorithm and over
+        which parts of the request, the client's proof. The reader writes
+        no callers and no client, and the permission is read as before. A
+        call of golang-jwt's `NewWithClaims` mints a token: one must
+        question blocking the tokens lists the keys of the `MapClaims`
+        literal it is given, or the one the same function assigns to the
+        name it is given, and asks which token it is; claims that are not
+        such a literal are named in the question as not read (ADR-154).
+
         A call of net/http's `Get`, `Head`, `Post`, `PostForm`,
         `NewRequest` or `NewRequestWithContext` with a literal method and
         an absolute URL declares a dependency named after the URL's host

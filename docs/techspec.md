@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.7.2-dev of the specification: 80 requirements, 5 entities, 14 commands, 7 algorithms, 555 tests, 141 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.7.2-dev of the specification: 80 requirements, 5 entities, 14 commands, 7 algorithms, 556 tests, 142 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 **Problems:** 4 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -1891,6 +1891,24 @@ The sources this build reads:
   each operation that calls it and citing the first call (ADR-114).
   Another kind is a must question naming the item, and the check is
   read as skipping no caller.
+
+  A gate that reads no permission is named under
+  `bindings.http.clientChecks`, a check that admits only a client,
+  and `bindings.http.signatureChecks`, a check that verifies a
+  request's signature, each by its package and function, and found
+  as a permission check is, and also as middleware named without a
+  call. Each prints a line counting the operations it guards and is
+  one must question per check blocking the callers of each of them:
+  for a client check which clients call them and whether people do,
+  since callers names its clients one by one (ADR-110); for a
+  signature check which client signs, with which algorithm and over
+  which parts of the request, the client's proof. The reader writes
+  no callers and no client, and the permission is read as before. A
+  call of golang-jwt's `NewWithClaims` mints a token: one must
+  question blocking the tokens lists the keys of the `MapClaims`
+  literal it is given, or the one the same function assigns to the
+  name it is given, and asks which token it is; claims that are not
+  such a literal are named in the question as not read (ADR-154).
 
   A call of net/http's `Get`, `Head`, `Post`, `PostForm`,
   `NewRequest` or `NewRequestWithContext` with a literal method and
@@ -10967,84 +10985,54 @@ handled, which is what stream says.
 
 **Note:** From RFC 9110, HTTP Semantics, 2022: A representation's media type is given by Content-Type and its size by Content-Length; a message body may be of any length, transferred as it is produced. <https://www.rfc-editor.org/rfc/rfc9110>
 
-### ADR-147: The SwiftUI generator writes the same pages as data, each a Swift literal typed by its component's schema type in a package the project writes, found by the target's framework, with the pages read through the one analysis the TypeScript generator reads them through
+### ADR-154: extract go asks for the callers of a route a client check or a signature check guards, each named under the implementation file's http binding, and lists the claims where golang-jwt mints a token; it writes no callers, client or token of its own
 
 Status: accepted, 2026-10-20.
 
-Context: Roadmap target 4 names SwiftUI the default for the iPhone and had
-no generator for it. The Next.js and Carbon generator (ADR-067 to
-ADR-074, ADR-079, ADR-093) writes each page as a schema of data a
-component reads, the components once, the strings once, and the
-theme through the design-tokens idiom, and reads the design through
-the ui-components idiom's names so a project renders through its
-own library by an override. The owner asked for the SwiftUI target
-as the same pages, lists, forms, views, navigation, strings and
-theme, as a plug-in named specarch-gen-ui-swiftui, an idiom a
-project overrides as for Carbon. specarch generate found a plug-in
-by the implementation file's language only, so a Swift file would
-find specarch-gen-ui-swift, and the TypeScript generator's analysis
-of the pages, three thousand lines of what a page holds and what is
-refused, was written into that generator.
+Context: Step 5 of docs/meta-model-0.3.md, the readers. Steps 3 and 4 give
+a route's callers, the clients with their proof and the tokens
+(ADR-096, ADR-097, ADR-110). callers is the explicit list of who
+may call, people and clients by name, with no word for every
+client, so a reader cannot write callers clients where a client
+check guards a route. A check that admits
+only a client, a check that verifies a signature and a call that
+mints a token are each written the project's own way: syntax finds
+the call and not the client names, the algorithm, the parts signed
+or the token's lifetime and checks.
 
-Decision: The analysis of the pages moves to internal/genscreens: the task,
-list, form and view pages as members keyed by the ui-components
-idiom's names for the generator's framework, with the routes their
-events lead to, their hooks and permission; the session, the menu,
-the translations, the theme's colours, the marks and the refusal of
-a file built by hand. A generator gives a profile (its name,
-platform, framework, language, where its rules run, whether its
-screens compare decimals exactly, and how a server of its own pages
-a list) and writes the members in its stack; the TypeScript output
-is unchanged. specarch generate looks a plug-in up by the target's
-framework first, specarch-gen-<target>-<framework>, the framework
-given under the target or the platform's default, then by the
-language, then the plain name; a framework is a stack of the file
-as a dialect is (ADR-023), so the owner's name holds and a language
-may have a plug-in per framework. specarch-gen-ui-swiftui writes,
-for a ui target of platform iphone and framework swiftui in a Swift
-implementation file, into a Swift package the project writes the
-Package.swift of, under the module the target's settings.module
-names (Screens when none): per page Pages/<Page>Schema.swift, one
-literal of the part's schema type whose labels are the idiom's
-names, nested values as .init, dictionaries as Swift dictionaries
-and rules as Rule literals, and Pages/<Page>View.swift, a view that
-hands the schema and its texts to the component behind the guard
-with the routes its events lead to; once per package the components
-under Screens/ on SwiftUI and Foundation alone, Routes.swift with
-one Route enum of every page written and the view each case opens,
-Application.swift with the service, the session and the menu,
-Strings.swift with every text in every language, Theme.swift
-through the design-tokens idiom's swiftui rendering, and a derived
-test per guarded page and for the menu under Tests/<module>Tests in
-Swift Testing. The page sign-in was asked for from is kept by the
-router, not a query, so returnTo is a route; a message crosses a
-navigation in the router too. A form's hooks are read from
-<Page>Hooks, a type the project writes beside the page, one static
-member per field named as the field, so a missing hook fails the
-build. The language chosen is kept under a key in
-the app's defaults. The server routes of settings.server are refused
-for swiftui, since an app calls the service directly, and a schema
-built by hand is compared byte for byte, the object-literal
-comparison being TypeScript's; both are said in docs/ui-swiftui.md.
-Both idioms render swiftui: ui-components names the SwiftUI
-components and the same keys, and design-tokens names a Color per
-part. The example's sign-in and second-factor screens are written by
-hand in a Swift package first, committed alone, and the generator
-reproduces them but for the header; CI builds and tests the package
-on the macOS job, with no simulator.
+Decision: The implementation file's http binding names the project's gates
+that read no permission, beside permissionChecks: clientChecks, a
+check that admits only a client, and signatureChecks, a check that
+verifies a request's signature, each by package and function and
+with no argument. extract go finds them where it finds a permission
+check (wrapping a handler, among a route's or a group's middleware,
+applied with Use or With, or called in the handler) and also as
+middleware named without a call. Each check prints a line counting
+the operations it guards and is one must question, decided by the
+system owner and citing its first call, blocking the callers of each
+of them: for a client check, which clients call them and whether
+people do; for a signature check, which client signs, with which
+algorithm and over which parts of the request. The reader writes no
+callers, so the operation reads as people's until the question is
+answered, and declares no client. A call of golang-jwt's
+NewWithClaims is a must question blocking the tokens that lists the
+keys of the MapClaims literal it is given, or the one the same
+function assigns to the name it is given; claims of any other shape
+are named as not read.
 
-Consequences: One specification drives three front ends, plain JavaScript,
-Next.js and SwiftUI, with the same pages read once; a rule the
-analysis gains reaches both generators that read pages as data, and
-a message names the generator that reports it. The TypeScript
-generator's goldens hold byte for byte. A Swift project renders
-through its own components by overriding the idiom's swiftui parts,
-as a TypeScript project overrides nextjs-carbon's. The app wrapper
-around the generated package (the App, its navigation stack, its
-tint and where it sets the service's URL) stays the project's, as
-the Next.js layout does.
+Consequences: An implementation file without the two keys reads as before. A
+route a gate guards keeps the permission its permission check
+reads, so the permissions matrix is unchanged, and the gate's
+question holds the operation's derived tests until the owner names
+its callers. extract router reads a route table that carries no
+middleware, and the seeds reader reads dxlib_module's tables, which
+hold no client; neither has a gate or a client to find, so both
+stay as they are. The checks of caller-context's readers item
+(the application, the immediate caller, the audience, the event
+writer, with an argument naming them) are a later item, which adds
+an argument to clientChecks rather than renaming it.
 
-**Insight:** The owner named the plug-in for the framework, and a framework is what decides the components (ADR-023, Q1 of docs/ui-nextjs-carbon.md); a lookup by the language alone would have forced specarch-gen-ui-swift and bound every Swift front end to one framework. Reading the pages once keeps the two generators from drifting apart in what they accept and refuse, which three thousand duplicated lines would have done on the first change. A typed Swift literal is Swift's satisfies: the compiler checks the data against the component's type, and .init in a nested value lets the literal stay data with no type name a project's override would have to supply. A router that keeps the page sign-in was asked for from needs no open-redirect check, since an app's routes are an enum. A package with no dependency needs no scan, builds on a Mac without a simulator, and is what a SwiftUI project adds as a local package.
+**Insight:** A question rather than callers written from the code, because the compiler principle never guesses: a client list the code does not hold would be a callers line saying more than the source, and callers has no word for every client, which would fail open for a client added later (ADR-110). One question per check rather than per operation, as for a bypassed check (ADR-114): it is one decision about one check, and blocking each operation's callers puts the mark at each entry. A binding rather than recognising an API key or a signature header by name, because the test is a comparison written the project's way; the person who names the permission check names these beside it, as a fact of the stack. golang-jwt alone, because it is the library a Go service mints with by default and its MapClaims literal names the claims by syntax; a struct of claims would need the reader to follow the type's tags, which waits for a source that needs it. Compiler test: a gate named in part is a must question at the paths and the routes are read with their permissions; every gate found is a problem at each operation it guards. Acceptance test: a reviewer of the first techspec sees, at the route, that a client reaches it and which question names the clients, and the change asked for is the callers line.
 
 ## 10. Quality requirements
 
@@ -11173,6 +11161,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | extract-documents-writes-tree | command extract | system | golden | a repository holding a Markdown handbook with numbered headings and paragraphs, sentences with shall, must, should, a number of days and a time of day, a commitment that names its subject only as it, two tables of fields, one with a sensitivity column and one whose sensitivity a sentence gives for one field, a field of a type the meta-model does not hold, a table of another header and a code block | extract documents is run on the handbook | it writes the outline as clauses at the commit read, one requirement per commitment citing its clause, the fields of each table as an entity with the sensitivity the document gives, and a question for the commitment it cannot place, the requirements' kind, each entity's primary key and the sensitivity not given, prints a line and writes a could question citing the section for the type, the table and the code block it does not hold, and exits 0 |
 | extract-exit-1 | command extract | system | red | a file that is not a catalogue dump | extract database is run on it | it says the file is not a catalogue dump, writes nothing and exits 1 |
 | extract-go-bypassed-check | command extract | system | golden | a repository holding a Go module on chi whose server wraps two handlers in a check that lets a service's own token through without reading its roles, guards a third with a check used as middleware that holds every caller to its roles, and leaves a fourth unchecked; and an implementation file whose bindings.http.permissionChecks name both checks, the first with bypassedFor: client | extract go is run on the module with the implementation file | it writes the four operations with the permissions the checks read, one must question on the bypassed check, named by its method's name, blocking the permission of the two operations it guards and of no other, in the words extract permissions uses, citing the first call of it, a line naming the check and counting those operations, and exits 0 |
+| extract-go-client-gates | command extract | system | golden | a repository holding a Go module on chi whose server wraps a handler in a check that admits only a client's API key around the permission check, guards a route with a signature verifier as middleware named without a call, leaves a third route to the permission check alone and mints a token with golang-jwt from a MapClaims literal; and an implementation file whose bindings.http names the permission check under permissionChecks, the client check under clientChecks and the verifier under signatureChecks | extract go is run on the module with the implementation file | it writes the four operations with the permissions the check reads and no callers, one must question on the client check blocking the callers of the one operation it guards, one must question on the verifier asking for the client's proof and blocking the callers of the one operation it guards, a must question at the tokens listing the three claims the token is minted with, a line naming each gate and counting what it guards and a line counting the minted token, and exits 0 |
 | extract-go-dxlib-declared | command extract | system | golden | a repository holding a Go module on dxlib whose endpoints declare what they take and answer where NewEndPoint registers them: a JSON POST with a literal parameter list in snake_case of typed parameters (a positive int64, a non-empty string with a maximum length and a pattern given through a pointer helper, a nullable date, money, a JSON object with children, one of them of a type a function computes, an array of a JSON template, a map of strings and an array of strings) and response possibilities with a success carrying a data template and a refusal with a header; a GET whose parameters a module function returns as its one statement, with bounds and an enum; a POST whose parameters a package variable holds; a POST whose parameters and responses functions build with statements; a JSON POST that declares no parameter and whose handler decodes its body itself; a PUT of an octet stream with a parameter; and a PATCH with a parameter, a method dxlib refuses with 422 | extract go is run on the module | it writes the JSON POST's body as an object of camelCase fields with their types, formats, bounds, enums, required lists, children, items and map values as dxlib's emitter writes them, the field of a computed type known by name only with a must question on it, its 200 response with its description and body, and its 409 response with its description and the problem the handler answers; the GET's parameters as query parameters; the variable's parameters as the body; a must question for the parameters and the responses functions build, naming the call, and none besides on the success those responses would give; the body that declares nothing as any object with a must question on its fields, which says its handler decodes Request.Body, a stream dxlib has already read to its end for a JSON endpoint; the octet stream as a binary body; one must question on the widths of the int64 fields; a could question for the header and for the parameters dxlib reads from the X-Var header; no parameter for the PATCH, with a must question on the operation that says dxlib refuses that method; a must question for each operation with no success response and for a response with no description; lists no middleware on any operation, since each is registered with none; sets info.wireNames snake_case; and exits 0 |
 | extract-go-dxlib-endpoints | command extract | system | golden | a repository holding a Go module on dxlib whose files register endpoints with NewEndPoint: one with a URI joined from literals, a net/http method constant and a privilege in dxlib_module's capitals, whose handler reads a declared parameter and answers two refusals; one with a path parameter whose handler is in another package, which the reader cannot find with no go.mod read, and that checks no privilege; one in a loop, one behind a condition and one with a computed URI; one whose handler is a function literal that reads a declared parameter, one whose name is computed and one the endpoint does not declare, and answers two reasons at one status, an empty reason, a status alone and a computed status; the same method and URI a second time; a HEAD endpoint; a call with too few arguments; a WebSocket endpoint and a RegisterHandler call; a reason answered at two statuses; a file that does not parse, a test file, a file under testdata and a file that imports dxlib and registers nothing | extract go is run on the module | it writes each endpoint registered with literal values outside a loop or a condition as an operation citing its registration line and its handler's first line, with its summary, description, path parameters, permission (mapped from capitals by the rule of ADR-076 and declared inferred), its middlewares in order, or none, the parameters its registration declares as its body or its query, and the refusal statuses its handler answers, each naming the problem its literal reason gives; it declares each problem answered at one status, and asks a must question for the loop, the condition, the computed URI, the undeclared parameter, the empty reason, the status alone, two reasons at one status, a reason at two statuses, the second registration, the short call, the file that does not parse, the open endpoint, each operation's success response and whether the running system registers it; a should question for the computed parameter name and status and for the handler it cannot find; prints a line and asks a could question for the HEAD endpoint, the WebSocket endpoint, the RegisterHandler call and each operationId dxlib derives that is not camelCase; leaves out the test file and the testdata file; names the file that registers nothing; declares its code source reading: parsed; and exits 0 |
 | extract-go-dxlib-envelope-stream | command extract | system | golden | a repository holding a Go module on dxlib whose endpoints are registered with every endpoint type: a plain JSON POST that declares the parameters a0, a1 and a2 of the pre-key exchange and answers i, b0, b1 and b2; a POST of type EndPointTypeHTTPEndToEndEncryptionV2 with parameters; an upload stream of an octet stream with a content-length ceiling; a download stream with a parameter whose handler answers 404; a download stream of type EndPointTypeHTTPDownloadStreamV2 whose registration declares a data template on its 200; a POST of type EndPointTypeHTTPEndToEndEncryptionV3; a POST of type EndPointTypeHTTPEndToEndEncryptionV1; a GET whose type is a package variable; and an upload stream with a JSON content type | extract go is run on the module | it writes the handshake preKey under handshakes with keyAgreement x25519, signature ed25519 and cipher aes-256-cbc, inferred from the type, established by the pre-key operation found by its parameters, citing the first encrypted registration and the exchange's, with a should question on its lifetime and uses; names the handshake on the encrypted POST and on the DownloadStreamV2 operation; writes stream upload on the octet-stream upload with its binary body, and stream download on both downloads with a 200 response of application/octet-stream and a binary string, asking a should question where the registration declared a data template; asks a must question on the handshake of the V3 operation naming dxlib's hooks, on the handshake and stream of the operation whose type is a variable, and on the stream and body of the upload with a JSON content type, writing neither for those; prints a line and a could question for the V1 type and writes that operation plain; says in each operation's citation that it travels in the pre-key envelope or streams its body; and exits 0 |
@@ -11501,7 +11490,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | validate-page-events | command validate | system | red | pages whose events lead to a page that does not exist, to a page without its route parameter and with one it does not have, from a field the entity lacks, an onSubmitted on a view, a then on an action that navigates, and a message that is not a sentence; besides a list's onSelect and an operation's then with only a message, which are right | validate is run | it reports flow seven times, and exits 1 |
 | validate-page-states | command validate | system | red | pages with complete states, and pages whose states leave out a list's empty state, name a filtered empty state on a list without filters and an empty state on a form, give a message that is not a sentence, name a problem type the page cannot meet, leave one it can meet without a message or a default, and put a field on a view or one the form does not show | validate is run | it reports state ten times, and exits 1 |
 | validate-path-parameter | command validate | system | red | a path with {itemId} and no path parameter for it | validate is run | it reports path_parameter and exits 1 |
-| validate-permission-checks | command validate | system | red | an implementation file whose http binding names three permission checks, one with its permission in the first argument skipped for every client, one with a permission argument of 0 and one skipped for people, which is no kind of caller a check is skipped for | validate is run on its folder | it takes the first check and reports the argument of 0 and the kind people each as a schema error at its entry, and exits 1 |
+| validate-permission-checks | command validate | system | red | an implementation file whose http binding names three permission checks, one with its permission in the first argument skipped for every client, one with a permission argument of 0 and one skipped for people, which is no kind of caller a check is skipped for; a client check by its package and function; and a signature check with a permission argument, which a gate does not take | validate is run on its folder | it takes the first check and the client check, reports the argument of 0, the kind people and the signature check's permission argument each as a schema error at its entry, and exits 1 |
 | validate-permission-undeclared | command validate | system | red | an operation whose permission is not declared | validate is run | it reports permission_undeclared and exits 1 |
 | validate-permission-ungranted | command validate | system | red | a declared permission that no role grants | validate is run | it reports permission_ungranted and exits 1 |
 | validate-permission-ungranted-without-description | command validate | system | red | a declared permission that no role grants and that has no description, with a must question that blocks its description, as an extracted tree writes it | validate is run | the missing description is covered by the question, and it still reports permission_ungranted and exits 1 |
@@ -11951,7 +11940,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-41 | enums Rule; decisions ADR-033; decisions ADR-070 | tests validate-question-covers-namespace; tests validate-views; tests validate-views-valid |
 | SA-42 | enums Rule; decisions ADR-034; decisions ADR-035; decisions ADR-036; decisions ADR-037; decisions ADR-038; decisions ADR-039; decisions ADR-056; decisions ADR-058; decisions ADR-064; decisions ADR-082 | tests derive-page-elements; tests derive-task-page-checks; tests validate-accessibility; tests validate-child-rows; tests validate-compact-columns; tests validate-flows; tests validate-page-action-with; tests validate-page-elements-unresolved; tests validate-page-events; tests validate-page-states; tests validate-sections; tests validate-task-page-checks; tests validate-task-page-checks-valid; tests validate-task-pages; tests validate-theme |
 | SA-43 | decisions ADR-040 | tests generate-ui |
-| SA-44 | commands extract; commands facts; decisions ADR-043; decisions ADR-044; decisions ADR-048; decisions ADR-049; decisions ADR-050; decisions ADR-057; decisions ADR-062; decisions ADR-075; decisions ADR-076; decisions ADR-081; decisions ADR-084; decisions ADR-087; decisions ADR-089; decisions ADR-090; decisions ADR-091; decisions ADR-092; decisions ADR-098; decisions ADR-114; decisions ADR-115; decisions ADR-116; decisions ADR-118; decisions ADR-125; decisions ADR-128; decisions ADR-130; decisions ADR-131; decisions ADR-140; decisions ADR-144 | tests extract-dart-flutter-screens; tests extract-dart-models; tests extract-dart-parser-version; tests extract-dart-server-clients; tests extract-database-json-column; tests extract-database-partitioned-table; tests extract-database-stale-dump; tests extract-database-writes-tree; tests extract-documents-not-markdown; tests extract-documents-upper-case-name; tests extract-documents-writes-tree; tests extract-exit-1; tests extract-go-bypassed-check; tests extract-go-dxlib-declared; tests extract-go-dxlib-endpoints; tests extract-go-dxlib-envelope-stream; tests extract-go-dxlib-handler-shapes; tests extract-go-dxlib-middlewares; tests extract-go-dxlib-tables-seeds; tests extract-go-handlers; tests extract-go-handlers-changed; tests extract-go-http-handlers; tests extract-go-request-bodies; tests extract-go-routers; tests extract-javascript-express-routes; tests extract-javascript-fastify-validators; tests extract-javascript-parser-version; tests extract-javascript-plain-checkjs; tests extract-javascript-react-screens; tests extract-javascript-stale-dump; tests extract-javascript-template-parser-version; tests extract-javascript-vue-router; tests extract-openapi-dxlib-privileges; tests extract-openapi-not-openapi; tests extract-openapi-snake-case; tests extract-openapi-writes-tree; tests extract-outline-shallow-clone; tests extract-outline-uncommitted; tests extract-outline-writes-clauses; tests extract-pages-next-api-facts; tests extract-pages-next-app-facts; tests extract-pages-next-pages-router; tests extract-pages-nuxt-facts; tests extract-pages-nuxt-pages; tests extract-pages-nuxt-server; tests extract-pages-nuxt-server-facts; tests extract-pages-route-twice; tests extract-pages-router-guess; tests extract-pages-schema-file; tests extract-pages-schema-file-asked; tests extract-pages-task; tests extract-pages-writes-tree; tests extract-permissions-bypassed-gate; tests extract-permissions-gate-both-forms; tests extract-permissions-gate-people; tests extract-permissions-grant-twice; tests extract-permissions-writes-tree; tests extract-router-dump-repository-not-gitlink; tests extract-router-dump-through-gitlink; tests extract-router-route-twice; tests extract-router-stale-gitlink; tests extract-router-stale-table; tests extract-router-writes-tree; tests extract-swift-clients-settings; tests extract-swift-models; tests extract-swift-parser-version; tests extract-swift-screens; tests extract-swift-stale-dump; tests extract-swift-vapor-routes; tests extract-workflows-not-bpmn; tests extract-workflows-table; tests extract-workflows-table-not-held; tests extract-workflows-table-not-offered; tests extract-workflows-table-refused; tests extract-workflows-writes-tree; tests facts-javascript; tests facts-javascript-uncommitted; tests facts-unknown-language; tests gaps-outline-not-read; tests validate-source-reading |
+| SA-44 | commands extract; commands facts; decisions ADR-043; decisions ADR-044; decisions ADR-048; decisions ADR-049; decisions ADR-050; decisions ADR-057; decisions ADR-062; decisions ADR-075; decisions ADR-076; decisions ADR-081; decisions ADR-084; decisions ADR-087; decisions ADR-089; decisions ADR-090; decisions ADR-091; decisions ADR-092; decisions ADR-098; decisions ADR-114; decisions ADR-115; decisions ADR-116; decisions ADR-118; decisions ADR-125; decisions ADR-128; decisions ADR-130; decisions ADR-131; decisions ADR-140; decisions ADR-144; decisions ADR-154 | tests extract-dart-flutter-screens; tests extract-dart-models; tests extract-dart-parser-version; tests extract-dart-server-clients; tests extract-database-json-column; tests extract-database-partitioned-table; tests extract-database-stale-dump; tests extract-database-writes-tree; tests extract-documents-not-markdown; tests extract-documents-upper-case-name; tests extract-documents-writes-tree; tests extract-exit-1; tests extract-go-bypassed-check; tests extract-go-client-gates; tests extract-go-dxlib-declared; tests extract-go-dxlib-endpoints; tests extract-go-dxlib-envelope-stream; tests extract-go-dxlib-handler-shapes; tests extract-go-dxlib-middlewares; tests extract-go-dxlib-tables-seeds; tests extract-go-handlers; tests extract-go-handlers-changed; tests extract-go-http-handlers; tests extract-go-request-bodies; tests extract-go-routers; tests extract-javascript-express-routes; tests extract-javascript-fastify-validators; tests extract-javascript-parser-version; tests extract-javascript-plain-checkjs; tests extract-javascript-react-screens; tests extract-javascript-stale-dump; tests extract-javascript-template-parser-version; tests extract-javascript-vue-router; tests extract-openapi-dxlib-privileges; tests extract-openapi-not-openapi; tests extract-openapi-snake-case; tests extract-openapi-writes-tree; tests extract-outline-shallow-clone; tests extract-outline-uncommitted; tests extract-outline-writes-clauses; tests extract-pages-next-api-facts; tests extract-pages-next-app-facts; tests extract-pages-next-pages-router; tests extract-pages-nuxt-facts; tests extract-pages-nuxt-pages; tests extract-pages-nuxt-server; tests extract-pages-nuxt-server-facts; tests extract-pages-route-twice; tests extract-pages-router-guess; tests extract-pages-schema-file; tests extract-pages-schema-file-asked; tests extract-pages-task; tests extract-pages-writes-tree; tests extract-permissions-bypassed-gate; tests extract-permissions-gate-both-forms; tests extract-permissions-gate-people; tests extract-permissions-grant-twice; tests extract-permissions-writes-tree; tests extract-router-dump-repository-not-gitlink; tests extract-router-dump-through-gitlink; tests extract-router-route-twice; tests extract-router-stale-gitlink; tests extract-router-stale-table; tests extract-router-writes-tree; tests extract-swift-clients-settings; tests extract-swift-models; tests extract-swift-parser-version; tests extract-swift-screens; tests extract-swift-stale-dump; tests extract-swift-vapor-routes; tests extract-workflows-not-bpmn; tests extract-workflows-table; tests extract-workflows-table-not-held; tests extract-workflows-table-not-offered; tests extract-workflows-table-refused; tests extract-workflows-writes-tree; tests facts-javascript; tests facts-javascript-uncommitted; tests facts-unknown-language; tests gaps-outline-not-read; tests validate-source-reading |
 | SA-45 | commands merge; decisions ADR-045; decisions ADR-048; decisions ADR-049; decisions ADR-050; decisions ADR-057; decisions ADR-062; decisions ADR-075; decisions ADR-077; decisions ADR-114; decisions ADR-117; decisions ADR-118; decisions ADR-122; decisions ADR-126; decisions ADR-127; decisions ADR-132 | tests merge-bypassed-check; tests merge-documents-and-code; tests merge-joins-commits; tests merge-keeps-could-questions; tests merge-map-open-then-typed; tests merge-map-typed-then-open; tests merge-map-values; tests merge-pages-field-by-name; tests merge-pages-joins-source; tests merge-path-changed; tests merge-permissions-asked-twice; tests merge-permissions-unchecked; tests merge-printed-parsed; tests merge-printed-parsed-grants; tests merge-role-grants-add-up; tests merge-role-grants-withheld; tests merge-schema-named-as-entity; tests merge-schema-reference-agrees; tests merge-schema-reference-agrees-code-first; tests merge-schema-reference-differs; tests merge-schema-reference-field-differs; tests merge-source-differs; tests merge-tree-invalid; tests merge-type-differs; tests merge-value-object-columns; tests merge-value-object-differs; tests merge-value-object-unnamed; tests merge-workflows-joins-trigger; tests merge-workflows-table-and-bpmn; tests validate-source-given-outside |
 | SA-46 | commands generate; decisions ADR-046; decisions ADR-068 | tests generate-openapi-owned; tests generate-sql-owned; tests generate-sql-owned-handed-over; tests validate-mapping-menu-entry; tests validate-owned-by-unknown |
 | SA-47 | enums Rule; decisions ADR-054 | tests document-techspec-open-workflow; tests validate-maker-checker; tests validate-workflow; tests validate-workflow-valid |

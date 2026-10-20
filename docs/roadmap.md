@@ -303,12 +303,16 @@ responses, limits on an operation, and menus; and the concepts the red
 paths of `docs/test-generation.md` needed, `dependencies` with a time limit
 per call, `idempotencyKey`, `validity` on an entity and `session` (0.3.0).
 
-Not built: meta-model 0.3, the caller as something an expression can name,
-and what rests on it: the rows a role reaches (a member sees only their own
-loans), machine clients and the gates on a route that are not a permission,
-and token formats. `docs/meta-model-0.3.md` is the plan: what is taken,
-what waits and why, and five steps, each with what done looks like. Not
-planned until a project asks: interfaces beyond HTTP, messaging and the
+Built, 0.7.2: meta-model 0.3, all five steps of `docs/meta-model-0.3.md`
+(ADR-094 to ADR-097, ADR-154): the caller as something an expression can
+name and the rows a role reaches (a member sees only their own loans),
+written as row security policies by `generate sql`; machine clients with
+a proof, `callers` as the explicit list, `nobody` and `through`; tokens
+with their claims, checks and audience, the transaction token, `via` and
+security events, with the schemes `generate openapi` writes; and in
+`extract go` a question for the callers of a route a client check or a
+signature check guards and for the claims where golang-jwt mints a token.
+Not planned until a project asks: interfaces beyond HTTP, messaging and the
 command line; sets and lists in the expression language; seed data per
 profile; more than one deliverable per specification.
 
@@ -323,7 +327,8 @@ audience and a requirement held elsewhere, the sqlc queries and
 `specarch check`. Every keyword in it is an addition to 0.2. Still owed in
 it: the sqlc check against a real project's first query file.
 
-Not built: caller context. The same estate's services call each other on a
+Caller context, items 1 to 3 built with 0.3's steps 3 and 4 in 0.7.2,
+items 4 and 5 not built. The same estate's services call each other on a
 person's behalf, and `docs/caller-context.md` designs the four inputs of an
 authorisation decision beyond the person and the roles, decided on
 2026-10-14 (ADR-106 to ADR-111): the application the person signed in
@@ -335,8 +340,11 @@ Token across the trust domain with `via` on each operation naming its
 immediate callers and a workload-identity proof on every service, and the
 audience per hop as `aud` fixed per token kind, with the confused-deputy
 red cases and a security event for every refusal. Clients, roles and the
-trust domain live in an identity module. It amends 0.3's steps 3 and 4
-before they are built and ends with five build items in order.
+trust domain live in an identity module. Items 1 to 3 are 0.3's steps 3
+and 4 as that file amends them; item 4, the identity module and the
+induction through `calls`, waits for the umbrella, and item 5, the
+readers writing `through`, `via` and `aud`, for the permission table's
+`client` and `through` keys.
 
 Designed in 0.7.1, not built: the diagram keywords. An editor that draws
 every diagram from a specification could not draw the system context, the

@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.2-dev of the specification: 555 design tests, 251 golden and 304 red, about 16 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.2-dev of the specification: 556 design tests, 252 golden and 304 red, about 16 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 4 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -19,7 +19,7 @@ Version 0.7.2-dev of the specification: 555 design tests, 251 golden and 304 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 551 |
+| system | 552 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -1034,6 +1034,14 @@ Scenario: golden; level: system; verifies SA-44.
 - Given: a repository holding a Go module on chi whose server wraps two handlers in a check that lets a service's own token through without reading its roles, guards a third with a check used as middleware that holds every caller to its roles, and leaves a fourth unchecked; and an implementation file whose bindings.http.permissionChecks name both checks, the first with bypassedFor: client
 - When: extract go is run on the module with the implementation file
 - Then: it writes the four operations with the permissions the checks read, one must question on the bypassed check, named by its method's name, blocking the permission of the two operations it guards and of no other, in the words extract permissions uses, citing the first call of it, a line naming the check and counting those operations, and exits 0
+
+#### extract-go-client-gates
+
+Scenario: golden; level: system; verifies SA-44.
+
+- Given: a repository holding a Go module on chi whose server wraps a handler in a check that admits only a client's API key around the permission check, guards a route with a signature verifier as middleware named without a call, leaves a third route to the permission check alone and mints a token with golang-jwt from a MapClaims literal; and an implementation file whose bindings.http names the permission check under permissionChecks, the client check under clientChecks and the verifier under signatureChecks
+- When: extract go is run on the module with the implementation file
+- Then: it writes the four operations with the permissions the check reads and no callers, one must question on the client check blocking the callers of the one operation it guards, one must question on the verifier asking for the client's proof and blocking the callers of the one operation it guards, a must question at the tokens listing the three claims the token is minted with, a line naming each gate and counting what it guards and a line counting the minted token, and exits 0
 
 #### extract-go-dxlib-declared
 
@@ -3677,9 +3685,9 @@ Scenario: red; level: system; covers exit 1.
 
 Scenario: red; level: system; covers exit 1; verifies SA-10.
 
-- Given: an implementation file whose http binding names three permission checks, one with its permission in the first argument skipped for every client, one with a permission argument of 0 and one skipped for people, which is no kind of caller a check is skipped for
+- Given: an implementation file whose http binding names three permission checks, one with its permission in the first argument skipped for every client, one with a permission argument of 0 and one skipped for people, which is no kind of caller a check is skipped for; a client check by its package and function; and a signature check with a permission argument, which a gate does not take
 - When: validate is run on its folder
-- Then: it takes the first check and reports the argument of 0 and the kind people each as a schema error at its entry, and exits 1
+- Then: it takes the first check and the client check, reports the argument of 0, the kind people and the signature check's permission argument each as a schema error at its entry, and exits 1
 
 #### validate-permission-undeclared
 

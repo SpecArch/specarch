@@ -1,0 +1,72 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.3.schema.json
+decisions:
+  ADR-154:
+    title: extract go asks for the callers of a route a client check or a signature check guards, each named under the implementation file's http binding, and lists the claims where golang-jwt mints a token; it writes no callers, client or token of its own
+    status: accepted
+    date: "2026-10-20"
+    context: |
+      Step 5 of docs/meta-model-0.3.md, the readers. Steps 3 and 4 give
+      a route's callers, the clients with their proof and the tokens
+      (ADR-096, ADR-097, ADR-110). callers is the explicit list of who
+      may call, people and clients by name, with no word for every
+      client, so a reader cannot write callers clients where a client
+      check guards a route. A check that admits
+      only a client, a check that verifies a signature and a call that
+      mints a token are each written the project's own way: syntax finds
+      the call and not the client names, the algorithm, the parts signed
+      or the token's lifetime and checks.
+    decision: |
+      The implementation file's http binding names the project's gates
+      that read no permission, beside permissionChecks: clientChecks, a
+      check that admits only a client, and signatureChecks, a check that
+      verifies a request's signature, each by package and function and
+      with no argument. extract go finds them where it finds a permission
+      check (wrapping a handler, among a route's or a group's middleware,
+      applied with Use or With, or called in the handler) and also as
+      middleware named without a call. Each check prints a line counting
+      the operations it guards and is one must question, decided by the
+      system owner and citing its first call, blocking the callers of each
+      of them: for a client check, which clients call them and whether
+      people do; for a signature check, which client signs, with which
+      algorithm and over which parts of the request. The reader writes no
+      callers, so the operation reads as people's until the question is
+      answered, and declares no client. A call of golang-jwt's
+      NewWithClaims is a must question blocking the tokens that lists the
+      keys of the MapClaims literal it is given, or the one the same
+      function assigns to the name it is given; claims of any other shape
+      are named as not read.
+    consequences: |
+      An implementation file without the two keys reads as before. A
+      route a gate guards keeps the permission its permission check
+      reads, so the permissions matrix is unchanged, and the gate's
+      question holds the operation's derived tests until the owner names
+      its callers. extract router reads a route table that carries no
+      middleware, and the seeds reader reads dxlib_module's tables, which
+      hold no client; neither has a gate or a client to find, so both
+      stay as they are. The checks of caller-context's readers item
+      (the application, the immediate caller, the audience, the event
+      writer, with an argument naming them) are a later item, which adds
+      an argument to clientChecks rather than renaming it.
+    why: |
+      A question rather than callers written from the code, because the
+      compiler principle never guesses: a client list the code does not
+      hold would be a callers line saying more than the source, and
+      callers has no word for every client, which would fail open for a
+      client added later (ADR-110). One question per check rather than
+      per operation, as for a bypassed check (ADR-114): it is one decision
+      about one check, and blocking each operation's callers puts the
+      mark at each entry. A binding rather than recognising an API key
+      or a signature header by name, because the test is a comparison
+      written the project's way; the person who names the permission
+      check names these beside it, as a fact of the stack. golang-jwt
+      alone, because it is the library a Go service mints with by
+      default and its MapClaims literal names the claims by syntax; a
+      struct of claims would need the reader to follow the type's tags,
+      which waits for a source that needs it. Compiler test: a gate
+      named in part is a must question at the paths and the routes are
+      read with their permissions; every gate found is a problem at
+      each operation it guards. Acceptance test: a reviewer of the first
+      techspec sees, at the route, that a client reaches it and which
+      question names the clients, and the change asked for is the
+      callers line.
+    satisfies: [SA-44]

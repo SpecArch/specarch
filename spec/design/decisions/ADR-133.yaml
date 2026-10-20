@@ -2,7 +2,7 @@
 decisions:
   ADR-133:
     title: A layout entry says which packages it depends on under dependsOn, CycloneDX's word, which extract go fills from the imports and the component diagram draws
-    status: proposed
+    status: accepted
     date: "2026-10-19"
     context: |
       docs/diagrams.md, gap A. An implementation file's layout lists the

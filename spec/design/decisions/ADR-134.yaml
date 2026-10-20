@@ -2,7 +2,7 @@
 decisions:
   ADR-134:
     title: A dependency says what it is with kind and how it is reached with protocol, after AsyncAPI, a channel names the dependencies that carry it under carriedBy, and the technical specification draws the context diagram from them
-    status: proposed
+    status: accepted
     date: "2026-10-19"
     context: |
       docs/diagrams.md, gap C. A dependency is declared once with a

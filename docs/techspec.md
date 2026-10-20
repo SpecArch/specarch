@@ -10033,7 +10033,7 @@ specification with no such question is checked as before.
 
 ### ADR-133: A layout entry says which packages it depends on under dependsOn, CycloneDX's word, which extract go fills from the imports and the component diagram draws
 
-Status: proposed, 2026-10-19.
+Status: accepted, 2026-10-19.
 
 Context: docs/diagrams.md, gap A. An implementation file's layout lists the
 packages of one implementation with the design objects each
@@ -10073,7 +10073,7 @@ gains the row when the item is built.
 
 ### ADR-134: A dependency says what it is with kind and how it is reached with protocol, after AsyncAPI, a channel names the dependencies that carry it under carriedBy, and the technical specification draws the context diagram from them
 
-Status: proposed, 2026-10-19.
+Status: accepted, 2026-10-19.
 
 Context: docs/diagrams.md, gap C. A dependency is declared once with a
 description, a time limit, and the name and version of its
@@ -10125,7 +10125,7 @@ clients join the diagram when they are built (ADR-135).
 
 ### ADR-135: A role carries no kind; the context diagram draws a person per role and a system per client of kind service, which clients and callers already say
 
-Status: proposed, 2026-10-19.
+Status: accepted, 2026-10-19.
 
 Context: docs/diagrams.md, gap D. The gap proposed kind, person or system,
 on a role, so that a context diagram draws people and calling
@@ -10157,7 +10157,7 @@ proposal is recorded here so that it is not raised again.
 
 ### ADR-136: A server of a deployment has a name, a kind, what of the implementation it runs, or the dependency it is in that environment, and the deployment guide and technical specification draw the deployment diagram from them
 
-Status: proposed, 2026-10-19.
+Status: accepted, 2026-10-19.
 
 Context: docs/diagrams.md, gap E. An implementation file's deployments say
 where each environment runs as a list of servers, each a URL and a
@@ -10207,7 +10207,7 @@ the origin table gains the rows, when the item is built.
 
 ### ADR-137: A server says its zone and what it listens on, a deployment lists its allowed links as firewall rules, the validator checks every declared call has a link, and the documents draw the network diagram from them
 
-Status: proposed, 2026-10-19.
+Status: accepted, 2026-10-19.
 
 Context: docs/diagrams.md, gap F. A network diagram shows zones, the ports
 each host listens on and which host may reach which, and a firewall
@@ -10273,7 +10273,7 @@ deprecated and nothing of it is built.
 
 ### ADR-138: specarch model prints the merged document with every node's file, line and column, the resolved references and the layout problems as one JSON document in RFC 8785's canonical form, in both builds
 
-Status: proposed, 2026-10-19.
+Status: accepted, 2026-10-19.
 
 Context: docs/diagrams.md, point G. An editor that shows a specification as
 SpecArch reads it needs the merged document, where every node came
@@ -10312,7 +10312,7 @@ README grow by one when the item is built.
 
 ### ADR-139: generate bpmn writes a lane set with the system's lane and one per approver role, and gives every shape of the SVG the id its BPMN element already has
 
-Status: proposed, 2026-10-19.
+Status: accepted, 2026-10-19.
 
 Context: docs/diagrams.md, point H. generate bpmn lays a workflow's steps on
 one row and gives the SVG's shapes no identity (ADR-085), so a

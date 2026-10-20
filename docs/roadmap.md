@@ -349,8 +349,8 @@ readers writing `through`, `via` and `aud`, for the permission table's
 Designed in 0.7.1, not built: the diagram keywords. An editor that draws
 every diagram from a specification could not draw the system context, the
 components of an implementation, the deployment topology or the network,
-and `docs/diagrams.md` decides the keywords those pictures need, proposed
-for the owner's approval (ADR-133 to ADR-139): which package depends on
+and `docs/diagrams.md` decides the keywords those pictures need, accepted
+by the owner (ADR-133 to ADR-139): which package depends on
 which, what a dependency is and how it is reached, what a server is and
 what runs on it, zones, ports and allowed links with a check that every
 declared call has a link, the model a program reads the specification

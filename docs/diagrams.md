@@ -14,9 +14,7 @@ meta-model has no keyword for what they show. That editor's design named
 the gaps A to F, and three toolchain points beside them, G to I. This
 file is the design: the standards consulted, the decision for each gap
 with its decision record, what stays out and why, and the build items in
-order. Nothing here is built. The decision records, ADR-133 to ADR-139,
-are proposed until the owner approves this design; the item that builds
-each sets its record accepted.
+order. The decision records, ADR-133 to ADR-139, are accepted.
 
 Three tests are applied, as `docs/estate.md` and `docs/caller-context.md`
 apply them. The compiler test (`docs/principles.md`): does it keep an
@@ -734,10 +732,8 @@ Each item changes `spec/` first (the design, the implementation file's
 schema where a key is one, `spec/design/commands/` for a command), both
 validator builds where a rule is added, with its conformance cases and
 design tests, adds the origin table rows and the convention's diagram
-rows, sets its record accepted, updates the library-lending example and
-its documents, and writes a history entry. These are not queued: the
-dispatcher queues them once the owner has approved this file. The order
-is the order an editor needs them in: the model first, since every
+rows, updates the library-lending example and its documents, and
+writes a history entry. The order is the order an editor needs them in: the model first, since every
 panel reads it, then the pictures by what each gives the reader.
 
 1. **`specarch model`** (ADR-138, SA-74). The command in both builds, the

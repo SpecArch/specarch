@@ -2,7 +2,7 @@
 decisions:
   ADR-138:
     title: specarch model prints the merged document with every node's file, line and column, the resolved references and the layout problems as one JSON document in RFC 8785's canonical form, in both builds
-    status: proposed
+    status: accepted
     date: "2026-10-19"
     context: |
       docs/diagrams.md, point G. An editor that shows a specification as

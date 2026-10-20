@@ -2,7 +2,7 @@
 decisions:
   ADR-137:
     title: A server says its zone and what it listens on, a deployment lists its allowed links as firewall rules, the validator checks every declared call has a link, and the documents draw the network diagram from them
-    status: proposed
+    status: accepted
     date: "2026-10-19"
     context: |
       docs/diagrams.md, gap F. A network diagram shows zones, the ports

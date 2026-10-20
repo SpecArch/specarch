@@ -2,7 +2,7 @@
 decisions:
   ADR-135:
     title: A role carries no kind; the context diagram draws a person per role and a system per client of kind service, which clients and callers already say
-    status: proposed
+    status: accepted
     date: "2026-10-19"
     context: |
       docs/diagrams.md, gap D. The gap proposed kind, person or system,

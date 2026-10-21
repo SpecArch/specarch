@@ -201,7 +201,7 @@ func enclosing(_ lines: [String], _ line: Int) -> (Int, Int) {
             // A value starts after a key's : or ?, a -, [ { or , or after an
             // anchor or a tag.
             let value = starts && (prev == nil || ":?-[{,".unicodeScalars.contains(prev!)
-                || ((word == "&" || word == "!") && isSpace(r[i - 1])))
+                || ((word == "&" || word == "!") && (i == 0 || isSpace(r[i - 1]))))
             if starts { word = c }
             if (c == "[" || c == "{") && (!open.isEmpty || value) {
                 open.append((l, i + 1))

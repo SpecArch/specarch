@@ -84,6 +84,8 @@ func TestEnclosing(t *testing.T) {
 		{"d: |\n  a [ b\nenum: {a: [x,\n  y], b: c,\n  d}", 3, 7},
 		{"d: \"[\"\nenum: a\n  b", 3, -1},
 		{"d: x [y\nenum: a\n  b", 3, -1},
+		{"e: [&a x,\n!t\nq", 1, 4},
+		{"e: {!t x: y,\n&a\nq", 1, 4},
 	} {
 		lines := strings.Split(c.text, "\n")
 		if l, col := enclosing(lines, len(lines)); l != c.line || col != c.column {

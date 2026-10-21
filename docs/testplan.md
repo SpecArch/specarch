@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.4-dev of the specification: 667 design tests, 317 golden and 350 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.4-dev of the specification: 668 design tests, 317 golden and 351 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.7.4-dev of the specification: 667 design tests, 317 golden and 350 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 663 |
+| system | 664 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -5334,6 +5334,14 @@ Scenario: golden; level: system; verifies SA-47.
 - Given: a workflow of two approvals, the first escalating to the second after a day, and an operation step, with a test of the requester approving their own request
 - When: validate is run
 - Then: it reports no error, counts the test as covering the four-eyes case, warns that no test covers the approved path, a refusal and the deadline at each approval and an approval without each permission, among the others, and exits 0
+
+#### validate-yaml-anchor-at-line-start-in-flow
+
+Scenario: red; level: system; covers exit 1; verifies SA-51.
+
+- Given: a design file whose [ ] holds an anchored value, then a tag at the start of the next line and a plain value at the start of the line after, with the ] never written
+- When: validate is run
+- Then: both builds report yaml_syntax at the entry instead of stopping, and exit 1
 
 #### validate-yaml-flow-key-first
 

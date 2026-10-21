@@ -229,7 +229,7 @@ func enclosing(lines []string, line int) (int, int) {
 			// A value starts after a key's : or ?, a -, [ { or , or after an
 			// anchor or a tag.
 			value := starts && (prev == 0 || strings.ContainsRune(":?-[{,", prev) ||
-				((word == '&' || word == '!') && isSpace(r[i-1])))
+				((word == '&' || word == '!') && (i == 0 || isSpace(r[i-1]))))
 			if starts {
 				word = c
 			}

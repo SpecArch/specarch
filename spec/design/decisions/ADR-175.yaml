@@ -1,0 +1,40 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.3.schema.json
+decisions:
+  ADR-175:
+    title: Both builds read a plain float with underscores as yaml.v3 reads it
+    status: accepted
+    date: "2026-10-21"
+    context: |
+      The model both builds print must be the same bytes (ADR-138), and
+      so must validate's output. YAML 1.2's core schema has no
+      underscores in a float, and yaml.v3 takes them: a plain scalar
+      that starts with a digit or a sign has every underscore dropped
+      before it is read as an integer or a float, so `0_8` is 8 and
+      `1_0.5` is 10.5; one that starts with a dot goes to Go's ParseFloat
+      as written, which takes an underscore only between two digits, so
+      `.5_0` is 0.5 and `._5` stays text. The Swift build matched its
+      float pattern on the text as written, so each of these was a
+      number from the Go build and text from the Swift build (BUG-054).
+    decision: |
+      The Swift build reads a plain float as yaml.v3 does: a scalar that
+      starts with a digit or a sign is a float when, with its underscores
+      dropped, it is not an integer and has the core schema's float form;
+      a scalar that starts with a dot is a float when it has that form
+      with its underscores dropped and each underscore stands between
+      two digits. The value is read with the underscores dropped. Both
+      builds therefore print `0_8`, `1_0.5` and `.5_0` as 8, 10.5 and
+      0.5, and `._5`, `.5_` and `_1.5` as text.
+    why: |
+      The core schema leaves underscores out of a float so that every
+      parser reads the same text as the same number, with no rule on
+      where a separator may stand. Here the two builds must print the
+      same model, and the Go build reads every document through yaml.v3,
+      which cannot be told to refuse them; following yaml.v3 in the
+      Swift build is a few lines, as for integers (ADR-174). A value that
+      must stay text, such as a version written with underscores, is
+      quoted, as any value YAML could read another way.
+    consequences: |
+      The case model-float-underscores prints floats written with
+      underscores in each place yaml.v3 takes one, and the forms it
+      leaves as text, as the same values from both builds.
+    satisfies: [SA-74]

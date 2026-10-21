@@ -1,0 +1,6 @@
+specarch: "0.3"
+info: { title: Float underscores, version: 1.0.0 }
+theme:
+  tokens:
+    count:
+      forms: { $value: [0_8, 1_0.5, -1_0.5, +1_000.25, 1_0e3, 1_0., 1_0.5_, .5_0, ._5, .5_, _1.5] }

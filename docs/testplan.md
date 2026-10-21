@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.4-dev of the specification: 658 design tests, 315 golden and 343 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.4-dev of the specification: 659 design tests, 316 golden and 343 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.7.4-dev of the specification: 658 design tests, 315 golden and 343 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 654 |
+| system | 655 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -3172,6 +3172,14 @@ Scenario: red; level: system; covers exit 2; verifies SA-74.
 - Given: a path that does not exist
 - When: model is run on it
 - Then: it names the path it cannot read on standard error, prints nothing, and exits 2
+
+#### model-float-underscores
+
+Scenario: golden; level: system; verifies SA-74.
+
+- Given: a specification whose theme holds floats written with underscores, after a leading zero, before a dot or an exponent's mark, or at the end, and some starting with a dot or an underscore
+- When: model is run on it
+- Then: both builds print each as the number yaml.v3 reads, 0_8 and 1_0.5 as 8 and 10.5, .5_0 as 0.5, and ._5, .5_ and _1.5 as text, the same bytes from each, and exit 0
 
 #### model-integer-forms
 

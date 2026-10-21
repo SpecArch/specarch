@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.7.4-dev of the specification: 90 requirements, 5 entities, 16 commands, 7 algorithms, 658 tests, 165 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.7.4-dev of the specification: 90 requirements, 5 entities, 16 commands, 7 algorithms, 659 tests, 166 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13021,6 +13021,36 @@ as the same numbers from both builds.
 
 **Insight:** The core schema protects a reader from guessing a base from a leading zero, which YAML 1.1 did and which surprised people writing a zero-padded decimal. That protection matters where one parser reads a document in isolation; here two builds must print the same model, and the Go build cannot read the core schema's way without a parser of its own beside yaml.v3, which every other reading of the document goes through. Following yaml.v3 in the Swift build is a few lines; a specification that needs a zero-padded decimal quotes it, as it would for any value YAML could read another way. A decimal past 64 bits stays a number, as a float, because a 40-digit value where a string is expected is then reported as a number in both builds rather than passing as text in one.
 
+### ADR-175: Both builds read a plain float with underscores as yaml.v3 reads it
+
+Status: accepted, 2026-10-21.
+
+Context: The model both builds print must be the same bytes (ADR-138), and
+so must validate's output. YAML 1.2's core schema has no
+underscores in a float, and yaml.v3 takes them: a plain scalar
+that starts with a digit or a sign has every underscore dropped
+before it is read as an integer or a float, so `0_8` is 8 and
+`1_0.5` is 10.5; one that starts with a dot goes to Go's ParseFloat
+as written, which takes an underscore only between two digits, so
+`.5_0` is 0.5 and `._5` stays text. The Swift build matched its
+float pattern on the text as written, so each of these was a
+number from the Go build and text from the Swift build (BUG-054).
+
+Decision: The Swift build reads a plain float as yaml.v3 does: a scalar that
+starts with a digit or a sign is a float when, with its underscores
+dropped, it is not an integer and has the core schema's float form;
+a scalar that starts with a dot is a float when it has that form
+with its underscores dropped and each underscore stands between
+two digits. The value is read with the underscores dropped. Both
+builds therefore print `0_8`, `1_0.5` and `.5_0` as 8, 10.5 and
+0.5, and `._5`, `.5_` and `_1.5` as text.
+
+Consequences: The case model-float-underscores prints floats written with
+underscores in each place yaml.v3 takes one, and the forms it
+leaves as text, as the same values from both builds.
+
+**Insight:** The core schema leaves underscores out of a float so that every parser reads the same text as the same number, with no rule on where a separator may stand. Here the two builds must print the same model, and the Go build reads every document through yaml.v3, which cannot be told to refuse them; following yaml.v3 in the Swift build is a few lines, as for integers (ADR-174). A value that must stay text, such as a version written with underscores, is quoted, as any value YAML could read another way.
+
 ## 10. Quality requirements
 
 The design tests: what must hold on every implementation. Golden scenarios succeed; red scenarios are refused.
@@ -13414,6 +13444,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | merge-workflows-joins-trigger | command merge | system | golden | the tree of a route table that declares requestWriteOff, and the tree of a BPMN file whose workflow leaves its trigger and its service task's operation out, each with a must question naming the operation, requestWriteOff and writeOffLoan | merge is run on the two trees | the trigger is written as requestWriteOff after the workflow's description and its question is left out as joined, naming the tree that declares it; the question for writeOffLoan, which no tree declares, stays open; it exits 0 |
 | merge-workflows-table-and-bpmn | command merge | system | golden | the tree extract workflows wrote of a BPMN file defining the write-off workflow, and the tree extract workflows --table wrote of the workflow table of the same workflow in an engine's own format, both read from one repository at one commit | merge is run on the two trees | it writes one workflow write-off whose description and steps both trees give alike, citing the BPMN file and the table's definition file, role desk-supervisor citing both, the source's clauses joined, each question the table's tree asks again at the same key left out as asked twice, the could question for the form kept, and exits 0 |
 | model-exit-2 | command model | system | red | a path that does not exist | model is run on it | it names the path it cannot read on standard error, prints nothing, and exits 2 |
+| model-float-underscores | command model | system | golden | a specification whose theme holds floats written with underscores, after a leading zero, before a dot or an exponent's mark, or at the end, and some starting with a dot or an underscore | model is run on it | both builds print each as the number yaml.v3 reads, 0_8 and 1_0.5 as 8 and 10.5, .5_0 as 0.5, and ._5, .5_ and _1.5 as text, the same bytes from each, and exit 0 |
 | model-integer-forms | command model | system | golden | a specification whose theme holds integers written in hexadecimal, octal and binary, with capital and small prefixes, signs and underscores, one past 64 bits and one that is no number | model is run on it | both builds print each integer as the number yaml.v3 reads, 0x1F and 017 as 31 and 15, the one past 64 bits and 0o8 as text, the same bytes from each, and exit 0 |
 | model-lists-via-and-through | command model | system | golden | a specification whose operation names a client of its own and one of the identity module in via, and whose role narrows a permission through a client of its own and one of the identity module | model is run on it | it lists the via item naming its own client, the through key naming the permission and the through item naming its own client, each with its keyword, leaves out the two clients of the identity module, and exits 0 |
 | model-usage-error | command model | system | red | no folder or file | model is run with no argument | it prints how to use it and exits 2 |
@@ -14086,7 +14117,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-71 | decisions ADR-123 | tests generate-sqlc-check-hand-written; tests generate-sqlc-dialect-refused; tests generate-sqlc-hand-written-refused; tests generate-sqlc-queries |
 | SA-72 | commands check; decisions ADR-124; decisions ADR-128 | tests check-dump-of-no-format; tests check-fails-on-a-difference; tests check-skips-a-partition; tests check-succeeds; tests check-usage-error |
 | SA-73 | enums DocumentTarget; enums Rule; commands document; decisions ADR-129; decisions ADR-136; decisions ADR-137; decisions ADR-172 | tests document-handover-links-without-infrastructure; tests document-handover-none; tests document-writes-handover; tests validate-build-task-unknown; tests validate-handover-build-missing; tests validate-handover-incomplete; tests validate-handover-missing; tests validate-handover-no-customer; tests validate-handover-valid |
-| SA-74 | commands model; decisions ADR-138; decisions ADR-174 | tests model-exit-2; tests model-integer-forms; tests model-lists-via-and-through; tests model-usage-error; tests model-writes-json |
+| SA-74 | commands model; decisions ADR-138; decisions ADR-174; decisions ADR-175 | tests model-exit-2; tests model-float-underscores; tests model-integer-forms; tests model-lists-via-and-through; tests model-usage-error; tests model-writes-json |
 | SA-75 | decisions ADR-141 | tests document-techspec-gateway; tests document-testplan-gateway; tests generate-openapi-gateway; tests validate-gateway; tests validate-gateway-estate-wrong; tests validate-gateway-wrong |
 | SA-76 | commands check; commands extract; decisions ADR-142 | tests check-gateway-forward-moved; tests check-gateway-forward-removed; tests extract-gateway; tests extract-gateway-value-twice; tests merge-gateway-catch-all-kept; tests merge-gateway-fallback; tests merge-gateway-fallback-across-trees; tests merge-gateway-two-trees |
 | SA-77 | enums Rule; decisions ADR-145; decisions ADR-146; decisions ADR-161; decisions ADR-162; decisions ADR-163; decisions ADR-164 | tests document-techspec-envelope-stream; tests extract-go-dxlib-envelope-stream; tests extract-go-dxlib-session; tests extract-go-dxlib-vault; tests generate-go-dxlib-envelope-stream; tests generate-go-dxlib-extracted-vault; tests generate-go-dxlib-session; tests generate-openapi-dxlib-envelope-stream; tests generate-openapi-dxlib-session; tests generate-ui-dxlib; tests generate-ui-handshake-refused; tests generate-ui-swiftui-dxlib-refused; tests generate-ui-typescript-dxlib; tests generate-ui-typescript-dxlib-refused; tests generate-ui-typescript-handshake-refused; tests validate-handshake; tests validate-stream; tests validate-stream-parameters; tests validate-task-page-upload |

@@ -762,3 +762,17 @@ Expected: a problem in an implementation file is marked at the entry of that fil
 To repeat: run `specarch document handover --out docs project` in a copy of `spec/tests/document-handover-links-without-infrastructure`; `docs/handover.md` has the notice "None of them is in what this document covers" and no Problem paragraph at "Shop in Go: production".
 
 Fix: a `Mark` of a problem in an implementation file keeps the file's path and the pointer into it (`Implementation`, `InFile` in `internal/generate/problems.go`, set by `loaded.marks` in `cmd/specarch/document.go`), and every document finds the elements of the implementation files it is given by that file and pointer too (`newDoc`), so the mark stands at the deepest entry of the file the document shows and the notice counts it. The handover now marks a deployment under "What the hosts must provide"; the technical specification and the deployment guide already passed their deployments to the marking and now find them. Its problem line keeps the empty pointer it printed before. The cases `document-deployment-marks-implementation-problem` and `document-techspec-marks-implementation-problem` use the project of `document-handover-links-without-infrastructure`, whose handover now has the Problem paragraph at "Shop in Go: production".
+
+## BUG-054 — model (Swift): a float written with underscores is printed as text
+
+- Reported: 2026-10-21, found while fixing BUG-048
+- Closed: 2026-10-21, completed
+- Fixed by: the commit on `main` whose message says `Fixes BUG-054`
+
+yaml.v3 drops the underscores of a plain scalar that starts with a digit or a sign before reading it as a number, so `0_8` is 8 and `1_0.5` is 10.5 in the Go build's `specarch model`. The Swift build matched its float pattern on the text as written and printed the strings `"0_8"` and `"1_0.5"`. The two builds print different bytes for the same specification, and no model case held such a float.
+
+Expected: both builds print 8 and 10.5, as yaml.v3 reads them.
+
+To repeat: run `specarch model` with each build on a specification whose theme holds `$value: [0_8, 1_0.5]` and compare the two values.
+
+Fix: the Swift build reads a plain float as yaml.v3 does (`isFloat` and the `!!float` case of `scalarValue` in `swift/Sources/SpecArchKit/Source.swift`): a scalar that starts with a digit or a sign is matched with its underscores dropped; one that starts with a dot keeps the reading of Go's ParseFloat, an underscore only between two digits, so `.5_0` is 0.5 and `._5` stays text. The value is read with the underscores dropped. ADR-175 says why both builds follow yaml.v3 rather than the core schema, which has no underscores in a float. The case `model-float-underscores` prints these forms from both builds.

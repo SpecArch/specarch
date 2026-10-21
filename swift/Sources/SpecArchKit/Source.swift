@@ -300,9 +300,28 @@ private func resolveTag(_ v: String, explicit: String, style: YNode.Style) -> St
         }
         return "!!int"
     }
-    if matches(floatPattern, v) { return "!!float" }
+    if isFloat(v) { return "!!float" }
     if matches(timestampPattern, v) { return "!!timestamp" }
     return "!!str"
+}
+
+/// Whether a plain scalar is a float as yaml.v3 reads one (ADR-175): one
+/// that starts with a digit or a sign has its underscores dropped first,
+/// so 0_8 is 8 and 1_0.5 is 10.5; one that starts with a dot is read as
+/// written, an underscore allowed only between two digits, as Go's
+/// ParseFloat takes it, so .5_0 is 0.5 and ._5 is text.
+private func isFloat(_ v: String) -> Bool {
+    guard let first = v.first else { return false }
+    if first == "." {
+        let chars = Array(v)
+        for (i, c) in chars.enumerated() where c == "_" {
+            guard i > 0, i + 1 < chars.count, chars[i - 1].isASCII, chars[i - 1].isNumber,
+                  chars[i + 1].isASCII, chars[i + 1].isNumber else { return false }
+        }
+    } else if !(first == "-" || first == "+" || (first.isASCII && first.isNumber)) {
+        return false
+    }
+    return matches(floatPattern, v.replacingOccurrences(of: "_", with: ""))
 }
 
 private func jsonValue(_ n: YNode, path: String, duplicates: [(key: String, first: Int, again: Int)], problems: inout [Problem]) -> JSONValue {
@@ -357,9 +376,10 @@ func scalarValue(_ n: YNode) -> JSONValue {
         if let u = parseUnsigned(clean) { return .number(Decimal(string: String(u))!, String(u)) }
         return .string(n.value)
     case "!!float":
-        if let d = Double(n.value), d.isFinite {
+        let clean = n.value.replacingOccurrences(of: "_", with: "")
+        if let d = Double(clean), d.isFinite {
             let text = "\(d)".replacingOccurrences(of: ".0e", with: "e")
-            return .number(Decimal(string: n.value) ?? Decimal(d), text)
+            return .number(Decimal(string: clean) ?? Decimal(d), text)
         }
         return .string(n.value)
     default:

@@ -3,7 +3,7 @@ specarch: "0.3"
 
 info:
   title: SpecArch toolchain
-  version: 0.7.4
+  version: 0.7.5-dev
   program: specarch
   description: |
     The `specarch` command: it validates SpecArch specifications and makes

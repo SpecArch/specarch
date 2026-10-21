@@ -1,0 +1,40 @@
+specarchImplementation: "0.1"
+info: { title: Shop in Go, version: 1.0.0 }
+implements: { file: specarch.yaml, version: 1.0.0 }
+stack: { language: { name: Go, version: "1.26" }, toolchain: { name: go, version: "1.26.0" } }
+libraries:
+  github.com/jackc/pgx/v5:
+    version: v5.11.0
+    licence: MIT
+    purpose: PostgreSQL driver.
+tasks:
+  build: { run: podman build -t till . }
+  sbom: { run: syft dir:. -o syft-json=sbom.json && grype sbom:sbom.json }
+deployments:
+  staging:
+    description: The staging host.
+    environment: staging
+    servers:
+      - { url: "https://staging.shop.example", description: The till's API. }
+    configuration:
+      taxRate: "0.11"
+  production:
+    description: The shop's host.
+    environment: production
+    build:
+      description: The image is built from the tagged commit.
+      task: build
+      baseImages:
+        - { name: "docker.io/library/golang:1.26-bookworm", digest: "sha256:7d0d0ab5bcb7b2e4b9c9c0f6a1b5a4e2d3c4b5a6978879a0b1c2d3e4f5a6b7c8", purpose: Builds the binary. }
+      reproducible: The image digest equals the one in the release notes when the same tag and base image are used.
+      sbom: sbom
+    method: { tool: podman-compose 1.4, files: deploy/compose, description: The compose file runs the image by digest beside PostgreSQL. }
+    servers:
+      - { name: till, url: "https://till.shop.example", listens: [{ port: 8080, protocol: http }], description: The till's API behind the shop's proxy. }
+      - { name: db, kind: database, url: "postgresql://db.shop.internal:5432", listens: [{ port: 5432, protocol: postgresql }], description: The sales ledger. }
+    links:
+      - { from: till, to: db, port: 5432, description: The sales the till records. }
+    configuration:
+      taxRate: "0.11"
+    monitors:
+      till-answers: { tool: an uptime checker, description: Calls the catalogue every minute., alert: the shop's phone }

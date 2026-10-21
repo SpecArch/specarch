@@ -125,7 +125,10 @@ commands:
       Draft notice when a must or should question blocks what it reads.
       It marks each error and warning with a Problem paragraph,
       `**Problem on <name>:** <severity>: <rule>: <message> [<id>]`, at the
-      deepest element it shows that holds the problem's pointer, and
+      deepest element it shows that holds the problem's pointer, a
+      problem in an implementation file at the deepest entry of that file
+      it shows, such as a deployment in the technical specification, the
+      deployment guide and the handover, and
       starts with a Problems notice when the specification has an error
       or the document a warning: that the specification is invalid, how
       many errors and warnings concern the document (those in the

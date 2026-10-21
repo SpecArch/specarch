@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: document
+level: system
+scenario: red
+given: "the project of document-handover-links-without-infrastructure, whose implementation file's deployment of an environment the customer runs has no infrastructure, a handover error in the implementation file"
+when: "document techspec is run"
+then: "it prints the error and writes techspec.md with the error marked by a Problem paragraph on production in the implementation's deployments, and counted in the notice under the summary as concerning the document; it exits 1"
+verifies: [SA-51]

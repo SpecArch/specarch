@@ -2,6 +2,7 @@ package generate
 
 import (
 	"fmt"
+	"path/filepath"
 	"slices"
 	"strings"
 
@@ -20,8 +21,29 @@ type Mark struct {
 	// Pointer leads into the merged specification; it is "" when the
 	// problem is in a file outside it, such as an implementation file or a
 	// record.
-	Pointer           string
-	Rule, Message, ID string
+	Pointer string
+	// Implementation is the path of the implementation file the problem is
+	// in, as the documents are given it, and InFile the pointer into that
+	// file; both are "" for a problem elsewhere.
+	Implementation, InFile string
+	Rule, Message, ID      string
+}
+
+// key is what a document finds the mark's element by: its pointer
+// into the merged specification, or, for a problem in an implementation
+// file, the file's path and the pointer into it.
+func (m Mark) key() string {
+	if m.Implementation != "" {
+		return implementationKey(m.Implementation, m.InFile)
+	}
+	return m.Pointer
+}
+
+// implementationKey is the key of an element of an implementation file:
+// the file's path, a NUL byte, which neither a path nor a pointer holds,
+// and the pointer into it.
+func implementationKey(path, ptr string) string {
+	return filepath.Clean(path) + "\x00" + ptr
 }
 
 // String is the problem line: file:line:column: severity: pointer: rule:
@@ -80,7 +102,7 @@ func place(state *State, write func() string) string {
 	p.collecting = false
 	p.at = map[string][]Mark{}
 	for _, m := range state.Marks {
-		if at, ok := deepestShown(p.shown, m.Pointer); ok {
+		if at, ok := deepestShown(p.shown, m.key()); ok {
 			p.at[at] = append(p.at[at], m)
 		}
 	}
@@ -90,15 +112,19 @@ func place(state *State, write func() string) string {
 }
 
 // deepestShown is the pointer of the deepest element shown that is the
-// pointer or holds it. The root is never one: a mark there stands under
-// the summary.
+// pointer or holds it, within the implementation file a key names. The
+// root is never one: a mark there stands under the summary.
 func deepestShown(shown map[string]bool, ptr string) (string, bool) {
+	file := ""
+	if i := strings.IndexByte(ptr, 0); i >= 0 {
+		file, ptr = ptr[:i+1], ptr[i+1:]
+	}
 	if ptr == "" || ptr == "/" {
 		return "", false
 	}
 	for p := ptr; p != ""; {
-		if shown[p] {
-			return p, true
+		if shown[file+p] {
+			return file + p, true
 		}
 		i := strings.LastIndex(p, "/")
 		if i <= 0 {
@@ -185,7 +211,7 @@ func (d *doc) shows(m Mark) bool {
 	if d.placing == nil || d.placing.collecting {
 		return false
 	}
-	_, ok := deepestShown(d.placing.shown, m.Pointer)
+	_, ok := deepestShown(d.placing.shown, m.key())
 	return ok
 }
 

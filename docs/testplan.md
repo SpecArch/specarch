@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.4-dev of the specification: 656 design tests, 315 golden and 341 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.4-dev of the specification: 658 design tests, 315 golden and 343 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.7.4-dev of the specification: 656 design tests, 315 golden and 341 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 652 |
+| system | 654 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -549,6 +549,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-13.
 - When: document requirements is run
 - Then: it prints the validator's source error, writes the requirements document with the error marked at the stakeholder, and exits 1
 
+#### document-deployment-marks-implementation-problem
+
+Scenario: red; level: system; verifies SA-51.
+
+- Given: the project of document-handover-links-without-infrastructure, whose implementation file's deployment of an environment the customer runs has no infrastructure, a handover error in the implementation file
+- When: document deployment is run
+- Then: it prints the error and writes deployment.md with the error marked by a Problem paragraph at that deployment, once, and counted in the notice under the summary as concerning the document; it exits 1
+
 #### document-draft-notice
 
 Scenario: golden; level: system; verifies SA-18, SA-19.
@@ -587,7 +595,7 @@ Scenario: red; level: system; verifies SA-73.
 
 - Given: an environment the customer runs with a handover, and an implementation file whose deployment of that environment has build, method, named servers that listen and a link between them, and no infrastructure
 - When: document handover is run
-- Then: it prints the handover error that the deployment has no infrastructure, and still writes handover.md with the deployment under what the hosts must provide: its allowed connections, the ports its servers listen on and its network diagram; it exits 1
+- Then: it prints the handover error that the deployment has no infrastructure, and still writes handover.md with the deployment under what the hosts must provide: its allowed connections, the ports its servers listen on and its network diagram, and the error marked by a Problem paragraph at that deployment and counted in the notice as concerning the document; it exits 1
 
 #### document-handover-none
 
@@ -820,6 +828,14 @@ Scenario: golden; level: system; verifies SA-63.
 - Given: a specification whose permission v1.all implies v1.get and another, v1.get implies a third, three roles each granting one of them, a fourth granting a permission no other implies, and a separation-of-duties set over the third and the fourth's
 - When: document techspec is run
 - Then: the matrix marks a permission a role holds only by an implication as through the permission it grants, a table lists what each permission implies, the separation-of-duties set lists every role that reaches it through an implication, and it exits 0
+
+#### document-techspec-marks-implementation-problem
+
+Scenario: red; level: system; verifies SA-51.
+
+- Given: the project of document-handover-links-without-infrastructure, whose implementation file's deployment of an environment the customer runs has no infrastructure, a handover error in the implementation file
+- When: document techspec is run
+- Then: it prints the error and writes techspec.md with the error marked by a Problem paragraph on production in the implementation's deployments, and counted in the notice under the summary as concerning the document; it exits 1
 
 #### document-techspec-middlewares
 

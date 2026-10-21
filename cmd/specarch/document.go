@@ -67,7 +67,11 @@ func (l loaded) marks(folder string) []generate.Mark {
 	var out []generate.Mark
 	for _, d := range l.diags {
 		m := generate.Mark{Severity: string(d.Severity), File: relSlash(folder, d.File), Line: d.Line, Column: d.Column, Rule: string(d.Rule), Message: d.Message, ID: d.ID}
-		if file := filepath.Clean(d.File); strings.HasPrefix(file, dir) && !implementations[file] {
+		file := filepath.Clean(d.File)
+		switch {
+		case implementations[file]:
+			m.Implementation, m.InFile = d.File, d.Path
+		case strings.HasPrefix(file, dir):
 			m.Pointer = d.Path
 		}
 		out = append(out, m)

@@ -1,0 +1,4 @@
+arguments: [document, techspec, --out, docs, project]
+exitStatus: 1
+standardOutput: |
+  project/shop.go.specarch-implementation.yaml:21:3: error: /deployments/production: handover: production is run by the customer, who builds and installs it from this file, and this deployment has no infrastructure saying what the hosts must provide; add infrastructure [handover@shop.go.specarch-implementation.yaml#/deployments/production]

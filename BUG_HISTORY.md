@@ -748,3 +748,17 @@ Expected: an earlier `use` without a path, on the router a mount is made on, is 
 To repeat: run `specarch extract javascript` on `spec/tests/extract-javascript-caller-checks` as its `case.yaml` does. `app.use(requireAudience(...))` at `server/src/app.ts:9` guards 5 operations, and `POST /admin/invoices/{invoiceId}/restore`, whose router is mounted at line 16, is not among them. The case's golden records this until the fix.
 
 Fix: `mountsOfRouter` in `internal/extract/javascript_routes.go` adds to each mount's chain the middleware of every earlier `use` without a path on the router the mount is made on, in its file, cited at that `use`, before the mount's own middleware; `earlierUses` is shared with the route's own earlier uses. In `extract-javascript-caller-checks`, `requireAudience` from `app.use` at `server/src/app.ts:9` now guards 6 operations, `POST /admin/invoices/{invoiceId}/restore` among them, and that operation's cite says it is gated by requireAudience and requireClient. The design of `extract` says it.
+
+## BUG-049 — document: a problem in an implementation file is never marked at the entry a document shows
+
+- Reported: 2026-10-21, found while fixing BUG-035
+- Closed: 2026-10-21, completed
+- Fixed by: the commit on `main` whose message says `Fixes BUG-049`
+
+A document marks each problem by a Problem paragraph at the element its pointer leads to (ADR-065), but a `Mark`'s pointer leads only into the merged specification and is empty for a problem in an implementation file (`internal/generate/problems.go`). The handover, the deployment guide and the technical specification show deployments of the implementation files, yet a problem at one of them is counted in the notice under the summary and never marked at the deployment. The handover of a deployment the customer runs without `infrastructure` says of its `handover` error "None of them is in what this document covers", although the error is at the deployment its "What the hosts must provide" section describes.
+
+Expected: a problem in an implementation file is marked at the entry of that file a document shows, and the notice counts it as concerning the document.
+
+To repeat: run `specarch document handover --out docs project` in a copy of `spec/tests/document-handover-links-without-infrastructure`; `docs/handover.md` has the notice "None of them is in what this document covers" and no Problem paragraph at "Shop in Go: production".
+
+Fix: a `Mark` of a problem in an implementation file keeps the file's path and the pointer into it (`Implementation`, `InFile` in `internal/generate/problems.go`, set by `loaded.marks` in `cmd/specarch/document.go`), and every document finds the elements of the implementation files it is given by that file and pointer too (`newDoc`), so the mark stands at the deepest entry of the file the document shows and the notice counts it. The handover now marks a deployment under "What the hosts must provide"; the technical specification and the deployment guide already passed their deployments to the marking and now find them. Its problem line keeps the empty pointer it printed before. The cases `document-deployment-marks-implementation-problem` and `document-techspec-marks-implementation-problem` use the project of `document-handover-links-without-infrastructure`, whose handover now has the Problem paragraph at "Shop in Go: production".

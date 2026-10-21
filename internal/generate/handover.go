@@ -375,6 +375,7 @@ func Handover(root *yaml.Node, relRoot string, impls []Implementation, state *St
 					continue
 				}
 				d.heading(3, fmt.Sprintf("%s: %s", str(get(in.impl.Node, "info"), "title"), dep.Key.Value))
+				d.marksAt(dep.Key.Value, dep.Value)
 				line := strings.TrimSpace(str(dep.Value, "description"))
 				if e := str(dep.Value, "environment"); e != "" {
 					line += " Environment: " + e + "."

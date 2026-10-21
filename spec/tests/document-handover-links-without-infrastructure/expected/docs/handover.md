@@ -4,7 +4,7 @@
 
 Version 1.0.0 of Shop. The customer builds, installs and runs production from the source. This document says what the customer receives, what stays whose responsibility, how a release is built and installed, what the hosts must provide, and how the installed system is checked and accepted. It is written for the customer's engineers and needs nothing else to be read.
 
-**Problems:** The specification has 1 error, so it is invalid, and this document shows what could be read of it. None of them is in what this document covers. The problems file lists every problem, and specarch validate prints them.
+**Problems:** The specification has 1 error, so it is invalid, and this document shows what could be read of it. 1 error concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
 Each release is handed to the shop's IT staff as source; the vendor runs staging and never reaches the shop's host.
 
@@ -76,6 +76,8 @@ The software bill of materials of the build, and its scan for known vulnerabilit
 ## 4. What the hosts must provide
 
 ### Shop in Go: production
+
+**Problem on production:** error: handover: production is run by the customer, who builds and installs it from this file, and this deployment has no infrastructure saying what the hosts must provide; add infrastructure [handover@shop.go.specarch-implementation.yaml#/deployments/production]
 
 The shop's host. Environment: production.
 

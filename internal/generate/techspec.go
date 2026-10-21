@@ -94,6 +94,13 @@ func newDoc(target string, root *yaml.Node, relRoot string, impls []Implementati
 	if state != nil {
 		d.marks, d.placing, d.withheld = state.Marks, state.placing, state.Withheld
 	}
+	// The elements of the implementation files are found by their file
+	// too, so a problem in one is marked where the document shows it.
+	for _, i := range impls {
+		for n, ptr := range pointers(i.Node) {
+			d.pointerOf[n] = implementationKey(i.Path, ptr)
+		}
+	}
 	from := fmt.Sprintf("%s, version %s", relRoot, str(get(root, "info"), "version"))
 	for _, i := range impls {
 		from += fmt.Sprintf(", and %s, version %s", i.Rel, str(get(i.Node, "info"), "version"))

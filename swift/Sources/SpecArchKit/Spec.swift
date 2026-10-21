@@ -635,6 +635,17 @@ struct Block {
     /// or "" for a stage or a section.
     var element: String { tokens.count < 2 ? "" : pointer(Array(tokens[0..<2])) }
 
+    /// The pointer of the subject the block holds up: its element, or, for
+    /// a pointer into an operation, the path and its method, so a block on
+    /// one method holds up that operation and not the other methods of its
+    /// path.
+    var holds: String {
+        if tokens.count >= 3 && tokens[0] == "paths" && methods.contains(tokens[2]) {
+            return pointer(Array(tokens[0..<3]))
+        }
+        return element
+    }
+
     /// The key of the element the block is about, when it names one.
     var key: String { tokens.count < 3 ? "" : tokens[tokens.count - 1] }
 

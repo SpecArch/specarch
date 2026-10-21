@@ -17,8 +17,8 @@ standardOutput: |
   dead rule: v2.get, from auditor reaches /v2/* with GET, reaches no route of the route table
   derived 0 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers
   not derived: 1 draft test for operation health, held up by Q-4, Q-5; the validator warns for them until the questions are answered
-  not derived: 2 draft tests for operation listLoans, held up by Q-6, Q-7; the validator warns for them until the questions are answered
-  not derived: 2 draft tests for operation lendBook, held up by Q-6, Q-7; the validator warns for them until the questions are answered
+  not derived: 2 draft tests for operation listLoans, held up by Q-6; the validator warns for them until the question is answered
+  not derived: 2 draft tests for operation lendBook, held up by Q-7; the validator warns for them until the question is answered
   not derived: 3 draft tests for operation getLoan, held up by Q-8, Q-9; the validator warns for them until the questions are answered
   not derived: 3 draft tests for operation renewLoan, held up by Q-10, Q-11; the validator warns for them until the questions are answered
   not derived: 2 draft tests for operation dailyReport, held up by Q-12; the validator warns for them until the question is answered

@@ -12,9 +12,9 @@ standardOutput: |
   not held: route PUT /copies/{copyId}: its handler SaveCopy serves more than one route; the operation is named putCopiesByCopyId; could question Q-9
   not held: route PATCH /copies/{copyId}: its handler SaveCopy serves more than one route; the operation is named patchCopiesByCopyId; could question Q-10
   derived 0 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers
-  not derived: 2 draft tests for operation listCopies, held up by Q-1, Q-2; the validator warns for them until the questions are answered
-  not derived: 2 draft tests for operation addCopy, held up by Q-1, Q-2; the validator warns for them until the questions are answered
+  not derived: 2 draft tests for operation listCopies, held up by Q-1; the validator warns for them until the question is answered
+  not derived: 2 draft tests for operation addCopy, held up by Q-2; the validator warns for them until the question is answered
   not derived: 2 draft tests for operation listCopiesPost, held up by Q-1; the validator warns for them until the question is answered
-  not derived: 3 draft tests for operation getCopy, held up by Q-3, Q-4, Q-5, Q-6; the validator warns for them until the questions are answered
-  not derived: 3 draft tests for operation putCopiesByCopyId, held up by Q-3, Q-4, Q-5, Q-6; the validator warns for them until the questions are answered
-  not derived: 3 draft tests for operation patchCopiesByCopyId, held up by Q-3, Q-4, Q-5, Q-6; the validator warns for them until the questions are answered
+  not derived: 3 draft tests for operation getCopy, held up by Q-3, Q-4; the validator warns for them until the questions are answered
+  not derived: 3 draft tests for operation putCopiesByCopyId, held up by Q-3, Q-5; the validator warns for them until the questions are answered
+  not derived: 3 draft tests for operation patchCopiesByCopyId, held up by Q-3, Q-6; the validator warns for them until the questions are answered

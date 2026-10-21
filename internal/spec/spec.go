@@ -754,6 +754,20 @@ func (b Block) Element() string {
 	return source.Pointer(b.Tokens[:2]...)
 }
 
+// Holds is the pointer of the subject the block holds up: its element,
+// or, for a pointer into an operation, the path and its method, so a
+// block on one method holds up that operation and not the other methods
+// of its path.
+func (b Block) Holds() string {
+	if len(b.Tokens) >= 3 && b.Tokens[0] == "paths" {
+		switch b.Tokens[2] {
+		case "get", "post", "put", "patch", "delete":
+			return source.Pointer(b.Tokens[:3]...)
+		}
+	}
+	return b.Element()
+}
+
 // Key is the key of the element the block is about, when it names one.
 func (b Block) Key() string {
 	if len(b.Tokens) < 3 {

@@ -14,7 +14,7 @@ standardOutput: |
   middleware: web/proxy.js runs before routes the reader cannot tell, since its matcher holds the pattern "/((?!api|_next).*)", a regular expression the reader does not read, and calls no check the implementation file names
   wrote 1 page, 3 operations, 0 entities, 3 permissions and 11 questions: one page per file or folder the router serves a page from whose route the meta-model holds, 0 schemas read, one operation per route file whose name gives a method the meta-model holds, one entity and one permission per name a schema gives, one question per thing the files' places and the schemas do not say, and one per thing the meta-model cannot hold
   derived 0 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers
-  not derived: 2 draft tests for operation getApiMembers, held up by Q-1, Q-11, Q-2, Q-4, Q-5, Q-8; the validator warns for them until the questions are answered
-  not derived: 2 draft tests for operation postApiMembers, held up by Q-1, Q-11, Q-2, Q-4, Q-5, Q-8; the validator warns for them until the questions are answered
+  not derived: 2 draft tests for operation getApiMembers, held up by Q-1, Q-11, Q-2, Q-4, Q-8; the validator warns for them until the questions are answered
+  not derived: 2 draft tests for operation postApiMembers, held up by Q-1, Q-11, Q-2, Q-5, Q-8; the validator warns for them until the questions are answered
   not derived: 3 draft tests for operation deleteApiMembersByMemberId, held up by Q-1, Q-11, Q-2, Q-6, Q-7, Q-8; the validator warns for them until the questions are answered
   not derived: 1 draft test for page root, held up by Q-11, Q-3; the validator warns for them until the questions are answered

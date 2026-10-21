@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.4-dev of the specification: 655 design tests, 315 golden and 340 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.4-dev of the specification: 656 design tests, 315 golden and 341 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.7.4-dev of the specification: 655 design tests, 315 golden and 340 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 651 |
+| system | 652 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -4519,6 +4519,14 @@ Scenario: golden; level: system; verifies SA-5, SA-17.
 - When: validate is run
 - Then: the missing description and the ungranted permission are covered by the question; it prints nothing and exits 0
 
+#### validate-question-holds-one-method
+
+Scenario: red; level: system; covers exit 1; verifies SA-28.
+
+- Given: a 0.3 specification with GET and POST on one path, no tests, and an open must question that blocks a part of the POST operation
+- When: validate is run
+- Then: it reports the missing tests of POST as warnings, since the question holds them up, and those of GET as errors, since a block on one method holds up that operation alone, and exits 1
+
 #### validate-question-names
 
 Scenario: red; level: system; covers exit 1; verifies SA-17.
@@ -5049,7 +5057,7 @@ Scenario: golden; level: system; verifies SA-27.
 
 #### validate-test-name-capital-run
 
-Scenario: golden; level: system; verifies SA-67.
+Scenario: golden; level: system; verifies SA-28.
 
 - Given: two operations whose operationIds hold a run of capitals, uploadJSON at the end and listJSONUploads in the middle, and no tests
 - When: validate is run

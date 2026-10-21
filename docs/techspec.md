@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.7.4-dev of the specification: 90 requirements, 5 entities, 16 commands, 7 algorithms, 655 tests, 165 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.7.4-dev of the specification: 90 requirements, 5 entities, 16 commands, 7 algorithms, 656 tests, 165 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -886,7 +886,11 @@ What it writes is a draft the author completes, not a generated
 output: it has no header and no `--check`, and an existing test
 folder is never overwritten. A subject a must or should question
 holds up is left out and named on standard error, since a test of a
-half-defined element would be a placeholder. A specification that
+half-defined element would be a placeholder. A question holds up a
+subject when it blocks its stage, its section, the element or a part
+of it; a block on an operation's method, or a part of one, holds up
+that operation alone, and a block on the path holds up every method
+of it. A specification that
 keeps its tests in the root file is refused: each derived test needs
 a folder of its own. Writing tests changes the specification, so an
 approval of it no longer holds.
@@ -13574,6 +13578,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | validate-question-covers-namespace | command validate | system | red | a schema and a view each named like an entity, each with a must question that blocks it, and a schema named like a view with only a should question blocking it | validate is run | the one-namespace errors at the schema and the view the must questions block are covered, the one at the schema the should question blocks is reported, and it exits 1 |
 | validate-question-covers-problem | command validate | system | red | a specification that declares problem types, with an operation whose 409 and 422 responses name no problem: a must question blocks the 409's problem and a should question the 422's | validate is run | the 409's missing problem is covered by the must question, the 422's is reported, since a should question covers nothing, and it exits 1 |
 | validate-question-covers-ungranted | command validate | system | golden | a declared permission that no role grants and that has no description, with a must question that blocks the permission itself | validate is run | the missing description and the ungranted permission are covered by the question; it prints nothing and exits 0 |
+| validate-question-holds-one-method | command validate | system | red | a 0.3 specification with GET and POST on one path, no tests, and an open must question that blocks a part of the POST operation | validate is run | it reports the missing tests of POST as warnings, since the question holds them up, and those of GET as errors, since a block on one method holds up that operation alone, and exits 1 |
 | validate-question-names | command validate | system | red | three questions that name what the source gives: one for a key the specification gives already, one blocking a whole element, and one blocking two keys | validate is run | it reports each with question_block and exits 1 |
 | validate-question-opened | command validate | system | red | a decision that opens a question a later decision answered, one that opens a question still open, and a proposed one that opens a question it answers itself and a question nobody wrote | validate is run | it accepts the first two, reports question_opened at the question the decision answers itself and at the one that does not exist, naming the nearest open question, and exits 1 |
 | validate-question-should-not-covering | command validate | system | red | a requirement without priority and a should question that blocks the key | validate is run | the missing key is still reported, because only a must question covers one, and it exits 1 |
@@ -14029,7 +14034,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-25 | commands diff | tests diff-classifies-changes; tests diff-invalid-spec; tests diff-lists-changes; tests diff-map-values; tests diff-no-release; tests diff-not-covered; tests diff-tracker-unknown; tests diff-usage-error; tests diff-version-step; tests diff-version-unreadable |
 | SA-26 | enums DocumentTarget; commands document | tests document-writes-changes; tests document-writes-releases |
 | SA-27 | enums Rule; commands validate | tests validate-test-data; tests validate-test-data-folder; tests validate-test-data-valid |
-| SA-28 | commands derive; decisions ADR-055 | tests derive-invalid-spec; tests derive-keeps-existing; tests derive-meta-model-0-2; tests derive-meta-model-0-2-other-error; tests derive-name-taken; tests derive-names-from-ids; tests derive-page-elements; tests derive-page-named-after-operation; tests derive-root-tests; tests derive-skips-blocked; tests derive-task-page-checks; tests derive-usage-error; tests derive-writes-drafts; tests merge-takes-derived-drafts |
+| SA-28 | commands derive; decisions ADR-055 | tests derive-invalid-spec; tests derive-keeps-existing; tests derive-meta-model-0-2; tests derive-meta-model-0-2-other-error; tests derive-name-taken; tests derive-names-from-ids; tests derive-page-elements; tests derive-page-named-after-operation; tests derive-root-tests; tests derive-skips-blocked; tests derive-task-page-checks; tests derive-usage-error; tests derive-writes-drafts; tests merge-takes-derived-drafts; tests validate-question-holds-one-method; tests validate-test-name-capital-run |
 | SA-29 | enums Rule; commands validate; decisions ADR-021; decisions ADR-097; decisions ADR-108; decisions ADR-109; decisions ADR-111; decisions ADR-134; decisions ADR-145; decisions ADR-168 | tests validate-concept-cases-listed; tests validate-dependency; tests validate-diagram-context; tests validate-diagram-context-valid; tests validate-guard; tests validate-guard-writes; tests validate-idempotency-key; tests validate-session; tests validate-validity |
 | SA-30 | commands gaps; decisions ADR-022 | tests gaps-coverage; tests gaps-outline-not-read; tests validate-mapping-origin; tests validate-source-clause |
 | SA-31 | commands generate; decisions ADR-041; decisions ADR-078 | tests generate-stack-fallback; tests generate-stack-plugin; tests generate-tests-dart; tests generate-tests-framework-refused; tests generate-tests-go; tests generate-tests-swift; tests generate-tests-value-objects |
@@ -14068,7 +14073,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-64 | commands extract; commands merge; decisions ADR-105 | tests extract-documents-language-not-shipped; tests extract-documents-vocabulary; tests extract-documents-vocabulary-word-twice; tests merge-documents-days-vocabulary; tests merge-documents-language-not-given; tests validate-schema-language-tag |
 | SA-65 | commands gaps; commands validate; decisions ADR-112 | tests gaps-references-blocked; tests gaps-references-unresolved; tests generate-openapi-reference-refused; tests generate-sql-reference; tests validate-references; tests validate-references-wrong |
 | SA-66 | commands document; commands gaps; commands validate; decisions ADR-113 | tests document-estate-map; tests gaps-estate; tests validate-estate; tests validate-estate-cycle; tests validate-estate-modules-wrong |
-| SA-67 | enums Rule; commands document; decisions ADR-119 | tests document-audience-external; tests document-audience-marked; tests document-audience-needs-out; tests document-audience-problems-refused; tests document-audience-value-refused; tests validate-audience; tests validate-test-name-capital-run |
+| SA-67 | enums Rule; commands document; decisions ADR-119 | tests document-audience-external; tests document-audience-marked; tests document-audience-needs-out; tests document-audience-problems-refused; tests document-audience-value-refused; tests validate-audience |
 | SA-68 | enums Rule; commands document; decisions ADR-119 | tests document-audience-external; tests document-audience-marked; tests gaps-references-fulfilled-by; tests validate-requirement-fulfilled-by; tests validate-requirement-owned |
 | SA-69 | enums Rule; commands gaps; decisions ADR-120 | tests document-writes-questions; tests gaps-link-missing-held; tests gaps-lists-questions; tests gaps-names-question; tests gaps-question-opened; tests validate-question-opened |
 | SA-70 | commands extract; decisions ADR-121; decisions ADR-144 | tests extract-database-generated-default; tests extract-database-implementation-out; tests extract-go-handlers; tests extract-go-handlers-changed; tests extract-router-list-twin; tests generate-openapi-list-twin; tests generate-sql-generated-default; tests generate-sql-generated-default-mariadb; tests generate-sql-generated-default-mariadb-upgrade; tests generate-sql-generated-default-refused; tests generate-sql-index-changed; tests validate-generated-default; tests validate-index-field |

@@ -5,4 +5,4 @@ scenario: golden
 given: "two operations whose operationIds hold a run of capitals, uploadJSON at the end and listJSONUploads in the middle, and no tests"
 when: "validate is run"
 then: "each suggested test name keeps the run of capitals as one word, upload-json-succeeds and list-json-uploads-succeeds, the same from both builds"
-verifies: [SA-67]
+verifies: [SA-28]

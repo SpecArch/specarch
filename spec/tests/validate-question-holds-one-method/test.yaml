@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "a 0.3 specification with GET and POST on one path, no tests, and an open must question that blocks a part of the POST operation"
+when: validate is run
+then: "it reports the missing tests of POST as warnings, since the question holds them up, and those of GET as errors, since a block on one method holds up that operation alone, and exits 1"
+verifies: [SA-28]

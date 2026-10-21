@@ -1087,7 +1087,7 @@ func heldUp(_ blocks: [Block], _ ptr: String) -> Bool {
     let section = unescapeToken(first)
     for b in blocks {
         if b.isPointer {
-            let e = b.element
+            let e = b.holds
             if ptr == e || ptr.hasPrefix(e + "/") || e.hasPrefix(ptr + "/") { return true }
         } else if !b.section.isEmpty {
             if b.section == section { return true }

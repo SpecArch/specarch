@@ -15,9 +15,9 @@ standardOutput: |
   not held: api/src/schemas.ts:24: searchSchema.filter: zod's union(), which a field does not hold; left out; could question Q-26
   not held: api/src/schemas.ts:31: searchSchema.byColour: zod's record() keyed by colourSchema, whose keys a map of the meta-model does not restrict; left out; could question Q-27
   derived 0 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers
-  not derived: 2 draft tests for operation getNotes, held up by Q-6, Q-7, Q-8, Q-9; the validator warns for them until the questions are answered
-  not derived: 4 draft tests for operation postNotes, held up by Q-6, Q-7, Q-8, Q-9; the validator warns for them until the questions are answered
-  not derived: 6 draft tests for operation putNotesByNoteId, held up by Q-10, Q-11, Q-12, Q-13, Q-14, Q-15; the validator warns for them until the questions are answered
-  not derived: 2 draft tests for operation patchNotesByNoteId, held up by Q-10, Q-11, Q-12, Q-13, Q-14, Q-15; the validator warns for them until the questions are answered
+  not derived: 2 draft tests for operation getNotes, held up by Q-6, Q-7; the validator warns for them until the questions are answered
+  not derived: 4 draft tests for operation postNotes, held up by Q-8, Q-9; the validator warns for them until the questions are answered
+  not derived: 6 draft tests for operation putNotesByNoteId, held up by Q-10, Q-11, Q-12; the validator warns for them until the questions are answered
+  not derived: 2 draft tests for operation patchNotesByNoteId, held up by Q-10, Q-13, Q-14, Q-15; the validator warns for them until the questions are answered
   not derived: 5 draft tests for operation postNotesByNoteIdComments, held up by Q-16, Q-17, Q-18, Q-19; the validator warns for them until the questions are answered
   not derived: 1 draft test for operation getStatus, held up by Q-20, Q-21, Q-22; the validator warns for them until the questions are answered

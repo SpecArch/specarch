@@ -720,3 +720,17 @@ Expected: the count printed is the number of questions written, the handler find
 To repeat: run `specarch extract go` on either fixture as its `case.yaml` does and count the `Q-` entries in `spec/design/questions.yaml`.
 
 Fix: the `handlers:` line of `extract go` now ends its count with the questions the handler walk asked, `and asked N questions on what they do, not counted in the questions written above`, from the questions numbered while `readHandlers` in `internal/extract/golang_handlers.go` runs (its findings, faults and transaction-token questions). On `extract-go-dxlib-handler-shapes` it says 4 beside the 49, and on `extract-go-handlers` 11 beside the 29, matching the 53 and 40 in `questions.yaml`. The 18 goldens that print the line record the count; the design of `extract` says it.
+
+## BUG-030 — derive: a question that blocks one method of a path holds up the drafts of every method of that path
+
+- Reported: 2026-10-19, found while reviewing the handler records' golden
+- Closed: 2026-10-21, completed
+- Fixed by: the commit on `main` whose message says `Fixes BUG-030`
+
+When a question's `blocks` names an operation by its pointer, `#/paths/~1parcels/post`, `specarch derive` holds up the draft tests of every operation on that path, `GET /parcels` as well as `POST /parcels`, and the "not derived" line of each names the other's questions. `Block.Element()` in `internal/spec/spec.go` keeps the first two tokens of the pointer, `/paths/~1parcels`, and `blockedBy` in `internal/validate/drafts.go` compares that element with the operation's pointer by prefix, so a block on one method matches every method of the path.
+
+Expected: a block on `#/paths/~1parcels/post` holds up the drafts of `POST /parcels` alone; `GET /parcels` is held up only by the questions that block it, or the path or stage as a whole.
+
+To repeat: run `specarch extract go` on `spec/tests/extract-go-handlers/testdata/service` as its `case.yaml` does. The line for `listParcels` (`GET /parcels`) names the questions on `POST /parcels`'s body widths and on `storeParcel`'s dropped result and missing transaction, and the line for `storeParcel` names `listParcels`'s. The case's golden records this until the fix.
+
+Fix: a block holds up the subject `Block.Holds` names (`internal/spec/spec.go`, and `holds` in the Swift build's `Spec.swift`): its element, or, for a pointer into an operation, the path and its method. `blockedBy` in `internal/validate/drafts.go` and `heldUp` in `Tests.swift` compare with it, so a block on `#/paths/~1parcels/post` holds up `POST /parcels` alone, and a block on the path holds up every method. The case `validate-question-holds-one-method` shows a 0.3 specification's GET reported as missing its tests (an error) while its POST is held up (a warning), in both builds; the "not derived" lines of 20 extract and merge goldens now name only the questions on each operation, `listParcels` held up by Q-12 and Q-13 and `storeParcel` by its own six.

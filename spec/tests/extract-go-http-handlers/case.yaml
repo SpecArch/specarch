@@ -26,7 +26,7 @@ standardOutput: |
   not derived: 2 draft tests for operation waiveFine, held up by Q-1, Q-12, Q-13, Q-14, Q-15, Q-4, Q-46; the validator warns for them until the questions are answered
   not derived: 11 draft tests for operation lendBook, held up by Q-1, Q-16, Q-17, Q-18, Q-19, Q-4, Q-47; the validator warns for them until the questions are answered
   not derived: 3 draft tests for operation showLoan, held up by Q-1, Q-20, Q-21, Q-22, Q-23, Q-4, Q-48; the validator warns for them until the questions are answered
-  not derived: 3 draft tests for operation showMember, held up by Q-1, Q-24, Q-25, Q-26, Q-27, Q-28, Q-29, Q-4, Q-49, Q-50; the validator warns for them until the questions are answered
-  not derived: 3 draft tests for operation updateMember, held up by Q-1, Q-24, Q-25, Q-26, Q-27, Q-28, Q-29, Q-4, Q-49, Q-50; the validator warns for them until the questions are answered
+  not derived: 3 draft tests for operation showMember, held up by Q-1, Q-24, Q-25, Q-26, Q-4, Q-49; the validator warns for them until the questions are answered
+  not derived: 3 draft tests for operation updateMember, held up by Q-1, Q-24, Q-27, Q-28, Q-29, Q-4, Q-50; the validator warns for them until the questions are answered
   not derived: 1 draft test for operation reports, held up by Q-1, Q-30, Q-31, Q-32, Q-4, Q-51; the validator warns for them until the questions are answered
   not derived: 1 draft test for operation status, held up by Q-1, Q-33, Q-34, Q-35, Q-4, Q-44, Q-52; the validator warns for them until the questions are answered

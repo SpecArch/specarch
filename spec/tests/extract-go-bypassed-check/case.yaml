@@ -15,7 +15,7 @@ standardOutput: |
   handlers: followed 4 of 4 handlers into 4 functions, to 3 calls deep, left 0 calls not followed, and asked 4 questions on what they do, not counted in the questions written above: the handler of each operation, where it is a function literal, a function of the same package or one of another package of the module, and each function of the module its steps call
   handlers: compared with the records of implementation/desk.go.specarch-implementation.yaml: 0 unchanged, 0 changed, 4 not recorded there, 0 recorded there and not read now
   derived 0 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers
-  not derived: 2 draft tests for operation listLoans, held up by Q-1, Q-11, Q-14, Q-15, Q-2, Q-3, Q-4; the validator warns for them until the questions are answered
-  not derived: 2 draft tests for operation lendBook, held up by Q-1, Q-11, Q-14, Q-15, Q-2, Q-3, Q-4; the validator warns for them until the questions are answered
+  not derived: 2 draft tests for operation listLoans, held up by Q-1, Q-11, Q-14, Q-2; the validator warns for them until the questions are answered
+  not derived: 2 draft tests for operation lendBook, held up by Q-11, Q-15, Q-3, Q-4; the validator warns for them until the questions are answered
   not derived: 3 draft tests for operation showMember, held up by Q-16, Q-5, Q-6, Q-7; the validator warns for them until the questions are answered
   not derived: 1 draft test for operation status, held up by Q-10, Q-17, Q-8, Q-9; the validator warns for them until the questions are answered

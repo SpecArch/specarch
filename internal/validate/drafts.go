@@ -270,7 +270,7 @@ func blockedBy(qs map[string][]spec.Block, ptr string) []string {
 			hit := false
 			switch {
 			case b.IsPointer():
-				e := b.Element()
+				e := b.Holds()
 				hit = ptr == e || strings.HasPrefix(ptr, e+"/") || strings.HasPrefix(e, ptr+"/")
 			case b.Section != "":
 				hit = b.Section == section

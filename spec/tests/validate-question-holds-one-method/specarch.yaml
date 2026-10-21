@@ -1,0 +1,32 @@
+specarch: "0.3"
+info: { title: Case, version: 1.0.0 }
+stakeholders:
+  clerk: { description: Staff at the desk. }
+permissions:
+  parcels.read: { description: See parcels. }
+  parcels.write: { description: Store parcels. }
+roles:
+  clerk:
+    description: Staff at the desk.
+    permissions: [parcels.read, parcels.write]
+paths:
+  /parcels:
+    get:
+      operationId: listParcels
+      summary: List the parcels
+      permission: parcels.read
+      responses:
+        "200": { description: The parcels. }
+    post:
+      operationId: storeParcel
+      summary: Store a parcel
+      permission: parcels.write
+      responses:
+        "201": { description: The parcel is stored. }
+questions:
+  Q-1:
+    question: How long may a parcel's label be?
+    kind: decision
+    priority: must
+    blocks: ["#/paths/~1parcels/post/responses"]
+    decidedBy: clerk

@@ -20,7 +20,7 @@ standardOutput: |
   not derived: 2 draft tests for operation sweepLockers, held up by Q-30, Q-4, Q-5; the validator warns for them until the questions are answered
   not derived: 5 draft tests for operation reportLocker, held up by Q-31, Q-6, Q-7, Q-8; the validator warns for them until the questions are answered
   not derived: 3 draft tests for operation serviceLocker, held up by Q-10, Q-11, Q-30, Q-32, Q-33, Q-35, Q-36, Q-9; the validator warns for them until the questions are answered
-  not derived: 2 draft tests for operation listParcels, held up by Q-12, Q-13, Q-14, Q-15, Q-16, Q-17, Q-30, Q-37; the validator warns for them until the questions are answered
-  not derived: 2 draft tests for operation storeParcel, held up by Q-12, Q-13, Q-14, Q-15, Q-16, Q-17, Q-30, Q-37; the validator warns for them until the questions are answered
+  not derived: 2 draft tests for operation listParcels, held up by Q-12, Q-13; the validator warns for them until the questions are answered
+  not derived: 2 draft tests for operation storeParcel, held up by Q-14, Q-15, Q-16, Q-17, Q-30, Q-37; the validator warns for them until the questions are answered
   not derived: 3 draft tests for operation showParcel, held up by Q-18, Q-19, Q-20, Q-38; the validator warns for them until the questions are answered
   not derived: 2 draft tests for operation collectParcel, held up by Q-21, Q-22, Q-23, Q-24, Q-39, Q-40; the validator warns for them until the questions are answered

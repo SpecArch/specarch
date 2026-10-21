@@ -50,7 +50,11 @@ commands:
       output: it has no header and no `--check`, and an existing test
       folder is never overwritten. A subject a must or should question
       holds up is left out and named on standard error, since a test of a
-      half-defined element would be a placeholder. A specification that
+      half-defined element would be a placeholder. A question holds up a
+      subject when it blocks its stage, its section, the element or a part
+      of it; a block on an operation's method, or a part of one, holds up
+      that operation alone, and a block on the path holds up every method
+      of it. A specification that
       keeps its tests in the root file is refused: each derived test needs
       a folder of its own. Writing tests changes the specification, so an
       approval of it no longer holds.

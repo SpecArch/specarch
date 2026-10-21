@@ -5,16 +5,6 @@ seen, what was expected and how to repeat it. The next free number is
 BUG-054. When the fix is on `main`, with `Fixes BUG-NNN` in its commit
 message, the entry moves to `BUG_HISTORY.md` with the fixing commit.
 
-## BUG-030 — derive: a question that blocks one method of a path holds up the drafts of every method of that path
-
-- Reported: 2026-10-19, found while reviewing the handler records' golden
-
-When a question's `blocks` names an operation by its pointer, `#/paths/~1parcels/post`, `specarch derive` holds up the draft tests of every operation on that path, `GET /parcels` as well as `POST /parcels`, and the "not derived" line of each names the other's questions. `Block.Element()` in `internal/spec/spec.go` keeps the first two tokens of the pointer, `/paths/~1parcels`, and `blockedBy` in `internal/validate/drafts.go` compares that element with the operation's pointer by prefix, so a block on one method matches every method of the path.
-
-Expected: a block on `#/paths/~1parcels/post` holds up the drafts of `POST /parcels` alone; `GET /parcels` is held up only by the questions that block it, or the path or stage as a whole.
-
-To repeat: run `specarch extract go` on `spec/tests/extract-go-handlers/testdata/service` as its `case.yaml` does. The line for `listParcels` (`GET /parcels`) names the questions on `POST /parcels`'s body widths and on `storeParcel`'s dropped result and missing transaction, and the line for `storeParcel` names `listParcels`'s. The case's golden records this until the fix.
-
 ## BUG-045 — extract javascript: a use() on the application before a mount does not reach the mounted router's routes
 
 - Reported: 2026-10-21, found while adding a mounted gate to extract-javascript-caller-checks

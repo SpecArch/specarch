@@ -49,7 +49,14 @@ decisions:
         them its class; a quoted value and a comment are skipped. Whether
         a collection is written in flow style is read from the text at
         its position in both builds, since the Yams parser keeps the
-        style of a collection's end event, not its start.
+        style of a collection's end event, not its start. A block
+        mapping starts where its first key does, so a key written as
+        [ ] or { } does not stop the values after it from being read.
+        When a parser refuses a line that starts no collection of its
+        own, the collection that holds it is found by reading the file
+        from its top, skipping quoted values, comments and block
+        scalars, since the two parsers name different lines of a
+        collection written over several.
       - The Swift build reads a byte that is not UTF-8 as U+FFFE, which
         libyaml refuses as yaml.v3 refuses the byte, so both report it
         with one class at the entry that holds it; the Swift detail says
@@ -76,8 +83,9 @@ decisions:
       value.
     consequences: |
       The cases `validate-yaml-syntax-classes`, `validate-yaml-not-utf8`,
-      `validate-yaml-tag-in-flow` and `validate-yaml-question-in-flow`
-      print the same bytes from both builds. A new parser message with
+      `validate-yaml-tag-in-flow`, `validate-yaml-question-in-flow`,
+      `validate-yaml-flow-key-first` and
+      `validate-yaml-quoted-bracket-in-flow` print the same bytes from both builds. A new parser message with
       no class is reported with the general sentence until the table
       names it. A tag running into a flow indicator, or a ? inside a
       value of a [ ] or { }, that one parser used to read is now an

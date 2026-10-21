@@ -1,0 +1,17 @@
+enums:
+  Closing:
+    type: string
+    enum: [a,
+      "]",
+      b, !!str]
+  Opening:
+    type: string
+    enum: [a,
+      '[', "{",
+      !!null]
+  Commented:
+    description: |
+      a ] and a [ in a block scalar
+    type: string
+    enum: [a, # a ] in a comment
+      b, !!str]

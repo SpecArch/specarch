@@ -3,6 +3,7 @@ package source
 import (
 	"os"
 	"regexp"
+	"strings"
 	"testing"
 )
 
@@ -68,6 +69,25 @@ func TestFlowClass(t *testing.T) {
 	} {
 		if got, _ := flowClass([]string{c.text}, 1, 1); got != c.class {
 			t.Errorf("flowClass(%q) = %q, want %q", c.text, got, c.class)
+		}
+	}
+}
+
+func TestEnclosing(t *testing.T) {
+	for _, c := range []struct {
+		text         string
+		line, column int
+	}{
+		{"enum: [a,\n  \"]\",\n  b, !!str]", 1, 7},
+		{"enum: [a,\n  'x]''y',\n  b]", 1, 7},
+		{"enum: [a, # ]\n  b]", 1, 7},
+		{"d: |\n  a [ b\nenum: {a: [x,\n  y], b: c,\n  d}", 3, 7},
+		{"d: \"[\"\nenum: a\n  b", 3, -1},
+		{"d: x [y\nenum: a\n  b", 3, -1},
+	} {
+		lines := strings.Split(c.text, "\n")
+		if l, col := enclosing(lines, len(lines)); l != c.line || col != c.column {
+			t.Errorf("enclosing(%q) = %d, %d, want %d, %d", c.text, l, col, c.line, c.column)
 		}
 	}
 }

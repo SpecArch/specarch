@@ -1,0 +1,8 @@
+[first]: key
+enums:
+  Comma:
+    type: string
+    enum: [!!str, a]
+  Spaced:
+    type: string
+    enum: [!!str a, b]

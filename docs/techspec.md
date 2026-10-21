@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.7.4-dev of the specification: 90 requirements, 5 entities, 16 commands, 7 algorithms, 665 tests, 168 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.7.4-dev of the specification: 90 requirements, 5 entities, 16 commands, 7 algorithms, 667 tests, 168 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13156,7 +13156,14 @@ Decision: - A parser's message picks a class, and the problem line says the
   them its class; a quoted value and a comment are skipped. Whether
   a collection is written in flow style is read from the text at
   its position in both builds, since the Yams parser keeps the
-  style of a collection's end event, not its start.
+  style of a collection's end event, not its start. A block
+  mapping starts where its first key does, so a key written as
+  [ ] or { } does not stop the values after it from being read.
+  When a parser refuses a line that starts no collection of its
+  own, the collection that holds it is found by reading the file
+  from its top, skipping quoted values, comments and block
+  scalars, since the two parsers name different lines of a
+  collection written over several.
 - The Swift build reads a byte that is not UTF-8 as U+FFFE, which
   libyaml refuses as yaml.v3 refuses the byte, so both report it
   with one class at the entry that holds it; the Swift detail says
@@ -13166,8 +13173,9 @@ Decision: - A parser's message picks a class, and the problem line says the
   line 1 that stands for none.
 
 Consequences: The cases `validate-yaml-syntax-classes`, `validate-yaml-not-utf8`,
-`validate-yaml-tag-in-flow` and `validate-yaml-question-in-flow`
-print the same bytes from both builds. A new parser message with
+`validate-yaml-tag-in-flow`, `validate-yaml-question-in-flow`,
+`validate-yaml-flow-key-first` and
+`validate-yaml-quoted-bracket-in-flow` print the same bytes from both builds. A new parser message with
 no class is reported with the general sentence until the table
 names it. A tag running into a flow indicator, or a ? inside a
 value of a [ ] or { }, that one parser used to read is now an
@@ -13838,8 +13846,10 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | validate-wire-names | command validate | system | red | a specification whose wire names are snake_case, with two entity fields, two fields of a nested object, two fields of an array's items, a view's added field and its entity's, two fields of a message payload, two of a path parameter's schema and two of a request body each mapping to one wire name, acronyms and runs of capitals among them | validate is run | it reports wire_name seven times, at the second name of each pair, and exits 1 |
 | validate-workflow | command validate | system | red | a workflow whose subject is not an entity, whose approver does not grant the approval's permission or is not a role, whose approval checks the trigger's permission with a deadline of zero and escalates to a step that is not a later approval, with two steps of one name and an operation step naming no operation; a workflow started by an operation that does not answer 202 whose approval checks an undeclared permission; and one started by an operation that does not exist | validate is run | it reports workflow eleven times and permission_undeclared once, and exits 1 |
 | validate-workflow-valid | command validate | system | golden | a workflow of two approvals, the first escalating to the second after a day, and an operation step, with a test of the requester approving their own request | validate is run | it reports no error, counts the test as covering the four-eyes case, warns that no test covers the approved path, a refusal and the deadline at each approval and an approval without each permission, among the others, and exits 0 |
+| validate-yaml-flow-key-first | command validate | system | red | an entities file whose first key is written as a [ ], followed by an enum whose [ ] holds a tag followed by a comma and an enum whose tag has a space after it | validate is run | both builds report the [ ] key as a layout error and yaml_syntax at the first enum, read the tag with a space after it, and exit 1 |
 | validate-yaml-not-utf8 | command validate | system | red | an entities file whose first enum has a description with a byte that is not UTF-8, and a second enum that parses | validate is run | both builds report yaml_syntax at the description, say the file holds bytes that are not UTF-8, read the second enum, and exit 1 |
 | validate-yaml-question-in-flow | command validate | system | red | an entities file whose enums hold a ? inside a key of a { }, a ? inside a value of a [ ], a ? at the start of a value with no space after it, and a ? inside a quoted value | validate is run | both builds report yaml_syntax at the first three enums, read the quoted value, and exit 1 |
+| validate-yaml-quoted-bracket-in-flow | command validate | system | red | an entities file whose enums are each a [ ] written over several lines with a tag followed by its ] or a comma on the last line, after a quoted ] on an earlier line, after a quoted [ and {, and after a ] in a comment and in a block scalar | validate is run | both builds report yaml_syntax at each enum, at the line where its [ starts, and exit 1 |
 | validate-yaml-syntax | command validate | system | red | a root file whose info is a flow mapping that is never closed | validate is run | it reports yaml_syntax with the line at info, leaves info out without reporting it missing, and exits 1 |
 | validate-yaml-syntax-classes | command validate | system | red | an entities file whose enums hold a tag that runs into the ] after it, a tag that runs into the ] after a value, a [ never closed, a nested [ never closed, a second key in a [ ], a quoted value never closed, an unknown escape, an alias with no anchor, a value that starts with @, a key indented under a value, and one enum that parses | validate is run | it reports each yaml_syntax error at its own entry in words both builds print alike, the class of the error and what to do, reads the enum that parses, and exits 1 |
 | validate-yaml-syntax-entries | command validate | system | red | an entities file whose entity has a property with a flow mapping never closed and a constraint with a flow sequence never closed, followed by a second entity, and another file whose entity relates to both | validate is run | it reports yaml_syntax once at the property and once at the constraint, each at its own line and pointer, reads the rest of the file, reports nothing of the relations, and exits 1 |
@@ -14224,7 +14234,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-48 | enums Rule; decisions ADR-060; decisions ADR-063 | tests extract-openapi-writes-schema; tests generate-sql-value-object; tests validate-question-covers-namespace; tests validate-value-objects; tests validate-value-objects-valid |
 | SA-49 | enums Rule; decisions ADR-062 | tests extract-openapi-snake-case; tests generate-openapi-wire-names; tests generate-ui-swiftui-wire-names; tests generate-ui-typescript-wire-names; tests generate-ui-wire-names; tests validate-wire-names |
 | SA-50 | enums Rule; decisions ADR-063; decisions ADR-077; decisions ADR-078 | tests extract-database-json-column; tests generate-go-dxlib-value-objects; tests generate-sql-identifier-length; tests generate-sql-value-object-fields; tests generate-tests-value-objects; tests merge-value-object-columns; tests merge-value-object-differs; tests merge-value-object-unnamed; tests validate-value-object-fields; tests validate-value-object-fields-valid; tests validate-value-object-part-cases; tests validate-value-object-part-cases-covered |
-| SA-51 | enums DocumentTarget; enums ProblemSeverity; entities Problem; entities ProblemNote; commands document; decisions ADR-065; decisions ADR-066; decisions ADR-080; decisions ADR-086; decisions ADR-177 | tests document-check-invalid; tests document-deployment-marks-implementation-problem; tests document-errors-elsewhere; tests document-problem-without-element; tests document-problems-check-marks; tests document-problems-implementation-broken; tests document-problems-lists; tests document-problems-marks-current; tests document-problems-marks-fragments; tests document-problems-none; tests document-techspec-marks-implementation-problem; tests validate-reads-marks; tests validate-yaml-not-utf8; tests validate-yaml-question-in-flow; tests validate-yaml-syntax-classes; tests validate-yaml-syntax-entries; tests validate-yaml-tag-in-flow |
+| SA-51 | enums DocumentTarget; enums ProblemSeverity; entities Problem; entities ProblemNote; commands document; decisions ADR-065; decisions ADR-066; decisions ADR-080; decisions ADR-086; decisions ADR-177 | tests document-check-invalid; tests document-deployment-marks-implementation-problem; tests document-errors-elsewhere; tests document-problem-without-element; tests document-problems-check-marks; tests document-problems-implementation-broken; tests document-problems-lists; tests document-problems-marks-current; tests document-problems-marks-fragments; tests document-problems-none; tests document-techspec-marks-implementation-problem; tests validate-reads-marks; tests validate-yaml-flow-key-first; tests validate-yaml-not-utf8; tests validate-yaml-question-in-flow; tests validate-yaml-quoted-bracket-in-flow; tests validate-yaml-syntax-classes; tests validate-yaml-syntax-entries; tests validate-yaml-tag-in-flow |
 | SA-52 | decisions ADR-067; decisions ADR-115 | tests generate-ui-typescript; tests generate-ui-typescript-refused |
 | SA-53 | decisions ADR-068; decisions ADR-082 | tests generate-ui-typescript; tests generate-ui-typescript-refused; tests generate-ui-typescript-wire-names |
 | SA-54 | decisions ADR-069; decisions ADR-079 | tests generate-ui-typescript; tests generate-ui-typescript-refused; tests generate-ui-typescript-value-objects; tests generate-ui-typescript-value-objects-refused |

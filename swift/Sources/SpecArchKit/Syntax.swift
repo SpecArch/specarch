@@ -146,7 +146,8 @@ func syntaxProblemAt(_ text: String, _ line: Int, _ given: Bool, _ problem: Stri
     switch cls {
     case "unclosed_flow_mapping", "unclosed_flow_sequence", "no_space_after":
         let lines = text.components(separatedBy: "\n")
-        let (c, at) = flowClass(lines, enclosing(lines, line), -1)
+        let (l, col) = enclosing(lines, line)
+        let (c, at) = flowClass(lines, l, col)
         if !c.isEmpty { (cls, line) = (c, at) }
     default:
         break
@@ -154,31 +155,69 @@ func syntaxProblemAt(_ text: String, _ line: Int, _ given: Bool, _ problem: Stri
     return (line, syntaxSentence[cls]!)
 }
 
-/// The line of the [ or { that holds a line with none of its own: one
-/// parser names the line where the collection starts, the other the line
-/// of the tag, and both are read from the collection.
-func enclosing(_ lines: [String], _ line: Int) -> Int {
-    guard line >= 1 && line <= lines.count && openerAt(lines[line - 1]) < 0 else { return line }
-    var depth = 0
-    var l = line - 1
-    while l >= 1 {
-        var r = Array(lines[l - 1].unicodeScalars)
-        let end = commentAt(r)
-        if end >= 0 { r = Array(r[..<end]) }
-        for c in r.reversed() {
-            switch c {
-            case "]", "}":
-                depth += 1
-            case "[", "{":
-                if depth == 0 { return l }
-                depth -= 1
-            default:
-                break
-            }
+/// The line and the column (counted in characters from 1) of the innermost
+/// [ or { still open where a line with none of its own starts, or the line
+/// itself and -1: one parser names the line where the collection starts,
+/// the other the line of the tag, and both are read from the collection.
+/// The file is read from its top, as flowClass reads a collection, so that
+/// a bracket inside a quoted value, a comment or a block scalar is not
+/// counted; outside [ ] and { } a bracket or a quote counts only where a
+/// value starts.
+func enclosing(_ lines: [String], _ line: Int) -> (Int, Int) {
+    guard line >= 1 && line <= lines.count && openerAt(lines[line - 1]) < 0 else { return (line, -1) }
+    var open: [(line: Int, column: Int)] = []
+    var quote: Unicode.Scalar?
+    var block = -1 // the indentation a block scalar's lines are deeper than
+    var prev: Unicode.Scalar? // the last character that is not a space
+    var word: Unicode.Scalar? // the first character of the last word
+    for l in 1..<line {
+        let r = Array(lines[l - 1].unicodeScalars)
+        var indent = 0
+        while indent < r.count && isSpace(r[indent]) { indent += 1 }
+        if block >= 0 {
+            if indent == r.count || indent > block { continue }
+            block = -1
         }
-        l -= 1
+        if open.isEmpty && quote == nil { (prev, word) = (nil, nil) }
+        var i = 0
+        scan: while i < r.count {
+            defer { i += 1 }
+            let c = r[i]
+            if let q = quote {
+                if q == "\"" && c == "\\" {
+                    i += 1
+                } else if c == q && q == "'" && i + 1 < r.count && r[i + 1] == "'" {
+                    i += 1
+                } else if c == q {
+                    quote = nil
+                    prev = c
+                }
+                continue
+            }
+            if isSpace(c) { continue }
+            if c == "#" && (i == 0 || isSpace(r[i - 1])) { break scan }
+            var starts = i == 0 || isSpace(r[i - 1])
+            if !open.isEmpty { starts = starts || "[{,".unicodeScalars.contains(r[i - 1]) }
+            // A value starts after a key's : or ?, a -, [ { or , or after an
+            // anchor or a tag.
+            let value = starts && (prev == nil || ":?-[{,".unicodeScalars.contains(prev!)
+                || ((word == "&" || word == "!") && isSpace(r[i - 1])))
+            if starts { word = c }
+            if (c == "[" || c == "{") && (!open.isEmpty || value) {
+                open.append((l, i + 1))
+            } else if (c == "]" || c == "}") && !open.isEmpty {
+                open.removeLast()
+            } else if (c == "\"" || c == "'") && value {
+                quote = c
+            } else if (c == "|" || c == ">") && value && open.isEmpty {
+                block = indent
+                break scan
+            }
+            prev = c
+        }
     }
-    return line
+    guard let last = open.last else { return (line, -1) }
+    return (last.line, last.column)
 }
 
 /// Where the first [ or { of a line is, before a comment; -1 when there is
@@ -206,9 +245,14 @@ func flowProblem(_ text: String, _ root: YNode) -> Problem? {
     func walk(_ n: YNode) -> Problem? {
         if n.kind != .scalar {
             if lines == nil { lines = text.components(separatedBy: "\n") }
+            // A block mapping starts where its first key does, so a key
+            // written as [ ] or { } is found here too; the values after it
+            // are read by walking on.
             if let (l, c) = flowStart(lines!, n.line, n.column) {
                 let (cls, line) = flowClass(lines!, l, c)
-                return cls.isEmpty ? nil : Problem(line: line, path: "/", rule: "yaml_syntax", message: syntaxSentence[cls]!)
+                if !cls.isEmpty {
+                    return Problem(line: line, path: "/", rule: "yaml_syntax", message: syntaxSentence[cls]!)
+                }
             }
         }
         for (k, v) in n.pairs {

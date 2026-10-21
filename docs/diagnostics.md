@@ -369,7 +369,10 @@ instead.
    The message is the validator's own sentence for the class of the
    error, what is wrong and what to do, the same in both builds; the
    YAML parser's own message follows on standard error, marked
-   `yaml parser (<parser>)` (ADR-177). A tag that runs into a `,` `[`
+   `yaml parser (<parser>)` (ADR-177). The text after that marker is
+   the parser's message unchanged, its own line numbers included: they
+   may count from 0 or name another line of the same entry, so the
+   line to read is the one before the marker. A tag that runs into a `,` `[`
    `]` `{` or `}`, or a `?` inside a value of a `[ ]` or `{ }`, is an
    error in both builds, since YAML parsers read them in different
    ways, and so is a file with bytes that are not UTF-8.

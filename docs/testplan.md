@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.4-dev of the specification: 665 design tests, 317 golden and 348 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.4-dev of the specification: 667 design tests, 317 golden and 350 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.7.4-dev of the specification: 665 design tests, 317 golden and 348 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 661 |
+| system | 663 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -5335,6 +5335,14 @@ Scenario: golden; level: system; verifies SA-47.
 - When: validate is run
 - Then: it reports no error, counts the test as covering the four-eyes case, warns that no test covers the approved path, a refusal and the deadline at each approval and an approval without each permission, among the others, and exits 0
 
+#### validate-yaml-flow-key-first
+
+Scenario: red; level: system; covers exit 1; verifies SA-51.
+
+- Given: an entities file whose first key is written as a [ ], followed by an enum whose [ ] holds a tag followed by a comma and an enum whose tag has a space after it
+- When: validate is run
+- Then: both builds report the [ ] key as a layout error and yaml_syntax at the first enum, read the tag with a space after it, and exit 1
+
 #### validate-yaml-not-utf8
 
 Scenario: red; level: system; covers exit 1; verifies SA-51.
@@ -5350,6 +5358,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-51.
 - Given: an entities file whose enums hold a ? inside a key of a { }, a ? inside a value of a [ ], a ? at the start of a value with no space after it, and a ? inside a quoted value
 - When: validate is run
 - Then: both builds report yaml_syntax at the first three enums, read the quoted value, and exit 1
+
+#### validate-yaml-quoted-bracket-in-flow
+
+Scenario: red; level: system; covers exit 1; verifies SA-51.
+
+- Given: an entities file whose enums are each a [ ] written over several lines with a tag followed by its ] or a comma on the last line, after a quoted ] on an earlier line, after a quoted [ and {, and after a ] in a comment and in a block scalar
+- When: validate is run
+- Then: both builds report yaml_syntax at each enum, at the line where its [ starts, and exit 1
 
 #### validate-yaml-syntax
 

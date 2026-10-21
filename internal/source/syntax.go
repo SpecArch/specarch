@@ -161,39 +161,97 @@ func syntaxProblemAt(text string, line int, given bool, problem string) (int, st
 	switch class {
 	case "unclosed_flow_mapping", "unclosed_flow_sequence", "no_space_after":
 		lines := strings.Split(text, "\n")
-		if c, at := flowClass(lines, enclosing(lines, line), -1); c != "" {
+		l, col := enclosing(lines, line)
+		if c, at := flowClass(lines, l, col); c != "" {
 			class, line = c, at
 		}
 	}
 	return line, syntaxSentence[class]
 }
 
-// enclosing is the line of the [ or { that holds a line with none of its
-// own: one parser names the line where the collection starts, the other
-// the line of the tag, and both are read from the collection.
-func enclosing(lines []string, line int) int {
+// enclosing is the line and the column (counted in characters from 1) of
+// the innermost [ or { still open where a line with none of its own
+// starts, or the line itself and -1: one parser names the line where the
+// collection starts, the other the line of the tag, and both are read from
+// the collection. The file is read from its top, as flowClass reads a
+// collection, so that a bracket inside a quoted value, a comment or a
+// block scalar is not counted; outside [ ] and { } a bracket or a quote
+// counts only where a value starts.
+func enclosing(lines []string, line int) (int, int) {
 	if line < 1 || line > len(lines) || openerAt(lines[line-1]) >= 0 {
-		return line
+		return line, -1
 	}
-	depth := 0
-	for l := line - 1; l >= 1; l-- {
+	type at struct{ line, column int }
+	var open []at
+	quote := rune(0)
+	block := -1     // the indentation a block scalar's lines are deeper than
+	prev := rune(0) // the last character that is not a space
+	word := rune(0) // the first character of the last word
+	for l := 1; l < line; l++ {
 		r := []rune(lines[l-1])
-		if end := commentAt(r); end >= 0 {
-			r = r[:end]
+		indent := 0
+		for indent < len(r) && isSpace(r[indent]) {
+			indent++
 		}
-		for i := len(r) - 1; i >= 0; i-- {
-			switch r[i] {
-			case ']', '}':
-				depth++
-			case '[', '{':
-				if depth == 0 {
-					return l
-				}
-				depth--
+		if block >= 0 {
+			if indent == len(r) || indent > block {
+				continue
 			}
+			block = -1
+		}
+		if len(open) == 0 && quote == 0 {
+			prev, word = 0, 0
+		}
+		for i := 0; i < len(r); i++ {
+			c := r[i]
+			if quote != 0 {
+				switch {
+				case quote == '"' && c == '\\':
+					i++
+				case c == quote && quote == '\'' && i+1 < len(r) && r[i+1] == '\'':
+					i++
+				case c == quote:
+					quote = 0
+					prev = c
+				}
+				continue
+			}
+			if isSpace(c) {
+				continue
+			}
+			if c == '#' && (i == 0 || isSpace(r[i-1])) {
+				break
+			}
+			starts := i == 0 || isSpace(r[i-1])
+			if len(open) > 0 {
+				starts = starts || strings.ContainsRune("[{,", r[i-1])
+			}
+			// A value starts after a key's : or ?, a -, [ { or , or after an
+			// anchor or a tag.
+			value := starts && (prev == 0 || strings.ContainsRune(":?-[{,", prev) ||
+				((word == '&' || word == '!') && isSpace(r[i-1])))
+			if starts {
+				word = c
+			}
+			switch {
+			case (c == '[' || c == '{') && (len(open) > 0 || value):
+				open = append(open, at{l, i + 1})
+			case (c == ']' || c == '}') && len(open) > 0:
+				open = open[:len(open)-1]
+			case (c == '"' || c == '\'') && value:
+				quote = c
+			case (c == '|' || c == '>') && value && len(open) == 0:
+				block = indent
+				i = len(r)
+				continue
+			}
+			prev = c
 		}
 	}
-	return line
+	if len(open) == 0 {
+		return line, -1
+	}
+	return open[len(open)-1].line, open[len(open)-1].column
 }
 
 // openerAt is where the first [ or { of a line is, before a comment; -1
@@ -234,11 +292,13 @@ func flowProblem(text string, n *yaml.Node) *Problem {
 			if lines == nil {
 				lines = strings.Split(text, "\n")
 			}
+			// A block mapping starts where its first key does, so a key
+			// written as [ ] or { } is found here too; the values after it
+			// are read by walking on.
 			if l, col, ok := flowStart(lines, n.Line, n.Column); ok {
 				if c, line := flowClass(lines, l, col); c != "" {
 					return &Problem{Line: line, Path: "/", Rule: "yaml_syntax", Message: syntaxSentence[c]}
 				}
-				return nil
 			}
 		}
 		for _, c := range n.Content {

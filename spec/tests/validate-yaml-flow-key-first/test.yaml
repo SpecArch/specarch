@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "an entities file whose first key is written as a [ ], followed by an enum whose [ ] holds a tag followed by a comma and an enum whose tag has a space after it"
+when: validate is run
+then: "both builds report the [ ] key as a layout error and yaml_syntax at the first enum, read the tag with a space after it, and exit 1"
+verifies: [SA-51]

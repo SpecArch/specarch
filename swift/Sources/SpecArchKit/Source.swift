@@ -257,7 +257,7 @@ private func convert(_ n: Node, _ shifts: [Int: Shift]) -> YNode {
     }
 }
 
-private let intPattern = try! NSRegularExpression(pattern: "^[-+]?(0|[1-9][0-9_]*|0[0-7_]+|0o[0-7_]+|0x[0-9a-fA-F_]+|0b[01_]+)$")
+private let intPattern = try! NSRegularExpression(pattern: "^[-+]?(0|[1-9][0-9_]*|0[0-7_]+|0[oO][0-7_]+|0[xX][0-9a-fA-F_]+|0[bB][01_]+)$")
 private let floatPattern = try! NSRegularExpression(pattern: "^[-+]?(\\.[0-9]+|[0-9]+(\\.[0-9]*)?)([eE][-+]?[0-9]+)?$")
 private let timestampPattern = try! NSRegularExpression(pattern: "^[0-9]{4}-[0-9]{1,2}-[0-9]{1,2}([Tt ][0-9]{1,2}:[0-9]{1,2}:[0-9]{1,2}(\\.[0-9]+)?([Zz]|[-+][0-9]{1,2}(:[0-9]{2})?)?)?$")
 
@@ -268,7 +268,7 @@ func matches(_ re: NSRegularExpression, _ s: String) -> Bool {
 /// Resolves a scalar's tag the way YAML 1.2's core schema does: quoted and
 /// block scalars are strings; a plain scalar is null, a bool, an int, a
 /// float, a timestamp or a string by its form. One form follows yaml.v3
-/// instead of the core schema, on purpose (ADR-202): a plain decimal
+/// instead of the core schema, on purpose (ADR-174): a plain decimal
 /// integer that fits neither Int64 nor UInt64 is a float, as the Go build
 /// reads it, so both builds report it as a number where a string is
 /// expected.
@@ -353,8 +353,8 @@ func scalarValue(_ n: YNode) -> JSONValue {
     case "!!bool": return .bool(n.value.lowercased() == "true")
     case "!!int":
         let clean = n.value.replacingOccurrences(of: "_", with: "")
-        if let i = Int64(clean) { return .number(Decimal(i), String(i)) }
-        if let u = UInt64(clean) { return .number(Decimal(string: String(u))!, String(u)) }
+        if let i = parseInteger(clean) { return .number(Decimal(i), String(i)) }
+        if let u = parseUnsigned(clean) { return .number(Decimal(string: String(u))!, String(u)) }
         return .string(n.value)
     case "!!float":
         if let d = Double(n.value), d.isFinite {
@@ -365,6 +365,40 @@ func scalarValue(_ n: YNode) -> JSONValue {
     default:
         return .string(n.value)
     }
+}
+
+/// An integer read as yaml.v3 reads it, so both builds give the same
+/// number (ADR-174): a sign, then a base by its prefix, 0x hexadecimal, 0o
+/// or a bare leading 0 octal, 0b binary, otherwise decimal. A bare leading
+/// 0 is octal in yaml.v3, not decimal as YAML 1.2's core schema has it, so
+/// 017 is 15 in both builds; nil when it does not fit Int64.
+func parseInteger(_ s: String) -> Int64? {
+    var body = Substring(s)
+    var negative = false
+    if let f = body.first, f == "-" || f == "+" {
+        negative = f == "-"
+        body = body.dropFirst()
+    }
+    guard let magnitude = parseUnsigned(String(body)) else { return nil }
+    if negative {
+        if magnitude == UInt64(Int64.max) + 1 { return Int64.min }
+        return magnitude <= UInt64(Int64.max) ? -Int64(magnitude) : nil
+    }
+    return magnitude <= UInt64(Int64.max) ? Int64(magnitude) : nil
+}
+
+/// An unsigned integer by its prefix, as parseInteger reads one, with no
+/// sign; nil when it does not fit UInt64.
+func parseUnsigned(_ s: String) -> UInt64? {
+    var body = Substring(s)
+    var radix = 10
+    let lower = s.lowercased()
+    if lower.hasPrefix("0x") { radix = 16; body = body.dropFirst(2) }
+    else if lower.hasPrefix("0o") { radix = 8; body = body.dropFirst(2) }
+    else if lower.hasPrefix("0b") { radix = 2; body = body.dropFirst(2) }
+    else if s.count > 1 && s.hasPrefix("0") { radix = 8; body = body.dropFirst() }
+    guard !body.isEmpty, body.first != "+", body.first != "-" else { return nil }
+    return UInt64(body, radix: radix)
 }
 
 // MARK: - Pointers

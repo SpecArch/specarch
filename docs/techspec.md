@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.7.4-dev of the specification: 90 requirements, 5 entities, 16 commands, 7 algorithms, 654 tests, 164 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.7.4-dev of the specification: 90 requirements, 5 entities, 16 commands, 7 algorithms, 655 tests, 165 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -12982,6 +12982,35 @@ the header read stays with extract go no longer holds.
 
 **Insight:** One meaning per header: the Txn-Token header carries a transaction token whatever the language the handler is written in (the Transaction Tokens draft, section 12), so every reader asks the same question, and from one function, since the merge joins questions by their words and two copies drift apart. A header's name is matched in any case, as HTTP compares field names (RFC 9110, section 5.1), and Node gives them lower case. The printers write what the syntax says and widen only by the base the read is made on, so a dump of code with no header reads keeps its bytes and an app full of collections gains no facts. The handler's own body only, because the dumps say in which function a fact is and not which functions a handler calls; a read in a helper is left to the question on what the operation does. Compiler test: a header read is asked at the operation whose handler makes it, in every reader, in the same words. Acceptance test: the first techspec of a service in any of the four languages shows which operations accept a transaction token still to declare.
 
+### ADR-174: Both builds read a plain integer as yaml.v3 reads it, a bare leading 0 as octal and a decimal past 64 bits as a float
+
+Status: accepted, 2026-10-21.
+
+Context: The Go build reads YAML with yaml.v3, and the Swift build resolves
+each plain scalar itself. The model both print must be the same
+bytes (ADR-138), and so must validate's output. The Swift build
+read a hexadecimal, octal or binary integer as text, so `0x1` was
+the number 1 from the Go build and the string "0x1" from the Swift
+build (BUG-048). YAML 1.2's core schema reads `0x1F` as 31, `0o17`
+as 15 and `017` as the decimal 17; yaml.v3 reads `017` as the
+octal 15, as YAML 1.1 did, and also takes capital prefixes, a sign
+before any prefix, underscores anywhere, and `0b`, which the core
+schema leaves out.
+
+Decision: The Swift build reads a plain integer as yaml.v3 does: underscores
+are dropped, then an optional sign, then `0x` or `0X` hexadecimal,
+`0o` or `0O` octal, `0b` or `0B` binary, a bare leading `0` octal,
+otherwise decimal; a value that fits neither a signed nor an
+unsigned 64-bit integer stays text when it has a prefix, and a
+decimal one is a float. Both builds therefore print `0x1F` and
+`017` as 31 and 15.
+
+Consequences: The case model-integer-forms prints hexadecimal, octal and binary
+integers, with capital and small prefixes, signs and underscores,
+as the same numbers from both builds.
+
+**Insight:** The core schema protects a reader from guessing a base from a leading zero, which YAML 1.1 did and which surprised people writing a zero-padded decimal. That protection matters where one parser reads a document in isolation; here two builds must print the same model, and the Go build cannot read the core schema's way without a parser of its own beside yaml.v3, which every other reading of the document goes through. Following yaml.v3 in the Swift build is a few lines; a specification that needs a zero-padded decimal quotes it, as it would for any value YAML could read another way. A decimal past 64 bits stays a number, as a float, because a 40-digit value where a string is expected is then reported as a number in both builds rather than passing as text in one.
+
 ## 10. Quality requirements
 
 The design tests: what must hold on every implementation. Golden scenarios succeed; red scenarios are refused.
@@ -13373,6 +13402,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | merge-workflows-joins-trigger | command merge | system | golden | the tree of a route table that declares requestWriteOff, and the tree of a BPMN file whose workflow leaves its trigger and its service task's operation out, each with a must question naming the operation, requestWriteOff and writeOffLoan | merge is run on the two trees | the trigger is written as requestWriteOff after the workflow's description and its question is left out as joined, naming the tree that declares it; the question for writeOffLoan, which no tree declares, stays open; it exits 0 |
 | merge-workflows-table-and-bpmn | command merge | system | golden | the tree extract workflows wrote of a BPMN file defining the write-off workflow, and the tree extract workflows --table wrote of the workflow table of the same workflow in an engine's own format, both read from one repository at one commit | merge is run on the two trees | it writes one workflow write-off whose description and steps both trees give alike, citing the BPMN file and the table's definition file, role desk-supervisor citing both, the source's clauses joined, each question the table's tree asks again at the same key left out as asked twice, the could question for the form kept, and exits 0 |
 | model-exit-2 | command model | system | red | a path that does not exist | model is run on it | it names the path it cannot read on standard error, prints nothing, and exits 2 |
+| model-integer-forms | command model | system | golden | a specification whose theme holds integers written in hexadecimal, octal and binary, with capital and small prefixes, signs and underscores, one past 64 bits and one that is no number | model is run on it | both builds print each integer as the number yaml.v3 reads, 0x1F and 017 as 31 and 15, the one past 64 bits and 0o8 as text, the same bytes from each, and exit 0 |
 | model-lists-via-and-through | command model | system | golden | a specification whose operation names a client of its own and one of the identity module in via, and whose role narrows a permission through a client of its own and one of the identity module | model is run on it | it lists the via item naming its own client, the through key naming the permission and the through item naming its own client, each with its keyword, leaves out the two clients of the identity module, and exits 0 |
 | model-usage-error | command model | system | red | no folder or file | model is run with no argument | it prints how to use it and exits 2 |
 | model-writes-json | command model | system | golden | a specification with a requirement, an entity, a permission, a role, an operation, a channel carried by a dependency, two tests, an implementation file that names an operation, an element the specification lacks and a server that is the dependency, and a folder that is not a stage | model is run on it | it prints one JSON document in canonical form with the merged document, the position of every node, the references that resolve and the keyword of each, the layout problem of the folder, and the implementation file with its two resolved references, and exits 0 |
@@ -14043,7 +14073,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-71 | decisions ADR-123 | tests generate-sqlc-check-hand-written; tests generate-sqlc-dialect-refused; tests generate-sqlc-hand-written-refused; tests generate-sqlc-queries |
 | SA-72 | commands check; decisions ADR-124; decisions ADR-128 | tests check-dump-of-no-format; tests check-fails-on-a-difference; tests check-skips-a-partition; tests check-succeeds; tests check-usage-error |
 | SA-73 | enums DocumentTarget; enums Rule; commands document; decisions ADR-129; decisions ADR-136; decisions ADR-137; decisions ADR-172 | tests document-handover-links-without-infrastructure; tests document-handover-none; tests document-writes-handover; tests validate-build-task-unknown; tests validate-handover-build-missing; tests validate-handover-incomplete; tests validate-handover-missing; tests validate-handover-no-customer; tests validate-handover-valid |
-| SA-74 | commands model; decisions ADR-138 | tests model-exit-2; tests model-lists-via-and-through; tests model-usage-error; tests model-writes-json |
+| SA-74 | commands model; decisions ADR-138; decisions ADR-174 | tests model-exit-2; tests model-integer-forms; tests model-lists-via-and-through; tests model-usage-error; tests model-writes-json |
 | SA-75 | decisions ADR-141 | tests document-techspec-gateway; tests document-testplan-gateway; tests generate-openapi-gateway; tests validate-gateway; tests validate-gateway-estate-wrong; tests validate-gateway-wrong |
 | SA-76 | commands check; commands extract; decisions ADR-142 | tests check-gateway-forward-moved; tests check-gateway-forward-removed; tests extract-gateway; tests extract-gateway-value-twice; tests merge-gateway-catch-all-kept; tests merge-gateway-fallback; tests merge-gateway-fallback-across-trees; tests merge-gateway-two-trees |
 | SA-77 | enums Rule; decisions ADR-145; decisions ADR-146; decisions ADR-161; decisions ADR-162; decisions ADR-163; decisions ADR-164 | tests document-techspec-envelope-stream; tests extract-go-dxlib-envelope-stream; tests extract-go-dxlib-session; tests extract-go-dxlib-vault; tests generate-go-dxlib-envelope-stream; tests generate-go-dxlib-extracted-vault; tests generate-go-dxlib-session; tests generate-openapi-dxlib-envelope-stream; tests generate-openapi-dxlib-session; tests generate-ui-dxlib; tests generate-ui-handshake-refused; tests generate-ui-swiftui-dxlib-refused; tests generate-ui-typescript-dxlib; tests generate-ui-typescript-dxlib-refused; tests generate-ui-typescript-handshake-refused; tests validate-handshake; tests validate-stream; tests validate-stream-parameters; tests validate-task-page-upload |

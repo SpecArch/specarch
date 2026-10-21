@@ -1,0 +1,43 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.3.schema.json
+decisions:
+  ADR-174:
+    title: Both builds read a plain integer as yaml.v3 reads it, a bare leading 0 as octal and a decimal past 64 bits as a float
+    status: accepted
+    date: "2026-10-21"
+    context: |
+      The Go build reads YAML with yaml.v3, and the Swift build resolves
+      each plain scalar itself. The model both print must be the same
+      bytes (ADR-138), and so must validate's output. The Swift build
+      read a hexadecimal, octal or binary integer as text, so `0x1` was
+      the number 1 from the Go build and the string "0x1" from the Swift
+      build (BUG-048). YAML 1.2's core schema reads `0x1F` as 31, `0o17`
+      as 15 and `017` as the decimal 17; yaml.v3 reads `017` as the
+      octal 15, as YAML 1.1 did, and also takes capital prefixes, a sign
+      before any prefix, underscores anywhere, and `0b`, which the core
+      schema leaves out.
+    decision: |
+      The Swift build reads a plain integer as yaml.v3 does: underscores
+      are dropped, then an optional sign, then `0x` or `0X` hexadecimal,
+      `0o` or `0O` octal, `0b` or `0B` binary, a bare leading `0` octal,
+      otherwise decimal; a value that fits neither a signed nor an
+      unsigned 64-bit integer stays text when it has a prefix, and a
+      decimal one is a float. Both builds therefore print `0x1F` and
+      `017` as 31 and 15.
+    why: |
+      The core schema protects a reader from guessing a base from a
+      leading zero, which YAML 1.1 did and which surprised people writing
+      a zero-padded decimal. That protection matters where one parser
+      reads a document in isolation; here two builds must print the same
+      model, and the Go build cannot read the core schema's way without
+      a parser of its own beside yaml.v3, which every other reading of
+      the document goes through. Following yaml.v3 in the Swift build is
+      a few lines; a specification that needs a zero-padded decimal
+      quotes it, as it would for any value YAML could read another way.
+      A decimal past 64 bits stays a number, as a float, because a
+      40-digit value where a string is expected is then reported as a
+      number in both builds rather than passing as text in one.
+    consequences: |
+      The case model-integer-forms prints hexadecimal, octal and binary
+      integers, with capital and small prefixes, signs and underscores,
+      as the same numbers from both builds.
+    satisfies: [SA-74]

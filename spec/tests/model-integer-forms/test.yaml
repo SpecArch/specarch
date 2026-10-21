@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: model
+level: system
+scenario: golden
+given: "a specification whose theme holds integers written in hexadecimal, octal and binary, with capital and small prefixes, signs and underscores, one past 64 bits and one that is no number"
+when: model is run on it
+then: "both builds print each integer as the number yaml.v3 reads, 0x1F and 017 as 31 and 15, the one past 64 bits and 0o8 as text, the same bytes from each, and exit 0"
+verifies: [SA-74]

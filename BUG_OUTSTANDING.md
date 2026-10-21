@@ -35,16 +35,6 @@ Expected: an earlier `use` without a path, on the router a mount is made on, is 
 
 To repeat: run `specarch extract javascript` on `spec/tests/extract-javascript-caller-checks` as its `case.yaml` does. `app.use(requireAudience(...))` at `server/src/app.ts:9` guards 5 operations, and `POST /admin/invoices/{invoiceId}/restore`, whose router is mounted at line 16, is not among them. The case's golden records this until the fix.
 
-## BUG-048 — model (Swift): a hexadecimal integer in the document is printed as text
-
-- Reported: 2026-10-21, found while comparing the two builds' `specarch model` on every specification in `spec/tests` and `examples`
-
-YAML 1.2's core schema reads `0x1` as the integer 1. The Go build's `specarch model` prints it so in `document`; the Swift build prints the string `"0x1"`. The two builds print different bytes for the same specification, which the conformance suite does not see because no model case holds a hexadecimal number.
-
-Expected: both builds print `1`, as YAML 1.2 reads it, or the same text from each with the reason written next to the choice.
-
-To repeat: run `specarch model spec/tests/validate-theme` with each build and compare `/tokens/color/hexInt/$value/components/0`.
-
 ## BUG-049 — document: a problem in an implementation file is never marked at the entry a document shows
 
 - Reported: 2026-10-21, found while fixing BUG-035

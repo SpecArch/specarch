@@ -692,3 +692,17 @@ Expected: one rule in both builds. `docs/conventions.md` says a test is named ke
 To repeat: validate a specification with `operationId: uploadJSON` and no tests with both builds and compare the `test_golden_missing` lines.
 
 Fix: the Go build's `kebab` in `internal/validate/derive.go` follows the rule the Swift build already had: a capital starts a word after a small letter or a digit, and in a run of capitals only the last starts one, when a small letter follows it. `uploadJSON` now gives `upload-json-succeeds` in both builds. The design of `derive` writes the rule down. The case `validate-test-name-capital-run` holds `uploadJSON` and `listJSONUploads` with no tests.
+
+## BUG-048 — model (Swift): a hexadecimal integer in the document is printed as text
+
+- Reported: 2026-10-21, found while comparing the two builds' `specarch model` on every specification in `spec/tests` and `examples`
+- Closed: 2026-10-21, completed
+- Fixed by: the commit on `main` whose message says `Fixes BUG-048`
+
+YAML 1.2's core schema reads `0x1` as the integer 1. The Go build's `specarch model` prints it so in `document`; the Swift build prints the string `"0x1"`. The two builds print different bytes for the same specification, which the conformance suite does not see because no model case holds a hexadecimal number.
+
+Expected: both builds print `1`, as YAML 1.2 reads it, or the same text from each with the reason written next to the choice.
+
+To repeat: run `specarch model spec/tests/validate-theme` with each build and compare `/tokens/color/hexInt/$value/components/0`.
+
+Fix: the Swift build reads a plain integer as yaml.v3 reads it (`parseInteger` and `parseUnsigned` in `swift/Sources/SpecArchKit/Source.swift`): underscores dropped, an optional sign, then `0x`, `0o` or `0b` in either case or a bare leading `0` for the base, so `0x1` is 1 in both builds and `017` is 15. The integer pattern also takes the capital prefixes, as yaml.v3 does. ADR-174 says why both builds follow yaml.v3 rather than the core schema's decimal reading of `017`. The case `model-integer-forms` prints hexadecimal, octal and binary integers from both builds.

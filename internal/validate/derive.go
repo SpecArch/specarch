@@ -1017,12 +1017,16 @@ func transitionSubject(entity string, i int, t *yaml.Node) *subject {
 	return s
 }
 
-// kebab turns createLoan into create-loan.
+// kebab turns createLoan into create-loan. A capital starts a word after a
+// small letter or a digit; in a run of capitals only the last starts one,
+// and only when a small letter follows it: HTTPServer is http-server,
+// uploadJSON is upload-json, README is readme.
 func kebab(s string) string {
 	var b strings.Builder
-	for i, r := range s {
+	rs := []rune(s)
+	for i, r := range rs {
 		if unicode.IsUpper(r) {
-			if i > 0 {
+			if i > 0 && (!unicode.IsUpper(rs[i-1]) || i+1 < len(rs) && unicode.IsLower(rs[i+1])) {
 				b.WriteByte('-')
 			}
 			r = unicode.ToLower(r)

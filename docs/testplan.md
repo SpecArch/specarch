@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.4-dev of the specification: 653 design tests, 313 golden and 340 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.4-dev of the specification: 654 design tests, 314 golden and 340 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.7.4-dev of the specification: 653 design tests, 313 golden and 340 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 649 |
+| system | 650 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -5038,6 +5038,14 @@ Scenario: golden; level: system; verifies SA-27.
 - Given: a test with a fixture, an input and an expected status, body, state and message, each naming what the design has with values of the right type
 - When: validate is run
 - Then: it reports no test_data and exits 0
+
+#### validate-test-name-capital-run
+
+Scenario: golden; level: system; verifies SA-67.
+
+- Given: two operations whose operationIds hold a run of capitals, uploadJSON at the end and listJSONUploads in the middle, and no tests
+- When: validate is run
+- Then: each suggested test name keeps the run of capitals as one word, upload-json-succeeds and list-json-uploads-succeeds, the same from both builds
 
 #### validate-test-subject
 

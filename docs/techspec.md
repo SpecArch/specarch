@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.7.4-dev of the specification: 90 requirements, 5 entities, 16 commands, 7 algorithms, 653 tests, 164 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.7.4-dev of the specification: 90 requirements, 5 entities, 16 commands, 7 algorithms, 654 tests, 164 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -859,7 +859,12 @@ the trust domain.
 
 A test is named after its subject, then its case: `create-loan-succeeds`.
 The subject's name is made a valid test name first, kebab-case with
-a letter first: small letters and digits, every run of other
+a letter first: a capital starts a word after a small letter or a
+digit, and in a run of capitals only the last starts one, when a
+small letter follows it, so operation `uploadJSON` gives
+`upload-json` and `listJSONUploads` gives `list-json-uploads`, as
+validate's suggested test names do in both builds; then small
+letters and digits, every run of other
 characters one hyphen, so requirement `AB-1.2` gives
 `ab-1-2-acceptance-1`, and a name that starts with no letter takes
 its subject key in front. The draft keeps the subject's own name in
@@ -13603,6 +13608,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | validate-test-data | command validate | system | red | tests whose fixture names an unknown role, entity and field and holds a record the check constraint refuses, whose input names an unknown body field and carries a number for a string, whose expect names a response, exit code, message and body values the design does not have and says emits and emitsNothing both, and a constraint test with input | validate is run | it reports test_data at each and exits 1 |
 | validate-test-data-folder | command validate | system | red | a test with input and an input/ folder holding the request beside it | validate is run | it reports test_data at input, since the two say the same thing, and exits 1 |
 | validate-test-data-valid | command validate | system | golden | a test with a fixture, an input and an expected status, body, state and message, each naming what the design has with values of the right type | validate is run | it reports no test_data and exits 0 |
+| validate-test-name-capital-run | command validate | system | golden | two operations whose operationIds hold a run of capitals, uploadJSON at the end and listJSONUploads in the middle, and no tests | validate is run | each suggested test name keeps the run of capitals as one word, upload-json-succeeds and list-json-uploads-succeeds, the same from both builds |
 | validate-test-subject | command validate | system | red | a test about an operation that does not exist | validate is run | it reports test_subject and exits 1 |
 | validate-test-subject-no-state-machine | command validate | system | red | a test about entity Book alone, which has no transitions | validate is run | it reports test_subject, saying Book has no state machine path, and exits 1 |
 | validate-theme | command validate | system | red | a theme of design tokens with a dark mode and pairs of colours, at the AA target, holding a hex that is not its components, a hexadecimal component, a hex with a trailing line break, a colour outside srgb, an alias that leads back to itself and one to a token of another type, a dimension in a unit not taken, a token with no type, one of a type not taken, a misspelt $value, a mode naming a token that does not exist, pairs below the contrast their use asks for in the default and the dark mode, a translucent pair, a pair naming a dimension; besides components written .5 and 1e0, an alias of a bad colour, and an alias with no type and with extensions in a pair, which are right | validate is run | it reports theme fifteen times and schema once, and exits 1 |
@@ -14030,7 +14036,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-64 | commands extract; commands merge; decisions ADR-105 | tests extract-documents-language-not-shipped; tests extract-documents-vocabulary; tests extract-documents-vocabulary-word-twice; tests merge-documents-days-vocabulary; tests merge-documents-language-not-given; tests validate-schema-language-tag |
 | SA-65 | commands gaps; commands validate; decisions ADR-112 | tests gaps-references-blocked; tests gaps-references-unresolved; tests generate-openapi-reference-refused; tests generate-sql-reference; tests validate-references; tests validate-references-wrong |
 | SA-66 | commands document; commands gaps; commands validate; decisions ADR-113 | tests document-estate-map; tests gaps-estate; tests validate-estate; tests validate-estate-cycle; tests validate-estate-modules-wrong |
-| SA-67 | enums Rule; commands document; decisions ADR-119 | tests document-audience-external; tests document-audience-marked; tests document-audience-needs-out; tests document-audience-problems-refused; tests document-audience-value-refused; tests validate-audience |
+| SA-67 | enums Rule; commands document; decisions ADR-119 | tests document-audience-external; tests document-audience-marked; tests document-audience-needs-out; tests document-audience-problems-refused; tests document-audience-value-refused; tests validate-audience; tests validate-test-name-capital-run |
 | SA-68 | enums Rule; commands document; decisions ADR-119 | tests document-audience-external; tests document-audience-marked; tests gaps-references-fulfilled-by; tests validate-requirement-fulfilled-by; tests validate-requirement-owned |
 | SA-69 | enums Rule; commands gaps; decisions ADR-120 | tests document-writes-questions; tests gaps-link-missing-held; tests gaps-lists-questions; tests gaps-names-question; tests gaps-question-opened; tests validate-question-opened |
 | SA-70 | commands extract; decisions ADR-121; decisions ADR-144 | tests extract-database-generated-default; tests extract-database-implementation-out; tests extract-go-handlers; tests extract-go-handlers-changed; tests extract-router-list-twin; tests generate-openapi-list-twin; tests generate-sql-generated-default; tests generate-sql-generated-default-mariadb; tests generate-sql-generated-default-mariadb-upgrade; tests generate-sql-generated-default-refused; tests generate-sql-index-changed; tests validate-generated-default; tests validate-index-field |

@@ -678,3 +678,17 @@ Section 5's caller context entry ends "Left to build: ... and BUG-046, the cases
 Expected: the entry says that such a client gets the same cases as a client of the module's own (ADR-171), and its "Left to build" names only the `Txn-Token` header in the swift, javascript and dart readers and `through` on a pattern row of the permission table.
 
 To repeat: `grep -n 'BUG-046' docs/roadmap.md`.
+
+## BUG-033 — validate: the two builds kebab-case an operationId with a run of capitals differently in the test names they suggest
+
+- Reported: 2026-10-20, found while writing the stream fixture of item 0979
+- Closed: 2026-10-21, completed
+- Fixed by: the commit on `main` whose message says `Fixes BUG-033`
+
+For an operation `uploadJSON` with no golden test, the Go build's `test_golden_missing` suggests the test name `upload-j-s-o-n-succeeds` and the Swift build's `upload-json-succeeds`; the `test_red_missing` suggestion differs the same way. The conformance suite requires both builds to print the same output, so a fixture with such a name cannot have one golden. `kebab` in `internal/validate` splits before every capital, and its Swift twin keeps a run of capitals as one word.
+
+Expected: one rule in both builds. `docs/conventions.md` says a test is named kebab-case after its subject; the derive command's design says a run of other characters is one hyphen and says nothing of a run of capitals, so the design decides which of the two is right and the other build follows.
+
+To repeat: validate a specification with `operationId: uploadJSON` and no tests with both builds and compare the `test_golden_missing` lines.
+
+Fix: the Go build's `kebab` in `internal/validate/derive.go` follows the rule the Swift build already had: a capital starts a word after a small letter or a digit, and in a run of capitals only the last starts one, when a small letter follows it. `uploadJSON` now gives `upload-json-succeeds` in both builds. The design of `derive` writes the rule down. The case `validate-test-name-capital-run` holds `uploadJSON` and `listJSONUploads` with no tests.

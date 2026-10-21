@@ -352,7 +352,12 @@ the trust domain.
 
 A test is named after its subject, then its case: `create-loan-succeeds`.
 The subject's name is made a valid test name first, kebab-case with
-a letter first: small letters and digits, every run of other
+a letter first: a capital starts a word after a small letter or a
+digit, and in a run of capitals only the last starts one, when a
+small letter follows it, so operation `uploadJSON` gives
+`upload-json` and `listJSONUploads` gives `list-json-uploads`, as
+validate's suggested test names do in both builds; then small
+letters and digits, every run of other
 characters one hyphen, so requirement `AB-1.2` gives
 `ab-1-2-acceptance-1`, and a name that starts with no letter takes
 its subject key in front. The draft keeps the subject's own name in

@@ -2,7 +2,7 @@
 
 Open bugs, one entry per bug, each as `BUG-NNN — <title>` with what was
 seen, what was expected and how to repeat it. The next free number is
-BUG-053. When the fix is on `main`, with `Fixes BUG-NNN` in its commit
+BUG-054. When the fix is on `main`, with `Fixes BUG-NNN` in its commit
 message, the entry moves to `BUG_HISTORY.md` with the fixing commit.
 
 ## BUG-030 — derive: a question that blocks one method of a path holds up the drafts of every method of that path
@@ -24,16 +24,6 @@ To repeat: run `specarch extract go` on `spec/tests/extract-go-handlers/testdata
 Expected: the count printed is the number of questions written, the handler findings included, or the `handlers:` line says how many findings it asked.
 
 To repeat: run `specarch extract go` on either fixture as its `case.yaml` does and count the `Q-` entries in `spec/design/questions.yaml`.
-
-## BUG-033 — validate: the two builds kebab-case an operationId with a run of capitals differently in the test names they suggest
-
-- Reported: 2026-10-20, found while writing the stream fixture of item 0979
-
-For an operation `uploadJSON` with no golden test, the Go build's `test_golden_missing` suggests the test name `upload-j-s-o-n-succeeds` and the Swift build's `upload-json-succeeds`; the `test_red_missing` suggestion differs the same way. The conformance suite requires both builds to print the same output, so a fixture with such a name cannot have one golden. `kebab` in `internal/validate` splits before every capital, and its Swift twin keeps a run of capitals as one word.
-
-Expected: one rule in both builds. `docs/conventions.md` says a test is named kebab-case after its subject; the derive command's design says a run of other characters is one hyphen and says nothing of a run of capitals, so the design decides which of the two is right and the other build follows.
-
-To repeat: validate a specification with `operationId: uploadJSON` and no tests with both builds and compare the `test_golden_missing` lines.
 
 ## BUG-045 — extract javascript: a use() on the application before a mount does not reach the mounted router's routes
 

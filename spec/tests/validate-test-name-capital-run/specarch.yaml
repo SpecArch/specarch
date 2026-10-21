@@ -1,0 +1,20 @@
+specarch: "0.1"
+info: { title: Capital run, version: 1.0.0 }
+permissions:
+  public: { description: Open to everyone. }
+paths:
+  /uploads:
+    get:
+      operationId: listJSONUploads
+      summary: List the uploads
+      permission: public
+      responses:
+        "200":
+          description: The uploads.
+    post:
+      operationId: uploadJSON
+      summary: Upload a document
+      permission: public
+      responses:
+        "201":
+          description: Uploaded.

@@ -706,3 +706,17 @@ Expected: both builds print `1`, as YAML 1.2 reads it, or the same text from eac
 To repeat: run `specarch model spec/tests/validate-theme` with each build and compare `/tokens/color/hexInt/$value/components/0`.
 
 Fix: the Swift build reads a plain integer as yaml.v3 reads it (`parseInteger` and `parseUnsigned` in `swift/Sources/SpecArchKit/Source.swift`): underscores dropped, an optional sign, then `0x`, `0o` or `0b` in either case or a bare leading `0` for the base, so `0x1` is 1 in both builds and `017` is 15. The integer pattern also takes the capital prefixes, as yaml.v3 does. ADR-174 says why both builds follow yaml.v3 rather than the core schema's decimal reading of `017`. The case `model-integer-forms` prints hexadecimal, octal and binary integers from both builds.
+
+## BUG-031 — extract go: the "wrote ... questions" line leaves out the questions the handler walk asks
+
+- Reported: 2026-10-19, found while landing the handler work (ADR-144) on the dxlib handler shapes fixture
+- Closed: 2026-10-21, completed
+- Fixed by: the commit on `main` whose message says `Fixes BUG-031`
+
+`specarch extract go` says `wrote N operations on M paths, P permissions, R problems and K questions` from `write()` in `internal/extract/golang.go` before the handler walk runs, and the walk then asks its findings against each operation (`findings()` in `internal/extract/golang_findings.go`) as questions of their own, which neither that line nor the `handlers: followed ...` line counts. On `spec/tests/extract-go-dxlib-handler-shapes` the line says 49 questions and `spec/design/questions.yaml` holds 53, Q-50 to Q-53 being the findings; on `spec/tests/extract-go-handlers` it says 29 and the file holds 40.
+
+Expected: the count printed is the number of questions written, the handler findings included, or the `handlers:` line says how many findings it asked.
+
+To repeat: run `specarch extract go` on either fixture as its `case.yaml` does and count the `Q-` entries in `spec/design/questions.yaml`.
+
+Fix: the `handlers:` line of `extract go` now ends its count with the questions the handler walk asked, `and asked N questions on what they do, not counted in the questions written above`, from the questions numbered while `readHandlers` in `internal/extract/golang_handlers.go` runs (its findings, faults and transaction-token questions). On `extract-go-dxlib-handler-shapes` it says 4 beside the 49, and on `extract-go-handlers` 11 beside the 29, matching the 53 and 40 in `questions.yaml`. The 18 goldens that print the line record the count; the design of `extract` says it.

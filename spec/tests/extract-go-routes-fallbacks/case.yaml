@@ -18,7 +18,7 @@ standardOutput: |
   not held: gorillafallback/router.go:18: the route GET /started: its handler health serves more than one route; the operation is named getStarted; could question Q-56
   not held: muxfallback/mux.go:9: the route GET /metrics: its handler health serves more than one route; the operation is named getMetrics; could question Q-57
   not held: muxfallback/mux.go:15: the route GET /status: its handler health serves more than one route; the operation is named getStatus; could question Q-58
-  handlers: followed 10 of 10 handlers into 10 functions, to 3 calls deep, and left 0 calls not followed: the handler of each operation, where it is a function literal, a function of the same package or one of another package of the module, and each function of the module its steps call
+  handlers: followed 10 of 10 handlers into 10 functions, to 3 calls deep, left 0 calls not followed, and asked 8 questions on what they do, not counted in the questions written above: the handler of each operation, where it is a function literal, a function of the same package or one of another package of the module, and each function of the module its steps call
   derived 0 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers
   not derived: 1 draft test for operation items, held up by Q-17, Q-20, Q-21, Q-22, Q-5, Q-59; the validator warns for them until the questions are answered
   not derived: 2 draft tests for operation code, held up by Q-17, Q-23, Q-24, Q-25, Q-26, Q-5, Q-60; the validator warns for them until the questions are answered

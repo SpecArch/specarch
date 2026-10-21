@@ -15,16 +15,6 @@ Expected: a block on `#/paths/~1parcels/post` holds up the drafts of `POST /parc
 
 To repeat: run `specarch extract go` on `spec/tests/extract-go-handlers/testdata/service` as its `case.yaml` does. The line for `listParcels` (`GET /parcels`) names the questions on `POST /parcels`'s body widths and on `storeParcel`'s dropped result and missing transaction, and the line for `storeParcel` names `listParcels`'s. The case's golden records this until the fix.
 
-## BUG-031 — extract go: the "wrote ... questions" line leaves out the questions the handler walk asks
-
-- Reported: 2026-10-19, found while landing the handler work (ADR-144) on the dxlib handler shapes fixture
-
-`specarch extract go` says `wrote N operations on M paths, P permissions, R problems and K questions` from `write()` in `internal/extract/golang.go` before the handler walk runs, and the walk then asks its findings against each operation (`findings()` in `internal/extract/golang_findings.go`) as questions of their own, which neither that line nor the `handlers: followed ...` line counts. On `spec/tests/extract-go-dxlib-handler-shapes` the line says 49 questions and `spec/design/questions.yaml` holds 53, Q-50 to Q-53 being the findings; on `spec/tests/extract-go-handlers` it says 29 and the file holds 40.
-
-Expected: the count printed is the number of questions written, the handler findings included, or the `handlers:` line says how many findings it asked.
-
-To repeat: run `specarch extract go` on either fixture as its `case.yaml` does and count the `Q-` entries in `spec/design/questions.yaml`.
-
 ## BUG-045 — extract javascript: a use() on the application before a mount does not reach the mounted router's routes
 
 - Reported: 2026-10-21, found while adding a mounted gate to extract-javascript-caller-checks

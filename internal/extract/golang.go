@@ -270,7 +270,7 @@ func (g *goReader) sayHandlers(writeImplementation bool) {
 			}
 		})
 	}
-	g.res.say("handlers: followed %d of %s into %s, to %d calls deep, and left %s not followed: the handler of each operation, where it is a function literal, a function of the same package or one of another package of the module, and each function of the module its steps call", followed, plural(len(g.handlers), "handler"), plural(functions, "function"), handlerDepth, plural(stopped, "call"))
+	g.res.say("handlers: followed %d of %s into %s, to %d calls deep, left %s not followed, and asked %s on what they do, not counted in the questions written above: the handler of each operation, where it is a function literal, a function of the same package or one of another package of the module, and each function of the module its steps call", followed, plural(len(g.handlers), "handler"), plural(functions, "function"), handlerDepth, plural(stopped, "call"), plural(g.handlerQuestions, "question"))
 	g.compareHandlers()
 	if !writeImplementation {
 		return
@@ -299,7 +299,10 @@ type goReader struct {
 	problems  *yaml.Node
 	questions *yaml.Node
 	nextID    int
-	notHeld   []notHeld
+	// handlerQuestions is how many questions the handler walk asked, after
+	// the wrote line counted the others.
+	handlerQuestions int
+	notHeld          []notHeld
 
 	assigns     map[string][]goAssign // folder|name or field -> its assignments
 	tables      []*goTable
@@ -321,8 +324,8 @@ type goReader struct {
 	middlewareOf    map[string]*goMiddleware // the middlewares the chains name, by name
 	middlewareNames []string
 	middlewares     *yaml.Node
-	handshakes      *yaml.Node        // the handshakes the endpoints travel in (ADR-145)
-	handshakeAt     map[string]string // a handshake -> the registration that first names its envelope
+	handshakes      *yaml.Node         // the handshakes the endpoints travel in (ADR-145)
+	handshakeAt     map[string]string  // a handshake -> the registration that first names its envelope
 	sessionHooks    map[string]*goHook // dxlib's V3 and V4 hooks the module sets, by the hook's name (ADR-163)
 	sessionTypes    []string           // the persistent-session types the endpoints of handshake session are registered with
 

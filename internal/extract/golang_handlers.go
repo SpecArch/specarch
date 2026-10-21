@@ -154,6 +154,8 @@ func (sc *fnScope) breakTarget(label *ast.Ident, loopsOnly bool) goBreakable {
 // readHandlers follows every operation's handler and records it, then
 // checks each against what the operation declares.
 func (g *goReader) readHandlers() {
+	asked := g.nextID
+	defer func() { g.handlerQuestions = g.nextID - asked }()
 	var hs []*goHandler
 	for _, ep := range g.endpoints {
 		if ep.at == "" {

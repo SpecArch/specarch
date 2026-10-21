@@ -19,7 +19,7 @@ standardOutput: |
   not held: desk/server.go:56: POST /loans, request body, property notes, property text: the validate rule excludesall=<> has no keyword of the meta-model the reader writes it as; not written; could question Q-41
   not held: desk/server.go:47: POST /loans, request body, property notes: the validate rule dive has no keyword of the meta-model the reader writes it as; not written; could question Q-42
   not held: desk/server.go:104: Member.FullName has no json tag, so encoding/json writes it as FullName, which is neither camelCase nor snake_case; left out; could question Q-43
-  handlers: followed 8 of 8 handlers into 9 functions, to 3 calls deep, and left 0 calls not followed: the handler of each operation, where it is a function literal, a function of the same package or one of another package of the module, and each function of the module its steps call
+  handlers: followed 8 of 8 handlers into 9 functions, to 3 calls deep, left 0 calls not followed, and asked 9 questions on what they do, not counted in the questions written above: the handler of each operation, where it is a function literal, a function of the same package or one of another package of the module, and each function of the module its steps call
   handlers: compared with the records of implementation/desk.go.specarch-implementation.yaml: 0 unchanged, 0 changed, 8 not recorded there, 0 recorded there and not read now
   derived 0 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers
   not derived: 3 draft tests for operation showFine, held up by Q-1, Q-10, Q-11, Q-4, Q-45, Q-9; the validator warns for them until the questions are answered

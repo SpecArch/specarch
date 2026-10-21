@@ -12,7 +12,7 @@ standardOutput: |
   routers: counted 6 registrations: every call that registers a route on a router of net/http, chi, gin, echo or gorilla/mux that the reader follows from where it is made, with its groups, mounts and subrouters
   routes: wrote 6 operations: one operation per route a router of net/http, chi, gin, echo or gorilla/mux registers with a literal method and path, outside a loop or a condition, under a prefix the reader knows
   wrote 4 permissions and 24 questions: one permission per name a route checks with a literal, one question per thing the source does not say, and one per thing the meta-model cannot hold
-  handlers: followed 6 of 6 handlers into 20 functions, to 3 calls deep, and left 7 calls not followed: the handler of each operation, where it is a function literal, a function of the same package or one of another package of the module, and each function of the module its steps call
+  handlers: followed 6 of 6 handlers into 20 functions, to 3 calls deep, left 7 calls not followed, and asked 10 questions on what they do, not counted in the questions written above: the handler of each operation, where it is a function literal, a function of the same package or one of another package of the module, and each function of the module its steps call
   handlers: compared with the records of implementation/lockers.go.specarch-implementation.yaml: 1 unchanged, 1 changed, 4 not recorded there, 1 recorded there and not read now
   changed: the handler of POST /parcels (lockers.Server.storeParcel), recorded at commit 1111111 and read at commit 1c42c4c:
     function lockers.Server.storeParcel, lockers/handlers.go:20-50 (was lockers/handlers.go:20-49): 1 step line added, 0 removed, 21 unchanged

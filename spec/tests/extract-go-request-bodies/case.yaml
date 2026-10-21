@@ -11,7 +11,7 @@ standardOutput: |
   routes: wrote 5 operations: one operation per route a router of net/http, chi, gin, echo or gorilla/mux registers with a literal method and path, outside a loop or a condition, under a prefix the reader knows
   wrote 0 permissions and 21 questions: one permission per name a route checks with a literal, one question per thing the source does not say, and one per thing the meta-model cannot hold
   not held: shelf/server.go:48: the field Count of the struct written in place has no json tag, so encoding/json writes it as Count, which is neither camelCase nor snake_case; left out; could question Q-21
-  handlers: followed 5 of 5 handlers into 5 functions, to 3 calls deep, and left 0 calls not followed: the handler of each operation, where it is a function literal, a function of the same package or one of another package of the module, and each function of the module its steps call
+  handlers: followed 5 of 5 handlers into 5 functions, to 3 calls deep, left 0 calls not followed, and asked 4 questions on what they do, not counted in the questions written above: the handler of each operation, where it is a function literal, a function of the same package or one of another package of the module, and each function of the module its steps call
   derived 0 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers
   not derived: 1 draft test for operation importItems, held up by Q-1, Q-2, Q-22, Q-3, Q-4; the validator warns for them until the questions are answered
   not derived: 2 draft tests for operation create, held up by Q-5, Q-6, Q-7; the validator warns for them until the questions are answered

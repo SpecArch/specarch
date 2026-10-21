@@ -2426,7 +2426,9 @@ set of patterns whose names meet, and with --routes one naming the
 route table's commit and one per rule no route reaches; for
 database with --implementation-out, one line counting the mappings
 and indexes written into the fragment; for go, one line counting the
-handlers followed, the functions reached and the calls not followed,
+handlers followed, the functions reached, the calls not followed
+and the questions the handler walk asked, which the line counting
+what was written leaves out since it comes before the walk,
 with --implementation-out one counting the handler records written,
 and with --implementation one counting the handlers unchanged,
 changed, not recorded and recorded for an operation the source does

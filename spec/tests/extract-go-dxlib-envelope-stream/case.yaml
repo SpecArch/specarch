@@ -16,7 +16,7 @@ standardOutput: |
   not held: api/endpoints.go:72: NewEndPoint registers POST /ping with EndPointTypeHTTPEndToEndEncryptionV1, which dxlib itself refuses with 422 as not implemented; written as a plain operation; could question Q-29
   not held: api/endpoints.go:67: the endpoint POST /session/open: dxlib names it session_open from its URI, which is not camelCase, as an operationId is; it is named postSessionOpen; could question Q-30
   not held: api/endpoints.go:57: the endpoint POST /vault/export: dxlib names it vault_export from its URI, which is not camelCase, as an operationId is; it is named postVaultExport; could question Q-31
-  handlers: followed 9 of 9 handlers into 9 functions, to 3 calls deep, and left 0 calls not followed: the handler of each operation, where it is a function literal, a function of the same package or one of another package of the module, and each function of the module its steps call
+  handlers: followed 9 of 9 handlers into 9 functions, to 3 calls deep, left 0 calls not followed, and asked 8 questions on what they do, not counted in the questions written above: the handler of each operation, where it is a function literal, a function of the same package or one of another package of the module, and each function of the module its steps call
   derived 0 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers
   not derived: 3 draft tests for operation postAttachmentsDownload, held up by Q-1, Q-32; the validator warns for them until the questions are answered
   not derived: 2 draft tests for operation postAttachmentsUpload, held up by Q-2, Q-33; the validator warns for them until the questions are answered

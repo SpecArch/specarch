@@ -1,6 +1,6 @@
 arguments: [version]
 exitStatus: 0
 standardOutput: |
-  specarch 0.7.3
+  specarch 0.7.4
   specifications: meta-model 0.3, and 0.2 and 0.1 until 1.0, with a warning
   implementation files: meta-model 0.1

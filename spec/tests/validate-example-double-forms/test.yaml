@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "a worked example of a double field whose inputs are written in octal, with underscores, in hexadecimal, tagged !!float in binary, as .inf, and as text tagged !!float"
+when: validate is run
+then: "both builds read each number as yaml.v3 decodes it, 017 as 15 and .inf as infinity, report example_input only for the text, and exit 1"

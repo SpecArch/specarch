@@ -112,7 +112,7 @@ func parseWhole(_ text: String) -> (Doc, Bool) {
     var nodes: [Node] = []
     for _ in 0..<100 {
         do {
-            let parser = try Parser(yaml: source)
+            let parser = try Parser(yaml: source, resolver: untaggedResolver)
             nodes = []
             while let node = try parser.nextRoot() {
                 nodes.append(node)
@@ -257,81 +257,222 @@ private func convert(_ n: Node, _ shifts: [Int: Shift]) -> YNode {
     }
 }
 
-private let intPattern = try! NSRegularExpression(pattern: "^[-+]?(0|[1-9][0-9_]*|0[0-7_]+|0[oO][0-7_]+|0[xX][0-9a-fA-F_]+|0[bB][01_]+)$")
+/// The tag Yams gives a scalar written with no tag, so that its own
+/// resolver, which follows YAML 1.1 and runs when a mapping's keys are
+/// compared, never takes the place of the tag written.
+private let untagged = Tag.Name(rawValue: "specarch:untagged")
+let untaggedResolver = Resolver.basic.appending(try! Resolver.Rule(untagged, "^"))
+
 private let floatPattern = try! NSRegularExpression(pattern: "^[-+]?(\\.[0-9]+|[0-9]+(\\.[0-9]*)?)([eE][-+]?[0-9]+)?$")
-private let timestampPattern = try! NSRegularExpression(pattern: "^[0-9]{4}-[0-9]{1,2}-[0-9]{1,2}([Tt ][0-9]{1,2}:[0-9]{1,2}:[0-9]{1,2}(\\.[0-9]+)?([Zz]|[-+][0-9]{1,2}(:[0-9]{2})?)?)?$")
+private let dotFloatPattern = try! NSRegularExpression(pattern: "^\\.[0-9]+([eE][-+]?[0-9]+)?$")
 
 func matches(_ re: NSRegularExpression, _ s: String) -> Bool {
     re.firstMatch(in: s, range: NSRange(s.startIndex..., in: s)) != nil
 }
 
-/// Resolves a scalar's tag the way YAML 1.2's core schema does: quoted and
-/// block scalars are strings; a plain scalar is null, a bool, an int, a
-/// float, a timestamp or a string by its form. One form follows yaml.v3
-/// instead of the core schema, on purpose (ADR-174): a plain decimal
-/// integer that fits neither Int64 nor UInt64 is a float, as the Go build
-/// reads it, so both builds report it as a number where a string is
-/// expected.
+/// A scalar's tag as yaml.v3 sets it while parsing, so that both builds
+/// read every scalar alike (ADR-176): a tag written other than ! is kept,
+/// tag:yaml.org,2002:int as !!int; a quoted or block scalar is !!str; a
+/// plain one takes the tag resolve gives its text.
 private func resolveTag(_ v: String, explicit: String, style: YNode.Style) -> String {
-    switch explicit {
-    case "tag:yaml.org,2002:str" where style != .plain: return "!!str"
-    case "tag:yaml.org,2002:int": return "!!int"
-    case "tag:yaml.org,2002:float": return "!!float"
-    case "tag:yaml.org,2002:bool": return "!!bool"
-    case "tag:yaml.org,2002:null": return "!!null"
-    case "tag:yaml.org,2002:timestamp": return "!!timestamp"
-    default: break
+    if explicit != "", explicit != "!", explicit != untagged.rawValue {
+        let prefix = "tag:yaml.org,2002:"
+        return explicit.hasPrefix(prefix) ? "!!" + explicit.dropFirst(prefix.count) : explicit
     }
     if style != .plain { return "!!str" }
-    switch v {
-    case "", "~", "null", "Null", "NULL": return "!!null"
-    case "true", "True", "TRUE", "false", "False", "FALSE": return "!!bool"
-    case ".inf", ".Inf", ".INF", "+.inf", "+.Inf", "+.INF", "-.inf", "-.Inf", "-.INF", ".nan", ".NaN", ".NAN": return "!!float"
-    default: break
-    }
-    if matches(intPattern, v) {
-        // An integer past 64 bits is still a number: a decimal one is read
-        // as a float, as yaml.v3 reads it, so a 40-digit value where a
-        // string is expected is reported as a number in both builds; a
-        // 0x, 0o or 0b form past 64 bits stays text there and here.
-        let clean = v.replacingOccurrences(of: "_", with: "")
-        if Int64(clean) == nil, UInt64(clean) == nil, matches(floatPattern, clean), let d = Double(clean), d.isFinite {
-            return "!!float"
-        }
-        return "!!int"
-    }
-    if isFloat(v) { return "!!float" }
-    if matches(timestampPattern, v) { return "!!timestamp" }
-    return "!!str"
+    return resolveScalar("", v)?.tag ?? "!!str"
 }
 
-/// Whether a plain scalar is a float as yaml.v3 reads one (ADR-175): one
-/// that starts with a digit or a sign has its underscores dropped first,
-/// so 0_8 is 8 and 1_0.5 is 10.5; one that starts with a dot is read as
-/// written, an underscore allowed only between two digits, as Go's
-/// ParseFloat takes it, so .5_0 is 0.5 and ._5 is text.
-private func isFloat(_ v: String) -> Bool {
-    guard let clean = floatText(v) else { return false }
-    return matches(floatPattern, clean)
+/// A scalar's value as yaml.v3 resolves it.
+enum Resolved {
+    case null, bool(Bool), int(Int64), uint(UInt64), float(Double), text
 }
 
-/// A float's text with its underscores dropped under yaml.v3's rule
-/// (ADR-175), for a plain scalar and an explicit !!float alike: a digit or
-/// sign start drops them all; a dot start takes them only between two
-/// digits; any other start keeps them. Nil when an underscore is kept,
-/// which leaves the scalar text.
-private func floatText(_ v: String) -> String? {
-    guard let first = v.first else { return nil }
-    if first == "." {
-        let chars = Array(v)
-        for (i, c) in chars.enumerated() where c == "_" {
-            guard i > 0, i + 1 < chars.count, chars[i - 1].isASCII, chars[i - 1].isNumber,
-                  chars[i + 1].isASCII, chars[i + 1].isNumber else { return nil }
-        }
-    } else if !(first == "-" || first == "+" || (first.isASCII && first.isNumber)) {
-        return v.contains("_") ? nil : v
+private let resolveMap: [String: (String, Resolved)] = {
+    var m: [String: (String, Resolved)] = [:]
+    for s in ["true", "True", "TRUE"] { m[s] = ("!!bool", .bool(true)) }
+    for s in ["false", "False", "FALSE"] { m[s] = ("!!bool", .bool(false)) }
+    for s in ["", "~", "null", "Null", "NULL"] { m[s] = ("!!null", .null) }
+    for s in [".nan", ".NaN", ".NAN"] { m[s] = ("!!float", .float(.nan)) }
+    for s in [".inf", ".Inf", ".INF", "+.inf", "+.Inf", "+.INF"] { m[s] = ("!!float", .float(.infinity)) }
+    for s in ["-.inf", "-.Inf", "-.INF"] { m[s] = ("!!float", .float(-.infinity)) }
+    m["<<"] = ("!!merge", .text)
+    return m
+}()
+
+/// yaml.v3's resolve(tag, in) (ADR-176): the tag a scalar's text resolves
+/// to under no tag ("") or a tag of the core schema, and its value; nil
+/// where yaml.v3 fails, a text that does not fit the tag given, such as
+/// !!int 1.5 or !!bool yes. An !!int text under !!float is its float. Any
+/// other tag is kept, its value text.
+func resolveScalar(_ tag: String, _ v: String) -> (tag: String, value: Resolved)? {
+    guard ["", "!!str", "!!bool", "!!int", "!!float", "!!null", "!!timestamp"].contains(tag) else { return (tag, .text) }
+    let (rtag, out) = resolveText(tag, v)
+    if tag == "" || tag == rtag || tag == "!!str" { return (rtag, out) }
+    if tag == "!!float", rtag == "!!int", case .int(let i) = out { return ("!!float", .float(Double(i))) }
+    return nil
+}
+
+/// The body of yaml.v3's resolve: its first character hints at what a
+/// text may be; a digit or a sign is tried as a timestamp (with no tag or
+/// !!timestamp), then, with every underscore dropped, as an integer by its
+/// prefix, a float, and a 0b or 0o integer with a sign after the prefix.
+private func resolveText(_ tag: String, _ v: String) -> (String, Resolved) {
+    let first = v.utf8.first
+    let hint: Character?
+    switch first {
+    case nil: hint = "N"
+    case UInt8(ascii: "+"), UInt8(ascii: "-"): hint = "S"
+    case let c? where c >= UInt8(ascii: "0") && c <= UInt8(ascii: "9"): hint = "D"
+    case let c? where "yYnNtTfFoO~".utf8.contains(c): hint = "M"
+    case UInt8(ascii: "."): hint = "."
+    default: hint = nil
     }
-    return v.replacingOccurrences(of: "_", with: "")
+    guard let hint, tag != "!!str" else { return ("!!str", .text) }
+    if let item = resolveMap[v] { return item }
+    switch hint {
+    case ".":
+        if let f = goParseFloat(v) { return ("!!float", .float(f)) }
+    case "D", "S":
+        if tag == "" || tag == "!!timestamp", isTimestamp(v) { return ("!!timestamp", .text) }
+        let plain = v.replacingOccurrences(of: "_", with: "")
+        if let i = goParseInt(plain, base: 0) { return ("!!int", .int(i)) }
+        if let u = goParseUint(plain, base: 0) { return ("!!int", .uint(u)) }
+        if matches(floatPattern, plain), let f = Double(plain), f.isFinite { return ("!!float", .float(f)) }
+        for (prefix, base) in [("0b", 2), ("0o", 8)] {
+            if plain.hasPrefix(prefix) {
+                let digits = String(plain.dropFirst(2))
+                if let i = goParseInt(digits, base: base) { return ("!!int", .int(i)) }
+                if let u = goParseUint(digits, base: base) { return ("!!int", .uint(u)) }
+            } else if plain.hasPrefix("-" + prefix) {
+                if let i = goParseInt("-" + plain.dropFirst(3), base: base) { return ("!!int", .int(i)) }
+            }
+        }
+    default:
+        break
+    }
+    return ("!!str", .text)
+}
+
+/// Go's strconv.ParseInt with underscores already dropped: a sign, then
+/// the digits ParseUint takes; nil past Int64.
+func goParseInt(_ s: String, base: Int) -> Int64? {
+    var body = Substring(s)
+    var negative = false
+    if let f = body.first, f == "-" || f == "+" {
+        negative = f == "-"
+        body = body.dropFirst()
+    }
+    guard let magnitude = goParseUint(String(body), base: base) else { return nil }
+    if negative {
+        if magnitude == UInt64(Int64.max) + 1 { return Int64.min }
+        return magnitude <= UInt64(Int64.max) ? -Int64(magnitude) : nil
+    }
+    return magnitude <= UInt64(Int64.max) ? Int64(magnitude) : nil
+}
+
+/// Go's strconv.ParseUint with no underscores: no sign; base 0 reads 0x,
+/// 0o and 0b before at least one more character, and any other leading 0
+/// as octal, so 017 is 15 and 0 is 0; nil past UInt64.
+func goParseUint(_ s: String, base: Int) -> UInt64? {
+    var b = Array(s.utf8)
+    guard !b.isEmpty else { return nil }
+    var radix = UInt64(base)
+    if base == 0 {
+        radix = 10
+        if b[0] == UInt8(ascii: "0") {
+            let second = b.count >= 3 ? b[1] | 0x20 : 0
+            switch second {
+            case UInt8(ascii: "b"): radix = 2; b.removeFirst(2)
+            case UInt8(ascii: "o"): radix = 8; b.removeFirst(2)
+            case UInt8(ascii: "x"): radix = 16; b.removeFirst(2)
+            default: radix = 8; b.removeFirst()
+            }
+        }
+    }
+    var n: UInt64 = 0
+    for c in b {
+        let d: UInt64
+        switch c {
+        case UInt8(ascii: "0")...UInt8(ascii: "9"): d = UInt64(c - UInt8(ascii: "0"))
+        case UInt8(ascii: "a")...UInt8(ascii: "z"): d = UInt64(c - UInt8(ascii: "a")) + 10
+        case UInt8(ascii: "A")...UInt8(ascii: "Z"): d = UInt64(c - UInt8(ascii: "A")) + 10
+        default: return nil
+        }
+        guard d < radix else { return nil }
+        let (m, o1) = n.multipliedReportingOverflow(by: radix)
+        let (a, o2) = m.addingReportingOverflow(d)
+        if o1 || o2 { return nil }
+        n = a
+    }
+    return n
+}
+
+/// Go's strconv.ParseFloat for a text that starts with a dot, the only
+/// one resolve gives it as written: an underscore only between two digits,
+/// then dropped; nil when it is no number or past a float's range.
+private func goParseFloat(_ v: String) -> Double? {
+    let chars = Array(v.utf8)
+    for (i, c) in chars.enumerated() where c == UInt8(ascii: "_") {
+        guard i > 0, i + 1 < chars.count, isDigit(chars[i - 1]), isDigit(chars[i + 1]) else { return nil }
+    }
+    let clean = v.replacingOccurrences(of: "_", with: "")
+    guard matches(dotFloatPattern, clean), let f = Double(clean), f.isFinite else { return nil }
+    return f
+}
+
+private func isDigit(_ c: UInt8) -> Bool { c >= UInt8(ascii: "0") && c <= UInt8(ascii: "9") }
+
+/// Whether a text is a timestamp as yaml.v3 reads one: four digits and a
+/// dash, then Go's time.Parse of one of its layouts, 2006-1-2T15:4:5.999999999Z07:00,
+/// the same with a small t, 2006-1-2 15:4:5.999999999 and 2006-1-2. A
+/// month or day takes one or two digits, a fraction a dot or a comma and
+/// any number of digits, the space one or more spaces; the date must be
+/// one of the calendar, the time within the day, a zone Z or ±hh:mm.
+func isTimestamp(_ s: String) -> Bool {
+    let b = Array(s.utf8)
+    var i = 0
+    func num() -> Int? {
+        guard i < b.count, isDigit(b[i]) else { return nil }
+        var n = Int(b[i] - 48)
+        i += 1
+        if i < b.count, isDigit(b[i]) { n = n * 10 + Int(b[i] - 48); i += 1 }
+        return n
+    }
+    func take(_ c: Character) -> Bool {
+        guard i < b.count, b[i] == c.asciiValue! else { return false }
+        i += 1
+        return true
+    }
+    guard b.count > 4, b[0..<4].allSatisfy(isDigit), b[4] == UInt8(ascii: "-") else { return false }
+    let year = b[0..<4].reduce(0) { $0 * 10 + Int($1 - 48) }
+    i = 5
+    guard let month = num(), take("-"), let day = num() else { return false }
+    guard (1...12).contains(month) else { return false }
+    let leap = year % 4 == 0 && (year % 100 != 0 || year % 400 == 0)
+    let days = [31, leap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][month - 1]
+    guard (1...days).contains(day) else { return false }
+    if i == b.count { return true }
+    let separator = b[i]
+    i += 1
+    if separator == UInt8(ascii: " ") {
+        while i < b.count, b[i] == UInt8(ascii: " ") { i += 1 }
+    } else if separator != UInt8(ascii: "T") && separator != UInt8(ascii: "t") {
+        return false
+    }
+    guard let hour = num(), take(":"), let minute = num(), take(":"), let second = num(),
+          hour < 24, minute < 60, second < 60 else { return false }
+    if i + 1 < b.count, b[i] == UInt8(ascii: ".") || b[i] == UInt8(ascii: ","), isDigit(b[i + 1]) {
+        i += 1
+        while i < b.count, isDigit(b[i]) { i += 1 }
+    }
+    if separator == UInt8(ascii: " ") { return i == b.count }
+    if take("Z") { return i == b.count }
+    guard b.count - i == 6, b[i] == UInt8(ascii: "+") || b[i] == UInt8(ascii: "-"), b[i + 3] == UInt8(ascii: ":"),
+          isDigit(b[i + 1]), isDigit(b[i + 2]), isDigit(b[i + 4]), isDigit(b[i + 5]) else { return false }
+    let zoneHour = Int(b[i + 1] - 48) * 10 + Int(b[i + 2] - 48)
+    let zoneMinute = Int(b[i + 4] - 48) * 10 + Int(b[i + 5] - 48)
+    return zoneHour <= 24 && zoneMinute <= 60
 }
 
 private func jsonValue(_ n: YNode, path: String, duplicates: [(key: String, first: Int, again: Int)], problems: inout [Problem]) -> JSONValue {
@@ -375,59 +516,44 @@ private func restoreKeys(_ n: YNode, _ duplicates: [(key: String, first: Int, ag
     for item in n.items { restoreKeys(item, duplicates) }
 }
 
-/// A scalar as a plain JSON value; a timestamp is its text.
+/// A scalar as a plain JSON value, read as the Go build reads it from its
+/// tag (ADR-176): a number or a bool only where yaml.v3 decodes the text
+/// as one under that tag, and a float only when it is finite; anything
+/// else, a timestamp included, is its text.
 func scalarValue(_ n: YNode) -> JSONValue {
     switch n.tag {
-    case "!!null": return .null
-    case "!!bool": return .bool(n.value.lowercased() == "true")
+    case "!!null":
+        return .null
+    case "!!bool":
+        if case .bool(let b)? = resolveScalar(n.tag, n.value)?.value { return .bool(b) }
     case "!!int":
-        let clean = n.value.replacingOccurrences(of: "_", with: "")
-        if let i = parseInteger(clean) { return .number(Decimal(i), String(i)) }
-        if let u = parseUnsigned(clean) { return .number(Decimal(string: String(u))!, String(u)) }
-        return .string(n.value)
-    case "!!float":
-        if let clean = floatText(n.value), let d = Double(clean), d.isFinite {
-            let text = "\(d)".replacingOccurrences(of: ".0e", with: "e")
-            return .number(Decimal(string: clean) ?? Decimal(d), text)
+        switch resolveScalar(n.tag, n.value)?.value {
+        case .int(let i)?: return .number(Decimal(i), String(i))
+        case .uint(let u)?: return .number(Decimal(string: String(u))!, String(u))
+        default: break
         }
-        return .string(n.value)
+    case "!!float":
+        if let d = decodeFloat(n), d.isFinite {
+            let text = "\(d)".replacingOccurrences(of: ".0e", with: "e")
+            return .number(Decimal(string: text) ?? Decimal(d), text)
+        }
     default:
-        return .string(n.value)
+        break
     }
+    return .string(n.value)
 }
 
-/// An integer read as yaml.v3 reads it, so both builds give the same
-/// number (ADR-174): a sign, then a base by its prefix, 0x hexadecimal, 0o
-/// or a bare leading 0 octal, 0b binary, otherwise decimal. A bare leading
-/// 0 is octal in yaml.v3, not decimal as YAML 1.2's core schema has it, so
-/// 017 is 15 in both builds; nil when it does not fit Int64.
-func parseInteger(_ s: String) -> Int64? {
-    var body = Substring(s)
-    var negative = false
-    if let f = body.first, f == "-" || f == "+" {
-        negative = f == "-"
-        body = body.dropFirst()
+/// A scalar decoded as a float, as yaml.v3 decodes one into a float64: an
+/// integer or a float under its tag, the infinities and NaN included; nil
+/// for anything else.
+func decodeFloat(_ n: YNode) -> Double? {
+    guard n.kind == .scalar, n.tag != "!!str" else { return nil }
+    switch resolveScalar(n.tag, n.value)?.value {
+    case .int(let i)?: return Double(i)
+    case .uint(let u)?: return Double(u)
+    case .float(let f)?: return f
+    default: return nil
     }
-    guard let magnitude = parseUnsigned(String(body)) else { return nil }
-    if negative {
-        if magnitude == UInt64(Int64.max) + 1 { return Int64.min }
-        return magnitude <= UInt64(Int64.max) ? -Int64(magnitude) : nil
-    }
-    return magnitude <= UInt64(Int64.max) ? Int64(magnitude) : nil
-}
-
-/// An unsigned integer by its prefix, as parseInteger reads one, with no
-/// sign; nil when it does not fit UInt64.
-func parseUnsigned(_ s: String) -> UInt64? {
-    var body = Substring(s)
-    var radix = 10
-    let lower = s.lowercased()
-    if lower.hasPrefix("0x") { radix = 16; body = body.dropFirst(2) }
-    else if lower.hasPrefix("0o") { radix = 8; body = body.dropFirst(2) }
-    else if lower.hasPrefix("0b") { radix = 2; body = body.dropFirst(2) }
-    else if s.count > 1 && s.hasPrefix("0") { radix = 8; body = body.dropFirst() }
-    guard !body.isEmpty, body.first != "+", body.first != "-" else { return nil }
-    return UInt64(body, radix: radix)
 }
 
 // MARK: - Pointers

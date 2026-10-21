@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: model
+level: system
+scenario: golden
+given: "a specification whose theme holds a table of every scalar form yaml.v3 tells apart: integers in each base with leading zeros, signs and underscores in every place, floats with exponents, the infinities and NaN, booleans and nulls in every spelling, timestamps in each layout and out of range, texts that look like numbers, quoted and block scalars, and each of these under !!int, !!float, !!str, !!bool, !!null, !!timestamp, ! and other tags"
+when: model is run on it
+then: "both builds print each scalar as the value yaml.v3 decodes, a number or a bool only where it decodes as one under its tag and text otherwise, and an unquoted_date error at each scalar it reads as a timestamp, the same bytes from each, and exit 0"
+verifies: [SA-74]

@@ -1,0 +1,59 @@
+specarch: "0.3"
+info: { title: Scalar forms, version: 1.0.0 }
+theme:
+  tokens:
+    integers:
+      decimal: { $value: [0, 1, -1, +1, -0, +0, 10, 9223372036854775807, 9223372036854775808, -9223372036854775808, -9223372036854775809, 18446744073709551615, 18446744073709551616, 100000000000000000000, 1-2, 12:30, "1,000"] }
+      leadingZeros: { $value: [00, 007, 017, -017, +017, 08, 09, 0_17, 00x1] }
+      hexadecimal: { $value: [0x0, 0x1F, 0X1f, -0x1F, +0x1F, 0x, 0x1G, 0xFFFFFFFFFFFFFFFF, 0x10000000000000000, -0x8000000000000000, -0x8000000000000001] }
+      octal: { $value: [0o0, 0o7, 0O17, -0o7, +0o7, 0o, 0o8, 0o1777777777777777777777, 0o2000000000000000000000] }
+      binary: { $value: [0b0, 0b101, 0B101, -0b1, +0b1, 0b, 0b2, 0b+1, 0b-1, -0b+1, 0o+7, -0o+7, 0x+1] }
+      underscores: { $value: [1_000, _1, 1_, 1__0, -_1, +_1, -1_0, 0x_1F, 0x1_F, 0x1F_, 0o_7, 0o7_, 0b_1, 0b1_, _0x1, 0_, _, __] }
+    floats:
+      decimal: { $value: [1.5, -1.5, +1.5, .5, -.5, +.5, 1., -1., 0.0, -0.0, 3.0, 0.1, 1.10, 123456789.123456789] }
+      exponents: { $value: [1e3, 1E3, 1e+3, 1e-3, 1.5e3, .5e3, 1.e3, 1e, e3, 1e3.5, 1e400, 1e-400, 1e6, 1e21, 1e-7, 2.5e-5, 1e+06] }
+      notNumbers: { $value: [., +., -., .e3, 1.2.3, 0x1p3, 1.5f, $1, v1] }
+      underscores: { $value: [1_0.5, 1.5_, 1._5, 1_.5, .5_0, ._5, .5_, _1.5, 1_e3, 1e_3, 1e3_, -_1.5] }
+      special: { $value: [.inf, .Inf, .INF, +.inf, +.Inf, +.INF, -.inf, -.Inf, -.INF, .nan, .NaN, .NAN, -.nan, +.nan, .iNf, .nAn, inf, nan, Infinity, NaN] }
+    booleans:
+      plain: { $value: [true, True, TRUE, false, False, FALSE, tRue, fALSE, yes, Yes, YES, no, No, on, On, off, Off, y, Y, n, N] }
+    nulls:
+      plain: { $value: [null, Null, NULL, ~, nUll, none] }
+      empty:
+        $value:
+          -
+          - ~
+      tagged:
+        $value:
+          - !!null
+          - !!str
+          - !!int
+          - !!float
+          - !!bool
+          - !
+    timestamps:
+      plain: { $value: [2001-12-14, 2001-1-2, 2001-12-14t21:59:43.10-05:00, 2001-12-14T21:59:43Z, 2001-12-14T21:59:43.1Z, 2001-12-14T21:59:43+07:00, 2001-12-14T21:59:43, 2001-12-14 21:59:43, 2001-12-14 21:59:43.5, 2001-12-14 21:59:43Z, 2001-13-01, 2001-12-14   21:59:43, 2001-12-14 21:59:43.123456789012, 2001-02-30, 2000-02-29, 2001-02-29, 2001-12-14T21:59:43.Z, 2001-12-14T24:00:00Z, 2001-12-14T23:60:00Z, 2001-12-14T23:59:60Z, 2001-12-14T21:59:43z, 2001-12-14T21:59:43+24:00, 2001-12-14T21:59:43+25:00, 2001-12-14T21:59:43+07:60, 2001-12-14T21:59:43+07:61, 2001-12-14T21:59:43+0700, 2001-12-14T21:59:43+07, 2001-12-14T1:2:3Z, 2001-12-14T001:2:3Z, 2001-012-14, 20011214, 2001-12, 01-12-14] }
+      comma:
+        $value:
+          - 2001-12-14T21:59:43,5Z
+          - 2001-12-14 21:59:43,5
+          - 2001-12-14T21:59:43,Z
+    quoted:
+      single: { $value: ['1', '-1', '0x1F', '1.5', '.inf', 'true', 'null', '~', '', '2001-12-14'] }
+      double: { $value: ["1", "0x1F", "1.5", ".nan", "false", "Null", "~", "", "2001-12-14"] }
+      block:
+        $value:
+          - |
+            1
+          - >-
+            true
+          - |-
+            null
+    tagged:
+      int: { $value: [!!int 1, !!int -1, !!int 0x1F, !!int 017, !!int 0o17, !!int 0b1, !!int 1_000, !!int _1, !!int 1_, !!int 1.5, !!int 1e3, !!int .inf, !!int true, !!int null, !!int abc, !!int "7", !!int 18446744073709551616, !!int 18446744073709551615, !!int 0b+1, !!int 2001-12-14, !!int ''] }
+      float: { $value: [!!float 1, !!float -1, !!float 0x1F, !!float 017, !!float 1.5, !!float .5, !!float 1., !!float 1e3, !!float 1e400, !!float .inf, !!float -.inf, !!float .nan, !!float .Inf, !!float inf, !!float Infinity, !!float 1_0.5, !!float true, !!float null, !!float abc, !!float "2.5", !!float 18446744073709551615, !!float 0b101, !!float 0o17, !!float 0x1p3, !!float .5_0, !!float 1e-400, !!float -0] }
+      str: { $value: [!!str 1, !!str 0x1F, !!str 1.5, !!str .inf, !!str true, !!str null, !!str ~, !!str 2001-12-14, !!str abc, !!str "q"] }
+      bool: { $value: [!!bool true, !!bool True, !!bool TRUE, !!bool false, !!bool False, !!bool yes, !!bool no, !!bool on, !!bool off, !!bool y, !!bool 1, !!bool 0, !!bool null, !!bool abc, !!bool "true", !!bool tRue, !!bool ""] }
+      null: { $value: [!!null null, !!null ~, !!null "", !!null 1, !!null true, !!null abc ] }
+      timestamp: { $value: [!!timestamp 2001-12-14, !!timestamp 2001-12-14T21:59:43Z, !!timestamp abc, !!timestamp 1] }
+      other: { $value: [! 1, ! true, !custom 1, !custom true, !!binary aGk=, !<tag:yaml.org,2002:int> 5, !<tag:yaml.org,2002:str> 5, ! ~, ! '1', ! 2001-12-14, !!merge 1, !!seq 1] }

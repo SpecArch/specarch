@@ -85,7 +85,7 @@ extension Design {
             v.num = d
             return (v, "")
         case .double:
-            guard tag == "!!int" || tag == "!!float", let d = Double(n.value) else {
+            guard tag == "!!int" || tag == "!!float", let d = decodeFloat(n) else {
                 return (ExprValue(.null), "must be a number, and is \(n.value)")
             }
             var v = ExprValue(.double)

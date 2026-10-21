@@ -776,3 +776,24 @@ Expected: both builds print 8 and 10.5, as yaml.v3 reads them.
 To repeat: run `specarch model` with each build on a specification whose theme holds `$value: [0_8, 1_0.5]` and compare the two values.
 
 Fix: the Swift build reads a plain float as yaml.v3 does (`isFloat` and the `!!float` case of `scalarValue` in `swift/Sources/SpecArchKit/Source.swift`): a scalar that starts with a digit or a sign is matched with its underscores dropped; one that starts with a dot keeps the reading of Go's ParseFloat, an underscore only between two digits, so `.5_0` is 0.5 and `._5` stays text. The value is read with the underscores dropped. ADR-175 says why both builds follow yaml.v3 rather than the core schema, which has no underscores in a float. The case `model-float-underscores` prints these forms from both builds.
+
+## BUG-055 — model and validate (Swift): a scalar under an explicit tag, a sign after 0b or 0o, and some timestamps are read unlike yaml.v3
+
+- Reported: 2026-10-22, found while fixing BUG-054
+- Closed: 2026-10-22, completed
+- Fixed by: the commit on `main` whose message says `Fixes BUG-055`
+
+The Swift build resolved a scalar by patterns of its own, where the Go build reads it through yaml.v3, so the two printed different bytes for the same specification. A table of every scalar form yaml.v3 tells apart, run through both builds' `model`, showed 35 values and 7 problems that differ, all from that one cause:
+
+- `!!str 1`, `!!str 0x1F`, `!!str true`, `!!str ~` and `!<tag:yaml.org,2002:str> 5` were numbers, bools and nulls; a local tag such as `!custom 1` was read by its text;
+- `!!bool` took any spelling, `yes`, `on`, `tRue`, `abc`, as false or true, where yaml.v3 takes only the core schema's six and leaves the rest text;
+- `!!int _1` was 1, `!!float 017` was 17 (yaml.v3: octal, 15), `!!float 0b101` and `!!float 0o17` were text (5 and 15), `!!float 0x1p3` was 8 (text), and `!!float 18446744073709551615` a number (text);
+- `0b+1`, `0b-1` and `0o+7` were text, where yaml.v3 reads 1, -1 and 7;
+- `2001-12-14T21:59:43` with no zone, `2001-12-14 21:59:43Z`, `2001-13-01`, `2001-02-30` and `!!str 2001-12-14` were reported as unquoted dates, where yaml.v3 reads them as text;
+- a worked example of a double field read its number with `Double(text)`, so `017` was 17 and `1_000.5`, `!!float 0b101` and `.inf` were refused.
+
+Expected: both builds read every scalar as yaml.v3 does and print the same bytes.
+
+To repeat: run `specarch model project` with each build in `spec/tests/model-scalar-forms`, and `specarch validate .` in `spec/tests/validate-example-double-forms`, and compare.
+
+Fix: the Swift build reads a scalar in one place, a port of yaml.v3 (`resolveScalar`, `resolveTag`, `isTimestamp` and `scalarValue` in `swift/Sources/SpecArchKit/Source.swift`): the tag as yaml.v3's parser sets it, the text resolved as its resolve does (Go's ParseInt, ParseUint and ParseFloat rules, and time.Parse of its four timestamp layouts), and a value under an explicit tag only where the text fits that tag. The Yams parser is given a resolver that leaves an untagged scalar marked untagged, so its YAML 1.1 resolver never replaces the tag written. A double example reads its number through the same port (`decodeFloat`). ADR-176 says why; the cases `model-scalar-forms` (the table) and `validate-example-double-forms` hold both builds to the same bytes in the conformance suite.

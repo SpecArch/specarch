@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.7.4-dev of the specification: 90 requirements, 5 entities, 16 commands, 7 algorithms, 659 tests, 166 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.7.4-dev of the specification: 90 requirements, 5 entities, 16 commands, 7 algorithms, 661 tests, 167 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13055,6 +13055,59 @@ same values from both builds.
 
 **Insight:** The core schema leaves underscores out of a float so that every parser reads the same text as the same number, with no rule on where a separator may stand. Here the two builds must print the same model, and the Go build reads every document through yaml.v3, which cannot be told to refuse them; following yaml.v3 in the Swift build is a few lines, as for integers (ADR-174). A value that must stay text, such as a version written with underscores, is quoted, as any value YAML could read another way.
 
+### ADR-176: The Swift build reads every YAML scalar by yaml.v3's own resolve, and a table of scalar forms holds both builds to the same bytes
+
+Status: accepted, 2026-10-22.
+
+Context: The model both builds print must be the same bytes (ADR-138), and
+so must validate's output. The Go build reads every document
+through yaml.v3: the parser gives each scalar a tag, the one
+written (other than `!`), `!!str` for a quoted or block scalar,
+or the one its text resolves to; the value is then decoded under
+that tag, and a text that does not fit it, such as `!!int 1.5` or
+`!!bool yes`, stays text. The Swift build matched its own patterns
+against the text, and fixing one form at a time (ADR-174 for
+integers, ADR-175 for floats with underscores) kept turning up the
+next: a hand-written `!!str`, a local tag such as `!custom`, `!!bool`
+with a YAML 1.1 spelling, `!!int _1`, `!!float 017`, `0b+1`, and
+timestamps such as `2001-12-14T21:59:43` with no zone or
+`2001-02-30` (BUG-055).
+
+Decision: The Swift build reads a scalar as yaml.v3 does, in one place
+(`resolveScalar` in `Source.swift`), not by patterns of its own:
+- its tag is the tag written, `tag:yaml.org,2002:int` as `!!int`,
+  any other kept as written; with no tag or `!`, `!!str` for a
+  quoted or block scalar, and for a plain one the tag its text
+  resolves to;
+- a text resolves as yaml.v3's resolve has it: the null, bool and
+  infinity spellings of the core schema; a text that starts with a
+  dot is read by Go's ParseFloat; one that starts with a digit or
+  a sign is a timestamp when Go's time.Parse reads it by one of
+  yaml.v3's four layouts, otherwise, with its underscores dropped,
+  an integer by its prefix (a bare leading 0 octal), an unsigned
+  integer, a float of the core schema's form, or a 0b or 0o
+  integer with a sign after the prefix;
+- under an explicit `!!bool`, `!!int` or `!!float` the text must
+  resolve to that tag, an integer under `!!float` being its
+  float; otherwise it is text, as is any scalar under a tag other
+  than these and `!!null`, and a float that is not finite; any
+  text under `!!null` is null.
+The Yams parser is given a resolver that leaves an untagged scalar
+marked untagged, so that its own resolver, which follows YAML 1.1
+and runs when a mapping's keys are compared, never takes the place
+of the tag written. A number in a worked example of a double
+field is read the same way. The case `model-scalar-forms` holds a
+table of every scalar form yaml.v3 tells apart, plain, quoted and
+under each core tag, and the conformance suite runs it against
+both builds.
+
+Consequences: The cases `model-scalar-forms` and `validate-example-double-forms`
+print the same bytes from both builds; a form either build reads
+differently fails the Swift conformance suite. ADR-174 and ADR-175
+describe two parts of this reader.
+
+**Insight:** YAML 1.2's core schema is the standard, and yaml.v3 departs from it in places: underscores, a bare leading 0 read as octal, a sign after 0b or 0o, timestamps, which the core schema does not have, and a decimal past 64 bits read as a float. The core schema's rules protect a reader from a text that one parser reads as a number and another as a string; here the danger is the same one between the two builds, and the Go build cannot be told to read by the core schema, since yaml.v3 resolves while it parses. The Swift build therefore follows yaml.v3 in every case, and a value that must stay text is quoted, as for any value YAML could read another way. Fixing one form at a time left the rest unchecked; one reader, ported from yaml.v3 as a whole and checked against a table of every form, ends the class.
+
 ## 10. Quality requirements
 
 The design tests: what must hold on every implementation. Golden scenarios succeed; red scenarios are refused.
@@ -13451,6 +13504,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | model-float-underscores | command model | system | golden | a specification whose theme holds floats written with underscores, after a leading zero, before a dot or an exponent's mark, or at the end, some starting with a dot or an underscore, and the same forms under an explicit !!float tag | model is run on it | both builds print each as the number yaml.v3 reads, 0_8 and 1_0.5 as 8 and 10.5, .5_0 as 0.5, and ._5, .5_ and _1.5 as text, tagged !!float or not, the same bytes from each, and exit 0 |
 | model-integer-forms | command model | system | golden | a specification whose theme holds integers written in hexadecimal, octal and binary, with capital and small prefixes, signs and underscores, one past 64 bits and one that is no number | model is run on it | both builds print each integer as the number yaml.v3 reads, 0x1F and 017 as 31 and 15, the one past 64 bits and 0o8 as text, the same bytes from each, and exit 0 |
 | model-lists-via-and-through | command model | system | golden | a specification whose operation names a client of its own and one of the identity module in via, and whose role narrows a permission through a client of its own and one of the identity module | model is run on it | it lists the via item naming its own client, the through key naming the permission and the through item naming its own client, each with its keyword, leaves out the two clients of the identity module, and exits 0 |
+| model-scalar-forms | command model | system | golden | a specification whose theme holds a table of every scalar form yaml.v3 tells apart: integers in each base with leading zeros, signs and underscores in every place, floats with exponents, the infinities and NaN, booleans and nulls in every spelling, timestamps in each layout and out of range, texts that look like numbers, quoted and block scalars, and each of these under !!int, !!float, !!str, !!bool, !!null, !!timestamp, ! and other tags | model is run on it | both builds print each scalar as the value yaml.v3 decodes, a number or a bool only where it decodes as one under its tag and text otherwise, and an unquoted_date error at each scalar it reads as a timestamp, the same bytes from each, and exit 0 |
 | model-usage-error | command model | system | red | no folder or file | model is run with no argument | it prints how to use it and exits 2 |
 | model-writes-json | command model | system | golden | a specification with a requirement, an entity, a permission, a role, an operation, a channel carried by a dependency, two tests, an implementation file that names an operation, an element the specification lacks and a server that is the dependency, and a folder that is not a stage | model is run on it | it prints one JSON document in canonical form with the merged document, the position of every node, the references that resolve and the keyword of each, the layout problem of the folder, and the implementation file with its two resolved references, and exits 0 |
 | validate-0-3-caller-property | command validate | system | red | a check constraint reading a field's property with a dot, a check constraint naming caller.memberId, a rows rule naming the caller's property in the wrong case, and one naming a property the caller does not declare | validate is run | it reports caller_property for each of the four, naming the one place a dot may appear, the rows rule as the one place the caller is named, the property's right case and the properties the caller has, and exits 1 |
@@ -13523,6 +13577,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | validate-estate | command validate | system | golden | an estate file listing two modules, each by its info.name with its folder and version, one of whose references name elements of the other | validate is run on the estate file alone | it reads both modules, resolves every reference between them, reports nothing at the estate, and exits 0 |
 | validate-estate-cycle | command validate | system | red | an estate of three modules where alpha's operation calls beta's, beta's calls alpha's, and gamma's calls alpha's | validate is run on the estate's folder | it refuses alpha and beta as module at each module's entry, naming the cycle alpha calls beta, which calls alpha, leaves gamma alone, and exits 1 |
 | validate-estate-modules-wrong | command validate | system | red | an estate file listing a module at a version its specification is not at, one under a key that is not its info.name, one at a folder that does not exist, one at a folder with no specification, and one whose specification has no info.name | validate is run on the estate file | it reads every module that is there, refuses each entry as module at the module's entry, and exits 1 |
+| validate-example-double-forms | command validate | system | red | a worked example of a double field whose inputs are written in octal, with underscores, in hexadecimal, tagged !!float in binary, as .inf, and as text tagged !!float | validate is run | both builds read each number as yaml.v3 decodes it, 017 as 15 and .inf as infinity, report example_input only for the text, and exit 1 |
 | validate-example-error | command validate | system | red | a formula that divides by zero on a worked example | validate is run | it reports example_error and exits 1 |
 | validate-example-expected | command validate | system | red | a worked example whose expected value has more places than the output's scale | validate is run | it reports example_expected and exits 1 |
 | validate-example-input | command validate | system | red | a worked example whose decimal input is not quoted | validate is run | it reports example_input and exits 1 |
@@ -14121,7 +14176,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-71 | decisions ADR-123 | tests generate-sqlc-check-hand-written; tests generate-sqlc-dialect-refused; tests generate-sqlc-hand-written-refused; tests generate-sqlc-queries |
 | SA-72 | commands check; decisions ADR-124; decisions ADR-128 | tests check-dump-of-no-format; tests check-fails-on-a-difference; tests check-skips-a-partition; tests check-succeeds; tests check-usage-error |
 | SA-73 | enums DocumentTarget; enums Rule; commands document; decisions ADR-129; decisions ADR-136; decisions ADR-137; decisions ADR-172 | tests document-handover-links-without-infrastructure; tests document-handover-none; tests document-writes-handover; tests validate-build-task-unknown; tests validate-handover-build-missing; tests validate-handover-incomplete; tests validate-handover-missing; tests validate-handover-no-customer; tests validate-handover-valid |
-| SA-74 | commands model; decisions ADR-138; decisions ADR-174; decisions ADR-175 | tests model-exit-2; tests model-float-underscores; tests model-integer-forms; tests model-lists-via-and-through; tests model-usage-error; tests model-writes-json |
+| SA-74 | commands model; decisions ADR-138; decisions ADR-174; decisions ADR-175; decisions ADR-176 | tests model-exit-2; tests model-float-underscores; tests model-integer-forms; tests model-lists-via-and-through; tests model-scalar-forms; tests model-usage-error; tests model-writes-json |
 | SA-75 | decisions ADR-141 | tests document-techspec-gateway; tests document-testplan-gateway; tests generate-openapi-gateway; tests validate-gateway; tests validate-gateway-estate-wrong; tests validate-gateway-wrong |
 | SA-76 | commands check; commands extract; decisions ADR-142 | tests check-gateway-forward-moved; tests check-gateway-forward-removed; tests extract-gateway; tests extract-gateway-value-twice; tests merge-gateway-catch-all-kept; tests merge-gateway-fallback; tests merge-gateway-fallback-across-trees; tests merge-gateway-two-trees |
 | SA-77 | enums Rule; decisions ADR-145; decisions ADR-146; decisions ADR-161; decisions ADR-162; decisions ADR-163; decisions ADR-164 | tests document-techspec-envelope-stream; tests extract-go-dxlib-envelope-stream; tests extract-go-dxlib-session; tests extract-go-dxlib-vault; tests generate-go-dxlib-envelope-stream; tests generate-go-dxlib-extracted-vault; tests generate-go-dxlib-session; tests generate-openapi-dxlib-envelope-stream; tests generate-openapi-dxlib-session; tests generate-ui-dxlib; tests generate-ui-handshake-refused; tests generate-ui-swiftui-dxlib-refused; tests generate-ui-typescript-dxlib; tests generate-ui-typescript-dxlib-refused; tests generate-ui-typescript-handshake-refused; tests validate-handshake; tests validate-stream; tests validate-stream-parameters; tests validate-task-page-upload |

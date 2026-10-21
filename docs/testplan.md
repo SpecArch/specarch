@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.4-dev of the specification: 659 design tests, 316 golden and 343 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.4-dev of the specification: 661 design tests, 317 golden and 344 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.7.4-dev of the specification: 659 design tests, 316 golden and 343 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 655 |
+| system | 657 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -3197,6 +3197,14 @@ Scenario: golden; level: system; verifies SA-74.
 - When: model is run on it
 - Then: it lists the via item naming its own client, the through key naming the permission and the through item naming its own client, each with its keyword, leaves out the two clients of the identity module, and exits 0
 
+#### model-scalar-forms
+
+Scenario: golden; level: system; verifies SA-74.
+
+- Given: a specification whose theme holds a table of every scalar form yaml.v3 tells apart: integers in each base with leading zeros, signs and underscores in every place, floats with exponents, the infinities and NaN, booleans and nulls in every spelling, timestamps in each layout and out of range, texts that look like numbers, quoted and block scalars, and each of these under !!int, !!float, !!str, !!bool, !!null, !!timestamp, ! and other tags
+- When: model is run on it
+- Then: both builds print each scalar as the value yaml.v3 decodes, a number or a bool only where it decodes as one under its tag and text otherwise, and an unquoted_date error at each scalar it reads as a timestamp, the same bytes from each, and exit 0
+
 #### model-usage-error
 
 Scenario: red; level: system; covers usage error; verifies SA-74.
@@ -3774,6 +3782,14 @@ Scenario: red; level: system; verifies SA-66.
 - Given: an estate file listing a module at a version its specification is not at, one under a key that is not its info.name, one at a folder that does not exist, one at a folder with no specification, and one whose specification has no info.name
 - When: validate is run on the estate file
 - Then: it reads every module that is there, refuses each entry as module at the module's entry, and exits 1
+
+#### validate-example-double-forms
+
+Scenario: red; level: system; covers exit 1.
+
+- Given: a worked example of a double field whose inputs are written in octal, with underscores, in hexadecimal, tagged !!float in binary, as .inf, and as text tagged !!float
+- When: validate is run
+- Then: both builds read each number as yaml.v3 decodes it, 017 as 15 and .inf as infinity, report example_input only for the text, and exit 1
 
 #### validate-example-error
 

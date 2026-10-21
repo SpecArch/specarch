@@ -1,0 +1,68 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.3.schema.json
+decisions:
+  ADR-176:
+    title: The Swift build reads every YAML scalar by yaml.v3's own resolve, and a table of scalar forms holds both builds to the same bytes
+    status: accepted
+    date: "2026-10-22"
+    context: |
+      The model both builds print must be the same bytes (ADR-138), and
+      so must validate's output. The Go build reads every document
+      through yaml.v3: the parser gives each scalar a tag, the one
+      written (other than `!`), `!!str` for a quoted or block scalar,
+      or the one its text resolves to; the value is then decoded under
+      that tag, and a text that does not fit it, such as `!!int 1.5` or
+      `!!bool yes`, stays text. The Swift build matched its own patterns
+      against the text, and fixing one form at a time (ADR-174 for
+      integers, ADR-175 for floats with underscores) kept turning up the
+      next: a hand-written `!!str`, a local tag such as `!custom`, `!!bool`
+      with a YAML 1.1 spelling, `!!int _1`, `!!float 017`, `0b+1`, and
+      timestamps such as `2001-12-14T21:59:43` with no zone or
+      `2001-02-30` (BUG-055).
+    decision: |
+      The Swift build reads a scalar as yaml.v3 does, in one place
+      (`resolveScalar` in `Source.swift`), not by patterns of its own:
+      - its tag is the tag written, `tag:yaml.org,2002:int` as `!!int`,
+        any other kept as written; with no tag or `!`, `!!str` for a
+        quoted or block scalar, and for a plain one the tag its text
+        resolves to;
+      - a text resolves as yaml.v3's resolve has it: the null, bool and
+        infinity spellings of the core schema; a text that starts with a
+        dot is read by Go's ParseFloat; one that starts with a digit or
+        a sign is a timestamp when Go's time.Parse reads it by one of
+        yaml.v3's four layouts, otherwise, with its underscores dropped,
+        an integer by its prefix (a bare leading 0 octal), an unsigned
+        integer, a float of the core schema's form, or a 0b or 0o
+        integer with a sign after the prefix;
+      - under an explicit `!!bool`, `!!int` or `!!float` the text must
+        resolve to that tag, an integer under `!!float` being its
+        float; otherwise it is text, as is any scalar under a tag other
+        than these and `!!null`, and a float that is not finite; any
+        text under `!!null` is null.
+      The Yams parser is given a resolver that leaves an untagged scalar
+      marked untagged, so that its own resolver, which follows YAML 1.1
+      and runs when a mapping's keys are compared, never takes the place
+      of the tag written. A number in a worked example of a double
+      field is read the same way. The case `model-scalar-forms` holds a
+      table of every scalar form yaml.v3 tells apart, plain, quoted and
+      under each core tag, and the conformance suite runs it against
+      both builds.
+    why: |
+      YAML 1.2's core schema is the standard, and yaml.v3 departs from it
+      in places: underscores, a bare leading 0 read as octal, a sign
+      after 0b or 0o, timestamps, which the core schema does not have,
+      and a decimal past 64 bits read as a float. The core schema's
+      rules protect a reader from a text that one parser reads as a
+      number and another as a string; here the danger is the same one
+      between the two builds, and the Go build cannot be told to read
+      by the core schema, since yaml.v3 resolves while it parses. The
+      Swift build therefore follows yaml.v3 in every case, and a value
+      that must stay text is quoted, as for any value YAML could read
+      another way. Fixing one form at a time left the rest unchecked;
+      one reader, ported from yaml.v3 as a whole and checked against a
+      table of every form, ends the class.
+    consequences: |
+      The cases `model-scalar-forms` and `validate-example-double-forms`
+      print the same bytes from both builds; a form either build reads
+      differently fails the Swift conformance suite. ADR-174 and ADR-175
+      describe two parts of this reader.
+    satisfies: [SA-74]

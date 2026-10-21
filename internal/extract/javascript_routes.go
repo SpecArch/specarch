@@ -129,12 +129,19 @@ func (js *jsReader) readRoutes() {
 			if reason != "" {
 				return nil, reason
 			}
+			// Middleware an earlier use() without a path adds on the router
+			// the mount is made on runs for every route under the mount too.
+			var used []jsValue
+			var usedAt []string
+			if parent := f.Callee.Member.Object.Declaration; parent != nil {
+				used, usedAt = js.earlierUses(parent.key(), f)
+			}
 			for _, b := range base {
-				chainAt := append([]string{}, b.chainAt...)
+				chainAt := append(append([]string{}, b.chainAt...), usedAt...)
 				for range chain {
 					chainAt = append(chainAt, js.clause(f))
 				}
-				mounts = append(mounts, jsMount{segments: append(append([]string{}, b.segments...), segs...), chain: append(append([]jsValue{}, b.chain...), chain...), chainAt: chainAt, at: append(append([]string{}, b.at...), js.clause(f))})
+				mounts = append(mounts, jsMount{segments: append(append([]string{}, b.segments...), segs...), chain: append(append(append([]jsValue{}, b.chain...), used...), chain...), chainAt: chainAt, at: append(append([]string{}, b.at...), js.clause(f))})
 			}
 		}
 		if len(mounts) == 0 {
@@ -373,20 +380,7 @@ func (js *jsReader) readRoutes() {
 			router = &object.Call.Callee.Member.Object
 		}
 		if router.Declaration != nil {
-			for _, u := range js.calls {
-				if u.Callee == nil || u.Callee.Member == nil || u.Callee.Member.Name != "use" || u.File != f.File || u.Line >= f.Line {
-					continue
-				}
-				if u.Callee.Member.Object.Declaration.key() != router.Declaration.key() || len(u.Arguments) == 0 || u.Arguments[0].String != nil {
-					continue
-				}
-				for _, a := range u.Arguments {
-					if js.routerKind(js.variableOf(&a)) == "" {
-						used = append(used, a)
-						usedAt = append(usedAt, js.clause(u))
-					}
-				}
-			}
+			used, usedAt = js.earlierUses(router.Declaration.key(), f)
 		}
 		for _, m := range mounts {
 			copyRt := *rt
@@ -980,4 +974,28 @@ func (js *jsReader) readHandler(rt *jsRoute, op *yaml.Node) string {
 	js.question("must", fmt.Sprintf("The handler of %s reads %s of its body, with no validation schema or declared type. Which type is each, and which are required?", label, joinAnd(fields)),
 		append(blocks, at+"/required"), "The code names the fields it reads and not their types, which plain JavaScript does not declare.", cites[0])
 	return reply
+}
+
+// earlierUses is the middleware the use() calls without a path on the
+// router declared at key add before the call f, in its file, and where
+// each is added: Express runs it for every route registered after it,
+// and for every route of a router mounted after it.
+func (js *jsReader) earlierUses(key string, f *jsFact) ([]jsValue, []string) {
+	var used []jsValue
+	var usedAt []string
+	for _, u := range js.calls {
+		if u.Callee == nil || u.Callee.Member == nil || u.Callee.Member.Name != "use" || u.File != f.File || u.Line >= f.Line {
+			continue
+		}
+		if u.Callee.Member.Object.Declaration.key() != key || len(u.Arguments) == 0 || u.Arguments[0].String != nil {
+			continue
+		}
+		for _, a := range u.Arguments {
+			if js.routerKind(js.variableOf(&a)) == "" {
+				used = append(used, a)
+				usedAt = append(usedAt, js.clause(u))
+			}
+		}
+	}
+	return used, usedAt
 }

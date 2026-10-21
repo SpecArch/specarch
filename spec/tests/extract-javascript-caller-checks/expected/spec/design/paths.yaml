@@ -21,7 +21,7 @@ paths:
       callers: [admin-console]
       origin: stated
       cites:
-        - {source: code, clause: 'server/src/app.ts:15', says: 'Registers POST /admin/invoices/{invoiceId}/restore; its handler is restoreInvoice; its middleware checks invoices.restore; it is gated by requireClient.'}
+        - {source: code, clause: 'server/src/app.ts:15', says: 'Registers POST /admin/invoices/{invoiceId}/restore; its handler is restoreInvoice; its middleware checks invoices.restore; it is gated by requireAudience and requireClient.'}
         - {source: code, clause: 'server/src/app.ts:16', says: 'Mounts the router that registers POST /admin/invoices/{invoiceId}/restore.'}
         - {source: code, clause: 'server/src/app.ts:38', says: The handler restoreInvoice.}
   /invoices:

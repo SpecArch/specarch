@@ -1265,7 +1265,8 @@ commands:
         path of the file that declares the check from the folder read,
         without its extension. A check's call with a literal permission,
         as middleware of the route, of a mount above it, of an earlier
-        `use` on the same router or of Fastify's `onRequest`,
+        `use` without a path on the same router or, before a mount above
+        it, on the router that mount is made on, or of Fastify's `onRequest`,
         `preValidation` or `preHandler`, or called in the handler, is the
         operation's; none, several and one that is not a literal are must
         questions. The gates the implementation file names under

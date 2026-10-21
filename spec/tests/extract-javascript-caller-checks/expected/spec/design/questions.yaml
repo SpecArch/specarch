@@ -178,9 +178,9 @@ questions:
     why: The application is a condition on a grant, written on the role keyed by the permission (ADR-106); the reader writes no role, and the code shows the check, not which grant it narrows.
     cites:
       - {source: code, clause: 'server/src/app.ts:11', says: 'Calls requireApplication, which the implementation file names as an application check.'}
-  # specarch-problem: question: open_question: (must, decision) The check requireAudience compares a token's aud with process.env.TOKEN_AUDIENCE ?? '' at 5 operations. Which audience names this service: the const of aud on the access token it accepts? A value per environment goes in the implementation file's deployments. It blocks tokens. Decided by system-owner. Answer with a decision record that names Q-21 under answers. [Q-21]
+  # specarch-problem: question: open_question: (must, decision) The check requireAudience compares a token's aud with process.env.TOKEN_AUDIENCE ?? '' at 6 operations. Which audience names this service: the const of aud on the access token it accepts? A value per environment goes in the implementation file's deployments. It blocks tokens. Decided by system-owner. Answer with a decision record that names Q-21 under answers. [Q-21]
   Q-21:
-    question: 'The check requireAudience compares a token''s aud with process.env.TOKEN_AUDIENCE ?? '''' at 5 operations. Which audience names this service: the const of aud on the access token it accepts? A value per environment goes in the implementation file''s deployments.'
+    question: 'The check requireAudience compares a token''s aud with process.env.TOKEN_AUDIENCE ?? '''' at 6 operations. Which audience names this service: the const of aud on the access token it accepts? A value per environment goes in the implementation file''s deployments.'
     kind: decision
     priority: must
     blocks: [tokens]

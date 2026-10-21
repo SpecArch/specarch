@@ -734,3 +734,17 @@ Expected: a block on `#/paths/~1parcels/post` holds up the drafts of `POST /parc
 To repeat: run `specarch extract go` on `spec/tests/extract-go-handlers/testdata/service` as its `case.yaml` does. The line for `listParcels` (`GET /parcels`) names the questions on `POST /parcels`'s body widths and on `storeParcel`'s dropped result and missing transaction, and the line for `storeParcel` names `listParcels`'s. The case's golden records this until the fix.
 
 Fix: a block holds up the subject `Block.Holds` names (`internal/spec/spec.go`, and `holds` in the Swift build's `Spec.swift`): its element, or, for a pointer into an operation, the path and its method. `blockedBy` in `internal/validate/drafts.go` and `heldUp` in `Tests.swift` compare with it, so a block on `#/paths/~1parcels/post` holds up `POST /parcels` alone, and a block on the path holds up every method. The case `validate-question-holds-one-method` shows a 0.3 specification's GET reported as missing its tests (an error) while its POST is held up (a warning), in both builds; the "not derived" lines of 20 extract and merge goldens now name only the questions on each operation, `listParcels` held up by Q-12 and Q-13 and `storeParcel` by its own six.
+
+## BUG-045 — extract javascript: a use() on the application before a mount does not reach the mounted router's routes
+
+- Reported: 2026-10-21, found while adding a mounted gate to extract-javascript-caller-checks
+- Closed: 2026-10-21, completed
+- Fixed by: the commit on `main` whose message says `Fixes BUG-045`
+
+Express runs the middleware an earlier `app.use(mw)` adds for every request after it, the routes of a router mounted later with `app.use('/admin', admin)` included. The reader adds only the middleware of an earlier `use` on the router that registers the route (`spec/design/commands/extract.yaml`: "of an earlier `use` on the same router"), so a permission check or a gate added by `use` on the application, or on any router above the mount, is not read for the mounted router's routes.
+
+Expected: an earlier `use` without a path, on the router a mount is made on, is part of that mount's chain, cited where it is made, for every route under the mount.
+
+To repeat: run `specarch extract javascript` on `spec/tests/extract-javascript-caller-checks` as its `case.yaml` does. `app.use(requireAudience(...))` at `server/src/app.ts:9` guards 5 operations, and `POST /admin/invoices/{invoiceId}/restore`, whose router is mounted at line 16, is not among them. The case's golden records this until the fix.
+
+Fix: `mountsOfRouter` in `internal/extract/javascript_routes.go` adds to each mount's chain the middleware of every earlier `use` without a path on the router the mount is made on, in its file, cited at that `use`, before the mount's own middleware; `earlierUses` is shared with the route's own earlier uses. In `extract-javascript-caller-checks`, `requireAudience` from `app.use` at `server/src/app.ts:9` now guards 6 operations, `POST /admin/invoices/{invoiceId}/restore` among them, and that operation's cite says it is gated by requireAudience and requireClient. The design of `extract` says it.

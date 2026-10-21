@@ -13041,13 +13041,17 @@ starts with a digit or a sign is a float when, with its underscores
 dropped, it is not an integer and has the core schema's float form;
 a scalar that starts with a dot is a float when it has that form
 with its underscores dropped and each underscore stands between
-two digits. The value is read with the underscores dropped. Both
-builds therefore print `0_8`, `1_0.5` and `.5_0` as 8, 10.5 and
-0.5, and `._5`, `.5_` and `_1.5` as text.
+two digits. The value is read with the underscores dropped. A
+scalar tagged `!!float` by hand follows the same rule: its
+underscores are dropped only where a plain float's would be, and
+any other start keeps them, so the scalar stays text. Both builds
+therefore print `0_8`, `1_0.5` and `.5_0` as 8, 10.5 and 0.5, and
+`._5`, `.5_` and `_1.5` as text, tagged `!!float` or not.
 
 Consequences: The case model-float-underscores prints floats written with
 underscores in each place yaml.v3 takes one, and the forms it
-leaves as text, as the same values from both builds.
+leaves as text, plain and under an explicit `!!float` tag, as the
+same values from both builds.
 
 **Insight:** The core schema leaves underscores out of a float so that every parser reads the same text as the same number, with no rule on where a separator may stand. Here the two builds must print the same model, and the Go build reads every document through yaml.v3, which cannot be told to refuse them; following yaml.v3 in the Swift build is a few lines, as for integers (ADR-174). A value that must stay text, such as a version written with underscores, is quoted, as any value YAML could read another way.
 
@@ -13444,7 +13448,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | merge-workflows-joins-trigger | command merge | system | golden | the tree of a route table that declares requestWriteOff, and the tree of a BPMN file whose workflow leaves its trigger and its service task's operation out, each with a must question naming the operation, requestWriteOff and writeOffLoan | merge is run on the two trees | the trigger is written as requestWriteOff after the workflow's description and its question is left out as joined, naming the tree that declares it; the question for writeOffLoan, which no tree declares, stays open; it exits 0 |
 | merge-workflows-table-and-bpmn | command merge | system | golden | the tree extract workflows wrote of a BPMN file defining the write-off workflow, and the tree extract workflows --table wrote of the workflow table of the same workflow in an engine's own format, both read from one repository at one commit | merge is run on the two trees | it writes one workflow write-off whose description and steps both trees give alike, citing the BPMN file and the table's definition file, role desk-supervisor citing both, the source's clauses joined, each question the table's tree asks again at the same key left out as asked twice, the could question for the form kept, and exits 0 |
 | model-exit-2 | command model | system | red | a path that does not exist | model is run on it | it names the path it cannot read on standard error, prints nothing, and exits 2 |
-| model-float-underscores | command model | system | golden | a specification whose theme holds floats written with underscores, after a leading zero, before a dot or an exponent's mark, or at the end, and some starting with a dot or an underscore | model is run on it | both builds print each as the number yaml.v3 reads, 0_8 and 1_0.5 as 8 and 10.5, .5_0 as 0.5, and ._5, .5_ and _1.5 as text, the same bytes from each, and exit 0 |
+| model-float-underscores | command model | system | golden | a specification whose theme holds floats written with underscores, after a leading zero, before a dot or an exponent's mark, or at the end, some starting with a dot or an underscore, and the same forms under an explicit !!float tag | model is run on it | both builds print each as the number yaml.v3 reads, 0_8 and 1_0.5 as 8 and 10.5, .5_0 as 0.5, and ._5, .5_ and _1.5 as text, tagged !!float or not, the same bytes from each, and exit 0 |
 | model-integer-forms | command model | system | golden | a specification whose theme holds integers written in hexadecimal, octal and binary, with capital and small prefixes, signs and underscores, one past 64 bits and one that is no number | model is run on it | both builds print each integer as the number yaml.v3 reads, 0x1F and 017 as 31 and 15, the one past 64 bits and 0o8 as text, the same bytes from each, and exit 0 |
 | model-lists-via-and-through | command model | system | golden | a specification whose operation names a client of its own and one of the identity module in via, and whose role narrows a permission through a client of its own and one of the identity module | model is run on it | it lists the via item naming its own client, the through key naming the permission and the through item naming its own client, each with its keyword, leaves out the two clients of the identity module, and exits 0 |
 | model-usage-error | command model | system | red | no folder or file | model is run with no argument | it prints how to use it and exits 2 |

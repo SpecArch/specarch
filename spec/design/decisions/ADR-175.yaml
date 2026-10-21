@@ -21,9 +21,12 @@ decisions:
       dropped, it is not an integer and has the core schema's float form;
       a scalar that starts with a dot is a float when it has that form
       with its underscores dropped and each underscore stands between
-      two digits. The value is read with the underscores dropped. Both
-      builds therefore print `0_8`, `1_0.5` and `.5_0` as 8, 10.5 and
-      0.5, and `._5`, `.5_` and `_1.5` as text.
+      two digits. The value is read with the underscores dropped. A
+      scalar tagged `!!float` by hand follows the same rule: its
+      underscores are dropped only where a plain float's would be, and
+      any other start keeps them, so the scalar stays text. Both builds
+      therefore print `0_8`, `1_0.5` and `.5_0` as 8, 10.5 and 0.5, and
+      `._5`, `.5_` and `_1.5` as text, tagged `!!float` or not.
     why: |
       The core schema leaves underscores out of a float so that every
       parser reads the same text as the same number, with no rule on
@@ -36,5 +39,6 @@ decisions:
     consequences: |
       The case model-float-underscores prints floats written with
       underscores in each place yaml.v3 takes one, and the forms it
-      leaves as text, as the same values from both builds.
+      leaves as text, plain and under an explicit `!!float` tag, as the
+      same values from both builds.
     satisfies: [SA-74]

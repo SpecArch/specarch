@@ -3177,9 +3177,9 @@ Scenario: red; level: system; covers exit 2; verifies SA-74.
 
 Scenario: golden; level: system; verifies SA-74.
 
-- Given: a specification whose theme holds floats written with underscores, after a leading zero, before a dot or an exponent's mark, or at the end, and some starting with a dot or an underscore
+- Given: a specification whose theme holds floats written with underscores, after a leading zero, before a dot or an exponent's mark, or at the end, some starting with a dot or an underscore, and the same forms under an explicit !!float tag
 - When: model is run on it
-- Then: both builds print each as the number yaml.v3 reads, 0_8 and 1_0.5 as 8 and 10.5, .5_0 as 0.5, and ._5, .5_ and _1.5 as text, the same bytes from each, and exit 0
+- Then: both builds print each as the number yaml.v3 reads, 0_8 and 1_0.5 as 8 and 10.5, .5_0 as 0.5, and ._5, .5_ and _1.5 as text, tagged !!float or not, the same bytes from each, and exit 0
 
 #### model-integer-forms
 

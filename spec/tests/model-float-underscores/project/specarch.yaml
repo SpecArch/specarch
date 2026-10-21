@@ -4,3 +4,4 @@ theme:
   tokens:
     count:
       forms: { $value: [0_8, 1_0.5, -1_0.5, +1_000.25, 1_0e3, 1_0., 1_0.5_, .5_0, ._5, .5_, _1.5] }
+      tagged: { $value: [!!float ._5, !!float .5_, !!float _1.5, !!float .5_0, !!float -._5, !!float 1_0.5] }

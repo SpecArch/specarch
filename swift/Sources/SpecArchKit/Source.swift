@@ -311,17 +311,27 @@ private func resolveTag(_ v: String, explicit: String, style: YNode.Style) -> St
 /// written, an underscore allowed only between two digits, as Go's
 /// ParseFloat takes it, so .5_0 is 0.5 and ._5 is text.
 private func isFloat(_ v: String) -> Bool {
-    guard let first = v.first else { return false }
+    guard let clean = floatText(v) else { return false }
+    return matches(floatPattern, clean)
+}
+
+/// A float's text with its underscores dropped under yaml.v3's rule
+/// (ADR-175), for a plain scalar and an explicit !!float alike: a digit or
+/// sign start drops them all; a dot start takes them only between two
+/// digits; any other start keeps them. Nil when an underscore is kept,
+/// which leaves the scalar text.
+private func floatText(_ v: String) -> String? {
+    guard let first = v.first else { return nil }
     if first == "." {
         let chars = Array(v)
         for (i, c) in chars.enumerated() where c == "_" {
             guard i > 0, i + 1 < chars.count, chars[i - 1].isASCII, chars[i - 1].isNumber,
-                  chars[i + 1].isASCII, chars[i + 1].isNumber else { return false }
+                  chars[i + 1].isASCII, chars[i + 1].isNumber else { return nil }
         }
     } else if !(first == "-" || first == "+" || (first.isASCII && first.isNumber)) {
-        return false
+        return v.contains("_") ? nil : v
     }
-    return matches(floatPattern, v.replacingOccurrences(of: "_", with: ""))
+    return v.replacingOccurrences(of: "_", with: "")
 }
 
 private func jsonValue(_ n: YNode, path: String, duplicates: [(key: String, first: Int, again: Int)], problems: inout [Problem]) -> JSONValue {
@@ -376,8 +386,7 @@ func scalarValue(_ n: YNode) -> JSONValue {
         if let u = parseUnsigned(clean) { return .number(Decimal(string: String(u))!, String(u)) }
         return .string(n.value)
     case "!!float":
-        let clean = n.value.replacingOccurrences(of: "_", with: "")
-        if let d = Double(clean), d.isFinite {
+        if let clean = floatText(n.value), let d = Double(clean), d.isFinite {
             let text = "\(d)".replacingOccurrences(of: ".0e", with: "e")
             return .number(Decimal(string: clean) ?? Decimal(d), text)
         }

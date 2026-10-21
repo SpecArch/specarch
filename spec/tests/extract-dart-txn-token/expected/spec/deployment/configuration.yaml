@@ -1,0 +1,6 @@
+configuration:
+  port:
+    schema: {type: string}
+    origin: stated
+    cites:
+      - {source: code, clause: 'svc/lib/server.dart:6', says: 'Reads Platform.environment["PORT"].'}

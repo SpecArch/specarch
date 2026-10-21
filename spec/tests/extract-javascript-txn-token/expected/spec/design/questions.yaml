@@ -1,0 +1,115 @@
+questions:
+  # specarch-problem: question: open_question: (must, decision) What does GET /invoices do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-1 under answers. [Q-1]
+  Q-1:
+    question: What does GET /invoices do, and what does it answer?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1invoices/get/summary', '#/paths/~1invoices/get/responses']
+    decidedBy: system-owner
+    why: A registration names the handler and not what it does or the responses it gives.
+  # specarch-problem: question: open_question: (must, decision) GET /invoices checks no permission the reader knows, since no implementation file names the project's checks. Is it meant to be open to everyone (public), or which permission should it check? Decided by system-owner. Answer with a decision record that names Q-2 under answers. [Q-2]
+  Q-2:
+    question: GET /invoices checks no permission the reader knows, since no implementation file names the project's checks. Is it meant to be open to everyone (public), or which permission should it check?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1invoices/get/permission']
+    decidedBy: system-owner
+    why: An operation open to everyone is how an open endpoint is usually found, so it is asked, never assumed.
+  # specarch-problem: question: open_question: (must, decision) Does the running system register GET /invoices? It is declared at server/src/app.ts:6, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-3 under answers. [Q-3]
+  Q-3:
+    question: Does the running system register GET /invoices? It is declared at server/src/app.ts:6, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1invoices/get']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'server/src/app.ts:6', says: Registers GET /invoices.}
+  # specarch-problem: question: open_question: (must, decision) What values does each path parameter of /invoices/{invoiceId}/send take: invoiceId? Decided by system-owner. Answer with a decision record that names Q-4 under answers. [Q-4]
+  Q-4:
+    question: 'What values does each path parameter of /invoices/{invoiceId}/send take: invoiceId?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1invoices~1{invoiceId}~1send/parameters/0/schema']
+    decidedBy: system-owner
+    why: Express names a path's parameters and not the values they take.
+  # specarch-problem: question: open_question: (must, decision) server/src/app.ts:9: the handler of POST /invoices/{invoiceId}/send reads the Txn-Token header, so the operation accepts a transaction token. Declare it under tokens with tokenType txn_token and its claims, name it in the operation's token, and list the services that call it on a person's behalf in via. Decided by system-owner. Answer with a decision record that names Q-5 under answers. [Q-5]
+  Q-5:
+    question: 'server/src/app.ts:9: the handler of POST /invoices/{invoiceId}/send reads the Txn-Token header, so the operation accepts a transaction token. Declare it under tokens with tokenType txn_token and its claims, name it in the operation''s token, and list the services that call it on a person''s behalf in via.'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1invoices~1{invoiceId}~1send/post/token', '#/paths/~1invoices~1{invoiceId}~1send/post/via']
+    decidedBy: system-owner
+    why: The Txn-Token header carries a transaction token and nothing else (the Transaction Tokens draft, section 12); its claims and the immediate callers are the design's, and the code shows only that the header is read.
+    cites:
+      - {source: code, clause: 'server/src/app.ts:9', says: Reads the header Txn-Token.}
+  # specarch-problem: question: open_question: (must, decision) What does POST /invoices/{invoiceId}/send do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-6 under answers. [Q-6]
+  Q-6:
+    question: What does POST /invoices/{invoiceId}/send do, and what does it answer?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1invoices~1{invoiceId}~1send/post/summary', '#/paths/~1invoices~1{invoiceId}~1send/post/responses']
+    decidedBy: system-owner
+    why: A registration names the handler and not what it does or the responses it gives.
+  # specarch-problem: question: open_question: (must, decision) POST /invoices/{invoiceId}/send checks no permission the reader knows, since no implementation file names the project's checks. Is it meant to be open to everyone (public), or which permission should it check? Decided by system-owner. Answer with a decision record that names Q-7 under answers. [Q-7]
+  Q-7:
+    question: POST /invoices/{invoiceId}/send checks no permission the reader knows, since no implementation file names the project's checks. Is it meant to be open to everyone (public), or which permission should it check?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1invoices~1{invoiceId}~1send/post/permission']
+    decidedBy: system-owner
+    why: An operation open to everyone is how an open endpoint is usually found, so it is asked, never assumed.
+  # specarch-problem: question: open_question: (must, decision) Does the running system register POST /invoices/{invoiceId}/send? It is declared at server/src/app.ts:8, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-8 under answers. [Q-8]
+  Q-8:
+    question: Does the running system register POST /invoices/{invoiceId}/send? It is declared at server/src/app.ts:8, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1invoices~1{invoiceId}~1send/post']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'server/src/app.ts:8', says: 'Registers POST /invoices/{invoiceId}/send.'}
+  # specarch-problem: question: open_question: (must, decision) What values does each path parameter of /invoices/{invoiceId}/void take: invoiceId? Decided by system-owner. Answer with a decision record that names Q-9 under answers. [Q-9]
+  Q-9:
+    question: 'What values does each path parameter of /invoices/{invoiceId}/void take: invoiceId?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1invoices~1{invoiceId}~1void/parameters/0/schema']
+    decidedBy: system-owner
+    why: Express names a path's parameters and not the values they take.
+  # specarch-problem: question: open_question: (must, decision) server/src/app.ts:17: the handler of POST /invoices/{invoiceId}/void reads the Txn-Token header, so the operation accepts a transaction token. Declare it under tokens with tokenType txn_token and its claims, name it in the operation's token, and list the services that call it on a person's behalf in via. Decided by system-owner. Answer with a decision record that names Q-10 under answers. [Q-10]
+  Q-10:
+    question: 'server/src/app.ts:17: the handler of POST /invoices/{invoiceId}/void reads the Txn-Token header, so the operation accepts a transaction token. Declare it under tokens with tokenType txn_token and its claims, name it in the operation''s token, and list the services that call it on a person''s behalf in via.'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1invoices~1{invoiceId}~1void/post/token', '#/paths/~1invoices~1{invoiceId}~1void/post/via']
+    decidedBy: system-owner
+    why: The Txn-Token header carries a transaction token and nothing else (the Transaction Tokens draft, section 12); its claims and the immediate callers are the design's, and the code shows only that the header is read.
+    cites:
+      - {source: code, clause: 'server/src/app.ts:17', says: Reads the header txn-token.}
+  # specarch-problem: question: open_question: (must, decision) What does POST /invoices/{invoiceId}/void do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-11 under answers. [Q-11]
+  Q-11:
+    question: What does POST /invoices/{invoiceId}/void do, and what does it answer?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1invoices~1{invoiceId}~1void/post/summary', '#/paths/~1invoices~1{invoiceId}~1void/post/responses']
+    decidedBy: system-owner
+    why: A registration names the handler and not what it does or the responses it gives.
+  # specarch-problem: question: open_question: (must, decision) POST /invoices/{invoiceId}/void checks no permission the reader knows, since no implementation file names the project's checks. Is it meant to be open to everyone (public), or which permission should it check? Decided by system-owner. Answer with a decision record that names Q-12 under answers. [Q-12]
+  Q-12:
+    question: POST /invoices/{invoiceId}/void checks no permission the reader knows, since no implementation file names the project's checks. Is it meant to be open to everyone (public), or which permission should it check?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1invoices~1{invoiceId}~1void/post/permission']
+    decidedBy: system-owner
+    why: An operation open to everyone is how an open endpoint is usually found, so it is asked, never assumed.
+  # specarch-problem: question: open_question: (must, decision) Does the running system register POST /invoices/{invoiceId}/void? It is declared at server/src/app.ts:7, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-13 under answers. [Q-13]
+  Q-13:
+    question: Does the running system register POST /invoices/{invoiceId}/void? It is declared at server/src/app.ts:7, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1invoices~1{invoiceId}~1void/post']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'server/src/app.ts:7', says: 'Registers POST /invoices/{invoiceId}/void.'}

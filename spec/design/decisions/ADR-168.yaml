@@ -2,7 +2,7 @@
 decisions:
   ADR-168:
     title: A guard's writes says what a change writes when no keyword of its entry does, set with given or a literal for each field, or delete, and specarch-gen-scripts writes the guarded script from it
-    status: proposed
+    status: accepted
     date: "2026-10-21"
     context: |
       Target 8 of the roadmap. ADR-158 derives what a guarded change
@@ -110,4 +110,6 @@ decisions:
       records refused by its count with nothing changed. A change the
       design does not say stays a warning at its guard, which names writes
       where writes would say the change.
+
+      Shipped in 0.7.3.
     satisfies: [SA-87, SA-29]

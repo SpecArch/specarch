@@ -2,7 +2,7 @@
 decisions:
   ADR-167:
     title: specarch-gen-scripts writes a guarded script for MariaDB as one compound statement the mariadb client runs, with user variables given in --init-command, each checked against its column's form before anything is read, in a strict session
-    status: proposed
+    status: accepted
     date: "2026-10-21"
     context: |
       ADR-158 wrote the guarded scripts for PostgreSQL only, and the
@@ -161,6 +161,8 @@ decisions:
       tried on MariaDB 11.4.4, a row inserted before it kept
       2026-10-20 21:19:07 and one inserted after it filled
       2026-10-20T21:19:08.005756000Z.
+
+      Shipped in 0.7.3.
     satisfies: [SA-87]
     cites:
       - source: mariadb-compound-statements

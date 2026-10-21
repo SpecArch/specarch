@@ -37,11 +37,10 @@ decisions:
       that call passes.
     consequences: |
       An implementation file without the gate keys reads as before in
-      every reader. The Txn-Token header read stays with extract go: the
-      other readers do not read a handler's headers yet, so an operation
-      whose handler reads it is not asked about there. The facts dumps are
-      unchanged, since they already carry calls with their arguments and
-      array and list literals. The cases extract-swift-caller-checks,
+      every reader. The Txn-Token header read is asked in every reader
+      too (ADR-173). The facts dumps are unchanged for the gates, since
+      they already carry calls with their arguments and array and list
+      literals. The cases extract-swift-caller-checks,
       extract-javascript-caller-checks and extract-dart-caller-checks hold
       the readings.
     why: |

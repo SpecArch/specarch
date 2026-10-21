@@ -304,6 +304,7 @@ models are read as data, in Go, at the dump's commit.
 | server routes (Vapor) | the route table where the project prints one; source: `app.get("loans", ":id", use:)`, `grouped` and `group` with literal segments, and a `RouteCollection` under its `register(collection:)` | as for Go |
 | permission checks | source: a middleware a group is given, made by a check the implementation file names | an iPhone app checks nothing for the server, so a screen's permission is asked |
 | client, signature, application, caller and audience checks, and event writers | a middleware a group is given, made by a gate the implementation file names | as for Go (ADR-169) |
+| a handler reading the `Txn-Token` header | `req.headers.first(name: "Txn-Token")` or `req.headers["Txn-Token"]` in the handler function, in any case | as for Go, in its words (ADR-173) |
 | API clients | source: `URLRequest` with a literal `httpMethod`, and URLSession's `data`, `download` and `upload` given a URL from literal parts | a part interpolated from one value becomes `{name}` with a `should` question naming it; each names a dependency by host |
 | configuration | `Info.plist` and `.xcconfig` read as data; `Bundle.main.object(forInfoDictionaryKey:)`, `infoDictionary[...]`, `ProcessInfo`'s environment and Vapor's `Environment.get` from source | the files hold the values; the bundle's own keys and the entitlements are not settings the app reads |
 
@@ -332,6 +333,7 @@ source states them, from TypeScript or from JSDoc.
 | request and response bodies | the declared types of a handler's request and reply (`Request<Params, Res, Body>`, Fastify's generic) and a validation schema the reader knows (zod, yup, joi, Fastify's JSON Schema) | a schema of a validator is stated in both languages |
 | permission checks | middleware the implementation file names, called with a literal permission | as for Go |
 | client, signature, application, caller and audience checks, and event writers | middleware the implementation file names, called or named without a call, and a call in the handler | as for Go (ADR-169) |
+| a handler reading the `Txn-Token` header | `req.headers['txn-token']` on the handler's first parameter, in any case | as for Go, in its words (ADR-173) |
 | models | the catalogue; zod, yup and joi object schemas a module-level variable holds, and the types a route declares; ORM declarations (Prisma's `schema.prisma` read as data, TypeORM and Sequelize decorators and `define` calls) add names in a later step | the database holds the data model; a validation schema is checked at run time, so it is stated in both languages |
 | React screens | the file-system routers above; React Router's `createBrowserRouter` and `<Route path>` with literal paths, the component a route shows a page with that route and its heading the title; plain pages whose files an implementation file names, once it has a key for them | the router is what makes a component a screen |
 | a screen's fields | form controls bound to a model property by a known form library (react-hook-form `register('name')`, Formik's `Field`, `getFieldProps` and `useField`); component library inputs an implementation file maps, once it has a key for them | fields by name, in the order of the source |
@@ -427,6 +429,7 @@ is listed and not read.
 | API clients | retrofit's `@GET('/loans/{id}')` annotations; dio and `http` calls with a literal path or one interpolated value per segment | as for JavaScript |
 | server routes | `shelf_router`'s `router.get('/loans/<id>', ...)`; dart_frog's `routes/` folders, read as a file-system router | as for Go |
 | client, signature, application, caller and audience checks, and event writers | a gate the implementation file names wrapping the handler, nested wrappers followed, called in it, or called in a dart_frog `_middleware.dart` above it | as for Go (ADR-169) |
+| a handler reading the `Txn-Token` header | `request.headers['txn-token']` in a shelf handler, or `context.request.headers['txn-token']` in a dart_frog `onRequest`, for the methods whose branch reads it, in any case | as for Go, in its words (ADR-173) |
 | configuration | `String.fromEnvironment('NAME')` and the other `fromEnvironment` constructors, and `Platform.environment['NAME']`; flavour files read as data in a later step | as for Go |
 
 ## Why this order

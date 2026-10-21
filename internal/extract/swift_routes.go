@@ -568,11 +568,18 @@ func (sw *swiftReader) writeRoutes(routes []*swRoute) {
 }
 
 // readHandler reads what a handler function says of its operation: the
-// path parameters it reads and the body it decodes.
+// path parameters it reads, the body it decodes, and a read of the
+// Txn-Token header, by Vapor's headers.first(name:) or a subscript of the
+// headers (ADR-173).
 func (sw *swiftReader) readHandler(rt *swRoute, op *yaml.Node) {
 	label := rt.method + " " + rt.path
 	scope := rt.handlerFn.Within + "|" + rt.handlerFn.Name
+	txn := false
 	for _, f := range sw.byScope[scope] {
+		if name, ok := sw.headerRead(f); ok && isTxnTokenHeader(name) && !txn {
+			txn = true
+			askTransactionToken(sw.gateHost(), sw.clause(f), label, rt.at, name)
+		}
 		if f.Kind != "call" {
 			continue
 		}
@@ -601,6 +608,22 @@ func (sw *swiftReader) readHandler(rt *swRoute, op *yaml.Node) {
 			set(op, "requestBody", mapping("required", true, "content", mapping("application/json", flow(mapping("schema", field.node)))))
 		}
 	}
+}
+
+// headerRead is the name of the request header a fact reads by a literal:
+// Vapor's headers.first(name:) or a subscript of the headers.
+func (sw *swiftReader) headerRead(f *swFact) (string, bool) {
+	base := f.baseName()
+	if base != "headers" && !strings.HasSuffix(base, ".headers") {
+		return "", false
+	}
+	switch {
+	case f.Kind == "subscript":
+		return f.Key.stringLiteral()
+	case f.Kind == "call" && f.Name == "first":
+		return f.argument("name").stringLiteral()
+	}
+	return "", false
 }
 
 // swClient is one call to another system a client makes.

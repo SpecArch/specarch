@@ -1,0 +1,9 @@
+questions:
+  # specarch-problem: question: open_question: (must, decision) What is each setting for, where does its value come from, and is it a secret: PORT? Decided by system-owner. Answer with a decision record that names Q-21 under answers. [Q-21]
+  Q-21:
+    question: 'What is each setting for, where does its value come from, and is it a secret: PORT?'
+    kind: decision
+    priority: must
+    blocks: ['#/configuration/port/description', '#/configuration/port/secret']
+    decidedBy: system-owner
+    why: The source names the settings it reads and not what they are for.

@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: extract
+level: system
+scenario: golden
+given: "a code-facts dump of a shelf_router server whose named handler reads accept-language from the request's headers, another reads txn-token, and a closure given at the route reads Txn-Token, which also reads PORT from Platform.environment; and a dart_frog route file whose onRequest reads txn-token only in its branch for POST"
+when: "extract dart is run on the dump"
+then: "it asks at each of the two shelf operations whose handler reads the Txn-Token header, in any case, and at POST /reports alone of the dart_frog route, for its transaction token and via, citing the line and the name as the code writes it, in the words extract go asks it; asks nothing of the route that reads another header or of GET /reports; reads PORT as the one setting and no header as a setting; and exits 0"
+verifies: [SA-89]

@@ -1,0 +1,26 @@
+paths:
+  /invoices:
+    get:
+      operationId: listInvoices
+      origin: stated
+      cites:
+        - {source: code, clause: 'server/Sources/App/routes.swift:4', says: Registers GET /invoices; its handler is listInvoices.}
+        - {source: code, clause: 'server/Sources/App/routes.swift:9', says: The handler listInvoices.}
+  /invoices/{invoiceId}/send:
+    parameters:
+      - {name: invoiceId, in: path, required: true}
+    post:
+      operationId: sendInvoice
+      origin: stated
+      cites:
+        - {source: code, clause: 'server/Sources/App/routes.swift:6', says: 'Registers POST /invoices/{invoiceId}/send; its handler is sendInvoice.'}
+        - {source: code, clause: 'server/Sources/App/routes.swift:19', says: The handler sendInvoice.}
+  /invoices/{invoiceId}/void:
+    parameters:
+      - {name: invoiceId, in: path, required: true}
+    post:
+      operationId: voidInvoice
+      origin: stated
+      cites:
+        - {source: code, clause: 'server/Sources/App/routes.swift:5', says: 'Registers POST /invoices/{invoiceId}/void; its handler is voidInvoice.'}
+        - {source: code, clause: 'server/Sources/App/routes.swift:14', says: The handler voidInvoice.}

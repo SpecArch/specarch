@@ -11,9 +11,9 @@
 // and nothing more: imports, classes with their annotations, fields,
 // constructors with their parameters, methods and functions, enums, the
 // calls and instance creations, comparisons of a method, and reads of the
-// environment, each with its file, line and column and its literal
-// values. What a fact means is decided by specarch extract, in Go, so the
-// rules of extract live in one place.
+// environment and of a request's headers, each with its file, line and
+// column and its literal values. What a fact means is decided by specarch
+// extract, in Go, so the rules of extract live in one place.
 
 import 'dart:convert';
 import 'dart:io';
@@ -448,7 +448,8 @@ class Reader extends RecursiveAstVisitor<void> {
   @override
   void visitIndexExpression(IndexExpression node) {
     final t = node.realTarget.toSource();
-    if (t.endsWith('environment')) {
+    // A read of the environment, or of a request's headers by a name.
+    if (t.endsWith('environment') || t.endsWith('headers')) {
       emit('index', node, {'on': t, 'key': value(node.index, 0), ...where(node)});
     }
     super.visitIndexExpression(node);

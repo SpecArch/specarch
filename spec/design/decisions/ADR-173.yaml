@@ -1,0 +1,68 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.3.schema.json
+decisions:
+  ADR-173:
+    title: extract swift, javascript and dart ask for the transaction token and via of an operation whose handler reads the Txn-Token header, in the words extract go asks it, and the Swift and Dart readers write a read of a request's headers by a name
+    status: accepted
+    date: "2026-10-21"
+    context: |
+      Roadmap 5, caller context. ADR-159 had extract go ask, at every
+      operation whose handler reads the Txn-Token header, for the
+      transaction token it accepts and its via, since that header carries
+      a transaction token and nothing else (ADR-111). ADR-169 brought the
+      gates to the swift, javascript and dart readers and left the header
+      read with extract go, because those readers did not read a
+      handler's headers: an operation in Swift, TypeScript or Dart that
+      accepts a transaction token was read as one that takes none. The
+      JavaScript reader already writes a read of a request's members,
+      headers among them; the Swift and Dart readers write neither
+      Vapor's headers.first(name:) nor a subscript of the headers.
+    decision: |
+      The Swift reader also writes a subscript of a value whose name ends
+      in headers, and a call of first on such a value, as it writes a
+      subscript of the environment: the call only on that value, since
+      first is a name every collection has. The Dart reader also writes a
+      read of a value whose name ends in headers by an index, as it writes
+      one of Platform.environment, and extract dart reads only the
+      environment's as settings. A handler that reads the header named
+      Txn-Token in any case, by a literal name, is one must question at
+      its operation, blocking its token and via, with the words, the
+      reason and the citation extract go gives, from the one function the
+      four readers share: in swift, Vapor's req.headers.first(name:) or
+      req.headers[...] in the handler function a route names; in
+      javascript, a read of the headers of the handler's first parameter,
+      req.headers['txn-token'] in Express or Fastify; in dart, a shelf
+      handler's request.headers[...] in the function or closure a route
+      names, and a dart_frog onRequest's context.request.headers[...] in
+      the branch of its method, or outside every branch. Only the
+      handler's own body is read; extract go follows the functions a
+      handler calls, the other readers do not.
+    consequences: |
+      The cases extract-swift-txn-token, extract-javascript-txn-token and
+      extract-dart-txn-token hold the readings: a header read in either
+      case and by either form is asked, a handler reading another header
+      is not, and a dart_frog route is asked for the method whose branch
+      reads it. A Swift or Dart dump made before this release has no
+      header reads, so the question is asked only once the dump is made
+      again; the reader is built again on its own, since the cache it is
+      built in is named by a hash of its files (ADR-116). The dumps of
+      code that reads no header are unchanged. ADR-169's consequence that
+      the header read stays with extract go no longer holds.
+    why: |
+      One meaning per header: the Txn-Token header carries a transaction
+      token whatever the language the handler is written in (the
+      Transaction Tokens draft, section 12), so every reader asks the
+      same question, and from one function, since the merge joins
+      questions by their words and two copies drift apart. A header's
+      name is matched in any case, as HTTP compares field names (RFC
+      9110, section 5.1), and Node gives them lower case. The printers
+      write what the syntax says and widen only by the base the read is
+      made on, so a dump of code with no header reads keeps its bytes and
+      an app full of collections gains no facts. The handler's own body
+      only, because the dumps say in which function a fact is and not
+      which functions a handler calls; a read in a helper is left to the
+      question on what the operation does.
+      Compiler test: a header read is asked at the operation whose
+      handler makes it, in every reader, in the same words. Acceptance
+      test: the first techspec of a service in any of the four languages
+      shows which operations accept a transaction token still to declare.
+    satisfies: [SA-89]

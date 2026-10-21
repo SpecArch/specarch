@@ -37,8 +37,14 @@ let assignedMembers: Set<String> = [
     "httpMethod", "keyDecodingStrategy", "keyEncodingStrategy", "dateDecodingStrategy", "dateEncodingStrategy",
 ]
 
-// The subscripts the program writes: a dictionary read by a key.
-let subscriptBases = ["infoDictionary", "environment"]
+// The subscripts the program writes: a dictionary read by a key, and
+// Vapor's request headers read by a name.
+let subscriptBases = ["infoDictionary", "environment", "headers"]
+
+// The calls the program writes only on a value whose name ends in one of
+// these, since the names are common elsewhere: Vapor's headers read by a
+// name.
+let memberCalls: [String: Set<String>] = ["headers": ["first"]]
 
 // How deep a call's arguments and closures are written; a literal is
 // always written, a call or a closure below this only by its name.
@@ -486,7 +492,7 @@ final class Reader: SyntaxVisitor {
     }
 
     override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
-        guard let (name, base) = callee(node), callNames.contains(name) else { return .visitChildren }
+        guard let (name, base) = callee(node), callNames.contains(name) || memberCall(name, base) else { return .visitChildren }
         var fields = within
         fields.append(("name", .string(name)))
         if let base {
@@ -555,6 +561,15 @@ final class ErrorCounter: SyntaxVisitor {
 }
 
 /// The name of an optional dictionary such as Bundle.main.infoDictionary?.
+/// Whether a call is one of memberCalls: its name on a value whose dotted
+/// name ends in the member that lists it.
+func memberCall(_ name: String, _ base: ExprSyntax?) -> Bool {
+    guard let base, let b = dottedName(base) ?? optionalBase(base) else { return false }
+    return memberCalls.contains { member, names in
+        names.contains(name) && (b == member || b.hasSuffix("." + member))
+    }
+}
+
 func optionalBase(_ expr: ExprSyntax) -> String? {
     if let o = expr.as(OptionalChainingExprSyntax.self) { return dottedName(o.expression) }
     if let f = expr.as(ForceUnwrapExprSyntax.self) { return dottedName(f.expression) }

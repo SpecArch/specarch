@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: extract
+level: system
+scenario: golden
+given: "a code-facts dump of a Vapor server with three routes whose handlers read a header: one reads Accept-Language by headers.first(name:), one reads Txn-Token the same way, and one reads txn-token by a subscript of the headers"
+when: "extract swift is run on the dump"
+then: "it asks at each of the two operations whose handler reads the Txn-Token header, in any case, for its transaction token and via, citing the line and the name as the code writes it, in the words extract go asks it; asks nothing of the route that reads another header; and exits 0"
+verifies: [SA-89]

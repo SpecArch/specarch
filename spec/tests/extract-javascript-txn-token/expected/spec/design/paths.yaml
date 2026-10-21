@@ -1,0 +1,25 @@
+paths:
+  /invoices:
+    get:
+      operationId: listInvoices
+      origin: stated
+      cites:
+        - {source: code, clause: 'server/src/app.ts:6', says: Registers GET /invoices; its handler is listInvoices.}
+        - {source: code, clause: 'server/src/app.ts:12', says: The handler listInvoices.}
+  /invoices/{invoiceId}/send:
+    parameters:
+      - {name: invoiceId, in: path, required: true}
+    post:
+      operationId: postInvoicesByInvoiceIdSend
+      origin: stated
+      cites:
+        - {source: code, clause: 'server/src/app.ts:8', says: 'Registers POST /invoices/{invoiceId}/send.'}
+  /invoices/{invoiceId}/void:
+    parameters:
+      - {name: invoiceId, in: path, required: true}
+    post:
+      operationId: voidInvoice
+      origin: stated
+      cites:
+        - {source: code, clause: 'server/src/app.ts:7', says: 'Registers POST /invoices/{invoiceId}/void; its handler is voidInvoice.'}
+        - {source: code, clause: 'server/src/app.ts:16', says: The handler voidInvoice.}

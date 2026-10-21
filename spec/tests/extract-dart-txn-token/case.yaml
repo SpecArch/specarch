@@ -1,0 +1,20 @@
+arguments: [extract, dart, --out, spec, repo/facts.json]
+repository:
+  folder: repo
+  commits:
+    - [svc]
+    - [facts.json]
+exitStatus: 0
+standardOutput: |
+  commit 938d54ce634b6bb751816ef0f76dac7547eef59a: the last change to svc, as the code-facts dump facts.json names it
+  counted 2 Dart files, 0 of them with syntax the analyzer could not read, and 29 facts: every tracked Dart file under svc, and every fact the dump holds
+  routes: counted 3 registrations: every call of get, post, put, patch, delete, head, options or all with a path and a handler on a shelf_router Router
+  routes: counted 1 route file under routes/: every dart_frog file with an onRequest
+  settings: counted 1 read: every fromEnvironment and every read of Platform.environment
+  wrote 0 pages, 0 schemas, 0 enums, 5 operations, 0 dependencies, 1 setting and 21 questions: one per element the source declares through an idiom the reader knows, one question per thing the source does not say, and one per thing the meta-model cannot hold
+  derived 0 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers
+  not derived: 1 draft test for operation list, held up by Q-1, Q-2, Q-3; the validator warns for them until the questions are answered
+  not derived: 2 draft tests for operation postInvoicesByInvoiceIdSend, held up by Q-4, Q-5, Q-6, Q-7, Q-8; the validator warns for them until the questions are answered
+  not derived: 2 draft tests for operation void, held up by Q-10, Q-11, Q-12, Q-13, Q-9; the validator warns for them until the questions are answered
+  not derived: 1 draft test for operation getReports, held up by Q-14, Q-15, Q-16, Q-17, Q-18, Q-19, Q-20; the validator warns for them until the questions are answered
+  not derived: 1 draft test for operation postReports, held up by Q-14, Q-15, Q-16, Q-17, Q-18, Q-19, Q-20; the validator warns for them until the questions are answered

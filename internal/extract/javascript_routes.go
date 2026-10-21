@@ -782,7 +782,8 @@ func isRequestBody(v *jsValue, handler *jsPos) bool {
 
 // readHandler reads what a handler says of its operation: the path
 // parameters it reads and its body, from a validation schema it applies,
-// Fastify's JSON Schema, the type it declares, or the fields it reads.
+// Fastify's JSON Schema, the type it declares, or the fields it reads; and
+// a read of the Txn-Token header from the request's headers (ADR-173).
 // It returns the reply type the handler declares, as the question on its
 // responses names it, or "".
 func (js *jsReader) readHandler(rt *jsRoute, op *yaml.Node) string {
@@ -795,6 +796,12 @@ func (js *jsReader) readHandler(rt *jsRoute, op *yaml.Node) string {
 			if f.Kind == "access" && f.Parameter != nil && f.Parameter.Index == 0 && len(f.Chain) > 2 {
 				reads = append(reads, f)
 			}
+		}
+	}
+	for _, f := range reads {
+		if f.Chain[1] == "headers" && isTxnTokenHeader(f.Chain[2]) {
+			askTransactionToken(js.gateHost(), js.clause(f), label, rt.at, f.Chain[2])
+			break
 		}
 	}
 	for _, f := range reads {

@@ -1,0 +1,16 @@
+arguments: [extract, swift, --out, spec, repo/facts.json]
+repository:
+  folder: repo
+  commits:
+    - [server]
+    - [facts.json]
+exitStatus: 0
+standardOutput: |
+  commit 91eb0d784415c9720608f411868eebae8c81ea23: the last change to server, as the code-facts dump facts.json names it
+  counted 1 Swift file, 0 of them with syntax SwiftSyntax could not read, and 11 facts: every tracked Swift file under server, and every fact the dump holds
+  routes: counted 3 registrations: every call of get, post, put, patch, delete or on with a handler on a value of a file that imports Vapor
+  wrote 0 pages, 0 entities, 0 schemas, 0 enums, 3 operations, 0 dependencies, 0 settings and 13 questions: one per element the source declares through an idiom the reader knows, one question per thing the source does not say, and one per thing the meta-model cannot hold
+  derived 0 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers
+  not derived: 1 draft test for operation listInvoices, held up by Q-1, Q-2, Q-3; the validator warns for them until the questions are answered
+  not derived: 2 draft tests for operation sendInvoice, held up by Q-4, Q-5, Q-6, Q-7, Q-8; the validator warns for them until the questions are answered
+  not derived: 2 draft tests for operation voidInvoice, held up by Q-10, Q-11, Q-12, Q-13, Q-9; the validator warns for them until the questions are answered

@@ -1,0 +1,28 @@
+{
+    "codeFacts": 1,
+    "language": "javascript",
+    "parser": {"name": "TypeScript", "version": "7.0.2"},
+    "path": "server",
+    "commit": "e05b63e752316a4971c404da2a5a43e9405554fe",
+    "files": [
+        {"file": "server/src/app.ts", "syntaxErrors": 0},
+        {"file": "server/tsconfig.json", "syntaxErrors": 0}
+    ],
+    "facts": [
+        {"kind":"import","file":"server/src/app.ts","line":1,"column":1,"module":"express","names":[{"imported":"default","local":"express"}]},
+        {"kind":"import","file":"server/src/app.ts","line":2,"column":1,"module":"express","names":[{"imported":"Request","local":"Request"},{"imported":"Response","local":"Response"}],"typeOnly":true},
+        {"kind":"variable","file":"server/src/app.ts","line":4,"column":7,"name":"app","declaration":"const","value":{"call":{"callee":{"name":"express","import":{"module":"express","imported":"default"}},"arguments":[]}}},
+        {"kind":"call","file":"server/src/app.ts","line":4,"column":13,"callee":{"name":"express","import":{"module":"express","imported":"default"}},"arguments":[],"assignedTo":"app"},
+        {"kind":"call","file":"server/src/app.ts","line":6,"column":1,"callee":{"member":{"object":{"name":"app","declaration":{"file":"server/src/app.ts","line":4,"column":7}},"name":"get"}},"arguments":[{"string":"/invoices"},{"name":"listInvoices","declaration":{"file":"server/src/app.ts","line":12,"column":1}}]},
+        {"kind":"call","file":"server/src/app.ts","line":7,"column":1,"callee":{"member":{"object":{"name":"app","declaration":{"file":"server/src/app.ts","line":4,"column":7}},"name":"post"}},"arguments":[{"string":"/invoices/:invoiceId/void"},{"name":"voidInvoice","declaration":{"file":"server/src/app.ts","line":16,"column":1}}]},
+        {"kind":"call","file":"server/src/app.ts","line":8,"column":1,"callee":{"member":{"object":{"name":"app","declaration":{"file":"server/src/app.ts","line":4,"column":7}},"name":"post"}},"arguments":[{"string":"/invoices/:invoiceId/send"},{"function":{"file":"server/src/app.ts","line":8,"column":39}}]},
+        {"kind":"function","file":"server/src/app.ts","line":8,"column":39,"parameters":[{"name":"req","type":{"reference":"Request","import":{"module":"express","imported":"Request"}},"typeFrom":"annotation"},{"name":"res","type":{"reference":"Response","import":{"module":"express","imported":"Response"}},"typeFrom":"annotation"}]},
+        {"kind":"access","file":"server/src/app.ts","line":9,"column":18,"chain":["req","headers","Txn-Token"],"parameter":{"index":0,"function":{"file":"server/src/app.ts","line":8,"column":39}},"within":{"file":"server/src/app.ts","line":8,"column":39}},
+        {"kind":"function","file":"server/src/app.ts","line":12,"column":1,"name":"listInvoices","parameters":[{"name":"req","type":{"reference":"Request","import":{"module":"express","imported":"Request"}},"typeFrom":"annotation"},{"name":"res","type":{"reference":"Response","import":{"module":"express","imported":"Response"}},"typeFrom":"annotation"}]},
+        {"kind":"access","file":"server/src/app.ts","line":13,"column":24,"chain":["req","headers","accept-language"],"parameter":{"index":0,"function":{"file":"server/src/app.ts","line":12,"column":1}},"within":{"file":"server/src/app.ts","line":12,"column":1}},
+        {"kind":"function","file":"server/src/app.ts","line":16,"column":1,"name":"voidInvoice","parameters":[{"name":"req","type":{"reference":"Request","import":{"module":"express","imported":"Request"}},"typeFrom":"annotation"},{"name":"res","type":{"reference":"Response","import":{"module":"express","imported":"Response"}},"typeFrom":"annotation"}]},
+        {"kind":"access","file":"server/src/app.ts","line":17,"column":8,"chain":["req","headers","txn-token"],"parameter":{"index":0,"function":{"file":"server/src/app.ts","line":16,"column":1}},"within":{"file":"server/src/app.ts","line":16,"column":1}},
+        {"kind":"call","file":"server/src/app.ts","line":24,"column":1,"callee":{"member":{"object":{"name":"app","declaration":{"file":"server/src/app.ts","line":4,"column":7}},"name":"listen"}},"arguments":[{"number":"3000"}]},
+        {"kind":"configuration","file":"server/tsconfig.json","line":1,"column":1,"checkJs":false,"allowJs":false,"strict":true}
+    ]
+}

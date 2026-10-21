@@ -23,7 +23,7 @@ latest.
 | 0.7.0, 2026-10-19 | the estate (`specarch-estate.yaml`, references between specifications, the module map); `specarch check`; `specarch facts`; `specarch-gen-sqlc`; indexes in `generate sql`; `implies`, `audience`, `middlewares`, the workflow table, documents in another language; the `handover` document |
 | 0.7.1, 2026-10-20 | the techspec's parameters, request body and responses per operation; `extract go` reading a dxlib handler's decoded body and JSON answers where the registration declares none (ADR-140); every operation's handler followed into the code, recorded with its source and drawn as a flowchart (ADR-144); the designs of the diagram keywords (`docs/diagrams.md`) and of the gateway (`docs/gateway.md`), proposed; dxlib's encrypted API type as a handshake an operation names and large files as a stream it declares (ADR-145, ADR-146), read by `extract go`, served by the dxlib dialect and the go-dxlib target with a Go client, and shown in the techspec; this roadmap matched to the code |
 | 0.7.2, 2026-10-20 | `specarch-gen-ui-swiftui`, the screens for the iPhone in SwiftUI (ADR-147), with `generate` finding a plug-in by the target's framework before the file's language, and the pages read once for both UI generators that write a page as data (`internal/genscreens`); the diagram keywords (ADR-133 to ADR-139): `specarch model`, the context, component, deployment and network diagrams with their markers, the rules `channel`, `depends_on`, `server`, `link` and `link_missing`, and lanes and ids in the BPMN output; caller context (ADR-106 to ADR-111, ADR-159): the identity module and the references into it, the chain by induction through `calls`, one audience per module, the scope case, the identity module's matrix and the chains in the techspec, and the readers of the client, application, caller and audience checks and of a grant's `client` and `through`; the user manual and the operations guide, with `remedy` on a problem type and `response` on a monitor (ADR-160); the gateway (ADR-141 to ADR-143): `gateways` with the rule `gateway`, its documents, the estate's gateway module, and the gateway table read by `extract gateway` and compared by `check`; `specarch-gen-scripts`, the guarded operational scripts in psql for PostgreSQL (ADR-158); meta-model 0.3 (`schema/specarch-design-0.3.schema.json`), named by `specarch version` in both builds; `specarch-gen-ui`'s view, form and task pages and the navigation between pages in plain JavaScript (ADR-152, ADR-153); `specarch decide`, `problems.sarif` and the `comparison` document (ADR-155 to ADR-157) |
-| 0.7.3, 2026-10-21 | every call of the plain JavaScript screens through one transport, under the names on the wire `wireNames` gives, with dxlib's pre-key handshake and the streams (ADR-164); a command-line tool's commands in the user manual, with `info.program` and a command's `remedies` (ADR-165); a job's `deadLetter` and its steps in the operations guide (ADR-166); `specarch-gen-scripts` for MariaDB beside PostgreSQL (ADR-167) and a guard's `writes` (ADR-168), both proposed; the client, application, caller and audience checks and the event writers in the swift, javascript and dart readers (ADR-169); `through` on a rule of the permission table (ADR-170); the derived cases reading the identity module given in the same run (ADR-171); `link_missing` held by a must question on the environment a deployment installs (ADR-172); `specarch model` listing an operation's `via` and a role's `through`; `RUN_INSTRUCTION.md`, a specification from documents and code with the command alone; fixes to `generate ui`, `generate sql` on MariaDB, `derive`, `approve` and the handover and operations documents (BUG-035, BUG-036, BUG-038, BUG-041 to BUG-044, BUG-046, BUG-047, BUG-050 to BUG-052) |
+| 0.7.3, 2026-10-21 | every call of the plain JavaScript screens through one transport, under the names on the wire `wireNames` gives, with dxlib's pre-key handshake and the streams (ADR-164); a command-line tool's commands in the user manual, with `info.program` and a command's `remedies` (ADR-165); a job's `deadLetter` and its steps in the operations guide (ADR-166); `specarch-gen-scripts` for MariaDB beside PostgreSQL (ADR-167) and a guard's `writes` (ADR-168); the client, application, caller and audience checks and the event writers in the swift, javascript and dart readers (ADR-169); `through` on a rule of the permission table (ADR-170); the derived cases reading the identity module given in the same run (ADR-171); `link_missing` held by a must question on the environment a deployment installs (ADR-172); `specarch model` listing an operation's `via` and a role's `through`; `RUN_INSTRUCTION.md`, a specification from documents and code with the command alone; fixes to `generate ui`, `generate sql` on MariaDB, `derive`, `approve` and the handover and operations documents (BUG-035, BUG-036, BUG-038, BUG-041 to BUG-044, BUG-046, BUG-047, BUG-050 to BUG-052) |
 
 ## 1. Validator CLI
 
@@ -235,11 +235,11 @@ implementation file uses and compares an override with the shipped idiom.
    PostgreSQL per guarded entry whose change a transition it triggers, a PUT
    by its key or a DELETE by its key says, and warns at the guard for every
    other change with no `writes`, left to be written by hand; the same scripts for the
-   mariadb client on MariaDB (ADR-167 proposed,
+   mariadb client on MariaDB (0.7.3, ADR-167,
    `spec/tests/generate-scripts-mariadb`). The guard's `writes` says what
    any other change writes, the fields it sets to a value the operator
    gives or a literal, or that it deletes the records, and the scripts are
-   written from it (ADR-168 proposed, `spec/tests/validate-guard-writes`).
+   written from it (0.7.3, ADR-168, `spec/tests/validate-guard-writes`).
    Not built: SQL Server and Oracle.
 
 "Any language or framework" means any stack that has a generator written for
@@ -408,8 +408,13 @@ A client named in `callers` by reference to the identity module gets the
 same cases as a client of the module's own (ADR-171).
 `specarch model` lists an operation's `via` and a role's `through` among
 its references (`model-lists-via-and-through`).
-Left to build: the `Txn-Token` header read in the swift, javascript and dart
-readers; and `through` on a pattern row of the permission table.
+`through` on a rule of the permission table, a pattern row included,
+came in 0.7.3 (ADR-170, `extract-permissions-pattern-through`). The
+swift, javascript and dart readers ask for the transaction token and
+`via` of an operation whose handler reads the `Txn-Token` header, as
+`extract go` does, in 0.7.4 (ADR-173, `extract-swift-txn-token`,
+`extract-javascript-txn-token`, `extract-dart-txn-token`). Every item of
+caller context is built.
 
 Built, 0.7.2: the diagram keywords. An editor that draws every diagram
 from a specification can draw the system context, the components of an

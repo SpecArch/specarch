@@ -1022,6 +1022,12 @@ commands:
         literal it is given, or the one the same function assigns to the
         name it is given, and asks which token it is; claims that are not
         such a literal are named in the question as not read (ADR-154).
+        A handler that reads the Txn-Token header, in any case, through
+        net/http's `Header.Get` or `Values`, or a router's `GetHeader`,
+        in its body or a function it calls, is one must question at its
+        operation blocking its token and via, for the transaction token
+        it accepts and the services that call it on a person's behalf
+        (ADR-111, ADR-159).
 
         A call of net/http's `Get`, `Head`, `Post`, `PostForm`,
         `NewRequest` or `NewRequestWithContext` with a literal method and
@@ -1046,8 +1052,9 @@ commands:
         cases with raw values, functions with their parameters, the calls
         of the names its idiom table lists with their literal arguments
         and closures, assignments to `httpMethod` and a JSON coder's
-        strategies, and reads of `infoDictionary` and `environment` by
-        key, each with its file, line and column. The dump names the
+        strategies, reads of `infoDictionary` and `environment` by key,
+        and reads of a value named `headers` by a subscript or by `first`
+        (ADR-173), each with its file, line and column. The dump names the
         format (`codeFacts: 1`), the language, the parser's name and
         version, the folder and the commit that last changed it; it is
         refused when another SwiftSyntax version than the one this
@@ -1165,7 +1172,10 @@ commands:
         of a group too, matched the same way, their names a string or an
         array literal; a gate is never read as a permission check, and
         each is written and asked as extract go does (ADR-154, ADR-159,
-        ADR-169).
+        ADR-169). A handler function that reads the Txn-Token header, in
+        any case, by `req.headers.first(name:)` or `req.headers[...]` in
+        its own body is the must question extract go asks at its
+        operation, in its words (ADR-173).
 
         Calls to another system are read from `URLRequest(url:)`, its
         method the literal its `httpMethod` is given in the same function
@@ -1265,7 +1275,10 @@ commands:
         their names a string, a const or an array literal, a gate passed
         on a mount or an earlier `use` cited where it is made; a gate is never read as a permission
         check, and each is written and asked as extract go does (ADR-154,
-        ADR-159, ADR-169).
+        ADR-159, ADR-169). A handler that reads the Txn-Token header, in
+        any case, from the headers of its first parameter in its own
+        body (`req.headers['txn-token']`) is the must question extract go
+        asks at its operation, in its words (ADR-173).
 
         A request body is, in this order: the validation schema the
         handler applies to its body (`parse`, `safeParse`, `validate`,
@@ -1401,7 +1414,8 @@ commands:
         annotations, fields, constructors and methods with their
         parameters, enums, calls and instance creations with their
         arguments written as values, comparisons of a request's method and
-        the branch a call is in, and reads of `Platform.environment`. The
+        the branch a call is in, and reads of `Platform.environment` and
+        of a value named `headers` by an index (ADR-173). The
         dump is refused when another analyzer version made it, when its
         files are not the folder's tracked Dart files, and when it is
         stale. The source is one code source with `reading: parsed`; a
@@ -1471,7 +1485,11 @@ commands:
         the same places, wrappers nested one in another followed to the
         handler, their names a string or a list literal; a gate is never
         read as a permission check, and each is written and asked as
-        extract go does (ADR-154, ADR-159, ADR-169). Calls to another system are retrofit's `@GET` and the like
+        extract go does (ADR-154, ADR-159, ADR-169). A handler that reads
+        the Txn-Token header, in any case, by `request.headers[...]` in a
+        shelf handler's own body, or in a dart_frog `onRequest` in the
+        branch of the method or outside every branch, is the must question
+        extract go asks at its operation, in its words (ADR-173). Calls to another system are retrofit's `@GET` and the like
         under a `@RestApi` with its `baseUrl`, and dio's and http's `get`,
         `post`, `put`, `patch` and `delete` given a literal URL,
         `Uri.parse` of one, `Uri.https` or an interpolation of one value

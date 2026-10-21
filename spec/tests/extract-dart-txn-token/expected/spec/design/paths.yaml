@@ -1,0 +1,36 @@
+paths:
+  /invoices:
+    get:
+      operationId: list
+      origin: stated
+      cites:
+        - {source: code, clause: 'svc/lib/server.dart:9', says: Registers GET /invoices on api.}
+        - {source: code, clause: 'svc/lib/server.dart:16', says: The handler _list.}
+  /invoices/{invoiceId}/send:
+    parameters:
+      - {name: invoiceId, in: path, required: true}
+    post:
+      operationId: postInvoicesByInvoiceIdSend
+      origin: stated
+      cites:
+        - {source: code, clause: 'svc/lib/server.dart:11', says: Registers POST /invoices/<invoiceId>/send on api.}
+  /invoices/{invoiceId}/void:
+    parameters:
+      - {name: invoiceId, in: path, required: true}
+    post:
+      operationId: void
+      origin: stated
+      cites:
+        - {source: code, clause: 'svc/lib/server.dart:10', says: Registers POST /invoices/<invoiceId>/void on api.}
+        - {source: code, clause: 'svc/lib/server.dart:18', says: The handler _void.}
+  /reports:
+    get:
+      operationId: getReports
+      origin: stated
+      cites:
+        - {source: code, clause: 'svc/frog/routes/reports/index.dart:3', says: dart_frog serves GET /reports from svc/frog/routes/reports/index.dart.}
+    post:
+      operationId: postReports
+      origin: stated
+      cites:
+        - {source: code, clause: 'svc/frog/routes/reports/index.dart:3', says: dart_frog serves POST /reports from svc/frog/routes/reports/index.dart.}

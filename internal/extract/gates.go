@@ -418,3 +418,21 @@ func gateNamesOf[V any](args []V, n int, str func(V) (string, bool), list func(V
 	}
 	return nil, describe(arg), trailing
 }
+
+// askTransactionToken asks, at an operation whose handler reads the
+// Txn-Token header, for the transaction token it accepts and its via: the
+// header is where the Transaction Tokens draft carries one (section 12),
+// so the operation accepts a transaction token (ADR-111). Every reader
+// asks it in these words (ADR-173); header is the name as the code writes
+// it.
+func askTransactionToken(h gateHost, clause, label, at, header string) {
+	h.question("must", fmt.Sprintf("%s: the handler of %s reads the Txn-Token header, so the operation accepts a transaction token. Declare it under tokens with tokenType txn_token and its claims, name it in the operation's token, and list the services that call it on a person's behalf in via.", clause, label),
+		[]string{at + "/token", at + "/via"}, "The Txn-Token header carries a transaction token and nothing else (the Transaction Tokens draft, section 12); its claims and the immediate callers are the design's, and the code shows only that the header is read.",
+		h.at(clause, "Reads the header "+header+"."))
+}
+
+// isTxnTokenHeader says whether a header's name is Txn-Token; a header's
+// name is matched in any case (RFC 9110, section 5.1).
+func isTxnTokenHeader(name string) bool {
+	return strings.EqualFold(name, "Txn-Token")
+}

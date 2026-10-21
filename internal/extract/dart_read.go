@@ -781,6 +781,7 @@ type dartRoute struct {
 	params                     []string
 	gates                      []checkUse
 	id, at                     string
+	txn                        *dartFact // the handler's read of the Txn-Token header, or nil
 }
 
 // readServer reads shelf_router's routes and dart_frog's routes/ folder.
@@ -928,6 +929,9 @@ func (dr *dartReader) shelfPermission(rt *dartRoute, f *dartFact, handler *dartV
 		rt.handler = *h.Name
 		if fn := dr.functions[*h.Name]; fn != nil {
 			rt.handlerAt = dr.clause(fn)
+			rt.txn = dr.txnRead(func(i *dartFact) bool {
+				return i.File == fn.File && strings.SplitN(i.Within, ".", 2)[0] == fn.Name
+			})
 			for _, c := range dr.calls {
 				if c.File == fn.File && strings.SplitN(c.Within, ".", 2)[0] == fn.Name {
 					if g := dr.gateOf(c.Name, c.File); g != nil && c.Target == nil {
@@ -939,6 +943,7 @@ func (dr *dartReader) shelfPermission(rt *dartRoute, f *dartFact, handler *dartV
 			}
 		}
 	case h.Function != nil:
+		rt.txn = dr.txnRead(func(i *dartFact) bool { return i.File == f.File && i.Function == h.Function.Line })
 		for _, c := range dr.calls {
 			if c.File == f.File && c.Function == h.Function.Line {
 				if g := dr.gateOf(c.Name, c.File); g != nil && c.Target == nil {
@@ -950,6 +955,21 @@ func (dr *dartReader) shelfPermission(rt *dartRoute, f *dartFact, handler *dartV
 		}
 	}
 	dr.settlePermission(rt, found, at)
+}
+
+// txnRead is the first read of the Txn-Token header from a request's
+// headers by a literal name among the reads in a handler, nil for none
+// (ADR-173).
+func (dr *dartReader) txnRead(in func(*dartFact) bool) *dartFact {
+	for _, i := range dr.indexes {
+		if !strings.HasSuffix(i.On, "headers") || !in(i) {
+			continue
+		}
+		if name, ok := i.Key.stringLiteral(); ok && isTxnTokenHeader(name) {
+			return i
+		}
+	}
+	return nil
 }
 
 func (dr *dartReader) settlePermission(rt *dartRoute, found []string, at string) {
@@ -1131,6 +1151,9 @@ func (dr *dartReader) readDartFrog() []*dartRoute {
 					rt.gates = append(rt.gates, g.use)
 				}
 			}
+			rt.txn = dr.txnRead(func(i *dartFact) bool {
+				return i.File == f.file && strings.HasPrefix(i.Within, "onRequest") && (i.Branch == "" || strings.EqualFold(i.Branch, "HttpMethod."+strings.ToLower(m)))
+			})
 			dr.settlePermission(rt, mine, mineAt)
 			if mwUnread != "" && rt.permission == "" {
 				rt.unguarded = fmt.Sprintf("%s runs the middleware %s, which calls no check the implementation file names.", m+" "+path, mwUnread)
@@ -1245,6 +1268,10 @@ func (dr *dartReader) writeRoutes(routes []*dartRoute) {
 		set(op, "cites", cites)
 		set(item, strings.ToLower(rt.method), op)
 		dr.counts["operations"]++
+		if rt.txn != nil {
+			name, _ := rt.txn.Key.stringLiteral()
+			askTransactionToken(dr.gateHost(), dr.clause(rt.txn), label, rt.at, name)
+		}
 		dr.question("must", fmt.Sprintf("What does %s do, and what does it answer?", label), []string{rt.at + "/summary", rt.at + "/responses"},
 			"A registration names the handler and not what it does or the responses it gives.")
 		if rt.permission == "" {
@@ -1472,6 +1499,9 @@ func (dr *dartReader) readSettings() {
 		settings[key] = append(settings[key], s)
 	}
 	for _, f := range dr.indexes {
+		if !strings.HasSuffix(f.On, "environment") {
+			continue
+		}
 		clause := dr.clause(f)
 		n++
 		key, ok := f.Key.stringLiteral()

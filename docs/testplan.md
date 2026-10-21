@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.4-dev of the specification: 650 design tests, 310 golden and 340 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.4-dev of the specification: 653 design tests, 313 golden and 340 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.7.4-dev of the specification: 650 design tests, 310 golden and 340 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 646 |
+| system | 649 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -1111,6 +1111,14 @@ Scenario: golden; level: system; verifies SA-44.
 - When: extract dart is run on the dump with the implementation file
 - Then: it writes one operation per route under its mount, named after its handler or by its method and path, with the permission the check names; one operation per method the dart_frog handler switches on, its permission from its case's check; a dependency per host the clients call; and the settings with their types and defaults; asks a must question on each route's summary and responses, its parameters' values, whether the running system registers it and its permission where no check gives one, naming the middleware that calls none, on the methods of the index route and on the other methods the default branch serves; a should question on the relative path and the interpolated value; prints a line for the parameter with a pattern; and exits 0
 
+#### extract-dart-txn-token
+
+Scenario: golden; level: system; verifies SA-89.
+
+- Given: a code-facts dump of a shelf_router server whose named handler reads accept-language from the request's headers, another reads txn-token, and a closure given at the route reads Txn-Token, which also reads PORT from Platform.environment; and a dart_frog route file whose onRequest reads txn-token only in its branch for POST
+- When: extract dart is run on the dump
+- Then: it asks at each of the two shelf operations whose handler reads the Txn-Token header, in any case, and at POST /reports alone of the dart_frog route, for its transaction token and via, citing the line and the name as the code writes it, in the words extract go asks it; asks nothing of the route that reads another header or of GET /reports; reads PORT as the one setting and no header as a setting; and exits 0
+
 #### extract-database-generated-default
 
 Scenario: golden; level: system; verifies SA-70.
@@ -1454,6 +1462,14 @@ Scenario: red; level: system; verifies SA-44.
 - Given: a code-facts dump of a Vue file whose .vue files @vue/compiler-sfc 3.5.0 split, not the Vue reader this release reads with
 - When: extract javascript is run on the dump
 - Then: it refuses the dump, naming the parser and version that split the files and the reader and version it reads, writes nothing and exits 1
+
+#### extract-javascript-txn-token
+
+Scenario: golden; level: system; verifies SA-89.
+
+- Given: a code-facts dump of an Express server with three routes whose handlers read a header from the request's headers: a named handler reads accept-language, another reads txn-token, and an arrow function given at the route reads Txn-Token
+- When: extract javascript is run on the dump
+- Then: it asks at each of the two operations whose handler reads the Txn-Token header, in any case, for its transaction token and via, citing the line and the name as the code writes it, in the words extract go asks it; asks nothing of the route that reads another header; and exits 0
 
 #### extract-javascript-vue-router
 
@@ -1822,6 +1838,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-44.
 - Given: a code-facts dump made at the commit that added a folder's first Swift file, and a later commit that adds a second Swift file to the folder
 - When: extract swift is run on the dump
 - Then: it refuses the dump as stale, naming both commits, writes nothing and exits 1
+
+#### extract-swift-txn-token
+
+Scenario: golden; level: system; verifies SA-89.
+
+- Given: a code-facts dump of a Vapor server with three routes whose handlers read a header: one reads Accept-Language by headers.first(name:), one reads Txn-Token the same way, and one reads txn-token by a subscript of the headers
+- When: extract swift is run on the dump
+- Then: it asks at each of the two operations whose handler reads the Txn-Token header, in any case, for its transaction token and via, citing the line and the name as the code writes it, in the words extract go asks it; asks nothing of the route that reads another header; and exits 0
 
 #### extract-swift-vapor-routes
 

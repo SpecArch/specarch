@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: extract
+level: system
+scenario: golden
+given: "a code-facts dump of an Express server with three routes whose handlers read a header from the request's headers: a named handler reads accept-language, another reads txn-token, and an arrow function given at the route reads Txn-Token"
+when: "extract javascript is run on the dump"
+then: "it asks at each of the two operations whose handler reads the Txn-Token header, in any case, for its transaction token and via, citing the line and the name as the code writes it, in the words extract go asks it; asks nothing of the route that reads another header; and exits 0"
+verifies: [SA-89]

@@ -715,8 +715,9 @@ compares against is a question unless it is a literal.
   bindings do not name is what it is today: a `must` question at the
   operation naming the middleware. A header read named `Txn-Token` is a
   `must` question for the operation's transaction token and its `via`.
-  `extract swift`, `extract javascript` and `extract dart` read
-  `permissionChecks` only, as they do for ADR-154's gates.
+  `extract swift`, `extract javascript` and `extract dart` read the
+  same checks (ADR-169) and ask the same question at a handler that
+  reads the `Txn-Token` header (ADR-173).
 - `extract go` on a token exchange: a handler that mints a token with a
   `txn` or an `act` claim is the exchange operation, and the claims
   found where the token is minted stay the question 0.3's step 5 asks,
@@ -849,8 +850,8 @@ three-hop example needs to validate end to end.
    implementation schema, `extract go` writing `callers` and `via` from
    literals and asking for the rest, the `Txn-Token` header read asking
    for a `txn_token`, the permission table's two keys. The swift,
-   javascript and dart readers read the same checks (ADR-169); the
-   `Txn-Token` header read is extract go's alone. Done when
+   javascript and dart readers read the same checks (ADR-169) and the
+   `Txn-Token` header read (ADR-173). Done when
    the lending desk's sources extract the same twice and a fixture with
    a literal caller check gives `via`.
 

@@ -1,0 +1,23 @@
+{
+    "codeFacts": 1,
+    "language": "swift",
+    "parser": {"name": "SwiftSyntax", "version": "604.0.0"},
+    "path": "server",
+    "commit": "91eb0d784415c9720608f411868eebae8c81ea23",
+    "files": [
+        {"file": "server/Sources/App/routes.swift", "syntaxErrors": 0}
+    ],
+    "facts": [
+        {"kind": "import", "file": "server/Sources/App/routes.swift", "line": 1, "column": 1, "name": "Vapor"},
+        {"kind": "function", "file": "server/Sources/App/routes.swift", "line": 3, "column": 1, "name": "routes", "parameters": [{"label": "_", "name": "app", "type": "Application"}]},
+        {"kind": "call", "file": "server/Sources/App/routes.swift", "line": 4, "column": 9, "member": "routes", "name": "get", "base": {"name": "app"}, "arguments": [{"value": {"string": "invoices"}}, {"label": "use", "value": {"name": "listInvoices"}}]},
+        {"kind": "call", "file": "server/Sources/App/routes.swift", "line": 5, "column": 9, "member": "routes", "name": "post", "base": {"name": "app"}, "arguments": [{"value": {"string": "invoices"}}, {"value": {"string": ":invoiceId"}}, {"value": {"string": "void"}}, {"label": "use", "value": {"name": "voidInvoice"}}]},
+        {"kind": "call", "file": "server/Sources/App/routes.swift", "line": 6, "column": 9, "member": "routes", "name": "post", "base": {"name": "app"}, "arguments": [{"value": {"string": "invoices"}}, {"value": {"string": ":invoiceId"}}, {"value": {"string": "send"}}, {"label": "use", "value": {"name": "sendInvoice"}}]},
+        {"kind": "function", "file": "server/Sources/App/routes.swift", "line": 9, "column": 1, "name": "listInvoices", "parameters": [{"label": "req", "name": "req", "type": "Request"}]},
+        {"kind": "call", "file": "server/Sources/App/routes.swift", "line": 10, "column": 21, "member": "listInvoices", "name": "first", "base": {"name": "req.headers"}, "arguments": [{"label": "name", "value": {"string": "Accept-Language"}}]},
+        {"kind": "function", "file": "server/Sources/App/routes.swift", "line": 14, "column": 1, "name": "voidInvoice", "parameters": [{"label": "req", "name": "req", "type": "Request"}]},
+        {"kind": "call", "file": "server/Sources/App/routes.swift", "line": 15, "column": 23, "member": "voidInvoice", "name": "first", "base": {"name": "req.headers"}, "arguments": [{"label": "name", "value": {"string": "Txn-Token"}}]},
+        {"kind": "function", "file": "server/Sources/App/routes.swift", "line": 19, "column": 1, "name": "sendInvoice", "parameters": [{"label": "req", "name": "req", "type": "Request"}]},
+        {"kind": "subscript", "file": "server/Sources/App/routes.swift", "line": 20, "column": 9, "member": "sendInvoice", "base": {"name": "req.headers"}, "key": {"string": "txn-token"}}
+    ]
+}

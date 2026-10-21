@@ -1,0 +1,42 @@
+{
+    "codeFacts": 1,
+    "language": "dart",
+    "parser": {"name": "analyzer", "version": "14.4.0"},
+    "path": "svc",
+    "commit": "938d54ce634b6bb751816ef0f76dac7547eef59a",
+    "files": [
+        {"file": "svc/frog/routes/reports/index.dart", "syntaxErrors": 0},
+        {"file": "svc/lib/server.dart", "syntaxErrors": 0}
+    ],
+    "facts": [
+        {"kind":"import","file":"svc/frog/routes/reports/index.dart","line":1,"column":1,"uri":"package:dart_frog/dart_frog.dart"},
+        {"kind":"method","file":"svc/frog/routes/reports/index.dart","line":3,"column":1,"name":"onRequest","parameters":[{"name":"context","type":"RequestContext","required":true}],"returns":"Response","returnValues":[{"call":{"line":5,"name":"Response","arguments":[{"name":"body","value":{"string":"[]"}}]}},{"call":{"line":8,"name":"Response","arguments":[{"name":"statusCode","value":{"integer":"401"}}]}},{"call":{"line":9,"name":"Response","arguments":[{"name":"statusCode","value":{"integer":"201"}}]}},{"call":{"line":11,"name":"Response","arguments":[{"name":"statusCode","value":{"integer":"405"}}]}}]},
+        {"kind":"compare","file":"svc/frog/routes/reports/index.dart","line":4,"column":7,"on":"context.request.method","value":{"name":"HttpMethod.get"},"within":"onRequest"},
+        {"kind":"call","file":"svc/frog/routes/reports/index.dart","line":5,"column":12,"name":"Response","arguments":[{"name":"body","value":{"string":"[]"}}],"within":"onRequest","branch":"HttpMethod.get","inCondition":true},
+        {"kind":"compare","file":"svc/frog/routes/reports/index.dart","line":7,"column":7,"on":"context.request.method","value":{"name":"HttpMethod.post"},"within":"onRequest"},
+        {"kind":"index","file":"svc/frog/routes/reports/index.dart","line":8,"column":9,"on":"context.request.headers","key":{"string":"txn-token"},"within":"onRequest","branch":"HttpMethod.post","inCondition":true},
+        {"kind":"call","file":"svc/frog/routes/reports/index.dart","line":8,"column":62,"name":"Response","arguments":[{"name":"statusCode","value":{"integer":"401"}}],"within":"onRequest","branch":"HttpMethod.post","inCondition":true},
+        {"kind":"call","file":"svc/frog/routes/reports/index.dart","line":9,"column":12,"name":"Response","arguments":[{"name":"statusCode","value":{"integer":"201"}}],"within":"onRequest","branch":"HttpMethod.post","inCondition":true},
+        {"kind":"call","file":"svc/frog/routes/reports/index.dart","line":11,"column":10,"name":"Response","arguments":[{"name":"statusCode","value":{"integer":"405"}}],"within":"onRequest"},
+        {"kind":"import","file":"svc/lib/server.dart","line":1,"column":1,"uri":"dart:io"},
+        {"kind":"import","file":"svc/lib/server.dart","line":3,"column":1,"uri":"package:shelf/shelf.dart"},
+        {"kind":"import","file":"svc/lib/server.dart","line":4,"column":1,"uri":"package:shelf_router/shelf_router.dart"},
+        {"kind":"variable","file":"svc/lib/server.dart","line":6,"column":7,"name":"port","value":{"text":"Platform.environment['PORT'] ?? '8080'"}},
+        {"kind":"index","file":"svc/lib/server.dart","line":6,"column":14,"on":"Platform.environment","key":{"string":"PORT"}},
+        {"kind":"variable","file":"svc/lib/server.dart","line":8,"column":7,"name":"api","value":{"text":"Router()..get('/invoices', _list)..post('/invoices/<invoiceId>/void', _void)..post('/invoices/<invoiceId>/send', (Request req, String invoiceId) {if (req.hea..."}},
+        {"kind":"call","file":"svc/lib/server.dart","line":8,"column":13,"name":"Router","arguments":[]},
+        {"kind":"call","file":"svc/lib/server.dart","line":9,"column":3,"target":{"call":{"line":8,"name":"Router","arguments":[]}},"cascaded":true,"cascadeOf":"api","name":"get","arguments":[{"value":{"string":"/invoices"}},{"value":{"name":"_list"}}]},
+        {"kind":"call","file":"svc/lib/server.dart","line":10,"column":3,"target":{"call":{"line":8,"name":"Router","arguments":[]}},"cascaded":true,"cascadeOf":"api","name":"post","arguments":[{"value":{"string":"/invoices/<invoiceId>/void"}},{"value":{"name":"_void"}}]},
+        {"kind":"call","file":"svc/lib/server.dart","line":11,"column":3,"target":{"call":{"line":8,"name":"Router","arguments":[]}},"cascaded":true,"cascadeOf":"api","name":"post","arguments":[{"value":{"string":"/invoices/<invoiceId>/send"}},{"value":{"function":{"line":11,"parameters":["req","invoiceId"],"returns":[{"call":{"line":12,"name":"Response","arguments":[{"value":{"integer":"401"}}]}},{"call":{"line":13,"target":{"name":"Response"},"name":"ok","arguments":[{"value":{"name":"invoiceId"}}]}}]}}}]},
+        {"kind":"index","file":"svc/lib/server.dart","line":12,"column":9,"on":"req.headers","key":{"string":"Txn-Token"},"function":11},
+        {"kind":"call","file":"svc/lib/server.dart","line":12,"column":50,"name":"Response","arguments":[{"value":{"integer":"401"}}],"function":11,"inCondition":true},
+        {"kind":"call","file":"svc/lib/server.dart","line":13,"column":12,"target":{"name":"Response"},"name":"ok","arguments":[{"value":{"name":"invoiceId"}}],"function":11},
+        {"kind":"method","file":"svc/lib/server.dart","line":16,"column":1,"name":"_list","parameters":[{"name":"req","type":"Request","required":true}],"returns":"Response","returnValues":[{"call":{"line":16,"target":{"name":"Response"},"name":"ok","arguments":[{"value":{"text":"req.headers['accept-language'] ?? ''"}}]}}]},
+        {"kind":"call","file":"svc/lib/server.dart","line":16,"column":32,"target":{"name":"Response"},"name":"ok","arguments":[{"value":{"text":"req.headers['accept-language'] ?? ''"}}],"within":"_list"},
+        {"kind":"index","file":"svc/lib/server.dart","line":16,"column":44,"on":"req.headers","key":{"string":"accept-language"},"within":"_list"},
+        {"kind":"method","file":"svc/lib/server.dart","line":18,"column":1,"name":"_void","parameters":[{"name":"req","type":"Request","required":true},{"name":"invoiceId","type":"String","required":true}],"returns":"Response","returnValues":[{"call":{"line":19,"name":"Response","arguments":[{"value":{"integer":"401"}}]}},{"call":{"line":20,"target":{"name":"Response"},"name":"ok","arguments":[{"value":{"name":"invoiceId"}}]}}]},
+        {"kind":"index","file":"svc/lib/server.dart","line":19,"column":7,"on":"req.headers","key":{"string":"txn-token"},"within":"_void"},
+        {"kind":"call","file":"svc/lib/server.dart","line":19,"column":48,"name":"Response","arguments":[{"value":{"integer":"401"}}],"within":"_void","inCondition":true},
+        {"kind":"call","file":"svc/lib/server.dart","line":20,"column":10,"target":{"name":"Response"},"name":"ok","arguments":[{"value":{"name":"invoiceId"}}],"within":"_void"}
+    ]
+}

@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.7.4-dev of the specification: 90 requirements, 5 entities, 16 commands, 7 algorithms, 650 tests, 163 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.7.4-dev of the specification: 90 requirements, 5 entities, 16 commands, 7 algorithms, 653 tests, 164 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -2290,6 +2290,12 @@ The sources this build reads:
   literal it is given, or the one the same function assigns to the
   name it is given, and asks which token it is; claims that are not
   such a literal are named in the question as not read (ADR-154).
+  A handler that reads the Txn-Token header, in any case, through
+  net/http's `Header.Get` or `Values`, or a router's `GetHeader`,
+  in its body or a function it calls, is one must question at its
+  operation blocking its token and via, for the transaction token
+  it accepts and the services that call it on a person's behalf
+  (ADR-111, ADR-159).
 
   A call of net/http's `Get`, `Head`, `Post`, `PostForm`,
   `NewRequest` or `NewRequestWithContext` with a literal method and
@@ -2314,8 +2320,9 @@ The sources this build reads:
   cases with raw values, functions with their parameters, the calls
   of the names its idiom table lists with their literal arguments
   and closures, assignments to `httpMethod` and a JSON coder's
-  strategies, and reads of `infoDictionary` and `environment` by
-  key, each with its file, line and column. The dump names the
+  strategies, reads of `infoDictionary` and `environment` by key,
+  and reads of a value named `headers` by a subscript or by `first`
+  (ADR-173), each with its file, line and column. The dump names the
   format (`codeFacts: 1`), the language, the parser's name and
   version, the folder and the commit that last changed it; it is
   refused when another SwiftSyntax version than the one this
@@ -2433,7 +2440,10 @@ The sources this build reads:
   of a group too, matched the same way, their names a string or an
   array literal; a gate is never read as a permission check, and
   each is written and asked as extract go does (ADR-154, ADR-159,
-  ADR-169).
+  ADR-169). A handler function that reads the Txn-Token header, in
+  any case, by `req.headers.first(name:)` or `req.headers[...]` in
+  its own body is the must question extract go asks at its
+  operation, in its words (ADR-173).
 
   Calls to another system are read from `URLRequest(url:)`, its
   method the literal its `httpMethod` is given in the same function
@@ -2533,7 +2543,10 @@ The sources this build reads:
   their names a string, a const or an array literal, a gate passed
   on a mount or an earlier `use` cited where it is made; a gate is never read as a permission
   check, and each is written and asked as extract go does (ADR-154,
-  ADR-159, ADR-169).
+  ADR-159, ADR-169). A handler that reads the Txn-Token header, in
+  any case, from the headers of its first parameter in its own
+  body (`req.headers['txn-token']`) is the must question extract go
+  asks at its operation, in its words (ADR-173).
 
   A request body is, in this order: the validation schema the
   handler applies to its body (`parse`, `safeParse`, `validate`,
@@ -2669,7 +2682,8 @@ The sources this build reads:
   annotations, fields, constructors and methods with their
   parameters, enums, calls and instance creations with their
   arguments written as values, comparisons of a request's method and
-  the branch a call is in, and reads of `Platform.environment`. The
+  the branch a call is in, and reads of `Platform.environment` and
+  of a value named `headers` by an index (ADR-173). The
   dump is refused when another analyzer version made it, when its
   files are not the folder's tracked Dart files, and when it is
   stale. The source is one code source with `reading: parsed`; a
@@ -2739,7 +2753,11 @@ The sources this build reads:
   the same places, wrappers nested one in another followed to the
   handler, their names a string or a list literal; a gate is never
   read as a permission check, and each is written and asked as
-  extract go does (ADR-154, ADR-159, ADR-169). Calls to another system are retrofit's `@GET` and the like
+  extract go does (ADR-154, ADR-159, ADR-169). A handler that reads
+  the Txn-Token header, in any case, by `request.headers[...]` in a
+  shelf handler's own body, or in a dart_frog `onRequest` in the
+  branch of the method or outside every branch, is the must question
+  extract go asks at its operation, in its words (ADR-173). Calls to another system are retrofit's `@GET` and the like
   under a `@RestApi` with its `baseUrl`, and dio's and http's `get`,
   `post`, `put`, `patch` and `delete` given a literal URL,
   `Uri.parse` of one, `Uri.https` or an interpolation of one value
@@ -12577,7 +12595,7 @@ test case derived from the steps.
 
 ### ADR-167: specarch-gen-scripts writes a guarded script for MariaDB as one compound statement the mariadb client runs, with user variables given in --init-command, each checked against its column's form before anything is read, in a strict session
 
-Status: proposed, 2026-10-21.
+Status: accepted, 2026-10-21.
 
 Context: ADR-158 wrote the guarded scripts for PostgreSQL only, and the
 roadmap's target 8 named another dialect as not built. MariaDB is the
@@ -12662,6 +12680,8 @@ tried on MariaDB 11.4.4, a row inserted before it kept
 2026-10-20 21:19:07 and one inserted after it filled
 2026-10-20T21:19:08.005756000Z.
 
+Shipped in 0.7.3.
+
 **Insight:** The mariadb client has no variables of its own and no conditional lines, so the values come in as user variables and every decision is made inside one compound statement. MariaDB runs a compound statement outside a stored program only as BEGIN NOT ATOMIC, and one that starts with a label is refused, so the label is on the inner block. --init-command rather than a SET followed by SOURCE: tried on MariaDB 11.4, a SOURCE after a SET on one -e line does not parse, and an error inside a SOURCEd file does not stop the client, which went on to the next statement and exited 0; a file read on standard input stops at the first error with exit status 1. The checks before the casts stand in for what PostgreSQL's casts do on their own. MariaDB's CAST converts what it can and warns: 123.7 cast to UNSIGNED is 123 and to DECIMAL(65,0) is 124, a date that does not exist is NULL, and text that is no number is 0, so a key given wrong would name another record. A pattern the text must match refuses it by name instead, before anything is read, and once the text matches, the cast is exact. A decimal key is held to its column's scale for the same reason ADR-158 casts a PostgreSQL key without its scale. Text is cast without a length so a key too long matches no record; a value too long is refused only by a strict session (without one MariaDB cuts it and warns), and STRICT_TRANS_TABLES is the default but a server may run without it, so the script adds STRICT_ALL_TABLES itself, as a statement of its own before the compound statement, so the whole of it runs under the strict mode; tried on MariaDB 11.4 with the session's mode emptied first, the title too long was still refused. The same statement takes NO_BACKSLASH_ESCAPES out of the session's mode, so the backslash in a pattern and in a message reads alike on every server; the rest of the session's mode is kept, so the precondition reads as the check constraints do. A pattern ends in \z, not $: MariaDB's REGEXP is PCRE2, where $ also matches before a final newline, so a value pasted with one would pass, be stored with it, or be cut by the cast. Tried on MariaDB 11.4, '5' followed by a newline matched '^[0-9]+$' and not '^[0-9]+\z'. Text is compared byte for byte in the already-applied step and the postcondition, since PostgreSQL compares text exactly and a column MariaDB makes without a collation takes the server's, which is case- and accent-insensitive and pads trailing spaces: under it 'the hobbit' equals 'The Hobbit', and a change of case alone would be reported as already made. utf8mb4_nopad_bin compares code points and counts trailing spaces; the value is converted to utf8mb4, which holds every character set a column may have, so the collation fits whatever the column's character set is. A key and a from state are still matched under the column's own collation, as the table's unique and check constraints match them. The locking count holds: tried on MariaDB 11.4, a second session's UPDATE of a row counted with COUNT(*) ... FOR UPDATE waited until it timed out. Under MariaDB's default repeatable read a locking read and an UPDATE read the latest committed row, not the snapshot, and the rows counted are locked, so the change writes what was counted and the postcondition still refuses a short count. ROW_COUNT() counts rows changed rather than rows matched; every change the design derives writes a value the record did not hold (the state leaves a from state, the soft-delete flag turns true, a PUT whose values all match ends at the already-applied step), so the two agree. The audit instant is written in the idiom's text form, whose byte order is time order; MariaDB keeps microseconds, so the last three of the nine digits are zeros. The snapshot of the last migration keeps a generated default by its name, so the differ, which compares the snapshot with the schema now, sees no change when the idiom names a new expression for the same name; without a step of its own the next run rewrites the snapshot at the new version and nothing on disk shows the column still fills CURRENT_TIMESTAMP. The step is keyed on the snapshot's type-rendering version rather than on a rendered expression kept in the snapshot, because a snapshot written before 1.4.1 holds no expression to compare, and this is the one default whose expression changed. Setting the default only adds: it rewrites no row. The rows already written are not converted by the generator: their text is in the session's time zone, which the row does not record, so only a person who knows the zone the writers ran in can turn them into UTC; the warning says so at the field.
 
 **Note:** From MariaDB Server documentation, Using Compound Statements Outside of Stored Programs: Compound statements can also be used outside of stored programs. BEGIN must use the BEGIN NOT ATOMIC syntax. A compound statement might not start with a label. <https://mariadb.com/kb/en/using-compound-statements-outside-of-stored-programs/>
@@ -12670,7 +12690,7 @@ tried on MariaDB 11.4.4, a row inserted before it kept
 
 ### ADR-168: A guard's writes says what a change writes when no keyword of its entry does, set with given or a literal for each field, or delete, and specarch-gen-scripts writes the guarded script from it
 
-Status: proposed, 2026-10-21.
+Status: accepted, 2026-10-21.
 
 Context: Target 8 of the roadmap. ADR-158 derives what a guarded change
 writes by keyword only: a transition its entry triggers, a PUT of the
@@ -12740,6 +12760,8 @@ records refused by its count with nothing changed. A change the
 design does not say stays a warning at its guard, which names writes
 where writes would say the change.
 
+Shipped in 0.7.3.
+
 **Insight:** One way to say one thing: a PUT by its key and a DELETE by its key already say what they write, so writes on them would be a second way that could disagree with the first, and an error keeps one. A transition is said on the entity, where every caller reads it, so writes cannot move the state field around it; it can set other fields beside it, which a transition does not say. The values are kept to given and literals because a guarded script must change nothing when it is run again (ADR-158). A record that already holds every value a set writes is one the change has made, so the script can say so and stop; a value worked out from the record when the change runs (renewals + 1, a field copied from another) gives a different value on each run, so a record changed cannot be told from one not yet changed. A literal is written as the specification writes it, so a decimal keeps its digits rather than passing through a double, and a decimal with more digits than its scale is refused at the guard, since the column would round it and the check that the record holds what was written would then refuse every run. A string is not taken for a date or a timestamp: the subset's comparison does not take one for the other either, and on MariaDB a date-time field is text in the type-rendering idiom's form, which a literal would have to repeat. Without a key a set has no record to find already changed, so the condition leaves out the records that hold every value written: a second run finds none and is refused by the count, as a transition of many records is when none is left in a from state, and nothing changes. The comparison treats two nulls as equal (IS NOT DISTINCT FROM on PostgreSQL, <=> on MariaDB, with text byte for byte as ADR-167 compares it), so a record whose field is null is counted as not yet holding a string: with = the comparison would be null and the record would be left out of the change without a word. A delete with no key needs nothing more: the records it deleted no longer meet its condition, or carry the soft-delete flag the condition excludes. A POST that makes a record has no record to count before the change or to find already made, so it stays the project's own script; the warning at its guard says that a POST that changes records already there says what it writes with writes.
 
 ### ADR-169: extract swift, javascript and dart read the client, signature, application, caller and audience checks and the event writers the implementation file names, where each finds its permission checks, and write and ask about them in the words extract go uses
@@ -12778,11 +12800,10 @@ gives literals cites each call of it at its own line with the names
 that call passes.
 
 Consequences: An implementation file without the gate keys reads as before in
-every reader. The Txn-Token header read stays with extract go: the
-other readers do not read a handler's headers yet, so an operation
-whose handler reads it is not asked about there. The facts dumps are
-unchanged, since they already carry calls with their arguments and
-array and list literals. The cases extract-swift-caller-checks,
+every reader. The Txn-Token header read is asked in every reader
+too (ADR-173). The facts dumps are unchanged for the gates, since
+they already carry calls with their arguments and array and list
+literals. The cases extract-swift-caller-checks,
 extract-javascript-caller-checks and extract-dart-caller-checks hold
 the readings.
 
@@ -12906,6 +12927,55 @@ description, the conventions and docs/diagrams.md say it, and the
 roadmap's gap for it is closed.
 
 **Insight:** The owner chose the environment over a pointer into the implementation file (#/deployments/<name>/links). The environment is the design's word for where the system runs, so the question stays in the specification and points at what the specification declares, and design and implementation stay apart: one question holds the deployment of that environment in every stack's file. The blocks grammar does not change, so decide, gaps, the documents and the problems file read the question as they read any other, and the deployment documents are drafts while it is open, which is right, since they draw the network the question leaves open. The section and the stage hold as ADR-129's handover checks are held, the one other hold in the deployment stage. A key of the environment does not hold the links because it is about that key, not about how the hosts reach each other. The compiler test holds: nothing is refused or left unread; the deployment is read, its wrong links are errors at the entry, and only the warning that the open question explains is held. The acceptance test holds: an operator who does not yet know the firewall rules writes one question on the environment, and answering it, then writing the links, brings the warnings back where a link is still missing.
+
+### ADR-173: extract swift, javascript and dart ask for the transaction token and via of an operation whose handler reads the Txn-Token header, in the words extract go asks it, and the Swift and Dart readers write a read of a request's headers by a name
+
+Status: accepted, 2026-10-21.
+
+Context: Roadmap 5, caller context. ADR-159 had extract go ask, at every
+operation whose handler reads the Txn-Token header, for the
+transaction token it accepts and its via, since that header carries
+a transaction token and nothing else (ADR-111). ADR-169 brought the
+gates to the swift, javascript and dart readers and left the header
+read with extract go, because those readers did not read a
+handler's headers: an operation in Swift, TypeScript or Dart that
+accepts a transaction token was read as one that takes none. The
+JavaScript reader already writes a read of a request's members,
+headers among them; the Swift and Dart readers write neither
+Vapor's headers.first(name:) nor a subscript of the headers.
+
+Decision: The Swift reader also writes a subscript of a value whose name ends
+in headers, and a call of first on such a value, as it writes a
+subscript of the environment: the call only on that value, since
+first is a name every collection has. The Dart reader also writes a
+read of a value whose name ends in headers by an index, as it writes
+one of Platform.environment, and extract dart reads only the
+environment's as settings. A handler that reads the header named
+Txn-Token in any case, by a literal name, is one must question at
+its operation, blocking its token and via, with the words, the
+reason and the citation extract go gives, from the one function the
+four readers share: in swift, Vapor's req.headers.first(name:) or
+req.headers[...] in the handler function a route names; in
+javascript, a read of the headers of the handler's first parameter,
+req.headers['txn-token'] in Express or Fastify; in dart, a shelf
+handler's request.headers[...] in the function or closure a route
+names, and a dart_frog onRequest's context.request.headers[...] in
+the branch of its method, or outside every branch. Only the
+handler's own body is read; extract go follows the functions a
+handler calls, the other readers do not.
+
+Consequences: The cases extract-swift-txn-token, extract-javascript-txn-token and
+extract-dart-txn-token hold the readings: a header read in either
+case and by either form is asked, a handler reading another header
+is not, and a dart_frog route is asked for the method whose branch
+reads it. A Swift or Dart dump made before this release has no
+header reads, so the question is asked only once the dump is made
+again; the reader is built again on its own, since the cache it is
+built in is named by a hash of its files (ADR-116). The dumps of
+code that reads no header are unchanged. ADR-169's consequence that
+the header read stays with extract go no longer holds.
+
+**Insight:** One meaning per header: the Txn-Token header carries a transaction token whatever the language the handler is written in (the Transaction Tokens draft, section 12), so every reader asks the same question, and from one function, since the merge joins questions by their words and two copies drift apart. A header's name is matched in any case, as HTTP compares field names (RFC 9110, section 5.1), and Node gives them lower case. The printers write what the syntax says and widen only by the base the read is made on, so a dump of code with no header reads keeps its bytes and an app full of collections gains no facts. The handler's own body only, because the dumps say in which function a fact is and not which functions a handler calls; a read in a helper is left to the question on what the operation does. Compiler test: a header read is asked at the operation whose handler makes it, in every reader, in the same words. Acceptance test: the first techspec of a service in any of the four languages shows which operations accept a transaction token still to declare.
 
 ## 10. Quality requirements
 
@@ -13044,6 +13114,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | extract-dart-models | command extract | system | golden | a code-facts dump of Dart models: a json_serializable class that renames its fields to snake_case, with a nullable field, an int, a DateTime, an enum whose @JsonValue gives its wire values one of which is not a snake_case word, a list, a map of strings, a field its @JsonKey leaves out of JSON and a static field; a json_serializable class with @JsonKey names, one the snake_case form of its field and one another name, a num, a double, a nullable model, a Uri and a type of a package; a freezed class whose factory gives required fields, a @Default, a @JsonKey name and a list of a model; and a file a code generator wrote | extract dart is run on the dump | it writes each model as a schema with its fields by their Dart types, required where not nullable and with no default, the default @Default gives, references to the models and the enum, the map as an object whose additionalProperties is a string, and the enum with its wire values; writes info.wireNames snake_case; asks a must question on the width of the ints, on the num and on the type of a package; prints a line for the field left out of JSON, the wire name info.wireNames cannot give, the enum value that is not a snake_case word, and the generated file; and exits 0 |
 | extract-dart-parser-version | command extract | system | red | a code-facts dump of Dart that another version of the analyzer than the one this release pins made | extract dart is run on the dump | it refuses the dump, naming the version that made it and the one it reads, writes nothing and exits 1 |
 | extract-dart-server-clients | command extract | system | golden | a code-facts dump of a Dart service and an implementation file naming two checks: a shelf_router Router mounted under /api by another, registering routes with the check wrapping a handler, a handler that calls it, a closure, and a parameter with a pattern; dart_frog routes, an index with no method compared and a parameter route switching on the method with a check in one case, a default branch and a middleware that calls no check; a retrofit API with a base URL, dio calls with an absolute and a relative path, and an http call with one value interpolated into a segment; and settings fromEnvironment and Platform.environment give | extract dart is run on the dump with the implementation file | it writes one operation per route under its mount, named after its handler or by its method and path, with the permission the check names; one operation per method the dart_frog handler switches on, its permission from its case's check; a dependency per host the clients call; and the settings with their types and defaults; asks a must question on each route's summary and responses, its parameters' values, whether the running system registers it and its permission where no check gives one, naming the middleware that calls none, on the methods of the index route and on the other methods the default branch serves; a should question on the relative path and the interpolated value; prints a line for the parameter with a pattern; and exits 0 |
+| extract-dart-txn-token | command extract | system | golden | a code-facts dump of a shelf_router server whose named handler reads accept-language from the request's headers, another reads txn-token, and a closure given at the route reads Txn-Token, which also reads PORT from Platform.environment; and a dart_frog route file whose onRequest reads txn-token only in its branch for POST | extract dart is run on the dump | it asks at each of the two shelf operations whose handler reads the Txn-Token header, in any case, and at POST /reports alone of the dart_frog route, for its transaction token and via, citing the line and the name as the code writes it, in the words extract go asks it; asks nothing of the route that reads another header or of GET /reports; reads PORT as the one setting and no header as a setting; and exits 0 |
 | extract-database-generated-default | command extract | system | golden | a repository holding a catalogue dump whose notes table has a uuid key defaulting to gen_random_uuid(), a time defaulting to CURRENT_TIMESTAMP, one defaulting to now() and a text defaulting to another expression, two plain indexes, one in descending order and one of an expression | extract database is run on the dump without --implementation-out | it writes generatedDefault identifier and currentTime on the first two fields, a could question for now() and the other expression naming the expressions the idiom names, one for each plain index saying it goes to an implementation file through --implementation-out, and one for each other index, and exits 0 |
 | extract-database-implementation-out | command extract | system | golden | the catalogue dump of extract-database-generated-default | extract database is run on it with --implementation-out naming a new file | it writes the generated defaults as without it, writes the fragment with a comment naming the dump, the notes table's mapping and its two plain indexes, the one named as the conventions derive with no name and the other with its own, citing the catalogue, asks no question for them, keeps the could questions for the descending and the expression index, counts the mapping and the indexes it wrote, and exits 0 |
 | extract-database-json-column | command extract | system | golden | a repository holding a catalogue dump whose members table has a jsonb column that is NOT NULL and a json column that may be null | extract database is run on the dump | it writes each JSON column as a field of type object, the nullable one allowing null, asks a should question at each field which schema it holds, and exits 0 |
@@ -13087,6 +13158,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | extract-javascript-react-screens | command extract | system | golden | a code-facts dump of a React app in TypeScript whose router createBrowserRouter is given a layout route with an index route, literal child paths, a parameter, a component given as Component, a component imported from a package, a catch-all and a lazy route; and whose <Routes> nest a route under a parent path and declare one behind a condition; whose screens have a heading by a literal, by t() with a key the default locale's catalogue holds and by a variable, fields that react-hook-form's register and Formik's Field bind, one by a name that is not a literal, links whose text is t() with a key the catalogue holds, a literal, a key it lacks and a key that is not a literal, a link to a route with a parameter, one to a path no route serves, and a navigate() call; and message catalogues of English, the locale i18next's init names, and French | extract javascript is run on the dump | it writes one page per route that shows a component of the files read, named after the component, with its route, its title from its literal heading or the catalogue, its fields in the order of the source and a navigate action per link to a route read, its label the link's text in English; asks a must question on each page's kind, title where none is known, entity, source, submit and columns, on its permission, on each label that is not known, on the component from a package, on the route declared twice and on the route behind a condition; asks a should question on the lazy route, the field named by a variable, the message whose key is not a literal and the link to a path no route serves; prints a line for the catch-all and the French catalogue; and exits 0 |
 | extract-javascript-stale-dump | command extract | system | red | a code-facts dump of JavaScript committed after the folder it was made from, which a later commit changed again by adding a file | extract javascript is run on the dump | it refuses the dump as stale, writes nothing and exits 1 |
 | extract-javascript-template-parser-version | command extract | system | red | a code-facts dump of a Vue file whose .vue files @vue/compiler-sfc 3.5.0 split, not the Vue reader this release reads with | extract javascript is run on the dump | it refuses the dump, naming the parser and version that split the files and the reader and version it reads, writes nothing and exits 1 |
+| extract-javascript-txn-token | command extract | system | golden | a code-facts dump of an Express server with three routes whose handlers read a header from the request's headers: a named handler reads accept-language, another reads txn-token, and an arrow function given at the route reads Txn-Token | extract javascript is run on the dump | it asks at each of the two operations whose handler reads the Txn-Token header, in any case, for its transaction token and via, citing the line and the name as the code writes it, in the words extract go asks it; asks nothing of the route that reads another header; and exits 0 |
 | extract-javascript-vue-router | command extract | system | golden | a code-facts dump of a Vue app whose router createRouter is given routes to .vue files imported directly and lazily and to a component of a package, with a beforeEach guard and one route's beforeEnter guard that call the check the implementation file names; whose views have literal headings, PrimeVue Columns and InputTexts the implementation file maps; and one view that calls $fetch with a path of its own system | extract javascript is run on the dump with the implementation file | it writes one page per route whose component is a .vue file read, named after the file, with its route, its heading as its title, its columns and fields, and the permission its one guard names; asks a must question on each page's kind and the rest, on the route whose two guards name two permissions, on the component from a package, and a should question on the call to its own path; and exits 0 |
 | extract-not-offered | command extract | system | red | a source this build does not read yet | extract events is run on a topic registry | it names the sources it reads, writes nothing and exits 2 |
 | extract-openapi-dxlib-privileges | command extract | system | golden | a repository holding an OpenAPI document in dxlib's dialect whose operations carry x-dxlib-endpoint-type: two that check one privilege, one that checks another, one that checks two, one that checks none, three whose privileges EXPORT_ALL, GLOBAL.SET_MAINTENANCE_MODE and EVERYTHING are in dxlib_module's capitals, one whose privilege is in mixed case, two whose privileges REPORT_RUN and REPORT.RUN give one permission name, one whose privilege is public, one that lists one privilege twice and one whose list holds a mapping, two of them naming their middlewares in x-dxlib-middlewares, all under the document's mutualTLS security, and one operation without x-dxlib-endpoint-type that names a privilege | extract openapi is run on the document | it writes the one privilege of a dxlib operation as its permission and declares each such permission citing the operations that check it, with a must question on what each allows and which role grants each; it maps each privilege in capitals by the rule of ADR-076 and declares that permission inferred, with the rule as its why; it reads a privilege listed twice as one, asks a must question for the operation that checks two privileges, the one that checks none (naming its middlewares), the one whose privilege the rule of ADR-076 cannot map, both whose privileges give one permission, the one whose privilege is public and the one whose list is not of names, writes each dxlib operation's middlewares in order by their functions' names in kebab-case, none where the document names none, declares each middleware citing the first operation that runs it with one must question on what each checks or does, and prints the security of each dxlib operation as a line of its own, since it is not the permission; it reads x-dxlib-privileges only beside x-dxlib-endpoint-type, so the other operation's permission is asked as before and its extension printed as a line, and, since the dxlib operations run middlewares, a must question asks which ones it runs; and exits 0 |
@@ -13133,6 +13205,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | extract-swift-parser-version | command extract | system | red | a code-facts dump that names SwiftSyntax 603.0.2 as the parser that made it | extract swift is run on the dump | it refuses the dump, naming the version that made it and the one this release reads, writes nothing and exits 1 |
 | extract-swift-screens | command extract | system | golden | a code-facts dump of a SwiftUI app whose WindowGroup shows a view holding a TabView (a tab with a Label, a Tab with a title and a tab whose label is not a literal), a list view that queries a SwiftData model and opens a detail view through navigationDestination, a form through a sheet and one of two views through a fullScreenCover with a branch, a detail view whose controls bind properties of the model, a property of a property and two links with literal labels, a row view no navigation call opens that holds a link, a form bound to a draft struct and its own state with two navigation titles, and a file that imports SwiftUI and gives nothing | extract swift is run on the dump | it writes one page per view a navigation call opens, named after the view without View or Screen, with its literal title, the fields its controls bind, its entity where the bindings or the query name one SwiftData model, and a navigate action per way it opens another page, labelled where the link's label is a literal; writes each tab as a menu entry; asks a must question per page on its kind, route and what the source does not give, one on its permission, one on the labels the source does not give, one on the tab with no literal title and one on the row view no screen is found to hold; asks a should question on the destination a branch chooses; prints a line for the property of a property and for the schema the model holds, and names the file that gives nothing; and exits 0 |
 | extract-swift-stale-dump | command extract | system | red | a code-facts dump made at the commit that added a folder's first Swift file, and a later commit that adds a second Swift file to the folder | extract swift is run on the dump | it refuses the dump as stale, naming both commits, writes nothing and exits 1 |
+| extract-swift-txn-token | command extract | system | golden | a code-facts dump of a Vapor server with three routes whose handlers read a header: one reads Accept-Language by headers.first(name:), one reads Txn-Token the same way, and one reads txn-token by a subscript of the headers | extract swift is run on the dump | it asks at each of the two operations whose handler reads the Txn-Token header, in any case, for its transaction token and via, citing the line and the name as the code writes it, in the words extract go asks it; asks nothing of the route that reads another header; and exits 0 |
 | extract-swift-vapor-routes | command extract | system | golden | a code-facts dump of a Vapor service whose routes function registers routes on the Application, on groups with literal segments and a group guarded by the check the implementation file names, under two such groups, and under a group whose check's permission is not a literal; with on and a method the meta-model lacks, the same route twice, a catch-all, a wildcard, a segment that is not a literal and a route behind a condition; a RouteCollection registered on the Application and on a group, with a group closure, a handler that decodes a list of a Content type and one that reads a parameter its path lacks; a RouteCollection nothing registers; and a function given a RoutesBuilder by a caller not followed | extract swift is run on the dump with the implementation file | it writes one operation per route with literal segments under a builder it follows, named after its handler or by its method and path, citing its registration and its handler, the permission the guarded group's check names, and the request body a handler decodes; asks a must question on each route's summary and responses, its parameters' values, whether the running system registers it and its permission where no one check gives it, on the route twice, the segment that is not a literal, the route behind a condition, the collection nothing registers, the builder not followed and each parameter read that the path lacks; prints a line for the catch-all, the wildcard, the method and each handler that serves more than one route; and exits 0 |
 | extract-usage-error | command extract | system | red | no source | extract is run without arguments | it prints how to use it and exits 2 |
 | extract-workflows-not-bpmn | command extract | system | red | a committed XML file that is a state chart, not BPMN 2.0 | extract workflows is run on it | it says the file is not a BPMN 2.0 XML file, writes nothing and exits 1 |
@@ -13979,7 +14052,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-86 | enums DocumentTarget; commands document; decisions ADR-157 | tests document-writes-comparison; tests document-writes-comparison-citation-without-source |
 | SA-87 | decisions ADR-158; decisions ADR-167; decisions ADR-168 | tests generate-scripts; tests generate-scripts-dialect-refused; tests generate-scripts-hand-written-refused; tests generate-scripts-mariadb |
 | SA-88 | enums Rule; decisions ADR-171 | tests derive-caller-estate; tests document-techspec-caller-estate; tests gaps-caller-alone; tests validate-caller-chain-gap; tests validate-caller-chain-wrong; tests validate-caller-estate; tests validate-caller-estate-wrong; tests validate-caller-identity-case-waits; tests validate-caller-identity-cases |
-| SA-89 | decisions ADR-159; decisions ADR-169; decisions ADR-170 | tests extract-dart-caller-checks; tests extract-go-caller-checks; tests extract-javascript-caller-checks; tests extract-permissions-client-through; tests extract-permissions-pattern-through; tests extract-swift-caller-checks |
+| SA-89 | decisions ADR-159; decisions ADR-169; decisions ADR-170; decisions ADR-173 | tests extract-dart-caller-checks; tests extract-dart-txn-token; tests extract-go-caller-checks; tests extract-javascript-caller-checks; tests extract-javascript-txn-token; tests extract-permissions-client-through; tests extract-permissions-pattern-through; tests extract-swift-caller-checks; tests extract-swift-txn-token |
 | SA-90 | enums DocumentTarget; decisions ADR-160; decisions ADR-165; decisions ADR-166 | tests document-manual-none; tests document-operations-none; tests document-writes-manual; tests document-writes-manual-cli; tests document-writes-manual-cli-unnamed; tests document-writes-operations; tests validate-command-remedies; tests validate-jobs-dead-letter; tests validate-remedy-and-response |
 
 ## Sources

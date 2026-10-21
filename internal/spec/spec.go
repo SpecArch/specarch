@@ -126,6 +126,7 @@ type Problem struct {
 	Path    string
 	Rule    string
 	Message string
+	Detail  string // the YAML parser's own message, for a yaml_syntax error
 }
 
 // Held is an entry of a file that did not parse, kept by its name only or
@@ -176,6 +177,7 @@ func Load(dir string) *Spec {
 	doc := source.Parse(data)
 	for _, p := range doc.Problems {
 		s.problem(s.RootFile, p.Line, p.Path, p.Rule, "%s", p.Message)
+		s.detail(p.Detail)
 	}
 	s.hold(s.RootFile, "", doc)
 	if doc.Root == nil {
@@ -417,6 +419,7 @@ func (s *Spec) loadStage(stage, folder string, sections map[string]*yaml.Node) {
 		doc := source.Parse(data)
 		for _, pr := range doc.Problems {
 			s.problem(p, pr.Line, pr.Path, pr.Rule, "%s", pr.Message)
+			s.detail(pr.Detail)
 		}
 		s.hold(p, "", doc)
 		if doc.Root == nil {
@@ -484,6 +487,7 @@ func (s *Spec) loadQuestionsFile(p string, sections map[string]*yaml.Node) bool 
 	}
 	for _, pr := range doc.Problems {
 		s.problem(p, pr.Line, pr.Path, pr.Rule, "%s", pr.Message)
+		s.detail(pr.Detail)
 	}
 	s.hold(p, "", doc)
 	s.record(doc.Root, p)
@@ -560,6 +564,7 @@ func (s *Spec) loadTests(folder string, sections map[string]*yaml.Node) {
 				path = at + path
 			}
 			s.problem(tf, pr.Line, path, pr.Rule, "%s", pr.Message)
+			s.detail(pr.Detail)
 		}
 		s.hold(tf, at, doc)
 		if doc.Root == nil {
@@ -659,6 +664,11 @@ func (s *Spec) problem(file string, line int, path, rule, format string, args ..
 		line = 1
 	}
 	s.Problems = append(s.Problems, Problem{File: file, Line: line, Path: path, Rule: rule, Message: fmt.Sprintf(format, args...)})
+}
+
+// detail keeps the parser's own message with the problem added last.
+func (s *Spec) detail(d string) {
+	s.Problems[len(s.Problems)-1].Detail = d
 }
 
 // Covers reports whether the specification has any section of a stage.

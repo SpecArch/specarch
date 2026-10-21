@@ -86,6 +86,7 @@ func checkSpecAll(s *spec.Spec, given ...Given) []Diagnostic {
 	}
 	for _, p := range s.Problems {
 		c.addFile(p.File, p.Line, p.Path, Rule(p.Rule), "%s", p.Message)
+		c.detail(p.Detail)
 	}
 	var out []Diagnostic
 	var d *design
@@ -271,6 +272,11 @@ func (c *checker) addFile(file string, line int, path string, rule Rule, format 
 	c.diags = append(c.diags, Diagnostic{File: file, Line: line, Severity: Error, Path: path, Rule: rule, Message: fmt.Sprintf(format, args...)})
 }
 
+// detail keeps the YAML parser's own message with the problem added last.
+func (c *checker) detail(d string) {
+	c.diags[len(c.diags)-1].Detail = d
+}
+
 func (c *checker) warn(n *yaml.Node, path string, rule Rule, format string, args ...any) {
 	c.add(n, path, rule, format, args...)
 	c.diags[len(c.diags)-1].Severity = Warning
@@ -298,6 +304,7 @@ func (c *checker) runImplementation(data []byte, s *spec.Spec, load ...Loader) {
 	doc := source.Parse(data)
 	for _, p := range doc.Problems {
 		c.addLine(p.Line, p.Path, Rule(p.Rule), "%s", p.Message)
+		c.detail(p.Detail)
 	}
 	if doc.Root == nil {
 		return

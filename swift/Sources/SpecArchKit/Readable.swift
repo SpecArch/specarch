@@ -78,7 +78,7 @@ private final class Reader {
             if problem.line < s + 1 || problem.line > e {
                 // Read with the lines after it made comments, an entry left
                 // open fails where the file ends; the error is the entry's.
-                problem = Problem(line: s + 1, path: problem.path, rule: problem.rule, message: problem.message)
+                problem = Problem(line: s + 1, path: problem.path, rule: problem.rule, message: problem.message, detail: problem.detail)
             }
             let line = lines[s]
             let entry = entryOf(line)
@@ -104,12 +104,12 @@ private final class Reader {
                 if depth > 0 && parses(ctx, out, [s: entry.cut]) == nil {
                     out[s] = entry.cut
                     held.append(at)
-                    problems.append(Problem(line: problem.line, path: at, rule: problem.rule, message: problem.message + heldNote))
+                    problems.append(Problem(line: problem.line, path: at, rule: problem.rule, message: problem.message + heldNote, detail: problem.detail))
                     continue
                 }
             }
             if entry != nil { held.append(at) }
-            problems.append(Problem(line: problem.line, path: at.isEmpty ? "/" : at, rule: problem.rule, message: problem.message + droppedNote))
+            problems.append(Problem(line: problem.line, path: at.isEmpty ? "/" : at, rule: problem.rule, message: problem.message + droppedNote, detail: problem.detail))
         }
         return out
     }

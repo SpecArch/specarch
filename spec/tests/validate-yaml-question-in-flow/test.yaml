@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "an entities file whose enums hold a ? inside a key of a { }, a ? inside a value of a [ ], a ? at the start of a value with no space after it, and a ? inside a quoted value"
+when: validate is run
+then: "both builds report yaml_syntax at the first three enums, read the quoted value, and exit 1"
+verifies: [SA-51]

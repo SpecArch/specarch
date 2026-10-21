@@ -165,13 +165,13 @@ func (r *reader) block(ctx map[int]string, lo, hi int, ptr string, depth int) ma
 		if ok && depth > 0 && r.parses(ctx, out, map[int]string{s: cut}) == nil {
 			out[s] = cut
 			r.held = append(r.held, at)
-			r.problems = append(r.problems, Problem{Line: problem.Line, Path: at, Rule: problem.Rule, Message: problem.Message + heldNote})
+			r.problems = append(r.problems, Problem{Line: problem.Line, Path: at, Rule: problem.Rule, Message: problem.Message + heldNote, Detail: problem.Detail})
 			continue
 		}
 		if ok {
 			r.held = append(r.held, at)
 		}
-		r.problems = append(r.problems, Problem{Line: problem.Line, Path: orRoot(at), Rule: problem.Rule, Message: problem.Message + droppedNote})
+		r.problems = append(r.problems, Problem{Line: problem.Line, Path: orRoot(at), Rule: problem.Rule, Message: problem.Message + droppedNote, Detail: problem.Detail})
 	}
 	return out
 }

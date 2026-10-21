@@ -486,7 +486,7 @@ extension Checker {
             for item in items(n.child("verifies")) { verified.insert(item.value) }
         }
         for impl in d.spec?.implementations ?? [] {
-            let doc = parseYAML(String(decoding: impl.data, as: UTF8.self))
+            let doc = parseYAML(yamlText(impl.data))
             walk(doc.root, []) { n, _ in
                 for item in items(n.child("satisfies")) { satisfied.insert(item.value) }
             }

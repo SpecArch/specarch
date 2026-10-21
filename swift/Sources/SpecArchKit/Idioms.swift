@@ -159,8 +159,8 @@ extension Checker {
                 continue
             }
             let ic = Checker(file: p)
-            let doc = parseYAML(String(decoding: data, as: UTF8.self))
-            for pr in doc.problems { ic.addLine(pr.line, pr.path, Rule(rawValue: pr.rule)!, pr.message) }
+            let doc = parseYAML(yamlText(data))
+            for pr in doc.problems { ic.addLine(pr.line, pr.path, Rule(rawValue: pr.rule)!, pr.message, detail: pr.detail) }
             if let r = doc.root {
                 ic.root = r
                 ic.checkSchema(.idiom, doc.value)

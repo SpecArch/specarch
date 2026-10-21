@@ -52,7 +52,7 @@ final class Placer {
         if let t = trees[file] { return t }
         var t: YNode?
         if let data = try? readFile(file) {
-            t = parseYAML(String(decoding: data, as: UTF8.self)).root
+            t = parseYAML(yamlText(data)).root
         }
         trees[file] = t
         return t

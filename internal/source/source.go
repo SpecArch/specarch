@@ -21,6 +21,7 @@ type Problem struct {
 	Path    string
 	Rule    string
 	Message string
+	Detail  string // the parser's own message, for a yaml_syntax error the parser gave
 }
 
 // Doc is one parsed file.
@@ -32,13 +33,6 @@ type Doc struct {
 }
 
 var yamlLine = regexp.MustCompile(`^yaml: line (\d+): (.*)$`)
-
-var unclosed = map[string]string{
-	"did not find expected ',' or '}'":    "the { that starts on this line is not closed; close it with }, and separate its entries with commas",
-	"did not find expected ',' or ']'":    "the [ that starts on this line is not closed; close it with ], and separate its items with commas",
-	"did not find expected key":           "the mapping that starts on this line has a line that is not a key; check the indentation below it",
-	"did not find expected '-' indicator": "the list that starts on this line has a line that is not an item; check the indentation below it",
-}
 
 // Parse reads one YAML document. A file that does not parse keeps what can
 // be read of it (see readable); when nothing can, the syntax error is
@@ -65,7 +59,7 @@ func parseWhole(data []byte) (*Doc, bool) {
 			d.Problems = append(d.Problems, Problem{Line: 1, Path: "/", Rule: "yaml_syntax", Message: "the file is empty"})
 			return d, false
 		}
-		d.Problems = append(d.Problems, syntaxProblem(err))
+		d.Problems = append(d.Problems, syntaxProblem(data, err))
 		return d, true
 	}
 	var extra yaml.Node
@@ -73,10 +67,14 @@ func parseWhole(data []byte) (*Doc, bool) {
 		d.Problems = append(d.Problems, Problem{Line: extra.Line, Path: "/", Rule: "yaml_syntax", Message: "a file holds one YAML document; found a second"})
 		return d, false
 	} else if !errors.Is(err, io.EOF) {
-		d.Problems = append(d.Problems, syntaxProblem(err))
+		d.Problems = append(d.Problems, syntaxProblem(data, err))
 		return d, true
 	}
 	root := file.Content[0]
+	if p := flowProblem(string(data), root); p != nil {
+		d.Problems = append(d.Problems, *p)
+		return d, true
+	}
 	d.Root = root
 	d.Value = d.convert(root, "")
 	return d, false
@@ -89,22 +87,13 @@ func ValueOf(n *yaml.Node) any {
 	return d.convert(n, "")
 }
 
-func syntaxProblem(err error) Problem {
-	msg := err.Error()
-	line := 1
-	if m := yamlLine.FindStringSubmatch(msg); m != nil {
-		line, _ = strconv.Atoi(m[1])
-		msg = m[2]
-	} else {
-		msg = strings.TrimPrefix(msg, "yaml: ")
-	}
-	// For these parser errors the YAML library gives the line where the
-	// unclosed block starts, counted from 0.
-	if plain, ok := unclosed[msg]; ok {
-		line++
-		msg = plain
-	}
-	return Problem{Line: line, Path: "/", Rule: "yaml_syntax", Message: msg}
+// syntaxProblem is a parser's error in the validator's words, with the
+// parser's own message as its detail. For the unclosed-block messages the
+// parser gives the line where the block starts, counted from 0.
+func syntaxProblem(data []byte, err error) Problem {
+	line, problem, given := lineOf(err.Error())
+	line, message := syntaxProblemAt(string(data), line, given, problem)
+	return Problem{Line: line, Path: "/", Rule: "yaml_syntax", Message: message, Detail: err.Error()}
 }
 
 func (d *Doc) convert(n *yaml.Node, path string) any {

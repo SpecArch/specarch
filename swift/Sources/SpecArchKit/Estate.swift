@@ -12,7 +12,7 @@ final class Estate {
 
     init(path: String, data: Data) {
         self.path = path
-        doc = parseYAML(String(decoding: data, as: UTF8.self))
+        doc = parseYAML(yamlText(data))
         guard let root = doc.root, root.kind == .mapping else { return }
         for p in child(root, "modules")?.pairs ?? [] {
             var location = ""
@@ -51,7 +51,7 @@ func isRegularFile(_ path: String) -> Bool {
 func checkEstate(_ e: Estate, _ specs: [String: Spec]) -> [Diagnostic] {
     let c = Checker(file: e.path)
     for p in e.doc.problems {
-        c.addLine(p.line, p.path, Rule(rawValue: p.rule)!, p.message)
+        c.addLine(p.line, p.path, Rule(rawValue: p.rule)!, p.message, detail: p.detail)
     }
     if let root = e.doc.root {
         c.root = root

@@ -431,7 +431,7 @@ func readInputs(paths []string, verb string, stdout, stderr io.Writer, settles f
 		}
 		ce := checkedEstate{estate: in.estate, diags: validate.CheckEstate(in.estate, byFolder)}
 		for _, d := range ce.diags {
-			fmt.Fprintln(stdout, d.String())
+			printDiagnostic(stdout, stderr, d)
 			invalid = invalid || d.Severity == validate.Error
 		}
 		estates = append(estates, ce)
@@ -441,7 +441,7 @@ func readInputs(paths []string, verb string, stdout, stderr io.Writer, settles f
 		diags, covered := validate.CheckSpecCovered(s, given)
 		for _, d := range diags {
 			if d.Severity == validate.Error && (settles == nil || !settles(d)) {
-				fmt.Fprintln(stdout, d.String())
+				printDiagnostic(stdout, stderr, d)
 				invalid = true
 			}
 		}

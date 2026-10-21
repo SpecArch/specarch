@@ -1,0 +1,12 @@
+enums:
+  Pair: {type: string, enum: [a], ? c ? d}
+  Inside:
+    type: string
+    enum: [a?b, c]
+  Leading:
+    type: string
+    enum: [?b]
+  Quoted:
+    type: string
+    description: "a ? in quotes"
+    enum: [a, "b"]

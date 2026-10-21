@@ -366,3 +366,10 @@ instead.
    of it. One broken entry stops causing errors in every file that
    refers to it, and an implementation file with a broken entry still
    names its output folders.
+   The message is the validator's own sentence for the class of the
+   error, what is wrong and what to do, the same in both builds; the
+   YAML parser's own message follows on standard error, marked
+   `yaml parser (<parser>)` (ADR-177). A tag that runs into a `,` `[`
+   `]` `{` or `}`, or a `?` inside a value of a `[ ]` or `{ }`, is an
+   error in both builds, since YAML parsers read them in different
+   ways, and so is a file with bytes that are not UTF-8.

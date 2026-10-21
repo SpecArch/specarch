@@ -244,7 +244,7 @@ func implementationReferences(_ impl: YNode?, _ design: YNode?) -> [ModelReferen
 /// problems file places them.
 func layoutProblems(_ s: Spec) -> [Diagnostic] {
     let c = Checker(file: s.rootPath, files: s.files)
-    for p in s.problems { c.addFile(p.file, p.line, p.path, Rule(rawValue: p.rule)!, p.message) }
+    for p in s.problems { c.addFile(p.file, p.line, p.path, Rule(rawValue: p.rule)!, p.message, detail: p.detail) }
     var ds = c.diags
     Placer(spec: s).place(&ds)
     sortDiagnostics(&ds)
@@ -255,7 +255,7 @@ func layoutProblems(_ s: Spec) -> [Diagnostic] {
 /// does not parse. Their ids name the file from dir.
 func readProblems(_ path: String, _ dir: String, _ doc: Doc) -> [Diagnostic] {
     let c = Checker(file: path)
-    for p in doc.problems { c.addLine(p.line, p.path, Rule(rawValue: p.rule)!, p.message) }
+    for p in doc.problems { c.addLine(p.line, p.path, Rule(rawValue: p.rule)!, p.message, detail: p.detail) }
     var ds = c.diags
     Placer(dir: dir).place(&ds)
     sortDiagnostics(&ds)
@@ -340,7 +340,7 @@ private func modelSpec(_ s: Spec) -> Canon {
 /// One implementation file: of a specification when design is its merged
 /// document, or on its own.
 private func modelImplementation(_ path: String, _ dir: String, _ data: Data, _ design: YNode?) -> Canon {
-    let doc = parseYAML(String(decoding: data, as: UTF8.self))
+    let doc = parseYAML(yamlText(data))
     let base = (path as NSString).lastPathComponent
     let name = String(base.dropLast(implementationSuffix.count))
     let stack = name.lastIndex(of: ".").map { String(name[name.index(after: $0)...]) } ?? name

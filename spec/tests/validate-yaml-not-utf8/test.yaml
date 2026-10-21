@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "an entities file whose first enum has a description with a byte that is not UTF-8, and a second enum that parses"
+when: validate is run
+then: "both builds report yaml_syntax at the description, say the file holds bytes that are not UTF-8, read the second enum, and exit 1"
+verifies: [SA-51]

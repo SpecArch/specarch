@@ -43,7 +43,7 @@ func runProblems(paths []string, out string, check bool, stdout, stderr io.Write
 			// An estate has no problems file of its own: what is wrong in
 			// it is printed, and makes the status 1 (ADR-113).
 			ds := validate.CheckEstate(in.estate, estateFolders(inputs))
-			printErrors(ds, nil, stdout)
+			printErrors(ds, nil, stdout, stderr)
 			invalid = invalid || validate.Errors(ds) > 0
 			continue
 		}
@@ -65,7 +65,7 @@ func runProblems(paths []string, out string, check bool, stdout, stderr io.Write
 			}
 		}
 		if out == "" && !namesOutput(l, "problems") {
-			printErrors(diags, nil, stdout)
+			printErrors(diags, nil, stdout, stderr)
 			fmt.Fprintln(stdout, noOutputFolder(l, "problems", "document").String())
 			skipped++
 			continue
@@ -102,7 +102,7 @@ func runProblems(paths []string, out string, check bool, stdout, stderr io.Write
 			}
 		}
 		ps = moved.Problems(ps)
-		printErrors(diags, moved, stdout)
+		printErrors(diags, moved, stdout, stderr)
 		name := relSlash(folder, s.RootFile)
 		version := ""
 		if s.Root != nil {
@@ -184,11 +184,11 @@ func markWritten(dir string, files []string, given validate.Given) error {
 
 // printErrors prints the errors among diags, at their lines after the
 // marks when the run marks their files.
-func printErrors(diags []validate.Diagnostic, moved problems.Moved, stdout io.Writer) {
+func printErrors(diags []validate.Diagnostic, moved problems.Moved, stdout, stderr io.Writer) {
 	for _, d := range diags {
 		if d.Severity == validate.Error {
 			d.Line = moved.Line(d.File, d.Line)
-			fmt.Fprintln(stdout, d.String())
+			printDiagnostic(stdout, stderr, d)
 		}
 	}
 }

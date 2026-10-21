@@ -148,7 +148,12 @@ func runValidate(_ argsIn: [String], _ stdout: TextSink, _ stderr: TextSink) -> 
         }
     }
     sortDiagnostics(&all)
-    for d in all { stdout.write(d.description + "\n") }
+    // A YAML syntax error's parser message goes on standard error, so that
+    // the problem line is the same bytes in both builds (ADR-177).
+    for d in all {
+        stdout.write(d.description + "\n")
+        if let l = d.detailLine { stderr.write(l + "\n") }
+    }
     let errors = errorCount(all)
     var questions = open > 0 ? ", " + plural(open, "open question") : ""
     if unresolved > 0 { questions += ", " + plural(unresolved, "unresolved reference") }

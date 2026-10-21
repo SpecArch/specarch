@@ -227,7 +227,7 @@ func runValidate(args []string, stdout, stderr io.Writer) int {
 	}
 	validate.Sort(all)
 	for _, d := range all {
-		fmt.Fprintln(stdout, d.String())
+		printDiagnostic(stdout, stderr, d)
 	}
 	errors := validate.Errors(all)
 	questions := ""
@@ -327,6 +327,17 @@ func collect(args []string, stderr io.Writer) ([]input, bool) {
 		}
 	}
 	return inputs, ioError
+}
+
+// printDiagnostic prints a problem line on standard output and, for a YAML
+// syntax error, the parser's own message on standard error, so that the
+// problem line is the same bytes in both builds and the parser's message
+// is still shown (ADR-177).
+func printDiagnostic(stdout, stderr io.Writer, d validate.Diagnostic) {
+	fmt.Fprintln(stdout, d.String())
+	if l := d.DetailLine(); l != "" {
+		fmt.Fprintln(stderr, l)
+	}
 }
 
 func plural(n int, word string) string {

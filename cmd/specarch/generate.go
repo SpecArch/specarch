@@ -169,7 +169,7 @@ func runGenerate(args []string, stdout, stderr io.Writer) int {
 	refused := false
 	for _, l := range specs {
 		for _, d := range validate.GeneratorReferences(l.spec, target) {
-			fmt.Fprintln(stdout, d.String())
+			printDiagnostic(stdout, stderr, d)
 			refused = true
 		}
 	}
@@ -214,7 +214,7 @@ func runGenerate(args []string, stdout, stderr io.Writer) int {
 			}
 			var own []mark.Problem
 			for _, d := range placePlugin(l.spec, resp.Diagnostics) {
-				fmt.Fprintln(stdout, d.String())
+				printDiagnostic(stdout, stderr, d)
 				if d.Severity == validate.Error {
 					failed = true
 				}
@@ -239,7 +239,7 @@ func runGenerate(args []string, stdout, stderr io.Writer) int {
 					if printed[d.ID] {
 						continue
 					}
-					fmt.Fprintln(stdout, d.String())
+					printDiagnostic(stdout, stderr, d)
 					if d.Severity == validate.Error {
 						failed = true
 					}

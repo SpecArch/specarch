@@ -1,0 +1,8 @@
+enums:
+  Latin:
+    type: string
+    description: café menu
+    enum: [a]
+  Fine:
+    type: string
+    enum: [a, b]

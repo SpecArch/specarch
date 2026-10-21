@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.7.4-dev of the specification: 90 requirements, 5 entities, 16 commands, 7 algorithms, 661 tests, 167 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.7.4-dev of the specification: 90 requirements, 5 entities, 16 commands, 7 algorithms, 665 tests, 168 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13108,6 +13108,73 @@ describe two parts of this reader.
 
 **Insight:** YAML 1.2's core schema is the standard, and yaml.v3 departs from it in places: underscores, a bare leading 0 read as octal, a sign after 0b or 0o, timestamps, which the core schema does not have, and a decimal past 64 bits read as a float. The core schema's rules protect a reader from a text that one parser reads as a number and another as a string; here the danger is the same one between the two builds, and the Go build cannot be told to read by the core schema, since yaml.v3 resolves while it parses. The Swift build therefore follows yaml.v3 in every case, and a value that must stay text is quoted, as for any value YAML could read another way. Fixing one form at a time left the rest unchecked; one reader, ported from yaml.v3 as a whole and checked against a table of every form, ends the class.
 
+### ADR-177: A YAML syntax error is reported in the validator's own words, the same in both builds, with the parser's message on standard error
+
+Status: accepted, 2026-10-22.
+
+Context: The Go build reads YAML with go.yaml.in/yaml/v3 and the Swift
+build with libyaml through Yams. Both come from libyaml and give
+one set of messages, and the problem line passed the parser's
+message through, with a plain sentence for four of them. For the
+same text the two parsers do not always give the same message:
+`[!!null]` is "did not find expected ',' or ']'" to yaml.v3, read
+as an unclosed [, and "did not find expected whitespace or line
+break" to libyaml; an alias with no anchor, a control character
+and a file with bytes that are not UTF-8 were printed by Yams with
+the offending line and a caret inside the problem line. Some texts
+one parser reads and the other refuses: yaml.v3 reads `!!str,` in
+`[!!str, a]` as a tag with a comma and the value a, where libyaml
+ends the tag before the comma and reads an empty value; yaml.v3
+ends a value at any ? in a [ ] or { } and refuses `{? c ? d}` and
+`[a?b]`, and reads `[?b]` as a mapping, where libyaml reads the ?
+as part of the value; and the Swift build decoded a file that is
+not UTF-8 with replacement characters, so it reported nothing
+(BUG-056). Both builds must print the same bytes for a broken file
+as for a valid one (ADR-138), and the problems file is written from
+the same lines.
+
+Decision: - A parser's message picks a class, and the problem line says the
+  class's sentence: what is wrong and what to do. One table, the
+  same in both builds (`internal/source/syntax.go`,
+  `swift/Sources/SpecArchKit/Syntax.swift`, and a Go test that
+  holds them equal), gives a class to every message either parser
+  has, and a message no class names reads "this is not well-formed
+  YAML; correct it at this line, and read the parser's own
+  message, printed on standard error".
+- The parser's own message is the problem's detail. validate and
+  every command that prints a problem line print it on standard
+  error after it, as `<file>:<line>:<column>: yaml parser
+  (<parser>): <message>`, with the parser named. It is never in
+  the problem line, the problems file, the SARIF log or the model.
+- In each flow collection, [ ] or { }, two texts are refused in
+  both builds, as yaml_syntax at the line where the innermost
+  collection that holds them starts: a tag followed by , [ ] { or }
+  with no space between (tag_runs_on), and a ? that is not a key's
+  ? at the start of an entry with a space after it
+  (question_in_flow). The validator reads the collection's text
+  for them after a parse, and to give a parser's refusal of one of
+  them its class; a quoted value and a comment are skipped. Whether
+  a collection is written in flow style is read from the text at
+  its position in both builds, since the Yams parser keeps the
+  style of a collection's end event, not its start.
+- The Swift build reads a byte that is not UTF-8 as U+FFFE, which
+  libyaml refuses as yaml.v3 refuses the byte, so both report it
+  with one class at the entry that holds it; the Swift detail says
+  the file holds bytes that are not UTF-8.
+- An unclosed [ or { on the first line of a file is reported at
+  line 1; yaml.v3 names no line for it, and 1 was added to the
+  line 1 that stands for none.
+
+Consequences: The cases `validate-yaml-syntax-classes`, `validate-yaml-not-utf8`,
+`validate-yaml-tag-in-flow` and `validate-yaml-question-in-flow`
+print the same bytes from both builds. A new parser message with
+no class is reported with the general sentence until the table
+names it. A tag running into a flow indicator, or a ? inside a
+value of a [ ] or { }, that one parser used to read is now an
+error in both; the fix is a space or quotes.
+
+**Insight:** The two parsers' messages are their own, and the wording of one changes with its version; a problem line that passes them through differs between the builds whenever they read a text differently, and an owner cannot tell from it what to do. A sentence the validator owns is the same in both builds and says how to fix the text; the parser's message stays visible, on standard error, because the real reason is never hidden. Standard error is where it can differ: the conformance suite and the landing check compare standard output and the files written, which must be the same bytes. A text two parsers read in two ways is ambiguous, and ambiguity is an error (`docs/principles.md`): YAML 1.2 keeps flow indicators out of a tag and lets a ? stand inside a plain value, yaml.v3 does neither, and no choice between them is safe for a reader that may meet either parser, so both builds refuse the text and name the fix, a space after the tag or quotes around the value.
+
 ## 10. Quality requirements
 
 The design tests: what must hold on every implementation. Golden scenarios succeed; red scenarios are refused.
@@ -13771,8 +13838,12 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | validate-wire-names | command validate | system | red | a specification whose wire names are snake_case, with two entity fields, two fields of a nested object, two fields of an array's items, a view's added field and its entity's, two fields of a message payload, two of a path parameter's schema and two of a request body each mapping to one wire name, acronyms and runs of capitals among them | validate is run | it reports wire_name seven times, at the second name of each pair, and exits 1 |
 | validate-workflow | command validate | system | red | a workflow whose subject is not an entity, whose approver does not grant the approval's permission or is not a role, whose approval checks the trigger's permission with a deadline of zero and escalates to a step that is not a later approval, with two steps of one name and an operation step naming no operation; a workflow started by an operation that does not answer 202 whose approval checks an undeclared permission; and one started by an operation that does not exist | validate is run | it reports workflow eleven times and permission_undeclared once, and exits 1 |
 | validate-workflow-valid | command validate | system | golden | a workflow of two approvals, the first escalating to the second after a day, and an operation step, with a test of the requester approving their own request | validate is run | it reports no error, counts the test as covering the four-eyes case, warns that no test covers the approved path, a refusal and the deadline at each approval and an approval without each permission, among the others, and exits 0 |
+| validate-yaml-not-utf8 | command validate | system | red | an entities file whose first enum has a description with a byte that is not UTF-8, and a second enum that parses | validate is run | both builds report yaml_syntax at the description, say the file holds bytes that are not UTF-8, read the second enum, and exit 1 |
+| validate-yaml-question-in-flow | command validate | system | red | an entities file whose enums hold a ? inside a key of a { }, a ? inside a value of a [ ], a ? at the start of a value with no space after it, and a ? inside a quoted value | validate is run | both builds report yaml_syntax at the first three enums, read the quoted value, and exit 1 |
 | validate-yaml-syntax | command validate | system | red | a root file whose info is a flow mapping that is never closed | validate is run | it reports yaml_syntax with the line at info, leaves info out without reporting it missing, and exits 1 |
+| validate-yaml-syntax-classes | command validate | system | red | an entities file whose enums hold a tag that runs into the ] after it, a tag that runs into the ] after a value, a [ never closed, a nested [ never closed, a second key in a [ ], a quoted value never closed, an unknown escape, an alias with no anchor, a value that starts with @, a key indented under a value, and one enum that parses | validate is run | it reports each yaml_syntax error at its own entry in words both builds print alike, the class of the error and what to do, reads the enum that parses, and exits 1 |
 | validate-yaml-syntax-entries | command validate | system | red | an entities file whose entity has a property with a flow mapping never closed and a constraint with a flow sequence never closed, followed by a second entity, and another file whose entity relates to both | validate is run | it reports yaml_syntax once at the property and once at the constraint, each at its own line and pointer, reads the rest of the file, reports nothing of the relations, and exits 1 |
+| validate-yaml-tag-in-flow | command validate | system | red | an entities file whose enums hold a tag followed by a comma, a tag after an anchor followed by a comma, a tag on the second line of a [ ] followed by its ], and a tag with a space after it | validate is run | both builds report yaml_syntax at the first three enums, at the line where each [ starts, read the tag with a space after it, and exit 1 |
 | version-prints-versions | command version | system | golden | the program | version is run | it prints the program version and the meta-model versions it reads, and exits 0 |
 | version-usage-error | command version | system | red | the program | version is run with an argument | it prints how to use it and exits 2 |
 
@@ -14153,7 +14224,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-48 | enums Rule; decisions ADR-060; decisions ADR-063 | tests extract-openapi-writes-schema; tests generate-sql-value-object; tests validate-question-covers-namespace; tests validate-value-objects; tests validate-value-objects-valid |
 | SA-49 | enums Rule; decisions ADR-062 | tests extract-openapi-snake-case; tests generate-openapi-wire-names; tests generate-ui-swiftui-wire-names; tests generate-ui-typescript-wire-names; tests generate-ui-wire-names; tests validate-wire-names |
 | SA-50 | enums Rule; decisions ADR-063; decisions ADR-077; decisions ADR-078 | tests extract-database-json-column; tests generate-go-dxlib-value-objects; tests generate-sql-identifier-length; tests generate-sql-value-object-fields; tests generate-tests-value-objects; tests merge-value-object-columns; tests merge-value-object-differs; tests merge-value-object-unnamed; tests validate-value-object-fields; tests validate-value-object-fields-valid; tests validate-value-object-part-cases; tests validate-value-object-part-cases-covered |
-| SA-51 | enums DocumentTarget; enums ProblemSeverity; entities Problem; entities ProblemNote; commands document; decisions ADR-065; decisions ADR-066; decisions ADR-080; decisions ADR-086 | tests document-check-invalid; tests document-deployment-marks-implementation-problem; tests document-errors-elsewhere; tests document-problem-without-element; tests document-problems-check-marks; tests document-problems-implementation-broken; tests document-problems-lists; tests document-problems-marks-current; tests document-problems-marks-fragments; tests document-problems-none; tests document-techspec-marks-implementation-problem; tests validate-reads-marks; tests validate-yaml-syntax-entries |
+| SA-51 | enums DocumentTarget; enums ProblemSeverity; entities Problem; entities ProblemNote; commands document; decisions ADR-065; decisions ADR-066; decisions ADR-080; decisions ADR-086; decisions ADR-177 | tests document-check-invalid; tests document-deployment-marks-implementation-problem; tests document-errors-elsewhere; tests document-problem-without-element; tests document-problems-check-marks; tests document-problems-implementation-broken; tests document-problems-lists; tests document-problems-marks-current; tests document-problems-marks-fragments; tests document-problems-none; tests document-techspec-marks-implementation-problem; tests validate-reads-marks; tests validate-yaml-not-utf8; tests validate-yaml-question-in-flow; tests validate-yaml-syntax-classes; tests validate-yaml-syntax-entries; tests validate-yaml-tag-in-flow |
 | SA-52 | decisions ADR-067; decisions ADR-115 | tests generate-ui-typescript; tests generate-ui-typescript-refused |
 | SA-53 | decisions ADR-068; decisions ADR-082 | tests generate-ui-typescript; tests generate-ui-typescript-refused; tests generate-ui-typescript-wire-names |
 | SA-54 | decisions ADR-069; decisions ADR-079 | tests generate-ui-typescript; tests generate-ui-typescript-refused; tests generate-ui-typescript-value-objects; tests generate-ui-typescript-value-objects-refused |

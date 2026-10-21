@@ -366,6 +366,7 @@ func LayoutProblems(s *spec.Spec) []Diagnostic {
 	c := &checker{file: s.RootFile, files: s.Files}
 	for _, p := range s.Problems {
 		c.addFile(p.File, p.Line, p.Path, Rule(p.Rule), "%s", p.Message)
+		c.detail(p.Detail)
 	}
 	SpecPlacer(s).Place(c.diags)
 	Sort(c.diags)
@@ -379,6 +380,7 @@ func ReadProblems(path, dir string, doc *source.Doc) []Diagnostic {
 	c := &checker{file: path}
 	for _, p := range doc.Problems {
 		c.addLine(p.Line, p.Path, Rule(p.Rule), "%s", p.Message)
+		c.detail(p.Detail)
 	}
 	(&Placer{Dir: dir}).Place(c.diags)
 	Sort(c.diags)

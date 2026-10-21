@@ -1,0 +1,36 @@
+enums:
+  Untyped:
+    type: string
+    enum: [!!null]
+  Tagged:
+    type: string
+    enum: [a, !!str]
+  Open:
+    type: string
+    enum: [a, b
+  Nested:
+    type: string
+    enum: [[a, b]
+  Pair:
+    type: string
+    enum: [a: b: c]
+  Quoted:
+    type: string
+    description: "never closed
+    enum: [a]
+  Escaped:
+    type: string
+    description: "a \q escape"
+    enum: [a]
+  Aliased:
+    type: string
+    enum: [*missing]
+  Reserved:
+    type: string
+    enum: [a, @b]
+  Indented:
+    type: string
+      enum: [a]
+  Fine:
+    type: string
+    enum: [a, b]

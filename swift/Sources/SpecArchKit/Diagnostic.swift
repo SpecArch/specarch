@@ -165,11 +165,21 @@ public struct Diagnostic: CustomStringConvertible {
     /// Names what is wrong, not where it is printed (ADR-065): set by a
     /// Placer.
     public var id: String = ""
+    /// The YAML parser's own message for a yaml_syntax error, which differs
+    /// between parsers; it is printed on standard error, never in the
+    /// problem line (ADR-177).
+    public var detail: String = ""
 
     /// The problem line: file:line:column: severity: /yaml/path: rule:
     /// message [id].
     public var description: String {
         "\(file):\(line):\(column): \(severity.rawValue): \(path): \(rule.rawValue): \(message) [\(id)]"
+    }
+
+    /// The line that prints the YAML parser's own message on standard
+    /// error, after the fixed marker "yaml parser"; nil when there is none.
+    public var detailLine: String? {
+        detail.isEmpty ? nil : "\(file):\(line):\(column): yaml parser (\(parserName)): \(detail)"
     }
 }
 

@@ -146,6 +146,7 @@ func (c *checker) projectIdioms() map[string]Idiom {
 		doc := source.Parse(data)
 		for _, pr := range doc.Problems {
 			ic.addLine(pr.Line, pr.Path, Rule(pr.Rule), "%s", pr.Message)
+			ic.detail(pr.Detail)
 		}
 		if doc.Root != nil {
 			ic.root = doc.Root

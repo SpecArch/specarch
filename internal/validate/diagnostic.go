@@ -5,6 +5,8 @@ package validate
 import (
 	"fmt"
 	"sort"
+
+	"github.com/SpecArch/specarch/internal/source"
 )
 
 // Rule names one check. The values are the Rule enum of
@@ -325,12 +327,26 @@ type Diagnostic struct {
 	// ID names what is wrong, not where it is printed (ADR-065): set by
 	// a Placer.
 	ID string
+	// Detail is the YAML parser's own message for a yaml_syntax error,
+	// which differs between parsers; it is printed on standard error, never
+	// in the problem line (ADR-177).
+	Detail string
 }
 
 // String is the problem line: file:line:column: severity: /yaml/path:
 // rule: message [id].
 func (d Diagnostic) String() string {
 	return fmt.Sprintf("%s:%d:%d: %s: %s: %s: %s [%s]", d.File, d.Line, d.Column, d.Severity, d.Path, d.Rule, d.Message, d.ID)
+}
+
+// DetailLine is the line that prints the YAML parser's own message on
+// standard error, after the fixed marker "yaml parser"; empty when there is
+// none.
+func (d Diagnostic) DetailLine() string {
+	if d.Detail == "" {
+		return ""
+	}
+	return fmt.Sprintf("%s:%d:%d: yaml parser (%s): %s", d.File, d.Line, d.Column, source.ParserName, d.Detail)
 }
 
 // Errors counts the diagnostics that make a file invalid.

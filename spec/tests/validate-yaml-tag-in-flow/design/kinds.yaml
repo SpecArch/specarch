@@ -1,0 +1,14 @@
+enums:
+  Comma:
+    type: string
+    enum: [!!str, a]
+  Anchored:
+    type: string
+    enum: [&first !!str, b]
+  Lines:
+    type: string
+    enum: [a,
+      !!null]
+  Spaced:
+    type: string
+    enum: [!!str a, b]

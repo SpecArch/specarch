@@ -64,6 +64,7 @@ func checkRecords(s *spec.Spec, d *design) []Diagnostic {
 		doc := source.Parse(f.Data)
 		for _, p := range doc.Problems {
 			r.c.addLine(p.Line, p.Path, Rule(p.Rule), "%s", p.Message)
+			r.c.detail(p.Detail)
 		}
 		r.held = heldIn(f.Path, doc)
 		if doc.Root == nil {

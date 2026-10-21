@@ -87,6 +87,7 @@ func CheckEstate(e *Estate, specs map[string]*spec.Spec) []Diagnostic {
 	c := &checker{file: e.Path}
 	for _, p := range e.doc.Problems {
 		c.addLine(p.Line, p.Path, Rule(p.Rule), "%s", p.Message)
+		c.detail(p.Detail)
 	}
 	if e.Root != nil {
 		c.root = e.Root

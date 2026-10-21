@@ -181,7 +181,7 @@ func runCheck(args []string, stdout, stderr io.Writer) int {
 		fmt.Fprintf(stdout, "specarch check: %s holds no allowlist %s, so the gate is turned on and none of its lines is counted as added\n", since, allowlist)
 	}
 	for _, d := range out {
-		fmt.Fprintln(stdout, d.String())
+		printDiagnostic(stdout, stderr, d)
 	}
 	if nFailing > 0 || nLines > 0 {
 		return 1

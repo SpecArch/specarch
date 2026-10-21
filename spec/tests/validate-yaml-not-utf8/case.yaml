@@ -1,0 +1,4 @@
+arguments: [validate, .]
+exitStatus: 1
+standardOutput: |
+  design/kinds.yaml:4:17: error: /enums/Latin/description: yaml_syntax: the file holds a control character or bytes that are not UTF-8; save the file as UTF-8 text and take the character out; the other entries of the file are read, and this one is kept by its name only until it parses [yaml_syntax@design/kinds.yaml#/enums/Latin/description]

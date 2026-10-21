@@ -63,6 +63,8 @@ struct SpecProblem {
     let path: String
     let rule: String
     let message: String
+    /// The YAML parser's own message, for a yaml_syntax error.
+    var detail: String = ""
 }
 
 /// An entry of a file that did not parse, kept by its name only or left out
@@ -117,8 +119,8 @@ final class Spec {
             problem(rootPath, 1, "/", "layout", "cannot read \(rootFile) (\(plainIOError(error)))")
             return
         }
-        let doc = parseYAML(String(decoding: data, as: UTF8.self))
-        for p in doc.problems { problem(rootPath, p.line, p.path, p.rule, p.message) }
+        let doc = parseYAML(yamlText(data))
+        for p in doc.problems { problem(rootPath, p.line, p.path, p.rule, p.message, detail: p.detail) }
         hold(rootPath, "", doc)
         guard let docRoot = doc.root else { return }
         record(docRoot, rootPath)
@@ -313,8 +315,8 @@ final class Spec {
                 problem(p, 1, "/", "layout", "cannot read it (\(plainIOError(error)))")
                 continue
             }
-            let doc = parseYAML(String(decoding: data, as: UTF8.self))
-            for pr in doc.problems { problem(p, pr.line, pr.path, pr.rule, pr.message) }
+            let doc = parseYAML(yamlText(data))
+            for pr in doc.problems { problem(p, pr.line, pr.path, pr.rule, pr.message, detail: pr.detail) }
             hold(p, "", doc)
             guard let docRoot = doc.root else { continue }
             record(docRoot, p)
@@ -378,9 +380,9 @@ final class Spec {
                 }
                 continue
             }
-            let doc = parseYAML(String(decoding: data, as: UTF8.self))
+            let doc = parseYAML(yamlText(data))
             let at = pointer("tests", e.name)
-            for pr in doc.problems { problem(tf, pr.line, pr.path == "/" ? "/" : at + pr.path, pr.rule, pr.message) }
+            for pr in doc.problems { problem(tf, pr.line, pr.path == "/" ? "/" : at + pr.path, pr.rule, pr.message, detail: pr.detail) }
             hold(tf, at, doc)
             guard let docRoot = doc.root else { continue }
             record(docRoot, tf)
@@ -400,10 +402,10 @@ final class Spec {
             problem(p, 1, "/", "layout", "cannot read it (\(plainIOError(error))); a YAML file here holds only questions, and its questions are left out until it can be read")
             return true
         }
-        let doc = parseYAML(String(decoding: data, as: UTF8.self))
+        let doc = parseYAML(yamlText(data))
         guard let docRoot = doc.root, docRoot.kind == .mapping else { return false }
         for pair in docRoot.pairs where pair.key.value != questionsSection { return false }
-        for pr in doc.problems { problem(p, pr.line, pr.path, pr.rule, pr.message) }
+        for pr in doc.problems { problem(p, pr.line, pr.path, pr.rule, pr.message, detail: pr.detail) }
         hold(p, "", doc)
         record(docRoot, p)
         for pair in docRoot.pairs { mergeSection(&found, questionsSection, pair.value, p) }
@@ -505,8 +507,8 @@ final class Spec {
         for h in doc.held { held.append(SpecHeld(file: file, path: prefix + h)) }
     }
 
-    private func problem(_ file: String, _ line: Int, _ path: String, _ rule: String, _ message: String) {
-        problems.append(SpecProblem(file: file, line: max(line, 1), path: path, rule: rule, message: message))
+    private func problem(_ file: String, _ line: Int, _ path: String, _ rule: String, _ message: String, detail: String = "") {
+        problems.append(SpecProblem(file: file, line: max(line, 1), path: path, rule: rule, message: message, detail: detail))
     }
 
     /// Whether the specification has any section of a stage.

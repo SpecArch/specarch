@@ -1,0 +1,85 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.3.schema.json
+decisions:
+  ADR-177:
+    title: A YAML syntax error is reported in the validator's own words, the same in both builds, with the parser's message on standard error
+    status: accepted
+    date: "2026-10-22"
+    context: |
+      The Go build reads YAML with go.yaml.in/yaml/v3 and the Swift
+      build with libyaml through Yams. Both come from libyaml and give
+      one set of messages, and the problem line passed the parser's
+      message through, with a plain sentence for four of them. For the
+      same text the two parsers do not always give the same message:
+      `[!!null]` is "did not find expected ',' or ']'" to yaml.v3, read
+      as an unclosed [, and "did not find expected whitespace or line
+      break" to libyaml; an alias with no anchor, a control character
+      and a file with bytes that are not UTF-8 were printed by Yams with
+      the offending line and a caret inside the problem line. Some texts
+      one parser reads and the other refuses: yaml.v3 reads `!!str,` in
+      `[!!str, a]` as a tag with a comma and the value a, where libyaml
+      ends the tag before the comma and reads an empty value; yaml.v3
+      ends a value at any ? in a [ ] or { } and refuses `{? c ? d}` and
+      `[a?b]`, and reads `[?b]` as a mapping, where libyaml reads the ?
+      as part of the value; and the Swift build decoded a file that is
+      not UTF-8 with replacement characters, so it reported nothing
+      (BUG-056). Both builds must print the same bytes for a broken file
+      as for a valid one (ADR-138), and the problems file is written from
+      the same lines.
+    decision: |
+      - A parser's message picks a class, and the problem line says the
+        class's sentence: what is wrong and what to do. One table, the
+        same in both builds (`internal/source/syntax.go`,
+        `swift/Sources/SpecArchKit/Syntax.swift`, and a Go test that
+        holds them equal), gives a class to every message either parser
+        has, and a message no class names reads "this is not well-formed
+        YAML; correct it at this line, and read the parser's own
+        message, printed on standard error".
+      - The parser's own message is the problem's detail. validate and
+        every command that prints a problem line print it on standard
+        error after it, as `<file>:<line>:<column>: yaml parser
+        (<parser>): <message>`, with the parser named. It is never in
+        the problem line, the problems file, the SARIF log or the model.
+      - In each flow collection, [ ] or { }, two texts are refused in
+        both builds, as yaml_syntax at the line where the innermost
+        collection that holds them starts: a tag followed by , [ ] { or }
+        with no space between (tag_runs_on), and a ? that is not a key's
+        ? at the start of an entry with a space after it
+        (question_in_flow). The validator reads the collection's text
+        for them after a parse, and to give a parser's refusal of one of
+        them its class; a quoted value and a comment are skipped. Whether
+        a collection is written in flow style is read from the text at
+        its position in both builds, since the Yams parser keeps the
+        style of a collection's end event, not its start.
+      - The Swift build reads a byte that is not UTF-8 as U+FFFE, which
+        libyaml refuses as yaml.v3 refuses the byte, so both report it
+        with one class at the entry that holds it; the Swift detail says
+        the file holds bytes that are not UTF-8.
+      - An unclosed [ or { on the first line of a file is reported at
+        line 1; yaml.v3 names no line for it, and 1 was added to the
+        line 1 that stands for none.
+    why: |
+      The two parsers' messages are their own, and the wording of one
+      changes with its version; a problem line that passes them through
+      differs between the builds whenever they read a text differently,
+      and an owner cannot tell from it what to do. A sentence the
+      validator owns is the same in both builds and says how to fix the
+      text; the parser's message stays visible, on standard error,
+      because the real reason is never hidden. Standard error is where
+      it can differ: the conformance suite and the landing check compare
+      standard output and the files written, which must be the same
+      bytes. A text two parsers read in two ways is ambiguous, and
+      ambiguity is an error (`docs/principles.md`): YAML 1.2 keeps flow
+      indicators out of a tag and lets a ? stand inside a plain value,
+      yaml.v3 does neither, and no choice between them is safe for a
+      reader that may meet either parser, so both builds refuse the text
+      and name the fix, a space after the tag or quotes around the
+      value.
+    consequences: |
+      The cases `validate-yaml-syntax-classes`, `validate-yaml-not-utf8`,
+      `validate-yaml-tag-in-flow` and `validate-yaml-question-in-flow`
+      print the same bytes from both builds. A new parser message with
+      no class is reported with the general sentence until the table
+      names it. A tag running into a flow indicator, or a ? inside a
+      value of a [ ] or { }, that one parser used to read is now an
+      error in both; the fix is a space or quotes.
+    satisfies: [SA-51]

@@ -49,7 +49,7 @@ private func checkSpecAll(_ s: Spec, _ given: Given) -> [Diagnostic] {
     let c = Checker(file: s.rootPath, files: s.files)
     c.given = given
     for p in s.problems {
-        c.addFile(p.file, p.line, p.path, Rule(rawValue: p.rule)!, p.message)
+        c.addFile(p.file, p.line, p.path, Rule(rawValue: p.rule)!, p.message, detail: p.detail)
     }
     var out: [Diagnostic] = []
     var design: Design?
@@ -178,12 +178,12 @@ final class Checker {
         addFile(fileOf(n), n?.line ?? 1, path, rule, message)
     }
 
-    func addLine(_ line: Int, _ path: String, _ rule: Rule, _ message: String) {
-        addFile(file, line, path, rule, message)
+    func addLine(_ line: Int, _ path: String, _ rule: Rule, _ message: String, detail: String = "") {
+        addFile(file, line, path, rule, message, detail: detail)
     }
 
-    func addFile(_ file: String, _ line: Int, _ path: String, _ rule: Rule, _ message: String) {
-        diags.append(Diagnostic(file: file, line: max(line, 1), severity: .error, path: path.isEmpty ? "/" : path, rule: rule, message: message))
+    func addFile(_ file: String, _ line: Int, _ path: String, _ rule: Rule, _ message: String, detail: String = "") {
+        diags.append(Diagnostic(file: file, line: max(line, 1), severity: .error, path: path.isEmpty ? "/" : path, rule: rule, message: message, detail: detail))
     }
 
     func warn(_ n: YNode?, _ path: String, _ rule: Rule, _ message: String) {
@@ -206,9 +206,9 @@ final class Checker {
     /// Checks an implementation file. With s given, the file is part of that
     /// specification; otherwise load reads the one it names.
     func runImplementation(_ data: Data, _ s: Spec?, _ load: Loader?) {
-        let doc = parseYAML(String(decoding: data, as: UTF8.self))
+        let doc = parseYAML(yamlText(data))
         for p in doc.problems {
-            addLine(p.line, p.path, Rule(rawValue: p.rule)!, p.message)
+            addLine(p.line, p.path, Rule(rawValue: p.rule)!, p.message, detail: p.detail)
         }
         guard let root = doc.root else { return }
         self.root = root

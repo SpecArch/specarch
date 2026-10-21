@@ -1,0 +1,6 @@
+arguments: [validate, .]
+exitStatus: 1
+standardOutput: |
+  design/kinds.yaml:2:8: error: /enums/Pair: yaml_syntax: a ? in the [ ] or { } that starts on this line stands inside a value, which YAML parsers read in different ways; quote the value, or write a key's ? at the start of an entry with a space after it; the other entries of the file are read, and this one is kept by its name only until it parses [yaml_syntax@design/kinds.yaml#/enums/Pair]
+  design/kinds.yaml:5:10: error: /enums/Inside/enum: yaml_syntax: a ? in the [ ] or { } that starts on this line stands inside a value, which YAML parsers read in different ways; quote the value, or write a key's ? at the start of an entry with a space after it; the other entries of the file are read, and this one is kept by its name only until it parses [yaml_syntax@design/kinds.yaml#/enums/Inside/enum]
+  design/kinds.yaml:8:10: error: /enums/Leading/enum: yaml_syntax: a ? in the [ ] or { } that starts on this line stands inside a value, which YAML parsers read in different ways; quote the value, or write a key's ? at the start of an entry with a space after it; the other entries of the file are read, and this one is kept by its name only until it parses [yaml_syntax@design/kinds.yaml#/enums/Leading/enum]

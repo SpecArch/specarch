@@ -45,9 +45,9 @@ func checkRecords(_ s: Spec, _ d: Design) -> [Diagnostic] {
     for f in s.records {
         let r = Record(path: f.path, folder: f.folder)
         recs.append(r)
-        let doc = parseYAML(String(decoding: f.data, as: UTF8.self))
+        let doc = parseYAML(yamlText(f.data))
         for p in doc.problems {
-            r.c.addLine(p.line, p.path, Rule(rawValue: p.rule)!, p.message)
+            r.c.addLine(p.line, p.path, Rule(rawValue: p.rule)!, p.message, detail: p.detail)
         }
         r.held = heldIn(f.path, doc)
         guard let root = doc.root else { continue }

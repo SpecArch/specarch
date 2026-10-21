@@ -1,0 +1,6 @@
+arguments: [validate, .]
+exitStatus: 1
+standardOutput: |
+  design/kinds.yaml:4:10: error: /enums/Comma/enum: yaml_syntax: a tag in the [ ] or { } that starts on this line runs into the , [ ] { or } written after it, which YAML parsers read in different ways; put a space after the tag; the other entries of the file are read, and this one is kept by its name only until it parses [yaml_syntax@design/kinds.yaml#/enums/Comma/enum]
+  design/kinds.yaml:7:10: error: /enums/Anchored/enum: yaml_syntax: a tag in the [ ] or { } that starts on this line runs into the , [ ] { or } written after it, which YAML parsers read in different ways; put a space after the tag; the other entries of the file are read, and this one is kept by its name only until it parses [yaml_syntax@design/kinds.yaml#/enums/Anchored/enum]
+  design/kinds.yaml:10:10: error: /enums/Lines/enum: yaml_syntax: a tag in the [ ] or { } that starts on this line runs into the , [ ] { or } written after it, which YAML parsers read in different ways; put a space after the tag; the other entries of the file are read, and this one is kept by its name only until it parses [yaml_syntax@design/kinds.yaml#/enums/Lines/enum]

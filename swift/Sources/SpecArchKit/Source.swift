@@ -64,6 +64,8 @@ public struct Problem {
     public let path: String
     public let rule: String
     public let message: String
+    /// The parser's own message, for a yaml_syntax error the parser gave.
+    public var detail: String = ""
 }
 
 /// One parsed file.
@@ -76,15 +78,6 @@ public struct Doc {
 }
 
 // MARK: - Reading
-
-/// The parser errors whose line the YAML library gives as the start of the
-/// unclosed block, and a plain sentence for each.
-let unclosed: [String: String] = [
-    "did not find expected ',' or '}'": "the { that starts on this line is not closed; close it with }, and separate its entries with commas",
-    "did not find expected ',' or ']'": "the [ that starts on this line is not closed; close it with ], and separate its items with commas",
-    "did not find expected key": "the mapping that starts on this line has a line that is not a key; check the indentation below it",
-    "did not find expected '-' indicator": "the list that starts on this line has a line that is not an item; check the indentation below it",
-]
 
 private let duplicateMarker = "specarch-repeated-key-marker-"
 
@@ -127,10 +120,10 @@ func parseWhole(_ text: String) -> (Doc, Bool) {
             }
             source = renamed
         } catch let error as YamlError {
-            doc.problems.append(syntaxProblem(error))
+            doc.problems.append(syntaxProblem(source, error))
             return (doc, true)
         } catch {
-            doc.problems.append(Problem(line: 1, path: "/", rule: "yaml_syntax", message: "\(error)"))
+            doc.problems.append(Problem(line: 1, path: "/", rule: "yaml_syntax", message: syntaxSentence["other"]!, detail: "\(error)"))
             return (doc, false)
         }
     }
@@ -143,6 +136,10 @@ func parseWhole(_ text: String) -> (Doc, Bool) {
         return (doc, false)
     }
     let root = convert(first, shifts)
+    if let p = flowProblem(text, root) {
+        doc.problems.append(p)
+        return (doc, true)
+    }
     doc.root = root
     var problems: [Problem] = []
     doc.value = jsonValue(root, path: "", duplicates: duplicates, problems: &problems)
@@ -150,36 +147,49 @@ func parseWhole(_ text: String) -> (Doc, Bool) {
     return (doc, false)
 }
 
-private func syntaxProblem(_ error: YamlError) -> Problem {
+/// A parser's error in the validator's words, with the parser's own
+/// message as its detail.
+private func syntaxProblem(_ text: String, _ error: YamlError) -> Problem {
     // The line rule other SpecArch implementations follow, from yaml.v3. It
     // counts lines from 0 and takes the line where the error's context
     // starts, or, when that is the first line or there is none, the line of
     // the problem; a scanner error adds 1. A line of 0 is not given, and
-    // reads as line 1. For the unclosed-block messages below the line given
-    // is where the block starts, counted from 0, so 1 is added.
-    let context: Mark?, mark: Mark, problem: String, scanner: Bool
-    switch error {
-    case let .scanner(c, p, m, _):
-        (context, problem, mark, scanner) = (c?.mark, p, m, true)
-    case let .parser(c, p, m, _):
-        (context, problem, mark, scanner) = (c?.mark, p, m, false)
-    default:
-        return Problem(line: 1, path: "/", rule: "yaml_syntax", message: "\(error)")
-    }
-    let contextLine = (context?.line ?? 1) - 1, problemLine = mark.line - 1
+    // reads as line 1. A reader or composer error gives no line in yaml.v3,
+    // so it reads as line 1. For the unclosed-block messages the line given
+    // is where the block starts, counted from 0 (syntaxProblemAt).
     var line = 0
-    if contextLine != 0 {
-        line = contextLine + (scanner ? 1 : 0)
-    } else if problemLine != 0 {
-        line = problemLine + (scanner ? 1 : 0)
+    let problem: String
+    switch error {
+    case let .scanner(c, p, m, _), let .parser(c, p, m, _):
+        var scanner = false
+        if case .scanner = error { scanner = true }
+        let contextLine = (c?.mark.line ?? 1) - 1, problemLine = m.line - 1
+        if contextLine != 0 {
+            line = contextLine + (scanner ? 1 : 0)
+        } else if problemLine != 0 {
+            line = problemLine + (scanner ? 1 : 0)
+        }
+        problem = p
+    case let .reader(p, _, _, _), let .composer(_, p, _, _):
+        problem = p
+    default:
+        problem = String(describing: error)
     }
+    let given = line != 0
     if line == 0 { line = 1 }
-    var message = problem
-    if let plain = unclosed[problem] {
-        line += 1
-        message = plain
+    // Yams describes an error as its position, kind, context and problem,
+    // then the line of the text it is on; the detail is the part before the
+    // text, on one line.
+    var detail = String(describing: error)
+    if let r = detail.range(of: problem + ":\n") {
+        detail = String(detail[..<r.lowerBound]) + problem
     }
-    return Problem(line: line, path: "/", rule: "yaml_syntax", message: message)
+    detail = detail.replacingOccurrences(of: "\n", with: " ")
+    if problem == "control characters are not allowed" && text.unicodeScalars.contains(notUTF8) {
+        detail = "the file holds bytes that are not UTF-8, read as U+FFFE; " + detail
+    }
+    let (at, message) = syntaxProblemAt(text, line, given, problem)
+    return Problem(line: at, path: "/", rule: "yaml_syntax", message: message, detail: detail)
 }
 
 /// Renames every key of the block mapping at (line, column) that repeats an

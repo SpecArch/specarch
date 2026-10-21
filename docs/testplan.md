@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.4-dev of the specification: 661 design tests, 317 golden and 344 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.4-dev of the specification: 665 design tests, 317 golden and 348 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.7.4-dev of the specification: 661 design tests, 317 golden and 344 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 657 |
+| system | 661 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -5335,6 +5335,22 @@ Scenario: golden; level: system; verifies SA-47.
 - When: validate is run
 - Then: it reports no error, counts the test as covering the four-eyes case, warns that no test covers the approved path, a refusal and the deadline at each approval and an approval without each permission, among the others, and exits 0
 
+#### validate-yaml-not-utf8
+
+Scenario: red; level: system; covers exit 1; verifies SA-51.
+
+- Given: an entities file whose first enum has a description with a byte that is not UTF-8, and a second enum that parses
+- When: validate is run
+- Then: both builds report yaml_syntax at the description, say the file holds bytes that are not UTF-8, read the second enum, and exit 1
+
+#### validate-yaml-question-in-flow
+
+Scenario: red; level: system; covers exit 1; verifies SA-51.
+
+- Given: an entities file whose enums hold a ? inside a key of a { }, a ? inside a value of a [ ], a ? at the start of a value with no space after it, and a ? inside a quoted value
+- When: validate is run
+- Then: both builds report yaml_syntax at the first three enums, read the quoted value, and exit 1
+
 #### validate-yaml-syntax
 
 Scenario: red; level: system; covers exit 1; verifies SA-6.
@@ -5343,6 +5359,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-6.
 - When: validate is run
 - Then: it reports yaml_syntax with the line at info, leaves info out without reporting it missing, and exits 1
 
+#### validate-yaml-syntax-classes
+
+Scenario: red; level: system; covers exit 1; verifies SA-51.
+
+- Given: an entities file whose enums hold a tag that runs into the ] after it, a tag that runs into the ] after a value, a [ never closed, a nested [ never closed, a second key in a [ ], a quoted value never closed, an unknown escape, an alias with no anchor, a value that starts with @, a key indented under a value, and one enum that parses
+- When: validate is run
+- Then: it reports each yaml_syntax error at its own entry in words both builds print alike, the class of the error and what to do, reads the enum that parses, and exits 1
+
 #### validate-yaml-syntax-entries
 
 Scenario: red; level: system; covers exit 1; verifies SA-51.
@@ -5350,6 +5374,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-51.
 - Given: an entities file whose entity has a property with a flow mapping never closed and a constraint with a flow sequence never closed, followed by a second entity, and another file whose entity relates to both
 - When: validate is run
 - Then: it reports yaml_syntax once at the property and once at the constraint, each at its own line and pointer, reads the rest of the file, reports nothing of the relations, and exits 1
+
+#### validate-yaml-tag-in-flow
+
+Scenario: red; level: system; covers exit 1; verifies SA-51.
+
+- Given: an entities file whose enums hold a tag followed by a comma, a tag after an anchor followed by a comma, a tag on the second line of a [ ] followed by its ], and a tag with a space after it
+- When: validate is run
+- Then: both builds report yaml_syntax at the first three enums, at the line where each [ starts, read the tag with a space after it, and exit 1
 
 ### Command version
 

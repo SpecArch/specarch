@@ -57,7 +57,7 @@ func runDiff(args []string, stdout, stderr io.Writer) int {
 		s := spec.Load(a)
 		for _, d := range validate.CheckSpec(s) {
 			if d.Severity == validate.Error {
-				fmt.Fprintln(stdout, d.String())
+				printDiagnostic(stdout, stderr, d)
 				invalid = true
 			}
 		}

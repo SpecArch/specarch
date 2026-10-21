@@ -38,7 +38,7 @@ func runGaps(args []string, stdout, stderr io.Writer) int {
 	}
 	for _, ce := range estates {
 		for _, d := range ce.diags {
-			fmt.Fprintln(stdout, d.String())
+			printDiagnostic(stdout, stderr, d)
 		}
 		if len(ce.diags) > 0 {
 			fmt.Fprintln(stdout)

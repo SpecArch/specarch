@@ -797,3 +797,24 @@ Expected: both builds read every scalar as yaml.v3 does and print the same bytes
 To repeat: run `specarch model project` with each build in `spec/tests/model-scalar-forms`, and `specarch validate .` in `spec/tests/validate-example-double-forms`, and compare.
 
 Fix: the Swift build reads a scalar in one place, a port of yaml.v3 (`resolveScalar`, `resolveTag`, `isTimestamp` and `scalarValue` in `swift/Sources/SpecArchKit/Source.swift`): the tag as yaml.v3's parser sets it, the text resolved as its resolve does (Go's ParseInt, ParseUint and ParseFloat rules, and time.Parse of its four timestamp layouts), and a value under an explicit tag only where the text fits that tag. The Yams parser is given a resolver that leaves an untagged scalar marked untagged, so its YAML 1.1 resolver never replaces the tag written. A double example reads its number through the same port (`decodeFloat`). ADR-176 says why; the cases `model-scalar-forms` (the table) and `validate-example-double-forms` hold both builds to the same bytes in the conformance suite.
+
+## BUG-056 — validate and model: a YAML syntax error is worded by each build's parser, and some texts are read by one build and refused by the other
+
+- Reported: 2026-10-22, found while fixing BUG-055
+- Closed: 2026-10-22, completed
+- Fixed by: the commit on `main` whose message says `Fixes BUG-056`
+
+The problem line of a yaml_syntax error passed the parser's message through, and the two builds use different parsers (yaml.v3 and libyaml through Yams), so the same broken file printed different bytes:
+
+- `enum: [!!null]` was "the [ that starts on this line is not closed" in the Go build and "did not find expected whitespace or line break" in the Swift build, at the same line and column; `[a, !!str]` the same;
+- an alias with no anchor, a control character and an unknown parser error were printed by the Swift build as Yams describes them, with the offending line and a caret inside the problem line;
+- the Swift build decoded a file with bytes that are not UTF-8 with replacement characters and reported nothing, where the Go build reports yaml_syntax;
+- `[!!str, a]` was read by the Go build as the value a under the tag `!!str,`, and by the Swift build as an empty value and a, which the schema refused;
+- `enums: {a: b, ? c ? d}`, `[a?b]` and `[?b]` were refused or read as a mapping by the Go build and read as plain values by the Swift build;
+- an unclosed `[` or `{` on line 1 of a file was reported at line 2 in both builds.
+
+Expected: both builds print the same bytes for a broken file, the error in words the validator owns with what to do, and the parser's own message still shown.
+
+To repeat: run `specarch validate .` with each build in `spec/tests/validate-yaml-syntax-classes`, `validate-yaml-not-utf8`, `validate-yaml-tag-in-flow` and `validate-yaml-question-in-flow`, and compare.
+
+Fix: a table the same in both builds (`internal/source/syntax.go`, `swift/Sources/SpecArchKit/Syntax.swift`, held equal by `TestSwiftSyntaxTablesMatch`) gives every parser message a class and the class a sentence; the parser's own message is the problem's detail, printed on standard error as `<file>:<line>:<column>: yaml parser (<parser>): <message>`. Both builds read each flow collection's text for a tag that runs into `,` `[` `]` `{` or `}`, and for a `?` that is not a key's, and refuse them as yaml_syntax at the line where the collection starts, after a parse or to classify a parser's refusal. The Swift build reads a byte that is not UTF-8 as U+FFFE, which libyaml refuses, and reads a collection's flow style from the text, since Yams keeps the style of a collection's end event. A flow collection on line 1 is reported at line 1. ADR-177 says why; the four cases hold both builds to the same bytes, and `validate-yaml-syntax-entries` now says "a value is missing" where it printed the parser's "did not find expected node content".

@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "an entities file whose enums hold a tag that runs into the ] after it, a tag that runs into the ] after a value, a [ never closed, a nested [ never closed, a second key in a [ ], a quoted value never closed, an unknown escape, an alias with no anchor, a value that starts with @, a key indented under a value, and one enum that parses"
+when: validate is run
+then: "it reports each yaml_syntax error at its own entry in words both builds print alike, the class of the error and what to do, reads the enum that parses, and exits 1"
+verifies: [SA-51]

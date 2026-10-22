@@ -1,7 +1,7 @@
 import Foundation
 
 /// The program version.
-public let programVersion = "0.7.4"
+public let programVersion = "0.7.5"
 
 let usage = """
 usage:

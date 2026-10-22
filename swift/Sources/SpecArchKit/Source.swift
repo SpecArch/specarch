@@ -566,6 +566,23 @@ func decodeFloat(_ n: YNode) -> Double? {
     }
 }
 
+/// A scalar's integer as the schema check reads it, by its tag (ADR-178):
+/// 0x64, 0o144, 0b1100100, 1_00 and 0144 are all 100. A quoted number, a
+/// float, a value past Int64 or anything else is no integer.
+func intValue(_ n: YNode?) -> Int64? {
+    guard let n, n.kind == .scalar, n.tag == "!!int" else { return nil }
+    if case .int(let i)? = resolveScalar(n.tag, n.value)?.value { return i }
+    return nil
+}
+
+/// A scalar's integer in decimal, or its text when it holds no integer, so
+/// that a name or a sentence says the value read, not the way it was
+/// written.
+func intText(_ n: YNode?) -> String {
+    if let i = intValue(n) { return String(i) }
+    return str(n)
+}
+
 // MARK: - Pointers
 
 public func escapeToken(_ s: String) -> String {

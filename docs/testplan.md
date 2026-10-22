@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.5-dev of the specification: 668 design tests, 317 golden and 351 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.5-dev of the specification: 669 design tests, 317 golden and 352 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.7.5-dev of the specification: 668 design tests, 317 golden and 351 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 664 |
+| system | 665 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -4102,6 +4102,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-70.
 - Given: an implementation file whose mapping of the Note entity lists an index of shelf and writenAt, a misspelling of writtenAt, and whose mapping of an enum lists an index
 - When: validate is run
 - Then: it reports field at writenAt with writtenAt suggested, and at the enum's indexes, which are a table's, and exits 1, the same in both builds
+
+#### validate-integer-forms
+
+Scenario: red; level: system; covers exit 1; verifies SA-51.
+
+- Given: a specification whose page size maximum, query length, request size, rate, cardinality and int64 bounds are integers written in hexadecimal, octal with 0o and with a leading zero, binary and with underscores, and whose tests cover the derived cases by the decimal values
+- When: validate is run
+- Then: both builds read every integer as the schema check does: no list_of, limits, unsafe_integer or test_case error, the cardinality of 0b11 over two permissions reported as 3, the same bytes from each, and exit 1
 
 #### validate-interface-problems
 

@@ -5,7 +5,6 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
-	"strconv"
 	"strings"
 
 	"go.yaml.in/yaml/v3"
@@ -168,8 +167,9 @@ func (c *checker) checkHandler(d *design, s *spec.Spec, key string, m *yaml.Node
 		fptr := source.Pointer("mappings", key, "handler", "functions", fmt.Sprint(i), "source")
 		file := source.Str(source.Child(fn, "file"))
 		name := source.Str(source.Child(fn, "name"))
-		first, _ := strconv.Atoi(source.Str(source.Child(fn, "firstLine")))
-		last, _ := strconv.Atoi(source.Str(source.Child(fn, "lastLine")))
+		firstLine, _ := source.Int(source.Child(fn, "firstLine"))
+		lastLine, _ := source.Int(source.Child(fn, "lastLine"))
+		first, last := int(firstLine), int(lastLine)
 		srcNode := source.Child(fn, "source")
 		if file == "" || srcNode == nil || first < 1 || last < first {
 			continue // the schema reports it

@@ -561,9 +561,8 @@ func pageCases(s *subject, o operation, call string) {
 	}
 	s.cases = append(s.cases, derivedCase{name: "page beyond last", scenario: "golden", given: "fewer records than fill the pages asked for",
 		when: call + " for a page after the last", then: "it answers an empty page with the true totals", frequency: occasional})
-	if max := source.Str(source.Child(source.Child(l, "pageSize"), "maximum")); max != "" {
-		n, _ := strconv.Atoi(max)
-		s.red("page size above "+max, occasional, "...", call+" with a page size of "+strconv.Itoa(n+1), "it is refused")
+	if max := source.IntText(source.Child(source.Child(l, "pageSize"), "maximum")); max != "" {
+		s.red("page size above "+max, occasional, "...", call+" with a page size of "+plus(max, 1), "it is refused")
 	}
 	if source.Child(l, "sortable") != nil {
 		s.red("sort by a field not sortable", occasional, "...", call+" sorted by a field that is not sortable", "it is refused, not ignored")
@@ -577,11 +576,11 @@ func pageCases(s *subject, o operation, call string) {
 // and more requests than the rate allows.
 func limitsCases(s *subject, o operation, call string) {
 	l := source.Child(o.node, "limits")
-	if n := source.Str(source.Child(l, "maxRequestBytes")); n != "" {
+	if n := source.IntText(source.Child(l, "maxRequestBytes")); n != "" {
 		s.red("request larger than "+n+" bytes", occasional, "...", call+" with a body larger than "+n+" bytes", failureOr(o.node, "413", "it is refused as too large"))
 	}
 	if rate := source.Child(l, "rate"); rate != nil {
-		r, per := source.Str(source.Child(rate, "requests")), source.Str(source.Child(rate, "per"))
+		r, per := source.IntText(source.Child(rate, "requests")), source.Str(source.Child(rate, "per"))
 		s.red("rate exceeded", occasional, "a caller who has made "+r+" requests within "+per, call+" once more", failureOr(o.node, "429", "it is refused as too many requests"))
 	}
 }
@@ -739,7 +738,7 @@ func (d *design) limitCases(s *subject, name string, field *yaml.Node, call stri
 	}
 	num := func(key string) (string, bool) {
 		n := source.Child(field, key)
-		return source.Str(n), n != nil
+		return source.IntText(n), n != nil
 	}
 	if v, ok := num("minimum"); ok {
 		red(name+" below minimum "+v, occasional, with+" just below "+v)
@@ -784,9 +783,15 @@ func (d *design) limitCases(s *subject, name string, field *yaml.Node, call stri
 	}
 }
 
+// plus is a count in decimal, as IntText gives it, moved by off; a text
+// that holds no integer counts as 0.
+func plus(n string, off int) string {
+	v, _ := strconv.Atoi(n)
+	return strconv.Itoa(v + off)
+}
+
 func characters(n string, off int) string {
-	var v int
-	fmt.Sscan(n, &v)
+	v, _ := strconv.Atoi(n)
 	v += off
 	if v == 1 {
 		return "of 1 character"
@@ -872,7 +877,7 @@ func childRowCases(s *subject, pg *yaml.Node) {
 		return
 	}
 	for _, row := range source.Items(source.Child(pg, "childRows")) {
-		rel, max := source.Str(source.Child(row, "relation")), source.Str(source.Child(row, "maximum"))
+		rel, max := source.Str(source.Child(row, "relation")), source.IntText(source.Child(row, "maximum"))
 		if max == "" {
 			continue
 		}

@@ -17,6 +17,9 @@ import (
 // node helpers, short names for the generator's many lookups.
 func get(n *yaml.Node, key string) *yaml.Node { return source.Child(n, key) }
 func str(n *yaml.Node, key string) string     { return source.Str(source.Child(n, key)) }
+
+// num is a number under key, an integer in decimal (ADR-178).
+func num(n *yaml.Node, key string) string { return source.IntText(source.Child(n, key)) }
 func pairs(n *yaml.Node, key string) []source.Pair {
 	return source.Pairs(source.Child(n, key))
 }
@@ -129,8 +132,8 @@ func typeText(f *yaml.Node) string {
 		}
 		t = "map of " + v
 	}
-	if str(f, "format") == "decimal" && str(f, "precision") != "" {
-		t = fmt.Sprintf("decimal(%s, %s)", str(f, "precision"), str(f, "scale"))
+	if str(f, "format") == "decimal" && num(f, "precision") != "" {
+		t = fmt.Sprintf("decimal(%s, %s)", num(f, "precision"), num(f, "scale"))
 	}
 	if (str(f, "format") == "int64" || str(f, "format") == "uint64") && str(f, "type") == "string" {
 		t += ", as a JSON string"
@@ -147,7 +150,7 @@ func typeText(f *yaml.Node) string {
 func limits(f *yaml.Node) string {
 	var out []string
 	add := func(key, word string) {
-		if v := str(f, key); v != "" {
+		if v := num(f, key); v != "" {
 			out = append(out, word+" "+v)
 		}
 	}
@@ -155,10 +158,10 @@ func limits(f *yaml.Node) string {
 	add("maximum", "at most")
 	add("exclusiveMinimum", "above")
 	add("exclusiveMaximum", "below")
-	if v := str(f, "minLength"); v != "" {
+	if v := num(f, "minLength"); v != "" {
 		out = append(out, "at least "+characters(v))
 	}
-	if v := str(f, "maxLength"); v != "" {
+	if v := num(f, "maxLength"); v != "" {
 		out = append(out, "at most "+characters(v))
 	}
 	if v := str(f, "pattern"); v != "" {
@@ -170,10 +173,10 @@ func limits(f *yaml.Node) string {
 	if v := str(f, "const"); v != "" {
 		out = append(out, "always "+v)
 	}
-	if v := str(f, "minItems"); v != "" {
+	if v := num(f, "minItems"); v != "" {
 		out = append(out, "at least "+itemCount(v))
 	}
-	if v := str(f, "maxItems"); v != "" {
+	if v := num(f, "maxItems"); v != "" {
 		out = append(out, "at most "+itemCount(v))
 	}
 	if str(f, "uniqueItems") == "true" {

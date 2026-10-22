@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.7.5-dev of the specification: 90 requirements, 5 entities, 16 commands, 7 algorithms, 668 tests, 168 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.7.5-dev of the specification: 90 requirements, 5 entities, 16 commands, 7 algorithms, 669 tests, 169 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13183,6 +13183,51 @@ error in both; the fix is a space or quotes.
 
 **Insight:** The two parsers' messages are their own, and the wording of one changes with its version; a problem line that passes them through differs between the builds whenever they read a text differently, and an owner cannot tell from it what to do. A sentence the validator owns is the same in both builds and says how to fix the text; the parser's message stays visible, on standard error, because the real reason is never hidden. Standard error is where it can differ: the conformance suite and the landing check compare standard output and the files written, which must be the same bytes. A text two parsers read in two ways is ambiguous, and ambiguity is an error (`docs/principles.md`): YAML 1.2 keeps flow indicators out of a tag and lets a ? stand inside a plain value, yaml.v3 does neither, and no choice between them is safe for a reader that may meet either parser, so both builds refuse the text and name the fix, a space after the tag or quotes around the value.
 
+### ADR-178: Every check and document reads an integer of a design as the schema check does, and says it in decimal
+
+Status: accepted, 2026-10-22.
+
+Context: The schema check reads a scalar by the tag YAML gives it (ADR-176),
+so `0x64`, `0o144`, `0b1100100`, `1_00` and `0144` are all the
+integer 100 and pass `type: integer`. The checks after it read the
+same values again from the text, each in its own way: the list_of
+and limits checks with a decimal conversion, which reads `0x64` as
+0 and `0144` as 144, separation of duties skipped a cardinality it
+could not read, and the derived case names, the request size, the
+rate and the documents put the written text in a sentence. A page
+size maximum of `0x64` was reported as "above the maximum of 0",
+and a maxLength of `2_00` named its cases "longer than 2_00
+characters", so tests that cover "longer than 200 characters" no
+longer matched (BUG-057, BUG-058).
+
+Decision: - One reader per build gives a design's integer: `source.Int` and
+  `source.IntText` in Go, `intValue` and `intText` in Swift
+  (`Source.swift`). A scalar is an integer only when its tag is
+  `!!int`, and its value is the one the schema check reads; a
+  quoted number, a float or a value past 64 bits is none.
+- Every check that compares or counts an integer of a design reads
+  it there: the list_of page size, the rate's burst and requests,
+  a separation-of-duties cardinality, a decimal's scale in
+  expressions, the int64 bounds of unsafe_integer, a handler
+  record's lines, and the Swift build's idiom rows. A value that
+  is no integer is left to the schema check, never read as 0 and
+  compared.
+- Every text made from such a value says it in decimal: the
+  derived case names and their sentences (lengths, items, minimum
+  and maximum, page size, request size, rate, child rows), and the
+  technical specification, manual and site. A float keeps its
+  written text.
+
+Consequences: The case `validate-integer-forms` writes the integers of a page
+size, a query length, a request size, a rate, a cardinality and
+int64 bounds in every base, and both builds print the same bytes;
+a Go table holds every reader over the library lending example to
+the result of the decimal value. A quoted number under one of
+these keys is reported by the schema check alone, where the
+list_of and limits checks used to read it as well.
+
+**Insight:** A value has one meaning, the one the schema check accepts it under; a check that reads it otherwise reports a problem that is not there, or misses one that is, and a case name that keeps the written text makes the same design need different tests depending on how a number was spelled. Reading through the parser's tag, as the model does, keeps the two builds on the same bytes without a second set of patterns. Floats are left as written because their shortest form is not always the text a person wrote (`0.50`), and nothing in a check compares one.
+
 ## 10. Quality requirements
 
 The design tests: what must hold on every implementation. Golden scenarios succeed; red scenarios are refused.
@@ -13692,6 +13737,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | validate-implies | command validate | system | red | a specification whose public permission implies one, a permission that implies an undeclared name, one that implies public, two that imply each other, a role granting only the permission that implies the others, and a separation-of-duties set over the two that imply each other | validate is run | it reports public implying, the undeclared name, public implied and the cycle at each of its two permissions as implies, the role reaching the set through the implications as separation_of_duties, no implied permission as ungranted, and exits 1 |
 | validate-incident-link | command validate | system | golden | a resolved incident that names no defect and no change and gives no noChange reason | validate is run | it warns with incident_link and exits 0, since the record is still valid |
 | validate-index-field | command validate | system | red | an implementation file whose mapping of the Note entity lists an index of shelf and writenAt, a misspelling of writtenAt, and whose mapping of an enum lists an index | validate is run | it reports field at writenAt with writtenAt suggested, and at the enum's indexes, which are a table's, and exits 1, the same in both builds |
+| validate-integer-forms | command validate | system | red | a specification whose page size maximum, query length, request size, rate, cardinality and int64 bounds are integers written in hexadecimal, octal with 0o and with a leading zero, binary and with underscores, and whose tests cover the derived cases by the decimal values | validate is run | both builds read every integer as the schema check does: no list_of, limits, unsafe_integer or test_case error, the cardinality of 0b11 over two permissions reported as 3, the same bytes from each, and exit 1 |
 | validate-interface-problems | command validate | system | red | a list naming a field its entity lacks, an encrypted field to sort by and one to filter by without a hash, and a default page above the maximum; a rate over no time with a burst below it; a catalogue of problem types, a response naming an unknown type, one naming a type of another status, and a 4xx response naming none | validate is run | it reports list_of four times, limits twice and problem three times, and exits 1 |
 | validate-interface-response-key-empty | command validate | system | red | an operation that answers 409 and a response keyed by the empty string | validate is run | it reports the empty key through the schema as not a status code, warns success_response_missing naming 409 alone, and does not stop |
 | validate-interface-response-key-empty-only | command validate | system | red | an operation whose only response is keyed by the empty string | validate is run | it reports the empty key through the schema as not a status code, raises no success_response_missing, since no response is a status, and does not stop |
@@ -14235,7 +14281,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-48 | enums Rule; decisions ADR-060; decisions ADR-063 | tests extract-openapi-writes-schema; tests generate-sql-value-object; tests validate-question-covers-namespace; tests validate-value-objects; tests validate-value-objects-valid |
 | SA-49 | enums Rule; decisions ADR-062 | tests extract-openapi-snake-case; tests generate-openapi-wire-names; tests generate-ui-swiftui-wire-names; tests generate-ui-typescript-wire-names; tests generate-ui-wire-names; tests validate-wire-names |
 | SA-50 | enums Rule; decisions ADR-063; decisions ADR-077; decisions ADR-078 | tests extract-database-json-column; tests generate-go-dxlib-value-objects; tests generate-sql-identifier-length; tests generate-sql-value-object-fields; tests generate-tests-value-objects; tests merge-value-object-columns; tests merge-value-object-differs; tests merge-value-object-unnamed; tests validate-value-object-fields; tests validate-value-object-fields-valid; tests validate-value-object-part-cases; tests validate-value-object-part-cases-covered |
-| SA-51 | enums DocumentTarget; enums ProblemSeverity; entities Problem; entities ProblemNote; commands document; decisions ADR-065; decisions ADR-066; decisions ADR-080; decisions ADR-086; decisions ADR-177 | tests document-check-invalid; tests document-deployment-marks-implementation-problem; tests document-errors-elsewhere; tests document-problem-without-element; tests document-problems-check-marks; tests document-problems-implementation-broken; tests document-problems-lists; tests document-problems-marks-current; tests document-problems-marks-fragments; tests document-problems-none; tests document-techspec-marks-implementation-problem; tests validate-reads-marks; tests validate-yaml-anchor-at-line-start-in-flow; tests validate-yaml-flow-key-first; tests validate-yaml-not-utf8; tests validate-yaml-question-in-flow; tests validate-yaml-quoted-bracket-in-flow; tests validate-yaml-syntax-classes; tests validate-yaml-syntax-entries; tests validate-yaml-tag-in-flow |
+| SA-51 | enums DocumentTarget; enums ProblemSeverity; entities Problem; entities ProblemNote; commands document; decisions ADR-065; decisions ADR-066; decisions ADR-080; decisions ADR-086; decisions ADR-177; decisions ADR-178 | tests document-check-invalid; tests document-deployment-marks-implementation-problem; tests document-errors-elsewhere; tests document-problem-without-element; tests document-problems-check-marks; tests document-problems-implementation-broken; tests document-problems-lists; tests document-problems-marks-current; tests document-problems-marks-fragments; tests document-problems-none; tests document-techspec-marks-implementation-problem; tests validate-integer-forms; tests validate-reads-marks; tests validate-yaml-anchor-at-line-start-in-flow; tests validate-yaml-flow-key-first; tests validate-yaml-not-utf8; tests validate-yaml-question-in-flow; tests validate-yaml-quoted-bracket-in-flow; tests validate-yaml-syntax-classes; tests validate-yaml-syntax-entries; tests validate-yaml-tag-in-flow |
 | SA-52 | decisions ADR-067; decisions ADR-115 | tests generate-ui-typescript; tests generate-ui-typescript-refused |
 | SA-53 | decisions ADR-068; decisions ADR-082 | tests generate-ui-typescript; tests generate-ui-typescript-refused; tests generate-ui-typescript-wire-names |
 | SA-54 | decisions ADR-069; decisions ADR-079 | tests generate-ui-typescript; tests generate-ui-typescript-refused; tests generate-ui-typescript-value-objects; tests generate-ui-typescript-value-objects-refused |

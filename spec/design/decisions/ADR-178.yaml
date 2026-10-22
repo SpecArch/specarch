@@ -1,0 +1,56 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.3.schema.json
+decisions:
+  ADR-178:
+    title: Every check and document reads an integer of a design as the schema check does, and says it in decimal
+    status: accepted
+    date: "2026-10-22"
+    context: |
+      The schema check reads a scalar by the tag YAML gives it (ADR-176),
+      so `0x64`, `0o144`, `0b1100100`, `1_00` and `0144` are all the
+      integer 100 and pass `type: integer`. The checks after it read the
+      same values again from the text, each in its own way: the list_of
+      and limits checks with a decimal conversion, which reads `0x64` as
+      0 and `0144` as 144, separation of duties skipped a cardinality it
+      could not read, and the derived case names, the request size, the
+      rate and the documents put the written text in a sentence. A page
+      size maximum of `0x64` was reported as "above the maximum of 0",
+      and a maxLength of `2_00` named its cases "longer than 2_00
+      characters", so tests that cover "longer than 200 characters" no
+      longer matched (BUG-057, BUG-058).
+    decision: |
+      - One reader per build gives a design's integer: `source.Int` and
+        `source.IntText` in Go, `intValue` and `intText` in Swift
+        (`Source.swift`). A scalar is an integer only when its tag is
+        `!!int`, and its value is the one the schema check reads; a
+        quoted number, a float or a value past 64 bits is none.
+      - Every check that compares or counts an integer of a design reads
+        it there: the list_of page size, the rate's burst and requests,
+        a separation-of-duties cardinality, a decimal's scale in
+        expressions, the int64 bounds of unsafe_integer, a handler
+        record's lines, and the Swift build's idiom rows. A value that
+        is no integer is left to the schema check, never read as 0 and
+        compared.
+      - Every text made from such a value says it in decimal: the
+        derived case names and their sentences (lengths, items, minimum
+        and maximum, page size, request size, rate, child rows), and the
+        technical specification, manual and site. A float keeps its
+        written text.
+    why: |
+      A value has one meaning, the one the schema check accepts it
+      under; a check that reads it otherwise reports a problem that is
+      not there, or misses one that is, and a case name that keeps the
+      written text makes the same design need different tests depending
+      on how a number was spelled. Reading through the parser's tag, as
+      the model does, keeps the two builds on the same bytes without a
+      second set of patterns. Floats are left as written because their
+      shortest form is not always the text a person wrote (`0.50`), and
+      nothing in a check compares one.
+    consequences: |
+      The case `validate-integer-forms` writes the integers of a page
+      size, a query length, a request size, a rate, a cardinality and
+      int64 bounds in every base, and both builds print the same bytes;
+      a Go table holds every reader over the library lending example to
+      the result of the decimal value. A quoted number under one of
+      these keys is reported by the schema check alone, where the
+      list_of and limits checks used to read it as well.
+    satisfies: [SA-51]

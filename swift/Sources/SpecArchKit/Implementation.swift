@@ -178,8 +178,8 @@ extension Checker {
             let fptr = pointer("mappings", key, "handler", "functions", "\(i)", "source")
             let file = str(fn.child("file"))
             let name = str(fn.child("name"))
-            let first = Int(str(fn.child("firstLine"))) ?? 0
-            let last = Int(str(fn.child("lastLine"))) ?? 0
+            let first = Int(intValue(fn.child("firstLine")) ?? 0)
+            let last = Int(intValue(fn.child("lastLine")) ?? 0)
             guard !file.isEmpty, let srcNode = fn.child("source"), first >= 1, last >= first else { continue }
             guard let data = try? readFile(joinPath(root, file)), let text = String(data: data, encoding: .utf8) else {
                 warn(fn.child("file"), pointer("mappings", key, "handler", "functions", "\(i)", "file"), .handlerSource,
@@ -390,6 +390,7 @@ func carriesAs(_ n: YNode, _ t: String) -> Bool {
 
 func bound(_ n: YNode, _ key: String) -> Decimal? {
     guard let v = n.child(key) else { return nil }
+    if let i = intValue(v) { return Decimal(i) }
     return Decimal(string: v.value)
 }
 

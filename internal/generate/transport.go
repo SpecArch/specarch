@@ -117,7 +117,7 @@ func operationTransport(d *doc, root *yaml.Node, op *yaml.Node) {
 		if mt := streamMediaType(op); mt != "" {
 			text += ", " + mt
 		}
-		if n := str(get(op, "limits"), "maxRequestBytes"); n != "" {
+		if n := num(get(op, "limits"), "maxRequestBytes"); n != "" {
 			text += ", of at most " + n + " bytes"
 		}
 		if get(get(op, "stream"), "parameters") != nil {

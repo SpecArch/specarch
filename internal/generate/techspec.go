@@ -616,10 +616,10 @@ func operationDetails(d *doc, root *yaml.Node, op *yaml.Node) {
 	if l := get(op, "listOf"); l != nil {
 		text := "Lists " + str(l, "entity") + " a page at a time"
 		size := get(l, "pageSize")
-		if def := str(size, "default"); def != "" {
+		if def := num(size, "default"); def != "" {
 			text += ", " + def + " records by default"
 		}
-		text += ", at most " + str(size, "maximum") + " a page."
+		text += ", at most " + num(size, "maximum") + " a page."
 		for _, k := range [][2]string{{"searchable", "A search matches"}, {"filterable", "A filter may name"}, {"sortable", "It may be sorted by"}} {
 			if fs := strs(l, k[0]); len(fs) > 0 {
 				text += " " + k[1] + " " + joinAnd(fs) + "."
@@ -629,12 +629,12 @@ func operationDetails(d *doc, root *yaml.Node, op *yaml.Node) {
 	}
 	if l := get(op, "limits"); l != nil {
 		var parts []string
-		if n := str(l, "maxRequestBytes"); n != "" {
+		if n := num(l, "maxRequestBytes"); n != "" {
 			parts = append(parts, "a request body of at most "+n+" bytes")
 		}
 		if r := get(l, "rate"); r != nil {
-			rate := str(r, "requests") + " requests per " + str(r, "per")
-			if b := str(r, "burst"); b != "" {
+			rate := num(r, "requests") + " requests per " + str(r, "per")
+			if b := num(r, "burst"); b != "" {
 				rate += ", with bursts of up to " + b
 			}
 			parts = append(parts, rate)
@@ -915,7 +915,7 @@ func crossCutting(d *doc, root *yaml.Node, state *State) {
 		d.line("|---|---|---|---|")
 		for _, set := range sets {
 			cardinality := 2
-			if n, err := strconv.Atoi(str(set.Value, "cardinality")); err == nil {
+			if n, err := strconv.Atoi(num(set.Value, "cardinality")); err == nil {
 				cardinality = n
 			}
 			var combos []string
@@ -1564,7 +1564,7 @@ func childRowsText(pg *yaml.Node) string {
 	var b strings.Builder
 	for _, row := range items(pg, "childRows") {
 		fmt.Fprintf(&b, "; %s, rows of %s: %s", str(row, "title"), str(row, "relation"), strings.Join(strs(row, "fields"), ", "))
-		if max := str(row, "maximum"); max != "" {
+		if max := num(row, "maximum"); max != "" {
 			b.WriteString(", at most " + max)
 		}
 		if str(row, "lockLoadedRows") == "true" {

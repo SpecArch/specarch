@@ -818,3 +818,36 @@ Expected: both builds print the same bytes for a broken file, the error in words
 To repeat: run `specarch validate .` with each build in `spec/tests/validate-yaml-syntax-classes`, `validate-yaml-not-utf8`, `validate-yaml-tag-in-flow` and `validate-yaml-question-in-flow`, and compare.
 
 Fix: a table the same in both builds (`internal/source/syntax.go`, `swift/Sources/SpecArchKit/Syntax.swift`, held equal by `TestSwiftSyntaxTablesMatch`) gives every parser message a class and the class a sentence; the parser's own message is the problem's detail, printed on standard error as `<file>:<line>:<column>: yaml parser (<parser>): <message>`. Both builds read each flow collection's text for a tag that runs into `,` `[` `]` `{` or `}`, and for a `?` that is not a key's, and refuse them as yaml_syntax at the line where the collection starts, after a parse or to classify a parser's refusal. The Swift build reads a byte that is not UTF-8 as U+FFFE, which libyaml refuses, and reads a collection's flow style from the text, since Yams keeps the style of a collection's end event. A flow collection on line 1 is reported at line 1. ADR-177 says why; the four cases hold both builds to the same bytes, and `validate-yaml-syntax-entries` now says "a value is missing" where it printed the parser's "did not find expected node content".
+
+## BUG-057 — validate: list_of, limits and separation of duties read an integer written in another base or with underscores unlike the schema check
+
+- Reported: 2026-10-22, found by a project that uses SpecArch, against 0.7.4
+- Closed: 2026-10-22, completed
+- Fixed by: the commit on `main` whose message says `Fixes BUG-057`
+
+The schema check reads `0x64`, `0o144`, `0b1100100`, `1_00` and `0144` as the integer 100 (ADR-174 to ADR-176), but the checks after it read the text again with a decimal conversion of their own:
+
+- `pageSize: { default: 20, maximum: 0x64 }` (or `0o144`, `0b1100100`, `1_00`) gave "list_of: the default page of 20 is above the maximum of 0"; `0144` was read as 144, not 100;
+- a rate's `burst` in any of these forms was read as 0, "below the requests the rate allows", and a `requests` so written was 0, so a burst below it was not reported;
+- a separation-of-duties `cardinality` so written was skipped, so a cardinality above the number of permissions was not reported;
+- the int64 bounds of unsafe_integer, a decimal's scale in expressions and a handler record's lines were read the same way in Go, and by `Int(...)` or `Decimal(string:)` in Swift, and the Swift build's idiom rows read a field's maxLength and precision from the text.
+
+Expected: every check reads an integer as the schema check does.
+
+To repeat: in a copy of `examples/library-lending/spec`, write `maximum: 0x64` in `design/paths/paths.yaml` line 15 and run `specarch validate`.
+
+Fix: one reader per build, `source.Int` in Go and `intValue` in Swift, gives a design's integer by its YAML tag, as the schema check and the model read it; every check that compares or counts an integer reads it there, and a value that is no integer is left to the schema check instead of being read as 0. ADR-178 says why; `validate-integer-forms` holds both builds to the same bytes, and `TestIntegerForms` holds every reader over the library lending example to the result of the decimal value.
+
+## BUG-058 — validate and document: a derived case name keeps an integer as written, so tests that cover it by its value stop matching
+
+- Reported: 2026-10-22, found by a project that uses SpecArch, against 0.7.4
+- Closed: 2026-10-22, completed
+- Fixed by: the commit on `main` whose message says `Fixes BUG-058`
+
+With `maxLength: 2_00` on a query parameter the derived cases were "q longer than 2_00 characters" and "q of 2_00 characters", so the tests that cover "q longer than 200 characters" and "q of 200 characters" were reported as test_case errors. The same held for a minimum, maximum, minItems, maxItems, page size maximum, maxRequestBytes, rate requests and a child row maximum, and the technical specification, manual and site printed the written text.
+
+Expected: a case name and a document say the integer's value in decimal.
+
+To repeat: in a copy of `examples/library-lending/spec`, write `maxLength: 2_00` in `design/paths/paths.yaml` line 12 and run `specarch validate`.
+
+Fix: the derived cases in both builds, and the documents, say the integer through `source.IntText` (Go) and `intText` (Swift), its value in decimal; a float keeps its written text (ADR-178).

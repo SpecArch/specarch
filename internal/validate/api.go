@@ -2,7 +2,6 @@ package validate
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 
 	"go.yaml.in/yaml/v3"
@@ -68,9 +67,9 @@ func (c *checker) checkListOf(d *design, o operation) {
 	}
 	size := source.Child(l, "pageSize")
 	def, max := source.Child(size, "default"), source.Child(size, "maximum")
-	if def != nil && max != nil {
-		dv, _ := strconv.Atoi(def.Value)
-		mv, _ := strconv.Atoi(max.Value)
+	dv, okDef := source.Int(def)
+	mv, okMax := source.Int(max)
+	if okDef && okMax {
 		if dv > mv {
 			c.add(def, o.pointer("listOf", "pageSize", "default"), RuleListOf, "the default page of %d is above the maximum of %d; lower the default, or raise the maximum", dv, mv)
 		}
@@ -85,9 +84,9 @@ func (c *checker) checkLimits(o operation) {
 	}
 	c.checkTimeout(source.Child(rate, "per"), o.pointer("limits", "rate", "per"), RuleLimits, "the rate")
 	burst, requests := source.Child(rate, "burst"), source.Child(rate, "requests")
-	if burst != nil && requests != nil {
-		b, _ := strconv.Atoi(burst.Value)
-		r, _ := strconv.Atoi(requests.Value)
+	b, okBurst := source.Int(burst)
+	r, okRequests := source.Int(requests)
+	if okBurst && okRequests {
 		if b < r {
 			c.add(burst, o.pointer("limits", "rate", "burst"), RuleLimits, "a burst of %d is below the %d requests the rate allows, so it would lower the limit; raise it to at least %d, or remove it", b, r, r)
 		}

@@ -26,8 +26,8 @@ extension Checker {
             }
             var cardinality = 2
             if let n = set.value.child("cardinality") {
-                guard let v = Int(n.value), v >= 2 else { continue }
-                cardinality = v
+                guard let v = intValue(n), v >= 2 else { continue }
+                cardinality = Int(v)
                 if cardinality > perms.count && perms.count >= 2 {
                     add(n, pointer("separationOfDuties", name, "cardinality"), .separationOfDuties,
                         "set \(name) asks that no holder reach \(cardinality) of its permissions but names only \(perms.count), so no role can ever break it; lower cardinality to \(perms.count) or name more permissions")

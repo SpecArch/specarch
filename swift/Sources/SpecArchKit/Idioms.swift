@@ -48,8 +48,8 @@ struct FieldShape {
         for item in items(t) where item.value != "null" { type = item.value }
         format = str(f.child("format"))
         isEnum = f.child("enum") != nil
-        if let n = f.child("maxLength") { maxLength = Int(n.value) ?? 0 }
-        if let n = f.child("precision") { precision = Int(n.value) ?? 0 }
+        if let n = f.child("maxLength") { maxLength = Int(intText(n)) ?? 0 }
+        if let n = f.child("precision") { precision = Int(intText(n)) ?? 0 }
         if let it = f.child("items") {
             let s = FieldShape(it)
             itemsType = s.type; itemsFormat = s.format
@@ -64,8 +64,8 @@ struct FieldShape {
         let f = str(row.child("format"))
         if !f.isEmpty && f != format || f.isEmpty && claimed.contains(format) { return false }
         if str(row.child("enum")) == "true" && !isEnum { return false }
-        if let n = row.child("maxLengthAtMost"), maxLength == nil || maxLength! > (Int(n.value) ?? 0) { return false }
-        if let n = row.child("precisionAtMost"), precision == nil || precision! > (Int(n.value) ?? 0) { return false }
+        if let n = row.child("maxLengthAtMost"), maxLength == nil || maxLength! > (Int(intText(n)) ?? 0) { return false }
+        if let n = row.child("precisionAtMost"), precision == nil || precision! > (Int(intText(n)) ?? 0) { return false }
         let it = str(row.child("itemsType"))
         if !it.isEmpty && it != itemsType { return false }
         let iform = str(row.child("itemsFormat"))

@@ -2,7 +2,6 @@ package validate
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 
 	"github.com/SpecArch/specarch/internal/source"
@@ -33,11 +32,11 @@ func (c *checker) checkSeparationOfDuties(d *design) {
 		}
 		cardinality := 2
 		if n := source.Child(set.Value, "cardinality"); n != nil {
-			v, err := strconv.Atoi(n.Value)
-			if err != nil || v < 2 {
+			v, ok := source.Int(n)
+			if !ok || v < 2 {
 				continue
 			}
-			cardinality = v
+			cardinality = int(v)
 			if cardinality > len(perms) && len(perms) >= 2 {
 				c.add(n, source.Pointer("separationOfDuties", name, "cardinality"), RuleSeparationOfDuties,
 					"set %s asks that no holder reach %d of its permissions but names only %d, so no role can ever break it; lower cardinality to %d or name more permissions", name, cardinality, len(perms), len(perms))

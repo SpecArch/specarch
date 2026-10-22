@@ -292,6 +292,31 @@ func Str(n *yaml.Node) string {
 	return n.Value
 }
 
+// Int returns a scalar's integer as the schema check reads it, by its tag
+// (ADR-178): 0x64, 0o144, 0b1100100, 1_00 and 0144 are all 100. A quoted
+// number, a float, a value past int64 or anything else is no integer.
+func Int(n *yaml.Node) (int64, bool) {
+	n = Deref(n)
+	if n == nil || n.Kind != yaml.ScalarNode || n.ShortTag() != "!!int" {
+		return 0, false
+	}
+	var i int64
+	if n.Decode(&i) != nil {
+		return 0, false
+	}
+	return i, true
+}
+
+// IntText returns a scalar's integer in decimal, or its text when it holds
+// no integer, so that a name or a sentence says the value read, not the
+// way it was written.
+func IntText(n *yaml.Node) string {
+	if i, ok := Int(n); ok {
+		return strconv.FormatInt(i, 10)
+	}
+	return Str(n)
+}
+
 // IsScalar reports whether n is a scalar.
 func IsScalar(n *yaml.Node) bool {
 	n = Deref(n)

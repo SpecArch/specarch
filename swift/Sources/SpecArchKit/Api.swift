@@ -48,8 +48,7 @@ extension Checker {
             }
         }
         let size = l.child("pageSize")
-        if let def = size?.child("default"), let max = size?.child("maximum") {
-            let dv = Int(def.value) ?? 0, mv = Int(max.value) ?? 0
+        if let def = size?.child("default"), let dv = intValue(def), let mv = intValue(size?.child("maximum")) {
             if dv > mv {
                 add(def, o.pointer("listOf", "pageSize", "default"), .listOf, "the default page of \(dv) is above the maximum of \(mv); lower the default, or raise the maximum")
             }
@@ -60,8 +59,7 @@ extension Checker {
     func checkLimits(_ o: Operation) {
         guard let rate = o.node.child("limits")?.child("rate") else { return }
         checkTimeout(rate.child("per"), o.pointer("limits", "rate", "per"), .limits, "the rate")
-        if let burst = rate.child("burst"), let requests = rate.child("requests") {
-            let b = Int(burst.value) ?? 0, r = Int(requests.value) ?? 0
+        if let burst = rate.child("burst"), let b = intValue(burst), let r = intValue(rate.child("requests")) {
             if b < r {
                 add(burst, o.pointer("limits", "rate", "burst"), .limits, "a burst of \(b) is below the \(r) requests the rate allows, so it would lower the limit; raise it to at least \(r), or remove it")
             }

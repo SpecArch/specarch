@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "a specification whose page size maximum, query length, request size, rate, cardinality and int64 bounds are integers written in hexadecimal, octal with 0o and with a leading zero, binary and with underscores, and whose tests cover the derived cases by the decimal values"
+when: validate is run
+then: "both builds read every integer as the schema check does: no list_of, limits, unsafe_integer or test_case error, the cardinality of 0b11 over two permissions reported as 3, the same bytes from each, and exit 1"
+verifies: [SA-51]

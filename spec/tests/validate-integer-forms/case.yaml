@@ -1,0 +1,4 @@
+arguments: [validate, .]
+exitStatus: 1
+standardOutput: |
+  specarch.yaml:76:18: error: /separationOfDuties/read-and-write/cardinality: separation_of_duties: set read-and-write asks that no holder reach 3 of its permissions but names only 2, so no role can ever break it; lower cardinality to 2 or name more permissions [separation_of_duties@specarch.yaml#/separationOfDuties/read-and-write/cardinality]

@@ -528,7 +528,7 @@ func (s *site) extras(key, name string, n *yaml.Node) {
 		s.line(`<p class="trace"><strong>Satisfied by:</strong> %s. <strong>Verified by:</strong> %s.</p>`, s.links(trace.satisfied[name], "nothing yet"), s.links(trace.verified[name], "nothing yet"))
 	case "separationOfDuties":
 		cardinality := 2
-		if c, err := strconv.Atoi(str(n, "cardinality")); err == nil {
+		if c, err := strconv.Atoi(num(n, "cardinality")); err == nil {
 			cardinality = c
 		}
 		var combos []string
@@ -571,7 +571,7 @@ func (s *site) body(n *yaml.Node, ptr, key string) {
 		if strings.Contains(n.Value, "\n") || len(n.Value) > 120 {
 			s.paragraphs(n.Value)
 		} else {
-			s.line("<p>%s</p>", s.scalar(key, n.Value))
+			s.line("<p>%s</p>", s.scalar(key, shown(n)))
 		}
 	case yaml.SequenceNode:
 		s.list(n, ptr, key)
@@ -621,7 +621,7 @@ func (s *site) mapping(n *yaml.Node, ptr string) {
 		case v == nil:
 			s.line("<dd></dd>")
 		case v.Kind == yaml.ScalarNode && !strings.Contains(v.Value, "\n") && len(v.Value) <= 120:
-			s.line("<dd>%s</dd>", s.scalar(p.Key.Value, v.Value))
+			s.line("<dd>%s</dd>", s.scalar(p.Key.Value, shown(v)))
 		case v.Kind == yaml.ScalarNode:
 			s.line("<dd>")
 			s.paragraphs(v.Value)
@@ -662,7 +662,7 @@ func (s *site) list(n *yaml.Node, ptr, key string) {
 	if scalars {
 		var out []string
 		for _, item := range n.Content {
-			out = append(out, s.scalar(key, item.Value))
+			out = append(out, s.scalar(key, shown(item)))
 		}
 		s.line("<p>%s</p>", strings.Join(out, ", "))
 		return
@@ -764,11 +764,11 @@ func (s *site) cellValue(key string, n *yaml.Node) string {
 	case n == nil:
 		return ""
 	case n.Kind == yaml.ScalarNode:
-		return s.scalar(key, n.Value)
+		return s.scalar(key, shown(n))
 	case n.Kind == yaml.SequenceNode && allScalars(n):
 		var out []string
 		for _, item := range n.Content {
-			out = append(out, s.scalar(key, item.Value))
+			out = append(out, s.scalar(key, shown(item)))
 		}
 		return strings.Join(out, ", ")
 	}
@@ -839,6 +839,15 @@ func allScalars(n *yaml.Node) bool {
 		}
 	}
 	return true
+}
+
+// shown is a scalar's text as the site shows it, an integer in decimal
+// (ADR-178); an alias keeps its name.
+func shown(n *yaml.Node) string {
+	if n.Kind == yaml.ScalarNode {
+		return source.IntText(n)
+	}
+	return n.Value
 }
 
 // scalar is a value as text, a link when it names an element: a $ref, a

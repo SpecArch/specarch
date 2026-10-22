@@ -35,7 +35,7 @@ extension Design {
         case "double": t.kind = .double
         case "decimal":
             t.kind = .decimal
-            t.scale = Int(str(f.child("scale"))) ?? 0
+            t.scale = Int(intValue(f.child("scale")) ?? 0)
         case "date": t.kind = .date
         case "date-time": t.kind = .timestamp
         case "duration": t.kind = .duration

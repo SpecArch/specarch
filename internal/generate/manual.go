@@ -387,7 +387,7 @@ func manualPage(d *doc, root *yaml.Node, name string, page *yaml.Node) {
 			title = str(c, "relation")
 		}
 		line := fmt.Sprintf("%s are added as rows, each with %s", title, joinAnd(labels))
-		if m := str(c, "maximum"); m != "" {
+		if m := num(c, "maximum"); m != "" {
 			line += ", up to " + m
 		}
 		d.para(line + ".")

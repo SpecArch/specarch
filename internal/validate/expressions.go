@@ -52,8 +52,8 @@ func (d *design) fieldType(f *yaml.Node) expr.Type {
 		t.Kind = expr.Double
 	case "decimal":
 		t.Kind, t.Scale = expr.Decimal, 0
-		if sc := source.Child(f, "scale"); sc != nil {
-			fmt.Sscan(sc.Value, &t.Scale)
+		if sc, ok := source.Int(source.Child(f, "scale")); ok {
+			t.Scale = int(sc)
 		}
 	case "date":
 		t.Kind = expr.Date

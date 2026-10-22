@@ -51,6 +51,9 @@ func bound(n *yaml.Node, key string) *big.Rat {
 	if v == nil {
 		return nil
 	}
+	if i, ok := source.Int(v); ok {
+		return new(big.Rat).SetInt64(i)
+	}
 	r, ok := new(big.Rat).SetString(v.Value)
 	if !ok {
 		return nil

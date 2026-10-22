@@ -130,7 +130,7 @@ func validName(_ name: String, _ word: String) -> String {
 private func chars(_ n: String) -> String { n == "1" ? "1 character" : n + " characters" }
 
 private func characters(_ n: String, _ off: Int) -> String {
-    let v = (Int(n) ?? 0) + off
+    let v = (Int(n) ?? 0) &+ off
     return v == 1 ? "of 1 character" : "of \(v) characters"
 }
 
@@ -155,9 +155,9 @@ private func pageCases(_ s: Subject, _ o: Operation, _ call: String) {
     guard let l = o.node.child("listOf") else { return }
     s.cases.append(DerivedCase(name: "page beyond last", scenario: "golden", given: "fewer records than fill the pages asked for",
                                when: call + " for a page after the last", then: "it answers an empty page with the true totals", frequency: occasional))
-    let max = str(l.child("pageSize")?.child("maximum"))
+    let max = intText(l.child("pageSize")?.child("maximum"))
     if !max.isEmpty {
-        s.red("page size above " + max, occasional, "...", call + " with a page size of \((Int(max) ?? 0) + 1)", "it is refused")
+        s.red("page size above " + max, occasional, "...", call + " with a page size of \((Int(max) ?? 0) &+ 1)", "it is refused")
     }
     if l.child("sortable") != nil {
         s.red("sort by a field not sortable", occasional, "...", call + " sorted by a field that is not sortable", "it is refused, not ignored")
@@ -171,12 +171,12 @@ private func pageCases(_ s: Subject, _ o: Operation, _ call: String) {
 /// than the rate allows.
 private func limitsCases(_ s: Subject, _ o: Operation, _ call: String) {
     let l = o.node.child("limits")
-    let n = str(l?.child("maxRequestBytes"))
+    let n = intText(l?.child("maxRequestBytes"))
     if !n.isEmpty {
         s.red("request larger than " + n + " bytes", occasional, "...", call + " with a body larger than " + n + " bytes", failureOr(o.node, "413", "it is refused as too large"))
     }
     if let rate = l?.child("rate") {
-        let r = str(rate.child("requests")), per = str(rate.child("per"))
+        let r = intText(rate.child("requests")), per = str(rate.child("per"))
         s.red("rate exceeded", occasional, "a caller who has made " + r + " requests within " + per, call + " once more", failureOr(o.node, "429", "it is refused as too many requests"))
     }
 }
@@ -582,7 +582,7 @@ extension Design {
         func golden(_ caseName: String, _ when: String) {
             s.fieldCase("golden", caseName, occasional, name, field, "...", when, "it succeeds")
         }
-        func num(_ key: String) -> String? { field.child(key).map { $0.str } }
+        func num(_ key: String) -> String? { field.child(key).map { intText($0) } }
         if let v = num("minimum") {
             red(name + " below minimum " + v, occasional, with + " just below " + v)
             golden(name + " at minimum " + v, with + " equal to " + v)
@@ -715,7 +715,7 @@ extension Design {
     func childRowCases(_ s: Subject, _ pg: YNode) {
         guard str(pg.child("kind")) == "form" else { return }
         for row in items(pg.child("childRows")) {
-            let rel = str(row.child("relation")), max = str(row.child("maximum"))
+            let rel = str(row.child("relation")), max = intText(row.child("maximum"))
             if max.isEmpty { continue }
             s.red(rel + " with more than " + max + " rows", occasional, "the form holds " + max + " rows of " + rel, "a row of " + rel + " is added", "it is refused: the form holds at most " + max + " rows of " + rel)
         }

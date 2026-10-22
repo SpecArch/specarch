@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: document
+level: system
+scenario: golden
+given: "a design whose length, item, page size, request size, rate, int32 bound, decimal precision and scale, child row maximum and separation of duties cardinality are integers written in hexadecimal, octal with 0o and with a leading zero, binary and with underscores"
+when: document manual is run
+then: "it writes manual.md with the child row maximum of 0x6 shown as up to 6, and exits 0"
+verifies: [SA-90]

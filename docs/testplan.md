@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.5-dev of the specification: 669 design tests, 317 golden and 352 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.5-dev of the specification: 672 design tests, 320 golden and 352 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.7.5-dev of the specification: 669 design tests, 317 golden and 352 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 665 |
+| system | 668 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -605,6 +605,14 @@ Scenario: red; level: system; covers exit 2; verifies SA-73.
 - When: document handover is run on it alone
 - Then: it prints a handover warning at the environments saying the specification has no handover document, writes nothing, and exits 2 since every specification given was passed over
 
+#### document-html-integer-forms
+
+Scenario: golden; level: system; verifies SA-60.
+
+- Given: a design whose length, item, page size, request size, rate, int32 bound, decimal precision and scale, child row maximum and separation of duties cardinality are integers written in hexadecimal, octal with 0o and with a leading zero, binary and with underscores
+- When: document html is run
+- Then: it writes site/index.html with every one of those integers in decimal, the separation of duties set read with its cardinality of 3, so only reader, clerk and supervisor together reach it, and exits 0
+
 #### document-html-marks-problems
 
 Scenario: red; level: system; verifies SA-60.
@@ -620,6 +628,14 @@ Scenario: red; level: system; covers exit 1.
 - Given: a design file with a relation to an entity that does not exist
 - When: document techspec is run
 - Then: it prints the error, writes the technical specification with a Problems notice and a Problem paragraph at the relation, and exits 1
+
+#### document-manual-integer-forms
+
+Scenario: golden; level: system; verifies SA-90.
+
+- Given: a design whose length, item, page size, request size, rate, int32 bound, decimal precision and scale, child row maximum and separation of duties cardinality are integers written in hexadecimal, octal with 0o and with a leading zero, binary and with underscores
+- When: document manual is run
+- Then: it writes manual.md with the child row maximum of 0x6 shown as up to 6, and exits 0
 
 #### document-manual-none
 
@@ -828,6 +844,14 @@ Scenario: golden; level: system; verifies SA-63.
 - Given: a specification whose permission v1.all implies v1.get and another, v1.get implies a third, three roles each granting one of them, a fourth granting a permission no other implies, and a separation-of-duties set over the third and the fourth's
 - When: document techspec is run
 - Then: the matrix marks a permission a role holds only by an implication as through the permission it grants, a table lists what each permission implies, the separation-of-duties set lists every role that reaches it through an implication, and it exits 0
+
+#### document-techspec-integer-forms
+
+Scenario: golden; level: system; verifies SA-7.
+
+- Given: a design whose length, item, page size, request size, rate, int32 bound, decimal precision and scale, child row maximum and separation of duties cardinality are integers written in hexadecimal, octal with 0o and with a leading zero, binary and with underscores
+- When: document techspec is run
+- Then: it writes techspec.md with every one of those integers in decimal, the separation of duties set read with its cardinality of 3, so only reader, clerk and supervisor together reach it, and exits 0
 
 #### document-techspec-marks-implementation-problem
 

@@ -117,10 +117,11 @@ func (c *checker) checkRoleRows(d *design) {
 }
 
 // checkTenant checks the tenant scope (ADR-179): its property is the
-// caller's, every shared name is an entity that carries no key, every
-// other entity carries the key or is limited by a rule of its own on every
-// role, and the key compares with the property. A derived rule is checked
-// here, once per entity, rather than at every role.
+// caller's, every shared name is an entity that carries no key, there is
+// a role to derive a rule for, every other entity carries the key or is
+// limited by a rule of its own on every role, and the key compares with
+// the property. A derived rule is checked here, once per entity, rather
+// than at every role.
 func (c *checker) checkTenant(d *design) {
 	tenant := source.Child(d.root, "tenant")
 	property := source.Child(tenant, "property")
@@ -146,6 +147,11 @@ func (c *checker) checkTenant(d *design) {
 		}
 		shared[n.Value] = true
 	}
+	roles := source.Pairs(source.Child(d.root, "roles"))
+	if len(roles) == 0 {
+		c.add(source.Key(d.root, "tenant"), source.Pointer("tenant"), RuleTenant, "%s", "tenant limits the rows of each role, and the specification has no roles, so no rule is derived and every tenant would reach every record; add the roles that call the system under roles, or take tenant out if the system serves one tenant")
+		return
+	}
 	rule := key + " == " + ruleOf
 	for _, e := range source.Pairs(source.Child(d.root, "entities")) {
 		if shared[e.Key.Value] {
@@ -154,7 +160,7 @@ func (c *checker) checkTenant(d *design) {
 		// open are the roles with no rule of their own over the entity:
 		// none, or the one derived from the scope.
 		var open []string
-		for _, r := range source.Pairs(source.Child(d.root, "roles")) {
+		for _, r := range roles {
 			if own := source.Child(source.Child(r.Value, "rows"), e.Key.Value); own == nil || d.spec != nil && d.spec.Derived[own] {
 				open = append(open, r.Key.Value)
 			}

@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "a tenant scope over organisationId in a specification with no roles, an entity carrying the key and an entity neither carrying it nor shared"
+when: validate is run
+then: "it reports tenant once, at tenant, saying no rule is derived without a role and every tenant would reach every record, and exits 1"
+verifies: [SA-91]

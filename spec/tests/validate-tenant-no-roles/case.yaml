@@ -1,0 +1,4 @@
+arguments: [validate, .]
+exitStatus: 1
+standardOutput: |
+  specarch.yaml:23:3: error: /tenant: tenant: tenant limits the rows of each role, and the specification has no roles, so no rule is derived and every tenant would reach every record; add the roles that call the system under roles, or take tenant out if the system serves one tenant [tenant@specarch.yaml#/tenant]

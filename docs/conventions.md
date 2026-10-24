@@ -834,8 +834,9 @@ limited by a rule of its own on every role is refused at the entity, so
 that an entity left out is never reached whole; so are a `shared` name
 that is no entity, a shared entity that carries the key, a property the
 caller does not declare and a key the entity cannot compare with the
-property (`tenant`). A derived rule is checked once, at the entity, never
-at the role.
+property (`tenant`). A scope in a specification with no roles is refused
+at `tenant`, since there is no role to derive a rule for. A derived rule
+is checked once, at the entity, never at the role.
 
 ### Machine clients, callers, a route closed on purpose, and the clients a grant holds through
 

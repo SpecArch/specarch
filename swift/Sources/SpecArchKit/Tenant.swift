@@ -52,10 +52,11 @@ extension Spec {
 
 extension Checker {
     /// Checks the tenant scope (ADR-179): its property is the caller's,
-    /// every shared name is an entity that carries no key, every other
-    /// entity carries the key or is limited by a rule of its own on every
-    /// role, and the key compares with the property. A derived rule is
-    /// checked here, once per entity, rather than at every role.
+    /// every shared name is an entity that carries no key, there is a
+    /// role to derive a rule for, every other entity carries the key or
+    /// is limited by a rule of its own on every role, and the key
+    /// compares with the property. A derived rule is checked here, once
+    /// per entity, rather than at every role.
     func checkTenant(_ d: Design) {
         guard let tenant = d.root.child("tenant"), let property = tenant.child("property"), property.kind == .scalar else { return }
         let key = str(tenant.child("key"))
@@ -78,11 +79,16 @@ extension Checker {
             }
             shared.insert(n.value)
         }
+        let roles = pairs(d.root.child("roles"))
+        if roles.isEmpty {
+            add(d.root.key("tenant"), pointer("tenant"), .tenant, "tenant limits the rows of each role, and the specification has no roles, so no rule is derived and every tenant would reach every record; add the roles that call the system under roles, or take tenant out if the system serves one tenant")
+            return
+        }
         let rule = key + " == " + ruleOf
         for e in pairs(d.root.child("entities")) where !shared.contains(e.key.value) {
             // open are the roles with no rule of their own over the entity:
             // none, or the one derived from the scope.
-            let open = pairs(d.root.child("roles")).filter {
+            let open = roles.filter {
                 guard let own = $0.value.child("rows")?.child(e.key.value) else { return true }
                 return d.spec?.derived.contains(ObjectIdentifier(own)) == true
             }.map { $0.key.value }

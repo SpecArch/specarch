@@ -29,7 +29,9 @@ decisions:
         would reach every record. An entity under shared that carries the
         key, a shared name that is no entity, a property the caller does
         not declare, and a key the entity cannot compare with the property
-        are errors too, each at its entry, under the rule tenant.
+        are errors too, each at its entry, under the rule tenant. A scope
+        in a specification with no roles is an error at tenant: there is
+        no role to derive a rule for, so no rule limits any entity.
       - A derived rule is checked once, at the entity, rather than once per
         role at a rule nobody wrote.
     why: |

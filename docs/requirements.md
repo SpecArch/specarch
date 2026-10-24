@@ -866,7 +866,7 @@ Kind: functional; priority: must; status: accepted; verified by test; refines NE
 Acceptance criteria:
 
 - For every role and every entity with a field named key that shared does not list, the document as read, which model prints, holds the rule `<key> == caller.<property>` under the role's rows at the position of tenant, and a rule the role writes for that entity stands in its place.
-- An entity that carries no field named key, is not listed under shared and is not limited by a rule of its own on every role is reported as tenant at the entity, in both builds, with the same words; so are a shared name that is no entity, a shared entity that carries the key, a property the caller does not declare, and a key the entity cannot compare with the property.
+- An entity that carries no field named key, is not listed under shared and is not limited by a rule of its own on every role is reported as tenant at the entity, in both builds, with the same words; so are a shared name that is no entity, a shared entity that carries the key, a property the caller does not declare, and a key the entity cannot compare with the property; a scope in a specification with no roles is reported as tenant at tenant, since no rule is derived.
 - The derived cases of the derived rules, the drafts specarch derive writes for them, the rows the technical specification shows for each role and the row security policies generate sql writes are the ones of the same rules written by hand.
 
 **Insight:** In a multi-tenant suite every role's rule over every tenant-owned entity is the same expression, written by hand hundreds of times, and an entity whose rules are forgotten is reached whole by every tenant with no word from the validator (ADR-179).

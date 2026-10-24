@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.6-dev of the specification: 681 design tests, 325 golden and 356 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.6-dev of the specification: 682 design tests, 325 golden and 357 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.7.6-dev of the specification: 681 design tests, 325 golden and 356 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 677 |
+| system | 678 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -5142,6 +5142,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-91.
 - Given: a tenant scope over organisationId, an entity limited by a rule of its own on one of two roles, and an entity with no rule, neither carrying the key nor shared
 - When: validate is run
 - Then: it reports tenant at each of the two entities, naming the roles it is not limited for and the three ways out, and exits 1
+
+#### validate-tenant-no-roles
+
+Scenario: red; level: system; covers exit 1; verifies SA-91.
+
+- Given: a tenant scope over organisationId in a specification with no roles, an entity carrying the key and an entity neither carrying it nor shared
+- When: validate is run
+- Then: it reports tenant once, at tenant, saying no rule is derived without a role and every tenant would reach every record, and exits 1
 
 #### validate-tenant-property
 

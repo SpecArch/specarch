@@ -253,7 +253,9 @@ request, with its reason, before the next release. Two gaps stay:
   with `status: deprecated` or a field with `deprecated: true`); or an
   accepted decision whose `governs` names the element and whose
   `decision` states the retirement, so that a deprecated decision is
-  covered by the successor whose `governs` names it. The element's own
+  covered by the accepted decision that deprecates it, whose `governs`
+  names it (a decision with a successor is superseded, not deprecated,
+  and `supersededBy` is its step's reason). The element's own
   `why` never counts: it is about the requirement or the decision, not
   about the step (section 1.3, the requirement-status row), and a
   requirement accepted with a `why` and retired later would otherwise
@@ -346,9 +348,14 @@ decidedIn` and `governs`, without a verb of its own. Additive: new output.
    (section 4). Either the owner writes the four, or the agent writes one
    question per decision, kind `decision`, priority `could`, blocking
    `#/decisions/<ID>`, decided by the owner's role, and writes `why` from
-   the answer, citing it. Recommended: the questions, in phase 1, so that
-   `decision_reason` and the open questions name the same four until the
-   owner answers.
+   the answer, citing it. This specification declares no owner role
+   (`spec/requirements/stakeholders/stakeholders.yaml`: specification
+   author, implementer, reviewer, operator, CI job), and `decidedBy` must
+   name a declared stakeholder (`docs/refinement.md`, the `stakeholder`
+   rule), so the questions need one declared first, say
+   `project-owner`, the role that decides this specification. Recommended:
+   the role and the questions, in phase 1, so that `decision_reason` and
+   the open questions name the same four until the owner answers.
 
 ## 4. When an AI agent writes the specification
 
@@ -445,7 +452,8 @@ none.
    section); for the four accepted decisions of this repository without
    `why` (ADR-001, ADR-002, ADR-006, ADR-009), one question each, kind
    `decision`, priority `could`, blocking `#/decisions/<ID>`, decided by
-   the owner's role, as section 4 prescribes; the agent writes no `why`
+   the owner's role, declared first since the specification has none
+   (question 7), as section 4 prescribes; the agent writes no `why`
    of its own for them, each is written from the owner's answer and
    cites it, and until then `decision_reason` lists them. Spec first:
    the keyword in `spec/`, the ADR for this design written with it, both

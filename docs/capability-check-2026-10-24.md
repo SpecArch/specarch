@@ -12,7 +12,9 @@ as one. "Today" is release 0.7.5 and the main branch at 0.7.6-dev.
 
 ## Conclusion
 
-The three most blocking gaps per job, in the order the owner meets them:
+The three most blocking gaps per job, the most severe first and, at one
+severity, in the order the owner meets them, as the table below ranks
+them:
 
 **Job 1, a website from a design file.**
 
@@ -35,12 +37,12 @@ The three most blocking gaps per job, in the order the owner meets them:
    the keys. What exists is a sign-in task page posting to an operation
    of this system. Blocks the SSO proof: the flow and its red tests are
    written by hand.
-2. No sign-out (G2.2): the session has timeouts and nothing ends it;
-   provider-initiated and back-channel logout and revocation have no
-   keyword. Workaround.
-3. No mapping from the provider's claims to this system's roles (G2.6):
+2. No mapping from the provider's claims to this system's roles (G2.6):
    a role is granted here, and a `groups` claim is only a claim.
    Workaround.
+3. No sign-out (G2.2): the session has timeouts and nothing ends it;
+   provider-initiated and back-channel logout and revocation have no
+   keyword. Workaround.
 
 **Job 3, a multi-tenant office suite.**
 
@@ -48,15 +50,15 @@ The three most blocking gaps per job, in the order the owner meets them:
    with no rule is reached whole (G3.1). Across seven applications it is
    hundreds of lines, and one forgotten entity leaks across tenants.
    Blocks, as a safety matter.
-2. Screens that cross modules are refused (G3.6): a picker or a list
+2. The editors (mail, documents, spreadsheets) and anything live
+   (collaboration, WebSocket) have no page kind and no interface beyond
+   HTTP, messaging and the command line (G3.7). Blocks: those screens
+   are built by hand, and today they cannot even be named in the design
+   so that the menu, the guard and the flows cover them.
+3. Screens that cross modules are refused (G3.4): a picker or a list
    reading another module's records is the error `reference` in every
    code target, and an office suite crosses modules on most screens.
    Blocks for those screens.
-3. The editors (mail, documents, spreadsheets) and anything live
-   (collaboration, WebSocket) have no page kind and no interface beyond
-   HTTP, messaging and the command line (G3.9). Blocks: those screens
-   are built by hand, and today they cannot even be named in the design
-   so that the menu, the guard and the flows cover them.
 
 **Across the three jobs**, every gap of this file in one list: the
 blocking gaps first, then the workarounds, then the nice-to-haves, and
@@ -68,8 +70,8 @@ hour of design to the deploy:
 | 1 | G3.1 tenant scope per role and entity, fail-open by omission | 3 | the first entity | blocks |
 | 2 | G1.2 no content page | 1 | the first page | blocks |
 | 3 | G2.1 no identity-provider sign-in flow | 2 | the sign-in page | blocks |
-| 4 | G3.9 no page kind for a hand-built screen, no interface beyond HTTP | 3 | the first editor screen | blocks |
-| 5 | G3.6 cross-module screens refused | 3 | the first picker across modules | blocks |
+| 4 | G3.7 no page kind for a hand-built screen, no interface beyond HTTP | 3 | the first editor screen | blocks |
+| 5 | G3.4 cross-module screens refused | 3 | the first picker across modules | blocks |
 | 6 | G1.1 no design-file reader | 1 | the start of design | blocks the import, workaround for the job |
 | 7 | G1.3 theme without typography, shadows, borders | 1 | the theme | workaround |
 | 8 | G1.4 no assets as files | 1 | the first image | workaround |
@@ -80,12 +82,12 @@ hour of design to the deploy:
 | 13 | G2.2 no sign-out | 2 | the second screen | workaround |
 | 14 | G2.4 the session cookie and CSRF are the stack's | 2 | the session | workaround, by design |
 | 15 | G3.2 no per-tenant settings or plan entitlements | 3 | the first plan-gated feature | workaround |
-| 16 | G3.7 no shared shell across modules (menu, theme, strings) | 3 | the second module | workaround |
-| 17 | G3.5 no isolation model beyond row security on PostgreSQL | 3 | the implementation file | workaround |
+| 16 | G3.5 no shared shell across modules (menu, theme, strings) | 3 | the second module | workaround |
+| 17 | G3.3 no isolation model beyond row security on PostgreSQL | 3 | the implementation file | workaround |
 | 18 | C1 handlers written by hand on every stack but Go on dxlib | 1, 2, 3 | `generate` | workaround, known |
 | 19 | G1.7 no site output: static files, metadata, sitemap | 1 | `generate` | workaround |
 | 20 | C2 the test harness is hand-written per stack | 1, 2, 3 | `generate tests` | workaround, known |
-| 21 | G3.8 gateway routes by audience claim, not by path | 3 | the deploy behind one origin | workaround |
+| 21 | G3.6 gateway routes by audience claim, not by path | 3 | the deploy behind one origin | workaround |
 | 22 | C3 deployment is described, not produced | 1, 2, 3 | the deploy | workaround, by design |
 | 23 | C4 the acceptance loop is designed, not built | 1, 2, 3 | the first user test | workaround |
 | 24 | C6 no real project's screen has checked the web generators | 1, 2, 3 | the first generated screen | nice to have |
@@ -93,9 +95,9 @@ hour of design to the deploy:
 | 26 | G2.5 accepted tokens worded as issued tokens | 2 | the tokens | nice to have |
 | 27 | G2.3 refresh-token rotation has no derived case | 2 | the tests | nice to have |
 | 28 | G2.7 no sender-constrained tokens for people | 2 | the security review | nice to have |
-| 29 | G3.11 no search across modules, no suite-wide audit log | 3 | the administration module | nice to have |
-| 30 | G3.12 no per-tenant encryption keys | 3 | the security review | nice to have |
-| 31 | G3.10 estate-wide generation, idioms and CI in one run | 3 | the tenth module | nice to have |
+| 29 | G3.9 no search across modules, no suite-wide audit log | 3 | the administration module | nice to have |
+| 30 | G3.10 no per-tenant encryption keys | 3 | the security review | nice to have |
+| 31 | G3.8 estate-wide generation, idioms and CI in one run | 3 | the tenth module | nice to have |
 | 32 | C5 pages are not extracted | any job starting from existing screens | the extraction | nice to have |
 
 ## Method and legend
@@ -224,12 +226,12 @@ strings and the theme (`docs/ui-nextjs-carbon.md:374-390`).
 | Gap | What is missing | Severity | Smallest close | Release | Source |
 |---|---|---|---|---|---|
 | G1.1 | A reader of a design file: frames to pages, variables to tokens, components to idiom parts, assets to files | blocks the import; workaround for the job | A printer in the pattern of the route table (`docs/estate.md:398-409`): a dump the design tool's API or a plug-in writes, holding the tokens in the Design Tokens format, each frame with its name, its children's kinds and texts, and each component; `extract design` reads tokens into `theme.yaml` as facts and writes a `must` question per frame asking which page kind it is, since that is a judgment. Tokens first, frames later | tokens: 0.7.x; frames: with G1.2 | `docs/extraction.md:8-54` (the readers' rule), `docs/ui-design.md:94-104` |
-| G1.2 | A page of content: a route, a title, ordered sections of headings, text, images and links, no entity, no operation; the menu, the route guard, the flows and the strings covering it | blocks | `kind: content` on a page with `sections` of blocks (`heading`, `text`, `image`, `link` to a page or an action), each text a string key; both generators write it; `accessibility` checks the image's text and the link's label | 0.7.x, an addition to 0.3 | schema line 3053; `docs/ui-design.md:19-23` (D1 keeps structure in the design) |
+| G1.2 | A page of content: a route, a title, ordered blocks of headings, text, images and links, no entity, no operation; the menu, the route guard, the flows and the strings covering it | blocks | `kind: content` on a page with `blocks`, an ordered list of `heading`, `text`, `image` and `link` (to a page or an action) blocks, each text a string key; `sections` keeps its one meaning, a form's or view's fields in titled groups (schema lines 3111 and 3896), and a content page has neither `sections` nor `fields`; both generators write it; `accessibility` checks the image's text and the link's label | 0.7.x, an addition to 0.3 | schema line 3053; `docs/ui-design.md:19-23` (D1 keeps structure in the design) |
 | G1.3 | Theme composite types: typography, shadow, border, gradient, transition | workaround (the stack's CSS by hand) | take the format's composite types the file names as left out, with the `design-tokens` idiom rendering them | 0.7.x | `docs/ui-design.md:333-336` |
 | G1.4 | Assets as files: images, icons, fonts, with their alternative text | workaround (committed beside the generated code) | an `assets` section, each a file path, a media type and its text, referenced by a content block and by a field of format `uri` | 0.7.x, with G1.2 | `docs/ui-design.md:333-336` |
-| G1.5 | Layout per breakpoint: what moves, what stacks, what hides, beyond a list's compact columns | workaround (CSS by hand) | none without revisiting D1 and D5, which keep geometry in the stack; a content section could take `compact: hidden` like a column | owner decision | `docs/ui-design.md:19-23`, `239-241`, `394-399` |
+| G1.5 | Layout per breakpoint: what moves, what stacks, what hides, beyond a list's compact columns | workaround (CSS by hand) | none without revisiting D1 and D5, which keep geometry in the stack; a content block could take `compact: hidden` like a column | owner decision | `docs/ui-design.md:19-23`, `239-241`, `394-399` |
 | G1.6 | A visual check: a screenshot of the generated page against the frame, or a browser test of each state | nice to have | a commissioning check of kind `end-to-end` with the frame as a cited source, run by hand; a browser harness for `generate tests` is a later target | later | `docs/stages.md:137-139`, `docs/ui-design.md:283-287` |
-| G1.7 | Site output: static files, a page title and description per route, a sitemap, a canonical URL | workaround (hand-written site, generated forms inside it) | with G1.2: `description` on a page written as the document's metadata, and a `static` setting on the `ui` target for a site with no server routes | 0.7.x | `docs/generators.md:638-700` |
+| G1.7 | Site output: static files, a page title and description per route, a sitemap, a canonical URL | workaround (hand-written site, generated forms inside it) | with G1.2: `metaDescription` and `canonical` on a content page, written as the document's metadata and the sitemap's entry; the page's `description` (schema line 3060) stays the design's prose about the page and is never written into the output; and a `static` setting on the `ui` target for a site with no server routes | 0.7.x | `docs/generators.md:638-700` |
 | G1.8 | Copy of a content page per language | workaround | with G1.2: every block's text a string key, translated as page strings are | 0.7.x | `docs/ui-nextjs-carbon.md:380-383` |
 | G1.9 | Components of the design file as the idiom's parts | workaround, by design | none: the idiom is overridden with the library the owner builds from the design; a reader (G1.1) could list the components to override | with G1.1 | `docs/ui-nextjs-carbon.md:15-18` |
 
@@ -296,18 +298,18 @@ walkthrough:
 
 | Step | Analyst | Architect | Tester | SpecArch today |
 |---|---|---|---|---|
-| Requirements | per application and for the suite; tenants, plans, limits | the estate, the identity module, the shared services | acceptance criteria per requirement, per module | one specification per module and an estate file listing them (`docs/conventions.md:1202-1231`); the identity module holds clients, roles and the trust domain (`docs/caller-context.md:95-176`); no estate-level requirements (G3.10) |
-| Tenant isolation | every record belongs to one tenant, and nobody sees another's | the tenant as a caller property, a rule per entity, row security in the database | `shows only the rows of <role>`, `a record outside the rows is not found`, `a change outside the rows is refused`, per role and operation | `caller.organisationId` and `roles.<role>.rows.<Entity>: organisationId == caller.organisationId`, one line per role and entity; "an entity not listed is reached whole" (`docs/conventions.md:782`); `generate sql` writes a policy on PostgreSQL and a warning elsewhere (`internal/gensql/rows.go:12-27`, `97-112`) (G3.1, G3.5) |
+| Requirements | per application and for the suite; tenants, plans, limits | the estate, the identity module, the shared services | acceptance criteria per requirement, per module | one specification per module and an estate file listing them (`docs/conventions.md:1202-1231`); the identity module holds clients, roles and the trust domain (`docs/caller-context.md:95-176`); no estate-level requirements (G3.8) |
+| Tenant isolation | every record belongs to one tenant, and nobody sees another's | the tenant as a caller property, a rule per entity, row security in the database | `shows only the rows of <role>`, `a record outside the rows is not found`, `a change outside the rows is refused`, per role and operation | `caller.organisationId` and `roles.<role>.rows.<Entity>: organisationId == caller.organisationId`, one line per role and entity; "an entity not listed is reached whole" (`docs/conventions.md:782`); `generate sql` writes a policy on PostgreSQL and a warning elsewhere (`internal/gensql/rows.go:12-27`, `97-112`) (G3.1, G3.3) |
 | Per-tenant settings and data | a tenant's own settings, branding, limits | where they are kept | they apply | `configuration` is per deployment (`schema/specarch-implementation-0.1.schema.json:1312`), `enabledBy` a deployment boolean (`docs/conventions.md:2004-2018`); per-tenant settings are an entity the owner designs, with no keyword reading them (G3.2) |
 | Plans and billing | plans, subscriptions, metering, invoices, payment | entities, a pricing algorithm, a monthly job, the payment provider as a dependency | worked examples of the pricing, derived cases of the job | specifiable: `decimal` for money (`docs/conventions.md:538-566`), `algorithms` with examples, `jobs` with a schedule, `dependencies` of kind `system`; plan entitlements gating features are not (G3.2) |
 | Tenant admin | a tenant's administrator manages its users, roles and settings | a role with rows rules on User and Settings; separation of duties | `refused through a client not listed`, `denied without permission` | covered: roles with `rows`, `separationOfDuties`, `workflows` for approvals, `audited: true` and `deletion: soft` (`docs/conventions.md:1015-1035`, `1323-1355`) |
 | Tenant lifecycle | sign-up, suspension, closure, data export | states on a Tenant entity, a download stream for the export, guarded scripts | a move from the wrong state | covered: `stateField` and `transitions`, `stream` (schema line 2642), `guard` and `generate scripts` |
-| The applications as modules | each application its own specification; shared records referenced | `dependencies` with `specification` and `version`, references `<dependency>#/entities/X` | the umbrella run resolves every reference | validated across the estate; generated one module at a time, and a page or picker reading another module's list is refused (`docs/conventions.md:1192-1200`, `spec/tests/generate-openapi-reference-refused/case.yaml:1-4`) (G3.6) |
-| Shared services | identity, files, search, notifications, audit | the identity module; a file store dependency; channels on a broker; jobs consuming them | `dependency fails`, `dependency times out` | covered for identity, files and events; search across modules and a suite-wide audit log have no element (G3.11) |
-| The editors | mail, documents, spreadsheets, with people editing together | WebSocket, operational transforms, rich content | | no page kind, no interface beyond HTTP, messaging and the command line (`docs/roadmap.md:361-363`, `docs/dxlib-lessons.md:341`) (G3.9) |
-| One suite in the browser | one menu, one theme, one sign-in, an application switcher | a shell | | `menus`, `theme` and strings are per specification; nothing is shared across modules (G3.7) |
-| Behind one origin | `/mail`, `/docs`, `/crm` | a gateway, or a reverse proxy by path | | `gateways` forward by the token's audience claim only; a path prefix is declined (`docs/gateway.md:588-591`) (G3.8) |
-| Deploy and operate | many modules, many hosts | servers, links, zones, monitors per deployment | smoke, end-to-end, data checks; monitors with responses | per module; the estate's map is a document (`docs/estate.md:154-166`); one run across the estate for generation, checks and CI is not there (G3.10) |
+| The applications as modules | each application its own specification; shared records referenced | `dependencies` with `specification` and `version`, references `<dependency>#/entities/X` | the umbrella run resolves every reference | validated across the estate; generated one module at a time, and a page or picker reading another module's list is refused (`docs/conventions.md:1192-1200`, `spec/tests/generate-openapi-reference-refused/case.yaml:1-4`) (G3.4) |
+| Shared services | identity, files, search, notifications, audit | the identity module; a file store dependency; channels on a broker; jobs consuming them | `dependency fails`, `dependency times out` | covered for identity, files and events; search across modules and a suite-wide audit log have no element (G3.9) |
+| The editors | mail, documents, spreadsheets, with people editing together | WebSocket, operational transforms, rich content | | no page kind, no interface beyond HTTP, messaging and the command line (`docs/roadmap.md:361-363`, `docs/dxlib-lessons.md:341`) (G3.7) |
+| One suite in the browser | one menu, one theme, one sign-in, an application switcher | a shell | | `menus`, `theme` and strings are per specification; nothing is shared across modules (G3.5) |
+| Behind one origin | `/mail`, `/docs`, `/crm` | a gateway, or a reverse proxy by path | | `gateways` forward by the token's audience claim only; a path prefix is declined (`docs/gateway.md:588-591`) (G3.6) |
+| Deploy and operate | many modules, many hosts | servers, links, zones, monitors per deployment | smoke, end-to-end, data checks; monitors with responses | per module; the estate's map is a document (`docs/estate.md:154-166`); one run across the estate for generation, checks and CI is not there (G3.8) |
 
 ### Gaps, job 3
 
@@ -315,14 +317,14 @@ walkthrough:
 |---|---|---|---|---|---|
 | G3.1 | A tenant scope said once: the caller property, the key every entity carries, every role bound by it unless an entity is marked shared; and the validator refusing an entity with the key and no rule | blocks, as a safety matter: the shorthand was left out "until a specification is long enough to want it", and this one is; with seven modules the rules are roles times entities lines, and an entity left out is reached whole | a `tenant` object of the design: `property: organisationId` (a caller property), `key: organisationId` (the field), `shared: [Plan, Country]`; the validator derives `rows` for every role and every entity that carries the key, refuses an entity with neither the key nor a place in `shared`, and the derived cases follow; `generate sql` writes the policies from it | 0.7.x, an addition; owner decision, since the design declined it | `docs/meta-model-0.3.md:134-137`, `298`; `docs/conventions.md:782`; `internal/validate/caller.go:130-141`; `internal/gensql/rows.go:12-27` |
 | G3.2 | Per-tenant settings and plan entitlements: a feature on for one tenant's plan, a limit per tenant | workaround: a `TenantSettings` entity and a `plan` claim in the token filling `caller.plan`, then `when: caller.plan == "business"` on page actions; operations have no `when`, so the server's check is a guard or hand-written | `enabledBy` taking a caller property beside a setting (`enabledBy: caller.featureX`), derived `disabled for <caller property>`; `limits.rate` per tenant as `rate.scope: caller.organisationId`, since `per` is the rate's duration | 0.7.x | `docs/conventions.md:2004-2018`, `1375-1379`; schema line 2688 |
-| G3.5 | The isolation model: shared schema with row security, schema per tenant, database per tenant; and row security on engines other than PostgreSQL | workaround: PostgreSQL with row security, which is written; elsewhere the service's own filter alone | a `tenancy` setting on the `sql` target (`rowSecurity`, `schemaPerTenant`) with the generator writing the second; the mapping for the caller property is there already | 0.7.x | `internal/gensql/rows.go:97-112`; `docs/meta-model-0.3.md:124-131` |
-| G3.6 | Generation across the estate: a page or a picker reading another module's list, a field typed by another module's schema | blocks for those screens: refused as `reference` by every code target | the estate given to `generate`: the UI generator reads the referenced specification for the columns and the dependency's base URL from the deployment, and writes the picker's remote list; the OpenAPI generator writes the referenced schema inline marked `x-specarch-ref`, as the design already names | 0.7.x; the design names it as waiting | `docs/estate.md:168-178`; `docs/conventions.md:1192-1200`; `spec/tests/generate-openapi-reference-refused/case.yaml:1-4` |
-| G3.7 | A shared shell: one menu across modules, one theme, one strings file, an application switcher, sign-in once | workaround: a `shell` module whose menu entries name pages of other modules cannot be written (an entry names a page of its own specification, schema line 6140); each module carries the same theme by copy | `<dependency>#/pages/<name>` as a menu entry target and in `flows`, and the estate file naming the shell module whose `theme` and `menus` the others inherit | 0.7.x | `docs/conventions.md:1144-1200`; schema line 6140 |
-| G3.8 | A gateway that routes by path prefix or header, and rewrites the path | workaround: a reverse proxy outside the specification, or one host per module with the token's audience naming it; the Next.js server routes forward to one service (`settings.server.service`), so a suite front end calling seven services needs a proxy anyway | `prefix` beside `claim` on a gateway's forwards, which the design says the element's shape admits "when a system asks"; `settings.server.services` as a map | 0.7.x | `docs/gateway.md:588-593`; `docs/generators.md:929-939` |
-| G3.9 | A page kind for a screen built by hand (an editor, a live view) that still has a route, a permission, a menu entry, flows and the derived guard test; and interfaces beyond HTTP, messaging and the command line | blocks for the editors: they are built outside SpecArch, and today cannot be named in the design | `kind: custom` on a page: route, title, permission, optional entity, no generator output but the route, the guard, the menu entry and the derived test; a WebSocket channel stays unplanned until asked (`docs/roadmap.md:361-363`) | page kind: 0.7.x; WebSocket: owner decision | schema line 3053; `internal/genui/genui.go:209-226` (an unknown kind is a warning and left out); `docs/dxlib-lessons.md:341` |
-| G3.10 | One run across the estate: generate every module, run every `check`, share idioms, and estate-level requirements | nice to have | `generate` and `check` given the estate file, iterating the modules in dependency order; an estate `idioms` folder; `requirements` in the estate file with `fulfilledBy` into modules | 0.7.x | `docs/conventions.md:1202-1231`; `docs/estate.md:443-455` |
-| G3.11 | Search across modules; a suite-wide audit log a tenant's administrator reads | nice to have: `audited: true` gives every record its four fields; a central log is an entity fed by `emits` | an `auditLog` dependency kind, or a `securityEvents`-like `auditEvents` with a store, derived per write operation | later | `docs/conventions.md:1345-1355`; `docs/dxlib-lessons.md:344` |
-| G3.12 | Per-tenant encryption keys and data residency | nice to have: `atRest: encrypted` is per field, the key an idiom's | a `keyPer: tenant` on the encrypted-column idiom | later | `docs/conventions.md:1323-1344` |
+| G3.3 | The isolation model: shared schema with row security, schema per tenant, database per tenant; and row security on engines other than PostgreSQL | workaround: PostgreSQL with row security, which is written; elsewhere the service's own filter alone | a `tenancy` setting on the `sql` target (`rowSecurity`, `schemaPerTenant`) with the generator writing the second; the mapping for the caller property is there already | 0.7.x | `internal/gensql/rows.go:97-112`; `docs/meta-model-0.3.md:124-131` |
+| G3.4 | Generation across the estate: a page or a picker reading another module's list, a field typed by another module's schema | blocks for those screens: refused as `reference` by every code target | the estate given to `generate`: the UI generator reads the referenced specification for the columns and the dependency's base URL from the deployment, and writes the picker's remote list; the OpenAPI generator writes the referenced schema inline marked `x-specarch-ref`, as the design already names | 0.7.x; the design names it as waiting | `docs/estate.md:168-178`; `docs/conventions.md:1192-1200`; `spec/tests/generate-openapi-reference-refused/case.yaml:1-4` |
+| G3.5 | A shared shell: one menu across modules, one theme, one strings file, an application switcher, sign-in once | workaround: a `shell` module whose menu entries name pages of other modules cannot be written (an entry names a page of its own specification, schema line 6140); each module carries the same theme by copy | `<dependency>#/pages/<name>` as a menu entry target and in `flows`, and the estate file naming the shell module whose `theme` and `menus` the others inherit | 0.7.x | `docs/conventions.md:1144-1200`; schema line 6140 |
+| G3.6 | A gateway that routes by path prefix or header, and rewrites the path | workaround: a reverse proxy outside the specification, or one host per module with the token's audience naming it; the Next.js server routes forward to one service (`settings.server.service`), so a suite front end calling seven services needs a proxy anyway | `prefix` beside `claim` on a gateway's forwards, which the design says the element's shape admits "when a system asks"; `settings.server.services` as a map | 0.7.x | `docs/gateway.md:588-593`; `docs/generators.md:929-939` |
+| G3.7 | A page kind for a screen built by hand (an editor, a live view) that still has a route, a permission, a menu entry, flows and the derived guard test; and interfaces beyond HTTP, messaging and the command line | blocks for the editors: they are built outside SpecArch, and today cannot be named in the design | `kind: custom` on a page: route, title, permission, optional entity, no generator output but the route, the guard, the menu entry and the derived test; a WebSocket channel stays unplanned until asked (`docs/roadmap.md:361-363`) | page kind: 0.7.x; WebSocket: owner decision | schema line 3053; `internal/genui/genui.go:209-226` (an unknown kind is a warning and left out); `docs/dxlib-lessons.md:341` |
+| G3.8 | One run across the estate: generate every module, run every `check`, share idioms, and estate-level requirements | nice to have | `generate` and `check` given the estate file, iterating the modules in dependency order; an estate `idioms` folder; `requirements` in the estate file with `fulfilledBy` into modules | 0.7.x | `docs/conventions.md:1202-1231`; `docs/estate.md:443-455` |
+| G3.9 | Search across modules; a suite-wide audit log a tenant's administrator reads | nice to have: `audited: true` gives every record its four fields; a central log is an entity fed by `emits` | an `auditLog` dependency kind, or a `securityEvents`-like `auditEvents` with a store, derived per write operation | later | `docs/conventions.md:1345-1355`; `docs/dxlib-lessons.md:344` |
+| G3.10 | Per-tenant encryption keys and data residency | nice to have: `atRest: encrypted` is per field, the key an idiom's | a `keyPer: tenant` on the encrypted-column idiom | later | `docs/conventions.md:1323-1344` |
 
 What the owner does by hand for job 3 today: every rows rule, the
 editors and anything live, the cross-module pickers, the shell, the
@@ -341,7 +343,7 @@ the per-tenant entitlement checks on the server.
   switch within one session (a person in several tenants) is a new
   token, not a new keyword.
 - A4. Job 3 runs on PostgreSQL, so row security is written; on another
-  engine G3.5 becomes a workaround for every entity.
+  engine G3.3 becomes a workaround for every entity.
 - A5. The office applications are built as web screens on the Next.js
   generator or by hand, not on the plain JavaScript generator, which
   writes no server routes.

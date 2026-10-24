@@ -908,3 +908,17 @@ Expected: the reference means what the registry's own dependency says, and a mod
 To repeat: in a copy of `spec/tests/generate-openapi-estate-reference-chain`, built before this fix, run `specarch generate openapi --unapproved --estate project/specarch-estate.yaml project/loans` and read the street in `project/openapi/openapi.yaml`.
 
 Fix: ADR-185. Each dependency in the plug-in request carries its own dependencies with the specification and version each names, and the request carries `modules`, the specifications of the run the dependencies reach through their own, by `info.name`; `internal/xref` resolves a reference inside a copy through the dependencies of the module it came from, and reports a module the run does not give as `reference` at the entry, naming the module chain. Cases `generate-openapi-estate-reference-chain`, `-declared` and `-refused`, and `generate-sql-estate-reference-chain`.
+
+## BUG-063 — validate: a flow step with no event is also told its action is missing
+
+- Reported: 2026-10-25, a side finding of an earlier item, against 0.7.5
+- Closed: 2026-10-25, completed
+- Fixed by: the commit on `main` whose message says `Fixes BUG-063`
+
+A flow step with a page alone, `{ page: members-list }`, was reported twice by the schema at the step: `action is missing; add it here` beside `event is missing; add it here`. Only the second was true. The `flowStep` rule in `schema/specarch-design-0.3.schema.json` required `action` when its `if` held, and that `if` read only `properties.event.const: action`, which holds when `event` is absent.
+
+Expected: `event is missing` alone, in both builds and in an editor that loads the schema.
+
+To repeat: in a copy of `spec/tests/validate-flow-step-missing-key/specarch.yaml`, built before this fix, run `specarch validate .` and read the errors at `/flows/missing-keys/steps/3`.
+
+Fix: the `if` also requires `event`, so `action` is required only of a step whose event is `action`; the `else`, which refuses `action` beside another event, holds only when `event` is there, so a step with no event and an action is not told its action is not allowed either. No file is accepted or refused that was not before, since `event` is required anyway: `TestFlowStepAcceptsWhatItDid` (`internal/validate/flow_step_schema_test.go`) checks the rule against the old one for every combination of page, event, action and an `x-` key. The fragment schema and the Swift embed follow; case `validate-flow-step-missing-key` gives the bare step.

@@ -3662,7 +3662,10 @@
           "event": {
             "const": "action"
           }
-        }
+        },
+        "required": [
+          "event"
+        ]
       },
       "then": {
         "required": [
@@ -3670,10 +3673,17 @@
         ]
       },
       "else": {
-        "not": {
+        "if": {
           "required": [
-            "action"
+            "event"
           ]
+        },
+        "then": {
+          "not": {
+            "required": [
+              "action"
+            ]
+          }
         }
       },
       "patternProperties": {

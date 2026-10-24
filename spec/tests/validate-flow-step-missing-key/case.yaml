@@ -16,3 +16,4 @@ standardOutput: |
   specarch.yaml:67:9: error: /flows/missing-keys/steps/0: schema: event is missing; add it here [schema@specarch.yaml#/flows/missing-keys/steps/0]
   specarch.yaml:68:9: error: /flows/missing-keys/steps/1: schema: page is missing; add it here [schema@specarch.yaml#/flows/missing-keys/steps/1]
   specarch.yaml:69:9: error: /flows/missing-keys/steps/2: schema: action is missing; add it here [schema@specarch.yaml#/flows/missing-keys/steps/2]
+  specarch.yaml:70:9: error: /flows/missing-keys/steps/3: schema: event is missing; add it here [schema@specarch.yaml#/flows/missing-keys/steps/3]

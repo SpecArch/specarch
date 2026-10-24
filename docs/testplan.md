@@ -4267,9 +4267,9 @@ Scenario: red; level: system; covers exit 1.
 
 Scenario: red; level: system; covers exit 1; verifies SA-42.
 
-- Given: a flow whose first step has no event, whose second has no page, and whose third is an action with no label
+- Given: a flow whose first step has no event, whose second has no page, whose third is an action with no label, and whose fourth has a page alone
 - When: validate is run
-- Then: it reports each missing key once, with schema at the step, and no flow error with an empty message or at the first line (BUG-060), and exits 1
+- Then: it reports each missing key once, with schema at the step, and no flow error with an empty message or at the first line (BUG-060); a step with no event is not also told its action is missing (BUG-063); and exits 1
 
 #### validate-flows
 

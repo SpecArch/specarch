@@ -61,12 +61,13 @@ pages:
       - { label: Back, kind: navigate, target: members-list }
 flows:
   missing-keys:
-    description: A step with no event, one with no page, and an action with no label.
+    description: A step with no event, one with no page, an action with no label, and a step with a page alone.
     actor: desk
     steps:
       - { page: members-list, action: Back }
       - { event: select }
       - { page: member-view, event: action }
+      - { page: members-list }
 tests:
   missing-keys-succeeds:
     flow: missing-keys

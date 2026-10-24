@@ -3665,7 +3665,10 @@ let designSchemaJSON = #"""
           "event": {
             "const": "action"
           }
-        }
+        },
+        "required": [
+          "event"
+        ]
       },
       "then": {
         "required": [
@@ -3673,10 +3676,17 @@ let designSchemaJSON = #"""
         ]
       },
       "else": {
-        "not": {
+        "if": {
           "required": [
-            "action"
+            "event"
           ]
+        },
+        "then": {
+          "not": {
+            "required": [
+              "action"
+            ]
+          }
         }
       },
       "patternProperties": {

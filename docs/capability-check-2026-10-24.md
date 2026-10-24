@@ -22,7 +22,7 @@ The three most blocking gaps per job, in the order the owner meets them:
    generator. Blocks: the site itself is written by hand.
 2. No reader of a design file (G1.1). Frames, components and tokens are
    read by eye and typed into pages and `theme.yaml`. Blocks the import;
-   the typing is a day's work for a small site.
+   the typing by hand is the workaround.
 3. The theme takes colour, dimension, font family and weight, duration
    and number only (G1.3); typography, shadows, borders, images and
    icons stay in the stack's own files. Workaround.
@@ -58,7 +58,9 @@ The three most blocking gaps per job, in the order the owner meets them:
    are built by hand, and today they cannot even be named in the design
    so that the menu, the guard and the flows cover them.
 
-**Across the three jobs, what the owner meets first**, from the first
+**Across the three jobs**, every gap of this file in one list: the
+blocking gaps first, then the workarounds, then the nice-to-haves, and
+within each group in the order the owner meets them, from the first
 hour of design to the deploy:
 
 | Rank | Gap | Jobs | Met when | Severity |
@@ -68,21 +70,33 @@ hour of design to the deploy:
 | 3 | G2.1 no identity-provider sign-in flow | 2 | the sign-in page | blocks |
 | 4 | G3.9 no page kind for a hand-built screen, no interface beyond HTTP | 3 | the first editor screen | blocks |
 | 5 | G3.6 cross-module screens refused | 3 | the first picker across modules | blocks |
-| 6 | C1 handlers written by hand on every stack but Go on dxlib | 1, 2, 3 | `generate` | workaround, known |
-| 7 | G1.1 no design-file reader | 1 | the start of design | blocks the import, workaround for the job |
-| 8 | G3.2 no per-tenant settings or plan entitlements | 3 | the first plan-gated feature | workaround |
-| 9 | G2.2 no sign-out | 2 | the second screen | workaround |
-| 10 | C2 the test harness is hand-written per stack | 1, 2, 3 | `generate tests` | workaround, known |
-| 11 | G3.7 no shared shell across modules (menu, theme, strings) | 3 | the second module | workaround |
-| 12 | G1.3 theme without typography, shadows, images, icons | 1 | the theme | workaround |
-| 13 | G2.6 claims to roles | 2 | the roles | workaround |
-| 14 | G1.5 one compact class, no layout per breakpoint | 1 | the responsive rules | workaround, owner's decision D1 |
-| 15 | C4 the acceptance loop is designed, not built | 1, 2, 3 | the first user test | workaround |
-| 16 | G3.8 gateway routes by audience claim, not by path | 3 | the deploy behind one origin | workaround |
-| 17 | G1.6 no visual check of a generated screen | 1 | the first review | nice to have |
-| 18 | G3.5 no isolation model beyond row security on PostgreSQL | 3 | the implementation file | workaround |
-| 19 | G2.3 refresh-token rotation has no derived case | 2 | the tests | nice to have |
-| 20 | G3.10 estate-wide generation, idioms and CI in one run | 3 | the tenth module | nice to have |
+| 6 | G1.1 no design-file reader | 1 | the start of design | blocks the import, workaround for the job |
+| 7 | G1.3 theme without typography, shadows, borders | 1 | the theme | workaround |
+| 8 | G1.4 no assets as files | 1 | the first image | workaround |
+| 9 | G1.5 one compact class, no layout per breakpoint | 1 | the responsive rules | workaround, owner's decision D1 |
+| 10 | G1.8 no place for a content page's copy | 1 | the copy | workaround, with G1.2 |
+| 11 | G1.9 the design file's components are not the idiom's parts | 1 | the components | workaround, by design |
+| 12 | G2.6 claims to roles | 2 | the roles | workaround |
+| 13 | G2.2 no sign-out | 2 | the second screen | workaround |
+| 14 | G2.4 the session cookie and CSRF are the stack's | 2 | the session | workaround, by design |
+| 15 | G3.2 no per-tenant settings or plan entitlements | 3 | the first plan-gated feature | workaround |
+| 16 | G3.7 no shared shell across modules (menu, theme, strings) | 3 | the second module | workaround |
+| 17 | G3.5 no isolation model beyond row security on PostgreSQL | 3 | the implementation file | workaround |
+| 18 | C1 handlers written by hand on every stack but Go on dxlib | 1, 2, 3 | `generate` | workaround, known |
+| 19 | G1.7 no site output: static files, metadata, sitemap | 1 | `generate` | workaround |
+| 20 | C2 the test harness is hand-written per stack | 1, 2, 3 | `generate tests` | workaround, known |
+| 21 | G3.8 gateway routes by audience claim, not by path | 3 | the deploy behind one origin | workaround |
+| 22 | C3 deployment is described, not produced | 1, 2, 3 | the deploy | workaround, by design |
+| 23 | C4 the acceptance loop is designed, not built | 1, 2, 3 | the first user test | workaround |
+| 24 | C6 no real project's screen has checked the web generators | 1, 2, 3 | the first generated screen | nice to have |
+| 25 | G1.6 no visual check of a generated screen | 1 | the first review | nice to have |
+| 26 | G2.5 accepted tokens worded as issued tokens | 2 | the tokens | nice to have |
+| 27 | G2.3 refresh-token rotation has no derived case | 2 | the tests | nice to have |
+| 28 | G2.7 no sender-constrained tokens for people | 2 | the security review | nice to have |
+| 29 | G3.11 no search across modules, no suite-wide audit log | 3 | the administration module | nice to have |
+| 30 | G3.12 no per-tenant encryption keys | 3 | the security review | nice to have |
+| 31 | G3.10 estate-wide generation, idioms and CI in one run | 3 | the tenth module | nice to have |
+| 32 | C5 pages are not extracted | any job starting from existing screens | the extraction | nice to have |
 
 ## Method and legend
 
@@ -300,7 +314,7 @@ walkthrough:
 | Gap | What is missing | Severity | Smallest close | Release | Source |
 |---|---|---|---|---|---|
 | G3.1 | A tenant scope said once: the caller property, the key every entity carries, every role bound by it unless an entity is marked shared; and the validator refusing an entity with the key and no rule | blocks, as a safety matter: the shorthand was left out "until a specification is long enough to want it", and this one is; with seven modules the rules are roles times entities lines, and an entity left out is reached whole | a `tenant` object of the design: `property: organisationId` (a caller property), `key: organisationId` (the field), `shared: [Plan, Country]`; the validator derives `rows` for every role and every entity that carries the key, refuses an entity with neither the key nor a place in `shared`, and the derived cases follow; `generate sql` writes the policies from it | 0.7.x, an addition; owner decision, since the design declined it | `docs/meta-model-0.3.md:134-137`, `298`; `docs/conventions.md:782`; `internal/validate/caller.go:130-141`; `internal/gensql/rows.go:12-27` |
-| G3.2 | Per-tenant settings and plan entitlements: a feature on for one tenant's plan, a limit per tenant | workaround: a `TenantSettings` entity and a `plan` claim in the token filling `caller.plan`, then `when: caller.plan == "business"` on page actions; operations have no `when`, so the server's check is a guard or hand-written | `enabledBy` taking a caller property beside a setting (`enabledBy: caller.featureX`), derived `disabled for <caller property>`; `limits.rate` per tenant as `per: caller.organisationId` | 0.7.x | `docs/conventions.md:2004-2018`, `1375-1379`; schema line 2688 |
+| G3.2 | Per-tenant settings and plan entitlements: a feature on for one tenant's plan, a limit per tenant | workaround: a `TenantSettings` entity and a `plan` claim in the token filling `caller.plan`, then `when: caller.plan == "business"` on page actions; operations have no `when`, so the server's check is a guard or hand-written | `enabledBy` taking a caller property beside a setting (`enabledBy: caller.featureX`), derived `disabled for <caller property>`; `limits.rate` per tenant as `rate.scope: caller.organisationId`, since `per` is the rate's duration | 0.7.x | `docs/conventions.md:2004-2018`, `1375-1379`; schema line 2688 |
 | G3.5 | The isolation model: shared schema with row security, schema per tenant, database per tenant; and row security on engines other than PostgreSQL | workaround: PostgreSQL with row security, which is written; elsewhere the service's own filter alone | a `tenancy` setting on the `sql` target (`rowSecurity`, `schemaPerTenant`) with the generator writing the second; the mapping for the caller property is there already | 0.7.x | `internal/gensql/rows.go:97-112`; `docs/meta-model-0.3.md:124-131` |
 | G3.6 | Generation across the estate: a page or a picker reading another module's list, a field typed by another module's schema | blocks for those screens: refused as `reference` by every code target | the estate given to `generate`: the UI generator reads the referenced specification for the columns and the dependency's base URL from the deployment, and writes the picker's remote list; the OpenAPI generator writes the referenced schema inline marked `x-specarch-ref`, as the design already names | 0.7.x; the design names it as waiting | `docs/estate.md:168-178`; `docs/conventions.md:1192-1200`; `spec/tests/generate-openapi-reference-refused/case.yaml:1-4` |
 | G3.7 | A shared shell: one menu across modules, one theme, one strings file, an application switcher, sign-in once | workaround: a `shell` module whose menu entries name pages of other modules cannot be written (an entry names a page of its own specification, schema line 6140); each module carries the same theme by copy | `<dependency>#/pages/<name>` as a menu entry target and in `flows`, and the estate file naming the shell module whose `theme` and `menus` the others inherit | 0.7.x | `docs/conventions.md:1144-1200`; schema line 6140 |

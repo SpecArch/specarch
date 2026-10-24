@@ -2,7 +2,7 @@
 command: validate
 level: system
 scenario: red
-given: "the loans module whose entity keeps in columns five values typed by the customer registry's schemas, given without the customer registry"
+given: "the loans module whose entity keeps in columns five values typed by the customer registry's schemas, one a schema of its own that holds a list of the customer registry's addresses, given without the customer registry"
 when: "validate is run on the loans folder alone"
-then: "it reports one value_object_unchecked warning at each of the five fields, naming the schema, the module the run does not give and the rules left unchecked, and exits 0"
+then: "it reports one value_object_unchecked warning at each of the five fields, naming the schema, the module the run does not give and the rules left unchecked, and the value_object error for the list, which needs nothing from the customer registry, and exits 1"
 verifies: [SA-50, SA-65]

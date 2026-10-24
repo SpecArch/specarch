@@ -5731,17 +5731,17 @@ Scenario: red; level: system; covers exit 1; verifies SA-29.
 
 Scenario: red; level: system; verifies SA-50, SA-65.
 
-- Given: an estate of two modules, the loans module whose entity keeps in columns five values typed by the customer registry's schemas: an optional address whose schema has no required part, a contact with a list of phones inside, a branch that holds itself, a holder that refers to an entity, and a schema of its own whose optional part is the address
+- Given: an estate of two modules, the loans module whose entity keeps in columns five values typed by the customer registry's schemas: an optional address whose schema has no required part, a contact with a list of phones inside, a branch that holds itself, a holder that refers to an entity, and a schema of its own whose optional part is the address and which holds a list of addresses
 - When: validate is run on the estate file
-- Then: it reports one value_object error at each of the five fields, naming the other module's schema and the fix, as for a schema of the module's own, and exits 1
+- Then: it reports a value_object error at each of the five fields, two at the schema of its own, naming the other module's schema and the fix, as for a schema of the module's own, and exits 1
 
 #### validate-value-object-estate-columns-alone
 
 Scenario: red; level: system; verifies SA-50, SA-65.
 
-- Given: the loans module whose entity keeps in columns five values typed by the customer registry's schemas, given without the customer registry
+- Given: the loans module whose entity keeps in columns five values typed by the customer registry's schemas, one a schema of its own that holds a list of the customer registry's addresses, given without the customer registry
 - When: validate is run on the loans folder alone
-- Then: it reports one value_object_unchecked warning at each of the five fields, naming the schema, the module the run does not give and the rules left unchecked, and exits 0
+- Then: it reports one value_object_unchecked warning at each of the five fields, naming the schema, the module the run does not give and the rules left unchecked, and the value_object error for the list, which needs nothing from the customer registry, and exits 1
 
 #### validate-value-object-estate-json
 

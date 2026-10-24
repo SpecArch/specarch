@@ -267,6 +267,25 @@ func (cc *columnsCheck) partSchema(d *design, part *yaml.Node) (held heldSchema,
 	return held, list, ok
 }
 
+// crossList names the schema of another module a part of a value holds as
+// a list, '<dependency>#/schemas/Name' as its items, read in the design that
+// declares the value. A list has no columns whatever the schema holds, so
+// the name comes from the reference and the module need not be given.
+func (cc *columnsCheck) crossList(d *design, part *yaml.Node) (string, bool) {
+	if !typeIs(part, "array") || source.Child(part, "$ref") != nil {
+		return "", false
+	}
+	dep, ptr, ok := crossRef(source.Str(source.Child(source.Child(part, "items"), "$ref")))
+	name, isSchema := strings.CutPrefix(ptr, "/schemas/")
+	if !ok || !isSchema {
+		return "", false
+	}
+	if spec := d.specificationOf(dep); spec != "" {
+		return cc.label(spec, name), true
+	}
+	return name + " of " + dep, true
+}
+
 // columns checks a schema stored in columns of its own, at the field that
 // holds it: no list of schemas and no cycle, since neither has a fixed set
 // of columns, no reference to an entity, which is a relation and not a
@@ -290,6 +309,10 @@ func (cc *columnsCheck) columns(field string, held heldSchema, optional bool, se
 		}
 		if isEntity {
 			c.add(cc.at, ptr, RuleValueObject, "%s refers to %s, a record of its own, and a value kept in columns holds no relation; relate %s to %s, or store %s as json", part, cc.label(held.module, entityRef), cc.path[1], cc.label(held.module, entityRef), top)
+			continue
+		}
+		if other, isList := cc.crossList(held.d, p.Value); isList {
+			c.add(cc.at, ptr, RuleValueObject, "%s is a list of %s, and a list has no columns of its own; store %s as json", part, other, top)
 			continue
 		}
 		inner, list, ok := cc.partSchema(held.d, p.Value)
@@ -319,6 +342,9 @@ func (cc *columnsCheck) alwaysSet(held heldSchema, seen []string) bool {
 	for _, p := range source.Pairs(source.Child(held.node, "properties")) {
 		if !required[p.Key.Value] || nullable(p.Value) {
 			continue
+		}
+		if _, isList := cc.crossList(held.d, p.Value); isList {
+			return true
 		}
 		inner, list, ok := cc.partSchema(held.d, p.Value)
 		if !ok || list {

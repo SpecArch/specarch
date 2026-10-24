@@ -43,7 +43,9 @@ decisions:
       module and the pointer; ui as a field holding a value. A field typed
       by another module's schema, or a list of one, takes storage as a
       field typed by a schema of its own does (ADR-063): validate refuses
-      columns on a list, and checks one value kept in columns as one of
+      columns on a list, and a list of one inside a value kept in columns
+      whether or not the run gives its module, since a list has no columns
+      whatever it holds, and checks one value kept in columns as one of
       its own schemas, in the module that holds it when the run gives that
       module, each reference inside read in the module that holds it; when
       the run does not give a module a value kept in columns reaches, it

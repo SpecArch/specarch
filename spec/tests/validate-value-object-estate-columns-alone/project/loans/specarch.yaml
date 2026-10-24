@@ -12,6 +12,7 @@ schemas:
     type: object
     properties:
       to: { $ref: "customerRegistry#/schemas/Address" }
+      copies: { type: array, items: { $ref: "customerRegistry#/schemas/Address" } }
 entities:
   Loan:
     type: object

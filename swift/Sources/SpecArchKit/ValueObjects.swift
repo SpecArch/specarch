@@ -183,6 +183,19 @@ final class ColumnsCheck {
         return (held, list)
     }
 
+    /// The schema of another module a part of a value holds as a list,
+    /// '<dependency>#/schemas/Name' as its items, read in the design that
+    /// declares the value. A list has no columns whatever the schema holds,
+    /// so the name comes from the reference and the module need not be given.
+    func crossList(_ d: Design, _ part: YNode) -> String? {
+        guard typeIs(part, "array"), part.child("$ref") == nil,
+              let (dep, ptr) = crossRef(str(child(part.child("items"), "$ref"))),
+              ptr.hasPrefix("/schemas/") else { return nil }
+        let name = String(ptr.dropFirst("/schemas/".count))
+        let spec = d.specificationOf(dep)
+        return spec.isEmpty ? name + " of " + dep : label(spec, name)
+    }
+
     /// Checks a schema stored in columns of its own, at the field that holds
     /// it: no list of schemas and no cycle, since neither has a fixed set of
     /// columns, no reference to an entity, which is a relation and not a
@@ -205,6 +218,10 @@ final class ColumnsCheck {
                 c.add(at, ptr, .valueObject, "\(part) refers to \(target), a record of its own, and a value kept in columns holds no relation; relate \(path[1]) to \(target), or store \(top) as json")
                 continue
             }
+            if let other = crossList(held.d, p.value) {
+                c.add(at, ptr, .valueObject, "\(part) is a list of \(other), and a list has no columns of its own; store \(top) as json")
+                continue
+            }
             guard let (inner, list) = partSchema(held.d, p.value) else { continue }
             let innerName = label(inner.module, inner.name)
             if list {
@@ -225,6 +242,7 @@ final class ColumnsCheck {
         let required = Set(items(held.node.child("required")).map { str($0) })
         for p in pairs(held.node.child("properties")) {
             if !required.contains(p.key.value) || nullable(p.value) { continue }
+            if crossList(held.d, p.value) != nil { return true }
             guard let (inner, list) = partSchema(held.d, p.value), !list else { return true }
             if !seen.contains(inner.key) && alwaysSet(inner, seen + [inner.key]) { return true }
         }

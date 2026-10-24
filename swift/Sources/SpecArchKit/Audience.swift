@@ -19,7 +19,7 @@ private let keyedElements: Set<String> = [
 func isElement(_ path: [String]) -> Bool {
     switch path.count {
     case 1:
-        return ["caller", "securityEvents", "session", "release", "rollback", "signoff", "backup", "restore"].contains(path[0])
+        return ["caller", "securityEvents", "session", "signIn", "release", "rollback", "signoff", "backup", "restore"].contains(path[0])
     case 2:
         return keyedElements.contains(path[0])
     case 3:

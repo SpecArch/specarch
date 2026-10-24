@@ -515,7 +515,9 @@ func afterSubmit(root, on *yaml.Node) string {
 		if m := strings.TrimSpace(str(e, "message")); m != "" {
 			parts = append(parts, m)
 		}
-		if p := str(e, "navigate"); p != "" {
+		if p := str(e, "navigate"); p == "signIn" {
+			parts = append(parts, "The identity provider's sign-in opens.")
+		} else if p != "" {
 			parts = append(parts, "The "+pageTitleOf(root, p)+" page opens.")
 		}
 		return strings.Join(parts, " ")

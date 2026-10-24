@@ -157,7 +157,12 @@ async function run(action, row, button) {
     const response = await call(action, given);
     if (response.ok) {
       emit(action.succeeded, { id: row.id });
-      if (action.navigate) {
+      if (action.signIn) {
+        import("./identity-provider.js").then(({ signIn }) => signIn()).catch((error) => {
+          button.disabled = false;
+          emit(action.failed, { id: row.id, status: 0, reason: error.message });
+        });
+      } else if (action.navigate) {
         go(action.navigate.page, action.navigate.with(row), action.message);
       }
     } else {
@@ -242,7 +247,7 @@ function statusLine() {
   on(LOANS_LIST_FAILED, ({ status }) => show(refusal("listLoans", status), true, false));
   for (const action of actions.filter((action) => action.operation)) {
     on(action.succeeded, () => show(action.message, false, true));
-    on(action.failed, ({ status }) => show(refusal(action.operation, status), true, true));
+    on(action.failed, ({ status, reason }) => show(reason ?? refusal(action.operation, status), true, true));
   }
   const carried = arrived();
   show(carried, false, carried !== "");

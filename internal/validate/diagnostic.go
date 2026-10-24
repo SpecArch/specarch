@@ -156,6 +156,7 @@ const (
 	RuleVia                    Rule = "via"
 	RuleTokenAudience          Rule = "token_audience"
 	RuleSecurityEvents         Rule = "security_events"
+	RuleSignIn                 Rule = "sign_in"
 	RuleExitCode               Rule = "exit_code"
 )
 
@@ -303,6 +304,7 @@ var Rules = []Rule{
 	RuleVia,
 	RuleTokenAudience,
 	RuleSecurityEvents,
+	RuleSignIn,
 	RuleExitCode,
 }
 

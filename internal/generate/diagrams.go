@@ -257,6 +257,10 @@ func pagesFlowchart(root *yaml.Node) string {
 	for _, p := range pages {
 		fmt.Fprintf(&b, "  %s[\"%s (%s)\"]\n", mermaidID(p.Key.Value), mermaidText(str(p.Value, "title")), str(p.Value, "kind"))
 	}
+	if si := get(root, "signIn"); si != nil {
+		// navigate: signIn leaves the application for the provider (ADR-182).
+		fmt.Fprintf(&b, "  signIn{{\"sign-in at %s\"}}\n", mermaidText(str(si, "provider")))
+	}
 	ops := map[string]bool{}
 	op := func(target string) string {
 		if !ops[target] {

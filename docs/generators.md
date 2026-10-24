@@ -345,7 +345,10 @@ with a new identifier and the audit fields and answers the stored row with
 refusal. Any other operation calls `body<Operation>`, and each job that
 repeats at an interval becomes a task in `RegisterTasks` calling
 `job<Name>`; the service writes both, and the compiler names what is
-missing. Permissions, roles and the menu are `Privileges`, `Roles` and
+missing. The sign-in callback is such an operation: its body exchanges the
+code, checks the identity token and starts the session, as the service
+does it (ADR-182), and the generated tests call it as they call any.
+Permissions, roles and the menu are `Privileges`, `Roles` and
 `MenuItems`, data for the service to seed, `public` left out; under
 `info.roleNames: upper_snake` a role's name id is its wire form,
 `DESK_SUPERVISOR` for `desk-supervisor` (ADR-099), and a role's
@@ -828,6 +831,20 @@ dxlib dialect and refused in the standard one, which names no header
 download saves the file under the name its `Content-Disposition` gives.
 A stream anywhere else is refused at the page.
 
+A task page's answer or an action's `then` that navigates to `signIn`
+leaves for the identity provider (ADR-182): the specification's `signIn`
+writes `identity-provider.js`, which the page loads when the event comes.
+It reads `identity-provider.json` beside the pages, `{ "issuerUrl": ...,
+"clientId": ... }`, which the deployment writes from its
+`signIn.issuerUrl` and the client's `clientId`; reads the provider's
+discovery document and refuses one naming another issuer; makes a state,
+a nonce and a PKCE verifier, keeps them in the `__Host-sign-in` cookie
+the callback reads, and sends the browser to the authorisation endpoint
+with the S256 challenge and the callback's path on the page's own
+origin as the redirect URI. A document it cannot read is shown with its
+address and status. A page named `identity-provider` is refused, since
+its file would take the name.
+
 Modes other than dark are reported and left out of this version. The
 screens it is checked against are the library lending example's loans
 list, written by hand before the generator (ADR-040), and its member view
@@ -868,6 +885,14 @@ the field its failed state names, or above the form; each success leads to
 its page, its message announced there. A page reads `returnTo` from its
 query and hands it on to another task page, and an event to any other
 page goes to it instead, when the browser reads it as the same origin.
+An answer that navigates to `signIn` carries the callback's path, and
+the page leaves through `signIn` of `service.ts` for the authorisation
+endpoint the provider's discovery document names, as the plain
+JavaScript screens do; `application.ts` names the provider's issuer and
+client_id from `NEXT_PUBLIC_SIGN_IN_ISSUER_URL` and
+`NEXT_PUBLIC_SIGN_IN_CLIENT_ID`, which the deployment sets from its
+`signIn.issuerUrl` and the client's `clientId` (ADR-182). An action's
+`then` that navigates, to `signIn` or a page, is refused.
 A default failed state is the message for any refusal the page names
 none for. Fields in sections, actions, `enabledBy`, a permission other
 than public, and a success the operation answers with no event are
@@ -1076,7 +1101,15 @@ decimal, which the app compares exactly; a form's hooks come from
 actions are in its swipe and context menus, its sort a toolbar menu of
 the sortable columns, and its page turned under the rows; a view's
 actions that open a page are in its toolbar; an action's confirmation
-is a sheet with the reason it requires. The reference is the library
+is a sheet with the reason it requires. A task page's answer that
+navigates to `signIn` signs in through `IdentityProvider` of
+`Screens/SignIn.swift`: the app sets the issuer and client_id at launch,
+as it sets the service's URL; the system's web authentication session
+opens the authorisation endpoint and returns on the callback's path on
+the service's host, which needs iOS 17.4 or macOS 14.4 and that host as
+an associated domain of the app; the page then calls the callback with
+the code and the state, the state, nonce and verifier going with it in
+the `__Host-sign-in` cookie (ADR-182). The reference is the library
 lending example's sign-in and second-factor screens, written by hand
 first (`examples/library-lending/ios`), which `generate --check` reports
 as matching but for the header; its lists, forms and views build and

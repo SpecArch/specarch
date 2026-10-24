@@ -292,6 +292,30 @@ sources:
     edition: "2025"
     author: IETF
     url: https://www.rfc-editor.org/rfc/rfc9700
+  rfc-7636:
+    kind: standard
+    title: RFC 7636, Proof Key for Code Exchange by OAuth Public Clients
+    edition: "2015"
+    author: IETF
+    url: https://www.rfc-editor.org/rfc/rfc7636
+  openid-connect-core:
+    kind: standard
+    title: OpenID Connect Core 1.0 incorporating errata set 2
+    edition: "2023"
+    author: OpenID Foundation
+    url: https://openid.net/specs/openid-connect-core-1_0.html
+  openid-connect-discovery:
+    kind: standard
+    title: OpenID Connect Discovery 1.0 incorporating errata set 2
+    edition: "2023"
+    author: OpenID Foundation
+    url: https://openid.net/specs/openid-connect-discovery-1_0.html
+  openid-connect-back-channel-logout:
+    kind: standard
+    title: OpenID Connect Back-Channel Logout 1.0
+    edition: "2023"
+    author: OpenID Foundation
+    url: https://openid.net/specs/openid-connect-backchannel-1_0.html
   rfc-8417:
     kind: standard
     title: RFC 8417, Security Event Token (SET)

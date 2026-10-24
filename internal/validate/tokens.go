@@ -47,7 +47,8 @@ var jwtAlgorithms = []string{"ES256", "ES384", "ES512", "EdDSA", "HS256", "HS384
 var workloadProofs = map[string]bool{"mutualTls": true, "spiffe": true, "wimse": true}
 
 // The severity of the security event each refusal derives (ADR-109).
-var eventSeverity = map[string]string{"token_audience": "high", "via": "high", "deputy": "high", "callers": "medium", "through": "medium", "software_version": "medium", "token": "low"}
+var eventSeverity = map[string]string{"token_audience": "high", "via": "high", "deputy": "high", "callers": "medium", "through": "medium", "software_version": "medium", "token": "low",
+	"sign_in_state": "medium", "sign_in_nonce": "high", "sign_in_issuer": "high", "sign_in_expired": "low", "sign_in_signature": "high", "sign_in_code": "high"}
 
 func (d *design) tokens() []source.Pair { return source.Pairs(source.Child(d.root, "tokens")) }
 
@@ -425,8 +426,8 @@ func (c *checker) checkTokenProof(d *design, client string, proof *yaml.Node, at
 func (d *design) tokenCases(s *subject, o operation, perm, call string) {
 	name := d.acceptedToken(o.node)
 	tok := d.token(name)
-	if tok == nil {
-		return
+	if tok == nil || (d.signIn() != nil && o.id == d.signInCallback()) {
+		return // the sign-in callback is called before any token is issued
 	}
 	claims := source.Child(tok, "claims")
 	if perm != "" && perm != permissionPublic && perm != permissionNobody {

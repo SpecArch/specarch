@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: document
+level: system
+scenario: golden
+given: "the specification of validate-sign-in-oidc"
+when: "document techspec is run"
+then: "it writes, in the runtime view, a section on the sign-in through identityProvider with the client, the callback, the identity token and what the deployment gives, a table of the callback's six checks with the derived case, the security event, its severity and the clause that asks for it, the back-channel logout, and the flow as a sequence diagram from the browser through the provider to the callback; the six events among the security events; the sign-in at the provider as a node of the screen flow; and exits 0"
+verifies: [SA-93]

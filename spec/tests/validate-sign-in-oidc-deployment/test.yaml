@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: validate
+level: system
+scenario: red
+given: "the specification of validate-sign-in-oidc with an implementation file of two deployments: test, which gives signIn.issuerUrl and jwksUri and the clientId of desk-web under clients, and production, which gives neither"
+when: "validate is run"
+then: "it reads the test deployment's clients without a design_key error (BUG-059), reports at the production deployment under sign_in that it names no provider and no clientId for desk-web, with the same words in both builds, and exits 1"
+verifies: [SA-93]

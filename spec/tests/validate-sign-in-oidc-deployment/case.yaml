@@ -1,0 +1,5 @@
+arguments: [validate, .]
+exitStatus: 1
+standardOutput: |
+  implementation/typescript/case.typescript.specarch-implementation.yaml:11:3: error: /deployments/production: sign_in: people sign in through desk-web, whose client_id the identity token's aud carries, and this deployment gives none; add clients.desk-web.clientId, as the provider registered it [sign_in.0e7b8490@implementation/typescript/case.typescript.specarch-implementation.yaml#/deployments/production]
+  implementation/typescript/case.typescript.specarch-implementation.yaml:11:3: error: /deployments/production: sign_in: the specification's signIn has people sign in at identityProvider, and this deployment does not say which provider that is here; add signIn with issuerUrl, the provider's issuer [sign_in.67e38d97@implementation/typescript/case.typescript.specarch-implementation.yaml#/deployments/production]

@@ -1,0 +1,17 @@
+specarchImplementation: "0.1"
+info: { title: Case desk in TypeScript, version: 1.0.0 }
+implements: { file: ../../specarch.yaml, version: 1.0.0 }
+stack: { language: { name: TypeScript, version: "6.0" } }
+targets:
+  ui:
+    output: ../../../web
+    platform: web
+    framework: nextjs-carbon
+    settings:
+      language: en
+deployments:
+  test:
+    description: The test environment, at the organisation's test identity provider.
+    signIn: { issuerUrl: "https://idp.test.example.org" }
+    clients:
+      desk-web: { clientId: desk-web-test }

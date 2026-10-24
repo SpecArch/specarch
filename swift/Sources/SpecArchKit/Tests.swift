@@ -438,6 +438,7 @@ extension Design {
             s.byNature("dependency fails " + name, name + " answers with an error", call, failureResponse(o.node, "502", "503"))
             s.byNature("dependency times out " + name, name + " does not answer within " + str(dep.child("timeout")), call, failureResponse(o.node, "504", "503"))
         }
+        signInCases(s, o, call)
         let key = str(o.node.child("idempotencyKey"))
         if !key.isEmpty {
             let schema = headerParameter(o, key)?.child("schema")
@@ -737,7 +738,11 @@ extension Design {
             if let ev = pg.child("onSubmitted")?.child(status) {
                 then = "it is answered " + status
                 let nav = str(ev.child("navigate"))
-                if !nav.isEmpty { then += " and leads to the page " + nav }
+                if nav == navigateSignIn {
+                    then += " and leaves for the identity provider's sign-in"
+                } else if !nav.isEmpty {
+                    then += " and leads to the page " + nav
+                }
                 let m = str(ev.child("message"))
                 if !m.isEmpty { then += ", saying: " + m }
             }

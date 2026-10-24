@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: traceability matrix
 
-Version 0.7.6-dev of the specification: 10 needs, 92 requirements, and 1 gap. Each requirement is traced back to the needs it refines and forward to what satisfies it in the design and what verifies it in the tests and commissioning checks.
+Version 0.7.6-dev of the specification: 10 needs, 93 requirements, and 1 gap. Each requirement is traced back to the needs it refines and forward to what satisfies it in the design and what verifies it in the tests and commissioning checks.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.7.6-dev of the specification: 10 needs, 92 requirements, and 1 gap. Ea
 | Need | Status | Refined by |
 |---|---|---|
 | NEED-1 | accepted | SA-33, SA-34, SA-35, SA-47, SA-48, SA-50, SA-75, SA-77, SA-82, SA-83, SA-84, SA-91, SA-72, SA-1, SA-2, SA-3, SA-4, SA-5, SA-6, SA-51 |
-| NEED-2 | accepted | SA-33, SA-34, SA-36, SA-37, SA-38, SA-39, SA-40, SA-41, SA-42, SA-43, SA-80, SA-81, SA-52, SA-53, SA-54, SA-55, SA-56, SA-49, SA-62, SA-63, SA-65, SA-66, SA-70, SA-77, SA-78, SA-82, SA-83, SA-84, SA-88, SA-89, SA-91, SA-92, SA-46, SA-61, SA-71, SA-87, SA-32, SA-9, SA-10 |
+| NEED-2 | accepted | SA-33, SA-34, SA-36, SA-37, SA-38, SA-39, SA-40, SA-41, SA-42, SA-43, SA-80, SA-81, SA-52, SA-53, SA-54, SA-55, SA-56, SA-49, SA-62, SA-63, SA-65, SA-66, SA-70, SA-77, SA-78, SA-82, SA-83, SA-84, SA-88, SA-89, SA-91, SA-92, SA-93, SA-46, SA-61, SA-71, SA-87, SA-32, SA-9, SA-10 |
 | NEED-3 | accepted | SA-22, SA-36, SA-67, SA-75, SA-77, SA-82, SA-83, SA-84, SA-88, SA-91, SA-7, SA-8, SA-26, SA-16, SA-58, SA-59, SA-60, SA-90, SA-19, SA-74 |
 | NEED-4 | accepted | SA-11, SA-2 |
 | NEED-5 | accepted | SA-35, SA-47, SA-68, SA-26, SA-16, SA-90, SA-12, SA-23, SA-24, SA-25, SA-73 |
@@ -119,6 +119,7 @@ Version 0.7.6-dev of the specification: 10 needs, 92 requirements, and 1 gap. Ea
 | SA-90 | NEED-3, NEED-5 | enums DocumentTarget; decisions ADR-160; decisions ADR-165; decisions ADR-166 | tests document-manual-integer-forms; tests document-manual-none; tests document-operations-none; tests document-writes-manual; tests document-writes-manual-cli; tests document-writes-manual-cli-unnamed; tests document-writes-operations; tests validate-command-remedies; tests validate-jobs-dead-letter; tests validate-remedy-and-response |
 | SA-91 | NEED-1, NEED-2, NEED-3 | enums Rule | tests derive-tenant; tests document-techspec-tenant; tests generate-sql-tenant; tests model-tenant-rules; tests validate-tenant; tests validate-tenant-entity-without-key; tests validate-tenant-no-roles; tests validate-tenant-property; tests validate-tenant-rows-overridden; tests validate-tenant-valid |
 | SA-92 | NEED-2 | decisions ADR-181 | tests generate-ui-content; tests generate-ui-content-refused; tests generate-ui-swiftui-content; tests generate-ui-typescript-content |
+| SA-93 | NEED-2 | enums Rule; decisions ADR-182 | tests derive-sign-in-oidc; tests document-techspec-sign-in-oidc; tests generate-go-dxlib-sign-in-oidc; tests generate-ui-sign-in-oidc; tests generate-ui-swiftui-sign-in-oidc; tests generate-ui-typescript-sign-in-oidc; tests validate-sign-in-oidc; tests validate-sign-in-oidc-deployment; tests validate-sign-in-oidc-refused |
 
 ## 3. Gaps
 

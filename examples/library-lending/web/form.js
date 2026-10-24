@@ -297,6 +297,11 @@ export function form(page) {
   on(page.submitted, ({ status, answer }) => {
     key = crypto.randomUUID();
     const next = page.next[String(status)] ?? page.next.success;
+    if (next?.signIn) {
+      // identity-provider.js is written when the specification declares signIn.
+      import("./identity-provider.js").then(({ signIn }) => signIn()).catch((error) => show(error.message, true));
+      return;
+    }
     if (next?.page) {
       // A parameter comes from the answer, the fields sent, the record
       // loaded, then this page's own address.

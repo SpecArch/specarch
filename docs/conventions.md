@@ -633,6 +633,8 @@ redefined.
 | `tenant`, `property`, `key`, `shared` | SpecArch | the tenant scope said once: the caller's property, the field every tenant-owned entity carries and the entities every tenant reads whole, from which every role's rows rule over those entities is derived; no standard names a tenant scope, and PostgreSQL's policies are still written one per role and table, which is what the derived rules become (ADR-179) |
 | `separationOfDuties`, `cardinality` | ANSI INCITS 359 (RBAC), static separation of duty | a set and a number no holder may reach; stated over permissions, not roles, because the specification declares the duties and the roles that grant them |
 | `session`, `idleTimeout`, `absoluteTimeout` | SpecArch, after the OWASP Session Management Cheat Sheet | how a signed-in session ends; the two timeouts are the cheat sheet's |
+| `signIn`, `provider`, `client`, `flow`, `pkce`, `callback`, `identityToken`, `logout`, `backChannel` | SpecArch, after OpenID Connect Core 1.0, RFC 6749, RFC 7636 and OpenID Connect Back-Channel Logout 1.0 | how a person signs in at an identity provider: the authorisation code flow with PKCE, the callback of this system, the identity token and the provider's back-channel logout (ADR-182) |
+| `nonce` | OpenID Connect Core | a claim of the identity token, written as the standard names it |
 | `middlewares`, `refusals` | SpecArch | the steps a request passes before an operation's handler, declared once with what each checks or does and the refusals it answers, each a `status`, a `problem` and a `condition`; an operation lists the ones it runs, in order, `[]` for none. No standard names them: OpenAPI's `security` says how a caller proves who it is, not what runs (ADR-131) |
 | `dependencies`, `timeout`, `calls` | SpecArch | external systems an operation calls, each with a time limit per call |
 | `kind` on a dependency, `carriedBy` on a channel | SpecArch | what a dependency is (five kinds, after C4's software system and containers), and the dependencies a channel lives on; AsyncAPI's channel `servers` names hosts, which a design file excludes (ADR-134) |
@@ -665,7 +667,7 @@ redefined.
 | a duration (`timeout`, `idleTimeout`, `absoluteTimeout`) | ISO 8601, the form JSON Schema's `format: duration` names | days, hours, minutes and seconds only (`PT5S`, `P1DT12H`): weeks, months and years depend on the calendar, so a limit written in them would not mean the same every day |
 | `emits`, `algorithm` | SpecArch | links from an operation to its events and its computation |
 | `pages`, `kind`, `route`, `entity`, `source`, `submit`, `columns`, `fields`, `filters`, `actions` | SpecArch | UI page definitions; a page of kind `task` submits to an operation without loading a record |
-| `onSubmitted`, `onSelect`, `then`, `navigate`, `with`, `message` | SpecArch, after the events and navigation flows of OMG IFML 1.0 | where an event of a page leads, and the status message it carries (WCAG 2.2, 4.1.3) |
+| `onSubmitted`, `onSelect`, `then`, `navigate`, `with`, `message` | SpecArch, after the events and navigation flows of OMG IFML 1.0 | where an event of a page leads, and the status message it carries (WCAG 2.2, 4.1.3); `navigate: signIn` leaves for the identity provider's sign-in (ADR-182) |
 | `flows`, `actor`, `steps`, `event`, `action` | SpecArch, after IFML's navigation flows | a task a person does across pages, step by step |
 | `states`, `empty`, `filteredEmpty`, `failed`, `message`, `field` | SpecArch | what a page shows when it is empty or fails |
 | `sections`, `title`, `fields` | SpecArch | a form's or a view's fields in titled groups, in reading order |
@@ -1040,6 +1042,68 @@ actor` on an access token, `refused with a req_wl that is not an edge` and
 `refused with a txn differing from the one received` and `refused with a
 scope no edge of its chain checked` on a transaction token.
 
+### Signing in at an identity provider
+
+A person signs in at an identity provider through `signIn`, one object
+of the design: OpenID Connect's authorisation code flow with PKCE
+(ADR-182).
+
+    signIn:
+      description: Staff sign in at the organisation's identity provider.
+      kind: oidc
+      provider: identityProvider
+      client: desk-web
+      flow: authorizationCode
+      pkce: true
+      callback: finishSignIn
+      identityToken: identity
+      logout:
+        backChannel: endProviderSession
+
+`provider` is a dependency of kind `identityProvider`; `client` the
+client of kind `application` the person signs in through; `flow` is
+`authorizationCode` and `pkce` is `true`, with the S256 method of RFC
+7636, which RFC 9700, section 2.1.1, asks of every client. `callback` is
+the operation of this system the provider sends the person back to: a
+GET taking `code` and `state` as required query parameters and naming
+the provider under `calls`, since it exchanges the code there; its body,
+the exchange, the checks and the session, is the service's.
+`identityToken` is the token, under `tokens`, the exchange returns: a
+JWT declaring `iss`, `aud` and `nonce`. `logout.backChannel` is the
+operation the provider calls when the person signs out there (OpenID
+Connect Back-Channel Logout 1.0), which only service clients may call.
+Each reference that does not hold is refused at its key (`sign_in`).
+
+The provider's issuer and keys and the client's client_id differ per
+environment and per registration, so they are the deployment's, never
+the design's: `deployments.<environment>.signIn.issuerUrl`, the issuer
+every identity token carries and the base of the discovery document,
+`signIn.jwksUri` when the keys are not the discovery document's, and
+`clients.<client>.clientId`, the identity token's audience. A `const` or
+an `enum` on the identity token's `iss` or `aud` is refused, and so is a
+deployment of a specification with `signIn` that gives no `signIn` or no
+`clientId` for the client.
+
+A page leaves for the provider with the event `navigate: signIn` (see
+Page events). The generated screens send the browser to the
+authorisation endpoint the discovery document names, with a new state,
+nonce and PKCE verifier; the three go to the callback in the
+`__Host-sign-in` cookie on the callback's origin, which the deployment
+serves on the page's own origin for the web.
+
+The derived cases, on the callback, each critical and refused with no
+session started: `state does not match` (RFC 6749, 10.12; RFC 9700,
+4.7), `code used twice` (RFC 6749, 4.1.2; RFC 9700, 4.5), `signature
+invalid` (OpenID Connect Core, 3.1.3.7, step 6), `issuer differs` (step
+2; RFC 9700, 4.4, the mix-up), `identity token expired` (step 9) and
+`nonce replayed` (step 11). Once `securityEvents` is declared each names
+its event: `sign_in_state` medium, `sign_in_code`, `sign_in_signature`,
+`sign_in_issuer` and `sign_in_nonce` high, `sign_in_expired` low. The
+callback derives none of the token cases of an operation a signed-in
+caller calls, since no token is issued before it. The techspec shows the
+flow as a sequence diagram with the checks and the clause that asks for
+each.
+
 ### Separation of duties
 
 `separationOfDuties` holds sets of permissions one holder must never have
@@ -1155,7 +1219,8 @@ channel are said with three keys, for the context diagram (ADR-134):
 one calls), `database` (a store another party keeps that this system reads
 or writes directly), `messageBroker` (a broker that carries channels),
 `fileStore` (a file exchange or object store) and `identityProvider` (the
-issuer of the tokens this system accepts); left out, it is `system`. It
+issuer of the tokens this system accepts, where `signIn` sends a person);
+left out, it is `system`. It
 sets the dependency's shape in the context diagram. `protocol` is
 AsyncAPI's word: a lowercase URI scheme name (RFC 3986, 3.1), such as
 `https`, `grpc`, `amqp`, `kafka`, `postgresql` or `sftp`, kept open as
@@ -1630,7 +1695,12 @@ A list's action of kind navigate whose target's route takes a parameter
 gives it the same way, under the action's own `with`, and is offered on
 each row; one whose target takes none is a toolbar button. `with` on
 the action of a page that is not a list is refused: a view fills its
-actions' routes from its record's fields of their names.
+actions' routes from its record's fields of their names. `navigate:
+signIn` names no page: it leaves the application for the identity
+provider's sign-in (see Signing in at an identity provider), from a task
+page's answer or an action's `then` only, with no `with` and no
+`message`; anywhere else, or with no `signIn` declared, it is refused
+(`sign_in`).
 `message` is a status message, a full sentence, announced without moving
 focus (WCAG 2.2, 4.1.3). A full sentence starts with a capital, a letter
 of a script without case or a digit, and ends with a full stop, a

@@ -1,0 +1,9 @@
+operation: finishSignIn
+level: system
+scenario: red
+covers: [issuer differs]
+given: "an identity token whose iss is not the deployment's issuerUrl, an answer of another provider"
+when: "finishSignIn is called"
+then: "it is refused and no session starts, and the security event sign_in_issuer (high) is written"
+origin: inferred
+why: "Written by specarch derive: operation finishSignIn is at stake in a requirement that names a harm, so its cases are written. A draft: complete the given, when and then, and remove what does not hold."

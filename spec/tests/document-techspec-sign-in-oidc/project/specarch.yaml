@@ -1,0 +1,150 @@
+specarch: "0.3"
+info: { title: Case desk, version: 1.0.0 }
+stages: [tests]
+entities:
+  Case:
+    type: object
+    properties:
+      id: { type: string, maxLength: 36 }
+      title: { type: string, maxLength: 200 }
+    required: [id, title]
+    primaryKey: [id]
+permissions:
+  public: { description: Open to everyone. }
+  cases.read: { description: See cases. }
+  sessions.end: { description: End the sessions of a person the provider signed out. }
+roles:
+  clerk:
+    description: Staff who work the cases.
+    permissions: [cases.read]
+  provider:
+    description: The identity provider, when it tells this system that a person signed out.
+    permissions: [sessions.end]
+clients:
+  desk-web:
+    description: The desk's web front end, where staff sign in.
+    kind: application
+  identity-provider:
+    description: The identity provider's back channel, which tells this system that a person signed out.
+    kind: service
+    roles: [provider]
+    proof: { kind: mutualTls }
+dependencies:
+  identityProvider:
+    description: The organisation's identity provider, which signs people in and issues the identity token.
+    timeout: PT5S
+    kind: identityProvider
+    protocol: https
+  securityLog:
+    description: The append-only store of security events.
+    timeout: PT2S
+  pager:
+    description: The alarm channel.
+    timeout: PT2S
+securityEvents: { store: securityLog, alarm: pager }
+session:
+  description: The session the callback starts once the identity token is checked.
+  idleTimeout: PT30M
+  absoluteTimeout: PT12H
+tokens:
+  access:
+    description: What a signed-in person presents on every call.
+    format: jwt
+    lifetime: PT15M
+    signature: ES256
+    claims:
+      sub: { description: The person's identifier. }
+      aud: { const: "https://desk.example.org" }
+      client_id: { description: The application the person signed in through. }
+    default: true
+  identity:
+    description: The identity token the provider returns from the code exchange, which says who signed in.
+    format: jwt
+    lifetime: PT5M
+    signature: RS256
+    claims:
+      iss: { description: "The provider, as the deployment's issuerUrl names it." }
+      sub: { description: The person's identifier at the provider. }
+      aud: { description: "The application's client_id, as the deployment registers it." }
+      nonce: { type: string, maxLength: 128, description: "The value the sign-in request sent, returned once." }
+signIn:
+  description: Staff sign in at the organisation's identity provider with the authorisation code flow and PKCE.
+  kind: oidc
+  provider: identityProvider
+  client: desk-web
+  flow: authorizationCode
+  pkce: true
+  callback: finishSignIn
+  identityToken: identity
+  logout:
+    backChannel: endProviderSession
+paths:
+  /auth/callback:
+    get:
+      operationId: finishSignIn
+      summary: Take the provider's answer, exchange the code and start the session
+      permission: public
+      calls: [identityProvider]
+      parameters:
+        - { name: code, in: query, required: true, schema: { type: string, maxLength: 512 } }
+        - { name: state, in: query, required: true, schema: { type: string, maxLength: 128 } }
+      responses:
+        "303": { description: The person is signed in and sent to the cases. }
+        "502": { description: The provider refused the exchange. }
+        "504": { description: The provider did not answer in time. }
+  /auth/back-channel-logout:
+    post:
+      operationId: endProviderSession
+      summary: End the sessions of a person the provider signed out
+      permission: sessions.end
+      callers: [identity-provider]
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                logoutToken: { type: string, maxLength: 4096 }
+              required: [logoutToken]
+      responses:
+        "200": { description: The sessions are ended. }
+  /sign-in/discovery:
+    post:
+      operationId: findAccount
+      summary: Find where the person signs in from their e-mail address
+      permission: public
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email: { type: string, format: email, maxLength: 254 }
+              required: [email]
+      responses:
+        "200": { description: The person signs in at the organisation's provider. }
+  /cases:
+    get:
+      operationId: listCases
+      summary: List cases
+      permission: cases.read
+      responses:
+        "200": { description: The cases. }
+pages:
+  sign-in:
+    kind: task
+    title: Sign in
+    route: /sign-in
+    permission: public
+    submit: findAccount
+    fields: [email]
+    onSubmitted:
+      "200": { navigate: signIn }
+  cases-list:
+    kind: list
+    title: Cases
+    route: /cases
+    permission: cases.read
+    entity: Case
+    source: listCases
+    columns: [title]

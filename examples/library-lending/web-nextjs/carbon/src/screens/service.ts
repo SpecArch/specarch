@@ -66,3 +66,66 @@ export function property(value: unknown, name: string): unknown {
   }
   return at;
 }
+
+/** 32 random bytes, base64url without padding (RFC 7636, 4.1). */
+function random(): string {
+  return base64url(crypto.getRandomValues(new Uint8Array(32)));
+}
+
+function base64url(bytes: Uint8Array): string {
+  return btoa(String.fromCharCode(...bytes)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
+/** Reads a JSON document, naming the address and the status when it fails. */
+async function readDocument(url: string, what: string): Promise<Record<string, unknown>> {
+  let response: Response;
+  try {
+    response = await fetch(url);
+  } catch (error) {
+    throw new Error(`reading ${what} at ${url} failed: ${error instanceof Error ? error.message : String(error)}`);
+  }
+  if (!response.ok) {
+    throw new Error(`reading ${what} at ${url} failed: HTTP ${response.status}`);
+  }
+  return (await response.json()) as Record<string, unknown>;
+}
+
+/**
+ * Leaves for the identity provider's sign-in (ADR-182): OpenID Connect's
+ * authorisation code flow with PKCE's S256 method (RFC 7636), at the
+ * authorisation endpoint the provider's discovery document names, which
+ * sends the person back to callback, a path the deployment serves on the
+ * page's own origin. The state, the nonce and the PKCE verifier go to the
+ * callback in the __Host-sign-in cookie, which the callback reads, checks
+ * and clears. Throws an Error naming the step, the address and the status
+ * when the specification declares no signIn, a document cannot be read, or
+ * the discovery document names another issuer.
+ */
+export async function signIn(callback: string): Promise<void> {
+  const provider = application.provider;
+  if (provider === undefined || provider.issuerUrl === "") {
+    throw new Error("the deployment gives no identity provider: set NEXT_PUBLIC_SIGN_IN_ISSUER_URL and NEXT_PUBLIC_SIGN_IN_CLIENT_ID from its signIn.issuerUrl and the client's clientId");
+  }
+  const discovery = await readDocument(provider.issuerUrl.replace(/\/$/, "") + "/.well-known/openid-configuration", "the provider's discovery document");
+  if (discovery.issuer !== provider.issuerUrl) {
+    // OpenID Connect Discovery 1.0, 4.3: the issuer must be the one asked.
+    throw new Error(`the discovery document of ${provider.issuerUrl} names the issuer ${String(discovery.issuer)}, and the two must be the same`);
+  }
+  const state = random();
+  const nonce = random();
+  const verifier = random();
+  const challenge = base64url(new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(verifier))));
+  document.cookie = `__Host-sign-in=${state}.${nonce}.${verifier}; Path=/; Secure; SameSite=Lax; Max-Age=600`;
+  const url = new URL(String(discovery.authorization_endpoint));
+  url.search = new URLSearchParams({
+    response_type: "code",
+    client_id: provider.clientId,
+    redirect_uri: new URL(callback, window.location.origin).href,
+    scope: "openid",
+    state,
+    nonce,
+    code_challenge: challenge,
+    code_challenge_method: "S256",
+  }).toString();
+  window.location.assign(url.href);
+}

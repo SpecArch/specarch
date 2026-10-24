@@ -52,6 +52,9 @@ func (c *checker) checkBoundaryImplementation() {
 			return
 		}
 		for _, p := range source.Pairs(n) {
+			if len(path) == 2 && path[0] == "deployments" && p.Key.Value == "clients" {
+				continue // each client's client_id in this environment (ADR-106)
+			}
 			if designKeys[p.Key.Value] {
 				c.add(p.Key, source.Pointer(append(path, p.Key.Value)...), RuleDesignKey,
 					"%s belongs to the specification, not to one implementation; move it to the specification's files", p.Key.Value)
@@ -323,6 +326,7 @@ func (c *checker) checkDeployments(d *design) {
 		}
 		c.checkServers(d, base, source.Child(p.Value, "servers"))
 		c.checkLinks(d, base, p.Value)
+		c.checkDeploymentSignIn(d, base, p)
 		for _, m := range source.Pairs(source.Child(p.Value, "monitors")) {
 			if d.monitors[m.Key.Value] == nil {
 				c.add(m.Key, source.Pointer(append(base, "monitors", m.Key.Value)...), RuleMonitor, "%s is not a monitor of the specification%s", m.Key.Value, suggest(m.Key.Value, d.monitors))
@@ -339,6 +343,28 @@ func (c *checker) checkDeployments(d *design) {
 				c.add(cfg.Value, ptr, RuleSecretValue, "%s is a secret, and a secret's value is never written in a specification; remove it and say in the setting's description where the value comes from", cfg.Key.Value)
 			}
 		}
+	}
+}
+
+// checkDeploymentSignIn checks that a deployment gives the facts of the
+// design's signIn that differ per environment, the provider's issuerUrl and
+// the client's clientId, and gives no signIn when the design has none
+// (ADR-182).
+func (c *checker) checkDeploymentSignIn(d *design, base []string, p source.Pair) {
+	si := source.Child(p.Value, "signIn")
+	design := d.signIn()
+	switch {
+	case si != nil && design == nil:
+		c.add(source.Key(p.Value, "signIn"), source.Pointer(append(base, "signIn")...), RuleSignIn, "the specification declares no signIn, so there is no identity provider for this deployment to name; remove signIn, or declare signIn in the design")
+		return
+	case design == nil:
+		return
+	case si == nil:
+		c.add(p.Key, source.Pointer(base...), RuleSignIn, "the specification's signIn has people sign in at %s, and this deployment does not say which provider that is here; add signIn with issuerUrl, the provider's issuer", source.Str(source.Child(design, "provider")))
+	}
+	client := source.Str(source.Child(design, "client"))
+	if client != "" && d.client(client) != nil && source.Child(source.Child(source.Child(p.Value, "clients"), client), "clientId") == nil {
+		c.add(p.Key, source.Pointer(base...), RuleSignIn, "people sign in through %s, whose client_id the identity token's aud carries, and this deployment gives none; add clients.%s.clientId, as the provider registered it", client, client)
 	}
 }
 

@@ -20,7 +20,8 @@ let registeredClaims: [String: RegisteredClaim] = [
 let txnTokenClaims = ["txn", "sub", "scope", "req_wl"]
 let jwtAlgorithms = ["ES256", "ES384", "ES512", "EdDSA", "HS256", "HS384", "HS512", "PS256", "PS384", "PS512", "RS256", "RS384", "RS512"]
 let workloadProofs: Set<String> = ["mutualTls", "spiffe", "wimse"]
-let eventSeverity = ["token_audience": "high", "via": "high", "deputy": "high", "callers": "medium", "through": "medium", "software_version": "medium", "token": "low"]
+let eventSeverity = ["token_audience": "high", "via": "high", "deputy": "high", "callers": "medium", "through": "medium", "software_version": "medium", "token": "low",
+                     "sign_in_state": "medium", "sign_in_nonce": "high", "sign_in_issuer": "high", "sign_in_expired": "low", "sign_in_signature": "high", "sign_in_code": "high"]
 
 func tokenType(_ tok: YNode?) -> String {
     let t = str(tok?.child("tokenType"))
@@ -95,6 +96,7 @@ extension Design {
     func tokenCases(_ s: Subject, _ o: Operation, _ perm: String, _ call: String) {
         let name = acceptedToken(o.node)
         guard let tok = token(name) else { return }
+        if signIn != nil && o.id == signInCallback { return } // the sign-in callback is called before any token is issued
         let claims = tok.child("claims")
         if !perm.isEmpty && perm != permissionPublic && perm != permissionNobody {
             s.red("denied with expired " + name, frequent, "a caller whose " + name + " token has expired after " + str(tok.child("lifetime")), call, "it is refused as not signed in" + event("token"))

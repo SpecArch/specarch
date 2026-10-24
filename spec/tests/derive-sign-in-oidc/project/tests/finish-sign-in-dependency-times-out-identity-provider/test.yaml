@@ -1,0 +1,9 @@
+operation: finishSignIn
+level: system
+scenario: red
+covers: [dependency times out identityProvider]
+given: "identityProvider does not answer within PT5S"
+when: "finishSignIn is called"
+then: "it answers 504: The provider did not answer in time."
+origin: inferred
+why: "Written by specarch derive: a failing dependency is always written. A draft: complete the given, when and then, and remove what does not hold."

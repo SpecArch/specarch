@@ -1,0 +1,149 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.3.schema.json
+decisions:
+  ADR-182:
+    title: A person signs in at an identity provider through signIn, OpenID Connect's authorisation code flow with PKCE, whose callback is an operation of this system that derives a refusal per check; navigate signIn is the one page event that leaves the application, and the provider's issuer, keys and client_id are the deployment's
+    status: accepted
+    date: "2026-10-24"
+    context: |
+      An information system with single sign-on could say the tokens it
+      accepts, its clients and its session, but not the sign-in itself:
+      the redirect to the provider, the callback with its code and
+      state, PKCE, the nonce and the identity token's checks. A page could
+      not leave the application, so the redirect was refused as a page
+      that does not exist, and none of the checks that make the flow safe
+      was a derived case, so what was written for them was untraced and
+      untested by anything the specification produced. The owner chose
+      OpenID Connect first, additive to meta-model 0.3, with SAML a later
+      task, and that the issuer and the client_id are the deployment's.
+    decision: |
+      - signIn, one object of the design: kind oidc; provider, a
+        dependency of kind identityProvider; client, the client of kind
+        application the person signs in through; flow authorizationCode
+        with pkce true, the S256 method; callback, an operation of this
+        system, a GET taking code and state as required query parameters
+        and naming the provider under calls; identityToken, a token under
+        tokens, a JWT declaring iss, aud and nonce; and logout.backChannel,
+        an operation only declared service clients may call. Every
+        reference that does not hold is an error at its key (sign_in).
+      - iss and aud of the identity token are declared and never fixed in
+        the design: const or enum on either is an error. The issuer is the
+        deployment's deployments.<environment>.signIn.issuerUrl, its keys
+        the discovery document's jwks_uri or signIn.jwksUri there, and the
+        audience the client's clientId, clients.<client>.clientId (ADR-106).
+        A deployment of a specification with signIn that gives no signIn
+        or no clientId for the client is an error at the deployment, and
+        signIn on a deployment of a specification without one is an error.
+      - navigate signIn is a reserved word of the page event: a page's
+        name is kebab-case, so no page takes it, and the event's shape is
+        unchanged, so the change is additive. It leaves the application,
+        which only a task page's answer or an action's then may do; it
+        takes no with and no message, since nothing of the application is
+        on screen after it; and it needs signIn declared (sign_in).
+      - The callback derives six critical red cases, each refused with no
+        session started and, once securityEvents is declared, naming its
+        event: state does not match (sign_in_state, medium), code used
+        twice (sign_in_code, high), signature invalid (sign_in_signature,
+        high), issuer differs (sign_in_issuer, high), identity token
+        expired (sign_in_expired, low) and nonce replayed (sign_in_nonce,
+        high). It derives none of the token cases of an operation a
+        signed-in caller calls, since no token is issued before it.
+      - The UI generators write navigate signIn as the redirect to the
+        authorisation endpoint the provider's discovery document names,
+        with a new state, nonce and PKCE verifier. The three go to the
+        callback in the __Host-sign-in cookie on the callback's origin,
+        which the deployment serves on the page's own origin for the web.
+        specarch-gen-ui writes identity-provider.js, which reads the issuer
+        and the client_id from identity-provider.json beside the pages;
+        specarch-gen-ui-typescript writes the provider into application.ts
+        from NEXT_PUBLIC_SIGN_IN_ISSUER_URL and NEXT_PUBLIC_SIGN_IN_CLIENT_ID;
+        specarch-gen-ui-swiftui signs in through the system's web
+        authentication session, returning to the callback on the service's
+        host, and calls the callback with the code and the state. The two
+        Next.js and SwiftUI components write it on a task page's answer;
+        an action's then that navigates stays refused by them, as any
+        navigation after an action is.
+      - The generated go-dxlib handler of the callback names its body, as
+        every operation's does: the exchange, the checks and the session
+        are the service's. The technical specification shows the flow as a
+        sequence diagram, the checks with the clause that asks for each,
+        and the six events among the security events.
+    why: |
+      The authorisation code flow keeps the tokens off the browser's
+      address bar and history, and PKCE binds the code to the browser
+      that asked for it: RFC 9700, 2.1.1, asks every client to prevent
+      code injection and public clients to use PKCE for it, and
+      RFC 7636 defines S256, the method a verifier cannot be read back
+      from. The callback is an operation of this system, not of the
+      browser, because the exchange needs the PKCE verifier and, for a
+      confidential client, a secret that never reaches the browser; the
+      design names its parameters and the dependency it calls, so the
+      context diagram, the derived cases and the generated handler follow
+      from what is written already. Each check exists for an attack:
+      the state is the client's protection of its redirection URI against
+      a forged request (RFC 6749, 10.12; RFC 9700, 4.7); a code used once
+      only is RFC 6749, 4.1.2, and a code replayed is the injection RFC
+      9700, 4.5, describes; the signature (OpenID Connect Core, 3.1.3.7,
+      step 6) is what makes the claims the provider's; the issuer (step
+      2) refuses an answer of another provider, the mix-up of RFC 9700,
+      4.4; the expiry (step 9) bounds how long a stolen token serves; and
+      the nonce (step 11) binds the token to this sign-in and refuses its
+      replay. The audience (step 3) is the client_id the deployment
+      gives, checked with the issuer. The issuer and the client_id differ
+      between a test and a production provider and per registration,
+      so, as ADR-106 says of the client_id, they are deployment values;
+      written in the design as well, the two copies could disagree with
+      nothing to say which holds. The discovery document's issuer must be
+      the one asked (OpenID Connect Discovery 1.0, 4.3), which the
+      generated redirect checks before it leaves. A reserved word in
+      navigate, rather than a new event key, keeps the event's shape, so
+      every file written to 0.3 still reads; a page cannot take the word,
+      because a page's name is kebab-case. The state, the nonce and the
+      verifier travel in a cookie because the callback takes only the code
+      and the state the provider sends back; a __Host- cookie is bound to
+      the host and the path /, sent on the provider's top-level redirect
+      by SameSite=Lax, and short-lived; how the session cookie is set
+      stays the stack's (G2.4).
+    consequences: |
+      The job with single sign-on is written in the specification: the
+      sign-in page leaves for the provider, the callback's refusals are
+      derived and generated as tests, and the techspec shows the flow.
+      SAML, sign-out beyond the back-channel logout, and mapping the
+      provider's claims to this system's roles are later tasks. The
+      callback's body (the exchange, the checks, clearing the cookie and
+      starting the session) is the project's, named by the compiler on
+      Go with dxlib. On SwiftUI the return to the callback needs iOS 17.4
+      or macOS 14.4 and the service's host as an associated domain of the
+      app. An action's then that navigates to signIn is written by the
+      plain JavaScript generator only.
+    cites:
+      - source: rfc-6749
+        clause: "4.1.2, Authorization Response"
+        says: "The client MUST NOT use the authorization code more than once."
+      - source: rfc-6749
+        clause: "10.12, Cross-Site Request Forgery"
+        says: "The client MUST implement CSRF protection for its redirection URI."
+      - source: rfc-7636
+        clause: "4.2, Client Creates the Code Challenge"
+        says: "S256: code_challenge = BASE64URL-ENCODE(SHA256(ASCII(code_verifier)))"
+      - source: rfc-9700
+        clause: "2.1.1, Authorization Code Grant"
+        says: "Clients MUST prevent authorization code injection attacks (see Section 4.5) and misuse of authorization codes using one of the following options: Public clients MUST use PKCE [RFC7636] to this end, as motivated in Section 4.5.3.1."
+      - source: rfc-9700
+        clause: "4.5, Authorization Code Injection"
+        says: "An attacker who has gained access to an authorization code contained in an authorization response can try to redeem the authorization code for an access token or otherwise make use of the authorization code."
+      - source: openid-connect-core
+        clause: "3.1.3.7, ID Token Validation, step 2"
+        says: "The Issuer Identifier for the OpenID Provider (which is typically obtained during Discovery) MUST exactly match the value of the iss (issuer) Claim."
+      - source: openid-connect-core
+        clause: "3.1.3.7, ID Token Validation, step 3"
+        says: "The Client MUST validate that the aud (audience) Claim contains its client_id value registered at the Issuer identified by the iss (issuer) Claim as an audience."
+      - source: openid-connect-core
+        clause: "3.1.3.7, ID Token Validation, step 11"
+        says: "If a nonce value was sent in the Authentication Request, a nonce Claim MUST be present and its value checked to verify that it is the same value as the one that was sent in the Authentication Request."
+      - source: openid-connect-discovery
+        clause: "4.3, OpenID Provider Configuration Validation"
+        says: "The issuer value returned MUST be identical to the Issuer URL that was used as the prefix to /.well-known/openid-configuration to retrieve the configuration information."
+      - source: openid-connect-back-channel-logout
+        clause: "2.5, Back-Channel Logout Request"
+        says: "The OP sends an HTTP POST request to the RP's back-channel logout URI with a Logout Token in the body."
+    satisfies: [SA-93]

@@ -1,0 +1,9 @@
+arguments: [derive, project]
+exitStatus: 0
+standardOutput: |
+  project/tests/finish-sign-in-state-does-not-match/test.yaml
+  project/tests/finish-sign-in-nonce-replayed/test.yaml
+  project/tests/finish-sign-in-issuer-differs/test.yaml
+  project/tests/finish-sign-in-identity-token-expired/test.yaml
+  project/tests/finish-sign-in-signature-invalid/test.yaml
+  project/tests/finish-sign-in-code-used-twice/test.yaml

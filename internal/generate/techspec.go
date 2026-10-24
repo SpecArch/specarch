@@ -530,6 +530,7 @@ func runtime(d *doc, root *yaml.Node, impls []Implementation) {
 		d.explainRows(rowsOf(errs))
 	}
 	handshakesSection(d, root)
+	signInSection(d, root)
 	explained := map[*yaml.Node]bool{}
 	for _, o := range ops {
 		d.heading(3, fmt.Sprintf("%s (%s %s)", o.id, strings.ToUpper(o.method), o.path))
@@ -903,6 +904,11 @@ func crossCutting(d *doc, root *yaml.Node, state *State) {
 			d.line("| a version outside the admitted range, with a software statement | software_version | medium |")
 			d.line("| a version outside the admitted range, self-asserted | software_version | low |")
 			d.line("| an expired token | token | low |")
+			if source.Child(root, "signIn") != nil {
+				for _, c := range signInChecks {
+					d.line("| at the sign-in callback, %s | %s | %s |", c[0], c[1], c[2])
+				}
+			}
 			d.blank()
 		}
 		if rule := str(source.Child(root, "info"), "roleNames"); rule == wirename.UpperSnake {

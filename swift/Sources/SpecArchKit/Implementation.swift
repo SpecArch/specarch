@@ -77,7 +77,9 @@ extension Checker {
             if path.contains("settings") { return } // free-form target and framework settings
             if path.count > 2, path[0] == "mappings", path[2] == "handler" { return } // a handler record holds the code as it was read (ADR-144)
             if let last = path.last, namedMaps.contains(last) { return }
-            for p in n.pairs where designKeys.contains(p.key.value) {
+            // A deployment's clients give each client's client_id in its environment (ADR-106).
+            let deployment = path.count == 2 && path[0] == "deployments"
+            for p in n.pairs where designKeys.contains(p.key.value) && !(deployment && p.key.value == "clients") {
                 add(p.key, pointer(path + [p.key.value]), .designKey,
                     "\(p.key.value) belongs to the specification, not to one implementation; move it to the specification's files")
             }
@@ -254,6 +256,25 @@ extension Checker {
         }
     }
 
+    /// Checks that a deployment gives the facts of the design's signIn that
+    /// differ per environment (see the Go build's checkDeploymentSignIn).
+    func checkDeploymentSignIn(_ d: Design, _ base: [String], _ p: Pair) {
+        let si = p.value.child("signIn")
+        guard let design = d.signIn else {
+            if si != nil {
+                add(p.value.key("signIn"), pointer(base + ["signIn"]), .signIn, "the specification declares no signIn, so there is no identity provider for this deployment to name; remove signIn, or declare signIn in the design")
+            }
+            return
+        }
+        if si == nil {
+            add(p.key, pointer(base), .signIn, "the specification's signIn has people sign in at \(str(design.child("provider"))), and this deployment does not say which provider that is here; add signIn with issuerUrl, the provider's issuer")
+        }
+        let client = str(design.child("client"))
+        if !client.isEmpty && d.client(client) != nil && p.value.child("clients")?.child(client)?.child("clientId") == nil {
+            add(p.key, pointer(base), .signIn, "people sign in through \(client), whose client_id the identity token's aud carries, and this deployment gives none; add clients.\(client).clientId, as the provider registered it")
+        }
+    }
+
     /// Checks each deployment names an environment of the specification
     /// when it declares any, gives values only to settings the
     /// specification declares and that are not secret, names tasks of this
@@ -289,6 +310,7 @@ extension Checker {
             }
             checkServers(d, base, p.value.child("servers"))
             checkLinks(d, base, p.value)
+            checkDeploymentSignIn(d, base, p)
             for m in pairs(p.value.child("monitors")) where d.monitors[m.key.value] == nil {
                 add(m.key, pointer(base + ["monitors", m.key.value]), .monitor, "\(m.key.value) is not a monitor of the specification\(suggest(m.key.value, d.monitors))")
             }

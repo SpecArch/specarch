@@ -575,3 +575,18 @@ requirements:
     verification: test
     needs: [NEED-2]
     why: A website is mostly pages of copy, images and links; without a page kind for them the site is written by hand around the generated forms, and its copy has no place among the strings a translation covers (ADR-181).
+  SA-93:
+    statement: A specification shall be able to say how a person signs in at an identity provider, as signIn with OpenID Connect's authorisation code flow and PKCE, its provider, client, callback, identity token and back-channel logout, and navigate to signIn from a task page's answer or an action's then; specarch validate shall check every reference in both builds, derive the callback's refusals, and the UI generators and the technical specification shall write the flow, with the provider's issuer, keys and client_id the deployment's.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance:
+      - signIn names a provider that is a dependency of kind identityProvider, a client of kind application, a callback that is a GET operation taking code and state as required query parameters and naming the provider under calls, an identity token that is a JWT declaring iss, aud and nonce with no const or enum on iss or aud, and a back-channel logout only service clients may call; anything else is reported as sign_in at its key, in both builds, with the same words.
+      - A page event navigates to signIn only from a task page's answer or an action's then, with no with and no message, and only when signIn is declared; anywhere else it is sign_in at the event.
+      - The callback derives six critical red cases, state does not match, nonce replayed, issuer differs, identity token expired, signature invalid and code used twice, each naming its security event and severity once securityEvents is declared, and none of the token cases of an operation a signed-in caller calls; specarch derive writes them as drafts.
+      - A deployment of a specification with signIn gives signIn.issuerUrl and the client's clientId, and one of a specification without signIn gives no signIn; anything else is sign_in at the deployment.
+      - specarch-gen-ui writes identity-provider.js and the answer or action that leaves for it; specarch-gen-ui-typescript writes the provider in application.ts from the environment and the answer that leaves for it; specarch-gen-ui-swiftui writes the answer that leaves for it through the system's web authentication session; each sends the browser to the authorisation endpoint the provider's discovery document names, with the state, nonce and PKCE verifier going to the callback in the __Host-sign-in cookie.
+      - The generated go-dxlib handler of the callback names its body as every operation does, and the technical specification shows the flow as a sequence diagram, the checks with the clause that asks for each, and the six security events.
+    verification: test
+    needs: [NEED-2]
+    why: An information system with single sign-on had no element for the redirect, the callback, the state, the nonce and the identity token's checks, so the flow and its refusals were written by hand, untraced and untested by anything the specification produced (ADR-182).

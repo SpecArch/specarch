@@ -320,6 +320,10 @@ Built, in the order they were built:
 - content pages, ordered blocks of headings, paragraphs, images and
   links that load and send nothing, written by both web generators
   (ADR-181; `spec/tests/validate-page-content`);
+- `signIn`, a person's sign-in at an identity provider with OpenID
+  Connect's authorisation code flow and PKCE: the callback's six derived
+  refusals and `navigate: signIn`, written by the three UI generators
+  (ADR-182; `spec/tests/validate-sign-in-oidc`);
 - `workflows`: a request that finishes after people approve it (trigger,
   form, approval and operation steps, deadlines), as an object of its own,
   not an annotation on an endpoint; `flows` remains a person's navigation

@@ -525,6 +525,7 @@ func (d *design) operationSubject(o operation) *subject {
 		s.byNature("dependency fails "+name, name+" answers with an error", call, failureResponse(o.node, "502", "503"))
 		s.byNature("dependency times out "+name, name+" does not answer within "+source.Str(source.Child(dep, "timeout")), call, failureResponse(o.node, "504", "503"))
 	}
+	d.signInCases(s, o, call)
 	if key := source.Str(source.Child(o.node, "idempotencyKey")); key != "" {
 		schema := source.Child(headerParameter(o, key), "schema")
 		given := o.id + " has answered a request that carried " + key
@@ -903,7 +904,9 @@ func (d *design) answerCases(s *subject, pg *yaml.Node) {
 		then := "it is answered " + status + " and stays on the page"
 		if ev := source.Child(source.Child(pg, "onSubmitted"), status); ev != nil {
 			then = "it is answered " + status
-			if nav := source.Str(source.Child(ev, "navigate")); nav != "" {
+			if nav := source.Str(source.Child(ev, "navigate")); nav == navigateSignIn {
+				then += " and leaves for the identity provider's sign-in"
+			} else if nav != "" {
 				then += " and leads to the page " + nav
 			}
 			if m := source.Str(source.Child(ev, "message")); m != "" {

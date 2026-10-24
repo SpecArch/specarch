@@ -1,0 +1,6 @@
+page: sign-in
+level: system
+scenario: red
+given: "an e-mail address of no organisation"
+when: "the page sign-in is submitted"
+then: "it is refused"

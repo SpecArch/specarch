@@ -59,6 +59,9 @@ type fileInput struct{ label, mediaType, maxBytes, tooLarge string }
 type formNext struct {
 	page, message string
 	with          map[string]string
+	// signIn is true for an answer that leaves for the identity provider's
+	// sign-in (ADR-182).
+	signIn bool
 }
 
 // formField is one field drawn on a form: its name and the property that
@@ -536,6 +539,10 @@ func (g *gen) formNext(fp *formPage, at string, pg, op, props map[string]any) {
 		if target == "" {
 			return n, true
 		}
+		if target == navigateSignIn {
+			n.signIn = true
+			return n, true
+		}
 		tp, ok := obj(obj0(g.spec["pages"])[target])
 		if !ok {
 			g.problem("error", ptr+"/navigate", "%s leads to %s, which is not a page of the specification", fp.name, target)
@@ -863,6 +870,9 @@ func (fp *formPage) js() string {
 				with = "{ " + strings.Join(ws, ", ") + " }"
 			}
 			parts = append(parts, "page: "+jsString(n.page), "with: "+with)
+		}
+		if n.signIn {
+			parts = append(parts, "signIn: true")
 		}
 		if n.message != "" {
 			parts = append(parts, "message: "+jsString(n.message))

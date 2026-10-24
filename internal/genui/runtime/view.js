@@ -129,6 +129,11 @@ export function view(page) {
   on(page.failed, ({ status }) => show(refusal(page.source.operation, status), true));
   for (const action of page.actions.filter((action) => action.operation)) {
     on(action.succeeded, () => {
+      if (action.signIn) {
+        // identity-provider.js is written when the specification declares signIn.
+        import("./identity-provider.js").then(({ signIn }) => signIn()).catch((error) => show(error.message, true));
+        return;
+      }
       if (action.navigate) {
         go(action.navigate.page, action.navigate.with(current, given), action.message);
         return;

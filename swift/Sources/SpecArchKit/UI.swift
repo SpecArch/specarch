@@ -24,7 +24,7 @@ extension Checker {
                     add(pg.key(e.0), pointer("pages", name, e.0), .flow, "\(name) is a \(kind) page, and \(e.0) is raised when \(e.2); leave it out")
                     continue
                 }
-                checkEvent(d, n, ["pages", name, e.0], fields, "a field of the page's entity")
+                checkEvent(d, n, ["pages", name, e.0], fields, "a field of the page's entity", leaves: false)
             }
             for (i, a) in items(pg.child("actions")).enumerated() {
                 if str(a.child("kind")) == "navigate" {
@@ -35,7 +35,7 @@ extension Checker {
                     add(a.key("then"), pointer("pages", name, "actions", "\(i)", "then"), .flow, "the action \(str(a.child("label"))) navigates already, and then follows an operation; leave it out")
                     continue
                 }
-                checkEvent(d, n, ["pages", name, "actions", "\(i)", "then"], fields, "a field of the page's entity")
+                checkEvent(d, n, ["pages", name, "actions", "\(i)", "then"], fields, "a field of the page's entity", leaves: true)
             }
         }
     }
@@ -54,7 +54,7 @@ extension Checker {
                 add(kv.key, pointer(base), .page, "\(submit) does not answer \(kv.key.value), so \(name) cannot act on it; \(answers)")
                 continue
             }
-            checkEvent(d, kv.value, base, d.responseBodyFields(r), "a property of the body of the " + kv.key.value + " response")
+            checkEvent(d, kv.value, base, d.responseBodyFields(r), "a property of the body of the " + kv.key.value + " response", leaves: true)
         }
     }
 
@@ -162,8 +162,13 @@ extension Checker {
 
     /// Checks where one event leads, and that its message is a full
     /// sentence; the route parameters it gives come from fields, which from
-    /// names.
-    func checkEvent(_ d: Design, _ ev: YNode, _ base: [String], _ fields: [String: YNode], _ from: String) {
+    /// names. leaves says whether the event may leave the application for
+    /// the identity provider's sign-in.
+    func checkEvent(_ d: Design, _ ev: YNode, _ base: [String], _ fields: [String: YNode], _ from: String, leaves: Bool) {
+        if let nav = ev.child("navigate"), nav.value == navigateSignIn {
+            checkSignInEvent(d, ev, nav, base, leaves)
+            return
+        }
         if let m = ev.child("message"), !sentence(m.value) {
             add(m, pointer(base + ["message"]), .flow, "the message is not a full sentence; start it with a capital and end it with a full stop, so a screen reader reads it as one")
         }

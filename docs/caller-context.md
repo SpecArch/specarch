@@ -580,6 +580,29 @@ token is still read, so every operation naming it still validates
 against its other claims. Acceptance test: one line per accepted token,
 and the techspec names the audience beside each.
 
+## 7. Signing in at an identity provider
+
+Before any of these tokens exists, a person signs in. `signIn` says how
+(ADR-182): OpenID Connect's authorisation code flow with PKCE at
+`provider`, a dependency of kind `identityProvider`, through `client`,
+an application; `callback`, an operation of this system taking `code`
+and `state` and calling the provider; `identityToken`, the token the
+exchange returns, declaring `iss`, `aud` and `nonce`; and
+`logout.backChannel`, the operation only the provider's service client
+calls when the person signs out there. The identity token's issuer and
+audience are the deployment's `signIn.issuerUrl` and the client's
+`clientId`, never fixed in the design, as the client_id never is. A page
+leaves for the provider with `navigate: signIn`, the one event that
+leaves the application, from a task page's answer or an action's `then`.
+
+The callback is where the caller's identity starts, so its refusals are
+security events like the others: it refuses a state that is not the
+browser's own, a code used twice, a signature that does not verify with
+the provider's keys, an issuer that is not the deployment's, an expired
+identity token and a nonce not this sign-in's or used before, each a
+derived case. It accepts no token, so none of the token cases of the
+operations below derive on it.
+
 ## Security events
 
 Every refusal of a caller derives a security event with the case
@@ -597,6 +620,12 @@ exist. The event has a fixed name per rule, the identifier URI
 | a version outside the admitted range, with a software statement | `software_version` | medium |
 | a version outside the admitted range, self-asserted | `software_version` | low |
 | an expired token (ADR-097's case) | `token` | low |
+| at the sign-in callback, a state that does not match | `sign_in_state` | medium |
+| at the sign-in callback, a code used twice | `sign_in_code` | high |
+| at the sign-in callback, an identity token's signature invalid | `sign_in_signature` | high |
+| at the sign-in callback, an identity token of another issuer | `sign_in_issuer` | high |
+| at the sign-in callback, an expired identity token | `sign_in_expired` | low |
+| at the sign-in callback, a nonce replayed | `sign_in_nonce` | high |
 
 The identity module declares `securityEvents`: `store`, the dependency
 that is the separate append-only store every module writes to, and
@@ -647,6 +676,8 @@ conditions declared by name.
 | `trustDomain`, `clients`, `roles`, `securityEvents` in the identity module | design | every module and every issuer depends on the same names, domain, store and channel |
 | `clients.<software_id>.kind`, `softwareVersion`, `softwareStatement` | design | the issuer and every hop must know whether a name is where a person signs in or a service that acts, and the edge refuses by the range |
 | `clients.<name>.clientId` per environment | implementation file, `deployments` | issued per registration, a value per deployment |
+| `signIn` with its provider, client, callback, identity token and back-channel logout | design | the pages leave for it, the callback's refusals derive from it, and the generators write the redirect from it |
+| `signIn.issuerUrl` and `jwksUri` per environment | implementation file, `deployments` | the provider differs between a test and a production environment |
 | `roles.<role>.through` | design | the application shows or hides the action by it |
 | `tokenType`, `txn`, `scope`, `req_wl`, `tctx.application`, `client_id`, `aud` under `claims` | design | the issuer mints them, the edge requests them and every hop checks them |
 | `via` on an operation | design | the hops depend on it to call the right next service with the right identity |
@@ -742,6 +773,7 @@ Each rule is made in both builds with the same output and a case in
 | `token_audience` | an accepted `access_token` without `aud` as `const` or `enum`; a value with a colon that is not a URI; in an estate, two modules accepting one audience value on access tokens |
 | `callers` | an empty list; a name neither `people` nor a declared client; a client twice; a `service` with no roles; a client none of whose roles grants the permission |
 | `security_events` | an estate with a client and no `securityEvents` in the identity module; `store` or `alarm` not a dependency |
+| `sign_in` | a provider not of kind `identityProvider`; a client not an application; a callback that is not a GET taking `code` and `state` or does not call the provider; an identity token not a JWT, missing `iss`, `aud` or `nonce`, or fixing `iss` or `aud`; a back-channel logout people may call; `navigate: signIn` with no `signIn`, outside a task page's answer or an action's `then`, or with `with` or `message`; a deployment without the issuer or the client's `clientId` |
 | `reference` | in the umbrella run, a `through`, `via`, `callers` or `permissions` entry naming what the referenced module does not hold |
 
 ## The technical specification
@@ -766,7 +798,10 @@ rides in, its audience or the trust domain, and the operations that
 accept it with their `via`. The call diagram draws each chain the
 induction found, hop by hop, with the token on each arrow and the proof
 each hop presents. A Security events heading lists the events with their
-severities, the store and the alarm channel. Separation of duties counts
+severities, the store and the alarm channel. The runtime view shows the
+sign-in through the provider as a sequence diagram from the browser to
+the callback, with the callback's checks and the clause that asks for
+each. Separation of duties counts
 a client's roles as it counts a person's.
 
 ## Left out
@@ -783,6 +818,9 @@ a client's roles as it counts a person's.
 | `callers: all` | would admit a client added later with a granting role without anyone writing it on the operation (ADR-110) |
 | `azp` as the application | an ID token's claim, and one its own specification discourages; the access token's word is `client_id` |
 | the person's roles differing by application | the roles are the person's; the application narrows a grant, which is what was asked |
+| SAML 2.0 sign-in | OpenID Connect first, by the owner's choice; SAML waits for the customer who asked for it |
+| the provider's groups or claims as this system's roles | a role is granted here; mapping a claim to a role is a later task (G2.6) |
+| sign-out beyond the back-channel logout: the person's own sign-out, front-channel logout, revocation | a later task (G2.2) |
 | 426 for an old version | RFC 9110 reserves it for a protocol the server refuses; a version is not the protocol, and 403 with a problem document says why |
 
 ## Building

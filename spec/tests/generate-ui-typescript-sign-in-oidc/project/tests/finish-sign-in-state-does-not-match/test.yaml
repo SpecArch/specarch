@@ -1,0 +1,9 @@
+operation: finishSignIn
+level: system
+scenario: red
+covers: [state does not match]
+given: "a callback whose state is not the one the sign-in request set in this browser, a forged or replayed redirect"
+when: "finishSignIn is called"
+then: "it is refused and no session starts, and the security event sign_in_state (medium) is written"
+origin: inferred
+why: "Written by specarch derive: operation finishSignIn is at stake in a requirement that names a harm, so its cases are written. A draft: complete the given, when and then, and remove what does not hold."

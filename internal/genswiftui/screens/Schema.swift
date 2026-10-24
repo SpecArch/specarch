@@ -115,6 +115,9 @@ public struct FailureSchema: Sendable {
 /// page gives way to it.
 public struct EventSchema: Sendable {
     public var status: Int? = nil
+    /// On a task page, the path of the callback the identity provider sends
+    /// the person back to, when the answer leaves for its sign-in.
+    public var signIn: String? = nil
     public var navigate: String? = nil
     public var with: [String: String]? = nil
     public var message: String? = nil

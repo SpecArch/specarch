@@ -851,3 +851,17 @@ Expected: a case name and a document say the integer's value in decimal.
 To repeat: in a copy of `examples/library-lending/spec`, write `maxLength: 2_00` in `design/paths/paths.yaml` line 12 and run `specarch validate`.
 
 Fix: the derived cases in both builds, and the documents, say the integer through `source.IntText` (Go) and `intText` (Swift), its value in decimal; a float keeps its written text (ADR-178).
+
+## BUG-059 — validate: a deployment's clients, which hold each client's client_id, are refused as a key of the specification
+
+- Reported: 2026-10-24, found while adding the sign-in flow, against 0.7.5
+- Closed: 2026-10-24, completed
+- Fixed by: the commit on `main` whose message says `Fixes BUG-059`
+
+An implementation file whose deployment gave `clients: { desk-web: { clientId: desk-web-test } }`, as the schema and ADR-106 describe, was refused with `design_key: clients belongs to the specification, not to one implementation`, in both builds, so no deployment could give a client's client_id.
+
+Expected: `deployments.<environment>.clients` is read as the schema says; `clients` elsewhere in an implementation file is still a design key.
+
+To repeat: add `deployments: { test: { description: Test., clients: { admin-web: { clientId: x } } } }` to an implementation file of a specification with a client admin-web and run `specarch validate`.
+
+Fix: the boundary check of both builds passes `clients` directly under a deployment (ADR-106); spec/tests/generate-ui-typescript-sign-in-oidc gives one.

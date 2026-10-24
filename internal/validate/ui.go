@@ -45,7 +45,7 @@ func (c *checker) checkPageEvents(d *design) {
 				c.add(source.Key(pg, e.key), source.Pointer("pages", name, e.key), RuleFlow, "%s is a %s page, and %s is raised when %s; leave it out", name, kind, e.key, e.what)
 				continue
 			}
-			c.checkEvent(d, n, []string{"pages", name, e.key}, fields, "a field of the page's entity")
+			c.checkEvent(d, n, []string{"pages", name, e.key}, fields, "a field of the page's entity", false)
 		}
 		for i, a := range source.Items(source.Child(pg, "actions")) {
 			if source.Str(source.Child(a, "kind")) == "navigate" {
@@ -59,7 +59,7 @@ func (c *checker) checkPageEvents(d *design) {
 				c.add(source.Key(a, "then"), source.Pointer("pages", name, "actions", fmt.Sprint(i), "then"), RuleFlow, "the action %s navigates already, and then follows an operation; leave it out", source.Str(source.Child(a, "label")))
 				continue
 			}
-			c.checkEvent(d, n, []string{"pages", name, "actions", fmt.Sprint(i), "then"}, fields, "a field of the page's entity")
+			c.checkEvent(d, n, []string{"pages", name, "actions", fmt.Sprint(i), "then"}, fields, "a field of the page's entity", true)
 		}
 	}
 }
@@ -89,7 +89,7 @@ func (c *checker) checkStatusEvents(d *design, name string, pg, events *yaml.Nod
 			c.add(kv.Key, source.Pointer(base...), RulePage, "%s does not answer %s, so %s cannot act on it; %s", source.Str(source.Child(pg, "submit")), kv.Key.Value, name, answers)
 			continue
 		}
-		c.checkEvent(d, kv.Value, base, d.responseBodyFields(r), "a property of the body of the "+kv.Key.Value+" response")
+		c.checkEvent(d, kv.Value, base, d.responseBodyFields(r), "a property of the body of the "+kv.Key.Value+" response", true)
 	}
 }
 
@@ -241,8 +241,13 @@ func (c *checker) checkContentPage(d *design, name string, pg *yaml.Node) {
 
 // checkEvent checks where one event leads, and that its message is a full
 // sentence; the route parameters it gives come from fields, which from
-// names.
-func (c *checker) checkEvent(d *design, ev *yaml.Node, base []string, fields map[string]*yaml.Node, from string) {
+// names. leaves says whether the event may leave the application for the
+// identity provider's sign-in.
+func (c *checker) checkEvent(d *design, ev *yaml.Node, base []string, fields map[string]*yaml.Node, from string, leaves bool) {
+	if nav := source.Child(ev, "navigate"); nav != nil && nav.Value == navigateSignIn {
+		c.checkSignInEvent(d, ev, nav, base, leaves)
+		return
+	}
 	if m := source.Child(ev, "message"); m != nil && !sentence(m.Value) {
 		c.add(m, source.Pointer(append(base, "message")...), RuleFlow, "the message is not a full sentence; start it with a capital and end it with a full stop, so a screen reader reads it as one")
 	}

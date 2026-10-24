@@ -1,0 +1,177 @@
+specarch: "0.3"
+info: { title: Case desk, version: 1.0.0 }
+stages: [implementation]
+entities:
+  Case:
+    type: object
+    properties:
+      id: { type: string, maxLength: 36 }
+      title: { type: string, maxLength: 200 }
+    required: [id, title]
+    primaryKey: [id]
+permissions:
+  public: { description: Open to everyone. }
+  cases.read: { description: See cases. }
+  sessions.end: { description: End the sessions of a person the provider signed out. }
+roles:
+  clerk:
+    description: Staff who work the cases.
+    permissions: [cases.read]
+  provider:
+    description: The identity provider, when it tells this system that a person signed out.
+    permissions: [sessions.end]
+clients:
+  desk-web:
+    description: The desk's web front end, where staff sign in.
+    kind: application
+  identity-provider:
+    description: The identity provider's back channel, which tells this system that a person signed out.
+    kind: service
+    roles: [provider]
+    proof: { kind: mutualTls }
+dependencies:
+  identityProvider:
+    description: The organisation's identity provider, which signs people in and issues the identity token.
+    timeout: PT5S
+    kind: identityProvider
+    protocol: https
+  securityLog:
+    description: The append-only store of security events.
+    timeout: PT2S
+  pager:
+    description: The alarm channel.
+    timeout: PT2S
+securityEvents: { store: securityLog, alarm: pager }
+session:
+  description: The session the callback starts once the identity token is checked.
+  idleTimeout: PT30M
+  absoluteTimeout: PT12H
+tokens:
+  access:
+    description: What a signed-in person presents on every call.
+    format: jwt
+    lifetime: PT15M
+    signature: ES256
+    claims:
+      sub: { description: The person's identifier. }
+      aud: { const: "https://desk.example.org" }
+      client_id: { description: The application the person signed in through. }
+    default: true
+  identity:
+    description: The identity token the provider returns from the code exchange, which says who signed in.
+    format: jwt
+    lifetime: PT5M
+    signature: RS256
+    claims:
+      iss: { description: "The provider, as the deployment's issuerUrl names it." }
+      sub: { description: The person's identifier at the provider. }
+      aud: { description: "The application's client_id, as the deployment registers it." }
+      nonce: { type: string, maxLength: 128, description: "The value the sign-in request sent, returned once." }
+signIn:
+  description: Staff sign in at the organisation's identity provider with the authorisation code flow and PKCE.
+  kind: oidc
+  provider: identityProvider
+  client: desk-web
+  flow: authorizationCode
+  pkce: true
+  callback: finishSignIn
+  identityToken: identity
+  logout:
+    backChannel: endProviderSession
+paths:
+  /auth/callback:
+    get:
+      operationId: finishSignIn
+      summary: Take the provider's answer, exchange the code and start the session
+      permission: public
+      calls: [identityProvider]
+      parameters:
+        - { name: code, in: query, required: true, schema: { type: string, maxLength: 512 } }
+        - { name: state, in: query, required: true, schema: { type: string, maxLength: 128 } }
+      responses:
+        "303": { description: The person is signed in and sent to the cases. }
+        "502": { description: The provider refused the exchange. }
+        "504": { description: The provider did not answer in time. }
+  /auth/back-channel-logout:
+    post:
+      operationId: endProviderSession
+      summary: End the sessions of a person the provider signed out
+      permission: sessions.end
+      callers: [identity-provider]
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                logoutToken: { type: string, maxLength: 4096 }
+              required: [logoutToken]
+      responses:
+        "200": { description: The sessions are ended. }
+  /sign-in/discovery:
+    post:
+      operationId: findAccount
+      summary: Find where the person signs in from their e-mail address
+      permission: public
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email: { type: string, format: email, maxLength: 254 }
+              required: [email]
+      responses:
+        "200": { description: The person signs in at the organisation's provider. }
+  /cases:
+    get:
+      operationId: listCases
+      summary: List cases
+      permission: cases.read
+      responses:
+        "200": { description: The cases. }
+pages:
+  sign-in:
+    kind: task
+    title: Sign in
+    route: /sign-in
+    permission: public
+    submit: findAccount
+    fields: [email]
+    onSubmitted:
+      "200": { navigate: signIn }
+  cases-list:
+    kind: list
+    title: Cases
+    route: /cases
+    permission: cases.read
+    entity: Case
+    source: listCases
+    columns: [title]
+tests:
+  finish-sign-in-code-used-twice: { operation: finishSignIn, level: system, scenario: red, covers: [code used twice], given: "a code the callback has exchanged already", when: "finishSignIn is called", then: "it is refused and no session starts, and the provider refuses the second exchange, and the security event sign_in_code (high) is written" }
+  finish-sign-in-dependency-fails-identity-provider: { operation: finishSignIn, level: system, scenario: red, covers: [dependency fails identityProvider], given: "identityProvider answers with an error", when: "finishSignIn is called", then: "it answers 502: The provider refused the exchange." }
+  finish-sign-in-dependency-times-out-identity-provider: { operation: finishSignIn, level: system, scenario: red, covers: [dependency times out identityProvider], given: "identityProvider does not answer within PT5S", when: "finishSignIn is called", then: "it answers 504: The provider did not answer in time." }
+  finish-sign-in-identity-token-expired: { operation: finishSignIn, level: system, scenario: red, covers: [identity token expired], given: "an identity token whose exp has passed", when: "finishSignIn is called", then: "it is refused and no session starts, and the security event sign_in_expired (low) is written" }
+  finish-sign-in-issuer-differs: { operation: finishSignIn, level: system, scenario: red, covers: [issuer differs], given: "an identity token whose iss is not the deployment's issuerUrl, an answer of another provider", when: "finishSignIn is called", then: "it is refused and no session starts, and the security event sign_in_issuer (high) is written" }
+  finish-sign-in-nonce-replayed: { operation: finishSignIn, level: system, scenario: red, covers: [nonce replayed], given: "an identity token whose nonce is not the one this sign-in sent, or one a sign-in has used already", when: "finishSignIn is called", then: "it is refused and no session starts, and the security event sign_in_nonce (high) is written" }
+  finish-sign-in-signature-invalid: { operation: finishSignIn, level: system, scenario: red, covers: [signature invalid], given: "an identity token whose signature does not verify with the provider's keys", when: "finishSignIn is called", then: "it is refused and no session starts, and the security event sign_in_signature (high) is written" }
+  finish-sign-in-state-does-not-match: { operation: finishSignIn, level: system, scenario: red, covers: [state does not match], given: "a callback whose state is not the one the sign-in request set in this browser, a forged or replayed redirect", when: "finishSignIn is called", then: "it is refused and no session starts, and the security event sign_in_state (medium) is written" }
+  finish-sign-in-succeeds: { operation: finishSignIn, level: system, scenario: golden, given: "any caller", when: "finishSignIn is called with values inside every limit", then: "it succeeds" }
+  end-provider-session-denied-with-expired-session: { operation: endProviderSession, level: system, scenario: red, covers: [denied with expired session], given: "a caller whose session has expired", when: "endProviderSession is called", then: "it is refused as not signed in" }
+  end-provider-session-denied-without-sessions-end: { operation: endProviderSession, level: system, scenario: red, covers: [denied without sessions.end], given: "a caller without sessions.end", when: "endProviderSession is called", then: "it is refused as not allowed" }
+  end-provider-session-missing-logout-token: { operation: endProviderSession, level: system, scenario: red, covers: [missing logoutToken], given: "...", when: "endProviderSession is called without logoutToken", then: "it is refused" }
+  end-provider-session-refused-for-a-signed-in-person: { operation: endProviderSession, level: system, scenario: red, covers: [refused for a signed-in person], given: "a person signed in, whatever roles they hold", when: "endProviderSession is called", then: "it is refused: only the clients listed may call it, and the security event callers (medium) is written" }
+  end-provider-session-succeeds: { operation: endProviderSession, level: system, scenario: golden, given: "a caller with sessions.end", when: "endProviderSession is called with values inside every limit", then: "it answers 200: The sessions are ended." }
+  find-account-email-not-a-valid-email: { operation: findAccount, level: system, scenario: red, covers: [email not a valid email], given: "...", when: "findAccount is called with email that is not a valid email", then: "it is refused" }
+  find-account-missing-email: { operation: findAccount, level: system, scenario: red, covers: [missing email], given: "...", when: "findAccount is called without email", then: "it is refused" }
+  find-account-succeeds: { operation: findAccount, level: system, scenario: golden, given: "any caller", when: "findAccount is called with values inside every limit", then: "it answers 200: The person signs in at the organisation's provider." }
+  list-cases-denied-with-expired-access: { operation: listCases, level: system, scenario: red, covers: [denied with expired access], given: "a caller whose access token has expired after PT15M", when: "listCases is called", then: "it is refused as not signed in, and the security event token (low) is written" }
+  list-cases-denied-with-expired-session: { operation: listCases, level: system, scenario: red, covers: [denied with expired session], given: "a caller whose session has expired", when: "listCases is called", then: "it is refused as not signed in" }
+  list-cases-denied-without-cases-read: { operation: listCases, level: system, scenario: red, covers: [denied without cases.read], given: "a caller without cases.read", when: "listCases is called", then: "it is refused as not allowed" }
+  list-cases-succeeds: { operation: listCases, level: system, scenario: golden, given: "a caller with cases.read", when: "listCases is called", then: "it answers 200: The cases." }
+  sign-in-succeeds: { page: sign-in, level: system, scenario: golden, given: "any caller", when: "the page sign-in is submitted with every field valid", then: "it is answered 200 and leaves for the identity provider's sign-in" }
+  sign-in-refused: { page: sign-in, level: system, scenario: red, given: "an e-mail address of no organisation", when: "the page sign-in is submitted", then: "it is refused" }
+  cases-list-denied-with-expired-session: { page: cases-list, level: system, scenario: red, covers: [denied with expired session], given: "a caller whose session has expired", when: "the page cases-list is opened", then: "it is refused as not signed in" }
+  cases-list-denied-without-cases-read: { page: cases-list, level: system, scenario: red, covers: [denied without cases.read], given: "a caller without cases.read", when: "the page cases-list is opened", then: "it is refused as not allowed" }
+  cases-list-succeeds: { page: cases-list, level: system, scenario: golden, given: "a caller with cases.read", when: "the page cases-list is opened", then: "it shows the page" }

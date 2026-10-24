@@ -5,7 +5,7 @@ let designSchemaJSON = #"""
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-design-0.3.schema.json",
   "title": "SpecArch specification, meta-model 0.3",
-  "description": "A SpecArch specification describes one system through its whole life cycle: the sources it rests on, the requirements (stakeholders, needs, requirements, glossary, assumptions, constraints), the design (enums, entities, permissions, roles, caller, tenant, clients, tokens, securityEvents, session, endpoints, commands, channels, dependencies, pages, algorithms, decisions), the tests, the deployment (environments, configuration, release, rollback, migrations) and the commissioning (checks, sign-off). On disk it is a folder whose root file is specarch.yaml; each stage listed under 'stages' lives in a folder of that name, and a stage not listed may be written inside specarch.yaml itself. The validator merges the tree into one document that this schema describes. Field keywords come from JSON Schema, endpoint keywords from OpenAPI 3, event keywords from AsyncAPI. Keywords with no standard origin are marked 'SpecArch keyword' in their description. Every object rejects unknown keys; keys starting with 'x-' are allowed everywhere as extensions.",
+  "description": "A SpecArch specification describes one system through its whole life cycle: the sources it rests on, the requirements (stakeholders, needs, requirements, glossary, assumptions, constraints), the design (enums, entities, permissions, roles, caller, tenant, clients, tokens, securityEvents, session, signIn, endpoints, commands, channels, dependencies, pages, algorithms, decisions), the tests, the deployment (environments, configuration, release, rollback, migrations) and the commissioning (checks, sign-off). On disk it is a folder whose root file is specarch.yaml; each stage listed under 'stages' lives in a folder of that name, and a stage not listed may be written inside specarch.yaml itself. The validator merges the tree into one document that this schema describes. Field keywords come from JSON Schema, endpoint keywords from OpenAPI 3, event keywords from AsyncAPI. Keywords with no standard origin are marked 'SpecArch keyword' in their description. Every object rejects unknown keys; keys starting with 'x-' are allowed everywhere as extensions.",
   "type": "object",
   "properties": {
     "specarch": {
@@ -217,6 +217,10 @@ let designSchemaJSON = #"""
     "session": {
       "description": "SpecArch keyword. How a caller's signed-in session ends: 'idleTimeout', the time without a request after which it expires, and 'absoluteTimeout', the time after signing in after which it expires whatever the caller does; at least one of the two (OWASP Session Management Cheat Sheet). Once a session is declared, every operation, command and page whose permission is not 'public' gets the derived red case 'denied with expired session'.",
       "$ref": "#/$defs/session"
+    },
+    "signIn": {
+      "description": "SpecArch keyword. How a person signs in at an identity provider: OpenID Connect's authorisation code flow with PKCE, the provider a dependency of kind identityProvider, the application client the person signs in through, the callback operation of this system that takes the code and the state and calls the provider, the identity token it receives, and the operation the provider's back-channel logout calls. A page event navigate: signIn leaves the application for the provider. The provider's issuer, its discovery document and its keys, and the client's client_id, are the deployment's, in the implementation file (ADR-182).",
+      "$ref": "#/$defs/signIn"
     },
     "middlewares": {
       "description": "SpecArch keyword. The steps a request passes before an operation's handler runs, such as checking a session, a permission, a tenant or a rate, or writing an audit line, keyed by kebab-case name and declared once. An operation lists the ones it runs, in order, under middlewares. Which function of the code each one is belongs to the implementation file (bindings.http.middlewares).",
@@ -2418,6 +2422,103 @@ let designSchemaJSON = #"""
       },
       "additionalProperties": false
     },
+    "signIn": {
+      "description": "SpecArch keyword. The one sign-in flow through an identity provider of a specification (ADR-182).",
+      "type": "object",
+      "properties": {
+        "description": {
+          "$ref": "#/$defs/markdown"
+        },
+        "kind": {
+          "description": "The protocol: oidc, OpenID Connect Core 1.0.",
+          "type": "string",
+          "enum": [
+            "oidc"
+          ]
+        },
+        "provider": {
+          "description": "The dependency, of kind identityProvider, the person signs in at and the callback calls to exchange the code.",
+          "$ref": "#/$defs/memberName"
+        },
+        "client": {
+          "description": "The client, of kind application, the person signs in through: the identity token's aud is its client_id, which the deployment gives (deployments.<environment>.clients.<name>.clientId).",
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+        },
+        "flow": {
+          "description": "The grant: authorizationCode, the authorisation code flow of RFC 6749, section 4.1, and OpenID Connect Core, section 3.1.",
+          "type": "string",
+          "enum": [
+            "authorizationCode"
+          ]
+        },
+        "pkce": {
+          "description": "Proof Key for Code Exchange (RFC 7636) with the S256 method, which RFC 9700, section 2.1.1, asks of every client.",
+          "const": true
+        },
+        "callback": {
+          "description": "operationId of the operation of this system the provider sends the person back to: a GET taking code and state as required query parameters, naming the provider under calls.",
+          "$ref": "#/$defs/memberName"
+        },
+        "identityToken": {
+          "description": "The token, under tokens, the provider returns from the exchange: a JWT declaring iss, aud and nonce, with no const or enum on iss or aud, since the issuer and the client_id are the deployment's.",
+          "$ref": "#/$defs/memberName"
+        },
+        "logout": {
+          "description": "What ends a session from the provider's side.",
+          "type": "object",
+          "properties": {
+            "backChannel": {
+              "description": "operationId of the operation the provider calls when the person signs out there (OpenID Connect Back-Channel Logout 1.0), which only declared service clients may call.",
+              "$ref": "#/$defs/memberName"
+            }
+          },
+          "required": [
+            "backChannel"
+          ],
+          "patternProperties": {
+            "^x-": {}
+          },
+          "additionalProperties": false
+        },
+        "satisfies": {
+          "$ref": "#/$defs/satisfies"
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
+        },
+        "audience": {
+          "$ref": "#/$defs/audience"
+        }
+      },
+      "required": [
+        "kind",
+        "provider",
+        "client",
+        "flow",
+        "pkce",
+        "callback",
+        "identityToken"
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
     "pathItem": {
       "description": "OpenAPI keyword. The operations on one path.",
       "type": "object",
@@ -3416,7 +3517,7 @@ let designSchemaJSON = #"""
       "type": "object",
       "properties": {
         "navigate": {
-          "description": "The page the event leads to.",
+          "description": "The page the event leads to, or signIn, the reserved word for the identity provider's sign-in (ADR-182): the one event that leaves the application, on a task page's answer or an action's then, with no with and no message.",
           "type": "string",
           "minLength": 1
         },
@@ -8339,6 +8440,26 @@ let implementationSchemaJSON = #"""
             "required": [],
             "additionalProperties": false
           }
+        },
+        "signIn": {
+          "description": "SpecArch keyword. The identity provider of the design's signIn in this environment: its issuer, the identity token's iss and the base of its discovery document, and its keys, each the provider's and differing per environment, so a deployment value and never a design key (ADR-182).",
+          "type": "object",
+          "properties": {
+            "issuerUrl": {
+              "description": "The provider's Issuer Identifier (OpenID Connect Core, section 1.2): the iss every identity token carries, exactly, and the URL its discovery document is read from at /.well-known/openid-configuration (OpenID Connect Discovery 1.0, section 4).",
+              "type": "string",
+              "pattern": "^https://[^\\s?#]+$"
+            },
+            "jwksUri": {
+              "description": "The provider's JSON Web Key Set the identity token's signature is checked with, when it is not the jwks_uri the discovery document gives.",
+              "type": "string",
+              "pattern": "^https://[^\\s#]+$"
+            }
+          },
+          "required": [
+            "issuerUrl"
+          ],
+          "additionalProperties": false
         },
         "securityEvents": {
           "description": "SpecArch keyword. The alarm's repeat rule in this environment: how many events for one client within the window go to the alarm channel as well as the store (ADR-109).",

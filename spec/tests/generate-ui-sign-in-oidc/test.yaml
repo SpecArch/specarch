@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: generate
+level: system
+scenario: golden
+given: "the specification of validate-sign-in-oidc without its list page, whose task page sign-in answers 200 by navigating to signIn, and an implementation file whose ui target is plain JavaScript; specarch-gen-ui built from this repository on PATH"
+when: "generate ui is run with --unapproved"
+then: "it writes identity-provider.js with the callback's path /auth/callback, which reads the issuer and the client_id from identity-provider.json and sends the browser to the authorisation endpoint of the provider's discovery document with a new state, nonce and S256 challenge kept in the __Host-sign-in cookie; the page's answer 200 as signIn: true, which form.js follows by loading identity-provider.js; and exits 0"
+verifies: [SA-93]

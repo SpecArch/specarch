@@ -167,7 +167,7 @@ function statusLine() {
   on(BOOKS_LIST_FAILED, ({ status }) => show(refusal("listBooks", status), true, false));
   for (const action of actions) {
     on(action.succeeded, () => show(action.message, false, true));
-    on(action.failed, ({ status }) => show(refusal(action.operation, status), true, true));
+    on(action.failed, ({ status, reason }) => show(reason ?? refusal(action.operation, status), true, true));
   }
   const carried = arrived();
   show(carried, false, carried !== "");

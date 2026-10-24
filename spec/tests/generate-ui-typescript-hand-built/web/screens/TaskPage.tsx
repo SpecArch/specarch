@@ -7,7 +7,7 @@ import { Field } from "./Field";
 import { leave } from "./Notice";
 import { problemsOf, type Values } from "./rules";
 import type { EventSchema, TaskPageSchema } from "./schema";
-import { call, segment, upload } from "./service";
+import { call, segment, signIn, upload } from "./service";
 import { forgetSession } from "./session";
 import { say, type Texts } from "./texts";
 
@@ -90,6 +90,15 @@ export function TaskPage({ schema, texts, routes, returnTo }: TaskPageProps) {
     if (response.ok) {
       forgetSession();
       const success = schema.events.find((candidate) => candidate.status === response.status) ?? { status: response.status };
+      if (success.signIn !== undefined) {
+        try {
+          await signIn(success.signIn);
+        } catch (error) {
+          setBusy(false);
+          setProblems({ "": error instanceof Error ? error.message : String(error) });
+        }
+        return;
+      }
       const answer: unknown = success.with === undefined ? null : await response.json().catch(() => undefined);
       if (answer === undefined) {
         setBusy(false);

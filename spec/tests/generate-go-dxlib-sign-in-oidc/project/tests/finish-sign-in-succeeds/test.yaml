@@ -1,0 +1,8 @@
+operation: finishSignIn
+level: system
+scenario: golden
+given: "any caller"
+when: "finishSignIn is called with values inside every limit"
+then: "it succeeds"
+origin: inferred
+why: "Written by specarch derive: every subject needs a golden path, and this is the success the design gives. A draft: complete the given, when and then, and remove what does not hold."

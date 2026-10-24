@@ -24,6 +24,37 @@ import (
 	"github.com/SpecArch/specarch/internal/wirename"
 )
 
+// signInRuntime is the redirect to the identity provider's sign-in
+// (ADR-182).
+//
+//go:embed runtime/identity-provider.js
+var signInRuntime string
+
+// navigateSignIn is the reserved word a page event navigates to for the
+// identity provider's sign-in.
+const navigateSignIn = "signIn"
+
+// signInJS is identity-provider.js, the redirect to the provider with the
+// callback's path filled in, or "" when the specification declares no
+// signIn, its callback is not an operation, or a page's own files would
+// take the name.
+func (g *gen) signInJS() string {
+	si := obj0(g.spec["signIn"])
+	if len(si) == 0 {
+		return ""
+	}
+	if _, taken := obj0(g.spec["pages"])["identity-provider"]; taken {
+		g.problem("error", "/pages/identity-provider", "identity-provider is a page, and its identity-provider.js would be the file the sign-in redirect is written to; rename the page")
+		return ""
+	}
+	op, path, _ := g.operation(text(si["callback"]))
+	if op == nil {
+		g.problem("error", "/signIn/callback", "%s is not an operation of the specification, so the provider has nowhere to send the person back to; identity-provider.js is not written", text(si["callback"]))
+		return ""
+	}
+	return strings.Replace(signInRuntime, "{{CALLBACK}}", path, 1)
+}
+
 // transportRuntime is how every page calls the service (ADR-164).
 //
 //go:embed runtime/transport.js
@@ -352,6 +383,9 @@ func Generate(r *Request) Response {
 	if len(forms) > 0 {
 		files = append(files, File{Path: "form.js", Content: header("// ", "", nil) + formRuntime})
 	}
+	if js := g.signInJS(); js != "" {
+		files = append(files, File{Path: "identity-provider.js", Content: header("// ", "", nil) + js})
+	}
 	files = append(files, File{Path: "theme.css", Content: header("/* ", " */", nil) + g.themeCSS()})
 	sort.Slice(files, func(i, j int) bool { return files[i].Path < files[j].Path })
 	return g.response(files)
@@ -417,6 +451,9 @@ type action struct {
 	// navigate is the page the action leads to once it succeeds; link is
 	// set instead on an action that opens a page and runs nothing.
 	navigate, link *link
+	// signIn is true for an action that leaves for the identity provider's
+	// sign-in once it succeeds (ADR-182).
+	signIn bool
 }
 
 // reason is the property of an action's request body that carries the

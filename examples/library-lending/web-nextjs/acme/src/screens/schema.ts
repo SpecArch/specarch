@@ -192,12 +192,16 @@ export interface FailureSchema {
  * its record from that record, and a message. On a form that starts an
  * approval, the event of status 202 is the pending state. A page that
  * keeps returnTo hands on the page sign-in was asked for from; any other
- * page gives way to it.
+ * page gives way to it. On a task page, signIn leaves the application for
+ * the identity provider's sign-in instead, which sends the person back to
+ * the callback.
  */
 export interface EventSchema {
   /** With none, every success the operation answers. */
   readonly status?: number;
   readonly navigate?: string;
+  /** The path of the callback the identity provider sends the person back to. */
+  readonly signIn?: string;
   readonly with?: Readonly<Record<string, string>>;
   readonly message?: StringKey;
   readonly keepsReturnTo?: boolean;

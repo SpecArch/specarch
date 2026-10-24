@@ -264,6 +264,7 @@ extension Checker {
         checkThrough(d)
         checkCallers(d)
         checkTokens(d)
+        checkSignIn(d)
         checkImplies(d)
         checkSeparationOfDuties(d)
         checkExpressions(d)

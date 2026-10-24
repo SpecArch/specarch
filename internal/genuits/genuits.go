@@ -360,9 +360,26 @@ func (g *gen) application(sess *genscreens.Session, drawn map[string]bool) (stri
 			members = append(members, member{Key: "handshakes", Val: object(hs)})
 		}
 	}
-	members = append(members, member{Key: "session", Val: sessionValue}, member{Key: "signIn", Val: signIn}, member{Key: "menu", Val: array(groups)})
+	members = append(members, member{Key: "session", Val: sessionValue}, member{Key: "signIn", Val: signIn})
+	if p := g.provider(); p != nil {
+		members = append(members, member{Key: "provider", Val: object(p)})
+	}
+	members = append(members, member{Key: "menu", Val: array(groups)})
 	b.WriteString(statement("export const application: Application = ", object(members), ";"))
 	return b.String(), permissions
+}
+
+// provider is the identity provider of the specification's signIn: the
+// issuer and the client_id from the deployment's environment (ADR-182); nil
+// when it declares none.
+func (g *gen) provider() []member {
+	if len(obj0(g.Spec["signIn"])) == 0 {
+		return nil
+	}
+	return []member{
+		{Key: "issuerUrl", Val: raw(`process.env.NEXT_PUBLIC_SIGN_IN_ISSUER_URL ?? ""`)},
+		{Key: "clientId", Val: raw(`process.env.NEXT_PUBLIC_SIGN_IN_CLIENT_ID ?? ""`)},
+	}
 }
 
 // menuTest is the derived test of the menu: an entry is not shown to

@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: validate
+level: system
+scenario: golden
+given: "a specification whose staff sign in at an identity provider: signIn of kind oidc with the provider a dependency of kind identityProvider, the application desk-web, the callback finishSignIn taking code and state and calling the provider, the identity token declaring iss, aud and nonce with neither fixed, and a back-channel logout only a service client calls; a task page whose answer navigates to signIn; and a test for every derived case, the callback's six refusals among them"
+when: "validate is run"
+then: "it reports no error and no warning and exits 0"
+verifies: [SA-93]

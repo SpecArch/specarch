@@ -230,3 +230,36 @@ func TestOwned(t *testing.T) {
 		t.Errorf("want the members list without the owned loans list, got %s and %v", got, resp.Diagnostics)
 	}
 }
+
+// TestSignInAction checks that an action whose then leaves for the
+// identity provider's sign-in is written so, on a list and on a view, and
+// that identity-provider.js is written with the callback's path (ADR-182).
+func TestSignInAction(t *testing.T) {
+	resp := Generate(request(t, func(s, _ map[string]any) {
+		s["signIn"] = map[string]any{"kind": "oidc", "provider": "feeLedger", "client": "lending-desk", "flow": "authorizationCode", "pkce": true, "callback": "listBooks", "identityToken": "access"}
+		for _, name := range []string{"loans-list", "member-view"} {
+			for _, a := range s["pages"].(map[string]any)[name].(map[string]any)["actions"].([]any) {
+				if am := a.(map[string]any); am["kind"] == "operation" {
+					am["then"] = map[string]any{"navigate": "signIn"}
+				}
+			}
+		}
+	}))
+	files := map[string]string{}
+	for _, f := range resp.Files {
+		files[f.Path] = f.Content
+	}
+	for _, d := range resp.Diagnostics {
+		if d.Severity == "error" {
+			t.Errorf("unexpected error: %s at %s", d.Message, d.Path)
+		}
+	}
+	if !strings.Contains(files["identity-provider.js"], `const CALLBACK = "/books";`) {
+		t.Errorf("identity-provider.js does not name the callback's path /books:\n%s", files["identity-provider.js"])
+	}
+	for _, name := range []string{"loans-list.js", "member-view.js"} {
+		if !strings.Contains(files[name], "signIn: true,") {
+			t.Errorf("%s does not mark its actions as leaving for the sign-in", name)
+		}
+	}
+}

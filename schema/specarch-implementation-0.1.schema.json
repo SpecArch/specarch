@@ -1349,6 +1349,26 @@
             "additionalProperties": false
           }
         },
+        "signIn": {
+          "description": "SpecArch keyword. The identity provider of the design's signIn in this environment: its issuer, the identity token's iss and the base of its discovery document, and its keys, each the provider's and differing per environment, so a deployment value and never a design key (ADR-182).",
+          "type": "object",
+          "properties": {
+            "issuerUrl": {
+              "description": "The provider's Issuer Identifier (OpenID Connect Core, section 1.2): the iss every identity token carries, exactly, and the URL its discovery document is read from at /.well-known/openid-configuration (OpenID Connect Discovery 1.0, section 4).",
+              "type": "string",
+              "pattern": "^https://[^\\s?#]+$"
+            },
+            "jwksUri": {
+              "description": "The provider's JSON Web Key Set the identity token's signature is checked with, when it is not the jwks_uri the discovery document gives.",
+              "type": "string",
+              "pattern": "^https://[^\\s#]+$"
+            }
+          },
+          "required": [
+            "issuerUrl"
+          ],
+          "additionalProperties": false
+        },
         "securityEvents": {
           "description": "SpecArch keyword. The alarm's repeat rule in this environment: how many events for one client within the window go to the alarm channel as well as the store (ADR-109).",
           "type": "object",

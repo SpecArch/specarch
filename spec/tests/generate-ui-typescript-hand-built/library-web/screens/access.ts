@@ -48,5 +48,13 @@ export interface Application {
   readonly handshakes?: Readonly<Record<string, { readonly operation: string }>>;
   readonly session: { readonly path: string; readonly signedIn: string; readonly permissions: string } | null;
   readonly signIn: string | null;
+  /** The identity provider a task page's answer leaves for, when the specification declares signIn. */
+  readonly provider?: IdentityProvider;
   readonly menu: readonly MenuGroup[];
+}
+
+/** The identity provider of the specification's signIn: its issuer and the application's client_id, the deployment's. */
+export interface IdentityProvider {
+  readonly issuerUrl: string;
+  readonly clientId: string;
 }

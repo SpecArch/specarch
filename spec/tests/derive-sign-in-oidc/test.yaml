@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: derive
+level: system
+scenario: golden
+given: "the specification of validate-sign-in-oidc with securityEvents declared, whose every test is written but the callback's refusals"
+when: "derive is run"
+then: "it writes six red drafts on the callback finishSignIn, state does not match, nonce replayed, issuer differs, identity token expired, signature invalid and code used twice, each refused with no session started and naming the security event it writes with its severity, lists them and exits 0"
+verifies: [SA-93]

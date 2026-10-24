@@ -1,3 +1,4 @@
+import AuthenticationServices
 import SwiftUI
 
 /// A form that sends its fields to an operation without loading a record,
@@ -7,6 +8,7 @@ public struct TaskPage: View {
     /// The routes the page's events lead to, by the page each names.
     let routes: [String: Routes.Make]
     @Environment(Router.self) private var router
+    @Environment(\.webAuthenticationSession) private var webAuthenticationSession
     @AppStorage(Strings.languageKey) private var language = Strings.languages[0]
     @State private var values: Values = [:]
     @State private var problems: [String: String] = [:]
@@ -59,6 +61,17 @@ public struct TaskPage: View {
         if answer.ok {
             SessionStore.shared.forget()
             let success = schema.events.first { $0.status == answer.status } ?? EventSchema(status: answer.status)
+            if let callback = success.signIn {
+                do {
+                    let signedIn = try await IdentityProvider.signIn(callback: callback, session: webAuthenticationSession)
+                    if !(200..<400).contains(signedIn.status) {
+                        problems = ["": "the callback \(callback) answered HTTP \(signedIn.status)"]
+                    }
+                } catch {
+                    problems = ["": String(describing: error)]
+                }
+                return
+            }
             let route = router.follow(success, routes: routes, answer: answer.body)
             if let message = success.message {
                 router.leave(say(texts, message), at: route)

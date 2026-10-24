@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.6-dev of the specification: 694 design tests, 333 golden and 361 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.6-dev of the specification: 703 design tests, 340 golden and 363 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.7.6-dev of the specification: 694 design tests, 333 golden and 361 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 690 |
+| system | 699 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -316,6 +316,14 @@ Scenario: red; level: system; covers exit 2; verifies SA-28.
 - Given: a specification that keeps its tests in specarch.yaml
 - When: derive is run
 - Then: it says each derived test needs a folder under tests/, writes nothing and exits 2
+
+#### derive-sign-in-oidc
+
+Scenario: golden; level: system; verifies SA-93.
+
+- Given: the specification of validate-sign-in-oidc with securityEvents declared, whose every test is written but the callback's refusals
+- When: derive is run
+- Then: it writes six red drafts on the callback finishSignIn, state does not match, nonce replayed, issuer differs, identity token expired, signature invalid and code used twice, each refused with no session started and naming the security event it writes with its severity, lists them and exits 0
 
 #### derive-skips-blocked
 
@@ -932,6 +940,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-7.
 - Given: a schema and an entity of the same name, which the specification marks in error while they share it, and a response whose fields reference each of them
 - When: document techspec is run
 - Then: it prints the one-namespace error, links the field that references the entity to the entity's heading and the field that references the schema to the schema's heading, which takes -1 after the entity's as a Markdown renderer gives it, and exits 1
+
+#### document-techspec-sign-in-oidc
+
+Scenario: golden; level: system; verifies SA-93.
+
+- Given: the specification of validate-sign-in-oidc
+- When: document techspec is run
+- Then: it writes, in the runtime view, a section on the sign-in through identityProvider with the client, the callback, the identity token and what the deployment gives, a table of the callback's six checks with the derived case, the security event, its severity and the clause that asks for it, the back-channel logout, and the flow as a sequence diagram from the browser through the provider to the callback; the six events among the security events; the sign-in at the provider as a node of the screen flow; and exits 0
 
 #### document-techspec-tenant
 
@@ -2229,6 +2245,14 @@ Scenario: golden; level: system; verifies SA-77, SA-40.
 - When: generate go-dxlib is run with --unapproved
 - Then: it writes Register setting dxlib's OnE2EEV4Unpack and OnE2EEV4Pack to hooks that read {i, d} from the body, open the envelope as the pre-key hook opens it, convert the elements to the little-endian framing, keep the keys the answer needs in the state, and seal the answer as {d}; the exchange, the store and the client as for the pre-key envelope; and exits 0
 
+#### generate-go-dxlib-sign-in-oidc
+
+Scenario: golden; level: system; verifies SA-93.
+
+- Given: the specification of validate-sign-in-oidc and an implementation file whose go-dxlib target names the package and the database; specarch-gen-go-dxlib built from this repository on PATH
+- When: generate go-dxlib is run with --unapproved
+- Then: it writes the handler FinishSignIn of the callback, which reads code and state from the query and returns bodyFinishSignIn, the body the project writes, as every operation's handler does, and the client's call of it; and exits 0
+
 #### generate-go-dxlib-value-objects
 
 Scenario: golden; level: system; verifies SA-40, SA-50.
@@ -2717,6 +2741,14 @@ Scenario: red; level: system; verifies SA-77, SA-43.
 - When: generate ui is run with --unapproved
 - Then: it reports an error at each page's call that the screens seal an envelope in the dxlib dialect only and no implementation file serves the API in it, and at the upload page's submit that the standard dialect names no header for the caption, writes the shared files with service.js in the standard dialect, and exits 1
 
+#### generate-ui-sign-in-oidc
+
+Scenario: golden; level: system; verifies SA-93.
+
+- Given: the specification of validate-sign-in-oidc without its list page, whose task page sign-in answers 200 by navigating to signIn, and an implementation file whose ui target is plain JavaScript; specarch-gen-ui built from this repository on PATH
+- When: generate ui is run with --unapproved
+- Then: it writes identity-provider.js with the callback's path /auth/callback, which reads the issuer and the client_id from identity-provider.json and sends the browser to the authorisation endpoint of the provider's discovery document with a new state, nonce and S256 challenge kept in the __Host-sign-in cookie; the page's answer 200 as signIn: true, which form.js follows by loading identity-provider.js; and exits 0
+
 #### generate-ui-swiftui
 
 Scenario: golden; level: system; verifies SA-78.
@@ -2748,6 +2780,14 @@ Scenario: red; level: system; verifies SA-78.
 - Given: the specification of the generate-ui-typescript-refused case: an invitation page that shows a field of type integer, checks with an expression that adds, and whose operation answers a 201 the page has no event for; a form that leaves out a field its request body requires and checks with an expression that calls int; a view that checks with a call to decimal and offers an action that runs an operation and then opens another page; a list whose row opens a page after a confirmation; a form whose loaded child rows its source's answer does not carry, one whose loaded rows are not locked, and one whose relation the body has no array for; a menu with a group inside a group and an entry that opens a page whose route takes a parameter; and one implementation file in Swift whose ui target names a module of two words, a server, a hook for a view and for a field the form does not show, a layout that is not page, tabs or steps, and a translation whose file drops a placeholder and misses a key
 - When: generate ui is run with --unapproved
 - Then: it reports the module's name and the server under the settings, the two hooks and the layout, the integer field at the page's field, the addition at the check's expression and the 201 at the page's onSubmitted, the required field left out at the form, the calls at the checks' expressions, the page opened at the action's then, the confirmation at the row's action, the rows at each child row, the group and the parameter at the menu's entries, and the dropped placeholder and the missing key under the settings, each marked at its entry, writes the files it could make with each problem marked at its place, and exits 1; a view that orders a decimal is not refused, since the app compares one exactly
+
+#### generate-ui-swiftui-sign-in-oidc
+
+Scenario: golden; level: system; verifies SA-93.
+
+- Given: the specification of generate-ui-sign-in-oidc and an implementation file whose ui target is the iPhone; specarch-gen-ui-swiftui built from this repository on PATH
+- When: generate ui is run with --unapproved
+- Then: it writes the task page's answer 200 as signIn naming the callback's path, SignIn.swift, whose IdentityProvider signs in through the system's web authentication session at the authorisation endpoint of the provider's discovery document and calls the callback with the code and the state, and TaskPage following it; and exits 0
 
 #### generate-ui-swiftui-wire-names
 
@@ -2820,6 +2860,14 @@ Scenario: red; level: system; verifies SA-52, SA-53, SA-54, SA-55, SA-56.
 - Given: the specification of the golden case, whose invitation page also shows a field of type integer, checks it with an expression that adds, and whose operation answers a 201 the page has no event for; a form that leaves out a field its request body requires and checks with an expression that calls int; a view that hides a decimal field by ordering it and offers an action that runs an operation and then opens another page; a list whose row opens a page after a confirmation; a form whose loaded child rows its source's answer does not carry, one whose loaded rows are not locked, and one whose request body has no array for its rows; a menu that holds a group inside a group and an entry that opens a page whose route takes a parameter; a first implementation file whose settings give a view a hook, a form a hook for a field it does not show and a layout that is not page, tabs or steps, name a translation whose file misses a key and drops a placeholder, and have the server routes page a list that pages itself and give another a page size above its maximum, and a second that names no session, the specification's own language as a translation, a routes path that is not a path, a service variable Next.js sends the browser and a token with no header; and specarch-gen-ui-typescript built from this repository on PATH
 - When: generate ui is run with --unapproved
 - Then: it reports, for the first file, the page size, the two hooks, the layout, the list that pages itself, the dropped placeholder and the missing key under the settings; for the second, the routes path, the service variable, the token and the translation under the settings; for each file, the integer field at the page's field, the addition at the check's expression and the 201 at the page's onSubmitted, the required field left out at the form, the call at its check's expression, the decimal ordered at the view's condition and the page opened at its action's then, the confirmation of the row's action that opens a page at its confirm, with the list's menu texts then unused, the rows not carried at the first form's relation, the rows not locked at the second form's child rows and the missing array at the third form's relation, the inner group at its entry and the entry to the page with a parameter at its page; and for the second, each page that needs a permission no session can tell; as errors; writes the files it can as a draft, with these errors marked in application.ts, since none of the pages they are at is written, and exits 1
+
+#### generate-ui-typescript-sign-in-oidc
+
+Scenario: golden; level: system; verifies SA-93.
+
+- Given: the specification of generate-ui-sign-in-oidc and an implementation file whose ui target is Next.js and Carbon, with a deployment that gives signIn.issuerUrl and the clientId of desk-web; specarch-gen-ui-typescript built from this repository on PATH
+- When: generate ui is run with --unapproved
+- Then: it writes application.ts with the provider's issuer and client_id read from NEXT_PUBLIC_SIGN_IN_ISSUER_URL and NEXT_PUBLIC_SIGN_IN_CLIENT_ID, the task page's answer 200 as signIn naming the callback's path, and TaskPage and service.ts that leave for the provider's authorisation endpoint with a new state, nonce and S256 challenge, showing the reason when a document cannot be read; the deployment is read with its clients; and exits 0
 
 #### generate-ui-typescript-value-objects
 
@@ -5087,6 +5135,30 @@ Scenario: red; level: system; covers exit 1; verifies SA-10.
 - When: validate is run
 - Then: it reports setting and exits 1
 
+#### validate-sign-in-oidc
+
+Scenario: golden; level: system; verifies SA-93.
+
+- Given: a specification whose staff sign in at an identity provider: signIn of kind oidc with the provider a dependency of kind identityProvider, the application desk-web, the callback finishSignIn taking code and state and calling the provider, the identity token declaring iss, aud and nonce with neither fixed, and a back-channel logout only a service client calls; a task page whose answer navigates to signIn; and a test for every derived case, the callback's six refusals among them
+- When: validate is run
+- Then: it reports no error and no warning and exits 0
+
+#### validate-sign-in-oidc-deployment
+
+Scenario: red; level: system; verifies SA-93.
+
+- Given: the specification of validate-sign-in-oidc with an implementation file of two deployments: test, which gives signIn.issuerUrl and jwksUri and the clientId of desk-web under clients, and production, which gives neither
+- When: validate is run
+- Then: it reads the test deployment's clients without a design_key error (BUG-059), reports at the production deployment under sign_in that it names no provider and no clientId for desk-web, with the same words in both builds, and exits 1
+
+#### validate-sign-in-oidc-refused
+
+Scenario: red; level: system; verifies SA-93.
+
+- Given: three copies of the specification of validate-sign-in-oidc: the first with a provider of kind system, a client that is a service, a callback that takes no state and names no provider under calls, an identity token that is opaque and declares no iss and fixes aud with const, a back-channel logout people may call, a message on the event that navigates to signIn and a list's onSelect navigating to signIn; the second without signIn, whose task page still navigates to signIn and whose deployment gives signIn; the third whose signIn names a provider, client, callback, identity token and back-channel logout the specification does not have
+- When: validate is run over the three
+- Then: it reports each at its entry under the rule sign_in, every reference of signIn at its key, the const at the claim, the message and the onSelect at the event, the navigate of the second at its page and its deployment's signIn there, with the same words in both builds, and exits 1
+
 #### validate-source
 
 Scenario: red; level: system; covers exit 1; verifies SA-13.
@@ -5635,7 +5707,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-396 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+402 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -5870,6 +5942,12 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-92 | acceptance 2 | golden | SA-92 names no harm |
 | requirement SA-92 | acceptance 3 | golden | SA-92 names no harm |
 | requirement SA-92 | acceptance 4 | golden | SA-92 names no harm |
+| requirement SA-93 | acceptance 1 | golden | SA-93 names no harm |
+| requirement SA-93 | acceptance 2 | golden | SA-93 names no harm |
+| requirement SA-93 | acceptance 3 | golden | SA-93 names no harm |
+| requirement SA-93 | acceptance 4 | golden | SA-93 names no harm |
+| requirement SA-93 | acceptance 5 | golden | SA-93 names no harm |
+| requirement SA-93 | acceptance 6 | golden | SA-93 names no harm |
 | requirement SA-7 | acceptance 1 | golden | SA-7 names no harm |
 | requirement SA-7 | acceptance 2 | golden | SA-7 names no harm |
 | requirement SA-8 | acceptance 1 | golden | SA-8 names no harm |

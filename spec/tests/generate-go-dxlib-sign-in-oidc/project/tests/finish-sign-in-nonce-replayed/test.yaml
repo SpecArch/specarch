@@ -1,0 +1,9 @@
+operation: finishSignIn
+level: system
+scenario: red
+covers: [nonce replayed]
+given: "an identity token whose nonce is not the one this sign-in sent, or one a sign-in has used already"
+when: "finishSignIn is called"
+then: "it is refused and no session starts, and the security event sign_in_nonce (high) is written"
+origin: inferred
+why: "Written by specarch derive: operation finishSignIn is at stake in a requirement that names a harm, so its cases are written. A draft: complete the given, when and then, and remove what does not hold."

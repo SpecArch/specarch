@@ -145,6 +145,7 @@ public enum Rule: String, CaseIterable, Sendable {
     case via = "via"
     case tokenAudience = "token_audience"
     case securityEvents = "security_events"
+    case signIn = "sign_in"
     case exitCode = "exit_code"
 }
 

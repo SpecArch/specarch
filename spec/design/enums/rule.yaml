@@ -148,6 +148,7 @@ enums:
       - via
       - token_audience
       - security_events
+      - sign_in
       - exit_code
     valueDescriptions:
       file_kind: a file given by name is neither `specarch.yaml` nor `*.specarch-implementation.yaml`, is part of a specification that should be checked as a whole, or its root key does not match its name
@@ -292,5 +293,6 @@ enums:
       via: "an operation accepting a transaction token or a token declaring act names no via, one accepting neither names it, or via is empty, names an undeclared client, an application, a client twice or a service without a workload-identity proof (ADR-111)"
       token_audience: "an access token some operation accepts declares no aud with const or enum, an audience value with a colon that is not a URI, or a token a gateway forwards by aud declares const or enum on its aud, which the forwards fix (ADR-109, ADR-141)"
       security_events: "a specification with tokens and clients declares no securityEvents, or its store or alarm is not a dependency (ADR-109)"
+      sign_in: "signIn names a provider that is not a dependency of kind identityProvider, a client that is not an application, a callback that is not a GET operation taking code and state as required query parameters and naming the provider under calls, an identity token that is not a JWT declaring iss, aud and nonce or that fixes iss or aud with const or enum, or a back-channel logout operation that people may call or no service client may; or a page event navigates to signIn with no signIn declared, with with or message, or outside a task page's answer and an action's then (ADR-182)"
       exit_code: "a command's remedies names status 0, which needs no remedy, or a status its exitCodes does not list (ADR-165)"
-    satisfies: [SA-2, SA-3, SA-4, SA-5, SA-6, SA-9, SA-10, SA-11, SA-12, SA-13, SA-17, SA-18, SA-23, SA-24, SA-27, SA-29, SA-41, SA-42, SA-47, SA-48, SA-49, SA-50, SA-62, SA-63, SA-67, SA-68, SA-69, SA-73, SA-77, SA-82, SA-83, SA-84, SA-88, SA-91]
+    satisfies: [SA-2, SA-3, SA-4, SA-5, SA-6, SA-9, SA-10, SA-11, SA-12, SA-13, SA-17, SA-18, SA-23, SA-24, SA-27, SA-29, SA-41, SA-42, SA-47, SA-48, SA-49, SA-50, SA-62, SA-63, SA-67, SA-68, SA-69, SA-73, SA-77, SA-82, SA-83, SA-84, SA-88, SA-91, SA-93]

@@ -509,7 +509,17 @@ func (g *Gen) TaskPage(pageName string, pg map[string]any) (*Page, bool) {
 	for _, status := range sortedKeys(submitted) {
 		ev := obj0(submitted[status])
 		entry := []Member{{"status", Raw(status)}}
-		if target := text(ev["navigate"]); target != "" {
+		if text(ev["navigate"]) == "signIn" {
+			// The answer leaves for the identity provider's sign-in
+			// (ADR-182), which sends the person back to the callback's
+			// path; the validator refuses with and message on it.
+			callback, ok := g.signInCallback()
+			if !ok {
+				g.Problem("error", at+"/onSubmitted/"+status+"/navigate", "%s leaves for signIn, and the specification's signIn names no callback operation, so the provider has nowhere to send the person back to; the answer stays on the page", pageName)
+			} else {
+				entry = append(entry, Member{"signIn", Str(callback)})
+			}
+		} else if target := text(ev["navigate"]); target != "" {
 			tp := obj0(pages[target])
 			routes[target] = text(tp["route"])
 			entry = append(entry, Member{"navigate", Str(target)})
@@ -869,4 +879,22 @@ func sortedKeys(m map[string]any) []string {
 	}
 	sort.Strings(out)
 	return out
+}
+
+// signInCallback is the path of the specification's sign-in callback, the
+// operation the identity provider sends the person back to (ADR-182).
+func (g *Gen) signInCallback() (string, bool) {
+	callback := text(obj0(g.Spec["signIn"])["callback"])
+	if callback == "" {
+		return "", false
+	}
+	paths := obj0(g.Spec["paths"])
+	for _, path := range sortedKeys(paths) {
+		for _, op := range obj0(paths[path]) {
+			if text(obj0(op)["operationId"]) == callback {
+				return path, true
+			}
+		}
+	}
+	return "", false
 }

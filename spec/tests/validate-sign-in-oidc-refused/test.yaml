@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: validate
+level: system
+scenario: red
+given: "three copies of the specification of validate-sign-in-oidc: the first with a provider of kind system, a client that is a service, a callback that takes no state and names no provider under calls, an identity token that is opaque and declares no iss and fixes aud with const, a back-channel logout people may call, a message on the event that navigates to signIn and a list's onSelect navigating to signIn; the second without signIn, whose task page still navigates to signIn and whose deployment gives signIn; the third whose signIn names a provider, client, callback, identity token and back-channel logout the specification does not have"
+when: "validate is run over the three"
+then: "it reports each at its entry under the rule sign_in, every reference of signIn at its key, the const at the claim, the message and the onSelect at the event, the navigate of the second at its page and its deployment's signIn there, with the same words in both builds, and exits 1"
+verifies: [SA-93]

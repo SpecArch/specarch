@@ -65,7 +65,9 @@ func (g *gen) operationAction(at string, am, props map[string]any, key string, f
 	}
 	then := obj0(am["then"])
 	a.message = text(then["message"])
-	if t := text(then["navigate"]); t != "" {
+	if t := text(then["navigate"]); t == navigateSignIn {
+		a.signIn = true
+	} else if t != "" {
 		with, ok := g.withJS(at+"/then", "the action "+label, t, obj0(then["with"]), props, own, record)
 		if !ok {
 			return action{}, false
@@ -177,6 +179,9 @@ func actionJS(w func(string), a action, indent, record string) {
 	w(in + "message: " + jsString(a.message) + ",")
 	if n := a.navigate; n != nil {
 		w(in + "navigate: { page: " + jsString(n.page) + ", with: " + n.with + " },")
+	}
+	if a.signIn {
+		w(in + "signIn: true,")
 	}
 	w(in + "succeeded: " + u + "_SUCCEEDED,")
 	w(in + "failed: " + u + "_FAILED,")

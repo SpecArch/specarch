@@ -510,12 +510,21 @@ func newPluginRequest(l loaded, target, folder string, impls []generate.Implemen
 }
 
 // pluginIdioms are the idioms an implementation file uses, as a plug-in
-// gets them, and a note for each file that cannot be read.
+// gets them, and a note for each file that cannot be read. The ui target
+// gets the paginated-list idiom whether or not the design has a listOf:
+// its server routes page a list the service answers whole in the idiom's
+// envelope, and its screens page another module's list by the idiom's
+// names, so the names are never left empty for a design that lists
+// nothing itself.
 func pluginIdioms(path string, node *yaml.Node, s *spec.Spec, target string) ([]pluginIdiom, []string) {
 	var out []pluginIdiom
 	var notes []string
 	shipped := validate.ShippedIdioms()
-	for _, u := range validate.IdiomUses(path, node, s) {
+	var always []string
+	if target == "ui" {
+		always = []string{"paginated-list"}
+	}
+	for _, u := range validate.IdiomUsesWith(path, node, s, always...) {
 		pid := pluginIdiom{Name: u.Name, Version: u.Version, As: u.As}
 		switch u.As {
 		case "shipped":

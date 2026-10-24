@@ -459,6 +459,24 @@ type IdiomUse struct {
 // each as shipped, overridden or the project's, and every idiom it
 // excludes. s is the specification it implements.
 func IdiomUses(file string, root *yaml.Node, s *spec.Spec) []IdiomUse {
+	return idiomUses(file, root, s, nil)
+}
+
+// IdiomUsesWith is IdiomUses with the named idioms used whether or not
+// the specification uses the keywords they read, as an output that
+// follows an idiom's shape without the keyword needs them: the ui
+// target's server routes answer a list in the paginated-list idiom's
+// envelope whether or not the design has a listOf. An exclusion and an
+// override in the file apply to them as to any other.
+func IdiomUsesWith(file string, root *yaml.Node, s *spec.Spec, always ...string) []IdiomUse {
+	set := map[string]bool{}
+	for _, name := range always {
+		set[name] = true
+	}
+	return idiomUses(file, root, s, set)
+}
+
+func idiomUses(file string, root *yaml.Node, s *spec.Spec, always map[string]bool) []IdiomUse {
 	c := &checker{file: file, root: root}
 	stacks, _, _ := c.implementationStacks()
 	isStack := map[string]bool{"any": true}
@@ -488,7 +506,7 @@ func IdiomUses(file string, root *yaml.Node, s *spec.Spec) []IdiomUse {
 			out = append(out, u)
 			continue
 		}
-		if s == nil || s.Root == nil || !idiomApplies(i, s.Root, isStack) {
+		if !always[name] && (s == nil || s.Root == nil || !idiomApplies(i, s.Root, isStack)) {
 			continue
 		}
 		if ref := source.Str(source.Child(use, "override")); ref != "" {

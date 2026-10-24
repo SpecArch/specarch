@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: generate
+level: system
+scenario: golden
+given: "a specification with no listOf, whose one list page reads a GET that answers every branch whole, a Next.js ui target whose settings.server.pages names that operation with a page size and maximum, and specarch-gen-ui-typescript built from this repository on PATH"
+when: "generate ui is run with --unapproved"
+then: "it writes the route that pages the list and server/settings.ts with the paginated-list idiom's names on the wire, none empty, so that tests/server.test.ts pages by them, and exits 0"
+verifies: [SA-56]

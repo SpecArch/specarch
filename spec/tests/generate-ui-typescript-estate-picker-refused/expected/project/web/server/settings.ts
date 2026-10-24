@@ -13,5 +13,5 @@ export const server: ServerSettings = {
   header: "Authorization",
   scheme: "Bearer",
   headers: ["accept", "content-type"],
-  wire: { page: "", pageSize: "", items: "", totalItems: "", totalPages: "" },
+  wire: { page: "page", pageSize: "pageSize", items: "items", totalItems: "totalItems", totalPages: "totalPages" },
 };

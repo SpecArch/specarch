@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.6-dev of the specification: 724 design tests, 357 golden and 367 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.6-dev of the specification: 725 design tests, 358 golden and 367 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.7.6-dev of the specification: 724 design tests, 357 golden and 367 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 720 |
+| system | 721 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -2980,6 +2980,14 @@ Scenario: red; level: system; verifies SA-77.
 - Given: the notes specification, whose task page, list page and view call operations that travel in the envelope of the pre-key handshake and whose other task page uploads a file with a caption sent beside it, with one implementation file in TypeScript whose ui target is nextjs-carbon and none that serves the API in the dxlib dialect; and specarch-gen-ui-typescript built from this repository on PATH
 - When: generate ui is run with --unapproved
 - Then: it reports an error at each page's call that the screens seal an envelope in the dxlib dialect only and no implementation file serves the API in it, and at the upload page's submit that the standard dialect names no header for the caption, writes the shared files, and exits 1
+
+#### generate-ui-typescript-paged-whole
+
+Scenario: golden; level: system; verifies SA-56.
+
+- Given: a specification with no listOf, whose one list page reads a GET that answers every branch whole, a Next.js ui target whose settings.server.pages names that operation with a page size and maximum, and specarch-gen-ui-typescript built from this repository on PATH
+- When: generate ui is run with --unapproved
+- Then: it writes the route that pages the list and server/settings.ts with the paginated-list idiom's names on the wire, none empty, so that tests/server.test.ts pages by them, and exits 0
 
 #### generate-ui-typescript-refused
 

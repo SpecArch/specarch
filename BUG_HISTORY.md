@@ -879,3 +879,18 @@ Expected: the schema error alone, at the step, in both builds.
 To repeat: in a copy of `spec/tests/validate-flows/specarch.yaml`, take `event: submitted` off the first step of `register-a-member` and run `specarch validate`.
 
 Fix: `checkFlows` in both builds skips the lookups of a step whose `page` or `event` is missing, or whose `event` is action with no `action`; the schema reports each. Case `validate-flow-step-missing-key` holds all three to the one schema error each, at the step.
+
+## BUG-061 — generate ui: server/settings.ts writes empty paging names when the specification has no listOf
+
+- Reported: 2026-10-24, found in a module whose pages read another module's list, against 0.7.5
+- Closed: 2026-10-25, completed
+- Fixed by: the commit on `main` whose message says `Fixes BUG-061`
+
+With `settings.server` in the ui target and no `listOf` anywhere in the specification, specarch-gen-ui-typescript wrote `server/settings.ts` with `wire: { page: "", pageSize: "", items: "", totalItems: "", totalPages: "" }` (`internal/genuits/server.go`, the `wire` member, from `ListNames` in `internal/genscreens/lists.go`), and `tests/server.test.ts` built its paging query from those names. The names come from the paginated-list idiom, which `specarch generate` hands a plug-in only when the specification uses `listOf` (`reads: [listOf]`), so a specification that lists nothing itself gave the plug-in no idiom and the generator wrote the names empty, saying nothing. Visible in the golden `spec/tests/generate-ui-typescript-estate-picker`, whose derived test only failed; a specification with `settings.server.pages` and no `listOf` had a route page by empty names, and its own `tests/server.test.ts` failed on the page test, since the three envelope members collided on one empty key.
+
+Expected: the names on the wire, as the idiom gives them and the wire-name rule maps them, in every `server/settings.ts`; nothing empty.
+
+To repeat: in a copy of `spec/tests/generate-ui-typescript-paged-whole/project`, run `specarch generate ui --unapproved project` and read `web/server/settings.ts`.
+
+Fix: `specarch generate` hands the ui target's plug-ins the paginated-list idiom whether or not the design has a `listOf` (`validate.IdiomUsesWith`, `pluginIdioms` in `cmd/specarch/generate.go`), for the implementation files and the dependencies alike; the file's exclusion or override still applies. The other writers of these names, the list page and the picker in `internal/genscreens` and `internal/genui`, already refused when they were missing and are unchanged. The case `generate-ui-typescript-paged-whole` gives a specification with no `listOf` and a server-paged route, and its generated test passes under node.
+

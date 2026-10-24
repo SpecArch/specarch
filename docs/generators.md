@@ -1121,8 +1121,10 @@ body, type, location and cookies, so the cookie a service sets when a
 session opens lands on the application's origin. A GET named under
 `settings.server.pages`, whose answer is an array and which has no
 `listOf`, is read whole and answered a page at a time in the paginated-list
-idiom's envelope, at the page size and maximum given there; the list that
-reads it offers no sort, search or filter but its query parameters. A
+idiom's envelope, at the page size and maximum given there, by the idiom's
+names, which the plug-in gets whether or not the design has a `listOf`, so
+`server/settings.ts` never writes an empty name; the list that reads it
+offers no sort, search or filter but its query parameters. A
 service variable starting `NEXT_PUBLIC_`, which Next.js sends the browser,
 a page under the routes' path, and a paged operation that pages itself or
 answers no array are refused. `tests/server.test.ts` runs the forwarding

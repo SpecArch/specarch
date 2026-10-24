@@ -13,7 +13,7 @@ export const server: ServerSettings = {
   header: "Authorization",
   scheme: "Bearer",
   headers: ["accept", "content-type"],
-  wire: { page: "", pageSize: "", items: "", totalItems: "", totalPages: "" },
+  wire: { page: "page", pageSize: "pageSize", items: "items", totalItems: "totalItems", totalPages: "totalPages" },
 };
 
 /** Where the server routes forward a call to another module, by the dependency that names it. */

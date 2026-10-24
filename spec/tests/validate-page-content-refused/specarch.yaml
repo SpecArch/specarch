@@ -76,6 +76,7 @@ pages:
     blocks:
       - image: { path: "//other.example/studio.jpg", alternativeText: The studio. }
       - image: { path: ../studio.jpg, alternativeText: The studio. }
+      - image: { path: "\\\\other.example/studio.jpg", alternativeText: The studio. }
       - link: { page: home, label: More }
       - link: { href: "https://example.org/more", label: More }
       - link: { page: home, label: More }

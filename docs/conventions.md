@@ -1719,7 +1719,7 @@ Each block is exactly one of four:
 |---|---|
 | `heading` | `level`, 1 to 6, and `text`; the page's title is level 1 |
 | `text` | a paragraph |
-| `image` | `path`, where the project serves it, relative to the site's root (no scheme, no leading `/`, no `.` or `..` folder, so it stays on the site), and `alternativeText` |
+| `image` | `path`, where the project serves it, relative to the site's root (no scheme, no leading `/` or `\`, no `.` or `..` folder and no `?`, `#`, `%` or space, so it stays on the site), and `alternativeText` |
 | `link` | `page`, a page of the specification, or `href`, an address outside it (https, http or mailto only), and `label` |
 
 A content page has no `entity`, `source`, `submit`, `fields`,

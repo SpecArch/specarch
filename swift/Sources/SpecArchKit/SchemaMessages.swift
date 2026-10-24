@@ -41,7 +41,7 @@ let patternNames: [String: String] = [
     "(^|/)specarch\\.yaml$": "a path ending in specarch.yaml, the specification's root file",
     "^[A-Za-z][A-Za-z0-9 ./'-]*$": "a term: letters, digits, spaces, dots, slashes, apostrophes and dashes, such as late fee",
     "^[A-Za-z]{2,3}(-[A-Za-z0-9]{1,8})*$": "a BCP 47 language tag, such as en or pt-BR",
-    "^([^/:.][^/:]*|\\.[^/:.][^/:]*)(/([^/:.][^/:]*|\\.[^/:.][^/:]*))*$": "a path relative to the site's root, such as images/studio.jpg, with no scheme, no leading / and no . or .. folder",
+    "^([^/\\\\:?#%\\s.][^/\\\\:?#%\\s]*|\\.[^/\\\\:?#%\\s.][^/\\\\:?#%\\s]*)(/([^/\\\\:?#%\\s.][^/\\\\:?#%\\s]*|\\.[^/\\\\:?#%\\s.][^/\\\\:?#%\\s]*))*$": "a path relative to the site's root, such as images/studio.jpg, with no scheme, no leading / or \\, no . or .. folder and no ?, #, % or space",
 ]
 
 func describePattern(_ p: String) -> String {

@@ -3987,10 +3987,10 @@ let designSchemaJSON = #"""
           "type": "object",
           "properties": {
             "path": {
-              "description": "Where the image is served, relative to the site's root, as images/studio.jpg: no scheme, no leading /, no . or .. folder, so it stays on the site.",
+              "description": "Where the image is served, relative to the site's root, as images/studio.jpg: no scheme, no leading / or \\, no . or .. folder and no ?, #, % or space, so it stays on the site.",
               "type": "string",
               "minLength": 1,
-              "pattern": "^([^/:.][^/:]*|\\.[^/:.][^/:]*)(/([^/:.][^/:]*|\\.[^/:.][^/:]*))*$"
+              "pattern": "^([^/\\\\:?#%\\s.][^/\\\\:?#%\\s]*|\\.[^/\\\\:?#%\\s.][^/\\\\:?#%\\s]*)(/([^/\\\\:?#%\\s.][^/\\\\:?#%\\s]*|\\.[^/\\\\:?#%\\s.][^/\\\\:?#%\\s]*))*$"
             },
             "alternativeText": {
               "description": "What the image shows, for who cannot see it (WCAG 2.2, 1.1.1). Required once the specification names its accessibility target.",

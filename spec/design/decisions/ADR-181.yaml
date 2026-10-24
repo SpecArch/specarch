@@ -23,8 +23,11 @@ decisions:
         takes no parameter, and a link opens a page that exists and
         whose route takes none (page, flow): no record gives a parameter.
       - href is https, http or mailto, by the schema. An image's path is
-        relative to the site's root with no scheme, no leading / and no .
-        or .. folder, by the schema, so it stays on the site; the
+        relative to the site's root with no scheme, no leading / or \,
+        no . or .. folder and no ?, #, % or space, by the schema, so it
+        stays on the site (a browser reads \ as / and drops a tab or a
+        line break inside a URL, so \host and /\host lead to another
+        host as //host does); the
         Next.js generator writes it from the root, since a browser reads
         a relative src against the page's own route.
       - Two links of one label that lead to different places are refused

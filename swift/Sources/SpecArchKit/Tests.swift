@@ -694,6 +694,9 @@ extension Design {
         denied(s, str(p.value.child("permission")), open)
         throughCases(s, str(p.value.child("permission")), open)
         disabled(s, p.value, open)
+        if str(p.value.child("kind")) == "content" {
+            return s // it loads and sends nothing, so it opens or is refused
+        }
         if str(p.value.child("kind")) == "task" {
             answerCases(s, p.value)
             stateCases(s, p.value, open)

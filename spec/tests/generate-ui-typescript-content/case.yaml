@@ -1,0 +1,5 @@
+arguments: [generate, ui, --unapproved, project]
+exitStatus: 0
+standardOutput: |
+  project/specarch.yaml:48:17: warning: /pages/clients/permission: generator: clients is a content page that needs clients.read, and its text travels to the browser with the page, so the route guard keeps the page from showing but not its text from who reads the files; keep what only holders of clients.read may read behind an operation [generator@specarch.yaml#/pages/clients/permission]
+plugins: [ui-typescript]

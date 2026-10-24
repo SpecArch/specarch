@@ -117,6 +117,8 @@ func Generate(r *Request) genui.Response {
 			page, ok = g.FormPage(pageName, pg, sess, hooks[pageName], layouts[pageName])
 		case "view":
 			page, ok = g.ViewPage(pageName, pg, sess)
+		case "content":
+			page, ok = g.ContentPage(pageName, pg)
 		default:
 			g.Problem("warning", "/pages/"+pageName, "%s is a %s, which this version of %s does not write; it is left out", pageName, text(pg["kind"]), name)
 			continue
@@ -125,9 +127,12 @@ func Generate(r *Request) genui.Response {
 			continue
 		}
 		var schema, tsx, client string
-		if page.Kind == "task" {
+		switch page.Kind {
+		case "task":
 			schema, tsx = g.taskFiles(page)
-		} else {
+		case "content":
+			schema, tsx = g.contentFiles(page)
+		default:
 			schema, tsx, client = g.pageFiles(page)
 		}
 		files = append(files, genui.File{Path: folder + "/" + g.schemaFile, Content: header + schema, Comparison: "object-literal"})
@@ -193,6 +198,44 @@ func (g *gen) taskFiles(p *genscreens.Page) (string, string) {
 	page.WriteString("export default async function Page({ searchParams }: { readonly searchParams: Promise<Record<string, string | string[] | undefined>> }) {\n")
 	page.WriteString("  const { returnTo } = await searchParams;\n  const t = texts(schema, await chosenLanguage());\n")
 	fmt.Fprintf(&page, "  return <%s schema={schema} texts={t} routes={routes} returnTo={typeof returnTo === \"string\" ? returnTo : undefined} />;\n}\n", component)
+	return schema.String(), page.String()
+}
+
+// contentFiles writes the schema and the page.tsx of a content page, behind
+// the route guard when it needs a permission.
+func (g *gen) contentFiles(p *genscreens.Page) (string, string) {
+	components := g.Name("application", "components")
+	importFrom := g.ImportOf(p.Part)
+	schemaType := g.Name(p.Part, "schemaType")
+	component := g.Name(p.Part, "component")
+	var schema strings.Builder
+	fmt.Fprintf(&schema, "import type { %s } from %q;\n\n", schemaType, importFrom)
+	schema.WriteString(statement("export const schema = ", object(p.Schema), " satisfies "+schemaType+";"))
+	guarded := p.Permission != "public"
+	var page strings.Builder
+	page.WriteString("import type { Metadata } from \"next\";\n")
+	switch {
+	case guarded && importFrom == components:
+		both := []string{"Guard", component}
+		sort.Strings(both)
+		fmt.Fprintf(&page, "import { %s } from %q;\n", strings.Join(both, ", "), components)
+	case guarded:
+		fmt.Fprintf(&page, "import { %s } from %q;\nimport { Guard } from %q;\n", component, importFrom, components)
+	default:
+		fmt.Fprintf(&page, "import { %s } from %q;\n", component, importFrom)
+	}
+	fmt.Fprintf(&page, "import { chosenLanguage } from \"@/language\";\nimport { stringOf, texts } from \"@/strings\";\nimport { schema } from %q;\n\n", g.schemaModule())
+	page.WriteString(metadataOf(p.Name))
+	g.writeRoutes(&page, p.Routes)
+	page.WriteString("export default async function Page() {\n  const t = texts(schema, await chosenLanguage());\n")
+	if guarded {
+		page.WriteString("  return (\n")
+		fmt.Fprintf(&page, "    <Guard permission={schema.%s} texts={t}>\n", g.Name(p.Part, "permission"))
+		fmt.Fprintf(&page, "      <%s schema={schema} texts={t} routes={routes} />\n", component)
+		page.WriteString("    </Guard>\n  );\n}\n")
+	} else {
+		fmt.Fprintf(&page, "  return <%s schema={schema} texts={t} routes={routes} />;\n}\n", component)
+	}
 	return schema.String(), page.String()
 }
 

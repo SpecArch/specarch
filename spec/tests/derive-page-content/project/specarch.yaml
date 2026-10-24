@@ -1,0 +1,25 @@
+specarch: "0.3"
+info: { title: Case, version: 1.0.0 }
+stages: [tests]
+session: { idleTimeout: PT30M, absoluteTimeout: PT12H }
+permissions:
+  public: { description: Open to everyone. }
+  clients.read: { description: Read what the studio shares with its clients. }
+roles:
+  client: { description: A client of the studio., permissions: [public, clients.read] }
+pages:
+  home:
+    kind: content
+    title: Welcome
+    route: /
+    permission: public
+    blocks:
+      - text: A small studio that builds things.
+      - link: { page: clients, label: For our clients }
+  clients:
+    kind: content
+    title: For our clients
+    route: /clients
+    permission: clients.read
+    blocks:
+      - text: What we share with our clients.

@@ -1,0 +1,7 @@
+arguments: [generate, ui, --unapproved, project]
+exitStatus: 1
+standardOutput: |
+  project/specarch.yaml:24:17: error: /pages/clients/permission: generator: clients is a content page that needs clients.read, and specarch-gen-ui writes files a server hands to anyone, with the page's text inside and no route guard, so nothing would keep it from who lacks clients.read; make the page public, and keep what only holders of clients.read may read behind an operation [generator@specarch.yaml#/pages/clients/permission]
+  project/specarch.yaml:17:16: error: /pages/home/blocks/0/image: generator: home shows the image images/studio.jpg with no alternativeText, and an image is written only with the text read in its place to who cannot see it (WCAG 2.2, 1.1.1); give it its alternativeText [generator@specarch.yaml#/pages/home/blocks/0/image]
+  project/specarch.yaml:18:15: error: /pages/home/blocks/1/link: generator: the link of home to https://example.org/map has no label, and a link is written only with the text that says where it leads (WCAG 2.2, 2.4.4); give it a label [generator@specarch.yaml#/pages/home/blocks/1/link]
+plugins: [ui]

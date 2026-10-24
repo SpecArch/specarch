@@ -297,6 +297,11 @@ func pagesFlowchart(root *yaml.Node) string {
 				}
 			}
 		}
+		for _, blk := range items(p.Value, "blocks") {
+			if nav := str(get(blk, "link"), "page"); nav != "" {
+				fmt.Fprintf(&b, "  %s -->|\"%s\"| %s\n", from, mermaidText(str(get(blk, "link"), "label")), mermaidID(nav))
+			}
+		}
 	}
 	return fence(b.String())
 }

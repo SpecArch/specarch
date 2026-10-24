@@ -835,6 +835,9 @@ func (d *design) pageSubject(p source.Pair) *subject {
 	d.denied(s, source.Str(source.Child(p.Value, "permission")), open)
 	d.throughCases(s, source.Str(source.Child(p.Value, "permission")), open)
 	d.disabled(s, p.Value, open)
+	if source.Str(source.Child(p.Value, "kind")) == "content" {
+		return s // it loads and sends nothing, so it opens or is refused
+	}
 	if source.Str(source.Child(p.Value, "kind")) == "task" {
 		d.answerCases(s, p.Value)
 		d.stateCases(s, p.Value, open)

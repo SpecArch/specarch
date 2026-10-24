@@ -1,0 +1,6 @@
+page: home
+level: system
+scenario: golden
+given: "any caller"
+when: "the page home is opened"
+then: "it shows the image and the links"

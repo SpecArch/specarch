@@ -1,0 +1,20 @@
+specarch: "0.3"
+info: { title: Case, version: 1.0.0 }
+permissions:
+  public: { description: Open to everyone. }
+pages:
+  home:
+    kind: content
+    title: Welcome
+    route: /
+    permission: public
+    blocks:
+      - heading: { level: 2, text: Who we are }
+      - link: { page: about, label: More about us }
+  about:
+    kind: content
+    title: About us
+    route: /about
+    permission: public
+    blocks:
+      - text: A small studio that builds things.

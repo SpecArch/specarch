@@ -1,0 +1,77 @@
+specarch: "0.3"
+info: { title: Case, version: 1.0.0 }
+accessibility: { standard: WCAG 2.2, level: AA }
+permissions:
+  public: { description: Open to everyone. }
+roles:
+  visitor: { description: Anyone who opens the site., permissions: [public] }
+entities:
+  Member:
+    type: object
+    properties:
+      id: { type: string, format: uuid, readOnly: true, title: Member }
+      name: { type: string, maxLength: 80, title: Name }
+    required: [id, name]
+    primaryKey: [id]
+paths:
+  /members/{id}:
+    get:
+      operationId: getMember
+      summary: Read a member
+      permission: public
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        "200":
+          description: The member.
+          content:
+            application/json:
+              schema: { $ref: "#/entities/Member" }
+pages:
+  home:
+    kind: content
+    title: Welcome
+    route: /
+    permission: public
+    entity: Member
+    submit: getMember
+    fields: [name]
+    sections:
+      - { title: About, fields: [name] }
+    actions:
+      - { label: Open, kind: navigate, target: member }
+    blocks:
+      - heading: { level: 3, text: Who we are }
+      - image: { path: images/studio.jpg }
+      - link: { page: contakt, label: Write to us }
+      - link: { href: "https://example.org/map" }
+      - link: { page: member, label: A member }
+  empty:
+    kind: content
+    title: Nothing yet
+    route: /empty
+    permission: public
+  member-content:
+    kind: content
+    title: A member
+    route: /members/{id}/about
+    permission: public
+    blocks:
+      - text: About the member.
+  member:
+    kind: view
+    title: Member
+    route: /members/{id}
+    permission: public
+    entity: Member
+    source: getMember
+    fields: [name]
+    blocks:
+      - text: A paragraph on a view.
+flows:
+  follow-a-link:
+    description: A visitor follows a link that the page does not have.
+    actor: visitor
+    steps:
+      - { page: home, event: action, action: Read more }
+      - { page: home, event: action, action: Write to us }

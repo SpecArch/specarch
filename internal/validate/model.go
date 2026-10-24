@@ -138,6 +138,7 @@ var referencePlaces = []struct {
 	{[]string{"menus", "*", "items", "*", "page"}, toPage},
 	{[]string{"menus", "*", "items", "*", "items", "*", "page"}, toPage},
 	{[]string{"menus", "*", "items", "*", "items", "*", "items", "*", "page"}, toPage},
+	{[]string{"pages", "*", "blocks", "*", "link", "page"}, toPage},
 	{[]string{"flows", "*", "steps", "*", "page"}, toPage},
 	{[]string{"tests", "*", "page"}, toPage},
 	{[]string{"workflows", "*", "trigger"}, toOperation},

@@ -106,6 +106,44 @@ extension Checker {
         }
     }
 
+    /// Checks what a content page holds: blocks only, no entity, source or
+    /// submit, since it loads and sends nothing; no fields, sections, columns
+    /// or filters, which show a record's fields; no actions, since its links
+    /// are link blocks; a route without parameters, since no record gives
+    /// them; and each link to a page of the specification whose route takes
+    /// none.
+    func checkContentPage(_ d: Design, _ name: String, _ pg: YNode) {
+        let base = ["pages", name]
+        for (key, why) in [
+            ("entity", "shows blocks and no record of an entity"),
+            ("source", "loads nothing"),
+            ("submit", "sends nothing"),
+            ("fields", "shows blocks, not the fields of a form, a view or a task"),
+            ("sections", "shows blocks, not the fields of a form or a view in groups"),
+            ("columns", "shows blocks, not the columns of a list"),
+            ("filters", "shows blocks, not the filters of a list"),
+            ("actions", "links to other pages with link blocks"),
+        ] where pg.child(key) != nil {
+            add(pg.key(key), pointer(base + [key]), .page, "\(name) is a content page, which \(why); leave \(key) out")
+        }
+        let own = pathParameters(str(pg.child("route")))
+        if !own.isEmpty {
+            add(pg.child("route"), pointer(base + ["route"]), .page, "\(name) is a content page, which has no record to give {\(own.joined(separator: "} and {"))}; take the parameter out of its route")
+        }
+        for (i, b) in items(pg.child("blocks")).enumerated() {
+            guard let nav = b.child("link")?.child("page") else { continue }
+            let at = base + ["blocks", "\(i)", "link", "page"]
+            guard let target = d.pages[nav.value] else {
+                add(nav, pointer(at), .page, "\(nav.value) is not a page of the specification\(suggest(nav.value, d.pages))")
+                continue
+            }
+            let ps = pathParameters(str(target.child("route")))
+            if !ps.isEmpty {
+                add(nav, pointer(at), .flow, "page \(nav.value) needs the route parameter \(ps.joined(separator: " and ")), and a link of a content page gives none; link to a page whose route takes none")
+            }
+        }
+    }
+
     /// Checks where one event leads, and that its message is a full
     /// sentence; the route parameters it gives come from fields, which from
     /// names.
@@ -193,6 +231,9 @@ func eventTargets(_ pg: YNode, _ event: String, _ action: String) -> (targets: [
             if str(a.child("kind")) == "navigate" { return (one(str(a.child("target"))), true) }
             return (one(str(a.child("then")?.child("navigate"))), true)
         }
+        for b in items(pg.child("blocks")) {
+            if let l = b.child("link"), str(l.child("label")) == action { return (one(str(l.child("page"))), true) }
+        }
     default:
         break
     }
@@ -242,7 +283,10 @@ extension Checker {
                 }
                 let (targets, raised) = eventTargets(pg, event, str(step.child("action")))
                 if !raised {
-                    let what = ["select": "has no onSelect", "submitted": "is not a form or a task", "action": "has no action labelled " + str(step.child("action"))][event] ?? ""
+                    var what = ["select": "has no onSelect", "submitted": "is not a form or a task", "action": "has no action labelled " + str(step.child("action"))][event] ?? ""
+                    if event == "action" && str(pg.child("kind")) == "content" {
+                        what = "has no link labelled " + str(step.child("action"))
+                    }
                     add(step.child("event"), pointer(at + ["event"]), .flow, "page \(str(pageNode)) \(what), so it does not raise \(stepEvent(step))")
                     continue
                 }
@@ -416,6 +460,7 @@ extension Checker {
                 }
                 seen.insert(l.value)
             }
+            checkBlocksAccessible(name, pg)
         }
         for k in order {
             let parts = k.split(separator: ".", maxSplits: 1).map(String.init)
@@ -424,6 +469,33 @@ extension Checker {
             guard let f = fieldsOf(d.entities[ent])[field], f.child("title") == nil else { continue }
             let key = d.entities[ent]?.child("properties")?.key(field)
             add(key, pointer("entities", ent, "properties", field), .accessibility, "\(ent).\(field) is shown on \((shownOn[k] ?? []).joined(separator: ", ")) and has no title, the label a person reads beside it (WCAG 2.2, 3.3.2 and 2.4.6); give it a title")
+        }
+    }
+}
+
+extension Checker {
+    /// Checks the blocks of a content page: every image has its alternative
+    /// text (WCAG 2.2, 1.1.1), every link its label (2.4.4), and no heading
+    /// skips a level below the one before it, the page's title being level 1
+    /// (1.3.1).
+    func checkBlocksAccessible(_ name: String, _ pg: YNode) {
+        var level: Int64 = 1
+        for (i, b) in items(pg.child("blocks")).enumerated() {
+            let at = ["pages", name, "blocks", "\(i)"]
+            if let img = b.child("image"), img.child("alternativeText") == nil {
+                add(b.key("image"), pointer(at + ["image"]), .accessibility, "\(name) shows the image \(str(img.child("path"))) with no alternativeText, the text read in its place to who cannot see it (WCAG 2.2, 1.1.1); give it its alternativeText")
+            }
+            if let l = b.child("link"), l.child("label") == nil {
+                var to = str(l.child("page"))
+                if to.isEmpty { to = str(l.child("href")) }
+                add(b.key("link"), pointer(at + ["link"]), .accessibility, "the link of \(name) to \(to) has no label, the text that says where it leads (WCAG 2.2, 2.4.4); give it a label")
+            }
+            let h = b.child("heading")?.child("level")
+            guard let n = intValue(h) else { continue } // the schema asks for a level of 1 to 6
+            if n > level + 1 {
+                add(h, pointer(at + ["heading", "level"]), .accessibility, "the heading \(str(b.child("heading")?.child("text"))) of \(name) is level \(n) after level \(level), which skips a level (WCAG 2.2, 1.3.1); make it level \(level + 1) at most")
+            }
+            level = n
         }
     }
 }
@@ -455,7 +527,7 @@ extension Checker {
                     continue
                 }
             }
-            guard let secs = secsNode else { continue }
+            guard let secs = secsNode, kind != "content" else { continue } // a content page's sections are reported with its other keys
             if kind == "list" {
                 add(pg.key("sections"), pointer("pages", name, "sections"), .page, "\(name) is a list, which shows columns, and sections group the fields of a form or a view; leave them out")
                 continue

@@ -179,6 +179,48 @@ func (c *checker) checkTaskPage(d *design, name string, pg *yaml.Node) {
 	}
 }
 
+// checkContentPage checks what a content page holds: blocks only, no
+// entity, source or submit, since it loads and sends nothing; no fields,
+// sections, columns or filters, which show a record's fields; no actions,
+// since its links are link blocks; a route without parameters, since no
+// record gives them; and each link to a page of the specification whose
+// route takes none.
+func (c *checker) checkContentPage(d *design, name string, pg *yaml.Node) {
+	base := []string{"pages", name}
+	for _, k := range []struct{ key, why string }{
+		{"entity", "shows blocks and no record of an entity"},
+		{"source", "loads nothing"},
+		{"submit", "sends nothing"},
+		{"fields", "shows blocks, not the fields of a form, a view or a task"},
+		{"sections", "shows blocks, not the fields of a form or a view in groups"},
+		{"columns", "shows blocks, not the columns of a list"},
+		{"filters", "shows blocks, not the filters of a list"},
+		{"actions", "links to other pages with link blocks"},
+	} {
+		if source.Child(pg, k.key) != nil {
+			c.add(source.Key(pg, k.key), source.Pointer(append(base, k.key)...), RulePage, "%s is a content page, which %s; leave %s out", name, k.why, k.key)
+		}
+	}
+	if ps := routeParams(source.Str(source.Child(pg, "route"))); len(ps) > 0 {
+		c.add(source.Child(pg, "route"), source.Pointer(append(base, "route")...), RulePage, "%s is a content page, which has no record to give {%s}; take the parameter out of its route", name, strings.Join(ps, "} and {"))
+	}
+	for i, b := range source.Items(source.Child(pg, "blocks")) {
+		nav := source.Child(source.Child(b, "link"), "page")
+		if nav == nil {
+			continue
+		}
+		at := append(base, "blocks", fmt.Sprint(i), "link", "page")
+		target := d.pages[nav.Value]
+		if target == nil {
+			c.add(nav, source.Pointer(at...), RulePage, "%s is not a page of the specification%s", nav.Value, suggest(nav.Value, d.pages))
+			continue
+		}
+		if ps := routeParams(source.Str(source.Child(target, "route"))); len(ps) > 0 {
+			c.add(nav, source.Pointer(at...), RuleFlow, "page %s needs the route parameter %s, and a link of a content page gives none; link to a page whose route takes none", nav.Value, strings.Join(ps, " and "))
+		}
+	}
+}
+
 // checkEvent checks where one event leads, and that its message is a full
 // sentence; the route parameters it gives come from fields, which from
 // names.
@@ -290,6 +332,11 @@ func eventTargets(pg *yaml.Node, event, action string) (targets []string, raised
 			}
 			return one(source.Str(source.Child(source.Child(a, "then"), "navigate"))), true
 		}
+		for _, b := range source.Items(source.Child(pg, "blocks")) {
+			if l := source.Child(b, "link"); l != nil && source.Str(source.Child(l, "label")) == action {
+				return one(source.Str(source.Child(l, "page"))), true
+			}
+		}
 	}
 	return nil, false
 }
@@ -343,6 +390,9 @@ func (c *checker) checkFlows(d *design) {
 			targets, raised := eventTargets(pg, event, source.Str(source.Child(step, "action")))
 			if !raised {
 				what := map[string]string{"select": "has no onSelect", "submitted": "is not a form or a task", "action": "has no action labelled " + source.Str(source.Child(step, "action"))}[event]
+				if event == "action" && source.Str(source.Child(pg, "kind")) == "content" {
+					what = "has no link labelled " + source.Str(source.Child(step, "action"))
+				}
 				c.add(source.Child(step, "event"), source.Pointer(append(at, "event")...), RuleFlow, "page %s %s, so it does not raise %s", pageNode.Value, what, stepEvent(step))
 				continue
 			}
@@ -573,6 +623,7 @@ func (c *checker) checkAccessibility(d *design) {
 			}
 			seen[l.Value] = true
 		}
+		c.checkBlocksAccessible(name, pg)
 	}
 	for _, k := range order {
 		ent, field, _ := strings.Cut(k, ".")
@@ -582,6 +633,36 @@ func (c *checker) checkAccessibility(d *design) {
 		}
 		key := source.Key(source.Child(d.entities[ent], "properties"), field)
 		c.add(key, source.Pointer("entities", ent, "properties", field), RuleAccessibility, "%s.%s is shown on %s and has no title, the label a person reads beside it (WCAG 2.2, 3.3.2 and 2.4.6); give it a title", ent, field, strings.Join(shownOn[k], ", "))
+	}
+}
+
+// checkBlocksAccessible checks the blocks of a content page: every image
+// has its alternative text (WCAG 2.2, 1.1.1), every link its label (2.4.4),
+// and no heading skips a level below the one before it, the page's title
+// being level 1 (1.3.1).
+func (c *checker) checkBlocksAccessible(name string, pg *yaml.Node) {
+	level := int64(1)
+	for i, b := range source.Items(source.Child(pg, "blocks")) {
+		at := []string{"pages", name, "blocks", fmt.Sprint(i)}
+		if img := source.Child(b, "image"); img != nil && source.Child(img, "alternativeText") == nil {
+			c.add(source.Key(b, "image"), source.Pointer(append(at, "image")...), RuleAccessibility, "%s shows the image %s with no alternativeText, the text read in its place to who cannot see it (WCAG 2.2, 1.1.1); give it its alternativeText", name, source.Str(source.Child(img, "path")))
+		}
+		if l := source.Child(b, "link"); l != nil && source.Child(l, "label") == nil {
+			to := source.Str(source.Child(l, "page"))
+			if to == "" {
+				to = source.Str(source.Child(l, "href"))
+			}
+			c.add(source.Key(b, "link"), source.Pointer(append(at, "link")...), RuleAccessibility, "the link of %s to %s has no label, the text that says where it leads (WCAG 2.2, 2.4.4); give it a label", name, to)
+		}
+		h := source.Child(source.Child(b, "heading"), "level")
+		n, ok := source.Int(h)
+		if !ok {
+			continue // the schema asks for a level of 1 to 6
+		}
+		if n > level+1 {
+			c.add(h, source.Pointer(append(at, "heading", "level")...), RuleAccessibility, "the heading %s of %s is level %d after level %d, which skips a level (WCAG 2.2, 1.3.1); make it level %d at most", source.Str(source.Child(source.Child(b, "heading"), "text")), name, n, level, level+1)
+		}
+		level = n
 	}
 }
 
@@ -616,8 +697,8 @@ func (c *checker) checkSections(d *design) {
 				continue
 			}
 		}
-		if secs == nil {
-			continue
+		if secs == nil || kind == "content" {
+			continue // a content page's sections are reported with its other keys
 		}
 		if kind == "list" {
 			c.add(source.Key(pg, "sections"), source.Pointer("pages", name, "sections"), RulePage, "%s is a list, which shows columns, and sections group the fields of a form or a view; leave them out", name)

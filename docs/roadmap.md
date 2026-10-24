@@ -317,6 +317,9 @@ Built, in the order they were built:
   (`spec/tests/validate-separation-of-duties`);
 - task pages, a page that submits to an operation without loading a
   record (sign-in, a second factor; `spec/tests/validate-task-pages`);
+- content pages, ordered blocks of headings, paragraphs, images and
+  links that load and send nothing, written by both web generators
+  (ADR-181; `spec/tests/validate-page-content`);
 - `workflows`: a request that finishes after people approve it (trigger,
   form, approval and operation steps, deadlines), as an object of its own,
   not an annotation on an endpoint; `flows` remains a person's navigation

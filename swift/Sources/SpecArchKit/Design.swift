@@ -719,8 +719,14 @@ extension Checker {
             let base = ["pages", name]
             let entNode = pg.child("entity")
             let ent = str(entNode)
-            if str(pg.child("kind")) == "task" {
+            let kind = str(pg.child("kind"))
+            if kind != "content" && pg.child("blocks") != nil {
+                add(pg.key("blocks"), pointer(base + ["blocks"]), .page, "\(name) is a \(kind), and blocks are what a content page shows; leave them out")
+            }
+            if kind == "task" {
                 checkTaskPage(d, name, pg)
+            } else if kind == "content" {
+                checkContentPage(d, name, pg)
             } else if isCross(ent) {
                 // A list of another specification: its fields are checked
                 // with the reference.

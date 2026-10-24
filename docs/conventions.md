@@ -1695,6 +1695,55 @@ declares is the golden case, each other success is a golden case
 session. The techspec draws each answer as an edge labelled with its
 status.
 
+### Content pages
+
+A page of kind `content` shows copy: headings, paragraphs, images and
+links, in the order a person reads them, under its title. It loads and
+sends nothing.
+
+    home:
+      kind: content
+      title: Welcome
+      route: /
+      permission: public
+      blocks:
+        - heading: { level: 2, text: Who we are }
+        - text: A small studio that builds things.
+        - image: { path: images/studio.jpg, alternativeText: "The workshop, with two benches and a lathe." }
+        - link: { page: contact, label: Write to us }
+        - link: { href: "https://example.org/map", label: Our street on the map }
+
+Each block is exactly one of four:
+
+| Block | Holds |
+|---|---|
+| `heading` | `level`, 1 to 6, and `text`; the page's title is level 1 |
+| `text` | a paragraph |
+| `image` | `path`, where the project serves it beside the screens, and `alternativeText` |
+| `link` | `page`, a page of the specification, or `href`, an address outside it (https, http or mailto only), and `label` |
+
+A content page has no `entity`, `source`, `submit`, `fields`,
+`sections`, `columns`, `filters` or `actions` (`page`): `sections` keeps
+its one meaning, a form's or a view's fields in titled groups, and a
+link to another page is a link block. Its route takes no parameter, and
+a link opens a page that exists and whose route takes none, since no
+record gives a parameter (`page`, `flow`). `blocks` on any other kind is
+refused (`page`).
+
+Every text of a block is a string key of the page, translated as its
+title is: a web generator writes the heading's and the paragraph's text,
+the image's alternative text and the link's label under
+`<page>.blocks.<n>.text`, `.alternativeText` and `.label`, by the block's
+place, as a section's title is `<page>.sections.<n>`.
+
+In a flow, a step on a content page takes its event `action` with the
+label of a link; it leads where the link's page is. The derived cases
+are those of any page: the golden case that it opens, and for a page
+that is not public `denied without <permission>` and, once the
+specification declares a session, `denied with expired session`. The
+techspec draws an edge per link to a page, and the manual says where
+each link leads.
+
 ### Page states
 
 A page may say what it shows when it is empty or fails:

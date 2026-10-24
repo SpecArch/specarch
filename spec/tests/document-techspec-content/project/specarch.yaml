@@ -1,0 +1,72 @@
+specarch: "0.3"
+info: { title: Studio site, version: 1.0.0 }
+stages: [tests]
+stakeholders:
+  owner: { description: The studio's owner. }
+accessibility: { standard: WCAG 2.2, level: AA }
+session: { idleTimeout: PT30M, absoluteTimeout: PT12H }
+permissions:
+  public: { description: Open to everyone. }
+  clients.read: { description: Read what the studio shares with its clients. }
+roles:
+  visitor: { description: Anyone who opens the site., permissions: [public] }
+  client: { description: A client of the studio., permissions: [public, clients.read] }
+paths:
+  /enquiries:
+    post:
+      operationId: sendEnquiry
+      summary: Send an enquiry
+      permission: public
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email: { type: string, format: email, maxLength: 200, title: Your email }
+                message: { type: string, minLength: 1, maxLength: 2000, title: Your message }
+              required: [email, message]
+      responses:
+        "204": { description: The enquiry is sent. }
+pages:
+  home:
+    kind: content
+    title: Welcome
+    route: /
+    permission: public
+    blocks:
+      - heading: { level: 2, text: Who we are }
+      - text: A small studio that builds things.
+      - image: { path: images/studio.jpg, alternativeText: "The workshop, with two benches and a lathe." }
+      - heading: { level: 3, text: Where to find us }
+      - link: { page: contact, label: Write to us }
+      - link: { href: "https://example.org/map", label: Our street on the map }
+  clients:
+    kind: content
+    title: For our clients
+    route: /clients
+    permission: clients.read
+    blocks:
+      - text: What we share with our clients.
+  contact:
+    kind: task
+    title: Contact us
+    route: /contact
+    permission: public
+    submit: sendEnquiry
+    fields: [email, message]
+    onSubmitted:
+      "204": { navigate: home, message: "Thank you, we will write back." }
+menus:
+  main:
+    title: Studio
+    items:
+      home: { title: Home, page: home }
+      clients: { title: Clients, page: clients }
+flows:
+  write-to-the-studio:
+    description: A visitor follows the link on the home page and sends an enquiry.
+    actor: visitor
+    steps:
+      - { page: home, event: action, action: Write to us }
+      - { page: contact, event: submitted }

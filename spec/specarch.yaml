@@ -77,6 +77,12 @@ sources:
     title: HTML Living Standard
     author: WHATWG
     url: https://html.spec.whatwg.org/
+  wcag-2-2:
+    kind: standard
+    title: Web Content Accessibility Guidelines (WCAG) 2.2
+    edition: "2023"
+    author: W3C
+    url: https://www.w3.org/TR/WCAG22/
   rfc-9457:
     kind: standard
     title: RFC 9457, Problem Details for HTTP APIs

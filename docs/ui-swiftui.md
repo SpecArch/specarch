@@ -155,5 +155,7 @@ The owner's iPhone apps, whose screens the generator is for, are not in
 this repository; the example's screens are the reference. Left out on
 purpose: an app's own session storage (a keychain, a token kept across
 launches), which is the app's; the handshake in the screens, a roadmap
-item for every UI target; and Mac and iPad layouts beyond what SwiftUI
-gives the same views.
+item for every UI target; Mac and iPad layouts beyond what SwiftUI
+gives the same views; and content pages, which `specarch-gen-ui-swiftui`
+refuses by name, writing nothing for them, since an app's copy screens
+are the app's own (ADR-181).

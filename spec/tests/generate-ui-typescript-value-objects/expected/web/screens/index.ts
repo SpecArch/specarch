@@ -2,6 +2,7 @@
 // Draft: the specification is not approved: there is no records/approvals/1.0.0.yaml beside the specification; this file is not the approved output.
 export { ChildRows, type ChildRowsProps, type RowsState } from "./ChildRows";
 export { Confirm, runAction, type ConfirmProps } from "./Confirm";
+export { ContentPage, type ContentPageProps } from "./ContentPage";
 export { Field, type FieldProps } from "./Field";
 export { FormPage, type FieldHook, type FormPageProps } from "./FormPage";
 export { Guard, type GuardProps } from "./Guard";
@@ -17,6 +18,8 @@ export type {
   CheckSchema,
   ChildRowsSchema,
   ColumnSchema,
+  ContentBlockSchema,
+  ContentPageSchema,
   DateFieldSchema,
   EmailFieldSchema,
   EventSchema,

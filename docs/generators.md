@@ -753,6 +753,18 @@ record, of names, constants, comparisons, `&&`, `||`, `!` and `size`; any
 other operator or function, or an ordering of a decimal, is refused at the
 expression.
 
+A content page is `<page>.html` alone, with no module, since it loads
+and sends nothing (ADR-181): its blocks in order under the title, a
+heading as the HTML heading of its level, a paragraph, an image with its
+alternative text as `alt`, and a link to the page's file or to its
+address outside the specification. An image without its text, a link
+without its label, and a link to a page that does not exist or whose
+route takes a parameter are refused at the block, and the page is left
+out. A content page that needs a permission is refused at its
+`permission`: the screens are files a server hands to anyone, with the
+page's text inside and no route guard, so nothing would keep the text
+from who lacks the permission.
+
 A form or a task is `<page>.html` whose fields are native controls, in
 its sections as fieldsets, each with the attributes the browser checks
 from the property's keywords and `required` from the request body
@@ -838,7 +850,15 @@ data only: one object literal typed with `satisfies`, whose keys are the
 names of the `ui-components` idiom (`docs/idioms.md`), a project's
 override first, laid out as prettier lays out an object literal at a width
 of 140. `page.tsx` hands the component the schema, the texts it names and
-the routes its events lead to. On a task page, a field is a property of
+the routes its events lead to. A content page's schema holds its title,
+its permission and its blocks, each text a string key, and `ContentPage`
+draws them in order under the title, a link as a Carbon `Link` to the
+route of its page or to its address; the blocks are read by the same
+code as the plain JavaScript generator's (ADR-181), so both refuse the
+same blocks. A content page that needs a permission is drawn inside the
+`Guard`, with the derived refusal test, and warned of: its texts travel
+to the browser with the page, so the guard keeps the page from showing,
+not its text from who reads the files. On a task page, a field is a property of
 the request body of type string, drawn by the text, email or password field part by its
 format and checked by its keywords before the request is sent; a password
 shows its rules under it. A check across fields is written as a rule in

@@ -113,6 +113,9 @@ func Generate(r *Request) genui.Response {
 			page, ok = g.FormPage(pageName, pg, sess, hooks[pageName], layouts[pageName])
 		case "view":
 			page, ok = g.ViewPage(pageName, pg, sess)
+		case "content":
+			g.Problem("error", "/pages/"+pageName, "%s is a content page, which this version of %s does not write, so nothing is written for it; write the page in the app by hand, or leave it to a web target", pageName, name)
+			continue
 		default:
 			g.Problem("warning", "/pages/"+pageName, "%s is a %s, which this version of %s does not write; it is left out", pageName, text(pg["kind"]), name)
 			continue

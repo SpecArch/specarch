@@ -1,0 +1,4 @@
+arguments: [validate, .]
+exitStatus: 0
+standardOutput: |
+  specarch.yaml:32:3: warning: /pages/home: test_red_missing: page home has no red scenario; add one under tests, for example home-refused: { page: home, scenario: red, given: "...", when: "...", then: "it is refused" } [test_red_missing@specarch.yaml#/pages/home]

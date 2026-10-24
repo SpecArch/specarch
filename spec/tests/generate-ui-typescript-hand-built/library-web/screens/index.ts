@@ -1,5 +1,6 @@
 export { ChildRows, type ChildRowsProps, type RowsState } from "./ChildRows";
 export { Confirm, runAction, type ConfirmProps } from "./Confirm";
+export { ContentPage, type ContentPageProps } from "./ContentPage";
 export { Field, type FieldProps } from "./Field";
 export { FormPage, type FieldHook, type FormPageProps } from "./FormPage";
 export { Guard, type GuardProps } from "./Guard";
@@ -15,6 +16,8 @@ export type {
   CheckSchema,
   ChildRowsSchema,
   ColumnSchema,
+  ContentBlockSchema,
+  ContentPageSchema,
   DateFieldSchema,
   EmailFieldSchema,
   EventSchema,

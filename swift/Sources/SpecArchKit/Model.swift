@@ -87,6 +87,7 @@ private let referencePlaces: [(path: [String], kind: String)] = [
     (["menus", "*", "items", "*", "page"], "page"),
     (["menus", "*", "items", "*", "items", "*", "page"], "page"),
     (["menus", "*", "items", "*", "items", "*", "items", "*", "page"], "page"),
+    (["pages", "*", "blocks", "*", "link", "page"], "page"),
     (["flows", "*", "steps", "*", "page"], "page"),
     (["tests", "*", "page"], "page"),
     (["workflows", "*", "trigger"], "operation"),

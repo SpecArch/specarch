@@ -1,0 +1,6 @@
+flow: write-to-the-studio
+level: system
+scenario: red
+given: "a visitor"
+when: "they follow Write to us and send the enquiry without an email"
+then: "it is refused on the page contact, and they stay there"

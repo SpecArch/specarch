@@ -1,0 +1,6 @@
+arguments: [generate, ui, --unapproved, project]
+exitStatus: 1
+standardOutput: |
+  project/specarch.yaml:44:3: error: /pages/clients: generator: clients is a content page, which this version of specarch-gen-ui-swiftui does not write, so nothing is written for it; write the page in the app by hand, or leave it to a web target [generator@specarch.yaml#/pages/clients]
+  project/specarch.yaml:32:3: error: /pages/home: generator: home is a content page, which this version of specarch-gen-ui-swiftui does not write, so nothing is written for it; write the page in the app by hand, or leave it to a web target [generator@specarch.yaml#/pages/home]
+plugins: [ui-swiftui]

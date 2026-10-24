@@ -3045,7 +3045,7 @@
       }
     },
     "page": {
-      "description": "SpecArch keyword. A screen of one of four kinds: a list, a form or a view of an entity's records, or a task that submits to an operation without loading a record. Generators map it onto the target project's component library.",
+      "description": "SpecArch keyword. A screen of one of five kinds: a list, a form or a view of an entity's records, a task that submits to an operation without loading a record, or a content page of headings, text, images and links that loads and submits nothing. Generators map it onto the target project's component library.",
       "type": "object",
       "properties": {
         "kind": {
@@ -3054,7 +3054,8 @@
             "list",
             "form",
             "view",
-            "task"
+            "task",
+            "content"
           ]
         },
         "title": {
@@ -3070,7 +3071,7 @@
           "pattern": "^/"
         },
         "entity": {
-          "description": "The entity whose records a list, form or view shows. A task page shows none and leaves it out. A list page whose source is a list of another specification names that list's entity the same way, as customerRegistry#/entities/Customer.",
+          "description": "The entity whose records a list, form or view shows. A task page and a content page show none and leave it out. A list page whose source is a list of another specification names that list's entity the same way, as customerRegistry#/entities/Customer.",
           "$ref": "#/$defs/entityTarget"
         },
         "permission": {
@@ -3117,6 +3118,14 @@
           "type": "array",
           "items": {
             "$ref": "#/$defs/pageSection"
+          },
+          "minItems": 1
+        },
+        "blocks": {
+          "description": "For a content page: what it shows under its title, in the order a person reads them, which is the reading and focus order (WCAG 2.2, 1.3.2 and 2.4.3). Every text of a block is a string key of the page, translated as its title is. How blocks sit on a screen is the stack's.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/contentBlock"
           },
           "minItems": 1
         },
@@ -3300,6 +3309,23 @@
                 "$ref": "#/$defs/statusEvents"
               }
             }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "content"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "required": [
+              "blocks"
+            ]
           }
         }
       ],
@@ -3921,6 +3947,116 @@
       "patternProperties": {
         "^x-": {}
       },
+      "additionalProperties": false
+    },
+    "contentBlock": {
+      "description": "SpecArch keyword. One block of a content page: a heading, a paragraph of text, an image or a link, exactly one of them.",
+      "type": "object",
+      "properties": {
+        "heading": {
+          "description": "A heading over the blocks after it. The page's title is the heading of level 1.",
+          "type": "object",
+          "properties": {
+            "level": {
+              "description": "Its level, 1 to 6, as HTML's h1 to h6; a level is at most one below the heading before it (WCAG 2.2, 1.3.1).",
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 6
+            },
+            "text": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "level",
+            "text"
+          ],
+          "additionalProperties": false
+        },
+        "text": {
+          "description": "A paragraph.",
+          "type": "string",
+          "minLength": 1
+        },
+        "image": {
+          "description": "An image the project serves at path, beside the screens; the generator copies nothing and checks no file.",
+          "type": "object",
+          "properties": {
+            "path": {
+              "description": "Where the image is served, relative to the site's root, as images/studio.jpg.",
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^[^:]+$"
+            },
+            "alternativeText": {
+              "description": "What the image shows, for who cannot see it (WCAG 2.2, 1.1.1). Required once the specification names its accessibility target.",
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "path"
+          ],
+          "additionalProperties": false
+        },
+        "link": {
+          "description": "A link to a page of the specification, whose route takes no parameter, or to an address outside it.",
+          "type": "object",
+          "properties": {
+            "page": {
+              "description": "The page it opens.",
+              "type": "string",
+              "minLength": 1
+            },
+            "href": {
+              "description": "An address outside the specification: https, http or mailto only, so that no link runs script (javascript:) or carries a document (data:).",
+              "type": "string",
+              "pattern": "^(https?://[^\\s]+|mailto:[^\\s]+)$"
+            },
+            "label": {
+              "description": "The link's text, which says where it leads (WCAG 2.2, 2.4.4). Required once the specification names its accessibility target.",
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "oneOf": [
+            {
+              "required": [
+                "page"
+              ]
+            },
+            {
+              "required": [
+                "href"
+              ]
+            }
+          ],
+          "additionalProperties": false
+        }
+      },
+      "oneOf": [
+        {
+          "required": [
+            "heading"
+          ]
+        },
+        {
+          "required": [
+            "text"
+          ]
+        },
+        {
+          "required": [
+            "image"
+          ]
+        },
+        {
+          "required": [
+            "link"
+          ]
+        }
+      ],
       "additionalProperties": false
     },
     "childRows": {

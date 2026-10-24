@@ -330,6 +330,11 @@ func manualPage(d *doc, root *yaml.Node, name string, page *yaml.Node) {
 				reached = append(reached, "the action "+str(a, "label")+" on the "+title+" page")
 			}
 		}
+		for _, b := range items(other.Value, "blocks") {
+			if str(get(b, "link"), "page") == name {
+				reached = append(reached, "the link "+str(get(b, "link"), "label")+" on the "+title+" page")
+			}
+		}
 	}
 	if len(reached) > 0 {
 		d.para("Reached from " + joinAnd(reached) + ".")
@@ -400,6 +405,23 @@ func manualPage(d *doc, root *yaml.Node, name string, page *yaml.Node) {
 		d.para("Checked before it is sent: " + strings.Join(msgs, "; ") + ".")
 	}
 
+	var links []string
+	for _, b := range items(page, "blocks") {
+		l := get(b, "link")
+		switch {
+		case str(l, "page") != "":
+			links = append(links, "**"+str(l, "label")+"**: opens the "+pageTitleOf(root, str(l, "page"))+" page.")
+		case str(l, "href") != "":
+			links = append(links, "**"+str(l, "label")+"**: opens "+str(l, "href")+", outside the system.")
+		}
+	}
+	if len(links) > 0 {
+		d.para("Where its links lead:")
+		for _, l := range links {
+			d.line("- %s", l)
+		}
+		d.blank()
+	}
 	if actions := items(page, "actions"); len(actions) > 0 {
 		d.para("What can be done here:")
 		for _, a := range actions {

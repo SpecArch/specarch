@@ -1,0 +1,6 @@
+arguments: [derive, project]
+exitStatus: 0
+standardOutput: |
+  project/tests/clients-succeeds/test.yaml
+  project/tests/clients-denied-without-clients-read/test.yaml
+  project/tests/clients-denied-with-expired-session/test.yaml

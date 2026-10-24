@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.6-dev of the specification: 684 design tests, 326 golden and 358 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.6-dev of the specification: 694 design tests, 333 golden and 361 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.7.6-dev of the specification: 684 design tests, 326 golden and 358 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 680 |
+| system | 690 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -284,6 +284,14 @@ Scenario: golden; level: system; verifies SA-28.
 - Given: a specification whose requirements AB-1.2, AB-1_2 and AB-Shelf.Two each name a harm and have one acceptance criterion, and whose tests folder holds one test, of another requirement
 - When: derive is run
 - Then: it names each draft from its requirement made a valid name, ab-1-2-acceptance-1 and ab-shelf-two-acceptance-1, gives the draft of AB-1_2, whose name AB-1.2 gives as well, the suffix -2 with a question on standard error and in its why, keeps each requirement's own ID in the draft's keys and verifies, and exits 0 with a tree validate passes
+
+#### derive-page-content
+
+Scenario: golden; level: system; verifies SA-42.
+
+- Given: a specification with a session, a public content page whose golden test is written, and a content page that needs clients.read
+- When: derive is run
+- Then: it writes for the second page a golden test that it opens to a caller with clients.read and red tests denied without clients.read and denied with expired session, writes nothing more for the public page, lists them and exits 0
 
 #### derive-page-elements
 
@@ -637,6 +645,14 @@ Scenario: red; level: system; covers exit 1.
 - When: document techspec is run
 - Then: it prints the error, writes the technical specification with a Problems notice and a Problem paragraph at the relation, and exits 1
 
+#### document-manual-content
+
+Scenario: golden; level: system; verifies SA-42.
+
+- Given: a specification with a public content page whose links open a task page and an address outside, a content page that needs clients.read, the task page and a menu
+- When: document manual is run
+- Then: it lists each content page with who opens it and where its links lead, says the task page is reached from the link on the content page, and exits 0
+
 #### document-manual-integer-forms
 
 Scenario: golden; level: system; verifies SA-90.
@@ -812,6 +828,14 @@ Scenario: golden; level: system; verifies SA-88.
 - Given: the estate of validate-caller-estate, with an implementation file naming the techspec's folder for the core and the identity module
 - When: document techspec is run on the estate file
 - Then: the identity module's techspec shows the estate's one matrix, the permissions of each module by its roles and its client with roles, with the grants through narrows, the trust domain, the clients, the tokens and the security events; the core's matrix has a column per role and client of the identity module that reaches its permissions, and it draws the chain bff, middleware, core the induction found, with the token and the workload identity on each arrow
+
+#### document-techspec-content
+
+Scenario: golden; level: system; verifies SA-42.
+
+- Given: a specification with a public content page of headings, a paragraph, an image and links to a task page and to an address outside, a content page that needs clients.read, the task page and a menu
+- When: document techspec is run
+- Then: the pages diagram draws each content page with an edge per link to a page, labelled with the link's label, and the pages table gives each content page no entity and its blocks in order, and it exits 0
 
 #### document-techspec-context
 
@@ -2645,6 +2669,22 @@ Scenario: golden; level: system; verifies SA-43.
 - When: generate ui is run with --unapproved
 - Then: it writes the page's HTML and module, events.js with the page's and the operation's events, pages.js with the page's file, ask.js, which confirms an action, and theme.css with the tokens as custom properties and the rules the target's token settings name, and exits 0
 
+#### generate-ui-content
+
+Scenario: golden; level: system; verifies SA-92.
+
+- Given: a specification with a public content page of two headings, a paragraph, an image with its text and links to a task page and to an address outside, the task page, and a menu; an implementation file whose ui target is platform web in plain-javascript; and specarch-gen-ui built from this repository on PATH
+- When: generate ui is run with --unapproved
+- Then: it writes home.html with the blocks in order under the title, each heading at its level, the image with its alt text and the links to contact.html and to the address, and no module for it, since it loads and sends nothing; pages.js lists it, and it exits 0
+
+#### generate-ui-content-refused
+
+Scenario: red; level: system; covers exit 1; verifies SA-92.
+
+- Given: a specification that names no accessibility target, with a public content page that shows an image without its text, a link without a label and a link to a content page that needs clients.read; an implementation file whose ui target is platform web in plain-javascript; and specarch-gen-ui built from this repository on PATH
+- When: generate ui is run with --unapproved
+- Then: it refuses the image and the label-less link by name, refuses the page that needs a permission, since files a server hands to anyone keep its text from no one, writes neither page, and exits 1
+
 #### generate-ui-dxlib
 
 Scenario: golden; level: system; verifies SA-77, SA-43.
@@ -2685,6 +2725,14 @@ Scenario: golden; level: system; verifies SA-78.
 - When: generate ui is run with --unapproved
 - Then: it runs the plug-in once; it writes each page as a schema of data, one Swift literal typed by its part's schema type with rules as array literals and the route's parameters and the fields a picker fills as dictionaries, and a view that hands it to the part's component, the task pages plain and the rest behind the guard with the route's parameters, the registration form taking each hook from a member of its name of a type the project writes, each guarded page with its derived test that it is refused, sent to sign in or opened by the permission held; Routes.swift with a case per page and the view each opens, the owned branch list the menu reaches among them, opening the missing page, Application.swift with the session, the sign-in page and the menu without the owned one, the menu's derived test, the components under Screens, the texts in Strings.swift with the en-GB translation, and Theme.swift with the parts' colours in light and dark; it warns that the field with no title is labelled by its name and that the translation's unused entries, the print mode and the space are left out, and exits 0
 
+#### generate-ui-swiftui-content
+
+Scenario: red; level: system; covers exit 1; verifies SA-92.
+
+- Given: a specification with two content pages, a task page and a menu over the content pages; an implementation file whose ui target is platform iphone; and specarch-gen-ui-swiftui built from this repository on PATH
+- When: generate ui is run with --unapproved
+- Then: it refuses each content page by name, writes nothing for either and leaves their menu entries out, writes the task page, and exits 1
+
 #### generate-ui-swiftui-dxlib-refused
 
 Scenario: red; level: system; verifies SA-77.
@@ -2716,6 +2764,14 @@ Scenario: golden; level: system; verifies SA-52, SA-53, SA-54, SA-55, SA-56.
 - Given: a specification with two task pages, a list page that filters by an enum and by a date it may filter, searches, sorts two of its columns, keeps one on a compact screen, opens a page from its toolbar, a view from a row and the edit form from a row while it is active, and suspends a row while it is active after a confirmation that asks for the reason, a public list; a form that registers a member in two titled sections, with a text, an enum, a date, an integer, a boolean, a text without a maximum and a PIN typed twice, a branch picked from a list that searches, a field read-only while the status is inactive and one hidden while the newsletter is off, a check across two fields and an idempotency key; a form that loads a member and changes it, with a field always read-only and one read-only by an expression; a view that hides a field by an expression, opens the second form and suspends the member while active after a confirmation that asks for the reason; a form that loads a member answering a view with the rows of their visits and adds visits as rows, locked when loaded, at most five, with a field the rows' items do not take; a form that starts an approval, answered 202; the inbox of that approval's step, approving a request after a confirmation; a list read from an operation that answers every branch whole; two menus; and a theme with a dark mode, a print mode and a dimension; two implementation files in TypeScript in one folder, each with its ui target in nextjs-carbon, its own output and the session's operation in its settings, a hook for the registration's date and its sections as tabs in one and steps in the other, one owning the administration menu and the sign-in operation to another stakeholder, with server routes whose settings page the branches, a translation into en-GB whose file in the output folder keeps an entry no screen uses, and its theme's parts mapped to tokens with a space among them, and the other owning the branches page, calling the service directly, drawing lists through a library of its own by an override and naming a page's schema file _schema.ts under bindings.ui.schemaFile; and specarch-gen-ui-typescript built from this repository on PATH
 - When: generate ui is run with --unapproved
 - Then: it runs the plug-in once per output folder; each writes the task pages, the list's schema and page behind the guard, the edit form among its row actions with its route filled from the row, with the derived test that it is refused without its permission, the public list with no such test, each form's and the view's schema and page behind the guard with its derived test, the visits' rows with the loaded ones read from the view's property and only the fields the items take sent, the approval's form with its event under 202, the inbox as a list with its row action, the registration's hook handed on by page.client.tsx from page.hooks.ts, application.ts with the session and the menu without the owned one, the menu's derived test, the components under screens, the texts in strings.ts with the en-GB translation in the first, language.ts, theme.scss with Carbon's themes and, in the first, the parts' colours in light and dark, and in the first a route.ts per path a page calls, the branches paged by their route, none for the owned sign-in, the routes' settings and their derived test; the second imports the list's component and schema type from the library, names its columns by the override, and writes each page's schema as _schema.ts, which its page and derived test import; each warns that the field with no title is labelled by its name and that the print mode is left out, the first that the translation's unused entry and the space are left out, the second that the theme reaches no Carbon token, and exits 0
+
+#### generate-ui-typescript-content
+
+Scenario: golden; level: system; verifies SA-92.
+
+- Given: a specification with a public content page of two headings, a paragraph, an image with its text and links to a task page and to an address outside, a content page that needs clients.read, the task page and a menu; an implementation file whose ui target is platform web in nextjs-carbon; and specarch-gen-ui-typescript built from this repository on PATH
+- When: generate ui is run with --unapproved
+- Then: it writes each content page as a schema of its title, permission and blocks, every text a string key in strings.ts, and a page.tsx drawing ContentPage with the routes its links open, the page that needs clients.read inside the Guard with its derived refusal test and a warning that its text reaches the browser, and exits 0
 
 #### generate-ui-typescript-dxlib
 
@@ -2879,7 +2935,7 @@ Scenario: golden; level: system; verifies SA-32.
 
 - Given: a specification with a list page and three implementation files: one in TypeScript whose ui target is platform web, framework nextjs-carbon, one in JavaScript whose ui target is platform web and names no framework, so plain-javascript, and one in Swift whose ui target is platform iphone and names no framework, so swiftui
 - When: idioms is run
-- Then: it lists ui-components 1.8.0 as shipped for the TypeScript file, whose framework nextjs-carbon is a stack the idiom renders, and for the Swift file, whose framework swiftui by the platform's default is one too, and not for the JavaScript file, and exits 0
+- Then: it lists ui-components 1.9.0 as shipped for the TypeScript file, whose framework nextjs-carbon is a stack the idiom renders, and for the Swift file, whose framework swiftui by the platform's default is one too, and not for the JavaScript file, and exits 0
 
 #### idioms-usage-error
 
@@ -3260,6 +3316,14 @@ Scenario: golden; level: system; verifies SA-74.
 - Given: a specification whose operation names a client of its own and one of the identity module in via, and whose role narrows a permission through a client of its own and one of the identity module
 - When: model is run on it
 - Then: it lists the via item naming its own client, the through key naming the permission and the through item naming its own client, each with its keyword, leaves out the two clients of the identity module, and exits 0
+
+#### model-page-content
+
+Scenario: golden; level: system; verifies SA-42.
+
+- Given: a specification with a content page whose link block opens another content page
+- When: model is run on it
+- Then: the document holds both pages with their blocks, a reference from the link's page to the page about, and exits 0
 
 #### model-scalar-forms
 
@@ -4503,6 +4567,22 @@ Scenario: red; level: system; covers exit 1; verifies SA-42.
 - When: validate is run
 - Then: it reports flow four times, each at its action, and exits 1
 
+#### validate-page-content
+
+Scenario: golden; level: system; verifies SA-42.
+
+- Given: a specification on 0.3 that names its accessibility target, with a public content page of two headings, a paragraph, an image with its text and links to a page and to an address outside, a content page that needs a permission, a task page, a menu over both content pages and a flow that follows a link to the task page
+- When: validate is run
+- Then: it reports no error, warns only that the public content page has no red scenario, which nothing on it can give, and exits 0
+
+#### validate-page-content-refused
+
+Scenario: red; level: system; covers exit 1; verifies SA-42.
+
+- Given: a specification that names its accessibility target, with a content page that names an entity, a submit, fields, sections and actions and whose blocks hold a heading that skips a level, an image without its text, a link to no page, a link without a label and a link to a page whose route takes a parameter; a content page with no blocks; one whose route takes a parameter; a view with blocks; and a flow that follows a link the page does not have
+- When: validate is run
+- Then: it reports page at each of the five keys, at the link to no page, at the route and at the view's blocks, accessibility at the heading, the image and the link, flow at the link to the page with a parameter and at the flow's step, the schema at the page with no blocks, and exits 1
+
 #### validate-page-elements-unresolved
 
 Scenario: red; level: system; covers exit 1; verifies SA-42.
@@ -5555,7 +5635,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-391 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+396 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -5631,6 +5711,7 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-42 | acceptance 8 | golden | SA-42 names no harm |
 | requirement SA-42 | acceptance 9 | golden | SA-42 names no harm |
 | requirement SA-42 | acceptance 10 | golden | SA-42 names no harm |
+| requirement SA-42 | acceptance 11 | golden | SA-42 names no harm |
 | requirement SA-43 | acceptance 1 | golden | SA-43 names no harm |
 | requirement SA-43 | acceptance 2 | golden | SA-43 names no harm |
 | requirement SA-43 | acceptance 3 | golden | SA-43 names no harm |
@@ -5785,6 +5866,10 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-91 | acceptance 1 | golden | SA-91 names no harm |
 | requirement SA-91 | acceptance 2 | golden | SA-91 names no harm |
 | requirement SA-91 | acceptance 3 | golden | SA-91 names no harm |
+| requirement SA-92 | acceptance 1 | golden | SA-92 names no harm |
+| requirement SA-92 | acceptance 2 | golden | SA-92 names no harm |
+| requirement SA-92 | acceptance 3 | golden | SA-92 names no harm |
+| requirement SA-92 | acceptance 4 | golden | SA-92 names no harm |
 | requirement SA-7 | acceptance 1 | golden | SA-7 names no harm |
 | requirement SA-7 | acceptance 2 | golden | SA-7 names no harm |
 | requirement SA-8 | acceptance 1 | golden | SA-8 names no harm |

@@ -199,6 +199,7 @@ func Generate(r *Request) Response {
 	var lists []*page
 	var views []*viewPage
 	var forms []*formPage
+	var contents []*contentPage
 	g.opened = map[string]bool{}
 	for _, name := range sortedKeys(pages) {
 		pg := obj0(pages[name])
@@ -221,6 +222,11 @@ func Generate(r *Request) Response {
 			if f := g.form(name, pg); f != nil {
 				forms = append(forms, f)
 				ws = append(ws, written{name, f})
+			}
+		case "content":
+			if c := g.content(name, pg); c != nil {
+				contents = append(contents, c)
+				ws = append(ws, written{name, c})
 			}
 		default:
 			g.problem("warning", "/pages/"+name, "%s is a %s, which specarch-gen-ui does not write; it is left out", name, text(pg["kind"]))
@@ -254,6 +260,20 @@ func Generate(r *Request) Response {
 	}
 	for _, v := range views {
 		v.actions = keepActions(v.actions)
+	}
+	for _, c := range contents {
+		kept := map[string]bool{}
+		for _, l := range g.keep(c.links()) {
+			kept[l.at] = true
+		}
+		var blocks []Block
+		for _, b := range c.blocks {
+			if b.Kind == "link" && b.Page != "" && !kept[b.At+"/link/page"] {
+				continue
+			}
+			blocks = append(blocks, b)
+		}
+		c.blocks = blocks
 	}
 	for _, f := range forms {
 		for status, n := range f.next {
@@ -307,9 +327,10 @@ func Generate(r *Request) Response {
 	var files []File
 	for _, w := range ws {
 		h := w.p.html(g)
-		files = append(files,
-			File{Path: w.name + ".html", Content: strings.Replace(h, "\n", "\n"+header("<!-- ", " -->", placed["/pages/"+mark.Escape(w.name)]), 1)},
-			File{Path: w.name + ".js", Content: header("// ", "", placed["/pages/"+mark.Escape(w.name)]) + w.p.js()})
+		files = append(files, File{Path: w.name + ".html", Content: strings.Replace(h, "\n", "\n"+header("<!-- ", " -->", placed["/pages/"+mark.Escape(w.name)]), 1)})
+		if js := w.p.js(); js != "" {
+			files = append(files, File{Path: w.name + ".js", Content: header("// ", "", placed["/pages/"+mark.Escape(w.name)]) + js})
+		}
 	}
 	files = append(files, File{Path: "events.js", Content: header("// ", "", placed[mark.File]) + eventsJS(events)})
 	files = append(files, File{Path: "pages.js", Content: header("// ", "", nil) + g.pagesJS(sortedSet(g.opened))})

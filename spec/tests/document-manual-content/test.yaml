@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: document
+level: system
+scenario: golden
+given: "a specification with a public content page whose links open a task page and an address outside, a content page that needs clients.read, the task page and a menu"
+when: "document manual is run"
+then: "it lists each content page with who opens it and where its links lead, says the task page is reached from the link on the content page, and exits 0"
+verifies: [SA-42]

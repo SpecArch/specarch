@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: generate
+level: system
+scenario: golden
+given: "a specification with a public content page of two headings, a paragraph, an image with its text and links to a task page and to an address outside, the task page, and a menu; an implementation file whose ui target is platform web in plain-javascript; and specarch-gen-ui built from this repository on PATH"
+when: "generate ui is run with --unapproved"
+then: "it writes home.html with the blocks in order under the title, each heading at its level, the image with its alt text and the links to contact.html and to the address, and no module for it, since it loads and sends nothing; pages.js lists it, and it exits 0"
+verifies: [SA-92]

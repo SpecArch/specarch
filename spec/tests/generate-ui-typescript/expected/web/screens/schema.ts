@@ -242,6 +242,21 @@ export interface TaskPageSchema {
   readonly events: readonly EventSchema[];
 }
 
+/** One block of a content page: a heading of its level, a paragraph, an image with its text, or a link to a page or an address outside the specification. */
+export type ContentBlockSchema =
+  | { readonly kind: "heading"; readonly level: 1 | 2 | 3 | 4 | 5 | 6; readonly text: StringKey }
+  | { readonly kind: "text"; readonly text: StringKey }
+  | { readonly kind: "image"; readonly path: string; readonly alternativeText: StringKey }
+  | { readonly kind: "link"; readonly page: string; readonly href?: undefined; readonly label: StringKey }
+  | { readonly kind: "link"; readonly page?: undefined; readonly href: string; readonly label: StringKey };
+
+/** A content page: its title, the permission it needs and its blocks in reading order. */
+export interface ContentPageSchema {
+  readonly title: StringKey;
+  readonly permission: string;
+  readonly blocks: readonly ContentBlockSchema[];
+}
+
 /** A column of a list: the row's field, its title, and whether it sorts and stays on a compact screen. */
 export interface ColumnSchema {
   readonly field: string;

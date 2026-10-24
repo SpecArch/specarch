@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: model
+level: system
+scenario: golden
+given: "a specification with a content page whose link block opens another content page"
+when: model is run on it
+then: "the document holds both pages with their blocks, a reference from the link's page to the page about, and exits 0"
+verifies: [SA-42]

@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: validate
+level: system
+scenario: golden
+given: "a specification on 0.3 that names its accessibility target, with a public content page of two headings, a paragraph, an image with its text and links to a page and to an address outside, a content page that needs a permission, a task page, a menu over both content pages and a flow that follows a link to the task page"
+when: "validate is run"
+then: "it reports no error, warns only that the public content page has no red scenario, which nothing on it can give, and exits 0"
+verifies: [SA-42]

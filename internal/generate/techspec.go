@@ -1015,8 +1015,12 @@ func crossCutting(d *doc, root *yaml.Node, state *State) {
 			}
 			text += childRowsText(p.Value)
 			entity := str(p.Value, "entity")
-			if str(p.Value, "kind") == "task" {
+			switch str(p.Value, "kind") {
+			case "task":
 				entity = "none; submits to " + str(p.Value, "submit")
+			case "content":
+				entity = "none; loads and sends nothing"
+				text = blocksText(p.Value)
 			}
 			d.line("| %s | %s | %s | %s | %s | %s |", p.Key.Value, str(p.Value, "kind"), cell(str(p.Value, "route")), cell(entity), str(p.Value, "permission"), cell(text))
 		}
@@ -1708,6 +1712,30 @@ func workflowDetails(d *doc, root *yaml.Node, name string, w *yaml.Node) {
 // each action offered by a condition or asking for a reason, each field
 // read-only or hidden, each check across a form's fields, and each field
 // entered twice.
+// blocksText is what a content page shows, in the pages table: each block
+// in order, a heading with its level and text, a paragraph, an image with
+// its path and a link with its label and where it leads.
+func blocksText(page *yaml.Node) string {
+	var parts []string
+	for _, b := range items(page, "blocks") {
+		switch {
+		case get(b, "heading") != nil:
+			parts = append(parts, "heading "+num(get(b, "heading"), "level")+" "+str(get(b, "heading"), "text"))
+		case get(b, "text") != nil:
+			parts = append(parts, "a paragraph")
+		case get(b, "image") != nil:
+			parts = append(parts, "image "+str(get(b, "image"), "path"))
+		case get(b, "link") != nil:
+			to := str(get(b, "link"), "page")
+			if to == "" {
+				to = str(get(b, "link"), "href")
+			}
+			parts = append(parts, "link "+str(get(b, "link"), "label")+" to "+to)
+		}
+	}
+	return strings.Join(parts, "; ")
+}
+
 func elementRows(root *yaml.Node, pages []source.Pair) []string {
 	var rows []string
 	row := func(page, element, text string) {

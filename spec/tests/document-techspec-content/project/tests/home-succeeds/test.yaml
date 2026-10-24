@@ -1,0 +1,6 @@
+page: home
+level: system
+scenario: golden
+given: "any caller, signed in or not"
+when: "the page home is opened"
+then: "it shows the title Welcome, the heading Who we are, the paragraph, the image of the workshop with its text, the heading Where to find us and the links Write to us and Our street on the map, in that order"

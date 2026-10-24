@@ -1,0 +1,6 @@
+page: home
+level: system
+scenario: golden
+given: "any caller, signed in or not"
+when: "the page home is opened"
+then: "it shows the paragraph and the link For our clients"

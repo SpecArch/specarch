@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: generate
+level: system
+scenario: red
+covers: [exit 1]
+given: "a specification that names no accessibility target, with a public content page that shows an image without its text, a link without a label and a link to a content page that needs clients.read; an implementation file whose ui target is platform web in plain-javascript; and specarch-gen-ui built from this repository on PATH"
+when: "generate ui is run with --unapproved"
+then: "it refuses the image and the label-less link by name, refuses the page that needs a permission, since files a server hands to anyone keep its text from no one, writes neither page, and exits 1"
+verifies: [SA-92]

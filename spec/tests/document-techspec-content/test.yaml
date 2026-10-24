@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: document
+level: system
+scenario: golden
+given: "a specification with a public content page of headings, a paragraph, an image and links to a task page and to an address outside, a content page that needs clients.read, the task page and a menu"
+when: "document techspec is run"
+then: "the pages diagram draws each content page with an edge per link to a page, labelled with the link's label, and the pages table gives each content page no entity and its blocks in order, and it exits 0"
+verifies: [SA-42]

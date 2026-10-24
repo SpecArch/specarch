@@ -33,6 +33,7 @@ standardOutput: |
   library-web/language.ts: built by hand, and matches what generate writes but for its header
   library-web/screens/ChildRows.tsx: built by hand, and matches what generate writes but for its header
   library-web/screens/Confirm.tsx: built by hand, and matches what generate writes but for its header
+  library-web/screens/ContentPage.tsx: built by hand, and matches what generate writes but for its header
   library-web/screens/Field.tsx: built by hand, and matches what generate writes but for its header
   library-web/screens/FormPage.tsx: built by hand, and matches what generate writes but for its header
   library-web/screens/Guard.tsx: built by hand, and matches what generate writes but for its header
@@ -102,6 +103,7 @@ standardOutput: |
   web/language.ts: built by hand, and matches what generate writes but for its header
   web/screens/ChildRows.tsx: built by hand, and matches what generate writes but for its header
   web/screens/Confirm.tsx: built by hand, and matches what generate writes but for its header
+  web/screens/ContentPage.tsx: built by hand, and matches what generate writes but for its header
   web/screens/Field.tsx: built by hand, and matches what generate writes but for its header
   web/screens/FormPage.tsx: built by hand, and matches what generate writes but for its header
   web/screens/Guard.tsx: built by hand, and matches what generate writes but for its header

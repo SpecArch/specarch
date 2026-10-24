@@ -1,7 +1,7 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-0.1.schema.json
 specarchIdiom: "0.1"
 name: ui-components
-version: 1.8.0
+version: 1.9.0
 concern: ui-components
 stacks: [nextjs-carbon, swiftui]
 reads: [pages]
@@ -220,6 +220,18 @@ parts:
           success the operation answers leads where its event says, through
           the router. An event to another task page keeps the page sign-in
           was asked for from; an event to any other page gives way to it.
+  content-page:
+    description: A page of kind content, its headings, paragraphs, images and links under its title.
+    stack:
+      nextjs-carbon:
+        names: { component: ContentPage, schemaType: ContentPageSchema, carbonLink: Link, title: title, permission: permission, blocks: blocks }
+        code: |
+          The blocks in order under the title, the page's h1: a heading as
+          the HTML heading of its level, a paragraph, an image with its
+          alternative text as alt, and a link as a Carbon Link to the
+          route of the page it opens or to its address outside the
+          specification. A page that needs a permission is drawn inside
+          the Guard, as a list is.
   text-field:
     description: A field of type string with no format the other field parts take.
     stack:

@@ -1,0 +1,11 @@
+specarchImplementation: "0.1"
+info: { title: Studio site in JavaScript, version: 1.0.0 }
+implements: { file: ../../specarch.yaml, version: 1.0.0 }
+stack: { language: { name: JavaScript, version: ES2022 } }
+targets:
+  ui:
+    output: ../../../web
+    platform: web
+    framework: plain-javascript
+    settings:
+      language: en

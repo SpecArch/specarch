@@ -152,6 +152,7 @@ requirements:
       - A task page submits to an operation without loading a record. It has no entity, source, columns or filters, its fields are properties of the operation's request body and include every required one, and its onSubmitted is keyed by the success statuses the operation declares, each leading to a page whose route parameters come from that response's body; anything else, and an operation that takes no body, is refused (page, flow). A flow's step that submits it leads on when any answer leads to the next page. Its derived cases are a golden case per success the operation answers and a red case per problem type.
       - A form or a task page may check rules across the fields it shows, each an expression giving true or false with a message in a full sentence, and name fields a person types twice; on a task the fields are the properties of the request body it shows. Checks or fields entered twice on any other kind of page are refused (form_field), and so are a check's field or a field entered twice that the page does not show, a message that is not a sentence, and an expression that does not parse, names what the page does not show or does not give true or false (form_field and the expression rules), and each way a check breaks and each field entered twice differently is a derived case of the page.
       - The techspec's screen-flow diagram draws every event, each answer of a task page under its status, and each flow is drawn as its steps.
+      - "A content page shows blocks under its title, each a heading with its level, a paragraph, an image with its path and alternative text, or a link to a page of the specification or to an https, http or mailto address with its label. It has no entity, source, submit, fields, sections, columns, filters or actions, its route takes no parameter, and a link opens a page that exists and whose route takes none; anything else, and blocks on another kind of page, is refused (page, flow). With an accessibility target, an image without its text, a link without its label and a heading that skips a level are refused (accessibility). A flow's step takes the action of a link by its label. Its derived cases are those of any page that opens: the golden case, and denied without its permission and with an expired session when it is not public."
     verification: test
     needs: [NEED-2]
     why: Left out of the design, where a person goes after each step is decided by whoever builds the screen, so screens of one application drift apart, and no reviewer sees the flow until it runs.
@@ -561,3 +562,16 @@ requirements:
     verification: test
     needs: [NEED-1, NEED-2, NEED-3]
     why: In a multi-tenant suite every role's rule over every tenant-owned entity is the same expression, written by hand hundreds of times, and an entity whose rules are forgotten is reached whole by every tenant with no word from the validator (ADR-179).
+  SA-92:
+    statement: specarch generate ui shall write the content pages of a specification for the web, in plain JavaScript through specarch-gen-ui and on Next.js and Carbon through specarch-gen-ui-typescript, from one reading of their blocks, with every text a string key on Next.js; specarch-gen-ui-swiftui shall refuse them by name and write nothing for them.
+    kind: functional
+    priority: should
+    status: accepted
+    acceptance:
+      - specarch-gen-ui writes each public content page as HTML alone, its blocks in order under the title, a heading at its level, the image with its alternative text, and each link to the page's file or to its address; a content page that needs a permission is refused at its permission, since the files reach anyone with the page's text inside.
+      - specarch-gen-ui-typescript writes each content page as a schema of its title, permission and blocks, every text a string key in the strings file, and a page.tsx drawing ContentPage with the routes its links open, inside the Guard with the derived refusal test when it needs a permission, warned that its text reaches the browser.
+      - Both web generators refuse, at the block, an image without its text, a link without its label and a link to a page that does not exist or whose route takes a parameter, and leave the page out.
+      - specarch-gen-ui-swiftui reports each content page as an error at the page and writes nothing for it.
+    verification: test
+    needs: [NEED-2]
+    why: A website is mostly pages of copy, images and links; without a page kind for them the site is written by hand around the generated forms, and its copy has no place among the strings a translation covers (ADR-181).

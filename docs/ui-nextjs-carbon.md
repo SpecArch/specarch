@@ -95,7 +95,7 @@ override in a TypeScript file may render `nextjs-carbon`.
 
 **The `ui-components` idiom.** A concern of its own. Its parts are the
 page kinds and field types the generator draws (`list-page`, `form-page`,
-`view-page`, `task-page`, `text-field`, `lookup-field`, `confirm-dialog`,
+`view-page`, `task-page`, `content-page`, `text-field`, `lookup-field`, `confirm-dialog`,
 and so on, one part per thing drawn), and each part's rendering for
 `nextjs-carbon` names the component, its import, the schema type it
 takes and the schema's keys. Every name is a value under `names`, which

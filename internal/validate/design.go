@@ -649,8 +649,13 @@ func (c *checker) checkPages(d *design) {
 		base := []string{"pages", name}
 		entNode := source.Child(pg, "entity")
 		ent := source.Str(entNode)
-		if source.Str(source.Child(pg, "kind")) == "task" {
+		if kind := source.Str(source.Child(pg, "kind")); kind != "content" && source.Child(pg, "blocks") != nil {
+			c.add(source.Key(pg, "blocks"), source.Pointer(append(base, "blocks")...), RulePage, "%s is a %s, and blocks are what a content page shows; leave them out", name, kind)
+		}
+		if kind := source.Str(source.Child(pg, "kind")); kind == "task" {
 			c.checkTaskPage(d, name, pg)
+		} else if kind == "content" {
+			c.checkContentPage(d, name, pg)
 		} else if isCross(ent) {
 			// A list of another specification: its fields are checked
 			// with the reference.

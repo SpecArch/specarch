@@ -1,0 +1,6 @@
+page: contact
+level: system
+scenario: red
+given: "any caller"
+when: "the page contact is submitted without a message"
+then: "it is refused beside the message, and nothing is sent"

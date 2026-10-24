@@ -1,0 +1,8 @@
+page: contact
+level: system
+scenario: golden
+given: "any caller"
+when: "the page contact is submitted with every field valid"
+then: "it is answered 204 and leads to the page home, saying: Thank you, we will write back."
+origin: inferred
+why: "Written by specarch derive: every subject needs a golden path, and this is the success the design gives. A draft: complete the given, when and then, and remove what does not hold."

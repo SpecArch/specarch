@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: requirements specification
 
-Version 0.7.6-dev of the specification: 5 stakeholders, 10 needs and 91 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
+Version 0.7.6-dev of the specification: 5 stakeholders, 10 needs and 92 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -34,7 +34,7 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | Need | Statement | Stakeholders | Status | Refined by |
 |---|---|---|---|---|
 | NEED-1 | I want a specification that cannot quietly be wrong, so that the code built from it is right. | specification-author, implementer | accepted | SA-33, SA-34, SA-35, SA-47, SA-48, SA-50, SA-75, SA-77, SA-82, SA-83, SA-84, SA-91, SA-72, SA-1, SA-2, SA-3, SA-4, SA-5, SA-6, SA-51 |
-| NEED-2 | I want to write a design once and build it in more than one language. | implementer | accepted | SA-33, SA-34, SA-36, SA-37, SA-38, SA-39, SA-40, SA-41, SA-42, SA-43, SA-80, SA-81, SA-52, SA-53, SA-54, SA-55, SA-56, SA-49, SA-62, SA-63, SA-65, SA-66, SA-70, SA-77, SA-78, SA-82, SA-83, SA-84, SA-88, SA-89, SA-91, SA-46, SA-61, SA-71, SA-87, SA-32, SA-9, SA-10 |
+| NEED-2 | I want to write a design once and build it in more than one language. | implementer | accepted | SA-33, SA-34, SA-36, SA-37, SA-38, SA-39, SA-40, SA-41, SA-42, SA-43, SA-80, SA-81, SA-52, SA-53, SA-54, SA-55, SA-56, SA-49, SA-62, SA-63, SA-65, SA-66, SA-70, SA-77, SA-78, SA-82, SA-83, SA-84, SA-88, SA-89, SA-91, SA-92, SA-46, SA-61, SA-71, SA-87, SA-32, SA-9, SA-10 |
 | NEED-3 | I want the documents and diagrams to come from the specification, so they never drift from it. | reviewer, specification-author | accepted | SA-22, SA-36, SA-67, SA-75, SA-77, SA-82, SA-83, SA-84, SA-88, SA-91, SA-7, SA-8, SA-26, SA-16, SA-58, SA-59, SA-60, SA-90, SA-19, SA-74 |
 | NEED-4 | I want a big specification split over many files, each about one thing, so I can find what I am looking for. | specification-author, reviewer | accepted | SA-11, SA-2 |
 | NEED-5 | I want the whole life of the system in one place, from the first requirement to the day it is accepted. | reviewer, operator | accepted | SA-35, SA-47, SA-68, SA-26, SA-16, SA-90, SA-12, SA-23, SA-24, SA-25, SA-73 |
@@ -93,6 +93,7 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | SA-88 | functional | must | accepted | An estate shall be able to keep its clients, roles and trust domain in one identity module that every other module names by reference, and specarch validate shall resolve those references when the modules are given together, count them as unresolved when they are not, and check what the referenced clients and roles allow at every hop. |
 | SA-89 | functional | should | accepted | specarch extract go, swift, javascript and dart shall read the project's own checks of the clients, the application, the immediate caller and the audience, and its event writers, as the implementation file names them, write the clients and the services its checks name as literals as an operation's callers and via, and ask for everything else the code reads at run time; extract go shall also ask for the transaction token of an operation whose handler reads the Txn-Token header. |
 | SA-91 | functional | must | accepted | A specification shall be able to say a tenant scope once, as tenant with the caller's property, the key every tenant-owned entity carries and the entities every tenant reads whole; the document as read shall hold the rows rule of every role over every entity that carries the key, except where the role writes its own, and specarch validate shall refuse in both builds an entity that no rule limits and that the scope does not name as shared. |
+| SA-92 | functional | should | accepted | specarch generate ui shall write the content pages of a specification for the web, in plain JavaScript through specarch-gen-ui and on Next.js and Carbon through specarch-gen-ui-typescript, from one reading of their blocks, with every text a string key on Next.js; specarch-gen-ui-swiftui shall refuse them by name and write nothing for them. |
 | SA-7 | functional | must | accepted | specarch document and specarch generate shall write only into the folder the target owns, and with --check shall fail when the committed output differs. |
 | SA-8 | functional | must | accepted | Every generated file shall name its source specification, version and meta-model, and a hand-written Markdown document shall change only between its markers. |
 | SA-26 | functional | should | accepted | specarch document shall write the change and defect register and the release notes from the records beside a specification, kept current with --check like the other documents. |
@@ -408,6 +409,7 @@ Acceptance criteria:
 - A task page submits to an operation without loading a record. It has no entity, source, columns or filters, its fields are properties of the operation's request body and include every required one, and its onSubmitted is keyed by the success statuses the operation declares, each leading to a page whose route parameters come from that response's body; anything else, and an operation that takes no body, is refused (page, flow). A flow's step that submits it leads on when any answer leads to the next page. Its derived cases are a golden case per success the operation answers and a red case per problem type.
 - A form or a task page may check rules across the fields it shows, each an expression giving true or false with a message in a full sentence, and name fields a person types twice; on a task the fields are the properties of the request body it shows. Checks or fields entered twice on any other kind of page are refused (form_field), and so are a check's field or a field entered twice that the page does not show, a message that is not a sentence, and an expression that does not parse, names what the page does not show or does not give true or false (form_field and the expression rules), and each way a check breaks and each field entered twice differently is a derived case of the page.
 - The techspec's screen-flow diagram draws every event, each answer of a task page under its status, and each flow is drawn as its steps.
+- A content page shows blocks under its title, each a heading with its level, a paragraph, an image with its path and alternative text, or a link to a page of the specification or to an https, http or mailto address with its label. It has no entity, source, submit, fields, sections, columns, filters or actions, its route takes no parameter, and a link opens a page that exists and whose route takes none; anything else, and blocks on another kind of page, is refused (page, flow). With an accessibility target, an image without its text, a link without its label and a heading that skips a level are refused (accessibility). A flow's step takes the action of a link by its label. Its derived cases are those of any page that opens: the golden case, and denied without its permission and with an expired session when it is not public.
 
 **Insight:** Left out of the design, where a person goes after each step is decided by whoever builds the screen, so screens of one application drift apart, and no reviewer sees the flow until it runs.
 
@@ -872,6 +874,21 @@ Acceptance criteria:
 - The derived cases of the derived rules, the drafts specarch derive writes for them, the rows the technical specification shows for each role and the row security policies generate sql writes are the ones of the same rules written by hand.
 
 **Insight:** In a multi-tenant suite every role's rule over every tenant-owned entity is the same expression, written by hand hundreds of times, and an entity whose rules are forgotten is reached whole by every tenant with no word from the validator (ADR-179).
+
+### SA-92
+
+specarch generate ui shall write the content pages of a specification for the web, in plain JavaScript through specarch-gen-ui and on Next.js and Carbon through specarch-gen-ui-typescript, from one reading of their blocks, with every text a string key on Next.js; specarch-gen-ui-swiftui shall refuse them by name and write nothing for them.
+
+Kind: functional; priority: should; status: accepted; verified by test; refines NEED-2.
+
+Acceptance criteria:
+
+- specarch-gen-ui writes each public content page as HTML alone, its blocks in order under the title, a heading at its level, the image with its alternative text, and each link to the page's file or to its address; a content page that needs a permission is refused at its permission, since the files reach anyone with the page's text inside.
+- specarch-gen-ui-typescript writes each content page as a schema of its title, permission and blocks, every text a string key in the strings file, and a page.tsx drawing ContentPage with the routes its links open, inside the Guard with the derived refusal test when it needs a permission, warned that its text reaches the browser.
+- Both web generators refuse, at the block, an image without its text, a link without its label and a link to a page that does not exist or whose route takes a parameter, and leave the page out.
+- specarch-gen-ui-swiftui reports each content page as an error at the page and writes nothing for it.
+
+**Insight:** A website is mostly pages of copy, images and links; without a page kind for them the site is written by hand around the generated forms, and its copy has no place among the strings a translation covers (ADR-181).
 
 ### SA-7
 

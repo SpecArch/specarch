@@ -8,6 +8,12 @@ import (
 // head writes the start of a page's HTML up to its main element's title:
 // the page's language and title, the theme, its module and the menu.
 func (g *gen) head(name, title, language string) []string {
+	return g.headOf(name, title, language, true)
+}
+
+// headOf is head, with the page's module or, for a page that has none,
+// without it.
+func (g *gen) headOf(name, title, language string, module bool) []string {
 	out := []string{
 		"<!doctype html>",
 		"<html lang=" + quoted(language) + ">",
@@ -16,10 +22,11 @@ func (g *gen) head(name, title, language string) []string {
 		`<meta name="viewport" content="width=device-width, initial-scale=1">`,
 		"<title>" + html.EscapeString(title) + "</title>",
 		`<link rel="stylesheet" href="theme.css">`,
-		`<script type="module" src="` + name + `.js"></script>`,
-		"</head>",
-		"<body>",
 	}
+	if module {
+		out = append(out, `<script type="module" src="`+name+`.js"></script>`)
+	}
+	out = append(out, "</head>", "<body>")
 	out = append(out, g.menuHTML(name)...)
 	return append(out, "<main>", `<h1 id="title">`+html.EscapeString(title)+"</h1>")
 }

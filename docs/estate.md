@@ -178,7 +178,9 @@ module and generates only the folders named (ADR-184):
 
 `openapi` writes the referenced schema inline where the field is,
 marked `x-specarch-ref: customer-registry#/schemas/Address`, with what
-it names inline too; `sql` takes the columns and checks from it as from
+it names inline too, through the registry's own dependencies, so a
+module the registry names need not be declared here as well, only given
+in the run (ADR-185); `sql` takes the columns and checks from it as from
 a schema of its own; `go-dxlib` writes a value object of it; the UI
 writes a list page or picker over the other module's list, with that
 module's entity, wire names and paging names, called at the address

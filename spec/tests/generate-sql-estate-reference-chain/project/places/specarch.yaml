@@ -1,0 +1,12 @@
+specarch: "0.1"
+info: { title: Places, version: 3.1.0, name: places }
+permissions:
+  public: { description: Open to everyone. }
+schemas:
+  Street:
+    description: A street of a city.
+    type: object
+    properties:
+      name: { type: string, maxLength: 200 }
+      postcode: { type: string, maxLength: 10 }
+    required: [name]

@@ -40,7 +40,7 @@ func Generate(r *genopenapi.Request) genopenapi.Response {
 	// object of a copy of it, as of a schema of this specification
 	// (ADR-184).
 	var imports []xref.Problem
-	g.spec, imports = xref.Import(r.Specification, r.Dependencies)
+	g.spec, imports = xref.Import(r.Specification, r.Dependencies, r.Modules)
 	for _, p := range imports {
 		g.diags = append(g.diags, genopenapi.Diagnostic{File: g.root, Line: 1, Severity: "error", Path: p.Path, Rule: "reference", Message: p.Message})
 	}

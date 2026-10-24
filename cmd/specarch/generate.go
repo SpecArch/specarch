@@ -86,6 +86,10 @@ type pluginRequest struct {
 	// modules: a plug-in writes a value typed by their elements and a page
 	// or picker reading their lists from them (ADR-184).
 	Dependencies map[string]xref.Dependency `json:"dependencies,omitempty"`
+	// Modules are the specifications of the estate the dependencies reach
+	// through their own dependencies and this one does not name, by
+	// info.name, so what an imported element names resolves (ADR-185).
+	Modules map[string]xref.Dependency `json:"modules,omitempty"`
 }
 
 type pluginImplementation struct {
@@ -475,7 +479,7 @@ func newPluginRequest(l loaded, target, folder string, impls []generate.Implemen
 		content, _ := other.Value.(map[string]any)
 		info := source.Child(other.Root, "info")
 		dialect, _ := apiDialectOf(other)
-		d := xref.Dependency{Specification: source.Str(source.Child(info, "name")), Version: source.Str(source.Child(info, "version")), Content: content, APIDialect: dialect}
+		d := xref.Dependency{Specification: source.Str(source.Child(info, "name")), Version: source.Str(source.Child(info, "version")), Content: content, APIDialect: dialect, Dependencies: pinsOf(content)}
 		// The idioms of the file that serves the module's API, or of its
 		// first implementation file, and the shipped ones when it has
 		// none: the names its lists are paged by.
@@ -495,6 +499,36 @@ func newPluginRequest(l loaded, target, folder string, impls []generate.Implemen
 		}
 		req.Dependencies[dep] = d
 	}
+	// The modules the dependencies reach through their own, at any depth,
+	// so a reference inside an element imported from one resolves through
+	// that module's own names; one the run does not give is the plug-in's
+	// error at the entry that led to it (ADR-185).
+	named := map[string]bool{}
+	var reached []xref.Dependency
+	for _, d := range req.Dependencies {
+		named[d.Specification] = true
+		reached = append(reached, d)
+	}
+	given := readGiven(l, target)
+	for len(reached) > 0 {
+		d := reached[0]
+		reached = reached[1:]
+		for _, pin := range d.Dependencies {
+			list := given[pin.Specification]
+			if named[pin.Specification] || len(list) != 1 {
+				continue
+			}
+			named[pin.Specification] = true
+			content, _ := list[0].Value.(map[string]any)
+			info := source.Child(list[0].Root, "info")
+			m := xref.Dependency{Specification: pin.Specification, Version: source.Str(source.Child(info, "version")), Content: content, Dependencies: pinsOf(content)}
+			if req.Modules == nil {
+				req.Modules = map[string]xref.Dependency{}
+			}
+			req.Modules[pin.Specification] = m
+			reached = append(reached, m)
+		}
+	}
 	for _, i := range impls {
 		settings := source.Child(source.Child(source.Child(i.Node, "targets"), target), "settings")
 		pi := pluginImplementation{File: filepath.ToSlash(i.Path), Content: source.ValueOf(i.Node), Idioms: []pluginIdiom{}}
@@ -507,6 +541,26 @@ func newPluginRequest(l loaded, target, folder string, impls []generate.Implemen
 		req.Implementations = append(req.Implementations, pi)
 	}
 	return req, notes
+}
+
+// pinsOf are a specification's dependencies that name a specification, by
+// their key, each with the version it pins.
+func pinsOf(content map[string]any) map[string]xref.Pin {
+	var out map[string]xref.Pin
+	deps, _ := content["dependencies"].(map[string]any)
+	for key, v := range deps {
+		dep, _ := v.(map[string]any)
+		name, _ := dep["specification"].(string)
+		if name == "" {
+			continue
+		}
+		if out == nil {
+			out = map[string]xref.Pin{}
+		}
+		version, _ := dep["version"].(string)
+		out[key] = xref.Pin{Specification: name, Version: version}
+	}
+	return out
 }
 
 // pluginIdioms are the idioms an implementation file uses, as a plug-in

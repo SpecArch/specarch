@@ -1,0 +1,4 @@
+arguments: [generate, openapi, --unapproved, --estate, project/specarch-estate.yaml, project/loans]
+exitStatus: 0
+standardOutput: ""
+plugins: [openapi]

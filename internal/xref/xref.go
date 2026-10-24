@@ -5,7 +5,9 @@
 // package imports a schema, an entity or an enum a field is typed by into
 // the specification the generator writes, under the element's own name and
 // marked with RefKey, and finds an operation a page or a picker reads
-// there, so each generator writes them as it writes its own (ADR-184).
+// there, so each generator writes them as it writes its own (ADR-184). A
+// reference inside an imported element is the other module's text, so it
+// resolves through that module's own dependencies (ADR-185).
 package xref
 
 import (
@@ -23,7 +25,9 @@ const RefKey = "x-specarch-ref"
 // Dependency is a specification another names through a dependency, as
 // specarch hands it to a plug-in: the module's info.name and info.version,
 // the specification as plain values, the dialect its API is served in,
-// dxlib or "" for the standard one, and its idioms.
+// dxlib or "" for the standard one, its idioms, and its own dependencies.
+// A module reached only through another's dependencies has no dialect or
+// idioms, which only a list the specification reads itself uses.
 type Dependency struct {
 	Specification string         `json:"specification"`
 	Version       string         `json:"version"`
@@ -32,6 +36,17 @@ type Dependency struct {
 	// Idioms are the idioms of the implementation file that serves the
 	// module's API, so a list it answers is paged by its own names.
 	Idioms []Idiom `json:"idioms,omitempty"`
+	// Dependencies are the module's own dependencies that name a
+	// specification, by their key there, so a reference in an element
+	// imported from it means what it means in the module.
+	Dependencies map[string]Pin `json:"dependencies,omitempty"`
+}
+
+// Pin is the specification a dependency names and the info.version its
+// references were written against.
+type Pin struct {
+	Specification string `json:"specification"`
+	Version       string `json:"version"`
 }
 
 // Idiom is one idiom of a dependency's implementation file, as specarch
@@ -59,10 +74,16 @@ func Parse(ref string) (dep string, pointer []string, ok bool) {
 	if i <= 0 {
 		return "", nil, false
 	}
-	for _, s := range strings.Split(ref[i+2:], "/") {
-		pointer = append(pointer, strings.ReplaceAll(strings.ReplaceAll(s, "~1", "/"), "~0", "~"))
+	return ref[:i], segments(ref[i+2:]), true
+}
+
+// segments is a JSON pointer's segments, unescaped, without its leading #/.
+func segments(p string) []string {
+	var out []string
+	for _, s := range strings.Split(p, "/") {
+		out = append(out, strings.ReplaceAll(strings.ReplaceAll(s, "~1", "/"), "~0", "~"))
 	}
-	return ref[:i], pointer, true
+	return out
 }
 
 // Named is the reference as the module's name and the pointer, the form
@@ -107,23 +128,36 @@ func Entity(deps map[string]Dependency, ref string) (entity map[string]any, name
 // schema or an entity as a schema of the same name, holding the entity's
 // properties and required fields only, and an enum as an enum. A copy
 // marks where it came from with RefKey, and what it names in its own
-// specification is imported in turn. The specification given is not
-// changed. A reference whose dependency is not given is left as it is,
+// specification is imported in turn, through that specification's own
+// dependencies: modules holds, by info.name, the specifications they reach
+// that deps does not. The specification given is not changed. A reference
+// of this specification whose dependency is not given is left as it is,
 // since specarch refuses it before the plug-in runs. A view, a name this
-// specification has already, and a schema that holds itself through
-// another specification are problems at the entry, and the value is left
-// untyped.
-func Import(spec map[string]any, deps map[string]Dependency) (map[string]any, []Problem) {
+// specification has already, a schema that holds itself through another
+// specification, and a module a copy names that the run does not give are
+// problems at the entry, and the value is left untyped.
+func Import(spec map[string]any, deps, modules map[string]Dependency) (map[string]any, []Problem) {
 	out, _ := deepCopy(spec).(map[string]any)
 	if len(deps) == 0 || out == nil {
 		return out, nil
 	}
-	im := &importer{spec: out, deps: deps, done: map[string]string{}, busy: map[string]bool{}}
+	byName := map[string]Dependency{}
+	for name, d := range modules {
+		byName[name] = d
+	}
+	for _, d := range deps {
+		byName[d.Specification] = d
+	}
+	self, _ := obj0(out["info"])["name"].(string)
+	if self == "" {
+		self = "this specification"
+	}
+	im := &importer{spec: out, deps: deps, byName: byName, self: self, done: map[string]string{}, busy: map[string]bool{}}
 	for _, k := range sortedKeys(out) {
 		if k == "tests" || k == "questions" || k == "decisions" || k == "requirements" {
 			continue
 		}
-		im.walk(out[k], "/"+escape(k), "")
+		im.walk(out[k], "/"+escape(k), nil)
 	}
 	return out, im.problems
 }
@@ -131,18 +165,21 @@ func Import(spec map[string]any, deps map[string]Dependency) (map[string]any, []
 type importer struct {
 	spec     map[string]any
 	deps     map[string]Dependency
-	done     map[string]string // reference as module#/pointer: its local reference
-	busy     map[string]bool   // references being imported, to find a cycle
+	byName   map[string]Dependency // every module given, by info.name
+	self     string                // this specification's info.name
+	done     map[string]string     // reference as module#/pointer: its local reference
+	busy     map[string]bool       // references being imported, to find a cycle
+	chain    []string              // the references being imported, outermost first
 	problems []Problem
 }
 
-// walk imports every $ref under v. within is the dependency whose
-// specification v was copied from, "" for this one: a local reference
-// there is that dependency's, and a problem in it is reported at the entry
-// of this specification that named the copy, at.
-func (im *importer) walk(v any, at, within string) {
+// walk imports every $ref under v. within is the module whose
+// specification v was copied from, nil for this one: a reference there is
+// that module's, through its own dependencies, and a problem in it is
+// reported at the entry of this specification that named the copy, at.
+func (im *importer) walk(v any, at string, within *Dependency) {
 	child := func(k string) string {
-		if within != "" {
+		if within != nil {
 			return at
 		}
 		return at + "/" + k
@@ -172,16 +209,38 @@ func (im *importer) walk(v any, at, within string) {
 // ref imports what one reference names and answers the local reference
 // that replaces it; ok false with local unchanged ("-") leaves the
 // reference as it is, ok false with local "" drops it after a problem.
-func (im *importer) ref(r, at, within string) (local string, ok bool) {
-	if within != "" && strings.HasPrefix(r, "#/") {
-		r = within + r
+func (im *importer) ref(r, at string, within *Dependency) (local string, ok bool) {
+	var d Dependency
+	var ptr []string
+	var named string
+	switch {
+	case within != nil && strings.HasPrefix(r, "#/"):
+		ptr, d, named = segments(r[2:]), *within, within.Specification+r
+	case within != nil:
+		dep, p, parsed := Parse(r)
+		if !parsed {
+			return "-", false
+		}
+		pin, declared := within.Dependencies[dep]
+		if !declared {
+			im.problem(at, "%s names %s, and %s has no dependency %s that names a specification, so the value cannot be typed by it; correct %s", im.outer(), r, within.Specification, dep, within.Specification)
+			return "", false
+		}
+		named = pin.Specification + r[len(dep):]
+		var given bool
+		if d, given = im.byName[pin.Specification]; !given {
+			im.problem(at, "%s names %s through %s's dependency %s on %s %s (%s), and this run does not give %s, so the value cannot be typed by it; give %s in the run, as a module of the estate or a folder beside the others; %s need not declare it", im.outer(), named, within.Specification, dep, pin.Specification, pin.Version, im.path(pin.Specification), pin.Specification, pin.Specification, im.self)
+			return "", false
+		}
+		ptr = p
+	default:
+		dep, p, parsed := Parse(r)
+		var given bool
+		if d, given = im.deps[dep]; !parsed || !given {
+			return "-", false
+		}
+		ptr, named = p, d.Specification+r[len(dep):]
 	}
-	dep, ptr, parsed := Parse(r)
-	d, given := im.deps[dep]
-	if !parsed || !given {
-		return "-", false
-	}
-	named := d.Specification + r[len(dep):]
 	if l, seen := im.done[named]; seen {
 		return l, true
 	}
@@ -238,7 +297,9 @@ func (im *importer) ref(r, at, within string) (local string, ok bool) {
 	}
 	local = "#/" + into + "/" + name
 	im.busy[named] = true
-	im.walk(copied, at, dep)
+	im.chain = append(im.chain, named)
+	im.walk(copied, at, &d)
+	im.chain = im.chain[:len(im.chain)-1]
 	delete(im.busy, named)
 	copied[RefKey] = named
 	sec := obj0(im.spec[into])
@@ -249,6 +310,26 @@ func (im *importer) ref(r, at, within string) (local string, ok bool) {
 	sec[name] = copied
 	im.done[named] = local
 	return local, true
+}
+
+// outer is the imported element the reference being read stands in: the
+// innermost of the copies being imported.
+func (im *importer) outer() string {
+	return im.chain[len(im.chain)-1]
+}
+
+// path is the chain of modules from this specification through the copies
+// being imported to the module named last, as loans → customer-registry
+// → places.
+func (im *importer) path(last string) string {
+	mods := []string{im.self}
+	for _, c := range im.chain {
+		mod, _, _ := strings.Cut(c, "#")
+		if mod != mods[len(mods)-1] {
+			mods = append(mods, mod)
+		}
+	}
+	return strings.Join(append(mods, last), " → ")
 }
 
 func (im *importer) problem(at, format string, args ...any) {

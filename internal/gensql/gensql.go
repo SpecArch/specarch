@@ -44,6 +44,10 @@ type Request struct {
 	// Dependencies are the specifications of the estate the dependencies
 	// name, whose elements a field may be typed by (ADR-184).
 	Dependencies map[string]xref.Dependency `json:"dependencies,omitempty"`
+	// Modules are the specifications of the estate the dependencies reach
+	// through their own dependencies and this one does not name, by
+	// info.name, so what an imported element names resolves (ADR-185).
+	Modules map[string]xref.Dependency `json:"modules,omitempty"`
 }
 
 // Implementation is one implementation file in the request.
@@ -196,7 +200,7 @@ func prepare(r *Request) (*gen, *Response) {
 	// A field typed by another module's schema takes its columns from a
 	// copy of it, as from a schema of this specification (ADR-184).
 	var imports []xref.Problem
-	g.spec, imports = xref.Import(r.Specification, r.Dependencies)
+	g.spec, imports = xref.Import(r.Specification, r.Dependencies, r.Modules)
 	for _, p := range imports {
 		g.diags = append(g.diags, Diagnostic{File: g.root, Line: 1, Severity: "error", Path: p.Path, Rule: "reference", Message: p.Message})
 	}

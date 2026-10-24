@@ -50,6 +50,10 @@ type Request struct {
 	// name: a value typed by their elements, and the list a page or a
 	// picker reads there (ADR-184).
 	Dependencies map[string]xref.Dependency `json:"dependencies,omitempty"`
+	// Modules are the specifications of the estate the dependencies reach
+	// through their own dependencies and this one does not name, by
+	// info.name, so what an imported element names resolves (ADR-185).
+	Modules map[string]xref.Dependency `json:"modules,omitempty"`
 }
 
 // Decode reads a request, keeping numbers as their text.
@@ -196,7 +200,7 @@ func New(r *Request, p Profile) *Gen {
 	// A value typed by another module's element is drawn from a copy of
 	// it, as from this specification's own (ADR-184).
 	var imports []xref.Problem
-	g.Spec, imports = xref.Import(r.Specification, r.Dependencies)
+	g.Spec, imports = xref.Import(r.Specification, r.Dependencies, r.Modules)
 	for _, p := range imports {
 		g.imports = append(g.imports, genui.Diagnostic{File: g.Root, Line: 1, Severity: "error", Path: p.Path, Rule: "reference", Message: p.Message})
 	}

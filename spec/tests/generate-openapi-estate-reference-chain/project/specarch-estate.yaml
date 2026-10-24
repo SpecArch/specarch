@@ -1,0 +1,9 @@
+specarchEstate: "0.1"
+info:
+  title: Lending estate
+  version: 1.0.0
+  description: The modules of a lending business, each specified by its own team.
+modules:
+  loans: { description: Lends to customers., location: loans, version: 1.0.0 }
+  customer-registry: { description: Keeps the customers., location: customers, version: 2.4.0 }
+  places: { description: Knows the streets., location: places, version: 3.1.0 }

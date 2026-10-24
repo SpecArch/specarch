@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: generate
+level: system
+scenario: red
+covers: [exit 1]
+given: "an estate of two modules, the loans module whose entity has a field typed by the customer registry's schema Address, whose street is typed through the registry's dependency streets by the places module's schema Street, the places module neither in the estate nor named, an implementation file whose openapi target names an output, and specarch-gen-openapi built from this repository on PATH"
+when: "generate openapi is run with --unapproved and --estate naming the estate file, on the loans module"
+then: "it reports reference at loans' field, naming Address, the reference to Street, the registry's dependency streets on places 3.1.0, the module chain loans → customer-registry → places, that the run has to give places and that loans need not declare it, writes the document with the street left untyped and the field marked, and exits 1"
+verifies: [SA-65]

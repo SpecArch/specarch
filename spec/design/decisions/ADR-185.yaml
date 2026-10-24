@@ -1,0 +1,73 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.3.schema.json
+decisions:
+  ADR-185:
+    title: A reference inside an element imported from another module resolves through that module's own dependencies, so a specification declares a module only where it names the module itself, and a module the run does not give is an error at the entry naming the chain
+    status: accepted
+    date: "2026-10-25"
+    context: |
+      ADR-184 imports what an element of another module names in its own
+      specification in turn, but the plug-in request carried only the
+      modules this specification's dependencies name, and internal/xref
+      looked a reference inside an imported copy up among this
+      specification's dependency names. In an estate where loans types a
+      field by customer-registry#/schemas/Address and the registry's
+      Address types its street by its own dependency streets on places,
+      the reference streets#/schemas/Street resolved only when loans also
+      declared places under the key streets. When it did not, generate
+      openapi exited 0 with a $ref to a component that does not exist;
+      when loans named another module streets, the registry's reference
+      resolved into that module. An estate of many modules makes every
+      chain of imports depend on each module repeating the names its
+      dependencies chose.
+    decision: |
+      For openapi, sql, go-dxlib and ui, each dependency of the request
+      carries its own dependencies that name a specification, by its key
+      there, with the specification and the version it pins; and the
+      request carries modules: every specification of the run that a
+      dependency reaches through its own dependencies, at any depth, which
+      this specification's dependencies do not name, by its info.name,
+      with its specification, version, content and dependencies (no
+      dialect or idioms, which only a list this specification reads uses).
+      internal/xref resolves a reference inside an imported copy through
+      the dependencies of the module the copy came from, and a local
+      reference there in that module, as before; a reference of this
+      specification resolves through its own dependencies, as before. A
+      specification declares a module only where it names an element of
+      it itself. A reference inside a copy whose module the run does not
+      give is a reference error at the entry of this specification that
+      led to it, naming the reference, the module chain from this
+      specification to the missing module, the dependency that names it
+      with its version, and that the run has to give it; the value is
+      left untyped, as for the other import errors.
+    why: |
+      The reference is the other module's text, written against its own
+      dependency names, so it means what those names say there, and only
+      there: a name chosen by one team cannot depend on a name another
+      team chose for the same or a different module. The version is
+      already pinned where the name is declared: the module whose
+      dependency names it is validated against the specification the run
+      gives, and a version that differs is a reference error at that
+      dependency before any plug-in runs, so resolving through it keeps
+      the pin, and there is still one specification per name in a run.
+      Asking this specification to declare the module too would add a
+      second pin that can disagree with the first and a dependency the
+      techspec would list as called when this module never calls it. The
+      cycle check is unchanged: the copies being imported are tracked by
+      the module's name and the pointer, whichever module's names led to
+      them. A flat map by name rather than nesting each dependency's
+      dependencies keeps one copy of a module that two dependencies share
+      and has an end when two modules depend on each other.
+      Compiler test: a chain whose last module the run does not give is
+      still generated, with the entry marked, and not written with a
+      reference to nothing; acceptance test: a module adds a dependency
+      of its own, and the modules that import its elements generate with
+      no change to their specifications.
+    consequences: |
+      A specification that imports an element of a module naming a third
+      module generates given the estate without declaring the third
+      module. A run that wrote a reference to nothing exits 1 with an
+      error at the entry. A specification whose dependencies repeated the
+      names of its dependencies' dependencies generates as before; one
+      whose dependency of the same key named a different module now
+      imports from the module the other specification names.
+    satisfies: [SA-65]

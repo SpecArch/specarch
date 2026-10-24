@@ -81,7 +81,8 @@ object:
 | `apiDialect` | `dxlib` when an implementation file's openapi target serves the API in the dxlib dialect, left out for the standard one, so a client target calls the operations as the service serves them although the service's file is not among its own |
 | `apiEnvelopes` | the `settings.envelopes` of that openapi target, the dxlib type each handshake is served in (ADR-163), left out when it has none, so a target that writes the service's hooks serves the types the document names |
 | `check` | true when the run is `--check`, which writes nothing, so a plug-in that refuses to write over a file built by hand answers its files for the comparison |
-| `dependencies` | for openapi, sql, go-dxlib and ui, the specifications of the run the specification's dependencies name, keyed by the dependency: the module's `specification` and `version`, its `content` as plain values, the `apiDialect` it is served in and the `idioms` of the implementation file that serves its API (the shipped ones when it has none); left out when the run gives none (Generating across the estate, below) |
+| `dependencies` | for openapi, sql, go-dxlib and ui, the specifications of the run the specification's dependencies name, keyed by the dependency: the module's `specification` and `version`, its `content` as plain values, the `apiDialect` it is served in and the `idioms` of the implementation file that serves its API (the shipped ones when it has none), and the module's own `dependencies` that name a specification, by their key there, each with its `specification` and `version`; left out when the run gives none (Generating across the estate, below) |
+| `modules` | for the same targets, the specifications of the run a dependency reaches through its own dependencies, at any depth, that the specification's dependencies do not name, by their `info.name`: `specification`, `version`, `content` and `dependencies` (ADR-185) |
 
 The plug-in answers on its standard output with one JSON object: `files`,
 each a `path` relative to the output folder, its `content` and, for a file
@@ -141,7 +142,12 @@ the plug-in writes, under the element's own name and marked
 `x-specarch-ref` with the module and the pointer (a schema as a schema,
 an entity as a schema of its properties and required fields, an enum as
 an enum, and what each names there in turn), so each target writes it
-as one of its own:
+as one of its own. A reference inside an imported element resolves
+through the dependencies of the module it came from, read from
+`modules` when the specification does not name that module itself, so
+a specification declares only the modules it names; one the run does
+not give is an error at the entry that led to it, naming the module
+chain and the dependency that names the module (ADR-185):
 
 - `openapi` writes it inline where the field is, with the field's own
   keywords over the element's, and no component; the dxlib dialect,

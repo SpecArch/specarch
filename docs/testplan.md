@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.6-dev of the specification: 726 design tests, 358 golden and 368 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.6-dev of the specification: 730 design tests, 361 golden and 369 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.7.6-dev of the specification: 726 design tests, 358 golden and 368 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 722 |
+| system | 726 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -2373,6 +2373,30 @@ Scenario: golden; level: system; verifies SA-65.
 - When: generate openapi is run with --unapproved and --estate naming the estate file, on the loans module
 - Then: it writes the loans module's document alone, with the field's schema written inline from the registry's specification and the enum inline within it, each marked x-specarch-ref with the module and the pointer, the field's own description over the schema's, no component of the registry's, and exits 0
 
+#### generate-openapi-estate-reference-chain
+
+Scenario: golden; level: system; verifies SA-65.
+
+- Given: an estate of three modules, the loans module whose entity has a field typed by the customer registry's schema Address, whose street is typed through the registry's own dependency streets by the places module's schema Street, loans declaring no dependency on places, an implementation file whose openapi target names an output, and specarch-gen-openapi built from this repository on PATH
+- When: generate openapi is run with --unapproved and --estate naming the estate file, on the loans module
+- Then: it writes the loans module's document with Address inline and Street inline within it, Street marked x-specarch-ref places#/schemas/Street as the registry's dependency names it, no component of either module, and exits 0
+
+#### generate-openapi-estate-reference-chain-declared
+
+Scenario: golden; level: system; verifies SA-65.
+
+- Given: an estate of three modules, the loans module whose entity has a field typed by the customer registry's schema Address, whose street is typed through the registry's dependency streets by the places module's schema Street, and a field typed by Street itself through loans' own dependency streetRegister on places, an implementation file whose openapi target names an output, and specarch-gen-openapi built from this repository on PATH
+- When: generate openapi is run with --unapproved and --estate naming the estate file, on the loans module
+- Then: it writes Street inline both within Address and at loans' own field, each marked x-specarch-ref places#/schemas/Street, the registry's key and loans' key resolving to the one module, and exits 0
+
+#### generate-openapi-estate-reference-chain-refused
+
+Scenario: red; level: system; covers exit 1; verifies SA-65.
+
+- Given: an estate of two modules, the loans module whose entity has a field typed by the customer registry's schema Address, whose street is typed through the registry's dependency streets by the places module's schema Street, the places module neither in the estate nor named, an implementation file whose openapi target names an output, and specarch-gen-openapi built from this repository on PATH
+- When: generate openapi is run with --unapproved and --estate naming the estate file, on the loans module
+- Then: it reports reference at loans' field, naming Address, the reference to Street, the registry's dependency streets on places 3.1.0, the module chain loans → customer-registry → places, that the run has to give places and that loans need not declare it, writes the document with the street left untyped and the field marked, and exits 1
+
 #### generate-openapi-gateway
 
 Scenario: golden; level: system; verifies SA-75.
@@ -2540,6 +2564,14 @@ Scenario: golden; level: system; verifies SA-65.
 - Given: an estate of two modules, the loans module whose entity has a field typed by the customer registry's schema and one typed by its enum through a dependency, and keeps a customer's key through a many-to-one relation to the registry's entity, an implementation file in Go whose sql target is PostgreSQL, and specarch-gen-sql built from this repository on PATH
 - When: generate sql is run with --unapproved and --estate naming the estate file, on the loans module
 - Then: it writes the loans table with the schema's parts as columns typed and checked from the registry's schema and enum, the enum's column checked against its values, the key's column with no foreign key and the comment naming the registry, and snapshot.yaml beside it, and exits 0
+
+#### generate-sql-estate-reference-chain
+
+Scenario: golden; level: system; verifies SA-65.
+
+- Given: an estate of three modules, the loans module whose entity has a field typed by the customer registry's schema Address, whose street is typed through the registry's own dependency streets by the places module's schema Street, loans declaring no dependency on places, an implementation file in Go whose sql target is PostgreSQL, and specarch-gen-sql built from this repository on PATH
+- When: generate sql is run with --unapproved and --estate naming the estate file, on the loans module
+- Then: it writes the loans table with Street's parts as columns under the address's, typed from the places module's schema, the check that a street name is given with any part of the address, and snapshot.yaml beside it, and exits 0
 
 #### generate-sql-estate-reference-json
 
@@ -5891,7 +5923,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-410 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+411 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -6053,6 +6085,7 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-65 | acceptance 5 | golden | SA-65 names no harm |
 | requirement SA-65 | acceptance 6 | golden | SA-65 names no harm |
 | requirement SA-65 | acceptance 7 | golden | SA-65 names no harm |
+| requirement SA-65 | acceptance 8 | golden | SA-65 names no harm |
 | requirement SA-66 | acceptance 1 | golden | SA-66 names no harm |
 | requirement SA-66 | acceptance 2 | golden | SA-66 names no harm |
 | requirement SA-66 | acceptance 3 | golden | SA-66 names no harm |

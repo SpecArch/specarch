@@ -894,3 +894,17 @@ To repeat: in a copy of `spec/tests/generate-ui-typescript-paged-whole/project`,
 
 Fix: `specarch generate` hands the ui target's plug-ins the paginated-list idiom whether or not the design has a `listOf` (`validate.IdiomUsesWith`, `pluginIdioms` in `cmd/specarch/generate.go`), for the implementation files and the dependencies alike; the file's exclusion or override still applies. The other writers of these names, the list page and the picker in `internal/genscreens` and `internal/genui`, already refused when they were missing and are unchanged. The case `generate-ui-typescript-paged-whole` gives a specification with no `listOf` and a server-paged route, and its generated test passes under node.
 
+
+## BUG-062 — generate: a reference inside another module's element resolves through this specification's dependency names
+
+- Reported: 2026-10-24, found while generating a module whose field is typed by a schema of another module that types a field of its own by a third module, against 0.7.5
+- Closed: 2026-10-25, completed
+- Fixed by: the commit on `main` whose message says `Fixes BUG-062`
+
+`internal/xref` imported another module's schema, entity or enum and then what that element names, but looked a reference such as `streets#/schemas/Street` inside the copy up among this specification's dependency keys, since the plug-in request carried only the modules this specification names. With loans typing a field by `customer-registry#/schemas/Address`, and the registry's Address typing its street through its dependency `streets` on `places`, `specarch generate openapi` on loans exited 0 and wrote `$ref: '#/components/schemas/Street'`, a component the document does not have, with no diagnostic; the same happened when `places` was not in the run. Had loans named another module `streets`, the registry's reference would have resolved into that module.
+
+Expected: the reference means what the registry's own dependency says, and a module the run does not give is an error at the entry.
+
+To repeat: in a copy of `spec/tests/generate-openapi-estate-reference-chain`, built before this fix, run `specarch generate openapi --unapproved --estate project/specarch-estate.yaml project/loans` and read the street in `project/openapi/openapi.yaml`.
+
+Fix: ADR-185. Each dependency in the plug-in request carries its own dependencies with the specification and version each names, and the request carries `modules`, the specifications of the run the dependencies reach through their own, by `info.name`; `internal/xref` resolves a reference inside a copy through the dependencies of the module it came from, and reports a module the run does not give as `reference` at the entry, naming the module chain. Cases `generate-openapi-estate-reference-chain`, `-declared` and `-refused`, and `generate-sql-estate-reference-chain`.

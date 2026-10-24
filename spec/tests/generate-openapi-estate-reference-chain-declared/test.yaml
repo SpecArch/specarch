@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: generate
+level: system
+scenario: golden
+given: "an estate of three modules, the loans module whose entity has a field typed by the customer registry's schema Address, whose street is typed through the registry's dependency streets by the places module's schema Street, and a field typed by Street itself through loans' own dependency streetRegister on places, an implementation file whose openapi target names an output, and specarch-gen-openapi built from this repository on PATH"
+when: "generate openapi is run with --unapproved and --estate naming the estate file, on the loans module"
+then: "it writes Street inline both within Address and at loans' own field, each marked x-specarch-ref places#/schemas/Street, the registry's key and loans' key resolving to the one module, and exits 0"
+verifies: [SA-65]

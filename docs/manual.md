@@ -2684,7 +2684,13 @@ name, keyed by the dependency, each with the module's
 `content` as plain values, the `apiDialect` it is served in and the
 `idioms` of the implementation file that serves its API (the shipped
 ones when it has none), so a list it answers is paged by its own
-names. The plug-in answers on its standard output,
+names, and its own `dependencies` that name a specification, by
+their key there, each with its `specification` and `version`; and
+`modules`, for the same targets, the specifications of the run that
+a dependency reaches through its own dependencies, at any depth, and
+this specification's dependencies do not name, by their info.name,
+each with its `specification`, `version`, `content` and
+`dependencies` (ADR-185). The plug-in answers on its standard output,
 as JSON, with `files` (each a `path` relative to the output folder,
 its `content`, and `comparison: object-literal` for a file that is
 one object literal of data, which `--check` compares by value) and `diagnostics` (each with the validator's fields:
@@ -2742,7 +2748,12 @@ schema that holds itself through the other module, a call to another
 module in the dxlib dialect, a call with no address in the settings,
 and on SwiftUI, which calls one service, any call to another module,
 are errors at the entry naming the module and the pointer; the rest
-is written with them marked.
+is written with them marked. A reference inside an element imported
+from another module resolves through that module's own dependencies,
+so a specification declares a module only where it names the module
+itself; a module there that the run does not give is an error at the
+entry that led to it, naming the module chain and the dependency
+that names the module, with its version (ADR-185).
 
 An element whose mapping in the implementation file names a
 stakeholder under `ownedBy` is owned by that stakeholder: a plug-in

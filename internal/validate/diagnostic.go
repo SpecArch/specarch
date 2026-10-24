@@ -143,6 +143,7 @@ const (
 	RuleStream                 Rule = "stream"
 	RuleCallerProperty         Rule = "caller_property"
 	RuleRows                   Rule = "rows"
+	RuleTenant                 Rule = "tenant"
 	RuleReservedName           Rule = "reserved_name"
 	RuleClient                 Rule = "client"
 	RuleClientUnused           Rule = "client_unused"
@@ -289,6 +290,7 @@ var Rules = []Rule{
 	RuleStream,
 	RuleCallerProperty,
 	RuleRows,
+	RuleTenant,
 	RuleReservedName,
 	RuleClient,
 	RuleClientUnused,

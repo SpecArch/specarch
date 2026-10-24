@@ -2,6 +2,7 @@ package validate
 
 import (
 	"sort"
+	"strconv"
 	"strings"
 
 	"go.yaml.in/yaml/v3"
@@ -80,6 +81,9 @@ func (c *checker) checkRoleRows(d *design) {
 	callerEnv := d.callerEnv()
 	for _, r := range source.Pairs(source.Child(d.root, "roles")) {
 		for _, row := range source.Pairs(source.Child(r.Value, "rows")) {
+			if d.spec != nil && d.spec.Derived[row.Value] {
+				continue // checked once, at the entity, by checkTenant
+			}
 			entity := row.Key.Value
 			ptr := source.Pointer("roles", r.Key.Value, "rows", entity)
 			ent := d.entities[entity]
@@ -108,6 +112,77 @@ func (c *checker) checkRoleRows(d *design) {
 			if len(errs) == 0 && (t.Kind != expr.Bool || t.Nullable) {
 				c.addFile(c.fileOf(n), exprLine(n, 1), ptr, RuleRows, "the rule gives %s, but a rows rule must give true or false for each record; compare the values with ==, <, > or similar", t)
 			}
+		}
+	}
+}
+
+// checkTenant checks the tenant scope (ADR-179): its property is the
+// caller's, every shared name is an entity that carries no key, every
+// other entity carries the key or is limited by a rule of its own on every
+// role, and the key compares with the property. A derived rule is checked
+// here, once per entity, rather than at every role.
+func (c *checker) checkTenant(d *design) {
+	tenant := source.Child(d.root, "tenant")
+	property := source.Child(tenant, "property")
+	key := source.Str(source.Child(tenant, "key"))
+	if tenant == nil || !source.IsScalar(property) || key == "" {
+		return // the schema reports it
+	}
+	callerEnv := d.callerEnv()
+	ruleOf := expr.CallerName + "." + property.Value
+	_, declared := callerEnv[ruleOf]
+	if !declared {
+		c.add(property, source.Pointer("tenant", "property"), RuleTenant, "%s is not a property of the caller, so the tenant scope has nothing to compare %s with; %s", property.Value, key, callerPropertyList(d.root))
+	}
+	shared := map[string]bool{}
+	for i, n := range source.Items(source.Child(tenant, "shared")) {
+		ptr := source.Pointer("tenant", "shared", strconv.Itoa(i))
+		ent := d.entities[n.Value]
+		switch {
+		case ent == nil:
+			c.add(n, ptr, RuleTenant, "%s is not an entity of the specification, so there is nothing to share%s", n.Value, suggest(n.Value, d.entities))
+		case fieldsOf(ent)[key] != nil:
+			c.add(n, ptr, RuleTenant, "%s carries %s, so its rows are a tenant's, and shared says every tenant reads it whole; take it out of shared, or rename its field if it is not the tenant's key", n.Value, key)
+		}
+		shared[n.Value] = true
+	}
+	rule := key + " == " + ruleOf
+	for _, e := range source.Pairs(source.Child(d.root, "entities")) {
+		if shared[e.Key.Value] {
+			continue
+		}
+		// open are the roles with no rule of their own over the entity:
+		// none, or the one derived from the scope.
+		var open []string
+		for _, r := range source.Pairs(source.Child(d.root, "roles")) {
+			if own := source.Child(source.Child(r.Value, "rows"), e.Key.Value); own == nil || d.spec != nil && d.spec.Derived[own] {
+				open = append(open, r.Key.Value)
+			}
+		}
+		fields := fieldsOf(e.Value)
+		if fields[key] == nil {
+			if len(open) > 0 {
+				c.add(e.Key, source.Pointer("entities", e.Key.Value), RuleTenant, "%s carries no field %s and tenant.shared does not list it, so no rows rule limits it for %s and every tenant would reach every record; add %s to %s, list %s under tenant.shared if every tenant reads it whole, or write a rows rule for it on every role", e.Key.Value, key, joinAnd(open), key, e.Key.Value, e.Key.Value)
+			}
+			continue
+		}
+		if !declared || len(open) == 0 {
+			continue // no rule is derived over the entity
+		}
+		env := expr.Env{}
+		for name, f := range fields {
+			env[name] = d.fieldType(f)
+		}
+		for name, t := range callerEnv {
+			env[name] = t
+		}
+		tree, errs := expr.Parse(rule)
+		if len(errs) == 0 {
+			_, errs = expr.Check(tree, env)
+		}
+		for _, err := range errs {
+			field := source.Key(source.Child(e.Value, "properties"), key)
+			c.add(field, source.Pointer("entities", e.Key.Value, "properties", key), RuleTenant, "the tenant rule %s cannot be read over %s: %s", rule, e.Key.Value, err.Message)
 		}
 	}
 }

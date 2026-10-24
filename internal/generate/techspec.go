@@ -771,6 +771,14 @@ func crossCutting(d *doc, root *yaml.Node, state *State) {
 				rows = append(rows, [3]string{r.Key.Value, row.Key.Value, source.Str(row.Value)})
 			}
 		}
+		if tenant := source.Child(root, "tenant"); tenant != nil && str(tenant, "key") != "" {
+			shared := "No entity is shared."
+			if s := strs(tenant, "shared"); len(s) > 0 {
+				shared = "Every tenant reads " + strings.Join(s, ", ") + " whole."
+			}
+			key := str(tenant, "key")
+			d.para(fmt.Sprintf("The tenant scope: every role reaches only the records of an entity that carries %s whose %s is the caller's %s, and the table below holds that rule for each such entity, unless the role writes its own rule for it. %s", key, key, str(tenant, "property"), shared))
+		}
 		if len(rows) > 0 {
 			d.para("A role with a rows rule reaches only the records of the entity the rule holds for, through every operation, page and job; an entity not listed is reached whole, and a caller holding several roles reaches the union of their rows. A list shows only the rows, a read by key outside them answers not found, and a change that would leave them is refused.")
 			d.line("| Role | Entity | Rows |")

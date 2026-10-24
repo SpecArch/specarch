@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: validate
+level: system
+scenario: golden
+given: "a specification on 0.3 whose tenant scope names the caller's organisationId, the key organisationId and Country as shared, an Organisation limited by a rule of its own on both roles, a member whose own rule over Loan adds the member, staff with no rule over Loan, a list, a read by key, a delete and a job acting as staff over Loan, and a test of each derived case, those of the derived rule included"
+when: validate is run
+then: "it reports nothing and exits 0"
+verifies: [SA-91]

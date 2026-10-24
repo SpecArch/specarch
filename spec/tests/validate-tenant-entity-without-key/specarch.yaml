@@ -1,0 +1,41 @@
+specarch: "0.3"
+info: { title: Case, version: 1.0.0 }
+entities:
+  Organisation:
+    type: object
+    properties:
+      id: { type: string, maxLength: 36 }
+    required: [id]
+    primaryKey: [id]
+  Note:
+    type: object
+    properties:
+      id: { type: string, maxLength: 36 }
+      text: { type: string, maxLength: 500 }
+    required: [id, text]
+    primaryKey: [id]
+  Loan:
+    type: object
+    properties:
+      id: { type: string, maxLength: 36 }
+      organisationId: { type: string, maxLength: 36 }
+    required: [id, organisationId]
+    primaryKey: [id]
+caller:
+  description: Who is making the call.
+  properties:
+    organisationId: { type: string, maxLength: 36, description: The organisation every caller belongs to. }
+tenant:
+  property: organisationId
+  key: organisationId
+permissions:
+  loans.read: { description: See loans. }
+roles:
+  member:
+    description: A card holder of one organisation.
+    permissions: [loans.read]
+    rows:
+      Organisation: id == caller.organisationId
+  staff:
+    description: Staff of one organisation.
+    permissions: [loans.read]

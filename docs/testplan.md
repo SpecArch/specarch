@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.6-dev of the specification: 672 design tests, 320 golden and 352 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.6-dev of the specification: 681 design tests, 325 golden and 356 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.7.6-dev of the specification: 672 design tests, 320 golden and 352 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 668 |
+| system | 677 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -324,6 +324,14 @@ Scenario: golden; level: system; verifies SA-28, SA-42.
 - Given: a specification whose task page checks that the confirmation equals the new password, checks that two of its fields are given and has the new password entered twice, satisfying a requirement with a harm
 - When: derive is run
 - Then: it writes, among the operation's and the requirement's drafts, a test for the confirmation check broken, one for each way the other check breaks and one for the password entered twice differently, lists them and exits 0
+
+#### derive-tenant
+
+Scenario: golden; level: system; verifies SA-91.
+
+- Given: the specification of validate-tenant-valid with only the list's golden test
+- When: derive is run
+- Then: it writes the drafts of the rows of member under its own rule and of staff under the rule derived from the tenant scope: the list showing only the rows, the read by key outside them not found, the delete refused outside them for staff, who alone holds loans.return, and the job acting as staff on those rows only, beside the drafts of the permissions and the key, and exits 0
 
 #### derive-usage-error
 
@@ -900,6 +908,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-7.
 - Given: a schema and an entity of the same name, which the specification marks in error while they share it, and a response whose fields reference each of them
 - When: document techspec is run
 - Then: it prints the one-namespace error, links the field that references the entity to the entity's heading and the field that references the schema to the schema's heading, which takes -1 after the entity's as a Markdown renderer gives it, and exits 1
+
+#### document-techspec-tenant
+
+Scenario: golden; level: system; verifies SA-91.
+
+- Given: the specification of model-tenant-rules
+- When: document techspec is run with --out
+- Then: it writes the technical specification that says the tenant scope with its key, property and shared entities, and lists in the rows table the derived rule beside the roles' own, and exits 0
 
 #### document-techspec-without-implementation
 
@@ -2493,6 +2509,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-59.
 - When: generate sql is run
 - Then: it reports that the migration was written by a draft and the approved schema starts in a new folder, writes nothing and exits 1
 
+#### generate-sql-tenant
+
+Scenario: golden; level: system; verifies SA-91.
+
+- Given: the specification of model-tenant-rules with an implementation file in Go with a PostgreSQL sql target; specarch-gen-sql built from this repository on PATH
+- When: generate sql is run with --unapproved
+- Then: it writes the loans table with row security and the member's own policy beside the staff policy from the derived rule, the organisation table with each role's own policy, and the shared country table with no row security, and exits 0
+
 #### generate-sql-value-object
 
 Scenario: golden; level: system; verifies SA-48.
@@ -3228,6 +3252,14 @@ Scenario: golden; level: system; verifies SA-74.
 - Given: a specification whose theme holds a table of every scalar form yaml.v3 tells apart: integers in each base with leading zeros, signs and underscores in every place, floats with exponents, the infinities and NaN, booleans and nulls in every spelling, timestamps in each layout and out of range, texts that look like numbers, quoted and block scalars, and each of these under !!int, !!float, !!str, !!bool, !!null, !!timestamp, ! and other tags
 - When: model is run on it
 - Then: both builds print each scalar as the value yaml.v3 decodes, a number or a bool only where it decodes as one under its tag and text otherwise, and an unquoted_date error at each scalar it reads as a timestamp, the same bytes from each, and exit 0
+
+#### model-tenant-rules
+
+Scenario: golden; level: system; verifies SA-91.
+
+- Given: a specification on 0.3 whose tenant scope names organisationId as property and key and Country as shared, a member with its own rules over Organisation and Loan, and staff with its own rule over Organisation only
+- When: model is run on it
+- Then: the document holds the rule organisationId == caller.organisationId under the rows of staff for Loan, at the position of tenant, keeps the member's own rule over Loan, derives nothing for Country or Organisation, and exits 0
 
 #### model-usage-error
 
@@ -5095,6 +5127,46 @@ Scenario: red; level: system; covers exit 1; verifies SA-42.
 - When: validate is run
 - Then: it reports page five times and flow twice, lists a golden case for each success the submit operation answers, and exits 1
 
+#### validate-tenant
+
+Scenario: red; level: system; covers exit 1; verifies SA-91.
+
+- Given: a tenant scope whose shared lists an entity carrying the key and a name that is no entity, over an entity whose key is an integer while the caller's property is a string
+- When: validate is run
+- Then: it reports tenant at the shared entity, at the name with the entities it could be, and at the entity's key, saying why the rule cannot be read, and exits 1
+
+#### validate-tenant-entity-without-key
+
+Scenario: red; level: system; covers exit 1; verifies SA-91.
+
+- Given: a tenant scope over organisationId, an entity limited by a rule of its own on one of two roles, and an entity with no rule, neither carrying the key nor shared
+- When: validate is run
+- Then: it reports tenant at each of the two entities, naming the roles it is not limited for and the three ways out, and exits 1
+
+#### validate-tenant-property
+
+Scenario: red; level: system; covers exit 1; verifies SA-91.
+
+- Given: a tenant scope whose property the caller does not declare
+- When: validate is run
+- Then: it reports tenant once, at the property, listing the caller's properties, and nothing at the rules derived from it, and exits 1
+
+#### validate-tenant-rows-overridden
+
+Scenario: red; level: system; covers exit 1; verifies SA-91.
+
+- Given: a tenant scope over organisationId, an Organisation, and a Ledger whose integer key cannot compare with the caller's string, each limited by a rule of its own on every role, and a member whose own rule over Loan names a field Loan does not have
+- When: validate is run
+- Then: it reports rows at the member's own rule, which stands in place of the derived one, and nothing at Organisation or Ledger, since no rule is derived over them, and exits 1
+
+#### validate-tenant-valid
+
+Scenario: golden; level: system; verifies SA-91.
+
+- Given: a specification on 0.3 whose tenant scope names the caller's organisationId, the key organisationId and Country as shared, an Organisation limited by a rule of its own on both roles, a member whose own rule over Loan adds the member, staff with no rule over Loan, a list, a read by key, a delete and a job acting as staff over Loan, and a test of each derived case, those of the derived rule included
+- When: validate is run
+- Then: it reports nothing and exits 0
+
 #### validate-test-case
 
 Scenario: red; level: system; covers exit 1.
@@ -5459,7 +5531,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-386 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+389 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -5684,6 +5756,9 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-89 | acceptance 4 | golden | SA-89 names no harm |
 | requirement SA-89 | acceptance 5 | golden | SA-89 names no harm |
 | requirement SA-89 | acceptance 6 | golden | SA-89 names no harm |
+| requirement SA-91 | acceptance 1 | golden | SA-91 names no harm |
+| requirement SA-91 | acceptance 2 | golden | SA-91 names no harm |
+| requirement SA-91 | acceptance 3 | golden | SA-91 names no harm |
 | requirement SA-7 | acceptance 1 | golden | SA-7 names no harm |
 | requirement SA-7 | acceptance 2 | golden | SA-7 names no harm |
 | requirement SA-8 | acceptance 1 | golden | SA-8 names no harm |

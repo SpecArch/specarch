@@ -48,7 +48,7 @@ const QuestionsSection = "questions"
 var Sections = map[string]string{
 	"stakeholders": "requirements", "needs": "requirements", "requirements": "requirements",
 	"glossary": "requirements", "assumptions": "requirements", "constraints": "requirements",
-	"enums": "design", "entities": "design", "views": "design", "schemas": "design", "permissions": "design", "roles": "design", "caller": "design", "clients": "design", "tokens": "design", "securityEvents": "design", "separationOfDuties": "design", "session": "design", "middlewares": "design", "handshakes": "design", "paths": "design",
+	"enums": "design", "entities": "design", "views": "design", "schemas": "design", "permissions": "design", "roles": "design", "caller": "design", "tenant": "design", "clients": "design", "tokens": "design", "securityEvents": "design", "separationOfDuties": "design", "session": "design", "middlewares": "design", "handshakes": "design", "paths": "design",
 	"commands": "design", "channels": "design", "dependencies": "design", "jobs": "design", "gateways": "design", "workflows": "design", "errors": "design", "pages": "design", "menus": "design", "flows": "design", "accessibility": "design", "theme": "design", "algorithms": "design", "decisions": "design",
 	"tests":        "tests",
 	"environments": "deployment", "configuration": "deployment", "release": "deployment",
@@ -61,7 +61,7 @@ var Sections = map[string]string{
 // docs/conventions.md: life-cycle order, the questions last.
 var sectionOrder = []string{
 	"stakeholders", "needs", "requirements", "glossary", "assumptions", "constraints",
-	"enums", "entities", "views", "schemas", "permissions", "roles", "caller", "clients", "tokens", "securityEvents", "separationOfDuties", "session", "middlewares", "handshakes", "paths", "commands", "channels", "dependencies", "jobs", "gateways", "workflows", "errors", "pages", "menus", "flows", "accessibility", "theme", "algorithms",
+	"enums", "entities", "views", "schemas", "permissions", "roles", "caller", "tenant", "clients", "tokens", "securityEvents", "separationOfDuties", "session", "middlewares", "handshakes", "paths", "commands", "channels", "dependencies", "jobs", "gateways", "workflows", "errors", "pages", "menus", "flows", "accessibility", "theme", "algorithms",
 	"tests", "decisions",
 	"environments", "configuration", "release", "rollback", "migrations", "handover",
 	"checks", "signoff",
@@ -158,6 +158,7 @@ type Spec struct {
 	Root            *yaml.Node            // the merged document; nil when the root file did not parse
 	Value           any                   // the merged document as plain values, for the schema
 	Files           map[*yaml.Node]string // the file each node came from
+	Derived         map[*yaml.Node]bool   // the rows rules the tenant scope adds, by value node
 	Problems        []Problem
 	Held            []Held   // the entries of files that did not parse
 	Stages          []string // the stages listed in the root file
@@ -292,6 +293,7 @@ func Load(dir string) *Spec {
 		s.Files[key] = s.Files[n]
 		merged.Content = append(merged.Content, key, n)
 	}
+	s.Derived = tenantRules(s, merged)
 	s.Root = merged
 	s.Value = source.ValueOf(merged)
 	s.loadRecords()

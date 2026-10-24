@@ -1,0 +1,4 @@
+arguments: [validate, .]
+exitStatus: 1
+standardOutput: |
+  specarch.yaml:22:13: error: /tenant/property: tenant: organisation is not a property of the caller, so the tenant scope has nothing to compare organisationId with; its properties are organisationId [tenant@specarch.yaml#/tenant/property]

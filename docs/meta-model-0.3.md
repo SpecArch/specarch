@@ -132,9 +132,15 @@ matrix gains the rows each role reaches, and the library example's
 rule.
 
 A tenant scope, every record of an organisation reached only by its
-members, is the same rule written on each entity that carries the
-organisation's key. A shorthand that names every such entity at once is
-left out until a specification is long enough to want it.
+members, is said once as `tenant` with the caller's property, the key
+every tenant-owned entity carries and the entities every tenant reads
+whole (ADR-179). The document as read holds the rule
+`<key> == caller.<property>` under every role's `rows` for every entity
+that carries the key and is not shared, unless the role writes its own
+rule for it, and the validator refuses an entity that carries no key, is
+not shared and is not limited by a rule of its own on every role, so
+that an entity left out is never reached whole. `docs/conventions.md`
+holds the details.
 
 ### Machine clients and the gates that are not a permission
 
@@ -295,7 +301,6 @@ security event for every refusal. Its build items 1 to 3 are steps 3 and
 | more than one deliverable per specification | An implementation file is one stack's, and a second deliverable is a second implementation file of the same specification, naming what it builds in its mappings and targets. A design keyword waits for a second front end to be specified. |
 | the roles or the client in an expression | No rule needs them: rows are written per role, and a gate names its clients. Taking them would need sets in the expression language. `docs/caller-context.md` keeps the row: the application, the calling service, the chain and the audience are each a condition declared by name. |
 | a route both people and clients call | Written as `callers: [people, <client>]`, the explicit subset of `docs/caller-context.md` (ADR-110), which an estate whose reporting service reads the list people read asked for; `callers: all` is declined as fail-open. |
-| a shorthand for a tenant scope on every entity | Written per entity until a specification is long enough to want it. |
 | rows rules on a view's or a page's own fields | A rule is over the entity, and a view or page shows the entity's rows; a rule over a view's derived fields would be a second place to say it. |
 
 ## Building 0.3

@@ -630,6 +630,7 @@ redefined.
 | `req_wl`, `rctx`, `tctx` | the OAuth Transaction Tokens draft | its claims, pending registration |
 | `securityEvents`, `store`, `alarm` | SpecArch, after RFC 8417 and OWASP ASVS 5.0 V16 | where every refusal's security event goes (ADR-109) |
 | `rows` (of a role) | SpecArch, after PostgreSQL's `CREATE POLICY ... USING (...)` | the rows a role reaches in an entity, one bool expression per entity, permissive across roles as the policies are; ISO SQL has no row security, so the one engine that models it names it (ADR-095) |
+| `tenant`, `property`, `key`, `shared` | SpecArch | the tenant scope said once: the caller's property, the field every tenant-owned entity carries and the entities every tenant reads whole, from which every role's rows rule over those entities is derived; no standard names a tenant scope, and PostgreSQL's policies are still written one per role and table, which is what the derived rules become (ADR-179) |
 | `separationOfDuties`, `cardinality` | ANSI INCITS 359 (RBAC), static separation of duty | a set and a number no holder may reach; stated over permissions, not roles, because the specification declares the duties and the roles that grant them |
 | `session`, `idleTimeout`, `absoluteTimeout` | SpecArch, after the OWASP Session Management Cheat Sheet | how a signed-in session ends; the two timeouts are the cheat sheet's |
 | `middlewares`, `refusals` | SpecArch | the steps a request passes before an operation's handler, declared once with what each checks or does and the refusals it answers, each a `status`, a `problem` and a `condition`; an operation lists the ones it runs, in order, `[]` for none. No standard names them: OpenAPI's `security` says how a caller proves who it is, not what runs (ADR-131) |
@@ -809,6 +810,32 @@ with the version warning in a file on 0.2 (ADR-094). The roles a caller
 holds are not a property: a rule is written per role. A test's fixture
 names the caller as a role, or as an object with `role` and a value for
 each property the test needs.
+
+A tenant scope, every record of an organisation reached only by that
+organisation's callers, is said once (ADR-179):
+
+```yaml
+tenant:
+  property: organisationId   # the caller's property
+  key: organisationId        # the field every tenant-owned entity carries
+  shared: [Country]          # the entities every tenant reads whole
+```
+
+The document as read holds, for every role and every entity with a field
+named `key` that `shared` does not list, the rule
+`<key> == caller.<property>` under the role's `rows`, at the position of
+`tenant`; `specarch model`, the derived cases, the documents and every
+generator read it as if written. A rule the role writes for that entity
+stands in its place, alone: an organisation's own record, whose identifier
+is `id` rather than the key, gets `id == caller.organisationId` on each
+role, and a role that sees every tenant's records gets `true`. An entity
+that carries no field named `key`, is not listed under `shared` and is not
+limited by a rule of its own on every role is refused at the entity, so
+that an entity left out is never reached whole; so are a `shared` name
+that is no entity, a shared entity that carries the key, a property the
+caller does not declare and a key the entity cannot compare with the
+property (`tenant`). A derived rule is checked once, at the entity, never
+at the role.
 
 ### Machine clients, callers, a route closed on purpose, and the clients a grant holds through
 

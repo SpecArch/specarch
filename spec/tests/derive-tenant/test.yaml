@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: derive
+level: system
+scenario: golden
+given: "the specification of validate-tenant-valid with only the list's golden test"
+when: derive is run
+then: "it writes the drafts of the rows of member under its own rule and of staff under the rule derived from the tenant scope: the list showing only the rows, the read by key outside them not found, the delete refused outside them for staff, who alone holds loans.return, and the job acting as staff on those rows only, beside the drafts of the permissions and the key, and exits 0"
+verifies: [SA-91]

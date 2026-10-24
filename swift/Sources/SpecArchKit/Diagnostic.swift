@@ -132,6 +132,7 @@ public enum Rule: String, CaseIterable, Sendable {
     case stream = "stream"
     case callerProperty = "caller_property"
     case rows = "rows"
+    case tenant = "tenant"
     case reservedName = "reserved_name"
     case client = "client"
     case clientUnused = "client_unused"

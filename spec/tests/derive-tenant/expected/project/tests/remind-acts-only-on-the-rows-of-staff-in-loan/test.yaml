@@ -1,0 +1,9 @@
+job: remind
+level: system
+scenario: red
+covers: [acts only on the rows of staff in Loan]
+given: "the job acts as staff, whose rows of Loan are organisationId == caller.organisationId"
+when: "the job remind runs"
+then: "it reads and writes only the Loan records the rule holds for"
+origin: inferred
+why: "Written by specarch derive: users get this wrong often, so the case is written. A draft: complete the given, when and then, and remove what does not hold."

@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-design-0.3.schema.json",
   "title": "SpecArch specification, meta-model 0.3",
-  "description": "A SpecArch specification describes one system through its whole life cycle: the sources it rests on, the requirements (stakeholders, needs, requirements, glossary, assumptions, constraints), the design (enums, entities, permissions, roles, caller, clients, tokens, securityEvents, session, endpoints, commands, channels, dependencies, pages, algorithms, decisions), the tests, the deployment (environments, configuration, release, rollback, migrations) and the commissioning (checks, sign-off). On disk it is a folder whose root file is specarch.yaml; each stage listed under 'stages' lives in a folder of that name, and a stage not listed may be written inside specarch.yaml itself. The validator merges the tree into one document that this schema describes. Field keywords come from JSON Schema, endpoint keywords from OpenAPI 3, event keywords from AsyncAPI. Keywords with no standard origin are marked 'SpecArch keyword' in their description. Every object rejects unknown keys; keys starting with 'x-' are allowed everywhere as extensions.",
+  "description": "A SpecArch specification describes one system through its whole life cycle: the sources it rests on, the requirements (stakeholders, needs, requirements, glossary, assumptions, constraints), the design (enums, entities, permissions, roles, caller, tenant, clients, tokens, securityEvents, session, endpoints, commands, channels, dependencies, pages, algorithms, decisions), the tests, the deployment (environments, configuration, release, rollback, migrations) and the commissioning (checks, sign-off). On disk it is a folder whose root file is specarch.yaml; each stage listed under 'stages' lives in a folder of that name, and a stage not listed may be written inside specarch.yaml itself. The validator merges the tree into one document that this schema describes. Field keywords come from JSON Schema, endpoint keywords from OpenAPI 3, event keywords from AsyncAPI. Keywords with no standard origin are marked 'SpecArch keyword' in their description. Every object rejects unknown keys; keys starting with 'x-' are allowed everywhere as extensions.",
   "type": "object",
   "properties": {
     "specarch": {
@@ -172,6 +172,10 @@
     "caller": {
       "description": "SpecArch keyword. Who is making the call, as the service knows it once the session or token has been checked: one record with the properties of a value object, which a role's rows rule names as caller.<property>. A token's claims fill the properties of their names, and a session fills them at sign-in; how a running service carries them from the request to the query is the implementation file's (ADR-095).",
       "$ref": "#/$defs/caller"
+    },
+    "tenant": {
+      "description": "SpecArch keyword. The tenant scope, said once: every role reaches only the rows of an entity carrying key whose key equals the caller's property, as if each role wrote the rows rule <key> == caller.<property> for it, unless the role writes its own rule for that entity; the entities listed under shared are read whole by every tenant. An entity that carries no key, is not shared and is not limited by a rule of its own on every role is an error, so that an entity left out is never reached whole (ADR-179).",
+      "$ref": "#/$defs/tenant"
     },
     "clients": {
       "description": "SpecArch keyword. The programs that call the system, keyed by the software_id of RFC 7591, the publisher's name for the software across its versions, in kebab-case: an application, where a person signs in, or a service, which calls on its own account with the roles it holds and a proof of its identity on each request, or carries a person's call. A client holds roles as a person does, so what it may do is said once, through permissions (ADR-096, ADR-106, ADR-110).",
@@ -6379,6 +6383,59 @@
       "required": [
         "description",
         "properties"
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "tenant": {
+      "description": "SpecArch keyword. The one tenant scope of a specification.",
+      "type": "object",
+      "properties": {
+        "description": {
+          "$ref": "#/$defs/markdown"
+        },
+        "property": {
+          "description": "SpecArch keyword. The caller's property that names the caller's tenant, such as organisationId.",
+          "$ref": "#/$defs/memberName"
+        },
+        "key": {
+          "description": "SpecArch keyword. The field every tenant-owned entity carries, compared with the caller's property; an entity with a field of this name is a tenant's.",
+          "$ref": "#/$defs/memberName"
+        },
+        "shared": {
+          "description": "SpecArch keyword. The entities every tenant reads whole, such as a list of countries; each carries no field named key.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/typeName"
+          },
+          "uniqueItems": true
+        },
+        "satisfies": {
+          "$ref": "#/$defs/satisfies"
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
+        }
+      },
+      "required": [
+        "property",
+        "key"
       ],
       "propertyNames": {
         "not": {

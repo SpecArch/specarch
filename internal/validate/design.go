@@ -215,6 +215,7 @@ func (c *checker) checkDesign(d *design) {
 	c.checkAccess(d)
 	c.checkCaller(d)
 	c.checkRoleRows(d)
+	c.checkTenant(d)
 	c.checkClients(d)
 	c.checkTrustDomain(d)
 	c.checkThrough(d)

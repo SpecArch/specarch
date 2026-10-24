@@ -163,6 +163,9 @@ extension Checker {
         let callerEnv = d.callerEnv()
         for r in pairs(d.root.child("roles")) {
             for row in pairs(r.value.child("rows")) {
+                if d.spec?.derived.contains(ObjectIdentifier(row.value)) == true {
+                    continue // checked once, at the entity, by checkTenant
+                }
                 let entity = row.key.value
                 let ptr = pointer("roles", r.key.value, "rows", entity)
                 guard let ent = d.entities[entity] else {

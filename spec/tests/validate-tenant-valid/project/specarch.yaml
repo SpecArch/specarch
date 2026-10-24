@@ -1,0 +1,88 @@
+specarch: "0.3"
+info: { title: Case, version: 1.0.0 }
+stages: [tests]
+entities:
+  Organisation:
+    type: object
+    properties:
+      id: { type: string, format: uuid }
+      name: { type: string, maxLength: 100 }
+    required: [id, name]
+    primaryKey: [id]
+  Country:
+    type: object
+    properties:
+      code: { type: string, maxLength: 2 }
+      name: { type: string, maxLength: 100 }
+    required: [code, name]
+    primaryKey: [code]
+  Loan:
+    type: object
+    properties:
+      id: { type: string, format: uuid }
+      organisationId: { type: string, format: uuid }
+      memberId: { type: string, format: uuid }
+    required: [id, organisationId, memberId]
+    primaryKey: [id]
+caller:
+  description: Who is making the call, once the session has been checked.
+  properties:
+    organisationId: { type: string, format: uuid, description: The organisation every caller belongs to. }
+    memberId: { type: [string, "null"], format: uuid, description: The member signed in; null for staff. }
+tenant:
+  description: Every organisation reaches only its own records; countries are read by all.
+  property: organisationId
+  key: organisationId
+  shared: [Country]
+permissions:
+  loans.read: { description: See loans. }
+  loans.return: { description: Return a loan. }
+roles:
+  member:
+    description: A card holder of one organisation, who sees only their own loans.
+    permissions: [loans.read]
+    rows:
+      Organisation: id == caller.organisationId
+      Loan: organisationId == caller.organisationId && memberId == caller.memberId
+  staff:
+    description: Staff of one organisation.
+    permissions: [loans.read, loans.return]
+    rows:
+      Organisation: id == caller.organisationId
+paths:
+  /loans:
+    get:
+      operationId: listLoans
+      summary: List loans
+      permission: loans.read
+      responses:
+        "200":
+          description: The loans.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/entities/Loan" } }
+  /loans/{loanId}:
+    parameters:
+      - { name: loanId, in: path, required: true, schema: { type: string, format: uuid } }
+    get:
+      operationId: getLoan
+      summary: Show a loan
+      permission: loans.read
+      responses:
+        "200":
+          description: The loan.
+          content:
+            application/json:
+              schema: { $ref: "#/entities/Loan" }
+    delete:
+      operationId: returnLoan
+      summary: Return a loan
+      permission: loans.return
+      responses:
+        "204": { description: Returned. }
+jobs:
+  remind:
+    description: Reminds the staff of each organisation of loans falling due.
+    trigger: { schedule: "0 6 * * *" }
+    role: staff
+    reads: [Loan]

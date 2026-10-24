@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "a tenant scope over organisationId, an Organisation, and a Ledger whose integer key cannot compare with the caller's string, each limited by a rule of its own on every role, and a member whose own rule over Loan names a field Loan does not have"
+when: validate is run
+then: "it reports rows at the member's own rule, which stands in place of the derived one, and nothing at Organisation or Ledger, since no rule is derived over them, and exits 1"
+verifies: [SA-91]

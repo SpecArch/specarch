@@ -258,6 +258,7 @@ extension Checker {
         checkAccess(d)
         checkCaller(d)
         checkRoleRows(d)
+        checkTenant(d)
         checkClients(d)
         checkTrustDomain(d)
         checkThrough(d)

@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "a tenant scope whose property the caller does not declare"
+when: validate is run
+then: "it reports tenant once, at the property, listing the caller's properties, and nothing at the rules derived from it, and exits 1"
+verifies: [SA-91]

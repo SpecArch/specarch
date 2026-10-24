@@ -547,3 +547,15 @@ requirements:
     verification: test
     needs: [NEED-2]
     why: An estate written from its code has its application, caller and audience checks in middleware the project writes its own way; read as nothing, the operations look open to any caller, and guessed, a condition on a grant could be written where none holds (ADR-106, ADR-109, ADR-111).
+  SA-91:
+    statement: A specification shall be able to say a tenant scope once, as tenant with the caller's property, the key every tenant-owned entity carries and the entities every tenant reads whole; the document as read shall hold the rows rule of every role over every entity that carries the key, except where the role writes its own, and specarch validate shall refuse in both builds an entity that no rule limits and that the scope does not name as shared.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance:
+      - For every role and every entity with a field named key that shared does not list, the document as read, which model prints, holds the rule `<key> == caller.<property>` under the role's rows at the position of tenant, and a rule the role writes for that entity stands in its place.
+      - An entity that carries no field named key, is not listed under shared and is not limited by a rule of its own on every role is reported as tenant at the entity, in both builds, with the same words; so are a shared name that is no entity, a shared entity that carries the key, a property the caller does not declare, and a key the entity cannot compare with the property.
+      - The derived cases of the derived rules, the drafts specarch derive writes for them, the rows the technical specification shows for each role and the row security policies generate sql writes are the ones of the same rules written by hand.
+    verification: test
+    needs: [NEED-1, NEED-2, NEED-3]
+    why: In a multi-tenant suite every role's rule over every tenant-owned entity is the same expression, written by hand hundreds of times, and an entity whose rules are forgotten is reached whole by every tenant with no word from the validator (ADR-179).

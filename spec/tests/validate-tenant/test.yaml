@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "a tenant scope whose shared lists an entity carrying the key and a name that is no entity, over an entity whose key is an integer while the caller's property is a string"
+when: validate is run
+then: "it reports tenant at the shared entity, at the name with the entities it could be, and at the entity's key, saying why the rule cannot be read, and exits 1"
+verifies: [SA-91]

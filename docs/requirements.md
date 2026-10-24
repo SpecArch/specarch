@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: requirements specification
 
-Version 0.7.6-dev of the specification: 5 stakeholders, 10 needs and 90 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
+Version 0.7.6-dev of the specification: 5 stakeholders, 10 needs and 91 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -33,9 +33,9 @@ What the stakeholders said they need, before it was shaped into requirements, an
 
 | Need | Statement | Stakeholders | Status | Refined by |
 |---|---|---|---|---|
-| NEED-1 | I want a specification that cannot quietly be wrong, so that the code built from it is right. | specification-author, implementer | accepted | SA-33, SA-34, SA-35, SA-47, SA-48, SA-50, SA-75, SA-77, SA-82, SA-83, SA-84, SA-72, SA-1, SA-2, SA-3, SA-4, SA-5, SA-6, SA-51 |
-| NEED-2 | I want to write a design once and build it in more than one language. | implementer | accepted | SA-33, SA-34, SA-36, SA-37, SA-38, SA-39, SA-40, SA-41, SA-42, SA-43, SA-80, SA-81, SA-52, SA-53, SA-54, SA-55, SA-56, SA-49, SA-62, SA-63, SA-65, SA-66, SA-70, SA-77, SA-78, SA-82, SA-83, SA-84, SA-88, SA-89, SA-46, SA-61, SA-71, SA-87, SA-32, SA-9, SA-10 |
-| NEED-3 | I want the documents and diagrams to come from the specification, so they never drift from it. | reviewer, specification-author | accepted | SA-22, SA-36, SA-67, SA-75, SA-77, SA-82, SA-83, SA-84, SA-88, SA-7, SA-8, SA-26, SA-16, SA-58, SA-59, SA-60, SA-90, SA-19, SA-74 |
+| NEED-1 | I want a specification that cannot quietly be wrong, so that the code built from it is right. | specification-author, implementer | accepted | SA-33, SA-34, SA-35, SA-47, SA-48, SA-50, SA-75, SA-77, SA-82, SA-83, SA-84, SA-91, SA-72, SA-1, SA-2, SA-3, SA-4, SA-5, SA-6, SA-51 |
+| NEED-2 | I want to write a design once and build it in more than one language. | implementer | accepted | SA-33, SA-34, SA-36, SA-37, SA-38, SA-39, SA-40, SA-41, SA-42, SA-43, SA-80, SA-81, SA-52, SA-53, SA-54, SA-55, SA-56, SA-49, SA-62, SA-63, SA-65, SA-66, SA-70, SA-77, SA-78, SA-82, SA-83, SA-84, SA-88, SA-89, SA-91, SA-46, SA-61, SA-71, SA-87, SA-32, SA-9, SA-10 |
+| NEED-3 | I want the documents and diagrams to come from the specification, so they never drift from it. | reviewer, specification-author | accepted | SA-22, SA-36, SA-67, SA-75, SA-77, SA-82, SA-83, SA-84, SA-88, SA-91, SA-7, SA-8, SA-26, SA-16, SA-58, SA-59, SA-60, SA-90, SA-19, SA-74 |
 | NEED-4 | I want a big specification split over many files, each about one thing, so I can find what I am looking for. | specification-author, reviewer | accepted | SA-11, SA-2 |
 | NEED-5 | I want the whole life of the system in one place, from the first requirement to the day it is accepted. | reviewer, operator | accepted | SA-35, SA-47, SA-68, SA-26, SA-16, SA-90, SA-12, SA-23, SA-24, SA-25, SA-73 |
 | NEED-6 | I want to see why something is the way it is, and which standard asks for it. | reviewer | accepted | SA-15, SA-13 |
@@ -92,6 +92,7 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | SA-84 | functional | must | accepted | A specification shall be able to declare the token formats its service issues and accepts, each with its kind, lifetime, signature algorithm, claims and checks, one of them the default, and on an operation the token it accepts and the immediate callers of a transaction token; to fix the audience of every accepted access token; and to say where the security event every refusal of a caller writes goes; specarch validate shall check each in both builds, the derived cases shall cover the expired token, each check, the actor as subject, the audience, the chain and the confused deputy's token forms, each naming its security event, generate openapi shall write the schemes the tokens give, and the technical specification shall show the tokens, the chain and the events. |
 | SA-88 | functional | must | accepted | An estate shall be able to keep its clients, roles and trust domain in one identity module that every other module names by reference, and specarch validate shall resolve those references when the modules are given together, count them as unresolved when they are not, and check what the referenced clients and roles allow at every hop. |
 | SA-89 | functional | should | accepted | specarch extract go, swift, javascript and dart shall read the project's own checks of the clients, the application, the immediate caller and the audience, and its event writers, as the implementation file names them, write the clients and the services its checks name as literals as an operation's callers and via, and ask for everything else the code reads at run time; extract go shall also ask for the transaction token of an operation whose handler reads the Txn-Token header. |
+| SA-91 | functional | must | accepted | A specification shall be able to say a tenant scope once, as tenant with the caller's property, the key every tenant-owned entity carries and the entities every tenant reads whole; the document as read shall hold the rows rule of every role over every entity that carries the key, except where the role writes its own, and specarch validate shall refuse in both builds an entity that no rule limits and that the scope does not name as shared. |
 | SA-7 | functional | must | accepted | specarch document and specarch generate shall write only into the folder the target owns, and with --check shall fail when the committed output differs. |
 | SA-8 | functional | must | accepted | Every generated file shall name its source specification, version and meta-model, and a hand-written Markdown document shall change only between its markers. |
 | SA-26 | functional | should | accepted | specarch document shall write the change and defect register and the release notes from the records beside a specification, kept current with --check like the other documents. |
@@ -855,6 +856,20 @@ Acceptance criteria:
 - specarch extract permissions reads a grant's client, the row's subject when it is a client, as a role named after it held by the client declared as a service, with a must question for its proof and a could question to rename the role, named with -client added where a role of the table has the client's name, with a must question whether the client holds that role; and a grant's through as the role's through, the client declared as an application; a grant both narrowed and not by two rows, and a name used as subject and as through, are must questions, and so are what each client is and which token carries the application.
 
 **Insight:** An estate written from its code has its application, caller and audience checks in middleware the project writes its own way; read as nothing, the operations look open to any caller, and guessed, a condition on a grant could be written where none holds (ADR-106, ADR-109, ADR-111).
+
+### SA-91
+
+A specification shall be able to say a tenant scope once, as tenant with the caller's property, the key every tenant-owned entity carries and the entities every tenant reads whole; the document as read shall hold the rows rule of every role over every entity that carries the key, except where the role writes its own, and specarch validate shall refuse in both builds an entity that no rule limits and that the scope does not name as shared.
+
+Kind: functional; priority: must; status: accepted; verified by test; refines NEED-1, NEED-2, NEED-3.
+
+Acceptance criteria:
+
+- For every role and every entity with a field named key that shared does not list, the document as read, which model prints, holds the rule `<key> == caller.<property>` under the role's rows at the position of tenant, and a rule the role writes for that entity stands in its place.
+- An entity that carries no field named key, is not listed under shared and is not limited by a rule of its own on every role is reported as tenant at the entity, in both builds, with the same words; so are a shared name that is no entity, a shared entity that carries the key, a property the caller does not declare, and a key the entity cannot compare with the property.
+- The derived cases of the derived rules, the drafts specarch derive writes for them, the rows the technical specification shows for each role and the row security policies generate sql writes are the ones of the same rules written by hand.
+
+**Insight:** In a multi-tenant suite every role's rule over every tenant-owned entity is the same expression, written by hand hundreds of times, and an entity whose rules are forgotten is reached whole by every tenant with no word from the validator (ADR-179).
 
 ### SA-7
 

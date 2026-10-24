@@ -1,0 +1,6 @@
+arguments: [validate, .]
+exitStatus: 1
+standardOutput: |
+  specarch.yaml:21:23: error: /entities/Loan/properties/organisationId: tenant: the tenant rule organisationId == caller.organisationId cannot be read over Loan: == compares two values of one type, and this is an int == a string; write a conversion so both sides have one type [tenant@specarch.yaml#/entities/Loan/properties/organisationId]
+  specarch.yaml:31:21: error: /tenant/shared/1: tenant: Region carries organisationId, so its rows are a tenant's, and shared says every tenant reads it whole; take it out of shared, or rename its field if it is not the tenant's key [tenant@specarch.yaml#/tenant/shared/1]
+  specarch.yaml:31:29: error: /tenant/shared/2: tenant: Countries is not an entity of the specification, so there is nothing to share; use one of Country, Loan, Region [tenant@specarch.yaml#/tenant/shared/2]

@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: document
+level: system
+scenario: golden
+given: "the specification of model-tenant-rules"
+when: "document techspec is run with --out"
+then: "it writes the technical specification that says the tenant scope with its key, property and shared entities, and lists in the rows table the derived rule beside the roles' own, and exits 0"
+verifies: [SA-91]

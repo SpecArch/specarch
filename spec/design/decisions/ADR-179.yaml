@@ -1,0 +1,66 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.3.schema.json
+decisions:
+  ADR-179:
+    title: A tenant scope is said once, as tenant with the caller's property, the key every tenant-owned entity carries and the entities every tenant reads whole; the rows rule of every role over every such entity is derived from it, and an entity left out of both is an error
+    status: accepted
+    date: "2026-10-24"
+    context: |
+      In a multi-tenant system every record of an organisation is reached
+      only by that organisation's callers. With a rows rule per role and
+      entity (ADR-095), a suite of forty entities and six roles writes the
+      same rule two hundred and forty times, and an entity whose rules are
+      forgotten is reached whole by every tenant with no word from the
+      validator: the one mistake the scope exists to prevent is the one the
+      meta-model cannot see.
+    decision: |
+      - tenant is an object of the design stage with property, a property
+        of the caller; key, the field every tenant-owned entity carries;
+        and shared, the entities every tenant reads whole.
+      - The document as read holds the rules: for every role and every
+        entity with a field named key that shared does not list, the
+        loader adds `roles.<role>.rows.<Entity>: <key> == caller.<property>`
+        at the position of tenant, unless the role writes its own rule for
+        that entity, which then stands alone. The file keeps the
+        shorthand; validate, derive, model, the documents and every
+        generator read the rules as if written.
+      - An entity that carries no field named key, is not listed under
+        shared and is not limited by a rule of its own on every role is an
+        error at the entity: no rule limits its rows, so every tenant
+        would reach every record. An entity under shared that carries the
+        key, a shared name that is no entity, a property the caller does
+        not declare, and a key the entity cannot compare with the property
+        are errors too, each at its entry, under the rule tenant.
+      - A derived rule is checked once, at the entity, rather than once per
+        role at a rule nobody wrote.
+    why: |
+      Deny by default is a rule of the OWASP Authorization Cheat Sheet,
+      and a scope written per entity is allow by default: the entity
+      nobody wrote a rule for is open. Naming the shared entities turns the
+      choice around, so that reaching an entity whole is something a
+      person wrote down. The rule is derived into the document rather than
+      read by each consumer, because the derived cases, the techspec, the
+      model and the row security policies must agree on it, and one place
+      that writes it is the one way they can. A role's own rule replaces
+      the derived one rather than being added to it, because the rules of
+      one role over one entity are one expression, and an organisation's
+      own record, which carries its identifier as id and not as the key, is
+      reached through a rule of its own on each role. An entity both shared
+      and carrying the key is refused because it says two things, reached
+      whole and reached by tenant, and which one wins would be a guess.
+    consequences: |
+      A tenant scope is three lines, and a new entity is either a tenant's
+      or shared by a decision someone wrote. The derived cases (shows only
+      the rows, a record outside the rows is not found, a change outside
+      the rows is refused, a job acts only on the rows) follow from the
+      derived rules for every role that holds the operation's permission,
+      and generate sql writes their row security policies. A rule of a
+      role's own is the place for an exception, such as a role that sees
+      every tenant's records, whose rule is true. How the caller's
+      property reaches the query is the implementation file's, as for any
+      rows rule.
+    cites:
+      - source: owasp-authorization
+        says: "Deny by default, enforce authorisation on every record a caller names, and do not reveal through the answer whether a record the caller may not reach exists."
+      - source: postgresql-row-security
+        says: "A policy is granted to roles, permissive policies on one table are combined with OR, USING filters the rows read and WITH CHECK refuses rows a change would create or leave outside the policy."
+    satisfies: [SA-3, SA-5]

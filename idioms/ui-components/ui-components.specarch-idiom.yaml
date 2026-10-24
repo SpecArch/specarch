@@ -246,8 +246,8 @@ parts:
       swiftui:
         names: { schemaType: CustomPageSchema, title: title, permission: permission, actions: actions }
         code: |
-          The page's view draws <Page>Screen, a view the app's module
-          declares, inside the Guard, with the schema, the route's
+          The page's view draws <Page>Screen, a view the project writes
+          in the screens module beside Pages/, inside the Guard, with the schema, the route's
           parameters and the routes of the page's actions; a missing view
           fails the build.
   text-field:

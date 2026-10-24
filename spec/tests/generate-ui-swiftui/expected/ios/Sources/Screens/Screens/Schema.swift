@@ -153,7 +153,8 @@ public struct CustomActionSchema: Sendable {
 }
 
 /// A custom page: its title, the permission it needs and the pages its
-/// actions open; its screen, <Page>Screen, is the app's own.
+/// actions open; its screen, <Page>Screen, is the project's, written in
+/// this module beside Pages/.
 public struct CustomPageSchema: Sendable {
     public var title: String
     public var permission: String

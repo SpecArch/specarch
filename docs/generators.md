@@ -1133,7 +1133,8 @@ actions are in its swipe and context menus, its sort a toolbar menu of
 the sortable columns, and its page turned under the rows; a view's
 actions that open a page are in its toolbar; an action's confirmation
 is a sheet with the reason it requires. A custom page's view draws
-`<Page>Screen`, a view the app's module declares, inside the guard, with
+`<Page>Screen`, a view the project writes in the screens module beside
+`Pages/`, inside the guard, with
 its `CustomPageSchema`, the route's parameters and the routes of its
 actions, so a missing screen fails the build (ADR-183). A task page's answer, and a
 list's or a view's operation action once it succeeds, that navigates to

@@ -71,8 +71,9 @@ texts to the component behind the guard, and gives it the routes its
 events lead to. A form whose fields take hooks reads each from
 a static member of `<Page>Hooks` named as the field, a type the project
 writes beside the page, so a missing hook fails the build, as a missing `page.hooks.ts` fails `tsc`.
-A custom page's view draws `<Page>Screen`, a view the app's module
-declares with `init(schema: CustomPageSchema, parameters: [String:
+A custom page's view draws `<Page>Screen`, a view the project writes in
+the screens module beside `Pages/` (the page's schema is internal to
+it), with `init(schema: CustomPageSchema, parameters: [String:
 String], routes: [String: Routes.Make])`, inside the guard, so a missing
 screen fails the build (ADR-183).
 

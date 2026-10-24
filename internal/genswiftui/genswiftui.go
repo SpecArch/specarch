@@ -239,7 +239,8 @@ func (g *gen) viewFile(p *genscreens.Page) string {
 }
 
 // component is the view that draws a page: its part's component, or for
-// a custom page <Page>Screen, a view the app's module declares, so a
+// a custom page <Page>Screen, a view the project writes in the screens
+// module beside Pages/, so a
 // missing one fails the build (ADR-183).
 func (g *gen) component(p *genscreens.Page) string {
 	if p.Kind == "custom" {

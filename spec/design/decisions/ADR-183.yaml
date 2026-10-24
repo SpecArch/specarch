@@ -21,8 +21,11 @@ decisions:
       - A custom page has no source, submit, fields, sections, columns,
         compactColumns, filters, blocks, childRows, onSubmitted,
         onSelect, pickers, fieldConditions, checks, enteredTwice, states
-        or inbox, each refused at its key (page): what the screen loads,
-        sends and shows is the project's. Its actions are of kind
+        or inbox, each refused at its key: source, submit, fields,
+        sections, columns, filters and states by rule page, the others by
+        the rule that already refuses each on a page of another kind
+        (page, flow, form_field, picker, workflow), so none is reported
+        twice. What the screen loads, sends and shows is the project's. Its actions are of kind
         navigate only, the pages the screen leads to, so a flow passes
         through it with event action and the action's label; an action
         of kind operation is refused (page), since the screen calls its
@@ -36,11 +39,11 @@ decisions:
         the load and never shows a blank page:
         specarch-gen-ui-typescript writes app/<route>/page.tsx, which
         draws the default export of ./custom/<page> (beside it, under the
-        route's folder) inside the Guard with the schema, the texts, the
-        route's parameters and the routes of its actions, and the derived
-        refusal test; specarch-gen-ui-swiftui writes <Page>View, which
-        draws <Page>Screen, a view the app's module declares, inside the
-        Guard; specarch-gen-ui writes <page>.html and <page>.js, which
+        route's folder) with the schema, the texts, the route's parameters
+        and the routes of its actions, inside the Guard with the derived
+        refusal test when it needs a permission; specarch-gen-ui-swiftui
+        writes <Page>View, which draws <Page>Screen, a view the project
+        writes in the screens module beside Pages/, inside the Guard; specarch-gen-ui writes <page>.html and <page>.js, which
         imports custom/<page>.js and calls its show with the page's main
         element and parameters, and names that module in pages.js; the
         page's HTML says which module did not load until show runs.

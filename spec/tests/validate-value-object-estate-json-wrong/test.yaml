@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "an estate of two modules, the loans module whose entity has a field with storage json typed by a schema the customer registry does not have, and a list of the registry's schema with storage columns"
+when: "validate is run on the estate file"
+then: "it reports reference at the first field, naming the schema missing from the registry and its version, and value_object at the list, which has no columns, and no other error, and exits 1"
+verifies: [SA-50, SA-65]

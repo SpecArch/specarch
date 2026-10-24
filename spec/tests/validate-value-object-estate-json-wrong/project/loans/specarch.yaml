@@ -1,0 +1,54 @@
+specarch: "0.1"
+info: { title: Loans, version: 1.0.0, name: loans }
+stages: [implementation]
+dependencies:
+  customerRegistry:
+    description: The registry of customers, whose addresses the loans keep.
+    timeout: PT2S
+    specification: customer-registry
+    version: 2.4.0
+entities:
+  Loan:
+    type: object
+    properties:
+      id: { type: string, format: uuid, readOnly: true }
+      amount: { type: integer, format: int32, minimum: 1 }
+      address: { $ref: "customerRegistry#/schemas/Adress", storage: json }
+      previousAddresses: { type: array, items: { $ref: "customerRegistry#/schemas/Address" }, storage: columns }
+    required: [id, amount]
+    primaryKey: [id]
+permissions:
+  loans.read: { description: See loans. }
+  loans.write: { description: Add loans. }
+roles:
+  desk: { description: The desk., permissions: [loans.read, loans.write] }
+paths:
+  /loans:
+    post:
+      operationId: createLoan
+      summary: Add a loan
+      permission: loans.write
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/entities/Loan" }
+      responses:
+        "201":
+          description: The loan.
+          content:
+            application/json:
+              schema: { $ref: "#/entities/Loan" }
+  /loans/{loanId}:
+    parameters:
+      - { name: loanId, in: path, required: true, schema: { type: string, format: uuid } }
+    get:
+      operationId: getLoan
+      summary: One loan
+      permission: loans.read
+      responses:
+        "200":
+          description: The loan.
+          content:
+            application/json:
+              schema: { $ref: "#/entities/Loan" }

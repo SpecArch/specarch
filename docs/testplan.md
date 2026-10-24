@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.6-dev of the specification: 720 design tests, 354 golden and 366 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.6-dev of the specification: 724 design tests, 357 golden and 367 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.7.6-dev of the specification: 720 design tests, 354 golden and 366 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 716 |
+| system | 720 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -2245,6 +2245,14 @@ Scenario: golden; level: system; verifies SA-65.
 - When: generate go-dxlib is run with --unapproved and --estate naming the estate file, on the loans module
 - Then: it writes the handlers and the client with a value object for each field, of the schema's parts and of the entity's properties read from the registry's specification, each commented with the module and the pointer it was read from, and exits 0
 
+#### generate-go-dxlib-estate-reference-json
+
+Scenario: golden; level: system; verifies SA-50, SA-65.
+
+- Given: an estate of two modules, the loans module whose entity has a field typed by the customer registry's schema through a dependency with storage json and a list of that schema with storage json, an implementation file in Go whose go-dxlib target names a package, and specarch-gen-go-dxlib built from this repository on PATH
+- When: generate go-dxlib is run with --unapproved and --estate naming the estate file, on the loans module
+- Then: it writes the handlers and the client with a value object read from the registry's specification and commented with the module and the pointer, each field read and checked part by part and item by item, written to its column as JSON and read back from it, and exits 0
+
 #### generate-go-dxlib-extracted-vault
 
 Scenario: golden; level: system; verifies SA-77, SA-44.
@@ -2532,6 +2540,14 @@ Scenario: golden; level: system; verifies SA-65.
 - Given: an estate of two modules, the loans module whose entity has a field typed by the customer registry's schema and one typed by its enum through a dependency, and keeps a customer's key through a many-to-one relation to the registry's entity, an implementation file in Go whose sql target is PostgreSQL, and specarch-gen-sql built from this repository on PATH
 - When: generate sql is run with --unapproved and --estate naming the estate file, on the loans module
 - Then: it writes the loans table with the schema's parts as columns typed and checked from the registry's schema and enum, the enum's column checked against its values, the key's column with no foreign key and the comment naming the registry, and snapshot.yaml beside it, and exits 0
+
+#### generate-sql-estate-reference-json
+
+Scenario: golden; level: system; verifies SA-50, SA-65.
+
+- Given: an estate of two modules, the loans module whose entity has a field typed by the customer registry's schema through a dependency with storage json and a list of that schema with storage json, an implementation file in Go whose sql target is PostgreSQL, and specarch-gen-sql built from this repository on PATH
+- When: generate sql is run with --unapproved and --estate naming the estate file, on the loans module
+- Then: it writes the loans table with one JSONB column for each field, and snapshot.yaml beside it, and exits 0
 
 #### generate-sql-expand
 
@@ -5663,6 +5679,22 @@ Scenario: red; level: system; covers exit 1; verifies SA-29.
 - When: validate is run
 - Then: it reports validity for each, and exits 1
 
+#### validate-value-object-estate-json
+
+Scenario: golden; level: system; verifies SA-50, SA-65.
+
+- Given: an estate of two modules, the loans module whose entity has a field typed by the customer registry's schema through a dependency with storage json, and a list of that schema with storage json
+- When: validate is run on the estate file
+- Then: it reports no value_object error at either field, since a schema of another module is stored as one of the module's own, and exits 0
+
+#### validate-value-object-estate-json-wrong
+
+Scenario: red; level: system; covers exit 1; verifies SA-50, SA-65.
+
+- Given: an estate of two modules, the loans module whose entity has a field with storage json typed by a schema the customer registry does not have, and a list of the registry's schema with storage columns
+- When: validate is run on the estate file
+- Then: it reports reference at the first field, naming the schema missing from the registry and its version, and value_object at the list, which has no columns, and no other error, and exits 1
+
 #### validate-value-object-fields
 
 Scenario: red; level: system; covers exit 1; verifies SA-50.
@@ -5843,7 +5875,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-409 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+410 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -5988,6 +6020,7 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-50 | acceptance 5 | golden | SA-50 names no harm |
 | requirement SA-50 | acceptance 6 | golden | SA-50 names no harm |
 | requirement SA-50 | acceptance 7 | golden | SA-50 names no harm |
+| requirement SA-50 | acceptance 8 | golden | SA-50 names no harm |
 | requirement SA-62 | acceptance 1 | golden | SA-62 names no harm |
 | requirement SA-62 | acceptance 2 | golden | SA-62 names no harm |
 | requirement SA-62 | acceptance 3 | golden | SA-62 names no harm |

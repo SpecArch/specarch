@@ -62,6 +62,25 @@ func valueObjectOf(field *yaml.Node) (string, bool) {
 	return "", false
 }
 
+// foreignValueObjectOf names the schema of another specification a field
+// holds, as <dependency>#/schemas/<Name>, itself or as the items of an
+// array, and whether it holds a list of them.
+func foreignValueObjectOf(field *yaml.Node) (string, bool) {
+	isSchema := func(ref string) bool {
+		_, ptr, ok := crossRef(ref)
+		return ok && strings.HasPrefix(ptr, "/schemas/")
+	}
+	if ref := source.Str(source.Child(field, "$ref")); isSchema(ref) {
+		return ref, false
+	}
+	if typeIs(field, "array") {
+		if ref := source.Str(source.Child(source.Child(field, "items"), "$ref")); isSchema(ref) {
+			return ref, true
+		}
+	}
+	return "", false
+}
+
 // typeIs reports whether a field's type is t, alone or beside null.
 func typeIs(field *yaml.Node, t string) bool {
 	if source.Str(source.Child(field, "type")) == t {
@@ -118,6 +137,15 @@ func (c *checker) checkValueObjectField(d *design, entity string, f source.Pair,
 	storage := source.Child(f.Value, "storage")
 	name, list := valueObjectOf(f.Value)
 	if name == "" {
+		if other, list := foreignValueObjectOf(f.Value); other != "" {
+			// A schema of another specification is checked there and written
+			// as this one's own (ADR-184): a list is json only, and its parts,
+			// which this specification does not hold, are not checked here.
+			if list && source.Str(storage) == "columns" {
+				c.add(storage, source.Pointer(append(path, "storage")...), RuleValueObject, "%s is a list of %s, of another specification, and a list has no columns in %s's row; store it as json", field, other, entity)
+			}
+			return
+		}
 		if storage != nil {
 			c.add(storage, source.Pointer(append(path, "storage")...), RuleValueObject, "%s holds no schema, and storage says how a field holding one is kept; leave storage out", field)
 		}

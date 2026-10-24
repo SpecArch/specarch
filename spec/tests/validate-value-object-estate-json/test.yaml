@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: validate
+level: system
+scenario: golden
+given: "an estate of two modules, the loans module whose entity has a field typed by the customer registry's schema through a dependency with storage json, and a list of that schema with storage json"
+when: "validate is run on the estate file"
+then: "it reports no value_object error at either field, since a schema of another module is stored as one of the module's own, and exits 0"
+verifies: [SA-50, SA-65]

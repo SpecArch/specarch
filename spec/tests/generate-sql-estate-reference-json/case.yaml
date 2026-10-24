@@ -1,0 +1,4 @@
+arguments: [generate, sql, --unapproved, --estate, project/specarch-estate.yaml, project/loans]
+exitStatus: 0
+standardOutput: ""
+plugins: [sql]

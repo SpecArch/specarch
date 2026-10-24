@@ -63,6 +63,17 @@ extension Checker {
         let storage = f.value.child("storage")
         let (name, list) = valueObjectOf(f.value)
         if name.isEmpty {
+            let (other, list) = foreignValueObjectOf(f.value)
+            if !other.isEmpty {
+                // A schema of another specification is checked there and
+                // written as this one's own (ADR-184): a list is json only,
+                // and its parts, which this specification does not hold, are
+                // not checked here.
+                if list, let storage, str(storage) == "columns" {
+                    add(storage, pointer(path + ["storage"]), .valueObject, "\(field) is a list of \(other), of another specification, and a list has no columns in \(entity)'s row; store it as json")
+                }
+                return
+            }
             if let storage {
                 add(storage, pointer(path + ["storage"]), .valueObject, "\(field) holds no schema, and storage says how a field holding one is kept; leave storage out")
             }
@@ -120,6 +131,20 @@ func valueObjectOf(_ field: YNode?) -> (String, Bool) {
     if typeIs(field, "array") {
         let items = str(child(child(field, "items"), "$ref"))
         if items.hasPrefix("#/schemas/") { return (String(items.dropFirst("#/schemas/".count)), true) }
+    }
+    return ("", false)
+}
+
+/// The schema of another specification a field holds, as
+/// <dependency>#/schemas/<Name>, itself or as the items of an array, and
+/// whether it holds a list of them.
+func foreignValueObjectOf(_ field: YNode?) -> (String, Bool) {
+    func isSchema(_ ref: String) -> Bool { crossRef(ref)?.pointer.hasPrefix("/schemas/") ?? false }
+    let ref = str(child(field, "$ref"))
+    if isSchema(ref) { return (ref, false) }
+    if typeIs(field, "array") {
+        let items = str(child(child(field, "items"), "$ref"))
+        if isSchema(items) { return (items, true) }
     }
     return ("", false)
 }

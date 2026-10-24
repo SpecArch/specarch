@@ -320,6 +320,7 @@ requirements:
       - The test generators give a value object its parts and a list its items, each typed by its schema, and compare a value got part by part and item by item.
       - specarch generate go-dxlib reads a value into a Go struct and a list into a slice, refuses a value without a required part, writes it into its columns or as JSON as its storage says, and answers a created or read record with the value gathered back.
       - specarch generate sql refuses a table, column, constraint or index name longer than the dialect takes, at the field it comes from.
+      - A field may hold a schema of another specification of the estate through a dependency, <dependency>#/schemas/<Name>, or a list of one, with the same storage; columns on such a list is refused as value_object, and the schema's parts are checked in the specification that holds it, the same in both builds.
     verification: test
     needs: [NEED-1]
     why: A member's address or a list of phone numbers is a value with no identity that a record holds, and a design could only write its parts as loose fields of the entity or make it an entity with a made-up key.

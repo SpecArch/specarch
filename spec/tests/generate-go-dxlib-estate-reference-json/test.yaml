@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: generate
+level: system
+scenario: golden
+given: "an estate of two modules, the loans module whose entity has a field typed by the customer registry's schema through a dependency with storage json and a list of that schema with storage json, an implementation file in Go whose go-dxlib target names a package, and specarch-gen-go-dxlib built from this repository on PATH"
+when: "generate go-dxlib is run with --unapproved and --estate naming the estate file, on the loans module"
+then: "it writes the handlers and the client with a value object read from the registry's specification and commented with the module and the pointer, each field read and checked part by part and item by item, written to its column as JSON and read back from it, and exits 0"
+verifies: [SA-50, SA-65]

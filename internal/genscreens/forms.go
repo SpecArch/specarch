@@ -351,18 +351,21 @@ func (g *Gen) lookup(in formFieldInput) ([]Member, bool) {
 			target = text(rel["target"])
 		}
 	}
-	targetEntity := obj0(obj0(g.Spec["entities"])[target])
+	targetEntity, targetWire := g.EntityOf(target)
 	pk := list(targetEntity["primaryKey"])
 	if target == "" || len(pk) != 1 {
 		g.Problem("error", at, "%s picks %s through no many-to-one relation to a record with a primary key of one field, so the picked record has no one value to hold", in.pageName, in.name)
 		return nil, false
 	}
 	sourceID := text(in.picker["source"])
+	if !g.Reaches(at+"/source", "the picker of "+in.name, "reads", sourceID) {
+		return nil, false
+	}
 	op, path, method := g.Operation(sourceID)
 	listOf := obj0(op["listOf"])
 	size := obj0(listOf["pageSize"])
 	pageSize := orText(text(size["maximum"]), text(size["default"]))
-	wireNames := g.ListNames()
+	wireNames := g.ListNamesOf(sourceID)
 	switch {
 	case op == nil || method != "get":
 		g.Problem("error", at+"/source", "the picker of %s reads %s, which is not a GET operation of the specification", in.name, sourceID)
@@ -392,16 +395,16 @@ func (g *Gen) lookup(in formFieldInput) ([]Member, bool) {
 	}
 	var shows []Value
 	for _, s := range list(in.picker["shows"]) {
-		shows = append(shows, Str(wirename.Of(g.WireNames, text(s))))
+		shows = append(shows, Str(wirename.Of(targetWire, text(s))))
 	}
 	fills := []Member{}
 	fillMap := obj0(in.picker["fills"])
 	for _, into := range sortedKeys(fillMap) {
-		fills = append(fills, Member{wirename.Of(g.WireNames, into), Str(wirename.Of(g.WireNames, text(fillMap[into])))})
+		fills = append(fills, Member{wirename.Of(g.WireNames, into), Str(wirename.Of(targetWire, text(fillMap[into])))})
 	}
 	return []Member{
 		{"source", Object(source)},
-		{"value", Str(wirename.Of(g.WireNames, text(pk[0])))},
+		{"value", Str(wirename.Of(targetWire, text(pk[0])))},
 		{"text", Array(shows)},
 		{"fills", Dictionary(fills)},
 	}, true

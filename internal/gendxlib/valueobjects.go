@@ -6,6 +6,7 @@ import (
 
 	"github.com/SpecArch/specarch/internal/genopenapi"
 	"github.com/SpecArch/specarch/internal/gensql"
+	"github.com/SpecArch/specarch/internal/xref"
 )
 
 // Value objects (ADR-063, ADR-078). A parameter that holds a schema is read
@@ -245,7 +246,11 @@ func (g *gen) valueType(name string) {
 	}
 	wires := keys(byWire)
 	typ := pascal(name)
-	g.line("// %s is the schema %s as a request carries it; a part not given is nil.", typ, name)
+	if from := xref.Imported(schema); from != "" {
+		g.line("// %s is %s, read from that module's specification, as a request carries it; a part not given is nil.", typ, from)
+	} else {
+		g.line("// %s is the schema %s as a request carries it; a part not given is nil.", typ, name)
+	}
 	g.line("type %s struct {", typ)
 	for _, w := range wires {
 		p := byWire[w]

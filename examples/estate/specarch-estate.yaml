@@ -5,12 +5,14 @@ info:
   title: Library Estate
   version: 0.1.0
   description: |
-    Three modules of a small library, each specified on its own: the
+    Four modules of a small library, each specified on its own: the
     lending desk, which lends the books; the catalogue service, whose
-    team keeps the book records the desk reads; and the gateway in front
-    of both, which forwards each request to the one the access token's
-    audience names. The lending desk's specification is the one in
-    examples/lending-desk; nothing of it is copied here.
+    team keeps the book records the desk reads; the reading room, whose
+    desk picks a book from the catalogue's list, so its screen is
+    generated across the estate; and the gateway in front of the desk and
+    the catalogue, which forwards each request to the one the access
+    token's audience names. The lending desk's specification is the one
+    in examples/lending-desk; nothing of it is copied here.
 
 modules:
   lending-desk:
@@ -20,6 +22,10 @@ modules:
   catalogue-service:
     description: Keeps the book records.
     location: catalogue
+    version: 0.1.0
+  reading-room:
+    description: Lets a reader ask for a book to read in the room, picked from the catalogue's list.
+    location: reading-room/spec
     version: 0.1.0
   library-gateway:
     description: Forwards each request to the lending desk or the catalogue service by the access token's audience.

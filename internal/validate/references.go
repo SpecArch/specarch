@@ -476,20 +476,44 @@ func References(s *spec.Spec, given Given) []Reference {
 	return out
 }
 
+// GivenDependencies are the specifications of the run that the
+// dependencies of a specification name, by the dependency's name: those
+// given once under the name the dependency's specification gives.
+func GivenDependencies(s *spec.Spec, given Given) map[string]*spec.Spec {
+	if s.Root == nil {
+		return nil
+	}
+	d := newDesign(s.Root)
+	out := map[string]*spec.Spec{}
+	for dep := range d.dependencies {
+		if list := given[d.specificationOf(dep)]; len(list) == 1 && list[0] != s {
+			out[dep] = list[0]
+		}
+	}
+	return out
+}
+
 // GeneratorReferences are the errors a code target meets in the references
-// of a specification, since generate reads one specification at a time: a
-// value typed by another specification's element (an entity's or view's
-// field for sql, any for the other targets), and for the UI targets a list
-// page or picker that reads another specification's list. A relation's
-// target is not among them: its via field is this specification's.
-func GeneratorReferences(s *spec.Spec, target string) []Diagnostic {
+// of a specification whose specification the run does not give, since
+// generate reads the specifications given and no other: a value typed by
+// another specification's element (an entity's or view's field for sql,
+// any for the other targets), and for the UI targets a list page or picker
+// that reads another specification's list. A relation's target is not
+// among them: its via field is this specification's. A reference into a
+// specification given, as an estate gives its modules, is the plug-in's to
+// write (ADR-184).
+func GeneratorReferences(s *spec.Spec, target string, given Given) []Diagnostic {
 	if s.Root == nil || target == "bpmn" {
 		return nil
 	}
 	ui := target == "ui" || target == "ui-typescript"
 	c := &checker{file: s.RootFile, files: s.Files}
 	d := newDesign(s.Root)
+	read := GivenDependencies(s, given)
 	for _, r := range collectRefs(d) {
+		if read[r.dep] != nil {
+			continue
+		}
 		name := source.Str(source.Child(d.dependencies[r.dep], "specification"))
 		switch {
 		case r.kind == "ref" && (target != "sql" || r.path[0] == "entities" || r.path[0] == "views"):

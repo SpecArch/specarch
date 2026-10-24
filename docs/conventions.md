@@ -1282,15 +1282,21 @@ the other's `info.version`. Each wrong one is the error `reference` at the
 entry. A reference to an element a must question blocks there waits on
 that question, and `gaps` names it.
 
-Generators read one specification at a time. `generate sql` writes the
-column a relation to another specification keeps, with the type its own
-`via` field has and no foreign key, since that table is in another
-database, and a comment naming the specification and version. A field
-typed by another specification's element cannot be typed from this one
-alone, so every code target that would write it refuses it as `reference`
-at the field; the UI targets refuse a list page or picker that reads
-another specification's list for the same reason. The techspec names
-each reference with the specification and version it points at.
+`generate sql` writes the column a relation to another specification
+keeps, with the type its own `via` field has and no foreign key, since
+that table is in another database, and a comment naming the
+specification and version. A field typed by another specification's
+element, and a list page or picker reading its list, are written when
+the run gives that specification, in the folders or through the estate
+(`specarch generate openapi --estate specarch-estate.yaml loans/spec`):
+`openapi` writes the element inline, marked
+`x-specarch-ref: customer-registry#/schemas/Address`; `sql` and
+`go-dxlib` write it as a schema of their own; the UI calls the other
+module's list at the address the target's settings give the dependency
+(`docs/generators.md`, ADR-184). Without it, every code target that
+would write such a field refuses it as `reference` at the field, and the
+UI targets the list page or picker. The techspec names each reference
+with the specification and version it points at.
 
 ### Estates
 

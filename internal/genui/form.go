@@ -434,12 +434,13 @@ func (g *gen) form(name string, pg map[string]any) *formPage {
 	for _, field := range sortedKeys(anyStrings(fp.pickers)) {
 		var fills []string
 		fm := pickerFills[field]
+		_, from := g.entityOf(pickedTarget(entity, field))
 		for _, into := range sortedKeys(fm) {
 			if !drawn[into] {
 				g.problem("error", at+"/pickers/"+field+"/fills/"+into, "the picker of %s fills %s, which the page does not draw as a field of its own; it is left out", field, into)
 				continue
 			}
-			fills = append(fills, g.wire(into)+": "+jsString(g.wire(text(fm[into]))))
+			fills = append(fills, g.wire(into)+": "+jsString(from(text(fm[into]))))
 		}
 		if len(fills) == 0 {
 			wired[g.wire(field)] = fp.pickers[field] + ", fills: {} }"
@@ -593,19 +594,18 @@ func (g *gen) formNext(fp *formPage, at string, pg, op, props map[string]any) {
 // field is drawn.
 func (g *gen) picker(pageName, field string, pk, entity map[string]any) (string, bool) {
 	at := "/pages/" + pageName + "/pickers/" + field
-	var target string
-	for _, r := range obj0(entity["relations"]) {
-		rel := obj0(r)
-		if text(rel["kind"]) == "many-to-one" && text(rel["via"]) == field {
-			target = text(rel["target"])
-		}
-	}
-	key := list(obj0(obj0(g.spec["entities"])[target])["primaryKey"])
+	target := pickedTarget(entity, field)
+	targetEntity, targetWire := g.entityOf(target)
+	key := list(targetEntity["primaryKey"])
 	if target == "" || len(key) != 1 {
 		g.problem("error", at, "%s picks %s through no many-to-one relation to a record with a primary key of one field, so the picked record has no one value to hold; it is left out", pageName, field)
 		return "", false
 	}
 	id := text(pk["source"])
+	if !g.reaches(at+"/source", "the picker of "+field, "reads", id) {
+		return "", false
+	}
+	names := g.listNamesOf(id)
 	op, path, method := g.operation(id)
 	listOf := obj0(op["listOf"])
 	size := orText(text(obj0(listOf["pageSize"])["maximum"]), text(obj0(listOf["pageSize"])["default"]))
@@ -619,28 +619,41 @@ func (g *gen) picker(pageName, field string, pk, entity map[string]any) (string,
 	case listOf == nil || size == "":
 		g.problem("error", at+"/source", "the picker of %s reads %s, which does not page; give it listOf with a pageSize. It is left out", field, id)
 		return "", false
-	case g.list["items"] == "" || g.list["pageSize"] == "":
+	case names["items"] == "" || names["pageSize"] == "":
 		g.problem("error", at+"/source", "the picker of %s reads a page through the paginated-list idiom, which the implementation file excludes; keep the idiom", field)
 		return "", false
 	case !g.plainOnly(at+"/source", "the picker of "+field, "reads", id, op, ""):
 		return "", false
 	}
-	parts := append(g.targetMembers(op, id, method, path), "items: "+jsString(g.list["items"]), "pageSize: ["+jsString(g.list["pageSize"])+", "+size+"]")
-	if len(list(listOf["searchable"])) > 0 && g.list["search"] != "" {
-		parts = append(parts, "search: "+jsString(g.list["search"]))
+	parts := append(g.targetMembers(op, id, method, path), "items: "+jsString(names["items"]), "pageSize: ["+jsString(names["pageSize"])+", "+size+"]")
+	if len(list(listOf["searchable"])) > 0 && names["search"] != "" {
+		parts = append(parts, "search: "+jsString(names["search"]))
 	} else {
 		g.problem("warning", at+"/source", "the picker of %s reads %s, which searches no field, so it offers the first %s records and finds among them only", field, id, size)
 	}
 	var shows []string
 	for _, s := range list(pk["shows"]) {
-		shows = append(shows, jsString(g.wire(text(s))))
+		shows = append(shows, jsString(targetWire(text(s))))
 	}
-	parts = append(parts, "value: "+jsString(g.wire(text(key[0]))), "shows: ["+strings.Join(shows, ", ")+"]")
+	parts = append(parts, "value: "+jsString(targetWire(text(key[0]))), "shows: ["+strings.Join(shows, ", ")+"]")
 	if g.dialect == "dxlib" {
 		// The dxlib dialect sends the page from 0 and the page size as numbers.
 		parts = append(parts, "list: { page: "+jsString(g.list["page"])+", pageSize: "+jsString(g.list["pageSize"])+" }")
 	}
 	return "{ " + strings.Join(parts, ", "), true
+}
+
+// pickedTarget is the entity a field picks a record of, through the
+// many-to-one relation whose via it is, or "".
+func pickedTarget(entity map[string]any, field string) string {
+	var target string
+	for _, r := range obj0(entity["relations"]) {
+		rel := obj0(r)
+		if text(rel["kind"]) == "many-to-one" && text(rel["via"]) == field {
+			target = text(rel["target"])
+		}
+	}
+	return target
 }
 
 // childRows writes a form's rows of a relation: the body's array of that

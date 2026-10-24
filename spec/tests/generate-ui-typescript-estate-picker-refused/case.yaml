@@ -1,0 +1,7 @@
+arguments: [generate, ui, --unapproved, --estate, project/specarch-estate.yaml, project/loans]
+exitStatus: 1
+standardOutput: |
+  project/loans/specarch.yaml:19:26: error: /entities/Loan/properties/guarantor/$ref: reference: customer-registry#/entities/Customer would be written as schema Customer, which this specification already declares; rename one of them, or type the value by this specification's own Customer [reference@specarch.yaml#/entities/Loan/properties/guarantor/$ref]
+  project/loans/specarch.yaml:55:13: error: /pages/customers/source: generator: customers reads customer-registry#/paths/~1customers/get, of another module, and the ui target's settings.server.services names no environment variable for customerRegistry, the address of customer-registry; add one, such as customerRegistry: CUSTOMER_REGISTRY_URL [generator@specarch.yaml#/pages/customers/source]
+  project/loans/specarch.yaml:67:29: error: /pages/new-loan/pickers/customerId/source: generator: the picker of customerId reads customer-registry#/paths/~1customers/get, of another module, and the ui target's settings.server.services names no environment variable for customerRegistry, the address of customer-registry; add one, such as customerRegistry: CUSTOMER_REGISTRY_URL [generator@specarch.yaml#/pages/new-loan/pickers/customerId/source]
+plugins: [ui-typescript]

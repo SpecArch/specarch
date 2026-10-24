@@ -1,0 +1,22 @@
+specarch: "0.1"
+info: { title: Customer registry, version: 2.4.0, name: customer-registry }
+permissions:
+  public: { description: Open to everyone. }
+entities:
+  Customer:
+    type: object
+    properties:
+      id: { type: string, format: uuid, title: Number }
+      fullName: { type: string, maxLength: 200, title: Full name }
+      city: { type: string, maxLength: 100, title: City }
+    required: [id, fullName]
+    primaryKey: [id]
+paths:
+  /customers:
+    get:
+      operationId: listCustomers
+      summary: List customers
+      permission: public
+      listOf: { entity: Customer, searchable: [fullName], pageSize: { default: 20, maximum: 100 } }
+      responses:
+        "200": { description: The customers. }

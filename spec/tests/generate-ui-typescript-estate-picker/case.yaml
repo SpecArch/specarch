@@ -1,0 +1,4 @@
+arguments: [generate, ui, --unapproved, --estate, project/specarch-estate.yaml, project/loans]
+exitStatus: 0
+standardOutput: ""
+plugins: [ui-typescript]

@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: generate
+level: system
+scenario: red
+covers: [exit 1]
+given: "an estate of two modules, the loans module with a list page and a picker reading the customer registry's list and a field typed by the registry's entity Customer while it declares a schema Customer of its own, a Next.js ui target whose settings.server names no environment variable for the registry under services, and specarch-gen-ui-typescript built from this repository on PATH"
+when: "generate ui is run with --unapproved and --estate naming the estate file, on the loans module"
+then: "it reports reference at the field, naming the module and the pointer and the schema whose name it would take, and an error at the list page's and the picker's source naming the module, the pointer and the setting to add, writes every other file with those entries marked, and exits 1"
+verifies: [SA-65]

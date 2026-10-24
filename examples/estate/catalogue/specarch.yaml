@@ -50,6 +50,10 @@ paths:
       operationId: listBooks
       summary: The book records
       permission: books.read
+      listOf:
+        entity: Book
+        searchable: [title, author]
+        pageSize: { default: 20, maximum: 100 }
       responses:
         "200":
           description: The book records, in barcode order.

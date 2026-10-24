@@ -25,6 +25,7 @@ import (
 
 	"github.com/SpecArch/specarch/internal/expr"
 	"github.com/SpecArch/specarch/internal/typerows"
+	"github.com/SpecArch/specarch/internal/xref"
 )
 
 // Request is what specarch writes on a plug-in's standard input.
@@ -40,6 +41,9 @@ type Request struct {
 	Draft string `json:"draft"`
 	// Problems are the problems to mark, in the order of the problems file.
 	Problems []mark.Problem `json:"problems"`
+	// Dependencies are the specifications of the estate the dependencies
+	// name, whose elements a field may be typed by (ADR-184).
+	Dependencies map[string]xref.Dependency `json:"dependencies,omitempty"`
 }
 
 // Implementation is one implementation file in the request.
@@ -189,6 +193,13 @@ func (g *gen) generate(r *Request) Response {
 // objects, or answers why nothing can be written.
 func prepare(r *Request) (*gen, *Response) {
 	g := &gen{spec: r.Specification, root: r.Root, idioms: map[string]Idiom{}}
+	// A field typed by another module's schema takes its columns from a
+	// copy of it, as from a schema of this specification (ADR-184).
+	var imports []xref.Problem
+	g.spec, imports = xref.Import(r.Specification, r.Dependencies)
+	for _, p := range imports {
+		g.diags = append(g.diags, Diagnostic{File: g.root, Line: 1, Severity: "error", Path: p.Path, Rule: "reference", Message: p.Message})
+	}
 	for _, impl := range r.Implementations {
 		if t, ok := obj(obj0(impl.Content["targets"])[r.Target]); ok || len(r.Implementations) == 1 {
 			g.impl = impl

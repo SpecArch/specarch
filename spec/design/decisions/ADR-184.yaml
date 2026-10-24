@@ -1,0 +1,103 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.3.schema.json
+decisions:
+  ADR-184:
+    title: generate reads the modules of the estate a specification's dependencies name, imports the schema, entity or enum a field is typed by under its own name, and writes a page or picker over another module's list at the address the UI target's settings give the dependency
+    status: accepted
+    date: "2026-10-24"
+    context: |
+      Gap G3.4 of docs/capability-check-2026-10-24.md, item 6 of
+      docs/closing-the-gaps-2026-10-24.md: a screen across the modules of
+      a multi-tenant suite. ADR-112 let a specification name another's
+      element as <dependency>#/<pointer>, resolved by validate when the
+      other specification is given and by the umbrella (ADR-113); the
+      generators read one specification, so every code target refused a
+      field typed by another module's element, and the UI targets a list
+      page or picker reading another module's list, as reference at the
+      entry. docs/estate.md named writing the referenced schema inline,
+      marked x-specarch-ref, and a picker's remote list through the
+      dependency's base URL as waiting for generation across the estate.
+    decision: |
+      generate reads the specifications the run gives, as validate does:
+      in the folders, through an estate named as a folder or a file, or
+      through --estate <file>, whose modules are read and checked with the
+      estate and none generated unless a folder names it. A reference whose
+      specification the run does not give is refused before the plug-in
+      runs, with the text it had. For openapi, sql, go-dxlib and ui, the
+      request carries dependencies: per dependency that names a
+      specification of the run, the module's name and version, its
+      specification as plain values, the dialect its API is served in and
+      the idioms of the implementation file that serves its API (the
+      shipped ones when it has none). Every other target refuses such a
+      reference whatever the run gives.
+      Each of those plug-ins imports, through internal/xref, every element
+      a field is typed by into the specification it writes, under the
+      element's own name and marked x-specarch-ref with the module's name
+      and the pointer: a schema as a schema, an entity as a schema of its
+      properties and required fields, an enum as an enum, and what each
+      names in its own specification in turn. The generators then write it
+      as their own: openapi inline where the field is, with the field's
+      keywords over the element's, and no component (the dxlib dialect as
+      a component, marked, since its reader takes a $ref into the
+      components only); sql as the columns and checks of a schema, entity
+      or enum of its own; go-dxlib as a value object commented with the
+      module and the pointer; ui as a field holding a value. A view, a
+      name the specification already gives in a section the generators
+      write under one name, and a schema that holds itself through the
+      other module are reference errors at the field, and the value is
+      left untyped.
+      A list page or picker reading another module's list takes the
+      module's entity, its wire names and the paging names of its idioms,
+      and calls the list at an address the UI target's settings give the
+      dependency: on Next.js under the server routes after the module's
+      name, /api/customer-registry/customers, whose route.ts forwards the
+      call with the session's token to the address the environment variable
+      settings.server.services.<dependency> names, beside
+      settings.server.service; in plain JavaScript at the URL or path of
+      the screens' own origin settings.services.<dependency> gives. A call
+      with no address, a call in the dxlib dialect, a local path under the
+      module's route, and on SwiftUI, whose app calls one service, any
+      call to another module are errors at the page or picker naming the
+      module and the pointer; the rest is written with them marked.
+    why: |
+      Importing under the element's own name lets every generator write
+      the element through the code it already has for its own schemas,
+      entities and enums, so a value from another module gets the same
+      columns, checks, value objects and form parts as one of its own,
+      with no second path to keep in step; the mark carries where it came
+      from into the outputs that show it. A copy and not a reference,
+      because the generated outputs are this module's: its table keeps the
+      value, its API carries it, and its document has to stand alone for a
+      reader who has only this module's document, which is why OpenAPI
+      gets the schema inline rather than a $ref into another document whose
+      address the design does not hold. A name already taken is an error
+      and not a renamed copy, since a generated type named after neither
+      specification would be a name nobody wrote. A view is not imported
+      because its fields are read from its entity in the other module's
+      database, which this module does not reach.
+      The address belongs to the deployment and not the design, as the
+      service's own address is the environment variable settings.server
+      .service names: one specification is deployed beside different
+      instances of the other module. On Next.js the browser calls the
+      application's own routes, so the session's token stays in a cookie
+      the browser cannot read and no other origin is involved; the plain
+      JavaScript screens have no server, so they take an address, a path
+      of their own origin behind a reverse proxy or a URL the other module
+      answers from. The paging names come from the module that answers the
+      list, since its service, not this one's idiom, decides how a page is
+      asked for. The dxlib dialect calls POST /<operationId> at the one
+      service's address, so a call elsewhere in it is refused rather than
+      sent where nothing answers it.
+      Compiler test: an estate whose references cannot all be written is
+      still generated, each such entry an error at its place, and a module
+      alone still validates; acceptance test: one run over the estate
+      writes the screen across modules, and a change to the other module's
+      list reaches the screen on the next run.
+    consequences: |
+      A module whose fields are typed by another's elements, or whose pages
+      read another's lists, is generated given the estate, and refused as
+      before without it. The outputs of a module change when a module it
+      references changes, so each module is generated again after the
+      modules it reads, in the estate's order (G3.8). Without --estate or
+      the other specification, nothing a specification with no reference
+      generates changes.
+    satisfies: [SA-65, SA-66]

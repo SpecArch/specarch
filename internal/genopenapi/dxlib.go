@@ -11,6 +11,7 @@ import (
 	"github.com/SpecArch/specarch/internal/mark"
 	"github.com/SpecArch/specarch/internal/ownership"
 	"github.com/SpecArch/specarch/internal/wirename"
+	"github.com/SpecArch/specarch/internal/xref"
 )
 
 // The dxlib dialect: the document dxlib's OpenAPI reader binds
@@ -409,6 +410,9 @@ func (g *gen) generateDxlib(r *Request) Response {
 		}
 		add(n, "enum", plain(e["enum"]))
 		add(n, "x-dxlib-type", str("string"))
+		if from := xref.Imported(e); from != "" {
+			add(n, xref.RefKey, str(from))
+		}
 		add(schemas, name, g.record("/enums/"+mark.Escape(name), n))
 	}
 	viewSchemas := map[string]*yaml.Node{}
@@ -473,7 +477,13 @@ func (g *gen) generateDxlib(r *Request) Response {
 	for _, sn := range sortedKeys(obj(g.spec["schemas"])) {
 		if !g.owned.Covers(ownership.Entity("schemas", sn)) {
 			v := obj(obj(g.spec["schemas"])[sn])
-			add(schemas, sn, g.dxSchema(map[string]any{"type": "object", "description": v["description"], "properties": v["properties"], "required": v["required"]}, "/schemas/"+sn))
+			n := g.dxSchema(map[string]any{"type": "object", "description": v["description"], "properties": v["properties"], "required": v["required"]}, "/schemas/"+sn)
+			if from := xref.Imported(v); from != "" {
+				// dxlib's reader takes a $ref into the components only, so
+				// another module's schema is a component here, marked.
+				add(n, xref.RefKey, str(from))
+			}
+			add(schemas, sn, n)
 		}
 	}
 	add(comps, "schemas", schemas)

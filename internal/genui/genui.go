@@ -22,6 +22,7 @@ import (
 	"github.com/SpecArch/specarch/internal/mark"
 	"github.com/SpecArch/specarch/internal/ownership"
 	"github.com/SpecArch/specarch/internal/wirename"
+	"github.com/SpecArch/specarch/internal/xref"
 )
 
 // signInRuntime is the redirect to the identity provider's sign-in
@@ -82,6 +83,10 @@ type Request struct {
 	Draft string `json:"draft"`
 	// Problems are the problems to mark, in the order of the problems file.
 	Problems []mark.Problem `json:"problems"`
+	// Dependencies are the specifications of the estate the dependencies
+	// name: a value typed by their elements, and the list a page or a
+	// picker reads there (ADR-184).
+	Dependencies map[string]xref.Dependency `json:"dependencies,omitempty"`
 }
 
 // Implementation is one implementation file in the request.
@@ -154,6 +159,11 @@ type gen struct {
 	// opened are the pages a link may open: those written and those
 	// another stakeholder owns; menuEntry the menu entries written.
 	opened, menuEntry map[string]bool
+	// deps are the specifications of the estate the dependencies name;
+	// imports the values another module's element cannot type, which the
+	// response reports while every page is still written.
+	deps    map[string]xref.Dependency
+	imports []Diagnostic
 }
 
 // wire is a field's name as the service sends and reads it.
@@ -174,7 +184,14 @@ func (g *gen) failed() bool {
 
 // Generate writes the screens of a request.
 func Generate(r *Request) Response {
-	g := &gen{spec: r.Specification, root: r.Root, dialect: "standard", handshakes: map[string]string{}}
+	g := &gen{spec: r.Specification, root: r.Root, dialect: "standard", handshakes: map[string]string{}, deps: r.Dependencies}
+	// A value typed by another module's element is drawn from a copy of
+	// it, as from this specification's own (ADR-184).
+	var imports []xref.Problem
+	g.spec, imports = xref.Import(r.Specification, r.Dependencies)
+	for _, p := range imports {
+		g.imports = append(g.imports, Diagnostic{File: g.root, Line: 1, Severity: "error", Path: p.Path, Rule: "reference", Message: p.Message})
+	}
 	g.wireNames = text(obj0(g.spec["info"])["wireNames"])
 	for _, impl := range r.Implementations {
 		if t, ok := obj(obj0(impl.Content["targets"])[r.Target]); ok || len(r.Implementations) == 1 {
@@ -406,10 +423,7 @@ func (g *gen) response(files []File) Response {
 	if files == nil {
 		files = []File{}
 	}
-	diags := g.diags
-	if diags == nil {
-		diags = []Diagnostic{}
-	}
+	diags := append(append([]Diagnostic{}, g.imports...), g.diags...)
 	return Response{Files: files, Diagnostics: diags}
 }
 
@@ -499,10 +513,14 @@ const (
 // page reads a list page, or reports why it cannot be written.
 func (g *gen) page(name string, pg map[string]any) *page {
 	at := "/pages/" + name
-	entity := obj0(obj0(g.spec["entities"])[text(pg["entity"])])
+	entity, wire := g.entityOf(text(pg["entity"]))
 	fields := obj0(entity["properties"])
+	names := g.listNamesOf(text(pg["source"]))
 	p := &page{name: name, title: text(pg["title"]), source: text(pg["source"]), upper: upperSnake(name),
-		language: text(g.settings["language"]), wide: map[string]bool{}, list: g.list, dialect: g.dialect}
+		language: text(g.settings["language"]), wide: map[string]bool{}, list: names, dialect: g.dialect}
+	if !g.reaches(at+"/source", name, "reads", p.source) {
+		return nil
+	}
 	src, srcPath, srcMethod := g.operation(p.source)
 	if src == nil || srcMethod != "get" {
 		g.problem("error", at+"/source", "%s reads %s, which is not a GET operation of the specification; this version reads a list by GET", name, p.source)
@@ -526,7 +544,7 @@ func (g *gen) page(name string, pg map[string]any) *page {
 	case p.pageSize == "":
 		g.problem("error", at+"/source", "%s pages through its list, and the listOf of %s gives no page size; give pageSize a default", name, p.source)
 		return nil
-	case g.list["page"] == "" || g.list["items"] == "":
+	case names["page"] == "" || names["items"] == "":
 		g.problem("error", at+"/source", "%s pages through the paginated-list idiom, which the implementation file excludes; keep the idiom", name)
 		return nil
 	}
@@ -536,10 +554,10 @@ func (g *gen) page(name string, pg map[string]any) *page {
 		compact[text(c)] = true
 	}
 	for _, c := range list(pg["columns"]) {
-		p.columns = append(p.columns, g.wire(text(c)))
+		p.columns = append(p.columns, wire(text(c)))
 		p.titles = append(p.titles, fieldTitle(fields, text(c)))
 		if len(compact) > 0 && !compact[text(c)] {
-			p.wide[g.wire(text(c))] = true
+			p.wide[wire(text(c))] = true
 		}
 	}
 	params := map[string]bool{}
@@ -558,16 +576,16 @@ func (g *gen) page(name string, pg map[string]any) *page {
 		case params[name]:
 			// A parameter's own name is not mapped (ADR-062), while the
 			// filter's control is named as the field it filters.
-			if g.wire(name) != name {
-				p.filterKeys[g.wire(name)] = name
+			if wire(name) != name {
+				p.filterKeys[wire(name)] = name
 			}
-		case filterable[name] && g.list["filter"] != "":
-			p.filterKeys[g.wire(name)] = g.list["filter"] + "[" + g.wire(name) + "]"
+		case filterable[name] && names["filter"] != "":
+			p.filterKeys[wire(name)] = names["filter"] + "[" + wire(name) + "]"
 		default:
 			g.problem("error", at+"/filters", "%s filters by %s, which is neither a query parameter of %s nor filterable in its listOf, so the screen cannot ask for it; add it to the operation", p.name, name, p.source)
 			continue
 		}
-		p.filters = append(p.filters, g.wire(name))
+		p.filters = append(p.filters, wire(name))
 		p.filterHTML = append(p.filterHTML, g.control(fields, name)...)
 	}
 	states := obj0(pg["states"])
@@ -578,7 +596,7 @@ func (g *gen) page(name string, pg map[string]any) *page {
 	p.sourceRefusals = refusals(src, failed)
 	pk := list(entity["primaryKey"])
 	if len(pk) == 1 {
-		p.key = g.wire(text(pk[0]))
+		p.key = wire(text(pk[0]))
 	}
 	for i, a := range list(pg["actions"]) {
 		am := obj0(a)
@@ -726,6 +744,17 @@ export { property, save } from "./transport.js";
 // operation finds an operation by its operationId: it, its path and its
 // method.
 func (g *gen) operation(id string) (map[string]any, string, string) {
+	if op, path, method, d, ok := xref.Operation(g.deps, id); ok {
+		// Another module's operation, called at the address the target's
+		// settings.services gives its dependency (ADR-184).
+		dep, _, _ := xref.Parse(id)
+		merged := map[string]any{}
+		for k, v := range op {
+			merged[k] = v
+		}
+		merged["parameters"] = append(append([]any{}, list(obj0(obj0(d.Content["paths"])[path])["parameters"])...), list(op["parameters"])...)
+		return merged, strings.TrimRight(text(obj0(g.settings["services"])[dep]), "/") + path, method
+	}
 	paths := obj0(g.spec["paths"])
 	for _, p := range sortedKeys(paths) {
 		item := obj0(paths[p])
@@ -741,6 +770,73 @@ func (g *gen) operation(id string) (map[string]any, string, string) {
 		}
 	}
 	return nil, "", ""
+}
+
+// reaches says whether the screens can call the list a page or a picker
+// reads, and reports why not at the entry: another module's operation is
+// called at the address the target's settings.services gives its
+// dependency, a URL or a path of the screens' own origin, in the standard
+// dialect (ADR-184).
+func (g *gen) reaches(at, pageName, does, id string) bool {
+	dep, _, remote := xref.Parse(id)
+	if !remote {
+		return true
+	}
+	d, given := g.deps[dep]
+	named := xref.Named(g.deps, id)
+	base := text(obj0(g.settings["services"])[dep])
+	switch {
+	case !given:
+		g.problem("error", at, "%s %s %s, of another module, whose specification the run does not give; give the estate with --estate", pageName, does, id)
+	case g.dialect == "dxlib" || d.APIDialect == "dxlib":
+		g.problem("error", at, "%s %s %s, and a call to another module is written in the standard dialect only: the dxlib dialect calls POST /<operationId> at the one service's own address", pageName, does, named)
+	case base == "":
+		g.problem("error", at, "%s %s %s, of another module, and the ui target's settings.services gives %s no address; add one, a URL or a path of the screens' own origin, such as %s: https://%s.example.org", pageName, does, named, dep, dep, d.Specification)
+	case !strings.HasPrefix(base, "https://") && !strings.HasPrefix(base, "http://") && !strings.HasPrefix(base, "/"):
+		g.problem("error", at, "%s %s %s, and the ui target's settings.services gives %s %q, which is neither a URL nor a path of the screens' own origin starting with /", pageName, does, named, dep, base)
+	default:
+		return true
+	}
+	return false
+}
+
+// entityOf is an entity of this specification, or of another module when
+// the name is <dependency>#/entities/<name>, with the wire naming of the
+// specification that holds it.
+func (g *gen) entityOf(name string) (map[string]any, func(string) string) {
+	if e, _, d, ok := xref.Entity(g.deps, name); ok {
+		rule := text(obj0(d.Content["info"])["wireNames"])
+		return e, func(f string) string { return wirename.Of(rule, f) }
+	}
+	return obj0(obj0(g.spec["entities"])[name]), g.wire
+}
+
+// listNamesOf are the paginated-list idiom's names a list operation is
+// paged by: those of the module that answers it, from the idioms of the
+// implementation file that serves its API when it is another module's.
+func (g *gen) listNamesOf(id string) map[string]string {
+	dep, _, remote := xref.Parse(id)
+	d, given := g.deps[dep]
+	if !remote || !given {
+		return g.list
+	}
+	rule := text(obj0(d.Content["info"])["wireNames"])
+	out := map[string]string{}
+	for _, part := range []string{"parameters", "envelope"} {
+		for _, i := range d.Idioms {
+			if i.Name != "paginated-list" || i.As == "excluded" {
+				continue
+			}
+			for _, src := range []map[string]any{i.Override, i.Content} {
+				for k, v := range obj0(obj0(obj0(obj0(obj0(src["parts"])[part])["stack"])["any"])["names"]) {
+					if out[k] == "" {
+						out[k] = wirename.Of(rule, text(v))
+					}
+				}
+			}
+		}
+	}
+	return out
 }
 
 // fieldTitle is a field's title, or its name when it has none.

@@ -19,6 +19,7 @@ import (
 	"github.com/SpecArch/specarch/internal/mark"
 	"github.com/SpecArch/specarch/internal/ownership"
 	"github.com/SpecArch/specarch/internal/wirename"
+	"github.com/SpecArch/specarch/internal/xref"
 )
 
 // Request is what specarch writes on a plug-in's standard input.
@@ -37,6 +38,9 @@ type Request struct {
 	// serves the API in the dxlib dialect, from whichever implementation
 	// file holds it (ADR-163).
 	APIEnvelopes any `json:"apiEnvelopes,omitempty"`
+	// Dependencies are the specifications of the estate the dependencies
+	// name, whose elements a field may be typed by (ADR-184).
+	Dependencies map[string]xref.Dependency `json:"dependencies,omitempty"`
 }
 
 // Implementation is one implementation file in the request.
@@ -137,6 +141,13 @@ func (g *gen) wireList(names []any) []any {
 // Generate writes the OpenAPI document of a request.
 func Generate(r *Request) Response {
 	g := &gen{spec: r.Specification, root: r.Root, owned: ownership.Owned{}}
+	// A field typed by another module's element is typed by a copy of it,
+	// written inline where the field is (ADR-184).
+	var imports []xref.Problem
+	g.spec, imports = xref.Import(r.Specification, r.Dependencies)
+	for _, p := range imports {
+		g.diags = append(g.diags, Diagnostic{File: g.root, Line: 1, Severity: "error", Path: p.Path, Rule: "reference", Message: p.Message})
+	}
 	g.wireNames = text(obj(g.spec["info"])["wireNames"])
 	for _, impl := range r.Implementations {
 		for ptr, by := range ownership.Of(impl.Content) {
@@ -439,6 +450,9 @@ var extensionKeys = []string{"precision", "scale", "sensitivity", "atRest", "loo
 func (g *gen) schema(s map[string]any) *yaml.Node {
 	n := mapping()
 	if r := text(s["$ref"]); r != "" {
+		if el := g.imported(r); el != nil {
+			return g.inline(s, el)
+		}
 		add(n, "$ref", str("#/components/schemas/"+r[strings.LastIndex(r, "/")+1:]))
 	}
 	for _, k := range schemaKeys {
@@ -472,6 +486,45 @@ func (g *gen) schema(s map[string]any) *yaml.Node {
 	return n
 }
 
+// imported is the element a local $ref names when it was copied from
+// another module's specification, or nil.
+func (g *gen) imported(r string) map[string]any {
+	parts := strings.Split(strings.TrimPrefix(r, "#/"), "/")
+	if len(parts) != 2 {
+		return nil
+	}
+	el := obj(obj(g.spec[parts[0]])[parts[1]])
+	if xref.Imported(el) == "" {
+		return nil
+	}
+	return el
+}
+
+// inline writes a field typed by another module's element: the element
+// where the field is, marked x-specarch-ref with the module and the
+// pointer, since this document holds no component of the other module,
+// and the field's own keywords over the element's.
+func (g *gen) inline(field, el map[string]any) *yaml.Node {
+	merged := map[string]any{}
+	for k, v := range el {
+		if k != xref.RefKey && k != "valueDescriptions" {
+			merged[k] = v
+		}
+	}
+	if merged["enum"] != nil && merged["type"] == nil {
+		merged["type"] = "string"
+	}
+	for k, v := range field {
+		if k != "$ref" {
+			merged[k] = v
+		}
+	}
+	n := mapping()
+	add(n, xref.RefKey, str(xref.Imported(el)))
+	n.Content = append(n.Content, g.schema(merged).Content...)
+	return n
+}
+
 // mapValues is a field's additionalProperties: a boolean as it is, a field
 // through write, the map's keys never wire-named, since they are data and
 // not members; nil when the field has none.
@@ -497,6 +550,9 @@ func (g *gen) components() *yaml.Node {
 	values := obj(g.spec["schemas"])
 	for section, m := range map[string]map[string]any{"enums": enums, "entities": entities, "views": views, "schemas": values} {
 		for k := range m {
+			if xref.Imported(obj(m[k])) != "" {
+				continue // written inline where a field names it
+			}
 			if !g.owned.Covers(ownership.Entity(section, k)) {
 				names = append(names, k)
 			}

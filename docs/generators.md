@@ -81,6 +81,7 @@ object:
 | `apiDialect` | `dxlib` when an implementation file's openapi target serves the API in the dxlib dialect, left out for the standard one, so a client target calls the operations as the service serves them although the service's file is not among its own |
 | `apiEnvelopes` | the `settings.envelopes` of that openapi target, the dxlib type each handshake is served in (ADR-163), left out when it has none, so a target that writes the service's hooks serves the types the document names |
 | `check` | true when the run is `--check`, which writes nothing, so a plug-in that refuses to write over a file built by hand answers its files for the comparison |
+| `dependencies` | for openapi, sql, go-dxlib and ui, the specifications of the run the specification's dependencies name, keyed by the dependency: the module's `specification` and `version`, its `content` as plain values, the `apiDialect` it is served in and the `idioms` of the implementation file that serves its API (the shipped ones when it has none); left out when the run gives none (Generating across the estate, below) |
 
 The plug-in answers on its standard output with one JSON object: `files`,
 each a `path` relative to the output folder, its `content` and, for a file
@@ -118,6 +119,61 @@ whole section under the header, and a problem of the target itself that no
 entry holds, such as one about its settings, where the output as a whole
 is marked. A problem at an entry the output leaves out is in the problems
 file only. Each writes the draft notice under its header, in every file.
+
+### Generating across the estate
+
+A field may be typed by another module's element, and a list page or a
+picker may read another module's list, through a dependency, as
+`<dependency>#/<pointer>` (`docs/estate.md`, ADR-112). `generate` writes
+them when the run gives that module's specification: in the folders
+named, through an estate named as a folder or a file, or with
+`--estate <file>`, whose modules are read and checked with the estate
+while only the folders named are generated (ADR-184):
+
+    specarch generate openapi --estate specarch-estate.yaml loans/spec
+
+Without it, a reference is refused before the plug-in runs, as
+`reference` at the entry, with nothing written; the other targets
+(sqlc, tests, scripts) refuse it whatever the run gives. The shipped
+plug-ins read the request's `dependencies` through `internal/xref`,
+which imports each element a field is typed by into the specification
+the plug-in writes, under the element's own name and marked
+`x-specarch-ref` with the module and the pointer (a schema as a schema,
+an entity as a schema of its properties and required fields, an enum as
+an enum, and what each names there in turn), so each target writes it
+as one of its own:
+
+- `openapi` writes it inline where the field is, with the field's own
+  keywords over the element's, and no component; the dxlib dialect,
+  whose reader takes a `$ref` into the components only, writes it as a
+  component, marked.
+- `sql` writes the columns and checks of the schema or entity, and the
+  check of the enum, as for its own.
+- `go-dxlib` writes a value object of it, commented with the module and
+  the pointer.
+- `ui` draws the field as one holding a value, and writes a list page or
+  picker over another module's list with that module's entity, wire
+  names and paging names (the paginated-list idiom of the file that
+  serves its API). On Next.js the screens call the list under the
+  server routes after the module's name, `/api/customer-registry/customers`,
+  and that route forwards it with the session's token to the address
+  the environment variable `settings.server.services.<dependency>`
+  names, the services' settings written beside the service's in
+  `server/settings.ts`. In plain JavaScript the screens call it at
+  `settings.services.<dependency>`, a URL or a path of their own origin
+  starting with `/`, such as a reverse proxy's. SwiftUI calls the one
+  service the app is given, so a call to another module is an error.
+
+A value typed by another module's view, an element whose name the
+specification already gives in a section the generators write under one
+name, a schema that holds itself through the other module, a call to
+another module in the dxlib dialect (either side), a call with no
+address in the settings, and a local path under a module's route are
+errors at the entry naming the module and the pointer; the rest is
+written with them marked. Each module's outputs follow the modules it
+reads, so a module is generated again after one it reads changes.
+
+### Owned elements
 
 A plug-in that builds code or data leaves out every element another
 stakeholder owns: one whose mapping in an implementation file of the

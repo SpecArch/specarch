@@ -1,0 +1,90 @@
+# yaml-language-server: $schema=../../../../schema/specarch-design-0.3.schema.json
+specarch: "0.3"
+stages: [implementation]
+
+info:
+  title: Reading Room
+  name: reading-room
+  version: 0.1.0
+  description: |
+    The library's reading room, where a reader asks for a book to read
+    there, the fourth module of the estate in examples/estate. The desk
+    picks the book from the catalogue service's list of book records,
+    so its one screen reads another module's list. It is an example, not
+    a real library's system.
+
+dependencies:
+  catalogue:
+    description: The catalogue service, whose book records the room's desk picks a book from.
+    timeout: PT2S
+    specification: catalogue-service
+    version: 0.1.0
+
+entities:
+  BookRequest:
+    description: A book a reader asked for, to read in the room.
+    type: object
+    properties:
+      id: { type: string, format: uuid, title: Request number, readOnly: true }
+      barcode: { type: string, minLength: 1, maxLength: 20, title: Book }
+      title: { type: string, minLength: 1, maxLength: 300, title: Title }
+      reader: { type: string, minLength: 1, maxLength: 200, title: Reader }
+    required: [id, barcode, reader]
+    primaryKey: [id]
+    relations:
+      book: { target: "catalogue#/entities/Book", kind: many-to-one, via: barcode }
+
+permissions:
+  requests.write:
+    description: Ask for a book on a reader's behalf.
+
+roles:
+  room-desk:
+    description: The reading room's desk.
+    permissions: [requests.write]
+
+paths:
+  /requests:
+    post:
+      operationId: requestBook
+      summary: Ask for a book to read in the room
+      permission: requests.write
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                barcode: { type: string, minLength: 1, maxLength: 20 }
+                title: { type: string, minLength: 1, maxLength: 300 }
+                reader: { type: string, minLength: 1, maxLength: 200 }
+              required: [barcode, reader]
+      responses:
+        "201":
+          description: The request.
+          content:
+            application/json:
+              schema: { $ref: "#/entities/BookRequest" }
+
+pages:
+  request-book:
+    kind: form
+    title: Ask for a book
+    route: /requests/new
+    permission: requests.write
+    entity: BookRequest
+    submit: requestBook
+    fields: [barcode, title, reader]
+    pickers:
+      barcode: { source: "catalogue#/paths/~1books/get", shows: [title, author], fills: { title: title } }
+    onSubmitted: { message: The book is asked for. }
+
+tests:
+  request-book-succeeds: { level: system, operation: requestBook, scenario: golden, given: "a caller with requests.write, and a book record of the catalogue with that barcode", when: "requestBook is called with values inside every limit", then: "it answers 201: The request." }
+  request-book-denied-without-requests-write: { level: system, operation: requestBook, scenario: red, covers: [denied without requests.write], given: "a caller without requests.write", when: "requestBook is called", then: "it is refused as not allowed" }
+  request-book-missing-barcode: { level: system, operation: requestBook, scenario: red, covers: [missing barcode], given: "a caller with requests.write", when: "requestBook is called without barcode", then: "it is refused" }
+  request-book-missing-reader: { level: system, operation: requestBook, scenario: red, covers: [missing reader], given: "a caller with requests.write", when: "requestBook is called without reader", then: "it is refused" }
+  request-book-not-found-barcode: { level: system, operation: requestBook, scenario: red, covers: [not found barcode], given: "no book record of the catalogue has that barcode", when: "requestBook is called with that barcode", then: "it is refused as not found" }
+  request-book-page-opens: { level: system, page: request-book, scenario: golden, given: "a caller with requests.write", when: "the page request-book is opened", then: "it shows the form, whose Book field offers the catalogue's book records by title and author" }
+  request-book-page-denied-without-requests-write: { level: system, page: request-book, scenario: red, covers: [denied without requests.write], given: "a caller without requests.write", when: "the page request-book is opened", then: "it is refused as not allowed" }

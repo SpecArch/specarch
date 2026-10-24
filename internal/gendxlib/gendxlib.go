@@ -23,6 +23,7 @@ import (
 	"github.com/SpecArch/specarch/internal/mark"
 	"github.com/SpecArch/specarch/internal/ownership"
 	"github.com/SpecArch/specarch/internal/wirename"
+	"github.com/SpecArch/specarch/internal/xref"
 )
 
 // sections are the sections of the specification the file shows as a
@@ -35,6 +36,14 @@ const FileName = "specarch_dxlib.go"
 // Generate writes the Go of a request.
 func Generate(r *genopenapi.Request) genopenapi.Response {
 	g := &gen{spec: r.Specification, root: r.Root, imports: map[string]bool{}, owned: ownership.Owned{}}
+	// A field typed by another module's schema or entity holds a value
+	// object of a copy of it, as of a schema of this specification
+	// (ADR-184).
+	var imports []xref.Problem
+	g.spec, imports = xref.Import(r.Specification, r.Dependencies)
+	for _, p := range imports {
+		g.diags = append(g.diags, genopenapi.Diagnostic{File: g.root, Line: 1, Severity: "error", Path: p.Path, Rule: "reference", Message: p.Message})
+	}
 	for _, impl := range r.Implementations {
 		for ptr, by := range ownership.Of(impl.Content) {
 			g.owned[ptr] = by

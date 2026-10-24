@@ -8,7 +8,9 @@ import (
 
 	"github.com/SpecArch/specarch/internal/expr"
 	"github.com/SpecArch/specarch/internal/ownership"
+	"github.com/SpecArch/specarch/internal/genui"
 	"github.com/SpecArch/specarch/internal/wirename"
+	"github.com/SpecArch/specarch/internal/xref"
 )
 
 // The page sizes a list offers besides its default, up to its maximum.
@@ -83,13 +85,37 @@ func (g *Gen) ReadSession() *Session {
 // dialect (ADR-164); its names for any stack otherwise, mapped by the
 // wire-name rule as a body's properties are (ADR-062).
 func (g *Gen) ListNames() map[string]string {
+	return listNames(g.Impl.Idioms, g.Dialect, g.WireNames)
+}
+
+// ListNamesOf are the names a list operation is paged by: those of the
+// module that answers it, from the idioms of the implementation file that
+// serves its API when it is another module's (ADR-184).
+func (g *Gen) ListNamesOf(id string) map[string]string {
+	dep, _, remote := xref.Parse(id)
+	d, given := g.Deps[dep]
+	if !remote || !given {
+		return g.ListNames()
+	}
+	var idioms []genui.Idiom
+	for _, i := range d.Idioms {
+		idioms = append(idioms, genui.Idiom{Name: i.Name, As: i.As, Content: i.Content, Override: i.Override})
+	}
+	dialect := "standard"
+	if d.APIDialect == "dxlib" {
+		dialect = "dxlib"
+	}
+	return listNames(idioms, dialect, text(obj0(d.Content["info"])["wireNames"]))
+}
+
+func listNames(idioms []genui.Idiom, dialect, wireNames string) map[string]string {
 	stacks := []string{"any"}
-	if g.Dialect == "dxlib" {
+	if dialect == "dxlib" {
 		stacks = []string{"dxlib"}
 	}
 	out := map[string]string{}
 	for _, stack := range stacks {
-		for _, i := range g.Impl.Idioms {
+		for _, i := range idioms {
 			if i.Name != "paginated-list" || i.As == "excluded" {
 				continue
 			}
@@ -98,8 +124,8 @@ func (g *Gen) ListNames() map[string]string {
 					for k, v := range obj0(obj0(obj0(obj0(obj0(src["parts"])[part])["stack"])[stack])["names"]) {
 						if _, ok := out[k]; !ok {
 							out[k] = text(v)
-							if g.Dialect != "dxlib" {
-								out[k] = wirename.Of(g.WireNames, text(v))
+							if dialect != "dxlib" {
+								out[k] = wirename.Of(wireNames, text(v))
 							}
 						}
 					}
@@ -157,10 +183,13 @@ func (g *Gen) ListPage(pageName string, pg map[string]any, sess *Session) (*Page
 	}
 	before := len(g.Diags)
 	entityName := text(pg["entity"])
-	entity := obj0(obj0(g.Spec["entities"])[entityName])
+	entity, entityWire := g.EntityOf(entityName)
 	props := obj0(entity["properties"])
-	wire := func(f string) string { return wirename.Of(g.WireNames, f) }
+	wire := func(f string) string { return wirename.Of(entityWire, f) }
 	sourceID := text(pg["source"])
+	if !g.Reaches(at+"/source", pageName, "reads", sourceID) {
+		return nil, false
+	}
 	src, srcPath, srcMethod := g.Operation(sourceID)
 	if src == nil || srcMethod != "get" {
 		g.Problem("error", at+"/source", "%s reads %s, which is not a GET operation of the specification; a list is read by GET", pageName, sourceID)
@@ -183,7 +212,7 @@ func (g *Gen) ListPage(pageName string, pg map[string]any, sess *Session) (*Page
 	if defaultSize == "" {
 		defaultSize = maxSize
 	}
-	wireNames := g.ListNames()
+	wireNames := g.ListNamesOf(sourceID)
 	switch {
 	case !ok && g.Profile.PagedByServer != nil:
 		g.Problem("error", at+"/source", "%s pages through its list, and %s has no listOf, so it does not page; give it listOf, or name it under the ui target's settings.server.pages for a server route to page it", pageName, sourceID)

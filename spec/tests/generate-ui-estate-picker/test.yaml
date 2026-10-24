@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: generate
+level: system
+scenario: golden
+given: "an estate of two modules, the loans module with a list page reading the customer registry's list and a form whose picker reads it, through a dependency, a plain JavaScript ui target whose settings.services gives the registry's address as a path of the screens' own origin, and specarch-gen-ui built from this repository on PATH"
+when: "generate ui is run with --unapproved and --estate naming the estate file, on the loans module"
+then: "it writes the list page with the registry entity's columns and the picker with its key, shown and filled fields, each calling the list at the registry's address, paged by the registry's own names, and exits 0"
+verifies: [SA-65]

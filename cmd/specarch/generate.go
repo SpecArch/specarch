@@ -25,10 +25,18 @@ import (
 	"github.com/SpecArch/specarch/internal/source"
 	"github.com/SpecArch/specarch/internal/spec"
 	"github.com/SpecArch/specarch/internal/validate"
+	"github.com/SpecArch/specarch/internal/xref"
 )
 
 // pluginPrefix starts the name of every generator plug-in on PATH.
 const pluginPrefix = "specarch-gen-"
+
+// estateTargets are the targets whose plug-ins read the specifications the
+// dependencies name, when the run gives them: a value typed by another
+// module's element, and for the UI targets a page or picker reading its
+// list (ADR-184). Every other target refuses such a reference at its entry
+// whatever the run gives.
+var estateTargets = map[string]bool{"openapi": true, "sql": true, "go-dxlib": true, "ui": true}
 
 // builtGenerators are the code targets this program has itself. None yet:
 // every target is a plug-in.
@@ -73,6 +81,11 @@ type pluginRequest struct {
 	// and writes nothing, so a plug-in that refuses to write over a file
 	// built by hand answers its files for the comparison (ADR-093).
 	Check bool `json:"check"`
+	// Dependencies are the specifications of the run the dependencies of
+	// this one name, by the dependency's name, as the estate gives its
+	// modules: a plug-in writes a value typed by their elements and a page
+	// or picker reading their lists from them (ADR-184).
+	Dependencies map[string]xref.Dependency `json:"dependencies,omitempty"`
 }
 
 type pluginImplementation struct {
@@ -127,6 +140,11 @@ type pluginDiagnostic struct {
 // The plug-in is looked up per implementation file, by its stack first
 // (pluginGroups).
 func runGenerate(args []string, stdout, stderr io.Writer) int {
+	args, estates, msg := estateArgs(args)
+	if msg != "" {
+		fmt.Fprintf(stderr, "%s\n\n%s", msg, usage)
+		return 2
+	}
 	target, out, check, paths, set, msg := parseTargetArgs("generate", nil, []string{"unapproved"}, args)
 	if msg != "" {
 		fmt.Fprintf(stderr, "%s\n\n%s", msg, usage)
@@ -136,12 +154,27 @@ func runGenerate(args []string, stdout, stderr io.Writer) int {
 		fmt.Fprintf(stderr, "specarch generate: %q is not a target name; a target is kebab-case, such as openapi or sql\n", target)
 		return 2
 	}
-	all, status := loadSpecs(paths, "generate", stdout, stderr)
+	// An estate given with --estate brings its modules into the run, so
+	// the references into them resolve, and generates none of them but
+	// those the folders name (ADR-184).
+	wanted := map[string]bool{}
+	if len(estates) > 0 {
+		inputs, _ := collect(paths, io.Discard)
+		for _, in := range inputs {
+			if in.root != "" {
+				wanted[filepath.Clean(in.root)] = true
+			}
+		}
+	}
+	all, status := loadSpecs(append(append([]string{}, paths...), estates...), "generate", stdout, stderr)
 	if status != 0 {
 		return status
 	}
 	var specs []loaded
 	for _, l := range all {
+		if len(estates) > 0 && !wanted[filepath.Clean(l.spec.Dir)] {
+			continue
+		}
 		if out == "" && !namesOutput(l, target) {
 			fmt.Fprintln(stdout, noOutputFolder(l, target, "output").String())
 			continue
@@ -168,7 +201,7 @@ func runGenerate(args []string, stdout, stderr io.Writer) int {
 	// from this one alone; each is refused at its entry (ADR-112).
 	refused := false
 	for _, l := range specs {
-		for _, d := range validate.GeneratorReferences(l.spec, target) {
+		for _, d := range validate.GeneratorReferences(l.spec, target, readGiven(l, target)) {
 			printDiagnostic(stdout, stderr, d)
 			refused = true
 		}
@@ -434,13 +467,33 @@ func stackName(impl *yaml.Node) string {
 func newPluginRequest(l loaded, target, folder string, impls []generate.Implementation) (pluginRequest, []string) {
 	existing, notes := existingFiles(folder)
 	req := pluginRequest{Specarch: source.Str(source.Child(l.spec.Root, "specarch")), Target: target, Root: filepath.ToSlash(l.spec.RootFile), Specification: l.spec.Value, Output: filepath.ToSlash(folder), Implementations: []pluginImplementation{}, Existing: existing, Problems: pluginProblems(l, folder)}
-	for _, i := range l.spec.Implementations {
-		if openapi := source.Child(source.Child(source.Parse(i.Data).Root, "targets"), "openapi"); source.Str(source.Child(openapi, "dialect")) == "dxlib" {
-			req.APIDialect = "dxlib"
-			if e := source.Child(source.Child(openapi, "settings"), "envelopes"); e != nil {
-				req.APIEnvelopes = source.ValueOf(e)
+	req.APIDialect, req.APIEnvelopes = apiDialectOf(l.spec)
+	for dep, other := range validate.GivenDependencies(l.spec, readGiven(l, target)) {
+		if req.Dependencies == nil {
+			req.Dependencies = map[string]xref.Dependency{}
+		}
+		content, _ := other.Value.(map[string]any)
+		info := source.Child(other.Root, "info")
+		dialect, _ := apiDialectOf(other)
+		d := xref.Dependency{Specification: source.Str(source.Child(info, "name")), Version: source.Str(source.Child(info, "version")), Content: content, APIDialect: dialect}
+		// The idioms of the file that serves the module's API, or of its
+		// first implementation file, and the shipped ones when it has
+		// none: the names its lists are paged by.
+		path, node := other.RootFile, (*yaml.Node)(nil)
+		for i, impl := range other.Implementations {
+			if root := source.Parse(impl.Data).Root; i == 0 || source.Child(source.Child(root, "targets"), "openapi") != nil {
+				path, node = impl.Path, root
 			}
 		}
+		ids, more := pluginIdioms(path, node, other, target)
+		notes = append(notes, more...)
+		for _, id := range ids {
+			xi := xref.Idiom{Name: id.Name, Version: id.Version, As: id.As}
+			xi.Content, _ = id.Content.(map[string]any)
+			xi.Override, _ = id.Override.(map[string]any)
+			d.Idioms = append(d.Idioms, xi)
+		}
+		req.Dependencies[dep] = d
 	}
 	for _, i := range impls {
 		settings := source.Child(source.Child(source.Child(i.Node, "targets"), target), "settings")
@@ -448,32 +501,91 @@ func newPluginRequest(l loaded, target, folder string, impls []generate.Implemen
 		if settings != nil {
 			pi.Settings = source.ValueOf(settings)
 		}
-		shipped := validate.ShippedIdioms()
-		for _, u := range validate.IdiomUses(i.Path, i.Node, l.spec) {
-			pid := pluginIdiom{Name: u.Name, Version: u.Version, As: u.As}
-			switch u.As {
-			case "shipped":
-				pid.Content = source.ValueOf(shipped[u.Name].Root)
-			case "overridden":
-				pid.Content = source.ValueOf(shipped[u.Name].Root)
-				if data, err := os.ReadFile(u.Override); err == nil {
-					pid.Override = source.Parse(data).Value
-				} else {
-					notes = append(notes, fmt.Sprintf("cannot read the override %s of idiom %s (%s), so %s gets the shipped idiom without it", u.Override, u.Name, spec.PlainIOError(err), target))
-				}
-			case "project":
-				p := projectIdiomPath(i.Path, u.Name)
-				if data, err := os.ReadFile(p); err == nil {
-					pid.Content = source.Parse(data).Value
-				} else {
-					notes = append(notes, fmt.Sprintf("cannot read the project's idiom %s (%s), so %s gets idiom %s with no content", p, spec.PlainIOError(err), target, u.Name))
-				}
-			}
-			pi.Idioms = append(pi.Idioms, pid)
-		}
+		ids, more := pluginIdioms(i.Path, i.Node, l.spec, target)
+		pi.Idioms = append(pi.Idioms, ids...)
+		notes = append(notes, more...)
 		req.Implementations = append(req.Implementations, pi)
 	}
 	return req, notes
+}
+
+// pluginIdioms are the idioms an implementation file uses, as a plug-in
+// gets them, and a note for each file that cannot be read.
+func pluginIdioms(path string, node *yaml.Node, s *spec.Spec, target string) ([]pluginIdiom, []string) {
+	var out []pluginIdiom
+	var notes []string
+	shipped := validate.ShippedIdioms()
+	for _, u := range validate.IdiomUses(path, node, s) {
+		pid := pluginIdiom{Name: u.Name, Version: u.Version, As: u.As}
+		switch u.As {
+		case "shipped":
+			pid.Content = source.ValueOf(shipped[u.Name].Root)
+		case "overridden":
+			pid.Content = source.ValueOf(shipped[u.Name].Root)
+			if data, err := os.ReadFile(u.Override); err == nil {
+				pid.Override = source.Parse(data).Value
+			} else {
+				notes = append(notes, fmt.Sprintf("cannot read the override %s of idiom %s (%s), so %s gets the shipped idiom without it", u.Override, u.Name, spec.PlainIOError(err), target))
+			}
+		case "project":
+			p := projectIdiomPath(path, u.Name)
+			if data, err := os.ReadFile(p); err == nil {
+				pid.Content = source.Parse(data).Value
+			} else {
+				notes = append(notes, fmt.Sprintf("cannot read the project's idiom %s (%s), so %s gets idiom %s with no content", p, spec.PlainIOError(err), target, u.Name))
+			}
+		}
+		out = append(out, pid)
+	}
+	return out, notes
+}
+
+// readGiven are the specifications of the run a target's plug-in reads
+// beside the one it writes: those given, for a target that reads them, and
+// none for another.
+func readGiven(l loaded, target string) validate.Given {
+	if !estateTargets[target] {
+		return nil
+	}
+	return l.given
+}
+
+// apiDialectOf is the dialect a specification's API is served in, dxlib
+// when an implementation file's openapi target names that dialect, with
+// that target's settings.envelopes, and "" for the standard one.
+func apiDialectOf(s *spec.Spec) (dialect string, envelopes any) {
+	for _, i := range s.Implementations {
+		if openapi := source.Child(source.Child(source.Parse(i.Data).Root, "targets"), "openapi"); source.Str(source.Child(openapi, "dialect")) == "dxlib" {
+			dialect = "dxlib"
+			if e := source.Child(source.Child(openapi, "settings"), "envelopes"); e != nil {
+				envelopes = source.ValueOf(e)
+			}
+		}
+	}
+	return dialect, envelopes
+}
+
+// estateArgs takes --estate <file> out of generate's arguments: the
+// estates whose modules the run reads without generating them.
+func estateArgs(args []string) (rest, estates []string, msg string) {
+	for i := 0; i < len(args); i++ {
+		a := args[i]
+		switch {
+		case a == "--":
+			return append(rest, args[i:]...), estates, ""
+		case a == "--estate":
+			if i+1 >= len(args) {
+				return nil, nil, "--estate needs an estate file, " + spec.EstateFile
+			}
+			estates = append(estates, args[i+1])
+			i++
+		case strings.HasPrefix(a, "--estate="):
+			estates = append(estates, strings.TrimPrefix(a, "--estate="))
+		default:
+			rest = append(rest, a)
+		}
+	}
+	return rest, estates, ""
 }
 
 // existingFiles lists the text files under an output folder, by their path

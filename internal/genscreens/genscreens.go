@@ -24,6 +24,7 @@ import (
 	"github.com/SpecArch/specarch/internal/genui"
 	"github.com/SpecArch/specarch/internal/mark"
 	"github.com/SpecArch/specarch/internal/wirename"
+	"github.com/SpecArch/specarch/internal/xref"
 )
 
 // Request is what specarch writes on a plug-in's standard input.
@@ -45,6 +46,10 @@ type Request struct {
 	// Check is true when specarch only compares the output with the disk,
 	// so a file built by hand is compared rather than refused.
 	Check bool `json:"check"`
+	// Dependencies are the specifications of the estate the dependencies
+	// name: a value typed by their elements, and the list a page or a
+	// picker reads there (ADR-184).
+	Dependencies map[string]xref.Dependency `json:"dependencies,omitempty"`
 }
 
 // Decode reads a request, keeping numbers as their text.
@@ -167,6 +172,18 @@ type Gen struct {
 	// Handshakes are the handshakes a page's call travels in, by name, with
 	// the operation that establishes each.
 	Handshakes map[string]string
+	// Deps are the specifications of the estate the dependencies name.
+	Deps map[string]xref.Dependency
+	// Remote are the operations of other modules the pages call, by
+	// dependency, path and method (ADR-184).
+	Remote map[string]map[string]map[string]string
+	// Reach says where the screens call another module's operation: the
+	// path the screens put before its own, or why they cannot call it.
+	// nil when the screens call one service only.
+	Reach func(dep string, d xref.Dependency) (prefix, why string)
+	// imports are the values another module's element cannot type, which
+	// the response reports while every page is still written.
+	imports []genui.Diagnostic
 }
 
 // New reads the request for a generator: the implementation file that
@@ -174,7 +191,15 @@ type Gen struct {
 // and framework checked against the profile, and the idiom's names. An
 // error is reported for what does not fit; the caller checks Failed.
 func New(r *Request, p Profile) *Gen {
-	g := &Gen{Profile: p, Spec: r.Specification, Root: r.Root, Strings: map[string]string{}, Calls: map[string]map[string]string{}, Dialect: "standard", Handshakes: map[string]string{}}
+	g := &Gen{Profile: p, Spec: r.Specification, Root: r.Root, Strings: map[string]string{}, Calls: map[string]map[string]string{}, Dialect: "standard", Handshakes: map[string]string{},
+		Deps: r.Dependencies, Remote: map[string]map[string]map[string]string{}}
+	// A value typed by another module's element is drawn from a copy of
+	// it, as from this specification's own (ADR-184).
+	var imports []xref.Problem
+	g.Spec, imports = xref.Import(r.Specification, r.Dependencies)
+	for _, p := range imports {
+		g.imports = append(g.imports, genui.Diagnostic{File: g.Root, Line: 1, Severity: "error", Path: p.Path, Rule: "reference", Message: p.Message})
+	}
 	if r.APIDialect == "dxlib" {
 		g.Dialect = "dxlib"
 		if !p.Seals {
@@ -312,10 +337,7 @@ func (g *Gen) Response(files []genui.File) genui.Response {
 	if files == nil {
 		files = []genui.File{}
 	}
-	diags := g.Diags
-	if diags == nil {
-		diags = []genui.Diagnostic{}
-	}
+	diags := append(append([]genui.Diagnostic{}, g.imports...), g.Diags...)
 	return genui.Response{Files: files, Diagnostics: diags}
 }
 
@@ -783,8 +805,25 @@ func (g *Gen) Transport(op map[string]any, path string) []Member {
 }
 
 // Operation finds an operation by its operationId: it, its path and its
-// method, and records the call.
+// method, and records the call. An operation of another module, named
+// <dependency>#/paths/<path>/<method>, is found in its specification, with
+// its path as the screens call it, after the prefix Reach gives.
 func (g *Gen) Operation(id string) (map[string]any, string, string) {
+	if op, path, method, d, ok := xref.Operation(g.Deps, id); ok {
+		dep, _, _ := xref.Parse(id)
+		if g.Remote[dep] == nil {
+			g.Remote[dep] = map[string]map[string]string{}
+		}
+		if g.Remote[dep][path] == nil {
+			g.Remote[dep][path] = map[string]string{}
+		}
+		g.Remote[dep][path][method] = text(op["operationId"])
+		if g.Reach != nil {
+			prefix, _ := g.Reach(dep, d)
+			path = prefix + path
+		}
+		return op, path, method
+	}
 	paths := obj0(g.Spec["paths"])
 	for _, p := range sortedKeys(paths) {
 		item := obj0(paths[p])
@@ -799,6 +838,45 @@ func (g *Gen) Operation(id string) (map[string]any, string, string) {
 		}
 	}
 	return nil, "", ""
+}
+
+// Reaches says whether the screens can call the list a page or a picker
+// reads, and reports why not at the entry: an operation of another module
+// is called through the prefix Reach gives, in the standard dialect, since
+// the dxlib dialect calls POST /<operationId> at the one service's own
+// address (ADR-184).
+func (g *Gen) Reaches(at, pageName, does, id string) bool {
+	dep, _, remote := xref.Parse(id)
+	if !remote {
+		return true
+	}
+	d, given := g.Deps[dep]
+	named := xref.Named(g.Deps, id)
+	switch {
+	case !given:
+		g.Problem("error", at, "%s %s %s, of another module, whose specification the run does not give; give the estate with --estate", pageName, does, id)
+	case g.Dialect == "dxlib" || d.APIDialect == "dxlib":
+		g.Problem("error", at, "%s %s %s, and a call to another module is written in the standard dialect only: the dxlib dialect calls POST /<operationId> at the one service's own address", pageName, does, named)
+	case g.Reach == nil:
+		g.Problem("error", at, "%s %s %s, of another module, and %s calls one service, at the address the app sets, so the screens cannot reach that module", pageName, does, named, g.Profile.Name)
+	default:
+		if _, why := g.Reach(dep, d); why != "" {
+			g.Problem("error", at, "%s %s %s, of another module, and %s", pageName, does, named, why)
+			return false
+		}
+		return true
+	}
+	return false
+}
+
+// EntityOf is an entity of this specification, or of another module when
+// the name is <dependency>#/entities/<name>, with the wire naming of the
+// specification that holds it.
+func (g *Gen) EntityOf(name string) (map[string]any, string) {
+	if e, _, d, ok := xref.Entity(g.Deps, name); ok {
+		return e, text(obj0(d.Content["info"])["wireNames"])
+	}
+	return obj0(obj0(g.Spec["entities"])[name]), g.WireNames
 }
 
 // RelRoot is the root file's path relative to the output folder, for the

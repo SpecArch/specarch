@@ -1,0 +1,15 @@
+specarchImplementation: "0.1"
+info: { title: Loans in TypeScript, version: 1.0.0 }
+implements: { file: ../../specarch.yaml, version: 1.0.0 }
+stack: { language: { name: TypeScript, version: "6.0" } }
+targets:
+  ui:
+    output: ../../../web
+    platform: web
+    framework: nextjs-carbon
+    settings:
+      language: en
+      server:
+        routes: /api
+        service: LOANS_SERVICE_URL
+        token: { cookie: loans_session, header: Authorization, scheme: Bearer }

@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: generate
+level: system
+scenario: golden
+given: "an estate of two modules, the loans module with a list page reading the customer registry's list and a form whose picker reads it, through a dependency, a Next.js ui target whose settings.server.services names the environment variable of the registry's address, and specarch-gen-ui-typescript built from this repository on PATH"
+when: "generate ui is run with --unapproved and --estate naming the estate file, on the loans module"
+then: "it writes the list page with the registry entity's columns and the picker with its key, shown and filled fields, each calling the list under the server routes after the registry's name, paged by the registry's own names, a route there that forwards the call to the address the environment variable gives, the settings of that route beside the service's, and exits 0"
+verifies: [SA-65]

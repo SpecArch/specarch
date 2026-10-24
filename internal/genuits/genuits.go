@@ -86,6 +86,7 @@ func Generate(r *Request) genui.Response {
 		return g.Response(nil)
 	}
 	g.server = g.readServer()
+	g.Reach = g.reach
 	if g.server != nil && len(g.server.pages) > 0 && g.Dialect == "dxlib" {
 		g.Problem("error", "/", "the ui target's settings.server.pages has a server route page a list the service answers whole, by the paginated-list idiom's standard names, and the service serves the dxlib dialect, whose lists page themselves; take settings.server.pages out")
 	}

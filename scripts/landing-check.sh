@@ -73,11 +73,14 @@ documents_current() {
 }
 
 # generated_current checks the library lending example's generated code and
-# data. The example is not approved, hence --unapproved.
+# data, and the reading room's screens, generated across the estate since
+# its picker reads the catalogue service's list. Neither is approved, hence
+# --unapproved.
 generated_current() {
 	for target in sql sqlc openapi ui bpmn; do
 		PATH="$bin:$PATH" "$bin/specarch" generate $target --check --unapproved examples/library-lending || return 1
 	done
+	PATH="$bin:$PATH" "$bin/specarch" generate ui --check --unapproved --estate examples/estate/specarch-estate.yaml examples/estate/reading-room || return 1
 }
 
 # validate_same compares the Swift build's validate output with the Go

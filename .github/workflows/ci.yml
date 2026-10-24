@@ -302,15 +302,23 @@ jobs:
             "$RUNNER_TEMP/specarch" facts javascript "examples/${pair%%:*}" "$RUNNER_TEMP/dump.json" || exit 1
             cmp "examples/${pair#*:}" "$RUNNER_TEMP/dump.json" || exit 1
           done
-      - name: The estate example validates as an estate and draws its module map
-        # examples/estate lists the lending desk, the catalogue service and
-        # the gateway in front of both; validate on the estate file reads
-        # the three modules through it, and checks the gateway's forwards
-        # against the audiences the two services accept. The gateway alone
-        # counts its two forwards as unresolved references.
+      - name: The estate example validates as an estate, draws its module map and generates the screen across modules
+        # examples/estate lists the lending desk, the catalogue service, the
+        # reading room and the gateway in front of the services; validate on
+        # the estate file reads the four modules through it, and checks the
+        # gateway's forwards against the audiences the services accept. The
+        # gateway alone counts its two forwards as unresolved references.
+        # The reading room's form picks a book from the catalogue's list, so
+        # its screens are generated with the estate, which gives the
+        # catalogue's specification, and checked against the committed ones.
         run: |
           go run ./cmd/specarch validate examples/estate/specarch-estate.yaml 2> "$RUNNER_TEMP/estate.txt"
-          grep -q '^specarch: 4 inputs checked: 0 errors,' "$RUNNER_TEMP/estate.txt"
+          grep -q '^specarch: 5 inputs checked: 0 errors,' "$RUNNER_TEMP/estate.txt"
+          mkdir -p "$RUNNER_TEMP/estate-bin"
+          go build -o "$RUNNER_TEMP/estate-bin/specarch" ./cmd/specarch
+          go build -o "$RUNNER_TEMP/estate-bin/specarch-gen-ui" ./cmd/specarch-gen-ui
+          PATH="$RUNNER_TEMP/estate-bin:$PATH" specarch generate ui --check --unapproved --estate examples/estate/specarch-estate.yaml examples/estate/reading-room
+          grep -q 'path: "/catalogue/books"' examples/estate/reading-room/web/request-book.js
           grep -q '^  lending_desk -->|"catalogue, written against 0.1.0"| catalogue_service$' examples/estate/docs/estate.md
           grep -q '^  library_gateway -->|"loans, written against 0.1.0"| lending_desk$' examples/estate/docs/estate.md
           go run ./cmd/specarch validate examples/estate/gateway 2> "$RUNNER_TEMP/gateway.txt"

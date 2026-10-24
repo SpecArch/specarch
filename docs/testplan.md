@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.6-dev of the specification: 713 design tests, 349 golden and 364 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.6-dev of the specification: 719 design tests, 354 golden and 365 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.7.6-dev of the specification: 713 design tests, 349 golden and 364 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 709 |
+| system | 715 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -2237,6 +2237,14 @@ Scenario: golden; level: system; verifies SA-77, SA-40.
 - When: generate go-dxlib is run with --unapproved
 - Then: it writes the service file with Register binding every handler and setting dxlib's hooks that open and seal the pre-key envelope, the exchange's handler that reads a0, a1 and a2, makes the service's keys, derives the two shared keys, stores the handshake with its lifetime and answers i, b0, b1 and b2, the handshake's record, store and in-memory store, the upload handler calling its body with the request body as a stream held to the limit, the download handlers with their media type and limit as constants, and the stream helpers; and a client file with Handshake, a method per operation that seals and opens the envelope, streams an upload in and a download out as the design says; and exits 0
 
+#### generate-go-dxlib-estate-reference
+
+Scenario: golden; level: system; verifies SA-65.
+
+- Given: an estate of two modules, the loans module whose entity has a field typed by the customer registry's schema and one typed by its entity through a dependency, an implementation file in Go whose go-dxlib target names a package, and specarch-gen-go-dxlib built from this repository on PATH
+- When: generate go-dxlib is run with --unapproved and --estate naming the estate file, on the loans module
+- Then: it writes the handlers and the client with a value object for each field, of the schema's parts and of the entity's properties read from the registry's specification, each commented with the module and the pointer it was read from, and exits 0
+
 #### generate-go-dxlib-extracted-vault
 
 Scenario: golden; level: system; verifies SA-77, SA-44.
@@ -2348,6 +2356,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-77.
 - Given: the vault of generate-openapi-dxlib-envelope-stream, with an implementation file whose openapi target serves the handshake preKey as v3 and names a handshake session the specification does not declare; specarch-gen-openapi built from this repository on PATH
 - When: generate openapi is run with --unapproved
 - Then: it writes each operation in preKey's envelope as EndPointTypeHTTPEndToEndEncryptionV3, reports as errors the setting that names a handshake that is not declared and, at its handshake, the export that streams a download in a v3 envelope, which no dxlib type carries, writes the document with both marked, and exits 1
+
+#### generate-openapi-estate-reference
+
+Scenario: golden; level: system; verifies SA-65.
+
+- Given: an estate of two modules, the loans module whose entity has a field typed by the customer registry's schema through a dependency, the schema holding a field typed by the registry's enum, an implementation file whose openapi target names an output, and specarch-gen-openapi built from this repository on PATH
+- When: generate openapi is run with --unapproved and --estate naming the estate file, on the loans module
+- Then: it writes the loans module's document alone, with the field's schema written inline from the registry's specification and the enum inline within it, each marked x-specarch-ref with the module and the pointer, the field's own description over the schema's, no component of the registry's, and exits 0
 
 #### generate-openapi-gateway
 
@@ -2508,6 +2524,14 @@ Scenario: golden; level: system; verifies SA-82.
 - Given: the specification of generate-sql-0-3-rows with its sql target on MariaDB; specarch-gen-sql built from this repository on PATH
 - When: generate sql is run with --unapproved
 - Then: it writes 0001_expand.sql with the loans table and no policy, a comment at the table for each rule saying MariaDB has no row security policy this version writes, warns once per rule at the rule, keeps the snapshot without policies, and exits 0
+
+#### generate-sql-estate-reference
+
+Scenario: golden; level: system; verifies SA-65.
+
+- Given: an estate of two modules, the loans module whose entity has a field typed by the customer registry's schema and one typed by its enum through a dependency, and keeps a customer's key through a many-to-one relation to the registry's entity, an implementation file in Go whose sql target is PostgreSQL, and specarch-gen-sql built from this repository on PATH
+- When: generate sql is run with --unapproved and --estate naming the estate file, on the loans module
+- Then: it writes the loans table with the schema's parts as columns typed and checked from the registry's schema and enum, the enum's column checked against its values, the key's column with no foreign key and the comment naming the registry, and snapshot.yaml beside it, and exits 0
 
 #### generate-sql-expand
 
@@ -2757,6 +2781,14 @@ Scenario: golden; level: system; verifies SA-77, SA-43.
 - When: generate ui is run with --unapproved
 - Then: service.js makes the transport in the dxlib dialect with the handshake preKey and the operation that establishes it; each page's call names its operation, method, path with its {parameters} left in and the handshake it travels in, and a call whose path takes a parameter names the parameter's snake-case name in the body and gives it from the row or the route; the list reads the paginated-list idiom's dxlib names, its page from 0, its filter as a member of filter_key_values and its records under list.rows; the export action names its stream, download, and is saved; the attach page shows a file input of application/pdf labelled by the request body's description and its submit names its stream, upload, its media type and the file's largest size with the message above it; transport.js, which seals and opens dxlib's envelope through the Web Crypto API and streams uploads and downloads, is written beside the pages; it reports nothing and exits 0
 
+#### generate-ui-estate-picker
+
+Scenario: golden; level: system; verifies SA-65.
+
+- Given: an estate of two modules, the loans module with a list page reading the customer registry's list and a form whose picker reads it, through a dependency, a plain JavaScript ui target whose settings.services gives the registry's address as a path of the screens' own origin, and specarch-gen-ui built from this repository on PATH
+- When: generate ui is run with --unapproved and --estate naming the estate file, on the loans module
+- Then: it writes the list page with the registry entity's columns and the picker with its key, shown and filled fields, each calling the list at the registry's address, paged by the registry's own names, and exits 0
+
 #### generate-ui-form
 
 Scenario: golden; level: system; verifies SA-81.
@@ -2892,6 +2924,22 @@ Scenario: red; level: system; verifies SA-77.
 - Given: the notes specification with a second handshake, sealed, of cipher aes-256-gcm, which the view's getNote travels in, and a view note-raw that loads its record from getNoteRaw, a GET that streams a download; an implementation file in Go whose openapi target serves the dxlib dialect, and one in TypeScript whose ui target names server routes that page listTags, a GET the service answers whole; and specarch-gen-ui-typescript built from this repository on PATH
 - When: generate ui is run with --unapproved
 - Then: it reports as an error at the view's source that sealed's cipher is not dxlib's envelope, the one the screens seal, as an error at note-raw's source that the screens stream a download only from an action and an upload only from a task page's submit, and as an error at the root that a server route pages by the standard names while the service serves the dxlib dialect, warns that no list page reads listTags, writes the other pages, and exits 1
+
+#### generate-ui-typescript-estate-picker
+
+Scenario: golden; level: system; verifies SA-65.
+
+- Given: an estate of two modules, the loans module with a list page reading the customer registry's list and a form whose picker reads it, through a dependency, a Next.js ui target whose settings.server.services names the environment variable of the registry's address, and specarch-gen-ui-typescript built from this repository on PATH
+- When: generate ui is run with --unapproved and --estate naming the estate file, on the loans module
+- Then: it writes the list page with the registry entity's columns and the picker with its key, shown and filled fields, each calling the list under the server routes after the registry's name, paged by the registry's own names, a route there that forwards the call to the address the environment variable gives, the settings of that route beside the service's, and exits 0
+
+#### generate-ui-typescript-estate-picker-refused
+
+Scenario: red; level: system; covers exit 1; verifies SA-65.
+
+- Given: an estate of two modules, the loans module with a list page and a picker reading the customer registry's list and a field typed by the registry's entity Customer while it declares a schema Customer of its own, a Next.js ui target whose settings.server names no environment variable for the registry under services, and specarch-gen-ui-typescript built from this repository on PATH
+- When: generate ui is run with --unapproved and --estate naming the estate file, on the loans module
+- Then: it reports reference at the field, naming the module and the pointer and the schema whose name it would take, and an error at the list page's and the picker's source naming the module, the pointer and the setting to add, writes every other file with those entries marked, and exits 1
 
 #### generate-ui-typescript-hand-built
 
@@ -5787,7 +5835,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-408 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+409 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -5947,6 +5995,7 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-65 | acceptance 4 | golden | SA-65 names no harm |
 | requirement SA-65 | acceptance 5 | golden | SA-65 names no harm |
 | requirement SA-65 | acceptance 6 | golden | SA-65 names no harm |
+| requirement SA-65 | acceptance 7 | golden | SA-65 names no harm |
 | requirement SA-66 | acceptance 1 | golden | SA-66 names no harm |
 | requirement SA-66 | acceptance 2 | golden | SA-66 names no harm |
 | requirement SA-66 | acceptance 3 | golden | SA-66 names no harm |

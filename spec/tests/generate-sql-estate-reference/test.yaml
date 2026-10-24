@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: generate
+level: system
+scenario: golden
+given: "an estate of two modules, the loans module whose entity has a field typed by the customer registry's schema and one typed by its enum through a dependency, and keeps a customer's key through a many-to-one relation to the registry's entity, an implementation file in Go whose sql target is PostgreSQL, and specarch-gen-sql built from this repository on PATH"
+when: "generate sql is run with --unapproved and --estate naming the estate file, on the loans module"
+then: "it writes the loans table with the schema's parts as columns typed and checked from the registry's schema and enum, the enum's column checked against its values, the key's column with no foreign key and the comment naming the registry, and snapshot.yaml beside it, and exits 0"
+verifies: [SA-65]

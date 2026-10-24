@@ -90,7 +90,7 @@ layout:
   cmd/specarch:
     description: The command line. Argument handling, finding the specifications under folders, running plug-ins, printing the diagnostics and the exit status.
     implements: ["#/commands/validate", "#/commands/gaps", "#/commands/document", "#/commands/decide", "#/commands/approve", "#/commands/generate", "#/commands/extract", "#/commands/merge", "#/commands/diff", "#/commands/check", "#/commands/derive", "#/commands/idioms", "#/commands/idioms diff", "#/commands/model", "#/commands/version", "#/entities/SpecFile", "#/entities/GeneratedFile", "#/algorithms/exitStatus", "#/algorithms/checkStatus"]
-    dependsOn: [internal/approval, internal/canonical, internal/diff, internal/extract, internal/facts, internal/genbpmn, internal/generate, internal/genscreens, internal/gensql, internal/genui, internal/literal, internal/mark, internal/problems, internal/refine, internal/semver, internal/source, internal/spec, internal/validate]
+    dependsOn: [internal/approval, internal/canonical, internal/diff, internal/extract, internal/facts, internal/genbpmn, internal/generate, internal/genscreens, internal/gensql, internal/genui, internal/literal, internal/mark, internal/problems, internal/refine, internal/semver, internal/source, internal/spec, internal/validate, internal/xref]
   schema:
     description: The JSON Schemas, embedded into the binary from the files editors use.
   idioms:
@@ -120,7 +120,7 @@ layout:
     dependsOn: [internal/gensql]
   internal/gensql:
     description: The SQL migrations in four dialects, each column through the type-rendering idiom, with check expressions translated per dialect, the views after the tables, and a snapshot of the schema; an entity or view another stakeholder owns gets no statement, and the snapshot lists it as owned. Schema answers the tables and columns it writes, with their keys, constraints and listed indexes, for the queries generator, the scripts generator and specarch check, and Condition writes an expression over an entity's fields, such as a guard's precondition, as a check constraint is written.
-    dependsOn: [internal/expr, internal/mark, internal/ownership, internal/typerows]
+    dependsOn: [internal/expr, internal/mark, internal/ownership, internal/typerows, internal/xref]
   cmd/specarch-gen-sqlc:
     description: The plug-in behind generate sqlc. Reads the request on standard input, answers the query files on standard output, and never touches the disk.
     implements: ["#/commands/generate"]
@@ -135,6 +135,8 @@ layout:
   internal/genscripts:
     description: "The guarded operational scripts the design derives, one script per guarded operation or command, for psql on PostgreSQL or for the mariadb client on MariaDB (ADR-167), as the target's dialect says, whose change a transition it triggers, a PUT of the entity by its key, a DELETE by its key or the guard's writes says (ADR-168): each refuses an unset variable by name, reports a record already changed, counts and locks the records the change would write and refuses unless their number is the guard's recordsChanged, makes the change under the same condition, checks the count it wrote and commits only with apply true; every other guarded change is a warning at its guard, left to be written by hand, against the tables internal/gensql writes, with the precondition written as a check constraint is (ADR-158)."
     dependsOn: [internal/gensql, internal/mark, internal/ownership]
+  internal/xref:
+    description: "Reads, for a generator, the elements a specification names in another module of its estate as <dependency>#/<pointer>: imports a schema, an entity or an enum a field is typed by into the specification the generator writes, under its own name and marked x-specarch-ref with the module and the pointer, and finds the operation and the entity a page or a picker reads there (ADR-184)."
   internal/ownership:
     description: Reads the ownedBy marks of an implementation file's mappings, which every generator that builds code or data follows by leaving the owned elements out.
   internal/mark:
@@ -147,7 +149,7 @@ layout:
     dependsOn: [internal/genopenapi]
   internal/genopenapi:
     description: The OpenAPI 3.1 document in the standard dialect, the design field for field, with the problem catalogue and lists paged through the paginated-list idiom; and in the dxlib dialect, what dxlib's reader binds.
-    dependsOn: [internal/mark, internal/ownership]
+    dependsOn: [internal/mark, internal/ownership, internal/xref]
   cmd/specarch-gen-go-dxlib:
     description: The plug-in behind generate go-dxlib. Reads the request on standard input, answers the Go file on standard output, and never touches the disk.
     implements: ["#/commands/generate"]
@@ -165,14 +167,14 @@ layout:
     dependsOn: [internal/genui]
   internal/genui:
     description: The list, view, form and task pages for the web in plain JavaScript, the navigation between them in pages.js with the menu on every page, the confirmation that asks for a reason in ask.js, the events they raise, and the theme as CSS custom properties; a form's fields are native controls in its HTML and form.js adds the checks, conditions, pickers, values, rows and what follows a success; view.js, form.js, ask.js and the functions of pages.js are files under runtime/, written as they are.
-    dependsOn: [internal/mark, internal/ownership]
+    dependsOn: [internal/mark, internal/ownership, internal/xref]
   cmd/specarch-gen-ui-typescript:
     description: The plug-in behind generate ui for an implementation file in TypeScript. Reads the request on standard input, answers the screens on standard output, and never touches the disk.
     implements: ["#/commands/generate"]
     dependsOn: [internal/genuits]
   internal/genuits:
     description: The task, list and form pages and the views for the web on Next.js and Carbon, read through internal/genscreens, with child rows, actions that run an operation after a confirmation and its reason, forms that start an approval and inboxes, each a schema of data and a thin page.tsx, a client file that hands on the hooks a project writes, the guard and the menu from one decision, the derived tests, the components that read the schemas, the strings in every language the settings name with the check that each key has an entry, the server routes that forward the operations the pages call with the session's token, and the theme over Carbon's through the design-tokens idiom, drawn through the ui-components idiom's names.
-    dependsOn: [internal/genscreens, internal/genui, internal/ownership]
+    dependsOn: [internal/genscreens, internal/genui, internal/ownership, internal/xref]
   cmd/specarch-gen-ui-swiftui:
     description: The plug-in behind generate ui for a ui target of platform iphone in an implementation file in Swift. Reads the request on standard input, answers the screens on standard output, and never touches the disk.
     implements: ["#/commands/generate"]
@@ -182,12 +184,12 @@ layout:
     dependsOn: [internal/genscreens, internal/genui, internal/ownership]
   internal/genscreens:
     description: "The screens both UI generators that write a page as data read, keyed by the ui-components idiom's names for the generator's framework, the project's override first: the task, list and form pages and the views with their routes, hooks and permission, the session the target's settings name, the menu, the translations the settings name, the theme's colours through the design-tokens idiom, the problems each reports, the draft notice and the problem marks, and the refusal of a file in the output folder the plug-in did not write; a generator gives its profile, its name, platform, framework and language, and writes the pages in its stack's files."
-    dependsOn: [internal/expr, internal/genui, internal/mark, internal/ownership]
+    dependsOn: [internal/expr, internal/genui, internal/mark, internal/ownership, internal/xref]
   internal/literal:
     description: Reads a TypeScript file holding one object literal of data in the subset of TypeScript that is also JSON5, refusing anything else with its line, and compares two such files by value, for generate --check on screens built by hand (ADR-093).
   internal/gendxlib:
     description: The Go file of a service on dxlib, its tables, handlers, seeds and tasks, read from the design through the dxlib dialect's names and types.
-    dependsOn: [internal/genopenapi, internal/gensql, internal/mark, internal/ownership]
+    dependsOn: [internal/genopenapi, internal/gensql, internal/mark, internal/ownership, internal/xref]
   cmd/specarch-gen-tests-go:
     description: The plug-in behind generate tests for a Go implementation file. Reads the request on standard input, answers the Go test file on standard output, and never touches the disk.
     implements: ["#/commands/generate"]

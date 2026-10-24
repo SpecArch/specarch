@@ -2,14 +2,16 @@
 
 # Library Estate: module map
 
-Version 0.1.0 of the estate: 3 modules. Each module is specified on its own; this map lists them, the version the estate holds each at, and what each names in another through its dependencies.
+Version 0.1.0 of the estate: 4 modules. Each module is specified on its own; this map lists them, the version the estate holds each at, and what each names in another through its dependencies.
 
-Three modules of a small library, each specified on its own: the
+Four modules of a small library, each specified on its own: the
 lending desk, which lends the books; the catalogue service, whose
-team keeps the book records the desk reads; and the gateway in front
-of both, which forwards each request to the one the access token's
-audience names. The lending desk's specification is the one in
-examples/lending-desk; nothing of it is copied here.
+team keeps the book records the desk reads; the reading room, whose
+desk picks a book from the catalogue's list, so its screen is
+generated across the estate; and the gateway in front of the desk and
+the catalogue, which forwards each request to the one the access
+token's audience names. The lending desk's specification is the one
+in examples/lending-desk; nothing of it is copied here.
 
 ## Modules
 
@@ -17,6 +19,7 @@ examples/lending-desk; nothing of it is copied here.
 |---|---|---|---|
 | lending-desk | 0.1.0 | [../lending-desk/spec](../../lending-desk/spec/specarch.yaml) | Lending Desk. Lends books to members and takes them back. |
 | catalogue-service | 0.1.0 | [catalogue](../catalogue/specarch.yaml) | Catalogue Service. Keeps the book records. |
+| reading-room | 0.1.0 | [reading-room/spec](../reading-room/spec/specarch.yaml) | Reading Room. Lets a reader ask for a book to read in the room, picked from the catalogue's list. |
 | library-gateway | 0.1.0 | [gateway](../gateway/specarch.yaml) | Library Gateway. Forwards each request to the lending desk or the catalogue service by the access token's audience. |
 
 ## References between modules
@@ -25,8 +28,10 @@ examples/lending-desk; nothing of it is copied here.
 flowchart LR
   lending_desk["Lending Desk (lending-desk 0.1.0)"]
   catalogue_service["Catalogue Service (catalogue-service 0.1.0)"]
+  reading_room["Reading Room (reading-room 0.1.0)"]
   library_gateway["Library Gateway (library-gateway 0.1.0)"]
   lending_desk -->|"catalogue, written against 0.1.0"| catalogue_service
+  reading_room -->|"catalogue, written against 0.1.0"| catalogue_service
   library_gateway -->|"loans, written against 0.1.0"| lending_desk
   library_gateway -->|"catalogue, written against 0.1.0"| catalogue_service
 ```
@@ -34,6 +39,7 @@ flowchart LR
 | Module | Dependency | Specification it names | Written against |
 |---|---|---|---|
 | lending-desk | catalogue | catalogue-service | 0.1.0 |
+| reading-room | catalogue | catalogue-service | 0.1.0 |
 | library-gateway | loans | lending-desk | 0.1.0 |
 | library-gateway | catalogue | catalogue-service | 0.1.0 |
 

@@ -165,17 +165,36 @@ A module listed and not found, a name or version that differs, and a
 cycle of calls between modules are errors at the module's entry. Nothing
 of a module is copied into the umbrella: it lists and pins.
 
-Generators read one specification at a time: `generate sql` writes the
-column that keeps the other module's key with the type of its own `via`
-field, and no foreign key, since the table is in another database, with
-a comment naming the specification and version. A field typed by the
-other specification's element, and for the UI a page or picker reading
-its list, cannot be written from one specification alone, so each code
-target refuses it at the field as `reference`; writing the referenced
-schema inline, marked `x-specarch-ref`, and a picker's remote list
-through the dependency's base URL wait for generation across the
-estate, where the other specification is read too. The techspec names
-each reference with the module and version it points at.
+`generate sql` writes the column that keeps the other module's key
+with the type of its own `via` field, and no foreign key, since the
+table is in another database, with a comment naming the specification
+and version. A field typed by the other specification's element, and
+for the UI a page or picker reading its list, are written when the run
+gives that specification: the estate as the folder or file argument,
+or `--estate <file>` beside the module's folder, which reads every
+module and generates only the folders named (ADR-184):
+
+    specarch generate ui --estate specarch-estate.yaml lending-desk/spec
+
+`openapi` writes the referenced schema inline where the field is,
+marked `x-specarch-ref: customer-registry#/schemas/Address`, with what
+it names inline too; `sql` takes the columns and checks from it as from
+a schema of its own; `go-dxlib` writes a value object of it; the UI
+writes a list page or picker over the other module's list, with that
+module's entity, wire names and paging names, called at the address
+the deployment gives the dependency: `settings.server.services`, a map
+from the dependency to the environment variable that holds the
+module's address, beside `settings.server.service`, on Next.js, whose
+server route under `/api/<module>` forwards the call; `settings.services`,
+a map from the dependency to a URL or a path of the screens' own
+origin, in plain JavaScript. What cannot be written (a view as a
+field's type, a name the module already gives, a call in the dxlib
+dialect or with no address, any call to another module from the
+iPhone app) is an error at the entry naming the module and the
+pointer, and the rest is written. Without the other specification,
+each code target refuses the reference at the field as `reference`.
+The techspec names each reference with the module and version it
+points at.
 
 Compiler test: a reference the validator cannot resolve is a counted,
 listed gap and not an error, so a module alone is readable; an error

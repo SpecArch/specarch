@@ -1,0 +1,67 @@
+specarch: "0.1"
+info: { title: Loans, version: 1.0.0, name: loans }
+stages: [implementation]
+permissions:
+  public: { description: Open to everyone. }
+dependencies:
+  customerRegistry:
+    description: The registry of customers, whose numbers the loans keep and whose list the desk picks from.
+    timeout: PT2S
+    specification: customer-registry
+    version: 2.4.0
+entities:
+  Loan:
+    type: object
+    properties:
+      id: { type: string, format: uuid, title: Loan number }
+      customerId: { type: string, format: uuid, title: Customer }
+      city: { type: string, maxLength: 100, title: City }
+      guarantor: { $ref: "customerRegistry#/entities/Customer", title: Guarantor }
+    required: [id, customerId]
+    primaryKey: [id]
+    relations:
+      customer: { target: "customerRegistry#/entities/Customer", kind: many-to-one, via: customerId }
+schemas:
+  Customer:
+    description: The customer as the loan's letters address them.
+    type: object
+    properties:
+      salutation: { type: string, maxLength: 20 }
+paths:
+  /loans:
+    post:
+      operationId: createLoan
+      summary: Create a loan
+      permission: public
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                customerId: { type: string, format: uuid }
+                city: { type: string, maxLength: 100 }
+              required: [customerId]
+      responses:
+        "201": { description: The loan. }
+pages:
+  customers:
+    kind: list
+    title: Customers
+    route: /customers
+    permission: public
+    entity: "customerRegistry#/entities/Customer"
+    source: "customerRegistry#/paths/~1customers/get"
+    columns: [fullName, city]
+  new-loan:
+    kind: form
+    title: New loan
+    route: /loans/new
+    permission: public
+    entity: Loan
+    submit: createLoan
+    fields: [customerId, city]
+    onSubmitted: { navigate: customers, message: The loan is made. }
+    pickers:
+      customerId: { source: "customerRegistry#/paths/~1customers/get", shows: [fullName], fills: { city: city } }

@@ -11,6 +11,8 @@ import (
 	"github.com/SpecArch/specarch/internal/genscreens"
 	"github.com/SpecArch/specarch/internal/genui"
 	"github.com/SpecArch/specarch/internal/ownership"
+	"github.com/SpecArch/specarch/internal/wirename"
+	"github.com/SpecArch/specarch/internal/xref"
 )
 
 // server is what the ui target's settings say of the server between the
@@ -21,6 +23,9 @@ type server struct {
 	routes, service        string
 	cookie, header, scheme string
 	pages                  map[string]paging
+	// services are the environment variables that say where another
+	// module is, by the dependency that names it (ADR-184).
+	services map[string]string
 }
 
 // paging is how a route pages a list its operation answers whole.
@@ -46,7 +51,7 @@ func (g *gen) readServer() *server {
 		return nil
 	}
 	at := "/"
-	out := &server{routes: text(s["routes"]), service: text(s["service"]), pages: map[string]paging{}}
+	out := &server{routes: text(s["routes"]), service: text(s["service"]), pages: map[string]paging{}, services: map[string]string{}}
 	ok = true
 	if !routesPath.MatchString(out.routes) {
 		g.Problem("error", at, "the ui target's settings.server.routes is %q, and the server routes answer under a path of lower-case segments, such as /api", out.routes)
@@ -81,6 +86,28 @@ func (g *gen) readServer() *server {
 		}
 		out.pages[id] = paging{pageSize: size, maximum: maximum}
 	}
+	if _, named := s["services"]; named && obj0(s["services"]) == nil {
+		g.Problem("error", at, "the ui target's settings.server.services is not an object; give each dependency whose module a page reads the environment variable that says where it is, such as { customerRegistry: CUSTOMER_REGISTRY_URL }")
+		ok = false
+	}
+	deps := obj0(g.Spec["dependencies"])
+	services := obj0(s["services"])
+	for _, dep := range sortedKeys(services) {
+		v := text(services[dep])
+		switch {
+		case text(obj0(deps[dep])["specification"]) == "":
+			g.Problem("error", at, "the ui target's settings.server.services names %s, which is not a dependency of the specification that names another specification; name the dependency a page reads through", dep)
+			ok = false
+		case !environmentName.MatchString(v):
+			g.Problem("error", at, "the ui target's settings.server.services gives %s %q, and it names the environment variable that says where that module is, such as %s_URL", dep, v, strings.ToUpper(wirename.Snake(dep)))
+			ok = false
+		case strings.HasPrefix(v, "NEXT_PUBLIC_"):
+			g.Problem("error", at, "the ui target's settings.server.services gives %s %s, and Next.js writes a NEXT_PUBLIC_ variable into the pages it sends the browser; name one the server alone reads", dep, v)
+			ok = false
+		default:
+			out.services[dep] = v
+		}
+	}
 	if !ok {
 		return nil
 	}
@@ -92,6 +119,20 @@ func (g *gen) readServer() *server {
 		}
 	}
 	return out
+}
+
+// reach is where the screens call another module's operation: under the
+// server routes, after the module's name, whose route forwards it to the
+// address the environment variable settings.server.services names for the
+// dependency (ADR-184).
+func (g *gen) reach(dep string, d xref.Dependency) (string, string) {
+	switch {
+	case g.server == nil:
+		return "", fmt.Sprintf("the screens call one service, at NEXT_PUBLIC_API_URL; add settings.server, whose routes forward a call to %s to the address the environment variable settings.server.services.%s names", d.Specification, dep)
+	case g.server.services[dep] == "":
+		return "", fmt.Sprintf("the ui target's settings.server.services names no environment variable for %s, the address of %s; add one, such as %s: %s_URL", dep, d.Specification, dep, strings.ToUpper(wirename.Snake(dep)))
+	}
+	return "/" + d.Specification, ""
 }
 
 // checkPaged refuses an operation the settings say a route pages that is
@@ -175,6 +216,35 @@ func (g *gen) serverFiles(srv *server, header string) []genui.File {
 		}
 		files = append(files, genui.File{Path: folder + "/route.ts", Content: header + routeImports(handlers.String()) + handlers.String()})
 	}
+	// A call to another module goes to a route under the module's name,
+	// which forwards it to that module's address (ADR-184).
+	var services []member
+	for _, dep := range sortedKeys(anyRemote(g.Remote)) {
+		d := g.Deps[dep]
+		for _, p := range paths {
+			if p == "/"+d.Specification || strings.HasPrefix(p, "/"+d.Specification+"/") {
+				g.Problem("error", "/paths/"+ownership.Escape(p), "%s is under /%s, where the server routes forward the calls to the module %s; move the path, or the route", p, d.Specification, d.Specification)
+			}
+		}
+		services = append(services, member{Key: dep, Val: raw("{ ...server, routes: server.routes + " + quoteTS("/"+d.Specification) + ", service: process.env." + srv.services[dep] + " ?? \"\" }")})
+		for _, p := range sortedKeys(anyCalls(g.Remote[dep])) {
+			var handlers strings.Builder
+			for _, m := range []string{"get", "post", "put", "patch", "delete"} {
+				id, ok := g.Remote[dep][p][m]
+				if !ok {
+					continue
+				}
+				fmt.Fprintf(&handlers, "\n/** %s of %s: %s %s, forwarded to that module with the session's token. */\n", id, d.Specification, strings.ToUpper(m), p)
+				fmt.Fprintf(&handlers, "export function %s(request: Request): Promise<Response> {\n  return forward(request, services.%s);\n}\n", strings.ToUpper(m), dep)
+			}
+			folder := "app" + srv.routes + "/" + d.Specification
+			for _, segment := range strings.Split(strings.Trim(p, "/"), "/") {
+				folder += "/" + segment
+			}
+			imports := "import { forward } from \"@/server/forward\";\nimport { services } from \"@/server/settings\";\n"
+			files = append(files, genui.File{Path: folder + "/route.ts", Content: header + imports + handlers.String()})
+		}
+	}
 	var names []value
 	for _, h := range sortedKeys(anyBool(headers)) {
 		names = append(names, str(h))
@@ -196,6 +266,10 @@ func (g *gen) serverFiles(srv *server, header string) []genui.File {
 	b.WriteString("import type { ServerSettings } from \"./forward\";\n\n")
 	b.WriteString("/**\n * Where the server routes answer and forward, how they carry the session's\n * token to the service, and the request headers they send on.\n */\n")
 	b.WriteString(statement("export const server: ServerSettings = ", settings, ";"))
+	if len(services) > 0 {
+		b.WriteString("\n/** Where the server routes forward a call to another module, by the dependency that names it. */\n")
+		b.WriteString(statement("export const services: Record<string, ServerSettings> = ", object(services), ";"))
+	}
 	data, _ := serverTemplates.ReadFile("server/forward.ts")
 	files = append(files,
 		genui.File{Path: "server/forward.ts", Content: header + string(data)},
@@ -214,6 +288,27 @@ func routeImports(handlers string) string {
 		}
 	}
 	return "import { " + strings.Join(called, ", ") + " } from \"@/server/forward\";\nimport { server } from \"@/server/settings\";\n"
+}
+
+func anyRemote(m map[string]map[string]map[string]string) map[string]any {
+	out := make(map[string]any, len(m))
+	for k, v := range m {
+		out[k] = v
+	}
+	return out
+}
+
+func anyCalls(m map[string]map[string]string) map[string]any {
+	out := make(map[string]any, len(m))
+	for k, v := range m {
+		out[k] = v
+	}
+	return out
+}
+
+// quoteTS is a string as a TypeScript literal.
+func quoteTS(s string) string {
+	return strconv.Quote(s)
 }
 
 func anyBool(m map[string]bool) map[string]any {

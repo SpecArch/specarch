@@ -1,0 +1,16 @@
+# yaml-language-server: $schema=../../../../../../schema/specarch-implementation-0.1.schema.json
+specarchImplementation: "0.1"
+info:
+  title: Reading Room in JavaScript
+  version: 0.1.0
+  description: The desk's screens, in plain JavaScript, which call the catalogue service's list through the reverse proxy in front of both.
+implements: { file: ../../specarch.yaml, version: 0.1.0 }
+stack: { language: { name: JavaScript, version: "ES2024" } }
+targets:
+  ui:
+    output: ../../../web
+    platform: web
+    framework: plain-javascript
+    settings:
+      language: en
+      services: { catalogue: /catalogue }

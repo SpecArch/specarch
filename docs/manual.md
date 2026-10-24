@@ -2670,7 +2670,15 @@ as in an implementation file) and, for a question, what it
 `blocks`, so the output marks each one at the entry it shows for it
 (docs/diagnostics.md); and `check`, true when the run only compares,
 so a plug-in that refuses to write over a file built by hand answers
-its files for the comparison. The plug-in answers on its standard output,
+its files for the comparison; and `dependencies`, for the targets
+that read another module (openapi, sql, go-dxlib and ui), the
+specifications of the run that the specification's dependencies
+name, keyed by the dependency, each with the module's
+`specification` and `version` (its info.name and info.version), its
+`content` as plain values, the `apiDialect` it is served in and the
+`idioms` of the implementation file that serves its API (the shipped
+ones when it has none), so a list it answers is paged by its own
+names. The plug-in answers on its standard output,
 as JSON, with `files` (each a `path` relative to the output folder,
 its `content`, and `comparison: object-literal` for a file that is
 one object literal of data, which `--check` compares by value) and `diagnostics` (each with the validator's fields:
@@ -2692,6 +2700,44 @@ nothing answers no file (ADR-086). A plug-in that exits with
 another status, or answers with something else, fails the run with
 status 2; its standard error is passed through.
 
+A reference into another specification through a dependency,
+`<dependency>#/<pointer>`, is read where the run gives that
+specification: in the same folders, or through an estate given as a
+folder or a file, or with `--estate`, whose modules the run reads and
+checks with the estate and does not generate, the folders naming
+those it does (ADR-184). Before the plug-in runs, a reference the run
+does not give is refused as reference at its entry, with status 1
+and nothing written: a value typed by another specification's element
+(for sql, a field of an entity or a view), and for ui a list page or
+a picker reading another specification's list; every other target
+refuses those whatever the run gives. A relation to another
+specification's entity is not refused: its via field is this
+specification's. Given the specification, openapi writes the
+element a field is typed by inline where the field is, with every
+element it names there, each marked `x-specarch-ref` with the
+module's name and the pointer, and no component for it (the dxlib
+dialect, whose reader takes a $ref into the components only, writes
+it as a component, marked); sql takes the columns of a field typed
+by another module's schema or entity, and the check of one typed by
+its enum, from that element, as from its own; go-dxlib writes a
+field typed by another module's schema or entity as a value object
+of it, commented with the module and the pointer; ui draws such a
+field as its own, and writes a list page or a picker that reads
+another module's list with that module's entity, wire names and
+paging names, called at the address the target's settings give the
+dependency: on Next.js, under the server routes after the module's
+name, whose route forwards it with the session's token to the address
+the environment variable `settings.server.services.<dependency>`
+names; in plain JavaScript, at the URL or the path of the screens'
+own origin `settings.services.<dependency>` gives. A value typed by
+another module's view, an element whose name the specification
+already gives in a section the generators write under one name, a
+schema that holds itself through the other module, a call to another
+module in the dxlib dialect, a call with no address in the settings,
+and on SwiftUI, which calls one service, any call to another module,
+are errors at the entry naming the module and the pointer; the rest
+is written with them marked.
+
 An element whose mapping in the implementation file names a
 stakeholder under `ownedBy` is owned by that stakeholder: a plug-in
 that builds code or data writes nothing for it or for anything under
@@ -2705,7 +2751,7 @@ the target up.
 **Note:** From Protocol buffers compiler plug-in protocol, plugin.proto, 2024: A plug-in reads a CodeGeneratorRequest from standard input and writes a CodeGeneratorResponse to standard output; the file names it answers are relative to the output directory, and protoc writes them. <https://github.com/protocolbuffers/protobuf/blob/main/src/google/protobuf/compiler/plugin.proto>
 
 ```
-specarch generate <target> <paths>... [--out <out>] [--check] [--unapproved]
+specarch generate <target> <paths>... [--out <out>] [--check] [--estate <estate>] [--unapproved]
 ```
 
 Anyone who has the program runs it.
@@ -2719,12 +2765,14 @@ Anyone who has the program runs it.
 |---|---|---|
 | `--out <out>` | The folder the target owns. Without it, the folder the implementation files' `targets` name for the target, relative to each implementation file; they must agree. |  |
 | `--check` | Make the output in memory and fail when the files on disk differ. Writes nothing. |  |
+| `--estate <estate>` | An estate file whose modules the run reads beside the folders given, so a reference into one of them is written rather than refused; the modules are checked with the estate and none is generated unless a folder names it; repeated, one per estate. |  |
 | `--unapproved` | Write a draft from a specification that is not approved yet, because no approval record covers its files as they are or an open must or should question blocks what the target reads. The refusal is the default; with this, every file says it is a draft and why. |  |
 
 It reads:
 
 - `{paths}`: The specifications and their implementation files.
 - `records/approvals/<version>.yaml`: The approval of the specification's version, beside its folder.
+- `{estate}`: The estate whose modules the run reads, with `--estate`, and each module's specification and implementation files.
 - `{out}`: The current output, with `--check`.
 - `specarch-gen-{target} on PATH`: The plug-in for a target that is not built in.
 

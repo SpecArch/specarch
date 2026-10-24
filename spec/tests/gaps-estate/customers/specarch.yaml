@@ -15,6 +15,7 @@ schemas:
     type: object
     properties:
       street: { type: string, maxLength: 200 }
+    required: [street]
 paths:
   /customers:
     get:

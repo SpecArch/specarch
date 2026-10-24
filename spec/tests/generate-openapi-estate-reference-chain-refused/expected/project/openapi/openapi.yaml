@@ -70,6 +70,10 @@ components:
           required:
             - street
           x-specarch-marks:
+            - id: value_object_unchecked@specarch.yaml#/entities/Loan/properties/address
+              severity: warning
+              rule: value_object_unchecked
+              message: 'address is kept in columns and holds Street of places, and the run does not give places, so the rules on its parts are not checked: an optional value needs a required part that is never null, and no list, cycle or entity may be inside it; give places in the same run or through the estate, or store address as json'
             - id: reference@specarch.yaml#/entities/Loan/properties/address/$ref
               severity: error
               rule: reference

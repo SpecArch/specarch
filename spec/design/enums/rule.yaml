@@ -119,6 +119,7 @@ enums:
       - action
       - form_field
       - value_object
+      - value_object_unchecked
       - wire_name
       - output_folder
       - meta_model_version
@@ -263,7 +264,8 @@ enums:
       picker: "a picker is on a page that is not a form, or for a field the form does not show or that no many-to-one relation of its entity holds; its source is not an operationId of the specification, or not an operation whose listOf names the relation's target, or a role that may open the form may not call it; it shows a field the target lacks; or it fills a field the form does not show from a field the target lacks or of another type"
       action: "an action's when is on a form that loads no record, or its reason is on an action that runs no operation or names no property of the operation's request body, one the body does not require, or one that is not a string"
       form_field: "a page's fieldConditions name a field it does not show, make a field read-only on a page that is not a form, or give readOnly and readOnlyWhen together; its checks or enteredTwice are on a page that is not a form or a task, or a check's field or a field entered twice is not one the page shows; or a check's message is not a full sentence"
-      value_object: "a relation leads to a schema, a schema is named like an entity or a view, storage is on a field that holds no schema or inside a value or is columns on a list, or a value kept in columns is optional with no required part that is never null or holds a list of schemas, itself or a reference to an entity"
+      value_object: "a relation leads to a schema, a schema is named like an entity or a view, storage is on a field that holds no schema or inside a value or is columns on a list, or a value kept in columns is optional with no required part that is never null or holds a list of schemas, itself or a reference to an entity, a schema of another module the run gives included (ADR-184)"
+      value_object_unchecked: "as a warning, an entity's field kept in columns holds a schema of another module, or a value with a part that does, and the run does not give that module, so the rules on the parts of the value are not checked; give the module in the same run or through the estate, or store the field as json (ADR-184)"
       wire_name: "the specification names its wire names (info.wireNames) and two properties of one object, an entity's, a view's with its entity's, or a body's, a parameter's or a message's, go on the wire under one name; or it names its roles' wire names (info.roleNames) and two roles go on the wire under one name"
       meta_model_version: "the file says `specarch: \"0.1\"` or `\"0.2\"`, which are read until 1.0; for 0.1 run `specarch derive`, and for either change the line to \"0.3\" once nothing an expression can name is called caller (a warning, ADR-055, ADR-094)"
       output_folder: "document or generate is given no --out, and no implementation file of a specification names an output folder for the target under targets, so that specification has no such output (a warning, ADR-073, ADR-086)"

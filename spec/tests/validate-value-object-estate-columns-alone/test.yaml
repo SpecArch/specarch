@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: validate
+level: system
+scenario: red
+given: "the loans module whose entity keeps in columns five values typed by the customer registry's schemas, given without the customer registry"
+when: "validate is run on the loans folder alone"
+then: "it reports one value_object_unchecked warning at each of the five fields, naming the schema, the module the run does not give and the rules left unchecked, and exits 0"
+verifies: [SA-50, SA-65]

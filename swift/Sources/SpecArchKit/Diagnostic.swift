@@ -116,6 +116,7 @@ public enum Rule: String, CaseIterable, Sendable {
     case action = "action"
     case formField = "form_field"
     case valueObject = "value_object"
+    case valueObjectUnchecked = "value_object_unchecked"
     case wireName = "wire_name"
     case outputFolder = "output_folder"
     case metaModelVersion = "meta_model_version"

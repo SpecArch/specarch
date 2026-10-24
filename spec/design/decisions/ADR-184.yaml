@@ -43,8 +43,12 @@ decisions:
       module and the pointer; ui as a field holding a value. A field typed
       by another module's schema, or a list of one, takes storage as a
       field typed by a schema of its own does (ADR-063): validate refuses
-      columns on a list, and leaves the schema's parts to the module that
-      holds it, since this specification does not hold them. A view, a
+      columns on a list, and checks one value kept in columns as one of
+      its own schemas, in the module that holds it when the run gives that
+      module, each reference inside read in the module that holds it; when
+      the run does not give a module a value kept in columns reaches, it
+      warns once at the field, as value_object_unchecked, naming the rules
+      left unchecked and the module to give. A view, a
       name the specification already gives in a section the generators
       write under one name, and a schema that holds itself through the
       other module are reference errors at the field, and the value is
@@ -77,7 +81,16 @@ decisions:
       and not a renamed copy, since a generated type named after neither
       specification would be a name nobody wrote. A view is not imported
       because its fields are read from its entity in the other module's
-      database, which this module does not reach.
+      database, which this module does not reach. The parts of a value
+      kept in columns are this module's columns, so the rules that keep
+      them a fixed set and keep an absent value apart from an empty one
+      are checked here wherever the schema is declared; the module that
+      declares the schema cannot check them, since it does not know how
+      another module keeps the value. Without that module the rules are a
+      warning at the field and not an error, since a module alone still
+      validates (ADR-112) and what is missing is the run's, not the
+      specification's, and never a silent pass, which would read as
+      checked.
       The address belongs to the deployment and not the design, as the
       service's own address is the environment variable settings.server
       .service names: one specification is deployed beside different

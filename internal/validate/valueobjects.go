@@ -34,6 +34,7 @@ func (c *checker) checkValueObjects(d *design) {
 			c.checkField(p.Value, []string{"schemas", name, "properties", p.Key.Value})
 		}
 	}
+	rv := newResolver(d, c.given)
 	for _, e := range source.Pairs(source.Child(d.root, "entities")) {
 		entity := e.Key.Value
 		required := map[string]bool{}
@@ -43,7 +44,7 @@ func (c *checker) checkValueObjects(d *design) {
 		for _, f := range source.Pairs(source.Child(e.Value, "properties")) {
 			path := []string{"entities", entity, "properties", f.Key.Value}
 			c.checkStorageOutside(f.Value, path)
-			c.checkValueObjectField(d, entity, f, path, !required[f.Key.Value] || nullable(f.Value))
+			c.checkValueObjectField(d, rv, entity, f, path, !required[f.Key.Value] || nullable(f.Value))
 		}
 	}
 }
@@ -132,96 +133,210 @@ func (c *checker) checkField(n *yaml.Node, path []string) {
 // field that holds a schema, a list of schemas only as json, and, in
 // columns, a schema whose every part has a column and whose absence can be
 // told from a value with every part empty.
-func (c *checker) checkValueObjectField(d *design, entity string, f source.Pair, path []string, optional bool) {
+func (c *checker) checkValueObjectField(d *design, rv *resolver, entity string, f source.Pair, path []string, optional bool) {
 	field := f.Key.Value
 	storage := source.Child(f.Value, "storage")
 	name, list := valueObjectOf(f.Value)
+	ref := "#/schemas/" + name
 	if name == "" {
-		if other, list := foreignValueObjectOf(f.Value); other != "" {
-			// A schema of another specification is checked there and written
-			// as this one's own (ADR-184): a list is json only, and its parts,
-			// which this specification does not hold, are not checked here.
-			if list && source.Str(storage) == "columns" {
+		other, otherList := foreignValueObjectOf(f.Value)
+		if other == "" {
+			if storage != nil {
+				c.add(storage, source.Pointer(append(path, "storage")...), RuleValueObject, "%s holds no schema, and storage says how a field holding one is kept; leave storage out", field)
+			}
+			return
+		}
+		// A schema of another specification is written as this one's own
+		// (ADR-184): a list is json only, and one value in columns is
+		// checked as one of this specification's schemas, in the module
+		// that declares it.
+		if otherList {
+			if source.Str(storage) == "columns" {
 				c.add(storage, source.Pointer(append(path, "storage")...), RuleValueObject, "%s is a list of %s, of another specification, and a list has no columns in %s's row; store it as json", field, other, entity)
 			}
 			return
 		}
-		if storage != nil {
-			c.add(storage, source.Pointer(append(path, "storage")...), RuleValueObject, "%s holds no schema, and storage says how a field holding one is kept; leave storage out", field)
-		}
+		ref, list = other, false
+	}
+	if source.Str(storage) == "json" && !list {
 		return
 	}
-	schema := d.schemas[name]
-	if schema == nil {
-		return // the reference is refused as ref_type
+	cc := &columnsCheck{c: c, rv: rv, own: SpecName(d.root), at: f.Key, path: path}
+	held, ok := cc.resolve(d, ref)
+	if !ok {
+		cc.report(field)
+		return // the reference is refused as ref_type or reference
 	}
-	kind := source.Str(storage)
 	if list {
-		if kind == "columns" {
+		if source.Str(storage) == "columns" {
 			c.add(storage, source.Pointer(append(path, "storage")...), RuleValueObject, "%s is a list of %s, and a list has no columns in %s's row; store it as json, or make %s an entity related to %s", field, name, entity, name, entity)
 		}
 		return
 	}
-	if kind == "json" {
-		return
-	}
-	c.checkColumns(d, f.Key, path, field, name, schema, optional, []string{name})
+	cc.columns(field, held, optional, []string{held.key()})
+	cc.report(field)
 }
 
-// checkColumns checks a schema stored in columns of its own, at the field
-// that holds it: no list of schemas and no cycle, since neither has a fixed
-// set of columns, no reference to an entity, which is a relation and not a
-// part, and no optional schema without a required property. A
-// schema is optional where it is not required of what holds it.
-func (c *checker) checkColumns(d *design, at *yaml.Node, path []string, field, name string, schema *yaml.Node, optional bool, seen []string) {
-	ptr := source.Pointer(path...)
-	if optional && !d.alwaysSet(schema, []string{name}) {
-		c.add(at, ptr, RuleValueObject, "%s is optional and %s has no required part that is never null, so a row without it and one where every part of it is empty are the same; make a part of %s required and not nullable, make %s required, or store it as json", field, name, name, field)
+// A heldSchema is a schema a value kept in columns holds, with the design
+// and the module that declare it.
+type heldSchema struct {
+	d      *design
+	module string
+	name   string
+	node   *yaml.Node
+}
+
+func (h heldSchema) key() string { return h.module + "#/schemas/" + h.name }
+
+// columnsCheck checks one entity field kept in columns, reading each
+// reference in the module that declares it, and keeps the modules the run
+// does not give, whose parts it cannot check.
+type columnsCheck struct {
+	c         *checker
+	rv        *resolver
+	own       string // the name of the specification checked
+	at        *yaml.Node
+	path      []string
+	unchecked []string // the schemas not checked, as label()
+	notGiven  []string // the modules that declare them
+}
+
+// label names a schema or an entity of a module: by its name in the
+// specification checked, and with its module's name in another.
+func (cc *columnsCheck) label(module, name string) string {
+	if module == cc.own {
+		return name
+	}
+	return name + " of " + module
+}
+
+// resolve is the schema a reference made in design d names, '#/schemas/Name'
+// or '<dependency>#/schemas/Name'; false when it names none, or a module
+// the run does not give, which is kept for report.
+func (cc *columnsCheck) resolve(d *design, ref string) (heldSchema, bool) {
+	module := SpecName(d.root)
+	if name, ok := strings.CutPrefix(ref, "#/schemas/"); ok {
+		if d.schemas[name] == nil {
+			return heldSchema{}, false
+		}
+		return heldSchema{d: d, module: module, name: name, node: d.schemas[name]}, true
+	}
+	dep, ptr, ok := crossRef(ref)
+	name, isSchema := strings.CutPrefix(ptr, "/schemas/")
+	spec := d.specificationOf(dep)
+	if !ok || !isSchema || spec == "" {
+		return heldSchema{}, false // a reference error says why
+	}
+	o, problem := cc.rv.otherOf(spec)
+	switch {
+	case problem != "":
+		return heldSchema{}, false
+	case o == nil:
+		if len(cc.rv.given[spec]) == 0 {
+			if l := cc.label(spec, name); !contains(cc.unchecked, l) {
+				cc.unchecked = append(cc.unchecked, l)
+			}
+			if !contains(cc.notGiven, spec) {
+				cc.notGiven = append(cc.notGiven, spec)
+			}
+		}
+		return heldSchema{}, false // given and not read: its own errors say why
+	case o.design.schemas[name] == nil:
+		return heldSchema{}, false
+	}
+	if spec == cc.own {
+		return heldSchema{d: cc.rv.d, module: cc.own, name: name, node: cc.rv.d.schemas[name]}, true
+	}
+	return heldSchema{d: o.design, module: spec, name: name, node: o.design.schemas[name]}, true
+}
+
+// partSchema is the schema a part of a value holds, read in the design
+// that declares the value, and whether it holds a list of them; ok is
+// false when the part holds no schema it can read.
+func (cc *columnsCheck) partSchema(d *design, part *yaml.Node) (held heldSchema, list, ok bool) {
+	ref := source.Str(source.Child(part, "$ref"))
+	if ref == "" && typeIs(part, "array") {
+		ref, list = source.Str(source.Child(source.Child(part, "items"), "$ref")), true
+	}
+	if !strings.HasPrefix(ref, "#/schemas/") {
+		if _, ptr, cross := crossRef(ref); !cross || !strings.HasPrefix(ptr, "/schemas/") {
+			return heldSchema{}, false, false
+		}
+	}
+	held, ok = cc.resolve(d, ref)
+	return held, list, ok
+}
+
+// columns checks a schema stored in columns of its own, at the field that
+// holds it: no list of schemas and no cycle, since neither has a fixed set
+// of columns, no reference to an entity, which is a relation and not a
+// part, and no optional schema without a required property. A schema is
+// optional where it is not required of what holds it.
+func (cc *columnsCheck) columns(field string, held heldSchema, optional bool, seen []string) {
+	c, ptr, top := cc.c, source.Pointer(cc.path...), strings.SplitN(field, ".", 2)[0]
+	name := cc.label(held.module, held.name)
+	if optional && !cc.alwaysSet(held, []string{held.key()}) {
+		c.add(cc.at, ptr, RuleValueObject, "%s is optional and %s has no required part that is never null, so a row without it and one where every part of it is empty are the same; make a part of %s required and not nullable, make %s required, or store it as json", field, name, name, field)
 	}
 	required := map[string]bool{}
-	for _, r := range source.Items(source.Child(schema, "required")) {
+	for _, r := range source.Items(source.Child(held.node, "required")) {
 		required[source.Str(r)] = true
 	}
-	for _, p := range source.Pairs(source.Child(schema, "properties")) {
+	for _, p := range source.Pairs(source.Child(held.node, "properties")) {
 		part := field + "." + p.Key.Value
-		inner, list := valueObjectOf(p.Value)
 		entityRef, isEntity := strings.CutPrefix(source.Str(source.Child(p.Value, "$ref")), "#/entities/")
 		if !isEntity {
 			entityRef, isEntity = strings.CutPrefix(source.Str(source.Child(source.Child(p.Value, "items"), "$ref")), "#/entities/")
 		}
+		if isEntity {
+			c.add(cc.at, ptr, RuleValueObject, "%s refers to %s, a record of its own, and a value kept in columns holds no relation; relate %s to %s, or store %s as json", part, cc.label(held.module, entityRef), cc.path[1], cc.label(held.module, entityRef), top)
+			continue
+		}
+		inner, list, ok := cc.partSchema(held.d, p.Value)
+		innerName := cc.label(inner.module, inner.name)
 		switch {
-		case isEntity:
-			c.add(at, ptr, RuleValueObject, "%s refers to %s, a record of its own, and a value kept in columns holds no relation; relate %s to %s, or store %s as json", part, entityRef, path[1], entityRef, strings.SplitN(field, ".", 2)[0])
-		case inner == "":
+		case !ok:
 		case list:
-			c.add(at, ptr, RuleValueObject, "%s is a list of %s, and a list has no columns of its own; store %s as json", part, inner, strings.SplitN(field, ".", 2)[0])
-		case slices.Contains(seen, inner):
-			c.add(at, ptr, RuleValueObject, "%s is %s again, inside %s, so its columns never end; store %s as json", part, inner, inner, strings.SplitN(field, ".", 2)[0])
-		case d.schemas[inner] != nil:
-			c.checkColumns(d, at, path, part, inner, d.schemas[inner], !required[p.Key.Value] || nullable(p.Value), append(append([]string{}, seen...), inner))
+			c.add(cc.at, ptr, RuleValueObject, "%s is a list of %s, and a list has no columns of its own; store %s as json", part, innerName, top)
+		case slices.Contains(seen, inner.key()):
+			c.add(cc.at, ptr, RuleValueObject, "%s is %s again, inside %s, so its columns never end; store %s as json", part, innerName, innerName, top)
+		default:
+			cc.columns(part, inner, !required[p.Key.Value] || nullable(p.Value), append(append([]string{}, seen...), inner.key()))
 		}
 	}
 }
 
 // alwaysSet reports whether a schema kept in columns has a part whose
 // column is set whenever the value is: a required part that is not
-// nullable, a scalar or a schema that has one in its turn.
-func (d *design) alwaysSet(schema *yaml.Node, seen []string) bool {
+// nullable, a scalar or a schema that has one in its turn. A part holding
+// a schema of a module the run does not give counts as set, and is kept
+// for report.
+func (cc *columnsCheck) alwaysSet(held heldSchema, seen []string) bool {
 	required := map[string]bool{}
-	for _, r := range source.Items(source.Child(schema, "required")) {
+	for _, r := range source.Items(source.Child(held.node, "required")) {
 		required[source.Str(r)] = true
 	}
-	for _, p := range source.Pairs(source.Child(schema, "properties")) {
+	for _, p := range source.Pairs(source.Child(held.node, "properties")) {
 		if !required[p.Key.Value] || nullable(p.Value) {
 			continue
 		}
-		inner, list := valueObjectOf(p.Value)
-		if inner == "" || list || d.schemas[inner] == nil {
+		inner, list, ok := cc.partSchema(held.d, p.Value)
+		if !ok || list {
 			return true
 		}
-		if !slices.Contains(seen, inner) && d.alwaysSet(d.schemas[inner], append(append([]string{}, seen...), inner)) {
+		if !slices.Contains(seen, inner.key()) && cc.alwaysSet(inner, append(append([]string{}, seen...), inner.key())) {
 			return true
 		}
 	}
 	return false
+}
+
+// report warns once at the field when the value reaches a schema of a
+// module the run does not give, whose parts are therefore not checked.
+func (cc *columnsCheck) report(field string) {
+	if len(cc.notGiven) == 0 {
+		return
+	}
+	modules := joinAnd(cc.notGiven)
+	cc.c.warn(cc.at, source.Pointer(cc.path...), RuleValueObjectUnchecked, "%s is kept in columns and holds %s, and the run does not give %s, so the rules on its parts are not checked: an optional value needs a required part that is never null, and no list, cycle or entity may be inside it; give %s in the same run or through the estate, or store %s as json", field, joinAnd(cc.unchecked), modules, modules, field)
 }

@@ -1,0 +1,43 @@
+specarch: "0.1"
+info: { title: Customer registry, version: 2.4.0, name: customer-registry }
+entities:
+  Customer:
+    type: object
+    properties:
+      id: { type: string, format: uuid }
+      fullName: { type: string, maxLength: 200 }
+    required: [id, fullName]
+    primaryKey: [id]
+schemas:
+  Address:
+    description: Where a customer lives, every part optional.
+    type: object
+    properties:
+      street: { type: string, maxLength: 200 }
+      city: { type: string, maxLength: 100 }
+  Contact:
+    description: How to reach a customer, with any number of phones.
+    type: object
+    properties:
+      email: { type: string, format: email, maxLength: 200 }
+      phones: { type: array, items: { $ref: "#/schemas/Phone" } }
+    required: [email]
+  Phone:
+    type: object
+    properties:
+      number: { type: string, maxLength: 20 }
+    required: [number]
+  Branch:
+    description: A branch, inside the branch above it.
+    type: object
+    properties:
+      name: { type: string, maxLength: 100 }
+      parent: { $ref: "#/schemas/Branch" }
+    required: [name]
+  Holder:
+    description: The customer who holds an account, and since when.
+    type: object
+    properties:
+      since: { type: string, format: date }
+      customer: { $ref: "#/entities/Customer" }
+    required: [since]

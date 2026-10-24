@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.6-dev of the specification: 730 design tests, 361 golden and 369 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.6-dev of the specification: 732 design tests, 361 golden and 371 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.7.6-dev of the specification: 730 design tests, 361 golden and 369 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 726 |
+| system | 728 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -5726,6 +5726,22 @@ Scenario: red; level: system; covers exit 1; verifies SA-29.
 - Given: an entity whose validity names a date-time and a date, and one whose validity names a field it does not have and a field with no format
 - When: validate is run
 - Then: it reports validity for each, and exits 1
+
+#### validate-value-object-estate-columns
+
+Scenario: red; level: system; verifies SA-50, SA-65.
+
+- Given: an estate of two modules, the loans module whose entity keeps in columns five values typed by the customer registry's schemas: an optional address whose schema has no required part, a contact with a list of phones inside, a branch that holds itself, a holder that refers to an entity, and a schema of its own whose optional part is the address
+- When: validate is run on the estate file
+- Then: it reports one value_object error at each of the five fields, naming the other module's schema and the fix, as for a schema of the module's own, and exits 1
+
+#### validate-value-object-estate-columns-alone
+
+Scenario: red; level: system; verifies SA-50, SA-65.
+
+- Given: the loans module whose entity keeps in columns five values typed by the customer registry's schemas, given without the customer registry
+- When: validate is run on the loans folder alone
+- Then: it reports one value_object_unchecked warning at each of the five fields, naming the schema, the module the run does not give and the rules left unchecked, and exits 0
 
 #### validate-value-object-estate-json
 

@@ -103,7 +103,7 @@ private func collectRefs(_ d: Design) -> [Ref] {
 }
 
 /// The specification a reference resolves in, read once.
-private final class Other {
+final class Other {
     let spec: Spec
     let name: String
     let design: Design
@@ -124,7 +124,7 @@ private struct ReferenceProblem {
 
 /// Resolves the references of one specification against the
 /// specifications given with it.
-private final class Resolver {
+final class ReferenceResolver {
     let d: Design
     let given: Given
     var others: [String: Other] = [:]
@@ -153,7 +153,7 @@ private final class Resolver {
     /// Checks one reference: what can be checked in this specification
     /// alone, and, when the other specification is given, the element it
     /// names.
-    func resolve(_ r: Ref) -> (problems: [ReferenceProblem], waits: String) {
+    fileprivate func resolve(_ r: Ref) -> (problems: [ReferenceProblem], waits: String) {
         var problems: [ReferenceProblem] = []
         func fail(_ n: YNode, _ path: [String], _ message: String) -> ([ReferenceProblem], String) {
             problems.append(ReferenceProblem(node: n, path: path, message: message))
@@ -288,7 +288,7 @@ extension Checker {
     /// version is not the one the specification it names is at, when that
     /// specification is given.
     func checkReferences(_ d: Design) {
-        let rv = Resolver(d, given)
+        let rv = ReferenceResolver(d, given)
         for r in collectRefs(d) {
             for p in rv.resolve(r).problems {
                 add(p.node, pointer(p.path), .reference, p.message)
@@ -322,7 +322,7 @@ extension Checker {
 func unresolvedReferences(_ s: Spec, _ given: Given) -> [Reference] {
     guard let root = s.root else { return [] }
     let d = Design(root)
-    let rv = Resolver(d, given)
+    let rv = ReferenceResolver(d, given)
     var out: [Reference] = []
     let identity = d.identityDependency
     for p in rv.ungrantedWaiting() {
@@ -388,7 +388,7 @@ extension Design {
     func withIdentity(_ given: Given) -> Design {
         let dep = identityDependency
         if dep.isEmpty || given.isEmpty { return self }
-        let (found, problem) = Resolver(self, given).otherOf(specificationOf(dep))
+        let (found, problem) = ReferenceResolver(self, given).otherOf(specificationOf(dep))
         if let o = found, problem.isEmpty, o.name != specName(root) {
             identity = (o.name, o.design)
         }
@@ -473,7 +473,7 @@ extension Other {
     }
 }
 
-extension Resolver {
+extension ReferenceResolver {
     /// The element a reference names in a specification given with this
     /// one, with that specification.
     func element(_ text: String) -> (Other, YNode)? {
@@ -520,14 +520,14 @@ struct ReferencedClient {
 extension Checker {
     func referencedClient(_ d: Design, _ text: String) -> ReferencedClient? {
         guard let (_, ptr) = crossRef(text), ptr.hasPrefix("/clients/") else { return nil }
-        let rv = Resolver(d, given)
+        let rv = ReferenceResolver(d, given)
         guard let (o, cl) = rv.element(text) else { return nil }
         let module = specName(d.root)
         return ReferencedClient(module: o.name, node: cl) { roles, perm in o.grants(roles, module, perm) }
     }
 
     func identityGrant(_ d: Design, _ perm: String) -> (granted: Bool, waits: String, identity: String) {
-        Resolver(d, given).identityGrant(perm)
+        ReferenceResolver(d, given).identityGrant(perm)
     }
 
     /// Whether a specification given with this one names the client in an

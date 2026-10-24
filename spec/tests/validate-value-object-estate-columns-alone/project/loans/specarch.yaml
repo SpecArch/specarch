@@ -1,0 +1,26 @@
+specarch: "0.1"
+info: { title: Loans, version: 1.0.0, name: loans }
+dependencies:
+  customerRegistry:
+    description: The registry of customers, whose values the loans keep.
+    timeout: PT2S
+    specification: customer-registry
+    version: 2.4.0
+schemas:
+  Letters:
+    description: Where the loan's letters go.
+    type: object
+    properties:
+      to: { $ref: "customerRegistry#/schemas/Address" }
+entities:
+  Loan:
+    type: object
+    properties:
+      id: { type: string, format: uuid, readOnly: true }
+      address: { $ref: "customerRegistry#/schemas/Address" }
+      contact: { $ref: "customerRegistry#/schemas/Contact" }
+      branch: { $ref: "customerRegistry#/schemas/Branch" }
+      holder: { $ref: "customerRegistry#/schemas/Holder" }
+      letters: { $ref: "#/schemas/Letters" }
+    required: [id, contact, branch, holder, letters]
+    primaryKey: [id]

@@ -127,6 +127,7 @@ const (
 	RuleAction                 Rule = "action"
 	RuleFormField              Rule = "form_field"
 	RuleValueObject            Rule = "value_object"
+	RuleValueObjectUnchecked   Rule = "value_object_unchecked"
 	RuleWireName               Rule = "wire_name"
 	RuleOutputFolder           Rule = "output_folder"
 	RuleMetaModelVersion       Rule = "meta_model_version"
@@ -275,6 +276,7 @@ var Rules = []Rule{
 	RuleAction,
 	RuleFormField,
 	RuleValueObject,
+	RuleValueObjectUnchecked,
 	RuleWireName,
 	RuleOutputFolder,
 	RuleMetaModelVersion,

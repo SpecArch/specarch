@@ -67,10 +67,11 @@ decisions:
         for is refused with the status it gave. On Next.js the redirect
         is refused at run time, naming both origins, when the screens call
         a service on another origin than the page's, since the
-        __Host-sign-in cookie would not reach the callback there. The two
-        Next.js and SwiftUI components write it on a task page's answer;
-        an action's then that navigates is an error at the action's then,
-        as any navigation after an action is.
+        __Host-sign-in cookie would not reach the callback there. All three
+        write it on a task page's answer and on a list's or a view's
+        operation action, which leaves for the provider once the operation
+        succeeds; on Next.js and SwiftUI it is the one navigation an action
+        takes, any other staying an error at the action's then.
       - In the dxlib dialect every operation is a POST at /<operationId>
         with a JSON body, and the provider sends the browser back with a
         GET and the code and the state in the query. specarch-gen-go-dxlib,
@@ -128,8 +129,7 @@ decisions:
       starting the session) is the project's, named by the compiler on
       Go with dxlib. On SwiftUI the return to the callback needs iOS 17.4
       or macOS 14.4 and the service's host as an associated domain of the
-      app. An action's then that navigates to signIn is written by the
-      plain JavaScript generator only.
+      app.
     cites:
       - source: rfc-6749
         clause: "4.1.2, Authorization Response"

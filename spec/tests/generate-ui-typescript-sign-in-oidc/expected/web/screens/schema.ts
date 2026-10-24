@@ -308,6 +308,8 @@ export interface RowActionSchema extends CallTransport {
   readonly confirm?: StringKey;
   readonly reason?: ReasonSchema;
   readonly message?: StringKey;
+  /** The path of the callback the identity provider sends the person back to: once the operation succeeds, the action leaves for the provider's sign-in (ADR-182). */
+  readonly signIn?: string;
   readonly failed: readonly FailureSchema[];
 }
 

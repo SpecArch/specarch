@@ -8,8 +8,8 @@ import type { Application } from "@/screens";
  */
 export const application: Application = {
   service: process.env.NEXT_PUBLIC_API_URL ?? "",
-  session: null,
-  signIn: null,
+  session: { path: "/sessions/current", signedIn: "open", permissions: "granted" },
+  signIn: "/sign-in",
   provider: { issuerUrl: process.env.NEXT_PUBLIC_SIGN_IN_ISSUER_URL ?? "", clientId: process.env.NEXT_PUBLIC_SIGN_IN_CLIENT_ID ?? "" },
   menu: [],
 };

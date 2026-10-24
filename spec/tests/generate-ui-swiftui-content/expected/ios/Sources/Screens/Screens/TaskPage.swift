@@ -64,25 +64,10 @@ public struct TaskPage: View {
             SessionStore.shared.forget()
             let success = schema.events.first { $0.status == answer.status } ?? EventSchema(status: answer.status)
             if let callback = success.signIn {
-                do {
-                    let signedIn = try await IdentityProvider.signIn(callback: callback, session: webAuthenticationSession)
-                    if !(200..<400).contains(signedIn.status) {
-                        problems = ["": "the callback \(callback) answered HTTP \(signedIn.status)"]
-                        return
-                    }
-                    // Signed in: the session is read again, and the person
-                    // goes back to the page sign-in was asked for from, or
-                    // to the app's first page.
-                    SessionStore.shared.forget()
+                if let problem = await IdentityProvider.signInAndReturn(callback: callback, session: webAuthenticationSession, router: router) {
+                    problems = ["": problem]
+                } else {
                     values = [:]
-                    if let back = router.returnTo {
-                        router.returnTo = nil
-                        router.replace(with: back)
-                    } else {
-                        router.path = []
-                    }
-                } catch {
-                    problems = ["": String(describing: error)]
                 }
                 return
             }

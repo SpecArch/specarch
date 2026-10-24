@@ -8,4 +8,5 @@ targets:
     platform: iphone
     settings:
       language: en
+      session: { operation: getSession, signedIn: open, permissions: granted, signIn: sign-in }
       module: Screens

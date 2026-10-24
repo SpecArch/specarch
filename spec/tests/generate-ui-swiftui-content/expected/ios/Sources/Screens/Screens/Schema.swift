@@ -196,6 +196,10 @@ public struct RowActionSchema: Sendable {
     public var confirm: String? = nil
     public var reason: ReasonSchema? = nil
     public var message: String? = nil
+    /// The path of the callback the identity provider sends the person
+    /// back to: once the operation succeeds, the action leaves for the
+    /// provider's sign-in (ADR-182).
+    public var signIn: String? = nil
     public var failed: [FailureSchema]? = nil
 }
 

@@ -1,3 +1,4 @@
+import AuthenticationServices
 import SwiftUI
 
 /// A list read from its operation a page at a time, sorted, searched and
@@ -11,6 +12,7 @@ public struct ListPage: View {
     /// The routes the page's actions lead to, by the page each names.
     let routes: [String: Routes.Make]
     @Environment(Router.self) private var router
+    @Environment(\.webAuthenticationSession) private var webAuthenticationSession
     @AppStorage(Strings.languageKey) private var language = Strings.languages[0]
     @State private var page = 1
     @State private var pageSize: Int
@@ -236,6 +238,10 @@ public struct ListPage: View {
             return
         }
         failed = nil
+        if let callback = action.signIn {
+            failed = await IdentityProvider.signInAndReturn(callback: callback, session: webAuthenticationSession, router: router)
+            return
+        }
         if let message = action.message {
             router.leave(say(texts, message), at: nil)
         }

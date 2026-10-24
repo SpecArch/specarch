@@ -24,7 +24,7 @@ import { Confirm, runAction } from "./Confirm";
 import { leave } from "./Notice";
 import { evaluate, hidden, type Fields } from "./rules";
 import type { FailureSchema, RowActionSchema, ViewFieldSchema, ViewPageSchema } from "./schema";
-import { body, call, segment } from "./service";
+import { body, call, segment, signIn } from "./service";
 import { useSession } from "./session";
 import { say, type Texts } from "./texts";
 
@@ -190,7 +190,14 @@ export function ViewPage({ schema, texts, routes, parameters }: ViewPageProps) {
     }
     setRunning(true);
     const answer = await runAction(action, { ...parameters, ...record }, reason, texts);
-    if (answer === undefined) {
+    if (answer === undefined && action.signIn !== undefined) {
+      try {
+        await signIn(action.signIn);
+        return;
+      } catch (error) {
+        setRefused(error instanceof Error ? error.message : String(error));
+      }
+    } else if (answer === undefined) {
       setRefused("");
       if (action.message !== undefined) {
         leave(say(texts, action.message), pathname);

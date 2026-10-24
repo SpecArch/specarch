@@ -30,7 +30,7 @@ import { Confirm, runAction } from "./Confirm";
 import { leave } from "./Notice";
 import { evaluate } from "./rules";
 import type { ColumnSchema, FailureSchema, ListPageSchema, RowActionSchema } from "./schema";
-import { body, call, property, segment } from "./service";
+import { body, call, property, segment, signIn } from "./service";
 import { useSession } from "./session";
 import { say, type Texts } from "./texts";
 
@@ -184,7 +184,14 @@ export function ListPage({ schema, texts, routes }: ListPageProps) {
     }
     setRunning(true);
     const refused = await runAction(action, row, reason, texts);
-    if (refused === undefined) {
+    if (refused === undefined && action.signIn !== undefined) {
+      try {
+        await signIn(action.signIn);
+        return;
+      } catch (error) {
+        setFailed(error instanceof Error ? error.message : String(error));
+      }
+    } else if (refused === undefined) {
       setFailed("");
       if (action.message !== undefined) {
         leave(say(texts, action.message), pathname);

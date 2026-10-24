@@ -2793,9 +2793,9 @@ Scenario: red; level: system; verifies SA-78.
 
 Scenario: golden; level: system; verifies SA-93.
 
-- Given: the specification of generate-ui-sign-in-oidc and an implementation file whose ui target is the iPhone; specarch-gen-ui-swiftui built from this repository on PATH
+- Given: the specification of generate-ui-sign-in-oidc with a view case-view whose operation action Hand over has then navigate signIn, and the session read from getSession, and an implementation file whose ui target is the iPhone; specarch-gen-ui-swiftui built from this repository on PATH
 - When: generate ui is run with --unapproved
-- Then: it writes the task page's answer 200 as signIn naming the callback's path, SignIn.swift, whose IdentityProvider signs in through the system's web authentication session at the authorisation endpoint of the provider's discovery document and calls the callback with the code and the state, and TaskPage following it; and exits 0
+- Then: it writes the task page's answer 200 as signIn naming the callback's path, SignIn.swift, whose IdentityProvider signs in through the system's web authentication session at the authorisation endpoint of the provider's discovery document and calls the callback with the code and the state, TaskPage following it, and the action Hand over with signIn naming the callback's path, which ViewPage and ListPage follow through IdentityProvider.signInAndReturn once the operation succeeds, reading the session again and opening the page sign-in was asked for from or the first page; and exits 0
 
 #### generate-ui-swiftui-wire-names
 
@@ -2873,9 +2873,9 @@ Scenario: red; level: system; verifies SA-52, SA-53, SA-54, SA-55, SA-56.
 
 Scenario: golden; level: system; verifies SA-93.
 
-- Given: the specification of generate-ui-sign-in-oidc and an implementation file whose ui target is Next.js and Carbon, with a deployment that gives signIn.issuerUrl and the clientId of desk-web; specarch-gen-ui-typescript built from this repository on PATH
+- Given: the specification of generate-ui-sign-in-oidc with a view case-view whose operation action Hand over has then navigate signIn, and the session read from getSession, and an implementation file whose ui target is Next.js and Carbon, with a deployment that gives signIn.issuerUrl and the clientId of desk-web; specarch-gen-ui-typescript built from this repository on PATH
 - When: generate ui is run with --unapproved
-- Then: it writes application.ts with the provider's issuer and client_id read from NEXT_PUBLIC_SIGN_IN_ISSUER_URL and NEXT_PUBLIC_SIGN_IN_CLIENT_ID, the task page's answer 200 as signIn naming the callback's path, and TaskPage and service.ts that leave for the provider's authorisation endpoint with a new state, nonce and S256 challenge, showing the reason when a document cannot be read; the deployment is read with its clients; and exits 0
+- Then: it writes application.ts with the provider's issuer and client_id read from NEXT_PUBLIC_SIGN_IN_ISSUER_URL and NEXT_PUBLIC_SIGN_IN_CLIENT_ID, the task page's answer 200 as signIn naming the callback's path, and TaskPage and service.ts that leave for the provider's authorisation endpoint with a new state, nonce and S256 challenge, showing the reason when a document cannot be read; the action Hand over with signIn naming the callback's path, which ViewPage and ListPage follow to the provider once the operation succeeds; the deployment is read with its clients; and exits 0
 
 #### generate-ui-typescript-value-objects
 

@@ -414,6 +414,17 @@ func (g *Gen) rowAction(pageName, ptr string, am map[string]any, labelKey, permi
 		entry = append(entry, Member{"reason", Object(r)})
 	}
 	then := obj0(am["then"])
+	if text(then["navigate"]) == "signIn" {
+		// Once it succeeds, the action leaves for the identity provider's
+		// sign-in (ADR-182); the validator refuses a message beside it.
+		callback, ok := g.signInCallback()
+		if !ok {
+			g.Problem("error", ptr+"/then/navigate", "the action %s leaves for signIn, and the specification's signIn names no callback operation, so the provider has nowhere to send the person back to", text(am["label"]))
+			return nil, false
+		}
+		entry = append(entry, Member{"signIn", Str(callback)}, Member{"failed", Array(g.refusalsOf(pageName, op, failed))})
+		return Object(entry), true
+	}
 	if text(then["navigate"]) != "" {
 		g.Problem("error", ptr+"/then", "the action %s leads to %s once it succeeds, and this version of %s stays on the page and shows the message only", text(am["label"]), text(then["navigate"]), g.Profile.Name)
 		return nil, false

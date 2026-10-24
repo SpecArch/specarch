@@ -9,6 +9,7 @@ targets:
     framework: nextjs-carbon
     settings:
       language: en
+      session: { operation: getSession, signedIn: open, permissions: granted, signIn: sign-in }
 deployments:
   test:
     description: The test environment, at the organisation's test identity provider.

@@ -4,8 +4,8 @@
 /// the menu; where they call the service is Service.baseURL, which the app
 /// sets at launch.
 public enum Application {
-    public static let session: SessionSchema? = nil
-    public static let signIn: Route? = nil
-    public static let signInTitle = ""
+    public static let session: SessionSchema? = .init(path: "/sessions/current", signedIn: "open", permissions: "granted")
+    public static let signIn: Route? = .signIn
+    public static let signInTitle = "sign-in.title"
     public static let menu: [MenuGroup] = []
 }

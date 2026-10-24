@@ -5,6 +5,7 @@ import SwiftUI
 /// The pages, one case each with the parameters of its route; the app's
 /// NavigationStack opens each through destination.
 public enum Route: Hashable, Sendable {
+    case caseView(caseId: String)
     case signIn
 }
 
@@ -12,6 +13,7 @@ extension Route {
     /// The view the route opens.
     @MainActor @ViewBuilder public var destination: some View {
         switch self {
+        case .caseView(let caseId): CaseViewView(caseId: caseId)
         case .signIn: SignInView()
         }
     }

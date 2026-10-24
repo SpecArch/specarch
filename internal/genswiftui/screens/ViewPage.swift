@@ -1,3 +1,4 @@
+import AuthenticationServices
 import SwiftUI
 
 /// One record read from its operation, its sections shown read-only, a
@@ -12,6 +13,7 @@ public struct ViewPage: View {
     /// The routes the page's actions lead to, by the page each names.
     let routes: [String: Routes.Make]
     @Environment(Router.self) private var router
+    @Environment(\.webAuthenticationSession) private var webAuthenticationSession
     @AppStorage(Strings.languageKey) private var language = Strings.languages[0]
     @State private var record: Fields?
     @State private var loadFailed: String?
@@ -117,6 +119,10 @@ public struct ViewPage: View {
             return
         }
         failed = nil
+        if let callback = action.signIn {
+            failed = await IdentityProvider.signInAndReturn(callback: callback, session: webAuthenticationSession, router: router)
+            return
+        }
         if let message = action.message {
             router.leave(say(texts, message), at: nil)
         }

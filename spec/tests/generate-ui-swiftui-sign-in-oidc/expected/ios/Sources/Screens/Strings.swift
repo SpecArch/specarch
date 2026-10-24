@@ -10,6 +10,9 @@ public enum Strings {
     public static let languageKey = "language"
 
     static let strings: [String: String] = [
+        "case-view.actions.handOverCase.label": "Hand over",
+        "case-view.fields.title": "title",
+        "case-view.title": "Case",
         "screens.actions": "Actions",
         "screens.addItem": "Add an item",
         "screens.addRow": "Add a row",

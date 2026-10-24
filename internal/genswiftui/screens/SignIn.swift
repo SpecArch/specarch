@@ -68,6 +68,30 @@ public enum IdentityProvider {
         return try await Service.send("GET", callback, query: items.filter { $0.name == "code" || $0.name == "state" })
     }
 
+    /// Signs in at the provider and, once the callback answers, reads the
+    /// session again and opens the page sign-in was asked for from, or the
+    /// app's first page. Answers nil when signed in, or the problem to show:
+    /// the callback's status, or the step that failed.
+    @MainActor
+    public static func signInAndReturn(callback: String, session: WebAuthenticationSession, router: Router) async -> String? {
+        do {
+            let signedIn = try await signIn(callback: callback, session: session)
+            if !(200..<400).contains(signedIn.status) {
+                return "the callback \(callback) answered HTTP \(signedIn.status)"
+            }
+        } catch {
+            return String(describing: error)
+        }
+        SessionStore.shared.forget()
+        if let back = router.returnTo {
+            router.returnTo = nil
+            router.replace(with: back)
+        } else {
+            router.path = []
+        }
+        return nil
+    }
+
     /// 32 random bytes, base64url without padding (RFC 7636, 4.1). Throws
     /// when the system gives none, since zero bytes would be a state, a
     /// nonce and a verifier anyone could guess.

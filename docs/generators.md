@@ -895,12 +895,15 @@ endpoint the provider's discovery document names, as the plain
 JavaScript screens do; `application.ts` names the provider's issuer and
 client_id from `NEXT_PUBLIC_SIGN_IN_ISSUER_URL` and
 `NEXT_PUBLIC_SIGN_IN_CLIENT_ID`, which the deployment sets from its
-`signIn.issuerUrl` and the client's `clientId` (ADR-182). When the
+`signIn.issuerUrl` and the client's `clientId` (ADR-182). A list's or a
+view's operation action whose `then` navigates to `signIn` carries the
+callback's path too, and leaves the same way once the operation
+succeeds, showing the reason when it cannot. When the
 screens call a service on another origin than the page's, the redirect is
 refused at run time with both origins named, since the `__Host-sign-in`
 cookie would not reach the callback; in the dxlib dialect the callback
 warns as the plain JavaScript screens do. An action's `then` that
-navigates, to `signIn` or a page, is an error at the action's `then`.
+navigates to a page is an error at the action's `then`.
 A default failed state is the message for any refusal the page names
 none for. Fields in sections, actions, `enabledBy`, a permission other
 than public, and a success the operation answers with no event are
@@ -1109,8 +1112,9 @@ decimal, which the app compares exactly; a form's hooks come from
 actions are in its swipe and context menus, its sort a toolbar menu of
 the sortable columns, and its page turned under the rows; a view's
 actions that open a page are in its toolbar; an action's confirmation
-is a sheet with the reason it requires. A task page's answer that
-navigates to `signIn` signs in through `IdentityProvider` of
+is a sheet with the reason it requires. A task page's answer, and a
+list's or a view's operation action once it succeeds, that navigates to
+`signIn` signs in through `IdentityProvider` of
 `Screens/SignIn.swift`: the app sets the issuer and client_id at launch,
 as it sets the service's URL; the system's web authentication session
 opens the authorisation endpoint and returns on the redirect's path on

@@ -207,11 +207,15 @@ owner's decision (section 3.6, question 3): `governs` on the decision, or
 
 Two warnings, additive: `decision_reason`, an accepted decision without
 `why`, since a decision whose reasoning is not written is the thing this
-design is for (five of this repository's own would warn, and are written
-in the same item); and `decision_decider`, an accepted decision without
-`decidedBy`, reported only when the specification says `tracksOrigin:
-true`, as `origin_missing` is, so that a spec-first specification like this
-one does not get 174 warnings for a decider everyone knows. Making `why`
+design is for (four of this repository's own would warn, ADR-001,
+ADR-002, ADR-006 and ADR-009, and stay listed until the owner gives the
+reason, section 6 and question 7; ADR-007 lacks `why` too but is
+superseded, outside the rule on purpose: the reason for that step is its
+successor's `why`, and ADR-010 carries one); and `decision_decider`, an
+accepted decision without `decidedBy`, reported only when the
+specification says `tracksOrigin: true`, as `origin_missing` is, so that
+a spec-first specification like this one does not get 174 warnings for a
+decider everyone knows. Making `why`
 required on an accepted decision, or `decidedBy` on every accepted
 decision, is breaking: meta-model 0.4, 0.8.0, and the owner's call
 (question 1).
@@ -237,10 +241,27 @@ request, with its reason, before the next release. Two gaps stay:
 - An element that is retired or deprecated rather than removed: a
   requirement with `status: retired`, a decision with `status:
   deprecated`, a field with `deprecated: true`. A warning,
-  `retired_reason`, for a retired requirement or a deprecated decision
-  with neither `why` nor a governing decision; a deprecated field
-  inherits its entity's. Additive as a warning; an error would be
-  breaking (question 5).
+  `retired_reason`, for one that carries no reason for the step itself.
+  The step's reason is one of two things that exist, and nothing else:
+  a change record, implemented or released, whose `affects.removes`
+  names the element, its `reason` and `decision.why` being the reason
+  (the record schema says a removed requirement "may instead stay with
+  status retired", `change_applied` allows it, and `validate` reads
+  `records/` beside the specification for `record_ref` and
+  `change_applied`, `internal/validate/records.go`; `change_applied` is
+  extended so that a `removes` pointer may also resolve to a decision
+  with `status: deprecated` or a field with `deprecated: true`); or an
+  accepted decision whose `governs` names the element and whose
+  `decision` states the retirement, so that a deprecated decision is
+  covered by the successor whose `governs` names it. The element's own
+  `why` never counts: it is about the requirement or the decision, not
+  about the step (section 1.3, the requirement-status row), and a
+  requirement accepted with a `why` and retired later would otherwise
+  never warn. A deprecated field inherits its entity's. A key of its own
+  for the step's reason (a retirement reason on the element) is the
+  rejected alternative: a second home for a reason that the change
+  record and the decision already hold, two ways to say one thing.
+  Additive as a warning; an error would be breaking (question 5).
 
 ### 3.3 The rule "an element changed since approval has a change record with a reason"
 
@@ -270,7 +291,9 @@ one section, Reasons, left out when there is nothing to say:
   `tracksOrigin` is true;
 - proposed decisions by `proposedBy`, so that an agent's proposals are
   listed with the questions that wait on a human;
-- retired requirements and deprecated decisions without a reason.
+- retired requirements and deprecated decisions without a reason for the
+  step (section 3.2): no change record removes them and no accepted
+  decision governs them.
 
 The same figures go into the `questions` document, which is the one handed
 to the stakeholders who decide (`docs/refinement.md`). The editor computes
@@ -286,7 +309,7 @@ decidedIn` and `governs`, without a verb of its own. Additive: new output.
 | `proposedBy` on a decision, `decision_proposer` | additive | | yes, question 4 |
 | `decision_reason` warning | additive | `why` required on an accepted decision | yes, question 1 |
 | `decision_decider` warning with `tracksOrigin` | additive | `decidedBy` required on every accepted decision | yes, question 1 |
-| `retired_reason` warning | additive | as an error | yes, question 5 |
+| `retired_reason` warning, `change_applied` letting `removes` resolve to a deprecated decision or field | additive | `retired_reason` as an error | yes, question 5 |
 | approval `commit`, `diff` inside one pre-release (ADR-083 step 8) | additive | | already open under ADR-083 |
 | the reason beside each element in `diff` | additive | | no |
 | Reasons section in `gaps` and the `questions` document | additive | | no |
@@ -312,9 +335,20 @@ decidedIn` and `governs`, without a verb of its own. Additive: new output.
    stakeholder is a party the system is for, and the rule in section 4
    needs to tell an agent's proposal from a role's without reading the
    stakeholders.
-5. A retired requirement or a deprecated decision without a reason: a
+5. A retired requirement or a deprecated decision without a reason for
+   the step (a change record's `affects.removes` or an accepted
+   decision's `governs`; the element's own `why` counts for neither): a
    warning or an error.
 6. Which of the editor items of section 5 to queue.
+7. The reason for the four accepted decisions of this repository without
+   `why` (ADR-001, ADR-002, ADR-006, ADR-009): they are the owner's
+   decisions and the reason is not recorded, so no agent writes it
+   (section 4). Either the owner writes the four, or the agent writes one
+   question per decision, kind `decision`, priority `could`, blocking
+   `#/decisions/<ID>`, decided by the owner's role, and writes `why` from
+   the answer, citing it. Recommended: the questions, in phase 1, so that
+   `decision_reason` and the open questions name the same four until the
+   owner answers.
 
 ## 4. When an AI agent writes the specification
 
@@ -392,25 +426,32 @@ written here only so the owner sees the whole.
 | E2 Decide this… | sdlc item 10 as planned: one sheet that writes the decision and sets `decidedIn` with `origin: decided`, or `governs` on the decision for a spec-first element | `governs` for the second form |
 | E3 History on the card | sdlc item 15 as planned: `git log -L` over the element's lines, each commit with its message, the release that includes it and the change request or defect that names it; At <ref>… beside it | nothing |
 | E4 A prompt at save | on ⌘S of a card whose edit changed an element that an approval or a released release covers: Decide this…, Change request…, or Save without a reason; the third records nothing and the Review round lists the element under "changed without a reason"; never per field, never on an unreleased element | the approval's `commit` (ADR-083 step 8) to know what is covered; until then the editor's own last-commit reading |
-| E5 Delete…, Retire…, Deprecate… | the same three choices on Delete…; Retire… on a requirement and Deprecate… on a decision write the status and ask for `why`, dismissable | `retired_reason` to show the warning after a dismissal |
+| E5 Delete…, Retire…, Deprecate… | the same three choices on Delete…; Retire… on a requirement and Deprecate… on a decision write the status and offer the same three: Decide this… (a decision whose `governs` names the element), Change request… (`affects.removes` naming it), or proceed with nothing recorded; the editor never asks for `why` on the element, since that is not the step's reason (section 3.2) | `governs` for the first choice; `retired_reason` to show the warning after the third |
 | E6 Reasons beside the diff | Compare since approval… and the Review round show, per changed element, the reason `diff` prints, and a filter "without a reason" | section 3.3 |
 | E7 Agent proposals | a proposed decision with `proposedBy: agent` carries a badge "proposed by an agent, not confirmed"; Accept… asks the role and writes `status: accepted`, `decidedBy` and the question's removal; an agent is never offered the button | `proposedBy`, `decision_proposer` |
 | E8 Filter: without a reason | Filters > Without a reason, the Reasons section of `gaps` computed from the model, each row opening its card | nothing; `specarch model` already lists `decidedIn`; `governs` once it exists |
 
 ## 6. A plan in phases
 
-The smallest first step is phase 1 alone: it needs no owner decision, adds
-no required key, and gives the reader the two things most asked for, the
-reasoning on every decision and the list of what has none.
+The smallest first step is phase 1 alone: it needs no design decision of
+the owner's (the four reasons it asks for are the owner's to give,
+question 7), adds no required key, and gives the reader the two things
+most asked for, the reasoning on every decision and the list of what has
+none.
 
 1. **Phase 1, additive, 0.7.x**: `alternatives` on a decision; the
    warning `decision_reason`; the Reasons section in `gaps` and the
    `questions` document (elements and decisions without a reason, by
-   section); `why` written for the five decisions of this repository that
-   lack one. Spec first: the keyword in `spec/`, the ADR for this design
-   written with it, both validator builds, a conformance case in
-   `spec/tests/`, `docs/conventions.md` and `docs/refinement.md`. Then E1
-   and E8 in the editor.
+   section); for the four accepted decisions of this repository without
+   `why` (ADR-001, ADR-002, ADR-006, ADR-009), one question each, kind
+   `decision`, priority `could`, blocking `#/decisions/<ID>`, decided by
+   the owner's role, as section 4 prescribes; the agent writes no `why`
+   of its own for them, each is written from the owner's answer and
+   cites it, and until then `decision_reason` lists them. Spec first:
+   the keyword in `spec/`, the ADR for this design written with it, both
+   validator builds, a conformance case in `spec/tests/`,
+   `docs/conventions.md` and `docs/refinement.md`. Then E1 and E8 in the
+   editor.
 2. **Phase 2, additive**: ADR-083 step 8 (the approval's `commit`, `diff`
    inside one pre-release) and the reason beside each element in `diff`'s
    output; the agent runs it before finishing an item on an approved

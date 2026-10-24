@@ -131,8 +131,8 @@ move, every status step of a requirement and of a decision but superseded,
 a deprecated decision, a deprecated field, a withdrawn change request, a
 withdrawn release, and a defect's triage. Git holds when and what for each
 of them, and in this repository the commit message holds the why, by the
-owner's rule that a commit says what changed and why (queue rules; this
-repository's commit style, `git log`).
+repository's rule that a commit says what changed and why (`git log`, the
+messages of this repository).
 
 ### 1.4 What this repository's own specification shows
 
@@ -142,8 +142,8 @@ Five carry no `why` (ADR-001, ADR-002, ADR-006, ADR-007, ADR-009). None
 carries `decidedBy`, and no element of the specification carries
 `decidedIn`: the specification is written spec-first by the owner, so the
 decider is the owner by default and nothing says so. Every commit's author
-is the owner, whether the owner or an agent wrote it (queue rules: the
-owner is the author of every commit), so `git blame` cannot tell them
+is the owner, whether the owner or an agent wrote it (`git log
+--format='%an' | sort -u` prints one name), so `git blame` cannot tell them
 apart either.
 
 ## 2. What a reader can answer now about an element
@@ -186,7 +186,7 @@ optional:
 
 | Key | Holds | Rule | Additive |
 |---|---|---|---|
-| `alternatives` | the options considered and not taken, each `option` (one line) and `why` (why it was rejected), two or more fields per entry, in the form of MADR's considered options | none beyond the schema; the techspec's decisions section and the decision's card list them | yes |
+| `alternatives` | the options considered and not taken, each `option` (one line) and `why` (why it was rejected), both required, in the form of MADR's considered options | none beyond the schema; the techspec's decisions section and the decision's card list them | yes |
 | `governs` | the elements this decision shapes, as `#/` pointers, for an element that is not `origin: decided`: a spec-first element, or one stated by a source and then shaped by a decision (a loan period the source gives, kept for a reason the decision records) | `decision_governs`: every pointer resolves (error, as `question_block`); the inverse of `decidedIn` is not repeated here (warning, `decision_governs_twice`), since one fact is said once | yes |
 | `proposedBy` | who wrote a proposed decision: a stakeholder role, or `agent` (section 4) | `decision_proposer`: an accepted decision with `proposedBy: agent` carries `decidedBy`, the human role that confirmed it (error) | yes |
 
@@ -282,7 +282,7 @@ decidedIn` and `governs`, without a verb of its own. Additive: new output.
 | Part | Meta-model 0.3 | Breaking (0.4, program 0.8.0) | Owner's decision |
 |---|---|---|---|
 | `alternatives` on a decision | additive | | no |
-| `governs` on a decision, `decision_governs` | additive | the alternative, `decidedIn` as a list without origin | yes, question 3 |
+| `governs` on a decision, `decision_governs`, `decision_governs_twice` | additive | the alternative, `decidedIn` as a list without origin | yes, question 3 |
 | `proposedBy` on a decision, `decision_proposer` | additive | | yes, question 4 |
 | `decision_reason` warning | additive | `why` required on an accepted decision | yes, question 1 |
 | `decision_decider` warning with `tracksOrigin` | additive | `decidedBy` required on every accepted decision | yes, question 1 |
@@ -334,18 +334,24 @@ The rules, each resting on one that exists:
   (section 2, "only the code has it") already prescribes. Where the agent
   proposes a design choice, it writes a decision with `status: proposed`
   and `proposedBy: agent`, its reasoning under `why`, the options it saw
-  under `alternatives`, and a question of kind `decision` that blocks
-  `#/decisions/<ID>`, decided by the role that owns it, with the
-  decision's option and the alternatives as `options`. The element the
+  under `alternatives`, and a question of kind `decision`, priority
+  `should` (the decision is fully written, so the question covers no
+  missing key), that blocks `#/decisions/<ID>`, decided by the role that
+  owns it, with the decision's option and the alternatives as `options`.
+  The decision does not list that question under `opens`, since
+  `question_opened` refuses a decision that opens a question it later
+  answers. The element the
   proposal would shape stays as it is, or is written with the question
   blocking it (ADR-017: the question is the one licence for an
   incomplete element). A proposed decision governs nothing: an element
   rests only on an accepted decision (`origin_decision`), and `governs`
   follows the same rule (`decision_governs`).
 - **A human confirms.** The owner answers the question; the agent then
-  sets `status: accepted` and `decidedBy` to the answering role, removes
-  the question, and the decision cites the answer as its source, as every
-  answered question does. `specarch decide` writes a new decision today;
+  sets `status: accepted`, names the question under `answers`, which
+  makes `decidedBy` required by the schema's `dependentRequired`, sets
+  `decidedBy` to the answering role, removes the question, and the
+  decision cites the answer as its source, as every answered question
+  does. `specarch decide` writes a new decision today;
   a form that accepts an existing proposed one, `specarch decide <Q>
   --accept <ADR>`, is a later step (section 6, phase 3), and until then
   the agent makes the two edits by hand and validates. `decision_proposer`
@@ -364,7 +370,7 @@ The rules, each resting on one that exists:
   (assumption: no validator rule).
 - **Where the agent's own reason belongs.** Why the agent did what it did
   in an item goes into the commit message and, in this repository, the
-  day's `history/` file, as the queue rules and `CLAUDE.md` require. The
+  day's `history/` file, as `CLAUDE.md` (History) requires. The
   specification's `why` is about the system, and in a specification that
   tracks origin it is the stakeholders' account, not the agent's diary.
 - **The editor's rule holds on the other side**: the Spec panel never
@@ -412,8 +418,8 @@ reasoning on every decision and the list of what has none.
 3. **Phase 3, additive, after question 4**: `proposedBy` and
    `decision_proposer`; `specarch decide <Q> --accept <ADR>`; the two
    lines in `docs/from-sources.md`'s agent instructions. Then E7.
-4. **Phase 4, additive, after questions 3 and 5**: `governs` and
-   `decision_governs`; `decision_decider` under `tracksOrigin`;
+4. **Phase 4, additive, after questions 3 and 5**: `governs`,
+   `decision_governs` and `decision_governs_twice`; `decision_decider` under `tracksOrigin`;
    `retired_reason`. Then E2, E5, E3.
 5. **Phase 5, breaking, meta-model 0.4 and 0.8.0, after question 1**: `why`
    required on an accepted decision, `decidedBy` on every accepted

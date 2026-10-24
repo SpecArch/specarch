@@ -1,0 +1,9 @@
+job: remind
+level: system
+scenario: golden
+covers: [runs twice]
+given: "the job remind has run"
+when: "it runs again over the same records"
+then: "nothing changes a second time"
+origin: inferred
+why: "Written by specarch derive: job remind is at stake in a requirement that names a harm, so its cases are written. A draft: complete the given, when and then, and remove what does not hold."

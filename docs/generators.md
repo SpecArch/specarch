@@ -434,15 +434,55 @@ the same round trip on the service and client generated from it: code read
 into a specification regenerates to code that behaves the same.
 
 A role's `rows` rule (ADR-095), written or derived from the `tenant`
-scope (ADR-179), is not applied by the generated handlers. The service's
-connection owns the tables, which row security does not bind, so on any
-engine a handler answers and changes the rows of every caller. Each rule
-is therefore a warning at every operation over its entity whose
-permission the role holds, the entity found as `specarch derive` finds
-it for the rows cases (the answer's, the request body's, the guard's, the
-list's, or the one a path parameter is the key of), naming the role and
-the rule, and at every job acting as the role on an entity it reads or
-writes: a system that is not isolated says so at the entry.
+scope (ADR-179), is applied by the handlers themselves (ADR-180). The
+service's connection owns the tables, which row security does not bind,
+so the policies `specarch-gen-sql` writes do not limit it. The file
+declares `Caller`: `HasRole(nameId string) bool`, the role's name id as
+`Roles` names it, and a method per caller property, named after it and
+typed as it, a pointer for a nullable one. The service writes
+`callerOf(aepr *api.DXAPIEndPointRequest) (Caller, error)` beside the
+file from its session, and the compiler names it when it is missing. Per
+entity with a rule, `rows<Entity>(Caller)` answers the condition the rows
+a caller reaches meet and its parameters: the rules of the roles the
+caller holds joined with `OR`, no condition when a role the caller holds
+has no rule over the entity, and `1 = 0` when the caller holds none of
+the roles, so a caller with several roles reaches the union, as the
+policies give it. A rule is written in SQL every engine dxlib serves
+reads: the fields as their columns, `==` and `!=` as `=` and `<>`, the
+orderings as they are, a comparison with `null` as `IS NULL` or `IS NOT
+NULL`, `&&`, `||` and `!` as `AND`, `OR` and `NOT`, a boolean field alone
+as the field equal to true, and every caller property and every literal
+a bound parameter (`:caller_<property in snake case>`,
+`:rows_<entity>_<n>`), never text in the SQL. A null property is a NULL
+parameter, so a comparison with it holds for no row: the fail-closed
+answer.
+
+The list adds the condition to the builder it pages with
+(`DoRequestSearchPagingList`; a DXTable also leaves out deleted rows
+unless `is_include_deleted` is given, as dxlib's own list does). The read
+by key selects the row by its key and the condition
+(`SelectOneWithBuilder`; a DXTable's deleted rows left out), so a record
+outside the rows answers the entity's not found, as if no record had
+that key. The create inserts in a transaction, selects the new row by its
+key and the condition, and when it is not found rolls back and answers
+403 with `<ENTITY>_OUTSIDE_ROWS`: the `WITH CHECK` side, with the rule
+read by the engine over the row as stored. A rule outside that subset
+(arithmetic, a function, a comparison with no column on either side)
+leaves its entity's handlers unfiltered, and every rule over the entity
+is a warning with the reason. Any other operation over an entity with a
+rule, the entity found as `specarch derive` finds it for the rows cases
+(the answer's, the request body's, the guard's, the list's, or the one a
+path parameter is the key of), is a warning per rule of a role that holds
+its permission, naming the role and the rule, and naming
+`rows<Entity>` for the body when the entity's rules are applied; so is
+every job acting as a role on an entity it reads or writes. A system that
+is not isolated says so at the entry. The round trip's tenant leg
+(`spec/tests/generate-go-dxlib-rows`) applies the migration
+`specarch-gen-sql` writes, policies included, to a PostgreSQL database
+named by `SPECARCH_POSTGRES`, stores two organisations' loans and drives
+the generated client as each staff, a member, a member whose `memberId`
+is null and a caller holding no role: each lists and reads only its rows, a loan of the other tenant is
+not found, and a create for it is refused with no row stored.
 
 The file holds no data model besides those structs, since `specarch-gen-sql`
 writes the schema.

@@ -2,7 +2,7 @@ operation: listLoans
 level: system
 scenario: red
 covers: [shows only the rows of member]
-given: "a caller holding member, whose rows of Loan are organisationId == caller.organisationId && memberId == caller.memberId"
+given: "a caller holding member, whose rows of Loan are organisationId == caller.organisationId && memberId == caller.memberId && size(title) > 0"
 when: "listLoans is called"
 then: "it lists only the Loan records the rule holds for"
 origin: inferred

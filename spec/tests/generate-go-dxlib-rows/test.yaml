@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: generate
+level: system
+scenario: golden
+given: "a lending specification whose tenant scope derives the rows rule of staff over Loan and whose member writes its own, with a list, a create, a read by key and a return of a loan and a daily job acting as staff, and an implementation file with a go-dxlib target; specarch-gen-go-dxlib built from this repository on PATH"
+when: "generate go-dxlib is run with --unapproved"
+then: "it writes the Go file with Caller, which callerOf answers, and rowsLoan, the rules of the roles a caller holds joined with OR, every caller property a bound parameter; the list pages with that condition, the read by key selects by the key and the condition, and the create inserts in a transaction and rolls back with 403 LOAN_OUTSIDE_ROWS when the new row is outside it; it warns only at the return, whose body the service writes, naming rowsLoan, and at the job; and exits 0"
+verifies: [SA-82]

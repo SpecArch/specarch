@@ -72,6 +72,7 @@ func Generate(r *genopenapi.Request) genopenapi.Response {
 	var body strings.Builder
 	g.w = &body
 	g.tables()
+	g.rowsSection()
 	g.handlers()
 	g.transport()
 	g.seeds()
@@ -136,7 +137,7 @@ func Generate(r *genopenapi.Request) genopenapi.Response {
 type gen struct {
 	spec, settings, entities map[string]any
 	mappings                 map[string]any
-	openapiSettings          map[string]any // the openapi target's settings, which choose each handshake's envelope (ADR-163)
+	openapiSettings          map[string]any  // the openapi target's settings, which choose each handshake's envelope (ADR-163)
 	owned                    ownership.Owned // operations and jobs another stakeholder owns get no code
 	root, db                 string
 	diags                    []genopenapi.Diagnostic
@@ -154,6 +155,7 @@ type gen struct {
 	handshake                *handshake      // the handshake the file serves, nil for none (ADR-145)
 	relRoot, specarch, draft string          // the header's root, meta-model and draft notice, shared with the client file
 	placed                   map[string][]mark.Problem
+	rowsConds                map[string]rowsCond // per entity, its rows rules in SQL (ADR-180)
 }
 
 func (g *gen) line(format string, args ...any) { fmt.Fprintf(g.w, format+"\n", args...) }
@@ -547,7 +549,11 @@ func (g *gen) handlers() {
 func (g *gen) operation(o operation) {
 	name := pascal(o.id)
 	params := g.params(o)
-	g.rowsNotApplied(o)
+	kind, entity := g.kind(o)
+	applied := g.applies(o, kind, entity)
+	if !applied {
+		g.rowsNotApplied(o)
+	}
 	if h := g.handshake; h != nil && h.envelope != "v2" && stream(o) == "download" && text(o.node["handshake"]) == h.name {
 		g.problem("error", o.pointer()+"/handshake", "%s streams a download in the envelope of handshake %s, which settings.envelopes serves as %s, and dxlib's one download type in an envelope is EndPointTypeHTTPDownloadStreamV2, the pre-key envelope; serve %s as v2, or take the download out of the envelope", o.id, h.name, h.envelope, h.name)
 	}
@@ -596,13 +602,19 @@ func (g *gen) operation(o operation) {
 	g.line("\tif err := check%s(aepr, r); err != nil {", name)
 	g.line("\t\treturn err")
 	g.line("\t}")
-	switch kind, entity := g.kind(o); kind {
+	if applied {
+		g.line("\tcaller, err := callerOf(aepr)")
+		g.line("\tif err != nil {")
+		g.line("\t\treturn err")
+		g.line("\t}")
+	}
+	switch kind {
 	case "list":
-		g.listBody(o, entity)
+		g.listBody(o, entity, applied)
 	case "create":
-		g.createBody(entity, params)
+		g.createBody(entity, params, applied)
 	case "read":
-		g.readBody(entity, params)
+		g.readBody(entity, params, applied)
 	case "exchange":
 		g.exchangeBody(o)
 	case "upload":
@@ -683,7 +695,7 @@ func responseEntity(op map[string]any) string {
 	return ""
 }
 
-func (g *gen) listBody(o operation, entity string) {
+func (g *gen) listBody(o operation, entity string, rows bool) {
 	if max := text(obj(obj(o.node["listOf"])["pageSize"])["maximum"]); max != "" {
 		g.imports["net/http"] = true
 		g.line("\tif _, size, err := aepr.GetParameterValueAsInt64(%q); err != nil {", "row_per_page")
@@ -695,10 +707,25 @@ func (g *gen) listBody(o operation, entity string) {
 	if g.holdsValues(entity) {
 		g.problem("warning", o.pointer(), "%s lists %s through dxlib's paging list, which answers each row as it is stored: a value kept in columns as the columns of its parts, and one kept as JSON as its text; give the rows the interface's shape in the service", o.id, entity)
 	}
-	g.line("\treturn Tables.%s.RequestSearchPagingList(aepr)", entity)
+	if !rows {
+		g.line("\treturn Tables.%s.RequestSearchPagingList(aepr)", entity)
+		return
+	}
+	g.line("\tqb := Tables.%s.NewTableSelectQueryBuilder()", entity)
+	if g.standard(entity) {
+		// dxlib's own list of a DXTable leaves the deleted rows out unless
+		// it is asked for them; this one does the same.
+		g.line("\tif _, all, err := aepr.GetParameterValueAsBool(%q); err != nil {", "is_include_deleted")
+		g.line("\t\treturn err")
+		g.line("\t} else if !all {")
+		g.line("\t\tqb.AndWithParams(%q, utils.JSON{%q: false})", "is_deleted = :rows_deleted", "rows_deleted")
+		g.line("\t}")
+	}
+	g.line("\tqb.AndWithParams(rows%s(caller))", pascal(entity))
+	g.line("\treturn Tables.%s.DoRequestSearchPagingList(aepr, qb, nil)", entity)
 }
 
-func (g *gen) createBody(entity string, params []param) {
+func (g *gen) createBody(entity string, params []param, rows bool) {
 	g.imports["net/http"] = true
 	g.imports["github.com/donnyhardyanto/dxlib/utils"] = true
 	uid, _ := g.keyed(entity)
@@ -720,6 +747,10 @@ func (g *gen) createBody(entity string, params []param) {
 		g.imports["github.com/google/uuid"] = true
 		g.line("\tdata[%q] = uuid.NewString()", uid)
 	}
+	if rows {
+		g.createInRows(entity, uid)
+		return
+	}
 	if g.standard(entity) {
 		g.line("\tTables.%s.SetInsertAuditFields(aepr, data)", entity)
 	}
@@ -736,7 +767,7 @@ func (g *gen) createBody(entity string, params []param) {
 	g.line("\treturn nil")
 }
 
-func (g *gen) readBody(entity string, params []param) {
+func (g *gen) readBody(entity string, params []param, rows bool) {
 	g.imports["net/http"] = true
 	var key param
 	for _, p := range params {
@@ -745,11 +776,23 @@ func (g *gen) readBody(entity string, params []param) {
 			break
 		}
 	}
-	get := "GetByUidAuto"
-	if g.standard(entity) {
-		get = "GetByUidNotDeletedAuto"
+	if rows {
+		uid, _ := g.keyed(entity)
+		g.imports["github.com/donnyhardyanto/dxlib/utils"] = true
+		g.line("\tqb := Tables.%s.NewTableSelectQueryBuilder()", entity)
+		g.line("\tqb.AndWithParams(%q, utils.JSON{%q: r.%s})", uid+" = :rows_key", "rows_key", key.field)
+		if g.standard(entity) {
+			g.line("\tqb.AndWithParams(%q, utils.JSON{%q: false})", "is_deleted = :rows_deleted", "rows_deleted")
+		}
+		g.line("\tqb.AndWithParams(rows%s(caller))", pascal(entity))
+		g.line("\t_, row, err := Tables.%s.SelectOneWithBuilder(aepr.Context, &aepr.Log, qb)", entity)
+	} else {
+		get := "GetByUidAuto"
+		if g.standard(entity) {
+			get = "GetByUidNotDeletedAuto"
+		}
+		g.line("\t_, row, err := Tables.%s.%s(aepr.Context, &aepr.Log, r.%s)", entity, get, key.field)
 	}
-	g.line("\t_, row, err := Tables.%s.%s(aepr.Context, &aepr.Log, r.%s)", entity, get, key.field)
 	g.line("\tif err != nil {")
 	g.line("\t\treturn err")
 	g.line("\t}")

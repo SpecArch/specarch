@@ -1,0 +1,12 @@
+specarchImplementation: "0.1"
+info: { title: Lending on dxlib, version: 1.0.0 }
+implements: { file: ../../specarch.yaml, version: 1.0.0 }
+stack: { language: { name: Go, version: "1.26" } }
+targets:
+  openapi: { output: ../../../out, dialect: dxlib }
+  # The round trip applies this migration to PostgreSQL.
+  sql: { output: ../../../migrations, dialect: postgresql }
+  go-dxlib:
+    # testdata keeps the recorded Go file out of the repository's own build.
+    output: ../../../testdata
+    settings: { package: lending, databaseNameId: lending }

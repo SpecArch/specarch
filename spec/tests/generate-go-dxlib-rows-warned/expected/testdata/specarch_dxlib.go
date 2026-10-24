@@ -39,7 +39,7 @@ func Register(a *api.DXAPI) {
 	a.RegisterHandler("returnLoan", ReturnLoan)
 }
 
-// specarch-problem: warning: generator: createLoan reads or writes Loan, which the rows rule of staff limits (organisationId == caller.organisationId), and the generated handler does not apply the rule: the service's connection reaches every row, so the handler answers and changes the rows of every caller; apply the rule in the service [generator@specarch.yaml#/paths/~1loans/post]
+// specarch-problem: warning: generator: createLoan reads or writes Loan, which the rows rule of staff limits (organisationId == caller.organisationId), and no handler applies the rules over Loan: the rule of member, organisationId == caller.organisationId && memberId == caller.memberId && size(title) > 0, cannot be written in the SQL every engine dxlib serves reads: the function size is outside what the condition writes: a field, a caller property or a literal on each side of a comparison; the service's connection reaches every row, so apply the rule in the service [generator@specarch.yaml#/paths/~1loans/post]
 // CreateLoanRequest holds the parameters of createLoan; Has says whether one was given.
 type CreateLoanRequest struct {
 	MemberId          string
@@ -110,8 +110,8 @@ func CreateLoan(aepr *api.DXAPIEndPointRequest) error {
 	return nil
 }
 
-// specarch-problem: warning: generator: getLoan reads or writes Loan, which the rows rule of member limits (organisationId == caller.organisationId && memberId == caller.memberId), and the generated handler does not apply the rule: the service's connection reaches every row, so the handler answers and changes the rows of every caller; apply the rule in the service [generator.38bdb47c@specarch.yaml#/paths/~1loans~1{loanId}/get]
-// specarch-problem: warning: generator: getLoan reads or writes Loan, which the rows rule of staff limits (organisationId == caller.organisationId), and the generated handler does not apply the rule: the service's connection reaches every row, so the handler answers and changes the rows of every caller; apply the rule in the service [generator.615c6d41@specarch.yaml#/paths/~1loans~1{loanId}/get]
+// specarch-problem: warning: generator: getLoan reads or writes Loan, which the rows rule of member limits (organisationId == caller.organisationId && memberId == caller.memberId && size(title) > 0), and no handler applies the rules over Loan: the rule of member, organisationId == caller.organisationId && memberId == caller.memberId && size(title) > 0, cannot be written in the SQL every engine dxlib serves reads: the function size is outside what the condition writes: a field, a caller property or a literal on each side of a comparison; the service's connection reaches every row, so apply the rule in the service [generator.4516bac9@specarch.yaml#/paths/~1loans~1{loanId}/get]
+// specarch-problem: warning: generator: getLoan reads or writes Loan, which the rows rule of staff limits (organisationId == caller.organisationId), and no handler applies the rules over Loan: the rule of member, organisationId == caller.organisationId && memberId == caller.memberId && size(title) > 0, cannot be written in the SQL every engine dxlib serves reads: the function size is outside what the condition writes: a field, a caller property or a literal on each side of a comparison; the service's connection reaches every row, so apply the rule in the service [generator.a245f5d6@specarch.yaml#/paths/~1loans~1{loanId}/get]
 // GetLoanRequest holds the parameters of getLoan; Has says whether one was given.
 type GetLoanRequest struct {
 	LoanId    string
@@ -154,8 +154,8 @@ func GetLoan(aepr *api.DXAPIEndPointRequest) error {
 	return nil
 }
 
-// specarch-problem: warning: generator: listLoans reads or writes Loan, which the rows rule of member limits (organisationId == caller.organisationId && memberId == caller.memberId), and the generated handler does not apply the rule: the service's connection reaches every row, so the handler answers and changes the rows of every caller; apply the rule in the service [generator.01cf4b4b@specarch.yaml#/paths/~1loans/get]
-// specarch-problem: warning: generator: listLoans reads or writes Loan, which the rows rule of staff limits (organisationId == caller.organisationId), and the generated handler does not apply the rule: the service's connection reaches every row, so the handler answers and changes the rows of every caller; apply the rule in the service [generator.51a79eb2@specarch.yaml#/paths/~1loans/get]
+// specarch-problem: warning: generator: listLoans reads or writes Loan, which the rows rule of member limits (organisationId == caller.organisationId && memberId == caller.memberId && size(title) > 0), and no handler applies the rules over Loan: the rule of member, organisationId == caller.organisationId && memberId == caller.memberId && size(title) > 0, cannot be written in the SQL every engine dxlib serves reads: the function size is outside what the condition writes: a field, a caller property or a literal on each side of a comparison; the service's connection reaches every row, so apply the rule in the service [generator.9db127c8@specarch.yaml#/paths/~1loans/get]
+// specarch-problem: warning: generator: listLoans reads or writes Loan, which the rows rule of staff limits (organisationId == caller.organisationId), and no handler applies the rules over Loan: the rule of member, organisationId == caller.organisationId && memberId == caller.memberId && size(title) > 0, cannot be written in the SQL every engine dxlib serves reads: the function size is outside what the condition writes: a field, a caller property or a literal on each side of a comparison; the service's connection reaches every row, so apply the rule in the service [generator.4b2dd30d@specarch.yaml#/paths/~1loans/get]
 // ListLoansRequest holds the parameters of listLoans; Has says whether one was given.
 type ListLoansRequest struct {
 }
@@ -187,7 +187,7 @@ func ListLoans(aepr *api.DXAPIEndPointRequest) error {
 	return Tables.Loan.RequestSearchPagingList(aepr)
 }
 
-// specarch-problem: warning: generator: returnLoan reads or writes Loan, which the rows rule of staff limits (organisationId == caller.organisationId), and the generated handler does not apply the rule: the service's connection reaches every row, so the handler answers and changes the rows of every caller; apply the rule in the service [generator@specarch.yaml#/paths/~1loans~1{loanId}/delete]
+// specarch-problem: warning: generator: returnLoan reads or writes Loan, which the rows rule of staff limits (organisationId == caller.organisationId), and no handler applies the rules over Loan: the rule of member, organisationId == caller.organisationId && memberId == caller.memberId && size(title) > 0, cannot be written in the SQL every engine dxlib serves reads: the function size is outside what the condition writes: a field, a caller property or a literal on each side of a comparison; the service's connection reaches every row, so apply the rule in the service [generator@specarch.yaml#/paths/~1loans~1{loanId}/delete]
 // ReturnLoanRequest holds the parameters of returnLoan; Has says whether one was given.
 type ReturnLoanRequest struct {
 	LoanId    string

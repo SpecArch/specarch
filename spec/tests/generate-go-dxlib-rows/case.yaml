@@ -1,0 +1,6 @@
+arguments: [generate, go-dxlib, --unapproved, project]
+exitStatus: 0
+standardOutput: |
+  project/specarch.yaml:95:5: warning: /paths/~1loans~1{loanId}/delete: generator: returnLoan reads or writes Loan, which the rows rule of staff limits (organisationId == caller.organisationId), and the generated handler leaves the rule to the body the service writes, while the service's connection reaches every row: apply it there, with the condition rowsLoan(caller) gives [generator@specarch.yaml#/paths/~1loans~1{loanId}/delete]
+  project/specarch.yaml:46:3: warning: /jobs/remind: generator: job remind acts as staff on Loan, which the rows rule of staff limits (organisationId == caller.organisationId), and nothing generated applies the rule: the job's function, which the service writes, reaches every row unless it applies the rule itself [generator@specarch.yaml#/jobs/remind]
+plugins: [go-dxlib]

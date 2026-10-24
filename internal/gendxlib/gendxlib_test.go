@@ -141,11 +141,19 @@ func TestCompiles(t *testing.T) {
 	if dxlib == "" {
 		t.Skip("SPECARCH_DXLIB names no dxlib checkout, so the file cannot be compiled against dxlib here")
 	}
-	for _, f := range []string{fixture, valueFixture, envelopeFixture} {
+	for _, f := range []string{fixture, valueFixture, envelopeFixture, rowsFixture} {
 		t.Run(filepath.Base(filepath.Dir(f)), func(t *testing.T) {
 			compiles(t, dxlib, generateFrom(t, f, func(map[string]any) {}, nil).Files)
 		})
 	}
+	// The rows rules over a DXTable, whose list and read leave the deleted
+	// rows out and whose create inserts with the audit fields.
+	t.Run("rows-audited", func(t *testing.T) {
+		compiles(t, dxlib, generateFrom(t, rowsFixture, func(s map[string]any) {
+			loan := s["entities"].(map[string]any)["Loan"].(map[string]any)
+			loan["audited"], loan["deletion"] = true, "soft"
+		}, nil).Files)
+	})
 }
 
 var packageName = regexp.MustCompile(`(?m)^package (\w+)$`)
@@ -161,6 +169,9 @@ func compiles(t *testing.T, dxlib string, generated []genopenapi.File) {
 			continue
 		}
 		fmt.Fprintf(&stub, "func %s(aepr *api.DXAPIEndPointRequest, r %sRequest) error { return nil }\n", m[1], m[2])
+	}
+	if strings.Contains(src, "callerOf(aepr)") {
+		stub.WriteString("func callerOf(aepr *api.DXAPIEndPointRequest) (Caller, error) { return nil, nil }\n")
 	}
 	for _, m := range regexp.MustCompile(`(job[A-Z][A-Za-z0-9]*)\)`).FindAllStringSubmatch(src, -1) {
 		fmt.Fprintf(&stub, "func %s(t *task.DXTask) error { return nil }\n", m[1])

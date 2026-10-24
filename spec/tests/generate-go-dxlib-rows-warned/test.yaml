@@ -2,7 +2,7 @@
 command: generate
 level: system
 scenario: red
-given: "a lending specification whose tenant scope derives the rows rule of staff over Loan and whose member writes its own, with a list, a create, a read by key and a return of a loan and a daily job acting as staff, and an implementation file with a go-dxlib target; specarch-gen-go-dxlib built from this repository on PATH"
+given: "a lending specification whose tenant scope derives the rows rule of staff over Loan and whose member writes its own with a function the condition cannot write, with a list, a create, a read by key and a return of a loan and a daily job acting as staff, and an implementation file with a go-dxlib target; specarch-gen-go-dxlib built from this repository on PATH"
 when: "generate go-dxlib is run with --unapproved"
-then: "it writes the Go file and warns once per operation and per rule over Loan of a role that holds the operation's permission, naming the role and the rule, that the generated handler does not apply it, and once at the job that nothing generated applies the rule of its role; and exits 0"
+then: "it writes the Go file with no rows filter and no Caller, warns once per operation and per rule over Loan of a role that holds the operation's permission, naming the role, the rule and why the rules over Loan are not applied, and once at the job that nothing generated applies the rule of its role; and exits 0"
 verifies: [SA-82]

@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/SpecArch/specarch/internal/genopenapi"
+	"github.com/SpecArch/specarch/internal/gensql"
 	"github.com/SpecArch/specarch/internal/genui"
 	"github.com/SpecArch/specarch/internal/genuits"
 	"github.com/SpecArch/specarch/internal/source"
@@ -595,4 +596,408 @@ test("an envelope another service signed is refused", async () => {
   const response = await transport.call(addNote, { body: { title: "after" } });
   assert.equal(response.status, 200);
 });
+`
+
+// rowsFixture is the lending specification whose tenant scope derives the
+// rows rule of staff over Loan and whose member writes its own.
+const rowsFixture = "../../spec/tests/generate-go-dxlib-rows/project"
+
+// TestRowsRoundTrip generates the lending service, applies the migration
+// generate sql writes to a PostgreSQL database, binds the service to a real
+// dxlib API through the document the dxlib dialect writes, and drives it
+// with the generated client as callers of two tenants (ADR-180): each
+// staff lists and reads by key only their organisation's loans, a member
+// only their own, a caller holding no role and a member whose memberId is
+// null nothing, a loan of the other
+// tenant is not found, and a create for the other tenant is refused with no
+// row stored. The service connects as the tables' owner, which the policies
+// do not bind, so what isolates the tenants is the handlers' own condition.
+// It needs a dxlib checkout, named by SPECARCH_DXLIB, and a PostgreSQL
+// database it may empty, named by SPECARCH_POSTGRES as
+// host:port/database?user=...&password=..., and is skipped without either.
+// The check of this repository started one with
+//
+//	agentq podman run -d --name specarch-rows-pg -e POSTGRES_PASSWORD=rowscheck \
+//	  -e POSTGRES_DB=lending -p 127.0.0.1:55432:5432 docker.io/library/postgres:17.6-alpine
+//	SPECARCH_POSTGRES='127.0.0.1:55432/lending?user=postgres&password=rowscheck'
+func TestRowsRoundTrip(t *testing.T) {
+	dxlib, postgres := os.Getenv("SPECARCH_DXLIB"), os.Getenv("SPECARCH_POSTGRES")
+	if dxlib == "" || postgres == "" {
+		t.Skip("SPECARCH_DXLIB names no dxlib checkout or SPECARCH_POSTGRES no PostgreSQL database, so the tenants cannot run here")
+	}
+	same := func(map[string]any) {}
+	service := generateImpl(t, rowsFixture, same, nil, same)
+	for _, d := range service.Diagnostics {
+		if d.Severity == "error" {
+			t.Fatalf("the service has an error: %v", d)
+		}
+	}
+	if len(service.Files) != 2 {
+		t.Fatalf("want the service file and the client, got %d files", len(service.Files))
+	}
+	dir := t.TempDir()
+	files := map[string]string{
+		"go.mod":        "module lending\n\ngo 1.27.1\n\nrequire github.com/donnyhardyanto/dxlib v0.0.0\n\nreplace github.com/donnyhardyanto/dxlib => " + dxlib + "\n",
+		"openapi.yaml":  openapiDocument(t, rowsFixture, same, same),
+		"migration.sql": rowsMigration(t),
+		"bodies.go":     rowsBodies,
+		"rows_test.go":  rowsTest,
+	}
+	for _, f := range service.Files {
+		files[f.Path] = f.Content
+	}
+	for name, text := range files {
+		if err := os.WriteFile(filepath.Join(dir, name), []byte(text), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	tidy := exec.Command("go", "mod", "tidy")
+	tidy.Dir = dir
+	if out, err := tidy.CombinedOutput(); err != nil {
+		t.Skipf("the dxlib module cannot be resolved here (%v): %s", err, out)
+	}
+	run := exec.Command("go", "test", "-count=1", "-v", "-run", "TestTenantsApart", "./...")
+	run.Dir = dir
+	run.Env = append(os.Environ(), "LENDING_POSTGRES="+postgres)
+	out, err := run.CombinedOutput()
+	if err != nil {
+		t.Fatalf("the generated service does not keep the tenants apart: %v\n%s", err, out)
+	}
+	if !strings.Contains(string(out), "--- PASS: TestTenantsApart") {
+		t.Fatalf("the tenants' test did not run:\n%s", out)
+	}
+}
+
+// rowsMigration is the first migration generate sql writes for the lending
+// specification on PostgreSQL, policies included.
+func rowsMigration(t *testing.T) string {
+	t.Helper()
+	s := spec.Load(rowsFixture)
+	if len(s.Problems) > 0 {
+		t.Fatalf("the fixture does not load: %v", s.Problems)
+	}
+	impl := s.Implementations[0]
+	root := source.Parse(impl.Data).Root
+	var idioms []map[string]any
+	for _, u := range validate.IdiomUses(impl.Path, root, s) {
+		i := map[string]any{"name": u.Name, "version": u.Version, "as": u.As}
+		if u.As == "shipped" {
+			i["content"] = source.ValueOf(validate.ShippedIdioms()[u.Name].Root)
+		}
+		idioms = append(idioms, i)
+	}
+	data, err := json.Marshal(map[string]any{"specarch": "0.3", "target": "sql", "root": filepath.ToSlash(s.RootFile),
+		"specification": s.Value, "output": filepath.ToSlash(filepath.Join(rowsFixture, "..", "migrations")),
+		"implementations": []any{map[string]any{"file": impl.Path, "content": source.ValueOf(root), "idioms": idioms}}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	r, err := gensql.Decode(data)
+	if err != nil {
+		t.Fatal(err)
+	}
+	resp := gensql.Generate(r)
+	for _, d := range resp.Diagnostics {
+		if d.Severity == "error" {
+			t.Fatalf("the migration has an error: %v", d)
+		}
+	}
+	for _, f := range resp.Files {
+		if strings.HasSuffix(f.Path, "_expand.sql") {
+			return f.Content
+		}
+	}
+	t.Fatalf("generate sql wrote no expand migration: %v", resp.Files)
+	return ""
+}
+
+// rowsBodies are what the service writes beside the generated file: the
+// caller, read here from three headers the test's client sends where a
+// service reads its session, the return's body and the job.
+const rowsBodies = `package lending
+
+import (
+	"net/http"
+	"strings"
+
+	"github.com/donnyhardyanto/dxlib/api"
+	"github.com/donnyhardyanto/dxlib/task"
+)
+
+type headerCaller struct {
+	roles               map[string]bool
+	organisation, member string
+}
+
+func (c headerCaller) HasRole(nameId string) bool { return c.roles[nameId] }
+func (c headerCaller) OrganisationId() string    { return c.organisation }
+func (c headerCaller) MemberId() *string {
+	if c.member == "" {
+		return nil
+	}
+	return &c.member
+}
+
+func callerOf(aepr *api.DXAPIEndPointRequest) (Caller, error) {
+	h := aepr.Request.Header
+	c := headerCaller{roles: map[string]bool{}, organisation: h.Get("X-Organisation"), member: h.Get("X-Member")}
+	for _, r := range strings.Split(h.Get("X-Roles"), ",") {
+		if r != "" {
+			c.roles[r] = true
+		}
+	}
+	return c, nil
+}
+
+func bodyReturnLoan(aepr *api.DXAPIEndPointRequest, r ReturnLoanRequest) error {
+	aepr.WriteResponseAsJSON(http.StatusNoContent, nil, nil)
+	return nil
+}
+
+func jobRemind(*task.DXTask) error { return nil }
+`
+
+// rowsTest runs in the generated module: it empties the database, applies
+// the migration, stores the loans of two organisations and drives the
+// service as their callers.
+const rowsTest = `package lending
+
+import (
+	"context"
+	"net"
+	"net/http"
+	"net/url"
+	"os"
+	"strings"
+	"testing"
+	"time"
+
+	"github.com/donnyhardyanto/dxlib/api"
+	"github.com/donnyhardyanto/dxlib/base"
+	"github.com/donnyhardyanto/dxlib/databases"
+	"golang.org/x/sync/errgroup"
+)
+
+const (
+	orgA, orgB       = "00000000-0000-0000-0000-00000000000a", "00000000-0000-0000-0000-00000000000b"
+	memberA1, memberA2 = "00000000-0000-0000-0000-0000000000a1", "00000000-0000-0000-0000-0000000000a2"
+	memberB1         = "00000000-0000-0000-0000-0000000000b1"
+	loanA1, loanA2, loanA3 = "00000000-0000-0000-0000-000000000a01", "00000000-0000-0000-0000-000000000a02", "00000000-0000-0000-0000-000000000a03"
+	loanB1, loanB2   = "00000000-0000-0000-0000-000000000b01", "00000000-0000-0000-0000-000000000b02"
+)
+
+// as sends a caller's roles and properties with every call.
+type as struct{ roles, organisation, member string }
+
+func (c as) RoundTrip(r *http.Request) (*http.Response, error) {
+	r = r.Clone(r.Context())
+	r.Header.Set("X-Roles", c.roles)
+	r.Header.Set("X-Organisation", c.organisation)
+	r.Header.Set("X-Member", c.member)
+	return http.DefaultTransport.RoundTrip(r)
+}
+
+func openDatabase(t *testing.T) *databases.DXDatabase {
+	t.Helper()
+	u, err := url.Parse("postgres://" + os.Getenv("LENDING_POSTGRES"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	d := databases.Manager.NewDatabase("lending", false, false)
+	d.DatabaseType = base.DXDatabaseTypePostgreSQL
+	d.Address = u.Host
+	d.UserName = u.Query().Get("user")
+	d.UserPassword = u.Query().Get("password")
+	d.DatabaseName = strings.TrimPrefix(u.Path, "/")
+	d.ConnectionOptions = "sslmode=disable"
+	d.IsConfigured = true
+	if d.ConnectionString, err = d.GetConnectionString(); err != nil {
+		t.Fatal(err)
+	}
+	if err := d.Connect(); err != nil {
+		t.Fatalf("the database does not connect: %v", err)
+	}
+	exec := func(stmt string) {
+		t.Helper()
+		if _, err := d.Connection.Exec(stmt); err != nil {
+			t.Fatalf("%s: %v", stmt, err)
+		}
+	}
+	exec("DROP TABLE IF EXISTS loan, country CASCADE")
+	// The policies name the database roles, which are cluster state the
+	// migration does not create.
+	exec("DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'member') THEN CREATE ROLE member; END IF; IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'staff') THEN CREATE ROLE staff; END IF; END $$")
+	migration, err := os.ReadFile("migration.sql")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, stmt := range strings.Split(string(migration), ";\n") {
+		var code []string
+		for _, line := range strings.Split(stmt, "\n") {
+			if !strings.HasPrefix(strings.TrimSpace(line), "--") {
+				code = append(code, line)
+			}
+		}
+		if s := strings.TrimSpace(strings.Join(code, "\n")); s != "" {
+			exec(s)
+		}
+	}
+	for _, l := range [][4]string{
+		{loanA1, orgA, memberA1, "one"}, {loanA2, orgA, memberA1, "two"}, {loanA3, orgA, memberA2, "three"},
+		{loanB1, orgB, memberB1, "four"}, {loanB2, orgB, memberB1, "five"},
+	} {
+		if _, err := d.Connection.Exec("INSERT INTO loan (id, organisation_id, member_id, title) VALUES ($1, $2, $3, $4)", l[0], l[1], l[2], l[3]); err != nil {
+			t.Fatal(err)
+		}
+	}
+	return d
+}
+
+func startLending(t *testing.T) *api.DXAPI {
+	t.Helper()
+	a, err := api.Manager.NewAPI("lending-rows")
+	if err != nil {
+		t.Fatal(err)
+	}
+	ln, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	a.Address = ln.Addr().String()
+	_ = ln.Close()
+	Register(a)
+	doc, err := api.ReadOpenAPIFile("openapi.yaml")
+	if err != nil {
+		t.Fatalf("the generated document does not read: %v", err)
+	}
+	if err := a.BindOpenAPI(doc); err != nil {
+		t.Fatalf("the generated document does not bind: %v", err)
+	}
+	group, _ := errgroup.WithContext(context.Background())
+	if err := a.StartAndWait(group); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() {
+		if a.HTTPServer != nil {
+			_ = a.HTTPServer.Close()
+		}
+	})
+	deadline := time.Now().Add(5 * time.Second)
+	for time.Now().Before(deadline) {
+		if conn, err := net.DialTimeout("tcp", a.Address, 200*time.Millisecond); err == nil {
+			_ = conn.Close()
+			return a
+		}
+		time.Sleep(20 * time.Millisecond)
+	}
+	t.Fatalf("the service did not start listening at %s", a.Address)
+	return nil
+}
+
+// ids are the ids of the rows a list answers.
+func ids(t *testing.T, answer map[string]any) map[string]bool {
+	t.Helper()
+	data, _ := answer["data"].(map[string]any)
+	list, _ := data["list"].(map[string]any)
+	rows, ok := list["rows"].([]any)
+	if !ok && list["rows"] != nil {
+		t.Fatalf("the list answers no rows: %v", answer)
+	}
+	out := map[string]bool{}
+	for _, r := range rows {
+		row, _ := r.(map[string]any)
+		out[row["id"].(string)] = true
+	}
+	return out
+}
+
+func TestTenantsApart(t *testing.T) {
+	d := openDatabase(t)
+	a := startLending(t)
+	ctx := context.Background()
+	client := func(c as) *Client {
+		cl := NewClient("http://" + a.Address)
+		cl.HTTP = &http.Client{Transport: c}
+		return cl
+	}
+	staffA := client(as{roles: "staff", organisation: orgA})
+	staffB := client(as{roles: "staff", organisation: orgB})
+	memberA := client(as{roles: "member", organisation: orgA, member: memberA1})
+	nobody := client(as{organisation: orgA})
+	// A member whose memberId is null: the comparison with a NULL
+	// parameter holds for no row.
+	memberless := client(as{roles: "member", organisation: orgA})
+
+	for _, c := range []struct {
+		name   string
+		client *Client
+		want   []string
+	}{
+		{"staff of A", staffA, []string{loanA1, loanA2, loanA3}},
+		{"staff of B", staffB, []string{loanB1, loanB2}},
+		{"member A1 of A", memberA, []string{loanA1, loanA2}},
+		{"a caller holding no role", nobody, nil},
+		{"a member whose memberId is null", memberless, nil},
+	} {
+		status, answer, err := c.client.ListLoans(ctx, map[string]any{"row_per_page": 100, "page_index": 0})
+		if err != nil || status != 200 {
+			t.Fatalf("%s lists: status %d, answer %v, err %v", c.name, status, answer, err)
+		}
+		got := ids(t, answer)
+		if len(got) != len(c.want) {
+			t.Errorf("%s lists %v, want %v", c.name, got, c.want)
+		}
+		for _, id := range c.want {
+			if !got[id] {
+				t.Errorf("%s does not list %s: %v", c.name, id, got)
+			}
+		}
+	}
+
+	if status, answer, err := staffA.GetLoan(ctx, map[string]any{"loan_id": loanA3}); err != nil || status != 200 || answer["id"] != loanA3 {
+		t.Errorf("staff of A reads its own loan: status %d, answer %v, err %v", status, answer, err)
+	}
+	if status, answer, err := staffA.GetLoan(ctx, map[string]any{"loan_id": loanB1}); err != nil || status != 404 {
+		t.Errorf("staff of A reads a loan of B: status %d, answer %v, err %v; want 404, as if no loan had that key", status, answer, err)
+	}
+	if status, answer, err := memberA.GetLoan(ctx, map[string]any{"loan_id": loanA3}); err != nil || status != 404 {
+		t.Errorf("member A1 reads another member's loan: status %d, answer %v, err %v; want 404", status, answer, err)
+	}
+
+	count := func() int {
+		var n int
+		if err := d.Connection.Get(&n, "SELECT count(*) FROM loan"); err != nil {
+			t.Fatal(err)
+		}
+		return n
+	}
+	before := count()
+	status, answer, err := staffA.CreateLoan(ctx, map[string]any{"organisation_id": orgB, "member_id": memberB1, "title": "smuggled"})
+	if err != nil || status != 403 || !strings.Contains(answerText(answer), "LOAN_OUTSIDE_ROWS") {
+		t.Errorf("staff of A creates a loan of B: status %d, answer %v, err %v; want 403 LOAN_OUTSIDE_ROWS", status, answer, err)
+	}
+	if after := count(); after != before {
+		t.Errorf("the refused create stored a row: %d loans before, %d after", before, after)
+	}
+	status, answer, err = staffA.CreateLoan(ctx, map[string]any{"organisation_id": orgA, "member_id": memberA2, "title": "lent"})
+	if err != nil || status != 201 || answer["organisation_id"] != orgA {
+		t.Errorf("staff of A creates a loan of A: status %d, answer %v, err %v", status, answer, err)
+	}
+	if after := count(); after != before+1 {
+		t.Errorf("the create stored %d rows, want 1", after-before)
+	}
+}
+
+// answerText is every text of an answer, for finding a reason wherever
+// dxlib puts it.
+func answerText(answer map[string]any) string {
+	var b strings.Builder
+	for _, v := range answer {
+		if s, ok := v.(string); ok {
+			b.WriteString(s)
+			b.WriteString(" ")
+		}
+	}
+	return b.String()
+}
 `

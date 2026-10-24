@@ -1,0 +1,84 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.3.schema.json
+decisions:
+  ADR-180:
+    title: The generated dxlib service applies the rows rules itself, as a condition over the caller's roles and properties that a Caller the service implements supplies, on the list, the read by key and the create, rather than through the database's row security
+    status: accepted
+    date: "2026-10-24"
+    context: |
+      generate sql writes a row security policy per rows rule on
+      PostgreSQL (ADR-095), reading the caller's properties from
+      connection settings and binding the policy to a database role. The
+      service generate go-dxlib writes connects as the tables' owner,
+      which row security does not bind, sets no setting and takes no role,
+      so its list, read and create answered and changed the rows of every
+      tenant. Two ways close it: the handler filters by the rule, or each
+      request runs in a transaction that sets SET LOCAL ROLE and SET LOCAL
+      specarch.caller.<property> so that the policies apply.
+    decision: |
+      - The generated file declares Caller, an interface with
+        HasRole(nameId string) bool, the role's name id as Roles names it,
+        and one method per caller property named after it in Go, typed as
+        the property, a pointer for a nullable one. The service writes
+        callerOf(aepr) (Caller, error) beside the file, from its session;
+        the compiler names it when it is missing, as it names a body.
+      - Per entity with a rows rule the file declares rows<Entity>(Caller),
+        the condition the rows a caller reaches meet and its parameters:
+        the rule of every role the caller holds, joined with OR; no
+        condition when a role the caller holds has no rule over the
+        entity; and no row when the caller holds none of the roles. Each
+        rule is written in SQL that every engine dxlib serves reads: the
+        entity's fields as their columns, a comparison as =, <>, <, <=,
+        >, >=, a comparison with null as IS NULL or IS NOT NULL, &&, ||
+        and ! as AND, OR and NOT, a boolean field alone as the field
+        equal to true, and every caller property and every literal a
+        bound parameter, so that no value is ever written into the SQL.
+      - The list adds the condition to the builder it pages with
+        (DoRequestSearchPagingList), the read by key selects the row by
+        its key and the condition, so a record outside the rows answers
+        the entity's not found, and the create inserts in a transaction,
+        selects the new row by its key and the condition, and when the
+        row is not found rolls back and answers 403 with
+        <ENTITY>_OUTSIDE_ROWS: the WITH CHECK side.
+      - A rule outside that subset (arithmetic, a function, a comparison
+        with no column on either side) is applied nowhere for its entity:
+        the entity's handlers stay unfiltered and every rule over it keeps
+        the warning, with the reason. Any other operation over the entity
+        and every job acting as a role on it keep the warning too; when
+        the entity's rules are applied, the operation's warning names
+        rows<Entity> for its body.
+    why: |
+      The filter works on every engine dxlib serves, where the database's
+      row security exists only on PostgreSQL and generate sql writes no
+      policy elsewhere, saying the service's own filter is the only one.
+      A caller holding several roles reaches the union of their rows
+      (ADR-095), and SET LOCAL ROLE takes one role, so the policies' union
+      would need a database role per combination. dxlib's paging list
+      takes a builder the handler builds, and the builder binds named
+      parameters, so the filter needs nothing dxlib lacks; the policies
+      would need every statement of the request, the count of the paging
+      list included, inside one transaction, which dxlib's paging does not
+      open. The rule is written once in SQL rather than once in SQL for
+      the read and once in Go for the create, so a stored default, a NULL
+      and a comparison mean in the create what they mean in the read and
+      in the policy, as WITH CHECK does; the cost is an insert rolled
+      back. The engine is chosen when the service runs, so the condition
+      keeps to the SQL every engine reads, and values travel as parameters
+      because a value written into SQL text can change the statement. The
+      policies stay: a connection that takes the
+      role and sets the properties, such as a reporting tool, is still
+      bound by them.
+    consequences: |
+      A tenant-scoped specification generates a service that answers each
+      caller only the rows of the roles they hold, on any engine, with the
+      service writing one function from its session. The round trip runs
+      two tenants through it on PostgreSQL. A rule outside the subset, and
+      every operation whose body the service writes, still warns, so the
+      gap is seen where it is. Engines run the condition as the builder
+      sends it, so a column whose name an engine reserves would need the
+      mapping of another name.
+    cites:
+      - source: postgresql-row-security
+        says: "Superusers and roles with the BYPASSRLS attribute always bypass the row security system when accessing a table. Table owners normally bypass row security as well, though a table owner can choose to be subject to row security with ALTER TABLE ... FORCE ROW LEVEL SECURITY."
+      - source: owasp-authorization
+        says: "Deny by default, enforce authorisation on every record a caller names, and do not reveal through the answer whether a record the caller may not reach exists."
+    satisfies: [SA-3, SA-5]

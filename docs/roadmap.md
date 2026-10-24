@@ -373,6 +373,13 @@ Not planned until a project asks: interfaces beyond HTTP, messaging and the
 command line; sets and lists in the expression language; seed data per
 profile; more than one deliverable per specification.
 
+Not built: meta-model 1.0.0, the first stable version, with what it
+freezes, what a 1.x may add, the deprecation rule, the reading of 0.3
+beside it until 2.0.0 and `specarch upgrade`, designed in
+`docs/meta-model-1.0.0.md` and waiting on the five questions at its end.
+It takes the place of the breaking meta-model 0.4 that
+`docs/decision-tracking-2026-10-25.md` plans.
+
 Built, 0.6.2 to 0.7.0: an estate of many modules, each specified on its own
 by a team that may only read the code, as `docs/estate.md` designs it, all
 fourteen of its items (ADR-098 to ADR-124): a dump committed outside the

@@ -1,0 +1,7 @@
+arguments: [generate, ui, --unapproved, project]
+exitStatus: 1
+standardOutput: |
+  project/specarch.yaml:34:13: error: /pages/branches/source: generator: branches pages through the paginated-list idiom, which the implementation file excludes; keep the idiom [generator@specarch.yaml#/pages/branches/source]
+  project/specarch.yaml:1:1: warning: /: generator: the ui target's settings.server.pages names listAllBranches, which no list page reads; its route forwards it whole [generator.fab0c4d6@specarch.yaml#/]
+  project/specarch.yaml:1:1: error: /: generator: the ui target's settings.server has the server routes page a list by the paginated-list idiom's names, which the implementation file excludes, so server/settings.ts has no names to page by; keep the idiom [generator.74253663@specarch.yaml#/]
+plugins: [ui-typescript]

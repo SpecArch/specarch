@@ -1123,7 +1123,8 @@ session opens lands on the application's origin. A GET named under
 `listOf`, is read whole and answered a page at a time in the paginated-list
 idiom's envelope, at the page size and maximum given there, by the idiom's
 names, which the plug-in gets whether or not the design has a `listOf`, so
-`server/settings.ts` never writes an empty name; the list that reads it
+`server/settings.ts` never writes an empty name, and a file that excludes
+the idiom beside `settings.server` is refused; the list that reads it
 offers no sort, search or filter but its query parameters. A
 service variable starting `NEXT_PUBLIC_`, which Next.js sends the browser,
 a page under the routes' path, and a paged operation that pages itself or

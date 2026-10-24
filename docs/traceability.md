@@ -82,7 +82,7 @@ Version 0.7.6-dev of the specification: 10 needs, 94 requirements, and 1 gap. Ea
 | SA-53 | NEED-2 | decisions ADR-068; decisions ADR-082 | tests generate-ui-typescript; tests generate-ui-typescript-refused; tests generate-ui-typescript-wire-names |
 | SA-54 | NEED-2 | decisions ADR-069; decisions ADR-079 | tests generate-ui-typescript; tests generate-ui-typescript-refused; tests generate-ui-typescript-value-objects; tests generate-ui-typescript-value-objects-refused |
 | SA-55 | NEED-2 | decisions ADR-071 | tests generate-ui-typescript; tests generate-ui-typescript-refused |
-| SA-56 | NEED-2 | decisions ADR-074 | tests generate-ui-typescript; tests generate-ui-typescript-paged-whole; tests generate-ui-typescript-refused |
+| SA-56 | NEED-2 | decisions ADR-074 | tests generate-ui-typescript; tests generate-ui-typescript-paged-whole; tests generate-ui-typescript-paged-whole-refused; tests generate-ui-typescript-refused |
 | SA-57 | NEED-10 | decisions ADR-083 |   |
 | SA-58 | NEED-3, NEED-10 | commands generate; decisions ADR-085; decisions ADR-139 | tests extract-workflows-reads-generated-bpmn; tests extract-workflows-reads-generated-last-approval; tests generate-bpmn; tests generate-bpmn-approved |
 | SA-59 | NEED-3, NEED-8 | commands generate; decisions ADR-086 | tests generate-draft-open-questions; tests generate-skips-no-output-folder; tests generate-sql-refuses-draft-migration |

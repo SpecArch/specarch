@@ -1,0 +1,37 @@
+specarch: "0.1"
+info: { title: Branches, version: 1.0.0, name: branches }
+stages: [implementation]
+permissions:
+  public: { description: Open to everyone. }
+entities:
+  Branch:
+    type: object
+    properties:
+      id: { type: string, format: uuid, readOnly: true }
+      name: { type: string, title: Name, minLength: 1, maxLength: 100 }
+      city: { type: string, title: City, maxLength: 100 }
+    required: [id, name]
+    primaryKey: [id]
+paths:
+  /branches/all:
+    get:
+      operationId: listAllBranches
+      summary: Every branch, answered whole
+      permission: public
+      responses:
+        "200":
+          description: The branches.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/entities/Branch" } }
+pages:
+  branches:
+    kind: list
+    title: Branches
+    route: /branches
+    entity: Branch
+    permission: public
+    source: listAllBranches
+    columns: [name, city]
+    states:
+      empty: { message: No branch yet. }

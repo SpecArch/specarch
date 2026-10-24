@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: generate
+level: system
+scenario: red
+covers: [exit 1]
+given: "the specification of generate-ui-typescript-paged-whole, with no listOf and a list read whole and paged by the server, whose implementation file excludes the paginated-list idiom beside settings.server, and specarch-gen-ui-typescript built from this repository on PATH"
+when: "generate ui is run with --unapproved"
+then: "it reports, under the settings, that the server routes page by the paginated-list idiom's names, which the file excludes, and at the list page's source that the page pages through the excluded idiom, writes server/settings.ts without the names rather than with empty ones, writes every other file as a draft with the errors marked, and exits 1"
+verifies: [SA-56]

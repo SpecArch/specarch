@@ -249,23 +249,31 @@ func (g *gen) serverFiles(srv *server, header string) []genui.File {
 	for _, h := range sortedKeys(anyBool(headers)) {
 		names = append(names, str(h))
 	}
+	// The names a route pages by: the paginated-list idiom's, which the
+	// request carries whether or not the design has a listOf, so they are
+	// missing only when the implementation file excludes the idiom; the
+	// member is then left out and reported, never written empty.
 	wire := g.ListNames()
-	settings := object([]member{
+	settings := []member{
 		{Key: "routes", Val: str(srv.routes)},
 		{Key: "service", Val: raw("process.env." + srv.service + " ?? \"\"")},
 		{Key: "cookie", Val: str(srv.cookie)},
 		{Key: "header", Val: str(srv.header)},
 		{Key: "scheme", Val: str(srv.scheme)},
 		{Key: "headers", Val: array(names)},
-		{Key: "wire", Val: object([]member{
+	}
+	if wire["page"] == "" || wire["pageSize"] == "" || wire["items"] == "" || wire["totalItems"] == "" || wire["totalPages"] == "" {
+		g.Problem("error", "/", "the ui target's settings.server has the server routes page a list by the paginated-list idiom's names, which the implementation file excludes, so server/settings.ts has no names to page by; keep the idiom")
+	} else {
+		settings = append(settings, member{Key: "wire", Val: object([]member{
 			{Key: "page", Val: str(wire["page"])}, {Key: "pageSize", Val: str(wire["pageSize"])},
 			{Key: "items", Val: str(wire["items"])}, {Key: "totalItems", Val: str(wire["totalItems"])}, {Key: "totalPages", Val: str(wire["totalPages"])},
-		})},
-	})
+		})})
+	}
 	var b strings.Builder
 	b.WriteString("import type { ServerSettings } from \"./forward\";\n\n")
 	b.WriteString("/**\n * Where the server routes answer and forward, how they carry the session's\n * token to the service, and the request headers they send on.\n */\n")
-	b.WriteString(statement("export const server: ServerSettings = ", settings, ";"))
+	b.WriteString(statement("export const server: ServerSettings = ", object(settings), ";"))
 	if len(services) > 0 {
 		b.WriteString("\n/** Where the server routes forward a call to another module, by the dependency that names it. */\n")
 		b.WriteString(statement("export const services: Record<string, ServerSettings> = ", object(services), ";"))

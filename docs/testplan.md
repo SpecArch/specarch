@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.6-dev of the specification: 725 design tests, 358 golden and 367 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.6-dev of the specification: 726 design tests, 358 golden and 368 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.7.6-dev of the specification: 725 design tests, 358 golden and 367 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 721 |
+| system | 722 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -2988,6 +2988,14 @@ Scenario: golden; level: system; verifies SA-56.
 - Given: a specification with no listOf, whose one list page reads a GET that answers every branch whole, a Next.js ui target whose settings.server.pages names that operation with a page size and maximum, and specarch-gen-ui-typescript built from this repository on PATH
 - When: generate ui is run with --unapproved
 - Then: it writes the route that pages the list and server/settings.ts with the paginated-list idiom's names on the wire, none empty, so that tests/server.test.ts pages by them, and exits 0
+
+#### generate-ui-typescript-paged-whole-refused
+
+Scenario: red; level: system; covers exit 1; verifies SA-56.
+
+- Given: the specification of generate-ui-typescript-paged-whole, with no listOf and a list read whole and paged by the server, whose implementation file excludes the paginated-list idiom beside settings.server, and specarch-gen-ui-typescript built from this repository on PATH
+- When: generate ui is run with --unapproved
+- Then: it reports, under the settings, that the server routes page by the paginated-list idiom's names, which the file excludes, and at the list page's source that the page pages through the excluded idiom, writes server/settings.ts without the names rather than with empty ones, writes every other file as a draft with the errors marked, and exits 1
 
 #### generate-ui-typescript-refused
 

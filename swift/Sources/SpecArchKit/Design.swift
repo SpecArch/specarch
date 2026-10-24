@@ -720,7 +720,7 @@ extension Checker {
             let entNode = pg.child("entity")
             let ent = str(entNode)
             let kind = str(pg.child("kind"))
-            if kind != "content" && pg.child("blocks") != nil {
+            if kind != "" && kind != "content" && pg.child("blocks") != nil {
                 add(pg.key("blocks"), pointer(base + ["blocks"]), .page, "\(name) is a \(kind), and blocks are what a content page shows; leave them out")
             }
             if kind == "task" {

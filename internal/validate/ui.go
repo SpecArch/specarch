@@ -183,8 +183,9 @@ func (c *checker) checkTaskPage(d *design, name string, pg *yaml.Node) {
 // entity, source or submit, since it loads and sends nothing; no fields,
 // sections, columns or filters, which show a record's fields; no actions,
 // since its links are link blocks; a route without parameters, since no
-// record gives them; and each link to a page of the specification whose
-// route takes none.
+// record gives them; each link to a page of the specification whose route
+// takes none; and one label for one place. The other keys of a form, a
+// list or a task are refused by the checks of those keys.
 func (c *checker) checkContentPage(d *design, name string, pg *yaml.Node) {
 	base := []string{"pages", name}
 	for _, k := range []struct{ key, why string }{
@@ -204,8 +205,25 @@ func (c *checker) checkContentPage(d *design, name string, pg *yaml.Node) {
 	if ps := routeParams(source.Str(source.Child(pg, "route"))); len(ps) > 0 {
 		c.add(source.Child(pg, "route"), source.Pointer(append(base, "route")...), RulePage, "%s is a content page, which has no record to give {%s}; take the parameter out of its route", name, strings.Join(ps, "} and {"))
 	}
+	// A label names one place: two links of one label that lead apart
+	// cannot be told apart by a reader, nor by a flow step, which follows
+	// the first.
+	type labelled struct {
+		block  int
+		target string
+	}
+	labels := map[string]labelled{}
 	for i, b := range source.Items(source.Child(pg, "blocks")) {
-		nav := source.Child(source.Child(b, "link"), "page")
+		link := source.Child(b, "link")
+		if label := source.Child(link, "label"); label != nil {
+			target := source.Str(source.Child(link, "page")) + " " + source.Str(source.Child(link, "href"))
+			if first, ok := labels[label.Value]; !ok {
+				labels[label.Value] = labelled{i, target}
+			} else if first.target != target {
+				c.add(label, source.Pointer(append(base, "blocks", fmt.Sprint(i), "link", "label")...), RulePage, "%s has links labelled %s at blocks %d and %d that lead to different places, so a reader cannot tell them apart (WCAG 2.2, 2.4.4) and a flow step follows only the first; give each its own label", name, label.Value, first.block, i)
+			}
+		}
+		nav := source.Child(link, "page")
 		if nav == nil {
 			continue
 		}

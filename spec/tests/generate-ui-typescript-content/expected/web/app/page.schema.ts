@@ -9,7 +9,7 @@ export const schema = {
   blocks: [
     { kind: "heading", level: 2, text: "home.blocks.0.text" },
     { kind: "text", text: "home.blocks.1.text" },
-    { kind: "image", path: "images/studio.jpg", alternativeText: "home.blocks.2.alternativeText" },
+    { kind: "image", path: "/images/studio.jpg", alternativeText: "home.blocks.2.alternativeText" },
     { kind: "heading", level: 3, text: "home.blocks.3.text" },
     { kind: "link", page: "contact", label: "home.blocks.4.label" },
     { kind: "link", href: "https://example.org/map", label: "home.blocks.5.label" },

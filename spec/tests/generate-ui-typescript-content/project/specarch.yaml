@@ -48,6 +48,13 @@ pages:
     permission: clients.read
     blocks:
       - text: What we share with our clients.
+  team:
+    kind: content
+    title: Our team
+    route: /about/team
+    permission: public
+    blocks:
+      - image: { path: images/team.jpg, alternativeText: "The four of us in front of the workshop." }
   contact:
     kind: task
     title: Contact us
@@ -63,6 +70,7 @@ menus:
     items:
       home: { title: Home, page: home }
       clients: { title: Clients, page: clients }
+      team: { title: Team, page: team }
 flows:
   write-to-the-studio:
     description: A visitor follows the link on the home page and sends an enquiry.

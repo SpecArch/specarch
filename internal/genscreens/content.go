@@ -37,7 +37,9 @@ func (g *Gen) ContentPage(pageName string, pg map[string]any) (*Page, bool) {
 		case "text":
 			entry = []Member{{"kind", Str("text")}, {"text", Str(g.Say(key+".text", b.Text))}}
 		case "image":
-			entry = []Member{{"kind", Str("image")}, {"path", Str(b.Path)}, {"alternativeText", Str(g.Say(key+".alternativeText", b.Text))}}
+			// The path is the site root's; a browser reads a relative src
+			// against the page's own route, so it is written from the root.
+			entry = []Member{{"kind", Str("image")}, {"path", Str("/" + b.Path)}, {"alternativeText", Str(g.Say(key+".alternativeText", b.Text))}}
 		case "link":
 			entry = []Member{{"kind", Str("link")}}
 			if b.Page != "" {

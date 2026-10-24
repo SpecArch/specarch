@@ -1,0 +1,6 @@
+page: team
+level: system
+scenario: golden
+given: "any caller, signed in or not"
+when: "the page team is opened at /about/team"
+then: "it shows the title Our team and the image of the four of us with its text, loaded from images/team.jpg at the site's root"

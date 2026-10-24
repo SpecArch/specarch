@@ -110,8 +110,9 @@ extension Checker {
     /// submit, since it loads and sends nothing; no fields, sections, columns
     /// or filters, which show a record's fields; no actions, since its links
     /// are link blocks; a route without parameters, since no record gives
-    /// them; and each link to a page of the specification whose route takes
-    /// none.
+    /// them; each link to a page of the specification whose route takes none;
+    /// and one label for one place. The other keys of a form, a list or a
+    /// task are refused by the checks of those keys.
     func checkContentPage(_ d: Design, _ name: String, _ pg: YNode) {
         let base = ["pages", name]
         for (key, why) in [
@@ -130,8 +131,23 @@ extension Checker {
         if !own.isEmpty {
             add(pg.child("route"), pointer(base + ["route"]), .page, "\(name) is a content page, which has no record to give {\(own.joined(separator: "} and {"))}; take the parameter out of its route")
         }
+        // A label names one place: two links of one label that lead apart
+        // cannot be told apart by a reader, nor by a flow step, which follows
+        // the first.
+        var labels: [String: (block: Int, target: String)] = [:]
         for (i, b) in items(pg.child("blocks")).enumerated() {
-            guard let nav = b.child("link")?.child("page") else { continue }
+            let link = b.child("link")
+            if let label = link?.child("label") {
+                let target = str(link?.child("page")) + " " + str(link?.child("href"))
+                if let first = labels[label.value] {
+                    if first.target != target {
+                        add(label, pointer(base + ["blocks", "\(i)", "link", "label"]), .page, "\(name) has links labelled \(label.value) at blocks \(first.block) and \(i) that lead to different places, so a reader cannot tell them apart (WCAG 2.2, 2.4.4) and a flow step follows only the first; give each its own label")
+                    }
+                } else {
+                    labels[label.value] = (i, target)
+                }
+            }
+            guard let nav = link?.child("page") else { continue }
             let at = base + ["blocks", "\(i)", "link", "page"]
             guard let target = d.pages[nav.value] else {
                 add(nav, pointer(at), .page, "\(nav.value) is not a page of the specification\(suggest(nav.value, d.pages))")

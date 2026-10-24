@@ -1719,7 +1719,7 @@ Each block is exactly one of four:
 |---|---|
 | `heading` | `level`, 1 to 6, and `text`; the page's title is level 1 |
 | `text` | a paragraph |
-| `image` | `path`, where the project serves it beside the screens, and `alternativeText` |
+| `image` | `path`, where the project serves it, relative to the site's root (no scheme, no leading `/`, no `.` or `..` folder, so it stays on the site), and `alternativeText` |
 | `link` | `page`, a page of the specification, or `href`, an address outside it (https, http or mailto only), and `label` |
 
 A content page has no `entity`, `source`, `submit`, `fields`,
@@ -1727,8 +1727,12 @@ A content page has no `entity`, `source`, `submit`, `fields`,
 its one meaning, a form's or a view's fields in titled groups, and a
 link to another page is a link block. Its route takes no parameter, and
 a link opens a page that exists and whose route takes none, since no
-record gives a parameter (`page`, `flow`). `blocks` on any other kind is
-refused (`page`).
+record gives a parameter (`page`, `flow`). Two links of one label lead
+to one place: a reader tells links apart by their labels (WCAG 2.2,
+2.4.4), and a flow step follows the first link of its label (`page`).
+`blocks` on any other kind is refused (`page`). A web generator writes
+an image's path from the site's root, so a page on a nested route such
+as `/about/team` loads `images/team.jpg` from `/images/team.jpg`.
 
 Every text of a block is a string key of the page, translated as its
 title is: a web generator writes the heading's and the paragraph's text,

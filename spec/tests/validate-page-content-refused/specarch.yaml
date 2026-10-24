@@ -68,6 +68,23 @@ pages:
     fields: [name]
     blocks:
       - text: A paragraph on a view.
+  about:
+    kind: content
+    title: About us
+    route: /about
+    permission: public
+    blocks:
+      - image: { path: "//other.example/studio.jpg", alternativeText: The studio. }
+      - image: { path: ../studio.jpg, alternativeText: The studio. }
+      - link: { page: home, label: More }
+      - link: { href: "https://example.org/more", label: More }
+      - link: { page: home, label: More }
+  no-kind:
+    title: No kind
+    route: /no-kind
+    permission: public
+    blocks:
+      - text: A paragraph on a page of no kind.
 flows:
   follow-a-link:
     description: A visitor follows a link that the page does not have.

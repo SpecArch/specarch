@@ -2,7 +2,7 @@
 command: generate
 level: system
 scenario: golden
-given: "a specification with a public content page of two headings, a paragraph, an image with its text and links to a task page and to an address outside, a content page that needs clients.read, the task page and a menu; an implementation file whose ui target is platform web in nextjs-carbon; and specarch-gen-ui-typescript built from this repository on PATH"
+given: "a specification with a public content page of two headings, a paragraph, an image with its text and links to a task page and to an address outside, a content page that needs clients.read, a public content page on the nested route /about/team with an image, the task page and a menu; an implementation file whose ui target is platform web in nextjs-carbon; and specarch-gen-ui-typescript built from this repository on PATH"
 when: "generate ui is run with --unapproved"
-then: "it writes each content page as a schema of its title, permission and blocks, every text a string key in strings.ts, and a page.tsx drawing ContentPage with the routes its links open, the page that needs clients.read inside the Guard with its derived refusal test and a warning that its text reaches the browser, and exits 0"
+then: "it writes each content page as a schema of its title, permission and blocks, every text a string key in strings.ts and every image path written from the site's root, so /about/team loads /images/team.jpg, and a page.tsx drawing ContentPage with the routes its links open, the page that needs clients.read inside the Guard with its derived refusal test and a warning that its text reaches the browser, and exits 0"
 verifies: [SA-92]

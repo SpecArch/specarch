@@ -3,7 +3,7 @@ command: validate
 level: system
 scenario: red
 covers: [exit 1]
-given: "a specification that names its accessibility target, with a content page that names an entity, a submit, fields, sections and actions and whose blocks hold a heading that skips a level, an image without its text, a link to no page, a link without a label and a link to a page whose route takes a parameter; a content page with no blocks; one whose route takes a parameter; a view with blocks; and a flow that follows a link the page does not have"
+given: "a specification that names its accessibility target, with a content page that names an entity, a submit, fields, sections and actions and whose blocks hold a heading that skips a level, an image without its text, a link to no page, a link without a label and a link to a page whose route takes a parameter; a content page with no blocks; a content page whose images are served from another host (//) and from above the site's root (..) and whose links of one label lead to two places; one whose route takes a parameter; a view with blocks; a page with blocks and no kind, reported by the schema alone; and a flow that follows a link the page does not have"
 when: "validate is run"
-then: "it reports page at each of the five keys, at the link to no page, at the route and at the view's blocks, accessibility at the heading, the image and the link, flow at the link to the page with a parameter and at the flow's step, the schema at the page with no blocks, and exits 1"
+then: "it reports page at each of the five keys, at the link to no page, at the route at the view's blocks and at the second link of the repeated label, the schema at both image paths, accessibility at the heading, the image and the link, flow at the link to the page with a parameter and at the flow's step, the schema at the page with no blocks, and exits 1"
 verifies: [SA-42]

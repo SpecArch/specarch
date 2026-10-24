@@ -27,6 +27,7 @@ export const strings = {
   "home.title": "Welcome",
   "menu.main.items.clients": "Clients",
   "menu.main.items.home": "Home",
+  "menu.main.items.team": "Team",
   "menu.main.title": "Studio",
   "screens.actions": "Actions",
   "screens.addItem": "Add an item",
@@ -67,6 +68,8 @@ export const strings = {
   "screens.search": "Search",
   "screens.step": "Use a multiple of {count}.",
   "screens.yes": "Yes",
+  "team.blocks.0.alternativeText": "The four of us in front of the workshop.",
+  "team.title": "Our team",
 } as const;
 
 export type StringKey = keyof typeof strings;

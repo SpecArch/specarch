@@ -16,6 +16,7 @@ export const application: Application = {
       items: [
         { title: "menu.main.items.clients", route: "/clients", permission: "clients.read" },
         { title: "menu.main.items.home", route: "/", permission: "public" },
+        { title: "menu.main.items.team", route: "/about/team", permission: "public" },
       ],
     },
   ],

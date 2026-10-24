@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: requirements specification
 
-Version 0.7.6-dev of the specification: 5 stakeholders, 10 needs and 93 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
+Version 0.7.6-dev of the specification: 5 stakeholders, 10 needs and 94 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -34,7 +34,7 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | Need | Statement | Stakeholders | Status | Refined by |
 |---|---|---|---|---|
 | NEED-1 | I want a specification that cannot quietly be wrong, so that the code built from it is right. | specification-author, implementer | accepted | SA-33, SA-34, SA-35, SA-47, SA-48, SA-50, SA-75, SA-77, SA-82, SA-83, SA-84, SA-91, SA-72, SA-1, SA-2, SA-3, SA-4, SA-5, SA-6, SA-51 |
-| NEED-2 | I want to write a design once and build it in more than one language. | implementer | accepted | SA-33, SA-34, SA-36, SA-37, SA-38, SA-39, SA-40, SA-41, SA-42, SA-43, SA-80, SA-81, SA-52, SA-53, SA-54, SA-55, SA-56, SA-49, SA-62, SA-63, SA-65, SA-66, SA-70, SA-77, SA-78, SA-82, SA-83, SA-84, SA-88, SA-89, SA-91, SA-92, SA-93, SA-46, SA-61, SA-71, SA-87, SA-32, SA-9, SA-10 |
+| NEED-2 | I want to write a design once and build it in more than one language. | implementer | accepted | SA-33, SA-34, SA-36, SA-37, SA-38, SA-39, SA-40, SA-41, SA-42, SA-43, SA-80, SA-81, SA-52, SA-53, SA-54, SA-55, SA-56, SA-49, SA-62, SA-63, SA-65, SA-66, SA-70, SA-77, SA-78, SA-82, SA-83, SA-84, SA-88, SA-89, SA-91, SA-92, SA-93, SA-94, SA-46, SA-61, SA-71, SA-87, SA-32, SA-9, SA-10 |
 | NEED-3 | I want the documents and diagrams to come from the specification, so they never drift from it. | reviewer, specification-author | accepted | SA-22, SA-36, SA-67, SA-75, SA-77, SA-82, SA-83, SA-84, SA-88, SA-91, SA-7, SA-8, SA-26, SA-16, SA-58, SA-59, SA-60, SA-90, SA-19, SA-74 |
 | NEED-4 | I want a big specification split over many files, each about one thing, so I can find what I am looking for. | specification-author, reviewer | accepted | SA-11, SA-2 |
 | NEED-5 | I want the whole life of the system in one place, from the first requirement to the day it is accepted. | reviewer, operator | accepted | SA-35, SA-47, SA-68, SA-26, SA-16, SA-90, SA-12, SA-23, SA-24, SA-25, SA-73 |
@@ -95,6 +95,7 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | SA-91 | functional | must | accepted | A specification shall be able to say a tenant scope once, as tenant with the caller's property, the key every tenant-owned entity carries and the entities every tenant reads whole; the document as read shall hold the rows rule of every role over every entity that carries the key, except where the role writes its own, and specarch validate shall refuse in both builds an entity that no rule limits and that the scope does not name as shared. |
 | SA-92 | functional | should | accepted | specarch generate ui shall write the content pages of a specification for the web, in plain JavaScript through specarch-gen-ui and on Next.js and Carbon through specarch-gen-ui-typescript, from one reading of their blocks, with every text a string key on Next.js; specarch-gen-ui-swiftui shall refuse them by name and write nothing for them. |
 | SA-93 | functional | must | accepted | A specification shall be able to say how a person signs in at an identity provider, as signIn with OpenID Connect's authorisation code flow and PKCE, its provider, client, callback, identity token and back-channel logout, and navigate to signIn from a task page's answer or an action's then; specarch validate shall check every reference in both builds, derive the callback's refusals, and the UI generators and the technical specification shall write the flow, with the provider's issuer, keys and client_id the deployment's. |
+| SA-94 | functional | must | accepted | specarch generate ui shall write, for a custom page, the route, the guard and the menu entry, and import the screen from a file the project writes, named in the generated output, so that a missing screen fails the build or the load and never shows a blank page; generate --check shall compare nothing of the project's file, and the technical specification and the manual shall list the page as the project's own screen. |
 | SA-7 | functional | must | accepted | specarch document and specarch generate shall write only into the folder the target owns, and with --check shall fail when the committed output differs. |
 | SA-8 | functional | must | accepted | Every generated file shall name its source specification, version and meta-model, and a hand-written Markdown document shall change only between its markers. |
 | SA-26 | functional | should | accepted | specarch document shall write the change and defect register and the release notes from the records beside a specification, kept current with --check like the other documents. |
@@ -411,6 +412,7 @@ Acceptance criteria:
 - A form or a task page may check rules across the fields it shows, each an expression giving true or false with a message in a full sentence, and name fields a person types twice; on a task the fields are the properties of the request body it shows. Checks or fields entered twice on any other kind of page are refused (form_field), and so are a check's field or a field entered twice that the page does not show, a message that is not a sentence, and an expression that does not parse, names what the page does not show or does not give true or false (form_field and the expression rules), and each way a check breaks and each field entered twice differently is a derived case of the page.
 - The techspec's screen-flow diagram draws every event, each answer of a task page under its status, and each flow is drawn as its steps.
 - A content page shows blocks under its title, each a heading with its level, a paragraph, an image with its path and alternative text, or a link to a page of the specification or to an https, http or mailto address with its label. It has no entity, source, submit, fields, sections, columns, filters or actions, its route takes no parameter, and a link opens a page that exists and whose route takes none; anything else, and blocks on another kind of page, is refused (page, flow). With an accessibility target, an image without its text, a link without its label and a heading that skips a level are refused (accessibility). A flow's step takes the action of a link by its label. Its derived cases are those of any page that opens: the golden case, and denied without its permission and with an expired session when it is not public.
+- A custom page names a screen the project builds by hand: route, title, permission, an optional entity and an optional description. It has no source, submit, fields, sections, columns, compactColumns, filters, blocks, childRows, onSubmitted, onSelect, pickers, fieldConditions, checks, enteredTwice, states or inbox, and its actions are of kind navigate only; anything else is refused (page). Its route may take parameters. A flow's step on it takes the action of a navigate action by its label. Its derived cases are those of any page that opens.
 
 **Insight:** Left out of the design, where a person goes after each step is decided by whoever builds the screen, so screens of one application drift apart, and no reviewer sees the flow until it runs.
 
@@ -907,6 +909,22 @@ Acceptance criteria:
 - The generated go-dxlib handler of the callback names its body as every operation does, and the technical specification shows the flow as a sequence diagram, the checks with the clause that asks for each, and the six security events.
 
 **Insight:** An information system with single sign-on had no element for the redirect, the callback, the state, the nonce and the identity token's checks, so the flow and its refusals were written by hand, untraced and untested by anything the specification produced (ADR-182).
+
+### SA-94
+
+specarch generate ui shall write, for a custom page, the route, the guard and the menu entry, and import the screen from a file the project writes, named in the generated output, so that a missing screen fails the build or the load and never shows a blank page; generate --check shall compare nothing of the project's file, and the technical specification and the manual shall list the page as the project's own screen.
+
+Kind: functional; priority: must; status: accepted; verified by test; refines NEED-2.
+
+Acceptance criteria:
+
+- specarch-gen-ui-typescript writes app/<route>/page.tsx drawing the default export of ./custom/<page> inside the Guard, with the schema of its title and permission, the route's parameters and the routes of its actions, and the derived refusal test when it needs a permission.
+- specarch-gen-ui-swiftui writes <Page>View drawing <Page>Screen, a view the app declares, inside the Guard, with the schema, the route's parameters and the routes of its actions.
+- specarch-gen-ui writes <page>.html, which says which module did not load until it shows, and <page>.js, which imports custom/<page>.js and calls its show; pages.js names that module, and a custom page that needs a permission is warned of at its permission, since these files have no route guard.
+- generate --check passes with the project's file in the output folder and compares nothing of it.
+- The technical specification lists a custom page as the project's own screen with its description, and the manual says it is built by hand, what it is for and where its actions lead.
+
+**Insight:** An editor or a live view is built by hand, and without a page kind for it the screen had no route, guard, menu entry, flow or derived test in the design (ADR-183).
 
 ### SA-7
 

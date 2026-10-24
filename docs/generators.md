@@ -768,6 +768,19 @@ out. A content page that needs a permission is refused at its
 page's text inside and no route guard, so nothing would keep the text
 from who lacks the permission.
 
+A custom page is `<page>.html`, with the menu, the title and a notice
+that names `custom/<page>.js` and says the screen did not load, and
+`<page>.js`, which imports `show` from `custom/<page>.js`, a module the
+project writes, removes the notice and calls `show` with the page's
+`main` element, the route's parameters and the pages its actions open,
+each with its label (ADR-183). `pages.js` names the module beside the
+page's file. A missing or failing module fails the import, so the
+notice stays and the page is never blank. The generator never writes
+that module, so `generate --check` compares nothing of it. A custom page
+that needs a permission is warned of at its `permission`: these screens
+have no route guard for any page, so the project's module checks the
+session before it shows anything, and the service refuses each call.
+
 A form or a task is `<page>.html` whose fields are native controls, in
 its sections as fieldsets, each with the attributes the browser checks
 from the property's keywords and `required` from the request body
@@ -879,7 +892,14 @@ code as the plain JavaScript generator's (ADR-181), so both refuse the
 same blocks. A content page that needs a permission is drawn inside the
 `Guard`, with the derived refusal test, and warned of: its texts travel
 to the browser with the page, so the guard keeps the page from showing,
-not its text from who reads the files. On a task page, a field is a property of
+not its text from who reads the files. A custom page's schema holds its
+title, its permission and its actions, each label a string key, and its
+`page.tsx` draws the default export of `./custom/<page>`, a module the
+project writes beside it, with the schema, the texts, the route's
+parameters and the routes of its actions, the props `CustomPageProps`
+declares, inside the `Guard` with the derived refusal test when it needs
+a permission (ADR-183); a missing module fails `tsc`, and the generator
+never writes or compares it. On a task page, a field is a property of
 the request body of type string, drawn by the text, email or password field part by its
 format and checked by its keywords before the request is sent; a password
 shows its rules under it. A check across fields is written as a rule in
@@ -1112,7 +1132,10 @@ decimal, which the app compares exactly; a form's hooks come from
 actions are in its swipe and context menus, its sort a toolbar menu of
 the sortable columns, and its page turned under the rows; a view's
 actions that open a page are in its toolbar; an action's confirmation
-is a sheet with the reason it requires. A task page's answer, and a
+is a sheet with the reason it requires. A custom page's view draws
+`<Page>Screen`, a view the app's module declares, inside the guard, with
+its `CustomPageSchema`, the route's parameters and the routes of its
+actions, so a missing screen fails the build (ADR-183). A task page's answer, and a
 list's or a view's operation action once it succeeds, that navigates to
 `signIn` signs in through `IdentityProvider` of
 `Screens/SignIn.swift`: the app sets the issuer and client_id at launch,

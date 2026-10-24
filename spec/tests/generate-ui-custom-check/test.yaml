@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: generate
+level: system
+scenario: golden
+given: "the specification and implementation file of generate-ui-custom, its output folder holding what specarch-gen-ui writes and the three modules the project writes under custom/; and specarch-gen-ui built from this repository on PATH"
+when: "generate ui is run with --check and --unapproved"
+then: "it compares the files the generator writes, none of them differing, compares nothing of the project's modules, prints the two warnings of the pages with no route guard, and exits 0"
+verifies: [SA-94]

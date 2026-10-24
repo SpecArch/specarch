@@ -657,6 +657,8 @@ func (c *checker) checkPages(d *design) {
 			c.checkTaskPage(d, name, pg)
 		} else if kind == "content" {
 			c.checkContentPage(d, name, pg)
+		} else if kind == "custom" {
+			c.checkCustomPage(d, name, pg)
 		} else if isCross(ent) {
 			// A list of another specification: its fields are checked
 			// with the reference.

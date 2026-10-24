@@ -320,6 +320,10 @@ Built, in the order they were built:
 - content pages, ordered blocks of headings, paragraphs, images and
   links that load and send nothing, written by both web generators
   (ADR-181; `spec/tests/validate-page-content`);
+- custom pages, a screen the project builds by hand (an editor, a live
+  view) with its route, guard, menu entry, flows and derived tests in
+  the design, the generated route importing the project's screen
+  (ADR-183; `spec/tests/validate-page-custom`);
 - `signIn`, a person's sign-in at an identity provider with OpenID
   Connect's authorisation code flow and PKCE: the callback's six derived
   refusals and `navigate: signIn`, written by the three UI generators

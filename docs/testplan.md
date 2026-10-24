@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.6-dev of the specification: 704 design tests, 341 golden and 363 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.6-dev of the specification: 713 design tests, 349 golden and 364 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.7.6-dev of the specification: 704 design tests, 341 golden and 363 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 700 |
+| system | 709 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -292,6 +292,14 @@ Scenario: golden; level: system; verifies SA-42.
 - Given: a specification with a session, a public content page whose golden test is written, and a content page that needs clients.read
 - When: derive is run
 - Then: it writes for the second page a golden test that it opens to a caller with clients.read and red tests denied without clients.read and denied with expired session, writes nothing more for the public page, lists them and exits 0
+
+#### derive-page-custom
+
+Scenario: golden; level: system; verifies SA-42.
+
+- Given: a specification with a session, a public custom page whose golden test is written, and a custom page that needs documents.edit on a route that takes the parameter id
+- When: derive is run
+- Then: it writes for the second page a golden test that it opens to a caller with documents.edit and red tests denied without documents.edit and denied with expired session, no case for a record that is not found, since what the screen loads is the project's, writes nothing more for the public page, lists them and exits 0
 
 #### derive-page-elements
 
@@ -661,6 +669,14 @@ Scenario: golden; level: system; verifies SA-42.
 - When: document manual is run
 - Then: it lists each content page with who opens it and where its links lead, says the task page is reached from the link on the content page, and exits 0
 
+#### document-manual-custom
+
+Scenario: golden; level: system; verifies SA-94.
+
+- Given: a specification with a view of a document whose action Edit opens a custom page at /documents/{id}/edit that names its entity, a description and the action Done back to the view, a custom page Drafts that needs documents.edit, a public custom page Live board, a menu over both and a flow through the editor
+- When: document manual is run
+- Then: it writes each custom page with its description, where it is reached from, who may open it, that the screen is built by hand for this system, and where its actions lead, and exits 0
+
 #### document-manual-integer-forms
 
 Scenario: golden; level: system; verifies SA-90.
@@ -852,6 +868,14 @@ Scenario: golden; level: system; verifies SA-16.
 - Given: a specification with a role a job acts as, a role a service client holds, an application client, dependencies of every kind with their protocols, a channel the system emits on through the broker, one a job consumes from it, and one with no carrier
 - When: document techspec is run
 - Then: chapter 3 draws the context: a person per role but the job's and the service client's, reaching the system through the application client, the service client as a system with its role, each dependency in the shape of its kind with its protocol and the names that call it, the broker's channels out and in, and the channel with no carrier at the boundary, and it exits 0
+
+#### document-techspec-custom
+
+Scenario: golden; level: system; verifies SA-94.
+
+- Given: a specification with a view of a document whose action Edit opens a custom page at /documents/{id}/edit that names its entity, a description and the action Done back to the view, a custom page Drafts that needs documents.edit, a public custom page Live board, a menu over both and a flow through the editor
+- When: document techspec is run
+- Then: it lists each custom page in the pages table as the project's own screen, built by hand, with its description, the editor with its entity and the others with none, draws the actions Edit and Done in the pages diagram, and exits 0
 
 #### document-techspec-envelope-stream
 
@@ -2709,6 +2733,22 @@ Scenario: red; level: system; covers exit 1; verifies SA-92.
 - When: generate ui is run with --unapproved
 - Then: it refuses the image and the label-less link by name, refuses the page that needs a permission, since files a server hands to anyone keep its text from no one, writes neither page, and exits 1
 
+#### generate-ui-custom
+
+Scenario: golden; level: system; verifies SA-94.
+
+- Given: a specification with a view of a document whose action Edit opens a custom page at /documents/{id}/edit that names its entity, a description and the action Done back to the view, a custom page Drafts that needs documents.edit, a public custom page Live board, a menu over both and a flow through the editor; an implementation file whose ui target is platform web in plain-javascript; and specarch-gen-ui built from this repository on PATH
+- When: generate ui is run with --unapproved
+- Then: it writes each custom page as <page>.html with the menu, the title and a notice naming custom/<page>.js until it shows, and <page>.js, which imports custom/<page>.js and calls its show with the main element, the route's parameters and the pages its actions open; pages.js names the module beside each custom page's file; it warns at the permission of the two pages that need documents.edit that these files have no route guard, writes no file of the project's, and exits 0
+
+#### generate-ui-custom-check
+
+Scenario: golden; level: system; verifies SA-94.
+
+- Given: the specification and implementation file of generate-ui-custom, its output folder holding what specarch-gen-ui writes and the three modules the project writes under custom/; and specarch-gen-ui built from this repository on PATH
+- When: generate ui is run with --check and --unapproved
+- Then: it compares the files the generator writes, none of them differing, compares nothing of the project's modules, prints the two warnings of the pages with no route guard, and exits 0
+
 #### generate-ui-dxlib
 
 Scenario: golden; level: system; verifies SA-77, SA-43.
@@ -2773,6 +2813,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-92.
 - When: generate ui is run with --unapproved
 - Then: it refuses each content page by name, writes nothing for either and leaves their menu entries out, writes the task page, and exits 1
 
+#### generate-ui-swiftui-custom
+
+Scenario: golden; level: system; verifies SA-94.
+
+- Given: a specification with a view of a document whose action Edit opens a custom page at /documents/{id}/edit that names its entity, a description and the action Done back to the view, a custom page Drafts that needs documents.edit, a public custom page Live board, a menu over both and a flow through the editor; an implementation file whose ui target is platform iphone; and specarch-gen-ui-swiftui built from this repository on PATH
+- When: generate ui is run with --unapproved
+- Then: it writes each custom page as <Page>Schema, a CustomPageSchema of its title, permission and actions, and <Page>View, which draws <Page>Screen, a view the app declares, inside the Guard with the schema, the route's parameters and the routes of its actions, a route case per page and the derived refusal test for the two pages that need documents.edit, and exits 0
+
 #### generate-ui-swiftui-dxlib-refused
 
 Scenario: red; level: system; verifies SA-77.
@@ -2820,6 +2868,14 @@ Scenario: golden; level: system; verifies SA-92.
 - Given: a specification with a public content page of two headings, a paragraph, an image with its text and links to a task page and to an address outside, a content page that needs clients.read, a public content page on the nested route /about/team with an image, the task page and a menu; an implementation file whose ui target is platform web in nextjs-carbon; and specarch-gen-ui-typescript built from this repository on PATH
 - When: generate ui is run with --unapproved
 - Then: it writes each content page as a schema of its title, permission and blocks, every text a string key in strings.ts and every image path written from the site's root, so /about/team loads /images/team.jpg, and a page.tsx drawing ContentPage with the routes its links open, the page that needs clients.read inside the Guard with its derived refusal test and a warning that its text reaches the browser, and exits 0
+
+#### generate-ui-typescript-custom
+
+Scenario: golden; level: system; verifies SA-94.
+
+- Given: a specification with a view of a document whose action Edit opens a custom page at /documents/{id}/edit that names its entity, a description and the action Done back to the view, a custom page Drafts that needs documents.edit, a public custom page Live board, a menu over both and a flow through the editor; an implementation file whose ui target is platform web in nextjs-carbon; the project's own app/board/custom/board.tsx in the output folder; and specarch-gen-ui-typescript built from this repository on PATH
+- When: generate ui is run with --unapproved
+- Then: it writes each custom page as a schema of its title, permission and actions, each label a string key, and a page.tsx that draws the default export of ./custom/<page> with the schema, the texts, the route's parameters and the routes of its actions, inside the Guard with its derived refusal test for the two pages that need documents.edit and without it for the public board; screens/custom.ts declares CustomPageProps; it leaves board.tsx as it is, and exits 0
 
 #### generate-ui-typescript-dxlib
 
@@ -2991,7 +3047,7 @@ Scenario: golden; level: system; verifies SA-32.
 
 - Given: a specification with a list page and three implementation files: one in TypeScript whose ui target is platform web, framework nextjs-carbon, one in JavaScript whose ui target is platform web and names no framework, so plain-javascript, and one in Swift whose ui target is platform iphone and names no framework, so swiftui
 - When: idioms is run
-- Then: it lists ui-components 1.9.0 as shipped for the TypeScript file, whose framework nextjs-carbon is a stack the idiom renders, and for the Swift file, whose framework swiftui by the platform's default is one too, and not for the JavaScript file, and exits 0
+- Then: it lists ui-components 1.10.0 as shipped for the TypeScript file, whose framework nextjs-carbon is a stack the idiom renders, and for the Swift file, whose framework swiftui by the platform's default is one too, and not for the JavaScript file, and exits 0
 
 #### idioms-usage-error
 
@@ -4639,6 +4695,22 @@ Scenario: red; level: system; covers exit 1; verifies SA-42.
 - When: validate is run
 - Then: it reports page at each of the five keys, at the link to no page, at the route at the view's blocks and at the second link of the repeated label, the schema at the three image paths, accessibility at the heading, the image and the link, flow at the link to the page with a parameter and at the flow's step, the schema at the page with no blocks, and exits 1
 
+#### validate-page-custom
+
+Scenario: golden; level: system; verifies SA-42.
+
+- Given: a specification with a view of a document whose action Edit opens a custom page at /documents/{id}/edit that names its entity, a description and the action Done back to the view, a custom page Drafts that needs documents.edit, a public custom page Live board, a menu over both and a flow through the editor, with every derived test written
+- When: validate is run
+- Then: it reports no error, takes the custom page's route parameter, its entity and its navigate action, follows the flow through the action Done, warns only of the red scenarios nothing on the public pages and the session operation can give, and exits 0
+
+#### validate-page-custom-refused
+
+Scenario: red; level: system; covers exit 1; verifies SA-42.
+
+- Given: a specification with a custom page that names a source, a submit, fields, sections, columns, compactColumns, filters, checks, enteredTwice, childRows, fieldConditions, an inbox, blocks, states, onSubmitted and an action of kind operation beside one of kind navigate; a custom page whose entity is not one of the specification; and a public custom page
+- When: validate is run
+- Then: it reports page at source, submit, fields, sections, columns, filters and states and at the operation action's kind, each other key once by the check that already refuses it on a page of another kind, ref_type at the unknown entity, takes the route's parameter and the navigate action, and exits 1
+
 #### validate-page-elements-unresolved
 
 Scenario: red; level: system; covers exit 1; verifies SA-42.
@@ -5715,7 +5787,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-402 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+408 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -5792,6 +5864,7 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-42 | acceptance 9 | golden | SA-42 names no harm |
 | requirement SA-42 | acceptance 10 | golden | SA-42 names no harm |
 | requirement SA-42 | acceptance 11 | golden | SA-42 names no harm |
+| requirement SA-42 | acceptance 12 | golden | SA-42 names no harm |
 | requirement SA-43 | acceptance 1 | golden | SA-43 names no harm |
 | requirement SA-43 | acceptance 2 | golden | SA-43 names no harm |
 | requirement SA-43 | acceptance 3 | golden | SA-43 names no harm |
@@ -5956,6 +6029,11 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-93 | acceptance 4 | golden | SA-93 names no harm |
 | requirement SA-93 | acceptance 5 | golden | SA-93 names no harm |
 | requirement SA-93 | acceptance 6 | golden | SA-93 names no harm |
+| requirement SA-94 | acceptance 1 | golden | SA-94 names no harm |
+| requirement SA-94 | acceptance 2 | golden | SA-94 names no harm |
+| requirement SA-94 | acceptance 3 | golden | SA-94 names no harm |
+| requirement SA-94 | acceptance 4 | golden | SA-94 names no harm |
+| requirement SA-94 | acceptance 5 | golden | SA-94 names no harm |
 | requirement SA-7 | acceptance 1 | golden | SA-7 names no harm |
 | requirement SA-7 | acceptance 2 | golden | SA-7 names no harm |
 | requirement SA-8 | acceptance 1 | golden | SA-8 names no harm |

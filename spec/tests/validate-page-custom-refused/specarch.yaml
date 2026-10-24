@@ -1,0 +1,83 @@
+specarch: "0.3"
+info: { title: Case, version: 1.0.0 }
+session: { idleTimeout: PT30M, absoluteTimeout: PT12H }
+permissions:
+  public: { description: Open to everyone. }
+  documents.edit: { description: Edit a document. }
+roles:
+  writer: { description: Someone who writes documents., permissions: [public, documents.edit] }
+entities:
+  Document:
+    type: object
+    properties:
+      id: { type: string, format: uuid, readOnly: true, title: Document }
+      title: { type: string, maxLength: 80, title: Title }
+    required: [id, title]
+    primaryKey: [id]
+paths:
+  /documents/{id}:
+    get:
+      operationId: getDocument
+      summary: Read a document
+      permission: documents.edit
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        "200":
+          description: The document.
+          content:
+            application/json:
+              schema: { $ref: "#/entities/Document" }
+    put:
+      operationId: saveDocument
+      summary: Save a document
+      permission: documents.edit
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: "#/entities/Document" }
+      responses:
+        "204": { description: The document is saved. }
+pages:
+  editor:
+    kind: custom
+    title: Edit a document
+    route: /documents/{id}/edit
+    permission: documents.edit
+    entity: Document
+    source: getDocument
+    submit: saveDocument
+    fields: [title]
+    sections:
+      - { title: About, fields: [title] }
+    columns: [title]
+    compactColumns: [title]
+    filters: [title]
+    checks:
+      titled: { expression: size(title) > 0, message: A document has a title. }
+    enteredTwice: [title]
+    childRows:
+      - { relation: versions, title: Versions, fields: [title] }
+    fieldConditions:
+      title: { readOnlyWhen: title != "" }
+    inbox: { workflow: review, step: approve }
+    blocks:
+      - text: A document.
+    states: { failed: { default: { message: It cannot be opened now. } } }
+    onSubmitted: { navigate: home }
+    actions:
+      - { label: Save, kind: operation, target: saveDocument }
+      - { label: Close, kind: navigate, target: home }
+  drawing:
+    kind: custom
+    title: A drawing
+    route: /drawing
+    permission: public
+    entity: Drawing
+  home:
+    kind: custom
+    title: Home
+    route: /
+    permission: public

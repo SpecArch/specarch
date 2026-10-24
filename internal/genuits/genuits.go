@@ -119,6 +119,8 @@ func Generate(r *Request) genui.Response {
 			page, ok = g.ViewPage(pageName, pg, sess)
 		case "content":
 			page, ok = g.ContentPage(pageName, pg)
+		case "custom":
+			page, ok = g.CustomPage(pageName, pg)
 		default:
 			g.Problem("warning", "/pages/"+pageName, "%s is a %s, which this version of %s does not write; it is left out", pageName, text(pg["kind"]), name)
 			continue
@@ -132,6 +134,8 @@ func Generate(r *Request) genui.Response {
 			schema, tsx = g.taskFiles(page)
 		case "content":
 			schema, tsx = g.contentFiles(page)
+		case "custom":
+			schema, tsx = g.customFiles(page)
 		default:
 			schema, tsx, client = g.pageFiles(page)
 		}
@@ -235,6 +239,49 @@ func (g *gen) contentFiles(p *genscreens.Page) (string, string) {
 		page.WriteString("    </Guard>\n  );\n}\n")
 	} else {
 		fmt.Fprintf(&page, "  return <%s schema={schema} texts={t} routes={routes} />;\n}\n", component)
+	}
+	return schema.String(), page.String()
+}
+
+// customFiles writes the schema and the page.tsx of a custom page: the
+// route draws the default export of ./custom/<page>, the screen the project
+// writes beside it, inside the Guard when it needs a permission, so a
+// missing screen fails tsc (ADR-183). The generator never writes that
+// file, so generate --check compares nothing of it.
+func (g *gen) customFiles(p *genscreens.Page) (string, string) {
+	components := g.Name("application", "components")
+	importFrom := g.ImportOf(p.Part)
+	schemaType := g.Name(p.Part, "schemaType")
+	var schema strings.Builder
+	fmt.Fprintf(&schema, "import type { %s } from %q;\n\n", schemaType, importFrom)
+	schema.WriteString(statement("export const schema = ", object(p.Schema), " satisfies "+schemaType+";"))
+	guarded := p.Permission != "public"
+	var page strings.Builder
+	page.WriteString("import type { Metadata } from \"next\";\n")
+	if guarded {
+		fmt.Fprintf(&page, "import { Guard } from %q;\n", components)
+	}
+	page.WriteString("import { chosenLanguage } from \"@/language\";\nimport { stringOf, texts } from \"@/strings\";\n")
+	fmt.Fprintf(&page, "import Screen from %q;\nimport { schema } from %q;\n\n", "./custom/"+p.Name, g.schemaModule())
+	page.WriteString(metadataOf(p.Name))
+	g.writeRoutes(&page, p.Routes)
+	parameters := "{}"
+	if pathParam.MatchString(p.Route) {
+		page.WriteString("export default async function Page({ params }: { readonly params: Promise<Record<string, string>> }) {\n")
+		page.WriteString("  const parameters = await params;\n")
+		parameters = "parameters"
+	} else {
+		page.WriteString("export default async function Page() {\n")
+	}
+	page.WriteString("  const t = texts(schema, await chosenLanguage());\n")
+	screen := fmt.Sprintf("<Screen schema={schema} texts={t} parameters={%s} routes={routes} />", parameters)
+	if guarded {
+		page.WriteString("  return (\n")
+		fmt.Fprintf(&page, "    <Guard permission={schema.%s} texts={t}>\n", g.Name(p.Part, "permission"))
+		fmt.Fprintf(&page, "      %s\n", screen)
+		page.WriteString("    </Guard>\n  );\n}\n")
+	} else {
+		fmt.Fprintf(&page, "  return %s;\n}\n", screen)
 	}
 	return schema.String(), page.String()
 }

@@ -1818,6 +1818,46 @@ specification declares a session, `denied with expired session`. The
 techspec draws an edge per link to a page, and the manual says where
 each link leads.
 
+### Custom pages
+
+A page of kind `custom` names a screen the project builds by hand, an
+editor or a live view that no other kind draws. The generators write its
+route, its guard and its menu entry, and the screen is the project's.
+
+    editor:
+      kind: custom
+      title: Edit the document
+      description: The document's text, edited by several writers at once.
+      route: /documents/{id}/edit
+      entity: Document
+      permission: documents.edit
+      actions:
+        - { label: Done, kind: navigate, target: document }
+
+It has `route`, `title` and `permission` as every page; `entity`, the
+records the screen works on, and `description`, what the project builds
+there, are optional. Its route may take parameters, which the project's
+screen reads. It has no `source`, `submit`, `fields`, `sections`,
+`columns`, `compactColumns`, `filters`, `blocks`, `childRows`,
+`onSubmitted`, `onSelect`, `pickers`, `fieldConditions`, `checks`,
+`enteredTwice`, `states` or `inbox`, each refused at its key: what the
+screen loads, sends and shows is the project's. Its `actions` are of
+kind `navigate` only, the pages the screen leads to; an action of kind
+`operation` is refused (`page`), since the screen calls its operations
+itself.
+
+In a flow, a step on a custom page takes its event `action` with the
+label of one of its actions. The derived cases are those of any page
+that opens: the golden case, and for a page that is not public `denied
+without <permission>` and, with a session, `denied with expired
+session`; no case for a record that is not found, since what the screen
+loads is the project's. Each UI generator imports the screen from a
+file the project writes and names in its output, so a missing screen
+fails the build or the load and never shows a blank page
+(`docs/generators.md`); `generate --check` compares nothing of that
+file. The techspec lists the page as the project's own screen with its
+description, and the manual says it is built by hand.
+
 ### Page states
 
 A page may say what it shows when it is empty or fails:

@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: document
+level: system
+scenario: golden
+given: "a specification with a view of a document whose action Edit opens a custom page at /documents/{id}/edit that names its entity, a description and the action Done back to the view, a custom page Drafts that needs documents.edit, a public custom page Live board, a menu over both and a flow through the editor"
+when: "document manual is run"
+then: "it writes each custom page with its description, where it is reached from, who may open it, that the screen is built by hand for this system, and where its actions lead, and exits 0"
+verifies: [SA-94]

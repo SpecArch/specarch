@@ -1,0 +1,9 @@
+page: document
+level: system
+scenario: red
+covers: [not found id]
+given: "no record has that id"
+when: "the page document is opened for that id"
+then: "it says the record was not found"
+origin: inferred
+why: "Written by specarch derive: users get this wrong often, so the case is written. A draft: complete the given, when and then, and remove what does not hold."

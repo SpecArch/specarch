@@ -259,6 +259,19 @@ export interface ContentPageSchema {
   readonly blocks: readonly ContentBlockSchema[];
 }
 
+/** An action of a custom page: its label and the page it opens. */
+export interface CustomActionSchema {
+  readonly label: StringKey;
+  readonly page: string;
+}
+
+/** A custom page: its title, the permission it needs and the pages its actions open; its screen is the project's. */
+export interface CustomPageSchema {
+  readonly title: StringKey;
+  readonly permission: string;
+  readonly actions: readonly CustomActionSchema[];
+}
+
 /** A column of a list: the row's field, its title, and whether it sorts and stays on a compact screen. */
 export interface ColumnSchema {
   readonly field: string;

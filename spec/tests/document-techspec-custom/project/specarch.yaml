@@ -1,0 +1,94 @@
+specarch: "0.3"
+info: { title: Writing desk, version: 1.0.0 }
+stages: [tests]
+stakeholders:
+  owner: { description: The desk's owner. }
+session: { idleTimeout: PT30M, absoluteTimeout: PT12H }
+permissions:
+  public: { description: Open to everyone. }
+  documents.edit: { description: Read and edit the documents. }
+roles:
+  visitor: { description: Anyone who opens the desk., permissions: [public] }
+  writer: { description: Someone who writes documents., permissions: [public, documents.edit] }
+entities:
+  Document:
+    type: object
+    properties:
+      id: { type: string, maxLength: 36, title: Document }
+      title: { type: string, maxLength: 200, title: Title }
+    required: [id, title]
+    primaryKey: [id]
+paths:
+  /sessions/current:
+    get:
+      operationId: getSession
+      summary: Who is signed in
+      permission: public
+      responses:
+        "200":
+          description: The session.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  open: { type: boolean }
+                  granted: { type: array, items: { type: string, maxLength: 100 }, maxItems: 50 }
+                required: [open, granted]
+  /documents/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, maxLength: 36 } }
+    get:
+      operationId: getDocument
+      summary: Read a document
+      permission: documents.edit
+      responses:
+        "200":
+          description: The document.
+          content:
+            application/json:
+              schema: { $ref: "#/entities/Document" }
+pages:
+  document:
+    kind: view
+    title: Document
+    route: /documents/{id}
+    entity: Document
+    permission: documents.edit
+    source: getDocument
+    fields: [title]
+    actions:
+      - { label: Edit, kind: navigate, target: editor }
+  editor:
+    kind: custom
+    title: Edit the document
+    description: The document's text, edited by several writers at once, each change shown to the others as it is typed.
+    route: /documents/{id}/edit
+    entity: Document
+    permission: documents.edit
+    actions:
+      - { label: Done, kind: navigate, target: document }
+  drafts:
+    kind: custom
+    title: Drafts
+    description: The drafts on a board, moved between columns by dragging.
+    route: /drafts
+    permission: documents.edit
+  board:
+    kind: custom
+    title: Live board
+    route: /board
+    permission: public
+menus:
+  main:
+    title: Desk
+    items:
+      board: { title: Board, page: board }
+      drafts: { title: Drafts, page: drafts }
+flows:
+  edit-a-document:
+    description: A writer opens a document, edits it and goes back to it.
+    actor: writer
+    steps:
+      - { page: document, event: action, action: Edit }
+      - { page: editor, event: action, action: Done }

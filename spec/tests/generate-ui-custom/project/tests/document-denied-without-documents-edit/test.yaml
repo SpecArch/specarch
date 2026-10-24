@@ -1,0 +1,9 @@
+page: document
+level: system
+scenario: red
+covers: [denied without documents.edit]
+given: "a caller without documents.edit"
+when: "the page document is opened"
+then: "it is refused as not allowed"
+origin: inferred
+why: "Written by specarch derive: users get this wrong often, so the case is written. A draft: complete the given, when and then, and remove what does not hold."

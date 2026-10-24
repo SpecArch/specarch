@@ -106,6 +106,28 @@ extension Checker {
         }
     }
 
+    /// checkCustomPage checks what a custom page holds: a screen the project
+    /// builds by hand, so nothing that describes what a generated screen
+    /// loads, sends or shows, and actions of kind navigate only, the pages
+    /// the screen leads to (ADR-183). Its entity, when it names one, is an
+    /// entity of the specification or of another one.
+    func checkCustomPage(_ d: Design, _ name: String, _ pg: YNode) {
+        let base = ["pages", name]
+        for key in ["source", "submit", "fields", "sections", "columns", "filters", "states"] where pg.child(key) != nil {
+            add(pg.key(key), pointer(base + [key]), .page, "\(name) is a custom page, whose screen the project builds and which loads, sends and shows what the project writes; leave \(key) out, or describe it under description")
+        }
+        for (i, a) in items(pg.child("actions")).enumerated() {
+            if let k = a.child("kind"), str(k) == "operation" {
+                add(k, pointer(base + ["actions", "\(i)", "kind"]), .page, "\(name) is a custom page, whose screen calls its operations itself, and its actions are the pages it leads to; make the action \(str(a.child("label"))) a navigate, or leave it out")
+            }
+        }
+        let entNode = pg.child("entity")
+        let ent = str(entNode)
+        if !ent.isEmpty && !isCross(ent) && d.entities[ent] == nil {
+            add(entNode, pointer(base + ["entity"]), .refType, "\(ent) is not an entity of the specification\(suggest(ent, d.entities))")
+        }
+    }
+
     /// Checks what a content page holds: blocks only, no entity, source or
     /// submit, since it loads and sends nothing; no fields, sections, columns
     /// or filters, which show a record's fields; no actions, since its links
@@ -373,6 +395,7 @@ extension Checker {
             guard let states = pg.child("states") else { continue }
             let base = ["pages", name, "states"]
             let kind = str(pg.child("kind"))
+            if kind == "custom" { continue } // a custom page's states are reported with its other keys
             let filters = !items(pg.child("filters")).isEmpty
             func message(_ st: YNode, _ at: [String]) {
                 if let m = st.child("message"), !sentence(m.value) {

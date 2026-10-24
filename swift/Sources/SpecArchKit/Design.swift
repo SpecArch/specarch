@@ -728,6 +728,8 @@ extension Checker {
                 checkTaskPage(d, name, pg)
             } else if kind == "content" {
                 checkContentPage(d, name, pg)
+            } else if kind == "custom" {
+                checkCustomPage(d, name, pg)
             } else if isCross(ent) {
                 // A list of another specification: its fields are checked
                 // with the reference.

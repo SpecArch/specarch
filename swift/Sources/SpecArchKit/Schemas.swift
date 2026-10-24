@@ -3149,7 +3149,7 @@ let designSchemaJSON = #"""
       }
     },
     "page": {
-      "description": "SpecArch keyword. A screen of one of five kinds: a list, a form or a view of an entity's records, a task that submits to an operation without loading a record, or a content page of headings, text, images and links that loads and submits nothing. Generators map it onto the target project's component library.",
+      "description": "SpecArch keyword. A screen of one of six kinds: a list, a form or a view of an entity's records, a task that submits to an operation without loading a record, a content page of headings, text, images and links that loads and submits nothing, or a custom page, a screen the project builds by hand, for which the generators write the route, the guard and the menu entry. Generators map it onto the target project's component library.",
       "type": "object",
       "properties": {
         "kind": {
@@ -3159,7 +3159,8 @@ let designSchemaJSON = #"""
             "form",
             "view",
             "task",
-            "content"
+            "content",
+            "custom"
           ]
         },
         "title": {
@@ -3175,7 +3176,7 @@ let designSchemaJSON = #"""
           "pattern": "^/"
         },
         "entity": {
-          "description": "The entity whose records a list, form or view shows. A task page and a content page show none and leave it out. A list page whose source is a list of another specification names that list's entity the same way, as customerRegistry#/entities/Customer.",
+          "description": "The entity whose records a list, form or view shows. A task page and a content page show none and leave it out; a custom page may name the entity whose records its screen works on. A list page whose source is a list of another specification names that list's entity the same way, as customerRegistry#/entities/Customer.",
           "$ref": "#/$defs/entityTarget"
         },
         "permission": {
@@ -11434,7 +11435,7 @@ parts:
 # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-0.1.schema.json
 specarchIdiom: "0.1"
 name: ui-components
-version: 1.9.0
+version: 1.10.0
 concern: ui-components
 stacks: [nextjs-carbon, swiftui]
 reads: [pages]
@@ -11665,6 +11666,24 @@ parts:
           route of the page it opens or to its address outside the
           specification. A page that needs a permission is drawn inside
           the Guard, as a list is.
+  custom-page:
+    description: A page of kind custom, a screen the project builds by hand, drawn inside the route the generator writes.
+    stack:
+      nextjs-carbon:
+        names: { schemaType: CustomPageSchema, propsType: CustomPageProps, title: title, permission: permission, actions: actions }
+        code: |
+          The page.tsx of the route draws the default export of
+          ./custom/<page>, a module the project writes beside it, inside
+          the Guard, with the schema, the texts, the route's parameters
+          and the routes of the page's actions as CustomPageProps; a
+          missing module fails tsc.
+      swiftui:
+        names: { schemaType: CustomPageSchema, title: title, permission: permission, actions: actions }
+        code: |
+          The page's view draws <Page>Screen, a view the app's module
+          declares, inside the Guard, with the schema, the route's
+          parameters and the routes of the page's actions; a missing view
+          fails the build.
   text-field:
     description: A field of type string with no format the other field parts take.
     stack:

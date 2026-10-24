@@ -1,0 +1,82 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.3.schema.json
+decisions:
+  ADR-183:
+    title: A page of kind custom names a screen the project builds by hand, and the UI generators write its route, its guard and its entry and leave the screen to a file of the project's that the generated route imports
+    status: accepted
+    date: "2026-10-24"
+    context: |
+      A page was a list, a form, a view, a task or a content page, each
+      drawn by the generators. An editor (a document, a spreadsheet, a
+      drawing) or a live view is built by hand, and a page that no kind
+      fits could not be named at all: the screen had no route in the
+      design, no permission, no menu entry, no place in a flow and no
+      derived guard test, and the generators warned that an unknown kind
+      was left out.
+    decision: |
+      - kind custom, with route, title and permission as every page, an
+        optional entity, the records the screen works on, and an
+        optional description of what the project builds there. Its route
+        may take parameters, as an editor of one document does; the
+        project's screen reads them.
+      - A custom page has no source, submit, fields, sections, columns,
+        compactColumns, filters, blocks, childRows, onSubmitted,
+        onSelect, pickers, fieldConditions, checks, enteredTwice, states
+        or inbox, each refused at its key (page): what the screen loads,
+        sends and shows is the project's. Its actions are of kind
+        navigate only, the pages the screen leads to, so a flow passes
+        through it with event action and the action's label; an action
+        of kind operation is refused (page), since the screen calls its
+        operations itself.
+      - The derived cases are those of a page that opens: the golden
+        case, and denied without its permission and, with a session,
+        denied with expired session when it is not public.
+      - The UI generators write the route, the guard and the menu entry,
+        and import the screen from a file the project writes, named in
+        the generated output, so that a missing one fails the build or
+        the load and never shows a blank page:
+        specarch-gen-ui-typescript writes app/<route>/page.tsx, which
+        draws the default export of ./custom/<page> (beside it, under the
+        route's folder) inside the Guard with the schema, the texts, the
+        route's parameters and the routes of its actions, and the derived
+        refusal test; specarch-gen-ui-swiftui writes <Page>View, which
+        draws <Page>Screen, a view the app's module declares, inside the
+        Guard; specarch-gen-ui writes <page>.html and <page>.js, which
+        imports custom/<page>.js and calls its show with the page's main
+        element and parameters, and names that module in pages.js; the
+        page's HTML says which module did not load until show runs.
+        specarch-gen-ui writes no route guard for any page, and warns at
+        the permission of a custom page that needs one.
+      - The generators never write, read or compare the project's file:
+        generate --check compares the files the generator plans, and the
+        project's is not among them. ui-components 1.10.0 names the
+        custom-page part for nextjs-carbon and swiftui.
+      - The technical specification lists a custom page as the
+        project's own screen, with its description; the manual says what
+        it is for and where its actions lead.
+    why: |
+      A kind of its own, so that the screen is named in the design and
+      every rule that reads pages (the menu, the guard, flows, derived
+      tests, the documents) covers it, rather than a list or a view with
+      parts left out, whose rules (a source, columns, a submit) are what
+      the screen does not have. The refused keys describe what a
+      generated screen shows; on a screen built by hand they would be
+      written in the design and drawn by no one, a promise nothing keeps.
+      A navigate action is kept because a flow names the event that
+      leads from one page to the next, and the screen's way out is part
+      of the design; an operation action is the screen's own call. The
+      project's file is imported, not looked up at run time, so that a
+      missing screen is found by tsc, by the Swift compiler or by the
+      browser's module loader, the same checks a hook of a form gets
+      (page.hooks), and a page left without its screen is never shipped
+      blank. Next.js reads app/ folders as routes only where they hold a
+      page.tsx, so ./custom beside the route's page.tsx is no route.
+      Interfaces beyond HTTP, messaging and the command line, such as a
+      WebSocket the editor speaks, are a separate question and not part
+      of this kind.
+    consequences: |
+      An editor or a live view is in the specification with its route,
+      guard, menu entry, flows and derived tests, and the generated
+      screens around it are regenerated without touching it. What the
+      screen does inside is not checked by the specification: its tests
+      are the project's.
+    satisfies: [SA-42, SA-94]

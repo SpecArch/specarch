@@ -1,0 +1,6 @@
+arguments: [derive, project]
+exitStatus: 0
+standardOutput: |
+  project/tests/editor-succeeds/test.yaml
+  project/tests/editor-denied-without-documents-edit/test.yaml
+  project/tests/editor-denied-with-expired-session/test.yaml

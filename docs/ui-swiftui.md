@@ -71,6 +71,10 @@ texts to the component behind the guard, and gives it the routes its
 events lead to. A form whose fields take hooks reads each from
 a static member of `<Page>Hooks` named as the field, a type the project
 writes beside the page, so a missing hook fails the build, as a missing `page.hooks.ts` fails `tsc`.
+A custom page's view draws `<Page>Screen`, a view the app's module
+declares with `init(schema: CustomPageSchema, parameters: [String:
+String], routes: [String: Routes.Make])`, inside the guard, so a missing
+screen fails the build (ADR-183).
 
 **Navigation.** Pages are an enum, `Route`, one case per page written,
 with the route's parameters as associated values, and `Routes.swift`

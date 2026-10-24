@@ -1,0 +1,23 @@
+specarch: "0.3"
+info: { title: Case, version: 1.0.0 }
+stages: [tests]
+session: { idleTimeout: PT30M, absoluteTimeout: PT12H }
+permissions:
+  public: { description: Open to everyone. }
+  documents.edit: { description: Read and edit the documents. }
+roles:
+  writer: { description: Someone who writes documents., permissions: [public, documents.edit] }
+pages:
+  board:
+    kind: custom
+    title: Live board
+    route: /board
+    permission: public
+  editor:
+    kind: custom
+    title: Edit the document
+    description: The document's text, edited by several writers at once.
+    route: /documents/{id}/edit
+    permission: documents.edit
+    actions:
+      - { label: Back to the board, kind: navigate, target: board }

@@ -698,6 +698,9 @@ extension Design {
         if str(p.value.child("kind")) == "content" {
             return s // it loads and sends nothing, so it opens or is refused
         }
+        if str(p.value.child("kind")) == "custom" {
+            return s // what its screen does is the project's, so it opens or is refused
+        }
         if str(p.value.child("kind")) == "task" {
             answerCases(s, p.value)
             stateCases(s, p.value, open)

@@ -127,7 +127,14 @@ say is generated from its expression and needs none. `page.tsx` reads the
 route parameters, builds the schema with the translator, hands it to the
 component, and maps the page's events to routes, nothing more. It is a
 server component unless it needs the client; `"use client"` goes only
-where a component does.
+where a component does. A custom page, a screen the project builds by
+hand, has no component of the generator's: its `page.tsx` draws the
+default export of `./custom/<page>` beside it, which takes
+`CustomPageProps` (the schema of its title, permission and actions, the
+texts, the route's parameters and the routes of its actions), inside the
+`Guard` when it needs a permission. A missing screen fails `tsc`, as a
+missing hook does; the `custom` folder holds no `page.tsx`, so the app
+router reads no route in it (ADR-183).
 
 **Events.** On the web in plain JavaScript, pages talk through one small
 event bus, the roadmap's rule for a stack with no build step. Next.js has

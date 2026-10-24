@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: derive
+level: system
+scenario: golden
+given: "a specification with a session, a public custom page whose golden test is written, and a custom page that needs documents.edit on a route that takes the parameter id"
+when: "derive is run"
+then: "it writes for the second page a golden test that it opens to a caller with documents.edit and red tests denied without documents.edit and denied with expired session, no case for a record that is not found, since what the screen loads is the project's, writes nothing more for the public page, lists them and exits 0"
+verifies: [SA-42]

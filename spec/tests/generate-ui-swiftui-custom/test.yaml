@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: generate
+level: system
+scenario: golden
+given: "a specification with a view of a document whose action Edit opens a custom page at /documents/{id}/edit that names its entity, a description and the action Done back to the view, a custom page Drafts that needs documents.edit, a public custom page Live board, a menu over both and a flow through the editor; an implementation file whose ui target is platform iphone; and specarch-gen-ui-swiftui built from this repository on PATH"
+when: "generate ui is run with --unapproved"
+then: "it writes each custom page as <Page>Schema, a CustomPageSchema of its title, permission and actions, and <Page>View, which draws <Page>Screen, a view the app declares, inside the Guard with the schema, the route's parameters and the routes of its actions, a route case per page and the derived refusal test for the two pages that need documents.edit, and exits 0"
+verifies: [SA-94]

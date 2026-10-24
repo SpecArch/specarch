@@ -1,0 +1,6 @@
+page: board
+level: system
+scenario: golden
+given: "any caller"
+when: "the page board is opened"
+then: "it shows the board the project draws"

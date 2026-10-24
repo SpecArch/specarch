@@ -1027,6 +1027,14 @@ func crossCutting(d *doc, root *yaml.Node, state *State) {
 			case "content":
 				entity = "none; loads and sends nothing"
 				text = blocksText(p.Value)
+			case "custom":
+				if entity == "" {
+					entity = "none"
+				}
+				text = "the project's own screen, built by hand"
+				if desc := strings.TrimSpace(str(p.Value, "description")); desc != "" {
+					text += ": " + desc
+				}
 			}
 			d.line("| %s | %s | %s | %s | %s | %s |", p.Key.Value, str(p.Value, "kind"), cell(str(p.Value, "route")), cell(entity), str(p.Value, "permission"), cell(text))
 		}

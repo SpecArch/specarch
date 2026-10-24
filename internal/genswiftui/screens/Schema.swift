@@ -144,6 +144,20 @@ public struct TaskPageSchema: Sendable {
     public var events: [EventSchema]
 }
 
+/// An action of a custom page: its label and the page it opens.
+public struct CustomActionSchema: Sendable {
+    public var label: String
+    public var page: String
+}
+
+/// A custom page: its title, the permission it needs and the pages its
+/// actions open; its screen, <Page>Screen, is the app's own.
+public struct CustomPageSchema: Sendable {
+    public var title: String
+    public var permission: String
+    public var actions: [CustomActionSchema]
+}
+
 /// A column of a list: the row's field, its title, and whether it sorts and stays on a compact screen.
 public struct ColumnSchema: Sendable {
     public var field: String

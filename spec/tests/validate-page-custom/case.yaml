@@ -1,0 +1,6 @@
+arguments: [validate, .]
+exitStatus: 0
+standardOutput: |
+  specarch.yaml:24:7: warning: /paths/~1sessions~1current/get: test_red_missing: operation getSession has no red scenario; add one under tests, for example get-session-refused: { operation: getSession, scenario: red, given: "...", when: "...", then: "it is refused" } [test_red_missing@specarch.yaml#/paths/~1sessions~1current/get]
+  specarch.yaml:77:3: warning: /pages/board: test_red_missing: page board has no red scenario; add one under tests, for example board-refused: { page: board, scenario: red, given: "...", when: "...", then: "it is refused" } [test_red_missing@specarch.yaml#/pages/board]
+  specarch.yaml:89:3: warning: /flows/edit-a-document: test_red_missing: flow edit-a-document has no red scenario; add one under tests, for example edit-a-document-refused: { flow: edit-a-document, scenario: red, given: "...", when: "...", then: "it is refused" } [test_red_missing@specarch.yaml#/flows/edit-a-document]

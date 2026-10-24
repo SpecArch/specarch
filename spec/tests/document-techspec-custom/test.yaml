@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: document
+level: system
+scenario: golden
+given: "a specification with a view of a document whose action Edit opens a custom page at /documents/{id}/edit that names its entity, a description and the action Done back to the view, a custom page Drafts that needs documents.edit, a public custom page Live board, a menu over both and a flow through the editor"
+when: "document techspec is run"
+then: "it lists each custom page in the pages table as the project's own screen, built by hand, with its description, the editor with its entity and the others with none, draws the actions Edit and Done in the pages diagram, and exits 0"
+verifies: [SA-94]

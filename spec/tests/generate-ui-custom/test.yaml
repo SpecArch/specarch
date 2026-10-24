@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: generate
+level: system
+scenario: golden
+given: "a specification with a view of a document whose action Edit opens a custom page at /documents/{id}/edit that names its entity, a description and the action Done back to the view, a custom page Drafts that needs documents.edit, a public custom page Live board, a menu over both and a flow through the editor; an implementation file whose ui target is platform web in plain-javascript; and specarch-gen-ui built from this repository on PATH"
+when: "generate ui is run with --unapproved"
+then: "it writes each custom page as <page>.html with the menu, the title and a notice naming custom/<page>.js until it shows, and <page>.js, which imports custom/<page>.js and calls its show with the main element, the route's parameters and the pages its actions open; pages.js names the module beside each custom page's file; it warns at the permission of the two pages that need documents.edit that these files have no route guard, writes no file of the project's, and exits 0"
+verifies: [SA-94]

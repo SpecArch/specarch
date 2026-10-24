@@ -234,6 +234,7 @@ func Generate(r *Request) Response {
 	var views []*viewPage
 	var forms []*formPage
 	var contents []*contentPage
+	var customs []*customPage
 	g.opened = map[string]bool{}
 	for _, name := range sortedKeys(pages) {
 		pg := obj0(pages[name])
@@ -262,6 +263,10 @@ func Generate(r *Request) Response {
 				contents = append(contents, c)
 				ws = append(ws, written{name, c})
 			}
+		case "custom":
+			c := g.custom(name, pg)
+			customs = append(customs, c)
+			ws = append(ws, written{name, c})
 		default:
 			g.problem("warning", "/pages/"+name, "%s is a %s, which specarch-gen-ui does not write; it is left out", name, text(pg["kind"]))
 			continue
@@ -308,6 +313,9 @@ func Generate(r *Request) Response {
 			blocks = append(blocks, b)
 		}
 		c.blocks = blocks
+	}
+	for _, c := range customs {
+		c.actions = g.keep(c.actions)
 	}
 	for _, f := range forms {
 		for status, n := range f.next {

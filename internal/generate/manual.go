@@ -341,6 +341,9 @@ func manualPage(d *doc, root *yaml.Node, name string, page *yaml.Node) {
 	}
 	d.para(whoOpens(root, str(page, "permission")))
 	d.explain(page)
+	if kind == "custom" {
+		d.para("This screen is built by hand for this system rather than drawn from the specification, so how it looks and works is the project's.")
+	}
 
 	fields := pageFields(root, page)
 	switch {

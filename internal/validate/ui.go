@@ -239,6 +239,29 @@ func (c *checker) checkContentPage(d *design, name string, pg *yaml.Node) {
 	}
 }
 
+// checkCustomPage checks what a custom page holds: a screen the project
+// builds by hand, so nothing that describes what a generated screen loads,
+// sends or shows, and actions of kind navigate only, the pages the screen
+// leads to (ADR-183). Its entity, when it names one, is an entity of the
+// specification or of another one.
+func (c *checker) checkCustomPage(d *design, name string, pg *yaml.Node) {
+	base := []string{"pages", name}
+	for _, k := range []string{"source", "submit", "fields", "sections", "columns", "filters", "states"} {
+		if source.Child(pg, k) != nil {
+			c.add(source.Key(pg, k), source.Pointer(append(base, k)...), RulePage, "%s is a custom page, whose screen the project builds and which loads, sends and shows what the project writes; leave %s out, or describe it under description", name, k)
+		}
+	}
+	for i, a := range source.Items(source.Child(pg, "actions")) {
+		if k := source.Child(a, "kind"); source.Str(k) == "operation" {
+			c.add(k, source.Pointer(append(base, "actions", fmt.Sprint(i), "kind")...), RulePage, "%s is a custom page, whose screen calls its operations itself, and its actions are the pages it leads to; make the action %s a navigate, or leave it out", name, source.Str(source.Child(a, "label")))
+		}
+	}
+	entNode := source.Child(pg, "entity")
+	if ent := source.Str(entNode); ent != "" && !isCross(ent) && d.entities[ent] == nil {
+		c.add(entNode, source.Pointer(append(base, "entity")...), RuleRefType, "%s is not an entity of the specification%s", ent, suggest(ent, d.entities))
+	}
+}
+
 // checkEvent checks where one event leads, and that its message is a full
 // sentence; the route parameters it gives come from fields, which from
 // names. leaves says whether the event may leave the application for the
@@ -504,6 +527,9 @@ func (c *checker) checkPageStates(d *design) {
 		}
 		base := []string{"pages", name, "states"}
 		kind := source.Str(source.Child(pg, "kind"))
+		if kind == "custom" {
+			continue // a custom page's states are reported with its other keys
+		}
 		filters := len(source.Items(source.Child(pg, "filters"))) > 0
 		message := func(st *yaml.Node, at []string) {
 			if m := source.Child(st, "message"); m != nil && !sentence(m.Value) {

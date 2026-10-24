@@ -2360,7 +2360,7 @@
       }
     },
     "page": {
-      "description": "SpecArch keyword. A screen of one of five kinds: a list, a form or a view of an entity's records, a task that submits to an operation without loading a record, or a content page of headings, text, images and links that loads and submits nothing. Generators map it onto the target project's component library.",
+      "description": "SpecArch keyword. A screen of one of six kinds: a list, a form or a view of an entity's records, a task that submits to an operation without loading a record, a content page of headings, text, images and links that loads and submits nothing, or a custom page, a screen the project builds by hand, for which the generators write the route, the guard and the menu entry. Generators map it onto the target project's component library.",
       "type": "object",
       "properties": {
         "kind": {
@@ -2370,7 +2370,8 @@
             "form",
             "view",
             "task",
-            "content"
+            "content",
+            "custom"
           ]
         },
         "title": {
@@ -2386,7 +2387,7 @@
           "pattern": "^/"
         },
         "entity": {
-          "description": "The entity whose records a list, form or view shows. A task page and a content page show none and leave it out. A list page whose source is a list of another specification names that list's entity the same way, as customerRegistry#/entities/Customer.",
+          "description": "The entity whose records a list, form or view shows. A task page and a content page show none and leave it out; a custom page may name the entity whose records its screen works on. A list page whose source is a list of another specification names that list's entity the same way, as customerRegistry#/entities/Customer.",
           "$ref": "#/$defs/entityTarget"
         },
         "permission": {

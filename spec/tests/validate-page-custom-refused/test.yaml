@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "a specification with a custom page that names a source, a submit, fields, sections, columns, compactColumns, filters, checks, enteredTwice, childRows, fieldConditions, an inbox, blocks, states, onSubmitted and an action of kind operation beside one of kind navigate; a custom page whose entity is not one of the specification; and a public custom page"
+when: "validate is run"
+then: "it reports page at source, submit, fields, sections, columns, filters and states and at the operation action's kind, each other key once by the check that already refuses it on a page of another kind, ref_type at the unknown entity, takes the route's parameter and the navigate action, and exits 1"
+verifies: [SA-42]

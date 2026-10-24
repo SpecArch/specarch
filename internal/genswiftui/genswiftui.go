@@ -113,6 +113,8 @@ func Generate(r *Request) genui.Response {
 			page, ok = g.FormPage(pageName, pg, sess, hooks[pageName], layouts[pageName])
 		case "view":
 			page, ok = g.ViewPage(pageName, pg, sess)
+		case "custom":
+			page, ok = g.CustomPage(pageName, pg)
 		case "content":
 			g.Problem("error", "/pages/"+pageName, "%s is a content page, which this version of %s does not write, so nothing is written for it; write the page in the app by hand, or leave it to a web target", pageName, name)
 			continue
@@ -189,7 +191,7 @@ func (g *gen) routeOf(pageName, pageRoute string, written bool) {
 func (g *gen) schemaFile(p *genscreens.Page) string {
 	schemaType := g.Name(p.Part, "schemaType")
 	var b strings.Builder
-	fmt.Fprintf(&b, "import Foundation\n\n/// The %s page as data, read by %s.\n", p.Name, g.Name(p.Part, "component"))
+	fmt.Fprintf(&b, "import Foundation\n\n/// The %s page as data, read by %s.\n", p.Name, g.component(p))
 	b.WriteString(statement("let "+camelCase(p.Name)+"Schema = ", genscreens.Object(p.Schema), schemaType, ""))
 	return b.String()
 }
@@ -199,7 +201,7 @@ func (g *gen) schemaFile(p *genscreens.Page) string {
 // the routes its events lead to and the route's parameters.
 func (g *gen) viewFile(p *genscreens.Page) string {
 	pascal := pascalCase(p.Name)
-	component := g.Name(p.Part, "component")
+	component := g.component(p)
 	schema := camelCase(p.Name) + "Schema"
 	params := p.Parameters()
 	var b strings.Builder
@@ -234,6 +236,16 @@ func (g *gen) viewFile(p *genscreens.Page) string {
 	}
 	b.WriteString("    }\n}\n")
 	return b.String()
+}
+
+// component is the view that draws a page: its part's component, or for
+// a custom page <Page>Screen, a view the app's module declares, so a
+// missing one fails the build (ADR-183).
+func (g *gen) component(p *genscreens.Page) string {
+	if p.Kind == "custom" {
+		return pascalCase(p.Name) + "Screen"
+	}
+	return g.Name(p.Part, "component")
 }
 
 // componentCall is the component drawn with the schema, the route's

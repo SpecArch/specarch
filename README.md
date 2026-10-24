@@ -216,6 +216,7 @@ the Go one for an implementation file in Swift (Swift Testing) or in Dart
 the tables, handlers, seeds and tasks of a Go service on dxlib, and
 `specarch-gen-ui`, which `specarch generate ui` runs to write the list,
 view, form, task and content pages for the web in plain JavaScript,
+the route of each custom page around a screen the project writes,
 with the redirect to an identity provider's sign-in,
 `specarch-gen-ui-typescript`, which it runs instead for an implementation
 file in TypeScript to write the screens on Next.js and Carbon, `specarch-gen-ui-swiftui`, which it runs

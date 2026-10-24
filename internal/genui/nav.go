@@ -51,7 +51,12 @@ func (g *gen) pagesJS(names []string) string {
 		for _, p := range routeParameters(text(obj0(obj0(g.spec["pages"])[n])["route"])) {
 			ps = append(ps, jsString(p))
 		}
-		fmt.Fprintf(&b, "  %s: { file: %s, parameters: [%s] },\n", jsString(n), jsString(n+".html"), strings.Join(ps, ", "))
+		module := ""
+		if text(obj0(obj0(g.spec["pages"])[n])["kind"]) == "custom" {
+			// The screen the project writes for a custom page (ADR-183).
+			module = ", module: " + jsString("custom/"+n+".js")
+		}
+		fmt.Fprintf(&b, "  %s: { file: %s, parameters: [%s]%s },\n", jsString(n), jsString(n+".html"), strings.Join(ps, ", "), module)
 	}
 	b.WriteString("};\n")
 	b.WriteString(pagesRuntime)

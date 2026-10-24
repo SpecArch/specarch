@@ -839,6 +839,9 @@ func (d *design) pageSubject(p source.Pair) *subject {
 	if source.Str(source.Child(p.Value, "kind")) == "content" {
 		return s // it loads and sends nothing, so it opens or is refused
 	}
+	if source.Str(source.Child(p.Value, "kind")) == "custom" {
+		return s // what its screen does is the project's, so it opens or is refused
+	}
 	if source.Str(source.Child(p.Value, "kind")) == "task" {
 		d.answerCases(s, p.Value)
 		d.stateCases(s, p.Value, open)

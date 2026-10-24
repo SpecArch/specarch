@@ -1,0 +1,2 @@
+arguments: [document, techspec, --out, docs, project]
+exitStatus: 0

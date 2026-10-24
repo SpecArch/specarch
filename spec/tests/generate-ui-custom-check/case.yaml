@@ -1,0 +1,6 @@
+arguments: [generate, ui, --check, --unapproved, project]
+exitStatus: 0
+standardOutput: |
+  project/specarch.yaml:76:17: warning: /pages/drafts/permission: generator: drafts is a custom page that needs documents.edit, and specarch-gen-ui writes no route guard for any page, so custom/drafts.js, which the project writes, checks the session before it shows anything; the service still refuses each call of someone without documents.edit [generator@specarch.yaml#/pages/drafts/permission]
+  project/specarch.yaml:68:17: warning: /pages/editor/permission: generator: editor is a custom page that needs documents.edit, and specarch-gen-ui writes no route guard for any page, so custom/editor.js, which the project writes, checks the session before it shows anything; the service still refuses each call of someone without documents.edit [generator@specarch.yaml#/pages/editor/permission]
+plugins: [ui]

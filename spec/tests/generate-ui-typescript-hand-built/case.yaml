@@ -46,6 +46,7 @@ standardOutput: |
   library-web/screens/ValueField.tsx: built by hand, and matches what generate writes but for its header
   library-web/screens/ViewPage.tsx: built by hand, and matches what generate writes but for its header
   library-web/screens/access.ts: built by hand, and matches what generate writes but for its header
+  library-web/screens/custom.ts: built by hand, and matches what generate writes but for its header
   library-web/screens/index.ts: built by hand, and matches what generate writes but for its header
   library-web/screens/rules.ts: built by hand, and matches what generate writes but for its header
   library-web/screens/schema.ts: built by hand, and matches what generate writes but for its header
@@ -116,6 +117,7 @@ standardOutput: |
   web/screens/ValueField.tsx: built by hand, and matches what generate writes but for its header
   web/screens/ViewPage.tsx: built by hand, and matches what generate writes but for its header
   web/screens/access.ts: built by hand, and matches what generate writes but for its header
+  web/screens/custom.ts: built by hand, and matches what generate writes but for its header
   web/screens/index.ts: built by hand, and matches what generate writes but for its header
   web/screens/rules.ts: built by hand, and matches what generate writes but for its header
   web/screens/schema.ts: built by hand, and matches what generate writes but for its header

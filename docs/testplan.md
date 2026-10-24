@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.6-dev of the specification: 703 design tests, 340 golden and 363 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.6-dev of the specification: 704 design tests, 341 golden and 363 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.7.6-dev of the specification: 703 design tests, 340 golden and 363 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 699 |
+| system | 700 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -2251,7 +2251,7 @@ Scenario: golden; level: system; verifies SA-93.
 
 - Given: the specification of validate-sign-in-oidc and an implementation file whose go-dxlib target names the package and the database; specarch-gen-go-dxlib built from this repository on PATH
 - When: generate go-dxlib is run with --unapproved
-- Then: it writes the handler FinishSignIn of the callback, which reads code and state from the query and returns bodyFinishSignIn, the body the project writes, as every operation's handler does, and the client's call of it; and exits 0
+- Then: it writes the handler FinishSignIn of the callback, which reads code and state from the query and returns bodyFinishSignIn, the body the project writes, as every operation's handler does, and the client's call of it; and warns at /signIn/callback that the provider comes back with a GET, which dxlib does not serve, naming the GET route the project adds; and exits 0
 
 #### generate-go-dxlib-value-objects
 
@@ -2748,6 +2748,14 @@ Scenario: golden; level: system; verifies SA-93.
 - Given: the specification of validate-sign-in-oidc without its list page, whose task page sign-in answers 200 by navigating to signIn, and an implementation file whose ui target is plain JavaScript; specarch-gen-ui built from this repository on PATH
 - When: generate ui is run with --unapproved
 - Then: it writes identity-provider.js with the callback's path /auth/callback, which reads the issuer and the client_id from identity-provider.json and sends the browser to the authorisation endpoint of the provider's discovery document with a new state, nonce and S256 challenge kept in the __Host-sign-in cookie; the page's answer 200 as signIn: true, which form.js follows by loading identity-provider.js; and exits 0
+
+#### generate-ui-sign-in-oidc-dxlib
+
+Scenario: golden; level: system; verifies SA-93.
+
+- Given: the project of generate-ui-sign-in-oidc and an implementation file whose openapi target serves the API in the dxlib dialect; specarch-gen-ui built from this repository on PATH
+- When: generate ui is run with --unapproved
+- Then: it writes identity-provider.js as generate-ui-sign-in-oidc does, the pages calling the service in the dxlib dialect, and warns at /signIn/callback that the provider sends the person back to /auth/callback with a GET while the dxlib dialect serves finishSignIn only as POST /finishSignIn, naming the GET route the service adds; and exits 0
 
 #### generate-ui-swiftui
 

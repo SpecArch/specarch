@@ -52,6 +52,9 @@ func (g *gen) signInJS() string {
 		g.problem("error", "/signIn/callback", "%s is not an operation of the specification, so the provider has nowhere to send the person back to; identity-provider.js is not written", text(si["callback"]))
 		return ""
 	}
+	if g.dialect == "dxlib" {
+		g.problem("warning", "/signIn/callback", "the identity provider sends the person back to %s with GET %s?code=...&state=..., and the service serves it in the dxlib dialect only as POST /%s with a JSON body; the service adds a GET route at %s in front of the callback's body, or the sign-in cannot complete (ADR-182)", text(si["callback"]), path, text(si["callback"]), path)
+	}
 	return strings.Replace(signInRuntime, "{{CALLBACK}}", path, 1)
 }
 

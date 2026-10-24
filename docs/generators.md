@@ -843,7 +843,11 @@ the callback reads, and sends the browser to the authorisation endpoint
 with the S256 challenge and the callback's path on the page's own
 origin as the redirect URI. A document it cannot read is shown with its
 address and status. A page named `identity-provider` is refused, since
-its file would take the name.
+its file would take the name. In the dxlib dialect, which serves the
+callback only as a POST at `/<operationId>`, a warning at
+`/signIn/callback` names the GET route at the callback's path the service
+adds in front of the callback's body, since the provider sends the browser
+back with a GET.
 
 Modes other than dark are reported and left out of this version. The
 screens it is checked against are the library lending example's loans
@@ -891,8 +895,12 @@ endpoint the provider's discovery document names, as the plain
 JavaScript screens do; `application.ts` names the provider's issuer and
 client_id from `NEXT_PUBLIC_SIGN_IN_ISSUER_URL` and
 `NEXT_PUBLIC_SIGN_IN_CLIENT_ID`, which the deployment sets from its
-`signIn.issuerUrl` and the client's `clientId` (ADR-182). An action's
-`then` that navigates, to `signIn` or a page, is refused.
+`signIn.issuerUrl` and the client's `clientId` (ADR-182). When the
+screens call a service on another origin than the page's, the redirect is
+refused at run time with both origins named, since the `__Host-sign-in`
+cookie would not reach the callback; in the dxlib dialect the callback
+warns as the plain JavaScript screens do. An action's `then` that
+navigates, to `signIn` or a page, is an error at the action's `then`.
 A default failed state is the message for any refusal the page names
 none for. Fields in sections, actions, `enabledBy`, a permission other
 than public, and a success the operation answers with no event are
@@ -1105,11 +1113,14 @@ is a sheet with the reason it requires. A task page's answer that
 navigates to `signIn` signs in through `IdentityProvider` of
 `Screens/SignIn.swift`: the app sets the issuer and client_id at launch,
 as it sets the service's URL; the system's web authentication session
-opens the authorisation endpoint and returns on the callback's path on
-the service's host, which needs iOS 17.4 or macOS 14.4 and that host as
-an associated domain of the app; the page then calls the callback with
-the code and the state, the state, nonce and verifier going with it in
-the `__Host-sign-in` cookie (ADR-182). The reference is the library
+opens the authorisation endpoint and returns on the redirect's path on
+the service's host, the service URL's path prefix included, which needs
+iOS 17.4 or macOS 14.4 and that host as an associated domain of the app;
+the page then calls the callback with the code and the state, the state,
+nonce and verifier going with it in the `__Host-sign-in` cookie, and once
+it answers reads the session again and opens the page sign-in was asked
+for from, or the app's first page (ADR-182). A sign-in the system gives
+no random bytes for is refused with the `OSStatus` it gave. The reference is the library
 lending example's sign-in and second-factor screens, written by hand
 first (`examples/library-lending/ios`), which `generate --check` reports
 as matching but for the header; its lists, forms and views build and

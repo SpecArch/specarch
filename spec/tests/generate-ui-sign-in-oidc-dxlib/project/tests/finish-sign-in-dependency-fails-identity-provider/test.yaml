@@ -1,0 +1,9 @@
+operation: finishSignIn
+level: system
+scenario: red
+covers: [dependency fails identityProvider]
+given: "identityProvider answers with an error"
+when: "finishSignIn is called"
+then: "it answers 502: The provider refused the exchange."
+origin: inferred
+why: "Written by specarch derive: a failing dependency is always written. A draft: complete the given, when and then, and remove what does not hold."

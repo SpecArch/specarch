@@ -57,11 +57,26 @@ decisions:
         specarch-gen-ui-typescript writes the provider into application.ts
         from NEXT_PUBLIC_SIGN_IN_ISSUER_URL and NEXT_PUBLIC_SIGN_IN_CLIENT_ID;
         specarch-gen-ui-swiftui signs in through the system's web
-        authentication session, returning to the callback on the service's
-        host, and calls the callback with the code and the state. The two
+        authentication session, returning to the callback at the
+        redirect's own path on the service's host, path prefix included,
+        and calls the callback with the code and the state; once it
+        answers, the session is read again and the person goes back to the
+        page sign-in was asked for from, or to the app's first page. The
+        state, the nonce and the verifier are 32 bytes of the system's
+        random source each, and a sign-in the system gives no random bytes
+        for is refused with the status it gave. On Next.js the redirect
+        is refused at run time, naming both origins, when the screens call
+        a service on another origin than the page's, since the
+        __Host-sign-in cookie would not reach the callback there. The two
         Next.js and SwiftUI components write it on a task page's answer;
-        an action's then that navigates stays refused by them, as any
-        navigation after an action is.
+        an action's then that navigates is an error at the action's then,
+        as any navigation after an action is.
+      - In the dxlib dialect every operation is a POST at /<operationId>
+        with a JSON body, and the provider sends the browser back with a
+        GET and the code and the state in the query. specarch-gen-go-dxlib,
+        specarch-gen-ui and specarch-gen-ui-typescript then warn at
+        /signIn/callback, naming the GET route the service adds in front of
+        the callback's body.
       - The generated go-dxlib handler of the callback names its body, as
         every operation's does: the exchange, the checks and the session
         are the service's. The technical specification shows the flow as a

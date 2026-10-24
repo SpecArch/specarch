@@ -44,7 +44,7 @@ public enum IdentityProvider {
               let host = Service.baseURL.host() else {
             throw SignInError(description: "the discovery document of \(issuer.absoluteString) names no authorization_endpoint, or the service's URL \(Service.baseURL.absoluteString) has no host")
         }
-        let state = random(), nonce = random(), verifier = random()
+        let state = try random(), nonce = try random(), verifier = try random()
         let challenge = base64url(Data(SHA256.hash(data: Data(verifier.utf8))))
         let redirect = Service.baseURL.appending(path: callback, directoryHint: .notDirectory)
         if let cookie = HTTPCookie(properties: [.name: "__Host-sign-in", .value: "\(state).\(nonce).\(verifier)", .domain: host, .path: "/", .secure: "TRUE", .maximumAge: "600"]) {
@@ -60,17 +60,23 @@ public enum IdentityProvider {
             throw SignInError(description: "the authorization_endpoint \(endpoint) of \(issuer.absoluteString) is not a URL")
         }
         guard #available(iOS 17.4, macOS 14.4, *) else {
-            throw SignInError(description: "the sign-in returns to the callback on https://\(host)\(callback), which needs iOS 17.4 or macOS 14.4")
+            throw SignInError(description: "the sign-in returns to the callback on https://\(host)\(redirect.path()), which needs iOS 17.4 or macOS 14.4")
         }
-        let back = try await session.authenticate(using: url, callback: .https(host: host, path: callback), additionalHeaderFields: [:])
+        // The redirect's own path, the service's path prefix included.
+        let back = try await session.authenticate(using: url, callback: .https(host: host, path: redirect.path()), additionalHeaderFields: [:])
         let items = URLComponents(url: back, resolvingAgainstBaseURL: false)?.queryItems ?? []
         return try await Service.send("GET", callback, query: items.filter { $0.name == "code" || $0.name == "state" })
     }
 
-    /// 32 random bytes, base64url without padding (RFC 7636, 4.1).
-    private static func random() -> String {
+    /// 32 random bytes, base64url without padding (RFC 7636, 4.1). Throws
+    /// when the system gives none, since zero bytes would be a state, a
+    /// nonce and a verifier anyone could guess.
+    private static func random() throws -> String {
         var bytes = [UInt8](repeating: 0, count: 32)
-        _ = SecRandomCopyBytes(kSecRandomDefault, bytes.count, &bytes)
+        let status = SecRandomCopyBytes(kSecRandomDefault, bytes.count, &bytes)
+        guard status == errSecSuccess else {
+            throw SignInError(description: "the system gave no random bytes for the state, the nonce and the PKCE verifier: SecRandomCopyBytes returned OSStatus \(status)")
+        }
         return base64url(Data(bytes))
     }
 

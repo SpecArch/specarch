@@ -32,3 +32,34 @@ func TestTranslations(t *testing.T) {
 		t.Fatalf("a missing file: %v", g.Diags)
 	}
 }
+
+// In the dxlib dialect the sign-in callback is warned of at
+// /signIn/callback, naming the GET route the provider comes back on, since
+// the dialect serves every operation as a POST (ADR-182); a generator that
+// calls the standard dialect only is refused there already.
+func TestSignInCallbackDxlib(t *testing.T) {
+	spec := map[string]any{
+		"signIn": map[string]any{"callback": "finishSignIn"},
+		"paths":  map[string]any{"/auth/callback": map[string]any{"get": map[string]any{"operationId": "finishSignIn"}}},
+	}
+	warned := func(dialect string, seals bool) []string {
+		g := New(&Request{Specification: spec, APIDialect: dialect}, Profile{Name: "specarch-gen-ui-typescript", Seals: seals})
+		var out []string
+		for _, d := range g.Diags {
+			if d.Path == "/signIn/callback" {
+				out = append(out, d.Severity+": "+d.Message)
+			}
+		}
+		return out
+	}
+	got := warned("dxlib", true)
+	if len(got) != 1 || !strings.HasPrefix(got[0], "warning: ") || !strings.Contains(got[0], "adds a GET route at /auth/callback") || !strings.Contains(got[0], "POST /finishSignIn") {
+		t.Fatalf("the dxlib dialect: %v", got)
+	}
+	if got := warned("", true); len(got) != 0 {
+		t.Fatalf("the standard dialect: %v", got)
+	}
+	if got := warned("dxlib", false); len(got) != 0 {
+		t.Fatalf("a generator refused the dxlib dialect: %v", got)
+	}
+}

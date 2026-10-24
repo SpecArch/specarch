@@ -66,6 +66,18 @@ public struct TaskPage: View {
                     let signedIn = try await IdentityProvider.signIn(callback: callback, session: webAuthenticationSession)
                     if !(200..<400).contains(signedIn.status) {
                         problems = ["": "the callback \(callback) answered HTTP \(signedIn.status)"]
+                        return
+                    }
+                    // Signed in: the session is read again, and the person
+                    // goes back to the page sign-in was asked for from, or
+                    // to the app's first page.
+                    SessionStore.shared.forget()
+                    values = [:]
+                    if let back = router.returnTo {
+                        router.returnTo = nil
+                        router.replace(with: back)
+                    } else {
+                        router.path = []
                     }
                 } catch {
                     problems = ["": String(describing: error)]

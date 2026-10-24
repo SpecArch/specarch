@@ -111,6 +111,10 @@ export async function signIn(callback: string): Promise<void> {
     // OpenID Connect Discovery 1.0, 4.3: the issuer must be the one asked.
     throw new Error(`the discovery document of ${provider.issuerUrl} names the issuer ${String(discovery.issuer)}, and the two must be the same`);
   }
+  if (service !== "" && new URL(service, window.location.origin).origin !== window.location.origin) {
+    // The callback and the __Host-sign-in cookie it reads are on the page's own origin.
+    throw new Error(`the sign-in returns to ${callback} on the page's origin ${window.location.origin}, and the service answers on ${new URL(service, window.location.origin).origin}, where the __Host-sign-in cookie is not sent; serve the callback on the page's origin (settings.server) or the pages on the service's`);
+  }
   const state = random();
   const nonce = random();
   const verifier = random();

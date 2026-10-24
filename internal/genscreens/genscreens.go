@@ -182,6 +182,10 @@ func New(r *Request, p Profile) *Gen {
 		}
 	}
 	g.WireNames = text(obj0(g.Spec["info"])["wireNames"])
+	if path, ok := g.signInCallback(); ok && g.Dialect == "dxlib" && p.Seals {
+		id := text(obj0(g.Spec["signIn"])["callback"])
+		g.Problem("warning", "/signIn/callback", "the identity provider sends the person back to %s with GET %s?code=...&state=..., and the service serves it in the dxlib dialect only as POST /%s with a JSON body; the service adds a GET route at %s in front of the callback's body, or the sign-in cannot complete (ADR-182)", id, path, id, path)
+	}
 	found := false
 	for _, impl := range r.Implementations {
 		t, ok := obj(obj0(impl.Content["targets"])[r.Target])

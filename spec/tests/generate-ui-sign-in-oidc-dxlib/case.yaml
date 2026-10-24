@@ -1,0 +1,5 @@
+arguments: [generate, ui, --unapproved, project]
+exitStatus: 0
+standardOutput: |
+  project/specarch.yaml:77:13: warning: /signIn/callback: generator: the identity provider sends the person back to finishSignIn with GET /auth/callback?code=...&state=..., and the service serves it in the dxlib dialect only as POST /finishSignIn with a JSON body; the service adds a GET route at /auth/callback in front of the callback's body, or the sign-in cannot complete (ADR-182) [generator@specarch.yaml#/signIn/callback]
+plugins: [ui]

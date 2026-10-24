@@ -1,4 +1,5 @@
 arguments: [generate, go-dxlib, --unapproved, project]
 exitStatus: 0
-standardOutput: ""
+standardOutput: |
+  project/specarch.yaml:77:13: warning: /signIn/callback: generator: the identity provider sends the person back to finishSignIn with GET /auth/callback?code=...&state=..., and dxlib serves finishSignIn only as POST /finishSignIn with a JSON body; the project adds a GET route at /auth/callback that reads code and state from the query and hands them to FinishSignIn, or the sign-in cannot complete (ADR-182) [generator@specarch.yaml#/signIn/callback]
 plugins: [go-dxlib]

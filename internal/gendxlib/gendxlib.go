@@ -524,6 +524,9 @@ func (g *gen) handlers() {
 	g.line("func Register(a *api.DXAPI) {")
 	for _, o := range ops {
 		g.line("\ta.RegisterHandler(%q, %s)", o.id, pascal(o.id))
+		if o.id == text(obj(g.spec["signIn"])["callback"]) {
+			g.problem("warning", "/signIn/callback", "the identity provider sends the person back to %s with GET %s?code=...&state=..., and dxlib serves %s only as POST /%s with a JSON body; the project adds a GET route at %s that reads code and state from the query and hands them to %s, or the sign-in cannot complete (ADR-182)", o.id, o.path, o.id, o.id, o.path, pascal(o.id))
+		}
 	}
 	switch {
 	case g.handshake != nil && g.handshake.envelope != "v2":

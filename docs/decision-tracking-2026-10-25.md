@@ -107,7 +107,7 @@ exists).
 | add, spec-first | only if the author writes `why` or `cites` | the element | no | design schema |
 | add, from a source | yes: `origin` with `cites` (stated) or `why` (inferred) | the element | with `tracksOrigin`, by `origin_missing` and the three origin rules | `docs/refinement.md`, Origin |
 | add or change that answers a question | yes: the decision's `context` (the question), `decision`, `consequences`, `decidedBy`, `cites` (the interview); `why` optional | the decision; `decidedIn` on the element | the record's six fields and `decidedBy`; `why` no | `docs/refinement.md`, The decision that closes a question; `specarch decide` |
-| change of an element inside development, no question | no | git only | no | `docs/maintenance.md`: an answer to an open question of an unapproved specification is not a change request |
+| change of an element inside development, no question | no | git only | no | `docs/refinement.md`, The decision that closes a question: an answer to an open question of an unapproved specification is not a change request |
 | change of an approved or released element | yes when a change request exists: its `reason` and `decision.why`; `diff`'s `covered` check refuses a changed element no record names, at release time | the change record | `reason` yes; the record itself only at release (`covered`), not at the edit | `docs/maintenance.md`, The diff verb |
 | delete | as a change: `affects.removes` on a change record; otherwise nothing | the change record, or git | no, except through `covered` at release | same |
 | rename | no; `diff` sees a removal and an addition (major) | git | no | `docs/maintenance.md`, the impact table; the editor's Rename… |
@@ -242,28 +242,41 @@ request, with its reason, before the next release. Two gaps stay:
   requirement with `status: retired`, a decision with `status:
   deprecated`, a field with `deprecated: true`. A warning,
   `retired_reason`, for one that carries no reason for the step itself.
-  The step's reason is one of two things that exist, and nothing else:
-  a change record, implemented or released, whose `affects.removes`
-  names the element, its `reason` and `decision.why` being the reason
-  (the record schema says a removed requirement "may instead stay with
-  status retired", `change_applied` allows it, and `validate` reads
-  `records/` beside the specification for `record_ref` and
-  `change_applied`, `internal/validate/records.go`; `change_applied` is
-  extended so that a `removes` pointer may also resolve to a decision
-  with `status: deprecated` or a field with `deprecated: true`); or an
-  accepted decision whose `governs` names the element and whose
-  `decision` states the retirement, so that a deprecated decision is
-  covered by the accepted decision that deprecates it, whose `governs`
-  names it (a decision with a successor is superseded, not deprecated,
-  and `supersededBy` is its step's reason). The element's own
-  `why` never counts: it is about the requirement or the decision, not
-  about the step (section 1.3, the requirement-status row), and a
-  requirement accepted with a `why` and retired later would otherwise
-  never warn. A deprecated field inherits its entity's. A key of its own
-  for the step's reason (a retirement reason on the element) is the
-  rejected alternative: a second home for a reason that the change
-  record and the decision already hold, two ways to say one thing.
-  Additive as a warning; an error would be breaking (question 5).
+  The step's reason is one thing, the only one `validate` can check: a
+  change record, implemented or released, whose `affects.removes` names
+  the element, its `reason` and `decision.why` being the reason, both
+  already required (the record schema says a removed requirement "may
+  instead stay with status retired", `change_applied` allows it, and
+  `validate` reads `records/` beside the specification for `record_ref`
+  and `change_applied`, `internal/validate/records.go`; `change_applied`
+  is extended so that a `removes` pointer may also resolve to a decision
+  with `status: deprecated` or a field with `deprecated: true`). A
+  decision with a successor is superseded, not deprecated, and
+  `supersededBy` is its step's reason, so the warning does not reach it.
+  A deprecated field inherits its entity's record. The warning names the
+  element and says what closes it: a change record whose `affects.removes`
+  names it, or removing the element. A change record may be raised during
+  development (`phase: development`, `docs/maintenance.md`, Change
+  requests), so the warning holds there too; a requirement that no
+  longer applies before any approval is as well removed. Two things never
+  count. The element's own `why`: it is about the requirement or the
+  decision, not about the step (section 1.3, the requirement-status row),
+  and a requirement accepted with a `why` and retired later would
+  otherwise never warn. An accepted decision whose `governs` names the
+  element: `governs` names what the decision shapes (section 3.1), so the
+  decision that shaped a requirement when it was written governs it still
+  once it is retired, and `validate` cannot tell that decision from one
+  taken for the retirement, since it sees one version, the element
+  carries no date for the step, and the validator never reads git
+  (`docs/maintenance.md`, Change requests, and the last paragraph of
+  section 6). Two alternatives are rejected for those reasons: a key of
+  its own for the step's reason (a retirement reason on the element), a
+  second home for a reason the change record already holds, two ways to
+  say one thing; and the `governs` branch, a check `validate` cannot run.
+  A decision taken for a retirement is still written when there is one to
+  write, beside the change record, the two linked as question 2 settles
+  (E5); the record is what the warning reads. Additive as a warning; an
+  error would be breaking (question 5).
 
 ### 3.3 The rule "an element changed since approval has a change record with a reason"
 
@@ -276,8 +289,10 @@ finishes an item, once ADR-083 step 8 gives `diff` the approved commit. Two
 additions to `diff`'s output make it the reader's view: after each changed
 element, the reason beside it, the covering change request's `reason` and
 its `decision.why`, or the accepted decision newer than the old side whose
-`governs` or an element's `decidedIn` names it; and for an element with
-neither, `reason: none recorded`, as a line, not as a value in any file.
+`governs` or an element's `decidedIn` names it, which `diff` can tell from
+an older decision because it holds both sides, where `validate` cannot
+(section 3.2); and for an element with neither, `reason: none recorded`,
+as a line, not as a value in any file.
 Additive: `diff` gains lines; its golden cases are rewritten.
 
 ### 3.4 The view of what has no reason
@@ -294,8 +309,8 @@ one section, Reasons, left out when there is nothing to say:
 - proposed decisions by `proposedBy`, so that an agent's proposals are
   listed with the questions that wait on a human;
 - retired requirements and deprecated decisions without a reason for the
-  step (section 3.2): no change record removes them and no accepted
-  decision governs them.
+  step (section 3.2): no change record, implemented or released, names
+  them under `affects.removes`.
 
 The same figures go into the `questions` document, which is the one handed
 to the stakeholders who decide (`docs/refinement.md`). The editor computes
@@ -338,9 +353,10 @@ decidedIn` and `governs`, without a verb of its own. Additive: new output.
    needs to tell an agent's proposal from a role's without reading the
    stakeholders.
 5. A retired requirement or a deprecated decision without a reason for
-   the step (a change record's `affects.removes` or an accepted
-   decision's `governs`; the element's own `why` counts for neither): a
-   warning or an error.
+   the step (a change record, implemented or released, whose
+   `affects.removes` names it, the one reason `validate` can check; the
+   element's own `why` and a decision's `governs` count for neither,
+   section 3.2): a warning or an error.
 6. Which of the editor items of section 5 to queue.
 7. The reason for the four accepted decisions of this repository without
    `why` (ADR-001, ADR-002, ADR-006, ADR-009): they are the owner's
@@ -433,7 +449,7 @@ written here only so the owner sees the whole.
 | E2 Decide this… | sdlc item 10 as planned: one sheet that writes the decision and sets `decidedIn` with `origin: decided`, or `governs` on the decision for a spec-first element | `governs` for the second form |
 | E3 History on the card | sdlc item 15 as planned: `git log -L` over the element's lines, each commit with its message, the release that includes it and the change request or defect that names it; At <ref>… beside it | nothing |
 | E4 A prompt at save | on ⌘S of a card whose edit changed an element that an approval or a released release covers: Decide this…, Change request…, or Save without a reason; the third records nothing and the Review round lists the element under "changed without a reason"; never per field, never on an unreleased element | the approval's `commit` (ADR-083 step 8) to know what is covered; until then the editor's own last-commit reading |
-| E5 Delete…, Retire…, Deprecate… | the same three choices on Delete…; Retire… on a requirement and Deprecate… on a decision write the status and offer the same three: Decide this… (a decision whose `governs` names the element), Change request… (`affects.removes` naming it), or proceed with nothing recorded; the editor never asks for `why` on the element, since that is not the step's reason (section 3.2) | `governs` for the first choice; `retired_reason` to show the warning after the third |
+| E5 Delete…, Retire…, Deprecate… | the same three choices on Delete…; Retire… on a requirement and Deprecate… on a decision write the status and offer three: Decide this… (a decision for the retirement, and beside it the change record whose `affects.removes` names the element, the two linked as question 2 settles, since the record is what `retired_reason` reads), Change request… (the record alone, `affects.removes` naming it), or proceed with nothing recorded; the editor never asks for `why` on the element, since that is not the step's reason (section 3.2) | the record schema as it is; E2 for the first choice; `retired_reason` to show the warning after the third |
 | E6 Reasons beside the diff | Compare since approval… and the Review round show, per changed element, the reason `diff` prints, and a filter "without a reason" | section 3.3 |
 | E7 Agent proposals | a proposed decision with `proposedBy: agent` carries a badge "proposed by an agent, not confirmed"; Accept… asks the role and writes `status: accepted`, `decidedBy` and the question's removal; an agent is never offered the button | `proposedBy`, `decision_proposer` |
 | E8 Filter: without a reason | Filters > Without a reason, the Reasons section of `gaps` computed from the model, each row opening its card | nothing; `specarch model` already lists `decidedIn`; `governs` once it exists |
@@ -463,13 +479,15 @@ none.
 2. **Phase 2, additive**: ADR-083 step 8 (the approval's `commit`, `diff`
    inside one pre-release) and the reason beside each element in `diff`'s
    output; the agent runs it before finishing an item on an approved
-   specification. Then E6, E4.
+   specification; `retired_reason` and the `change_applied` extension,
+   both read from `records/`, which wait on no question (question 5 asks
+   only whether the warning becomes an error, phase 5). Then E6, E4.
 3. **Phase 3, additive, after question 4**: `proposedBy` and
    `decision_proposer`; `specarch decide <Q> --accept <ADR>`; the two
    lines in `docs/from-sources.md`'s agent instructions. Then E7.
-4. **Phase 4, additive, after questions 3 and 5**: `governs`,
-   `decision_governs` and `decision_governs_twice`; `decision_decider` under `tracksOrigin`;
-   `retired_reason`. Then E2, E5, E3.
+4. **Phase 4, additive, after question 3**: `governs`,
+   `decision_governs` and `decision_governs_twice`; `decision_decider`
+   under `tracksOrigin`. Then E2, E5, E3.
 5. **Phase 5, breaking, meta-model 0.4 and 0.8.0, after question 1**: `why`
    required on an accepted decision, `decidedBy` on every accepted
    decision, `retired_reason` as an error, once every specification in

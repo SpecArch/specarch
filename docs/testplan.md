@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.6-dev of the specification: 719 design tests, 354 golden and 365 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.6-dev of the specification: 720 design tests, 354 golden and 366 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.7.6-dev of the specification: 719 design tests, 354 golden and 365 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 715 |
+| system | 716 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -4198,6 +4198,14 @@ Scenario: red; level: system; covers exit 1.
 - Given: a file named as a design file that starts with specarchImplementation
 - When: validate is run
 - Then: it reports file_kind and exits 1
+
+#### validate-flow-step-missing-key
+
+Scenario: red; level: system; covers exit 1; verifies SA-42.
+
+- Given: a flow whose first step has no event, whose second has no page, and whose third is an action with no label
+- When: validate is run
+- Then: it reports each missing key once, with schema at the step, and no flow error with an empty message or at the first line (BUG-060), and exits 1
 
 #### validate-flows
 

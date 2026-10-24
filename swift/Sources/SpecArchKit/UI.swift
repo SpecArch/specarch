@@ -307,7 +307,11 @@ extension Checker {
             let steps = items(f.value.child("steps"))
             for (i, step) in steps.enumerated() {
                 let at = ["flows", name, "steps", "\(i)"]
-                let pageNode = step.child("page")
+                // A key the schema reports as missing is not looked up: a
+                // check on it would say nothing about what the step holds,
+                // and would be placed at the file's first line, which it
+                // does not own.
+                guard let pageNode = step.child("page") else { continue }
                 guard let pg = d.pages[str(pageNode)] else {
                     add(pageNode, pointer(at + ["page"]), .flow, "\(str(pageNode)) is not a page of the specification\(suggest(str(pageNode), d.pages))")
                     continue
@@ -316,7 +320,9 @@ extension Checker {
                 if role != nil && !granted.contains(perm) {
                     add(pageNode, pointer(at + ["page"]), .flow, "\(actor) cannot open \(str(pageNode)), which needs \(perm); grant it to the role, or give the flow another actor")
                 }
-                let event = str(step.child("event"))
+                guard let eventNode = step.child("event") else { continue }
+                let event = str(eventNode)
+                if event == "action" && step.child("action") == nil { continue }
                 if event == "action" && role != nil,
                    let a = items(pg.child("actions")).first(where: { str($0.child("label")) == str(step.child("action")) }) {
                     let aperm = str(a.child("permission"))

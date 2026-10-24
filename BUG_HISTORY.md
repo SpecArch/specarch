@@ -865,3 +865,17 @@ Expected: `deployments.<environment>.clients` is read as the schema says; `clien
 To repeat: add `deployments: { test: { description: Test., clients: { admin-web: { clientId: x } } } }` to an implementation file of a specification with a client admin-web and run `specarch validate`.
 
 Fix: the boundary check of both builds passes `clients` directly under a deployment (ADR-106); spec/tests/generate-ui-typescript-sign-in-oidc gives one.
+
+## BUG-060 — validate: a flow step with no event gives a second error with an empty message at 1:1
+
+- Reported: 2026-10-24, found while adding content pages, against 0.7.5
+- Closed: 2026-10-24, completed
+- Fixed by: the commit on `main` whose message says `Fixes BUG-060`
+
+A flow step with no `event` was reported twice: `schema: event is missing; add it here` at the step, as expected, and `specarch.yaml:1:1: error: /flows/<flow>/steps/<n>/event: flow: page <page> , so it does not raise ` with nothing after "raise", at the first line of the file, which the step does not own. The flow check (`checkFlows`, `internal/validate/ui.go` and `swift/Sources/SpecArchKit/UI.swift`) looked the event up with no guard for a missing one, and a diagnostic on a missing node is placed at line 1. The same function had two more: a step with no `page` gave ` is not a page of the specification` at 1:1 beside `page is missing`, and a step with `event: action` and no `action` gave `has no action labelled , so it does not raise the action ` beside `action is missing`. A misspelt event was already dropped as an echo of the schema error at the same pointer; a missing key is reported at the step, so nothing dropped these.
+
+Expected: the schema error alone, at the step, in both builds.
+
+To repeat: in a copy of `spec/tests/validate-flows/specarch.yaml`, take `event: submitted` off the first step of `register-a-member` and run `specarch validate`.
+
+Fix: `checkFlows` in both builds skips the lookups of a step whose `page` or `event` is missing, or whose `event` is action with no `action`; the schema reports each. Case `validate-flow-step-missing-key` holds all three to the one schema error each, at the step.

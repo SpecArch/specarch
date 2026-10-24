@@ -412,7 +412,13 @@ func (c *checker) checkFlows(d *design) {
 		steps := source.Items(source.Child(f.Value, "steps"))
 		for i, step := range steps {
 			at := []string{"flows", name, "steps", fmt.Sprint(i)}
+			// A key the schema reports as missing is not looked up: a check
+			// on it would say nothing about what the step holds, and would
+			// be placed at the file's first line, which it does not own.
 			pageNode := source.Child(step, "page")
+			if pageNode == nil {
+				continue
+			}
 			pg := d.pages[source.Str(pageNode)]
 			if pg == nil {
 				c.add(pageNode, source.Pointer(append(at, "page")...), RuleFlow, "%s is not a page of the specification%s", source.Str(pageNode), suggest(source.Str(pageNode), d.pages))
@@ -421,7 +427,14 @@ func (c *checker) checkFlows(d *design) {
 			if perm := source.Str(source.Child(pg, "permission")); role != nil && !granted[perm] {
 				c.add(pageNode, source.Pointer(append(at, "page")...), RuleFlow, "%s cannot open %s, which needs %s; grant it to the role, or give the flow another actor", actor, pageNode.Value, perm)
 			}
-			event := source.Str(source.Child(step, "event"))
+			eventNode := source.Child(step, "event")
+			if eventNode == nil {
+				continue
+			}
+			event := source.Str(eventNode)
+			if event == "action" && source.Child(step, "action") == nil {
+				continue
+			}
 			if event == "action" && role != nil {
 				for _, a := range source.Items(source.Child(pg, "actions")) {
 					if source.Str(source.Child(a, "label")) != source.Str(source.Child(step, "action")) {

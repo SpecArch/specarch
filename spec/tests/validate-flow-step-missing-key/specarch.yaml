@@ -1,0 +1,84 @@
+specarch: "0.1"
+info: { title: Member desk, version: 1.0.0 }
+stakeholders:
+  owner: { description: The product owner. }
+entities:
+  Member:
+    type: object
+    properties:
+      id: { type: string, format: uuid, readOnly: true }
+      fullName: { type: string, minLength: 1, maxLength: 200 }
+    required: [id, fullName]
+    primaryKey: [id]
+permissions:
+  members.read: { description: See members. }
+roles:
+  desk: { description: The desk., permissions: [members.read] }
+paths:
+  /members:
+    get:
+      operationId: listMembers
+      summary: The members
+      permission: members.read
+      responses:
+        "200":
+          description: The members.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/entities/Member" } }
+  /members/{memberId}:
+    parameters:
+      - { name: memberId, in: path, required: true, schema: { type: string, format: uuid } }
+    get:
+      operationId: getMember
+      summary: One member
+      permission: members.read
+      responses:
+        "200":
+          description: The member.
+          content:
+            application/json:
+              schema: { $ref: "#/entities/Member" }
+pages:
+  members-list:
+    kind: list
+    title: Members
+    route: /members
+    entity: Member
+    permission: members.read
+    source: listMembers
+    columns: [fullName]
+    onSelect: { navigate: member-view, with: { memberId: id } }
+  member-view:
+    kind: view
+    title: Member
+    route: /members/{memberId}
+    entity: Member
+    permission: members.read
+    source: getMember
+    fields: [fullName]
+    actions:
+      - { label: Back, kind: navigate, target: members-list }
+flows:
+  missing-keys:
+    description: A step with no event, one with no page, and an action with no label.
+    actor: desk
+    steps:
+      - { page: members-list, action: Back }
+      - { event: select }
+      - { page: member-view, event: action }
+tests:
+  missing-keys-succeeds:
+    flow: missing-keys
+    scenario: golden
+    level: acceptance
+    given: "a member of the desk"
+    when: "they go through members-list, member-view"
+    then: "each step leads to the next, and the last completes"
+  missing-keys-refused:
+    flow: missing-keys
+    scenario: red
+    level: acceptance
+    given: "a reader"
+    when: "they try the flow"
+    then: "it is refused"

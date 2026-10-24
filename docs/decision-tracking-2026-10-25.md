@@ -245,7 +245,10 @@ request, with its reason, before the next release. Two gaps stay:
   The step's reason is one thing, the only one `validate` can check: a
   change record, implemented or released, whose `affects.removes` names
   the element, its `reason` and `decision.why` being the reason, both
-  already required (the record schema says a removed requirement "may
+  already required: `reason` by the record schema, `decision` with `why`
+  on an implemented or released record by `change_decision`
+  (`docs/maintenance.md`, What the validator will check; the record
+  schema says a removed requirement "may
   instead stay with status retired", `change_applied` allows it, and
   `validate` reads `records/` beside the specification for `record_ref`
   and `change_applied`, `internal/validate/records.go`; `change_applied`

@@ -1,0 +1,9 @@
+operation: listLoans
+level: system
+scenario: red
+covers: [shows only the rows of staff]
+given: "a caller holding staff, whose rows of Loan are organisationId == caller.organisationId"
+when: "listLoans is called"
+then: "it lists only the Loan records the rule holds for"
+origin: inferred
+why: "Written by specarch derive: users get this wrong often, so the case is written. A draft: complete the given, when and then, and remove what does not hold."

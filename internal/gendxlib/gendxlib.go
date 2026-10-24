@@ -76,6 +76,7 @@ func Generate(r *genopenapi.Request) genopenapi.Response {
 	g.transport()
 	g.seeds()
 	g.tasks()
+	g.jobRowsNotApplied()
 	g.valueTypes()
 	var b strings.Builder
 	info := obj(g.spec["info"])
@@ -546,6 +547,7 @@ func (g *gen) handlers() {
 func (g *gen) operation(o operation) {
 	name := pascal(o.id)
 	params := g.params(o)
+	g.rowsNotApplied(o)
 	if h := g.handshake; h != nil && h.envelope != "v2" && stream(o) == "download" && text(o.node["handshake"]) == h.name {
 		g.problem("error", o.pointer()+"/handshake", "%s streams a download in the envelope of handshake %s, which settings.envelopes serves as %s, and dxlib's one download type in an envelope is EndPointTypeHTTPDownloadStreamV2, the pre-key envelope; serve %s as v2, or take the download out of the envelope", o.id, h.name, h.envelope, h.name)
 	}

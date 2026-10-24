@@ -786,6 +786,7 @@ Acceptance criteria:
 - For every role with a rule and every operation over the entity whose permission the role holds, specarch derive writes the case of the list showing only the rows, of a read by key outside them answering not found, and of a change that would leave them being refused; a job acting as the role gets the case of acting on those rows only.
 - generate sql writes the rule as a row security policy on PostgreSQL, with the caller's properties read as the implementation file maps them and an unset or empty one read as NULL, gives every role with no rule on that table a policy holding for every row, and marks the role's rule on an engine with no row security without dropping it.
 - The technical specification lists the caller's properties and, beside the permissions matrix, the rows each role reaches.
+- generate go-dxlib warns at every operation over an entity with a rows rule, written or derived from the tenant scope, of a role that holds the operation's permission, and at every job acting as the role on the entity, naming the role and the rule, wherever the generated code does not apply the rule.
 
 **Insight:** A member sees only their own loans, and a tenant's staff only their organisation's records, and the meta-model could say neither, so the rule lived in prose beside the role and the service enforced what no test derived and no policy carried.
 

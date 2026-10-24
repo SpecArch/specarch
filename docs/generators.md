@@ -433,6 +433,17 @@ none left open, which the test checks against the extracted tree), and runs
 the same round trip on the service and client generated from it: code read
 into a specification regenerates to code that behaves the same.
 
+A role's `rows` rule (ADR-095), written or derived from the `tenant`
+scope (ADR-179), is not applied by the generated handlers. The service's
+connection owns the tables, which row security does not bind, so on any
+engine a handler answers and changes the rows of every caller. Each rule
+is therefore a warning at every operation over its entity whose
+permission the role holds, the entity found as `specarch derive` finds
+it for the rows cases (the answer's, the request body's, the guard's, the
+list's, or the one a path parameter is the key of), naming the role and
+the rule, and at every job acting as the role on an entity it reads or
+writes: a system that is not isolated says so at the entry.
+
 The file holds no data model besides those structs, since `specarch-gen-sql`
 writes the schema.
 Scheduled and consuming jobs, and the seeding stay the service's, and the

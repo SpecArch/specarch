@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.6-dev of the specification: 682 design tests, 325 golden and 357 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.6-dev of the specification: 683 design tests, 325 golden and 358 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.7.6-dev of the specification: 682 design tests, 325 golden and 357 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 678 |
+| system | 679 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -2180,6 +2180,14 @@ Scenario: golden; level: system; verifies SA-77, SA-44.
 - Given: the tree extract go writes from the vault written by hand on dxlib (extract-go-dxlib-vault), with each of its sixteen questions answered by a decision record specarch decide wrote, the entries the answers block written and marked decided (issuePreKey public, the size an int64 within 2^53, the permissions described and granted by the role member, the handshake's lifetime of five minutes and one use, the problem's title and condition), its draft tests derived, and an implementation file whose go-dxlib target names the package vault; and specarch-gen-go-dxlib built from this repository on PATH
 - When: generate go-dxlib is run with --unapproved
 - Then: it writes the service and the client with the same operations, request types, stream helpers, handshake and limits as the vault written as a specification, which TestExtractedRoundTrip runs against a real dxlib API with the vault's round-trip test, and exits 0
+
+#### generate-go-dxlib-rows-warned
+
+Scenario: red; level: system; verifies SA-82.
+
+- Given: a lending specification whose tenant scope derives the rows rule of staff over Loan and whose member writes its own, with a list, a create, a read by key and a return of a loan and a daily job acting as staff, and an implementation file with a go-dxlib target; specarch-gen-go-dxlib built from this repository on PATH
+- When: generate go-dxlib is run with --unapproved
+- Then: it writes the Go file and warns once per operation and per rule over Loan of a role that holds the operation's permission, naming the role and the rule, that the generated handler does not apply it, and once at the job that nothing generated applies the rule of its role; and exits 0
 
 #### generate-go-dxlib-session
 
@@ -5539,7 +5547,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-389 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+390 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -5740,6 +5748,7 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-82 | acceptance 4 | golden | SA-82 names no harm |
 | requirement SA-82 | acceptance 5 | golden | SA-82 names no harm |
 | requirement SA-82 | acceptance 6 | golden | SA-82 names no harm |
+| requirement SA-82 | acceptance 7 | golden | SA-82 names no harm |
 | requirement SA-83 | acceptance 1 | golden | SA-83 names no harm |
 | requirement SA-83 | acceptance 2 | golden | SA-83 names no harm |
 | requirement SA-83 | acceptance 3 | golden | SA-83 names no harm |

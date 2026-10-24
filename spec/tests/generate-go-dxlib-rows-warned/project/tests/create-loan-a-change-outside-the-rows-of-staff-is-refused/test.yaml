@@ -1,0 +1,9 @@
+operation: createLoan
+level: system
+scenario: red
+covers: [a change outside the rows of staff is refused]
+given: "a caller holding staff, whose rows of Loan are organisationId == caller.organisationId"
+when: "createLoan is called with a change that would leave the rows"
+then: "it is refused and no Loan changes"
+origin: inferred
+why: "Written by specarch derive: users get this wrong often, so the case is written. A draft: complete the given, when and then, and remove what does not hold."

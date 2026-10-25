@@ -6,6 +6,8 @@ data model, the API, the events, the screens, the permissions, the
 algorithms, the tests, the deployment and the commissioning checks, and the
 decisions behind them, each traced to the others. People read the files, and
 so do AI assistants. Documents, diagrams and code are made from them.
+Its goal is to make each human decision in a specification cheap to take,
+cheap to review and traceable to the decisions it rests on.
 
 SpecArch is personally owned and published under Apache-2.0. Anyone may use it
 under that licence, including for commercial work. See `NOTICE` for the name

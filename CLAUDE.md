@@ -43,6 +43,11 @@ Rules for agents here. The umbrella `MyOwnApps/CLAUDE.md` and
 
 ## How SpecArch is built
 
+- **The goal** (`docs/principles.md`, Goal): a specification is layered
+  human decisions, and SpecArch makes each one cheap to take, cheap to
+  review and traceable to the decisions it rests on. Every item is judged
+  by one question: does it make a human decision faster, more accurate or
+  traceable?
 - **A compiler for specifications** (`docs/principles.md`): it reads an
   incomplete or wrong definition, never refuses to read it, never silently
   drops it. Every problem goes into the one problems file and is marked at

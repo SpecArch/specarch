@@ -7,7 +7,32 @@ that is never complete, so that a result is shown early and a remark on
 it finds its way back into the specification. It follows the Low IQ
 Tax: every file, key, message and document should cost its reader as
 little thinking as possible. And a change carries its reason at the entry
-it changes, so a review reads decisions, not lines of difference.
+it changes, so a review reads decisions, not lines of difference. All
+three serve one goal, set out first.
+
+## Goal
+
+Code is more and more written by machines: generators, and assistants that
+write code from a description. What they cannot do is decide what the
+system should be. The people who design it and review it decide that, and
+their decisions are now the slow part of building a system. Handing those
+decisions to the machine as well does not remove them: it leaves them
+taken by guess, and the system delivered is not the one that was meant.
+
+A specification is layered human decisions. Each rests on earlier ones: a
+permission on a role, a role on a stakeholder, a screen on an operation, a
+test on a requirement. SpecArch's goal is to make each decision cheap to
+take, cheap to review, and traceable to the decisions it rests on. Every
+change to the toolchain or the format is judged by that: does it make a
+human decision faster, more accurate or traceable?
+
+The principles below serve that goal. The compiler never refuses an
+incomplete definition, so a decision can be taken early, before the rest
+is known, and corrected later. A specification is never complete, so a
+change asked for at the acceptance test is a decision too, taken back into
+the specification with what it reaches. The Low IQ Tax makes a decision
+read once and read correctly. And a change carries its reason, so a
+reviewer judges the decision rather than reconstructing it.
 
 ## A compiler for specifications
 

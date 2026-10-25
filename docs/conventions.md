@@ -164,7 +164,21 @@ warning, since a vocabulary is taken whole or refused.
 
 Pin the schema version a project is written against. A project moves to a
 new meta-model version on purpose, in its own change, with `specarch
-upgrade`.
+upgrade`: it reads each specification as `validate` does, with every file
+it is read from, the implementation files, the idioms and the records
+beside it and an estate named, and rewrites only what the move names, the
+version lines, the first line's editor hint and the renamed keys, editing
+the text at the line and column the parser gives, so comments, order and
+quoting stay byte for byte. What it cannot do mechanically it lists as a
+step left to the author: every error the specification would have on
+1.0.0 that it does not have on its own version (a field named `caller` in
+a 0.2 file, a test a 0.1 file lacks, which `specarch derive` writes), a
+key given under both spellings, and a file the parser cannot read. Its
+other problems are `validate`'s and are not counted, so an incomplete
+specification upgrades cleanly. `--dry-run` prints every change as
+`<file>:<line>:<column>: <old> -> <new>` and every step, and writes
+nothing; the exit status is 0 when nothing is left to the author and 1
+when a step is.
 
 ## Design and implementation
 

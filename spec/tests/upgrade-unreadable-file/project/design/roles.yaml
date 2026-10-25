@@ -1,0 +1,4 @@
+roles:
+  member:
+    description: [A card holder.
+    permissions: []

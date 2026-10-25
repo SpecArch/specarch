@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: user manual
 
-Version 0.7.6-dev of the specification: 0 tasks, 0 pages and 16 commands. For the people who use the system: who may open which page, how to reach it, the tasks done across pages step by step, what each page asks for and answers, and what each command takes, does and answers.
+Version 0.7.6-dev of the specification: 0 tasks, 0 pages and 17 commands. For the people who use the system: who may open which page, how to reach it, the tasks done across pages step by step, what each page asks for and answers, and what each command takes, does and answers.
 
 The `specarch` command: it validates SpecArch specifications and makes
 documents and code from them. This folder is the specification, with no
@@ -13,7 +13,7 @@ language, library or build tool in it; how one stack implements it is in
 
 The specification has no role a person holds; the roles under roles, with the permissions the pages need, say who may open each page.
 
-Anyone who has the program runs these commands: approve, check, decide, derive, diff, document, extract, facts, gaps, generate, idioms, idioms diff, merge, model, validate, version.
+Anyone who has the program runs these commands: approve, check, decide, derive, diff, document, extract, facts, gaps, generate, idioms, idioms diff, merge, model, upgrade, validate, version.
 
 ## 2. Finding your way
 
@@ -3310,6 +3310,83 @@ On standard error: A usage message on a usage error, and the reason on a path th
 |---|---|---|
 | 0 | printed |   |
 | 2 | usage error, a path could not be read, or a folder holds no specification, no implementation file and no estate | Read the usage message or the reason on standard error, correct the command line or the path it names, and run it again. |
+
+### specarch upgrade
+
+Move a specification and its files to the newest version of each format, or list what moving them changes.
+
+Reads each specification given as validate does, with every file it
+is read from: the root file, the stage files and the tests, the
+implementation files and the idioms beside them, the records beside
+the specification, and an estate file named on the command line.
+In each it rewrites only what the move to 1.0.0 names, and nothing
+else: the version line of its format (`specarch`,
+`specarchImplementation`, `specarchIdiom`, `specarchRecord`,
+`specarchEstate`) to "1.0.0", keeping the value's quoting; the
+first line's editor hint, `# yaml-language-server: $schema=`, to
+the 1.0 schema of its kind, a release URL of SpecArch's repository
+at the program's release tag and a relative path at the same
+folder; and a key 1.0.0 renamed, a role's `rows` to `rowPolicies`
+and the handover's `source` to `sourceDelivery`, at the key, in a
+file of any version. It edits the text at the line and column the
+parser gives, so comments, order, quoting and blank lines stay byte
+for byte as they were, and it never writes a file anew.
+
+What it cannot do mechanically it does not do, and lists as a step
+left to the author, one problem line each in validate's form:
+every error the specification would have on 1.0.0 that it does not
+have on its own version, such as a field, property or input named
+`caller` in a 0.1 or 0.2 file, or a test a 0.1 file lacks, which
+specarch derive writes; a role or a handover that gives both
+spellings of a renamed key; and a file the parser cannot read, at
+the parser's position. Problems the specification has apart from
+the move are validate's, and are neither printed nor counted: an
+incomplete specification upgrades cleanly and keeps them.
+
+With --dry-run it writes nothing and prints every change it would
+make, `<file>:<line>:<column>: <old> -> <new>`, then every step left
+to the author, in file and line order. Without it, it writes the
+changes and prints the same lines. A tree already on 1.0.0 with no
+deprecated key prints nothing and exits 0, so a second run changes
+nothing. Each module of an estate is upgraded as its own
+specification, and a module on 0.3 references one on 1.0.0 as it
+references one on 0.3. Writing a file changes the specification,
+so an approval of it no longer holds.
+
+**Insight:** A specification that exists keeps validating on its own version, and one command moves it, so no author rewrites a version line, a hint or a renamed key by hand, and the dry run shows every edit before any is made.
+
+```
+specarch upgrade <paths>... [--dry-run] [--to <to>]
+```
+
+Anyone who has the program runs it.
+
+| Argument | What to give | Required |
+|---|---|---|
+| `<paths>` | Folders holding specifications, searched as validate searches them, root files and estate files. One or more. | yes |
+
+| Option | What it does | Required |
+|---|---|---|
+| `--dry-run` | Write nothing; print every change and every step left to the author. |  |
+| `--to <to>` | The version to move to; the newest, 1.0.0, is the default and the only one this program writes, so another is a usage error. |  |
+
+It reads:
+
+- `{paths}`: The specifications, their implementation files, idioms and records, and the estates named.
+
+It writes:
+
+- `every file of each specification read, the implementation files, idioms and records beside it, and an estate named`: The version lines, the editor hints and the renamed keys, edited in place; nothing with --dry-run, and no other file.
+
+On standard output: Each change, `<file>:<line>:<column>: <old> -> <new>`, then each step left to the author as a problem line, in file and line order.
+
+On standard error: A usage message on a usage error, the reason on an unreadable path or a file that cannot be written, and the count of changes and steps.
+
+| Exit status | It means | What to do |
+|---|---|---|
+| 0 | every change the move names was made, or with --dry-run can be made, and no step is left to the author |   |
+| 1 | a step is left to the author | Settle each step it prints: rename what is named caller, run specarch derive for the missing tests, keep one spelling of a renamed key, or correct the file the parser cannot read; then run it again. |
+| 2 | usage error, a path that could not be read or written, or a version --to names that this program does not write | Read the reason on standard error; correct the command line or the path it names, and run it again. |
 
 ### specarch validate
 

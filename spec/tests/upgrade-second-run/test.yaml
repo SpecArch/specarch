@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: upgrade
+level: system
+scenario: golden
+given: "the tree upgrade-writes-changes wrote"
+when: "upgrade is run again"
+then: "it prints nothing, changes no file, and exits 0"
+verifies: [SA-95]

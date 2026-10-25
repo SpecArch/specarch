@@ -11,12 +11,13 @@ import (
 
 	"go.yaml.in/yaml/v3"
 
+	"github.com/SpecArch/specarch/internal/metamodel"
 	"github.com/SpecArch/specarch/internal/source"
 	"github.com/SpecArch/specarch/internal/spec"
 )
 
 // The schema line of every root file a reader writes.
-const schemaLine = "# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v0.7.5/schema/specarch-design-0.3.schema.json\n"
+const schemaLine = "# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v0.7.5/schema/specarch-design-1.0.schema.json\n"
 
 // Node builders. A tree is built from yaml.Node values, never from Go
 // maps, so its keys keep the order they were added in.
@@ -382,7 +383,8 @@ func encode(n *yaml.Node) ([]byte, error) {
 // code source read.
 func rootFile(title, description string, stages []string, sources *yaml.Node) *yaml.Node {
 	info := mapping("title", title, "version", "0.1.0", "description", block(description), "tracksOrigin", true)
-	root := mapping("specarch", "0.3", "info", info)
+	// The version line is quoted, as every specification writes it.
+	root := mapping("specarch", &yaml.Node{Kind: yaml.ScalarNode, Tag: "!!str", Value: metamodel.Current, Style: yaml.DoubleQuotedStyle}, "info", info)
 	if len(stages) > 0 {
 		set(root, "stages", stages)
 	}

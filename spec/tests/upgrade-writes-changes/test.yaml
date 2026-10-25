@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: upgrade
+level: system
+scenario: golden
+given: "the tree of upgrade-dry-run"
+when: "upgrade is run"
+then: "it writes the ten changes and nothing else, keeping the comments, the order and each value's and key's quoting byte for byte, and exits 0"
+verifies: [SA-95]

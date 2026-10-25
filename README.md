@@ -240,8 +240,8 @@ diagram, and the diagram as SVG. Install them at the same tag as
     go install github.com/SpecArch/specarch/cmd/specarch-gen-ui-swiftui@v0.7.5
     go install github.com/SpecArch/specarch/cmd/specarch-gen-scripts@v0.7.5
 
-The Swift build, for macOS, has the validate, model and version verbs and
-gives the same output. With Swift 6:
+The Swift build, for macOS, has the validate, model, upgrade and version
+verbs and gives the same output. With Swift 6:
 
     swift build -c release --package-path swift
     swift/.build/release/specarch validate spec examples
@@ -261,7 +261,26 @@ problem's id in brackets, which stays the same while lines move.
 The exit status is 0 when every input is valid (warnings may be printed), 1
 when any has an error, and 2 for a usage error, a path that cannot be
 read, or a folder with no specification in it. `specarch version` prints the
-program version and the meta-model versions it reads.
+program version and the versions of each format it reads.
+
+A specification names the meta-model version it is written against on its
+`specarch:` line, `"1.0.0"` today. One written against an earlier version,
+0.3, 0.2 or 0.1, is still read by its own rules, with one warning at that
+line; `specarch upgrade` moves it and every file beside it to 1.0.0,
+editing only the version lines, the editor hints and the keys 1.0.0
+renamed, and lists what it cannot do by itself:
+
+    specarch upgrade --dry-run spec/   # print every change, write nothing
+    specarch upgrade spec/
+
+The compatibility promise: SpecArch specifications are written against a
+meta-model version, the `specarch:` line of the root file. From 1.0.0 the
+meta-model follows Semantic Versioning: a file valid on 1.0.0 stays valid
+and means the same on every 1.x; a 1.x only adds. A keyword is deprecated
+with a warning before a 2.0.0 removes it. Every earlier version, 0.3, 0.2
+and 0.1, is read beside 1.0.0 with a warning; `specarch upgrade` moves a
+file on one of them. The program's own version (`specarch version`) is a
+separate number.
 
 The validator checks the layout of the tree, applies the JSON Schema to the
 merged specification, then checks what a schema cannot express: references

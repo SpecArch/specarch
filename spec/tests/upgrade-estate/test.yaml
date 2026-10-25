@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: upgrade
+level: system
+scenario: golden
+given: "an estate on 0.1 listing a module on 0.3 and one on 1.0.0"
+when: "upgrade is run on the estate file"
+then: "it moves the estate's line and the 0.3 module's, leaves the 1.0.0 module as it is, and exits 0"
+verifies: [SA-95]

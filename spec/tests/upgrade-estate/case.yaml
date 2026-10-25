@@ -1,0 +1,5 @@
+arguments: [upgrade, specarch-estate.yaml]
+exitStatus: 0
+standardOutput: |
+  customers/specarch.yaml:1:11: "0.3" -> "1.0.0"
+  specarch-estate.yaml:1:17: "0.1" -> "1.0.0"

@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: upgrade
+level: system
+scenario: golden
+given: "a 0.3 tree with comments, a single-quoted version line, editor hints by release URL and by relative path, a role's rows in flow style, a quoted source on the handover, an implementation file, an idiom and a record on 0.1, and errors of its own"
+when: "upgrade is run with --dry-run"
+then: "it prints each of the ten changes as file, line and column with the old and new text, writes nothing, counts none of the specification's own errors as a step, and exits 0"
+verifies: [SA-95]

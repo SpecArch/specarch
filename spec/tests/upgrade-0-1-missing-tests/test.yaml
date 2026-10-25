@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: upgrade
+level: system
+scenario: red
+covers: [exit 1]
+given: "a 0.1 file whose missing tests are warnings"
+when: "upgrade is run"
+then: "it moves the version line, lists each missing test as a step, says specarch derive writes them, and exits 1"
+verifies: [SA-95]

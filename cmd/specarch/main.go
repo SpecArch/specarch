@@ -61,6 +61,8 @@ const usage = `usage:
                                             allowlist does not name or a line of it that names none or was
                                             added since the revision
   specarch derive <folder>...               write a draft test for every derived case no test covers
+  specarch upgrade [--dry-run] [--to <version>] <folder or file>...
+                                            move specifications and their files to the newest version of each format
   specarch idioms <folder>...               list the idioms each implementation file uses, and how
   specarch idioms diff <idiom> <folder>...  print a shipped idiom's parts beside each override's
   specarch model <folder or file>...        print the specifications as one JSON document, for a program
@@ -104,6 +106,8 @@ func run(args []string, stdout, stderr io.Writer) int {
 		return runCheck(args[1:], stdout, stderr)
 	case "derive":
 		return runDerive(args[1:], stdout, stderr)
+	case "upgrade":
+		return runUpgrade(args[1:], stdout, stderr)
 	case "idioms":
 		return runIdioms(args[1:], stdout, stderr)
 	case "facts":

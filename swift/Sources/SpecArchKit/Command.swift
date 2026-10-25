@@ -6,6 +6,8 @@ public let programVersion = "0.7.5"
 let usage = """
 usage:
   specarch validate <folder or file>...    check specifications and implementation files
+  specarch upgrade [--dry-run] [--to <version>] <folder or file>...
+                                            move specifications and their files to the newest version of each format
   specarch model <folder or file>...        print the specifications as one JSON document, for a program
   specarch version                          print the program version
 
@@ -45,6 +47,8 @@ public func run(_ args: [String], stdout: TextSink, stderr: TextSink) -> Int32 {
         return runValidate(Array(args.dropFirst()), stdout, stderr)
     case "model":
         return runModel(Array(args.dropFirst()), stdout, stderr)
+    case "upgrade":
+        return runUpgrade(Array(args.dropFirst()), stdout, stderr)
     case "version":
         if args.count > 1 {
             stderr.write("specarch version takes no arguments\n\n\(usage)")

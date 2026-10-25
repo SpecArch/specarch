@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: upgrade
+level: system
+scenario: red
+covers: [exit 1]
+given: "a 0.3 tree one of whose stage files the parser cannot read"
+when: "upgrade is run"
+then: "it moves the root file's version line, lists the file at the parser's position as a step, edits nothing in it, and exits 1"
+verifies: [SA-95]

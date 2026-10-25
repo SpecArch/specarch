@@ -1,0 +1,5 @@
+arguments: [upgrade, project]
+exitStatus: 1
+standardOutput: |
+  project/specarch.yaml:1:11: "0.3" -> "1.0.0"
+  project/design/roles.yaml:3:17: error: /roles/member/description: yaml_syntax: the [ that starts on this line is not closed; close it with ], and separate its items with commas; the other entries of the file are read, and this one is kept by its name only until it parses [yaml_syntax@design/roles.yaml#/roles/member/description]

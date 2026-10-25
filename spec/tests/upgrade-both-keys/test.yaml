@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: upgrade
+level: system
+scenario: red
+covers: [exit 1]
+given: "a 1.0.0 file whose member role gives rows and whose staff role gives both rowPolicies and rows"
+when: "upgrade is run with --dry-run"
+then: "it lists the rename of member's rows, leaves staff's rows to the author as the meta_model_deprecated error, and exits 1"
+verifies: [SA-95]

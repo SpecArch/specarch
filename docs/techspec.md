@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.7.6-dev of the specification: 95 requirements, 5 entities, 16 commands, 7 algorithms, 750 tests, 177 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.7.6-dev of the specification: 95 requirements, 5 entities, 17 commands, 7 algorithms, 760 tests, 177 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -73,6 +73,7 @@ The interfaces the system offers, as its clients see them.
 | idioms diff | Print a shipped idiom's parts beside each override's | public | 0: the overrides were printed, or there was none; 2: usage error, an idiom this program does not ship, a path that could not be read, or a specification with errors |
 | merge | Merge the partial specifications the readers wrote into one | public | 0: the merged specification was written; 1: a tree could not be merged: it does not track origin, validate reports an error in it, it holds implementation files or records or a test that is not the draft derive writes for it, or it declares a source another tree declares differently, or whose paths changed after the commit a tree read them at; or a vocabulary that is not one this build reads; 2: usage error, fewer than two trees, two vocabularies of one language, or a folder or file that could not be read or written |
 | model | Print the specifications as one JSON document, for a program | public | 0: printed; 2: usage error, a path could not be read, or a folder holds no specification, no implementation file and no estate |
+| upgrade | Move a specification and its files to the newest version of each format, or list what moving them changes | public | 0: every change the move names was made, or with --dry-run can be made, and no step is left to the author; 1: a step is left to the author; 2: usage error, a path that could not be read or written, or a version --to names that this program does not write |
 | validate | Check specifications and implementation files | public | 0: every input is valid; 1: at least one input has an error; 2: usage error, a path could not be read, or a folder holds no specification, no implementation file and no estate |
 | version | Print the program version and the meta-model versions it reads | public | 0: printed |
 
@@ -3741,6 +3742,73 @@ sequenceDiagram
   P->>F: read {paths}
   P->>F: read each estate's modules, at their location
   P-->>U: exit status 0, 2
+```
+
+### Command upgrade
+
+Reads each specification given as validate does, with every file it
+is read from: the root file, the stage files and the tests, the
+implementation files and the idioms beside them, the records beside
+the specification, and an estate file named on the command line.
+In each it rewrites only what the move to 1.0.0 names, and nothing
+else: the version line of its format (`specarch`,
+`specarchImplementation`, `specarchIdiom`, `specarchRecord`,
+`specarchEstate`) to "1.0.0", keeping the value's quoting; the
+first line's editor hint, `# yaml-language-server: $schema=`, to
+the 1.0 schema of its kind, a release URL of SpecArch's repository
+at the program's release tag and a relative path at the same
+folder; and a key 1.0.0 renamed, a role's `rows` to `rowPolicies`
+and the handover's `source` to `sourceDelivery`, at the key, in a
+file of any version. It edits the text at the line and column the
+parser gives, so comments, order, quoting and blank lines stay byte
+for byte as they were, and it never writes a file anew.
+
+What it cannot do mechanically it does not do, and lists as a step
+left to the author, one problem line each in validate's form:
+every error the specification would have on 1.0.0 that it does not
+have on its own version, such as a field, property or input named
+`caller` in a 0.1 or 0.2 file, or a test a 0.1 file lacks, which
+specarch derive writes; a role or a handover that gives both
+spellings of a renamed key; and a file the parser cannot read, at
+the parser's position. Problems the specification has apart from
+the move are validate's, and are neither printed nor counted: an
+incomplete specification upgrades cleanly and keeps them.
+
+With --dry-run it writes nothing and prints every change it would
+make, `<file>:<line>:<column>: <old> -> <new>`, then every step left
+to the author, in file and line order. Without it, it writes the
+changes and prints the same lines. A tree already on 1.0.0 with no
+deprecated key prints nothing and exits 0, so a second run changes
+nothing. Each module of an estate is upgraded as its own
+specification, and a module on 0.3 references one on 1.0.0 as it
+references one on 0.3. Writing a file changes the specification,
+so an approval of it no longer holds.
+
+**Insight:** A specification that exists keeps validating on its own version, and one command moves it, so no author rewrites a version line, a hint or a renamed key by hand, and the dry run shows every edit before any is made.
+
+| Argument or option | Type | Required | Description |
+|---|---|---|---|
+| `<paths>` | string, one or more | yes | Folders holding specifications, searched as validate searches them, root files and estate files. |
+| `--dry-run` | bool |   | Write nothing; print every change and every step left to the author. |
+| `--to` | string |   | The version to move to; the newest, 1.0.0, is the default and the only one this program writes, so another is a usage error. |
+
+Reads `{paths}`: The specifications, their implementation files, idioms and records, and the estates named.
+
+Writes `every file of each specification read, the implementation files, idioms and records beside it, and an estate named`: The version lines, the editor hints and the renamed keys, edited in place; nothing with --dry-run, and no other file.
+
+Standard output: Each change, `<file>:<line>:<column>: <old> -> <new>`, then each step left to the author as a problem line, in file and line order.
+
+Standard error: A usage message on a usage error, the reason on an unreadable path or a file that cannot be written, and the count of changes and steps.
+
+```mermaid
+sequenceDiagram
+  participant U as User
+  participant P as SpecArch toolchain
+  participant F as Files
+  U->>P: upgrade <paths>
+  P->>F: read {paths}
+  P->>F: write every file of each specification read, the implementation files, idioms and records beside it, and an estate named
+  P-->>U: exit status 0, 1, 2
 ```
 
 ### Command validate
@@ -14298,6 +14366,16 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | model-tenant-rules | command model | system | golden | a specification on 0.3 whose tenant scope names organisationId as property and key and Country as shared, a member with its own rules over Organisation and Loan, and staff with its own rule over Organisation only | model is run on it | the document holds the rule organisationId == caller.organisationId under the rows of staff for Loan, at the position of tenant, keeps the member's own rule over Loan, derives nothing for Country or Organisation, and exits 0 |
 | model-usage-error | command model | system | red | no folder or file | model is run with no argument | it prints how to use it and exits 2 |
 | model-writes-json | command model | system | golden | a specification with a requirement, an entity, a permission, a role, an operation, a channel carried by a dependency, two tests, an implementation file that names an operation, an element the specification lacks and a server that is the dependency, and a folder that is not a stage | model is run on it | it prints one JSON document in canonical form with the merged document, the position of every node, the references that resolve and the keyword of each, the layout problem of the folder, and the implementation file with its two resolved references, and exits 0 |
+| upgrade-0-1-missing-tests | command upgrade | system | red | a 0.1 file whose missing tests are warnings | upgrade is run | it moves the version line, lists each missing test as a step, says specarch derive writes them, and exits 1 |
+| upgrade-0-2-caller | command upgrade | system | red | a 0.2 file whose entity field, view property, schema property and algorithm input are named caller | upgrade is run | it moves the version line to 1.0.0, lists the four names as reserved_name steps left to the author, and exits 1 |
+| upgrade-both-keys | command upgrade | system | red | a 1.0.0 file whose member role gives rows and whose staff role gives both rowPolicies and rows | upgrade is run with --dry-run | it lists the rename of member's rows, leaves staff's rows to the author as the meta_model_deprecated error, and exits 1 |
+| upgrade-dry-run | command upgrade | system | golden | a 0.3 tree with comments, a single-quoted version line, editor hints by release URL and by relative path, a role's rows in flow style, a quoted source on the handover, an implementation file, an idiom and a record on 0.1, and errors of its own | upgrade is run with --dry-run | it prints each of the ten changes as file, line and column with the old and new text, writes nothing, counts none of the specification's own errors as a step, and exits 0 |
+| upgrade-estate | command upgrade | system | golden | an estate on 0.1 listing a module on 0.3 and one on 1.0.0 | upgrade is run on the estate file | it moves the estate's line and the 0.3 module's, leaves the 1.0.0 module as it is, and exits 0 |
+| upgrade-second-run | command upgrade | system | golden | the tree upgrade-writes-changes wrote | upgrade is run again | it prints nothing, changes no file, and exits 0 |
+| upgrade-to-older | command upgrade | system | red | a 0.2 file | upgrade is run with --to 0.3 | it says it writes only 1.0.0, changes nothing, and exits 2 |
+| upgrade-unreadable-file | command upgrade | system | red | a 0.3 tree one of whose stage files the parser cannot read | upgrade is run | it moves the root file's version line, lists the file at the parser's position as a step, edits nothing in it, and exits 1 |
+| upgrade-usage-error | command upgrade | system | red | no path | upgrade is run with no argument | it prints how to use it and exits with the usage status |
+| upgrade-writes-changes | command upgrade | system | golden | the tree of upgrade-dry-run | upgrade is run | it writes the ten changes and nothing else, keeping the comments, the order and each value's and key's quoting byte for byte, and exits 0 |
 | validate-0-3-caller-property | command validate | system | red | a check constraint reading a field's property with a dot, a check constraint naming caller.memberId, a rows rule naming the caller's property in the wrong case, and one naming a property the caller does not declare | validate is run | it reports caller_property for each of the four, naming the one place a dot may appear, the rows rule as the one place the caller is named, the property's right case and the properties the caller has, and exits 1 |
 | validate-0-3-callers | command validate | system | red | an operation whose callers is empty, one listing people twice, a client none of whose roles grants its permission, a service with no roles and a name that is no client, and a route closed with nobody that lists callers | validate is run | it reports callers for the empty list, the client without a granting role, the service without roles, the unknown name with the nearest client, the repeated people, and the closed route, and exits 1 |
 | validate-0-3-claims | command validate | system | red | an access token whose exp is written as a string, whose own claim is in snake case, and whose aud lists two URIs and a value with a colon that is no URI | validate is run | it reports claim for the retyped exp and the snake-case claim, token_audience for the value that is no URI and nothing for the two URIs, and exits 1 |
@@ -14741,7 +14819,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | SA-10 | An implementation file's implements and pointers shall resolve in the specification it names, at the same version. | functional | must | accepted | test | An implementation written against an older version of its specification is reported as implements. A pointer to an object the specification does not have is reported as design_ref. | NEED-2 |
 | SA-51 | specarch shall list every problem of a specification, valid or not, in one problems file and its SARIF 2.1.0 form, each error, warning and open question with a stable id, file, line and column, JSON pointer, rule, a message saying how to fix it, and notes at the sources it came from and the entries it blocks, and every file specarch writes shall mark the entry a problem touches. | interface | must | accepted | test | specarch document problems on a specification with an error, a warning and a must question writes problems.txt with one line each in the form file:line:column: severity: pointer: rule: message [id], sorted by file and line, the question followed by a note at each source it cites and each entry it blocks, and exits 1. The same run writes problems.sarif, a SARIF 2.1.0 log with the same results, the question as kind open and level none, and each id as a partial fingerprint; a second run writes the same bytes. A specification with no problem gets a problems file that says so. A fragment with one entry that does not parse reports one yaml_syntax error at that entry's line and pointer, keeps its other entries, and reports no reference to the broken entry's name; an implementation file with a broken entry still names the problems file's folder. | NEED-1, NEED-8 |
 | SA-74 | specarch model shall print, in both builds, one JSON document in RFC 8785's canonical form that holds, for every specification of the folders given, the merged document, every node's file, line and column, every resolved reference with the keyword that made it, the layout problems, and each implementation file and estate, so that a program reads a specification as specarch does without a loader of its own. | interface | must | accepted | test | specarch model on a folder with a valid specification prints one JSON document whose positions name, for every entry the problems file could name, the file, line and column the problems file would report, and whose references list every satisfies, verifies, $ref, target, permission, emits, calls, decidedIn and implements link with its from, to and through; the Go build and the Swift build print the same bytes. A folder with a layout problem is printed with that problem in the problems file's form and exit status 0; a folder with no specification, or one that cannot be read, is exit status 2 and the reason on standard error. The validator's errors, warnings and open questions are not in the document; the problems file is their one list. | NEED-3, NEED-7 |
-| SA-95 | specarch shall read every file by the version its version line declares, 1.0.0 and any later 1.0 patch, and every earlier version beside it (0.3, 0.2 and 0.1 of the meta-model, 0.1 of the other formats), each earlier version with a warning naming specarch upgrade; a version line it does not read shall be an error at the line, the file read as 1.0.0 so that every other problem is still listed; and a key meta-model 1.0.0 renamed shall be read under its old spelling as its replacement, with a warning, until 2.0.0. | functional | must | accepted | test | A specification that says specarch "1.0.0", or a later 1.0 patch such as "1.0.4", validates with the output the same file gives on "0.3" less the version warning, in both builds. A specification that says "1.2.0", "1.0" or what is no version is reported with meta_model_version at the line, naming the versions read, the three-part spelling for a short one, and that a later specarch reads a later one, with every other problem of the file still listed. A file on 1.0 that gives a role's rows or the handover's source is warned with meta_model_deprecated at the key, naming rowPolicies or sourceDelivery and specarch upgrade, and is read as the new key; one that gives both spellings in one object is an error at the old key. A file on 0.3 or earlier is checked against the 0.3 schema and keeps its rules and its output, the rows rule named row_policies. An implementation file, a record, an idiom and an estate say their own format's version, 1.0.0 or a later 1.0 patch, or 0.1 beside it, each checked against its version's schema; a version line of theirs the program does not read is an error at the line, and the file is still read as 1.0.0; specarch version names every format's versions. | NEED-1, NEED-7 |
+| SA-95 | specarch shall read every file by the version its version line declares, 1.0.0 and any later 1.0 patch, and every earlier version beside it (0.3, 0.2 and 0.1 of the meta-model, 0.1 of the other formats), each earlier version with a warning naming specarch upgrade; a version line it does not read shall be an error at the line, the file read as 1.0.0 so that every other problem is still listed; and a key meta-model 1.0.0 renamed shall be read under its old spelling as its replacement, with a warning, until 2.0.0. | functional | must | accepted | test | A specification that says specarch "1.0.0", or a later 1.0 patch such as "1.0.4", validates with the output the same file gives on "0.3" less the version warning, in both builds. A specification that says "1.2.0", "1.0" or what is no version is reported with meta_model_version at the line, naming the versions read, the three-part spelling for a short one, and that a later specarch reads a later one, with every other problem of the file still listed. A file on 1.0 that gives a role's rows or the handover's source is warned with meta_model_deprecated at the key, naming rowPolicies or sourceDelivery and specarch upgrade, and is read as the new key; one that gives both spellings in one object is an error at the old key. A file on 0.3 or earlier is checked against the 0.3 schema and keeps its rules and its output, the rows rule named row_policies. specarch upgrade, in both builds, moves a specification and every file it is read from to 1.0.0, editing only the version lines, the editor hints and the renamed keys and leaving every other byte as it was; with --dry-run it prints each change and writes nothing; it lists each step left to the author, an error the move brings, a key given under both spellings or a file the parser cannot read, as a problem line and exits 1, and a second run changes nothing. An implementation file, a record, an idiom and an estate say their own format's version, 1.0.0 or a later 1.0 patch, or 0.1 beside it, each checked against its version's schema; a version line of theirs the program does not read is an error at the line, and the file is still read as 1.0.0; specarch version names every format's versions. | NEED-1, NEED-7 |
 
 **Insight on SA-31:** A test the specification implies is worth most when it runs; what differs between two projects in one language (how a caller signs in, how a record is stored, how a request is sent) is the harness, so the generated file needs nothing but it.
 
@@ -15047,7 +15125,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-92 | decisions ADR-181 | tests generate-ui-content; tests generate-ui-content-refused; tests generate-ui-swiftui-content; tests generate-ui-typescript-content |
 | SA-93 | enums Rule; decisions ADR-182 | tests derive-sign-in-oidc; tests document-techspec-sign-in-oidc; tests generate-go-dxlib-sign-in-oidc; tests generate-ui-sign-in-oidc; tests generate-ui-sign-in-oidc-dxlib; tests generate-ui-swiftui-sign-in-oidc; tests generate-ui-typescript-sign-in-oidc; tests validate-sign-in-oidc; tests validate-sign-in-oidc-deployment; tests validate-sign-in-oidc-refused |
 | SA-94 | decisions ADR-183 | tests document-manual-custom; tests document-techspec-custom; tests generate-ui-custom; tests generate-ui-custom-check; tests generate-ui-swiftui-custom; tests generate-ui-typescript-custom |
-| SA-95 | decisions ADR-186 | tests validate-estate-1-0-0; tests validate-estate-version-unknown; tests validate-formats-1-0-0; tests validate-formats-version-unknown; tests validate-handover-source-deprecated; tests validate-handover-source-missing; tests validate-handover-source-twice; tests validate-meta-model-1-0-0; tests validate-meta-model-1-0-patch; tests validate-meta-model-deprecated; tests validate-meta-model-later; tests validate-meta-model-short; tests validate-record-1-0-0; tests validate-record-version-unknown; tests validate-row-policies; tests validate-row-policies-valid; tests validate-schema-conditionals; tests validate-schema-conditionals-0-3 |
+| SA-95 | decisions ADR-186 | tests upgrade-0-1-missing-tests; tests upgrade-0-2-caller; tests upgrade-both-keys; tests upgrade-dry-run; tests upgrade-estate; tests upgrade-second-run; tests upgrade-to-older; tests upgrade-unreadable-file; tests upgrade-usage-error; tests upgrade-writes-changes; tests validate-estate-1-0-0; tests validate-estate-version-unknown; tests validate-formats-1-0-0; tests validate-formats-version-unknown; tests validate-handover-source-deprecated; tests validate-handover-source-missing; tests validate-handover-source-twice; tests validate-meta-model-1-0-0; tests validate-meta-model-1-0-patch; tests validate-meta-model-deprecated; tests validate-meta-model-later; tests validate-meta-model-short; tests validate-record-1-0-0; tests validate-record-version-unknown; tests validate-row-policies; tests validate-row-policies-valid; tests validate-schema-conditionals; tests validate-schema-conditionals-0-3 |
 
 ## Sources
 

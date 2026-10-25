@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: upgrade
+level: system
+scenario: red
+covers: [usage error]
+given: "no path"
+when: "upgrade is run with no argument"
+then: "it prints how to use it and exits with the usage status"
+verifies: [SA-95]

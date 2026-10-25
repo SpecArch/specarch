@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.6-dev of the specification: 750 design tests, 365 golden and 385 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.6-dev of the specification: 760 design tests, 369 golden and 391 red, about 19 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.7.6-dev of the specification: 750 design tests, 365 golden and 385 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 746 |
+| system | 756 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -3581,6 +3581,88 @@ Scenario: golden; level: system; verifies SA-74.
 - When: model is run on it
 - Then: it prints one JSON document in canonical form with the merged document, the position of every node, the references that resolve and the keyword of each, the layout problem of the folder, and the implementation file with its two resolved references, and exits 0
 
+### Command upgrade
+
+#### upgrade-0-1-missing-tests
+
+Scenario: red; level: system; covers exit 1; verifies SA-95.
+
+- Given: a 0.1 file whose missing tests are warnings
+- When: upgrade is run
+- Then: it moves the version line, lists each missing test as a step, says specarch derive writes them, and exits 1
+
+#### upgrade-0-2-caller
+
+Scenario: red; level: system; covers exit 1; verifies SA-95.
+
+- Given: a 0.2 file whose entity field, view property, schema property and algorithm input are named caller
+- When: upgrade is run
+- Then: it moves the version line to 1.0.0, lists the four names as reserved_name steps left to the author, and exits 1
+
+#### upgrade-both-keys
+
+Scenario: red; level: system; covers exit 1; verifies SA-95.
+
+- Given: a 1.0.0 file whose member role gives rows and whose staff role gives both rowPolicies and rows
+- When: upgrade is run with --dry-run
+- Then: it lists the rename of member's rows, leaves staff's rows to the author as the meta_model_deprecated error, and exits 1
+
+#### upgrade-dry-run
+
+Scenario: golden; level: system; verifies SA-95.
+
+- Given: a 0.3 tree with comments, a single-quoted version line, editor hints by release URL and by relative path, a role's rows in flow style, a quoted source on the handover, an implementation file, an idiom and a record on 0.1, and errors of its own
+- When: upgrade is run with --dry-run
+- Then: it prints each of the ten changes as file, line and column with the old and new text, writes nothing, counts none of the specification's own errors as a step, and exits 0
+
+#### upgrade-estate
+
+Scenario: golden; level: system; verifies SA-95.
+
+- Given: an estate on 0.1 listing a module on 0.3 and one on 1.0.0
+- When: upgrade is run on the estate file
+- Then: it moves the estate's line and the 0.3 module's, leaves the 1.0.0 module as it is, and exits 0
+
+#### upgrade-second-run
+
+Scenario: golden; level: system; verifies SA-95.
+
+- Given: the tree upgrade-writes-changes wrote
+- When: upgrade is run again
+- Then: it prints nothing, changes no file, and exits 0
+
+#### upgrade-to-older
+
+Scenario: red; level: system; covers exit 2; verifies SA-95.
+
+- Given: a 0.2 file
+- When: upgrade is run with --to 0.3
+- Then: it says it writes only 1.0.0, changes nothing, and exits 2
+
+#### upgrade-unreadable-file
+
+Scenario: red; level: system; covers exit 1; verifies SA-95.
+
+- Given: a 0.3 tree one of whose stage files the parser cannot read
+- When: upgrade is run
+- Then: it moves the root file's version line, lists the file at the parser's position as a step, edits nothing in it, and exits 1
+
+#### upgrade-usage-error
+
+Scenario: red; level: system; covers usage error; verifies SA-95.
+
+- Given: no path
+- When: upgrade is run with no argument
+- Then: it prints how to use it and exits with the usage status
+
+#### upgrade-writes-changes
+
+Scenario: golden; level: system; verifies SA-95.
+
+- Given: the tree of upgrade-dry-run
+- When: upgrade is run
+- Then: it writes the ten changes and nothing else, keeping the comments, the order and each value's and key's quoting byte for byte, and exits 0
+
 ### Command validate
 
 #### validate-0-3-caller-property
@@ -6083,7 +6165,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-416 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+417 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -6503,6 +6585,7 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-95 | acceptance 3 | golden | SA-95 names no harm |
 | requirement SA-95 | acceptance 4 | golden | SA-95 names no harm |
 | requirement SA-95 | acceptance 5 | golden | SA-95 names no harm |
+| requirement SA-95 | acceptance 6 | golden | SA-95 names no harm |
 
 The checks run on the installed system before it is handed over are in the commissioning procedure.
 

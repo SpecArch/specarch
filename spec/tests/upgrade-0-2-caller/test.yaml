@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: upgrade
+level: system
+scenario: red
+covers: [exit 1]
+given: "a 0.2 file whose entity field, view property, schema property and algorithm input are named caller"
+when: "upgrade is run"
+then: "it moves the version line to 1.0.0, lists the four names as reserved_name steps left to the author, and exits 1"
+verifies: [SA-95]

@@ -1,5 +1,5 @@
-# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v0.7.5/schema/specarch-design-0.3.schema.json
-specarch: "0.3"
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v0.7.5/schema/specarch-design-1.0.schema.json
+specarch: "1.0.0"
 info:
   title: Swift source of server
   version: 0.1.0

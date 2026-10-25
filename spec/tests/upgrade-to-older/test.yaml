@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: upgrade
+level: system
+scenario: red
+covers: [exit 2]
+given: "a 0.2 file"
+when: "upgrade is run with --to 0.3"
+then: "it says it writes only 1.0.0, changes nothing, and exits 2"
+verifies: [SA-95]

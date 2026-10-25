@@ -25,6 +25,10 @@ standardOutput: |
       [--source <source>] [--date <date>] [--dry-run]
         Answer an open question with a decision record and take the question
         out.
+    specarch decision rests <decision> <folder>
+        Print the decisions that rest on a decision, nearest first.
+    specarch decision why <decision> <folder>
+        Print the chain of decisions a decision rests on, earliest first.
     specarch derive [--dry-run] <paths>...
         Write a draft test for every derived case no test covers.
     specarch diff <old> <new>

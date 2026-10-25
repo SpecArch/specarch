@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: decision why
+level: system
+scenario: golden
+given: "a decision that rests on nothing"
+when: "decision why is run for it"
+then: "it prints that it rests on no decision and its own line, and exits 0"
+verifies: [SA-97]

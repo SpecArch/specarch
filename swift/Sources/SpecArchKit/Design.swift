@@ -176,6 +176,26 @@ func suggest(_ name: String, _ valid: [String: YNode]) -> String {
     return ""
 }
 
+/// The chain of restsOn links from one decision back to another, the
+/// decisions on it from the first to the last in the order the links are
+/// written, or nil when there is none; seen keeps the walk out of a cycle
+/// that does not reach the last.
+func restsChain(_ from: String, _ to: String, _ known: [String: YNode], _ seen: inout Set<String>) -> [String]? {
+    if from == to { return [to] }
+    guard !seen.contains(from), let dec = known[from] else { return nil }
+    seen.insert(from)
+    for link in items(dec.child("restsOn")) {
+        if let rest = restsChain(link.value, to, known, &seen) { return [from] + rest }
+    }
+    return nil
+}
+
+/// How a decision's chain of restsOn links comes back to it.
+func chainText(_ id: String, _ chain: [String]) -> String {
+    if chain.count == 1 { return "\(id) rests on itself" }
+    return "\(id) rests on " + chain.joined(separator: ", which rests on ") + ", so the chain comes back to \(id)"
+}
+
 func distance(_ a: String, _ b: String) -> Int {
     let ra = Array(a.unicodeScalars), rb = Array(b.unicodeScalars)
     var prev = Array(0...rb.count)
@@ -808,6 +828,41 @@ extension Checker {
         for (id, dec) in d.decisions {
             if let s = dec.child("supersededBy"), d.decisions[s.value] == nil {
                 add(s, pointer("decisions", id, "supersededBy"), .decision, "\(s.value) is not a decision of the specification\(suggest(s.value, d.decisions))")
+            }
+        }
+        checkDecisionChain(d.root.child("decisions"), d.decisions)
+    }
+
+    /// Checks the restsOn links of the decisions under decisions against
+    /// known, the decisions a link may name (ADR-188): a link to a decision
+    /// that is not there is an error at the entry; a chain of links that
+    /// comes back to its own decision is an error at the entry that closes
+    /// it, naming the chain in the order the links are written; and a link
+    /// from a decision that is not itself superseded to a superseded one is
+    /// a warning naming the successor, unless the linking decision is that
+    /// successor. A superseded decision's links were true when it held and
+    /// a record is never edited, so they warn nothing.
+    func checkDecisionChain(_ decisions: YNode?, _ known: [String: YNode]) {
+        for p in pairs(decisions) {
+            let id = p.key.value, dec = p.value
+            let superseded = str(dec.child("status")) == "superseded"
+            for (i, link) in items(dec.child("restsOn")).enumerated() {
+                let ptr = pointer("decisions", id, "restsOn", String(i))
+                guard let target = known[link.value] else {
+                    add(link, ptr, .decision, "\(link.value) is not a decision of the specification\(suggest(link.value, known))")
+                    continue
+                }
+                var seen = Set<String>()
+                if let chain = restsChain(link.value, id, known, &seen) {
+                    add(link, ptr, .decisionCycle, "\(chainText(id, chain)); a decision rests on earlier decisions only, so take one link out")
+                    continue
+                }
+                if !superseded, str(target.child("status")) == "superseded" {
+                    let by = str(target.child("supersededBy"))
+                    if !by.isEmpty, by != id {
+                        warn(link, ptr, .decisionSuperseded, "\(link.value) is superseded by \(by), so this decision rests on what no longer holds; supersede it with a decision that rests on \(by), or say under why why \(link.value) still holds for it")
+                    }
+                }
             }
         }
     }

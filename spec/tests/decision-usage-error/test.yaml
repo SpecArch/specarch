@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: decision why
+level: system
+scenario: red
+covers: [usage error, exit 2]
+given: "a specification"
+when: "decision why is run with no folder"
+then: "it prints the usage and exits 2"
+verifies: [SA-97]

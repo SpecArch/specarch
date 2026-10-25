@@ -160,6 +160,8 @@ const (
 	RuleSecurityEvents         Rule = "security_events"
 	RuleSignIn                 Rule = "sign_in"
 	RuleExitCode               Rule = "exit_code"
+	RuleDecisionCycle          Rule = "decision_cycle"
+	RuleDecisionSuperseded     Rule = "decision_superseded"
 )
 
 // Rules lists every rule, in the order of the design's Rule enum.
@@ -310,6 +312,8 @@ var Rules = []Rule{
 	RuleSecurityEvents,
 	RuleSignIn,
 	RuleExitCode,
+	RuleDecisionCycle,
+	RuleDecisionSuperseded,
 }
 
 // Severity says whether a diagnostic makes the file invalid.

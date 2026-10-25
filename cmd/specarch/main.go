@@ -10,6 +10,7 @@
 //	specarch check [--allowlist <file>] [--since <revision>] <specification> <dump>...
 //	specarch derive [--dry-run] <folder>...
 //	specarch idioms [diff <idiom>] <folder>...
+//	specarch decision why|rests <decision> <folder>
 //	specarch model <folder or file>...
 //	specarch version
 //	specarch help [<topic>]
@@ -70,6 +71,9 @@ const usage = `usage:
                                             move specifications and their files to the newest version of each format
   specarch idioms <folder>...               list the idioms each implementation file uses, and how
   specarch idioms diff <idiom> <folder>...  print a shipped idiom's parts beside each override's
+  specarch decision why <decision> <folder> print the chain of decisions a decision rests on, earliest first
+  specarch decision rests <decision> <folder>
+                                            print the decisions that rest on a decision, nearest first
   specarch model <folder or file>...        print the specifications as one JSON document, for a program
   specarch version                          print the program version
   specarch help [<topic>]                   explain an area or a command: the format, extract, generate, plugins...
@@ -107,6 +111,7 @@ var commands = map[string]func(args []string, stdout, stderr io.Writer) int{
 	"derive":       runDerive,
 	"upgrade":      runUpgrade,
 	"idioms":       runIdioms,
+	"decision":     runDecision,
 	"facts":        runFacts,
 	"model":        runModel,
 	"version":      runVersionCommand,

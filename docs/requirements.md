@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: requirements specification
 
-Version 1.1.1-dev of the specification: 5 stakeholders, 10 needs and 96 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
+Version 1.1.1-dev of the specification: 5 stakeholders, 10 needs and 97 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -38,7 +38,7 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | NEED-3 | I want the documents and diagrams to come from the specification, so they never drift from it. | reviewer, specification-author | accepted | SA-22, SA-36, SA-67, SA-75, SA-77, SA-82, SA-83, SA-84, SA-88, SA-91, SA-7, SA-8, SA-26, SA-16, SA-58, SA-59, SA-60, SA-90, SA-19, SA-74 |
 | NEED-4 | I want a big specification split over many files, each about one thing, so I can find what I am looking for. | specification-author, reviewer | accepted | SA-11, SA-2 |
 | NEED-5 | I want the whole life of the system in one place, from the first requirement to the day it is accepted. | reviewer, operator | accepted | SA-35, SA-47, SA-68, SA-26, SA-16, SA-90, SA-12, SA-23, SA-24, SA-25, SA-73 |
-| NEED-6 | I want to see why something is the way it is, and which standard asks for it. | reviewer | accepted | SA-15, SA-13 |
+| NEED-6 | I want to see why something is the way it is, and which standard asks for it. | reviewer | accepted | SA-15, SA-13, SA-97 |
 | NEED-7 | I want one tool to learn and install, not one program per task. | specification-author, ci-job | accepted | SA-14, SA-96, SA-74, SA-95 |
 | NEED-8 | I want to build a specification from the documents and code that exist, without inventing what they do not say, and to see at every step what is still missing and what can already be made. | specification-author, reviewer | accepted | SA-69, SA-70, SA-46, SA-59, SA-71, SA-17, SA-18, SA-19, SA-20, SA-30, SA-44, SA-45, SA-64, SA-72, SA-76, SA-79, SA-85, SA-86, SA-51 |
 | NEED-9 | I want the tests a specification implies, with the ones that matter most written first and the rest listed with the reason they were left out. | specification-author, implementer | accepted | SA-31, SA-29, SA-28, SA-27, SA-21, SA-22, SA-75 |
@@ -133,6 +133,7 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | SA-79 | functional | should | accepted | specarch extract go shall read a route whose path is a package-level constant of the module or whose method list is a package-level list no statement of the module changes as it reads a literal one, and shall ask a must question at every fallback handler and catch-all route, in place of silence or a line. |
 | SA-85 | functional | must | accepted | specarch decide shall answer an open question in one step, writing an accepted decision record under the next ID that names the question under answers and the stakeholder under decidedBy, taking the question out of its file with the author's other lines left as they were, and printing the entries the question blocked with the keys missing there; and problems.sarif shall carry for every open question, as properties of its result and of the run, what an agent queue needs to put the question to the person who decides and to feed the answer back without reading any other file. |
 | SA-86 | functional | must | accepted | specarch document comparison shall write the old documents against the refined specification, derived from the elements' origin, their citations and the decisions and from no other input - the stated elements kept from each source by clause, the inferred ones clarified with what they were concluded from, the decided ones added or corrected with their decision and its reason, and the clauses of each source's outline that no element cites - so that a reviewer sees what the refinement changed before approving. |
+| SA-97 | functional | must | accepted | A decision record shall name the earlier decisions it rests on under restsOn; the validator shall refuse a restsOn entry naming a decision that does not exist and a chain that comes back to its own decision, each at the entry, and shall warn at a decision that is not itself superseded resting on a superseded one, naming the successor; and specarch decision why shall print the chain a decision rests on, earliest first, and specarch decision rests the decisions that rest on it, nearest first, each with a summary line first and one decision per line. |
 | SA-1 | functional | must | accepted | specarch validate shall check every specification and implementation file given against the JSON Schema of its kind and meta-model version. |
 | SA-2 | functional | must | accepted | Every reference inside a specification shall resolve to an object of the right kind in the same specification, wherever its file is in the tree. |
 | SA-3 | functional | must | accepted | Every check constraint, condition of a unique constraint and formula shall parse and type-check in the fixed expression language. |
@@ -1497,6 +1498,22 @@ Acceptance criteria:
 
 **Note:** From ISO/IEC/IEEE 29148, Systems and software engineering, Life cycle processes, Requirements engineering, 2018, clause 6.3.3.6: Requirements validation is subject to approval by the project authority and the key stakeholders. <https://www.iso.org/standard/72089.html>
 
+### SA-97
+
+A decision record shall name the earlier decisions it rests on under restsOn; the validator shall refuse a restsOn entry naming a decision that does not exist and a chain that comes back to its own decision, each at the entry, and shall warn at a decision that is not itself superseded resting on a superseded one, naming the successor; and specarch decision why shall print the chain a decision rests on, earliest first, and specarch decision rests the decisions that rest on it, nearest first, each with a summary line first and one decision per line.
+
+Kind: functional; priority: must; status: accepted; verified by test; refines NEED-6.
+
+Acceptance criteria:
+
+- A decision whose restsOn names a decision the specification does not have is an error decision at that entry, naming the nearest ID; a decision whose restsOn chain comes back to it is an error decision_cycle at the entry that closes the chain, naming the chain; a decision that is not superseded resting on a superseded one is a warning decision_superseded at the entry, naming the successor; and a superseded decision resting on a superseded one warns nothing.
+- decision why on the last of a chain of three prints that it rests on 2 decisions and the three lines earliest first, each with its ID, title, status, date and the decisions it rests on; decision rests on the first prints that 2 decisions rest on it, its own line and the two lines nearest first; and both exit 0.
+- decision why and decision rests on an ID that is not a decision of the specification are refused, naming the decisions there are, and exit 1; without the ID or the folder they exit 2.
+
+**Insight:** A specification is layered decisions, and a reader who changes one wants to know what it rests on and what rests on it before the change; written as links the toolchain checks, the chain is read in one command rather than reconstructed from the records, which is the goal of docs/principles.md.
+
+**Note:** From Documenting architecture decisions, 2011: A decision record is never edited once accepted; a later decision supersedes it, and the record says which. <https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions>
+
 ### SA-1
 
 specarch validate shall check every specification and implementation file given against the JSON Schema of its kind and meta-model version.
@@ -1684,6 +1701,7 @@ Every source a Note in this document cites.
 
 | Source | Title | Edition | Author | Where to read it |
 |---|---|---|---|---|
+| adr-nygard | Documenting architecture decisions | 2011 | Michael Nygard | https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions |
 | go-tool | The go command, Go documentation | 1.26 | The Go project | https://go.dev/doc/ |
 | ieee-830 | IEEE Std 830-1998, IEEE Recommended Practice for Software Requirements Specifications | 1998 | IEEE |   |
 | iso-12207 | ISO/IEC/IEEE 12207, Systems and software engineering, Software life cycle processes | 2017 | ISO, IEC and IEEE | https://www.iso.org/standard/63712.html |

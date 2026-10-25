@@ -204,3 +204,18 @@ requirements:
       - source: iso-29148
         clause: "6.3.3.6"
         says: "Requirements validation is subject to approval by the project authority and the key stakeholders."
+  SA-97:
+    statement: A decision record shall name the earlier decisions it rests on under restsOn; the validator shall refuse a restsOn entry naming a decision that does not exist and a chain that comes back to its own decision, each at the entry, and shall warn at a decision that is not itself superseded resting on a superseded one, naming the successor; and specarch decision why shall print the chain a decision rests on, earliest first, and specarch decision rests the decisions that rest on it, nearest first, each with a summary line first and one decision per line.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance:
+      - A decision whose restsOn names a decision the specification does not have is an error decision at that entry, naming the nearest ID; a decision whose restsOn chain comes back to it is an error decision_cycle at the entry that closes the chain, naming the chain; a decision that is not superseded resting on a superseded one is a warning decision_superseded at the entry, naming the successor; and a superseded decision resting on a superseded one warns nothing.
+      - decision why on the last of a chain of three prints that it rests on 2 decisions and the three lines earliest first, each with its ID, title, status, date and the decisions it rests on; decision rests on the first prints that 2 decisions rest on it, its own line and the two lines nearest first; and both exit 0.
+      - decision why and decision rests on an ID that is not a decision of the specification are refused, naming the decisions there are, and exit 1; without the ID or the folder they exit 2.
+    verification: test
+    needs: [NEED-6]
+    why: A specification is layered decisions, and a reader who changes one wants to know what it rests on and what rests on it before the change; written as links the toolchain checks, the chain is read in one command rather than reconstructed from the records, which is the goal of docs/principles.md.
+    cites:
+      - source: adr-nygard
+        says: "A decision record is never edited once accepted; a later decision supersedes it, and the record says which."

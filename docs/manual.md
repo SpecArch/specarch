@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: user manual
 
-Version 1.1.1-dev of the specification: 0 tasks, 0 pages and 20 commands. For the people who use the system: who may open which page, how to reach it, the tasks done across pages step by step, what each page asks for and answers, and what each command takes, does and answers.
+Version 1.1.1-dev of the specification: 0 tasks, 0 pages and 22 commands. For the people who use the system: who may open which page, how to reach it, the tasks done across pages step by step, what each page asks for and answers, and what each command takes, does and answers.
 
 The `specarch` command: it validates SpecArch specifications and makes
 documents and code from them. This folder is the specification, with no
@@ -13,7 +13,7 @@ language, library or build tool in it; how one stack implements it is in
 
 The specification has no role a person holds; the roles under roles, with the permissions the pages need, say who may open each page.
 
-Anyone who has the program runs these commands: approve, capabilities, check, decide, derive, diff, document, extract, facts, gaps, generate, guide, help, idioms, idioms diff, merge, model, upgrade, validate, version.
+Anyone who has the program runs these commands: approve, capabilities, check, decide, decision rests, decision why, derive, diff, document, extract, facts, gaps, generate, guide, help, idioms, idioms diff, merge, model, upgrade, validate, version.
 
 ## 2. Finding your way
 
@@ -396,6 +396,101 @@ On standard error: A usage message on a usage error, the reason a refusal, and o
 | 0 | the record is written and the question taken out |   |
 | 1 | refused; the question, the stakeholder or the source is unknown, the specification tracks origin and no source is given, design is not a stage, or the entry cannot be edited as text; or written, while the specification has errors | Read the refusal on standard error and correct the question, stakeholder or source it names, then run it again; when the record was written while the specification has errors, run specarch validate and settle them. |
 | 2 | usage error, or a file that could not be read or written | Read the usage message or the reason on standard error, correct the command line or the path it names, and run it again. |
+
+### specarch decision rests
+
+Print the decisions that rest on a decision, nearest first.
+
+Validates its input first and prints the errors of an invalid
+specification, then works on what could be read (ADR-065). Finds
+the decision by its ID among the specification's decisions; refuses
+when there is none of that ID, naming the ones there are. An
+implementation file's decisions are not walked.
+
+Prints a summary line, how many decisions rest on the decision
+through any number of `restsOn` links, then the decision's own line
+and one line per decision that rests on it, the ones resting on it
+directly first, then the ones resting on those, each line as
+`decision why` prints it. A decision is printed once, where it is
+first reached. A decision nothing rests on prints the summary and
+its own line.
+
+**Insight:** Before a decision is superseded, the reader wants to know what rests on it, since each of those rests on what is about to stop holding; read from the records by hand that is the search the toolchain can do, nearest first so that the decisions to look at first come first.
+
+```
+specarch decision rests <decision> <folder>
+```
+
+Anyone who has the program runs it.
+
+| Argument | What to give | Required |
+|---|---|---|
+| `<decision>` | The ID of the decision, such as ADR-012. | yes |
+| `<folder>` | The folder holding the specification. | yes |
+
+It reads:
+
+- `{folder}`: The specification and its implementation files.
+
+It writes no file.
+
+On standard output: The errors of an invalid specification, then the summary line, the decision's line and one line per decision that rests on it, nearest first.
+
+On standard error: A usage message on a usage error, and the reason a refusal.
+
+| Exit status | It means | What to do |
+|---|---|---|
+| 0 | the decisions are printed |   |
+| 1 | refused, the decision is not one of the specification's; or printed, while the specification has errors | Read the refusal on standard error and give the ID of a decision it names, or run specarch validate and settle the errors. |
+| 2 | usage error, or a folder that could not be read | Read the usage message or the reason on standard error, correct the command line or the path it names, and run it again. |
+
+### specarch decision why
+
+Print the chain of decisions a decision rests on, earliest first.
+
+Validates its input first and prints the errors of an invalid
+specification, then works on what could be read (ADR-065). Finds
+the decision by its ID among the specification's decisions; refuses
+when there is none of that ID, naming the ones there are. An
+implementation file's decisions are not walked.
+
+Prints a summary line, how many decisions the decision rests on
+through any number of `restsOn` links, then one line per decision
+of the chain, each decision after the ones it rests on and the
+decision asked about last: its ID, its title, its status and date,
+the decision that supersedes it when one does, and the decisions it
+rests on. A decision in the chain is printed once, where it is first
+reached. A decision that rests on nothing prints the summary and its
+own line.
+
+**Insight:** A decision rests on earlier ones, and a reader about to change it reconstructs that chain by hand from the records; the toolchain holds the links, so it answers the question before the change, which is the cost the goal names. The chain is printed earliest first because that is the order the decisions were taken in and the order a reader needs them to follow the reasoning.
+
+```
+specarch decision why <decision> <folder>
+```
+
+Anyone who has the program runs it.
+
+| Argument | What to give | Required |
+|---|---|---|
+| `<decision>` | The ID of the decision, such as ADR-012. | yes |
+| `<folder>` | The folder holding the specification. | yes |
+
+It reads:
+
+- `{folder}`: The specification and its implementation files.
+
+It writes no file.
+
+On standard output: The errors of an invalid specification, then the summary line and one line per decision of the chain, earliest first.
+
+On standard error: A usage message on a usage error, and the reason a refusal.
+
+| Exit status | It means | What to do |
+|---|---|---|
+| 0 | the chain is printed |   |
+| 1 | refused, the decision is not one of the specification's; or printed, while the specification has errors | Read the refusal on standard error and give the ID of a decision it names, or run specarch validate and settle the errors. |
+| 2 | usage error, or a folder that could not be read | Read the usage message or the reason on standard error, correct the command line or the path it names, and run it again. |
 
 ### specarch derive
 

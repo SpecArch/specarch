@@ -1135,14 +1135,34 @@ func decisions(d *doc, title string, root *yaml.Node) {
 	} else {
 		d.heading(2, title)
 	}
+	// link is a decision's ID as a link to its record: the anchor its
+	// heading got when it is already written, else the one it will get.
+	link := func(id string) string {
+		rec := get(get(root, "decisions"), id)
+		if rec == nil {
+			return id
+		}
+		anchor, ok := d.anchors["decisions/"+id]
+		if !ok {
+			anchor = slug(fmt.Sprintf("%s: %s", id, str(rec, "title")))
+		}
+		return "[" + id + "](#" + anchor + ")"
+	}
 	for _, p := range decs {
 		dec := p.Value
-		d.heading(level, fmt.Sprintf("%s: %s", p.Key.Value, str(dec, "title")))
+		d.headed("decisions", p.Key.Value, d.heading(level, fmt.Sprintf("%s: %s", p.Key.Value, str(dec, "title"))))
 		status := str(dec, "status") + ", " + str(dec, "date")
 		if s := str(dec, "supersededBy"); s != "" {
-			status += ", superseded by " + s
+			status += ", superseded by " + link(s)
 		}
 		d.para("Status: " + status + ".")
+		if links := items(dec, "restsOn"); len(links) > 0 {
+			var ids []string
+			for _, r := range links {
+				ids = append(ids, link(r.Value))
+			}
+			d.para("Rests on: " + strings.Join(ids, ", ") + ".")
+		}
 		for _, part := range [][2]string{{"context", "Context"}, {"decision", "Decision"}, {"consequences", "Consequences"}} {
 			if v := strings.TrimSpace(str(dec, part[0])); v != "" {
 				d.para(part[1] + ": " + v)

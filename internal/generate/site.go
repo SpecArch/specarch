@@ -88,7 +88,7 @@ var linkTo = map[string][]string{
 	"entity": {"entities", "views"}, "subject": {"entities", "operations"}, "target": {"entities", "pages", "operations"},
 	"page": {"pages"}, "navigate": {"pages"}, "pages": {"pages"},
 	"source": {"operations", "sources"}, "operation": {"operations"}, "trigger": {"operations"}, "operations": {"operations"}, "submit": {"operations"},
-	"decidedIn": {"decisions"}, "algorithm": {"algorithms"}, "workflow": {"workflows"}, "job": {"jobs"}, "to": {"stakeholders"},
+	"decidedIn": {"decisions"}, "restsOn": {"decisions"}, "supersededBy": {"decisions"}, "algorithm": {"algorithms"}, "workflow": {"workflows"}, "job": {"jobs"}, "to": {"stakeholders"},
 	"environment": {"environments"}, "environments": {"environments"}, "problem": {"errors"},
 }
 

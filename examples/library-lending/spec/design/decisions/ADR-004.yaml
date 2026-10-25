@@ -1,0 +1,23 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-design-1.0.schema.json
+decisions:
+  ADR-004:
+    title: A waiver is a request of its own that names the amount, and the loan keeps its fee
+    status: accepted
+    date: "2026-10-25"
+    context: |
+      Once the fee is fixed at return (ADR-003) a waiver has a definite
+      amount to name. Setting the loan's fee to zero would lose what was
+      charged and who let it go, which the supervisor's approval (LIB-8)
+      is there to make visible.
+    decision: |
+      A waiver is a FeeWaiverRequest that names the loan, the amount to
+      waive and the reason, approved through the fee-waiver workflow; the
+      loan's lateFee stays as computed, and what the member owes is the fee
+      less the waivers approved.
+    consequences: |
+      The fee charged and the fee waived are both readable afterwards. A
+      list of what a member owes subtracts the approved waivers; a waiver
+      above the amount is refused at the form.
+    restsOn: [ADR-003]
+    satisfies: [LIB-8]
+    why: Keeping the computed fee and recording the waiver beside it is the one way the two numbers stay auditable; overwriting the fee would make the waiver a change nobody can read back.

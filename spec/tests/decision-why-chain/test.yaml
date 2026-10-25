@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: decision why
+level: system
+scenario: golden
+given: "four decisions, the fourth resting on the third, the third on the second and the first, the second on the first and superseded by the third"
+when: "decision why is run for ADR-004"
+then: "it prints that ADR-004 rests on 3 decisions and the four lines earliest first, each with its ID, title, status, successor, date and the decisions it rests on, and exits 0"
+verifies: [SA-97]

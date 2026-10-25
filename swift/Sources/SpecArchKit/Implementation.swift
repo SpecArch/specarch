@@ -140,6 +140,7 @@ extension Checker {
         var decisions = d.decisions
         for p in pairs(root.child("decisions")) { decisions[p.key.value] = p.value }
         checkOrigin(root, decisions) { path in path.count == 2 && path[0] == "decisions" }
+        checkDecisionChain(root.child("decisions"), decisions)
         for p in pairs(root.child("decisions")) where d.decisions[p.key.value] != nil {
             add(p.key, pointer("decisions", p.key.value), .decision,
                 "\(p.key.value) is already a decision of the specification; give this implementation decision its own number")

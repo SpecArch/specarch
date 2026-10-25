@@ -1,0 +1,22 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-design-1.0.schema.json
+decisions:
+  ADR-003:
+    title: The late fee is computed once, at return, and stored on the loan
+    status: accepted
+    date: "2026-10-25"
+    context: |
+      A fee that grows every night needs a job that touches every overdue
+      loan and a member who sees a different amount each day. The fee is
+      three numbers (ADR-001) carried as decimals (ADR-002), so it can be
+      computed at the moment the copy comes back.
+    decision: |
+      The lateFee algorithm runs when the copy is returned, and its result
+      is stored on the loan as lateFee; the field is zero until then. No
+      job recomputes it.
+    consequences: |
+      A fee never changes after the return, so a waiver names a fixed
+      amount. A member asking during the loan is told what the fee would
+      be today, computed on the spot and not stored.
+    restsOn: [ADR-001, ADR-002]
+    satisfies: [LIB-5]
+    why: One computation at one moment is one thing to test and one number to explain at the desk; a nightly job would be a second place the fee is computed and a second place it can be wrong.

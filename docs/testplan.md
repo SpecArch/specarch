@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 1.1.1-dev of the specification: 770 design tests, 373 golden and 397 red, about 22 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 1.1.1-dev of the specification: 782 design tests, 379 golden and 403 red, about 24 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 1.1.1-dev of the specification: 770 design tests, 373 golden and 397 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 766 |
+| system | 778 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -23,7 +23,7 @@ Framework: go test. Run: `go test ./...`.
 
 | Suite | Level | Runs | Command |
 |---|---|---|---|
-| conformance | system | every design test of command validate, command gaps, command document, command decide, command approve, command generate, command extract, command merge, command idioms, command idioms diff, command version | `go test ./cmd/specarch` |
+| conformance | system | every design test of command validate, command gaps, command document, command decide, command approve, command generate, command extract, command merge, command idioms, command idioms diff, command decision why, command decision rests, command version | `go test ./cmd/specarch` |
 | shipped-idioms | unit | tests of this implementation only | `go test ./internal/validate` |
 | generated-sql | unit | tests of this implementation only | `go test ./internal/gensql` |
 | generated-openapi | unit | tests of this implementation only | `go test ./internal/genopenapi` |
@@ -220,6 +220,74 @@ Scenario: golden; level: system; verifies SA-85.
 - Given: a specification that tracks origin, with a decision ADR-001 in design/all.yaml, an interview source owner-answer, a stakeholder owner, and a must question Q-1 that blocks the priority and the acceptance of a requirement, the only question of requirements/all.yaml
 - When: decide is run for Q-1 with --by owner, the answer, --source owner-answer and a date
 - Then: it writes design/decisions/ADR-002.yaml, accepted, titled with the question, with the answer as decision, Q-1 under answers, owner under decidedBy and the source cited, takes Q-1 and the questions key out of requirements/all.yaml leaving every other line as it was, prints the requirement's file and line with each key to write, and exits 0
+
+### Command decision rests
+
+#### decision-rests-chain
+
+Scenario: golden; level: system; verifies SA-97.
+
+- Given: four decisions, the second and the third resting on the first and the fourth on the third
+- When: decision rests is run for ADR-001
+- Then: it prints that 3 decisions rest on ADR-001, its own line, then the second and the third, then the fourth, and exits 0
+
+#### decision-rests-none
+
+Scenario: golden; level: system; verifies SA-97.
+
+- Given: a decision nothing rests on
+- When: decision rests is run for it
+- Then: it prints that no decision rests on it and its own line, and exits 0
+
+#### decision-rests-unknown
+
+Scenario: red; level: system; covers exit 1; verifies SA-97.
+
+- Given: a specification with the decisions ADR-001 to ADR-003
+- When: decision rests is run for ADR-009
+- Then: it refuses, naming the decisions there are, prints nothing and exits 1
+
+#### decision-rests-usage-error
+
+Scenario: red; level: system; covers usage error, exit 2; verifies SA-97.
+
+- Given: a specification
+- When: decision rests is run with no folder
+- Then: it prints how to use it and exits 2
+
+### Command decision why
+
+#### decision-unknown
+
+Scenario: red; level: system; covers exit 1; verifies SA-97.
+
+- Given: a specification with the decisions ADR-001 to ADR-003
+- When: decision why is run for ADR-009
+- Then: it refuses, naming the decisions there are, prints nothing and exits 1
+
+#### decision-usage-error
+
+Scenario: red; level: system; covers usage error, exit 2; verifies SA-97.
+
+- Given: a specification
+- When: decision why is run with no folder
+- Then: it prints the usage and exits 2
+
+#### decision-why-chain
+
+Scenario: golden; level: system; verifies SA-97.
+
+- Given: four decisions, the fourth resting on the third, the third on the second and the first, the second on the first and superseded by the third
+- When: decision why is run for ADR-004
+- Then: it prints that ADR-004 rests on 3 decisions and the four lines earliest first, each with its ID, title, status, successor, date and the decisions it rests on, and exits 0
+
+#### decision-why-no-links
+
+Scenario: golden; level: system; verifies SA-97.
+
+- Given: a decision that rests on nothing
+- When: decision why is run for it
+- Then: it prints that it rests on no decision and its own line, and exits 0
 
 ### Command derive
 
@@ -4055,6 +4123,38 @@ Scenario: red; level: system; covers exit 1.
 - When: validate is run
 - Then: it reports decision and exits 1
 
+#### validate-decision-chain
+
+Scenario: golden; level: system; verifies SA-97.
+
+- Given: three decisions, the second resting on the first and the third on both
+- When: validate is run
+- Then: it prints nothing and exits 0
+
+#### validate-decision-cycle
+
+Scenario: red; level: system; covers exit 1; verifies SA-97.
+
+- Given: three decisions whose restsOn links come back to each of them, one resting on itself
+- When: validate is run
+- Then: it reports decision_cycle at every entry that closes a chain, naming the chain, and exits 1
+
+#### validate-decision-rests-on-missing
+
+Scenario: red; level: system; covers exit 1; verifies SA-97.
+
+- Given: a decision whose restsOn names a decision that does not exist
+- When: validate is run
+- Then: it reports decision at the entry, naming the nearest decision, and exits 1
+
+#### validate-decision-rests-on-superseded
+
+Scenario: golden; level: system; verifies SA-97.
+
+- Given: a superseded decision, its successor resting on it, an accepted decision resting on it, and a superseded decision resting on it
+- When: validate is run
+- Then: it warns decision_superseded at the accepted decision's entry only, naming the successor, and exits 0
+
 #### validate-defect-duplicate
 
 Scenario: red; level: system; covers exit 1; verifies SA-23.
@@ -6251,7 +6351,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-424 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+427 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -6648,6 +6748,9 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-86 | acceptance 1 | golden | SA-86 names no harm |
 | requirement SA-86 | acceptance 2 | golden | SA-86 names no harm |
 | requirement SA-86 | acceptance 3 | golden | SA-86 names no harm |
+| requirement SA-97 | acceptance 1 | golden | SA-97 names no harm |
+| requirement SA-97 | acceptance 2 | golden | SA-97 names no harm |
+| requirement SA-97 | acceptance 3 | golden | SA-97 names no harm |
 | requirement SA-1 | acceptance 1 | golden | SA-1 names no harm |
 | requirement SA-1 | acceptance 2 | golden | SA-1 names no harm |
 | requirement SA-2 | acceptance 1 | golden | SA-2 names no harm |

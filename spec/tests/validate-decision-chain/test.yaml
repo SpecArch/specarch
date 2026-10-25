@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: validate
+level: system
+scenario: golden
+given: "three decisions, the second resting on the first and the third on both"
+when: "validate is run"
+then: "it prints nothing and exits 0"
+verifies: [SA-97]

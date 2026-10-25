@@ -188,7 +188,9 @@ dumps of its code and fails on a difference its allowlist does not name,
 and `diff` compares two versions of a
 specification and checks the release between them, and `derive` writes a
 draft test for every derived case no test covers, `idioms` lists the
-idioms each implementation file uses, `model` prints the specifications
+idioms each implementation file uses, `decision why` prints the chain of
+decisions a decision rests on and `decision rests` the decisions that
+rest on it, `model` prints the specifications
 as one JSON document for a program such as an editor (the merged
 document, where every node came from, the references and the layout
 problems), and `facts` writes the code-facts

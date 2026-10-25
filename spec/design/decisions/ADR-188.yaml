@@ -1,0 +1,90 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-1.0.schema.json
+decisions:
+  ADR-188:
+    title: A decision names the decisions it rests on under restsOn, in the decision record that exists; the validator checks the chain, and specarch decision why and rests print it
+    status: accepted
+    date: "2026-10-25"
+    context: |
+      The goal (docs/principles.md) says a specification is layered human
+      decisions, each resting on earlier ones, and that each must be cheap
+      to review and traceable to the decisions it rests on. The decision
+      record held the context, the decision, its consequences and why,
+      and one link, supersededBy, from an old decision to its successor;
+      what a decision rested on was in its prose, and a reader about to
+      change one reconstructed the chain from the records by hand. The
+      owner asked on 2026-10-25 for decision records with the shape of a
+      change record (goal, why, where, proof, undo) plus the decisions a
+      record rests on and a status of current or superseded by an ID; for
+      the validator to refuse a link to a missing decision and a cycle and
+      to warn at a link to a superseded decision; and for two commands
+      printing the chain back and forward. The specification already had a
+      decision record after Nygard, whose status enum and supersededBy
+      say current and superseded, and the change record of
+      docs/conventions.md is the form of a change's description for
+      review, not a keyword: the two were kept apart on purpose.
+    decision: |
+      A decision record gains one optional key, restsOn, a list of
+      decision IDs, in the design schema and the implementation schema of
+      1.0; nothing else of the record changes. A current decision is one
+      with status accepted, and a superseded one says status superseded
+      with supersededBy, as before; goal, where, proof and undo stay the
+      keys of a change record in docs/conventions.md and are not keys of
+      the decision record. A decision is never edited into a different
+      decision: a change is a new record that supersedes the old one,
+      which the conventions say and no rule checks, since the validator
+      sees one version. The validator refuses a restsOn entry naming a
+      decision the specification does not have, under the rule decision
+      that supersededBy uses, at the entry; refuses a chain that comes
+      back to its own decision, decision_cycle, at the entry that closes
+      it, naming the chain in the order the links are written; and warns,
+      decision_superseded, at a restsOn entry of a decision that is not
+      itself superseded naming a superseded decision, with the successor,
+      unless the resting decision is that successor. An implementation
+      file's decision may rest on the specification's decisions and on
+      the file's own. specarch decision why <ID> <folder> prints a summary
+      line and the chain the decision rests on, each decision after the
+      ones it rests on and the decision last; specarch decision rests <ID>
+      <folder> prints a summary line, the decision and the decisions that
+      rest on it, nearest first; both one decision per line with its ID,
+      title, status, date, successor and restsOn, both refusing an ID that
+      is no decision with exit 1 and taking --json as every command does.
+      The technical specification and the site show restsOn and
+      supersededBy as links to the records.
+    why: |
+      One record with one vocabulary: the goal names the chain of
+      decisions, and the record that already holds a decision is where
+      its chain belongs, so the key is added there and no second record
+      is made; status and supersededBy already say current and superseded
+      by whom, and a second spelling of each would be two ways to say one
+      thing, which the Low IQ Tax rules out. The change record's keys
+      stay out of the decision record because a change is reviewed once
+      and a decision is read for as long as it holds: proof and undo
+      belong to the change that introduced it, as docs/conventions.md
+      settled when the two forms were written apart. A missing decision
+      and a cycle are errors because the chain is then not a chain, and
+      the compiler principle wants the error at the entry with the rest
+      of the file read; a link to a superseded decision is a warning
+      because the record may be right as history, and a superseded
+      decision is exempt because its links were true when it held and a
+      record is never edited, so the warning could otherwise never be
+      cleared. A link in the direction the record already has, from the
+      old decision forward, is not added: supersededBy is the inverse of
+      restsOn for that one case, and the commands walk both ways. The
+      commands are read-only and print one line per record because the
+      question before a change is which records to open, not their text.
+      Compiler test: a decision with a missing or cyclic link is still
+      read and every other problem listed, the error at the link;
+      acceptance test: a change request that supersedes a decision is a
+      new record resting on the successor, and decision rests names what
+      else to look at.
+    consequences: |
+      A 1.0 file with restsOn validates under the 1.0 schema; a 0.3 file
+      cannot carry it, since the 0.3 schema is frozen (ADR-186). The
+      examples carry one chain of three records. specarch model does not
+      yet list restsOn or supersededBy among the references an editor
+      walks; that is a later item.
+    restsOn: [ADR-065, ADR-155, ADR-186, ADR-187]
+    satisfies: [SA-97]
+    cites:
+      - source: adr-nygard
+        says: "A decision is superseded by a later one rather than edited, and the record says which decision superseded it."

@@ -110,6 +110,7 @@ var commandFiles = map[string][]string{
 	"approve.go":  {"approve"},
 	"check.go":    {"check"},
 	"decide.go":   {"decide"},
+	"decision.go": {"decision why", "decision rests"},
 	"derive.go":   {"derive"},
 	"diff.go":     {"diff"},
 	"document.go": {"document", "generate"},

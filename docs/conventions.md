@@ -444,7 +444,18 @@ reasoning that led from it to the decision. A decision that answers open
 questions names them under `answers` and the stakeholder who decided under
 `decidedBy`; an answer given in words is declared as a source of kind
 `interview` with its date. A decision that answers a question only in
-part names the questions it raised under `opens`.
+part names the questions it raised under `opens`. A decision names the
+earlier decisions it rests on under `restsOn`, by ID: each must be a
+decision of the specification (`decision`), and the chain may not come
+back to the decision itself (`decision_cycle`); a decision that is not
+itself superseded resting on a superseded one is a warning naming the
+successor (`decision_superseded`), unless it is that successor. A decision
+is never edited into a different decision: a change is a new record that
+rests on what still holds and supersedes the old one, which says
+`status: superseded` and names it under `supersededBy`. `specarch decision
+why <ID> <folder>` prints the chain a decision rests on, earliest first,
+and `specarch decision rests <ID> <folder>` the decisions that rest on it,
+nearest first, one decision per line after a summary line.
 
 ## Change records
 
@@ -489,9 +500,9 @@ Loan.lateFee: a decimal carried as a string, as every money amount in the specif
 ```
 
 A decision that outlives the change, one later work builds on, becomes a
-decision record under `decisions` (Why, citations and origin), and the
-change record's `why` names it by ID instead of repeating it, so a reason
-has one home.
+decision record under `decisions` (Why, citations and origin), resting on
+the decisions it builds on under `restsOn`, and the change record's `why`
+names it by ID instead of repeating it, so a reason has one home.
 
 ## Open questions
 
@@ -801,6 +812,7 @@ redefined.
 | `algorithms`, `inputs`, `output`, `formula`, `examples` (of an algorithm), `pseudocode` | SpecArch | IEEE 1016 algorithm viewpoint, made testable |
 | `decisions` and the ADR fields | SpecArch, after Michael Nygard's record | the common ADR shape: context, decision, consequences, plus `why` |
 | `opens` (of a decision) | SpecArch | the questions a decision raised, by ID, the open half of an answer given in part; each is open or answered by a later decision (ADR-120) |
+| `restsOn` (of a decision) | SpecArch, after the links between records in Nygard's form | the earlier decisions a decision rests on, by ID; `supersededBy` is the one link Nygard's record has, from the old decision to the one that replaced it, and `restsOn` runs the other way, from a decision to what it builds on (ADR-188) |
 | `tests`, `scenario`, `level`, `given`, `when`, `then`, `covers`, `notApplicable` | SpecArch, after ISO/IEC/IEEE 29119 and Gherkin | design tests; the levels are 29119-1's; given, when and then are the Gherkin words, without Gherkin's file format |
 | `environments`, `promotesTo`, `configuration`, `secret`, `release`, `rollback`, `migrations`, `steps`, `action`, `check` | SpecArch, after ISO/IEC/IEEE 12207 6.4.10 | the deployment stage: the transition process, written as environments, settings and steps |
 | `runBy`, `handover`, `to`, `sourceDelivery` (of a handover; `source` before 1.0.0), `responsibilities` | SpecArch, after ISO/IEC/IEEE 12207 6.1.1 and 6.1.2 | who runs an environment, the vendor or the customer (12207's supplier and acquirer), and what a customer who runs one receives (ADR-129) |

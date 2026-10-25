@@ -89,7 +89,7 @@ libraries:
 layout:
   cmd/specarch:
     description: The command line. Argument handling, finding the specifications under folders, running plug-ins, printing the diagnostics and the exit status.
-    implements: ["#/commands/validate", "#/commands/gaps", "#/commands/document", "#/commands/decide", "#/commands/approve", "#/commands/generate", "#/commands/extract", "#/commands/merge", "#/commands/diff", "#/commands/check", "#/commands/derive", "#/commands/idioms", "#/commands/idioms diff", "#/commands/model", "#/commands/version", "#/entities/SpecFile", "#/entities/GeneratedFile", "#/algorithms/exitStatus", "#/algorithms/checkStatus"]
+    implements: ["#/commands/validate", "#/commands/gaps", "#/commands/document", "#/commands/decide", "#/commands/approve", "#/commands/generate", "#/commands/extract", "#/commands/merge", "#/commands/diff", "#/commands/check", "#/commands/derive", "#/commands/idioms", "#/commands/idioms diff", "#/commands/decision why", "#/commands/decision rests", "#/commands/model", "#/commands/version", "#/entities/SpecFile", "#/entities/GeneratedFile", "#/algorithms/exitStatus", "#/algorithms/checkStatus"]
     dependsOn: [internal/approval, internal/canonical, internal/diff, internal/extract, internal/facts, internal/genbpmn, internal/generate, internal/genscreens, internal/gensql, internal/genui, internal/literal, internal/mark, internal/problems, internal/refine, internal/semver, internal/source, internal/spec, internal/validate, internal/xref]
   schema:
     description: The JSON Schemas, embedded into the binary from the files editors use.
@@ -252,6 +252,8 @@ mappings:
   "#/commands/derive": { target: main.runDerive, description: "Writes validate.Drafts, the drafts of the cases the warnings name." }
   "#/commands/idioms": { target: main.runIdioms, description: "Prints validate.IdiomUses, the idioms each implementation file resolves to." }
   "#/commands/idioms diff": { target: main.runIdiomsDiff }
+  "#/commands/decision why": { target: main.runDecision, description: "Walks restsOn from the decision in the merged document; the chain is each decision after the ones it rests on." }
+  "#/commands/decision rests": { target: main.runDecision, description: "Walks the inverse of restsOn from the decision, nearest first." }
   "#/commands/diff": { target: main.runDiff, description: "Lists diff.Compare's changes, then checks the release record beside the new folder." }
   "#/commands/check": { target: main.runCheck, description: "Tells each dump by its format with extract.DumpFormat and compares it with extract.CheckRoutes, extract.CheckGrants or extract.CheckCatalogue, the last against gensql.Schema's tables for PostgreSQL; reads the allowlist, and with --since the allowlist at that revision through git." }
   "#/enums/DocumentTarget": { target: main.documentTargets }
@@ -350,6 +352,8 @@ testing:
         - { command: merge }
         - { command: idioms }
         - { command: idioms diff }
+        - { command: decision why }
+        - { command: decision rests }
         - { command: version }
       ci: true
     shipped-idioms:

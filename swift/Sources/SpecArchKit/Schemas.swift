@@ -4478,7 +4478,7 @@ let designSchemaJSON = #"""
       "additionalProperties": false
     },
     "decision": {
-      "description": "SpecArch keyword. A short architecture decision record: the context (what was true and at stake), the decision, its consequences, and under 'why' the reasoning that led from the one to the other.",
+      "description": "SpecArch keyword. A short architecture decision record: the context (what was true and at stake), the decision, its consequences, under 'why' the reasoning that led from the one to the other, and under 'restsOn' the earlier decisions it rests on.",
       "type": "object",
       "properties": {
         "title": {
@@ -4510,6 +4510,16 @@ let designSchemaJSON = #"""
         "supersededBy": {
           "type": "string",
           "pattern": "^ADR-[0-9]{3,}$"
+        },
+        "restsOn": {
+          "description": "SpecArch keyword. The earlier decisions this one rests on, by ID, oldest first: each must be a decision of the specification, and the chain may not come back to this decision. A decision resting on a superseded one is a warning naming the successor. A decision is never edited into a different one; a change is a new decision that supersedes the old.",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^ADR-[0-9]{3,}$"
+          },
+          "minItems": 1,
+          "uniqueItems": true
         },
         "answers": {
           "description": "SpecArch keyword. The open questions this decision answers, by ID. The questions themselves are removed from the specification once answered, so these IDs are text, not references; the validator refuses an accepted decision that answers a question still present.",
@@ -15885,6 +15895,16 @@ let implementationSchemaJSON = #"""
         "supersededBy": {
           "type": "string",
           "pattern": "^ADR-[0-9]{3,}$"
+        },
+        "restsOn": {
+          "description": "SpecArch keyword. The earlier decisions this one rests on, by ID, oldest first: each must be a decision of the specification, and the chain may not come back to this decision. A decision resting on a superseded one is a warning naming the successor. A decision is never edited into a different one; a change is a new decision that supersedes the old.",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^ADR-[0-9]{3,}$"
+          },
+          "minItems": 1,
+          "uniqueItems": true
         },
         "satisfies": {
           "$ref": "#/$defs/satisfies"

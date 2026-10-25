@@ -1,0 +1,27 @@
+specarch: "1.0.0"
+info: { title: Case, version: 1.0.0 }
+decisions:
+  ADR-001:
+    title: One
+    status: accepted
+    date: "2026-10-07"
+    context: C.
+    decision: D.
+    consequences: E.
+    restsOn: [ADR-002]
+  ADR-002:
+    title: Two
+    status: accepted
+    date: "2026-10-08"
+    context: C.
+    decision: D.
+    consequences: E.
+    restsOn: [ADR-003]
+  ADR-003:
+    title: Three
+    status: accepted
+    date: "2026-10-09"
+    context: C.
+    decision: D.
+    consequences: E.
+    restsOn: [ADR-003, ADR-001]

@@ -149,6 +149,8 @@ public enum Rule: String, CaseIterable, Sendable {
     case securityEvents = "security_events"
     case signIn = "sign_in"
     case exitCode = "exit_code"
+    case decisionCycle = "decision_cycle"
+    case decisionSuperseded = "decision_superseded"
 }
 
 /// Whether a diagnostic makes the file invalid.

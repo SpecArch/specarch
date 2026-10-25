@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: decision why
+level: system
+scenario: red
+covers: [exit 1]
+given: "a specification with the decisions ADR-001 to ADR-003"
+when: "decision why is run for ADR-009"
+then: "it refuses, naming the decisions there are, prints nothing and exits 1"
+verifies: [SA-97]

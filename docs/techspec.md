@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 1.1.1-dev of the specification: 96 requirements, 5 entities, 20 commands, 7 algorithms, 770 tests, 178 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 1.1.1-dev of the specification: 97 requirements, 5 entities, 22 commands, 7 algorithms, 782 tests, 179 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -63,6 +63,8 @@ The interfaces the system offers, as its clients see them.
 | capabilities | List what this program and the plug-ins on PATH can do; with --json as a tool listing a program reads | public | 0: printed; 2: usage error |
 | check | Compare a specification with the dumps of the running code, for a CI gate | public | 0: every difference is one the allowlist names or a report, and every line of the allowlist names a difference and was there at --since; 1: a difference the allowlist does not name, a line of the allowlist that names none, repeats one or was added since --since, or a specification validate reports an error in; 2: usage error; a dump, the specification or the allowlist that could not be read; a dump of no format check reads, or one its reader refuses; a catalogue dump with no implementation file to compare it through, or with one whose tables cannot be written for PostgreSQL; or a revision git does not know |
 | decide | Answer an open question with a decision record and take the question out | public | 0: the record is written and the question taken out; 1: refused; the question, the stakeholder or the source is unknown, the specification tracks origin and no source is given, design is not a stage, or the entry cannot be edited as text; or written, while the specification has errors; 2: usage error, or a file that could not be read or written |
+| decision why | Print the chain of decisions a decision rests on, earliest first | public | 0: the chain is printed; 1: refused, the decision is not one of the specification's; or printed, while the specification has errors; 2: usage error, or a folder that could not be read |
+| decision rests | Print the decisions that rest on a decision, nearest first | public | 0: the decisions are printed; 1: refused, the decision is not one of the specification's; or printed, while the specification has errors; 2: usage error, or a folder that could not be read |
 | derive | Write a draft test for every derived case no test covers | public | 0: the tests were written, or there was nothing to write; 1: a specification has errors other than the missing tests it writes, or a draft's name is taken by another draft or by a test of another subject; 2: usage error, a path that could not be read or written, or a specification that keeps its tests in the root file |
 | diff | Compare two versions of a specification and check the release between them | public | 0: every check passes; 1: a check fails, there is no release record for the new version, or a specification has errors; 2: usage error, or a path that could not be read |
 | document | Write a document from a specification | public | 0: written, or with `--check` the output is current; 1: a specification has an error (after its files are written, or with `--check` compared), a marker is wrong, or with `--check` the output differs; 2: usage error, a target this build does not offer, --audience with a value other than external, without --out or for the problems target, no output folder in any specification given (or, for the handover target, no handover in any), the implementation files of one naming different output folders, or a file that could not be read or written |
@@ -287,7 +289,7 @@ Primary key: path.
 | Rule | operation | a `source`, `submit` or operation action names an operationId that does not exist |
 | Rule | page | a navigate action names a page that does not exist, compactColumns is on a page that is not a list or names a column the list lacks, or a page gives its fields as neither or both of fields and sections, shows a field in two sections, or is a list with sections, or childRows are on a page that is not a form, name a relation twice, or name one the form's entity lacks or one that is not one-to-many |
 | Rule | algorithm | an `algorithm` reference names an algorithm that does not exist |
-| Rule | decision | a `supersededBy` names a decision that does not exist, or an implementation decision reuses a design decision's ID |
+| Rule | decision | a `supersededBy` or a `restsOn` entry names a decision that does not exist, or an implementation decision reuses a design decision's ID |
 | Rule | enum_value | a `valueDescriptions` key is not a value of its enum |
 | Rule | path_parameter | a `{name}` in a path has no path parameter, or a path parameter is not in the path |
 | Rule | duplicate_operation | two operations share an operationId |
@@ -406,6 +408,8 @@ Primary key: path.
 | Rule | security_events | a specification with tokens and clients declares no securityEvents, or its store or alarm is not a dependency (ADR-109) |
 | Rule | sign_in | signIn names a provider that is not a dependency of kind identityProvider, a client that is not an application, a callback that is not a GET operation taking code and state as required query parameters and naming the provider under calls, an identity token that is not a JWT declaring iss, aud and nonce or that fixes iss or aud with const or enum, or a back-channel logout operation that people may call or no service client may; or a page event navigates to signIn with no signIn declared, with with or message, or outside a task page's answer and an action's then (ADR-182) |
 | Rule | exit_code | a command's remedies names status 0, which needs no remedy, or a status its exitCodes does not list (ADR-165) |
+| Rule | decision_cycle | a decision's `restsOn` chain comes back to the decision itself, through any number of decisions; a decision rests on earlier decisions only, so the error is at the entry that closes the chain, naming the chain (ADR-188) |
+| Rule | decision_superseded | as a warning, a decision that is not itself superseded rests on a superseded decision, named with its successor; the decision rests on what no longer holds, so a new decision supersedes it, resting on the successor, or its why says why the old decision still holds (ADR-188) |
 | Severity | error | the file is invalid |
 | Severity | warning | printed, but the file stays valid; missing test scenarios, change-log phrases, traceability gaps and elements without origin |
 
@@ -417,7 +421,7 @@ The packages of ../spec/implementation/go/specarch.go.specarch-implementation.ya
 
 ```mermaid
 flowchart LR
-  package_cmd_specarch["cmd/specarch, implements 19"]
+  package_cmd_specarch["cmd/specarch, implements 21"]
   package_schema["schema"]
   package_idioms["idioms"]
   package_internal_extract["internal/extract"]
@@ -912,6 +916,85 @@ sequenceDiagram
   P->>F: read {folder}
   P->>F: write design/decisions/<ID>.yaml
   P->>F: write the file that holds the question
+  P-->>U: exit status 0, 1, 2
+```
+
+### Command decision why
+
+Validates its input first and prints the errors of an invalid
+specification, then works on what could be read (ADR-065). Finds
+the decision by its ID among the specification's decisions; refuses
+when there is none of that ID, naming the ones there are. An
+implementation file's decisions are not walked.
+
+Prints a summary line, how many decisions the decision rests on
+through any number of `restsOn` links, then one line per decision
+of the chain, each decision after the ones it rests on and the
+decision asked about last: its ID, its title, its status and date,
+the decision that supersedes it when one does, and the decisions it
+rests on. A decision in the chain is printed once, where it is first
+reached. A decision that rests on nothing prints the summary and its
+own line.
+
+**Insight:** A decision rests on earlier ones, and a reader about to change it reconstructs that chain by hand from the records; the toolchain holds the links, so it answers the question before the change, which is the cost the goal names. The chain is printed earliest first because that is the order the decisions were taken in and the order a reader needs them to follow the reasoning.
+
+| Argument or option | Type | Required | Description |
+|---|---|---|---|
+| `<decision>` | string | yes | The ID of the decision, such as ADR-012. |
+| `<folder>` | string | yes | The folder holding the specification. |
+
+Reads `{folder}`: The specification and its implementation files.
+
+Standard output: The errors of an invalid specification, then the summary line and one line per decision of the chain, earliest first.
+
+Standard error: A usage message on a usage error, and the reason a refusal.
+
+```mermaid
+sequenceDiagram
+  participant U as User
+  participant P as SpecArch toolchain
+  participant F as Files
+  U->>P: decision why <decision> <folder>
+  P->>F: read {folder}
+  P-->>U: exit status 0, 1, 2
+```
+
+### Command decision rests
+
+Validates its input first and prints the errors of an invalid
+specification, then works on what could be read (ADR-065). Finds
+the decision by its ID among the specification's decisions; refuses
+when there is none of that ID, naming the ones there are. An
+implementation file's decisions are not walked.
+
+Prints a summary line, how many decisions rest on the decision
+through any number of `restsOn` links, then the decision's own line
+and one line per decision that rests on it, the ones resting on it
+directly first, then the ones resting on those, each line as
+`decision why` prints it. A decision is printed once, where it is
+first reached. A decision nothing rests on prints the summary and
+its own line.
+
+**Insight:** Before a decision is superseded, the reader wants to know what rests on it, since each of those rests on what is about to stop holding; read from the records by hand that is the search the toolchain can do, nearest first so that the decisions to look at first come first.
+
+| Argument or option | Type | Required | Description |
+|---|---|---|---|
+| `<decision>` | string | yes | The ID of the decision, such as ADR-012. |
+| `<folder>` | string | yes | The folder holding the specification. |
+
+Reads `{folder}`: The specification and its implementation files.
+
+Standard output: The errors of an invalid specification, then the summary line, the decision's line and one line per decision that rests on it, nearest first.
+
+Standard error: A usage message on a usage error, and the reason a refusal.
+
+```mermaid
+sequenceDiagram
+  participant U as User
+  participant P as SpecArch toolchain
+  participant F as Files
+  U->>P: decision rests <decision> <folder>
+  P->>F: read {folder}
   P-->>U: exit status 0, 1, 2
 ```
 
@@ -4171,7 +4254,7 @@ Stack: language Go 1.27; toolchain go 1.27.2; platforms darwin/arm64, darwin/amd
 
 | Path | Holds | Implements |
 |---|---|---|
-| cmd/specarch | The command line. Argument handling, finding the specifications under folders, running plug-ins, printing the diagnostics and the exit status. | #/commands/validate, #/commands/gaps, #/commands/document, #/commands/decide, #/commands/approve, #/commands/generate, #/commands/extract, #/commands/merge, #/commands/diff, #/commands/check, #/commands/derive, #/commands/idioms, #/commands/idioms diff, #/commands/model, #/commands/version, #/entities/SpecFile, #/entities/GeneratedFile, #/algorithms/exitStatus, #/algorithms/checkStatus |
+| cmd/specarch | The command line. Argument handling, finding the specifications under folders, running plug-ins, printing the diagnostics and the exit status. | #/commands/validate, #/commands/gaps, #/commands/document, #/commands/decide, #/commands/approve, #/commands/generate, #/commands/extract, #/commands/merge, #/commands/diff, #/commands/check, #/commands/derive, #/commands/idioms, #/commands/idioms diff, #/commands/decision why, #/commands/decision rests, #/commands/model, #/commands/version, #/entities/SpecFile, #/entities/GeneratedFile, #/algorithms/exitStatus, #/algorithms/checkStatus |
 | schema | The JSON Schemas, embedded into the binary from the files editors use. |   |
 | idioms | The shipped idioms, one folder per concern, embedded into the binary; a release fixes the set. |   |
 | internal/extract | The readers of specarch extract: the commit read (git, run with no user or system configuration), the outline, database, router, documents, OpenAPI, permissions, pages and workflows readers, the Go reader on the standard library's go/parser with dxlib's registration calls and the rule that maps dxlib_module's privilege names, the Swift reader of a code-facts dump with the property lists, build settings and Core Data models it reads as data, the JavaScript and TypeScript reader of a code-facts dump with the message catalogues it reads as data, the Dart reader of a code-facts dump, the subset of TypeScript a page schema is read in, the subset of BPMN 2.0 a workflow is read in, the workflow table read into the same workflows (ADR-118), the check of a dump against the commit it names, the translation of SQL checks into the expression subset, and the tree writer; and the merge of their trees, with the newest commit of a repository read at several found by git's ancestry, a requirement that gives a number of days joined to the one check that names it, a question another tree answers, by giving a key or an element the asking tree gives only by name, or a question kept before it asks left out, the name a question gives written at the key it blocks once another tree declares it, a placeholder source reported, a permission granted and checked by nothing reported, and an operation a printed and a parsed tree do not both give asked about; and specarch check's comparison of a route table, a permission table and a catalogue dump with a specification, each difference with its rule and subject (ADR-124). |   |
@@ -4243,6 +4326,8 @@ Stack: language Go 1.27; toolchain go 1.27.2; platforms darwin/arm64, darwin/amd
 | #/commands/derive | main.runDerive | Writes validate.Drafts, the drafts of the cases the warnings name. |
 | #/commands/idioms | main.runIdioms | Prints validate.IdiomUses, the idioms each implementation file resolves to. |
 | #/commands/idioms diff | main.runIdiomsDiff |   |
+| #/commands/decision why | main.runDecision | Walks restsOn from the decision in the merged document; the chain is each decision after the ones it rests on. |
+| #/commands/decision rests | main.runDecision | Walks the inverse of restsOn from the decision, nearest first. |
 | #/commands/diff | main.runDiff | Lists diff.Compare's changes, then checks the release record beside the new folder. |
 | #/commands/check | main.runCheck | Tells each dump by its format with extract.DumpFormat and compares it with extract.CheckRoutes, extract.CheckGrants or extract.CheckCatalogue, the last against gensql.Schema's tables for PostgreSQL; reads the allowlist, and with --since the allowlist at that revision through git. |
 | #/enums/DocumentTarget | main.documentTargets |   |
@@ -4298,7 +4383,7 @@ Stand-ins: None. Every test runs the real program on real files.
 
 | Suite | Level | Runs | Command |
 |---|---|---|---|
-| conformance | system | every design test of command validate, command gaps, command document, command decide, command approve, command generate, command extract, command merge, command idioms, command idioms diff, command version | `go test ./cmd/specarch` |
+| conformance | system | every design test of command validate, command gaps, command document, command decide, command approve, command generate, command extract, command merge, command idioms, command idioms diff, command decision why, command decision rests, command version | `go test ./cmd/specarch` |
 | shipped-idioms | unit | tests of this implementation only | `go test ./internal/validate` |
 | generated-sql | unit | tests of this implementation only | `go test ./internal/gensql` |
 | generated-openapi | unit | tests of this implementation only | `go test ./internal/genopenapi` |
@@ -4929,7 +5014,7 @@ Consequences: Existing files stay valid. The validator checks a command's permis
 
 ### ADR-007: File names say which kind of file they are
 
-Status: superseded, 2026-10-07, superseded by ADR-010.
+Status: superseded, 2026-10-07, superseded by [ADR-010](#adr-010-a-specification-is-a-folder-tree-with-one-root-file-specarchyaml).
 
 Context: Two kinds of file sit side by side in one folder. A name that hides
 the kind makes every reader open the file to find out.
@@ -14150,6 +14235,68 @@ version and is regenerated by a test flag.
 
 **Insight:** A description written apart from the program drifts from it; one built from the definitions the specification already holds, with a test that every command and option has its definition, cannot name a flag the program lacks. The tool listing's shape is reused because a wrapper then needs no mapping of its own, and JSON Schema already says what each input takes; no server and no protocol library is added, since each needs the owner's choice of a pinned version. JSON by default when piped would change the output of every script and CI job that pipes specarch today, and the byte-identical output of the two validator builds, inside a major version that may only add. An alias would be a second way to say one thing; asking for it is refused with the command to run. A writer passed to every command, not a check in each, keeps a dry run from missing a file a command writes by another way.
 
+### ADR-188: A decision names the decisions it rests on under restsOn, in the decision record that exists; the validator checks the chain, and specarch decision why and rests print it
+
+Status: accepted, 2026-10-25.
+
+Rests on: [ADR-065](#adr-065-every-problem-is-one-record-listed-in-one-problems-file-with-its-sarif-form-and-marked-at-the-entry-in-every-file-specarch-writes), [ADR-155](#adr-155-specarch-decide-writes-the-decision-as-a-file-of-its-own-under-the-next-id-takes-the-question-out-of-its-file-as-text-prints-the-entries-to-write-rather-than-writing-them-and-asks-for-a-source-when-the-specification-tracks-origin), [ADR-186](#adr-186-meta-model-100-is-the-first-stable-version-of-every-specarch-format-read-beside-every-earlier-version-with-two-keys-renamed-and-deprecated-the-schemas-conditionals-made-to-require-the-key-they-read-and-specarch-upgrade-to-move-a-file), [ADR-187](#adr-187-the-program-describes-itself-from-its-own-command-definitions-built-in---json-and---dry-run-are-conventions-of-every-command-plug-ins-answer---capabilities).
+
+Context: The goal (docs/principles.md) says a specification is layered human
+decisions, each resting on earlier ones, and that each must be cheap
+to review and traceable to the decisions it rests on. The decision
+record held the context, the decision, its consequences and why,
+and one link, supersededBy, from an old decision to its successor;
+what a decision rested on was in its prose, and a reader about to
+change one reconstructed the chain from the records by hand. The
+owner asked on 2026-10-25 for decision records with the shape of a
+change record (goal, why, where, proof, undo) plus the decisions a
+record rests on and a status of current or superseded by an ID; for
+the validator to refuse a link to a missing decision and a cycle and
+to warn at a link to a superseded decision; and for two commands
+printing the chain back and forward. The specification already had a
+decision record after Nygard, whose status enum and supersededBy
+say current and superseded, and the change record of
+docs/conventions.md is the form of a change's description for
+review, not a keyword: the two were kept apart on purpose.
+
+Decision: A decision record gains one optional key, restsOn, a list of
+decision IDs, in the design schema and the implementation schema of
+1.0; nothing else of the record changes. A current decision is one
+with status accepted, and a superseded one says status superseded
+with supersededBy, as before; goal, where, proof and undo stay the
+keys of a change record in docs/conventions.md and are not keys of
+the decision record. A decision is never edited into a different
+decision: a change is a new record that supersedes the old one,
+which the conventions say and no rule checks, since the validator
+sees one version. The validator refuses a restsOn entry naming a
+decision the specification does not have, under the rule decision
+that supersededBy uses, at the entry; refuses a chain that comes
+back to its own decision, decision_cycle, at the entry that closes
+it, naming the chain in the order the links are written; and warns,
+decision_superseded, at a restsOn entry of a decision that is not
+itself superseded naming a superseded decision, with the successor,
+unless the resting decision is that successor. An implementation
+file's decision may rest on the specification's decisions and on
+the file's own. specarch decision why <ID> <folder> prints a summary
+line and the chain the decision rests on, each decision after the
+ones it rests on and the decision last; specarch decision rests <ID>
+<folder> prints a summary line, the decision and the decisions that
+rest on it, nearest first; both one decision per line with its ID,
+title, status, date, successor and restsOn, both refusing an ID that
+is no decision with exit 1 and taking --json as every command does.
+The technical specification and the site show restsOn and
+supersededBy as links to the records.
+
+Consequences: A 1.0 file with restsOn validates under the 1.0 schema; a 0.3 file
+cannot carry it, since the 0.3 schema is frozen (ADR-186). The
+examples carry one chain of three records. specarch model does not
+yet list restsOn or supersededBy among the references an editor
+walks; that is a later item.
+
+**Insight:** One record with one vocabulary: the goal names the chain of decisions, and the record that already holds a decision is where its chain belongs, so the key is added there and no second record is made; status and supersededBy already say current and superseded by whom, and a second spelling of each would be two ways to say one thing, which the Low IQ Tax rules out. The change record's keys stay out of the decision record because a change is reviewed once and a decision is read for as long as it holds: proof and undo belong to the change that introduced it, as docs/conventions.md settled when the two forms were written apart. A missing decision and a cycle are errors because the chain is then not a chain, and the compiler principle wants the error at the entry with the rest of the file read; a link to a superseded decision is a warning because the record may be right as history, and a superseded decision is exempt because its links were true when it held and a record is never edited, so the warning could otherwise never be cleared. A link in the direction the record already has, from the old decision forward, is not added: supersededBy is the inverse of restsOn for that one case, and the commands walk both ways. The commands are read-only and print one line per record because the question before a change is which records to open, not their text. Compiler test: a decision with a missing or cyclic link is still read and every other problem listed, the error at the link; acceptance test: a change request that supersedes a decision is a new record resting on the successor, and decision rests names what else to look at.
+
+**Note:** From Documenting architecture decisions, 2011: A decision is superseded by a later one rather than edited, and the record says which decision superseded it. <https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions>
+
 ## 10. Quality requirements
 
 The design tests: what must hold on every implementation. Golden scenarios succeed; red scenarios are refused.
@@ -14177,6 +14324,14 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | decide-unknown-stakeholder | command decide | system | red | a specification whose one stakeholder is owner | decide is run with --by librarian | it refuses, writes nothing and exits 1 |
 | decide-usage-error | command decide | system | red | no --answer | decide is run without the answer | it prints how to use it and exits 2 |
 | decide-writes-decision | command decide | system | golden | a specification that tracks origin, with a decision ADR-001 in design/all.yaml, an interview source owner-answer, a stakeholder owner, and a must question Q-1 that blocks the priority and the acceptance of a requirement, the only question of requirements/all.yaml | decide is run for Q-1 with --by owner, the answer, --source owner-answer and a date | it writes design/decisions/ADR-002.yaml, accepted, titled with the question, with the answer as decision, Q-1 under answers, owner under decidedBy and the source cited, takes Q-1 and the questions key out of requirements/all.yaml leaving every other line as it was, prints the requirement's file and line with each key to write, and exits 0 |
+| decision-rests-chain | command decision rests | system | golden | four decisions, the second and the third resting on the first and the fourth on the third | decision rests is run for ADR-001 | it prints that 3 decisions rest on ADR-001, its own line, then the second and the third, then the fourth, and exits 0 |
+| decision-rests-none | command decision rests | system | golden | a decision nothing rests on | decision rests is run for it | it prints that no decision rests on it and its own line, and exits 0 |
+| decision-rests-unknown | command decision rests | system | red | a specification with the decisions ADR-001 to ADR-003 | decision rests is run for ADR-009 | it refuses, naming the decisions there are, prints nothing and exits 1 |
+| decision-rests-usage-error | command decision rests | system | red | a specification | decision rests is run with no folder | it prints how to use it and exits 2 |
+| decision-unknown | command decision why | system | red | a specification with the decisions ADR-001 to ADR-003 | decision why is run for ADR-009 | it refuses, naming the decisions there are, prints nothing and exits 1 |
+| decision-usage-error | command decision why | system | red | a specification | decision why is run with no folder | it prints the usage and exits 2 |
+| decision-why-chain | command decision why | system | golden | four decisions, the fourth resting on the third, the third on the second and the first, the second on the first and superseded by the third | decision why is run for ADR-004 | it prints that ADR-004 rests on 3 decisions and the four lines earliest first, each with its ID, title, status, successor, date and the decisions it rests on, and exits 0 |
+| decision-why-no-links | command decision why | system | golden | a decision that rests on nothing | decision why is run for it | it prints that it rests on no decision and its own line, and exits 0 |
 | derive-0-3-clients | command derive | system | golden | the specification of validate-0-3-clients-valid with only the list's golden test | derive is run | it writes the drafts of the callers, signature, closed-route and service's-own-token cases of each operation beside the permission ones, none for the closed route's success, and exits 0 |
 | derive-0-3-rows | command derive | system | golden | a specification on 0.3 with a member role whose rows rule limits Loan, a list, a read by key and a delete by key with no body of loans, and a job acting as member over loans, with no tests | derive is run | it writes a draft for the list showing only the member's rows, for the read by key answering not found outside them, for the delete, which names Loan only by its path key, refusing a change outside them, and for the job acting on them only, beside the drafts of the permission and the key, and exits 0 |
 | derive-0-3-tokens | command derive | system | golden | the specification of validate-0-3-tokens-valid with only the list's golden test, and an import only the reconciliation service calls, which proves itself with a signed request and presents no token | derive is run | it writes denied with expired access on the list and denied with expired transaction on the delete, each ending with the event token (low), beside the permission and key drafts, and no token case on the import, since the default token is a person's and its only caller presents none; and exits 0 |
@@ -14652,6 +14807,10 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | validate-compact-columns | command validate | system | red | a list that keeps one of its columns on a compact screen, a list whose compact columns name one it does not have, and a view with compact columns | validate is run | it reports page twice, and exits 1 |
 | validate-concept-cases-listed | command validate | system | golden | a session, a dependency an operation calls, an idempotency key on that operation, a guard on it, and a validity on the entity its body names, with no tests | validate is run | it warns for the expired session, the dependency failing and timing out with the 503 the operation declares, the repeated request, the concurrent write, and the caller without the permission, each with a test to copy; the expired record and the reused key, occasional cases of an operation with no harm, are left to the test plan; and it exits 0 |
 | validate-decision | command validate | system | red | a decision superseded by one that does not exist | validate is run | it reports decision and exits 1 |
+| validate-decision-chain | command validate | system | golden | three decisions, the second resting on the first and the third on both | validate is run | it prints nothing and exits 0 |
+| validate-decision-cycle | command validate | system | red | three decisions whose restsOn links come back to each of them, one resting on itself | validate is run | it reports decision_cycle at every entry that closes a chain, naming the chain, and exits 1 |
+| validate-decision-rests-on-missing | command validate | system | red | a decision whose restsOn names a decision that does not exist | validate is run | it reports decision at the entry, naming the nearest decision, and exits 1 |
+| validate-decision-rests-on-superseded | command validate | system | golden | a superseded decision, its successor resting on it, an accepted decision resting on it, and a superseded decision resting on it | validate is run | it warns decision_superseded at the accepted decision's entry only, naming the successor, and exits 0 |
 | validate-defect-duplicate | command validate | system | red | a duplicate that names no defect, one that repeats a duplicate, and one that repeats a defect that does not exist | validate is run | it reports defect_duplicate for each and exits 1 |
 | validate-defect-test | command validate | system | red | a fixed defect that names no test, and a fixed defect that violates a permission and names a test about a command | validate is run | it reports defect_test for each and exits 1 |
 | validate-dependency | command validate | system | red | a dependency whose timeout is zero, and an operation that calls a dependency that is not declared | validate is run | it reports dependency for the timeout and for the call, naming the declared dependency it resembles, and exits 1 |
@@ -15048,6 +15207,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | SA-79 | specarch extract go shall read a route whose path is a package-level constant of the module or whose method list is a package-level list no statement of the module changes as it reads a literal one, and shall ask a must question at every fallback handler and catch-all route, in place of silence or a line. | functional | should | accepted | test | extract go writes a route registered with Match on a package-level list of method constants and a path from a package-level constant, in the same package or another of the module, as it writes one with a literal list and path, and asks the must question naming the line for a list assigned, appended to or declared again in a second place, in its own package or in another package of the module through the import. extract go asks a must question at a NoRoute, NoMethod, NotFound or MethodNotAllowed registration, at a NotFoundHandler, MethodNotAllowedHandler or HTTPErrorHandler field set on a router a name holds or a struct of the module keeps in a field, at a ServeMux pattern of / with no method given a handler that is no router, at a route whose path ends in a catch-all, a gorilla/mux variable whose pattern can match a slash among them, and at gorilla/mux's PathPrefix given a handler that is no router, each counted as a registration and blocking the design stage until the gateways section exists and gateways after; a fallback in a loop or behind a condition asks the question every registration there asks. | NEED-8 |
 | SA-85 | specarch decide shall answer an open question in one step, writing an accepted decision record under the next ID that names the question under answers and the stakeholder under decidedBy, taking the question out of its file with the author's other lines left as they were, and printing the entries the question blocked with the keys missing there; and problems.sarif shall carry for every open question, as properties of its result and of the run, what an agent queue needs to put the question to the person who decides and to feed the answer back without reading any other file. | functional | must | accepted | test | decide on a must question that blocks two keys of a requirement writes design/decisions/ADR-002.yaml beside ADR-001 with the question as title, the answer as decision, the question's ID under answers and the stakeholder under decidedBy, leaves the requirements file without the question and with every other line unchanged, prints the requirement's file and line with the pointer of each key, and exits 0. decide on a question that is the only one of its file removes the questions key with it, and removes the file when nothing but comments is left. decide is refused, with nothing written, for a question ID the specification does not hold, naming the open ones; for a stakeholder it does not declare; for a source the root file does not declare; and, when the specification tracks origin, without --source. A question's result in problems.sarif carries the question's text and its Insight beside its priority, kind, decider, options and blocked entries, and the run names the specification's folder relative to the log, so that a dispatcher runs specarch decide from the log alone. | NEED-8 |
 | SA-86 | specarch document comparison shall write the old documents against the refined specification, derived from the elements' origin, their citations and the decisions and from no other input - the stated elements kept from each source by clause, the inferred ones clarified with what they were concluded from, the decided ones added or corrected with their decision and its reason, and the clauses of each source's outline that no element cites - so that a reviewer sees what the refinement changed before approving. | functional | must | accepted | test | A specification whose manual lists five clauses, with two stated elements citing it, an inferred requirement, a decided requirement citing nothing, a decided entity citing the manual and a could question citing a clause gets a comparison with the stated elements under the manual by clause, the inferred requirement with its reason, the decided requirement as added and the decided entity as corrected with their decisions, the clause only the question cites as asked about, the clause nothing cites as dropped, and an element without origin listed with its warning. A decision's citation of a clause leaves the clause dropped when no element cites it, and a stated element whose citation names no source is listed under Kept with the validator's error at it. The comparison is never a draft, is not a row of the outputs table and is not among the documents an approval is of. | NEED-8 |
+| SA-97 | A decision record shall name the earlier decisions it rests on under restsOn; the validator shall refuse a restsOn entry naming a decision that does not exist and a chain that comes back to its own decision, each at the entry, and shall warn at a decision that is not itself superseded resting on a superseded one, naming the successor; and specarch decision why shall print the chain a decision rests on, earliest first, and specarch decision rests the decisions that rest on it, nearest first, each with a summary line first and one decision per line. | functional | must | accepted | test | A decision whose restsOn names a decision the specification does not have is an error decision at that entry, naming the nearest ID; a decision whose restsOn chain comes back to it is an error decision_cycle at the entry that closes the chain, naming the chain; a decision that is not superseded resting on a superseded one is a warning decision_superseded at the entry, naming the successor; and a superseded decision resting on a superseded one warns nothing. decision why on the last of a chain of three prints that it rests on 2 decisions and the three lines earliest first, each with its ID, title, status, date and the decisions it rests on; decision rests on the first prints that 2 decisions rest on it, its own line and the two lines nearest first; and both exit 0. decision why and decision rests on an ID that is not a decision of the specification are refused, naming the decisions there are, and exit 1; without the ID or the folder they exit 2. | NEED-6 |
 | SA-1 | specarch validate shall check every specification and implementation file given against the JSON Schema of its kind and meta-model version. | functional | must | accepted | test | A file that breaks the schema is reported with rule schema, its file, line and YAML path. A file that passes the schema and every other rule produces no output and status 0. | NEED-1 |
 | SA-2 | Every reference inside a specification shall resolve to an object of the right kind in the same specification, wherever its file is in the tree. | functional | must | accepted | test | A misspelt relation target, enum, operation, page, algorithm, decision, requirement, need, stakeholder, source or environment is reported with its own rule, naming the file and line of the reference. A name defined in two files of the specification is reported with both files. An operation, command or page's enabledBy that is not a setting of configuration, or names one that is not boolean, is reported as setting; a valid one derives the case disabled by <setting>, the element refused with the setting off. | NEED-1, NEED-4 |
 | SA-3 | Every check constraint, condition of a unique constraint and formula shall parse and type-check in the fixed expression language. | functional | must | accepted | test | An expression outside the subset is refused with a message naming the construct. An expression that mixes types without a written conversion is refused with the conversion to write. A unique constraint's where is an expression over the entity's fields that gives true or false, like a check; a where on a check constraint is refused. | NEED-1 |
@@ -15254,6 +15414,10 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 
 **Note on SA-86:** From ISO/IEC/IEEE 29148, Systems and software engineering, Life cycle processes, Requirements engineering, 2018, clause 6.3.3.6: Requirements validation is subject to approval by the project authority and the key stakeholders. <https://www.iso.org/standard/72089.html>
 
+**Insight on SA-97:** A specification is layered decisions, and a reader who changes one wants to know what it rests on and what rests on it before the change; written as links the toolchain checks, the chain is read in one command rather than reconstructed from the records, which is the goal of docs/principles.md.
+
+**Note on SA-97:** From Documenting architecture decisions, 2011: A decision record is never edited once accepted; a later decision supersedes it, and the record says which. <https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions>
+
 **Insight on SA-1:** The schema is the one definition of a file's shape; checking it first means every later rule can assume the shape.
 
 **Note on SA-6:** From The go command, Go documentation, 1.26: The Go tools print one problem per line as file:line, which editors and CI already parse. <https://go.dev/doc/>
@@ -15368,6 +15532,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-94 | decisions ADR-183 | tests document-manual-custom; tests document-techspec-custom; tests generate-ui-custom; tests generate-ui-custom-check; tests generate-ui-swiftui-custom; tests generate-ui-typescript-custom |
 | SA-95 | decisions ADR-186 | tests upgrade-0-1-missing-tests; tests upgrade-0-2-caller; tests upgrade-both-keys; tests upgrade-dry-run; tests upgrade-estate; tests upgrade-implementation-alone; tests upgrade-missing-version-line; tests upgrade-number-version-line; tests upgrade-second-run; tests upgrade-to-older; tests upgrade-unknown-version-line; tests upgrade-unreadable-file; tests upgrade-usage-error; tests upgrade-writes-changes; tests validate-estate-1-0-0; tests validate-estate-version-unknown; tests validate-formats-1-0-0; tests validate-formats-version-unknown; tests validate-handover-source-deprecated; tests validate-handover-source-missing; tests validate-handover-source-twice; tests validate-meta-model-1-0-0; tests validate-meta-model-1-0-patch; tests validate-meta-model-deprecated; tests validate-meta-model-later; tests validate-meta-model-short; tests validate-record-1-0-0; tests validate-record-version-unknown; tests validate-row-policies; tests validate-row-policies-valid; tests validate-schema-conditionals; tests validate-schema-conditionals-0-3 |
 | SA-96 | commands capabilities; commands guide; commands help; decisions ADR-187 | tests capabilities-text; tests capabilities-usage-error; tests guide-order-of-work; tests guide-usage-error; tests help-command-reference; tests help-unknown-topic |
+| SA-97 | commands decision why; commands decision rests; decisions ADR-188 | tests decision-rests-chain; tests decision-rests-none; tests decision-rests-unknown; tests decision-rests-usage-error; tests decision-unknown; tests decision-usage-error; tests decision-why-chain; tests decision-why-no-links; tests validate-decision-chain; tests validate-decision-cycle; tests validate-decision-rests-on-missing; tests validate-decision-rests-on-superseded |
 
 ## Sources
 

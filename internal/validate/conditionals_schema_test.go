@@ -25,6 +25,9 @@ type conditional struct {
 	keys []string
 	// objects finds the objects of the kind in a specification's value.
 	objects func(root map[string]any) []map[string]any
+	// added are the keys 1.0 added to the kind, which the 0.3 schema does
+	// not know; they are taken out before the two are compared.
+	added []string
 }
 
 // TestConditionalsAcceptWhatTheyDid checks that every conditional fixed for
@@ -93,7 +96,7 @@ func TestConditionalsAcceptWhatTheyDid(t *testing.T) {
 				return out
 			}},
 		{def: "decision", key: "status", values: []any{"proposed", "accepted", "deprecated", "superseded", "other"}, keys: []string{"supersededBy"},
-			objects: func(r map[string]any) []map[string]any { return mapsOf(r["decisions"]) }},
+			objects: func(r map[string]any) []map[string]any { return mapsOf(r["decisions"]) }, added: []string{"restsOn"}},
 	}
 	for _, rule := range rules {
 		after, err := c.Compile(designSchemaID + "#/$defs/" + rule.def)
@@ -111,6 +114,9 @@ func TestConditionalsAcceptWhatTheyDid(t *testing.T) {
 					for mask := 0; mask < 1<<len(rule.keys); mask++ {
 						obj := maps.Clone(found)
 						delete(obj, rule.key)
+						for _, k := range rule.added {
+							delete(obj, k)
+						}
 						if value != nil {
 							obj[rule.key] = value
 						}

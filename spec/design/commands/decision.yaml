@@ -1,0 +1,91 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-1.0.schema.json
+commands:
+  decision why:
+    summary: Print the chain of decisions a decision rests on, earliest first
+    description: |
+      Validates its input first and prints the errors of an invalid
+      specification, then works on what could be read (ADR-065). Finds
+      the decision by its ID among the specification's decisions; refuses
+      when there is none of that ID, naming the ones there are. An
+      implementation file's decisions are not walked.
+
+      Prints a summary line, how many decisions the decision rests on
+      through any number of `restsOn` links, then one line per decision
+      of the chain, each decision after the ones it rests on and the
+      decision asked about last: its ID, its title, its status and date,
+      the decision that supersedes it when one does, and the decisions it
+      rests on. A decision in the chain is printed once, where it is first
+      reached. A decision that rests on nothing prints the summary and its
+      own line.
+    permission: public
+    arguments:
+      - name: decision
+        description: The ID of the decision, such as ADR-012.
+        required: true
+        schema: { type: string, pattern: "^ADR-[0-9]{3,}$" }
+      - name: folder
+        description: The folder holding the specification.
+        required: true
+        schema: { type: string }
+    reads:
+      - { path: "{folder}", description: The specification and its implementation files. }
+    standardOutput: The errors of an invalid specification, then the summary line and one line per decision of the chain, earliest first.
+    standardError: A usage message on a usage error, and the reason a refusal.
+    exitCodes:
+      "0": the chain is printed
+      "1": refused, the decision is not one of the specification's; or printed, while the specification has errors
+      "2": usage error, or a folder that could not be read
+    remedies:
+      "1": "Read the refusal on standard error and give the ID of a decision it names, or run specarch validate and settle the errors."
+      "2": "Read the usage message or the reason on standard error, correct the command line or the path it names, and run it again."
+    satisfies: [SA-97]
+    why: |
+      A decision rests on earlier ones, and a reader about to change it
+      reconstructs that chain by hand from the records; the toolchain
+      holds the links, so it answers the question before the change, which
+      is the cost the goal names. The chain is printed earliest first
+      because that is the order the decisions were taken in and the order a
+      reader needs them to follow the reasoning.
+  decision rests:
+    summary: Print the decisions that rest on a decision, nearest first
+    description: |
+      Validates its input first and prints the errors of an invalid
+      specification, then works on what could be read (ADR-065). Finds
+      the decision by its ID among the specification's decisions; refuses
+      when there is none of that ID, naming the ones there are. An
+      implementation file's decisions are not walked.
+
+      Prints a summary line, how many decisions rest on the decision
+      through any number of `restsOn` links, then the decision's own line
+      and one line per decision that rests on it, the ones resting on it
+      directly first, then the ones resting on those, each line as
+      `decision why` prints it. A decision is printed once, where it is
+      first reached. A decision nothing rests on prints the summary and
+      its own line.
+    permission: public
+    arguments:
+      - name: decision
+        description: The ID of the decision, such as ADR-012.
+        required: true
+        schema: { type: string, pattern: "^ADR-[0-9]{3,}$" }
+      - name: folder
+        description: The folder holding the specification.
+        required: true
+        schema: { type: string }
+    reads:
+      - { path: "{folder}", description: The specification and its implementation files. }
+    standardOutput: The errors of an invalid specification, then the summary line, the decision's line and one line per decision that rests on it, nearest first.
+    standardError: A usage message on a usage error, and the reason a refusal.
+    exitCodes:
+      "0": the decisions are printed
+      "1": refused, the decision is not one of the specification's; or printed, while the specification has errors
+      "2": usage error, or a folder that could not be read
+    remedies:
+      "1": "Read the refusal on standard error and give the ID of a decision it names, or run specarch validate and settle the errors."
+      "2": "Read the usage message or the reason on standard error, correct the command line or the path it names, and run it again."
+    satisfies: [SA-97]
+    why: |
+      Before a decision is superseded, the reader wants to know what rests
+      on it, since each of those rests on what is about to stop holding;
+      read from the records by hand that is the search the toolchain can
+      do, nearest first so that the decisions to look at first come first.

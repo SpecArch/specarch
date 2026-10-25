@@ -238,6 +238,10 @@ not declare, and, when the specification tracks origin, a run without
 and it refuses a specification whose `stages` do not list design, where
 decisions live, rather than editing the root file.
 
+A decision taken on top of earlier ones names them under `restsOn`, and
+`specarch decision why` and `specarch decision rests` print the chain
+each way (`docs/conventions.md`, Why, citations and origin).
+
 Decisions follow Nygard's form because they already did, and because the
 form fits: an answered question is a decision with a context (the question),
 a decision (the answer) and consequences (what changed). A decision is

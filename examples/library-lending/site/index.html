@@ -129,7 +129,7 @@ ol.problems p{margin:2px 0}
 </ol></li>
 <li><a href="#algorithms-and-decisions">Algorithms and decisions</a><ol>
 <li><a href="#/algorithms">Algorithms</a> <span class="count">1</span></li>
-<li><a href="#/decisions">Decisions</a> <span class="count">2</span></li>
+<li><a href="#/decisions">Decisions</a> <span class="count">4</span></li>
 </ol></li>
 <li><a href="#tests-and-traceability">Tests and traceability</a><ol>
 <li><a href="#/tests">Tests</a> <span class="count">185</span></li>
@@ -185,7 +185,7 @@ ol.problems p{margin:2px 0}
 <tr><td><a href="#/theme">Theme</a></td><td>one</td></tr>
 <tr><td><a href="#/workflows">Workflows</a></td><td>1</td></tr>
 <tr><td><a href="#/algorithms">Algorithms</a></td><td>1</td></tr>
-<tr><td><a href="#/decisions">Decisions</a></td><td>2</td></tr>
+<tr><td><a href="#/decisions">Decisions</a></td><td>4</td></tr>
 <tr><td><a href="#/tests">Tests</a></td><td>185</td></tr>
 <tr><td><a href="#/environments">Environments</a></td><td>3</td></tr>
 <tr><td><a href="#/configuration">Configuration</a></td><td>3</td></tr>
@@ -414,7 +414,7 @@ ol.problems p{margin:2px 0}
 </article>
 <article class="element" data-search id="/requirements/LIB-5">
 <h4>LIB-5 <a class="ptr" href="#/requirements/LIB-5">/requirements/LIB-5</a></h4>
-<p class="trace"><strong>Satisfied by:</strong> <a href="#/paths/~1loans~1%7BloanId%7D~1return/post">/paths/~1loans~1{loanId}~1return/post</a>, <a href="#/algorithms/lateFee">/algorithms/lateFee</a>, <a href="#/decisions/ADR-001">/decisions/ADR-001</a>, <a href="#/configuration/dailyRate">/configuration/dailyRate</a>. <strong>Verified by:</strong> <a href="#/tests/loan-lent-and-returned">/tests/loan-lent-and-returned</a>, <a href="#/tests/return-late">/tests/return-late</a>, <a href="#/checks/lend-and-return">/checks/lend-and-return</a>.</p>
+<p class="trace"><strong>Satisfied by:</strong> <a href="#/paths/~1loans~1%7BloanId%7D~1return/post">/paths/~1loans~1{loanId}~1return/post</a>, <a href="#/algorithms/lateFee">/algorithms/lateFee</a>, <a href="#/decisions/ADR-001">/decisions/ADR-001</a>, <a href="#/decisions/ADR-003">/decisions/ADR-003</a>, <a href="#/configuration/dailyRate">/configuration/dailyRate</a>. <strong>Verified by:</strong> <a href="#/tests/loan-lent-and-returned">/tests/loan-lent-and-returned</a>, <a href="#/tests/return-late">/tests/return-late</a>, <a href="#/checks/lend-and-return">/checks/lend-and-return</a>.</p>
 <p class="insight"><strong>Insight:</strong> A flat rate can be checked by hand at the desk; the cap means a long-overdue book costs the same as a lost one, which is when the member should be told to treat it as lost.</p>
 <p class="note"><strong>Note:</strong> From <a href="#/sources/lending-policy">Lending policy of the library, 2026, clause 4</a>: The late fee is a daily rate set by the board, and never more than the cost of replacing the book.</p>
 <dl>
@@ -489,7 +489,7 @@ ol.problems p{margin:2px 0}
 </article>
 <article class="element" data-search id="/requirements/LIB-8">
 <h4>LIB-8 <a class="ptr" href="#/requirements/LIB-8">/requirements/LIB-8</a></h4>
-<p class="trace"><strong>Satisfied by:</strong> <a href="#/entities/FeeWaiverRequest">/entities/FeeWaiverRequest</a>, <a href="#/roles/desk-supervisor">/roles/desk-supervisor</a>, <a href="#/paths/~1loans~1%7BloanId%7D~1fee-waivers/post">/paths/~1loans~1{loanId}~1fee-waivers/post</a>, <a href="#/paths/~1fee-waivers/get">/paths/~1fee-waivers/get</a>, <a href="#/paths/~1fee-waivers~1%7BwaiverId%7D~1waive/post">/paths/~1fee-waivers~1{waiverId}~1waive/post</a>, <a href="#/paths/~1fee-waivers~1%7BwaiverId%7D~1approve/post">/paths/~1fee-waivers~1{waiverId}~1approve/post</a>, <a href="#/paths/~1fee-waivers~1%7BwaiverId%7D~1refuse/post">/paths/~1fee-waivers~1{waiverId}~1refuse/post</a>, <a href="#/channels/fee.waivers">/channels/fee.waivers</a>, <a href="#/channels/fee.waivers/messages/FeeWaiverDecided">/channels/fee.waivers/messages/FeeWaiverDecided</a>, <a href="#/workflows/fee-waiver">/workflows/fee-waiver</a>, <a href="#/pages/fee-waiver-form">/pages/fee-waiver-form</a>, <a href="#/pages/fee-waivers-inbox">/pages/fee-waivers-inbox</a>. <strong>Verified by:</strong> <a href="#/tests/approve-fee-waiver">/tests/approve-fee-waiver</a>, <a href="#/tests/fee-waiver">/tests/fee-waiver</a>, <a href="#/tests/fee-waiver-approval-without-permission">/tests/fee-waiver-approval-without-permission</a>, <a href="#/tests/fee-waiver-deadline-passes">/tests/fee-waiver-deadline-passes</a>, <a href="#/tests/fee-waiver-form-denied-with-expired-session">/tests/fee-waiver-form-denied-with-expired-session</a>, <a href="#/tests/fee-waiver-form-denied-without-fees-request">/tests/fee-waiver-form-denied-without-fees-request</a>, <a href="#/tests/fee-waiver-form-not-found-loan-id">/tests/fee-waiver-form-not-found-loan-id</a>, <a href="#/tests/fee-waiver-form-sent-for-approval">/tests/fee-waiver-form-sent-for-approval</a>, <a href="#/tests/fee-waiver-form-succeeds">/tests/fee-waiver-form-succeeds</a>, <a href="#/tests/fee-waiver-refused">/tests/fee-waiver-refused</a>, <a href="#/tests/fee-waiver-requester-approves-own-request">/tests/fee-waiver-requester-approves-own-request</a>, <a href="#/tests/fee-waivers-inbox-denied-with-expired-session">/tests/fee-waivers-inbox-denied-with-expired-session</a>, <a href="#/tests/fee-waivers-inbox-denied-without-fees-approve">/tests/fee-waivers-inbox-denied-without-fees-approve</a>, <a href="#/tests/fee-waivers-inbox-succeeds">/tests/fee-waivers-inbox-succeeds</a>, <a href="#/tests/list-fee-waivers-denied-with-expired-session">/tests/list-fee-waivers-denied-with-expired-session</a>, <a href="#/tests/list-fee-waivers-denied-without-fees-approve">/tests/list-fee-waivers-denied-without-fees-approve</a>, <a href="#/tests/list-fee-waivers-succeeds">/tests/list-fee-waivers-succeeds</a>, <a href="#/tests/refuse-fee-waiver">/tests/refuse-fee-waiver</a>, <a href="#/tests/request-fee-waiver">/tests/request-fee-waiver</a>, <a href="#/tests/waive-fee">/tests/waive-fee</a>.</p>
+<p class="trace"><strong>Satisfied by:</strong> <a href="#/entities/FeeWaiverRequest">/entities/FeeWaiverRequest</a>, <a href="#/roles/desk-supervisor">/roles/desk-supervisor</a>, <a href="#/paths/~1loans~1%7BloanId%7D~1fee-waivers/post">/paths/~1loans~1{loanId}~1fee-waivers/post</a>, <a href="#/paths/~1fee-waivers/get">/paths/~1fee-waivers/get</a>, <a href="#/paths/~1fee-waivers~1%7BwaiverId%7D~1waive/post">/paths/~1fee-waivers~1{waiverId}~1waive/post</a>, <a href="#/paths/~1fee-waivers~1%7BwaiverId%7D~1approve/post">/paths/~1fee-waivers~1{waiverId}~1approve/post</a>, <a href="#/paths/~1fee-waivers~1%7BwaiverId%7D~1refuse/post">/paths/~1fee-waivers~1{waiverId}~1refuse/post</a>, <a href="#/channels/fee.waivers">/channels/fee.waivers</a>, <a href="#/channels/fee.waivers/messages/FeeWaiverDecided">/channels/fee.waivers/messages/FeeWaiverDecided</a>, <a href="#/workflows/fee-waiver">/workflows/fee-waiver</a>, <a href="#/pages/fee-waiver-form">/pages/fee-waiver-form</a>, <a href="#/pages/fee-waivers-inbox">/pages/fee-waivers-inbox</a>, <a href="#/decisions/ADR-004">/decisions/ADR-004</a>. <strong>Verified by:</strong> <a href="#/tests/approve-fee-waiver">/tests/approve-fee-waiver</a>, <a href="#/tests/fee-waiver">/tests/fee-waiver</a>, <a href="#/tests/fee-waiver-approval-without-permission">/tests/fee-waiver-approval-without-permission</a>, <a href="#/tests/fee-waiver-deadline-passes">/tests/fee-waiver-deadline-passes</a>, <a href="#/tests/fee-waiver-form-denied-with-expired-session">/tests/fee-waiver-form-denied-with-expired-session</a>, <a href="#/tests/fee-waiver-form-denied-without-fees-request">/tests/fee-waiver-form-denied-without-fees-request</a>, <a href="#/tests/fee-waiver-form-not-found-loan-id">/tests/fee-waiver-form-not-found-loan-id</a>, <a href="#/tests/fee-waiver-form-sent-for-approval">/tests/fee-waiver-form-sent-for-approval</a>, <a href="#/tests/fee-waiver-form-succeeds">/tests/fee-waiver-form-succeeds</a>, <a href="#/tests/fee-waiver-refused">/tests/fee-waiver-refused</a>, <a href="#/tests/fee-waiver-requester-approves-own-request">/tests/fee-waiver-requester-approves-own-request</a>, <a href="#/tests/fee-waivers-inbox-denied-with-expired-session">/tests/fee-waivers-inbox-denied-with-expired-session</a>, <a href="#/tests/fee-waivers-inbox-denied-without-fees-approve">/tests/fee-waivers-inbox-denied-without-fees-approve</a>, <a href="#/tests/fee-waivers-inbox-succeeds">/tests/fee-waivers-inbox-succeeds</a>, <a href="#/tests/list-fee-waivers-denied-with-expired-session">/tests/list-fee-waivers-denied-with-expired-session</a>, <a href="#/tests/list-fee-waivers-denied-without-fees-approve">/tests/list-fee-waivers-denied-without-fees-approve</a>, <a href="#/tests/list-fee-waivers-succeeds">/tests/list-fee-waivers-succeeds</a>, <a href="#/tests/refuse-fee-waiver">/tests/refuse-fee-waiver</a>, <a href="#/tests/request-fee-waiver">/tests/request-fee-waiver</a>, <a href="#/tests/waive-fee">/tests/waive-fee</a>.</p>
 <p class="insight"><strong>Insight:</strong> A fee waived by the person who asked for it is money the library loses with nobody having looked; a second person is the control the board asks for.</p>
 <dl>
 <dt>statement</dt>
@@ -6341,50 +6341,120 @@ label {
 </section>
 <section class="section" id="/decisions">
 <h3>Decisions <a class="ptr" href="#/decisions">/decisions</a></h3>
-<div class="scroll"><table><thead><tr><th scope="col">Name</th>
-<th scope="col">title</th>
-<th scope="col">status</th>
-<th scope="col">date</th>
-<th scope="col">context</th>
-<th scope="col">decision</th>
-<th scope="col">consequences</th>
-<th scope="col">satisfies</th>
-</tr></thead><tbody>
-<tr data-search id="/decisions/ADR-001"><th scope="row">ADR-001 <a class="ptr" href="#/decisions/ADR-001">/decisions/ADR-001</a>
-</th>
-<td>Late fees are a flat daily rate capped at the replacement cost</td>
-<td>accepted</td>
-<td>2026-10-07</td>
-<td>Tiered rates (cheaper for the first week, dearer after) were considered.
-They are harder to explain at the desk and the difference in revenue is
-small for a library of this size.
-</td>
-<td>One daily rate for every book, capped at that book&#39;s replacement cost.
-The rate is a library setting, not a per-book value.
-</td>
-<td>The fee can be computed from three numbers and checked by hand. A very
-long-overdue book costs the same as a lost one, which is what we want:
-at that point the member should be told to treat it as lost.
-</td>
-<td><a href="#/requirements/LIB-5">LIB-5</a></td>
-</tr>
-<tr data-search id="/decisions/ADR-002"><th scope="row">ADR-002 <a class="ptr" href="#/decisions/ADR-002">/decisions/ADR-002</a>
-</th>
-<td>Money is carried as decimal strings, never floats</td>
-<td>accepted</td>
-<td>2026-10-07</td>
-<td>JSON has no decimal type. Fees and costs must round the way a cashier
-expects.
-</td>
-<td>Every money field is `type: string, format: decimal` with `precision`
-and `scale`. Generators map it to the target&#39;s decimal type and the API
-transports it as a string.
-</td>
-<td>Clients must parse the string; in return no sum ever drifts by a cent.
-</td>
-<td></td>
-</tr>
-</tbody></table></div>
+<article class="element" data-search id="/decisions/ADR-001">
+<h4>ADR-001: Late fees are a flat daily rate capped at the replacement cost <a class="ptr" href="#/decisions/ADR-001">/decisions/ADR-001</a></h4>
+<dl>
+<dt>title</dt>
+<dd>Late fees are a flat daily rate capped at the replacement cost</dd>
+<dt>status</dt>
+<dd>accepted</dd>
+<dt>date</dt>
+<dd>2026-10-07</dd>
+<dt>context</dt>
+<dd>
+<p>Tiered rates (cheaper for the first week, dearer after) were considered. They are harder to explain at the desk and the difference in revenue is small for a library of this size.</p>
+</dd>
+<dt>decision</dt>
+<dd>
+<p>One daily rate for every book, capped at that book&#39;s replacement cost. The rate is a library setting, not a per-book value.</p>
+</dd>
+<dt>consequences</dt>
+<dd>
+<p>The fee can be computed from three numbers and checked by hand. A very long-overdue book costs the same as a lost one, which is what we want: at that point the member should be told to treat it as lost.</p>
+</dd>
+<dt>satisfies</dt>
+<dd>
+<p><a href="#/requirements/LIB-5">LIB-5</a></p>
+</dd>
+</dl>
+</article>
+<article class="element" data-search id="/decisions/ADR-002">
+<h4>ADR-002: Money is carried as decimal strings, never floats <a class="ptr" href="#/decisions/ADR-002">/decisions/ADR-002</a></h4>
+<dl>
+<dt>title</dt>
+<dd>Money is carried as decimal strings, never floats</dd>
+<dt>status</dt>
+<dd>accepted</dd>
+<dt>date</dt>
+<dd>2026-10-07</dd>
+<dt>context</dt>
+<dd>
+<p>JSON has no decimal type. Fees and costs must round the way a cashier expects.</p>
+</dd>
+<dt>decision</dt>
+<dd>
+<p>Every money field is `type: string, format: decimal` with `precision` and `scale`. Generators map it to the target&#39;s decimal type and the API transports it as a string.</p>
+</dd>
+<dt>consequences</dt>
+<dd>
+<p>Clients must parse the string; in return no sum ever drifts by a cent.</p>
+</dd>
+</dl>
+</article>
+<article class="element" data-search id="/decisions/ADR-003">
+<h4>ADR-003: The late fee is computed once, at return, and stored on the loan <a class="ptr" href="#/decisions/ADR-003">/decisions/ADR-003</a></h4>
+<p class="insight"><strong>Insight:</strong> One computation at one moment is one thing to test and one number to explain at the desk; a nightly job would be a second place the fee is computed and a second place it can be wrong.</p>
+<dl>
+<dt>title</dt>
+<dd>The late fee is computed once, at return, and stored on the loan</dd>
+<dt>status</dt>
+<dd>accepted</dd>
+<dt>date</dt>
+<dd>2026-10-25</dd>
+<dt>context</dt>
+<dd>
+<p>A fee that grows every night needs a job that touches every overdue loan and a member who sees a different amount each day. The fee is three numbers (ADR-001) carried as decimals (ADR-002), so it can be computed at the moment the copy comes back.</p>
+</dd>
+<dt>decision</dt>
+<dd>
+<p>The lateFee algorithm runs when the copy is returned, and its result is stored on the loan as lateFee; the field is zero until then. No job recomputes it.</p>
+</dd>
+<dt>consequences</dt>
+<dd>
+<p>A fee never changes after the return, so a waiver names a fixed amount. A member asking during the loan is told what the fee would be today, computed on the spot and not stored.</p>
+</dd>
+<dt>restsOn</dt>
+<dd>
+<p><a href="#/decisions/ADR-001">ADR-001</a>, <a href="#/decisions/ADR-002">ADR-002</a></p>
+</dd>
+<dt>satisfies</dt>
+<dd>
+<p><a href="#/requirements/LIB-5">LIB-5</a></p>
+</dd>
+</dl>
+</article>
+<article class="element" data-search id="/decisions/ADR-004">
+<h4>ADR-004: A waiver is a request of its own that names the amount, and the loan keeps its fee <a class="ptr" href="#/decisions/ADR-004">/decisions/ADR-004</a></h4>
+<p class="insight"><strong>Insight:</strong> Keeping the computed fee and recording the waiver beside it is the one way the two numbers stay auditable; overwriting the fee would make the waiver a change nobody can read back.</p>
+<dl>
+<dt>title</dt>
+<dd>A waiver is a request of its own that names the amount, and the loan keeps its fee</dd>
+<dt>status</dt>
+<dd>accepted</dd>
+<dt>date</dt>
+<dd>2026-10-25</dd>
+<dt>context</dt>
+<dd>
+<p>Once the fee is fixed at return (ADR-003) a waiver has a definite amount to name. Setting the loan&#39;s fee to zero would lose what was charged and who let it go, which the supervisor&#39;s approval (LIB-8) is there to make visible.</p>
+</dd>
+<dt>decision</dt>
+<dd>
+<p>A waiver is a FeeWaiverRequest that names the loan, the amount to waive and the reason, approved through the fee-waiver workflow; the loan&#39;s lateFee stays as computed, and what the member owes is the fee less the waivers approved.</p>
+</dd>
+<dt>consequences</dt>
+<dd>
+<p>The fee charged and the fee waived are both readable afterwards. A list of what a member owes subtracts the approved waivers; a waiver above the amount is refused at the form.</p>
+</dd>
+<dt>restsOn</dt>
+<dd>
+<p><a href="#/decisions/ADR-003">ADR-003</a></p>
+</dd>
+<dt>satisfies</dt>
+<dd>
+<p><a href="#/requirements/LIB-8">LIB-8</a></p>
+</dd>
+</dl>
+</article>
 </section>
 </section>
 <section class="group" id="tests-and-traceability">
@@ -10592,10 +10662,10 @@ transports it as a string.
 <tr data-search><th scope="row"><a href="#/requirements/LIB-2">LIB-2</a></th><td><a href="#/needs/NEED-3">NEED-3</a></td><td><a href="#/entities/Book">/entities/Book</a>, <a href="#/permissions/public">/permissions/public</a>, <a href="#/paths/~1books/get">/paths/~1books/get</a></td><td><a href="#/tests/browse-catalogue">/tests/browse-catalogue</a>, <a href="#/checks/service-answers">/checks/service-answers</a></td></tr>
 <tr data-search><th scope="row"><a href="#/requirements/LIB-3">LIB-3</a></th><td><a href="#/needs/NEED-1">NEED-1</a></td><td><a href="#/entities/Loan">/entities/Loan</a>, <a href="#/views/MemberWithLoans">/views/MemberWithLoans</a>, <a href="#/paths/~1members~1%7BmemberId%7D~1loans/post">/paths/~1members~1{memberId}~1loans/post</a>, <a href="#/paths/~1loans/post">/paths/~1loans/post</a>, <a href="#/pages/member-loans">/pages/member-loans</a>, <a href="#/migrations/add-membership-tier">/migrations/add-membership-tier</a></td><td><a href="#/tests/create-loan-rate-exceeded">/tests/create-loan-rate-exceeded</a>, <a href="#/tests/create-loan-repeated-with-the-same-idempotency-key">/tests/create-loan-repeated-with-the-same-idempotency-key</a>, <a href="#/tests/create-loan-request-larger-than-1024-bytes">/tests/create-loan-request-larger-than-1024-bytes</a>, <a href="#/tests/fees-block-lending">/tests/fees-block-lending</a>, <a href="#/tests/lend-a-copy">/tests/lend-a-copy</a>, <a href="#/tests/lend-copies">/tests/lend-copies</a>, <a href="#/tests/lend-copies-limit-reached">/tests/lend-copies-limit-reached</a>, <a href="#/tests/lend-copies-repeated-with-the-same-idempotency-key">/tests/lend-copies-repeated-with-the-same-idempotency-key</a>, <a href="#/tests/lend-limit-reached">/tests/lend-limit-reached</a>, <a href="#/tests/lending-limit-accepted">/tests/lending-limit-accepted</a>, <a href="#/tests/member-loans-refused">/tests/member-loans-refused</a>, <a href="#/tests/member-loans-shown">/tests/member-loans-shown</a>, <a href="#/tests/member-loans-six-rows">/tests/member-loans-six-rows</a>, <a href="#/checks/lend-and-return">/checks/lend-and-return</a></td></tr>
 <tr data-search><th scope="row"><a href="#/requirements/LIB-4">LIB-4</a></th><td><a href="#/needs/NEED-4">NEED-4</a></td><td><a href="#/entities/Loan">/entities/Loan</a>, <a href="#/entities/Loan/transitions/0">/entities/Loan/transitions/0</a>, <a href="#/paths/~1loans~1%7BloanId%7D~1return/post">/paths/~1loans~1{loanId}~1return/post</a>, <a href="#/channels/loan.overdue">/channels/loan.overdue</a>, <a href="#/channels/loan.overdue/messages/LoanOverdue">/channels/loan.overdue/messages/LoanOverdue</a>, <a href="#/jobs/markOverdue">/jobs/markOverdue</a>, <a href="#/configuration/notificationChannelUrl">/configuration/notificationChannelUrl</a></td><td><a href="#/tests/loan-becomes-overdue">/tests/loan-becomes-overdue</a>, <a href="#/tests/mark-overdue-runs-twice">/tests/mark-overdue-runs-twice</a>, <a href="#/tests/mark-overdue-succeeds">/tests/mark-overdue-succeeds</a>, <a href="#/monitors/overdue-notices-sent">/monitors/overdue-notices-sent</a></td></tr>
-<tr data-search><th scope="row"><a href="#/requirements/LIB-5">LIB-5</a></th><td><a href="#/needs/NEED-2">NEED-2</a></td><td><a href="#/paths/~1loans~1%7BloanId%7D~1return/post">/paths/~1loans~1{loanId}~1return/post</a>, <a href="#/algorithms/lateFee">/algorithms/lateFee</a>, <a href="#/decisions/ADR-001">/decisions/ADR-001</a>, <a href="#/configuration/dailyRate">/configuration/dailyRate</a></td><td><a href="#/tests/loan-lent-and-returned">/tests/loan-lent-and-returned</a>, <a href="#/tests/return-late">/tests/return-late</a>, <a href="#/checks/lend-and-return">/checks/lend-and-return</a></td></tr>
+<tr data-search><th scope="row"><a href="#/requirements/LIB-5">LIB-5</a></th><td><a href="#/needs/NEED-2">NEED-2</a></td><td><a href="#/paths/~1loans~1%7BloanId%7D~1return/post">/paths/~1loans~1{loanId}~1return/post</a>, <a href="#/algorithms/lateFee">/algorithms/lateFee</a>, <a href="#/decisions/ADR-001">/decisions/ADR-001</a>, <a href="#/decisions/ADR-003">/decisions/ADR-003</a>, <a href="#/configuration/dailyRate">/configuration/dailyRate</a></td><td><a href="#/tests/loan-lent-and-returned">/tests/loan-lent-and-returned</a>, <a href="#/tests/return-late">/tests/return-late</a>, <a href="#/checks/lend-and-return">/checks/lend-and-return</a></td></tr>
 <tr data-search><th scope="row"><a href="#/requirements/LIB-6">LIB-6</a></th><td><a href="#/needs/NEED-3">NEED-3</a></td><td><a href="#/roles/member">/roles/member</a>, <a href="#/caller">/caller</a>, <a href="#/session">/session</a></td><td><a href="#/checks/member-sees-own-loans">/checks/member-sees-own-loans</a></td></tr>
 <tr data-search><th scope="row"><a href="#/requirements/LIB-7">LIB-7</a></th><td><a href="#/needs/NEED-1">NEED-1</a></td><td><a href="#/pages/loan-form">/pages/loan-form</a>, <a href="#/pages/member-form">/pages/member-form</a>, <a href="#/flows/lend-a-copy">/flows/lend-a-copy</a></td><td><a href="#/tests/lend-a-copy-at-the-desk">/tests/lend-a-copy-at-the-desk</a>, <a href="#/tests/lend-a-copy-limit-reached">/tests/lend-a-copy-limit-reached</a>, <a href="#/checks/lend-and-return">/checks/lend-and-return</a>, <a href="#/monitors/catalogue-latency">/monitors/catalogue-latency</a></td></tr>
-<tr data-search><th scope="row"><a href="#/requirements/LIB-8">LIB-8</a></th><td><a href="#/needs/NEED-2">NEED-2</a></td><td><a href="#/entities/FeeWaiverRequest">/entities/FeeWaiverRequest</a>, <a href="#/roles/desk-supervisor">/roles/desk-supervisor</a>, <a href="#/paths/~1loans~1%7BloanId%7D~1fee-waivers/post">/paths/~1loans~1{loanId}~1fee-waivers/post</a>, <a href="#/paths/~1fee-waivers/get">/paths/~1fee-waivers/get</a>, <a href="#/paths/~1fee-waivers~1%7BwaiverId%7D~1waive/post">/paths/~1fee-waivers~1{waiverId}~1waive/post</a>, <a href="#/paths/~1fee-waivers~1%7BwaiverId%7D~1approve/post">/paths/~1fee-waivers~1{waiverId}~1approve/post</a>, <a href="#/paths/~1fee-waivers~1%7BwaiverId%7D~1refuse/post">/paths/~1fee-waivers~1{waiverId}~1refuse/post</a>, <a href="#/channels/fee.waivers">/channels/fee.waivers</a>, <a href="#/channels/fee.waivers/messages/FeeWaiverDecided">/channels/fee.waivers/messages/FeeWaiverDecided</a>, <a href="#/workflows/fee-waiver">/workflows/fee-waiver</a>, <a href="#/pages/fee-waiver-form">/pages/fee-waiver-form</a>, <a href="#/pages/fee-waivers-inbox">/pages/fee-waivers-inbox</a></td><td><a href="#/tests/approve-fee-waiver">/tests/approve-fee-waiver</a>, <a href="#/tests/fee-waiver">/tests/fee-waiver</a>, <a href="#/tests/fee-waiver-approval-without-permission">/tests/fee-waiver-approval-without-permission</a>, <a href="#/tests/fee-waiver-deadline-passes">/tests/fee-waiver-deadline-passes</a>, <a href="#/tests/fee-waiver-form-denied-with-expired-session">/tests/fee-waiver-form-denied-with-expired-session</a>, <a href="#/tests/fee-waiver-form-denied-without-fees-request">/tests/fee-waiver-form-denied-without-fees-request</a>, <a href="#/tests/fee-waiver-form-not-found-loan-id">/tests/fee-waiver-form-not-found-loan-id</a>, <a href="#/tests/fee-waiver-form-sent-for-approval">/tests/fee-waiver-form-sent-for-approval</a>, <a href="#/tests/fee-waiver-form-succeeds">/tests/fee-waiver-form-succeeds</a>, <a href="#/tests/fee-waiver-refused">/tests/fee-waiver-refused</a>, <a href="#/tests/fee-waiver-requester-approves-own-request">/tests/fee-waiver-requester-approves-own-request</a>, <a href="#/tests/fee-waivers-inbox-denied-with-expired-session">/tests/fee-waivers-inbox-denied-with-expired-session</a>, <a href="#/tests/fee-waivers-inbox-denied-without-fees-approve">/tests/fee-waivers-inbox-denied-without-fees-approve</a>, <a href="#/tests/fee-waivers-inbox-succeeds">/tests/fee-waivers-inbox-succeeds</a>, <a href="#/tests/list-fee-waivers-denied-with-expired-session">/tests/list-fee-waivers-denied-with-expired-session</a>, <a href="#/tests/list-fee-waivers-denied-without-fees-approve">/tests/list-fee-waivers-denied-without-fees-approve</a>, <a href="#/tests/list-fee-waivers-succeeds">/tests/list-fee-waivers-succeeds</a>, <a href="#/tests/refuse-fee-waiver">/tests/refuse-fee-waiver</a>, <a href="#/tests/request-fee-waiver">/tests/request-fee-waiver</a>, <a href="#/tests/waive-fee">/tests/waive-fee</a></td></tr>
+<tr data-search><th scope="row"><a href="#/requirements/LIB-8">LIB-8</a></th><td><a href="#/needs/NEED-2">NEED-2</a></td><td><a href="#/entities/FeeWaiverRequest">/entities/FeeWaiverRequest</a>, <a href="#/roles/desk-supervisor">/roles/desk-supervisor</a>, <a href="#/paths/~1loans~1%7BloanId%7D~1fee-waivers/post">/paths/~1loans~1{loanId}~1fee-waivers/post</a>, <a href="#/paths/~1fee-waivers/get">/paths/~1fee-waivers/get</a>, <a href="#/paths/~1fee-waivers~1%7BwaiverId%7D~1waive/post">/paths/~1fee-waivers~1{waiverId}~1waive/post</a>, <a href="#/paths/~1fee-waivers~1%7BwaiverId%7D~1approve/post">/paths/~1fee-waivers~1{waiverId}~1approve/post</a>, <a href="#/paths/~1fee-waivers~1%7BwaiverId%7D~1refuse/post">/paths/~1fee-waivers~1{waiverId}~1refuse/post</a>, <a href="#/channels/fee.waivers">/channels/fee.waivers</a>, <a href="#/channels/fee.waivers/messages/FeeWaiverDecided">/channels/fee.waivers/messages/FeeWaiverDecided</a>, <a href="#/workflows/fee-waiver">/workflows/fee-waiver</a>, <a href="#/pages/fee-waiver-form">/pages/fee-waiver-form</a>, <a href="#/pages/fee-waivers-inbox">/pages/fee-waivers-inbox</a>, <a href="#/decisions/ADR-004">/decisions/ADR-004</a></td><td><a href="#/tests/approve-fee-waiver">/tests/approve-fee-waiver</a>, <a href="#/tests/fee-waiver">/tests/fee-waiver</a>, <a href="#/tests/fee-waiver-approval-without-permission">/tests/fee-waiver-approval-without-permission</a>, <a href="#/tests/fee-waiver-deadline-passes">/tests/fee-waiver-deadline-passes</a>, <a href="#/tests/fee-waiver-form-denied-with-expired-session">/tests/fee-waiver-form-denied-with-expired-session</a>, <a href="#/tests/fee-waiver-form-denied-without-fees-request">/tests/fee-waiver-form-denied-without-fees-request</a>, <a href="#/tests/fee-waiver-form-not-found-loan-id">/tests/fee-waiver-form-not-found-loan-id</a>, <a href="#/tests/fee-waiver-form-sent-for-approval">/tests/fee-waiver-form-sent-for-approval</a>, <a href="#/tests/fee-waiver-form-succeeds">/tests/fee-waiver-form-succeeds</a>, <a href="#/tests/fee-waiver-refused">/tests/fee-waiver-refused</a>, <a href="#/tests/fee-waiver-requester-approves-own-request">/tests/fee-waiver-requester-approves-own-request</a>, <a href="#/tests/fee-waivers-inbox-denied-with-expired-session">/tests/fee-waivers-inbox-denied-with-expired-session</a>, <a href="#/tests/fee-waivers-inbox-denied-without-fees-approve">/tests/fee-waivers-inbox-denied-without-fees-approve</a>, <a href="#/tests/fee-waivers-inbox-succeeds">/tests/fee-waivers-inbox-succeeds</a>, <a href="#/tests/list-fee-waivers-denied-with-expired-session">/tests/list-fee-waivers-denied-with-expired-session</a>, <a href="#/tests/list-fee-waivers-denied-without-fees-approve">/tests/list-fee-waivers-denied-without-fees-approve</a>, <a href="#/tests/list-fee-waivers-succeeds">/tests/list-fee-waivers-succeeds</a>, <a href="#/tests/refuse-fee-waiver">/tests/refuse-fee-waiver</a>, <a href="#/tests/request-fee-waiver">/tests/request-fee-waiver</a>, <a href="#/tests/waive-fee">/tests/waive-fee</a></td></tr>
 </tbody></table></div>
 </section>
 </section>

@@ -152,6 +152,8 @@ enums:
       - security_events
       - sign_in
       - exit_code
+      - decision_cycle
+      - decision_superseded
     valueDescriptions:
       file_kind: a file given by name is neither `specarch.yaml` nor `*.specarch-implementation.yaml`, is part of a specification that should be checked as a whole, or its root key does not match its name
       yaml_syntax: an entry of the file, or the file as a whole, is not well-formed YAML; the entries that parse are still read (ADR-080)
@@ -180,7 +182,7 @@ enums:
       operation: a `source`, `submit` or operation action names an operationId that does not exist
       page: "a navigate action names a page that does not exist, compactColumns is on a page that is not a list or names a column the list lacks, or a page gives its fields as neither or both of fields and sections, shows a field in two sections, or is a list with sections, or childRows are on a page that is not a form, name a relation twice, or name one the form's entity lacks or one that is not one-to-many"
       algorithm: an `algorithm` reference names an algorithm that does not exist
-      decision: a `supersededBy` names a decision that does not exist, or an implementation decision reuses a design decision's ID
+      decision: a `supersededBy` or a `restsOn` entry names a decision that does not exist, or an implementation decision reuses a design decision's ID
       enum_value: a `valueDescriptions` key is not a value of its enum
       path_parameter: a `{name}` in a path has no path parameter, or a path parameter is not in the path
       duplicate_operation: two operations share an operationId
@@ -299,4 +301,6 @@ enums:
       security_events: "a specification with tokens and clients declares no securityEvents, or its store or alarm is not a dependency (ADR-109)"
       sign_in: "signIn names a provider that is not a dependency of kind identityProvider, a client that is not an application, a callback that is not a GET operation taking code and state as required query parameters and naming the provider under calls, an identity token that is not a JWT declaring iss, aud and nonce or that fixes iss or aud with const or enum, or a back-channel logout operation that people may call or no service client may; or a page event navigates to signIn with no signIn declared, with with or message, or outside a task page's answer and an action's then (ADR-182)"
       exit_code: "a command's remedies names status 0, which needs no remedy, or a status its exitCodes does not list (ADR-165)"
+      decision_cycle: "a decision's `restsOn` chain comes back to the decision itself, through any number of decisions; a decision rests on earlier decisions only, so the error is at the entry that closes the chain, naming the chain (ADR-188)"
+      decision_superseded: "as a warning, a decision that is not itself superseded rests on a superseded decision, named with its successor; the decision rests on what no longer holds, so a new decision supersedes it, resting on the successor, or its why says why the old decision still holds (ADR-188)"
     satisfies: [SA-2, SA-3, SA-4, SA-5, SA-6, SA-9, SA-10, SA-11, SA-12, SA-13, SA-17, SA-18, SA-23, SA-24, SA-27, SA-29, SA-41, SA-42, SA-47, SA-48, SA-49, SA-50, SA-62, SA-63, SA-67, SA-68, SA-69, SA-73, SA-77, SA-82, SA-83, SA-84, SA-88, SA-91, SA-93]

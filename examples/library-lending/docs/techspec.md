@@ -2,7 +2,7 @@
 
 # Library Lending: technical specification
 
-Version 0.1.0 of the specification: 8 requirements, 4 entities, 1 view, 2 schemas, 19 HTTP operations, 3 channels, 2 dependencies, 11 pages, 1 flow, 1 workflow, 1 algorithm, 185 tests, 2 decisions, 3 environments and 5 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.1.0 of the specification: 8 requirements, 4 entities, 1 view, 2 schemas, 19 HTTP operations, 3 channels, 2 dependencies, 11 pages, 1 flow, 1 workflow, 1 algorithm, 185 tests, 4 decisions, 3 environments and 5 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 ## 1. Introduction and goals
 
@@ -1838,6 +1838,49 @@ transports it as a string.
 
 Consequences: Clients must parse the string; in return no sum ever drifts by a cent.
 
+### ADR-003: The late fee is computed once, at return, and stored on the loan
+
+Status: accepted, 2026-10-25.
+
+Rests on: [ADR-001](#adr-001-late-fees-are-a-flat-daily-rate-capped-at-the-replacement-cost), [ADR-002](#adr-002-money-is-carried-as-decimal-strings-never-floats).
+
+Context: A fee that grows every night needs a job that touches every overdue
+loan and a member who sees a different amount each day. The fee is
+three numbers (ADR-001) carried as decimals (ADR-002), so it can be
+computed at the moment the copy comes back.
+
+Decision: The lateFee algorithm runs when the copy is returned, and its result
+is stored on the loan as lateFee; the field is zero until then. No
+job recomputes it.
+
+Consequences: A fee never changes after the return, so a waiver names a fixed
+amount. A member asking during the loan is told what the fee would
+be today, computed on the spot and not stored.
+
+**Insight:** One computation at one moment is one thing to test and one number to explain at the desk; a nightly job would be a second place the fee is computed and a second place it can be wrong.
+
+### ADR-004: A waiver is a request of its own that names the amount, and the loan keeps its fee
+
+Status: accepted, 2026-10-25.
+
+Rests on: [ADR-003](#adr-003-the-late-fee-is-computed-once-at-return-and-stored-on-the-loan).
+
+Context: Once the fee is fixed at return (ADR-003) a waiver has a definite
+amount to name. Setting the loan's fee to zero would lose what was
+charged and who let it go, which the supervisor's approval (LIB-8)
+is there to make visible.
+
+Decision: A waiver is a FeeWaiverRequest that names the loan, the amount to
+waive and the reason, approved through the fee-waiver workflow; the
+loan's lateFee stays as computed, and what the member owes is the fee
+less the waivers approved.
+
+Consequences: The fee charged and the fee waived are both readable afterwards. A
+list of what a member owes subtracts the approved waivers; a waiver
+above the amount is refused at the form.
+
+**Insight:** Keeping the computed fee and recording the waiver beside it is the one way the two numbers stay auditable; overwriting the fee would make the waiver a change nobody can read back.
+
 ## 10. Quality requirements
 
 The design tests: what must hold on every implementation. Golden scenarios succeed; red scenarios are refused.
@@ -2123,10 +2166,10 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | LIB-2 |   | entities Book; permissions public; paths /books get | tests browse-catalogue; checks service-answers |
 | LIB-3 | money | entities Loan; views MemberWithLoans; paths /members/{memberId}/loans post; paths /loans post; pages member-loans; migrations add-membership-tier | tests create-loan-rate-exceeded; tests create-loan-repeated-with-the-same-idempotency-key; tests create-loan-request-larger-than-1024-bytes; tests fees-block-lending; tests lend-a-copy; tests lend-copies; tests lend-copies-limit-reached; tests lend-copies-repeated-with-the-same-idempotency-key; tests lend-limit-reached; tests lending-limit-accepted; tests member-loans-refused; tests member-loans-shown; tests member-loans-six-rows; checks lend-and-return |
 | LIB-4 |   | entities Loan transitions 1; entities Loan; paths /loans/{loanId}/return post; channels loan.overdue; channels loan.overdue messages LoanOverdue; jobs markOverdue; configuration notificationChannelUrl | tests loan-becomes-overdue; tests mark-overdue-runs-twice; tests mark-overdue-succeeds; monitors overdue-notices-sent |
-| LIB-5 |   | paths /loans/{loanId}/return post; algorithms lateFee; decisions ADR-001; configuration dailyRate | tests loan-lent-and-returned; tests return-late; checks lend-and-return |
+| LIB-5 |   | paths /loans/{loanId}/return post; algorithms lateFee; decisions ADR-001; decisions ADR-003; configuration dailyRate | tests loan-lent-and-returned; tests return-late; checks lend-and-return |
 | LIB-6 |   | roles member; caller; session | checks member-sees-own-loans |
 | LIB-7 |   | pages loan-form; pages member-form; flows lend-a-copy | tests lend-a-copy-at-the-desk; tests lend-a-copy-limit-reached; checks lend-and-return; monitors catalogue-latency |
-| LIB-8 |   | entities FeeWaiverRequest; roles desk-supervisor; paths /loans/{loanId}/fee-waivers post; paths /fee-waivers get; paths /fee-waivers/{waiverId}/waive post; paths /fee-waivers/{waiverId}/approve post; paths /fee-waivers/{waiverId}/refuse post; channels fee.waivers; channels fee.waivers messages FeeWaiverDecided; workflows fee-waiver; pages fee-waiver-form; pages fee-waivers-inbox | tests approve-fee-waiver; tests fee-waiver; tests fee-waiver-approval-without-permission; tests fee-waiver-deadline-passes; tests fee-waiver-form-denied-with-expired-session; tests fee-waiver-form-denied-without-fees-request; tests fee-waiver-form-not-found-loan-id; tests fee-waiver-form-sent-for-approval; tests fee-waiver-form-succeeds; tests fee-waiver-refused; tests fee-waiver-requester-approves-own-request; tests fee-waivers-inbox-denied-with-expired-session; tests fee-waivers-inbox-denied-without-fees-approve; tests fee-waivers-inbox-succeeds; tests list-fee-waivers-denied-with-expired-session; tests list-fee-waivers-denied-without-fees-approve; tests list-fee-waivers-succeeds; tests refuse-fee-waiver; tests request-fee-waiver; tests waive-fee |
+| LIB-8 |   | entities FeeWaiverRequest; roles desk-supervisor; paths /loans/{loanId}/fee-waivers post; paths /fee-waivers get; paths /fee-waivers/{waiverId}/waive post; paths /fee-waivers/{waiverId}/approve post; paths /fee-waivers/{waiverId}/refuse post; channels fee.waivers; channels fee.waivers messages FeeWaiverDecided; workflows fee-waiver; pages fee-waiver-form; pages fee-waivers-inbox; decisions ADR-004 | tests approve-fee-waiver; tests fee-waiver; tests fee-waiver-approval-without-permission; tests fee-waiver-deadline-passes; tests fee-waiver-form-denied-with-expired-session; tests fee-waiver-form-denied-without-fees-request; tests fee-waiver-form-not-found-loan-id; tests fee-waiver-form-sent-for-approval; tests fee-waiver-form-succeeds; tests fee-waiver-refused; tests fee-waiver-requester-approves-own-request; tests fee-waivers-inbox-denied-with-expired-session; tests fee-waivers-inbox-denied-without-fees-approve; tests fee-waivers-inbox-succeeds; tests list-fee-waivers-denied-with-expired-session; tests list-fee-waivers-denied-without-fees-approve; tests list-fee-waivers-succeeds; tests refuse-fee-waiver; tests request-fee-waiver; tests waive-fee |
 
 ## Sources
 

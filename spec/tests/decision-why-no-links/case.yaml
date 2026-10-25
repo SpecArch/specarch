@@ -1,0 +1,5 @@
+arguments: [decision, why, ADR-001, project]
+exitStatus: 0
+standardOutput: |
+  ADR-001 rests on no decision
+  ADR-001: One book per loan (accepted, 2026-10-07)

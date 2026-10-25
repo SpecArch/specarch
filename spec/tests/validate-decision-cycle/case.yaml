@@ -1,0 +1,7 @@
+arguments: [validate, .]
+exitStatus: 1
+standardOutput: |
+  specarch.yaml:11:15: error: /decisions/ADR-001/restsOn/0: decision_cycle: ADR-001 rests on ADR-002, which rests on ADR-003, which rests on ADR-001, so the chain comes back to ADR-001; a decision rests on earlier decisions only, so take one link out [decision_cycle@specarch.yaml#/decisions/ADR-001/restsOn/0]
+  specarch.yaml:19:15: error: /decisions/ADR-002/restsOn/0: decision_cycle: ADR-002 rests on ADR-003, which rests on ADR-001, which rests on ADR-002, so the chain comes back to ADR-002; a decision rests on earlier decisions only, so take one link out [decision_cycle@specarch.yaml#/decisions/ADR-002/restsOn/0]
+  specarch.yaml:27:15: error: /decisions/ADR-003/restsOn/0: decision_cycle: ADR-003 rests on itself; a decision rests on earlier decisions only, so take one link out [decision_cycle@specarch.yaml#/decisions/ADR-003/restsOn/0]
+  specarch.yaml:27:24: error: /decisions/ADR-003/restsOn/1: decision_cycle: ADR-003 rests on ADR-001, which rests on ADR-002, which rests on ADR-003, so the chain comes back to ADR-003; a decision rests on earlier decisions only, so take one link out [decision_cycle@specarch.yaml#/decisions/ADR-003/restsOn/1]

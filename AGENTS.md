@@ -204,6 +204,18 @@ Error codes of --json:
   stage, or the entry cannot be edited as text; or written, while the
   specification has errors
   exit 2: usage error, or a file that could not be read or written
+- `specarch decision rests <decision> <folder>`
+  Print the decisions that rest on a decision, nearest first.
+  exit 0: the decisions are printed
+  exit 1: refused, the decision is not one of the specification's; or
+  printed, while the specification has errors
+  exit 2: usage error, or a folder that could not be read
+- `specarch decision why <decision> <folder>`
+  Print the chain of decisions a decision rests on, earliest first.
+  exit 0: the chain is printed
+  exit 1: refused, the decision is not one of the specification's; or
+  printed, while the specification has errors
+  exit 2: usage error, or a folder that could not be read
 - `specarch derive [--dry-run] <paths>...`
   Write a draft test for every derived case no test covers.
   exit 0: the tests were written, or there was nothing to write

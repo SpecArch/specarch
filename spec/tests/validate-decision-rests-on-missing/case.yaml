@@ -1,0 +1,4 @@
+arguments: [validate, .]
+exitStatus: 1
+standardOutput: |
+  specarch.yaml:11:15: error: /decisions/ADR-001/restsOn/0: decision: ADR-009 is not a decision of the specification; did you mean ADR-001? [decision@specarch.yaml#/decisions/ADR-001/restsOn/0]

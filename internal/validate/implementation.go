@@ -122,6 +122,7 @@ func (c *checker) checkImplementation(s *spec.Spec, load Loader) {
 		decisions[p.Key.Value] = p.Value
 	}
 	c.checkOrigin(c.root, decisions, func(path []string) bool { return len(path) == 2 && path[0] == "decisions" })
+	c.checkDecisionChain(source.Child(c.root, "decisions"), decisions)
 	for _, p := range source.Pairs(source.Child(c.root, "decisions")) {
 		if d.decisions[p.Key.Value] != nil {
 			c.add(p.Key, source.Pointer("decisions", p.Key.Value), RuleDecision,

@@ -1,0 +1,5 @@
+arguments: [decision, rests, ADR-003, project]
+exitStatus: 0
+standardOutput: |
+  no decision rests on ADR-003
+  ADR-003: One renewal, for the same period (accepted, 2026-10-09; rests on ADR-002, ADR-001)

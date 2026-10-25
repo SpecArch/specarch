@@ -739,6 +739,68 @@ func (c *checker) checkDecisions(d *design) {
 			c.add(s, source.Pointer("decisions", id, "supersededBy"), RuleDecision, "%s is not a decision of the specification%s", s.Value, suggest(s.Value, d.decisions))
 		}
 	}
+	c.checkDecisionChain(source.Child(d.root, "decisions"), d.decisions)
+}
+
+// checkDecisionChain checks the restsOn links of the decisions under
+// decisions against known, the decisions a link may name (ADR-188): a link
+// to a decision that is not there is an error at the entry; a chain of
+// links that comes back to its own decision is an error at the entry that
+// closes it, naming the chain in the order the links are written; and a
+// link from a decision that is not itself superseded to a superseded one
+// is a warning naming the successor, unless the linking decision is that
+// successor. A superseded decision's links were true when it held and a
+// record is never edited, so they warn nothing.
+func (c *checker) checkDecisionChain(decisions *yaml.Node, known map[string]*yaml.Node) {
+	for _, p := range source.Pairs(decisions) {
+		id, dec := p.Key.Value, p.Value
+		superseded := source.Str(source.Child(dec, "status")) == "superseded"
+		for i, link := range source.Items(source.Child(dec, "restsOn")) {
+			ptr := source.Pointer("decisions", id, "restsOn", fmt.Sprint(i))
+			target := known[link.Value]
+			if target == nil {
+				c.add(link, ptr, RuleDecision, "%s is not a decision of the specification%s", link.Value, suggest(link.Value, known))
+				continue
+			}
+			if chain := restsChain(link.Value, id, known, map[string]bool{}); chain != nil {
+				c.add(link, ptr, RuleDecisionCycle, "%s; a decision rests on earlier decisions only, so take one link out", chainText(id, chain))
+				continue
+			}
+			if !superseded && source.Str(source.Child(target, "status")) == "superseded" {
+				if by := source.Str(source.Child(target, "supersededBy")); by != "" && by != id {
+					c.warn(link, ptr, RuleDecisionSuperseded, "%s is superseded by %s, so this decision rests on what no longer holds; supersede it with a decision that rests on %s, or say under why why %s still holds for it", link.Value, by, by, link.Value)
+				}
+			}
+		}
+	}
+}
+
+// restsChain is the chain of restsOn links from one decision back to
+// another, the decisions on it from the first to the last in the order
+// the links are written, or nil when there is none; seen keeps the walk
+// out of a cycle that does not reach the last.
+func restsChain(from, to string, known map[string]*yaml.Node, seen map[string]bool) []string {
+	if from == to {
+		return []string{to}
+	}
+	if seen[from] || known[from] == nil {
+		return nil
+	}
+	seen[from] = true
+	for _, link := range source.Items(source.Child(known[from], "restsOn")) {
+		if rest := restsChain(link.Value, to, known, seen); rest != nil {
+			return append([]string{from}, rest...)
+		}
+	}
+	return nil
+}
+
+// chainText says how a decision's chain of restsOn links comes back to it.
+func chainText(id string, chain []string) string {
+	if len(chain) == 1 {
+		return id + " rests on itself"
+	}
+	return id + " rests on " + strings.Join(chain, ", which rests on ") + ", so the chain comes back to " + id
 }
 
 // checkAccess is the fail-closed rule: every permission used is declared,

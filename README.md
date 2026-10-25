@@ -11,13 +11,15 @@ SpecArch is personally owned and published under Apache-2.0. Anyone may use it
 under that licence, including for commercial work. See `NOTICE` for the name
 and for what you own in generated output.
 
-SpecArch is built on two principles, set out in `docs/principles.md`; the
+SpecArch is built on three principles, set out in `docs/principles.md`; the
 rest of SpecArch follows from them. It is a compiler for specifications: it
 reads an incomplete or wrong definition rather than refusing it, and every
 problem is reported at the place the author fixes it, with the entry it
 touches marked in what SpecArch writes.
-And it follows the Low IQ Tax: every file, key and message should cost its
-reader as little thinking as possible.
+It follows the Low IQ Tax: every file, key and message should cost its
+reader as little thinking as possible. And a change carries its reason at
+the entry it changes, so a review reads decisions, not lines of
+difference.
 
 ## The format
 
@@ -141,7 +143,7 @@ a defect in the roadmap, not an accepted state.
 | `AGENTS.md` | instructions for agents working in this repository, with the guide `specarch guide --agent` prints |
 | `docs/help/` | the help topics built into the program, which `specarch help <topic>` prints |
 | `BUG_OUTSTANDING.md`, `BUG_HISTORY.md` | the bugs, one BUG-NNN entry each: the open ones, and the fixed ones with the commit that fixed them; the repository has no GitHub issues (`CONTRIBUTING.md`, Bugs) |
-| `docs/principles.md` | the two principles, a compiler for specifications and the Low IQ Tax, and how SpecArch applies them |
+| `docs/principles.md` | the three principles, a compiler for specifications, the Low IQ Tax and a change that carries its reason, and how SpecArch applies them |
 | `docs/conventions.md` | the tree layout, YAML layout, Markdown sections, generated and hand-drawn diagrams |
 | `docs/stages.md` | the seven life-cycle stages: what each holds, which standard says so, and why |
 | `docs/maintenance.md` | after commissioning: change requests, defects, releases, incidents and operation, and the records that hold them; the release rules, the diff verb and their documents as designed |

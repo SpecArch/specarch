@@ -446,6 +446,53 @@ questions names them under `answers` and the stakeholder who decided under
 `interview` with its date. A decision that answers a question only in
 part names the questions it raised under `opens`.
 
+## Change records
+
+A change is described for review as a list of departures followed by one
+record for each decision it makes (`docs/principles.md`, A change carries
+its reason). The form holds wherever a change is put to a reviewer: a
+commit message, a pull request, a change request's analysis. It is not a
+keyword of the meta-model.
+
+Departures come first: every way the change differs from what was asked,
+something left out, added or done differently, one line each with the
+reason. A change with none says so in one line.
+
+A decision that is a real fork, with another reasonable way to go, is a
+record with five keys in this order:
+
+- `goal`: what the change accomplishes, in the asker's terms.
+- `why`: why this way: the alternative considered and why it lost. It is
+  the same key, with the same meaning, as the `why` of an element and of
+  a decision record.
+- `where`: the entries the change touches, by ID or name, or by file and key.
+- `proof`: how it was shown to work: the check, test or command run, and
+  its result.
+- `undo`: how to take it back, and what taking it back costs.
+
+```text
+goal: a member sees only their own loans
+why: a row policy on the member role, not a filter on each operation;
+  the filters are each simpler, but one forgotten filter shows every
+  loan, and a row policy holds for every operation at once
+where: role member, rowPolicies on Loan
+proof: specarch validate passes; the design test member-sees-own-loans passes
+  and its red case, a member reading another member's loan, is refused
+undo: remove the member role's rowPolicies entry; no stored data depends on it
+```
+
+An obvious choice, one with no other reasonable way to go, is one line:
+where, then what it does.
+
+```text
+Loan.lateFee: a decimal carried as a string, as every money amount in the specification
+```
+
+A decision that outlives the change, one later work builds on, becomes a
+decision record under `decisions` (Why, citations and origin), and the
+change record's `why` names it by ID instead of repeating it, so a reason
+has one home.
+
 ## Open questions
 
 What the sources do not say is not invented and not left blank: it is an

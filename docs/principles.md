@@ -1,12 +1,13 @@
 # Principles
 
-SpecArch follows two principles. It is a compiler for specifications: it
+SpecArch follows three principles. It is a compiler for specifications: it
 reads every definition, however incomplete or wrong, lists every problem
 where the author can find and fix it, and is built for a specification
 that is never complete, so that a result is shown early and a remark on
-it finds its way back into the specification. And it follows the Low IQ
+it finds its way back into the specification. It follows the Low IQ
 Tax: every file, key, message and document should cost its reader as
-little thinking as possible.
+little thinking as possible. And a change carries its reason at the entry
+it changes, so a review reads decisions, not lines of difference.
 
 ## A compiler for specifications
 
@@ -109,6 +110,27 @@ understood in about five seconds.
     way it is and what led its authors there. Write that reason next to the
     choice. Never relax a standard's rule for convenience without saying
     what the rule protects against and why that does not apply here.
+
+## A change carries its reason
+
+A change to a specification, to its implementation or to SpecArch itself
+carries, at each entry it changes, what the change is for and why it is
+done this way rather than another. A review then reads decisions, not
+lines of difference: the reviewer judges each reason against what was
+asked, and never has to work out from the text alone why it is the way it
+is and what it accomplishes. That working out is the Low IQ Tax paid by
+the reviewer, once for every change, and it is paid in full even where
+the choice was obvious, so an obvious choice and a real fork cost the
+same to read and the fork is easy to miss among them.
+
+Two things follow. An obvious choice, one with no other reasonable way to
+go, costs one line: what it does and where. A real fork costs a full
+record: the goal, the alternative considered and why it lost, where the
+change is, the proof that it works and how to undo it. And every way the
+change departs from what was asked, something left out, added or done
+differently, is listed first, before any decision, because it is what
+the person who asked must see and accept. The shape of the record is in
+`docs/conventions.md`, Change records.
 
 ## How SpecArch applies them
 

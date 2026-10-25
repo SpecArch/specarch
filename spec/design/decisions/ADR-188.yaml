@@ -35,11 +35,14 @@ decisions:
       sees one version. The validator refuses a restsOn entry naming a
       decision the specification does not have, under the rule decision
       that supersededBy uses, at the entry; refuses a chain that comes
-      back to its own decision, decision_cycle, at the entry that closes
-      it, naming the chain in the order the links are written; and warns,
+      back to its own decision, decision_cycle, at every restsOn entry
+      on the cycle, each naming the chain from its decision in the order
+      the links are written; and warns,
       decision_superseded, at a restsOn entry of a decision that is not
       itself superseded naming a superseded decision, with the successor,
-      unless the resting decision is that successor. An implementation
+      unless the resting decision is that successor; only a new decision
+      that supersedes the resting one, resting on the successor, clears
+      the warning, since no rule reads why. An implementation
       file's decision may rest on the specification's decisions and on
       the file's own. specarch decision why <ID> <folder> prints a summary
       line and the chain the decision rests on, each decision after the

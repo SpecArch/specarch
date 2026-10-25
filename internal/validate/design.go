@@ -768,7 +768,7 @@ func (c *checker) checkDecisionChain(decisions *yaml.Node, known map[string]*yam
 			}
 			if !superseded && source.Str(source.Child(target, "status")) == "superseded" {
 				if by := source.Str(source.Child(target, "supersededBy")); by != "" && by != id {
-					c.warn(link, ptr, RuleDecisionSuperseded, "%s is superseded by %s, so this decision rests on what no longer holds; supersede it with a decision that rests on %s, or say under why why %s still holds for it", link.Value, by, by, link.Value)
+					c.warn(link, ptr, RuleDecisionSuperseded, "%s is superseded by %s, so this decision rests on what no longer holds; supersede it with a decision that rests on %s", link.Value, by, by)
 				}
 			}
 		}

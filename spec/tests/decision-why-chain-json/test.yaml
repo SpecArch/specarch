@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: decision why
+level: system
+scenario: golden
+given: "the four decisions of the decision why chain case"
+when: "decision why is run for ADR-004 with --json"
+then: "it prints one object: specarchOutput 1.0.0, the command decision why, exit status 0 and its meaning, no diagnostic, the summary line and the four decision lines under lines, no message, and exits 0"
+verifies: [SA-97]

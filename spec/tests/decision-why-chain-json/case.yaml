@@ -1,0 +1,18 @@
+arguments: [decision, why, ADR-004, project, --json]
+exitStatus: 0
+standardOutput: |
+  {
+    "specarchOutput": "1.0.0",
+    "command": "decision why",
+    "exitStatus": 0,
+    "meaning": "the chain is printed",
+    "diagnostics": [],
+    "lines": [
+      "ADR-004 rests on 3 decisions, earliest first",
+      "ADR-001: One book per loan (accepted, 2026-10-07)",
+      "ADR-002: A loan period of three weeks (superseded by ADR-003, 2026-10-08; rests on ADR-001)",
+      "ADR-003: One renewal, for the same period (accepted, 2026-10-09; rests on ADR-002, ADR-001)",
+      "ADR-004: Two renewals (accepted, 2026-10-10; rests on ADR-003)"
+    ],
+    "messages": []
+  }

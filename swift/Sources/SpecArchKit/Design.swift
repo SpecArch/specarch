@@ -860,7 +860,7 @@ extension Checker {
                 if !superseded, str(target.child("status")) == "superseded" {
                     let by = str(target.child("supersededBy"))
                     if !by.isEmpty, by != id {
-                        warn(link, ptr, .decisionSuperseded, "\(link.value) is superseded by \(by), so this decision rests on what no longer holds; supersede it with a decision that rests on \(by), or say under why why \(link.value) still holds for it")
+                        warn(link, ptr, .decisionSuperseded, "\(link.value) is superseded by \(by), so this decision rests on what no longer holds; supersede it with a decision that rests on \(by)")
                     }
                 }
             }

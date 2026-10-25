@@ -5,5 +5,5 @@ scenario: red
 covers: [exit 1]
 given: "three decisions whose restsOn links come back to each of them, one resting on itself"
 when: "validate is run"
-then: "it reports decision_cycle at every entry that closes a chain, naming the chain, and exits 1"
+then: "it reports decision_cycle at every restsOn entry on a cycle, each naming the chain from its decision, and exits 1"
 verifies: [SA-97]

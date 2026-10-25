@@ -122,16 +122,25 @@ func valueOptions(args []string) map[string]bool {
 }
 
 // commandName is the name of the command the arguments run, as the
-// specification names it: idioms diff for idioms diff, help for -h.
+// specification names it: help for -h, and a command of two words, such
+// as idioms diff or decision why, by both words when the definitions
+// hold that name.
 func commandName(args []string) string {
 	if len(args) == 0 {
 		return ""
 	}
-	switch {
-	case args[0] == "-h" || args[0] == "--help":
+	if args[0] == "-h" || args[0] == "--help" {
 		return "help"
-	case args[0] == "idioms" && len(args) > 1 && args[1] == "diff":
-		return "idioms diff"
+	}
+	if len(args) > 1 {
+		two := args[0] + " " + args[1]
+		if commands, err := ownCommands(); err == nil {
+			for _, c := range commands {
+				if c.Name == two {
+					return two
+				}
+			}
+		}
 	}
 	return args[0]
 }

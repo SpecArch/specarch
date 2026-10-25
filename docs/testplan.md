@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 1.1.1-dev of the specification: 782 design tests, 379 golden and 403 red, about 24 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 1.1.1-dev of the specification: 784 design tests, 381 golden and 403 red, about 24 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 1.1.1-dev of the specification: 782 design tests, 379 golden and 403 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 778 |
+| system | 780 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -231,6 +231,14 @@ Scenario: golden; level: system; verifies SA-97.
 - When: decision rests is run for ADR-001
 - Then: it prints that 3 decisions rest on ADR-001, its own line, then the second and the third, then the fourth, and exits 0
 
+#### decision-rests-chain-json
+
+Scenario: golden; level: system; verifies SA-97.
+
+- Given: the four decisions of the decision rests chain case
+- When: decision rests is run for ADR-001 with --json
+- Then: it prints one object: specarchOutput 1.0.0, the command decision rests, exit status 0 and its meaning, no diagnostic, the summary line and the four decision lines under lines, no message, and exits 0
+
 #### decision-rests-none
 
 Scenario: golden; level: system; verifies SA-97.
@@ -280,6 +288,14 @@ Scenario: golden; level: system; verifies SA-97.
 - Given: four decisions, the fourth resting on the third, the third on the second and the first, the second on the first and superseded by the third
 - When: decision why is run for ADR-004
 - Then: it prints that ADR-004 rests on 3 decisions and the four lines earliest first, each with its ID, title, status, successor, date and the decisions it rests on, and exits 0
+
+#### decision-why-chain-json
+
+Scenario: golden; level: system; verifies SA-97.
+
+- Given: the four decisions of the decision why chain case
+- When: decision why is run for ADR-004 with --json
+- Then: it prints one object: specarchOutput 1.0.0, the command decision why, exit status 0 and its meaning, no diagnostic, the summary line and the four decision lines under lines, no message, and exits 0
 
 #### decision-why-no-links
 
@@ -4137,7 +4153,7 @@ Scenario: red; level: system; covers exit 1; verifies SA-97.
 
 - Given: three decisions whose restsOn links come back to each of them, one resting on itself
 - When: validate is run
-- Then: it reports decision_cycle at every entry that closes a chain, naming the chain, and exits 1
+- Then: it reports decision_cycle at every restsOn entry on a cycle, each naming the chain from its decision, and exits 1
 
 #### validate-decision-rests-on-missing
 

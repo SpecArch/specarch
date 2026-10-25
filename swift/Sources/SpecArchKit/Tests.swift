@@ -916,17 +916,46 @@ private func listCases(_ s: Subject) -> String {
 }
 
 extension Checker {
-    /// Warns once in a file written against 0.1 or 0.2, which are read
-    /// until 1.0 (ADR-055, ADR-094).
+    /// Warns once in a file written against an earlier meta-model, 0.1,
+    /// 0.2 or 0.3, each read beside 1.0.0 (ADR-186), and reports a version
+    /// line this program does not read as an error at the line; the file
+    /// is then read as 1.0.0, so every other problem is still listed.
     func checkMetaModelVersion(_ d: Design) {
         guard let v = d.root.child("specarch") else { return }
+        let upgrade = "run specarch upgrade --dry-run on the specification to see what moving it to " + currentMetaModel + " changes, and specarch upgrade to move it"
         switch str(v) {
         case "0.1":
-            warn(v, "/specarch", .metaModelVersion, "the specification is written against meta-model 0.1, which is read until 1.0, and its missing tests are warnings; run specarch derive to write the tests 0.2 asks for, then change the line to specarch: \"0.3\" once nothing an expression can name is called caller")
+            warn(v, "/specarch", .metaModelVersion, "the specification is written against meta-model 0.1, an earlier version read beside \(currentMetaModel) with this warning, and its missing tests are warnings; run specarch derive to write the tests 0.2 and later ask for, then \(upgrade)")
         case "0.2":
-            warn(v, "/specarch", .metaModelVersion, "the specification is written against meta-model 0.2, which is read until 1.0; 0.3 reserves the name caller for the caller record, so change the line to specarch: \"0.3\" once no field, property or input is called caller")
+            warn(v, "/specarch", .metaModelVersion, "the specification is written against meta-model 0.2, an earlier version read beside \(currentMetaModel) with this warning; 0.3 and later reserve the name caller for the caller record, so rename any field, property or input called caller, then \(upgrade)")
         default:
-            break
+            if v.tag == "!!str", let problem = MetaModelFormat.design.problem(v.value) {
+                add(v, "/specarch", .metaModelVersion, "the meta-model version \(problem)")
+            }
+        }
+    }
+
+    /// Warns at each key a file on 1.0 gives under the spelling 1.0.0
+    /// deprecated, which is read as its replacement until 2.0.0, and
+    /// reports a key given under both spellings, since one thing is said
+    /// once. A file on an earlier version uses the old spelling, which its
+    /// own schema knows, and is told so by the version warning.
+    func checkDeprecated(_ d: Design) {
+        if MetaModelFormat.design.isEarlier(d.metaModelVersion) { return }
+        func check(_ obj: YNode, _ base: [String], _ key: String, _ old: String, _ what: String) {
+            guard let n = obj.key(old) else { return }
+            let ptr = pointer(base + [old])
+            if obj.child(key) != nil {
+                add(n, ptr, .metaModelDeprecated, "\(what) gives both \(key) and \(old), the spelling of \(key) before meta-model 1.0.0; move what \(old) holds into \(key) and remove \(old)")
+                return
+            }
+            warn(n, ptr, .metaModelDeprecated, "\(old) is the spelling of \(key) before meta-model 1.0.0, deprecated and read as \(key) until 2.0.0; run specarch upgrade on the specification, or rename it to \(key) here")
+        }
+        for r in pairs(d.root.child("roles")) {
+            check(r.value, ["roles", r.key.value], rowPoliciesKey, rowPoliciesOldKey, "role " + r.key.value)
+        }
+        if let h = d.root.child("handover") {
+            check(h, ["handover"], sourceDeliveryKey, sourceDeliveryOldKey, "the handover")
         }
     }
 
@@ -975,7 +1004,7 @@ extension Checker {
         // In a 0.2 or 0.3 file a test specarch derive writes and nobody has is
         // an error, except for a subject an open must or should question holds
         // up, whose test derive leaves out too (ADR-055).
-        let strict = d.metaModelVersion != "0.1"
+        let strict = metaModelAtLeast(d.reads, 0, 2)
         let blocking = blockingQuestions(d.root)
         for s in subjects {
             let id = ObjectIdentifier(s)

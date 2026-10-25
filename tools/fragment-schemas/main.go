@@ -27,15 +27,24 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path"
 	"path/filepath"
 	"sort"
 	"strings"
 
+	"github.com/SpecArch/specarch/internal/metamodel"
+	"github.com/SpecArch/specarch/internal/source"
 	"github.com/SpecArch/specarch/internal/spec"
 )
 
-// designFile is the design schema, under schema/.
-const designFile = "specarch-design-0.3.schema.json"
+// designFile is the design schema of the current meta-model, under
+// schema/.
+const designFile = "specarch-design-1.0.schema.json"
+
+// designFiles are every design schema under schema/, the earlier one read
+// beside the current one: each has its own fragment schemas, and a tree's
+// hint lines name those of the version its root file says.
+var designFiles = []string{"specarch-design-0.3.schema.json", designFile}
 
 // Trees are the repository's own specifications whose fragments carry a
 // hint line.
@@ -90,23 +99,32 @@ func run(root string, check bool, out io.Writer) error {
 // Expected gives every file this command writes, by its path from the
 // repository root: the fragment schemas, and each fragment with its hint.
 func Expected(root string) (map[string][]byte, error) {
-	design, err := os.ReadFile(filepath.Join(root, "schema", designFile))
-	if err != nil {
-		return nil, err
-	}
-	schemas, err := Schemas(design)
-	if err != nil {
-		return nil, err
-	}
 	out := map[string][]byte{}
-	for name, data := range schemas {
-		out["schema/"+name] = data
+	byDesign := map[string]map[string][]byte{}
+	for _, file := range designFiles {
+		design, err := os.ReadFile(filepath.Join(root, "schema", file))
+		if err != nil {
+			return nil, err
+		}
+		schemas, err := Schemas(design)
+		if err != nil {
+			return nil, err
+		}
+		for name, data := range schemas {
+			out["schema/"+name] = data
+		}
+		byDesign[file] = schemas
 	}
 	for _, tree := range Trees {
 		frags, err := Fragments(filepath.Join(root, tree))
 		if err != nil {
 			return nil, err
 		}
+		file := designFile
+		if rootFile, err := os.ReadFile(filepath.Join(root, tree, spec.RootFile)); err == nil && metamodel.Design.IsEarlier(source.Str(source.Child(source.Parse(rootFile).Root, "specarch"))) {
+			file = designFiles[0]
+		}
+		schemas := byDesign[file]
 		for _, f := range frags {
 			name, ok := schemaFor(f.Kind, schemas)
 			if !ok {
@@ -196,20 +214,21 @@ func Fragments(dir string) ([]Fragment, error) {
 	return out, nil
 }
 
-// Schemas writes the fragment schemas from the design schema, by file name.
+// Schemas writes the fragment schemas from a design schema, by file name;
+// the design schema's $id names its file, whose version the fragments
+// take.
 func Schemas(design []byte) (map[string][]byte, error) {
 	d, err := parse(design)
 	if err != nil {
-		return nil, fmt.Errorf("%s: %w", designFile, err)
+		return nil, fmt.Errorf("a design schema: %w", err)
 	}
 	props := d.get("properties")
 	defs := d.get("$defs")
-	// The design schema reads every version it accepts; its file name says
-	// the newest, which the fragments are written for.
-	version := strings.TrimSuffix(strings.TrimPrefix(designFile, "specarch-design-"), ".schema.json")
 	id, _ := d.get("$id").string()
-	if props == nil || defs == nil || props.get("specarch") == nil || !strings.HasSuffix(id, "/"+designFile) {
-		return nil, fmt.Errorf("%s: no properties, $defs, specarch or $id naming it", designFile)
+	designFile := path.Base(id)
+	version, ok := strings.CutSuffix(strings.TrimPrefix(designFile, "specarch-design-"), ".schema.json")
+	if props == nil || defs == nil || props.get("specarch") == nil || !ok || !strings.HasPrefix(designFile, "specarch-design-") {
+		return nil, fmt.Errorf("%s: no properties, $defs, specarch or $id naming a specarch-design-<version>.schema.json", id)
 	}
 	base := strings.TrimSuffix(id, designFile)
 	out := map[string][]byte{}

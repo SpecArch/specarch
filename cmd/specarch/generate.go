@@ -21,6 +21,7 @@ import (
 	"github.com/SpecArch/specarch/internal/genscreens"
 	"github.com/SpecArch/specarch/internal/literal"
 	"github.com/SpecArch/specarch/internal/mark"
+	"github.com/SpecArch/specarch/internal/metamodel"
 	"github.com/SpecArch/specarch/internal/problems"
 	"github.com/SpecArch/specarch/internal/source"
 	"github.com/SpecArch/specarch/internal/spec"
@@ -470,13 +471,14 @@ func stackName(impl *yaml.Node) string {
 // for it, each with why and what the plug-in is not told.
 func newPluginRequest(l loaded, target, folder string, impls []generate.Implementation) (pluginRequest, []string) {
 	existing, notes := existingFiles(folder)
-	req := pluginRequest{Specarch: source.Str(source.Child(l.spec.Root, "specarch")), Target: target, Root: filepath.ToSlash(l.spec.RootFile), Specification: l.spec.Value, Output: filepath.ToSlash(folder), Implementations: []pluginImplementation{}, Existing: existing, Problems: pluginProblems(l, folder)}
+	req := pluginRequest{Specarch: source.Str(source.Child(l.spec.Root, "specarch")), Target: target, Root: filepath.ToSlash(l.spec.RootFile), Specification: metamodel.Normalized(l.spec.Value), Output: filepath.ToSlash(folder), Implementations: []pluginImplementation{}, Existing: existing, Problems: pluginProblems(l, folder)}
 	req.APIDialect, req.APIEnvelopes = apiDialectOf(l.spec)
 	for dep, other := range validate.GivenDependencies(l.spec, readGiven(l, target)) {
 		if req.Dependencies == nil {
 			req.Dependencies = map[string]xref.Dependency{}
 		}
 		content, _ := other.Value.(map[string]any)
+		content = metamodel.NormalizedMap(content)
 		info := source.Child(other.Root, "info")
 		dialect, _ := apiDialectOf(other)
 		d := xref.Dependency{Specification: source.Str(source.Child(info, "name")), Version: source.Str(source.Child(info, "version")), Content: content, APIDialect: dialect, Dependencies: pinsOf(content)}
@@ -520,6 +522,7 @@ func newPluginRequest(l loaded, target, folder string, impls []generate.Implemen
 			}
 			named[pin.Specification] = true
 			content, _ := list[0].Value.(map[string]any)
+			content = metamodel.NormalizedMap(content)
 			info := source.Child(list[0].Root, "info")
 			m := xref.Dependency{Specification: pin.Specification, Version: source.Str(source.Child(info, "version")), Content: content, Dependencies: pinsOf(content)}
 			if req.Modules == nil {
@@ -805,6 +808,7 @@ func placePlugin(s *spec.Spec, ds []pluginDiagnostic) []validate.Diagnostic {
 			v.Path = "/"
 		}
 		if s.Root != nil && d.File == s.RootFile {
+			v.Path = metamodel.FilePath(s.Root, v.Path)
 			if start, value, ok := validate.Locate(s.Root, validate.Tokens(v.Path)); ok {
 				file := s.Files[value]
 				if file == "" {

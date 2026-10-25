@@ -1,0 +1,90 @@
+specarch: "1.0.0"
+info: { title: Case, version: 1.0.0 }
+entities:
+  Loan:
+    type: object
+    properties:
+      id: { type: string, maxLength: 36 }
+      memberId: { type: string, maxLength: 36 }
+      organisationId: { type: string, maxLength: 36 }
+      dueOn: { type: string, maxLength: 10 }
+    required: [id, memberId, organisationId, dueOn]
+    primaryKey: [id]
+caller:
+  description: Who is making the call, once the session has been checked.
+  properties:
+    memberId: { type: [string, "null"], maxLength: 36, description: The member signed in; null for staff. }
+    organisationId: { type: string, maxLength: 36, description: The organisation every caller belongs to. }
+permissions:
+  loans.read: { description: See loans. }
+  loans.write: { description: Change loans. }
+roles:
+  member:
+    description: A card holder, who sees only their own loans.
+    permissions: [loans.read]
+    rowPolicies:
+      Loan: memberId == caller.memberId
+  staff:
+    description: Staff of one organisation.
+    permissions: [loans.read, loans.write]
+    rowPolicies:
+      Loan: organisationId == caller.organisationId
+paths:
+  /loans:
+    get:
+      operationId: listLoans
+      summary: List loans
+      permission: loans.read
+      listOf: { entity: Loan, pageSize: { default: 20, maximum: 100 } }
+      responses:
+        "200":
+          description: The loans.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/entities/Loan" } }
+    post:
+      operationId: createLoan
+      summary: Lend a copy
+      permission: loans.write
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: "#/entities/Loan" }
+      responses:
+        "201": { description: Lent. }
+  /loans/{loanId}:
+    parameters:
+      - { name: loanId, in: path, required: true, schema: { type: string, maxLength: 36 } }
+    get:
+      operationId: getLoan
+      summary: Show a loan
+      permission: loans.read
+      responses:
+        "200":
+          description: The loan.
+          content:
+            application/json:
+              schema: { $ref: "#/entities/Loan" }
+jobs:
+  remind:
+    description: Reminds members of loans falling due.
+    trigger: { schedule: "0 6 * * *" }
+    role: member
+    reads: [Loan]
+tests:
+  list-loans-succeeds: { operation: listLoans, level: system, scenario: golden, given: a caller with loans.read, when: listLoans is called, then: it answers 200 }
+  list-loans-denied: { operation: listLoans, level: system, scenario: red, covers: [denied without loans.read], given: a caller without loans.read, when: listLoans is called, then: it is refused }
+  list-loans-rows-of-member: { operation: listLoans, level: system, scenario: red, covers: [shows only the rows of member], given: a member with loans while another member has some, when: listLoans is called, then: it lists only that member's loans, fixture: { caller: { role: member, memberId: "0d2a1b2c-3d4e-4f50-8a6b-7c8d9e0f1a2b" } } }
+  list-loans-rows-of-staff: { operation: listLoans, level: system, scenario: red, covers: [shows only the rows of staff], given: staff of one organisation while another has loans, when: listLoans is called, then: it lists only that organisation's loans }
+  create-loan-succeeds: { operation: createLoan, level: system, scenario: golden, given: staff, when: createLoan is called with every field, then: it answers 201 }
+  create-loan-missing: { operation: createLoan, level: system, scenario: red, covers: [missing memberId, missing organisationId, missing dueOn, missing id], given: staff, when: createLoan is called without a required field, then: it is refused }
+  create-loan-denied: { operation: createLoan, level: system, scenario: red, covers: [denied without loans.write], given: a caller without loans.write, when: createLoan is called, then: it is refused }
+  create-loan-rows-of-staff: { operation: createLoan, level: system, scenario: red, covers: [a change outside the rows of staff is refused], given: staff of one organisation, when: createLoan is called for another organisation, then: it is refused and no loan changes }
+  get-loan-succeeds: { operation: getLoan, level: system, scenario: golden, given: a caller with loans.read and a loan, when: getLoan is called with its loanId, then: it answers 200 }
+  get-loan-not-found: { operation: getLoan, level: system, scenario: red, covers: [not found loanId], given: no loan with that loanId, when: getLoan is called, then: it is refused as not found }
+  get-loan-denied: { operation: getLoan, level: system, scenario: red, covers: [denied without loans.read], given: a caller without loans.read, when: getLoan is called, then: it is refused }
+  get-loan-rows-of-member: { operation: getLoan, level: system, scenario: red, covers: [a record outside the rows of member is not found], given: a member and another member's loan, when: getLoan is called with that loan's loanId, then: it is refused as not found }
+  get-loan-rows-of-staff: { operation: getLoan, level: system, scenario: red, covers: [a record outside the rows of staff is not found], given: staff and another organisation's loan, when: getLoan is called with that loan's loanId, then: it is refused as not found }
+  remind-succeeds: { job: remind, level: system, scenario: golden, given: loans falling due, when: the job remind runs, then: it completes }
+  remind-runs-twice: { job: remind, level: system, scenario: golden, covers: [runs twice], given: the job has run, when: it runs again over the same records, then: nothing changes a second time }
+  remind-rows: { job: remind, level: system, scenario: red, covers: [acts only on the rows of member in Loan], given: the job acts as member, when: the job remind runs, then: it reads only the loans the rule holds for }

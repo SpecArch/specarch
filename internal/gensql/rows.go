@@ -82,7 +82,7 @@ func (g *gen) rowsRules(entity string) ([][2]string, []string) {
 	var whole []string
 	roles := obj0(g.spec["roles"])
 	for _, role := range sortedKeys(roles) {
-		if rule := text(obj0(obj0(roles[role])["rows"])[entity]); rule != "" {
+		if rule := text(obj0(obj0(roles[role])["rowPolicies"])[entity]); rule != "" {
 			out = append(out, [2]string{role, rule})
 		} else {
 			whole = append(whole, role)
@@ -106,7 +106,7 @@ func (g *gen) policies(entity, tableName string, props map[string]any) ([]policy
 		var comments []string
 		for _, r := range rules {
 			role, rule := r[0], r[1]
-			g.warn("/roles/"+role+"/rows/"+entity, "the rows rule of %s on %s (%s) is not written: %s has no row security policy this version writes, so the service's own filter is the only one", role, entity, rule, g.dialect)
+			g.warn("/roles/"+role+"/rowPolicies/"+entity, "the rows rule of %s on %s (%s) is not written: %s has no row security policy this version writes, so the service's own filter is the only one", role, entity, rule, g.dialect)
 			comments = append(comments, fmt.Sprintf("-- The rows rule of %s on %s, %s, is not written: %s has no row security policy this version writes, so the service's own filter is the only one.", role, entity, rule, g.dialect))
 		}
 		return nil, comments
@@ -117,7 +117,7 @@ func (g *gen) policies(entity, tableName string, props map[string]any) ([]policy
 		role, rule := r[0], r[1]
 		using, why := g.rowsCondition(rule, props, caller)
 		if why != "" {
-			g.problem("/roles/"+role+"/rows/"+entity, "the rows rule of %s on %s cannot be written in SQL: %s", role, entity, why)
+			g.problem("/roles/"+role+"/rowPolicies/"+entity, "the rows rule of %s on %s cannot be written in SQL: %s", role, entity, why)
 			continue
 		}
 		out = append(out, policy{Role: role, Name: "rls_" + tableName + "_" + strings.ReplaceAll(role, "-", "_"), DBRole: g.dbRole(role), Using: using})

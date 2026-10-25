@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "the specification of validate-0-3-claims saying specarch 1.2.0, a minor this program does not read"
+when: validate is run
+then: "it reports meta_model_version at the line, naming the versions it reads and that a later specarch reads 1.2.0, reads the file as 1.0.0 and still reports every claim problem, and exits 1"
+verifies: [SA-95]

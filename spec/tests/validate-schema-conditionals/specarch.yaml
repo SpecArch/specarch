@@ -1,0 +1,43 @@
+specarch: "1.0.0"
+info: { title: Case, version: 1.0.0 }
+sources:
+  handbook: { title: The lending handbook. }
+entities:
+  Loan:
+    description: A book lent to a member.
+    type: object
+    primaryKey: [id]
+    properties:
+      id: { type: string, format: uuid, description: The loan. }
+      memberId: { type: string, format: uuid, description: The member. }
+    constraints:
+      loan_checked: { message: A loan is checked. }
+permissions:
+  loans.read: { description: See loans. }
+  loans.approve: { description: Approve loans. }
+roles:
+  member:
+    description: A card holder.
+    permissions: [loans.read, loans.approve]
+paths:
+  /loans/{id}:
+    get:
+      operationId: getLoan
+      summary: Read a loan
+      permission: loans.read
+      parameters:
+        - { name: id, schema: { type: string, format: uuid } }
+      responses:
+        "200": { description: The loan. }
+workflows:
+  loan-approval:
+    description: A loan waits for approval.
+    trigger: getLoan
+    subject: Loan
+    steps:
+      - { name: decide }
+      - { name: approve, kind: approval, approvers: [member], permission: loans.approve, deadline: P1D }
+pages:
+  loans-page: { title: Loans, route: /loans, permission: loans.read }
+decisions:
+  ADR-001: { title: Loans are checked, date: "2026-10-25", context: Loans go wrong., decision: Check them., consequences: Fewer wrong loans. }

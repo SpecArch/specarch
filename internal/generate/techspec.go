@@ -9,6 +9,7 @@ import (
 
 	"go.yaml.in/yaml/v3"
 
+	"github.com/SpecArch/specarch/internal/metamodel"
 	"github.com/SpecArch/specarch/internal/source"
 	"github.com/SpecArch/specarch/internal/validate"
 	"github.com/SpecArch/specarch/internal/wirename"
@@ -768,7 +769,8 @@ func crossCutting(d *doc, root *yaml.Node, state *State) {
 		}
 		var rows [][3]string
 		for _, r := range pairs(root, "roles") {
-			for _, row := range pairs(r.Value, "rows") {
+			_, policies := metamodel.RowPolicies(r.Value)
+			for _, row := range source.Pairs(policies) {
 				rows = append(rows, [3]string{r.Key.Value, row.Key.Value, source.Str(row.Value)})
 			}
 		}

@@ -1,4 +1,4 @@
 arguments: [validate, .]
 exitStatus: 1
 standardOutput: |
-  specarch.yaml:41:56: error: /roles/member/rows/Loan: rows: the rows rule: ownerId is not a name this expression can use; use one of caller.memberId, caller.organisationId, id, memberId, organisationId [rows@specarch.yaml#/roles/member/rows/Loan]
+  specarch.yaml:41:56: error: /roles/member/rows/Loan: row_policies: the row policy: ownerId is not a name this expression can use; use one of caller.memberId, caller.organisationId, id, memberId, organisationId [row_policies@specarch.yaml#/roles/member/rows/Loan]

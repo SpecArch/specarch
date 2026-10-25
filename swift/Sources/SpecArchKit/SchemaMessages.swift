@@ -1,12 +1,13 @@
 import Foundation
 
-private let evaluators: (design: SchemaEvaluator?, implementation: SchemaEvaluator?, record: SchemaEvaluator?, idiom: SchemaEvaluator?, estate: SchemaEvaluator?, error: String?) = {
+private let evaluators: (design: SchemaEvaluator?, earlierDesign: SchemaEvaluator?, implementation: SchemaEvaluator?, record: SchemaEvaluator?, idiom: SchemaEvaluator?, estate: SchemaEvaluator?, error: String?) = {
     do {
-        return (try SchemaEvaluator(json: designSchemaJSON), try SchemaEvaluator(json: implementationSchemaJSON),
+        return (try SchemaEvaluator(json: designSchemaJSON), try SchemaEvaluator(json: earlierDesignSchemaJSON),
+                try SchemaEvaluator(json: implementationSchemaJSON),
                 try SchemaEvaluator(json: recordSchemaJSON), try SchemaEvaluator(json: idiomSchemaJSON),
                 try SchemaEvaluator(json: estateSchemaJSON), nil)
     } catch {
-        return (nil, nil, nil, nil, nil, "\(error)")
+        return (nil, nil, nil, nil, nil, nil, "\(error)")
     }
 }()
 
@@ -57,17 +58,38 @@ extension Checker {
             return
         }
         let evaluator: SchemaEvaluator
+        var value = value
         switch kind {
         case .implementation: evaluator = evaluators.implementation!
         case .record: evaluator = evaluators.record!
         case .idiom: evaluator = evaluators.idiom!
         case .estate: evaluator = evaluators.estate!
-        default: evaluator = evaluators.design!
+        default: (evaluator, value) = designSchemaFor(value)
         }
         var seen = Set<String>()
         for f in evaluator.validate(value) {
             schemaLeaf(kind, f, &seen)
         }
+    }
+
+    /// The schema that checks a specification, by its version line: the
+    /// earlier schema for 0.1, 0.2 and 0.3, the current one otherwise. A
+    /// version line this program does not read is reported by
+    /// checkMetaModelVersion, and the file is checked as 1.0.0 so that the
+    /// schema does not report the line a second time.
+    private func designSchemaFor(_ value: JSONValue) -> (SchemaEvaluator, JSONValue) {
+        let line = root.child("specarch")
+        let v = str(line)
+        if MetaModelFormat.design.isEarlier(v) {
+            return (evaluators.earlierDesign!, value)
+        }
+        if case .object(var pairs) = value, let line, line.tag == "!!str", MetaModelFormat.design.problem(v) != nil {
+            if let i = pairs.firstIndex(where: { $0.0 == "specarch" }) {
+                pairs[i].1 = .string(currentMetaModel)
+            }
+            return (evaluators.design!, .object(pairs))
+        }
+        return (evaluators.design!, value)
     }
 
     /// Reports one failure in plain words, once per value and kind of

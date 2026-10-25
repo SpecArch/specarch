@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"maps"
 	"slices"
 	"sort"
 	"strconv"
@@ -16,12 +17,14 @@ import (
 	"golang.org/x/text/language"
 	"golang.org/x/text/message"
 
+	"github.com/SpecArch/specarch/internal/metamodel"
 	"github.com/SpecArch/specarch/internal/source"
 	"github.com/SpecArch/specarch/schema"
 )
 
 const (
-	designSchemaID         = "https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-design-0.3.schema.json"
+	designSchemaID         = "https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-design-1.0.schema.json"
+	earlierDesignSchemaID  = "https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-design-0.3.schema.json"
 	implementationSchemaID = "https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-implementation-0.1.schema.json"
 	recordSchemaID         = "https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-record-0.1.schema.json"
 	idiomSchemaID          = "https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-0.1.schema.json"
@@ -29,20 +32,21 @@ const (
 )
 
 var (
-	compileOnce  sync.Once
-	designSchema *jsonschema.Schema
-	implSchema   *jsonschema.Schema
-	recordSchema *jsonschema.Schema
-	idiomSchema  *jsonschema.Schema
-	estateSchema *jsonschema.Schema
-	compileErr   error
-	printer      = message.NewPrinter(language.English)
+	compileOnce   sync.Once
+	designSchema  *jsonschema.Schema
+	earlierSchema *jsonschema.Schema
+	implSchema    *jsonschema.Schema
+	recordSchema  *jsonschema.Schema
+	idiomSchema   *jsonschema.Schema
+	estateSchema  *jsonschema.Schema
+	compileErr    error
+	printer       = message.NewPrinter(language.English)
 )
 
 func compileSchemas() {
 	c := jsonschema.NewCompiler()
 	c.AssertFormat()
-	for id, raw := range map[string][]byte{designSchemaID: schema.Definition, implementationSchemaID: schema.Implementation, recordSchemaID: schema.Record, idiomSchemaID: schema.Idiom, estateSchemaID: schema.Estate} {
+	for id, raw := range map[string][]byte{designSchemaID: schema.Definition, earlierDesignSchemaID: schema.DefinitionEarlier, implementationSchemaID: schema.Implementation, recordSchemaID: schema.Record, idiomSchemaID: schema.Idiom, estateSchemaID: schema.Estate} {
 		doc, err := jsonschema.UnmarshalJSON(bytes.NewReader(raw))
 		if err != nil {
 			compileErr = err
@@ -54,6 +58,10 @@ func compileSchemas() {
 		}
 	}
 	designSchema, compileErr = c.Compile(designSchemaID)
+	if compileErr != nil {
+		return
+	}
+	earlierSchema, compileErr = c.Compile(earlierDesignSchemaID)
 	if compileErr != nil {
 		return
 	}
@@ -122,6 +130,8 @@ func (c *checker) checkSchema(k Kind, value any) {
 	}
 	sch := designSchema
 	switch k {
+	case KindDesign:
+		sch, value = c.designSchemaFor(value)
 	case KindImplementation:
 		sch = implSchema
 	case KindRecord:
@@ -142,6 +152,25 @@ func (c *checker) checkSchema(k Kind, value any) {
 	}
 	seen := map[string]bool{}
 	c.schemaLeaves(k, ve, nil, seen)
+}
+
+// designSchemaFor is the schema that checks a specification, by its
+// version line: the earlier schema for 0.1, 0.2 and 0.3, the current one
+// otherwise. A version line this program does not read is reported by
+// checkMetaModelVersion, and the file is checked as 1.0.0 so that the
+// schema does not report the line a second time.
+func (c *checker) designSchemaFor(value any) (*jsonschema.Schema, any) {
+	line := source.Child(c.root, "specarch")
+	v := source.Str(line)
+	if metamodel.Design.IsEarlier(v) {
+		return earlierSchema, value
+	}
+	if m, ok := value.(map[string]any); ok && line != nil && line.Tag == "!!str" && metamodel.Design.Problem(v) != "" {
+		cp := maps.Clone(m)
+		cp["specarch"] = metamodel.Current
+		return designSchema, cp
+	}
+	return designSchema, value
 }
 
 // schemaLeaves reports the innermost causes, one per value and kind of

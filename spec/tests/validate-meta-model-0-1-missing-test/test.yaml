@@ -4,5 +4,5 @@ level: system
 scenario: golden
 given: "the same specification saying specarch 0.1"
 when: "validate is run"
-then: "it reports the same missing tests as warnings, with one warning at the specarch line that 0.1 is read until 1.0, and exits 0"
+then: "it reports the same missing tests as warnings, with one warning at the specarch line that 0.1 is an earlier version read beside 1.0.0, and exits 0"
 verifies: [SA-1, SA-21]

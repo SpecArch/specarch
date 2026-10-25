@@ -305,7 +305,7 @@ func (c *checker) callerFail(n *Node) Type {
 	sort.Strings(props)
 	prop := strings.TrimPrefix(n.Text, CallerName+".")
 	if len(props) == 0 {
-		return c.fail(n, CallerProperty, "%s names the caller, which only a role's rows rule may name; write the rule under roles.<role>.rows", n.Text)
+		return c.fail(n, CallerProperty, "%s names the caller, which only a role's row policy may name; write the rule under the role's rowPolicies (rows in a file on meta-model 0.3 or earlier)", n.Text)
 	}
 	for _, p := range props {
 		if strings.EqualFold(p, prop) {

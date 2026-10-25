@@ -1,7 +1,7 @@
 arguments: [validate, .]
 exitStatus: 1
 standardOutput: |
-  specarch.yaml:1:11: warning: /specarch: meta_model_version: the specification is written against meta-model 0.1, which is read until 1.0, and its missing tests are warnings; run specarch derive to write the tests 0.2 asks for, then change the line to specarch: "0.3" once nothing an expression can name is called caller [meta_model_version@specarch.yaml#/specarch]
+  specarch.yaml:1:11: warning: /specarch: meta_model_version: the specification is written against meta-model 0.1, an earlier version read beside 1.0.0 with this warning, and its missing tests are warnings; run specarch derive to write the tests 0.2 and later ask for, then run specarch upgrade --dry-run on the specification to see what moving it to 1.0.0 changes, and specarch upgrade to move it [meta_model_version@specarch.yaml#/specarch]
   specarch.yaml:40:27: error: /views/LoanRow/properties/memberName/path: view: member.fullNam does not resolve: Member has no field fullNam; did you mean fullName? [view@specarch.yaml#/views/LoanRow/properties/memberName/path]
   specarch.yaml:41:27: error: /views/LoanRow/properties/branchName/path: view: member.loans.id does not resolve: Member.loans is one-to-many, which leads to many records; a path follows only many-to-one and one-to-one relations, so the view keeps one row per record; count it instead [view@specarch.yaml#/views/LoanRow/properties/branchName/path]
   specarch.yaml:42:14: error: /views/LoanRow/properties/dueOn: view: dueOn is a field of Loan already, and the view carries every field of its entity; leave it out, or give the added field another name [view@specarch.yaml#/views/LoanRow/properties/dueOn]

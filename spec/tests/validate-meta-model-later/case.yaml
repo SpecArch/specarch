@@ -1,0 +1,7 @@
+arguments: [validate, .]
+exitStatus: 1
+standardOutput: |
+  specarch.yaml:1:11: error: /specarch: meta_model_version: the meta-model version "1.2.0" is a later version than this program reads, which a later specarch reads; this program reads 1.0.0 and any later 1.0 patch, and 0.3, 0.2 and 0.1 with a warning, and reads the file as 1.0.0 [meta_model_version@specarch.yaml#/specarch]
+  specarch.yaml:17:12: error: /tokens/access/claims/aud: token_audience: not a uri: at all has a colon and is not a URI; an audience with a colon is a URI (RFC 7519, section 2), such as https://loans.example.org [token_audience@specarch.yaml#/tokens/access/claims/aud]
+  specarch.yaml:18:20: error: /tokens/access/claims/exp/type: claim: exp is a registered claim (RFC 7519) of type integer, and is written as string; a registered claim carries the registry's type without being retyped; remove type [claim@specarch.yaml#/tokens/access/claims/exp/type]
+  specarch.yaml:19:18: error: /tokens/access/claims/member_id: claim: member_id has an underscore and is not a claim of the JSON Web Token Claims registry that SpecArch knows; a claim of this specification's own is camelCase, as every property is [claim@specarch.yaml#/tokens/access/claims/member_id]

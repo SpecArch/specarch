@@ -6,6 +6,7 @@ import (
 
 	"go.yaml.in/yaml/v3"
 
+	"github.com/SpecArch/specarch/internal/metamodel"
 	"github.com/SpecArch/specarch/internal/source"
 )
 
@@ -117,7 +118,7 @@ func (c *checker) checkTests(d *design) {
 	// In a 0.2 or 0.3 file a test specarch derive writes and nobody has is
 	// an error, except for a subject an open must or should question holds
 	// up, whose test derive leaves out too (ADR-055).
-	strict := d.metaModelVersion() != "0.1"
+	strict := metamodel.AtLeast(d.reads(), 0, 2)
 	blocking := blockingQuestions(d.root)
 	for _, s := range subjects {
 		cv := cov[s]
@@ -161,15 +162,54 @@ func (c *checker) checkTests(d *design) {
 	}
 }
 
-// checkMetaModelVersion warns once in a file written against 0.1 or 0.2,
-// which are read until 1.0 (ADR-055, ADR-094).
+// checkMetaModelVersion warns once in a file written against an earlier
+// meta-model, 0.1, 0.2 or 0.3, each read beside 1.0.0 (ADR-186), and
+// reports a version line this program does not read as an error at the
+// line; the file is then read as 1.0.0, so every other problem is still
+// listed.
 func (c *checker) checkMetaModelVersion(d *design) {
 	v := source.Child(d.root, "specarch")
+	upgrade := "run specarch upgrade --dry-run on the specification to see what moving it to " + metamodel.Current + " changes, and specarch upgrade to move it"
 	switch source.Str(v) {
 	case "0.1":
-		c.warn(v, "/specarch", RuleMetaModelVersion, "the specification is written against meta-model 0.1, which is read until 1.0, and its missing tests are warnings; run specarch derive to write the tests 0.2 asks for, then change the line to specarch: \"0.3\" once nothing an expression can name is called caller")
+		c.warn(v, "/specarch", RuleMetaModelVersion, "the specification is written against meta-model 0.1, an earlier version read beside %s with this warning, and its missing tests are warnings; run specarch derive to write the tests 0.2 and later ask for, then %s", metamodel.Current, upgrade)
 	case "0.2":
-		c.warn(v, "/specarch", RuleMetaModelVersion, "the specification is written against meta-model 0.2, which is read until 1.0; 0.3 reserves the name caller for the caller record, so change the line to specarch: \"0.3\" once no field, property or input is called caller")
+		c.warn(v, "/specarch", RuleMetaModelVersion, "the specification is written against meta-model 0.2, an earlier version read beside %s with this warning; 0.3 and later reserve the name caller for the caller record, so rename any field, property or input called caller, then %s", metamodel.Current, upgrade)
+	default:
+		if v != nil && v.Tag == "!!str" {
+			if problem := metamodel.Design.Problem(v.Value); problem != "" {
+				c.add(v, "/specarch", RuleMetaModelVersion, "the meta-model version %s", problem)
+			}
+		}
+	}
+}
+
+// checkDeprecated warns at each key a file on 1.0 gives under the spelling
+// 1.0.0 deprecated, which is read as its replacement until 2.0.0, and
+// reports a key given under both spellings, since one thing is said once.
+// A file on an earlier version uses the old spelling, which its own
+// schema knows, and is told so by the version warning.
+func (c *checker) checkDeprecated(d *design) {
+	if metamodel.Design.IsEarlier(d.metaModelVersion()) {
+		return
+	}
+	check := func(obj *yaml.Node, base []string, key, old, what string) {
+		n := source.Key(obj, old)
+		if n == nil {
+			return
+		}
+		ptr := source.Pointer(append(base, old)...)
+		if source.Child(obj, key) != nil {
+			c.add(n, ptr, RuleMetaModelDeprecated, "%s gives both %s and %s, the spelling of %s before meta-model 1.0.0; move what %s holds into %s and remove %s", what, key, old, key, old, key, old)
+			return
+		}
+		c.warn(n, ptr, RuleMetaModelDeprecated, "%s is the spelling of %s before meta-model 1.0.0, deprecated and read as %s until 2.0.0; run specarch upgrade on the specification, or rename it to %s here", old, key, key, key)
+	}
+	for _, r := range source.Pairs(source.Child(d.root, "roles")) {
+		check(r.Value, []string{"roles", r.Key.Value}, metamodel.RowPoliciesKey, metamodel.RowPoliciesOldKey, "role "+r.Key.Value)
+	}
+	if h := source.Child(d.root, "handover"); h != nil {
+		check(h, []string{"handover"}, metamodel.SourceDeliveryKey, metamodel.SourceDeliveryOldKey, "the handover")
 	}
 }
 

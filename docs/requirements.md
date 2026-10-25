@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: requirements specification
 
-Version 0.7.6-dev of the specification: 5 stakeholders, 10 needs and 94 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
+Version 0.7.6-dev of the specification: 5 stakeholders, 10 needs and 95 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -33,13 +33,13 @@ What the stakeholders said they need, before it was shaped into requirements, an
 
 | Need | Statement | Stakeholders | Status | Refined by |
 |---|---|---|---|---|
-| NEED-1 | I want a specification that cannot quietly be wrong, so that the code built from it is right. | specification-author, implementer | accepted | SA-33, SA-34, SA-35, SA-47, SA-48, SA-50, SA-75, SA-77, SA-82, SA-83, SA-84, SA-91, SA-72, SA-1, SA-2, SA-3, SA-4, SA-5, SA-6, SA-51 |
+| NEED-1 | I want a specification that cannot quietly be wrong, so that the code built from it is right. | specification-author, implementer | accepted | SA-33, SA-34, SA-35, SA-47, SA-48, SA-50, SA-75, SA-77, SA-82, SA-83, SA-84, SA-91, SA-72, SA-1, SA-2, SA-3, SA-4, SA-5, SA-6, SA-51, SA-95 |
 | NEED-2 | I want to write a design once and build it in more than one language. | implementer | accepted | SA-33, SA-34, SA-36, SA-37, SA-38, SA-39, SA-40, SA-41, SA-42, SA-43, SA-80, SA-81, SA-52, SA-53, SA-54, SA-55, SA-56, SA-49, SA-62, SA-63, SA-65, SA-66, SA-70, SA-77, SA-78, SA-82, SA-83, SA-84, SA-88, SA-89, SA-91, SA-92, SA-93, SA-94, SA-46, SA-61, SA-71, SA-87, SA-32, SA-9, SA-10 |
 | NEED-3 | I want the documents and diagrams to come from the specification, so they never drift from it. | reviewer, specification-author | accepted | SA-22, SA-36, SA-67, SA-75, SA-77, SA-82, SA-83, SA-84, SA-88, SA-91, SA-7, SA-8, SA-26, SA-16, SA-58, SA-59, SA-60, SA-90, SA-19, SA-74 |
 | NEED-4 | I want a big specification split over many files, each about one thing, so I can find what I am looking for. | specification-author, reviewer | accepted | SA-11, SA-2 |
 | NEED-5 | I want the whole life of the system in one place, from the first requirement to the day it is accepted. | reviewer, operator | accepted | SA-35, SA-47, SA-68, SA-26, SA-16, SA-90, SA-12, SA-23, SA-24, SA-25, SA-73 |
 | NEED-6 | I want to see why something is the way it is, and which standard asks for it. | reviewer | accepted | SA-15, SA-13 |
-| NEED-7 | I want one tool to learn and install, not one program per task. | specification-author, ci-job | accepted | SA-14, SA-74 |
+| NEED-7 | I want one tool to learn and install, not one program per task. | specification-author, ci-job | accepted | SA-14, SA-74, SA-95 |
 | NEED-8 | I want to build a specification from the documents and code that exist, without inventing what they do not say, and to see at every step what is still missing and what can already be made. | specification-author, reviewer | accepted | SA-69, SA-70, SA-46, SA-59, SA-71, SA-17, SA-18, SA-19, SA-20, SA-30, SA-44, SA-45, SA-64, SA-72, SA-76, SA-79, SA-85, SA-86, SA-51 |
 | NEED-9 | I want the tests a specification implies, with the ones that matter most written first and the rest listed with the reason they were left out. | specification-author, implementer | accepted | SA-31, SA-29, SA-28, SA-27, SA-21, SA-22, SA-75 |
 | NEED-10 | I want to show what a specification builds long before it is finished, and to take a remark from someone looking at the result back into the specification, knowing what it reaches, and out again in the next build. | reviewer, specification-author | accepted | SA-58, SA-60, SA-57 |
@@ -142,6 +142,7 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | SA-10 | functional | must | accepted | An implementation file's implements and pointers shall resolve in the specification it names, at the same version. |
 | SA-51 | interface | must | accepted | specarch shall list every problem of a specification, valid or not, in one problems file and its SARIF 2.1.0 form, each error, warning and open question with a stable id, file, line and column, JSON pointer, rule, a message saying how to fix it, and notes at the sources it came from and the entries it blocks, and every file specarch writes shall mark the entry a problem touches. |
 | SA-74 | interface | must | accepted | specarch model shall print, in both builds, one JSON document in RFC 8785's canonical form that holds, for every specification of the folders given, the merged document, every node's file, line and column, every resolved reference with the keyword that made it, the layout problems, and each implementation file and estate, so that a program reads a specification as specarch does without a loader of its own. |
+| SA-95 | functional | must | accepted | specarch shall read every file by the version its version line declares, meta-model 1.0.0 and any later 1.0 patch, and 0.3, 0.2 and 0.1 beside it, each earlier version with a warning naming specarch upgrade; a version line it does not read shall be an error at the line, the file read as 1.0.0 so that every other problem is still listed; and a key meta-model 1.0.0 renamed shall be read under its old spelling as its replacement, with a warning, until 2.0.0. |
 
 ### SA-31
 
@@ -1601,6 +1602,21 @@ Acceptance criteria:
 - The validator's errors, warnings and open questions are not in the document; the problems file is their one list.
 
 **Insight:** An editor or any other program that draws from a specification would otherwise load the files itself, a second loader in another language that drifts from the first; one command in both builds, printing one byte form, gives it what specarch reads and lets the conformance suite hold the two builds to the same document.
+
+### SA-95
+
+specarch shall read every file by the version its version line declares, meta-model 1.0.0 and any later 1.0 patch, and 0.3, 0.2 and 0.1 beside it, each earlier version with a warning naming specarch upgrade; a version line it does not read shall be an error at the line, the file read as 1.0.0 so that every other problem is still listed; and a key meta-model 1.0.0 renamed shall be read under its old spelling as its replacement, with a warning, until 2.0.0.
+
+Kind: functional; priority: must; status: accepted; verified by test; refines NEED-1, NEED-7.
+
+Acceptance criteria:
+
+- A specification that says specarch "1.0.0", or a later 1.0 patch such as "1.0.4", validates with the output the same file gives on "0.3" less the version warning, in both builds.
+- A specification that says "1.2.0", "1.0" or what is no version is reported with meta_model_version at the line, naming the versions read, the three-part spelling for a short one, and that a later specarch reads a later one, with every other problem of the file still listed.
+- A file on 1.0 that gives a role's rows or the handover's source is warned with meta_model_deprecated at the key, naming rowPolicies or sourceDelivery and specarch upgrade, and is read as the new key; one that gives both spellings in one object is an error at the old key.
+- A file on 0.3 or earlier is checked against the 0.3 schema and keeps its rules and its output, the rows rule named row_policies.
+
+**Insight:** A file's version line is its promise of which rules it is written against (ADR-055); reading every version side by side keeps every specification that exists valid while the format moves on, and an author learns from one warning what moves the file and with which command (ADR-186).
 
 ## 5. Constraints
 

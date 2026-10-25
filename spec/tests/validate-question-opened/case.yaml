@@ -1,7 +1,7 @@
 arguments: [validate, .]
 exitStatus: 1
 standardOutput: |
-  specarch.yaml:1:11: warning: /specarch: meta_model_version: the specification is written against meta-model 0.1, which is read until 1.0, and its missing tests are warnings; run specarch derive to write the tests 0.2 asks for, then change the line to specarch: "0.3" once nothing an expression can name is called caller [meta_model_version@specarch.yaml#/specarch]
+  specarch.yaml:1:11: warning: /specarch: meta_model_version: the specification is written against meta-model 0.1, an earlier version read beside 1.0.0 with this warning, and its missing tests are warnings; run specarch derive to write the tests 0.2 and later ask for, then run specarch upgrade --dry-run on the specification to see what moving it to 1.0.0 changes, and specarch upgrade to move it [meta_model_version@specarch.yaml#/specarch]
   specarch.yaml:7:3: warning: /requirements/CASE-1: requirement_unsatisfied: no design element satisfies requirement CASE-1; add satisfies: [CASE-1] to the entity, operation, command, page, algorithm or decision that meets it [requirement_unsatisfied@specarch.yaml#/requirements/CASE-1]
   specarch.yaml:43:13: error: /decisions/ADR-003/opens/0: question_opened: ADR-003 both answers and opens question Q-4; a decision opens only what it leaves open, so name the open half as a question of its own [question_opened@specarch.yaml#/decisions/ADR-003/opens/0]
   specarch.yaml:43:18: error: /decisions/ADR-003/opens/1: question_opened: ADR-003 opens question Q-9, which is neither an open question of the specification nor answered by a decision; write the question, or correct the ID; did you mean Q-3? [question_opened@specarch.yaml#/decisions/ADR-003/opens/1]

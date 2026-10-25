@@ -1,0 +1,26 @@
+specarchImplementation: "0.1"
+info: { title: Case in Go, version: 1.0.0 }
+implements: { file: specarch.yaml, version: 1.0.0 }
+stack: { language: { name: Go, version: "1.26" } }
+tasks:
+  build: { run: podman build -t till . }
+  sbom: { run: syft dir:. -o syft-json=sbom.json && grype sbom:sbom.json }
+deployments:
+  production:
+    description: The shop's host.
+    environment: production
+    build:
+      description: The image is built from the tagged commit.
+      task: build
+      baseImages:
+        - { name: "docker.io/library/golang:1.26-bookworm", digest: "sha256:7d0d0ab5bcb7b2e4b9c9c0f6a1b5a4e2d3c4b5a6978879a0b1c2d3e4f5a6b7c8", purpose: Builds the binary. }
+      reproducible: The image digest equals the one in the release notes.
+      sbom: sbom
+    method: { tool: podman-compose 1.4, files: deploy/compose }
+    infrastructure:
+      cpu: Two cores.
+      memory: One gigabyte.
+      storage: Ten gigabytes.
+      ports: 8080 behind the shop's proxy.
+    configuration:
+      taxRate: "0.11"

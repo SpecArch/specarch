@@ -1,0 +1,5 @@
+arguments: [validate, .]
+exitStatus: 1
+standardOutput: |
+  specarch.yaml:25:5: warning: /roles/member/rows: meta_model_deprecated: rows is the spelling of rowPolicies before meta-model 1.0.0, deprecated and read as rowPolicies until 2.0.0; run specarch upgrade on the specification, or rename it to rowPolicies here [meta_model_deprecated@specarch.yaml#/roles/member/rows]
+  specarch.yaml:32:5: error: /roles/staff/rows: meta_model_deprecated: role staff gives both rowPolicies and rows, the spelling of rowPolicies before meta-model 1.0.0; move what rows holds into rowPolicies and remove rows [meta_model_deprecated@specarch.yaml#/roles/staff/rows]

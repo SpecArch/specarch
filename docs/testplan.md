@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.6-dev of the specification: 732 design tests, 361 golden and 371 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.6-dev of the specification: 744 design tests, 363 golden and 381 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.7.6-dev of the specification: 732 design tests, 361 golden and 371 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 728 |
+| system | 740 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -3629,7 +3629,7 @@ Scenario: golden; level: system; verifies SA-82.
 
 - Given: the same specification on 0.2: a field, a view's property, a schema's property and an algorithm's input each named caller
 - When: validate is run
-- Then: it reads the file, warns once at the specarch line that 0.2 is read until 1.0 and that 0.3 reserves the name caller, reports no error and exits 0
+- Then: it reads the file, warns once at the specarch line that 0.2 is an earlier version read beside 1.0.0 and that 0.3 and later reserve the name caller, reports no error and exits 0
 
 #### validate-0-3-nobody
 
@@ -4391,6 +4391,30 @@ Scenario: red; level: system; covers exit 1; verifies SA-73.
 - When: validate is run
 - Then: it reports handover at the handover and stakeholder at its to, and exits 1
 
+#### validate-handover-source-deprecated
+
+Scenario: golden; level: system; verifies SA-73, SA-95.
+
+- Given: the handover of validate-handover-valid on 1.0.0, giving source
+- When: validate is run
+- Then: it warns once with meta_model_deprecated at source, naming sourceDelivery and specarch upgrade, reads it as sourceDelivery, and exits 0
+
+#### validate-handover-source-missing
+
+Scenario: red; level: system; covers exit 1; verifies SA-73, SA-95.
+
+- Given: the handover of validate-handover-valid on 1.0.0, giving neither source nor sourceDelivery
+- When: validate is run
+- Then: it reports that sourceDelivery is missing, once, and exits 1
+
+#### validate-handover-source-twice
+
+Scenario: red; level: system; covers exit 1; verifies SA-73, SA-95.
+
+- Given: the handover of validate-handover-valid on 1.0.0, giving both source and sourceDelivery
+- When: validate is run
+- Then: it reports source as an error that moves it into sourceDelivery, and exits 1
+
 #### validate-handover-valid
 
 Scenario: golden; level: system; verifies SA-73.
@@ -4685,7 +4709,7 @@ Scenario: golden; level: system; verifies SA-1, SA-21.
 
 - Given: the same specification saying specarch 0.1
 - When: validate is run
-- Then: it reports the same missing tests as warnings, with one warning at the specarch line that 0.1 is read until 1.0, and exits 0
+- Then: it reports the same missing tests as warnings, with one warning at the specarch line that 0.1 is an earlier version read beside 1.0.0, and exits 0
 
 #### validate-meta-model-0-2-missing-test
 
@@ -4694,6 +4718,46 @@ Scenario: red; level: system; covers exit 1; verifies SA-1, SA-21.
 - Given: a specification that says specarch 0.2, with an operation and a requirement no test covers, and an operation a must question holds up
 - When: validate is run
 - Then: it reports the missing golden test and red case of the operation and the requirement's acceptance case as errors, nothing for the operation the question holds up, and exits 1
+
+#### validate-meta-model-1-0-0
+
+Scenario: red; level: system; covers exit 1; verifies SA-1, SA-95.
+
+- Given: the specification of validate-0-3-tokens saying specarch 1.0.0
+- When: validate is run
+- Then: it reports exactly what it reports for the file on 0.3, and exits 1
+
+#### validate-meta-model-1-0-patch
+
+Scenario: red; level: system; covers exit 1; verifies SA-95.
+
+- Given: the specification of validate-0-3-claims saying specarch 1.0.4, a later 1.0 patch
+- When: validate is run
+- Then: it reads the file as 1.0 and reports exactly what it reports for the file on 0.3, and exits 1
+
+#### validate-meta-model-deprecated
+
+Scenario: red; level: system; covers exit 1; verifies SA-95.
+
+- Given: a file on 1.0.0 whose member role gives rows and whose staff role gives both rowPolicies and rows
+- When: validate is run
+- Then: it warns with meta_model_deprecated at member's rows, naming rowPolicies and specarch upgrade, reports staff's rows as an error, and exits 1
+
+#### validate-meta-model-later
+
+Scenario: red; level: system; covers exit 1; verifies SA-95.
+
+- Given: the specification of validate-0-3-claims saying specarch 1.2.0, a minor this program does not read
+- When: validate is run
+- Then: it reports meta_model_version at the line, naming the versions it reads and that a later specarch reads 1.2.0, reads the file as 1.0.0 and still reports every claim problem, and exits 1
+
+#### validate-meta-model-short
+
+Scenario: red; level: system; covers exit 1; verifies SA-95.
+
+- Given: the specification of validate-0-3-claims saying specarch 1.0, in two parts
+- When: validate is run
+- Then: it reports meta_model_version at the line asking for the three-part 1.0.0, reads the file as 1.0.0 and still reports every claim problem, and exits 1
 
 #### validate-middlewares
 
@@ -5191,6 +5255,22 @@ Scenario: red; level: system; covers exit 1; verifies SA-62.
 - When: validate is run
 - Then: it reports the name that is not kebab-case as schema and the second role taking DESK_STAFF as wire_name, naming both roles and the wire name, and exits 1
 
+#### validate-row-policies
+
+Scenario: red; level: system; covers exit 1; verifies SA-82, SA-95.
+
+- Given: the roles of validate-0-3-rows on 1.0.0 under rowPolicies
+- When: validate is run
+- Then: it reports the same three problems under row_policies, each pointing at rowPolicies, and exits 1
+
+#### validate-row-policies-valid
+
+Scenario: golden; level: system; verifies SA-82, SA-95.
+
+- Given: the specification of validate-0-3-rows-valid on 1.0.0 under rowPolicies
+- When: validate is run
+- Then: it reports nothing and exits 0
+
 #### validate-schema-algorithm-without-pseudocode
 
 Scenario: red; level: system; covers exit 1.
@@ -5198,6 +5278,22 @@ Scenario: red; level: system; covers exit 1.
 - Given: an algorithm without pseudocode
 - When: validate is run
 - Then: it reports the missing pseudocode with rule schema and exits 1
+
+#### validate-schema-conditionals
+
+Scenario: red; level: system; covers exit 1; verifies SA-1, SA-95.
+
+- Given: on 1.0.0, a source, a unique-or-check constraint, a parameter, a workflow step, a page and a decision each without the key its conditional rule reads (kind, in or status), and an approval step without onDeadline
+- When: validate is run
+- Then: it reports each missing key once, and none of the keys its value would ask for, and exits 1
+
+#### validate-schema-conditionals-0-3
+
+Scenario: red; level: system; covers exit 1; verifies SA-1, SA-95.
+
+- Given: the specification of validate-schema-conditionals saying specarch 0.3
+- When: validate is run
+- Then: it reports what the 0.3 schema reports, each missing key beside the keys its conditional asks for, and exits 1
 
 #### validate-schema-empty-role
 
@@ -5939,7 +6035,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-411 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+415 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -6354,6 +6450,10 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-74 | acceptance 1 | golden | SA-74 names no harm |
 | requirement SA-74 | acceptance 2 | golden | SA-74 names no harm |
 | requirement SA-74 | acceptance 3 | golden | SA-74 names no harm |
+| requirement SA-95 | acceptance 1 | golden | SA-95 names no harm |
+| requirement SA-95 | acceptance 2 | golden | SA-95 names no harm |
+| requirement SA-95 | acceptance 3 | golden | SA-95 names no harm |
+| requirement SA-95 | acceptance 4 | golden | SA-95 names no harm |
 
 The checks run on the installed system before it is handed over are in the commissioning procedure.
 

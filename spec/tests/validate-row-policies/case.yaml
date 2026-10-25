@@ -1,0 +1,6 @@
+arguments: [validate, .]
+exitStatus: 1
+standardOutput: |
+  specarch.yaml:22:14: error: /roles/member/rowPolicies/Loans: row_policies: Loans is not an entity of the specification, so the row policy has no rows to limit; did you mean Loan? [row_policies@specarch.yaml#/roles/member/rowPolicies/Loans]
+  specarch.yaml:27:13: error: /roles/auditor/rowPolicies/Loan: row_policies: the rule gives a string, but a row policy must give true or false for each record; compare the values with ==, <, > or similar [row_policies@specarch.yaml#/roles/auditor/rowPolicies/Loan]
+  specarch.yaml:32:13: error: /roles/clerk/rowPolicies/Loan: row_policies: the row policy: ownerId is not a name this expression can use; use one of caller.memberId, id, memberId [row_policies@specarch.yaml#/roles/clerk/rowPolicies/Loan]

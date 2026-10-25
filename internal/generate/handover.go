@@ -5,6 +5,9 @@ import (
 	"strings"
 
 	"go.yaml.in/yaml/v3"
+
+	"github.com/SpecArch/specarch/internal/metamodel"
+	"github.com/SpecArch/specarch/internal/source"
 )
 
 // infrastructureKeys are the resources a deployment's infrastructure names,
@@ -57,6 +60,13 @@ func environmentsTable(d *doc, envs []sourcePair) {
 	d.explainRows(rowsOf(envs))
 }
 
+// sourceDelivery is how the source reaches the customer, under the
+// handover's sourceDelivery or source, its spelling before 1.0.0.
+func sourceDelivery(h *yaml.Node) string {
+	_, n := metamodel.SourceDelivery(h)
+	return source.Str(n)
+}
+
 // handoverText writes the handover under a heading the caller wrote: what
 // it is, who receives it, how the source reaches them, and what stays whose
 // responsibility.
@@ -68,7 +78,7 @@ func handoverText(d *doc, root, h *yaml.Node) {
 		who = to + ": " + strings.TrimSpace(desc)
 	}
 	d.para("Received by " + who)
-	d.para("The source: " + strings.TrimSpace(str(h, "source")))
+	d.para("The source: " + strings.TrimSpace(sourceDelivery(h)))
 	resp := get(h, "responsibilities")
 	for _, side := range [][2]string{{"customer", "The customer is responsible for:"}, {"vendor", "The vendor stays responsible for:"}} {
 		if list := strs(resp, side[0]); len(list) > 0 {
@@ -269,7 +279,7 @@ func Handover(root *yaml.Node, relRoot string, impls []Implementation, state *St
 		who = to + ": " + strings.TrimSpace(desc)
 	}
 	d.para("The handover goes to " + who + " It holds:")
-	d.line("- The source of each release: %s", strings.TrimSpace(str(h, "source")))
+	d.line("- The source of each release: %s", strings.TrimSpace(sourceDelivery(h)))
 	if hasBuild {
 		d.line("- How a release is built, with the exact toolchain, the base images and how a build is compared with the vendor's (Building a release).")
 	}

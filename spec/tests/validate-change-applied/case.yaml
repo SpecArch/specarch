@@ -1,7 +1,7 @@
 arguments: [validate, project]
 exitStatus: 1
 standardOutput: |
-  project/specarch.yaml:1:11: warning: /specarch: meta_model_version: the specification is written against meta-model 0.1, which is read until 1.0, and its missing tests are warnings; run specarch derive to write the tests 0.2 asks for, then change the line to specarch: "0.3" once nothing an expression can name is called caller [meta_model_version@specarch.yaml#/specarch]
+  project/specarch.yaml:1:11: warning: /specarch: meta_model_version: the specification is written against meta-model 0.1, an earlier version read beside 1.0.0 with this warning, and its missing tests are warnings; run specarch derive to write the tests 0.2 and later ask for, then run specarch upgrade --dry-run on the specification to see what moving it to 1.0.0 changes, and specarch upgrade to move it [meta_model_version@specarch.yaml#/specarch]
   records/changes/CR-1.yaml:11:19: error: /affects/adds/0: change_applied: CR-1 is implemented but #/commands/authors, which it adds, is not in the specification; add it, or set the change back to approved [change_applied@../records/changes/CR-1.yaml#/affects/adds/0]
   records/changes/CR-1.yaml:11:52: error: /affects/removes/0: change_applied: CR-1 is implemented but CASE-1, which it removes, is still in the specification; remove it, or give the requirement status retired [change_applied@../records/changes/CR-1.yaml#/affects/removes/0]
   records/changes/CR-2.yaml:11:19: warning: /affects/adds/0: change_applied: #/tests/catalogue-prints, which CR-2 adds, is already in the specification; if the change is carried out, set its status to implemented, or name it under changes [change_applied@../records/changes/CR-2.yaml#/affects/adds/0]

@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: traceability matrix
 
-Version 0.7.6-dev of the specification: 10 needs, 94 requirements, and 1 gap. Each requirement is traced back to the needs it refines and forward to what satisfies it in the design and what verifies it in the tests and commissioning checks.
+Version 0.7.6-dev of the specification: 10 needs, 95 requirements, and 1 gap. Each requirement is traced back to the needs it refines and forward to what satisfies it in the design and what verifies it in the tests and commissioning checks.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -12,13 +12,13 @@ Version 0.7.6-dev of the specification: 10 needs, 94 requirements, and 1 gap. Ea
 
 | Need | Status | Refined by |
 |---|---|---|
-| NEED-1 | accepted | SA-33, SA-34, SA-35, SA-47, SA-48, SA-50, SA-75, SA-77, SA-82, SA-83, SA-84, SA-91, SA-72, SA-1, SA-2, SA-3, SA-4, SA-5, SA-6, SA-51 |
+| NEED-1 | accepted | SA-33, SA-34, SA-35, SA-47, SA-48, SA-50, SA-75, SA-77, SA-82, SA-83, SA-84, SA-91, SA-72, SA-1, SA-2, SA-3, SA-4, SA-5, SA-6, SA-51, SA-95 |
 | NEED-2 | accepted | SA-33, SA-34, SA-36, SA-37, SA-38, SA-39, SA-40, SA-41, SA-42, SA-43, SA-80, SA-81, SA-52, SA-53, SA-54, SA-55, SA-56, SA-49, SA-62, SA-63, SA-65, SA-66, SA-70, SA-77, SA-78, SA-82, SA-83, SA-84, SA-88, SA-89, SA-91, SA-92, SA-93, SA-94, SA-46, SA-61, SA-71, SA-87, SA-32, SA-9, SA-10 |
 | NEED-3 | accepted | SA-22, SA-36, SA-67, SA-75, SA-77, SA-82, SA-83, SA-84, SA-88, SA-91, SA-7, SA-8, SA-26, SA-16, SA-58, SA-59, SA-60, SA-90, SA-19, SA-74 |
 | NEED-4 | accepted | SA-11, SA-2 |
 | NEED-5 | accepted | SA-35, SA-47, SA-68, SA-26, SA-16, SA-90, SA-12, SA-23, SA-24, SA-25, SA-73 |
 | NEED-6 | accepted | SA-15, SA-13 |
-| NEED-7 | accepted | SA-14, SA-74 |
+| NEED-7 | accepted | SA-14, SA-74, SA-95 |
 | NEED-8 | accepted | SA-69, SA-70, SA-46, SA-59, SA-71, SA-17, SA-18, SA-19, SA-20, SA-30, SA-44, SA-45, SA-64, SA-72, SA-76, SA-79, SA-85, SA-86, SA-51 |
 | NEED-9 | accepted | SA-31, SA-29, SA-28, SA-27, SA-21, SA-22, SA-75 |
 | NEED-10 | accepted | SA-58, SA-60, SA-57 |
@@ -27,7 +27,7 @@ Version 0.7.6-dev of the specification: 10 needs, 94 requirements, and 1 gap. Ea
 
 | Requirement | Needs | Satisfied by | Verified by |
 |---|---|---|---|
-| SA-1 | NEED-1 | enums DocumentKind; entities SpecFile; commands validate; decisions ADR-003; decisions ADR-006; decisions ADR-007; decisions ADR-009; decisions ADR-052; decisions ADR-055; decisions ADR-060; decisions ADR-063; decisions ADR-072; decisions ADR-094; decisions ADR-125 | tests validate-meta-model-0-1-missing-test; tests validate-meta-model-0-2-missing-test; tests validate-schema-name-form; tests validate-schema-untyped-integer; tests validate-valid-design; checks checks-the-examples; monitors main-stays-green |
+| SA-1 | NEED-1 | enums DocumentKind; entities SpecFile; commands validate; decisions ADR-003; decisions ADR-006; decisions ADR-007; decisions ADR-009; decisions ADR-052; decisions ADR-055; decisions ADR-060; decisions ADR-063; decisions ADR-072; decisions ADR-094; decisions ADR-125; decisions ADR-186 | tests validate-meta-model-0-1-missing-test; tests validate-meta-model-0-2-missing-test; tests validate-meta-model-1-0-0; tests validate-schema-conditionals; tests validate-schema-conditionals-0-3; tests validate-schema-name-form; tests validate-schema-untyped-integer; tests validate-valid-design; checks checks-the-examples; monitors main-stays-green |
 | SA-2 | NEED-1, NEED-4 | enums Rule; commands validate; algorithms referenceResolves; decisions ADR-061 | tests validate-duplicate-name-across-files; tests validate-enabled-by; tests validate-environment; tests validate-need; tests validate-ref-type; tests validate-relation-target; tests validate-requirement-set; tests validate-stakeholder |
 | SA-3 | NEED-1 | enums Rule; commands validate; decisions ADR-004; decisions ADR-047; decisions ADR-061; decisions ADR-094; decisions ADR-095; decisions ADR-097; decisions ADR-145; decisions ADR-146; decisions ADR-161; decisions ADR-179; decisions ADR-180 | tests validate-expression-date-days; tests validate-expression-date-number; tests validate-expression-in-stage-file; tests validate-expression-syntax; tests validate-expression-type; tests validate-unique-where |
 | SA-4 | NEED-1 | enums Rule; commands validate; algorithms workedExampleHolds; decisions ADR-004 | tests validate-example-mismatch |
@@ -99,7 +99,7 @@ Version 0.7.6-dev of the specification: 10 needs, 94 requirements, and 1 gap. Ea
 | SA-70 | NEED-2, NEED-8 | commands extract; decisions ADR-121; decisions ADR-144 | tests extract-database-generated-default; tests extract-database-implementation-out; tests extract-go-handlers; tests extract-go-handlers-changed; tests extract-router-list-twin; tests generate-openapi-list-twin; tests generate-sql-generated-default; tests generate-sql-generated-default-mariadb; tests generate-sql-generated-default-mariadb-upgrade; tests generate-sql-generated-default-refused; tests generate-sql-index-changed; tests validate-generated-default; tests validate-index-field |
 | SA-71 | NEED-2, NEED-8 | decisions ADR-123 | tests generate-sqlc-check-hand-written; tests generate-sqlc-dialect-refused; tests generate-sqlc-hand-written-refused; tests generate-sqlc-queries |
 | SA-72 | NEED-1, NEED-8 | commands check; decisions ADR-124; decisions ADR-128 | tests check-dump-of-no-format; tests check-fails-on-a-difference; tests check-skips-a-partition; tests check-succeeds; tests check-usage-error |
-| SA-73 | NEED-5 | enums DocumentTarget; enums Rule; commands document; decisions ADR-129; decisions ADR-136; decisions ADR-137; decisions ADR-172 | tests document-handover-links-without-infrastructure; tests document-handover-none; tests document-writes-handover; tests validate-build-task-unknown; tests validate-handover-build-missing; tests validate-handover-incomplete; tests validate-handover-missing; tests validate-handover-no-customer; tests validate-handover-valid |
+| SA-73 | NEED-5 | enums DocumentTarget; enums Rule; commands document; decisions ADR-129; decisions ADR-136; decisions ADR-137; decisions ADR-172 | tests document-handover-links-without-infrastructure; tests document-handover-none; tests document-writes-handover; tests validate-build-task-unknown; tests validate-handover-build-missing; tests validate-handover-incomplete; tests validate-handover-missing; tests validate-handover-no-customer; tests validate-handover-source-deprecated; tests validate-handover-source-missing; tests validate-handover-source-twice; tests validate-handover-valid |
 | SA-74 | NEED-3, NEED-7 | commands model; decisions ADR-138; decisions ADR-174; decisions ADR-175; decisions ADR-176 | tests model-exit-2; tests model-float-underscores; tests model-integer-forms; tests model-lists-via-and-through; tests model-scalar-forms; tests model-usage-error; tests model-writes-json |
 | SA-75 | NEED-1, NEED-3, NEED-9 | decisions ADR-141 | tests document-techspec-gateway; tests document-testplan-gateway; tests generate-openapi-gateway; tests validate-gateway; tests validate-gateway-estate-wrong; tests validate-gateway-wrong |
 | SA-76 | NEED-8 | commands check; commands extract; decisions ADR-142 | tests check-gateway-forward-moved; tests check-gateway-forward-removed; tests extract-gateway; tests extract-gateway-value-twice; tests merge-gateway-catch-all-kept; tests merge-gateway-fallback; tests merge-gateway-fallback-across-trees; tests merge-gateway-two-trees |
@@ -108,7 +108,7 @@ Version 0.7.6-dev of the specification: 10 needs, 94 requirements, and 1 gap. Ea
 | SA-79 | NEED-8 | decisions ADR-143 | tests extract-go-routes-constants; tests extract-go-routes-fallbacks |
 | SA-80 | NEED-2 | decisions ADR-152 | tests generate-ui-view; tests generate-ui-view-refused |
 | SA-81 | NEED-2 | decisions ADR-153 | tests generate-ui-form; tests generate-ui-form-refused |
-| SA-82 | NEED-1, NEED-2, NEED-3 | enums Rule | tests derive-0-3-rows; tests generate-go-dxlib-rows; tests generate-go-dxlib-rows-warned; tests generate-sql-0-3-rows; tests generate-sql-0-3-rows-changed; tests generate-sql-0-3-rows-mariadb; tests validate-0-3-caller-property; tests validate-0-3-meta-model-0-2; tests validate-0-3-reserved-name; tests validate-0-3-rows; tests validate-0-3-rows-valid |
+| SA-82 | NEED-1, NEED-2, NEED-3 | enums Rule | tests derive-0-3-rows; tests generate-go-dxlib-rows; tests generate-go-dxlib-rows-warned; tests generate-sql-0-3-rows; tests generate-sql-0-3-rows-changed; tests generate-sql-0-3-rows-mariadb; tests validate-0-3-caller-property; tests validate-0-3-meta-model-0-2; tests validate-0-3-reserved-name; tests validate-0-3-rows; tests validate-0-3-rows-valid; tests validate-row-policies; tests validate-row-policies-valid |
 | SA-83 | NEED-1, NEED-2, NEED-3 | enums Rule; decisions ADR-171 | tests derive-0-3-clients; tests derive-caller-estate; tests document-techspec-0-3-clients; tests validate-0-3-callers; tests validate-0-3-clients; tests validate-0-3-clients-valid; tests validate-0-3-nobody; tests validate-0-3-through; tests validate-caller-identity-cases |
 | SA-84 | NEED-1, NEED-2, NEED-3 | enums Rule | tests derive-0-3-tokens; tests document-techspec-0-3-tokens; tests generate-openapi-0-3-tokens; tests validate-0-3-claims; tests validate-0-3-security-events; tests validate-0-3-token-audience; tests validate-0-3-tokens; tests validate-0-3-tokens-valid; tests validate-0-3-txn-token; tests validate-0-3-via |
 | SA-85 | NEED-8 | commands decide; decisions ADR-155; decisions ADR-156 | tests decide-needs-source; tests decide-removes-questions-file; tests decide-unknown-question; tests decide-unknown-source; tests decide-unknown-stakeholder; tests decide-usage-error; tests decide-writes-decision; tests document-problems-lists |
@@ -121,6 +121,7 @@ Version 0.7.6-dev of the specification: 10 needs, 94 requirements, and 1 gap. Ea
 | SA-92 | NEED-2 | decisions ADR-181 | tests generate-ui-content; tests generate-ui-content-refused; tests generate-ui-swiftui-content; tests generate-ui-typescript-content |
 | SA-93 | NEED-2 | enums Rule; decisions ADR-182 | tests derive-sign-in-oidc; tests document-techspec-sign-in-oidc; tests generate-go-dxlib-sign-in-oidc; tests generate-ui-sign-in-oidc; tests generate-ui-sign-in-oidc-dxlib; tests generate-ui-swiftui-sign-in-oidc; tests generate-ui-typescript-sign-in-oidc; tests validate-sign-in-oidc; tests validate-sign-in-oidc-deployment; tests validate-sign-in-oidc-refused |
 | SA-94 | NEED-2 | decisions ADR-183 | tests document-manual-custom; tests document-techspec-custom; tests generate-ui-custom; tests generate-ui-custom-check; tests generate-ui-swiftui-custom; tests generate-ui-typescript-custom |
+| SA-95 | NEED-1, NEED-7 | decisions ADR-186 | tests validate-handover-source-deprecated; tests validate-handover-source-missing; tests validate-handover-source-twice; tests validate-meta-model-1-0-0; tests validate-meta-model-1-0-patch; tests validate-meta-model-deprecated; tests validate-meta-model-later; tests validate-meta-model-short; tests validate-row-policies; tests validate-row-policies-valid; tests validate-schema-conditionals; tests validate-schema-conditionals-0-3 |
 
 ## 3. Gaps
 

@@ -10,9 +10,19 @@ extension Design {
     /// The version the root file says.
     var metaModelVersion: String { str(root.child("specarch")) }
 
+    /// The version the file is read as: its own, or 1.0.0 for a version
+    /// line this program does not read.
+    var reads: String { MetaModelFormat.design.reads(metaModelVersion) }
+
     /// Whether the file is written against a version that reserves the
     /// name caller: 0.3 and later.
-    var reservesCaller: Bool { metaModelVersion != "0.1" && metaModelVersion != "0.2" }
+    var reservesCaller: Bool { metaModelAtLeast(reads, 0, 3) }
+
+    /// The key a handover gives the way the source reaches the customer
+    /// under, in the file's version: source before 1.0.0.
+    var sourceDeliveryKeyOfFile: String {
+        MetaModelFormat.design.isEarlier(metaModelVersion) ? sourceDeliveryOldKey : sourceDeliveryKey
+    }
 
     /// The caller's properties as an expression names them,
     /// caller.<property>, each typed as a field.
@@ -30,7 +40,7 @@ extension Design {
         if entity.isEmpty { return [] }
         var out: [Pair] = []
         for r in pairs(root.child("roles")) {
-            if let rule = r.value.child("rows")?.child(entity), rule.kind == .scalar {
+            if let rule = rowPolicies(r.value).node?.child(entity), rule.kind == .scalar {
                 out.append((key: r.key, value: rule))
             }
         }
@@ -103,7 +113,7 @@ extension Design {
                 let entity = e.value
                 if seen.contains(entity) { continue }
                 seen.insert(entity)
-                if let rule = roles[role]?.child("rows")?.child(entity) {
+                if let rule = rowPolicies(roles[role]).node?.child(entity) {
                     s.red("acts only on the rows of " + role + " in " + entity, frequent, "the job acts as " + role + ", whose rows of " + entity + " are " + rule.value, run, "it reads and writes only the " + entity + " records the rule holds for")
                 }
             }
@@ -156,20 +166,23 @@ extension Checker {
         }
     }
 
-    /// Checks every role's rows rules: the entity exists, the rule parses,
+    /// Checks every role's row policies, under rowPolicies or rows, the
+    /// key's spelling before 1.0.0: the entity exists, the rule parses,
     /// names only the entity's fields and the caller's properties, and
-    /// gives true or false.
+    /// gives true or false. A problem's pointer names the key the file
+    /// gives.
     func checkRoleRows(_ d: Design) {
         let callerEnv = d.callerEnv()
         for r in pairs(d.root.child("roles")) {
-            for row in pairs(r.value.child("rows")) {
+            let (key, policies) = rowPolicies(r.value)
+            for row in pairs(policies) {
                 if d.spec?.derived.contains(ObjectIdentifier(row.value)) == true {
                     continue // checked once, at the entity, by checkTenant
                 }
                 let entity = row.key.value
-                let ptr = pointer("roles", r.key.value, "rows", entity)
+                let ptr = pointer("roles", r.key.value, key, entity)
                 guard let ent = d.entities[entity] else {
-                    add(row.key, ptr, .rows, "\(entity) is not an entity of the specification, so the rule has no rows to limit\(suggest(entity, d.entities))")
+                    add(row.key, ptr, .rowPolicies, "\(entity) is not an entity of the specification, so the row policy has no rows to limit\(suggest(entity, d.entities))")
                     continue
                 }
                 let n = row.value
@@ -185,20 +198,20 @@ extension Checker {
                 let (t, errs) = checkExpr(tree, env)
                 rowsErrors(n, ptr, errs)
                 if errs.isEmpty && (t.kind != .bool || t.nullable) {
-                    addFile(fileOf(n), exprLine(n, 1), ptr, .rows, "the rule gives \(t), but a rows rule must give true or false for each record; compare the values with ==, <, > or similar")
+                    addFile(fileOf(n), exprLine(n, 1), ptr, .rowPolicies, "the rule gives \(t), but a row policy must give true or false for each record; compare the values with ==, <, > or similar")
                 }
             }
         }
     }
 
-    /// Reports a rows rule's expression errors: a name that is neither the
-    /// entity's nor the caller's is the rows rule, a property the caller
+    /// Reports a row policy's expression errors: a name that is neither the
+    /// entity's nor the caller's is row_policies, a property the caller
     /// lacks is caller_property, and the rest are the expression rules.
     func rowsErrors(_ n: YNode, _ ptr: String, _ errs: [ExprError]) {
         let before = diags.count
-        exprErrors(n, ptr, "the rows rule", errs)
+        exprErrors(n, ptr, "the row policy", errs)
         for i in before..<diags.count where diags[i].rule == .expressionName {
-            diags[i].rule = .rows
+            diags[i].rule = .rowPolicies
         }
     }
 

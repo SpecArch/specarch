@@ -3,18 +3,19 @@ package spec
 import (
 	"go.yaml.in/yaml/v3"
 
+	"github.com/SpecArch/specarch/internal/metamodel"
 	"github.com/SpecArch/specarch/internal/source"
 )
 
 // The tenant scope (ADR-179): tenant names the caller's property, the key
 // every tenant-owned entity carries and the entities every tenant reads
 // whole. The document as read holds the rule <key> == caller.<property>
-// under every role's rows for every entity that carries the key and is not
+// under every role's row policies for every entity that carries the key and is not
 // shared, unless the role writes its own rule for it; each added node sits
 // at the position of tenant. The file keeps the shorthand, and the
 // validator checks the scope at tenant and at the entities.
 
-// tenantRules adds the rows rules the tenant scope derives to the merged
+// tenantRules adds the row policies the tenant scope derives to the merged
 // document and returns the value node of each, so that a check reports a
 // problem of a derived rule once, at the entity, and not at a rule nobody
 // wrote. A scope with no property or no key derives nothing; the schema
@@ -52,7 +53,7 @@ func tenantRules(s *Spec, merged *yaml.Node) map[*yaml.Node]bool {
 		if r.Value.Kind != yaml.MappingNode {
 			continue // the schema reports it
 		}
-		rows := rowsOf(s, r.Value, node)
+		rows := rowsOf(s, r.Value, node, policiesKey(merged))
 		if rows == nil {
 			continue
 		}
@@ -68,13 +69,25 @@ func tenantRules(s *Spec, merged *yaml.Node) map[*yaml.Node]bool {
 	return derived
 }
 
-// rowsOf is a role's rows mapping, added when the role has none; one
-// shared through an alias is copied, so that a rule derived for one role
-// is not added to another. A rows that is no mapping is nil; the schema
-// reports it.
-func rowsOf(s *Spec, role *yaml.Node, node func(yaml.Kind, string, string) *yaml.Node) *yaml.Node {
+// policiesKey is the key a role's row policies are added under in the
+// file's version: rows before 1.0.0, whose schema has no rowPolicies.
+func policiesKey(merged *yaml.Node) string {
+	if metamodel.Design.IsEarlier(source.Str(source.Child(merged, "specarch"))) {
+		return metamodel.RowPoliciesOldKey
+	}
+	return metamodel.RowPoliciesKey
+}
+
+// rowsOf is a role's row policies, under the key the role gives them or,
+// when it gives none, under key, added; one shared through an alias is
+// copied, so that a rule derived for one role is not added to another.
+// Policies that are no mapping are nil; the schema reports it.
+func rowsOf(s *Spec, role *yaml.Node, node func(yaml.Kind, string, string) *yaml.Node, key string) *yaml.Node {
+	if given, _ := metamodel.RowPolicies(role); source.Child(role, given) != nil {
+		key = given
+	}
 	for i := 0; i+1 < len(role.Content); i += 2 {
-		if role.Content[i].Value != "rows" {
+		if role.Content[i].Value != key {
 			continue
 		}
 		rows := source.Deref(role.Content[i+1])
@@ -91,6 +104,6 @@ func rowsOf(s *Spec, role *yaml.Node, node func(yaml.Kind, string, string) *yaml
 		return rows
 	}
 	rows := node(yaml.MappingNode, "!!map", "")
-	role.Content = append(role.Content, node(yaml.ScalarNode, "!!str", "rows"), rows)
+	role.Content = append(role.Content, node(yaml.ScalarNode, "!!str", key), rows)
 	return rows
 }

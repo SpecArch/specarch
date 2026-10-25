@@ -30,7 +30,7 @@ func TestRowsCondition(t *testing.T) {
 				"organisationId": map[string]any{"type": "string"},
 			}},
 			"roles": map[string]any{
-				"member": map[string]any{"rows": map[string]any{"Loan": c.rule}},
+				"member": map[string]any{"rowPolicies": map[string]any{"Loan": c.rule}},
 				"admin":  map[string]any{},
 			},
 		}, entities: map[string]any{"Loan": map[string]any{"properties": map[string]any{

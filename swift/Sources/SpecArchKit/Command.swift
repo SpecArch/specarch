@@ -51,7 +51,7 @@ public func run(_ args: [String], stdout: TextSink, stderr: TextSink) -> Int32 {
             return 2
         }
         stdout.write("specarch \(programVersion)\n")
-        stdout.write("specifications: \(metaModelVersions(designSchemaJSON, "specarch"))\n")
+        stdout.write("specifications: meta-model \(MetaModelFormat.design.reading)\n")
         stdout.write("implementation files: \(metaModelVersions(implementationSchemaJSON, "specarchImplementation"))\n")
         return 0
     case "document", "generate", "gaps", "decide", "approve", "extract", "merge", "diff", "derive", "idioms", "check":

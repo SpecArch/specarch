@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "the specification of validate-schema-conditionals saying specarch 0.3"
+when: validate is run
+then: "it reports what the 0.3 schema reports, each missing key beside the keys its conditional asks for, and exits 1"
+verifies: [SA-1, SA-95]

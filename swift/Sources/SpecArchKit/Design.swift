@@ -269,6 +269,7 @@ extension Checker {
         checkSeparationOfDuties(d)
         checkExpressions(d)
         checkMetaModelVersion(d)
+        checkDeprecated(d)
         checkTests(d)
         checkTestData(d)
         checkDeploymentStage(d)
@@ -449,7 +450,7 @@ extension Checker {
             let runBy = child(d.environments[name], "runBy")
             let ptr = pointer("environments", name, "runBy")
             if handover == nil && !d.mustBlocked("handover") {
-                add(runBy, ptr, .handover, "\(name) is run by the customer, and the specification has no handover saying what they receive; add handover with description, to, source and responsibilities")
+                add(runBy, ptr, .handover, "\(name) is run by the customer, and the specification has no handover saying what they receive; add handover with description, to, \(d.sourceDeliveryKeyOfFile) and responsibilities")
             }
             for proc in ["release", "rollback"] where d.root.child(proc) == nil && !d.mustBlocked(proc) {
                 add(runBy, ptr, .handover, "\(name) is run by the customer from the \(proc) steps, and the specification has none; add \(proc) with its steps")

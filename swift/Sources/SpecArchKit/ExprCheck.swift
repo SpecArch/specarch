@@ -119,7 +119,7 @@ private final class TypeChecker {
         let props = env.keys.filter { $0.hasPrefix(prefix) }.map { String($0.dropFirst(prefix.count)) }.sorted(by: byteLess)
         let prop = String(n.text.dropFirst(prefix.count))
         if props.isEmpty {
-            return fail(n, .callerProperty, "\(n.text) names the caller, which only a role's rows rule may name; write the rule under roles.<role>.rows")
+            return fail(n, .callerProperty, "\(n.text) names the caller, which only a role's row policy may name; write the rule under the role's rowPolicies (rows in a file on meta-model 0.3 or earlier)")
         }
         if let p = props.first(where: { $0.lowercased() == prop.lowercased() }) {
             return fail(n, .callerProperty, "\(n.text) is not a property of the caller; did you mean caller.\(p)?")

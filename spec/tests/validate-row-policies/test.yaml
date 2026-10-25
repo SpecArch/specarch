@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "the roles of validate-0-3-rows on 1.0.0 under rowPolicies"
+when: validate is run
+then: "it reports the same three problems under row_policies, each pointing at rowPolicies, and exits 1"
+verifies: [SA-82, SA-95]

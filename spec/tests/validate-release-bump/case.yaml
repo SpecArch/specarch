@@ -1,6 +1,6 @@
 arguments: [validate, project]
 exitStatus: 1
 standardOutput: |
-  project/specarch.yaml:1:11: warning: /specarch: meta_model_version: the specification is written against meta-model 0.1, which is read until 1.0, and its missing tests are warnings; run specarch derive to write the tests 0.2 asks for, then change the line to specarch: "0.3" once nothing an expression can name is called caller [meta_model_version@specarch.yaml#/specarch]
+  project/specarch.yaml:1:11: warning: /specarch: meta_model_version: the specification is written against meta-model 0.1, an earlier version read beside 1.0.0 with this warning, and its missing tests are warnings; run specarch derive to write the tests 0.2 and later ask for, then run specarch upgrade --dry-run on the specification to see what moving it to 1.0.0 changes, and specarch upgrade to move it [meta_model_version@specarch.yaml#/specarch]
   records/releases/0.1.1.yaml:3:10: error: /version: release_bump: 0.1.1 includes CR-1, whose impact is major, so it needs a minor step from 0.1.0; release it as 0.2.0 [release_bump@../records/releases/0.1.1.yaml#/version]
   records/releases/1.0.1.yaml:3:10: error: /version: release_bump: 1.0.1 includes CR-2, whose impact is minor, so it needs a minor step from 1.0.0; release it as 1.1.0 [release_bump@../records/releases/1.0.1.yaml#/version]

@@ -1,6 +1,6 @@
 arguments: [validate, .]
 exitStatus: 1
 standardOutput: |
-  specarch.yaml:22:14: error: /roles/member/rows/Loans: rows: Loans is not an entity of the specification, so the rule has no rows to limit; did you mean Loan? [rows@specarch.yaml#/roles/member/rows/Loans]
-  specarch.yaml:27:13: error: /roles/auditor/rows/Loan: rows: the rule gives a string, but a rows rule must give true or false for each record; compare the values with ==, <, > or similar [rows@specarch.yaml#/roles/auditor/rows/Loan]
-  specarch.yaml:32:13: error: /roles/clerk/rows/Loan: rows: the rows rule: ownerId is not a name this expression can use; use one of caller.memberId, id, memberId [rows@specarch.yaml#/roles/clerk/rows/Loan]
+  specarch.yaml:22:14: error: /roles/member/rows/Loans: row_policies: Loans is not an entity of the specification, so the row policy has no rows to limit; did you mean Loan? [row_policies@specarch.yaml#/roles/member/rows/Loans]
+  specarch.yaml:27:13: error: /roles/auditor/rows/Loan: row_policies: the rule gives a string, but a row policy must give true or false for each record; compare the values with ==, <, > or similar [row_policies@specarch.yaml#/roles/auditor/rows/Loan]
+  specarch.yaml:32:13: error: /roles/clerk/rows/Loan: row_policies: the row policy: ownerId is not a name this expression can use; use one of caller.memberId, id, memberId [row_policies@specarch.yaml#/roles/clerk/rows/Loan]

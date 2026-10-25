@@ -1,0 +1,4 @@
+arguments: [validate, .]
+exitStatus: 1
+standardOutput: |
+  specarch.yaml:13:11: error: /handover/source: meta_model_deprecated: the handover gives both sourceDelivery and source, the spelling of sourceDelivery before meta-model 1.0.0; move what source holds into sourceDelivery and remove source [meta_model_deprecated@specarch.yaml#/handover/source]

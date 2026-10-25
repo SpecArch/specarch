@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "on 1.0.0, a source, a unique-or-check constraint, a parameter, a workflow step, a page and a decision each without the key its conditional rule reads (kind, in or status), and an approval step without onDeadline"
+when: validate is run
+then: "it reports each missing key once, and none of the keys its value would ask for, and exits 1"
+verifies: [SA-1, SA-95]

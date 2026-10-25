@@ -131,6 +131,7 @@ const (
 	RuleWireName               Rule = "wire_name"
 	RuleOutputFolder           Rule = "output_folder"
 	RuleMetaModelVersion       Rule = "meta_model_version"
+	RuleMetaModelDeprecated    Rule = "meta_model_deprecated"
 	RuleAudience               Rule = "audience"
 	RuleQuestionOpened         Rule = "question_opened"
 	RuleHandover               Rule = "handover"
@@ -143,7 +144,7 @@ const (
 	RuleHandshake              Rule = "handshake"
 	RuleStream                 Rule = "stream"
 	RuleCallerProperty         Rule = "caller_property"
-	RuleRows                   Rule = "rows"
+	RuleRowPolicies            Rule = "row_policies"
 	RuleTenant                 Rule = "tenant"
 	RuleReservedName           Rule = "reserved_name"
 	RuleClient                 Rule = "client"
@@ -280,6 +281,7 @@ var Rules = []Rule{
 	RuleWireName,
 	RuleOutputFolder,
 	RuleMetaModelVersion,
+	RuleMetaModelDeprecated,
 	RuleAudience,
 	RuleQuestionOpened,
 	RuleHandover,
@@ -292,7 +294,7 @@ var Rules = []Rule{
 	RuleHandshake,
 	RuleStream,
 	RuleCallerProperty,
-	RuleRows,
+	RuleRowPolicies,
 	RuleTenant,
 	RuleReservedName,
 	RuleClient,

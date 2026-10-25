@@ -1,0 +1,12 @@
+arguments: [validate, .]
+exitStatus: 1
+standardOutput: |
+  specarch.yaml:18:16: error: /tokens/access/signature: token: none is not accepted: RFC 8725 says a verifier must refuse the none algorithm, since a token with no signature is anyone's; name one of ES256, ES384, ES512, EdDSA, HS256, HS384, HS512, PS256, PS384, PS512, RS256, RS384, RS512 [token@specarch.yaml#/tokens/access/signature]
+  specarch.yaml:22:17: error: /tokens/access/claims/memberId: claim: the claim memberId fills the caller's property memberId, and their types differ (an int and a string or null); give them one type [claim@specarch.yaml#/tokens/access/claims/memberId]
+  specarch.yaml:24:35: error: /tokens/access/checks/tenant-known/expression: token: the check: tenantId is not a name this expression can use; use one of aud, memberId, sub [token@specarch.yaml#/tokens/access/checks/tenant-known/expression]
+  specarch.yaml:25:35: error: /tokens/access/checks/member-known/expression: token: the check gives an int, but a check must give true or false; compare the claims with ==, <, > or similar [token@specarch.yaml#/tokens/access/checks/member-known/expression]
+  specarch.yaml:31:16: error: /tokens/refresh/signature: token: HS1 is not a signature algorithm RFC 7518 or RFC 8037 registers; use one of ES256, ES384, ES512, EdDSA, HS256, HS384, HS512, PS256, PS384, PS512, RS256, RS384, RS512 [token@specarch.yaml#/tokens/refresh/signature]
+  specarch.yaml:34:14: error: /tokens/refresh/default: token: refresh is marked default while access is already; one token is the default every operation accepts [token@specarch.yaml#/tokens/refresh/default]
+  specarch.yaml:35:3: error: /tokens/unsigned: token: unsigned is a JWT with no signature; name an algorithm of RFC 7518 under signature, one of ES256, ES384, ES512, EdDSA, HS256, HS384, HS512, PS256, PS384, PS512, RS256, RS384, RS512 [token@specarch.yaml#/tokens/unsigned]
+  specarch.yaml:45:16: error: /tokens/reference/signature: token: reference is opaque, a reference the service looks up, and has no signature; remove signature [token@specarch.yaml#/tokens/reference/signature]
+  specarch.yaml:54:14: error: /paths/~1loans/get/token: token: acces is not a token of the specification; did you mean access? [token@specarch.yaml#/paths/~1loans/get/token]

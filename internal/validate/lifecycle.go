@@ -6,6 +6,7 @@ import (
 
 	"go.yaml.in/yaml/v3"
 
+	"github.com/SpecArch/specarch/internal/metamodel"
 	"github.com/SpecArch/specarch/internal/source"
 	"github.com/SpecArch/specarch/internal/spec"
 )
@@ -89,7 +90,7 @@ func (c *checker) checkHandover(d *design) {
 		runBy := source.Child(d.environments[name], "runBy")
 		ptr := source.Pointer("environments", name, "runBy")
 		if handover == nil && !d.mustBlocked("handover") {
-			c.add(runBy, ptr, RuleHandover, "%s is run by the customer, and the specification has no handover saying what they receive; add handover with description, to, source and responsibilities", name)
+			c.add(runBy, ptr, RuleHandover, "%s is run by the customer, and the specification has no handover saying what they receive; add handover with description, to, %s and responsibilities", name, d.sourceDeliveryKey())
 		}
 		for _, proc := range []string{"release", "rollback"} {
 			if source.Child(d.root, proc) == nil && !d.mustBlocked(proc) {
@@ -118,6 +119,15 @@ func (c *checker) checkHandover(d *design) {
 	if to := source.Child(handover, "to"); to != nil && to.Value != "" && d.stakeholders[to.Value] == nil {
 		c.add(to, "/handover/to", RuleStakeholder, "%s is not a stakeholder of the specification%s", to.Value, suggest(to.Value, d.stakeholders))
 	}
+}
+
+// sourceDeliveryKey is the key a handover gives the way the source reaches
+// the customer under, in the file's version: source before 1.0.0.
+func (d *design) sourceDeliveryKey() string {
+	if metamodel.Design.IsEarlier(d.metaModelVersion()) {
+		return metamodel.SourceDeliveryOldKey
+	}
+	return metamodel.SourceDeliveryKey
 }
 
 // anyIn reports whether any element of a section (checks or monitors) names

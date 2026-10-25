@@ -1,0 +1,78 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.3.schema.json
+decisions:
+  ADR-186:
+    title: Meta-model 1.0.0 is the first stable version of every SpecArch format, read beside every earlier version, with two keys renamed and deprecated, the schema's conditionals made to require the key they read, and specarch upgrade to move a file
+    status: accepted
+    date: "2026-10-25"
+    context: |
+      docs/meta-model-1.0.0.md planned the first stable meta-model and left
+      five questions to the owner. ADR-055 and ADR-094 read 0.1 and 0.2
+      files "until 1.0"; the decision-tracking design planned the reasons
+      of a decision as errors in a meta-model 0.4; two keys of 0.3 each
+      meant two things, rows (a role's policy per entity, and the records
+      of a relation carried in a view) and source (a declared source and
+      an operation, and on the handover how the source code reaches the
+      customer); and six conditionals of the design schema read a key in
+      their if without requiring it, so an object missing the key was
+      also told of every key its value would have asked for. The owner
+      answered on 2026-10-25: every file kind goes to 1.0.0; every earlier
+      version stays read, none dropped; a missing reason stays a warning;
+      both renames, the old keys deprecated and still read; the verb is
+      upgrade.
+    decision: |
+      A specification's root file says specarch: "1.0.0", in three parts;
+      the validator reads a version by its major and minor, so any 1.0
+      patch is read as 1.0, and checks a 1.0 file against
+      specarch-design-1.0.schema.json. A file on 0.1, 0.2 or 0.3 is
+      checked against specarch-design-0.3.schema.json and read under its
+      own version's rules beside 1.0.0, with one meta_model_version warning
+      naming specarch upgrade. A version line the program does not read,
+      a later version or one in fewer than three parts, is an error at the
+      line, and the file is read as 1.0.0. On 1.0 a role's row policies
+      are rowPolicies and the handover's sourceDelivery: the old keys stay
+      in the 1.0 schema with deprecated: true, are read as the new ones
+      with a meta_model_deprecated warning until 2.0.0, and are an error
+      beside the new key in one object; the rule rows is named
+      row_policies, for files of every version. A plug-in's request
+      carries the renamed keys under their new names whichever version
+      the file declares, and a plug-in's problem at a new key is placed
+      at the key the file gives. In the 1.0 schema each conditional of
+      source, constraint, parameter, page, workflowStep and decision also
+      requires the key its if reads. No reason of a decision is made
+      required. The 0.3 schema is kept as it was, apart from the
+      description of its version line.
+    why: |
+      A file's version line is its promise of which rules it is written
+      against (ADR-055), so the program keeps every promise it made and
+      reads each file by its own: no specification is stranded, and the
+      one warning tells its author what moves it. Three parts with the
+      patch ignored follows OpenAPI and AsyncAPI, whose tooling chooses
+      rules by the minor; a two-part 1.0 beside 1.0.0 would be two
+      spellings of one version, which the Low IQ Tax rules out. A word
+      with two meanings frozen in 1.0.0 would stay two meanings for the
+      whole 1.x, and both renames are mechanical, so they are made before
+      the freeze and the old spelling is deprecated rather than removed,
+      as the deprecation rule of docs/meta-model-1.0.0.md says, after
+      JSON Schema's own deprecated annotation, which editors already
+      show. The conditionals are fixed in the schema 1.0.0 freezes because
+      after it a patch may not change them; each fix is proven to accept
+      and refuse every object the 0.3 rule did
+      (TestConditionalsAcceptWhatTheyDid), so only the messages change. A
+      missing reason is an incomplete specification, which the problems
+      file shows and which is read like any other; an error would make
+      every file without one invalid at once.
+      Compiler test: a file on any version, or on a version line the
+      program does not read, is still read and every other problem in it
+      listed, and a deprecated key is read as its replacement and marked
+      at the key; acceptance test: a 0.3 file's output is unchanged apart
+      from its warning, and specarch upgrade moves it to 1.0.0 with
+      nothing for its author to rewrite by hand unless a step needs one.
+    consequences: |
+      Every existing specification keeps validating as before, with one
+      warning at its version line. A tree moves to 1.0.0 by specarch
+      upgrade, which rewrites the version line, the $schema lines and the
+      renamed keys. A program reading the design schema finds two schema
+      files, one per minor, and the fragment schemas of each. A 1.x may
+      only add; a rule that would make a valid 1.0 file invalid waits for
+      2.0.0 or is a warning.
+    satisfies: [SA-1, SA-95]

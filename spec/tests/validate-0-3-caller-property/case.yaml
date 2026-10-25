@@ -2,6 +2,6 @@ arguments: [validate, .]
 exitStatus: 1
 standardOutput: |
   specarch.yaml:14:29: error: /entities/Loan/constraints/loan_member_known/expression: caller_property: the check: field access with . is only for the caller's properties, written caller.<property>; name a field directly [caller_property@specarch.yaml#/entities/Loan/constraints/loan_member_known/expression]
-  specarch.yaml:18:33: error: /entities/Loan/constraints/loan_own_member/expression: caller_property: the check: caller.memberId names the caller, which only a role's rows rule may name; write the rule under roles.<role>.rows [caller_property@specarch.yaml#/entities/Loan/constraints/loan_own_member/expression]
-  specarch.yaml:31:25: error: /roles/member/rows/Loan: caller_property: the rows rule: caller.memberid is not a property of the caller; did you mean caller.memberId? [caller_property@specarch.yaml#/roles/member/rows/Loan]
-  specarch.yaml:36:25: error: /roles/tenant/rows/Loan: caller_property: the rows rule: caller.organisationId is not a property of the caller; its properties are memberId [caller_property@specarch.yaml#/roles/tenant/rows/Loan]
+  specarch.yaml:18:33: error: /entities/Loan/constraints/loan_own_member/expression: caller_property: the check: caller.memberId names the caller, which only a role's row policy may name; write the rule under the role's rowPolicies (rows in a file on meta-model 0.3 or earlier) [caller_property@specarch.yaml#/entities/Loan/constraints/loan_own_member/expression]
+  specarch.yaml:31:25: error: /roles/member/rows/Loan: caller_property: the row policy: caller.memberid is not a property of the caller; did you mean caller.memberId? [caller_property@specarch.yaml#/roles/member/rows/Loan]
+  specarch.yaml:36:25: error: /roles/tenant/rows/Loan: caller_property: the row policy: caller.organisationId is not a property of the caller; its properties are memberId [caller_property@specarch.yaml#/roles/tenant/rows/Loan]

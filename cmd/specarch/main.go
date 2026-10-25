@@ -22,6 +22,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/SpecArch/specarch/internal/metamodel"
 	"github.com/SpecArch/specarch/internal/spec"
 	"github.com/SpecArch/specarch/internal/validate"
 	"github.com/SpecArch/specarch/schema"
@@ -128,7 +129,7 @@ func run(args []string, stdout, stderr io.Writer) int {
 
 func runVersion(stdout io.Writer) int {
 	fmt.Fprintf(stdout, "specarch %s\n", version)
-	fmt.Fprintf(stdout, "specifications: %s\n", metaModelVersions(schema.Definition, "specarch"))
+	fmt.Fprintf(stdout, "specifications: meta-model %s\n", metamodel.Design.Reading())
 	fmt.Fprintf(stdout, "implementation files: %s\n", metaModelVersions(schema.Implementation, "specarchImplementation"))
 	return 0
 }

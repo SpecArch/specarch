@@ -1,0 +1,4 @@
+arguments: [validate, .]
+exitStatus: 0
+standardOutput: |
+  specarch.yaml:13:11: warning: /handover/source: meta_model_deprecated: source is the spelling of sourceDelivery before meta-model 1.0.0, deprecated and read as sourceDelivery until 2.0.0; run specarch upgrade on the specification, or rename it to sourceDelivery here [meta_model_deprecated@specarch.yaml#/handover/source]

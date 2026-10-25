@@ -1,0 +1,31 @@
+specarch: "1.0"
+info: { title: Case, version: 1.0.0 }
+permissions:
+  loans.read: { description: See loans. }
+roles:
+  member:
+    description: A card holder.
+    permissions: [loans.read]
+tokens:
+  access:
+    description: An access token whose exp is retyped and whose own claim has an underscore.
+    format: jwt
+    lifetime: PT15M
+    signature: ES256
+    claims:
+      sub: { description: The person. }
+      aud: { enum: ["https://loans.example.org", "urn:example:loans", "not a uri: at all"] }
+      exp: { type: string, description: "When it expires, as text." }
+      member_id: { type: string, format: uuid, description: "The member, in snake case." }
+    default: true
+paths:
+  /loans:
+    get:
+      operationId: listLoans
+      summary: List loans
+      permission: loans.read
+      responses:
+        "200": { description: The loans. }
+tests:
+  list-loans-succeeds: { operation: listLoans, level: system, scenario: golden, given: a caller with loans.read, when: listLoans is called, then: it answers 200 }
+  list-loans-denied: { operation: listLoans, level: system, scenario: red, covers: [denied without loans.read, denied with expired access], given: a caller without loans.read, when: listLoans is called, then: it is refused }

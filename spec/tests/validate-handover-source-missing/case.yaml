@@ -1,0 +1,4 @@
+arguments: [validate, .]
+exitStatus: 1
+standardOutput: |
+  specarch.yaml:11:3: error: /handover: schema: sourceDelivery is missing; add it here [schema@specarch.yaml#/handover]

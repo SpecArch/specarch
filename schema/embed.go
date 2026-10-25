@@ -4,10 +4,17 @@ package schema
 
 import _ "embed"
 
-// Definition is the schema of a SpecArch Definition File.
+// Definition is the schema of a SpecArch Definition File on meta-model
+// 1.0.
+//
+//go:embed specarch-design-1.0.schema.json
+var Definition []byte
+
+// DefinitionEarlier is the schema of a Definition File on an earlier
+// meta-model, 0.1, 0.2 or 0.3, read beside 1.0 with a warning.
 //
 //go:embed specarch-design-0.3.schema.json
-var Definition []byte
+var DefinitionEarlier []byte
 
 // Implementation is the schema of a SpecArch Implementation File.
 //

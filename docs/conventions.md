@@ -61,7 +61,7 @@ file's pointers use.
 
 The first line of the root file is the editor hint:
 
-    # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v0.7.5/schema/specarch-design-0.3.schema.json
+    # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v0.7.5/schema/specarch-design-1.0.schema.json
 
 For an implementation file:
 
@@ -77,16 +77,19 @@ folder, which holds only some of its sections, has a schema of its own:
 
 | File | Its schema |
 |---|---|
-| a file under `requirements/`, `design/`, `deployment/`, `commissioning/` or `operation/` | `specarch-fragment-<stage>-0.3.schema.json`, that stage's sections and `questions` |
-| `tests/<name>/test.yaml` | `specarch-fragment-test-0.3.schema.json`, one test |
-| a file directly under `tests/` or `implementation/` | `specarch-fragment-questions-0.3.schema.json`, only `questions` |
+| a file under `requirements/`, `design/`, `deployment/`, `commissioning/` or `operation/` | `specarch-fragment-<stage>-1.0.schema.json`, that stage's sections and `questions` |
+| `tests/<name>/test.yaml` | `specarch-fragment-test-1.0.schema.json`, one test |
+| a file directly under `tests/` or `implementation/` | `specarch-fragment-questions-1.0.schema.json`, only `questions` |
+
+A tree on an earlier meta-model names the `-0.3` schema of each kind,
+written from `specarch-design-0.3.schema.json`.
 
 A fragment's hint names the same commit or tag as the root file's, here
 for a file under `design/entities/`:
 
-    # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/<commit or tag>/schema/specarch-fragment-design-0.3.schema.json
+    # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/<commit or tag>/schema/specarch-fragment-design-1.0.schema.json
 
-Each is written from the design schema by `tools/fragment-schemas`, which
+Each is written from its design schema by `tools/fragment-schemas`, which
 copies the stage's sections and the definitions they reach, so a keyword
 is defined once; `go test ./...` fails when the design schema changes and
 they were not written again (`go run ./tools/fragment-schemas`). One file
@@ -98,12 +101,59 @@ editor checks each file as it is written; `specarch validate` checks the
 whole tree.
 
 The specifications in this repository name the schemas by a path relative
-to the file (`../../../schema/specarch-fragment-design-0.3.schema.json`),
+to the file (`../../../schema/specarch-fragment-design-1.0.schema.json`),
 because they are written against the schemas beside them rather than a
 released tag; `go run ./tools/fragment-schemas` writes those lines too.
 
+### Meta-model versions
+
+The root file's `specarch` line names the meta-model version the
+specification is written against, in three parts, `major.minor.patch`,
+after OpenAPI's `openapi: 3.1.0` and AsyncAPI's `asyncapi: 3.0.0`:
+`specarch: "1.0.0"`. A version is read by its major and minor, and the
+patch is not looked at, since no patch changes what is valid or what a
+file means: `"1.0.4"` is read as 1.0. `"1.0"` is refused, since two
+spellings of one version are two ways to say one thing; there is one
+design schema per major and minor, `specarch-design-1.0.schema.json`, as
+OpenAPI publishes one schema per minor.
+
+From 1.0.0 the meta-model follows Semantic Versioning 2.0.0, read for a
+file format (`docs/meta-model-1.0.0.md`): a file valid on 1.0.0 stays
+valid and means the same on every 1.x; a 1.x minor only adds, a key a file
+may leave out, a value, a derived case, a warning; a patch makes no valid
+file invalid. A rule that would make a valid file invalid waits for 2.0.0,
+or is written as a warning in a 1.x, even where the schema accepts what
+this document rules out.
+
+A file on an earlier meta-model, `"0.1"`, `"0.2"` or `"0.3"`, is checked
+against `specarch-design-0.3.schema.json` and read under its own version's
+rules beside 1.0.0, with one warning at the line (`meta_model_version`)
+naming `specarch upgrade`, which moves it (ADR-186). A version line the
+program does not read, a later version or one written in fewer than three
+parts, is an error at the line; the file is then read as 1.0.0, so every
+other problem in it is still listed.
+
+A key that a version renames is deprecated, not removed: its schema marks
+it with JSON Schema's `deprecated: true`, which editors show struck
+through; the validator reads it as its replacement and warns at each use
+(`meta_model_deprecated`); a key given under both spellings in one object
+is an error; and only the next major version removes it. Meta-model 1.0.0
+renamed two keys, each a word that meant two things:
+
+| Before 1.0.0 | From 1.0.0 | Why |
+|---|---|---|
+| `rows` on a role | `rowPolicies` | `rows` on a view's property is the records of a one-to-many relation; the role's is one policy per entity, after PostgreSQL's row security policies |
+| `source` on the handover | `sourceDelivery` | `source` is a declared source on a citation and an operation on a page or a picker; the handover's is how the source code reaches the customer |
+
+A file on 0.3 or earlier keeps the old spelling, which its own schema
+knows. A plug-in reads one shape, the newest: the request carries every
+renamed key under its new name, whichever version the file declares, and a
+problem a plug-in reports at the new key is placed at the key the file
+gives.
+
 Pin the schema version a project is written against. A project moves to a
-new meta-model version on purpose, in its own change.
+new meta-model version on purpose, in its own change, with `specarch
+upgrade`.
 
 ## Design and implementation
 
@@ -530,7 +580,7 @@ type-rendering row `ck_<table>_<column>`, a foreign key
 `fk_<table>_<column>`, and a declared unique or check constraint keeps its
 own name. A plain index under a mapping's `indexes` is
 `ix_<table>_<column>_<column>`, its columns in its order, unless it names
-its own. A row security policy of a role's `rows` rule is
+its own. A row security policy of a role's row policy (`rowPolicies`) is
 `rls_<table>_<role>`, the role's hyphens as underscores, and applies to
 the database role the mapping of `#/roles/<name>` gives, or the role's
 name with underscores. Identifiers are written unquoted and in lower case.
@@ -629,8 +679,8 @@ redefined.
 | `auth_time`, `acr`, `amr`, `azp` | OpenID Connect Core | registered claims |
 | `req_wl`, `rctx`, `tctx` | the OAuth Transaction Tokens draft | its claims, pending registration |
 | `securityEvents`, `store`, `alarm` | SpecArch, after RFC 8417 and OWASP ASVS 5.0 V16 | where every refusal's security event goes (ADR-109) |
-| `rows` (of a role) | SpecArch, after PostgreSQL's `CREATE POLICY ... USING (...)` | the rows a role reaches in an entity, one bool expression per entity, permissive across roles as the policies are; ISO SQL has no row security, so the one engine that models it names it (ADR-095) |
-| `tenant`, `property`, `key`, `shared` | SpecArch | the tenant scope said once: the caller's property, the field every tenant-owned entity carries and the entities every tenant reads whole, from which every role's rows rule over those entities is derived; no standard names a tenant scope, and PostgreSQL's policies are still written one per role and table, which is what the derived rules become (ADR-179) |
+| `rowPolicies` (of a role; `rows` before 1.0.0) | SpecArch, after PostgreSQL's `CREATE POLICY ... USING (...)` | the rows a role reaches in an entity, one bool expression per entity, permissive across roles as the policies are; ISO SQL has no row security, so the one engine that models it names it (ADR-095, ADR-186) |
+| `tenant`, `property`, `key`, `shared` | SpecArch | the tenant scope said once: the caller's property, the field every tenant-owned entity carries and the entities every tenant reads whole, from which every role's row policy over those entities is derived; no standard names a tenant scope, and PostgreSQL's policies are still written one per role and table, which is what the derived rules become (ADR-179) |
 | `separationOfDuties`, `cardinality` | ANSI INCITS 359 (RBAC), static separation of duty | a set and a number no holder may reach; stated over permissions, not roles, because the specification declares the duties and the roles that grant them |
 | `session`, `idleTimeout`, `absoluteTimeout` | SpecArch, after the OWASP Session Management Cheat Sheet | how a signed-in session ends; the two timeouts are the cheat sheet's |
 | `signIn`, `provider`, `client`, `flow`, `pkce`, `callback`, `identityToken`, `logout`, `backChannel` | SpecArch, after OpenID Connect Core 1.0, RFC 6749, RFC 7636 and OpenID Connect Back-Channel Logout 1.0 | how a person signs in at an identity provider: the authorisation code flow with PKCE, the callback of this system, the identity token and the provider's back-channel logout (ADR-182) |
@@ -681,7 +731,7 @@ redefined.
 | `opens` (of a decision) | SpecArch | the questions a decision raised, by ID, the open half of an answer given in part; each is open or answered by a later decision (ADR-120) |
 | `tests`, `scenario`, `level`, `given`, `when`, `then`, `covers`, `notApplicable` | SpecArch, after ISO/IEC/IEEE 29119 and Gherkin | design tests; the levels are 29119-1's; given, when and then are the Gherkin words, without Gherkin's file format |
 | `environments`, `promotesTo`, `configuration`, `secret`, `release`, `rollback`, `migrations`, `steps`, `action`, `check` | SpecArch, after ISO/IEC/IEEE 12207 6.4.10 | the deployment stage: the transition process, written as environments, settings and steps |
-| `runBy`, `handover`, `to`, `source` (of a handover), `responsibilities` | SpecArch, after ISO/IEC/IEEE 12207 6.1.1 and 6.1.2 | who runs an environment, the vendor or the customer (12207's supplier and acquirer), and what a customer who runs one receives (ADR-129) |
+| `runBy`, `handover`, `to`, `sourceDelivery` (of a handover; `source` before 1.0.0), `responsibilities` | SpecArch, after ISO/IEC/IEEE 12207 6.1.1 and 6.1.2 | who runs an environment, the vendor or the customer (12207's supplier and acquirer), and what a customer who runs one receives (ADR-129) |
 | `checks`, `signoff`, `criteria`, `signers` | SpecArch, after ISO/IEC/IEEE 12207 6.4.11 and IEC 62381 | the commissioning stage: validation on the installed system, the site acceptance test |
 | `monitors`, `objective`, `response` | SpecArch, after ISO/IEC/IEEE 12207 6.4.12 | the operation stage: what is watched on the live system, and the steps the operator takes when the objective is missed (ADR-160) |
 | `backup`, `restore` | SpecArch, after ISO/IEC/IEEE 12207 6.4.12 | the operation stage: how the live system's data is saved and put back, as procedures (ADR-129) |
@@ -758,7 +808,7 @@ techspec's matrix marks an implied one with the permission it comes through.
 An undeclared name, `public` on either side and a cycle are refused
 (`implies`).
 
-### The caller and the rows a role reaches
+### The caller and the row policies of a role
 
 A specification may declare the caller: who is making the call, as the
 service knows it once the session or token has been checked, as one record
@@ -769,22 +819,23 @@ with the properties of a value object (ADR-095):
       properties:
         memberId: { type: [string, "null"], format: uuid, description: The member signed in; null for staff. }
 
-A role may then limit the rows it reaches in an entity, with one expression
-per entity over that entity's fields and the caller's properties, written
-`caller.<property>`, giving true or false in the subset of Expressions
-below:
+A role may then limit the rows it reaches in an entity with a row policy,
+one expression per entity under `rowPolicies` over that entity's fields and
+the caller's properties, written `caller.<property>`, giving true or false
+in the subset of Expressions below; a file on 0.3 or earlier writes the
+key `rows`:
 
     roles:
       member:
         description: A card holder.
         permissions: [catalogue.read, loans.read]
-        rows:
+        rowPolicies:
           Loan: memberId == caller.memberId
 
 A holder of the role reads and changes only the records the rule holds for;
 an entity not listed is reached whole; a caller holding several roles
 reaches the union of their rows, after PostgreSQL's permissive row security
-policies, which are the model. A rows rule grants nothing: the permission a
+policies, which are the model. A row policy grants nothing: the permission a
 holder needs is still the role's. A property the caller may lack allows
 null, and a comparison with it is false when it is null, so a rule written
 `memberId == caller.memberId` reaches no row for a caller with no member
@@ -803,8 +854,8 @@ rows of <role> is refused`), and a job acting as the role gets `acts only
 on the rows of <role> in <entity>`. The validator refuses a rule keyed by a
 name that is not an entity, one that does not give true or false, and one
 naming what is neither the entity's field nor the caller's property
-(`rows`); a dot anywhere but in `caller.<property>`, a property the caller
-does not declare, and the caller named outside a rows rule
+(`row_policies`); a dot anywhere but in `caller.<property>`, a property the
+caller does not declare, and the caller named outside a row policy
 (`caller_property`). The name `caller` is reserved wherever an expression's
 names come from: a field, a schema's or a view's property or an algorithm's
 input of that name is refused in a file on 0.3 (`reserved_name`), and read
@@ -825,7 +876,7 @@ tenant:
 
 The document as read holds, for every role and every entity with a field
 named `key` that `shared` does not list, the rule
-`<key> == caller.<property>` under the role's `rows`, at the position of
+`<key> == caller.<property>` under the role's `rowPolicies`, at the position of
 `tenant`; `specarch model`, the derived cases, the documents and every
 generator read it as if written. A rule the role writes for that entity
 stands in its place, alone: an organisation's own record, whose identifier
@@ -906,7 +957,7 @@ still calling it gets the problem the design declares rather than a 404
 that looks like a wrong path.
 
 A role may narrow a grant to the clients it holds through, keyed by
-permission beside `rows`:
+permission beside `rowPolicies`:
 
     roles:
       invoice-manager:
@@ -2248,8 +2299,8 @@ none; money needs one.
 | string | `"open"`, `'open'` | text, in double or single quotes |
 | bool | `true`, `false` | |
 | `null` | `returnedAt == null` | no value; only for a field that allows null |
-| name | `dueOn` | a field of the entity (in a check or a rows rule) or an input of the algorithm (in a formula) |
-| `caller.<property>` | `memberId == caller.memberId` | a property of the caller, in a rows rule only; the one place a `.` may appear |
+| name | `dueOn` | a field of the entity (in a check or a row policy) or an input of the algorithm (in a formula) |
+| `caller.<property>` | `memberId == caller.memberId` | a property of the caller, in a row policy only; the one place a `.` may appear |
 | `( )` | `(a + b) * c` | grouping |
 | `-x` | `-discount` | negation |
 | `!x` | `!active` | not |
@@ -2478,21 +2529,19 @@ a harm, the traceability matrices have a Harm column.
 One test may cover several cases when they are one scenario (a lookup that
 answers 404 covers `not found memberId` and `response 404`). A case that
 does not apply is covered by a test with `notApplicable` and a written
-reason instead of given, when and then. In a file that says
-`specarch: "0.2"` or `"0.3"` a test `specarch derive` would write and nobody
-has is an error: a chosen case no test covers (`test_case_missing`), and a subject
+reason instead of given, when and then. In a file on 0.2 or
+later a test `specarch derive` would write and nobody has is an error: a chosen case no test covers (`test_case_missing`), and a subject
 with no golden test when the design gives its success
 (`test_golden_missing`). A subject an open must or should question holds
 up keeps a warning, since derive leaves its tests out too until the
 question is answered, and so does a subject with no red scenario and no
 derived red case (`test_red_missing`), which has no case to write. Derive
 runs past these errors, since they are what it settles, and `specarch
-extract` and `specarch merge` run it into every tree they write. A file
-that says `specarch: "0.1"` is read until 1.0: its missing tests are
-warnings, and it gets one warning at the `specarch` line
-(`meta_model_version`) until it is moved on (ADR-055); so is one that says
-`"0.2"`, whose one warning says that 0.3 reserves the name `caller`
-(ADR-094).
+extract` and `specarch merge` run it into every tree they write. In a file
+that says `specarch: "0.1"` its missing tests are warnings, and its one
+warning at the `specarch` line (`meta_model_version`) names `specarch
+derive` before `specarch upgrade` (ADR-055); one that says `"0.2"` is
+told that 0.3 and later reserve the name `caller` (ADR-094).
 
 An implementation file's suite names the design tests it runs, by name
 (`designTests`) or by subject (`designTestsOf: [{ command: validate }]`),

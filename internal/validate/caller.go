@@ -8,6 +8,7 @@ import (
 	"go.yaml.in/yaml/v3"
 
 	"github.com/SpecArch/specarch/internal/expr"
+	"github.com/SpecArch/specarch/internal/metamodel"
 	"github.com/SpecArch/specarch/internal/source"
 )
 
@@ -22,11 +23,16 @@ func (d *design) metaModelVersion() string {
 	return source.Str(source.Child(d.root, "specarch"))
 }
 
+// reads is the version the file is read as: its own, or 1.0.0 for a
+// version line this program does not read.
+func (d *design) reads() string {
+	return metamodel.Design.Reads(d.metaModelVersion())
+}
+
 // reservesCaller reports whether the file is written against a version
 // that reserves the name caller: 0.3 and later.
 func (d *design) reservesCaller() bool {
-	v := d.metaModelVersion()
-	return v != "0.1" && v != "0.2"
+	return metamodel.AtLeast(d.reads(), 0, 3)
 }
 
 // callerEnv is the caller's properties as an expression names them,
@@ -74,21 +80,23 @@ func (c *checker) checkCaller(d *design) {
 	}
 }
 
-// checkRows checks every role's rows rules: the entity exists, the rule
+// checkRoleRows checks every role's row policies, under rowPolicies or
+// rows, the key's spelling before 1.0.0: the entity exists, the rule
 // parses, names only the entity's fields and the caller's properties, and
-// gives true or false.
+// gives true or false. A problem's pointer names the key the file gives.
 func (c *checker) checkRoleRows(d *design) {
 	callerEnv := d.callerEnv()
 	for _, r := range source.Pairs(source.Child(d.root, "roles")) {
-		for _, row := range source.Pairs(source.Child(r.Value, "rows")) {
+		key, policies := metamodel.RowPolicies(r.Value)
+		for _, row := range source.Pairs(policies) {
 			if d.spec != nil && d.spec.Derived[row.Value] {
 				continue // checked once, at the entity, by checkTenant
 			}
 			entity := row.Key.Value
-			ptr := source.Pointer("roles", r.Key.Value, "rows", entity)
+			ptr := source.Pointer("roles", r.Key.Value, key, entity)
 			ent := d.entities[entity]
 			if ent == nil {
-				c.add(row.Key, ptr, RuleRows, "%s is not an entity of the specification, so the rule has no rows to limit%s", entity, suggest(entity, d.entities))
+				c.add(row.Key, ptr, RuleRowPolicies, "%s is not an entity of the specification, so the row policy has no rows to limit%s", entity, suggest(entity, d.entities))
 				continue
 			}
 			n := row.Value
@@ -110,7 +118,7 @@ func (c *checker) checkRoleRows(d *design) {
 			t, errs := expr.Check(tree, env)
 			c.rowsErrors(n, ptr, errs)
 			if len(errs) == 0 && (t.Kind != expr.Bool || t.Nullable) {
-				c.addFile(c.fileOf(n), exprLine(n, 1), ptr, RuleRows, "the rule gives %s, but a rows rule must give true or false for each record; compare the values with ==, <, > or similar", t)
+				c.addFile(c.fileOf(n), exprLine(n, 1), ptr, RuleRowPolicies, "the rule gives %s, but a row policy must give true or false for each record; compare the values with ==, <, > or similar", t)
 			}
 		}
 	}
@@ -161,14 +169,14 @@ func (c *checker) checkTenant(d *design) {
 		// none, or the one derived from the scope.
 		var open []string
 		for _, r := range roles {
-			if own := source.Child(source.Child(r.Value, "rows"), e.Key.Value); own == nil || d.spec != nil && d.spec.Derived[own] {
+			if own := source.Child(rowPoliciesOf(r.Value), e.Key.Value); own == nil || d.spec != nil && d.spec.Derived[own] {
 				open = append(open, r.Key.Value)
 			}
 		}
 		fields := fieldsOf(e.Value)
 		if fields[key] == nil {
 			if len(open) > 0 {
-				c.add(e.Key, source.Pointer("entities", e.Key.Value), RuleTenant, "%s carries no field %s and tenant.shared does not list it, so no rows rule limits it for %s and every tenant would reach every record; add %s to %s, list %s under tenant.shared if every tenant reads it whole, or write a rows rule for it on every role", e.Key.Value, key, joinAnd(open), key, e.Key.Value, e.Key.Value)
+				c.add(e.Key, source.Pointer("entities", e.Key.Value), RuleTenant, "%s carries no field %s and tenant.shared does not list it, so no row policy limits it for %s and every tenant would reach every record; add %s to %s, list %s under tenant.shared if every tenant reads it whole, or write a row policy for it on every role", e.Key.Value, key, joinAnd(open), key, e.Key.Value, e.Key.Value)
 			}
 			continue
 		}
@@ -193,15 +201,15 @@ func (c *checker) checkTenant(d *design) {
 	}
 }
 
-// rowsErrors reports a rows rule's expression errors: a name that is
-// neither the entity's nor the caller's is the rows rule, a property the
+// rowsErrors reports a row policy's expression errors: a name that is
+// neither the entity's nor the caller's is row_policies, a property the
 // caller lacks is caller_property, and the rest are the expression rules.
 func (c *checker) rowsErrors(n *yaml.Node, ptr string, errs []expr.Error) {
 	before := len(c.diags)
-	c.exprErrors(n, ptr, "the rows rule", errs)
+	c.exprErrors(n, ptr, "the row policy", errs)
 	for i := before; i < len(c.diags); i++ {
 		if c.diags[i].Rule == RuleExpressionName {
-			c.diags[i].Rule = RuleRows
+			c.diags[i].Rule = RuleRowPolicies
 		}
 	}
 }
@@ -214,7 +222,7 @@ func (d *design) rowsOf(entity string) []source.Pair {
 		return nil
 	}
 	for _, r := range source.Pairs(source.Child(d.root, "roles")) {
-		if rule := source.Child(source.Child(r.Value, "rows"), entity); rule != nil && source.IsScalar(rule) {
+		if rule := source.Child(rowPoliciesOf(r.Value), entity); rule != nil && source.IsScalar(rule) {
 			out = append(out, source.Pair{Key: r.Key, Value: rule})
 		}
 	}
@@ -322,11 +330,17 @@ func (d *design) jobRowsCases(s *subject, job *yaml.Node, run string) {
 				continue
 			}
 			seen[entity] = true
-			if rule := source.Child(source.Child(d.roles[role], "rows"), entity); rule != nil {
+			if rule := source.Child(rowPoliciesOf(d.roles[role]), entity); rule != nil {
 				s.red("acts only on the rows of "+role+" in "+entity, frequent, "the job acts as "+role+", whose rows of "+entity+" are "+rule.Value, run, "it reads and writes only the "+entity+" records the rule holds for")
 			}
 		}
 	}
+}
+
+// rowPoliciesOf is a role's row policies, under either spelling.
+func rowPoliciesOf(role *yaml.Node) *yaml.Node {
+	_, n := metamodel.RowPolicies(role)
+	return n
 }
 
 // callerProperties lists the caller's properties, sorted.

@@ -40,7 +40,7 @@ final class SchemaEvaluator: @unchecked Sendable {
     private let root: [String: Any]
 
     static let known: Set<String> = [
-        "$schema", "$id", "$ref", "$defs", "title", "description", "default", "examples",
+        "$schema", "$id", "$ref", "$defs", "title", "description", "default", "examples", "deprecated",
         "type", "properties", "additionalProperties", "patternProperties", "propertyNames",
         "required", "enum", "const", "pattern", "format", "minItems", "maxItems", "uniqueItems",
         "minLength", "maxLength", "minimum", "maximum", "exclusiveMinimum", "minProperties", "maxProperties", "items",

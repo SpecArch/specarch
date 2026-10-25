@@ -6,6 +6,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/SpecArch/specarch/internal/metamodel"
 	"github.com/SpecArch/specarch/internal/source"
 	"github.com/SpecArch/specarch/internal/spec"
 	"github.com/SpecArch/specarch/internal/validate"
@@ -32,7 +33,7 @@ func request(t *testing.T, dialect string, existing ...File) *Request {
 	content := source.ValueOf(root).(map[string]any)
 	content["targets"].(map[string]any)["sql"].(map[string]any)["dialect"] = dialect
 	data, err := json.Marshal(map[string]any{"specarch": "0.3", "target": "sql", "root": filepath.ToSlash(s.RootFile),
-		"specification": s.Value, "output": "../../examples/library-lending/migrations",
+		"specification": metamodel.Normalized(s.Value), "output": "../../examples/library-lending/migrations",
 		"implementations": []any{map[string]any{"file": impl.Path, "content": content, "idioms": idioms}},
 		"existing":        existing})
 	if err != nil {
@@ -158,7 +159,7 @@ func TestRows(t *testing.T) {
 		}
 		warned := false
 		for _, d := range resp.Diagnostics {
-			if d.Severity == "warning" && d.Path == "/roles/member/rows/Loan" && strings.Contains(d.Message, "has no row security policy") {
+			if d.Severity == "warning" && d.Path == "/roles/member/rowPolicies/Loan" && strings.Contains(d.Message, "has no row security policy") {
 				warned = true
 			}
 		}

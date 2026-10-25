@@ -6,7 +6,7 @@
   "type": "object",
   "properties": {
     "specarch": {
-      "description": "Meta-model version this file is written against. In 0.3 the name caller is reserved for the caller record wherever an expression's names come from, and, as in 0.2, a derived case no test covers is an error; a 0.1 or 0.2 file is read until 1.0, with one warning that the file is on an earlier version, and a 0.1 file's missing tests are warnings.",
+      "description": "Meta-model version this file is written against. In 0.3 the name caller is reserved for the caller record wherever an expression's names come from, and, as in 0.2, a derived case no test covers is an error; a 0.1 file's missing tests are warnings. A file on 0.1, 0.2 or 0.3 is read beside meta-model 1.0 with one warning that the file is on an earlier version; specarch upgrade moves it to 1.0.0, which specarch-design-1.0.schema.json describes.",
       "type": "string",
       "enum": [
         "0.1",

@@ -1,7 +1,7 @@
 arguments: [validate, project]
 exitStatus: 1
 standardOutput: |
-  project/specarch.yaml:1:11: warning: /specarch: meta_model_version: the specification is written against meta-model 0.1, which is read until 1.0, and its missing tests are warnings; run specarch derive to write the tests 0.2 asks for, then change the line to specarch: "0.3" once nothing an expression can name is called caller [meta_model_version@specarch.yaml#/specarch]
+  project/specarch.yaml:1:11: warning: /specarch: meta_model_version: the specification is written against meta-model 0.1, an earlier version read beside 1.0.0 with this warning, and its missing tests are warnings; run specarch derive to write the tests 0.2 and later ask for, then run specarch upgrade --dry-run on the specification to see what moving it to 1.0.0 changes, and specarch upgrade to move it [meta_model_version@specarch.yaml#/specarch]
   records/defects/DEF-1.yaml:10:9: error: /status: defect_duplicate: DEF-1 is a duplicate but names no defect; add duplicateOf with the defect it repeats [defect_duplicate@../records/defects/DEF-1.yaml#/status]
   records/defects/DEF-2.yaml:10:14: error: /duplicateOf: defect_duplicate: DEF-1 is itself a duplicate; name the defect DEF-1 repeats instead [defect_duplicate@../records/defects/DEF-2.yaml#/duplicateOf]
   records/defects/DEF-3.yaml:10:14: error: /duplicateOf: defect_duplicate: DEF-9 is not a defect: there is no records/defects/DEF-9.yaml and no source of kind defect-set with prefix DEF [defect_duplicate@../records/defects/DEF-3.yaml#/duplicateOf]

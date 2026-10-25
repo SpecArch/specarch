@@ -36,7 +36,7 @@ func (g *gen) rowsRules(entity string) []rowsRule {
 	roles := obj(g.spec["roles"])
 	var out []rowsRule
 	for _, role := range sortedKeys(roles) {
-		if rule := text(obj(obj(roles[role])["rows"])[entity]); rule != "" {
+		if rule := text(obj(obj(roles[role])["rowPolicies"])[entity]); rule != "" {
 			out = append(out, rowsRule{role, rule})
 		}
 	}

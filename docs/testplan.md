@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.6-dev of the specification: 761 design tests, 370 golden and 391 red, about 19 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.6-dev of the specification: 764 design tests, 370 golden and 394 red, about 19 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.7.6-dev of the specification: 761 design tests, 370 golden and 391 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 757 |
+| system | 760 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -3631,6 +3631,22 @@ Scenario: golden; level: system; verifies SA-95.
 - When: upgrade is run on the folder
 - Then: it moves the implementation file's hint and version line and the idiom's version line to 1.0.0, and exits 0
 
+#### upgrade-missing-version-line
+
+Scenario: red; level: system; covers exit 1; verifies SA-95.
+
+- Given: the 0.3 tree of upgrade-dry-run with no version line in its root file, so validate reads the file as 1.0.0
+- When: upgrade is run with --dry-run
+- Then: it makes every other change, the hints and the renamed keys included, adds no version line, lists the missing line as a step left to the author, and exits 1
+
+#### upgrade-number-version-line
+
+Scenario: red; level: system; covers exit 1; verifies SA-95.
+
+- Given: the 0.3 tree of upgrade-dry-run with its root version line and its idiom's written as numbers, unquoted, which validate reads as 0.3 and 0.1 and the schema refuses
+- When: upgrade is run with --dry-run
+- Then: it moves the implementation file and the record, which are on quoted versions, leaves the root file's hint, the fragments' hints and the renamed keys as they are, since the specification stays on 0.3, whose schema refuses rowPolicies and sourceDelivery, lists both number lines as steps left to the author, and exits 1
+
 #### upgrade-second-run
 
 Scenario: golden; level: system; verifies SA-95.
@@ -3646,6 +3662,14 @@ Scenario: red; level: system; covers exit 2; verifies SA-95.
 - Given: a 0.2 file
 - When: upgrade is run with --to 0.3
 - Then: it says it writes only 1.0.0, changes nothing, and exits 2
+
+#### upgrade-unknown-version-line
+
+Scenario: red; level: system; covers exit 1; verifies SA-95.
+
+- Given: the 0.3 tree of upgrade-dry-run with its root version line '0.4', a version this program does not read, so validate reads the file as 1.0.0
+- When: upgrade is run with --dry-run
+- Then: it makes every other change, the hints and the renamed keys included, leaves the version line as it is, lists it as a step left to the author, and exits 1
 
 #### upgrade-unreadable-file
 

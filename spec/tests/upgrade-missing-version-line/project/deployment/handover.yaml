@@ -1,0 +1,10 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-deployment-0.3.schema.json
+environments:
+  production: { description: The desk's own host., runBy: customer }
+handover:
+  description: Each release is handed to the desk's staff.
+  to: desk-staff
+  "source": A tagged release of the repository.
+  responsibilities:
+    customer: [The host.]
+    vendor: [The source.]

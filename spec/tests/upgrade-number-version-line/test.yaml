@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: upgrade
+level: system
+scenario: red
+covers: [exit 1]
+given: "the 0.3 tree of upgrade-dry-run with its root version line and its idiom's written as numbers, unquoted, which validate reads as 0.3 and 0.1 and the schema refuses"
+when: "upgrade is run with --dry-run"
+then: "it moves the implementation file and the record, which are on quoted versions, leaves the root file's hint, the fragments' hints and the renamed keys as they are, since the specification stays on 0.3, whose schema refuses rowPolicies and sourceDelivery, lists both number lines as steps left to the author, and exits 1"
+verifies: [SA-95]

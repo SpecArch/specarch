@@ -73,37 +73,120 @@ var releaseURL = regexp.MustCompile(`^(https://raw\.githubusercontent\.com/SpecA
 
 // Changes lists what moving the file at path to 1.0.0 changes in it, in
 // the order they appear. program is the program's version, whose release
-// tag a hint that names a release URL moves to. Of a file the parser reads
-// only in part, the entries it read are edited; validate's problem at the
-// parser's position is the step left to the author.
-func Changes(path string, data []byte, kind Kind, program string) []Change {
+// tag a hint that names a release URL moves to. specCurrent says, for a
+// root file or a fragment, whether its specification is read as 1.0 after
+// the move (StaysEarlier of the root file's line is false); a file of
+// another kind goes by its own version line. The hint and the renamed keys
+// move only in a file read as 1.0 after the move, since an earlier schema
+// refuses the new keys. Of a file the parser reads only in part, the
+// entries it read are edited; validate's problem at the parser's position
+// is the step left to the author.
+func Changes(path string, data []byte, kind Kind, program string, specCurrent bool) []Change {
 	var out []Change
-	if c, ok := hint(path, data, program); ok {
+	doc := source.Parse(data)
+	var root *yaml.Node
+	if doc.Root != nil && doc.Root.Kind == yaml.MappingNode {
+		root = doc.Root
+	}
+	f, own := formats[kind]
+	current := specCurrent
+	if own && kind != Root {
+		current = root == nil || !StaysEarlier(f, source.Child(root, f.Key))
+	}
+	if c, ok := hint(path, data, program); ok && current {
 		out = append(out, c)
 	}
-	doc := source.Parse(data)
-	if doc.Root == nil || doc.Root.Kind != yaml.MappingNode {
+	if root == nil {
 		return out
 	}
-	if f, ok := formats[kind]; ok {
-		if n := source.Child(doc.Root, f.Key); n != nil && n.Kind == yaml.ScalarNode && n.Tag == "!!str" && f.IsEarlier(n.Value) {
+	if own {
+		if n := source.Child(root, f.Key); Moves(f, n) {
 			if c, ok := scalarChange(path, data, n, metamodel.Current); ok {
 				out = append(out, c)
 			}
 		}
 	}
-	if kind == Root || kind == Fragment {
-		for _, r := range source.Pairs(source.Child(doc.Root, "roles")) {
+	if current && (kind == Root || kind == Fragment) {
+		for _, r := range source.Pairs(source.Child(root, "roles")) {
 			if c, ok := keyChange(path, data, r.Value, metamodel.RowPoliciesOldKey, metamodel.RowPoliciesKey); ok {
 				out = append(out, c)
 			}
 		}
-		if c, ok := keyChange(path, data, source.Child(doc.Root, "handover"), metamodel.SourceDeliveryOldKey, metamodel.SourceDeliveryKey); ok {
+		if c, ok := keyChange(path, data, source.Child(root, "handover"), metamodel.SourceDeliveryOldKey, metamodel.SourceDeliveryKey); ok {
 			out = append(out, c)
 		}
 	}
 	sort.SliceStable(out, func(i, j int) bool { return out[i].offset < out[j].offset })
 	return out
+}
+
+// Moves reports whether the version line n moves to 1.0.0: a string on an
+// earlier version. A number, such as an unquoted 0.3, is not rewritten,
+// since its type is the author's error, which validate reports.
+func Moves(f metamodel.Format, n *yaml.Node) bool {
+	return n != nil && n.Kind == yaml.ScalarNode && n.Tag == "!!str" && f.IsEarlier(n.Value)
+}
+
+// StaysEarlier reports whether a file whose version line of format f is
+// line is still read as a version before 1.0.0 after the move: the line is
+// read as an earlier version, as validate reads a number such as an
+// unquoted 0.3, and is not one upgrade moves. A line upgrade moves, one
+// already on 1.0, and one the program does not read, whose file it reads
+// as 1.0.0, are not.
+func StaysEarlier(f metamodel.Format, line *yaml.Node) bool {
+	return f.IsEarlier(source.Str(line)) && !Moves(f, line)
+}
+
+// Step is a version line the move leaves off 1.0.0, a step left to the
+// author: at the line and column (from 1), the pointer of the line, or /
+// for a file that has none, and what to do.
+type Step struct {
+	Line, Column int
+	Pointer      string
+	Message      string
+}
+
+// Left is the step the move leaves at the version line of a file of a kind
+// that has one: a missing line, a value that is not a string, such as an
+// unquoted 0.3 the parser reads as a number, or a string that is neither
+// on 1.0 nor an earlier version upgrade moves, such as "0.4" or "1.0".
+// After the move, a file with no step reads 1.0.x on its version line.
+// A file the parser cannot read is validate's step.
+func Left(data []byte, kind Kind) (Step, bool) {
+	f, ok := formats[kind]
+	if !ok {
+		return Step{}, false
+	}
+	doc := source.Parse(data)
+	if doc.Root == nil || doc.Root.Kind != yaml.MappingNode {
+		return Step{}, false
+	}
+	n := source.Child(doc.Root, f.Key)
+	again := ", and run specarch upgrade again"
+	if n == nil {
+		return Step{Line: doc.Root.Line, Column: doc.Root.Column, Pointer: "/", Message: "the file has no version line " + f.Key + ", which specarch upgrade does not add; add " + f.Key + " with the version the file is written in" + again}, true
+	}
+	at := source.Pointer(f.Key)
+	if n.Kind != yaml.ScalarNode || n.Tag != "!!str" {
+		what := "not a string"
+		if n.Kind == yaml.ScalarNode && (n.Tag == "!!float" || n.Tag == "!!int") {
+			what = "a number, not a string"
+		}
+		return Step{Line: n.Line, Column: n.Column, Pointer: at, Message: "the version line " + f.Key + " is " + what + ", which specarch upgrade does not rewrite; quote it, such as " + strconv.Quote(f.Earlier[len(f.Earlier)-1]) + again}, true
+	}
+	switch f.Classify(n.Value) {
+	case metamodel.Known, metamodel.Earlier:
+		return Step{}, false
+	}
+	earlier := make([]string, 0, len(f.Earlier))
+	for i := len(f.Earlier) - 1; i >= 0; i-- {
+		earlier = append(earlier, f.Earlier[i])
+	}
+	moved := earlier[0]
+	if len(earlier) > 1 {
+		moved = strings.Join(earlier[:len(earlier)-1], ", ") + " and " + earlier[len(earlier)-1]
+	}
+	return Step{Line: n.Line, Column: n.Column, Pointer: at, Message: "the version line " + f.Key + " is " + strconv.Quote(n.Value) + ", which specarch upgrade does not move: it moves " + moved + " to " + metamodel.Current + " and leaves 1.0.x as it is; give the version the file is written in" + again}, true
 }
 
 // hint is the change of the first line's editor hint to the 1.0 schema of

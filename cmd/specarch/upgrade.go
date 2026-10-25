@@ -19,6 +19,12 @@ import (
 type upgradeFile struct {
 	path string
 	kind upgrade.Kind
+	// current is, for a root file or a fragment, whether its
+	// specification is read as 1.0 after the move, which moves its hint
+	// and renamed keys.
+	current bool
+	// dir is the folder the ids of its problems name it from.
+	dir string
 }
 
 // runUpgrade moves each specification given, and every file it is read
@@ -88,28 +94,29 @@ func runUpgrade(args []string, stdout, stderr io.Writer) int {
 
 	var files []upgradeFile
 	seen := map[string]bool{}
-	add := func(path string, kind upgrade.Kind) {
-		if !seen[filepath.Clean(path)] {
-			seen[filepath.Clean(path)] = true
-			files = append(files, upgradeFile{path, kind})
+	add := func(f upgradeFile) {
+		if !seen[filepath.Clean(f.path)] {
+			seen[filepath.Clean(f.path)] = true
+			files = append(files, f)
 		}
 	}
 	for _, e := range estates {
-		add(e, upgrade.Estate)
+		add(upgradeFile{e, upgrade.Estate, true, filepath.Dir(e)})
 	}
 	for _, i := range impls {
-		for _, f := range implementationFiles(i) {
-			add(f.path, f.kind)
+		for _, f := range implementationFiles(i, filepath.Dir(i)) {
+			add(f)
 		}
 	}
 	for _, s := range specs {
 		for _, f := range specFiles(s) {
-			add(f.path, f.kind)
+			add(f)
 		}
 	}
 	sort.SliceStable(files, func(i, j int) bool { return filepath.ToSlash(files[i].path) < filepath.ToSlash(files[j].path) })
 
 	var changes []upgrade.Change
+	var left []validate.Diagnostic
 	byFile := map[string][]upgrade.Change{}
 	data := map[string][]byte{}
 	for _, f := range files {
@@ -118,7 +125,12 @@ func runUpgrade(args []string, stdout, stderr io.Writer) int {
 			fmt.Fprintf(stderr, "specarch upgrade: cannot read %s: %s\n", f.path, spec.PlainIOError(err))
 			return 2
 		}
-		cs := upgrade.Changes(filepath.ToSlash(f.path), d, f.kind, version)
+		cs := upgrade.Changes(filepath.ToSlash(f.path), d, f.kind, version, f.current)
+		if st, ok := upgrade.Left(d, f.kind); ok {
+			l := []validate.Diagnostic{{File: f.path, Line: st.Line, Column: st.Column, Severity: validate.Error, Path: st.Pointer, Rule: validate.RuleMetaModelVersion, Message: st.Message}}
+			(&validate.Placer{Dir: f.dir}).Place(l)
+			left = append(left, l...)
+		}
 		if len(cs) > 0 {
 			data[f.path] = d
 			byFile[f.path] = cs
@@ -127,6 +139,8 @@ func runUpgrade(args []string, stdout, stderr io.Writer) int {
 	}
 
 	steps := upgradeSteps(specs)
+	steps = append(steps, left...)
+	validate.Sort(steps)
 	for _, c := range changes {
 		fmt.Fprintln(stdout, c.String())
 	}
@@ -168,8 +182,12 @@ func runUpgrade(args []string, stdout, stderr io.Writer) int {
 
 // specFiles lists every file a specification is read from, with its kind:
 // the root file, the stage files and tests, the implementation files and
-// the idioms in the folder beside each, and the records.
+// the idioms in the folder beside each, and the records. The hints and
+// the renamed keys of the root file and the fragments move only when the
+// root file's version line leaves the specification read as 1.0 after the
+// move.
 func specFiles(s *spec.Spec) []upgradeFile {
+	current := !upgrade.StaysEarlier(metamodel.Design, source.Child(s.Root, metamodel.Design.Key))
 	var out []upgradeFile
 	paths := map[string]bool{}
 	for _, p := range s.Files {
@@ -183,27 +201,27 @@ func specFiles(s *spec.Spec) []upgradeFile {
 		if filepath.Clean(p) == filepath.Clean(s.RootFile) {
 			kind = upgrade.Root
 		}
-		out = append(out, upgradeFile{p, kind})
+		out = append(out, upgradeFile{p, kind, current, s.Dir})
 	}
 	if !paths[s.RootFile] {
-		out = append(out, upgradeFile{s.RootFile, upgrade.Root})
+		out = append(out, upgradeFile{s.RootFile, upgrade.Root, current, s.Dir})
 	}
 	for _, impl := range s.Implementations {
-		out = append(out, implementationFiles(impl.Path)...)
+		out = append(out, implementationFiles(impl.Path, s.Dir)...)
 	}
 	for _, r := range s.Records {
-		out = append(out, upgradeFile{r.Path, upgrade.Record})
+		out = append(out, upgradeFile{r.Path, upgrade.Record, true, s.Dir})
 	}
 	return out
 }
 
 // implementationFiles is an implementation file and the idioms in the
-// idioms/ folder beside it.
-func implementationFiles(path string) []upgradeFile {
-	out := []upgradeFile{{path, upgrade.Implementation}}
+// idioms/ folder beside it, whose problems' ids name them from dir.
+func implementationFiles(path, dir string) []upgradeFile {
+	out := []upgradeFile{{path, upgrade.Implementation, true, dir}}
 	idioms, _ := filepath.Glob(filepath.Join(filepath.Dir(path), "idioms", "*"+validate.IdiomSuffix))
 	for _, i := range idioms {
-		out = append(out, upgradeFile{i, upgrade.Idiom})
+		out = append(out, upgradeFile{i, upgrade.Idiom, true, dir})
 	}
 	return out
 }
@@ -228,7 +246,7 @@ func upgradeSteps(specs []*spec.Spec) []validate.Diagnostic {
 			}
 		}
 		moved := spec.Load(s.Dir)
-		if line := source.Child(moved.Root, "specarch"); line != nil && metamodel.Design.IsEarlier(line.Value) {
+		if line := source.Child(moved.Root, metamodel.Design.Key); upgrade.Moves(metamodel.Design, line) {
 			line.Value = metamodel.Current
 			if m, ok := moved.Value.(map[string]any); ok {
 				m["specarch"] = metamodel.Current

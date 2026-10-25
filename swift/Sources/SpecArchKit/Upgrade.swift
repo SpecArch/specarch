@@ -42,25 +42,90 @@ private let releaseURLPattern = try! NSRegularExpression(pattern: #"^(https://ra
 
 /// Lists what moving the file at path to 1.0.0 changes in it, in the order
 /// they appear. program is the program's version, whose release tag a hint
-/// that names a release URL moves to. Of a file the parser reads only in
-/// part, the entries it read are edited; validate's problem at the
-/// parser's position is the step left to the author.
-func upgradeChanges(_ path: String, _ data: [UInt8], _ kind: UpgradeKind, _ program: String) -> [UpgradeChange] {
+/// that names a release URL moves to. specCurrent says, for a root file or
+/// a fragment, whether its specification is read as 1.0 after the move
+/// (staysEarlier of the root file's line is false); a file of another kind
+/// goes by its own version line. The hint and the renamed keys move only in
+/// a file read as 1.0 after the move, since an earlier schema refuses the
+/// new keys. Of a file the parser reads only in part, the entries it read
+/// are edited; validate's problem at the parser's position is the step
+/// left to the author.
+func upgradeChanges(_ path: String, _ data: [UInt8], _ kind: UpgradeKind, _ program: String, _ specCurrent: Bool) -> [UpgradeChange] {
     var out: [UpgradeChange] = []
-    if let c = upgradeHint(path, data, program) { out.append(c) }
     let doc = parseYAML(yamlText(Data(data)))
-    guard let root = doc.root, root.kind == .mapping else { return out }
-    if let f = kind.format, let n = root.child(f.key), n.kind == .scalar, n.tag == "!!str", f.isEarlier(n.value),
+    let root = doc.root.flatMap { $0.kind == .mapping ? $0 : nil }
+    var current = specCurrent
+    if let f = kind.format, kind != .root {
+        current = root == nil || !staysEarlier(f, root?.child(f.key))
+    }
+    if current, let c = upgradeHint(path, data, program) { out.append(c) }
+    guard let root else { return out }
+    if let f = kind.format, let n = root.child(f.key), upgradeMoves(f, n),
        let c = scalarChange(path, data, n, currentMetaModel) {
         out.append(c)
     }
-    if kind == .root || kind == .fragment {
+    if current && (kind == .root || kind == .fragment) {
         for r in pairs(root.child("roles")) {
             if let c = keyChange(path, data, r.value, rowPoliciesOldKey, rowPoliciesKey) { out.append(c) }
         }
         if let c = keyChange(path, data, root.child("handover"), sourceDeliveryOldKey, sourceDeliveryKey) { out.append(c) }
     }
     return out.enumerated().sorted { ($0.element.offset, $0.offset) < ($1.element.offset, $1.offset) }.map(\.element)
+}
+
+/// Whether the version line n moves to 1.0.0: a string on an earlier
+/// version. A number, such as an unquoted 0.3, is not rewritten, since its
+/// type is the author's error, which validate reports.
+func upgradeMoves(_ f: MetaModelFormat, _ n: YNode?) -> Bool {
+    guard let n else { return false }
+    return n.kind == .scalar && n.tag == "!!str" && f.isEarlier(n.value)
+}
+
+/// Whether a file whose version line of format f is line is still read as
+/// a version before 1.0.0 after the move: the line is read as an earlier
+/// version, as validate reads a number such as an unquoted 0.3, and is not
+/// one upgrade moves. A line upgrade moves, one already on 1.0, and one the
+/// program does not read, whose file it reads as 1.0.0, are not.
+func staysEarlier(_ f: MetaModelFormat, _ line: YNode?) -> Bool {
+    f.isEarlier(str(line)) && !upgradeMoves(f, line)
+}
+
+/// A version line the move leaves off 1.0.0, a step left to the author:
+/// at the line and column (from 1), the pointer of the line, or / for a
+/// file that has none, and what to do.
+struct UpgradeStep {
+    let line: Int
+    let column: Int
+    let pointer: String
+    let message: String
+}
+
+/// The step the move leaves at the version line of a file of a kind that
+/// has one: a missing line, a value that is not a string, such as an
+/// unquoted 0.3 the parser reads as a number, or a string that is neither
+/// on 1.0 nor an earlier version upgrade moves, such as "0.4" or "1.0".
+/// After the move, a file with no step reads 1.0.x on its version line. A
+/// file the parser cannot read is validate's step.
+func upgradeLeft(_ data: [UInt8], _ kind: UpgradeKind) -> UpgradeStep? {
+    guard let f = kind.format else { return nil }
+    let doc = parseYAML(yamlText(Data(data)))
+    guard let root = doc.root, root.kind == .mapping else { return nil }
+    let again = ", and run specarch upgrade again"
+    guard let n = root.child(f.key) else {
+        return UpgradeStep(line: root.line, column: root.column, pointer: "/", message: "the file has no version line \(f.key), which specarch upgrade does not add; add \(f.key) with the version the file is written in" + again)
+    }
+    let at = pointer(f.key)
+    if n.kind != .scalar || n.tag != "!!str" {
+        let what = n.kind == .scalar && (n.tag == "!!float" || n.tag == "!!int") ? "a number, not a string" : "not a string"
+        return UpgradeStep(line: n.line, column: n.column, pointer: at, message: "the version line \(f.key) is \(what), which specarch upgrade does not rewrite; quote it, such as \"\(f.earlier[f.earlier.count - 1])\"" + again)
+    }
+    switch f.classify(n.value) {
+    case .known, .earlier: return nil
+    default: break
+    }
+    let earlier = Array(f.earlier.reversed())
+    let moved = earlier.count > 1 ? earlier.dropLast().joined(separator: ", ") + " and " + earlier[earlier.count - 1] : earlier[0]
+    return UpgradeStep(line: n.line, column: n.column, pointer: at, message: "the version line \(f.key) is \"\(n.value)\", which specarch upgrade does not move: it moves \(moved) to \(currentMetaModel) and leaves 1.0.x as it is; give the version the file is written in" + again)
 }
 
 /// The change of the first line's editor hint to the 1.0 schema of its
@@ -256,21 +321,22 @@ func runUpgrade(_ args: [String], _ stdout: TextSink, _ stderr: TextSink) -> Int
         return 2
     }
 
-    var files: [(path: String, kind: UpgradeKind)] = []
+    var files: [UpgradeFile] = []
     var seen = Set<String>()
-    func add(_ path: String, _ kind: UpgradeKind) {
-        if seen.insert(cleanPath(path)).inserted { files.append((path, kind)) }
+    func add(_ f: UpgradeFile) {
+        if seen.insert(cleanPath(f.path)).inserted { files.append(f) }
     }
-    for e in estates { add(e, .estate) }
+    for e in estates { add(UpgradeFile(path: e, kind: .estate, current: true, dir: dirPath(e))) }
     for i in impls {
-        for f in implementationFiles(i) { add(f.path, f.kind) }
+        for f in implementationFiles(i, dirPath(i)) { add(f) }
     }
     for s in specs {
-        for f in specFiles(s) { add(f.path, f.kind) }
+        for f in specFiles(s) { add(f) }
     }
     files.sort { byteLess($0.path, $1.path) }
 
     var changes: [UpgradeChange] = []
+    var left: [Diagnostic] = []
     var byFile: [String: [UpgradeChange]] = [:]
     var data: [String: [UInt8]] = [:]
     for f in files {
@@ -279,7 +345,12 @@ func runUpgrade(_ args: [String], _ stdout: TextSink, _ stderr: TextSink) -> Int
             stderr.write("specarch upgrade: cannot read \(f.path): \(plainIOError(error))\n")
             return 2
         }
-        let cs = upgradeChanges(f.path, d, f.kind, programVersion)
+        let cs = upgradeChanges(f.path, d, f.kind, programVersion, f.current)
+        if let st = upgradeLeft(d, f.kind) {
+            var l = [Diagnostic(file: f.path, line: st.line, column: st.column, severity: .error, path: st.pointer, rule: .metaModelVersion, message: st.message)]
+            Placer(dir: f.dir).place(&l)
+            left += l
+        }
         if !cs.isEmpty {
             data[f.path] = d
             byFile[f.path] = cs
@@ -287,7 +358,8 @@ func runUpgrade(_ args: [String], _ stdout: TextSink, _ stderr: TextSink) -> Int
         }
     }
 
-    let steps = upgradeSteps(specs)
+    var steps = upgradeSteps(specs) + left
+    sortDiagnostics(&steps)
     for c in changes { stdout.write(c.description + "\n") }
     for d in steps {
         stdout.write(d.description + "\n")
@@ -312,29 +384,44 @@ func runUpgrade(_ args: [String], _ stdout: TextSink, _ stderr: TextSink) -> Int
     return steps.isEmpty ? 0 : 1
 }
 
+/// One file of a specification upgrade reads, with its kind. current is,
+/// for a root file or a fragment, whether its specification is read as 1.0
+/// after the move, which moves its hint and renamed keys; dir is the folder
+/// the ids of its problems name it from.
+private struct UpgradeFile {
+    let path: String
+    let kind: UpgradeKind
+    let current: Bool
+    let dir: String
+}
+
 /// Every file a specification is read from, with its kind: the root file,
 /// the stage files and tests, the implementation files and the idioms in
-/// the folder beside each, and the records.
-private func specFiles(_ s: Spec) -> [(path: String, kind: UpgradeKind)] {
-    var out: [(path: String, kind: UpgradeKind)] = []
+/// the folder beside each, and the records. The hints and the renamed keys
+/// of the root file and the fragments move only when the root file's
+/// version line leaves the specification read as 1.0 after the move.
+private func specFiles(_ s: Spec) -> [UpgradeFile] {
+    let current = !staysEarlier(.design, s.root?.child(MetaModelFormat.design.key))
+    var out: [UpgradeFile] = []
     var paths = Set(s.files.values)
     for h in s.held { paths.insert(h.file) }
     for p in paths {
-        out.append((p, cleanPath(p) == cleanPath(s.rootPath) ? .root : .fragment))
+        out.append(UpgradeFile(path: p, kind: cleanPath(p) == cleanPath(s.rootPath) ? .root : .fragment, current: current, dir: s.dir))
     }
-    if !paths.contains(s.rootPath) { out.append((s.rootPath, .root)) }
-    for impl in s.implementations { out += implementationFiles(impl.path) }
-    for r in s.records { out.append((r.path, .record)) }
+    if !paths.contains(s.rootPath) { out.append(UpgradeFile(path: s.rootPath, kind: .root, current: current, dir: s.dir)) }
+    for impl in s.implementations { out += implementationFiles(impl.path, s.dir) }
+    for r in s.records { out.append(UpgradeFile(path: r.path, kind: .record, current: true, dir: s.dir)) }
     return out
 }
 
-/// An implementation file and the idioms in the idioms/ folder beside it.
-private func implementationFiles(_ path: String) -> [(path: String, kind: UpgradeKind)] {
-    var out: [(path: String, kind: UpgradeKind)] = [(path, .implementation)]
+/// An implementation file and the idioms in the idioms/ folder beside it,
+/// whose problems' ids name them from dir.
+private func implementationFiles(_ path: String, _ dir: String) -> [UpgradeFile] {
+    var out = [UpgradeFile(path: path, kind: .implementation, current: true, dir: dir)]
     let folder = joinPath(dirPath(path), "idioms")
     let names = ((try? FileManager.default.contentsOfDirectory(atPath: folder)) ?? []).sorted(by: byteLess)
     for name in names where name.hasSuffix(idiomSuffix) {
-        out.append((joinPath(folder, name), .idiom))
+        out.append(UpgradeFile(path: joinPath(folder, name), kind: .idiom, current: true, dir: dir))
     }
     return out
 }
@@ -356,7 +443,7 @@ private func upgradeSteps(_ specs: [Spec]) -> [Diagnostic] {
         }
         let moved = Spec(dir: s.dir)
         if let root = moved.root, let idx = root.pairs.firstIndex(where: { $0.key.value == "specarch" }),
-           MetaModelFormat.design.isEarlier(root.pairs[idx].value.value) {
+           upgradeMoves(.design, root.pairs[idx].value) {
             let old = root.pairs[idx].value
             let line = YNode(kind: .scalar, value: currentMetaModel, tag: "!!str", style: .quoted, line: old.line, column: old.column)
             moved.files[ObjectIdentifier(line)] = moved.files[ObjectIdentifier(old)]

@@ -5,3 +5,5 @@ status: released
 date: "2026-10-25"
 specificationVersion: 1.0.0
 implementations: { go: 0.1.0, swift: 0.1.0 }
+includes: [CR-1]
+commit: 751e5a15359571945d864b08c2ba8beede8a5ac9

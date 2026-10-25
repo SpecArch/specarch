@@ -1,0 +1,20 @@
+specarchRecord: "1.0.0"
+kind: change
+id: CR-1
+title: Make meta-model 1.0.0 the first stable version of every SpecArch format
+raisedBy: specification-author
+raised: "2026-10-25"
+phase: development
+type: perfective
+urgency: normal
+reason: Authors need a format that does not move under them. Meta-model 1.0.0 promises that no key is renamed, moved, removed or made required, and that no meaning changes, for the whole 1.x; before freezing it, two keys of 0.3 that each meant two things are renamed.
+affects:
+  changes: [SA-95]
+impact: major
+decision:
+  by: specification-author
+  date: "2026-10-25"
+  outcome: approved
+  why: A stable format is what lets a specification outlive the release it was written with; every earlier version stays read beside 1.0.0, and specarch upgrade moves a file, so nothing written before is lost (ADR-186).
+release: 1.0.0
+status: released

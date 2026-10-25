@@ -1,0 +1,37 @@
+Generating
+
+  specarch generate <target> <folder>...
+
+writes code or data from an approved specification. Each code target is a
+plug-in on PATH, specarch-gen-<target>, or specarch-gen-<target>-<stack>
+when the implementation file's stack has one of its own: specarch hands it
+the validated specification on its standard input, and writes the files
+it answers into the folder the target owns (--out, or the output the
+implementation file names for the target).
+
+  --check       make the output in memory; exit 1 when a file on disk
+                differs. Run it before each commit and in CI.
+  --dry-run     list each file it would write; write nothing.
+  --unapproved  generate from a specification not approved yet; every
+                file is marked a draft. Not for anything that is used.
+  --estate      bring an estate's modules into the run, so references
+                into them resolve.
+
+What generation does not promise: a plug-in writes what its target covers
+from the specification, marks each entry it could not write at its place,
+and names what it never writes; the rest is written by hand. Keep code
+written by hand in files the target does not write: generate writes every
+file the plug-in answers (sqlc and scripts never write over a file they
+did not write). generate --check reads a file without the generated
+header as built by hand and says whether it matches the output but for
+the header. An element an implementation file marks ownedBy a
+stakeholder is generated nowhere.
+
+Documents are written by specarch document <target>, built into the
+program: techspec, requirements, testplan, traceability, deployment,
+commissioning, handover, questions, problems, comparison, changes,
+releases, html, manual and operations. A specification with errors gets
+its documents too, each error marked at its element, and exits 1.
+
+specarch help plugins lists the plug-ins found on PATH and what each
+writes.

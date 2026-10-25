@@ -11,10 +11,30 @@ import (
 	"io"
 	"os"
 
+	"github.com/SpecArch/specarch"
+	"github.com/SpecArch/specarch/internal/capability"
 	"github.com/SpecArch/specarch/internal/genswiftui"
 )
 
+// capabilities is what this plug-in answers to --capabilities.
+var capabilities = capability.Plugin{
+	Target:  "ui",
+	Stack:   "swiftui",
+	Version: specarch.Version,
+	Summary: "Writes the pages of a ui target on platform iphone with framework swiftui, as data in a Swift package.",
+	Generates: []string{
+		"Sources/<module>/Pages/<Page>Schema.swift and <Page>View.swift per page, and Routes.swift",
+	},
+	DoesNotGenerate: []string{
+		"Package.swift and the app target, which the project writes",
+		"a call to more than one service",
+	},
+}
+
 func main() {
+	if len(os.Args) > 1 {
+		os.Exit(capability.Serve(os.Args[1:], os.Stdout, os.Stderr, capabilities))
+	}
 	os.Exit(run(os.Stdin, os.Stdout, os.Stderr))
 }
 

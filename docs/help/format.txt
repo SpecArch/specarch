@@ -1,0 +1,54 @@
+The format
+
+A specification is a folder. Its root file is specarch.yaml, which names
+the system and its version (info), the stages it keeps and the sources it
+cites. Each stage is a folder of its name beside the root file, in
+life-cycle order:
+
+  requirements/          stakeholders, needs, requirements, glossary,
+                         assumptions, constraints
+  design/                enums, entities, permissions, roles, endpoints,
+                         commands, channels, jobs, workflows, pages,
+                         algorithms, decisions
+  implementation/<stack>/  one implementation file per stack
+  tests/<name>/          one folder per test: test.yaml and its files
+  deployment/            environments, configuration, release, handover
+  commissioning/         the checks before handover, and the sign-off
+  operation/             monitors, backup and restore
+
+A tiny specification is the root file alone, with its sections inside.
+The validator reads the tree as one document, so a reference is a plain
+name wherever its target's file is.
+
+Design and implementation stay apart. Everything but implementation/ is
+the design, neutral about language and framework. An implementation file,
+<name>.<stack>.specarch-implementation.yaml, holds one stack's choices:
+language, libraries and their licences, package layout, mappings, the
+document and code targets with their output folders, build and test
+tasks.
+
+The keywords are those of existing standards where one exists: JSON
+Schema for fields (type, properties, required, enum, format, maxLength),
+OpenAPI for endpoints (paths, parameters, requestBody, responses),
+AsyncAPI for events, ISO/IEC/IEEE 29148 for requirements. Every element
+may say why it is so and cite the sources it rests on; design elements
+name the requirements they satisfy, tests the ones they verify.
+
+Versions. Each kind of file names its format's version on its first key:
+
+  specarch: "1.0.0"                 a specification's root file
+  specarchImplementation: "1.0.0"   an implementation file
+  specarchRecord, specarchIdiom, specarchEstate, specarchVocabulary
+
+This program writes 1.0.0 and reads 1.0.0 and any later 1.0 patch, and
+every earlier version beside it with a warning naming specarch upgrade
+(specarch version lists them). From 1.0.0 the formats follow Semantic
+Versioning: a file valid on 1.0.0 stays valid on every 1.x.
+
+The schemas are built into the program, so validation needs nothing else.
+An editor checks the YAML as it is typed with this first line, at the
+release tag of the installed program:
+
+  # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v1.0.0/schema/specarch-design-1.0.schema.json
+
+specarch help examples writes a small specification from scratch.

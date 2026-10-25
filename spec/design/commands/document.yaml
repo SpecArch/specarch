@@ -285,6 +285,9 @@ commands:
       audience:
         description: external writes a document for everyone, without the internal elements (ADR-119). Needs --out; not for the problems target.
         schema: { type: string, enum: [external] }
+      dry-run:
+        description: Make the documents in memory and write nothing; print each file it would write, the problem marks in the specification included, as would write <path>. Not with --check.
+        schema: { type: boolean, default: false }
     reads:
       - { path: "{paths}", description: The specifications and their implementation files. }
       - { path: "specarch.md", description: "The hand-written document beside each root file, when there is one." }

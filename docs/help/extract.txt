@@ -1,0 +1,35 @@
+From existing documents and code
+
+A system that exists already gets its specification from what it has:
+
+  specarch extract <source> --out <folder> <path>...
+
+reads one surface into a partial specification tree. The sources:
+outline, database (a catalogue dump), router (a route table), documents
+(a Markdown document), openapi, permissions (a permission table), pages
+(a file-system router), workflows (BPMN 2.0, or a workflow table with
+--table), gateway, go, swift, javascript and dart (code-facts dumps).
+
+  specarch facts <language> <folder> <dump>
+
+writes the code-facts dump of a committed folder for the swift,
+javascript and dart readers. Then
+
+  specarch merge --out <folder> <tree>...
+
+joins the trees into one, and validate and gaps show what is open.
+
+Every element carries its origin: stated, citing the document section or
+code line it came from; inferred, with the reason; or decided. What a
+source does not say is a question, never a guess; where a document and
+the code disagree, both are kept as a question for the owner. Nothing is
+invented to fill a gap.
+
+  specarch check <specification> <dump>...
+
+compares the specification with the dumps of the running code later, and
+fails on a difference its allowlist does not name: the CI gate that keeps
+the two equal.
+
+extract and merge mark each problem in the tree they write, and write the
+draft tests derive would write for it.

@@ -278,6 +278,9 @@ commands:
       vocabulary:
         description: A vocabulary file (docs/vocabularies.md) for a language SpecArch ships none for, by which the requirements of the sources in that language are compared with the code's checks; repeated, one per language.
         schema: { type: array, items: { type: string } }
+      dry-run:
+        description: Merge and write nothing; print each file of --out it would write, the derived tests and the problem marks included, as would write <path>.
+        schema: { type: boolean, default: false }
     reads:
       - { path: "{trees}", description: The partial specification trees. }
     writes:

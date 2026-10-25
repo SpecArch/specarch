@@ -65,6 +65,9 @@ commands:
       date:
         description: The date of the decision, as YYYY-MM-DD. Today when not given.
         schema: { type: string, format: date }
+      dry-run:
+        description: Check the question and the answer and write nothing; print the blocked entries, then the decision record it would write and the question file it would edit or remove, as would write <path> and would remove <path>.
+        schema: { type: boolean, default: false }
     reads:
       - { path: "{folder}", description: The specification and its implementation files. }
     writes:

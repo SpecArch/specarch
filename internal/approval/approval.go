@@ -17,6 +17,7 @@ import (
 
 	"go.yaml.in/yaml/v3"
 
+	"github.com/SpecArch/specarch/internal/disk"
 	"github.com/SpecArch/specarch/internal/metamodel"
 	"github.com/SpecArch/specarch/internal/source"
 )
@@ -138,8 +139,9 @@ func Read(specDir, version string) (*Record, error) {
 	return &Record{Version: f.Version, ApprovedBy: f.ApprovedBy, Date: f.Date, Documents: f.Documents, Digest: f.Digest}, nil
 }
 
-// Write writes the approval of r.Version, replacing an earlier one.
-func Write(specDir string, r Record) error {
+// Write writes the approval of r.Version through w, replacing an earlier
+// one.
+func Write(w *disk.Writer, specDir string, r Record) error {
 	var b strings.Builder
 	b.WriteString("specarchRecord: \"" + metamodel.Current + "\"\n")
 	b.WriteString("kind: approval\n")
@@ -150,11 +152,7 @@ func Write(specDir string, r Record) error {
 		fmt.Fprintf(&b, "documents: [%s]\n", strings.Join(r.Documents, ", "))
 	}
 	fmt.Fprintf(&b, "digest: %s\n", r.Digest)
-	p := Path(specDir, r.Version)
-	if err := os.MkdirAll(filepath.Dir(p), 0o755); err != nil {
-		return err
-	}
-	return os.WriteFile(p, []byte(b.String()), 0o644)
+	return w.WriteFile(Path(specDir, r.Version), []byte(b.String()), 0o644)
 }
 
 // State says, in one sentence, where a version's approval stands against

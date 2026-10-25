@@ -1,0 +1,32 @@
+Conventions of every command
+
+--json, on any command, prints one JSON object on standard output, key
+specarchOutput, with the command, the exit status and what it means, the
+problem lines as fields (file, line, column, severity, path, rule,
+message, id), the other lines, and the messages of standard error; model
+and capabilities print their own object, specarchModel and
+specarchCapabilities, as they are on exit 0. On exit status 2 it prints
+one error object on standard error, key specarchError,
+with a stable code (usage, read, write, plugin, failed), the message and a
+remedy. Nothing else is printed on either.
+
+--dry-run, on every command that writes (approve, decide, derive,
+document, extract, facts, generate, merge, upgrade), lists each file it
+would write or remove, as would write <path> or would remove <path>
+(upgrade lists each edit), and writes nothing.
+
+Exit status: 0 done; 1 the command ran and found what it reports
+(errors, differences, open questions, a refusal); 2 a usage error, a path
+that cannot be read or written, or a failed plug-in. help <command> lists
+a command's own exit statuses, each with what to do.
+
+No command asks anything: there are no prompts and no --yes. A step that
+needs a person is a command that person runs (decide, approve). No colour
+or terminal codes are printed, so NO_COLOR has nothing to turn off.
+
+Arguments after -- are paths, even when they start with -.
+
+A generated file's first lines say which command made it and from which
+specification; change the specification, never the generated file. Each
+problem is also marked at its entry in the YAML files and in every
+generated file, on a specarch-problem: comment line.

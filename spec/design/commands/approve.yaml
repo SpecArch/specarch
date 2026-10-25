@@ -36,6 +36,9 @@ commands:
       date:
         description: The date of the approval, as YYYY-MM-DD. Today when not given.
         schema: { type: string, format: date }
+      dry-run:
+        description: Check everything and write nothing; print the approval record it would write, as would write <path>.
+        schema: { type: boolean, default: false }
     reads:
       - { path: "{paths}", description: The specifications and their implementation files. }
       - { path: "<output>/<target>.md", description: "Every configured document, compared with what the specification generates now." }

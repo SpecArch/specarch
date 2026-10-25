@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/SpecArch/specarch/internal/disk"
 	"github.com/SpecArch/specarch/internal/generate"
 	"github.com/SpecArch/specarch/internal/problems"
 	"github.com/SpecArch/specarch/internal/source"
@@ -19,7 +20,7 @@ import (
 // lines the problems file gives are the lines on disk. An invalid specification
 // prints its errors, as every document does, gets its files all the same,
 // and makes the status 1.
-func runProblems(paths []string, out string, check bool, stdout, stderr io.Writer) int {
+func runProblems(paths []string, out string, check bool, w *disk.Writer, stdout, stderr io.Writer) int {
 	inputs, ioError := collect(paths, stderr)
 	if ioError {
 		return 2
@@ -81,7 +82,7 @@ func runProblems(paths []string, out string, check bool, stdout, stderr io.Write
 		// two agree.
 		ps := problems.Collect(s, diags, covered, folder)
 		fragments, moved := problems.Mark(s, ps, problems.Files(s, ps))
-		for round := 0; !check && changed(fragments) && round < 4; round++ {
+		for round := 0; !check && !w.Dry() && changed(fragments) && round < 4; round++ {
 			for _, f := range fragments {
 				if f.Changed {
 					if err := os.WriteFile(f.Path, []byte(f.Content), 0o644); err != nil {
@@ -131,7 +132,7 @@ func runProblems(paths []string, out string, check bool, stdout, stderr io.Write
 	if check {
 		status = checkPlan("document", plan, stdout, stderr)
 	} else {
-		status = writePlan("document", plan, stderr)
+		status = writePlan("document", plan, w, stderr)
 	}
 	if status == 0 && invalid {
 		fmt.Fprintln(stderr, "specarch document: the input has errors; they are listed in the problems file")

@@ -56,6 +56,15 @@ command at the start of each session and stops if either differs.
 `specarch version` prints the version of the source the program was built
 from, which between two tags is the last tag's, so it is not the check.
 
+The installed program carries its own guide, at its own version:
+`specarch guide --agent` prints the order of work an agent follows, how to
+read a problem line and when to ask the owner; `specarch help <topic>`
+explains an area or a command; and `specarch capabilities --json` lists
+every command with its inputs as JSON Schema, its outputs and exit codes,
+and the plug-ins found on PATH, as an MCP-compatible tool listing. Every
+command takes `--json` for output a program reads, and every command that
+writes takes `--dry-run`.
+
 The schemas are compiled into the program, so validation needs nothing
 else. An editor that should check the YAML as it is typed points at the
 same commit:

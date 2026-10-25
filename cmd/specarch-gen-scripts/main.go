@@ -11,10 +11,29 @@ import (
 	"io"
 	"os"
 
+	"github.com/SpecArch/specarch"
+	"github.com/SpecArch/specarch/internal/capability"
 	"github.com/SpecArch/specarch/internal/genscripts"
 )
 
+// capabilities is what this plug-in answers to --capabilities.
+var capabilities = capability.Plugin{
+	Target:  "scripts",
+	Version: specarch.Version,
+	Summary: "Writes a guarded script per operation or command that carries a guard, for psql or the mariadb client.",
+	Generates: []string{
+		"one script per guarded operation or command: the precondition checked, the exact count of rows changed checked, the change derived by keyword or by the guard's writes",
+	},
+	DoesNotGenerate: []string{
+		"running the script against a live system",
+		"a data change with no guard",
+	},
+}
+
 func main() {
+	if len(os.Args) > 1 {
+		os.Exit(capability.Serve(os.Args[1:], os.Stdout, os.Stderr, capabilities))
+	}
 	os.Exit(run(os.Stdin, os.Stdout, os.Stderr))
 }
 

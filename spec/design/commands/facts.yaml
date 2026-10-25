@@ -37,6 +37,10 @@ commands:
       get --enforce-lockfile), whose progress is printed on standard
       error. Nothing is written into the folder read.
     permission: public
+    options:
+      dry-run:
+        description: Read the folder and write nothing; print the dump it would write, and for the Swift or the Dart reader the cache folder it would write the reader into when it is not there yet, as would write <path>, without building or running that reader.
+        schema: { type: boolean, default: false }
     arguments:
       - name: language
         description: The reader to run.

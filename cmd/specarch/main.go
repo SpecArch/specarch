@@ -2,16 +2,19 @@
 // code from them.
 //
 //	specarch validate <folder or file>...
-//	specarch document <target> [--out <folder>] [--check] [--audience external] <folder>...
-//	specarch generate <target> [--out <folder>] [--check] [--unapproved] [--estate <file>] <folder>...
-//	specarch extract <source> [--source-key <key>] [--implementation <file>] [--implementation-out <file>] [--facts <dump>] [--routes <dump>] [--language <tag>] [--vocabulary <file>] [--given-outside] [--table] --out <folder> <path>...
-//	specarch merge [--vocabulary <file>]... --out <folder> <tree>...
+//	specarch document <target> [--out <folder>] [--check | --dry-run] [--audience external] <folder>...
+//	specarch generate <target> [--out <folder>] [--check | --dry-run] [--unapproved] [--estate <file>] <folder>...
+//	specarch extract <source> [--source-key <key>] [--implementation <file>] [--implementation-out <file>] [--facts <dump>] [--routes <dump>] [--language <tag>] [--vocabulary <file>] [--given-outside] [--table] [--dry-run] --out <folder> <path>...
+//	specarch merge [--vocabulary <file>]... [--dry-run] --out <folder> <tree>...
 //	specarch diff <old> <new>
 //	specarch check [--allowlist <file>] [--since <revision>] <specification> <dump>...
-//	specarch derive <folder>...
+//	specarch derive [--dry-run] <folder>...
 //	specarch idioms [diff <idiom>] <folder>...
 //	specarch model <folder or file>...
 //	specarch version
+//	specarch help [<topic>]
+//	specarch guide [--agent]
+//	specarch capabilities [--json]
 package main
 
 import (
@@ -20,26 +23,28 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/SpecArch/specarch"
 	"github.com/SpecArch/specarch/internal/metamodel"
 	"github.com/SpecArch/specarch/internal/spec"
 	"github.com/SpecArch/specarch/internal/validate"
 )
 
-// version is the program version, set at release time.
-const version = "1.0.0"
+// version is the program version, set at release time in the root
+// package.
+const version = specarch.Version
 
 const usage = `usage:
   specarch validate <folder or file>...    check specifications and implementation files
   specarch gaps <folder>...                 list the open questions and what they hold up
-  specarch document <target> [--out <folder>] [--check] [--audience external] <folder>...
+  specarch document <target> [--out <folder>] [--check | --dry-run] [--audience external] <folder>...
                                             write a document from a specification
-  specarch decide <question> --by <stakeholder> --answer <text> [--source <key>] [--date <date>] <folder>
+  specarch decide <question> --by <stakeholder> --answer <text> [--source <key>] [--date <date>] [--dry-run] <folder>
                                             answer an open question: write the decision record and take the question out
-  specarch approve --by <stakeholder> [--date <date>] <folder>...
+  specarch approve --by <stakeholder> [--date <date>] [--dry-run] <folder>...
                                             record that the documents were read and the specification is approved
-  specarch generate <target> [--out <folder>] [--check] [--unapproved] [--estate <file>] <folder>...
+  specarch generate <target> [--out <folder>] [--check | --dry-run] [--unapproved] [--estate <file>] <folder>...
                                             write code or data from an approved specification
-  specarch extract <source> [--source-key <key>] [--implementation <file>] [--implementation-out <file>] [--facts <dump>] [--routes <dump>] [--language <tag>] [--vocabulary <file>] [--given-outside] [--table] --out <folder> <path>...
+  specarch extract <source> [--source-key <key>] [--implementation <file>] [--implementation-out <file>] [--facts <dump>] [--routes <dump>] [--language <tag>] [--vocabulary <file>] [--given-outside] [--table] [--dry-run] --out <folder> <path>...
                                             write a specification from one surface of existing code or
                                             documents; the sources are outline, database, router, documents, openapi,
                                             permissions, pages, workflows, gateway, go, swift, javascript and dart; go, swift,
@@ -49,10 +54,10 @@ const usage = `usage:
                                             documents reads the words of --language or --vocabulary, English by default;
                                             workflows reads a BPMN 2.0 XML file, or with --table a workflow table;
                                             gateway reads a gateway table
-  specarch facts <language> <folder> <dump>
+  specarch facts [--dry-run] <language> <folder> <dump>
                                             write the code-facts dump extract reads of a committed folder;
                                             the languages are javascript, swift and dart
-  specarch merge [--vocabulary <file>]... --out <folder> <tree>...
+  specarch merge [--vocabulary <file>]... [--dry-run] --out <folder> <tree>...
                                             merge the trees extract wrote into one specification
   specarch diff <old folder> <new folder>   list what changed between two versions and check the release
   specarch check [--allowlist <file>] [--since <revision>] <specification> <dump>...
@@ -60,72 +65,89 @@ const usage = `usage:
                                             catalogue dumps and gateway tables of its code, and fail on a difference the
                                             allowlist does not name or a line of it that names none or was
                                             added since the revision
-  specarch derive <folder>...               write a draft test for every derived case no test covers
+  specarch derive [--dry-run] <folder>...   write a draft test for every derived case no test covers
   specarch upgrade [--dry-run] [--to <version>] <folder or file>...
                                             move specifications and their files to the newest version of each format
   specarch idioms <folder>...               list the idioms each implementation file uses, and how
   specarch idioms diff <idiom> <folder>...  print a shipped idiom's parts beside each override's
   specarch model <folder or file>...        print the specifications as one JSON document, for a program
   specarch version                          print the program version
+  specarch help [<topic>]                   explain an area or a command: the format, extract, generate, plugins...
+  specarch guide [--agent]                  print the order of work, for a person or, with --agent, an agent
+  specarch capabilities [--json]            list what this program and the plug-ins on PATH can do;
+                                            --json is a tool listing with each command's inputs as JSON Schema
 
 A specification is a folder holding specarch.yaml. A folder given here is
 searched for specifications, for *.specarch-implementation.yaml files
 outside one, and for estates (specarch-estate.yaml), which bring the
 specifications of the modules they list.
+
+Every command takes --json: one JSON object on standard output, and on
+exit 2 one error object on standard error. Every command that writes
+takes --dry-run: it lists what it would write and writes nothing.
 `
 
 func main() {
 	os.Exit(run(os.Args[1:], os.Stdout, os.Stderr))
 }
 
+// commands are the program's commands by their first word, each run with
+// the arguments after it. help also answers to -h and --help.
+var commands = map[string]func(args []string, stdout, stderr io.Writer) int{
+	"validate":     runValidate,
+	"gaps":         runGaps,
+	"decide":       runDecide,
+	"approve":      runApprove,
+	"document":     runDocument,
+	"generate":     runGenerate,
+	"extract":      runExtract,
+	"merge":        runMerge,
+	"diff":         runDiff,
+	"check":        runCheck,
+	"derive":       runDerive,
+	"upgrade":      runUpgrade,
+	"idioms":       runIdioms,
+	"facts":        runFacts,
+	"model":        runModel,
+	"version":      runVersionCommand,
+	"help":         runHelp,
+	"capabilities": runCapabilities,
+	"guide":        runGuide,
+}
+
 func run(args []string, stdout, stderr io.Writer) int {
+	if rest, ok := takeJSON(args); ok {
+		return runJSON(rest, stdout, stderr)
+	}
+	return dispatch(args, stdout, stderr)
+}
+
+func dispatch(args []string, stdout, stderr io.Writer) int {
 	if len(args) == 0 {
 		fmt.Fprint(stderr, usage)
 		return 2
 	}
-	switch args[0] {
-	case "validate":
-		return runValidate(args[1:], stdout, stderr)
-	case "gaps":
-		return runGaps(args[1:], stdout, stderr)
-	case "decide":
-		return runDecide(args[1:], stdout, stderr)
-	case "approve":
-		return runApprove(args[1:], stdout, stderr)
-	case "document":
-		return runDocument(args[1:], stdout, stderr)
-	case "generate":
-		return runGenerate(args[1:], stdout, stderr)
-	case "extract":
-		return runExtract(args[1:], stdout, stderr)
-	case "merge":
-		return runMerge(args[1:], stdout, stderr)
-	case "diff":
-		return runDiff(args[1:], stdout, stderr)
-	case "check":
-		return runCheck(args[1:], stdout, stderr)
-	case "derive":
-		return runDerive(args[1:], stdout, stderr)
-	case "upgrade":
-		return runUpgrade(args[1:], stdout, stderr)
-	case "idioms":
-		return runIdioms(args[1:], stdout, stderr)
-	case "facts":
-		return runFacts(args[1:], stdout, stderr)
-	case "model":
-		return runModel(args[1:], stdout, stderr)
-	case "version":
-		if len(args) > 1 {
-			fmt.Fprintf(stderr, "specarch version takes no arguments\n\n%s", usage)
-			return 2
-		}
-		return runVersion(stdout)
-	case "help", "-h", "--help":
-		fmt.Fprint(stdout, usage)
-		return 0
+	name := args[0]
+	if name == "-h" || name == "--help" {
+		name = "help"
+	}
+	if c, ok := commands[name]; ok {
+		return c(args[1:], stdout, stderr)
+	}
+	if name == "--agent-info" {
+		fmt.Fprintf(stderr, "specarch has no command --agent-info; what it can do, as JSON, is specarch capabilities --json\n\n%s", usage)
+		return 2
 	}
 	fmt.Fprintf(stderr, "specarch has no command %q\n\n%s", args[0], usage)
 	return 2
+}
+
+func runVersionCommand(args []string, stdout, stderr io.Writer) int {
+	if len(args) > 0 {
+		fmt.Fprintf(stderr, "specarch version takes no arguments\n\n%s", usage)
+		return 2
+	}
+	return runVersion(stdout)
 }
 
 func runVersion(stdout io.Writer) int {

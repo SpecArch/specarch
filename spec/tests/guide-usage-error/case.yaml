@@ -1,0 +1,3 @@
+arguments: [guide, --person]
+exitStatus: 2
+standardOutput: ""

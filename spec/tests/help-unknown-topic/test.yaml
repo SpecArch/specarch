@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: help
+level: system
+scenario: red
+covers: [usage error, exit 2]
+given: the program
+when: help is run with a topic that does not exist
+then: "it prints nothing on standard output, names the topics on standard error, and exits 2"
+verifies: [SA-96]

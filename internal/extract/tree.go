@@ -3,7 +3,6 @@ package extract
 import (
 	"bytes"
 	"fmt"
-	"os"
 	"path/filepath"
 	"sort"
 	"strconv"
@@ -11,6 +10,7 @@ import (
 
 	"go.yaml.in/yaml/v3"
 
+	"github.com/SpecArch/specarch/internal/disk"
 	"github.com/SpecArch/specarch/internal/metamodel"
 	"github.com/SpecArch/specarch/internal/source"
 	"github.com/SpecArch/specarch/internal/spec"
@@ -100,7 +100,7 @@ func (t *Tree) put(path string, n *yaml.Node) { t.files[path] = n }
 // own files; it never removes one. Before writing, every source's outline
 // is completed with the clauses the tree cites of it, and every
 // question's pointer is anchored in the tree.
-func (t *Tree) Write(out string) error {
+func (t *Tree) Write(w *disk.Writer, out string) error {
 	t.completeOutlines()
 	t.anchorBlocks()
 	names := make([]string, 0, len(t.files))
@@ -116,11 +116,7 @@ func (t *Tree) Write(out string) error {
 		if name == "specarch.yaml" {
 			text = append([]byte(schemaLine), text...)
 		}
-		p := filepath.Join(out, filepath.FromSlash(name))
-		if err := os.MkdirAll(filepath.Dir(p), 0o755); err != nil {
-			return err
-		}
-		if err := os.WriteFile(p, text, 0o644); err != nil {
+		if err := w.WriteFile(filepath.Join(out, filepath.FromSlash(name)), text, 0o644); err != nil {
 			return err
 		}
 	}
@@ -129,7 +125,7 @@ func (t *Tree) Write(out string) error {
 
 // WriteFragment writes an implementation fragment a reader wrote, with the
 // note as its first comment.
-func WriteFragment(path string, n *yaml.Node, note string) error {
+func WriteFragment(w *disk.Writer, path string, n *yaml.Node, note string) error {
 	text, err := encode(n)
 	if err != nil {
 		return err
@@ -139,10 +135,7 @@ func WriteFragment(path string, n *yaml.Node, note string) error {
 		b.WriteString("# " + line + "\n")
 	}
 	b.Write(text)
-	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
-		return err
-	}
-	return os.WriteFile(path, b.Bytes(), 0o644)
+	return w.WriteFile(path, b.Bytes(), 0o644)
 }
 
 // wrap breaks a text into lines of at most width characters, at spaces.

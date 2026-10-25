@@ -1,0 +1,21 @@
+Plug-ins
+
+Code targets are separate programs on PATH, named specarch-gen-<target>
+or specarch-gen-<target>-<stack>. specarch generate runs the first of
+that name found in PATH order, with the request on its standard input; a
+plug-in answers with JSON on standard output (the files, and the problems
+it found) and never touches the disk itself.
+
+Install each at the same release tag as specarch:
+
+  go install github.com/SpecArch/specarch/cmd/specarch-gen-sql@v1.0.0
+
+A plug-in run with --capabilities prints, as JSON, its target, its stack,
+its version, what it writes and what it does not write. specarch
+capabilities and this topic ask every plug-in found; one built before
+--capabilities existed is listed with the reason, and still generates.
+
+This release has twelve: openapi, sql, sqlc, scripts, go-dxlib, bpmn,
+tests-go, tests-swift, tests-dart (the tests target for each stack), ui
+(web, plain JavaScript), ui-typescript and ui-swiftui (the ui target on
+Next.js with Carbon, and SwiftUI for the iPhone).

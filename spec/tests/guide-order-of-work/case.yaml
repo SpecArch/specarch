@@ -1,0 +1,93 @@
+arguments: [guide]
+exitStatus: 0
+standardOutput: |
+  SpecArch 1.0.0: the order of work
+
+  1. Pin the program: record the module version and checksum `go version -m`
+     prints for the installed specarch in the repository's agent instructions,
+     and check them at the start of each session; `specarch capabilities
+     --json` names the version, the formats and the plug-ins this install has.
+  2. Specification first: change the specification (specarch.yaml, its stage
+     folders, the implementation files) before the code made from it, never a
+     generated file; a generated file's first lines say which command made it.
+  3. After every edit run `specarch validate <folder>`: exit 0 is valid, 1
+     lists the errors one per line, 2 is a usage or read error.
+  4. Run `specarch gaps <folder>` for the open questions and what each holds
+     up; take each must or should question to the owner and record the answer
+     with `specarch decide`.
+  5. Write what people read with `specarch document <target> --out <folder>
+     <folder>` (techspec, requirements, problems, questions, manual and the
+     others); once the owner has read them, they record the approval with
+     `specarch approve`.
+  6. Write code with `specarch generate <target> <folder>`; it refuses an
+     unapproved specification unless `--unapproved` makes the output a draft.
+     `--dry-run` lists what it would write; `--check` fails when the files on
+     disk differ, so run it before each commit and in CI.
+  7. For a system that exists already: `specarch extract <source>` once per
+     surface (documents, database, router, code), `specarch merge` the trees,
+     then validate and gaps; `specarch check` compares the specification with
+     the code's own tables later.
+  8. When a release moves the formats: `specarch upgrade --dry-run <folder>`
+     lists the changes and the steps left to the author, `specarch upgrade
+     <folder>` makes them.
+
+  Commands
+
+    specarch approve --by <by> [--date <date>] [--dry-run] <paths>...
+        Record that the documents were read and the specification is approved.
+    specarch capabilities [--json]
+        List what this program and the plug-ins on PATH can do; with --json as
+        a tool listing a program reads.
+    specarch check <specification> [--allowlist <allowlist>] [--since <since>]
+      <dumps>...
+        Compare a specification with the dumps of the running code, for a CI
+        gate.
+    specarch decide <question> <folder> --by <by> --answer <answer>
+      [--source <source>] [--date <date>] [--dry-run]
+        Answer an open question with a decision record and take the question
+        out.
+    specarch derive [--dry-run] <paths>...
+        Write a draft test for every derived case no test covers.
+    specarch diff <old> <new>
+        Compare two versions of a specification and check the release between
+        them.
+    specarch document <target> [--out <out>] [--check] [--audience <audience>]
+      [--dry-run] <paths>...
+        Write a document from a specification.
+    specarch extract <source> --out <out> [--implementation <implementation>]
+      [--facts <facts>] [--routes <routes>] [--language <language>]
+      [--vocabulary <vocabulary>] [--given-outside]
+      [--implementation-out <implementation-out>] [--table]
+      [--source-key <source-key>] [--dry-run] <paths>...
+        Write a specification from existing code or documents.
+    specarch facts <language> <folder> <dump> [--dry-run]
+        Write the code-facts dump extract reads of a committed folder.
+    specarch gaps <paths>...
+        List the open questions and what they hold up.
+    specarch generate <target> [--out <out>] [--check] [--estate <estate>]...
+      [--unapproved] [--dry-run] <paths>...
+        Write code or data from a specification.
+    specarch guide [--agent]
+        Print the order of work, for a person or, with --agent, for an agent.
+    specarch help [<topic>...]
+        Explain an area of SpecArch or one command, from the text built into
+        the program.
+    specarch idioms <paths>...
+        List the idioms each implementation file uses, and how.
+    specarch idioms diff <idiom> <paths>...
+        Print a shipped idiom's parts beside each override's.
+    specarch merge --out <out> [--vocabulary <vocabulary>]... [--dry-run]
+      <trees>...
+        Merge the partial specifications the readers wrote into one.
+    specarch model <paths>...
+        Print the specifications as one JSON document, for a program.
+    specarch upgrade [--dry-run] [--to <to>] <paths>...
+        Move a specification and its files to the newest version of each
+        format, or list what moving them changes.
+    specarch validate <paths>...
+        Check specifications and implementation files.
+    specarch version
+        Print the program version and the meta-model versions it reads.
+
+  specarch help <topic or command> explains each; specarch guide --agent is the
+  same order with what an agent must do and must ask.

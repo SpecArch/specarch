@@ -1,0 +1,41 @@
+Open questions, decisions and approval
+
+  specarch gaps <folder>...
+
+prints the open questions document: the counts by priority, the decisions
+each stakeholder must take and the material each must provide, then every
+question by stage, with who decides, what it blocks, its options and the
+decision that opened it; then the references into other specifications
+that do not resolve, and which documents and code targets are ready,
+drafts or waiting.
+
+A question is written in the specification, under questions, when a
+source does not say something or two sources disagree:
+
+  questions:
+    Q-1:
+      question: How many days may a note stay unread before it is archived?
+      kind: decision
+      priority: must
+      decidedBy: writer
+      blocks: ["#/entities/Note"]
+
+A must or a should question holds up what it blocks. The stakeholder
+answers; the answer is recorded with
+
+  specarch decide Q-1 --by writer --answer "30 days" spec/
+
+which writes the decision record design/decisions/<ID>.yaml under the
+next ID, takes the question out, and prints the entries the question
+blocked, to be written from the answer; the specification lists design
+among its stages and has a design/ folder. Then validate again.
+
+When the documents are written and read, the stakeholder who read them
+approves:
+
+  specarch approve --by writer spec/
+
+It refuses a specification with errors, with an open must or should
+question, or whose documents differ from what it says now. The record
+holds a digest of the files, so any later change voids it. generate runs
+only on an approved specification.

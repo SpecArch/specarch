@@ -188,6 +188,9 @@ commands:
       unapproved:
         description: Write a draft from a specification that is not approved yet, because no approval record covers its files as they are or an open must or should question blocks what the target reads. The refusal is the default; with this, every file says it is a draft and why.
         schema: { type: boolean, default: false }
+      dry-run:
+        description: Run the plug-in and write nothing; print each file it would write, as would write <path>. Not with --check.
+        schema: { type: boolean, default: false }
     reads:
       - { path: "{paths}", description: The specifications and their implementation files. }
       - { path: "records/approvals/<version>.yaml", description: "The approval of the specification's version, beside its folder." }

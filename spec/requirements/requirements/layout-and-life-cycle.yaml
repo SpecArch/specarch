@@ -105,3 +105,19 @@ requirements:
       - source: iso-12207
         clause: "6.4.10"
         says: "The transition process establishes the capability to provide the service in its operational environment."
+  SA-96:
+    statement: An installed specarch, with no source checkout or docs folder, shall say what it can do and how to use it, from the definitions it was built with, for a person and for a program; every command shall take --json, printing one JSON object on standard output and on a failure one error object with a stable code on standard error; every command that writes shall take --dry-run, listing each file it would write and writing nothing; and no command shall ask anything.
+    kind: interface
+    priority: should
+    status: accepted
+    acceptance:
+      - specarch help prints the usage and the topics; specarch help <topic> prints the area's guide or the command's reference made from its definition, with each option, what it prints and writes, and each exit status with its remedy; an unknown topic is exit status 2 naming the topics.
+      - specarch capabilities --json prints one object whose tools hold one entry per command, each with a name, a description, an inputSchema in JSON Schema draft 2020-12 whose properties are exactly the command's arguments and options, its outputs and its exit codes; and one entry per target the plug-ins on PATH write, each plug-in answering --capabilities with its target, what it writes and what it does not write.
+      - specarch guide --agent prints the workflow, how to read problems, when to ask the owner, the limits and the conventions, the facts capabilities --json lists under the same names, and the repository's AGENTS.md holds the same text up to the plug-ins found.
+      - A command or an option the program takes with no definition in the specification, or a definition the program does not take, fails the build's tests.
+      - Every command run with --json prints exactly one JSON object on standard output and nothing else, and on exit status 2 exactly one error object on standard error naming a code from the listing's errorCodes.
+      - Every command that writes, run with --dry-run, writes nothing and lists, as would write <path> or would remove <path>, each file the same run without it writes or removes.
+      - No command reads standard input, except a plug-in, which reads its request there.
+    verification: test
+    needs: [NEED-7]
+    why: The installed program is often all a person, a CI job or an agent has; a description built from the same definitions as the program cannot name a flag it lacks, a JSON form lets a program drive it without parsing text, and a dry run shows each file before any is written.

@@ -1,0 +1,53 @@
+A worked example
+
+1. Make a folder notes/ and write notes/specarch.yaml:
+
+  specarch: "1.0.0"
+  info: { title: Notes, version: 0.1.0 }
+  stakeholders:
+    writer: { description: The person who keeps the notes. }
+  requirements:
+    NOTES-1:
+      statement: A writer shall keep a note with a title of at most 80 characters.
+      kind: functional
+      priority: must
+      status: accepted
+      acceptance: [A note whose title has 81 characters is refused.]
+      verification: test
+  entities:
+    Note:
+      type: object
+      properties:
+        id: { type: integer, format: int32 }
+        title: { type: string, maxLength: 80 }
+      required: [id, title]
+      primaryKey: [id]
+      satisfies: [NOTES-1]
+
+2. Check it:
+
+  specarch validate notes/
+
+prints specarch: 1 input checked: 0 errors, 0 warnings, and exits 0.
+Write key: in place of primaryKey: and it prints two errors and exits 1;
+the first is
+
+  notes/specarch.yaml:15:5: error: /entities/Note: schema: primaryKey is missing; add it here [schema@specarch.yaml#/entities/Note]
+
+3. See what is open, and write a document:
+
+  specarch gaps notes/
+  specarch document techspec --out notes/docs notes/
+
+4. Code needs more than this: an implementation file under
+implementation/<stack>/, listed in stages, naming the stack and each
+target's output folder (specarch help format), the plug-in on PATH
+(specarch help plugins), and an approved specification (specarch help
+gaps). Then
+
+  specarch generate sql --dry-run notes/
+
+lists the files it would write, and without --dry-run writes them.
+
+From existing code and documents: specarch help extract. The order of
+work: specarch guide.

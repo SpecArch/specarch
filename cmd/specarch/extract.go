@@ -5,9 +5,11 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
 
+	"github.com/SpecArch/specarch/internal/disk"
 	"github.com/SpecArch/specarch/internal/extract"
 	"github.com/SpecArch/specarch/internal/vocabulary"
 )
@@ -30,6 +32,7 @@ func runExtract(args []string, stdout, stderr io.Writer) int {
 	source := args[0]
 	out, key, implementation, implementationOut, facts, routes, language, vocabularyPath := "", "", "", "", "", "", "", ""
 	givenOutside, table := false, false
+	w := disk.Real
 	var paths []string
 	rest := args[1:]
 	for i := 0; i < len(rest); i++ {
@@ -42,6 +45,8 @@ func runExtract(args []string, stdout, stderr io.Writer) int {
 			givenOutside = true
 		case a == "--table":
 			table = true
+		case a == "--dry-run":
+			w = disk.DryRun(stdout)
 		case a == "--out" || a == "--source-key" || a == "--implementation" || a == "--implementation-out" || a == "--facts" || a == "--routes" || a == "--language" || a == "--vocabulary":
 			if i+1 >= len(rest) {
 				fmt.Fprintf(stderr, "specarch extract: %s needs a value\n\n%s", a, usage)
@@ -208,26 +213,31 @@ func runExtract(args []string, stdout, stderr io.Writer) int {
 		fmt.Fprintf(stderr, "specarch extract %s: %v\n", source, err)
 		return 2
 	}
-	if err := res.Tree.Write(out); err != nil {
-		fmt.Fprintf(stderr, "specarch extract %s: cannot write %s: %v\n", source, out, err)
-		return 2
-	}
-	if res.Implementation != nil {
-		if err := extract.WriteFragment(implementationOut, res.Implementation, res.ImplementationNote); err != nil {
+	// The implementation fragment is written before the derived tests
+	// and the marks, so a fragment inside --out is marked too; on a dry
+	// run such a fragment goes into the copy of --out with the tree.
+	fragment := func(folder string) int {
+		if res.Implementation == nil {
+			return 0
+		}
+		path, fw := implementationOut, w
+		if rel, err := filepath.Rel(out, implementationOut); err == nil && filepath.IsLocal(rel) {
+			path, fw = filepath.Join(folder, rel), disk.Real
+			if folder == out {
+				fw = w
+			}
+		}
+		if err := extract.WriteFragment(fw, path, res.Implementation, res.ImplementationNote); err != nil {
 			fmt.Fprintf(stderr, "specarch extract %s: cannot write the implementation fragment %s: %v\n", source, implementationOut, err)
 			return 2
 		}
+		return 0
 	}
-	derived, err := deriveInto(out, res.Tree)
-	if err != nil {
-		fmt.Fprintf(stderr, "specarch extract %s: cannot write the derived tests into %s: %v\n", source, out, err)
-		return 2
+	derived, status := writeTree("specarch extract "+source, out, res.Tree, fragment, w, stderr)
+	if status != 0 {
+		return status
 	}
 	res.Lines = append(res.Lines, derived...)
-	if err := markWritten(out, nil, nil); err != nil {
-		fmt.Fprintf(stderr, "specarch extract %s: cannot mark the problems in %s: %v\n", source, out, err)
-		return 2
-	}
 	for _, line := range res.Lines {
 		fmt.Fprintln(stdout, line)
 	}

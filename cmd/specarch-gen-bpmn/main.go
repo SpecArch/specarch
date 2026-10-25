@@ -11,10 +11,30 @@ import (
 	"io"
 	"os"
 
+	"github.com/SpecArch/specarch"
+	"github.com/SpecArch/specarch/internal/capability"
 	"github.com/SpecArch/specarch/internal/genbpmn"
 )
 
+// capabilities is what this plug-in answers to --capabilities.
+var capabilities = capability.Plugin{
+	Target:  "bpmn",
+	Version: specarch.Version,
+	Summary: "Writes each workflow as a BPMN 2.0 XML file and the same diagram as an SVG picture.",
+	Generates: []string{
+		"<workflow>.bpmn, the process a modeller or an engine opens",
+		"<workflow>.svg, the diagram for documents",
+	},
+	DoesNotGenerate: []string{
+		"the engine's deployment or the service tasks' code",
+		"anything beyond the sequential subset of BPMN the meta-model takes",
+	},
+}
+
 func main() {
+	if len(os.Args) > 1 {
+		os.Exit(capability.Serve(os.Args[1:], os.Stdout, os.Stderr, capabilities))
+	}
 	os.Exit(run(os.Stdin, os.Stdout, os.Stderr))
 }
 

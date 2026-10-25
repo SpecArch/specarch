@@ -11,10 +11,31 @@ import (
 	"io"
 	"os"
 
+	"github.com/SpecArch/specarch"
+	"github.com/SpecArch/specarch/internal/capability"
 	"github.com/SpecArch/specarch/internal/gensql"
 )
 
+// capabilities is what this plug-in answers to --capabilities.
+var capabilities = capability.Plugin{
+	Target:  "sql",
+	Version: specarch.Version,
+	Summary: "Writes the SQL migrations in the target's dialect: PostgreSQL, SQL Server, Oracle or MariaDB.",
+	Generates: []string{
+		"0001_expand.sql and snapshot.yaml, then the next NNNN_expand.sql and, when the settings allow destructive changes, NNNN_contract.sql for each change of the schema",
+		"tables with columns typed through the type-rendering idiom, checks, keys, indexes and views",
+	},
+	DoesNotGenerate: []string{
+		"a change it cannot tell from a rewrite (a new type, key or default): refused with what to do by hand",
+		"data corrections or backfills: the scripts target writes guarded scripts",
+		"running the migrations against a database",
+	},
+}
+
 func main() {
+	if len(os.Args) > 1 {
+		os.Exit(capability.Serve(os.Args[1:], os.Stdout, os.Stderr, capabilities))
+	}
 	os.Exit(run(os.Stdin, os.Stdout, os.Stderr))
 }
 

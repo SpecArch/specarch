@@ -15,6 +15,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/SpecArch/specarch/internal/disk"
 	"github.com/SpecArch/specarch/readers"
 )
 
@@ -179,8 +180,11 @@ func withRepository(data []byte, key string) ([]byte, error) {
 
 // Dump writes the code-facts dump of a committed folder (ADR-089,
 // ADR-116), and says on out what it wrote. progress is told each step a
-// reader's toolchain takes.
-func Dump(language, folder, dump string, out, progress io.Writer) error {
+// reader's toolchain takes. On a dry run of w it reads the folder and
+// lists the dump; for the Swift or the Dart reader it neither installs
+// nor builds nor runs the reader, and lists the dump and, when the reader
+// is not in the cache yet, the cache folder it would be written to.
+func Dump(language, folder, dump string, w *disk.Writer, out, progress io.Writer) error {
 	if !listedLanguage(language) {
 		return &Usage{fmt.Sprintf("there is no reader of %s; the languages are javascript, swift and dart", language)}
 	}
@@ -191,6 +195,17 @@ func Dump(language, folder, dump string, out, progress io.Writer) error {
 	s, err := read(language, folder, abs)
 	if err != nil {
 		return err
+	}
+	if w.Dry() && language != "javascript" {
+		dir, err := cacheDir(language)
+		if err != nil {
+			return err
+		}
+		if _, err := os.Stat(filepath.Join(dir, ".complete")); err != nil {
+			fmt.Fprintf(w.List, "would write %s\n", dir)
+		}
+		fmt.Fprintf(w.List, "would write %s\n", abs)
+		return nil
 	}
 	var data []byte
 	switch language {
@@ -204,6 +219,9 @@ func Dump(language, folder, dump string, out, progress io.Writer) error {
 	}
 	if data, err = withRepository(data, s.repository); err != nil {
 		return err
+	}
+	if w.Dry() {
+		return w.WriteFile(abs, data, 0o644)
 	}
 	if err := os.WriteFile(abs, data, 0o644); err != nil {
 		return &Usage{fmt.Sprintf("cannot write %s: %s", abs, err)}

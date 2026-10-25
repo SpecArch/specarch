@@ -1,0 +1,56 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-1.0.schema.json
+commands:
+  capabilities:
+    summary: List what this program and the plug-ins on PATH can do; with --json as a tool listing a program reads
+    description: |
+      Without --json it prints, for a person: the program version and
+      the module and revision it was built from, the formats it writes
+      and reads, each command's synopsis and summary, the document
+      targets and extract sources, the plug-ins found on PATH with what
+      each writes and does not write, and the limits.
+
+      With --json it prints one JSON object, `specarchCapabilities`
+      "1.0.0": `program`, `version` and `build`; `formats`, each SpecArch
+      file kind with the version it writes and the versions it reads;
+      `conventions`, `workflow`, `readingProblems`, `askTheOwner` and
+      `limits`, the facts the agent guide prints; `tools`; `plugins`;
+      `documentTargets`, `extractSources` and `helpTopics`; `outputs`,
+      the shape of the objects --json prints; and `errorCodes`, the
+      stable codes of the error object.
+
+      `tools` is an MCP-compatible tool listing: one entry per command,
+      and one per target a plug-in found writes (generate with the target
+      fixed), each with `name`, `title`, `description` and `inputSchema`,
+      a JSON Schema (draft 2020-12) object whose properties are the
+      command's arguments and options under their names, and
+      `annotations` (readOnlyHint, destructiveHint, idempotentHint,
+      openWorldHint); then this program's own keys: `command`, the words
+      to run, `positional`, the inputs given as arguments in order (every
+      other input is the option of its name), `usage`, `reads`, `writes`,
+      `standardOutput`, `standardError` and `exitCodes`, each with its
+      meaning and remedy. A thin wrapper can offer each entry as a tool
+      and run `command` with the inputs and --json.
+
+      Every command entry is made from the command's definition in this
+      specification, built into the program, so the listing names exactly
+      the commands and options the program takes. Each plug-in found on
+      PATH, the first of each name in PATH order as generate runs it, is
+      run with --capabilities, its standard input empty, for at most five
+      seconds; one that gives no answer in its shape is listed with the
+      reason and still generates.
+    permission: public
+    options:
+      json:
+        description: Print the listing as one JSON object, in place of the text for a person.
+        schema: { type: boolean, default: false }
+    reads:
+      - { path: "PATH", description: "The folders searched for specarch-gen-* plug-ins; each is run with --capabilities." }
+    standardOutput: The text listing, or with --json one JSON object, specarchCapabilities.
+    standardError: A usage message on a usage error.
+    exitCodes:
+      "0": printed
+      "2": usage error
+    remedies:
+      "2": "Run specarch capabilities with no argument or with --json only."
+    satisfies: [SA-96]
+    why: A program or an agent that drives specarch learns what this install can do, with which inputs, and what each exit status means, from the install itself; a listing made from the command definitions cannot name a flag the program does not take.

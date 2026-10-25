@@ -138,6 +138,8 @@ a defect in the roadmap, not an accepted state.
 | `third_party/typescript-go/` | the TypeScript compiler's Go source that `specarch facts javascript` reads with, copied at a pinned release by `tools/typescript-go/pull.sh`, with its own LICENSE and NOTICE.txt |
 | `readers/` | the Swift and Dart readers of `specarch facts`, with the lock files that pin them, embedded into the program |
 | `history/` | what changed and why, one file per day |
+| `AGENTS.md` | instructions for agents working in this repository, with the guide `specarch guide --agent` prints |
+| `docs/help/` | the help topics built into the program, which `specarch help <topic>` prints |
 | `BUG_OUTSTANDING.md`, `BUG_HISTORY.md` | the bugs, one BUG-NNN entry each: the open ones, and the fixed ones with the commit that fixed them; the repository has no GitHub issues (`CONTRIBUTING.md`, Bugs) |
 | `docs/principles.md` | the two principles, a compiler for specifications and the Low IQ Tax, and how SpecArch applies them |
 | `docs/conventions.md` | the tree layout, YAML layout, Markdown sections, generated and hand-drawn diagrams |
@@ -290,6 +292,34 @@ the last digit, concrete integer types, the test scenarios each subject
 needs, citations, environments and secrets, and traceability from needs
 through requirements to design and tests. `docs/conventions.md` describes
 every rule; the rule names are the `Rule` enum in `spec/design/enums/`.
+
+## What the program says about itself
+
+An installed `specarch` explains itself with no checkout or docs folder,
+from text and command definitions built into it, so it describes exactly
+the commands it was built with:
+
+    specarch help                  # the usage and the topics
+    specarch help generate         # an area's guide, or a command's reference
+    specarch guide                 # the order of work
+    specarch guide --agent         # the same for an agent, with when to ask the owner
+    specarch capabilities --json   # everything, as JSON a program reads
+
+The help topics are format, validate, gaps, generate, extract, upgrade,
+plugins, conventions and examples, and every command by name.
+`capabilities --json` is an MCP-compatible tool listing: one entry per
+command, and per target a plug-in on PATH writes, each with a `name`, a
+`description` and an `inputSchema` in JSON Schema draft 2020-12, beside
+its outputs, exit codes and remedies; each plug-in answers
+`--capabilities` with what it writes and what it does not. The entries are
+made from `spec/design/commands`, and a test fails when a command or an
+option has no definition there. `AGENTS.md` holds the agent guide, kept
+equal to `guide --agent` by a test.
+
+Every command takes `--json`: one JSON object on standard output and, on
+exit status 2, one error object with a stable code on standard error.
+Every command that writes takes `--dry-run`, which lists each file it
+would write and writes nothing. No command asks anything.
 
 ## Making the documents
 

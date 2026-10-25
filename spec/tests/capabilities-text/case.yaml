@@ -1,0 +1,100 @@
+arguments: [capabilities]
+exitStatus: 0
+standardOutput: |
+  specarch 1.0.0
+
+  Formats
+    meta-model: writes 1.0.0, reads 1.0.0 and any later 1.0 patch, 0.3, 0.2, 0.1
+    implementation file: writes 1.0.0, reads 1.0.0 and any later 1.0 patch, 0.1
+    record: writes 1.0.0, reads 1.0.0 and any later 1.0 patch, 0.1
+    idiom: writes 1.0.0, reads 1.0.0 and any later 1.0 patch, 0.1
+    estate: writes 1.0.0, reads 1.0.0 and any later 1.0 patch, 0.1
+    vocabulary: writes 1.0.0, reads 1.0.0 and any later 1.0 patch, 0.1
+
+  Commands
+    specarch approve --by <by> [--date <date>] [--dry-run] <paths>...
+        Record that the documents were read and the specification is approved.
+    specarch capabilities [--json]
+        List what this program and the plug-ins on PATH can do; with --json as
+        a tool listing a program reads.
+    specarch check <specification> [--allowlist <allowlist>] [--since <since>]
+      <dumps>...
+        Compare a specification with the dumps of the running code, for a CI
+        gate.
+    specarch decide <question> <folder> --by <by> --answer <answer>
+      [--source <source>] [--date <date>] [--dry-run]
+        Answer an open question with a decision record and take the question
+        out.
+    specarch derive [--dry-run] <paths>...
+        Write a draft test for every derived case no test covers.
+    specarch diff <old> <new>
+        Compare two versions of a specification and check the release between
+        them.
+    specarch document <target> [--out <out>] [--check] [--audience <audience>]
+      [--dry-run] <paths>...
+        Write a document from a specification.
+    specarch extract <source> --out <out> [--implementation <implementation>]
+      [--facts <facts>] [--routes <routes>] [--language <language>]
+      [--vocabulary <vocabulary>] [--given-outside]
+      [--implementation-out <implementation-out>] [--table]
+      [--source-key <source-key>] [--dry-run] <paths>...
+        Write a specification from existing code or documents.
+    specarch facts <language> <folder> <dump> [--dry-run]
+        Write the code-facts dump extract reads of a committed folder.
+    specarch gaps <paths>...
+        List the open questions and what they hold up.
+    specarch generate <target> [--out <out>] [--check] [--estate <estate>]...
+      [--unapproved] [--dry-run] <paths>...
+        Write code or data from a specification.
+    specarch guide [--agent]
+        Print the order of work, for a person or, with --agent, for an agent.
+    specarch help [<topic>...]
+        Explain an area of SpecArch or one command, from the text built into
+        the program.
+    specarch idioms <paths>...
+        List the idioms each implementation file uses, and how.
+    specarch idioms diff <idiom> <paths>...
+        Print a shipped idiom's parts beside each override's.
+    specarch merge --out <out> [--vocabulary <vocabulary>]... [--dry-run]
+      <trees>...
+        Merge the partial specifications the readers wrote into one.
+    specarch model <paths>...
+        Print the specifications as one JSON document, for a program.
+    specarch upgrade [--dry-run] [--to <to>] <paths>...
+        Move a specification and its files to the newest version of each
+        format, or list what moving them changes.
+    specarch validate <paths>...
+        Check specifications and implementation files.
+    specarch version
+        Print the program version and the meta-model versions it reads.
+
+  Document targets: techspec, requirements, testplan, traceability,
+    deployment, commissioning, handover, questions, problems, comparison,
+    changes, releases, html, manual, operations
+  Extract sources: outline, database, router, documents, openapi, permissions,
+    pages, workflows, gateway, go, swift, javascript, dart
+
+  Plug-ins found on PATH
+    none: put the specarch-gen-<target> executables on PATH to generate code.
+
+  Limits
+  - No promise of complete generation: a plug-in writes what its target covers
+    from the specification, marks each problem at its entry, and names what it
+    does not write; the rest is written by hand.
+  - Hand-written islands: keep code written by hand in files a target does not
+    write, since generate writes every file its plug-in answers (sqlc and
+    scripts never write over a file they did not write); `generate --check`
+    reads a file without the generated header as built by hand and says
+    whether it matches the output but for the header; an element an
+    implementation file marks ownedBy a stakeholder is generated nowhere.
+  - A specification is never complete: an incomplete one is still read, and
+    every gap is a problem or a question rather than a refusal to read.
+  - The program never runs or deploys the code it generates; a plug-in is
+    found on PATH, answers on standard output and never touches the disk, and
+    specarch writes its files.
+  - Prompts: none. Every command runs without asking anything, so no --yes
+    exists; a step that needs a person is a command the person runs (decide,
+    approve).
+
+  specarch capabilities --json prints all of it, with each command's inputs as
+  JSON Schema, its outputs and its exit codes.

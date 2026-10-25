@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/SpecArch/specarch/internal/disk"
 	"github.com/SpecArch/specarch/internal/extract"
 	"github.com/SpecArch/specarch/internal/spec"
 	"github.com/SpecArch/specarch/internal/validate"
@@ -19,6 +20,7 @@ import (
 // that cannot be read or written.
 func runMerge(args []string, stdout, stderr io.Writer) int {
 	out := ""
+	w := disk.Real
 	var trees []string
 	var vocabs []*vocabulary.Vocabulary
 	for i := 0; i < len(args); i++ {
@@ -55,8 +57,10 @@ func runMerge(args []string, stdout, stderr io.Writer) int {
 			}
 			vocabs = append(vocabs, v)
 			i++
+		case a == "--dry-run":
+			w = disk.DryRun(stdout)
 		case len(a) > 1 && a[0] == '-':
-			fmt.Fprintf(stderr, "specarch merge has no option %s\n\n%s", a, usage)
+			fmt.Fprintf(stderr, "specarch merge has no option %s; its options are --out, --vocabulary and --dry-run\n\n%s", a, usage)
 			return 2
 		default:
 			trees = append(trees, a)
@@ -102,20 +106,11 @@ func runMerge(args []string, stdout, stderr io.Writer) int {
 		fmt.Fprintf(stderr, "specarch merge: %v\n", err)
 		return 2
 	}
-	if err := res.Tree.Write(out); err != nil {
-		fmt.Fprintf(stderr, "specarch merge: cannot write %s: %v\n", out, err)
-		return 2
-	}
-	derived, err := deriveInto(out, res.Tree)
-	if err != nil {
-		fmt.Fprintf(stderr, "specarch merge: cannot write the derived tests into %s: %v\n", out, err)
-		return 2
+	derived, status := writeTree("specarch merge", out, res.Tree, nil, w, stderr)
+	if status != 0 {
+		return status
 	}
 	res.Lines = append(res.Lines, derived...)
-	if err := markWritten(out, nil, nil); err != nil {
-		fmt.Fprintf(stderr, "specarch merge: cannot mark the problems in %s: %v\n", out, err)
-		return 2
-	}
 	for _, line := range res.Lines {
 		fmt.Fprintln(stdout, line)
 	}

@@ -17,6 +17,7 @@ import (
 	"go.yaml.in/yaml/v3"
 
 	"github.com/SpecArch/specarch/internal/approval"
+	"github.com/SpecArch/specarch/internal/disk"
 	"github.com/SpecArch/specarch/internal/generate"
 	"github.com/SpecArch/specarch/internal/genscreens"
 	"github.com/SpecArch/specarch/internal/literal"
@@ -150,7 +151,7 @@ func runGenerate(args []string, stdout, stderr io.Writer) int {
 		fmt.Fprintf(stderr, "%s\n\n%s", msg, usage)
 		return 2
 	}
-	target, out, check, paths, set, msg := parseTargetArgs("generate", nil, []string{"unapproved"}, args)
+	target, out, check, paths, set, msg := parseTargetArgs("generate", nil, []string{"unapproved", "dry-run"}, args)
 	if msg != "" {
 		fmt.Fprintf(stderr, "%s\n\n%s", msg, usage)
 		return 2
@@ -297,7 +298,7 @@ func runGenerate(args []string, stdout, stderr io.Writer) int {
 	if check {
 		status = checkPlan("generate", plan, stdout, stderr)
 	} else {
-		status = writePlan("generate", plan, stderr)
+		status = writePlan("generate", plan, disk.For(set["dry-run"], stdout), stderr)
 	}
 	if status == 0 && failed {
 		if len(plan) == 0 {

@@ -59,6 +59,10 @@ commands:
       a folder of its own. Writing tests changes the specification, so an
       approval of it no longer holds.
     permission: public
+    options:
+      dry-run:
+        description: Write nothing; print each draft test it would write, as would write <path>.
+        schema: { type: boolean, default: false }
     arguments:
       - name: paths
         description: Folders holding specifications, searched as validate searches them.

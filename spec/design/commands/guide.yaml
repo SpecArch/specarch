@@ -1,0 +1,38 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-1.0.schema.json
+commands:
+  guide:
+    summary: Print the order of work, for a person or, with --agent, for an agent
+    description: |
+      Without --agent it prints the steps of the work in order, from a
+      specification written first to code generated and checked, then
+      each command's synopsis and summary.
+
+      With --agent it prints the guide for an agent, as Markdown: what
+      SpecArch is; the formats it writes and reads; the workflow (pin the
+      program, specification first, validate after every edit, gaps and
+      decide for the open questions, document and approve, generate and
+      generate --check, extract and merge for a system that exists,
+      upgrade when the formats move); how to read a problem line and the
+      problems file; when to stop and ask the owner; the limits (no
+      promise of complete generation, hand-written islands); the
+      conventions of every command (--json, --dry-run, exit statuses, no
+      prompts) and the error codes of --json; every command with its exit
+      statuses; then the plug-ins found on PATH. Each fact is the one
+      capabilities --json lists under the same name, and the repository's
+      AGENTS.md holds the same text up to the plug-ins.
+    permission: public
+    options:
+      agent:
+        description: Print the guide for an agent, as Markdown, in place of the order of work for a person.
+        schema: { type: boolean, default: false }
+    reads:
+      - { path: "PATH", description: "The folders searched for specarch-gen-* plug-ins, for --agent; each is run with --capabilities." }
+    standardOutput: The order of work and the commands, or with --agent the agent's guide in Markdown.
+    standardError: A usage message on a usage error.
+    exitCodes:
+      "0": printed
+      "2": usage error
+    remedies:
+      "2": "Run specarch guide with no argument or with --agent only."
+    satisfies: [SA-96]
+    why: An agent that follows the order of work, and stops where the owner decides, makes a specification the owner can trust; the same text in AGENTS.md and in the program keeps the two from drifting.

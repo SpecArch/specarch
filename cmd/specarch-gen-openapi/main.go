@@ -10,10 +10,30 @@ import (
 	"io"
 	"os"
 
+	"github.com/SpecArch/specarch"
+	"github.com/SpecArch/specarch/internal/capability"
 	"github.com/SpecArch/specarch/internal/genopenapi"
 )
 
+// capabilities is what this plug-in answers to --capabilities.
+var capabilities = capability.Plugin{
+	Target:  "openapi",
+	Version: specarch.Version,
+	Summary: "Writes the OpenAPI 3.1 document of the specification's operations, in the standard dialect or the dxlib one.",
+	Generates: []string{
+		"openapi.yaml: the paths and operations, a schema per entity and enum, the security schemes the permissions or the declared tokens give",
+		"x-specarch- extensions for what OpenAPI has no keyword for: permission, limits, emits, sensitivity and the others",
+	},
+	DoesNotGenerate: []string{
+		"handlers or server code: go-dxlib, or a code generator of the stack, turns the document into code",
+		"the rationale and the test hints of the specification",
+	},
+}
+
 func main() {
+	if len(os.Args) > 1 {
+		os.Exit(capability.Serve(os.Args[1:], os.Stdout, os.Stderr, capabilities))
+	}
 	os.Exit(run(os.Stdin, os.Stdout, os.Stderr))
 }
 

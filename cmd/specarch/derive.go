@@ -1,12 +1,15 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
 
+	"github.com/SpecArch/specarch/internal/disk"
 	"github.com/SpecArch/specarch/internal/extract"
 	"github.com/SpecArch/specarch/internal/spec"
 	"github.com/SpecArch/specarch/internal/validate"
@@ -19,18 +22,27 @@ import (
 // another draft or another subject's test, 2 on a usage or read error or a
 // specification that keeps its tests in the root file.
 func runDerive(args []string, stdout, stderr io.Writer) int {
-	if len(args) > 0 && args[0] == "--" {
-		args = args[1:]
+	w := disk.Real
+	var paths []string
+	for i := 0; i < len(args); i++ {
+		a := args[i]
+		switch {
+		case a == "--":
+			paths = append(paths, args[i+1:]...)
+			i = len(args)
+		case a == "--dry-run":
+			w = disk.DryRun(stdout)
+		case len(a) > 1 && a[0] == '-':
+			fmt.Fprintf(stderr, "specarch derive has no option %s; its one option is --dry-run\n\n%s", a, usage)
+			return 2
+		default:
+			paths = append(paths, a)
+		}
 	}
+	args = paths
 	if len(args) == 0 {
 		fmt.Fprintf(stderr, "specarch derive needs at least one folder\n\n%s", usage)
 		return 2
-	}
-	for _, a := range args {
-		if len(a) > 1 && a[0] == '-' {
-			fmt.Fprintf(stderr, "specarch derive has no option %s\n\n%s", a, usage)
-			return 2
-		}
 	}
 	// The tests a 0.2 file is missing are errors, and they are what derive
 	// writes, so they do not stop it; any other error does (ADR-055).
@@ -66,34 +78,100 @@ func runDerive(args []string, stdout, stderr io.Writer) int {
 				fmt.Fprintf(stderr, "specarch derive: kept %s, which exists\n", filepath.ToSlash(folder))
 				continue
 			}
-			if err := os.MkdirAll(folder, 0o755); err != nil {
-				fmt.Fprintf(stderr, "specarch derive: cannot write %s: %v\n", folder, err)
-				return 2
-			}
 			file := filepath.Join(folder, "test.yaml")
-			if err := os.WriteFile(file, []byte(dr.Text), 0o644); err != nil {
+			if err := w.WriteFile(file, []byte(dr.Text), 0o644); err != nil {
 				fmt.Fprintf(stderr, "specarch derive: cannot write %s: %v\n", file, err)
 				return 2
 			}
-			fmt.Fprintln(stdout, filepath.ToSlash(file))
+			if !w.Dry() {
+				fmt.Fprintln(stdout, filepath.ToSlash(file))
+			}
 			if dr.Renamed != "" {
 				fmt.Fprintf(stderr, "specarch derive: question: %s for %s: %s; rename the subject if the suffix does not suit\n", filepath.ToSlash(folder), dr.Subject, dr.Renamed)
 			}
 			drafts = append(drafts, file)
 			written++
 		}
-		if len(drafts) > 0 {
+		if len(drafts) > 0 && !w.Dry() {
 			if err := markWritten(l.spec.Dir, drafts, l.given); err != nil {
 				fmt.Fprintf(stderr, "specarch derive: cannot mark the problems in the drafts of %s: %v\n", l.spec.Dir, err)
 				return 2
 			}
 		}
 	}
-	fmt.Fprintf(stderr, "specarch derive: %s written\n", plural(written, "draft test"))
+	if w.Dry() {
+		fmt.Fprintf(stderr, "specarch derive: %s to write; nothing written (--dry-run)\n", plural(written, "draft test"))
+	} else {
+		fmt.Fprintf(stderr, "specarch derive: %s written\n", plural(written, "draft test"))
+	}
 	if collisions > 0 {
 		return 1
 	}
 	return 0
+}
+
+// writeTree writes a tree extract or merge read into out, then what also
+// writes, given the folder the tree is in, then the tests derive writes
+// into it, and the problem marks: the lines that say what was derived.
+// With a dry run it does all of it in a copy of out in a temporary folder
+// and lists, through w, each file of out it would write, so the list holds
+// the derived tests and the marks too.
+func writeTree(command, out string, tree *extract.Tree, also func(folder string) int, w *disk.Writer, stderr io.Writer) ([]string, int) {
+	folder := out
+	if w.Dry() {
+		tmp, err := os.MkdirTemp("", "specarch-dry-run-")
+		if err != nil {
+			fmt.Fprintf(stderr, "%s: cannot make a temporary folder for --dry-run: %v\n", command, err)
+			return nil, 2
+		}
+		defer os.RemoveAll(tmp)
+		if err := os.CopyFS(tmp, os.DirFS(out)); err != nil && !errors.Is(err, fs.ErrNotExist) {
+			fmt.Fprintf(stderr, "%s: cannot copy %s into %s for --dry-run: %v\n", command, out, tmp, err)
+			return nil, 2
+		}
+		folder = tmp
+	}
+	if err := tree.Write(disk.Real, folder); err != nil {
+		fmt.Fprintf(stderr, "%s: cannot write %s: %v\n", command, folder, err)
+		return nil, 2
+	}
+	if also != nil {
+		if status := also(folder); status != 0 {
+			return nil, status
+		}
+	}
+	derived, err := deriveInto(folder, tree)
+	if err != nil {
+		fmt.Fprintf(stderr, "%s: cannot write the derived tests into %s: %v\n", command, folder, err)
+		return nil, 2
+	}
+	if err := markWritten(folder, nil, nil); err != nil {
+		fmt.Fprintf(stderr, "%s: cannot mark the problems in %s: %v\n", command, folder, err)
+		return nil, 2
+	}
+	if folder == out {
+		return derived, 0
+	}
+	err = filepath.WalkDir(folder, func(p string, d fs.DirEntry, err error) error {
+		if err != nil || d.IsDir() {
+			return err
+		}
+		rel, err := filepath.Rel(folder, p)
+		if err != nil {
+			return err
+		}
+		data, err := os.ReadFile(p)
+		if err != nil {
+			return err
+		}
+		return w.WriteFile(filepath.Join(out, rel), data, 0o644)
+	})
+	if err != nil {
+		fmt.Fprintf(stderr, "%s: cannot compare the dry run in %s with %s: %v\n", command, folder, out, err)
+		return nil, 2
+	}
+	fmt.Fprintf(stderr, "%s: nothing written (--dry-run)\n", command)
+	return derived, 0
 }
 
 // deriveInto runs the derivation into a tree extract or merge has just
@@ -127,7 +205,7 @@ func deriveInto(out string, tree *extract.Tree) ([]string, error) {
 	}
 	if len(write) > 0 {
 		tree.ListStage("tests")
-		if err := tree.Write(out); err != nil {
+		if err := tree.Write(disk.Real, out); err != nil {
 			return nil, err
 		}
 		for _, dr := range write {

@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/SpecArch/specarch/internal/approval"
+	"github.com/SpecArch/specarch/internal/disk"
 	"github.com/SpecArch/specarch/internal/generate"
 	"github.com/SpecArch/specarch/internal/source"
 	"github.com/SpecArch/specarch/internal/validate"
@@ -22,6 +23,7 @@ import (
 // that are not what the specification generates now.
 func runApprove(args []string, stdout, stderr io.Writer) int {
 	by, date := "", ""
+	w := disk.Real
 	var paths []string
 	for i := 0; i < len(args); i++ {
 		a := args[i]
@@ -40,12 +42,14 @@ func runApprove(args []string, stdout, stderr io.Writer) int {
 				date = args[i+1]
 			}
 			i++
+		case a == "--dry-run":
+			w = disk.DryRun(stdout)
 		case strings.HasPrefix(a, "--by="):
 			by = strings.TrimPrefix(a, "--by=")
 		case strings.HasPrefix(a, "--date="):
 			date = strings.TrimPrefix(a, "--date=")
 		case strings.HasPrefix(a, "-") && len(a) > 1:
-			fmt.Fprintf(stderr, "specarch approve has no option %s; its options are --by and --date\n\n%s", a, usage)
+			fmt.Fprintf(stderr, "specarch approve has no option %s; its options are --by, --date and --dry-run\n\n%s", a, usage)
 			return 2
 		default:
 			paths = append(paths, a)
@@ -70,14 +74,14 @@ func runApprove(args []string, stdout, stderr io.Writer) int {
 		return status
 	}
 	for _, l := range specs {
-		if status := approve(l, by, date, stdout, stderr); status != 0 {
+		if status := approve(l, by, date, w, stdout, stderr); status != 0 {
 			return status
 		}
 	}
 	return 0
 }
 
-func approve(l loaded, by, date string, stdout, stderr io.Writer) int {
+func approve(l loaded, by, date string, w *disk.Writer, stdout, stderr io.Writer) int {
 	root := l.spec.Root
 	must, should, _ := validate.Questions(root)
 	if must+should > 0 {
@@ -135,9 +139,13 @@ func approve(l loaded, by, date string, stdout, stderr io.Writer) int {
 	}
 	version := source.Str(source.Child(source.Child(root, "info"), "version"))
 	rec := approval.Record{Version: version, ApprovedBy: by, Date: date, Documents: documents, Digest: digest}
-	if err := approval.Write(l.spec.Dir, rec); err != nil {
+	if err := approval.Write(w, l.spec.Dir, rec); err != nil {
 		fmt.Fprintf(stderr, "specarch approve: cannot write the record: %v\n", err)
 		return 2
+	}
+	if w.Dry() {
+		fmt.Fprintf(stderr, "specarch approve: version %s of %s can be approved by %s; nothing written (--dry-run)\n", version, l.spec.Dir, by)
+		return 0
 	}
 	fmt.Fprintf(stderr, "specarch approve: version %s of %s approved by %s; %s written beside it\n", version, l.spec.Dir, by, approval.Name(version))
 	return 0

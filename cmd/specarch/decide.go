@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/SpecArch/specarch/internal/disk"
 	"github.com/SpecArch/specarch/internal/generate"
 	"github.com/SpecArch/specarch/internal/refine"
 	"github.com/SpecArch/specarch/internal/source"
@@ -26,6 +27,7 @@ import (
 // them (ADR-065), and exits 1 then.
 func runDecide(args []string, stdout, stderr io.Writer) int {
 	by, answer, src, date := "", "", "", ""
+	w := disk.Real
 	var rest []string
 	for i := 0; i < len(args); i++ {
 		a := args[i]
@@ -42,11 +44,14 @@ func runDecide(args []string, stdout, stderr io.Writer) int {
 			}
 			name, value, ok = a, args[i+1], true
 			i++
+		case a == "--dry-run":
+			w = disk.DryRun(stdout)
+			continue
 		case strings.HasPrefix(a, "--by=") || strings.HasPrefix(a, "--answer=") || strings.HasPrefix(a, "--source=") || strings.HasPrefix(a, "--date="):
 			name, value, _ = strings.Cut(a, "=")
 			ok = true
 		case strings.HasPrefix(a, "-") && len(a) > 1:
-			fmt.Fprintf(stderr, "specarch decide has no option %s; its options are --by, --answer, --source and --date\n\n%s", a, usage)
+			fmt.Fprintf(stderr, "specarch decide has no option %s; its options are --by, --answer, --source, --date and --dry-run\n\n%s", a, usage)
 			return 2
 		default:
 			rest = append(rest, a)
@@ -188,22 +193,18 @@ func runDecide(args []string, stdout, stderr io.Writer) int {
 		fmt.Fprintf(stderr, "specarch decide: cannot write the decision: %v\n", err)
 		return 2
 	}
-	if err := os.MkdirAll(filepath.Dir(recordPath), 0o755); err != nil {
-		fmt.Fprintf(stderr, "specarch decide: cannot make %s: %v\n", filepath.Dir(recordPath), err)
-		return 2
-	}
-	if err := os.WriteFile(recordPath, text, 0o644); err != nil {
+	if err := w.WriteFile(recordPath, text, 0o644); err != nil {
 		fmt.Fprintf(stderr, "specarch decide: cannot write %s: %v\n", recordPath, err)
 		return 2
 	}
 	left := fmt.Sprintf("%s taken out of %s", id, relSlash(l.spec.Dir, questionFile))
 	if empty {
-		if err := os.Remove(questionFile); err != nil {
+		if err := w.Remove(questionFile); err != nil {
 			fmt.Fprintf(stderr, "specarch decide: %s written, but %s cannot be removed: %v\n", recordPath, questionFile, err)
 			return 2
 		}
 		left = fmt.Sprintf("%s removed, which held nothing but %s", relSlash(l.spec.Dir, questionFile), id)
-	} else if err := os.WriteFile(questionFile, edited, 0o644); err != nil {
+	} else if err := w.WriteFile(questionFile, edited, 0o644); err != nil {
 		fmt.Fprintf(stderr, "specarch decide: %s written, but %s cannot be written: %v\n", recordPath, questionFile, err)
 		return 2
 	}
@@ -215,7 +216,11 @@ func runDecide(args []string, stdout, stderr io.Writer) int {
 	default:
 		next = fmt.Sprintf("write the %d entries above, then run specarch validate", len(entries))
 	}
-	fmt.Fprintf(stderr, "specarch decide: %s answered by %s in %s, decided by %s; %s; %s\n", id, decisionID, relSlash(l.spec.Dir, recordPath), by, left, next)
+	if w.Dry() {
+		fmt.Fprintf(stderr, "specarch decide: %s would be answered by %s in %s, decided by %s; nothing written (--dry-run)\n", id, decisionID, relSlash(l.spec.Dir, recordPath), by)
+	} else {
+		fmt.Fprintf(stderr, "specarch decide: %s answered by %s in %s, decided by %s; %s; %s\n", id, decisionID, relSlash(l.spec.Dir, recordPath), by, left, next)
+	}
 	if invalid {
 		fmt.Fprintln(stderr, "specarch decide: the input has errors; they are printed above")
 		return 1

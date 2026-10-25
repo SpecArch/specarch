@@ -11,6 +11,7 @@ import (
 	"go.yaml.in/yaml/v3"
 
 	"github.com/SpecArch/specarch/internal/approval"
+	"github.com/SpecArch/specarch/internal/disk"
 	"github.com/SpecArch/specarch/internal/generate"
 	"github.com/SpecArch/specarch/internal/source"
 	"github.com/SpecArch/specarch/internal/spec"
@@ -185,7 +186,7 @@ func runDocument(args []string, stdout, stderr io.Writer) int {
 		fmt.Fprintf(stderr, "%s\n\n%s", msg, usage)
 		return 2
 	}
-	target, out, check, paths, _, msg := parseTargetArgs("document", documentTargets, nil, args)
+	target, out, check, paths, set, msg := parseTargetArgs("document", documentTargets, []string{"dry-run"}, args)
 	if msg == "" && everyone && target == "problems" {
 		msg = "specarch document problems has no --audience: the problems file and the marks are for the people who fix the specification, so they hold every element"
 	}
@@ -206,8 +207,9 @@ func runDocument(args []string, stdout, stderr io.Writer) int {
 		fmt.Fprintf(stderr, "specarch document: this build has no %s documentor; it has %s\n", target, strings.Join(built, ", "))
 		return 2
 	}
+	w := disk.For(set["dry-run"], stdout)
 	if target == "problems" {
-		return runProblems(paths, out, check, stdout, stderr)
+		return runProblems(paths, out, check, w, stdout, stderr)
 	}
 	specs, estates, invalid, status := readInputs(paths, "document", stdout, stderr, nil)
 	if status != 0 {
@@ -282,7 +284,7 @@ func runDocument(args []string, stdout, stderr io.Writer) int {
 	if check {
 		status = checkPlan("document", plan, stdout, stderr)
 	} else {
-		status = writePlan("document", plan, stderr)
+		status = writePlan("document", plan, w, stderr)
 	}
 	if status == 0 && invalid {
 		fmt.Fprintln(stderr, "specarch document: the input has errors; they are marked in the documents and listed in the problems file")
@@ -540,22 +542,23 @@ func outputFolder(l loaded, target, out string, stderr io.Writer) (string, int) 
 	return folder, 0
 }
 
-// writePlan writes every planned file that differs from the disk.
-func writePlan(verb string, plan []planned, stderr io.Writer) int {
+// writePlan writes every planned file that differs from the disk, or on a
+// dry run lists it.
+func writePlan(verb string, plan []planned, w *disk.Writer, stderr io.Writer) int {
 	written := 0
 	for _, p := range plan {
 		if old, err := os.ReadFile(p.path); err == nil && bytes.Equal(old, []byte(p.content)) {
 			continue
 		}
-		if err := os.MkdirAll(filepath.Dir(p.path), 0o755); err != nil {
-			fmt.Fprintf(stderr, "specarch: cannot write %s: %v\n", p.path, err)
-			return 2
-		}
-		if err := os.WriteFile(p.path, []byte(p.content), 0o644); err != nil {
+		if err := w.WriteFile(p.path, []byte(p.content), 0o644); err != nil {
 			fmt.Fprintf(stderr, "specarch: cannot write %s: %v\n", p.path, err)
 			return 2
 		}
 		written++
+	}
+	if w.Dry() {
+		fmt.Fprintf(stderr, "specarch %s: %s to write, %s already current; nothing written (--dry-run)\n", verb, plural(written, "file"), plural(len(plan)-written, "file"))
+		return 0
 	}
 	fmt.Fprintf(stderr, "specarch %s: %s written, %s already current\n", verb, plural(written, "file"), plural(len(plan)-written, "file"))
 	return 0
@@ -649,17 +652,20 @@ func parseTargetArgs(verb string, known, flags []string, args []string) (target,
 		case strings.HasPrefix(a, "--") && contains(flags, a[2:]):
 			set[a[2:]] = true
 		case strings.HasPrefix(a, "-") && len(a) > 1:
-			options := "--out and --check"
+			options := []string{"--out", "--check"}
 			for _, f := range flags {
-				options = "--out, --check and --" + f
+				options = append(options, "--"+f)
 			}
-			return "", "", false, nil, set, fmt.Sprintf("specarch %s has no option %s; its options are %s", verb, a, options)
+			return "", "", false, nil, set, fmt.Sprintf("specarch %s has no option %s; its options are %s and %s", verb, a, strings.Join(options[:len(options)-1], ", "), options[len(options)-1])
 		default:
 			paths = append(paths, a)
 		}
 	}
 	if len(paths) == 0 {
 		return "", "", false, nil, set, fmt.Sprintf("specarch %s needs at least one folder", verb)
+	}
+	if check && set["dry-run"] {
+		return "", "", false, nil, set, fmt.Sprintf("specarch %s takes --check or --dry-run, not both: --check compares the files on disk and exits 1 when one differs, --dry-run lists what it would write", verb)
 	}
 	return target, out, check, paths, set, ""
 }

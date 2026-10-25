@@ -1,0 +1,16 @@
+Upgrading a specification
+
+When a release moves a format, a file on an earlier version is still read
+by its own rules, with one warning at its version line naming specarch
+upgrade.
+
+  specarch upgrade --dry-run <folder>   print every change, write nothing
+  specarch upgrade <folder>             make the changes
+
+It rewrites only the version lines, the editor hints and the keys the new
+version renamed, in place, keeping comments, order and quoting byte for
+byte. What it cannot do mechanically it lists as a step left to the
+author, one problem line each, and exits 1. A second run changes nothing.
+
+Writing a file changes the specification, so an approval of it no longer
+holds: approve again after reading the documents.

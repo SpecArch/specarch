@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 1.0.1-dev of the specification: 764 design tests, 370 golden and 394 red, about 19 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 1.0.1-dev of the specification: 770 design tests, 373 golden and 397 red, about 22 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 1.0.1-dev of the specification: 764 design tests, 370 golden and 394 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 760 |
+| system | 766 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -86,6 +86,24 @@ Scenario: golden; level: system; verifies SA-20.
 - Given: a specification without open questions, a configured requirements document that is current, a configured problems target, which is not a document anyone approves, and a stakeholder owner
 - When: approve is run with --by owner and a date
 - Then: it writes records/approvals/1.0.0.yaml with the role, the date, the document and the digest of the files, and exits 0
+
+### Command capabilities
+
+#### capabilities-text
+
+Scenario: golden; level: system; verifies SA-96.
+
+- Given: the program, with no plug-in on PATH
+- When: capabilities is run
+- Then: it prints the version, the formats, every command, the document targets and extract sources, no plug-in and the limits, and exits 0
+
+#### capabilities-usage-error
+
+Scenario: red; level: system; covers usage error, exit 2; verifies SA-96.
+
+- Given: the program
+- When: capabilities is run with an option it does not take
+- Then: it prints how to use it and exits 2
 
 ### Command check
 
@@ -3116,6 +3134,42 @@ Scenario: golden; level: system; verifies SA-7, SA-14.
 - Given: an approved specification, its approval record beside it, and specarch-gen-echo on PATH, which answers two files
 - When: generate echo is run with --out out
 - Then: it writes both files under out/ and exits 0
+
+### Command guide
+
+#### guide-order-of-work
+
+Scenario: golden; level: system; verifies SA-96.
+
+- Given: the program, with no plug-in on PATH
+- When: guide is run
+- Then: it prints the order of work and every command with its summary, and exits 0
+
+#### guide-usage-error
+
+Scenario: red; level: system; covers usage error, exit 2; verifies SA-96.
+
+- Given: the program
+- When: guide is run with an option it does not take
+- Then: it prints how to use it and exits 2
+
+### Command help
+
+#### help-command-reference
+
+Scenario: golden; level: system; verifies SA-96.
+
+- Given: the program
+- When: help is run with the topic version
+- Then: it prints the version command's reference from its definition, and exits 0
+
+#### help-unknown-topic
+
+Scenario: red; level: system; covers usage error, exit 2; verifies SA-96.
+
+- Given: the program
+- When: help is run with a topic that does not exist
+- Then: it prints nothing on standard output, names the topics on standard error, and exits 2
 
 ### Command idioms diff
 
@@ -6197,7 +6251,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-417 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+424 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -6526,6 +6580,13 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-73 | acceptance 3 | golden | SA-73 names no harm |
 | requirement SA-73 | acceptance 4 | golden | SA-73 names no harm |
 | requirement SA-73 | acceptance 5 | golden | SA-73 names no harm |
+| requirement SA-96 | acceptance 1 | golden | SA-96 names no harm |
+| requirement SA-96 | acceptance 2 | golden | SA-96 names no harm |
+| requirement SA-96 | acceptance 3 | golden | SA-96 names no harm |
+| requirement SA-96 | acceptance 4 | golden | SA-96 names no harm |
+| requirement SA-96 | acceptance 5 | golden | SA-96 names no harm |
+| requirement SA-96 | acceptance 6 | golden | SA-96 names no harm |
+| requirement SA-96 | acceptance 7 | golden | SA-96 names no harm |
 | requirement SA-17 | acceptance 1 | golden | SA-17 names no harm |
 | requirement SA-17 | acceptance 2 | golden | SA-17 names no harm |
 | requirement SA-17 | acceptance 3 | golden | SA-17 names no harm |

@@ -1,0 +1,28 @@
+Validating
+
+  specarch validate <folder or file>...
+
+A folder is searched for specifications (folders holding specarch.yaml),
+for implementation files outside one and for estates. Every problem is
+one line, the form compilers use:
+
+  design/entities/order.yaml:12:17: error: /entities/Order/relations/customer/target: relation_target: Custmer is not an entity of the specification; did you mean Customer? [relation_target@design/entities/order.yaml#/entities/Order/relations/customer/target]
+
+file:line:column, the severity, the YAML path of the entry, the rule, one
+sentence saying what is wrong and how to fix it, and the problem's id,
+which stays the same while lines move. The last line, on standard error,
+gives the counts.
+
+The severities: error (invalid; document and generate refuse it, approve
+too), warning (valid, but something is missing or doubtful), question (an
+open question of the specification) and note.
+
+Beyond the JSON Schema, it checks references across the tree, fail-closed
+access (an operation with no permission is an error), the boundary
+between design and implementation, expressions and their types, worked
+examples evaluated to the last digit, concrete integer types, the test
+scenarios each subject needs, citations and traceability.
+
+An incomplete specification is still read: every gap is a problem, never
+a refusal to read the rest. Fix an error at the file and line it names,
+then run validate again.

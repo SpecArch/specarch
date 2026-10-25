@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: guide
+level: system
+scenario: red
+covers: [usage error, exit 2]
+given: the program
+when: guide is run with an option it does not take
+then: "it prints how to use it and exits 2"
+verifies: [SA-96]

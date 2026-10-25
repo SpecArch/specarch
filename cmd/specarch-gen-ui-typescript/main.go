@@ -11,10 +11,31 @@ import (
 	"io"
 	"os"
 
+	"github.com/SpecArch/specarch"
+	"github.com/SpecArch/specarch/internal/capability"
 	"github.com/SpecArch/specarch/internal/genuits"
 )
 
+// capabilities is what this plug-in answers to --capabilities.
+var capabilities = capability.Plugin{
+	Target:  "ui",
+	Stack:   "typescript",
+	Version: specarch.Version,
+	Summary: "Writes the pages of a ui target on platform web with framework nextjs-carbon, in TypeScript.",
+	Generates: []string{
+		"page.schema.ts and page.tsx per page under app/",
+		"the components that read the schemas under screens/, strings.ts with every text, and the server routes",
+	},
+	DoesNotGenerate: []string{
+		"the Next.js project's package.json and configuration",
+		"a component the ui-components idiom does not name",
+	},
+}
+
 func main() {
+	if len(os.Args) > 1 {
+		os.Exit(capability.Serve(os.Args[1:], os.Stdout, os.Stderr, capabilities))
+	}
 	os.Exit(run(os.Stdin, os.Stdout, os.Stderr))
 }
 

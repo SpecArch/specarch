@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: user manual
 
-Version 1.0.1-dev of the specification: 0 tasks, 0 pages and 17 commands. For the people who use the system: who may open which page, how to reach it, the tasks done across pages step by step, what each page asks for and answers, and what each command takes, does and answers.
+Version 1.0.1-dev of the specification: 0 tasks, 0 pages and 20 commands. For the people who use the system: who may open which page, how to reach it, the tasks done across pages step by step, what each page asks for and answers, and what each command takes, does and answers.
 
 The `specarch` command: it validates SpecArch specifications and makes
 documents and code from them. This folder is the specification, with no
@@ -13,7 +13,7 @@ language, library or build tool in it; how one stack implements it is in
 
 The specification has no role a person holds; the roles under roles, with the permissions the pages need, say who may open each page.
 
-Anyone who has the program runs these commands: approve, check, decide, derive, diff, document, extract, facts, gaps, generate, idioms, idioms diff, merge, model, upgrade, validate, version.
+Anyone who has the program runs these commands: approve, capabilities, check, decide, derive, diff, document, extract, facts, gaps, generate, guide, help, idioms, idioms diff, merge, model, upgrade, validate, version.
 
 ## 2. Finding your way
 
@@ -61,7 +61,7 @@ A later change to any of those files voids the approval, and
 **Note:** From ISO/IEC/IEEE 29148, Systems and software engineering, Life cycle processes, Requirements engineering, 2018, clause 3: A baseline is a formally approved version of a configuration item, fixed at a point in time. <https://www.iso.org/standard/72089.html>
 
 ```
-specarch approve <paths>... --by <by> [--date <date>]
+specarch approve <paths>... --by <by> [--date <date>] [--dry-run]
 ```
 
 Anyone who has the program runs it.
@@ -74,6 +74,7 @@ Anyone who has the program runs it.
 |---|---|---|
 | `--by <by>` | The stakeholder who read the documents and approves, by key; a role, never a person. | yes |
 | `--date <date>` | The date of the approval, as YYYY-MM-DD. Today when not given. |  |
+| `--dry-run` | Check everything and write nothing; print the approval record it would write, as would write <path>. |  |
 
 It reads:
 
@@ -93,6 +94,73 @@ On standard error: A usage message on a usage error, the reason a refusal, and o
 | 0 | the approval was recorded |   |
 | 1 | refused; the specification has errors or open questions, the stakeholder is unknown, no document is configured, or a document is not current | Run specarch gaps and specarch validate on the same paths and settle what they print, run specarch document for each document not current, then approve again. |
 | 2 | usage error, or a file that could not be read or written | Read the usage message or the reason on standard error, correct the command line or the path it names, and run it again. |
+
+### specarch capabilities
+
+List what this program and the plug-ins on PATH can do; with --json as a tool listing a program reads.
+
+Without --json it prints, for a person: the program version and
+the module and revision it was built from, the formats it writes
+and reads, each command's synopsis and summary, the document
+targets and extract sources, the plug-ins found on PATH with what
+each writes and does not write, and the limits.
+
+With --json it prints one JSON object, `specarchCapabilities`
+"1.0.0": `program`, `version` and `build`; `formats`, each SpecArch
+file kind with the version it writes and the versions it reads;
+`conventions`, `workflow`, `readingProblems`, `askTheOwner` and
+`limits`, the facts the agent guide prints; `tools`; `plugins`;
+`documentTargets`, `extractSources` and `helpTopics`; `outputs`,
+the shape of the objects --json prints; and `errorCodes`, the
+stable codes of the error object.
+
+`tools` is an MCP-compatible tool listing: one entry per command,
+and one per target a plug-in found writes (generate with the target
+fixed), each with `name`, `title`, `description` and `inputSchema`,
+a JSON Schema (draft 2020-12) object whose properties are the
+command's arguments and options under their names, and
+`annotations` (readOnlyHint, destructiveHint, idempotentHint,
+openWorldHint); then this program's own keys: `command`, the words
+to run, `positional`, the inputs given as arguments in order (every
+other input is the option of its name), `usage`, `reads`, `writes`,
+`standardOutput`, `standardError` and `exitCodes`, each with its
+meaning and remedy. A thin wrapper can offer each entry as a tool
+and run `command` with the inputs and --json.
+
+Every command entry is made from the command's definition in this
+specification, built into the program, so the listing names exactly
+the commands and options the program takes. Each plug-in found on
+PATH, the first of each name in PATH order as generate runs it, is
+run with --capabilities, its standard input empty, for at most five
+seconds; one that gives no answer in its shape is listed with the
+reason and still generates.
+
+**Insight:** A program or an agent that drives specarch learns what this install can do, with which inputs, and what each exit status means, from the install itself; a listing made from the command definitions cannot name a flag the program does not take.
+
+```
+specarch capabilities [--json]
+```
+
+Anyone who has the program runs it.
+
+| Option | What it does | Required |
+|---|---|---|
+| `--json` | Print the listing as one JSON object, in place of the text for a person. |  |
+
+It reads:
+
+- `PATH`: The folders searched for specarch-gen-* plug-ins; each is run with --capabilities.
+
+It writes no file.
+
+On standard output: The text listing, or with --json one JSON object, specarchCapabilities.
+
+On standard error: A usage message on a usage error.
+
+| Exit status | It means | What to do |
+|---|---|---|
+| 0 | printed |   |
+| 2 | usage error | Run specarch capabilities with no argument or with --json only. |
 
 ### specarch check
 
@@ -292,7 +360,7 @@ holds the agent to it.
 **Note:** From Documenting architecture decisions, 2011: A decision record holds the context, the decision and its consequences; a decision is superseded by a later one rather than edited. <https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions>
 
 ```
-specarch decide <question> <folder> --by <by> --answer <answer> [--source <source>] [--date <date>]
+specarch decide <question> <folder> --by <by> --answer <answer> [--source <source>] [--date <date>] [--dry-run]
 ```
 
 Anyone who has the program runs it.
@@ -308,6 +376,7 @@ Anyone who has the program runs it.
 | `--answer <answer>` | The answer, as the stakeholder gave it; the record's decision. | yes |
 | `--source <source>` | The key of the source the answer rests on, declared in the root file; an interview for an answer given in words, a document for material provided. Required when the specification tracks origin. |  |
 | `--date <date>` | The date of the decision, as YYYY-MM-DD. Today when not given. |  |
+| `--dry-run` | Check the question and the answer and write nothing; print the blocked entries, then the decision record it would write and the question file it would edit or remove, as would write <path> and would remove <path>. |  |
 
 It reads:
 
@@ -391,7 +460,7 @@ approval of it no longer holds.
 **Insight:** The validator already says which tests a specification implies and gives each one to copy; writing them out is the step that turns the warnings into a test suite the author completes, instead of one the author types out from the warnings. A name takes its subject key only when it is shared, so the names of a specification without a shared one stay short; writing one of two drafts of a name would leave the other unwritten with nothing said, so a name that is still shared is an error at each draft. The missing-test errors of a 0.2 file do not stop it, because a command that refused the errors it exists to settle could never be run on the file that needs it (ADR-055). A name made valid rather than copied, because a folder whose name validate refuses would make the tree derive writes one validate refuses, and every tree a command writes passes validate (ADR-122); a suffix and a question rather than an error, because the two subjects are different and each draft can be written, and the reviewer who reads the question decides whether the name suits.
 
 ```
-specarch derive <paths>...
+specarch derive <paths>... [--dry-run]
 ```
 
 Anyone who has the program runs it.
@@ -399,6 +468,10 @@ Anyone who has the program runs it.
 | Argument | What to give | Required |
 |---|---|---|
 | `<paths>` | Folders holding specifications, searched as validate searches them. One or more. | yes |
+
+| Option | What it does | Required |
+|---|---|---|
+| `--dry-run` | Write nothing; print each draft test it would write, as would write <path>. |  |
 
 It reads:
 
@@ -750,7 +823,7 @@ and the html page in place of what satisfies and verifies it.
 **Note:** From arc42, the template for architecture documentation, 8.2: The twelve chapters of an architecture document, from introduction and goals to glossary. <https://arc42.org/overview>
 
 ```
-specarch document <target> <paths>... [--out <out>] [--check] [--audience <audience>]
+specarch document <target> <paths>... [--out <out>] [--check] [--audience <audience>] [--dry-run]
 ```
 
 Anyone who has the program runs it.
@@ -765,6 +838,7 @@ Anyone who has the program runs it.
 | `--out <out>` | The folder the target owns. Without it, the folder the implementation files' `targets` name for the target, relative to each implementation file; they must agree. |  |
 | `--check` | Make the output in memory and fail when the files on disk differ. Writes nothing. |  |
 | `--audience <audience>` | external writes a document for everyone, without the internal elements (ADR-119). Needs --out; not for the problems target. One of: external. |  |
+| `--dry-run` | Make the documents in memory and write nothing; print each file it would write, the problem marks in the specification included, as would write <path>. Not with --check. |  |
 
 It reads:
 
@@ -2386,7 +2460,7 @@ Every reader follows these rules:
 **Insight:** Existing systems enter SpecArch by extraction, so the verb exists from the start; it is built one reader at a time for the first real project that needs it, and every reader keeps the same rules so that the merge can trust their trees.
 
 ```
-specarch extract <source> <paths>... --out <out> [--implementation <implementation>] [--facts <facts>] [--routes <routes>] [--language <language>] [--vocabulary <vocabulary>] [--given-outside] [--implementation-out <implementation-out>] [--table] [--source-key <source-key>]
+specarch extract <source> <paths>... --out <out> [--implementation <implementation>] [--facts <facts>] [--routes <routes>] [--language <language>] [--vocabulary <vocabulary>] [--given-outside] [--implementation-out <implementation-out>] [--table] [--source-key <source-key>] [--dry-run]
 ```
 
 Anyone who has the program runs it.
@@ -2408,6 +2482,7 @@ Anyone who has the program runs it.
 | `--implementation-out <implementation-out>` | For database, go and gateway, a new YAML file the reader writes what it knows of the implementation into, an implementation fragment that is not a whole implementation file. For gateway, the deployment of the environment the table's addresses were resolved in, with a server per forwarded service and the value of each setting (ADR-142). For database, each entity's table as its target and its plain indexes, each citing the catalogue (ADR-121). For go, each operation's handler as its target and, under handler, the record of what it does, function by function with its steps and its source at the commit read (ADR-144). The mappings go into an implementation file of the specification under mappings. |  |
 | `--table` | For workflows, read the file as a workflow table (ADR-118) that tools/workflows/dump-workflows.sh wrote around the project's printer, for definitions in a format of the project's own, in place of BPMN 2.0 XML. |  |
 | `--source-key <source-key>` | The key of the source in the written tree; code for the code readers, and the file's name in kebab-case for documents and openapi, when it is not given. |  |
+| `--dry-run` | Read the source and write nothing; print each file of --out and the implementation fragment it would write, the derived tests and the problem marks included, as would write <path>. |  |
 
 It reads:
 
@@ -2502,7 +2577,7 @@ error. Nothing is written into the folder read.
 **Insight:** A team that installs the binary has no checkout of this repository, so the readers come with the binary; the JavaScript reader is the TypeScript compiler's own Go source inside it, and the Swift and Dart readers, which need their own toolchains, are built from the pinned files it carries.
 
 ```
-specarch facts <language> <folder> <dump>
+specarch facts <language> <folder> <dump> [--dry-run]
 ```
 
 Anyone who has the program runs it.
@@ -2512,6 +2587,10 @@ Anyone who has the program runs it.
 | `<language>` | The reader to run. | yes |
 | `<folder>` | The committed folder to read. | yes |
 | `<dump>` | The dump file to write, in an existing folder. | yes |
+
+| Option | What it does | Required |
+|---|---|---|
+| `--dry-run` | Read the folder and write nothing; print the dump it would write, and for the Swift or the Dart reader the cache folder it would write the reader into when it is not there yet, as would write <path>, without building or running that reader. |  |
 
 It reads:
 
@@ -2768,7 +2847,7 @@ the target up.
 **Note:** From Protocol buffers compiler plug-in protocol, plugin.proto, 2024: A plug-in reads a CodeGeneratorRequest from standard input and writes a CodeGeneratorResponse to standard output; the file names it answers are relative to the output directory, and protoc writes them. <https://github.com/protocolbuffers/protobuf/blob/main/src/google/protobuf/compiler/plugin.proto>
 
 ```
-specarch generate <target> <paths>... [--out <out>] [--check] [--estate <estate>] [--unapproved]
+specarch generate <target> <paths>... [--out <out>] [--check] [--estate <estate>] [--unapproved] [--dry-run]
 ```
 
 Anyone who has the program runs it.
@@ -2784,6 +2863,7 @@ Anyone who has the program runs it.
 | `--check` | Make the output in memory and fail when the files on disk differ. Writes nothing. |  |
 | `--estate <estate>` | An estate file whose modules the run reads beside the folders given, so a reference into one of them is written rather than refused; the modules are checked with the estate and none is generated unless a folder names it; repeated, one per estate. |  |
 | `--unapproved` | Write a draft from a specification that is not approved yet, because no approval record covers its files as they are or an open must or should question blocks what the target reads. The refusal is the default; with this, every file says it is a draft and why. |  |
+| `--dry-run` | Run the plug-in and write nothing; print each file it would write, as would write <path>. Not with --check. |  |
 
 It reads:
 
@@ -2812,6 +2892,105 @@ On standard error: A usage message on a usage error, the reason a plug-in was no
 | 0 | written, a draft included, or with `--check` the output is current |   |
 | 1 | a specification has an error, an open question blocks what the target reads or the specification is not approved and `--unapproved` was not given, the plug-in reported an error (what it answered is written or checked), or with `--check` the output differs | Settle the errors, answer the questions that block the target, or approve the specification with specarch approve; with --check, run it once without --check to write the current output. |
 | 2 | usage error, no generator for the target (not built in and no plug-in on PATH), the plug-in failed or answered badly, no output folder in any specification given, or a file that could not be read or written | Put the plug-in specarch-gen-<target> on PATH, name an output folder for the target in an implementation file, or correct the command line, and run it again. |
+
+### specarch guide
+
+Print the order of work, for a person or, with --agent, for an agent.
+
+Without --agent it prints the steps of the work in order, from a
+specification written first to code generated and checked, then
+each command's synopsis and summary.
+
+With --agent it prints the guide for an agent, as Markdown: what
+SpecArch is; the formats it writes and reads; the workflow (pin the
+program, specification first, validate after every edit, gaps and
+decide for the open questions, document and approve, generate and
+generate --check, extract and merge for a system that exists,
+upgrade when the formats move); how to read a problem line and the
+problems file; when to stop and ask the owner; the limits (no
+promise of complete generation, hand-written islands); the
+conventions of every command (--json, --dry-run, exit statuses, no
+prompts) and the error codes of --json; every command with its exit
+statuses; then the plug-ins found on PATH. Each fact is the one
+capabilities --json lists under the same name, and the repository's
+AGENTS.md holds the same text up to the plug-ins.
+
+**Insight:** An agent that follows the order of work, and stops where the owner decides, makes a specification the owner can trust; the same text in AGENTS.md and in the program keeps the two from drifting.
+
+```
+specarch guide [--agent]
+```
+
+Anyone who has the program runs it.
+
+| Option | What it does | Required |
+|---|---|---|
+| `--agent` | Print the guide for an agent, as Markdown, in place of the order of work for a person. |  |
+
+It reads:
+
+- `PATH`: The folders searched for specarch-gen-* plug-ins, for --agent; each is run with --capabilities.
+
+It writes no file.
+
+On standard output: The order of work and the commands, or with --agent the agent's guide in Markdown.
+
+On standard error: A usage message on a usage error.
+
+| Exit status | It means | What to do |
+|---|---|---|
+| 0 | printed |   |
+| 2 | usage error | Run specarch guide with no argument or with --agent only. |
+
+### specarch help
+
+Explain an area of SpecArch or one command, from the text built into the program.
+
+Without a topic it prints the usage and the list of topics. A topic
+is an area, with a short guide of its own (format, extract,
+validate, generate, upgrade, gaps, plugins, conventions, examples),
+or a command's name, `idioms-diff` or `idioms diff` for the
+subcommand. A command's topic prints the command's reference made
+from its definition in this specification: the synopsis, the
+summary, each argument and option, what it prints, what it writes,
+and each exit status with what to do about it; after the area's
+guide when the command has one. The plugins topic also lists the
+plug-ins found on PATH now and what each says it writes and does
+not write.
+
+The text is built into the program from docs/help and from
+spec/design/commands, so an installed program explains exactly the
+commands it was built with, with no source checkout or docs folder.
+It is plain text, wrapped for an 80-column terminal, with no colour
+or terminal codes. `-h` and `--help` given as the command are help
+with no topic.
+
+**Insight:** An installed program is often all a person or an agent has; the guide to each area and each command's reference come with it, at its own version.
+
+```
+specarch help [<topic>...]
+```
+
+Anyone who has the program runs it.
+
+| Argument | What to give | Required |
+|---|---|---|
+| `<topic>` | An area or a command; the list is printed by help with no topic. One or more. |  |
+
+It reads:
+
+- `PATH`: The folders searched for specarch-gen-* plug-ins, for the plugins topic only; each is run with --capabilities.
+
+It writes no file.
+
+On standard output: The usage and the topics, or the topic's text.
+
+On standard error: A topic that does not exist, with the topics there are.
+
+| Exit status | It means | What to do |
+|---|---|---|
+| 0 | printed |   |
+| 2 | no such topic | Run specarch help for the list of topics and give one of them. |
 
 ### specarch idioms
 
@@ -3160,7 +3339,7 @@ runs again into the merged specification, as extract runs it
 **Insight:** The readers write one tree per surface so that each is checked on its own; the comparison between surfaces, and between the documents and the code, is made once, here, where a disagreement becomes a question rather than a choice.
 
 ```
-specarch merge <trees>... --out <out> [--vocabulary <vocabulary>]
+specarch merge <trees>... --out <out> [--vocabulary <vocabulary>] [--dry-run]
 ```
 
 Anyone who has the program runs it.
@@ -3173,6 +3352,7 @@ Anyone who has the program runs it.
 |---|---|---|
 | `--out <out>` | The folder the merged specification is written into; it becomes the specification's root folder. | yes |
 | `--vocabulary <vocabulary>` | A vocabulary file (docs/vocabularies.md) for a language SpecArch ships none for, by which the requirements of the sources in that language are compared with the code's checks; repeated, one per language. |  |
+| `--dry-run` | Merge and write nothing; print each file of --out it would write, the derived tests and the problem marks included, as would write <path>. |  |
 
 It reads:
 

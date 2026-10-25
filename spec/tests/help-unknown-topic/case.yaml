@@ -1,0 +1,3 @@
+arguments: [help, no-such-topic]
+exitStatus: 2
+standardOutput: ""

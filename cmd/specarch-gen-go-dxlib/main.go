@@ -10,11 +10,30 @@ import (
 	"io"
 	"os"
 
+	"github.com/SpecArch/specarch"
+	"github.com/SpecArch/specarch/internal/capability"
 	"github.com/SpecArch/specarch/internal/gendxlib"
 	"github.com/SpecArch/specarch/internal/genopenapi"
 )
 
+// capabilities is what this plug-in answers to --capabilities.
+var capabilities = capability.Plugin{
+	Target:  "go-dxlib",
+	Version: specarch.Version,
+	Summary: "Writes the Go file that binds a dxlib service to the specification.",
+	Generates: []string{
+		"specarch_dxlib.go: a dxlib table per entity with the search, order and filter fields its lists allow, Register binding each handler to its operationId, and a request struct per operation",
+	},
+	DoesNotGenerate: []string{
+		"the handlers' bodies, written by hand against the generated structs",
+		"the database schema, which the sql target writes",
+	},
+}
+
 func main() {
+	if len(os.Args) > 1 {
+		os.Exit(capability.Serve(os.Args[1:], os.Stdout, os.Stderr, capabilities))
+	}
 	os.Exit(run(os.Stdin, os.Stdout, os.Stderr))
 }
 

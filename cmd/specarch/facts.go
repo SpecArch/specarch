@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/SpecArch/specarch/internal/disk"
 	"github.com/SpecArch/specarch/internal/facts"
 )
 
@@ -12,11 +13,28 @@ import (
 // reader of its language (ADR-116): the JavaScript reader inside this
 // binary, or the Swift or Dart reader built once in the user's cache.
 func runFacts(args []string, stdout, stderr io.Writer) int {
-	if len(args) != 3 {
-		fmt.Fprintf(stderr, "specarch facts takes a language, a folder and a dump file, and was given %d arguments\n\n%s", len(args), usage)
+	w := disk.Real
+	var rest []string
+	for i, a := range args {
+		if a == "--" {
+			rest = append(rest, args[i+1:]...)
+			break
+		}
+		if a == "--dry-run" {
+			w = disk.DryRun(stdout)
+			continue
+		}
+		if len(a) > 1 && a[0] == '-' {
+			fmt.Fprintf(stderr, "specarch facts has no option %s; its one option is --dry-run\n\n%s", a, usage)
+			return 2
+		}
+		rest = append(rest, a)
+	}
+	if len(rest) != 3 {
+		fmt.Fprintf(stderr, "specarch facts takes a language, a folder and a dump file, and was given %d arguments\n\n%s", len(rest), usage)
 		return 2
 	}
-	err := facts.Dump(args[0], args[1], args[2], stdout, stderr)
+	err := facts.Dump(rest[0], rest[1], rest[2], w, stdout, stderr)
 	var u *facts.Usage
 	var r *facts.Refusal
 	switch {

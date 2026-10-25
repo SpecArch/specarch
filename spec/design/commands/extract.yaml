@@ -1628,6 +1628,9 @@ commands:
       source-key:
         description: The key of the source in the written tree; code for the code readers, and the file's name in kebab-case for documents and openapi, when it is not given.
         schema: { type: string, pattern: "^[a-z][a-z0-9]*(-[a-z0-9]+)*$" }
+      dry-run:
+        description: Read the source and write nothing; print each file of --out and the implementation fragment it would write, the derived tests and the problem marks included, as would write <path>.
+        schema: { type: boolean, default: false }
     reads:
       - { path: "{paths}", description: The surface being read. }
     writes:

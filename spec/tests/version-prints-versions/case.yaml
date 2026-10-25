@@ -1,7 +1,7 @@
 arguments: [version]
 exitStatus: 0
 standardOutput: |
-  specarch 0.7.5
+  specarch 1.0.0
   specifications: meta-model 1.0.0 and any later 1.0 patch, and 0.3, 0.2 and 0.1 with a warning
   implementation files, records, idioms and estates: 1.0.0 and any later 1.0 patch, and 0.1 with a warning
   vocabularies: 1.0.0 and any later 1.0 patch, and 0.1

@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v0.7.5/schema/specarch-design-0.3.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v1.0.0/schema/specarch-design-0.3.schema.json
 # The lending desk. Its comments, order and quoting stay as they are.
 specarch: '0.4'   # single-quoted, with a comment after it
 info: { title: Lending desk, version: 1.0.0 }

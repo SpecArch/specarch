@@ -26,7 +26,7 @@ import (
 )
 
 // version is the program version, set at release time.
-const version = "0.7.5"
+const version = "1.0.0"
 
 const usage = `usage:
   specarch validate <folder or file>...    check specifications and implementation files

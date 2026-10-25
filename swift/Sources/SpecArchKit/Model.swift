@@ -1,7 +1,7 @@
 import Foundation
 
 /// The version of the shape of the document model prints.
-let modelVersion = "0.1"
+let modelVersion = "1.0.0"
 
 /// Where a node of the model starts: its key in a mapping, or the item
 /// itself in a list, in the file it came from (ADR-138).

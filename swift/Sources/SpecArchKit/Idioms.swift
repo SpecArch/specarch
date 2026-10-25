@@ -166,7 +166,9 @@ extension Checker {
                 ic.checkSchema(.idiom, doc.value)
             }
             diags += withoutEchoes(withoutHeld(ic.diags, heldIn(p, doc)))
-            guard let r = doc.root, !ic.diags.contains(where: { $0.severity == .error }) else { continue }
+            // A version line this program does not read is read as 1.0.0,
+            // so it alone does not keep the idiom out.
+            guard let r = doc.root, !ic.diags.contains(where: { $0.severity == .error && $0.rule != .metaModelVersion }) else { continue }
             let i = Idiom(path: p, root: r)
             let want = String(name.dropLast(idiomSuffix.count))
             if i.name != want {

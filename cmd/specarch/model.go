@@ -16,7 +16,7 @@ import (
 )
 
 // modelVersion is the version of the shape of the document model prints.
-const modelVersion = "0.1"
+const modelVersion = "1.0.0"
 
 // runModel prints the model of the specifications found under the paths
 // given: one JSON document in RFC 8785's canonical form (ADR-138).

@@ -18,22 +18,46 @@ var DefinitionEarlier []byte
 
 // Implementation is the schema of a SpecArch Implementation File.
 //
-//go:embed specarch-implementation-0.1.schema.json
+//go:embed specarch-implementation-1.0.schema.json
 var Implementation []byte
+
+// ImplementationEarlier is the schema of an Implementation File on 0.1, the format before 1.0.0,
+// read beside it.
+//
+//go:embed specarch-implementation-0.1.schema.json
+var ImplementationEarlier []byte
 
 // Record is the schema of a SpecArch record: a change, defect, release,
 // incident, commissioning run or approval.
 //
-//go:embed specarch-record-0.1.schema.json
+//go:embed specarch-record-1.0.schema.json
 var Record []byte
+
+// RecordEarlier is the schema of a record on 0.1, the format before 1.0.0,
+// read beside it.
+//
+//go:embed specarch-record-0.1.schema.json
+var RecordEarlier []byte
 
 // Idiom is the schema of an idiom, shipped or a project's.
 //
-//go:embed specarch-idiom-0.1.schema.json
+//go:embed specarch-idiom-1.0.schema.json
 var Idiom []byte
+
+// IdiomEarlier is the schema of an idiom on 0.1, the format before 1.0.0,
+// read beside it.
+//
+//go:embed specarch-idiom-0.1.schema.json
+var IdiomEarlier []byte
 
 // Estate is the schema of a SpecArch estate: the modules' specifications
 // it lists and pins.
 //
-//go:embed specarch-estate-0.1.schema.json
+//go:embed specarch-estate-1.0.schema.json
 var Estate []byte
+
+// EstateEarlier is the schema of an estate on 0.1, the format before 1.0.0,
+// read beside it.
+//
+//go:embed specarch-estate-0.1.schema.json
+var EstateEarlier []byte

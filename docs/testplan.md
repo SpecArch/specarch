@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.6-dev of the specification: 744 design tests, 363 golden and 381 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.6-dev of the specification: 750 design tests, 365 golden and 385 red, about 18 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.7.6-dev of the specification: 744 design tests, 363 golden and 381 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 740 |
+| system | 746 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -4127,6 +4127,14 @@ Scenario: golden; level: system; verifies SA-66.
 - When: validate is run on the estate file alone
 - Then: it reads both modules, resolves every reference between them, reports nothing at the estate, and exits 0
 
+#### validate-estate-1-0-0
+
+Scenario: golden; level: system; verifies SA-66, SA-95.
+
+- Given: the estate of validate-estate on 1.0.0
+- When: validate is run
+- Then: it reports exactly what it reports for the estate on 0.1, and exits 0
+
 #### validate-estate-cycle
 
 Scenario: red; level: system; verifies SA-66.
@@ -4142,6 +4150,14 @@ Scenario: red; level: system; verifies SA-66.
 - Given: an estate file listing a module at a version its specification is not at, one under a key that is not its info.name, one at a folder that does not exist, one at a folder with no specification, and one whose specification has no info.name
 - When: validate is run on the estate file
 - Then: it reads every module that is there, refuses each entry as module at the module's entry, and exits 1
+
+#### validate-estate-version-unknown
+
+Scenario: red; level: system; covers exit 1; verifies SA-66, SA-95.
+
+- Given: the estate of validate-estate on 1, in one part
+- When: validate is run
+- Then: it reports meta_model_version at the estate's line asking for 1.0.0, still checks both modules, and exits 1
 
 #### validate-example-double-forms
 
@@ -4286,6 +4302,22 @@ Scenario: golden; level: system.
 - Given: a folder holding a design file two levels down and a text file
 - When: validate is run on the folder
 - Then: it finds and checks the design file, ignores the text file, and exits 0
+
+#### validate-formats-1-0-0
+
+Scenario: golden; level: system; verifies SA-95.
+
+- Given: the specification of validate-idiom-override with its implementation file and its idiom on 1.0.0
+- When: validate is run
+- Then: it reports exactly what it reports for the two files on 0.1, and exits 0
+
+#### validate-formats-version-unknown
+
+Scenario: red; level: system; covers exit 1; verifies SA-95.
+
+- Given: the specification of validate-idiom-override with its implementation file on 0.2, no version of the format, and its idiom on 1.0, in two parts
+- When: validate is run
+- Then: it reports meta_model_version at each line, reads both files as 1.0.0 so the idiom still overrides, and exits 1
 
 #### validate-formula-output-scale
 
@@ -5079,6 +5111,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-51.
 - When: validate is run
 - Then: it reads the marks as the comments they are and reports the same problems at the lines on disk, the same in both builds, and writes nothing
 
+#### validate-record-1-0-0
+
+Scenario: red; level: system; covers exit 1; verifies SA-95.
+
+- Given: the release record of validate-release-version on 1.0.0
+- When: validate is run
+- Then: it reports exactly what it reports for the record on 0.1, and exits 1
+
 #### validate-record-name
 
 Scenario: red; level: system; covers exit 1; verifies SA-23.
@@ -5110,6 +5150,14 @@ Scenario: golden; level: system; verifies SA-23.
 - Given: sources of kind change-set and defect-set with prefix TRK, and a release that includes TRK-4 and a defect that became TRK-9
 - When: validate is run
 - Then: both IDs resolve to the tracker, it prints nothing and exits 0
+
+#### validate-record-version-unknown
+
+Scenario: red; level: system; covers exit 1; verifies SA-95.
+
+- Given: the release record of validate-release-version on 2.0.0, a later major
+- When: validate is run
+- Then: it reports meta_model_version at the record's line, naming that a later specarch reads it, still reports the record's version problem, and exits 1
 
 #### validate-records-valid
 
@@ -6035,7 +6083,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-415 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+416 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -6454,6 +6502,7 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-95 | acceptance 2 | golden | SA-95 names no harm |
 | requirement SA-95 | acceptance 3 | golden | SA-95 names no harm |
 | requirement SA-95 | acceptance 4 | golden | SA-95 names no harm |
+| requirement SA-95 | acceptance 5 | golden | SA-95 names no harm |
 
 The checks run on the installed system before it is handed over are in the commissioning procedure.
 

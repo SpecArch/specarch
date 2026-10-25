@@ -25,13 +25,27 @@ const Current = "1.0.0"
 type Format struct {
 	// Key is the key of the version line, such as specarch.
 	Key string
+	// Name names the format in a message.
+	Name string
+	// Silent is a format whose earlier versions are read with no
+	// warning, since nothing reports a warning for it: a vocabulary,
+	// which extract and merge read and which is refused or taken whole.
+	Silent bool
 	// Earlier are the versions before 1.0.0 read beside it, each with a
 	// warning, oldest first.
 	Earlier []string
 }
 
-// Design is the format of a specification: its root file's specarch line.
-var Design = Format{Key: "specarch", Earlier: []string{"0.1", "0.2", "0.3"}}
+// The formats, each by the key of its version line. The specification's is
+// the meta-model; the others are as old as 0.1, the same in shape as 1.0.0.
+var (
+	Design         = Format{Key: "specarch", Name: "meta-model", Earlier: []string{"0.1", "0.2", "0.3"}}
+	Implementation = Format{Key: "specarchImplementation", Name: "implementation file", Earlier: []string{"0.1"}}
+	Record         = Format{Key: "specarchRecord", Name: "record", Earlier: []string{"0.1"}}
+	Idiom          = Format{Key: "specarchIdiom", Name: "idiom", Earlier: []string{"0.1"}}
+	Estate         = Format{Key: "specarchEstate", Name: "estate", Earlier: []string{"0.1"}}
+	Vocabulary     = Format{Key: "specarchVocabulary", Name: "vocabulary", Earlier: []string{"0.1"}, Silent: true}
+)
 
 // current matches every patch of the current minor: one schema per major
 // and minor, as OpenAPI publishes one per minor.
@@ -123,7 +137,11 @@ func (f Format) Reading() string {
 	for i := len(f.Earlier) - 1; i >= 0; i-- {
 		earlier = append(earlier, f.Earlier[i])
 	}
-	return s + ", and " + joinAnd(earlier) + " with a warning"
+	s += ", and " + joinAnd(earlier)
+	if !f.Silent {
+		s += " with a warning"
+	}
+	return s
 }
 
 func joinAnd(items []string) string {

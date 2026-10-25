@@ -255,7 +255,7 @@ record, since it happens once per version:
 
     records/approvals/<version>.yaml
 
-    specarchRecord: "0.1"
+    specarchRecord: "1.0.0"
     kind: approval
     version: 1.0.0
     approvedBy: product-owner

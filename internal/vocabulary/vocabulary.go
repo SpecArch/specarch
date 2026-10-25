@@ -17,6 +17,7 @@ import (
 	"go.yaml.in/yaml/v3"
 
 	"github.com/SpecArch/specarch/internal/expr"
+	"github.com/SpecArch/specarch/internal/metamodel"
 	"github.com/SpecArch/specarch/vocabularies"
 )
 
@@ -120,7 +121,7 @@ func Read(path string) (*Vocabulary, error) {
 
 // Format is the keys a vocabulary file holds, for the message that
 // refuses a language with no vocabulary.
-const Format = `specarchVocabulary: "0.1", language (the tag), description, commitments (must and should), frequencies, timeLimits, pronouns, linkingVerbs, leadingWords, numbers (word: value), units (word: ISO 8601 duration), timeSeparators, headers (field, type, required, sensitivity, description and rowNumber), yes, sensitivities (public, internal, personal and credential) and types (string, date, dateTime, boolean and email); docs/vocabularies.md has the English file as the example`
+const Format = `specarchVocabulary: "1.0.0", language (the tag), description, commitments (must and should), frequencies, timeLimits, pronouns, linkingVerbs, leadingWords, numbers (word: value), units (word: ISO 8601 duration), timeSeparators, headers (field, type, required, sensitivity, description and rowNumber), yes, sensitivities (public, internal, personal and credential) and types (string, date, dateTime, boolean and email); docs/vocabularies.md has the English file as the example`
 
 // Parse checks a vocabulary: every key present and no other, every word
 // given once, and no word in two lists of one group, since that word
@@ -137,8 +138,10 @@ func Parse(data []byte, path string) (*Vocabulary, error) {
 	root := doc.Content[0]
 	keys := p.mapping(root, "the file", topKeys)
 	v := &Vocabulary{Path: path}
-	if n := keys["specarchVocabulary"]; n != nil && n.Value != "0.1" {
-		p.fail(n, "specarchVocabulary is %q; this build reads 0.1", n.Value)
+	if n := keys["specarchVocabulary"]; n != nil {
+		if c := metamodel.Vocabulary.Classify(n.Value); c != metamodel.Known && c != metamodel.Earlier {
+			p.fail(n, "specarchVocabulary is %q; this build reads %s", n.Value, metamodel.Vocabulary.Reading())
+		}
 	}
 	if n := keys["language"]; n != nil {
 		v.Language = n.Value

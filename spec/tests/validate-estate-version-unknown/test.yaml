@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "the estate of validate-estate on 1, in one part"
+when: validate is run
+then: "it reports meta_model_version at the estate's line asking for 1.0.0, still checks both modules, and exits 1"
+verifies: [SA-66, SA-95]

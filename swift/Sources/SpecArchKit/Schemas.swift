@@ -14276,6 +14276,1882 @@ let earlierDesignSchemaJSON = #"""
 let implementationSchemaJSON = #"""
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-implementation-1.0.schema.json",
+  "title": "SpecArch Implementation File, meta-model 1.0",
+  "description": "A SpecArch Implementation File (<name>.<stack>.specarch-implementation.yaml) says how one stack implements one SpecArch specification: the language and toolchain, the libraries and their licences, the package layout, how each design object maps onto the stack, the document and code targets with their settings, the build and test tasks, the deployments, and the implementation decisions. It points at the specification's root file (specarch.yaml) and cannot add or change design: entities, operations, commands, events, permissions, pages and algorithms exist only in the specification, and this schema has no keyword for them. One specification can have several implementation files, one per stack, each in implementation/<stack>/ of the tree. Every object rejects unknown keys; keys starting with 'x-' are allowed everywhere as extensions.",
+  "type": "object",
+  "properties": {
+    "specarchImplementation": {
+      "description": "The implementation file format version this file is written against, in three parts, major.minor.patch: 1.0.0, or a later 1.0 patch, which is read as 1.0. A file on 0.1, the format before 1.0.0 and the same in shape, is checked against specarch-implementation-0.1.schema.json and read beside 1.0; specarch upgrade moves it to 1.0.0.",
+      "type": "string",
+      "pattern": "^1\\.0\\.(0|[1-9][0-9]*)$"
+    },
+    "info": {
+      "description": "What this implementation is.",
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "version": {
+          "description": "Version of this implementation file, semantic versioning.",
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(-[0-9A-Za-z.-]+)?$"
+        },
+        "description": {
+          "$ref": "#/$defs/markdown"
+        }
+      },
+      "required": [
+        "title",
+        "version"
+      ],
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "implements": {
+      "description": "The specification this file implements.",
+      "type": "object",
+      "properties": {
+        "file": {
+          "description": "Path of the specification's root file, specarch.yaml, relative to this file.",
+          "type": "string",
+          "pattern": "(^|/)specarch\\.yaml$"
+        },
+        "version": {
+          "description": "The specification's info.version this implementation was written against. The validator fails when they differ, so a design change is noticed by every implementation of it.",
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(-[0-9A-Za-z.-]+)?$"
+        }
+      },
+      "required": [
+        "file",
+        "version"
+      ],
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "stack": {
+      "description": "The stack: the language and toolchain with their versions, and the platforms the build targets.",
+      "type": "object",
+      "properties": {
+        "language": {
+          "$ref": "#/$defs/tool"
+        },
+        "toolchain": {
+          "$ref": "#/$defs/tool"
+        },
+        "platforms": {
+          "description": "Operating systems and architectures the build targets, such as 'darwin/arm64'.",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "language"
+      ],
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "libraries": {
+      "description": "Every third-party library, keyed by its package or module name.",
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/library"
+      }
+    },
+    "layout": {
+      "description": "Packages, modules or folders of the implementation, keyed by path, with the design objects each one implements.",
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "description": {
+            "$ref": "#/$defs/markdown"
+          },
+          "implements": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/designRef"
+            },
+            "uniqueItems": true
+          },
+          "dependsOn": {
+            "description": "CycloneDX keyword. The packages of this layout, by their keys, that this one calls, imports or links against. Left out, the entry says nothing of what it depends on, and the component diagram draws no arrow from it (ADR-133).",
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "uniqueItems": true
+          }
+        },
+        "required": [
+          "description"
+        ],
+        "patternProperties": {
+          "^x-": {}
+        },
+        "additionalProperties": false
+      }
+    },
+    "mappings": {
+      "description": "How design objects map onto the stack, keyed by a pointer into the design file such as '#/entities/Loan' or '#/paths/~1loans/post'.",
+      "type": "object",
+      "propertyNames": {
+        "$ref": "#/$defs/designRef"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/mapping"
+      }
+    },
+    "bindings": {
+      "description": "Framework binding per interface kind of the design file: the router and middleware for HTTP, the CLI library for commands, the client for messaging.",
+      "type": "object",
+      "propertyNames": {
+        "enum": [
+          "http",
+          "messaging",
+          "cli",
+          "ui",
+          "storage"
+        ]
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/binding"
+      }
+    },
+    "targets": {
+      "description": "The document and code targets this implementation produces, keyed by target name as given to specarch document or specarch generate, each with the folder it owns and its settings. Defaults: the sql target writes PostgreSQL; the ui target writes plain JavaScript for the web and SwiftUI for the iPhone.",
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/target"
+      }
+    },
+    "tasks": {
+      "description": "Build, test, scan and CI commands, keyed by kebab-case name.",
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/task"
+      }
+    },
+    "testing": {
+      "$ref": "#/$defs/testing"
+    },
+    "idioms": {
+      "description": "SpecArch keyword. The idioms this implementation file deviates from; every other shipped idiom whose stacks and reads match applies by default. Each key names a shipped idiom or one of the project's own, with exclude and why, or override naming a file in the idioms folder beside this file.",
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/idiomUse"
+      }
+    },
+    "deployments": {
+      "description": "Real deployments, keyed by environment name: the environment of the specification each one installs, its servers, hosts and ports, and the values of the non-secret settings.",
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/deployment"
+      }
+    },
+    "decisions": {
+      "description": "Implementation decision records, keyed by ID. An ID must not also be used by a decision in the design file.",
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^ADR-[0-9]{3,}$"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/decision"
+      }
+    }
+  },
+  "required": [
+    "specarchImplementation",
+    "info",
+    "implements",
+    "stack"
+  ],
+  "patternProperties": {
+    "^x-": {}
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "gateCheck": {
+      "description": "A check of the project's own that gates a route by something other than a permission: where it is declared and its name there.",
+      "type": "object",
+      "properties": {
+        "package": {
+          "description": "Where the check is declared, as the language names it: a Go import path, or the folder from the repository's root where no go.mod is read.",
+          "type": "string",
+          "minLength": 1
+        },
+        "function": {
+          "description": "The check's name in that package: a function, or a type and its method joined by a dot, such as Server.RequireClient.",
+          "type": "string",
+          "pattern": "^[A-Za-z_$][A-Za-z0-9_$]*(\\.[A-Za-z_$][A-Za-z0-9_$]*)?$"
+        }
+      },
+      "required": [
+        "package",
+        "function"
+      ],
+      "additionalProperties": false
+    },
+    "markdown": {
+      "description": "Prose in Markdown.",
+      "type": "string"
+    },
+    "designRef": {
+      "description": "A JSON pointer into the specification, naming one of its objects: '#/entities/Loan', '#/commands/validate', '#/paths/~1loans/post', '#/jobs/markOverdue', '#/gateways/api', '#/menus/members/items/list', '#/caller/properties/memberId'. The validator checks it resolves.",
+      "type": "string",
+      "pattern": "^#/(entities|enums|permissions|roles|caller|paths|commands|channels|jobs|gateways|pages|menus|algorithms|decisions)/[^/]+(/.+)?$"
+    },
+    "satisfies": {
+      "description": "SpecArch keyword. The requirements this element satisfies, by ID, as in the specification.",
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[A-Z][A-Z0-9]{1,15}-[A-Za-z0-9._]+$"
+      },
+      "uniqueItems": true
+    },
+    "why": {
+      "description": "SpecArch keyword. The rationale in plain words, as in the specification.",
+      "type": "string",
+      "minLength": 1
+    },
+    "citation": {
+      "description": "SpecArch keyword. One citation, as in the specification.",
+      "type": "object",
+      "properties": {
+        "source": {
+          "description": "The key of a source declared under 'sources' in the specification's specarch.yaml.",
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+        },
+        "clause": {
+          "type": "string",
+          "minLength": 1
+        },
+        "says": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "source",
+        "says"
+      ],
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "citations": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/citation"
+      },
+      "minItems": 1
+    },
+    "origin": {
+      "description": "SpecArch keyword. How the element is known. stated: a source says it, and cites names the source and where in it. inferred: it was concluded from evidence (code, data, the source's silence), and why says from what. decided: a stakeholder settled it, answering a question or correcting the source, and decidedIn names the decision. An element without origin was written spec-first. What is not known at all is not an element with an origin but an open question under questions.",
+      "type": "string",
+      "enum": [
+        "stated",
+        "inferred",
+        "decided"
+      ]
+    },
+    "decidedIn": {
+      "description": "SpecArch keyword. With origin decided: the decision record that settled this element, such as ADR-021.",
+      "type": "string",
+      "pattern": "^ADR-[0-9]{3,}$"
+    },
+    "tool": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "version": {
+          "description": "Exact version or the minimum, as the tool itself writes it.",
+          "type": "string",
+          "minLength": 1
+        },
+        "description": {
+          "$ref": "#/$defs/markdown"
+        }
+      },
+      "required": [
+        "name",
+        "version"
+      ],
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "library": {
+      "type": "object",
+      "properties": {
+        "version": {
+          "description": "The exact pinned version.",
+          "type": "string",
+          "minLength": 1
+        },
+        "licence": {
+          "description": "SPDX licence expression. A third-party library's must be OSI-approved. A library the project's own organisation writes is not a third-party dependency and is recorded with SPDX's form for a licence not on its list, LicenseRef-<name>, such as LicenseRef-acme-screens.",
+          "type": "string",
+          "pattern": "^[A-Za-z0-9.+-]+( (AND|OR) [A-Za-z0-9.+-]+)*$"
+        },
+        "purpose": {
+          "type": "string",
+          "minLength": 1
+        },
+        "scope": {
+          "type": "string",
+          "enum": [
+            "runtime",
+            "test",
+            "build",
+            "tool"
+          ],
+          "default": "runtime"
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
+        }
+      },
+      "required": [
+        "version",
+        "licence",
+        "purpose"
+      ],
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "mapping": {
+      "type": "object",
+      "properties": {
+        "target": {
+          "description": "The name on the stack: a type, a table, a function, a handler.",
+          "type": "string",
+          "minLength": 1
+        },
+        "ownedBy": {
+          "description": "SpecArch keyword. The stakeholder of the specification that owns the element, when it is not this project: another team, a vendor or a shared service. The specification still describes the element, and validate, diff, gaps and the gates still read it, but no generator that builds code or data writes it (the tests target, which checks, keeps it), and an element that refers to it, such as a foreign key or a schema reference, still refers to it.",
+          "type": "string",
+          "minLength": 1
+        },
+        "indexes": {
+          "description": "SpecArch keyword. On an entity's mapping: the plain indexes of its table, physical design that leaves the design file alone. Each is its fields, in the order the index holds them; specarch-gen-sql writes it as CREATE INDEX, named ix_<table>_<columns> unless name gives the name, and specarch extract database writes it from a catalogue's plain index (ADR-121). A unique index is a unique constraint of the entity, not an index here.",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "fields": {
+                "description": "The entity's fields the index holds, in its order.",
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "pattern": "^[a-z][A-Za-z0-9]*$"
+                },
+                "minItems": 1,
+                "uniqueItems": true
+              },
+              "name": {
+                "description": "The index's name, when it is not the one the conventions derive, such as the name a database already gives it.",
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9]*(_[a-z0-9]+)*$"
+              }
+            },
+            "required": [
+              "fields"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 1
+        },
+        "handler": {
+          "$ref": "#/$defs/handler"
+        },
+        "description": {
+          "$ref": "#/$defs/markdown"
+        },
+        "settings": {
+          "description": "Generator- or framework-specific settings for this object, such as code-generator extensions.",
+          "type": "object"
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
+        }
+      },
+      "required": [
+        "target"
+      ],
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "handler": {
+      "description": "SpecArch keyword. On an operation's mapping: the handler's logic as specarch extract read it from the code, function by function, each with its steps and its source at the commit named, so that the documents draw the chart beside the code and validate tells when the code has moved on.",
+      "type": "object",
+      "properties": {
+        "commit": {
+          "description": "The commit the code was read at.",
+          "type": "string",
+          "pattern": "^[0-9a-f]{7,64}$"
+        },
+        "depth": {
+          "description": "How many calls from the handler a function was followed: the handler is 0, a function it calls 1, and so on.",
+          "type": "integer",
+          "minimum": 0
+        },
+        "functions": {
+          "description": "The handler first, then each function its steps call that was followed, once each, in the order they were first reached.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/function"
+          },
+          "minItems": 1
+        }
+      },
+      "required": [
+        "commit",
+        "depth",
+        "functions"
+      ],
+      "additionalProperties": false
+    },
+    "function": {
+      "description": "SpecArch keyword. One function of the code, with its logic and its source as they were at the record's commit: the handler, or a function the handler's steps call that was followed.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "description": "The function's name as the code qualifies it: package.Function, or package.Type.Method; a function literal is named by where it is written, 'a function literal at file:line'.",
+          "type": "string",
+          "minLength": 1
+        },
+        "file": {
+          "description": "The file, from the repository's root, slash-separated, as the code source's clauses name it.",
+          "type": "string",
+          "minLength": 1
+        },
+        "firstLine": {
+          "description": "The first line, counted from 1.",
+          "type": "integer",
+          "minimum": 1
+        },
+        "lastLine": {
+          "description": "The last line, counted from 1; the first line when it is one line.",
+          "type": "integer",
+          "minimum": 1
+        },
+        "steps": {
+          "description": "The function's steps in order; an empty list for a function whose body has none.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/step"
+          }
+        },
+        "source": {
+          "description": "The function's source, from its first line to its last, each line without its trailing spaces and tabs and without the indentation of the first line, which a function literal written inside a function has.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "file",
+        "firstLine",
+        "lastLine",
+        "steps",
+        "source"
+      ],
+      "additionalProperties": false
+    },
+    "step": {
+      "description": "SpecArch keyword. One step of a function's logic, as specarch extract read it from the code: what it does in plain words, which lines it is, and for a branch, a choice or a loop the steps inside it. The id names the node in the flowchart the documents draw, so a viewer that shows the chart can open the step's lines.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "description": "The step's id, unique in the handler record: s and a number counted from 1 in the order the steps are written, the handler's first. The flowchart's node carries it.",
+          "type": "string",
+          "pattern": "^s[1-9][0-9]*$"
+        },
+        "kind": {
+          "description": "What the step is. input: a read of the request (a parameter, the body, a header). branch: an if, with the steps taken when its condition holds under then and otherwise under otherwise. choice: a switch, with its cases. loop: a for, with the steps of its body. database: a read or a write of a table. transaction: a transaction begun, committed or rolled back. call: a call of a function of the code, followed (function) or not (stopped), or a function literal called, passed or defined (reached), followed as a function of its own. external: a call of another system over HTTP. response: a response written, a success or a refusal. return: the function returns. statement: a defer, a go statement, a panic, a break (of a loop, a switch or a select), a continue, a goto or a fallthrough.",
+          "type": "string",
+          "enum": [
+            "input",
+            "branch",
+            "choice",
+            "loop",
+            "database",
+            "transaction",
+            "call",
+            "external",
+            "response",
+            "return",
+            "statement"
+          ]
+        },
+        "text": {
+          "description": "What the step does, in plain words, as the chart shows it: the condition of a branch, the parameter an input reads, the table a database step touches, the call as the code writes it.",
+          "type": "string",
+          "minLength": 1
+        },
+        "file": {
+          "description": "The file, from the repository's root, slash-separated, as the code source's clauses name it.",
+          "type": "string",
+          "minLength": 1
+        },
+        "firstLine": {
+          "description": "The first line, counted from 1.",
+          "type": "integer",
+          "minimum": 1
+        },
+        "lastLine": {
+          "description": "The last line, counted from 1; the first line when it is one line.",
+          "type": "integer",
+          "minimum": 1
+        },
+        "parameter": {
+          "description": "For input: the name the request is read by, as the code writes it.",
+          "type": "string",
+          "minLength": 1
+        },
+        "label": {
+          "description": "For loop and choice: the label the code gives the statement, when it has one. For a statement that leaves or goes on with a labelled loop, switch or select: that label, so the chart knows which one it leaves.",
+          "type": "string",
+          "minLength": 1
+        },
+        "then": {
+          "description": "For branch: the steps taken when the condition holds.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/step"
+          }
+        },
+        "otherwise": {
+          "description": "For branch: the steps taken when the condition does not hold; left out when the code has no else.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/step"
+          }
+        },
+        "cases": {
+          "description": "For choice: each case, with when (the case's values as the code writes them, or otherwise for the default) and its steps.",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "when": {
+                "type": "string",
+                "minLength": 1
+              },
+              "steps": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/step"
+                }
+              }
+            },
+            "required": [
+              "when",
+              "steps"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 1
+        },
+        "body": {
+          "description": "For loop: the steps of the loop's body.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/step"
+          }
+        },
+        "table": {
+          "description": "For database: the table, as the code or the SQL names it; left out when the code does not say.",
+          "type": "string",
+          "minLength": 1
+        },
+        "access": {
+          "description": "For database: read, or write for an insert, an update or a delete.",
+          "type": "string",
+          "enum": [
+            "read",
+            "write"
+          ]
+        },
+        "transaction": {
+          "description": "For database: true when the read or write runs inside a transaction the function began.",
+          "type": "boolean"
+        },
+        "function": {
+          "description": "For call: the function called, as functions names it; it is one of the functions of this record when the call was followed.",
+          "type": "string",
+          "minLength": 1
+        },
+        "stopped": {
+          "description": "For call: why the call was not followed, such as outside the module, deeper than the depth followed, or a function value.",
+          "type": "string",
+          "minLength": 1
+        },
+        "reached": {
+          "description": "For a call of a function literal: how the literal is reached. called: it runs here, where it is written or by the name it was assigned to. passed: it is given to a call, which runs it. defined: it is written for a later call and runs nothing here, so what it does counts at the call of its name, not at the definition.",
+          "type": "string",
+          "enum": [
+            "called",
+            "passed",
+            "defined"
+          ]
+        },
+        "dependency": {
+          "description": "For external: the dependency of the design the call reaches, by its name under dependencies, when the URL names a host.",
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "description": "For response: the HTTP status, when the code gives it as a literal.",
+          "type": "integer",
+          "minimum": 100,
+          "maximum": 599
+        },
+        "problem": {
+          "description": "For response: the problem type a refusal names, as the design declares it under errors.",
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "id",
+        "kind",
+        "text",
+        "file",
+        "firstLine",
+        "lastLine"
+      ],
+      "additionalProperties": false
+    },
+    "binding": {
+      "type": "object",
+      "properties": {
+        "framework": {
+          "description": "The framework or library, by its name in 'libraries' or 'standard library'.",
+          "type": "string",
+          "minLength": 1
+        },
+        "description": {
+          "$ref": "#/$defs/markdown"
+        },
+        "settings": {
+          "type": "object"
+        },
+        "components": {
+          "description": "SpecArch keyword. The components of the project's UI library that bind a field, which specarch extract reads in a screen's template or JSX: a component bound to a property by v-model, or whose name property names one, is a field of the page, or a column of its list (docs/reading-code.md). Read for the ui binding.",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "package": {
+                "description": "The module the component is imported from, as an import names it, such as primevue/inputtext; a component used with no import, registered globally or imported by the framework, is matched by its name.",
+                "type": "string",
+                "minLength": 1
+              },
+              "component": {
+                "description": "The component's name, as the module exports it and a template or JSX writes its tag.",
+                "type": "string",
+                "pattern": "^[A-Z][A-Za-z0-9]*$"
+              },
+              "binds": {
+                "description": "What the component gives the page: a field it edits or shows, or a column of the list it is in.",
+                "type": "string",
+                "enum": [
+                  "field",
+                  "column"
+                ]
+              },
+              "nameProperty": {
+                "description": "The property whose literal value names the field, such as Column's field; when it is left out, the field is the property v-model binds.",
+                "type": "string",
+                "pattern": "^[A-Za-z][A-Za-z0-9-]*$"
+              }
+            },
+            "required": [
+              "package",
+              "component",
+              "binds"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 1
+        },
+        "schemaFile": {
+          "description": "SpecArch keyword. The name of the file beside a page's file that holds the schema the project's component library renders the page from, by the project's convention, such as _schema.ts, a private file by the App Router's rule. specarch extract pages reads a page's content from the file of this name, and specarch-gen-ui-typescript writes each page's schema under it (ADR-115). Read for the ui binding. Left out, the name is page.schema.ts.",
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_][A-Za-z0-9_.-]*\\.(ts|tsx|mts|cts|js|jsx|mjs|cjs)$",
+          "not": {
+            "pattern": "^(page|route|layout|loading|error|not-found|template|default)\\.[a-z]+$"
+          }
+        },
+        "permissionChecks": {
+          "description": "SpecArch keyword. The project's own permission checks, which specarch extract reads in source: a call of one with a literal permission is the permission of the route it wraps, guards as middleware or is made in (docs/reading-code.md). Read for the http binding.",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "package": {
+                "description": "Where the check is declared, as the language names it: a Go import path (the folder from the repository's root where no go.mod is read), a module path of JavaScript or TypeScript, a Swift module, or a Dart file's path from the folder read without .dart.",
+                "type": "string",
+                "minLength": 1
+              },
+              "function": {
+                "description": "The check's name in that package: a function, or a type and its method joined by a dot, such as Server.Require.",
+                "type": "string",
+                "pattern": "^[A-Za-z_$][A-Za-z0-9_$]*(\\.[A-Za-z_$][A-Za-z0-9_$]*)?$"
+              },
+              "permissionArgument": {
+                "description": "The argument that carries the permission, counted from 1.",
+                "type": "integer",
+                "minimum": 1
+              },
+              "bypassedFor": {
+                "description": "SpecArch keyword. The kind of caller the check lets through whatever its roles grant, such as a check that returns early for a machine-to-machine token: client, a caller on its own account rather than a person's. specarch extract go asks at every operation the check guards whether that kind of caller is meant to reach it (ADR-114). Left out, the check skips no caller.",
+                "type": "string",
+                "enum": [
+                  "client"
+                ]
+              }
+            },
+            "required": [
+              "package",
+              "function",
+              "permissionArgument"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 1
+        },
+        "clientChecks": {
+          "description": "SpecArch keyword. The project's own checks that admit a client, a caller on its own account rather than a person's, and refuse everyone else, such as a check of an API key or a client-credentials token. specarch extract, for go, swift, javascript and dart, reads, at each operation a call of one wraps, guards as middleware or is made in, the clients its clientArgument names as literals and writes them as the operation's callers; with no clientArgument, or names it does not give as literals, it asks which clients call it and whether people do, for callers, which names them one by one (ADR-110, ADR-154). Read for the http binding.",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "package": {
+                "description": "Where the check is declared, as the language names it: a Go import path, or the folder from the repository's root where no go.mod is read.",
+                "type": "string",
+                "minLength": 1
+              },
+              "function": {
+                "description": "The check's name in that package: a function, or a type and its method joined by a dot, such as Server.RequireClient.",
+                "type": "string",
+                "pattern": "^[A-Za-z_$][A-Za-z0-9_$]*(\\.[A-Za-z_$][A-Za-z0-9_$]*)?$"
+              },
+              "clientArgument": {
+                "description": "The argument that carries the names of the clients admitted, counted from 1: a string or a list of strings. Strings the call passes after it are asked about, never read as names.",
+                "type": "integer",
+                "minimum": 1
+              }
+            },
+            "required": [
+              "package",
+              "function"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 1
+        },
+        "signatureChecks": {
+          "description": "SpecArch keyword. The project's own checks that verify a request's signature, such as an HTTP Message Signatures or HMAC verifier. specarch extract, for go, swift, javascript and dart, asks, at each operation one guards, which client signs and with which proof: the algorithm and the request parts the signature covers (ADR-154). Read for the http binding.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/gateCheck"
+          },
+          "minItems": 1
+        },
+        "applicationChecks": {
+          "description": "SpecArch keyword. The project's own checks of the application the person signed in through, the client_id of an access token or tctx.application of a transaction token. specarch extract, for go, swift, javascript and dart, asks, at each operation one guards, for the through of every role granting the operation's permission: the applications its applicationArgument names as literals, or the setting it reads them from (ADR-106). Read for the http binding.",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "package": {
+                "description": "Where the check is declared, as the language names it: a Go import path, or the folder from the repository's root where no go.mod is read.",
+                "type": "string",
+                "minLength": 1
+              },
+              "function": {
+                "description": "The check's name in that package: a function, or a type and its method joined by a dot, such as Server.RequireClient.",
+                "type": "string",
+                "pattern": "^[A-Za-z_$][A-Za-z0-9_$]*(\\.[A-Za-z_$][A-Za-z0-9_$]*)?$"
+              },
+              "applicationArgument": {
+                "description": "The argument that carries the names of the applications admitted, counted from 1: a string or a list of strings. Strings the call passes after it are asked about, never read as names.",
+                "type": "integer",
+                "minimum": 1
+              }
+            },
+            "required": [
+              "package",
+              "function"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 1
+        },
+        "callerChecks": {
+          "description": "SpecArch keyword. The project's own checks of the immediate caller's workload identity, on a call made on a person's behalf. specarch extract, for go, swift, javascript and dart, writes the services its callerArgument names as literals as the operation's via, and asks for the setting it reads them from otherwise; either way it asks for each service's declaration with its workload-identity proof (ADR-111). Read for the http binding.",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "package": {
+                "description": "Where the check is declared, as the language names it: a Go import path, or the folder from the repository's root where no go.mod is read.",
+                "type": "string",
+                "minLength": 1
+              },
+              "function": {
+                "description": "The check's name in that package: a function, or a type and its method joined by a dot, such as Server.RequireClient.",
+                "type": "string",
+                "pattern": "^[A-Za-z_$][A-Za-z0-9_$]*(\\.[A-Za-z_$][A-Za-z0-9_$]*)?$"
+              },
+              "callerArgument": {
+                "description": "The argument that carries the names of the services admitted as the immediate caller, counted from 1: a string or a list of strings. Strings the call passes after it are asked about, never read as names.",
+                "type": "integer",
+                "minimum": 1
+              }
+            },
+            "required": [
+              "package",
+              "function"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 1
+        },
+        "audienceChecks": {
+          "description": "SpecArch keyword. The project's own checks of a token's aud. specarch extract, for go, swift, javascript and dart, asks, at the tokens, for the aud the service accepts: the literal its audienceArgument gives, as the claim's const, or the setting it reads it from, whose value per environment goes in deployments (ADR-109). Read for the http binding.",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "package": {
+                "description": "Where the check is declared, as the language names it: a Go import path, or the folder from the repository's root where no go.mod is read.",
+                "type": "string",
+                "minLength": 1
+              },
+              "function": {
+                "description": "The check's name in that package: a function, or a type and its method joined by a dot, such as Server.RequireClient.",
+                "type": "string",
+                "pattern": "^[A-Za-z_$][A-Za-z0-9_$]*(\\.[A-Za-z_$][A-Za-z0-9_$]*)?$"
+              },
+              "audienceArgument": {
+                "description": "The argument that carries the audience the check compares aud with, counted from 1: a string or a list of strings. Strings the call passes after it are asked about, never read as names.",
+                "type": "integer",
+                "minimum": 1
+              }
+            },
+            "required": [
+              "package",
+              "function"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 1
+        },
+        "eventWriters": {
+          "description": "SpecArch keyword. The project's own functions that write a security event. specarch extract, for go, swift, javascript and dart, names them and writes nothing from them, since every security event is derived from the refusal that writes it and no one writes one by hand (ADR-109). Read for the http binding.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/gateCheck"
+          },
+          "minItems": 1
+        },
+        "middlewares": {
+          "description": "SpecArch keyword. The function of the code each middleware of the design is, by its name under middlewares: the package that declares it and its name there. Read for the http binding.",
+          "type": "object",
+          "propertyNames": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+          },
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "package": {
+                "description": "Where the function is declared, as the language names it: a Go import path, a module path of JavaScript or TypeScript, a Swift module, or a Dart file's path.",
+                "type": "string",
+                "minLength": 1
+              },
+              "function": {
+                "description": "The function's name in that package, or a type and its method joined by a dot.",
+                "type": "string",
+                "pattern": "^[A-Za-z_$][A-Za-z0-9_$]*(\\.[A-Za-z_$][A-Za-z0-9_$]*)?$"
+              }
+            },
+            "required": [
+              "package",
+              "function"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "listRoutes": {
+          "description": "SpecArch keyword. That every list is served two ways: an operation with listOf served by GET on a path is served by POST too, on that path with the literal segment named here added, its search, filter, sort and page in a JSON body, so a long filter fits. specarch generate openapi writes that twin for each such operation, named after it with Post added, and specarch extract router reads a handler that serves both routes as the two operations without a question (ADR-121). Read for the http binding.",
+          "type": "object",
+          "properties": {
+            "postSegment": {
+              "description": "The literal last segment of the POST route, such as query for /items/query.",
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9-]*$"
+            }
+          },
+          "required": [
+            "postSegment"
+          ],
+          "additionalProperties": false
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
+        }
+      },
+      "required": [
+        "framework"
+      ],
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "target": {
+      "type": "object",
+      "properties": {
+        "output": {
+          "description": "The folder this target owns, relative to this implementation file. A document target writes <target>.md there.",
+          "type": "string",
+          "minLength": 1
+        },
+        "tool": {
+          "description": "The downstream tool that takes the generator's output, if any, such as an OpenAPI code generator.",
+          "type": "string"
+        },
+        "dialect": {
+          "description": "The dialect the target writes, which is also a stack of the implementation file for its idioms: for the sql target a database dialect, postgresql by default; for the sqlc target the database the queries run on, whose engine sqlc reads them with, postgresql the only one written; for the openapi target dxlib, the document dxlib binds, when the service runs on dxlib. Without it the openapi target writes standard OpenAPI.",
+          "type": "string",
+          "enum": [
+            "postgresql",
+            "sqlserver",
+            "oracle",
+            "mariadb",
+            "dxlib"
+          ],
+          "default": "postgresql"
+        },
+        "platform": {
+          "description": "For the ui target: where the screens run.",
+          "type": "string",
+          "enum": [
+            "web",
+            "iphone"
+          ]
+        },
+        "framework": {
+          "description": "For the ui target: the component library or UI framework. The default for platform web is plain-javascript: native ES modules in the browser, no package install, no bundler or build step, every third-party library a pinned file committed beside the generated code, and pages and components that talk through one small generated event bus (event names declared once as UPPERCASE constants with their payload shape, subscriptions registered where a component is created, no wildcard or computed names, an optional debug log of every event). For platform iphone the default is swiftui. The framework, given or by default, is also a stack of the implementation file for its idioms, as a dialect is: the ui-components idiom renders nextjs-carbon, Next.js's app router drawn with IBM's Carbon, where a page's events are navigation in its page.tsx and no event bus is written, and swiftui, where a page's events are navigation through the app's router. A plug-in named for the framework, specarch-gen-<target>-<framework>, is found before one named for the language.",
+          "type": "string",
+          "minLength": 1
+        },
+        "description": {
+          "$ref": "#/$defs/markdown"
+        },
+        "settings": {
+          "type": "object"
+        },
+        "reads": {
+          "description": "The sections of the specification this code target reads. A target that names none reads every section. specarch generate refuses to run a target while a must or should question blocks a section it reads, and specarch gaps says per target what waits.",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "stakeholders",
+              "needs",
+              "requirements",
+              "glossary",
+              "assumptions",
+              "constraints",
+              "enums",
+              "entities",
+              "permissions",
+              "roles",
+              "session",
+              "paths",
+              "commands",
+              "channels",
+              "dependencies",
+              "pages",
+              "algorithms",
+              "tests",
+              "decisions",
+              "environments",
+              "configuration",
+              "release",
+              "rollback",
+              "migrations",
+              "checks",
+              "signoff",
+              "monitors",
+              "handover",
+              "backup",
+              "restore"
+            ]
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
+        }
+      },
+      "required": [
+        "output"
+      ],
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "platform": {
+                "const": "web"
+              }
+            },
+            "required": [
+              "platform"
+            ]
+          },
+          "then": {
+            "properties": {
+              "framework": {
+                "default": "plain-javascript"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "platform": {
+                "const": "iphone"
+              }
+            },
+            "required": [
+              "platform"
+            ]
+          },
+          "then": {
+            "properties": {
+              "framework": {
+                "default": "swiftui"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "task": {
+      "type": "object",
+      "properties": {
+        "run": {
+          "type": "string",
+          "minLength": 1
+        },
+        "description": {
+          "$ref": "#/$defs/markdown"
+        },
+        "ci": {
+          "description": "The task runs in CI on every change.",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "run"
+      ],
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "deployment": {
+      "type": "object",
+      "properties": {
+        "description": {
+          "$ref": "#/$defs/markdown"
+        },
+        "environment": {
+          "description": "The environment of the specification this deployment installs, by key. Required when the specification declares environments.",
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+        },
+        "servers": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "description": "SpecArch keyword. The server's name, unique within the deployment, by which a link names it. Left out, nothing can refer to the server (ADR-136).",
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+              },
+              "kind": {
+                "description": "SpecArch keyword. What the server is: service, a host that runs this implementation's packages; database, the store its migrations run on; messageBroker, the broker this system runs for its channels; proxy, a reverse proxy or load balancer in front of a service; fileStore, the store its files land in. Left out, it is service. It sets the server's shape in the deployment diagram (ADR-136).",
+                "enum": [
+                  "service",
+                  "database",
+                  "messageBroker",
+                  "proxy",
+                  "fileStore"
+                ]
+              },
+              "runs": {
+                "description": "SpecArch keyword. What of this implementation runs on the server: keys of layout under packages, keys of targets under targets (ADR-136).",
+                "type": "object",
+                "properties": {
+                  "packages": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "minItems": 1,
+                    "uniqueItems": true
+                  },
+                  "targets": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "minItems": 1,
+                    "uniqueItems": true
+                  }
+                },
+                "minProperties": 1,
+                "additionalProperties": false
+              },
+              "dependency": {
+                "description": "SpecArch keyword. The dependency of the design, by its key under dependencies, that this server is in this environment: it runs nothing of this implementation and is drawn as that dependency, in its kind's shape (ADR-136).",
+                "type": "string",
+                "minLength": 1
+              },
+              "zone": {
+                "description": "IEC 62443-3-2 keyword. The network zone the server is in, a kebab-case name the file chooses: a grouping of assets that share security requirements. Servers of one zone are drawn in one subgraph (ADR-137).",
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+              },
+              "listens": {
+                "description": "SpecArch keyword. What the server accepts: each a port and the protocol on it, as a dependency's protocol is written. A link may name only a port listed here; the URL's port does not count by itself (ADR-137).",
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "port": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 65535
+                    },
+                    "protocol": {
+                      "type": "string",
+                      "pattern": "^[a-z][a-z0-9+.-]*$"
+                    }
+                  },
+                  "required": [
+                    "port"
+                  ],
+                  "additionalProperties": false
+                },
+                "minItems": 1
+              },
+              "url": {
+                "type": "string",
+                "minLength": 1
+              },
+              "description": {
+                "$ref": "#/$defs/markdown"
+              }
+            },
+            "required": [
+              "url"
+            ],
+            "patternProperties": {
+              "^x-": {}
+            },
+            "additionalProperties": false
+          },
+          "minItems": 1
+        },
+        "links": {
+          "description": "NIST SP 800-41's firewall rule. The allowed connections between the deployment's servers, each from a named server to a named server on a port the target listens on; a connection the other way is another link. The validator warns at a server whose packages call a dependency, use a channel it carries or reach the database with no link that allows it (ADR-137).",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "from": {
+                "type": "string",
+                "minLength": 1
+              },
+              "to": {
+                "type": "string",
+                "minLength": 1
+              },
+              "port": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 65535
+              },
+              "description": {
+                "$ref": "#/$defs/markdown"
+              }
+            },
+            "required": [
+              "from",
+              "to",
+              "port"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 1
+        },
+        "configuration": {
+          "description": "The value of each non-secret setting of the specification's configuration in this deployment, keyed by setting name. A secret's value is never written here; say in the setting's description where it comes from.",
+          "type": "object",
+          "propertyNames": {
+            "pattern": "^[a-z][A-Za-z0-9]*$"
+          },
+          "additionalProperties": {
+            "type": [
+              "string",
+              "integer",
+              "number",
+              "boolean"
+            ]
+          }
+        },
+        "clients": {
+          "description": "SpecArch keyword. The client_id the authorisation server issued to each client of the design in this environment, keyed by the client's name under clients (its software_id): issued per registration and differing per environment, so a deployment value and never a design key (ADR-106).",
+          "type": "object",
+          "propertyNames": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+          },
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "clientId": {
+                "description": "The client_id of RFC 6749, as the authorisation server issued it for this environment.",
+                "type": "string",
+                "minLength": 1
+              },
+              "workloadIdentity": {
+                "description": "SpecArch keyword. The workload identity the client presents in this environment, which a hop's via binds to: its SPIFFE ID, the subject of its certificate, or its Workload Identity Token's subject (ADR-111).",
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [],
+            "additionalProperties": false
+          }
+        },
+        "signIn": {
+          "description": "SpecArch keyword. The identity provider of the design's signIn in this environment: its issuer, the identity token's iss and the base of its discovery document, and its keys, each the provider's and differing per environment, so a deployment value and never a design key (ADR-182).",
+          "type": "object",
+          "properties": {
+            "issuerUrl": {
+              "description": "The provider's Issuer Identifier (OpenID Connect Core, section 1.2): the iss every identity token carries, exactly, and the URL its discovery document is read from at /.well-known/openid-configuration (OpenID Connect Discovery 1.0, section 4).",
+              "type": "string",
+              "pattern": "^https://[^\\s?#]+$"
+            },
+            "jwksUri": {
+              "description": "The provider's JSON Web Key Set the identity token's signature is checked with, when it is not the jwks_uri the discovery document gives.",
+              "type": "string",
+              "pattern": "^https://[^\\s#]+$"
+            }
+          },
+          "required": [
+            "issuerUrl"
+          ],
+          "additionalProperties": false
+        },
+        "securityEvents": {
+          "description": "SpecArch keyword. The alarm's repeat rule in this environment: how many events for one client within the window go to the alarm channel as well as the store (ADR-109).",
+          "type": "object",
+          "properties": {
+            "repeats": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "window": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "repeats",
+            "window"
+          ],
+          "additionalProperties": false
+        },
+        "monitors": {
+          "description": "How this deployment watches each monitor of the specification, keyed by monitor name: the tool that measures, how, and where an alert goes.",
+          "type": "object",
+          "propertyNames": {
+            "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+          },
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "tool": {
+                "description": "The tool that measures, such as a metrics system or an uptime checker.",
+                "type": "string",
+                "minLength": 1
+              },
+              "description": {
+                "$ref": "#/$defs/markdown"
+              },
+              "alert": {
+                "description": "Where an alert goes when the objective is missed: a channel or a role, never a person.",
+                "type": "string",
+                "minLength": 1
+              },
+              "settings": {
+                "description": "Free-form settings of the tool, such as the query.",
+                "type": "object"
+              }
+            },
+            "required": [
+              "tool"
+            ],
+            "patternProperties": {
+              "^x-": {}
+            },
+            "additionalProperties": false
+          }
+        },
+        "build": {
+          "description": "How the artifact of a release is made from the source, so that the customer who builds it, or the vendor on another machine, makes the same build: the steps in plain words, the task that runs them, the base images it starts from, how a build of the same source is compared with the vendor's, and the task that writes its software bill of materials and scans it (ADR-129).",
+          "type": "object",
+          "properties": {
+            "description": {
+              "$ref": "#/$defs/markdown"
+            },
+            "task": {
+              "description": "The task of this file that builds the artifact from the source, by key of tasks.",
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+            },
+            "baseImages": {
+              "description": "Every image the build starts from, each pinned by its digest, since a tag moves.",
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "description": "The image as the registry names it, with its tag, such as docker.io/library/golang:1.26-bookworm.",
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "digest": {
+                    "description": "The image's digest: sha256: and 64 hexadecimal digits.",
+                    "type": "string",
+                    "pattern": "^sha256:[0-9a-f]{64}$"
+                  },
+                  "purpose": {
+                    "description": "What the image is for: the build, or the runtime the artifact runs on.",
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "name",
+                  "digest",
+                  "purpose"
+                ],
+                "patternProperties": {
+                  "^x-": {}
+                },
+                "additionalProperties": false
+              },
+              "minItems": 1
+            },
+            "reproducible": {
+              "description": "How a build of the same source on another machine is compared with the vendor's: what is fixed (the toolchain, the flags, the timestamp) and what is compared (a checksum, an image digest).",
+              "$ref": "#/$defs/markdown"
+            },
+            "sbom": {
+              "description": "The task of this file that writes the software bill of materials of the build and scans it for known vulnerabilities, by key of tasks.",
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+            }
+          },
+          "required": [
+            "description",
+            "task"
+          ],
+          "patternProperties": {
+            "^x-": {}
+          },
+          "additionalProperties": false
+        },
+        "method": {
+          "description": "How the build is put on the hosts of this deployment: the tool that installs it, such as a compose tool, Quadlet or a Kubernetes client, the files it reads, and the steps in plain words (ADR-129).",
+          "type": "object",
+          "properties": {
+            "tool": {
+              "description": "The tool that installs the build, with its version.",
+              "type": "string",
+              "minLength": 1
+            },
+            "files": {
+              "description": "What the tool reads, such as a compose file, unit files or manifests: a path relative to this implementation file.",
+              "type": "string",
+              "minLength": 1
+            },
+            "description": {
+              "$ref": "#/$defs/markdown"
+            }
+          },
+          "required": [
+            "tool"
+          ],
+          "patternProperties": {
+            "^x-": {}
+          },
+          "additionalProperties": false
+        },
+        "infrastructure": {
+          "description": "What the hosts of this deployment must provide, one plain sentence each. Required for an environment the customer runs, since the hosts are theirs (ADR-129).",
+          "type": "object",
+          "properties": {
+            "cpu": {
+              "description": "Processor cores, per host.",
+              "type": "string",
+              "minLength": 1
+            },
+            "memory": {
+              "description": "Memory, per host.",
+              "type": "string",
+              "minLength": 1
+            },
+            "storage": {
+              "description": "Disk, and how it grows.",
+              "type": "string",
+              "minLength": 1
+            },
+            "network": {
+              "description": "What must reach what: the clients, the hosts, the services called.",
+              "type": "string",
+              "minLength": 1
+            },
+            "ports": {
+              "description": "The ports each host listens on, and the setting that changes a port when one does.",
+              "type": "string",
+              "minLength": 1
+            },
+            "services": {
+              "description": "The services the hosts must provide or reach, with their versions: the database engine, a message broker, the systems the design's dependencies name.",
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "minProperties": 1,
+          "patternProperties": {
+            "^x-": {}
+          },
+          "additionalProperties": false
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
+        }
+      },
+      "required": [
+        "description"
+      ],
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "decision": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "proposed",
+            "accepted",
+            "deprecated",
+            "superseded"
+          ]
+        },
+        "date": {
+          "type": "string",
+          "format": "date"
+        },
+        "context": {
+          "$ref": "#/$defs/markdown"
+        },
+        "decision": {
+          "$ref": "#/$defs/markdown"
+        },
+        "consequences": {
+          "$ref": "#/$defs/markdown"
+        },
+        "supersededBy": {
+          "type": "string",
+          "pattern": "^ADR-[0-9]{3,}$"
+        },
+        "satisfies": {
+          "$ref": "#/$defs/satisfies"
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
+        }
+      },
+      "required": [
+        "title",
+        "status",
+        "date",
+        "context",
+        "decision",
+        "consequences"
+      ],
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false,
+      "if": {
+        "properties": {
+          "status": {
+            "const": "superseded"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "supersededBy"
+        ]
+      }
+    },
+    "testing": {
+      "description": "How this implementation is tested: the framework, how to run the tests, and the suites. Design tests are defined in the design file; a suite here only says how they are run on this stack.",
+      "type": "object",
+      "properties": {
+        "framework": {
+          "type": "string",
+          "minLength": 1
+        },
+        "run": {
+          "description": "The command that runs every suite.",
+          "type": "string",
+          "minLength": 1
+        },
+        "platforms": {
+          "description": "Operating systems and architectures the tests run on.",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "fixtures": {
+          "$ref": "#/$defs/markdown"
+        },
+        "mocks": {
+          "description": "What is replaced by a stand-in in tests, and why.",
+          "$ref": "#/$defs/markdown"
+        },
+        "performance": {
+          "description": "Performance and load targets.",
+          "$ref": "#/$defs/markdown"
+        },
+        "suites": {
+          "type": "object",
+          "propertyNames": {
+            "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/suite"
+          },
+          "minProperties": 1
+        }
+      },
+      "required": [
+        "framework",
+        "run",
+        "suites"
+      ],
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "suite": {
+      "description": "One test suite. It runs design tests (by name, or every test of a subject) or is implementation-only, never neither.",
+      "type": "object",
+      "properties": {
+        "description": {
+          "$ref": "#/$defs/markdown"
+        },
+        "run": {
+          "type": "string",
+          "minLength": 1
+        },
+        "level": {
+          "description": "unit: one piece of this implementation's code alone; integration: several pieces, or the code with a real database or service; system: the design's system tests run through this implementation; acceptance: the design's acceptance tests. The levels are those of ISO/IEC/IEEE 29119-1. A suite that runs design tests is system or acceptance; an implementation-only suite is unit or integration.",
+          "type": "string",
+          "enum": [
+            "unit",
+            "integration",
+            "system",
+            "acceptance"
+          ]
+        },
+        "designTests": {
+          "description": "Names of design tests this suite runs.",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "designTestsOf": {
+          "description": "Subjects whose design tests this suite runs, every one of them, such as {command: validate}.",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "operation": {
+                "type": "string"
+              },
+              "command": {
+                "type": "string"
+              },
+              "page": {
+                "type": "string"
+              }
+            },
+            "minProperties": 1,
+            "maxProperties": 1,
+            "additionalProperties": false
+          },
+          "minItems": 1
+        },
+        "implementationOnly": {
+          "description": "The suite tests this implementation's own code and runs no design test.",
+          "type": "boolean",
+          "const": true
+        },
+        "ci": {
+          "description": "The suite runs in CI on every change.",
+          "type": "boolean"
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
+        }
+      },
+      "required": [
+        "description",
+        "run",
+        "level"
+      ],
+      "oneOf": [
+        {
+          "required": [
+            "designTests"
+          ]
+        },
+        {
+          "required": [
+            "designTestsOf"
+          ]
+        },
+        {
+          "required": [
+            "implementationOnly"
+          ]
+        }
+      ],
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "required": [
+              "implementationOnly"
+            ]
+          },
+          "then": {
+            "properties": {
+              "level": {
+                "enum": [
+                  "unit",
+                  "integration"
+                ]
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "level": {
+                "enum": [
+                  "system",
+                  "acceptance"
+                ]
+              }
+            }
+          }
+        }
+      ]
+    },
+    "idiomUse": {
+      "type": "object",
+      "properties": {
+        "exclude": {
+          "description": "true: the idiom does not apply to this file; why says what the project does instead.",
+          "const": true
+        },
+        "override": {
+          "description": "The override file, relative to this file, in its idioms folder.",
+          "type": "string",
+          "pattern": "^idioms/[a-z][a-z0-9]*(-[a-z0-9]+)*\\.specarch-idiom\\.yaml$"
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        }
+      },
+      "oneOf": [
+        {
+          "required": [
+            "exclude"
+          ]
+        },
+        {
+          "required": [
+            "override"
+          ]
+        }
+      ],
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    }
+  }
+}
+"""#
+
+let earlierImplementationSchemaJSON = #"""
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-implementation-0.1.schema.json",
   "title": "SpecArch Implementation File, meta-model 0.1",
   "description": "A SpecArch Implementation File (<name>.<stack>.specarch-implementation.yaml) says how one stack implements one SpecArch specification: the language and toolchain, the libraries and their licences, the package layout, how each design object maps onto the stack, the document and code targets with their settings, the build and test tasks, the deployments, and the implementation decisions. It points at the specification's root file (specarch.yaml) and cannot add or change design: entities, operations, commands, events, permissions, pages and algorithms exist only in the specification, and this schema has no keyword for them. One specification can have several implementation files, one per stack, each in implementation/<stack>/ of the tree. Every object rejects unknown keys; keys starting with 'x-' are allowed everywhere as extensions.",
@@ -16152,6 +18028,847 @@ let implementationSchemaJSON = #"""
 let recordSchemaJSON = #"""
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-record-1.0.schema.json",
+  "title": "SpecArch record, 1.0",
+  "description": "A record is a fact about one event in the life of a system: a change request, a defect, a release, an incident in production, a commissioning run or an approval. Records live in records/ beside the specification's folder, one file per record, in a folder per kind; they point into the specification, and the specification never points back at them. A record names people only by role. Every object rejects unknown keys; keys starting with 'x-' are allowed everywhere as extensions.",
+  "type": "object",
+  "properties": {
+    "specarchRecord": {
+      "description": "The record format version this file is written against, in three parts, major.minor.patch: 1.0.0, or a later 1.0 patch, which is read as 1.0. A file on 0.1, the format before 1.0.0 and the same in shape, is checked against specarch-record-0.1.schema.json and read beside 1.0; specarch upgrade moves it to 1.0.0.",
+      "type": "string",
+      "pattern": "^1\\.0\\.(0|[1-9][0-9]*)$"
+    },
+    "kind": {
+      "description": "What the record is; it decides the folder it lives in and the keys it holds.",
+      "type": "string",
+      "enum": [
+        "change",
+        "defect",
+        "release",
+        "incident",
+        "commissioning",
+        "approval"
+      ]
+    }
+  },
+  "required": [
+    "specarchRecord",
+    "kind"
+  ],
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "change"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "$ref": "#/$defs/change"
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "defect"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "$ref": "#/$defs/defect"
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "release"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "$ref": "#/$defs/release"
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "incident"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "$ref": "#/$defs/incident"
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "commissioning"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "$ref": "#/$defs/commissioning"
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "approval"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "$ref": "#/$defs/approval"
+      }
+    }
+  ],
+  "$defs": {
+    "role": {
+      "description": "A role: the key of a stakeholder of the specification, never a person's name.",
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+    },
+    "name": {
+      "description": "The kebab-case name of an element of the specification, such as a test, an environment, a monitor or a check.",
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+    },
+    "date": {
+      "description": "A date, quoted, as YYYY-MM-DD.",
+      "type": "string",
+      "format": "date"
+    },
+    "version": {
+      "description": "A Semantic Versioning 2.0.0 version, such as 1.4.0.",
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(-[0-9A-Za-z.-]+)?$"
+    },
+    "recordId": {
+      "description": "The ID of a change request, defect or incident: an upper-case prefix, a dash and a number or name, such as CR-12, DEF-7 or INC-3. It is the record's file name, or an ID in a tracker declared under the specification's sources.",
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9]{1,15}-[A-Za-z0-9._]+$"
+    },
+    "reference": {
+      "description": "A reference into the specification: a requirement ID such as LIB-5, or a #/ pointer into the merged specification such as #/entities/Loan, #/tests/borrow-limit or #/environments/production.",
+      "type": "string",
+      "pattern": "^([A-Z][A-Z0-9]{1,15}-[A-Za-z0-9._]+|#/.+)$"
+    },
+    "references": {
+      "description": "References into the specification.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/reference"
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "run": {
+      "description": "A commissioning run, by the name of its record: its date and environment, such as 2026-10-07-production.",
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}-[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+    },
+    "change": {
+      "description": "A change request (ISO/IEC/IEEE 12207:2017, 6.4.13; ISO/IEC/IEEE 14764:2022): a request for the system to be different. Kept in records/changes/, named by its ID.",
+      "type": "object",
+      "properties": {
+        "specarchRecord": {},
+        "kind": {},
+        "id": {
+          "$ref": "#/$defs/recordId"
+        },
+        "title": {
+          "description": "One line saying what is asked for.",
+          "type": "string",
+          "minLength": 1
+        },
+        "raisedBy": {
+          "$ref": "#/$defs/role"
+        },
+        "raised": {
+          "$ref": "#/$defs/date"
+        },
+        "phase": {
+          "description": "Where it was raised: during development, or in production.",
+          "type": "string",
+          "enum": [
+            "development",
+            "production"
+          ]
+        },
+        "type": {
+          "description": "The maintenance type of ISO/IEC/IEEE 14764:2022 other than corrective, which is a defect: additive (a new capability), perfective (a better one), adaptive (a new environment) or preventive (a problem headed off).",
+          "type": "string",
+          "enum": [
+            "additive",
+            "perfective",
+            "adaptive",
+            "preventive"
+          ]
+        },
+        "urgency": {
+          "description": "The change type of ITIL 4 change enablement, which sets how much assessment it gets before approval: standard (pre-approved and low risk), normal or emergency.",
+          "type": "string",
+          "enum": [
+            "standard",
+            "normal",
+            "emergency"
+          ]
+        },
+        "reason": {
+          "description": "Why it is asked for, in plain words.",
+          "type": "string",
+          "minLength": 1
+        },
+        "affects": {
+          "description": "What it changes in the specification, written when it is analysed.",
+          "type": "object",
+          "properties": {
+            "adds": {
+              "description": "What it adds: requirement IDs or #/ pointers that resolve once it is implemented.",
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/reference"
+              },
+              "minItems": 1,
+              "uniqueItems": true
+            },
+            "changes": {
+              "description": "What it changes: requirement IDs or #/ pointers that resolve before and after.",
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/reference"
+              },
+              "minItems": 1,
+              "uniqueItems": true
+            },
+            "removes": {
+              "description": "What it removes: requirement IDs or #/ pointers that no longer resolve once it is implemented; a removed requirement may instead stay with status retired.",
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/reference"
+              },
+              "minItems": 1,
+              "uniqueItems": true
+            }
+          },
+          "required": [],
+          "minProperties": 1,
+          "patternProperties": {
+            "^x-": {}
+          },
+          "additionalProperties": false
+        },
+        "impact": {
+          "description": "The version step it needs under Semantic Versioning 2.0.0: major when a client written for the previous version breaks, minor when the public interface only grows, patch when it does not change.",
+          "type": "string",
+          "enum": [
+            "major",
+            "minor",
+            "patch"
+          ]
+        },
+        "decision": {
+          "description": "The decision on the request.",
+          "type": "object",
+          "properties": {
+            "by": {
+              "$ref": "#/$defs/role"
+            },
+            "date": {
+              "$ref": "#/$defs/date"
+            },
+            "outcome": {
+              "description": "Approved or rejected.",
+              "type": "string",
+              "enum": [
+                "approved",
+                "rejected"
+              ]
+            },
+            "why": {
+              "description": "Why it was decided so.",
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "by",
+            "date",
+            "outcome",
+            "why"
+          ],
+          "patternProperties": {
+            "^x-": {}
+          },
+          "additionalProperties": false
+        },
+        "release": {
+          "$ref": "#/$defs/version"
+        },
+        "status": {
+          "description": "Where it stands: proposed, analysed (affects and impact written), approved or rejected, implemented (the specification and the code carry it), released, or withdrawn by the requester.",
+          "type": "string",
+          "enum": [
+            "proposed",
+            "analysed",
+            "approved",
+            "rejected",
+            "implemented",
+            "released",
+            "withdrawn"
+          ]
+        }
+      },
+      "required": [
+        "specarchRecord",
+        "kind",
+        "id",
+        "title",
+        "raisedBy",
+        "raised",
+        "phase",
+        "type",
+        "urgency",
+        "reason",
+        "status"
+      ],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "enum": [
+                  "analysed",
+                  "approved",
+                  "rejected",
+                  "implemented",
+                  "released"
+                ]
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "required": [
+              "affects",
+              "impact"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "released"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "required": [
+              "release"
+            ]
+          }
+        }
+      ],
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "defect": {
+      "description": "A defect: the system not doing what its specification says, the corrective maintenance of ISO/IEC/IEEE 14764:2022. Kept in records/defects/, named by its ID.",
+      "type": "object",
+      "properties": {
+        "specarchRecord": {},
+        "kind": {},
+        "id": {
+          "$ref": "#/$defs/recordId"
+        },
+        "title": {
+          "description": "One line saying what goes wrong.",
+          "type": "string",
+          "minLength": 1
+        },
+        "reportedBy": {
+          "$ref": "#/$defs/role"
+        },
+        "reported": {
+          "$ref": "#/$defs/date"
+        },
+        "phase": {
+          "description": "Where it was found: during development, or in production.",
+          "type": "string",
+          "enum": [
+            "development",
+            "production"
+          ]
+        },
+        "environment": {
+          "$ref": "#/$defs/name"
+        },
+        "severity": {
+          "description": "How badly it stops the system from meeting its requirements.",
+          "type": "string",
+          "enum": [
+            "critical",
+            "major",
+            "minor",
+            "cosmetic"
+          ]
+        },
+        "violates": {
+          "description": "The requirement IDs, or #/ pointers to the design elements, it breaks.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/reference"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "test": {
+          "$ref": "#/$defs/name"
+        },
+        "incidents": {
+          "description": "The incidents it caused, by ID.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/recordId"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "duplicateOf": {
+          "$ref": "#/$defs/recordId"
+        },
+        "change": {
+          "$ref": "#/$defs/recordId"
+        },
+        "release": {
+          "$ref": "#/$defs/version"
+        },
+        "status": {
+          "description": "Where it stands: reported; confirmed, not-a-defect or duplicate after triage against the specification; fixed (the fix is merged and the test passes); released.",
+          "type": "string",
+          "enum": [
+            "reported",
+            "confirmed",
+            "not-a-defect",
+            "duplicate",
+            "fixed",
+            "released"
+          ]
+        }
+      },
+      "required": [
+        "specarchRecord",
+        "kind",
+        "id",
+        "title",
+        "reportedBy",
+        "reported",
+        "phase",
+        "severity",
+        "violates",
+        "status"
+      ],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "released"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "required": [
+              "release"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "phase": {
+                "const": "production"
+              }
+            },
+            "required": [
+              "phase"
+            ]
+          },
+          "then": {
+            "required": [
+              "environment"
+            ]
+          }
+        }
+      ],
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "release": {
+      "description": "A release of the system: one version, what it includes and what accepted it. Kept in records/releases/, named by its version.",
+      "type": "object",
+      "properties": {
+        "specarchRecord": {},
+        "kind": {},
+        "version": {
+          "$ref": "#/$defs/version"
+        },
+        "status": {
+          "description": "Planned while it is being built, released once it ships, withdrawn if it is pulled.",
+          "type": "string",
+          "enum": [
+            "planned",
+            "released",
+            "withdrawn"
+          ]
+        },
+        "date": {
+          "$ref": "#/$defs/date"
+        },
+        "includes": {
+          "description": "The change requests and defects it carries, by ID.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/recordId"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "specificationVersion": {
+          "$ref": "#/$defs/version"
+        },
+        "implementations": {
+          "description": "The version of each implementation file at release, keyed by stack.",
+          "type": "object",
+          "propertyNames": {
+            "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/version"
+          },
+          "minProperties": 1
+        },
+        "commissioning": {
+          "description": "The commissioning runs that accepted it, by record name.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/run"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "commit": {
+          "description": "The commit the release was built from.",
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "specarchRecord",
+        "kind",
+        "version",
+        "status"
+      ],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "released"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "required": [
+              "date"
+            ]
+          }
+        }
+      ],
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "incident": {
+      "description": "An incident in production (ISO/IEC/IEEE 12207:2017, 6.4.12): the live system misbehaving. Kept in records/incidents/, named by its ID.",
+      "type": "object",
+      "properties": {
+        "specarchRecord": {},
+        "kind": {},
+        "id": {
+          "$ref": "#/$defs/recordId"
+        },
+        "detected": {
+          "$ref": "#/$defs/date"
+        },
+        "environment": {
+          "$ref": "#/$defs/name"
+        },
+        "monitor": {
+          "$ref": "#/$defs/name"
+        },
+        "reportedBy": {
+          "$ref": "#/$defs/role"
+        },
+        "summary": {
+          "description": "What happened, in plain words.",
+          "type": "string",
+          "minLength": 1
+        },
+        "impact": {
+          "description": "What it did to the people who use the system.",
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "description": "Open while it lasts, resolved once the system is back to what the specification says.",
+          "type": "string",
+          "enum": [
+            "open",
+            "resolved"
+          ]
+        },
+        "defects": {
+          "description": "The defects that follow from it, by ID.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/recordId"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "changes": {
+          "description": "The change requests that follow from it, by ID.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/recordId"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "noChange": {
+          "description": "For a resolved incident that leads to no defect and no change, why.",
+          "type": "string",
+          "minLength": 1
+        },
+        "rollbackUsed": {
+          "description": "Whether the deployment stage's rollback was used.",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "specarchRecord",
+        "kind",
+        "id",
+        "detected",
+        "environment",
+        "summary",
+        "impact",
+        "status"
+      ],
+      "if": {
+        "not": {
+          "required": [
+            "monitor"
+          ]
+        }
+      },
+      "then": {
+        "required": [
+          "reportedBy"
+        ]
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "commissioning": {
+      "description": "One commissioning run: the checks of the commissioning stage run on the installed system. Kept in records/commissioning/, named by its date and environment.",
+      "type": "object",
+      "properties": {
+        "specarchRecord": {},
+        "kind": {},
+        "environment": {
+          "$ref": "#/$defs/name"
+        },
+        "date": {
+          "$ref": "#/$defs/date"
+        },
+        "version": {
+          "$ref": "#/$defs/version"
+        },
+        "build": {
+          "description": "The build that was installed, such as an image tag or a commit.",
+          "type": "string",
+          "minLength": 1
+        },
+        "operator": {
+          "$ref": "#/$defs/role"
+        },
+        "results": {
+          "description": "The result of each check, keyed by check name.",
+          "type": "object",
+          "propertyNames": {
+            "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+          },
+          "minProperties": 1,
+          "additionalProperties": {
+            "description": "The result of one check.",
+            "type": "object",
+            "properties": {
+              "result": {
+                "description": "Whether the check passed.",
+                "type": "string",
+                "enum": [
+                  "pass",
+                  "fail",
+                  "skipped"
+                ]
+              },
+              "note": {
+                "description": "What was seen, or why it was skipped.",
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "result"
+            ],
+            "patternProperties": {
+              "^x-": {}
+            },
+            "additionalProperties": false
+          }
+        },
+        "signoff": {
+          "description": "Who signed the run off, and when.",
+          "type": "object",
+          "properties": {
+            "by": {
+              "$ref": "#/$defs/role"
+            },
+            "date": {
+              "$ref": "#/$defs/date"
+            }
+          },
+          "required": [
+            "by",
+            "date"
+          ],
+          "patternProperties": {
+            "^x-": {}
+          },
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "specarchRecord",
+        "kind",
+        "environment",
+        "date",
+        "version",
+        "operator",
+        "results"
+      ],
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "approval": {
+      "description": "An approval for code generation, written by specarch approve. Kept in records/approvals/, named by its version.",
+      "type": "object",
+      "properties": {
+        "specarchRecord": {},
+        "kind": {},
+        "version": {
+          "$ref": "#/$defs/version"
+        },
+        "approvedBy": {
+          "$ref": "#/$defs/role"
+        },
+        "date": {
+          "$ref": "#/$defs/date"
+        },
+        "documents": {
+          "description": "The documents the stakeholder read, by target name.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/name"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "digest": {
+          "description": "The SHA-256 of every .yaml file of the specification when it was approved.",
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        }
+      },
+      "required": [
+        "specarchRecord",
+        "kind",
+        "version",
+        "approvedBy",
+        "date",
+        "documents",
+        "digest"
+      ],
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    }
+  }
+}
+"""#
+
+let earlierRecordSchemaJSON = #"""
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-record-0.1.schema.json",
   "title": "SpecArch record, 0.1",
   "description": "A record is a fact about one event in the life of a system: a change request, a defect, a release, an incident in production, a commissioning run or an approval. Records live in records/ beside the specification's folder, one file per record, in a folder per kind; they point into the specification, and the specification never points back at them. A record names people only by role. Every object rejects unknown keys; keys starting with 'x-' are allowed everywhere as extensions.",
@@ -16993,6 +19710,102 @@ let recordSchemaJSON = #"""
 let estateSchemaJSON = #"""
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-estate-1.0.schema.json",
+  "title": "SpecArch estate, 1.0",
+  "description": "A SpecArch estate lists the specifications of the modules of one estate, each owned by its own team and held in its own folder, and pins the version of each. On disk it is the file specarch-estate.yaml, usually in an umbrella repository whose submodules hold the modules. It has no stages and holds nothing of a module: it lists and pins. The validator reads every module it lists, checks each against its entry, and resolves the references between them. Every object rejects unknown keys; keys starting with 'x-' are allowed everywhere as extensions.",
+  "type": "object",
+  "properties": {
+    "specarchEstate": {
+      "description": "The estate format version this file is written against, in three parts, major.minor.patch: 1.0.0, or a later 1.0 patch, which is read as 1.0. A file on 0.1, the format before 1.0.0 and the same in shape, is checked against specarch-estate-0.1.schema.json and read beside 1.0; specarch upgrade moves it to 1.0.0.",
+      "type": "string",
+      "pattern": "^1\\.0\\.(0|[1-9][0-9]*)$"
+    },
+    "info": {
+      "description": "What the estate is.",
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "version": {
+          "description": "Version of this estate file, semantic versioning: a module added, dropped or moved to another version is a new version.",
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(-[0-9A-Za-z.-]+)?$"
+        },
+        "description": {
+          "$ref": "#/$defs/markdown"
+        }
+      },
+      "required": [
+        "title",
+        "version"
+      ],
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "modules": {
+      "description": "The modules of the estate, each keyed by its specification's info.name, kebab case.",
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": {
+        "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/module"
+      }
+    }
+  },
+  "required": [
+    "specarchEstate",
+    "info",
+    "modules"
+  ],
+  "patternProperties": {
+    "^x-": {}
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "markdown": {
+      "description": "Prose in Markdown.",
+      "type": "string"
+    },
+    "module": {
+      "description": "One module of the estate: where its specification is and the version the estate holds.",
+      "type": "object",
+      "properties": {
+        "description": {
+          "$ref": "#/$defs/markdown"
+        },
+        "location": {
+          "description": "The folder that holds the module's specification (its specarch.yaml), relative to this file, with slashes: a module's spec folder in a submodule, such as modules/lending-desk/spec.",
+          "type": "string",
+          "minLength": 1
+        },
+        "version": {
+          "description": "The info.version of the module's specification that the estate holds; the validator compares it.",
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(-[0-9A-Za-z.-]+)?$"
+        }
+      },
+      "required": [
+        "location",
+        "version"
+      ],
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    }
+  }
+}
+"""#
+
+let earlierEstateSchemaJSON = #"""
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-estate-0.1.schema.json",
   "title": "SpecArch estate, 0.1",
   "description": "A SpecArch estate lists the specifications of the modules of one estate, each owned by its own team and held in its own folder, and pins the version of each. On disk it is the file specarch-estate.yaml, usually in an umbrella repository whose submodules hold the modules. It has no stages and holds nothing of a module: it lists and pins. The validator reads every module it lists, checks each against its entry, and resolves the references between them. Every object rejects unknown keys; keys starting with 'x-' are allowed everywhere as extensions.",
@@ -17087,6 +19900,516 @@ let estateSchemaJSON = #"""
 """#
 
 let idiomSchemaJSON = #"""
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-1.0.schema.json",
+  "title": "SpecArch idiom 1.0",
+  "description": "An idiom: a named, versioned statement of how one recurring implementation concern is done, with a contract that holds on every stack, renderings per stack, and the tests it implies. SpecArch ships a set under idioms/; a project overrides one, or adds its own, in implementation/<stack>/idioms/. docs/idioms.md is the design.",
+  "type": "object",
+  "properties": {
+    "specarchIdiom": {
+      "description": "The idiom format version this file is written against, in three parts, major.minor.patch: 1.0.0, or a later 1.0 patch, which is read as 1.0. A file on 0.1, the format before 1.0.0 and the same in shape, is checked against specarch-idiom-0.1.schema.json and read beside 1.0; specarch upgrade moves it to 1.0.0.",
+      "type": "string",
+      "pattern": "^1\\.0\\.(0|[1-9][0-9]*)$"
+    },
+    "name": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$",
+      "description": "The idiom's name, kebab-case: the key an implementation file and an override use. An override carries the name of the idiom it overrides."
+    },
+    "version": {
+      "description": "The idiom's own version, semantic. It moves when a contract statement, a part or a test changes.",
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(-[0-9A-Za-z.-]+)?$"
+    },
+    "concern": {
+      "description": "The concern the idiom settles, from a closed list.",
+      "type": "string",
+      "enum": [
+        "type-rendering",
+        "request-validation",
+        "error-response",
+        "list-operations",
+        "authorization",
+        "pii-logging",
+        "audit-fields",
+        "soft-delete",
+        "identifiers",
+        "transactions",
+        "retries",
+        "idempotency",
+        "configuration",
+        "secrets",
+        "background-jobs",
+        "migrations",
+        "encryption",
+        "health",
+        "rate-limit",
+        "ui-components",
+        "design-tokens",
+        "other"
+      ]
+    },
+    "stacks": {
+      "description": "The stacks the idiom renders: a language such as go, swift or dart, a SQL dialect such as postgresql, sqlserver, oracle or mariadb, a UI framework such as plain-javascript, nextjs-carbon or swiftui, or any for one that is stack-neutral.",
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^(any|[a-z][a-z0-9]*(-[a-z0-9]+)*)$"
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "description": {
+      "$ref": "#/$defs/markdown"
+    },
+    "reads": {
+      "description": "The design sections or keywords the idiom applies to. It applies only to a specification that uses one of them.",
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "why": {
+      "$ref": "#/$defs/markdown"
+    },
+    "sources": {
+      "description": "The standards and documents the idiom cites, in the shape of a specification's sources.",
+      "type": "object",
+      "propertyNames": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/source"
+      }
+    },
+    "cites": {
+      "$ref": "#/$defs/citations"
+    },
+    "contract": {
+      "description": "Statements that hold on every stack, keyed by id.",
+      "type": "object",
+      "propertyNames": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/statement"
+      }
+    },
+    "parts": {
+      "description": "The renderings, keyed by part name.",
+      "type": "object",
+      "propertyNames": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/part"
+      }
+    },
+    "tests": {
+      "description": "The cases the idiom implies for every element it applies to.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/case"
+      }
+    },
+    "overrides": {
+      "$ref": "#/$defs/overrides"
+    }
+  },
+  "required": [
+    "specarchIdiom",
+    "name",
+    "version",
+    "description"
+  ],
+  "patternProperties": {
+    "^x-": {}
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "markdown": {
+      "description": "Prose in Markdown.",
+      "type": "string",
+      "minLength": 1
+    },
+    "source": {
+      "description": "One source an idiom cites.",
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "standard",
+            "regulation",
+            "document",
+            "system",
+            "code"
+          ]
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "edition": {
+          "type": "string",
+          "minLength": 1
+        },
+        "author": {
+          "type": "string",
+          "minLength": 1
+        },
+        "url": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "kind",
+        "title"
+      ],
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "citation": {
+      "description": "One citation: which source, where in it, and what it says here.",
+      "type": "object",
+      "properties": {
+        "source": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$",
+          "description": "The key of a source under the idiom's sources."
+        },
+        "clause": {
+          "type": "string",
+          "minLength": 1
+        },
+        "says": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "source",
+        "says"
+      ],
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "citations": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/citation"
+      },
+      "minItems": 1
+    },
+    "statement": {
+      "description": "One contract statement.",
+      "type": "object",
+      "properties": {
+        "statement": {
+          "type": "string",
+          "minLength": 1
+        },
+        "check": {
+          "description": "What checks it: schema (the validator, against the design and the implementation file), name (a derivation rule for names), document (the generated document or code must contain it), test (a derived test case), or guidance (no check; advice for whoever writes the code).",
+          "type": "string",
+          "enum": [
+            "schema",
+            "name",
+            "document",
+            "test",
+            "guidance"
+          ]
+        },
+        "why": {
+          "$ref": "#/$defs/markdown"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        }
+      },
+      "required": [
+        "statement",
+        "check"
+      ],
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "part": {
+      "description": "One part of the idiom, rendered per stack.",
+      "type": "object",
+      "properties": {
+        "description": {
+          "$ref": "#/$defs/markdown"
+        },
+        "why": {
+          "$ref": "#/$defs/markdown"
+        },
+        "stack": {
+          "description": "The rendering per stack; any for the stack-neutral one.",
+          "type": "object",
+          "propertyNames": {
+            "type": "string",
+            "pattern": "^(any|[a-z][a-z0-9]*(-[a-z0-9]+)*)$"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/rendering"
+          },
+          "minProperties": 1
+        }
+      },
+      "required": [
+        "description",
+        "stack"
+      ],
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "rendering": {
+      "description": "How one stack renders a part.",
+      "type": "object",
+      "properties": {
+        "libraries": {
+          "description": "The libraries the rendering uses, as an implementation file's libraries: version and licence.",
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "version": {
+                "type": "string",
+                "minLength": 1
+              },
+              "licence": {
+                "type": "string",
+                "minLength": 1
+              },
+              "purpose": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "version",
+              "licence"
+            ],
+            "patternProperties": {
+              "^x-": {}
+            },
+            "additionalProperties": false
+          }
+        },
+        "settings": {
+          "description": "Settings of the rendering a project may change in an override.",
+          "type": "object"
+        },
+        "names": {
+          "description": "Derived names, by the role they play.",
+          "type": "object",
+          "additionalProperties": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "rows": {
+          "description": "For a type rendering: ordered rows, the first that matches a field renders it.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/row"
+          },
+          "minItems": 1
+        },
+        "code": {
+          "$ref": "#/$defs/markdown"
+        },
+        "why": {
+          "$ref": "#/$defs/markdown"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "row": {
+      "description": "One row of a type rendering.",
+      "type": "object",
+      "properties": {
+        "type": {
+          "description": "The field's JSON type, with null dropped from a type list. A $ref to an entity is an object.",
+          "type": "string",
+          "enum": [
+            "string",
+            "integer",
+            "number",
+            "boolean",
+            "array",
+            "object"
+          ]
+        },
+        "format": {
+          "description": "The field's format; a row without one matches any format.",
+          "type": "string",
+          "minLength": 1
+        },
+        "enum": {
+          "description": "true: the row matches only an enum field, a $ref into #/enums/ or an enum list.",
+          "const": true
+        },
+        "maxLengthAtMost": {
+          "description": "The row matches only a field whose maxLength is at most this.",
+          "type": "integer",
+          "minimum": 1
+        },
+        "precisionAtMost": {
+          "description": "The row matches only a decimal whose precision is at most this.",
+          "type": "integer",
+          "minimum": 1
+        },
+        "itemsType": {
+          "description": "For an array: the items' JSON type.",
+          "type": "string",
+          "enum": [
+            "string",
+            "integer",
+            "number",
+            "boolean",
+            "array",
+            "object"
+          ]
+        },
+        "itemsFormat": {
+          "description": "For an array: the items' format.",
+          "type": "string",
+          "minLength": 1
+        },
+        "render": {
+          "description": "What the field becomes: a type, with words in braces a generator fills from the field: {maxLength}, {precision}, {scale}, {longestValue} (the length of an enum's longest value), {items} (the rendering of the items' row). For a SQL dialect, the column type only; a constraint goes under check.",
+          "type": "string",
+          "minLength": 1
+        },
+        "check": {
+          "description": "A check constraint the column needs beside its type, with words in braces a generator fills: {column}, the column's name; {values}, an enum's values, quoted and separated by commas.",
+          "type": "string",
+          "minLength": 1
+        },
+        "why": {
+          "$ref": "#/$defs/markdown"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        }
+      },
+      "required": [
+        "type",
+        "render"
+      ],
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "case": {
+      "description": "One test case the idiom implies.",
+      "type": "object",
+      "properties": {
+        "case": {
+          "type": "string",
+          "minLength": 1
+        },
+        "scenario": {
+          "type": "string",
+          "enum": [
+            "golden",
+            "red"
+          ]
+        },
+        "given": {
+          "type": "string",
+          "minLength": 1
+        },
+        "when": {
+          "type": "string",
+          "minLength": 1
+        },
+        "then": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "case",
+        "scenario"
+      ],
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "overrides": {
+      "description": "In a project's file: the shipped idiom it overrides, and what it replaces.",
+      "type": "object",
+      "properties": {
+        "idiom": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$",
+          "description": "The shipped idiom this file overrides."
+        },
+        "version": {
+          "description": "The shipped version this file was copied from.",
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(-[0-9A-Za-z.-]+)?$"
+        },
+        "parts": {
+          "description": "The parts this file replaces; the others come from the shipped idiom.",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "whole": {
+          "description": "true: this file replaces every part.",
+          "const": true
+        },
+        "staysBehind": {
+          "description": "true: the project stays on this version on purpose, which why must say; idiom_version_behind is then silent.",
+          "const": true
+        }
+      },
+      "required": [
+        "idiom",
+        "version"
+      ],
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    }
+  }
+}
+"""#
+
+let earlierIdiomSchemaJSON = #"""
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-0.1.schema.json",

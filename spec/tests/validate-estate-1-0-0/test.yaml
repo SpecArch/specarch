@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: validate
+level: system
+scenario: golden
+given: "the estate of validate-estate on 1.0.0"
+when: validate is run
+then: "it reports exactly what it reports for the estate on 0.1, and exits 0"
+verifies: [SA-66, SA-95]

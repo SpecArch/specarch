@@ -11,7 +11,7 @@ commands:
       another program reads a specification as specarch reads it, without
       a loader of its own, and both builds print the same bytes.
 
-      The document holds `specarchModel`, the version of its shape, `0.1`;
+      The document holds `specarchModel`, the version of its shape, `1.0.0`;
       `program`, the program version; `specifications`, one per root file,
       sorted by it; `implementations`, the implementation files outside
       any specification; and `estates`, each estate file with its modules.

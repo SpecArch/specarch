@@ -120,12 +120,13 @@ a defect in the roadmap, not an accepted state.
 
 | Path | Holds |
 |---|---|
-| `schema/specarch-design-0.3.schema.json` | the meta-model of a specification, JSON Schema 2020-12; it reads files on 0.3, 0.2 and 0.1 |
-| `schema/specarch-implementation-0.1.schema.json` | the meta-model of implementation files |
-| `schema/specarch-record-0.1.schema.json` | the records beside a specification |
-| `schema/specarch-idiom-0.1.schema.json` | the meta-model of an idiom, shipped or a project's |
-| `schema/specarch-estate-0.1.schema.json` | an estate: the modules' specifications it lists and pins (`docs/conventions.md`, Estates) |
-| `schema/specarch-fragment-*-0.3.schema.json` | one schema per kind of file under a stage folder, written from the design schema by `tools/fragment-schemas` (`docs/conventions.md`, The tree) |
+| `schema/specarch-design-1.0.schema.json` | the meta-model of a specification, JSON Schema 2020-12, version 1.0 |
+| `schema/specarch-design-0.3.schema.json` | the meta-model of a specification on 0.3, 0.2 or 0.1, read beside 1.0 |
+| `schema/specarch-implementation-1.0.schema.json` | the meta-model of implementation files; `-0.1` beside it for a file on 0.1 |
+| `schema/specarch-record-1.0.schema.json` | the records beside a specification; `-0.1` beside it |
+| `schema/specarch-idiom-1.0.schema.json` | the meta-model of an idiom, shipped or a project's; `-0.1` beside it |
+| `schema/specarch-estate-1.0.schema.json` | an estate: the modules' specifications it lists and pins (`docs/conventions.md`, Estates); `-0.1` beside it |
+| `schema/specarch-fragment-*-1.0.schema.json` | one schema per kind of file under a stage folder, written from the design schema by `tools/fragment-schemas` (`docs/conventions.md`, The tree); `-0.3` beside them |
 | `idioms/` | the idioms SpecArch ships, one folder per concern, embedded into the program: fifteen, each a stack-neutral contract and its Go rendering, such as `type-rendering` (what each field type becomes in Go and in PostgreSQL, SQL Server, Oracle and MariaDB), `paginated-list`, `request-validation` and `error-response`; `ui-components`, what draws each page and field on Next.js with Carbon; and `design-tokens`, which Carbon token takes each colour of the theme |
 | `spec/` | SpecArch's own specification: every stage, the design of the `specarch` command, its Go and Swift implementation files, and in `spec/tests/` the conformance suite every implementation of `specarch` must pass |
 | `docs/techspec.md` | SpecArch's technical specification, generated from `spec/` |

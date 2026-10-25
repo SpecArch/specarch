@@ -52,7 +52,8 @@ public func run(_ args: [String], stdout: TextSink, stderr: TextSink) -> Int32 {
         }
         stdout.write("specarch \(programVersion)\n")
         stdout.write("specifications: meta-model \(MetaModelFormat.design.reading)\n")
-        stdout.write("implementation files: \(metaModelVersions(implementationSchemaJSON, "specarchImplementation"))\n")
+        stdout.write("implementation files, records, idioms and estates: \(MetaModelFormat.implementation.reading)\n")
+        stdout.write("vocabularies: \(MetaModelFormat.vocabulary.reading)\n")
         return 0
     case "document", "generate", "gaps", "decide", "approve", "extract", "merge", "diff", "derive", "idioms", "check":
         stderr.write("specarch \(command): this build has no \(command) verb; the Go build of specarch has it\n")
@@ -64,35 +65,6 @@ public func run(_ args: [String], stdout: TextSink, stderr: TextSink) -> Int32 {
         stderr.write("specarch has no command \(quote(command))\n\n\(usage)")
         return 2
     }
-}
-
-/// Names the versions an embedded schema's version key allows: the last is
-/// the current one, the earlier ones are read until 1.0. The schemas are the
-/// one source both builds share, so the line follows the meta-model the
-/// validator reads.
-func metaModelVersions(_ schemaJSON: String, _ key: String) -> String {
-    guard let data = schemaJSON.data(using: .utf8),
-          let document = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any],
-          let properties = document["properties"] as? [String: Any],
-          let property = properties[key] as? [String: Any] else {
-        fatalError("the embedded schema has no property \(key)")
-    }
-    var versions = property["enum"] as? [String] ?? []
-    if let only = property["const"] as? String {
-        versions = [only]
-    }
-    guard let current = versions.last else {
-        fatalError("the embedded schema names no version under \(key)")
-    }
-    if versions.count == 1 {
-        return "meta-model \(current)"
-    }
-    let earlier = Array(versions.dropLast().reversed())
-    var list = earlier[earlier.count - 1]
-    if earlier.count > 1 {
-        list = earlier.dropLast().joined(separator: ", ") + " and " + list
-    }
-    return "meta-model \(current), and \(list) until 1.0, with a warning"
 }
 
 /// The validate command and its exitStatus algorithm: 2 for a usage or read

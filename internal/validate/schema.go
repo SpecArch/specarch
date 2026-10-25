@@ -23,61 +23,59 @@ import (
 )
 
 const (
-	designSchemaID         = "https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-design-1.0.schema.json"
-	earlierDesignSchemaID  = "https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-design-0.3.schema.json"
-	implementationSchemaID = "https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-implementation-0.1.schema.json"
-	recordSchemaID         = "https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-record-0.1.schema.json"
-	idiomSchemaID          = "https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-0.1.schema.json"
-	estateSchemaID         = "https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-estate-0.1.schema.json"
+	designSchemaID        = "https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-design-1.0.schema.json"
+	earlierDesignSchemaID = "https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-design-0.3.schema.json"
 )
 
+// kindSchema is the schemas of one kind of file: the current one and the
+// one of its earlier version, each with its $id, and the format whose
+// version line chooses between them.
+type kindSchema struct {
+	format           metamodel.Format
+	id, earlierID    string
+	raw, earlierRaw  []byte
+	current, earlier *jsonschema.Schema
+}
+
+const schemaBase = "https://raw.githubusercontent.com/SpecArch/specarch/main/schema/"
+
 var (
-	compileOnce   sync.Once
-	designSchema  *jsonschema.Schema
-	earlierSchema *jsonschema.Schema
-	implSchema    *jsonschema.Schema
-	recordSchema  *jsonschema.Schema
-	idiomSchema   *jsonschema.Schema
-	estateSchema  *jsonschema.Schema
-	compileErr    error
-	printer       = message.NewPrinter(language.English)
+	compileOnce sync.Once
+	kindSchemas = map[Kind]*kindSchema{
+		KindDesign:         {format: metamodel.Design, id: designSchemaID, earlierID: earlierDesignSchemaID, raw: schema.Definition, earlierRaw: schema.DefinitionEarlier},
+		KindImplementation: {format: metamodel.Implementation, id: schemaBase + "specarch-implementation-1.0.schema.json", earlierID: schemaBase + "specarch-implementation-0.1.schema.json", raw: schema.Implementation, earlierRaw: schema.ImplementationEarlier},
+		KindRecord:         {format: metamodel.Record, id: schemaBase + "specarch-record-1.0.schema.json", earlierID: schemaBase + "specarch-record-0.1.schema.json", raw: schema.Record, earlierRaw: schema.RecordEarlier},
+		KindIdiom:          {format: metamodel.Idiom, id: schemaBase + "specarch-idiom-1.0.schema.json", earlierID: schemaBase + "specarch-idiom-0.1.schema.json", raw: schema.Idiom, earlierRaw: schema.IdiomEarlier},
+		KindEstate:         {format: metamodel.Estate, id: schemaBase + "specarch-estate-1.0.schema.json", earlierID: schemaBase + "specarch-estate-0.1.schema.json", raw: schema.Estate, earlierRaw: schema.EstateEarlier},
+	}
+	compileErr error
+	printer    = message.NewPrinter(language.English)
 )
 
 func compileSchemas() {
 	c := jsonschema.NewCompiler()
 	c.AssertFormat()
-	for id, raw := range map[string][]byte{designSchemaID: schema.Definition, earlierDesignSchemaID: schema.DefinitionEarlier, implementationSchemaID: schema.Implementation, recordSchemaID: schema.Record, idiomSchemaID: schema.Idiom, estateSchemaID: schema.Estate} {
-		doc, err := jsonschema.UnmarshalJSON(bytes.NewReader(raw))
-		if err != nil {
-			compileErr = err
+	for _, k := range kindSchemas {
+		for id, raw := range map[string][]byte{k.id: k.raw, k.earlierID: k.earlierRaw} {
+			doc, err := jsonschema.UnmarshalJSON(bytes.NewReader(raw))
+			if err != nil {
+				compileErr = err
+				return
+			}
+			if err := c.AddResource(id, doc); err != nil {
+				compileErr = err
+				return
+			}
+		}
+	}
+	for _, k := range kindSchemas {
+		if k.current, compileErr = c.Compile(k.id); compileErr != nil {
 			return
 		}
-		if err := c.AddResource(id, doc); err != nil {
-			compileErr = err
+		if k.earlier, compileErr = c.Compile(k.earlierID); compileErr != nil {
 			return
 		}
 	}
-	designSchema, compileErr = c.Compile(designSchemaID)
-	if compileErr != nil {
-		return
-	}
-	earlierSchema, compileErr = c.Compile(earlierDesignSchemaID)
-	if compileErr != nil {
-		return
-	}
-	implSchema, compileErr = c.Compile(implementationSchemaID)
-	if compileErr != nil {
-		return
-	}
-	recordSchema, compileErr = c.Compile(recordSchemaID)
-	if compileErr != nil {
-		return
-	}
-	idiomSchema, compileErr = c.Compile(idiomSchemaID)
-	if compileErr != nil {
-		return
-	}
-	estateSchema, compileErr = c.Compile(estateSchemaID)
 }
 
 // Plain descriptions of the naming patterns in the schemas, so a message can
@@ -128,19 +126,7 @@ func (c *checker) checkSchema(k Kind, value any) {
 		c.addLine(1, "/", RuleSchema, "the built-in schema does not compile (%v); this is a bug in specarch", compileErr)
 		return
 	}
-	sch := designSchema
-	switch k {
-	case KindDesign:
-		sch, value = c.designSchemaFor(value)
-	case KindImplementation:
-		sch = implSchema
-	case KindRecord:
-		sch = recordSchema
-	case KindIdiom:
-		sch = idiomSchema
-	case KindEstate:
-		sch = estateSchema
-	}
+	sch, value := c.schemaFor(k, value)
 	err := sch.Validate(value)
 	if err == nil {
 		return
@@ -154,23 +140,33 @@ func (c *checker) checkSchema(k Kind, value any) {
 	c.schemaLeaves(k, ve, nil, seen)
 }
 
-// designSchemaFor is the schema that checks a specification, by its
-// version line: the earlier schema for 0.1, 0.2 and 0.3, the current one
-// otherwise. A version line this program does not read is reported by
-// checkMetaModelVersion, and the file is checked as 1.0.0 so that the
-// schema does not report the line a second time.
-func (c *checker) designSchemaFor(value any) (*jsonschema.Schema, any) {
-	line := source.Child(c.root, "specarch")
+// schemaFor is the schema that checks a file of a kind, by its version
+// line: the earlier schema for an earlier version, the current one
+// otherwise. A version line this program does not read is an error at the
+// line, reported for a specification by checkMetaModelVersion and for
+// another kind here, and the file is checked as the current version so
+// that the schema does not report the line a second time.
+func (c *checker) schemaFor(k Kind, value any) (*jsonschema.Schema, any) {
+	ks := kindSchemas[k]
+	if ks == nil {
+		ks = kindSchemas[KindDesign]
+	}
+	line := source.Child(c.root, ks.format.Key)
 	v := source.Str(line)
-	if metamodel.Design.IsEarlier(v) {
-		return earlierSchema, value
+	if ks.format.IsEarlier(v) {
+		return ks.earlier, value
 	}
-	if m, ok := value.(map[string]any); ok && line != nil && line.Tag == "!!str" && metamodel.Design.Problem(v) != "" {
-		cp := maps.Clone(m)
-		cp["specarch"] = metamodel.Current
-		return designSchema, cp
+	if m, ok := value.(map[string]any); ok && line != nil && line.Tag == "!!str" {
+		if problem := ks.format.Problem(v); problem != "" {
+			if k != KindDesign {
+				c.add(line, source.Pointer(ks.format.Key), RuleMetaModelVersion, "the %s format version %s", ks.format.Name, problem)
+			}
+			cp := maps.Clone(m)
+			cp[ks.format.Key] = metamodel.Current
+			return ks.current, cp
+		}
 	}
-	return designSchema, value
+	return ks.current, value
 }
 
 // schemaLeaves reports the innermost causes, one per value and kind of

@@ -1,13 +1,27 @@
 import Foundation
 
-private let evaluators: (design: SchemaEvaluator?, earlierDesign: SchemaEvaluator?, implementation: SchemaEvaluator?, record: SchemaEvaluator?, idiom: SchemaEvaluator?, estate: SchemaEvaluator?, error: String?) = {
+/// The schemas of one kind of file: the current one and the one of its
+/// earlier version, and the format whose version line chooses between them.
+private struct KindSchemas: Sendable {
+    let format: MetaModelFormat
+    let current: SchemaEvaluator
+    let earlier: SchemaEvaluator
+}
+
+private let evaluators: (byKind: [Kind: KindSchemas], error: String?) = {
     do {
-        return (try SchemaEvaluator(json: designSchemaJSON), try SchemaEvaluator(json: earlierDesignSchemaJSON),
-                try SchemaEvaluator(json: implementationSchemaJSON),
-                try SchemaEvaluator(json: recordSchemaJSON), try SchemaEvaluator(json: idiomSchemaJSON),
-                try SchemaEvaluator(json: estateSchemaJSON), nil)
+        func pair(_ format: MetaModelFormat, _ current: String, _ earlier: String) throws -> KindSchemas {
+            KindSchemas(format: format, current: try SchemaEvaluator(json: current), earlier: try SchemaEvaluator(json: earlier))
+        }
+        return ([
+            .design: try pair(.design, designSchemaJSON, earlierDesignSchemaJSON),
+            .implementation: try pair(.implementation, implementationSchemaJSON, earlierImplementationSchemaJSON),
+            .record: try pair(.record, recordSchemaJSON, earlierRecordSchemaJSON),
+            .idiom: try pair(.idiom, idiomSchemaJSON, earlierIdiomSchemaJSON),
+            .estate: try pair(.estate, estateSchemaJSON, earlierEstateSchemaJSON),
+        ], nil)
     } catch {
-        return (nil, nil, nil, nil, nil, nil, "\(error)")
+        return ([:], "\(error)")
     }
 }()
 
@@ -57,39 +71,36 @@ extension Checker {
             addLine(1, "/", .schema, "the built-in schema does not compile (\(err)); this is a bug in specarch")
             return
         }
-        let evaluator: SchemaEvaluator
-        var value = value
-        switch kind {
-        case .implementation: evaluator = evaluators.implementation!
-        case .record: evaluator = evaluators.record!
-        case .idiom: evaluator = evaluators.idiom!
-        case .estate: evaluator = evaluators.estate!
-        default: (evaluator, value) = designSchemaFor(value)
-        }
+        let (evaluator, value) = schemaFor(kind, value)
         var seen = Set<String>()
         for f in evaluator.validate(value) {
             schemaLeaf(kind, f, &seen)
         }
     }
 
-    /// The schema that checks a specification, by its version line: the
-    /// earlier schema for 0.1, 0.2 and 0.3, the current one otherwise. A
-    /// version line this program does not read is reported by
-    /// checkMetaModelVersion, and the file is checked as 1.0.0 so that the
-    /// schema does not report the line a second time.
-    private func designSchemaFor(_ value: JSONValue) -> (SchemaEvaluator, JSONValue) {
-        let line = root.child("specarch")
+    /// The schema that checks a file of a kind, by its version line: the
+    /// earlier schema for an earlier version, the current one otherwise. A
+    /// version line this program does not read is an error at the line,
+    /// reported for a specification by checkMetaModelVersion and for
+    /// another kind here, and the file is checked as the current version
+    /// so that the schema does not report the line a second time.
+    private func schemaFor(_ kind: Kind, _ value: JSONValue) -> (SchemaEvaluator, JSONValue) {
+        let ks = evaluators.byKind[kind == .implementation || kind == .record || kind == .idiom || kind == .estate ? kind : .design]!
+        let line = root.child(ks.format.key)
         let v = str(line)
-        if MetaModelFormat.design.isEarlier(v) {
-            return (evaluators.earlierDesign!, value)
+        if ks.format.isEarlier(v) {
+            return (ks.earlier, value)
         }
-        if case .object(var pairs) = value, let line, line.tag == "!!str", MetaModelFormat.design.problem(v) != nil {
-            if let i = pairs.firstIndex(where: { $0.0 == "specarch" }) {
+        if case .object(var pairs) = value, let line, line.tag == "!!str", let problem = ks.format.problem(v) {
+            if kind != .design {
+                add(line, pointer(ks.format.key), .metaModelVersion, "the \(ks.format.name) format version \(problem)")
+            }
+            if let i = pairs.firstIndex(where: { $0.0 == ks.format.key }) {
                 pairs[i].1 = .string(currentMetaModel)
             }
-            return (evaluators.design!, .object(pairs))
+            return (ks.current, .object(pairs))
         }
-        return (evaluators.design!, value)
+        return (ks.current, value)
     }
 
     /// Reports one failure in plain words, once per value and kind of

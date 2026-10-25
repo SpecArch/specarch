@@ -40,7 +40,13 @@ decisions:
       source, constraint, parameter, page, workflowStep and decision also
       requires the key its if reads. No reason of a decision is made
       required. The 0.3 schema is kept as it was, apart from the
-      description of its version line.
+      description of its version line. The other formats go to 1.0.0
+      with it, each under its own key: an implementation file, a record,
+      an idiom and an estate are checked against their -1.0 schema, or
+      the -0.1 one for a file on 0.1, the same in shape; a vocabulary on
+      0.1 is read with no warning; the document specarch model prints
+      says specarchModel 1.0.0; and a version line of theirs the program
+      does not read is an error at the line, the file read as 1.0.0.
     why: |
       A file's version line is its promise of which rules it is written
       against (ADR-055), so the program keeps every promise it made and

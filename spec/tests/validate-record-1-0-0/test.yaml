@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.3.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "the release record of validate-release-version on 1.0.0"
+when: validate is run
+then: "it reports exactly what it reports for the record on 0.1, and exits 1"
+verifies: [SA-95]

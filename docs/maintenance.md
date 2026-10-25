@@ -55,8 +55,8 @@ folder is specification.
 | `records/commissioning/` | commissioning run | `commissioning` | its date and environment, `2026-10-07-production.yaml` |
 | `records/approvals/` | approval for code generation | `approval` | its version, `1.4.0.yaml` |
 
-A record file starts with `specarchRecord: "0.1"` and `kind`, and has its
-own schema, `schema/specarch-record-0.1.schema.json`, beside the other two.
+A record file starts with `specarchRecord: "1.0.0"` and `kind`, and has its
+own schema, `schema/specarch-record-1.0.schema.json`, beside the other two.
 The file name repeats the ID or version, so a reader finds a record by
 walking the folders, and the validator checks the two agree. An approval
 is written by `specarch approve` (`docs/conventions.md`, Approval records)

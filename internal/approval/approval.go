@@ -17,6 +17,7 @@ import (
 
 	"go.yaml.in/yaml/v3"
 
+	"github.com/SpecArch/specarch/internal/metamodel"
 	"github.com/SpecArch/specarch/internal/source"
 )
 
@@ -140,7 +141,7 @@ func Read(specDir, version string) (*Record, error) {
 // Write writes the approval of r.Version, replacing an earlier one.
 func Write(specDir string, r Record) error {
 	var b strings.Builder
-	b.WriteString("specarchRecord: \"0.1\"\n")
+	b.WriteString("specarchRecord: \"" + metamodel.Current + "\"\n")
 	b.WriteString("kind: approval\n")
 	fmt.Fprintf(&b, "version: %s\n", r.Version)
 	fmt.Fprintf(&b, "approvedBy: %s\n", r.ApprovedBy)

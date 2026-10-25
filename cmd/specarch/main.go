@@ -15,17 +15,14 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/SpecArch/specarch/internal/metamodel"
 	"github.com/SpecArch/specarch/internal/spec"
 	"github.com/SpecArch/specarch/internal/validate"
-	"github.com/SpecArch/specarch/schema"
 )
 
 // version is the program version, set at release time.
@@ -130,45 +127,9 @@ func run(args []string, stdout, stderr io.Writer) int {
 func runVersion(stdout io.Writer) int {
 	fmt.Fprintf(stdout, "specarch %s\n", version)
 	fmt.Fprintf(stdout, "specifications: meta-model %s\n", metamodel.Design.Reading())
-	fmt.Fprintf(stdout, "implementation files: %s\n", metaModelVersions(schema.Implementation, "specarchImplementation"))
+	fmt.Fprintf(stdout, "implementation files, records, idioms and estates: %s\n", metamodel.Implementation.Reading())
+	fmt.Fprintf(stdout, "vocabularies: %s\n", metamodel.Vocabulary.Reading())
 	return 0
-}
-
-// metaModelVersions names the versions an embedded schema's version key
-// allows: the last is the current one, the earlier ones are read until 1.0.
-// The schemas are the one source both builds share, so the line follows the
-// meta-model the validator reads.
-func metaModelVersions(schemaJSON []byte, key string) string {
-	var document struct {
-		Properties map[string]struct {
-			Const string   `json:"const"`
-			Enum  []string `json:"enum"`
-		} `json:"properties"`
-	}
-	if err := json.Unmarshal(schemaJSON, &document); err != nil {
-		panic(fmt.Sprintf("the embedded schema is not JSON: %v", err))
-	}
-	property := document.Properties[key]
-	versions := property.Enum
-	if property.Const != "" {
-		versions = []string{property.Const}
-	}
-	if len(versions) == 0 {
-		panic(fmt.Sprintf("the embedded schema names no version under %s", key))
-	}
-	current := versions[len(versions)-1]
-	if len(versions) == 1 {
-		return "meta-model " + current
-	}
-	earlier := make([]string, 0, len(versions)-1)
-	for i := len(versions) - 2; i >= 0; i-- {
-		earlier = append(earlier, versions[i])
-	}
-	list := earlier[len(earlier)-1]
-	if len(earlier) > 1 {
-		list = strings.Join(earlier[:len(earlier)-1], ", ") + " and " + list
-	}
-	return fmt.Sprintf("meta-model %s, and %s until 1.0, with a warning", current, list)
 }
 
 // runValidate implements the exitStatus algorithm of the design: 2 for a

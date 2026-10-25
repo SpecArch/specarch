@@ -10,15 +10,27 @@ import Foundation
 let currentMetaModel = "1.0.0"
 
 /// One kind of SpecArch file and the versions of it a program reads.
-struct MetaModelFormat {
+struct MetaModelFormat: Sendable {
     /// The key of the version line, such as specarch.
     let key: String
+    /// Names the format in a message.
+    let name: String
     /// The versions before 1.0.0 read beside it, each with a warning,
     /// oldest first.
     let earlier: [String]
+    /// A format whose earlier versions are read with no warning: a
+    /// vocabulary, which only the Go build reads.
+    var silent = false
 
-    /// The format of a specification: its root file's specarch line.
-    static let design = MetaModelFormat(key: "specarch", earlier: ["0.1", "0.2", "0.3"])
+    /// The formats, each by the key of its version line. The
+    /// specification's is the meta-model; the others are as old as 0.1,
+    /// the same in shape as 1.0.0.
+    static let design = MetaModelFormat(key: "specarch", name: "meta-model", earlier: ["0.1", "0.2", "0.3"])
+    static let implementation = MetaModelFormat(key: "specarchImplementation", name: "implementation file", earlier: ["0.1"])
+    static let record = MetaModelFormat(key: "specarchRecord", name: "record", earlier: ["0.1"])
+    static let idiom = MetaModelFormat(key: "specarchIdiom", name: "idiom", earlier: ["0.1"])
+    static let estate = MetaModelFormat(key: "specarchEstate", name: "estate", earlier: ["0.1"])
+    static let vocabulary = MetaModelFormat(key: "specarchVocabulary", name: "vocabulary", earlier: ["0.1"], silent: true)
 
     /// What a version line says to this program.
     enum Class { case known, earlier, later, short, unknown }
@@ -49,7 +61,7 @@ struct MetaModelFormat {
     var reading: String {
         let s = currentMetaModel + " and any later 1.0 patch"
         if earlier.isEmpty { return s }
-        return s + ", and " + joinAnd(Array(earlier.reversed())) + " with a warning"
+        return s + ", and " + joinAnd(Array(earlier.reversed())) + (silent ? "" : " with a warning")
     }
 
     /// The message for a version line this program does not read, or nil

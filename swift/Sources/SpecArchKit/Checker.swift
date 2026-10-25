@@ -1,7 +1,7 @@
 import Foundation
 
 /// The kind of a SpecArch file, read from its name.
-public enum Kind {
+public enum Kind: Sendable {
     case none, design, implementation, record, idiom, estate
 }
 

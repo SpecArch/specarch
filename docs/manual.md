@@ -3226,7 +3226,7 @@ ECMAScript prints a double, then a newline. It is how an editor or
 another program reads a specification as specarch reads it, without
 a loader of its own, and both builds print the same bytes.
 
-The document holds `specarchModel`, the version of its shape, `0.1`;
+The document holds `specarchModel`, the version of its shape, `1.0.0`;
 `program`, the program version; `specifications`, one per root file,
 sorted by it; `implementations`, the implementation files outside
 any specification; and `estates`, each estate file with its modules.
@@ -3393,7 +3393,7 @@ Anyone who has the program runs it.
 
 It writes no file.
 
-On standard output: The program version, then one line for specifications and one for implementation files. Each line names the version a file of its kind is written in and, when there are any, the earlier versions still read beside it, each with a warning that the file is on an earlier version: `specifications: meta-model 1.0.0 and any later 1.0 patch, and 0.3, 0.2 and 0.1 with a warning`. The versions are the ones the validator reads by, so the line cannot name a version the validator does not read.
+On standard output: The program version, then one line for specifications, one for implementation files, records, idioms and estates, and one for vocabularies. Each line names the version a file of its kind is written in and the earlier versions still read beside it, each with a warning that the file is on an earlier version where the kind has one: `specifications: meta-model 1.0.0 and any later 1.0 patch, and 0.3, 0.2 and 0.1 with a warning`. The versions are the ones the validator reads by, so the line cannot name a version the validator does not read.
 
 | Exit status | It means | What to do |
 |---|---|---|

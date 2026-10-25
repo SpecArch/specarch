@@ -17,18 +17,34 @@ out=Sources/SpecArchKit/Schemas.swift
   echo '"""#'
   echo
   echo 'let implementationSchemaJSON = #"""'
+  cat ../schema/specarch-implementation-1.0.schema.json
+  echo '"""#'
+  echo
+  echo 'let earlierImplementationSchemaJSON = #"""'
   cat ../schema/specarch-implementation-0.1.schema.json
   echo '"""#'
   echo
   echo 'let recordSchemaJSON = #"""'
+  cat ../schema/specarch-record-1.0.schema.json
+  echo '"""#'
+  echo
+  echo 'let earlierRecordSchemaJSON = #"""'
   cat ../schema/specarch-record-0.1.schema.json
   echo '"""#'
   echo
   echo 'let estateSchemaJSON = #"""'
+  cat ../schema/specarch-estate-1.0.schema.json
+  echo '"""#'
+  echo
+  echo 'let earlierEstateSchemaJSON = #"""'
   cat ../schema/specarch-estate-0.1.schema.json
   echo '"""#'
   echo
   echo 'let idiomSchemaJSON = #"""'
+  cat ../schema/specarch-idiom-1.0.schema.json
+  echo '"""#'
+  echo
+  echo 'let earlierIdiomSchemaJSON = #"""'
   cat ../schema/specarch-idiom-0.1.schema.json
   echo '"""#'
   echo

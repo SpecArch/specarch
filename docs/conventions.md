@@ -65,7 +65,7 @@ The first line of the root file is the editor hint:
 
 For an implementation file:
 
-    # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v0.7.5/schema/specarch-implementation-0.1.schema.json
+    # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v0.7.5/schema/specarch-implementation-1.0.schema.json
 
 A hint names the newest release tag that serves its schema. A release
 whose schemas changed moves every hint, and the schema line `extract`
@@ -151,6 +151,17 @@ renamed key under its new name, whichever version the file declares, and a
 problem a plug-in reports at the new key is placed at the key the file
 gives.
 
+The other formats say their own version under a key of their own, each
+in three parts and read the same way: an implementation file
+`specarchImplementation: "1.0.0"`, a record `specarchRecord`, an idiom
+`specarchIdiom`, an estate `specarchEstate` and a vocabulary
+`specarchVocabulary`, and the document `specarch model` prints carries
+`specarchModel`. Each was 0.1 before 1.0.0, the same in shape; a file on
+0.1 is checked against the `-0.1` schema of its kind and read beside 1.0,
+and a version line of its the program does not read is an error at the
+line, the file read as 1.0.0. A vocabulary on 0.1 is read with no
+warning, since a vocabulary is taken whole or refused.
+
 Pin the schema version a project is written against. A project moves to a
 new meta-model version on purpose, in its own change, with `specarch
 upgrade`.
@@ -189,9 +200,9 @@ is installed and what the hosts must provide (`deployments`), and
 implementation decisions (`decisions`). The idioms SpecArch ships, under `idioms/`, apply
 to every implementation file by default; an override or a project's own
 idiom is a file in the `idioms/` folder beside the implementation file,
-checked against `schema/specarch-idiom-0.1.schema.json`. `docs/idioms.md`
+checked against `schema/specarch-idiom-1.0.schema.json`. `docs/idioms.md`
 is the design, and `specarch idioms` lists what each file uses. Its schema,
-`schema/specarch-implementation-0.1.schema.json`, has no keyword for an
+`schema/specarch-implementation-1.0.schema.json`, has no keyword for an
 entity, an operation or any other design object, so an implementation file
 cannot add or change design. One specification can have several
 implementation files, one per stack; the `<stack>` part of the name tells
@@ -1354,13 +1365,13 @@ with the specification and version it points at.
 An estate's modules are checked against each other where the estate is,
 usually an umbrella repository that holds each module as a submodule. The
 estate is the file `specarch-estate.yaml`, of a kind of its own
-(`schema/specarch-estate-0.1.schema.json`): it lists each module's
+(`schema/specarch-estate-1.0.schema.json`): it lists each module's
 specification by its `info.name`, with the folder that holds its
 `specarch.yaml`, relative to the estate file, and the version the estate
 holds, and it copies nothing of a module (ADR-113):
 
     # specarch-estate.yaml
-    specarchEstate: "0.1"
+    specarchEstate: "1.0.0"
     info: { title: Lending estate, version: 1.0.0 }
     modules:
       loans: { location: modules/loans/spec, version: 1.0.0 }
@@ -2569,7 +2580,7 @@ validator checks them against.
 documents of a specification and approves it for code generation, as
 `records/approvals/<version>.yaml` beside the specification's folder:
 
-    specarchRecord: "0.1"
+    specarchRecord: "1.0.0"
     kind: approval
     version: 1.4.0
     approvedBy: product-owner

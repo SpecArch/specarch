@@ -5,6 +5,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -153,7 +154,9 @@ func (c *checker) projectIdioms() map[string]Idiom {
 			ic.checkSchema(KindIdiom, doc.Value)
 		}
 		c.diags = append(c.diags, withoutEchoes(withoutHeld(ic.diags, heldIn(p, doc)))...)
-		if doc.Root == nil || Errors(ic.diags) > 0 {
+		// A version line this program does not read is read as 1.0.0,
+		// so it alone does not keep the idiom out.
+		if doc.Root == nil || slices.ContainsFunc(ic.diags, func(d Diagnostic) bool { return d.Severity == Error && d.Rule != RuleMetaModelVersion }) {
 			continue
 		}
 		i := Idiom{Path: p, Root: doc.Root}

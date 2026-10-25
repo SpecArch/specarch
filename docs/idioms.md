@@ -50,10 +50,12 @@ document says so, so a reader knows it is advice and not a gate.
 ## The file
 
 An idiom is one YAML file, `<name>.specarch-idiom.yaml`, root key
-`specarchIdiom: "0.1"`, with its own JSON Schema,
-`schema/specarch-idiom-0.1.schema.json`, closed like the other two.
+`specarchIdiom: "1.0.0"`, with its own JSON Schema,
+`schema/specarch-idiom-1.0.schema.json`, closed like the other two; an
+idiom on 0.1 is checked against `specarch-idiom-0.1.schema.json`, the same
+in shape.
 
-    specarchIdiom: "0.1"
+    specarchIdiom: "1.0.0"
     name: paginated-list
     version: 1.0.0
     concern: list-operations
@@ -357,7 +359,7 @@ not yet built are each idiom's contract in the techspec's chapter 8, and the
 cases under an idiom's `tests` joining the derived cases
 (`test_case_missing`).
 
-1. The idiom schema, `schema/specarch-idiom-0.1.schema.json`, and the file
+1. The idiom schema, `schema/specarch-idiom-1.0.schema.json`, and the file
    format above; the shipped folder `idioms/` embedded into the binary; the
    `idioms` section and the `idioms/` folder of an implementation file in
    the implementation schema and the layout rule.

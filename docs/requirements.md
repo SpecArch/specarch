@@ -142,7 +142,7 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | SA-10 | functional | must | accepted | An implementation file's implements and pointers shall resolve in the specification it names, at the same version. |
 | SA-51 | interface | must | accepted | specarch shall list every problem of a specification, valid or not, in one problems file and its SARIF 2.1.0 form, each error, warning and open question with a stable id, file, line and column, JSON pointer, rule, a message saying how to fix it, and notes at the sources it came from and the entries it blocks, and every file specarch writes shall mark the entry a problem touches. |
 | SA-74 | interface | must | accepted | specarch model shall print, in both builds, one JSON document in RFC 8785's canonical form that holds, for every specification of the folders given, the merged document, every node's file, line and column, every resolved reference with the keyword that made it, the layout problems, and each implementation file and estate, so that a program reads a specification as specarch does without a loader of its own. |
-| SA-95 | functional | must | accepted | specarch shall read every file by the version its version line declares, meta-model 1.0.0 and any later 1.0 patch, and 0.3, 0.2 and 0.1 beside it, each earlier version with a warning naming specarch upgrade; a version line it does not read shall be an error at the line, the file read as 1.0.0 so that every other problem is still listed; and a key meta-model 1.0.0 renamed shall be read under its old spelling as its replacement, with a warning, until 2.0.0. |
+| SA-95 | functional | must | accepted | specarch shall read every file by the version its version line declares, 1.0.0 and any later 1.0 patch, and every earlier version beside it (0.3, 0.2 and 0.1 of the meta-model, 0.1 of the other formats), each earlier version with a warning naming specarch upgrade; a version line it does not read shall be an error at the line, the file read as 1.0.0 so that every other problem is still listed; and a key meta-model 1.0.0 renamed shall be read under its old spelling as its replacement, with a warning, until 2.0.0. |
 
 ### SA-31
 
@@ -1605,7 +1605,7 @@ Acceptance criteria:
 
 ### SA-95
 
-specarch shall read every file by the version its version line declares, meta-model 1.0.0 and any later 1.0 patch, and 0.3, 0.2 and 0.1 beside it, each earlier version with a warning naming specarch upgrade; a version line it does not read shall be an error at the line, the file read as 1.0.0 so that every other problem is still listed; and a key meta-model 1.0.0 renamed shall be read under its old spelling as its replacement, with a warning, until 2.0.0.
+specarch shall read every file by the version its version line declares, 1.0.0 and any later 1.0 patch, and every earlier version beside it (0.3, 0.2 and 0.1 of the meta-model, 0.1 of the other formats), each earlier version with a warning naming specarch upgrade; a version line it does not read shall be an error at the line, the file read as 1.0.0 so that every other problem is still listed; and a key meta-model 1.0.0 renamed shall be read under its old spelling as its replacement, with a warning, until 2.0.0.
 
 Kind: functional; priority: must; status: accepted; verified by test; refines NEED-1, NEED-7.
 
@@ -1615,6 +1615,7 @@ Acceptance criteria:
 - A specification that says "1.2.0", "1.0" or what is no version is reported with meta_model_version at the line, naming the versions read, the three-part spelling for a short one, and that a later specarch reads a later one, with every other problem of the file still listed.
 - A file on 1.0 that gives a role's rows or the handover's source is warned with meta_model_deprecated at the key, naming rowPolicies or sourceDelivery and specarch upgrade, and is read as the new key; one that gives both spellings in one object is an error at the old key.
 - A file on 0.3 or earlier is checked against the 0.3 schema and keeps its rules and its output, the rows rule named row_policies.
+- An implementation file, a record, an idiom and an estate say their own format's version, 1.0.0 or a later 1.0 patch, or 0.1 beside it, each checked against its version's schema; a version line of theirs the program does not read is an error at the line, and the file is still read as 1.0.0; specarch version names every format's versions.
 
 **Insight:** A file's version line is its promise of which rules it is written against (ADR-055); reading every version side by side keeps every specification that exists valid while the format moves on, and an author learns from one warning what moves the file and with which command (ADR-186).
 

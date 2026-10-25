@@ -27,7 +27,7 @@ longer one is not found.
 
 | Key | Holds | Read for |
 |---|---|---|
-| `specarchVocabulary` | `"0.1"` | the format's version |
+| `specarchVocabulary` | `"1.0.0"` | the format's version; a vocabulary on `"0.1"`, the same in shape, is read too |
 | `language` | a BCP 47 tag, such as `de` or `pt-BR` | the source's `language` |
 | `description` | one sentence | the reader of the file |
 | `commitments` | `must` and `should`, each a list | a sentence with one of them is a commitment of that priority |

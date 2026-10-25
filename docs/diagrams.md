@@ -569,7 +569,7 @@ kept by nothing.
 in both builds (requirement SA-74, which the case `model-writes-json`
 verifies when the item is built), with:
 
-- `specarchModel`, the version of this document's shape, `0.1`, and
+- `specarchModel`, the version of this document's shape, `1.0.0`, and
   `program`, the program version;
 - `specifications`, one per root file found: its `root` file, `name`
   and `version`, `metaModel`, the merged `document` as plain values (what

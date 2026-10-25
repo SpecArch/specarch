@@ -109,13 +109,19 @@ private func ownSpecification() throws -> YNode {
     let design = try String(contentsOf: repository.appendingPathComponent("schema/specarch-design-1.0.schema.json"), encoding: .utf8)
     let earlierDesign = try String(contentsOf: repository.appendingPathComponent("schema/specarch-design-0.3.schema.json"), encoding: .utf8)
     #expect(earlierDesignSchemaJSON + "\n" == earlierDesign, "run swift/embed-schemas.sh")
-    let implementation = try String(contentsOf: repository.appendingPathComponent("schema/specarch-implementation-0.1.schema.json"), encoding: .utf8)
+    let implementation = try String(contentsOf: repository.appendingPathComponent("schema/specarch-implementation-1.0.schema.json"), encoding: .utf8)
     #expect(designSchemaJSON + "\n" == design, "run swift/embed-schemas.sh")
     #expect(implementationSchemaJSON + "\n" == implementation, "run swift/embed-schemas.sh")
-    let record = try String(contentsOf: repository.appendingPathComponent("schema/specarch-record-0.1.schema.json"), encoding: .utf8)
+    let record = try String(contentsOf: repository.appendingPathComponent("schema/specarch-record-1.0.schema.json"), encoding: .utf8)
     #expect(recordSchemaJSON + "\n" == record, "run swift/embed-schemas.sh")
-    let idiom = try String(contentsOf: repository.appendingPathComponent("schema/specarch-idiom-0.1.schema.json"), encoding: .utf8)
+    let idiom = try String(contentsOf: repository.appendingPathComponent("schema/specarch-idiom-1.0.schema.json"), encoding: .utf8)
     #expect(idiomSchemaJSON + "\n" == idiom, "run swift/embed-schemas.sh")
+    let estate = try String(contentsOf: repository.appendingPathComponent("schema/specarch-estate-1.0.schema.json"), encoding: .utf8)
+    #expect(estateSchemaJSON + "\n" == estate, "run swift/embed-schemas.sh")
+    for (file, embedded) in [("implementation", earlierImplementationSchemaJSON), ("record", earlierRecordSchemaJSON), ("idiom", earlierIdiomSchemaJSON), ("estate", earlierEstateSchemaJSON)] {
+        let text = try String(contentsOf: repository.appendingPathComponent("schema/specarch-\(file)-0.1.schema.json"), encoding: .utf8)
+        #expect(embedded + "\n" == text, "run swift/embed-schemas.sh")
+    }
 }
 
 /// The embedded idioms are the files in idioms/, every one of them.
@@ -138,6 +144,9 @@ private func ownSpecification() throws -> YNode {
 @Test func schemasLoad() throws {
     _ = try SchemaEvaluator(json: designSchemaJSON)
     _ = try SchemaEvaluator(json: earlierDesignSchemaJSON)
+    for json in [earlierImplementationSchemaJSON, earlierRecordSchemaJSON, earlierIdiomSchemaJSON, earlierEstateSchemaJSON] {
+        _ = try SchemaEvaluator(json: json)
+    }
     _ = try SchemaEvaluator(json: implementationSchemaJSON)
     _ = try SchemaEvaluator(json: recordSchemaJSON)
     _ = try SchemaEvaluator(json: idiomSchemaJSON)

@@ -138,7 +138,7 @@ check. Write it once (package, function and the position of the
 permission argument, from your code):
 
     cat > checks.specarch-implementation.yaml <<'EOF'
-    specarchImplementation: "0.1"
+    specarchImplementation: "1.0.0"
     info: { title: Permission checks, version: 0.1.0 }
     bindings:
       http:

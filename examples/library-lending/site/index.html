@@ -6424,26 +6424,26 @@ label {
 </dl>
 </article>
 <article class="element" data-search id="/decisions/ADR-004">
-<h4>ADR-004: A waiver is a request of its own that names the amount, and the loan keeps its fee <a class="ptr" href="#/decisions/ADR-004">/decisions/ADR-004</a></h4>
-<p class="insight"><strong>Insight:</strong> Keeping the computed fee and recording the waiver beside it is the one way the two numbers stay auditable; overwriting the fee would make the waiver a change nobody can read back.</p>
+<h4>ADR-004: A waiver is a request of its own that names the amount and the reason, and the fee stands until the request is approved <a class="ptr" href="#/decisions/ADR-004">/decisions/ADR-004</a></h4>
+<p class="insight"><strong>Insight:</strong> A request of its own, approved by a second person, is the one way the amount, the reason and the approval are all readable afterwards; a fee set to zero by the person who asked would make the waiver a change nobody can read back.</p>
 <dl>
 <dt>title</dt>
-<dd>A waiver is a request of its own that names the amount, and the loan keeps its fee</dd>
+<dd>A waiver is a request of its own that names the amount and the reason, and the fee stands until the request is approved</dd>
 <dt>status</dt>
 <dd>accepted</dd>
 <dt>date</dt>
 <dd>2026-10-25</dd>
 <dt>context</dt>
 <dd>
-<p>Once the fee is fixed at return (ADR-003) a waiver has a definite amount to name. Setting the loan&#39;s fee to zero would lose what was charged and who let it go, which the supervisor&#39;s approval (LIB-8) is there to make visible.</p>
+<p>Once the fee is fixed at return (ADR-003) a waiver has a definite amount to name. Letting the librarian who asks set the loan&#39;s fee to zero would leave no record of what was charged, who asked and who let it go, which the supervisor&#39;s approval (LIB-8) is there to make visible.</p>
 </dd>
 <dt>decision</dt>
 <dd>
-<p>A waiver is a FeeWaiverRequest that names the loan, the amount to waive and the reason, approved through the fee-waiver workflow; the loan&#39;s lateFee stays as computed, and what the member owes is the fee less the waivers approved.</p>
+<p>A waiver is a FeeWaiverRequest that names the loan, the amount to waive and the reason, started by requestFeeWaiver and taken through the fee-waiver workflow; the fee stands on the loan until a desk supervisor approves the request, and waiveFee then waives it.</p>
 </dd>
 <dt>consequences</dt>
 <dd>
-<p>The fee charged and the fee waived are both readable afterwards. A list of what a member owes subtracts the approved waivers; a waiver above the amount is refused at the form.</p>
+<p>The request stays as the record of what was waived, why, and who approved it. A member whose request waits is still charged; a request not approved within its deadline is refused and the fee stands.</p>
 </dd>
 <dt>restsOn</dt>
 <dd>

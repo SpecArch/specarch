@@ -1859,27 +1859,29 @@ be today, computed on the spot and not stored.
 
 **Insight:** One computation at one moment is one thing to test and one number to explain at the desk; a nightly job would be a second place the fee is computed and a second place it can be wrong.
 
-### ADR-004: A waiver is a request of its own that names the amount, and the loan keeps its fee
+### ADR-004: A waiver is a request of its own that names the amount and the reason, and the fee stands until the request is approved
 
 Status: accepted, 2026-10-25.
 
 Rests on: [ADR-003](#adr-003-the-late-fee-is-computed-once-at-return-and-stored-on-the-loan).
 
 Context: Once the fee is fixed at return (ADR-003) a waiver has a definite
-amount to name. Setting the loan's fee to zero would lose what was
-charged and who let it go, which the supervisor's approval (LIB-8)
-is there to make visible.
+amount to name. Letting the librarian who asks set the loan's fee to
+zero would leave no record of what was charged, who asked and who
+let it go, which the supervisor's approval (LIB-8) is there to make
+visible.
 
 Decision: A waiver is a FeeWaiverRequest that names the loan, the amount to
-waive and the reason, approved through the fee-waiver workflow; the
-loan's lateFee stays as computed, and what the member owes is the fee
-less the waivers approved.
+waive and the reason, started by requestFeeWaiver and taken through
+the fee-waiver workflow; the fee stands on the loan until a desk
+supervisor approves the request, and waiveFee then waives it.
 
-Consequences: The fee charged and the fee waived are both readable afterwards. A
-list of what a member owes subtracts the approved waivers; a waiver
-above the amount is refused at the form.
+Consequences: The request stays as the record of what was waived, why, and who
+approved it. A member whose request waits is still charged; a
+request not approved within its deadline is refused and the fee
+stands.
 
-**Insight:** Keeping the computed fee and recording the waiver beside it is the one way the two numbers stay auditable; overwriting the fee would make the waiver a change nobody can read back.
+**Insight:** A request of its own, approved by a second person, is the one way the amount, the reason and the approval are all readable afterwards; a fee set to zero by the person who asked would make the waiver a change nobody can read back.
 
 ## 10. Quality requirements
 

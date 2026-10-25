@@ -1,7 +1,7 @@
 arguments: [upgrade, --dry-run, project]
 exitStatus: 1
 standardOutput: |
-  project/implementation/go/desk.go.specarch-implementation.yaml:1:33: https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-implementation-0.1.schema.json -> https://raw.githubusercontent.com/SpecArch/specarch/v1.0.0/schema/specarch-implementation-1.0.schema.json
+  project/implementation/go/desk.go.specarch-implementation.yaml:1:33: https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-implementation-0.1.schema.json -> https://raw.githubusercontent.com/SpecArch/specarch/v1.1.0/schema/specarch-implementation-1.0.schema.json
   project/implementation/go/desk.go.specarch-implementation.yaml:2:25: "0.1" -> "1.0.0"
   records/releases/1.0.0.yaml:1:17: "0.1" -> "1.0.0"
   project/implementation/go/idioms/type-rendering.specarch-idiom.yaml:1:16: error: /specarchIdiom: meta_model_version: the version line specarchIdiom is a number, not a string, which specarch upgrade does not rewrite; quote it, such as "0.1", and run specarch upgrade again [meta_model_version@implementation/go/idioms/type-rendering.specarch-idiom.yaml#/specarchIdiom]

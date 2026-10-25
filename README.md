@@ -195,7 +195,7 @@ the program and are built once in your cache with their toolchains). It has two 
 the same design.
 The Go build has every verb. With Go 1.27.2 or later:
 
-    go install github.com/SpecArch/specarch/cmd/specarch@v1.0.0
+    go install github.com/SpecArch/specarch/cmd/specarch@v1.1.0
 
 or, from a clone of this repository:
 
@@ -229,18 +229,18 @@ generate bpmn` runs to write each workflow as a BPMN 2.0 file with its
 diagram, and the diagram as SVG. Install them at the same tag as
 `specarch`:
 
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-openapi@v1.0.0
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-sql@v1.0.0
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-sqlc@v1.0.0
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-tests-go@v1.0.0
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-tests-swift@v1.0.0
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-tests-dart@v1.0.0
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-go-dxlib@v1.0.0
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-ui@v1.0.0
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-ui-typescript@v1.0.0
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-bpmn@v1.0.0
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-ui-swiftui@v1.0.0
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-scripts@v1.0.0
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-openapi@v1.1.0
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-sql@v1.1.0
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-sqlc@v1.1.0
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-tests-go@v1.1.0
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-tests-swift@v1.1.0
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-tests-dart@v1.1.0
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-go-dxlib@v1.1.0
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-ui@v1.1.0
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-ui-typescript@v1.1.0
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-bpmn@v1.1.0
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-ui-swiftui@v1.1.0
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-scripts@v1.1.0
 
 The Swift build, for macOS, has the validate, model, upgrade and version
 verbs and gives the same output. With Swift 6:
@@ -392,7 +392,7 @@ answers with. `docs/generators.md` has the protocol.
 Version 1.0.0 of the meta-model, October 2026, the first stable version;
 a file written against 0.3, 0.2 or 0.1 is read beside it with a warning, a
 0.1 file with its missing tests as warnings, and `specarch upgrade` moves
-it. Release 1.0.0 is the latest. The schemas, the tree layout and the seven stages, SpecArch's own
+it. Release 1.1.0 is the latest. The schemas, the tree layout and the seven stages, SpecArch's own
 specification, six examples, the validator in Go and in Swift, fifteen
 documents, open questions with the gaps report, `decide` and the
 comparison, the approval gate on generation, the extract readers with `merge`, `check`, `diff`, `derive`

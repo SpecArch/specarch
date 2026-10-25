@@ -1,0 +1,20 @@
+specarchRecord: "1.0.0"
+kind: change
+id: CR-2
+title: Let the installed program say what it can do and how to use it
+raisedBy: specification-author
+raised: "2026-10-25"
+phase: development
+type: perfective
+urgency: normal
+reason: A person or a program working with an installed specarch, with no source checkout or docs folder at hand, needs to learn its commands, options, outputs and exit codes from the program itself, read its results as JSON, and see what a command would write before it writes.
+affects:
+  adds: [SA-96]
+impact: minor
+decision:
+  by: specification-author
+  date: "2026-10-25"
+  outcome: approved
+  why: Every addition is new commands and new options (help, guide, capabilities, --json, --dry-run, a plug-in's --capabilities); nothing a 1.0.0 run prints or writes changes, so a minor release carries it (ADR-187).
+release: 1.1.0
+status: released

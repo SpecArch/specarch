@@ -240,16 +240,18 @@ func runUpgrade(_ args: [String], _ stdout: TextSink, _ stderr: TextSink) -> Int
     if ioError { return 2 }
     var specs: [Spec] = []
     var estates: [String] = []
+    var impls: [String] = []
     for input in inputs {
         switch input {
         case .estate(let e): estates.append(e.path)
         case .root(let dir): specs.append(Spec(dir: dir))
-        case .implementation(let name), .other(let name):
-            stderr.write("specarch upgrade: \(name) is not a specification; name the folder that holds \(rootFile)\n")
+        case .implementation(let path): impls.append(path)
+        case .other(let name):
+            stderr.write("specarch upgrade: \(name) is neither a specification nor an implementation file nor an estate; name the folder that holds \(rootFile)\n")
             return 2
         }
     }
-    if specs.isEmpty && estates.isEmpty {
+    if specs.isEmpty && estates.isEmpty && impls.isEmpty {
         stderr.write("specarch upgrade: no specification given; name a folder that holds \(rootFile)\n")
         return 2
     }
@@ -260,6 +262,9 @@ func runUpgrade(_ args: [String], _ stdout: TextSink, _ stderr: TextSink) -> Int
         if seen.insert(cleanPath(path)).inserted { files.append((path, kind)) }
     }
     for e in estates { add(e, .estate) }
+    for i in impls {
+        for f in implementationFiles(i) { add(f.path, f.kind) }
+    }
     for s in specs {
         for f in specFiles(s) { add(f.path, f.kind) }
     }
@@ -318,15 +323,19 @@ private func specFiles(_ s: Spec) -> [(path: String, kind: UpgradeKind)] {
         out.append((p, cleanPath(p) == cleanPath(s.rootPath) ? .root : .fragment))
     }
     if !paths.contains(s.rootPath) { out.append((s.rootPath, .root)) }
-    for impl in s.implementations {
-        out.append((impl.path, .implementation))
-        let folder = joinPath(dirPath(impl.path), "idioms")
-        let names = (try? FileManager.default.contentsOfDirectory(atPath: folder)) ?? []
-        for name in names where name.hasSuffix(idiomSuffix) {
-            out.append((joinPath(folder, name), .idiom))
-        }
-    }
+    for impl in s.implementations { out += implementationFiles(impl.path) }
     for r in s.records { out.append((r.path, .record)) }
+    return out
+}
+
+/// An implementation file and the idioms in the idioms/ folder beside it.
+private func implementationFiles(_ path: String) -> [(path: String, kind: UpgradeKind)] {
+    var out: [(path: String, kind: UpgradeKind)] = [(path, .implementation)]
+    let folder = joinPath(dirPath(path), "idioms")
+    let names = ((try? FileManager.default.contentsOfDirectory(atPath: folder)) ?? []).sorted(by: byteLess)
+    for name in names where name.hasSuffix(idiomSuffix) {
+        out.append((joinPath(folder, name), .idiom))
+    }
     return out
 }
 

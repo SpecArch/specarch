@@ -67,23 +67,21 @@ func runUpgrade(args []string, stdout, stderr io.Writer) int {
 		return 2
 	}
 	var specs []*spec.Spec
-	var estates []string
+	var estates, impls []string
 	for _, in := range inputs {
 		switch {
 		case in.estate != nil:
 			estates = append(estates, in.estate.Path)
 		case in.root != "":
 			specs = append(specs, spec.Load(in.root))
+		case in.implementation != "":
+			impls = append(impls, in.implementation)
 		default:
-			name := in.implementation
-			if name == "" {
-				name = in.other
-			}
-			fmt.Fprintf(stderr, "specarch upgrade: %s is not a specification; name the folder that holds %s\n", name, spec.RootFile)
+			fmt.Fprintf(stderr, "specarch upgrade: %s is neither a specification nor an implementation file nor an estate; name the folder that holds %s\n", in.other, spec.RootFile)
 			return 2
 		}
 	}
-	if len(specs) == 0 && len(estates) == 0 {
+	if len(specs) == 0 && len(estates) == 0 && len(impls) == 0 {
 		fmt.Fprintf(stderr, "specarch upgrade: no specification given; name a folder that holds %s\n", spec.RootFile)
 		return 2
 	}
@@ -98,6 +96,11 @@ func runUpgrade(args []string, stdout, stderr io.Writer) int {
 	}
 	for _, e := range estates {
 		add(e, upgrade.Estate)
+	}
+	for _, i := range impls {
+		for _, f := range implementationFiles(i) {
+			add(f.path, f.kind)
+		}
 	}
 	for _, s := range specs {
 		for _, f := range specFiles(s) {
@@ -186,14 +189,21 @@ func specFiles(s *spec.Spec) []upgradeFile {
 		out = append(out, upgradeFile{s.RootFile, upgrade.Root})
 	}
 	for _, impl := range s.Implementations {
-		out = append(out, upgradeFile{impl.Path, upgrade.Implementation})
-		idioms, _ := filepath.Glob(filepath.Join(filepath.Dir(impl.Path), "idioms", "*"+validate.IdiomSuffix))
-		for _, i := range idioms {
-			out = append(out, upgradeFile{i, upgrade.Idiom})
-		}
+		out = append(out, implementationFiles(impl.Path)...)
 	}
 	for _, r := range s.Records {
 		out = append(out, upgradeFile{r.Path, upgrade.Record})
+	}
+	return out
+}
+
+// implementationFiles is an implementation file and the idioms in the
+// idioms/ folder beside it.
+func implementationFiles(path string) []upgradeFile {
+	out := []upgradeFile{{path, upgrade.Implementation}}
+	idioms, _ := filepath.Glob(filepath.Join(filepath.Dir(path), "idioms", "*"+validate.IdiomSuffix))
+	for _, i := range idioms {
+		out = append(out, upgradeFile{i, upgrade.Idiom})
 	}
 	return out
 }

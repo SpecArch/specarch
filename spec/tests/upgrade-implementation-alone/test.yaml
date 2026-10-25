@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: upgrade
+level: system
+scenario: golden
+given: "a folder holding an implementation file outside any specification, on 0.1, with an idiom on 0.1 beside it"
+when: "upgrade is run on the folder"
+then: "it moves the implementation file's hint and version line and the idiom's version line to 1.0.0, and exits 0"
+verifies: [SA-95]

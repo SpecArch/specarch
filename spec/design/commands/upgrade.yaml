@@ -6,7 +6,9 @@ commands:
       Reads each specification given as validate does, with every file it
       is read from: the root file, the stage files and the tests, the
       implementation files and the idioms beside them, the records beside
-      the specification, and an estate file named on the command line.
+      the specification, an estate file named or found, and an
+      implementation file outside any specification with the idioms
+      beside it, named or found as validate finds it.
       In each it rewrites only what the move to 1.0.0 names, and nothing
       else: the version line of its format (`specarch`,
       `specarchImplementation`, `specarchIdiom`, `specarchRecord`,
@@ -50,7 +52,7 @@ commands:
         schema: { type: string }
     arguments:
       - name: paths
-        description: Folders holding specifications, searched as validate searches them, root files and estate files.
+        description: Folders holding specifications, searched as validate searches them, root files, implementation files and estate files.
         required: true
         repeatable: true
         schema: { type: string }

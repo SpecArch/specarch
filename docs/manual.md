@@ -3318,7 +3318,9 @@ Move a specification and its files to the newest version of each format, or list
 Reads each specification given as validate does, with every file it
 is read from: the root file, the stage files and the tests, the
 implementation files and the idioms beside them, the records beside
-the specification, and an estate file named on the command line.
+the specification, an estate file named or found, and an
+implementation file outside any specification with the idioms
+beside it, named or found as validate finds it.
 In each it rewrites only what the move to 1.0.0 names, and nothing
 else: the version line of its format (`specarch`,
 `specarchImplementation`, `specarchIdiom`, `specarchRecord`,
@@ -3363,7 +3365,7 @@ Anyone who has the program runs it.
 
 | Argument | What to give | Required |
 |---|---|---|
-| `<paths>` | Folders holding specifications, searched as validate searches them, root files and estate files. One or more. | yes |
+| `<paths>` | Folders holding specifications, searched as validate searches them, root files, implementation files and estate files. One or more. | yes |
 
 | Option | What it does | Required |
 |---|---|---|

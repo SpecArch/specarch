@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.6-dev of the specification: 760 design tests, 369 golden and 391 red, about 19 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.6-dev of the specification: 761 design tests, 370 golden and 391 red, about 19 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.7.6-dev of the specification: 760 design tests, 369 golden and 391 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 756 |
+| system | 757 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -3622,6 +3622,14 @@ Scenario: golden; level: system; verifies SA-95.
 - Given: an estate on 0.1 listing a module on 0.3 and one on 1.0.0
 - When: upgrade is run on the estate file
 - Then: it moves the estate's line and the 0.3 module's, leaves the 1.0.0 module as it is, and exits 0
+
+#### upgrade-implementation-alone
+
+Scenario: golden; level: system; verifies SA-95.
+
+- Given: a folder holding an implementation file outside any specification, on 0.1, with an idiom on 0.1 beside it
+- When: upgrade is run on the folder
+- Then: it moves the implementation file's hint and version line and the idiom's version line to 1.0.0, and exits 0
 
 #### upgrade-second-run
 

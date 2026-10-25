@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.7.6-dev of the specification: 95 requirements, 5 entities, 17 commands, 7 algorithms, 760 tests, 177 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.7.6-dev of the specification: 95 requirements, 5 entities, 17 commands, 7 algorithms, 761 tests, 177 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -3749,7 +3749,9 @@ sequenceDiagram
 Reads each specification given as validate does, with every file it
 is read from: the root file, the stage files and the tests, the
 implementation files and the idioms beside them, the records beside
-the specification, and an estate file named on the command line.
+the specification, an estate file named or found, and an
+implementation file outside any specification with the idioms
+beside it, named or found as validate finds it.
 In each it rewrites only what the move to 1.0.0 names, and nothing
 else: the version line of its format (`specarch`,
 `specarchImplementation`, `specarchIdiom`, `specarchRecord`,
@@ -3788,7 +3790,7 @@ so an approval of it no longer holds.
 
 | Argument or option | Type | Required | Description |
 |---|---|---|---|
-| `<paths>` | string, one or more | yes | Folders holding specifications, searched as validate searches them, root files and estate files. |
+| `<paths>` | string, one or more | yes | Folders holding specifications, searched as validate searches them, root files, implementation files and estate files. |
 | `--dry-run` | bool |   | Write nothing; print every change and every step left to the author. |
 | `--to` | string |   | The version to move to; the newest, 1.0.0, is the default and the only one this program writes, so another is a usage error. |
 
@@ -14371,6 +14373,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | upgrade-both-keys | command upgrade | system | red | a 1.0.0 file whose member role gives rows and whose staff role gives both rowPolicies and rows | upgrade is run with --dry-run | it lists the rename of member's rows, leaves staff's rows to the author as the meta_model_deprecated error, and exits 1 |
 | upgrade-dry-run | command upgrade | system | golden | a 0.3 tree with comments, a single-quoted version line, editor hints by release URL and by relative path, a role's rows in flow style, a quoted source on the handover, an implementation file, an idiom and a record on 0.1, and errors of its own | upgrade is run with --dry-run | it prints each of the ten changes as file, line and column with the old and new text, writes nothing, counts none of the specification's own errors as a step, and exits 0 |
 | upgrade-estate | command upgrade | system | golden | an estate on 0.1 listing a module on 0.3 and one on 1.0.0 | upgrade is run on the estate file | it moves the estate's line and the 0.3 module's, leaves the 1.0.0 module as it is, and exits 0 |
+| upgrade-implementation-alone | command upgrade | system | golden | a folder holding an implementation file outside any specification, on 0.1, with an idiom on 0.1 beside it | upgrade is run on the folder | it moves the implementation file's hint and version line and the idiom's version line to 1.0.0, and exits 0 |
 | upgrade-second-run | command upgrade | system | golden | the tree upgrade-writes-changes wrote | upgrade is run again | it prints nothing, changes no file, and exits 0 |
 | upgrade-to-older | command upgrade | system | red | a 0.2 file | upgrade is run with --to 0.3 | it says it writes only 1.0.0, changes nothing, and exits 2 |
 | upgrade-unreadable-file | command upgrade | system | red | a 0.3 tree one of whose stage files the parser cannot read | upgrade is run | it moves the root file's version line, lists the file at the parser's position as a step, edits nothing in it, and exits 1 |
@@ -15125,7 +15128,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-92 | decisions ADR-181 | tests generate-ui-content; tests generate-ui-content-refused; tests generate-ui-swiftui-content; tests generate-ui-typescript-content |
 | SA-93 | enums Rule; decisions ADR-182 | tests derive-sign-in-oidc; tests document-techspec-sign-in-oidc; tests generate-go-dxlib-sign-in-oidc; tests generate-ui-sign-in-oidc; tests generate-ui-sign-in-oidc-dxlib; tests generate-ui-swiftui-sign-in-oidc; tests generate-ui-typescript-sign-in-oidc; tests validate-sign-in-oidc; tests validate-sign-in-oidc-deployment; tests validate-sign-in-oidc-refused |
 | SA-94 | decisions ADR-183 | tests document-manual-custom; tests document-techspec-custom; tests generate-ui-custom; tests generate-ui-custom-check; tests generate-ui-swiftui-custom; tests generate-ui-typescript-custom |
-| SA-95 | decisions ADR-186 | tests upgrade-0-1-missing-tests; tests upgrade-0-2-caller; tests upgrade-both-keys; tests upgrade-dry-run; tests upgrade-estate; tests upgrade-second-run; tests upgrade-to-older; tests upgrade-unreadable-file; tests upgrade-usage-error; tests upgrade-writes-changes; tests validate-estate-1-0-0; tests validate-estate-version-unknown; tests validate-formats-1-0-0; tests validate-formats-version-unknown; tests validate-handover-source-deprecated; tests validate-handover-source-missing; tests validate-handover-source-twice; tests validate-meta-model-1-0-0; tests validate-meta-model-1-0-patch; tests validate-meta-model-deprecated; tests validate-meta-model-later; tests validate-meta-model-short; tests validate-record-1-0-0; tests validate-record-version-unknown; tests validate-row-policies; tests validate-row-policies-valid; tests validate-schema-conditionals; tests validate-schema-conditionals-0-3 |
+| SA-95 | decisions ADR-186 | tests upgrade-0-1-missing-tests; tests upgrade-0-2-caller; tests upgrade-both-keys; tests upgrade-dry-run; tests upgrade-estate; tests upgrade-implementation-alone; tests upgrade-second-run; tests upgrade-to-older; tests upgrade-unreadable-file; tests upgrade-usage-error; tests upgrade-writes-changes; tests validate-estate-1-0-0; tests validate-estate-version-unknown; tests validate-formats-1-0-0; tests validate-formats-version-unknown; tests validate-handover-source-deprecated; tests validate-handover-source-missing; tests validate-handover-source-twice; tests validate-meta-model-1-0-0; tests validate-meta-model-1-0-patch; tests validate-meta-model-deprecated; tests validate-meta-model-later; tests validate-meta-model-short; tests validate-record-1-0-0; tests validate-record-version-unknown; tests validate-row-policies; tests validate-row-policies-valid; tests validate-schema-conditionals; tests validate-schema-conditionals-0-3 |
 
 ## Sources
 

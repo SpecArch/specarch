@@ -403,13 +403,16 @@ func TestHelpTopics(t *testing.T) {
 // in one copy of a folder and without it in another, and checks that the
 // dry run changed nothing and listed exactly the files the real run wrote.
 func TestDryRunWritesNothing(t *testing.T) {
+	// The plug-ins are built before PATH loses go.
+	pluginDir := map[string]string{"openapi": buildPlugin(t, "openapi"), "sql": buildPlugin(t, "sql")}
 	noPlugins(t)
 	cases := []struct {
-		name  string
-		from  string
-		git   bool // commit the copy, for extract, which reads a commit
-		setup [][]string
-		args  []string
+		name    string
+		from    string
+		git     bool     // commit the copy, for extract and facts, which read a commit
+		plugins []string // the plug-ins built and put on PATH, for generate
+		setup   [][]string
+		args    []string
 	}{
 		{name: "document", from: "../../spec/tests/document-techspec-content", args: []string{"document", "techspec", "--out", "docs", "project"}},
 		{name: "document problems", from: "../../examples/lending-desk", args: []string{"document", "problems", "--out", "out", "spec"}},
@@ -424,11 +427,17 @@ func TestDryRunWritesNothing(t *testing.T) {
 				{"extract", "openapi", "--out", "trees/openapi", "sources/openapi/openapi.yaml"},
 			},
 			args: []string{"merge", "--out", "merged", "trees/manual", "trees/openapi"}},
+		{name: "generate openapi", from: "../../spec/tests/generate-openapi", plugins: []string{"openapi"}, args: []string{"generate", "openapi", "--unapproved", "project"}},
+		{name: "generate sql", from: "../../spec/tests/generate-sql", plugins: []string{"sql"}, args: []string{"generate", "sql", "--unapproved", "project"}},
+		{name: "facts", from: "../../spec/tests/facts-javascript", git: true, args: []string{"facts", "javascript", "repo/app", "repo/facts.json"}},
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
 			if _, err := os.Stat(c.from); err != nil {
 				t.Skipf("%s is not there: %v", c.from, err)
+			}
+			for _, target := range c.plugins {
+				t.Setenv("PATH", pluginDir[target]+string(os.PathListSeparator)+os.Getenv("PATH"))
 			}
 			real, dry := copyFolder(t, c.from), copyFolder(t, c.from)
 			for _, dir := range []string{real, dry} {
@@ -552,4 +561,76 @@ func changedFiles(before, after map[string]string) []string {
 	}
 	sort.Strings(out)
 	return out
+}
+
+// TestGatherPassesOverRelativeEntries checks that a plug-in in the current
+// folder, reached through an empty or relative PATH entry, is neither
+// listed nor run, as generate's exec.LookPath refuses it.
+func TestGatherPassesOverRelativeEntries(t *testing.T) {
+	dir := t.TempDir()
+	ran := filepath.Join(dir, "ran")
+	script := "#!/bin/sh\ntouch " + ran + "\n"
+	if err := os.WriteFile(filepath.Join(dir, "specarch-gen-planted"), []byte(script), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	t.Chdir(dir)
+	sep := string(os.PathListSeparator)
+	if found := capability.Gather(sep+"."+sep+"sub", 5*time.Second); len(found) != 0 {
+		t.Errorf("found %v through relative entries", found)
+	}
+	if _, err := os.Stat(ran); err == nil {
+		t.Error("the plug-in in the current folder was run")
+	}
+}
+
+// TestJSONLeavesOptionValues checks that --json given as the value of an
+// option that takes one stays the option's value.
+func TestJSONLeavesOptionValues(t *testing.T) {
+	for _, c := range []struct {
+		args   []string
+		want   []string
+		isJSON bool
+	}{
+		{[]string{"decide", "Q-1", "--answer", "--json", "--by", "owner", "project"}, []string{"decide", "Q-1", "--answer", "--json", "--by", "owner", "project"}, false},
+		{[]string{"decide", "Q-1", "--answer", "--json", "--json", "project"}, []string{"decide", "Q-1", "--answer", "--json", "project"}, true},
+		{[]string{"--json", "decide", "Q-1", "-answer", "--json", "project"}, []string{"decide", "Q-1", "-answer", "--json", "project"}, true},
+		{[]string{"validate", "--json", "spec"}, []string{"validate", "spec"}, true},
+		{[]string{"validate", "--", "--json"}, []string{"validate", "--", "--json"}, false},
+	} {
+		got, isJSON := takeJSON(c.args)
+		if isJSON != c.isJSON || strings.Join(got, " ") != strings.Join(c.want, " ") {
+			t.Errorf("takeJSON(%q) = %q, %v; want %q, %v", c.args, got, isJSON, c.want, c.isJSON)
+		}
+	}
+}
+
+// TestDryRunCopyFollowsFileLinks checks that the copy a dry run of extract
+// or merge works in takes a linked file's bytes, passes over a linked
+// folder and does not fail on either.
+func TestDryRunCopyFollowsFileLinks(t *testing.T) {
+	out, elsewhere, to := t.TempDir(), t.TempDir(), t.TempDir()
+	if err := os.WriteFile(filepath.Join(elsewhere, "a.yaml"), []byte("a: 1\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(out, "b.yaml"), []byte("b: 2\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	for link, target := range map[string]string{"a.yaml": filepath.Join(elsewhere, "a.yaml"), "folder": elsewhere, "nothing.yaml": filepath.Join(elsewhere, "none")} {
+		if err := os.Symlink(target, filepath.Join(out, link)); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if err := copyForDryRun(out, to); err != nil {
+		t.Fatal(err)
+	}
+	got := snapshot(t, to)
+	if len(got) != 2 || got["a.yaml"] != "a: 1\n" || got["b.yaml"] != "b: 2\n" {
+		t.Errorf("the copy holds %v", got)
+	}
+	if info, err := os.Lstat(filepath.Join(to, "a.yaml")); err != nil || !info.Mode().IsRegular() {
+		t.Errorf("a.yaml in the copy is not a file of its own: %v", err)
+	}
+	if err := copyForDryRun(filepath.Join(out, "missing"), t.TempDir()); err != nil {
+		t.Errorf("a missing --out: %v", err)
+	}
 }

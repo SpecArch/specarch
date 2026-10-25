@@ -1,12 +1,13 @@
 Conventions of every command
 
---json, on any command, prints one JSON object on standard output, key
-specarchOutput, with the command, the exit status and what it means, the
-problem lines as fields (file, line, column, severity, path, rule,
-message, id), the other lines, and the messages of standard error; model
-and capabilities print their own object, specarchModel and
-specarchCapabilities, as they are on exit 0. On exit status 2 it prints
-one error object on standard error, key specarchError,
+--json, on any command, given anywhere before -- but as the value of an
+option that takes one (decide --answer --json answers "--json"), prints
+one JSON object on standard output, key specarchOutput, with the command,
+the exit status and what it means, the problem lines as fields (file,
+line, column, severity, path, rule, message, id), the other lines, and the
+messages of standard error; model and capabilities print their own object,
+specarchModel and specarchCapabilities, as they are on exit 0. On exit
+status 2 it prints one error object on standard error, key specarchError,
 with a stable code (usage, read, write, plugin, failed), the message and a
 remedy. Nothing else is printed on either.
 

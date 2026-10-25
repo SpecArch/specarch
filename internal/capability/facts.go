@@ -44,7 +44,7 @@ var Limits = []string{
 
 // Conventions hold for every command.
 var Conventions = []string{
-	"--json, on any command, prints one JSON object on standard output (key specarchOutput; model and capabilities print their own, specarchModel and specarchCapabilities, on exit 0) and, on exit 2, one error object on standard error (key specarchError, a stable code), and nothing else on either.",
+	"--json, on any command, given anywhere before -- but as the value of an option that takes one, prints one JSON object on standard output (key specarchOutput; model and capabilities print their own, specarchModel and specarchCapabilities, on exit 0) and, on exit 2, one error object on standard error (key specarchError, a stable code), and nothing else on either.",
 	"Without --json, results go to standard output and counts and reasons to standard error, as plain text with no colour or terminal codes, whether or not the output is a terminal; NO_COLOR is honoured by having no colour.",
 	"--dry-run, on every command that writes, lists each file it would write or remove on standard output and writes nothing.",
 	"Exit status: 0 done, 1 the command ran and found what it reports (errors, differences, open questions), 2 a usage or read error or a failed plug-in; each command's own exit codes and remedies are in its tool entry.",

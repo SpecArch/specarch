@@ -36,8 +36,10 @@ decisions:
       not write, and with any other argument is a usage error; generate
       still runs it with none.
 
-      --json, on any command, is handled once around the command: its
-      output is caught, problem lines become fields, other lines are kept
+      --json, on any command, is handled once around the command: it is
+      taken from anywhere before --, but never as the value of an option
+      that takes one, as the command's definition says, so that a value
+      is the command's to read; its output is caught, problem lines become fields, other lines are kept
       as lines and standard error's as messages, and a command whose
       output is JSON (model) is printed as it is; on exit status 2 one
       error object with a stable code goes to standard error. --dry-run

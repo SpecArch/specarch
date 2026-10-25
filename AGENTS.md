@@ -143,7 +143,8 @@ in YAML, lists every problem in it, and writes documents and code from it.
 
 ## Conventions
 
-- --json, on any command, prints one JSON object on standard output (key
+- --json, on any command, given anywhere before -- but as the value of an
+  option that takes one, prints one JSON object on standard output (key
   specarchOutput; model and capabilities print their own, specarchModel and
   specarchCapabilities, on exit 0) and, on exit 2, one error object on
   standard error (key specarchError, a stable code), and nothing else on

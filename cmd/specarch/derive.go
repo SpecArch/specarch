@@ -125,8 +125,8 @@ func writeTree(command, out string, tree *extract.Tree, also func(folder string)
 			return nil, 2
 		}
 		defer os.RemoveAll(tmp)
-		if err := os.CopyFS(tmp, os.DirFS(out)); err != nil && !errors.Is(err, fs.ErrNotExist) {
-			fmt.Fprintf(stderr, "%s: cannot copy %s into %s for --dry-run: %v\n", command, out, tmp, err)
+		if err := copyForDryRun(out, tmp); err != nil {
+			fmt.Fprintf(stderr, "%s: cannot copy %s into %s for --dry-run, which works in a copy of --out since deriving the tests and marking the problems read the whole specification there: %v; run without --dry-run on a copy of %s made by hand\n", command, out, tmp, err, out)
 			return nil, 2
 		}
 		folder = tmp
@@ -223,4 +223,45 @@ func deriveInto(out string, tree *extract.Tree) ([]string, error) {
 	}
 	head := fmt.Sprintf("derived %s under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers", plural(len(write), "draft test"))
 	return append([]string{head}, lines...), nil
+}
+
+// copyForDryRun copies the folder out into to, for a dry run: each file,
+// and the file a symbolic link names as a file of its own, with its bytes,
+// so the run reads what it would read in out and writes only into the
+// copy. A link to a folder, or one that names nothing, is left out: the
+// run writes its files there anew and lists them as it would write them.
+// An out that does not exist yet copies nothing.
+func copyForDryRun(out, to string) error {
+	if real, err := filepath.EvalSymlinks(out); err == nil {
+		out = real
+	}
+	return filepath.WalkDir(out, func(p string, d fs.DirEntry, err error) error {
+		if err != nil {
+			if p == out && errors.Is(err, fs.ErrNotExist) {
+				return filepath.SkipAll
+			}
+			return err
+		}
+		rel, err := filepath.Rel(out, p)
+		if err != nil {
+			return err
+		}
+		target := filepath.Join(to, rel)
+		if d.IsDir() {
+			return os.MkdirAll(target, 0o755)
+		}
+		if d.Type()&fs.ModeSymlink != 0 {
+			info, err := os.Stat(p)
+			if err != nil || info.IsDir() {
+				return nil
+			}
+		} else if !d.Type().IsRegular() {
+			return nil
+		}
+		data, err := os.ReadFile(p)
+		if err != nil {
+			return err
+		}
+		return os.WriteFile(target, data, 0o644)
+	})
 }

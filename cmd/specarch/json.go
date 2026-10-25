@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"io"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 )
@@ -51,12 +52,18 @@ type jsonError struct {
 var problemLine = regexp.MustCompile(`^(.+?):(\d+):(\d+): (error|warning|question|note): (.*?): ([a-z][a-z0-9_]*): (.*) \[([^\]]+)\]$`)
 
 // takeJSON takes --json out of the arguments before any --, and says
-// whether it was there. capabilities keeps it too, wherever it was given:
-// its --json is its listing.
+// whether it was there. The value of an option that takes one is passed
+// over, so decide --answer --json answers "--json". capabilities keeps
+// --json too, wherever it was given: its --json is its listing.
 func takeJSON(args []string) ([]string, bool) {
+	if !slices.Contains(args, "--json") {
+		return args, false
+	}
+	takesValue := valueOptions(args)
 	found := false
 	var rest []string
-	for i, a := range args {
+	for i := 0; i < len(args); i++ {
+		a := args[i]
 		if a == "--" {
 			rest = append(rest, args[i:]...)
 			break
@@ -66,6 +73,10 @@ func takeJSON(args []string) ([]string, bool) {
 			continue
 		}
 		rest = append(rest, a)
+		if takesValue[strings.TrimLeft(a, "-")] && strings.HasPrefix(a, "-") && i+1 < len(args) {
+			i++
+			rest = append(rest, args[i])
+		}
 	}
 	if !found {
 		return args, false
@@ -74,6 +85,40 @@ func takeJSON(args []string) ([]string, bool) {
 		rest = append([]string{"capabilities", "--json"}, rest[1:]...)
 	}
 	return rest, true
+}
+
+// valueOptions is the options that take a value, given as -name or
+// --name with the value next, of the command the arguments run, as its
+// definition says; none when it is not known.
+func valueOptions(args []string) map[string]bool {
+	var words []string
+	for _, a := range args {
+		if a == "--json" {
+			continue
+		}
+		if a == "--" || strings.HasPrefix(a, "-") {
+			break
+		}
+		words = append(words, a)
+	}
+	commands, err := ownCommands()
+	if err != nil {
+		return nil
+	}
+	name := commandName(words)
+	for _, c := range commands {
+		if c.Name != name {
+			continue
+		}
+		out := map[string]bool{}
+		for _, o := range c.Options {
+			if !o.Boolean() {
+				out[o.Name] = true
+			}
+		}
+		return out
+	}
+	return nil
 }
 
 // commandName is the name of the command the arguments run, as the

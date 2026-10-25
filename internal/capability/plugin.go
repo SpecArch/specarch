@@ -92,13 +92,16 @@ func (f Found) Name() string { return filepath.Base(f.Path) }
 // Gather finds every plug-in on the search path, the first of each name in
 // path order as generate runs it, and asks each for its capabilities,
 // with its standard input empty and a time limit, so an older plug-in
-// that waits for a request answers at once with an error.
+// that waits for a request answers at once with an error. An empty or
+// relative entry is passed over, as generate's exec.LookPath refuses what
+// it finds there (exec.ErrDot): a plug-in in the current folder, such as
+// one checked out with a repository, is neither listed nor run.
 func Gather(searchPath string, limit time.Duration) []Found {
 	seen := map[string]bool{}
 	var out []Found
 	for _, dir := range filepath.SplitList(searchPath) {
-		if dir == "" {
-			dir = "."
+		if dir == "" || !filepath.IsAbs(dir) {
+			continue
 		}
 		entries, err := os.ReadDir(dir)
 		if err != nil {

@@ -88,13 +88,13 @@ no source for.
 
 ### 1. Install
 
-    go install github.com/SpecArch/specarch/cmd/specarch@v1.0.0
+    go install github.com/SpecArch/specarch/cmd/specarch@v1.1.0
     go version -m "$(go env GOPATH)/bin/specarch"
-    SA="$HOME/specarch-v1.0.0"
-    git clone --depth 1 --branch v1.0.0 https://github.com/SpecArch/specarch.git "$SA"
+    SA="$HOME/specarch-v1.1.0"
+    git clone --depth 1 --branch v1.1.0 https://github.com/SpecArch/specarch.git "$SA"
 
-`go version -m` names the module version and its `h1:` checksum; v1.0.0
-is `h1:PjzV53/2ooEBQZpOK415KfcZ+d9SRuyJcI8MS13aNj4=`. The generator
+`go version -m` names the module version and its `h1:` checksum; v1.1.0
+is `h1:Zqne7ysb4ftpkDW1A+RP6eloakESZ6HTepMq4vXkX0E=`. The generator
 plug-ins (`specarch-gen-sql` and the others, listed in the README) are only
 needed later, to generate code from an approved specification.
 

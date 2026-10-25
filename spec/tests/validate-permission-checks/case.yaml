@@ -1,6 +1,7 @@
 arguments: [validate, .]
 exitStatus: 1
 standardOutput: |
+  case.go.specarch-implementation.yaml:1:25: warning: /specarchImplementation: meta_model_version: the implementation file is written against version 0.1 of its format, an earlier version read beside 1.0.0 with this warning; run specarch upgrade --dry-run on the specification to see what moving it to 1.0.0 changes, and specarch upgrade to move it [meta_model_version@case.go.specarch-implementation.yaml#/specarchImplementation]
   case.go.specarch-implementation.yaml:10:83: error: /bindings/http/permissionChecks/1/permissionArgument: schema: 0 is below the minimum of 1 [schema@case.go.specarch-implementation.yaml#/bindings/http/permissionChecks/1/permissionArgument]
   case.go.specarch-implementation.yaml:11:98: error: /bindings/http/permissionChecks/2/bypassedFor: schema: people is not allowed here; use one of client [schema@case.go.specarch-implementation.yaml#/bindings/http/permissionChecks/2/bypassedFor]
   case.go.specarch-implementation.yaml:15:93: error: /bindings/http/signatureChecks/0/permissionArgument: schema: permissionArgument is not a key this object can have; remove it or correct its spelling [schema@case.go.specarch-implementation.yaml#/bindings/http/signatureChecks/0/permissionArgument]

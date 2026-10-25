@@ -207,6 +207,10 @@ func TestConformance(t *testing.T) {
 				}
 				gitDir = filepath.Dir(gitPath)
 			}
+			caseDir, err := filepath.Abs(src)
+			if err != nil {
+				t.Fatal(err)
+			}
 			t.Chdir(work)
 			switch _, err := os.Stat(filepath.Join(work, "plugins")); {
 			case err == nil:
@@ -224,6 +228,10 @@ func TestConformance(t *testing.T) {
 			var stdout, stderr bytes.Buffer
 			status := run(c.Arguments, &stdout, &stderr)
 			t.Logf("standard error:\n%s", stderr.String())
+			if os.Getenv(recordVariable) != "" {
+				recordCase(t, caseDir, raw, status, stdout.String(), inputs, readTree(t, work), c.Removed)
+				return
+			}
 			if status != c.ExitStatus {
 				t.Errorf("exit status %d, want %d\nstandard error:\n%s", status, c.ExitStatus, stderr.String())
 			}
@@ -272,6 +280,93 @@ func TestConformance(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+// recordVariable, set to anything, makes TestConformance write what each
+// run gives into its case instead of comparing: for a change that moves the
+// output of many cases at once, such as a version line, whose diff is then
+// read like any other change.
+const recordVariable = "SPECARCH_CONFORMANCE_RECORD"
+
+// recordCase writes a run into its case: the exit status and the standard
+// output into case.yaml, its other keys and comments kept, and every file
+// the run changed or added, apart from those it removes, into expected/.
+func recordCase(t *testing.T, dir string, raw []byte, status int, stdout string, inputs, after map[string][]byte, removed []string) {
+	t.Helper()
+	var block []string
+	switch {
+	case stdout == "":
+		block = []string{`standardOutput: ""`}
+	default:
+		indicator := "|"
+		switch {
+		case !strings.HasSuffix(stdout, "\n"):
+			indicator = "|-"
+		case strings.HasSuffix(stdout, "\n\n"):
+			indicator = "|+"
+		}
+		if strings.HasPrefix(stdout, " ") {
+			indicator = "|2" + strings.TrimPrefix(indicator, "|")
+		}
+		block = []string{"standardOutput: " + indicator}
+		for _, l := range strings.Split(strings.TrimSuffix(stdout, "\n"), "\n") {
+			if l == "" {
+				block = append(block, "")
+			} else {
+				block = append(block, "  "+l)
+			}
+		}
+	}
+	lines := strings.Split(string(raw), "\n")
+	var out []string
+	for i := 0; i < len(lines); i++ {
+		l := lines[i]
+		switch {
+		case strings.HasPrefix(l, "exitStatus:"):
+			out = append(out, fmt.Sprintf("exitStatus: %d", status))
+		case strings.HasPrefix(l, "standardOutput:"):
+			out = append(out, block...)
+			for i+1 < len(lines) && (strings.HasPrefix(lines[i+1], " ") || lines[i+1] == "" && i+2 < len(lines) && strings.HasPrefix(lines[i+2], " ")) {
+				i++
+			}
+			if rest := lines[i+1:]; strings.TrimSpace(strings.Join(rest, "")) == "" && len(rest) > 1 {
+				i = len(lines) - 2 // blank lines kept by |+ up to the end of the file
+			}
+		default:
+			out = append(out, l)
+		}
+	}
+	text := strings.Join(out, "\n")
+	var was conformanceCase
+	if yaml.Unmarshal(raw, &was) == nil && was.ExitStatus == status && was.StandardOutput == stdout {
+		text = string(raw) // unchanged: keep the case as it is written
+	}
+	var check conformanceCase
+	if err := yaml.Unmarshal([]byte(text), &check); err != nil || check.StandardOutput != stdout || check.ExitStatus != status {
+		t.Fatalf("cannot record the case: case.yaml would not read back as the run (%v); record it by hand", err)
+	}
+	if err := os.WriteFile(filepath.Join(dir, "case.yaml"), []byte(text), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	gone := map[string]bool{}
+	for _, r := range removed {
+		gone[r] = true
+	}
+	if err := os.RemoveAll(filepath.Join(dir, "expected")); err != nil {
+		t.Fatal(err)
+	}
+	for name, content := range after {
+		if gone[name] || bytes.Equal(inputs[name], content) && inputs[name] != nil {
+			continue
+		}
+		p := filepath.Join(dir, "expected", filepath.FromSlash(name))
+		if err := os.MkdirAll(filepath.Dir(p), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(p, content, 0o644); err != nil {
+			t.Fatal(err)
+		}
 	}
 }
 

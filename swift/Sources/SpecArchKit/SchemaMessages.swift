@@ -89,6 +89,9 @@ extension Checker {
         let line = root.child(ks.format.key)
         let v = str(line)
         if ks.format.isEarlier(v) {
+            if kind != .design, !ks.format.silent, let line {
+                warn(line, pointer(ks.format.key), .metaModelVersion, "the \(ks.format.name) is written against version \(v) of its format, an earlier version read beside \(currentMetaModel) with this warning; run specarch upgrade --dry-run on the specification to see what moving it to \(currentMetaModel) changes, and specarch upgrade to move it")
+            }
             return (ks.earlier, value)
         }
         if case .object(var pairs) = value, let line, line.tag == "!!str", let problem = ks.format.problem(v) {

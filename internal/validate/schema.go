@@ -154,6 +154,9 @@ func (c *checker) schemaFor(k Kind, value any) (*jsonschema.Schema, any) {
 	line := source.Child(c.root, ks.format.Key)
 	v := source.Str(line)
 	if ks.format.IsEarlier(v) {
+		if k != KindDesign && !ks.format.Silent {
+			c.warn(line, source.Pointer(ks.format.Key), RuleMetaModelVersion, "the %s is written against version %s of its format, an earlier version read beside %s with this warning; run specarch upgrade --dry-run on the specification to see what moving it to %s changes, and specarch upgrade to move it", ks.format.Name, v, metamodel.Current, metamodel.Current)
+		}
 		return ks.earlier, value
 	}
 	if m, ok := value.(map[string]any); ok && line != nil && line.Tag == "!!str" {

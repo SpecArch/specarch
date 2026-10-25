@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=../../../../schema/specarch-fragment-deployment-0.3.schema.json
+# yaml-language-server: $schema=../../../../schema/specarch-fragment-deployment-1.0.schema.json
 handover:
   description: |
     Each release is handed to the library's IT staff as source: they build
@@ -6,7 +6,7 @@ handover:
     the vendor never reaches production. The vendor runs development and
     staging, where a librarian tries each release first.
   to: library-it
-  source: A tagged release of the repository, which the library imports into a repository of its own; the release notes name the tag and the commit it was built from.
+  sourceDelivery: A tagged release of the repository, which the library imports into a repository of its own; the release notes name the tag and the commit it was built from.
   responsibilities:
     customer:
       - Building each release from the tag and comparing the build with the vendor's.

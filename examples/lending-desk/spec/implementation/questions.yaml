@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=../../../../schema/specarch-fragment-questions-0.3.schema.json
+# yaml-language-server: $schema=../../../../schema/specarch-fragment-questions-1.0.schema.json
 questions:
   # specarch-problem: question: open_question: (should, decision) Renewing a loan is in the manual but not in the service. Build it as the manual describes, or take it out of the manual? It blocks implementation. Decided by desk-manager. Answer with a decision record that names Q-4 under answers. [Q-4]
   Q-4:

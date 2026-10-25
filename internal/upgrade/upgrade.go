@@ -73,16 +73,16 @@ var releaseURL = regexp.MustCompile(`^(https://raw\.githubusercontent\.com/SpecA
 
 // Changes lists what moving the file at path to 1.0.0 changes in it, in
 // the order they appear. program is the program's version, whose release
-// tag a hint that names a release URL moves to. A file the parser cannot
-// read gives none; validate's problem at the parser's position is the
-// step left to the author.
+// tag a hint that names a release URL moves to. Of a file the parser reads
+// only in part, the entries it read are edited; validate's problem at the
+// parser's position is the step left to the author.
 func Changes(path string, data []byte, kind Kind, program string) []Change {
 	var out []Change
 	if c, ok := hint(path, data, program); ok {
 		out = append(out, c)
 	}
 	doc := source.Parse(data)
-	if doc.Root == nil || doc.Root.Kind != yaml.MappingNode || len(doc.Problems) > 0 {
+	if doc.Root == nil || doc.Root.Kind != yaml.MappingNode {
 		return out
 	}
 	if f, ok := formats[kind]; ok {

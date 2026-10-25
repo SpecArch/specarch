@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=../../../../../schema/specarch-fragment-deployment-0.3.schema.json
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-deployment-1.0.schema.json
 environments:
   development:
     description: A developer's machine, with a throwaway database.

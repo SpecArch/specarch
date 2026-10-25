@@ -175,6 +175,8 @@ func (c *checker) checkMetaModelVersion(d *design) {
 		c.warn(v, "/specarch", RuleMetaModelVersion, "the specification is written against meta-model 0.1, an earlier version read beside %s with this warning, and its missing tests are warnings; run specarch derive to write the tests 0.2 and later ask for, then %s", metamodel.Current, upgrade)
 	case "0.2":
 		c.warn(v, "/specarch", RuleMetaModelVersion, "the specification is written against meta-model 0.2, an earlier version read beside %s with this warning; 0.3 and later reserve the name caller for the caller record, so rename any field, property or input called caller, then %s", metamodel.Current, upgrade)
+	case "0.3":
+		c.warn(v, "/specarch", RuleMetaModelVersion, "the specification is written against meta-model 0.3, an earlier version read beside %s with this warning; %s", metamodel.Current, upgrade)
 	default:
 		if v != nil && v.Tag == "!!str" {
 			if problem := metamodel.Design.Problem(v.Value); problem != "" {

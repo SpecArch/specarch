@@ -20921,8 +20921,8 @@ let earlierIdiomSchemaJSON = #"""
 /// The shipped idioms, by their path under idioms/, as idioms/embed.go embeds them.
 let shippedIdiomFiles: [(path: String, text: String)] = [
     ("idioms/audit-fields/audit-fields.specarch-idiom.yaml", #"""
-# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-0.1.schema.json
-specarchIdiom: "0.1"
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-1.0.schema.json
+specarchIdiom: "1.0.0"
 name: audit-fields
 version: 1.1.0
 concern: audit-fields
@@ -20951,8 +20951,8 @@ parts:
           after the user is gone.
 """#),
     ("idioms/authorization/authorization-check.specarch-idiom.yaml", #"""
-# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-0.1.schema.json
-specarchIdiom: "0.1"
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-1.0.schema.json
+specarchIdiom: "1.0.0"
 name: authorization-check
 version: 1.0.0
 concern: authorization
@@ -20983,8 +20983,8 @@ parts:
           an endpoint's Privileges.
 """#),
     ("idioms/background-jobs/background-jobs.specarch-idiom.yaml", #"""
-# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-0.1.schema.json
-specarchIdiom: "0.1"
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-1.0.schema.json
+specarchIdiom: "1.0.0"
 name: background-jobs
 version: 1.0.0
 concern: background-jobs
@@ -21011,8 +21011,8 @@ parts:
           retried or dead, as the notification module does.
 """#),
     ("idioms/configuration/configuration-and-secrets.specarch-idiom.yaml", #"""
-# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-0.1.schema.json
-specarchIdiom: "0.1"
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-1.0.schema.json
+specarchIdiom: "1.0.0"
 name: configuration-and-secrets
 version: 1.0.0
 concern: configuration
@@ -21040,8 +21040,8 @@ parts:
           packages do.
 """#),
     ("idioms/design-tokens/design-tokens.specarch-idiom.yaml", #"""
-# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-0.1.schema.json
-specarchIdiom: "0.1"
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-1.0.schema.json
+specarchIdiom: "1.0.0"
 name: design-tokens
 version: 1.1.0
 concern: design-tokens
@@ -21133,8 +21133,8 @@ tests:
   - { case: part no token takes, scenario: red, then: it is reported and left out }
 """#),
     ("idioms/encryption/encrypted-column.specarch-idiom.yaml", #"""
-# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-0.1.schema.json
-specarchIdiom: "0.1"
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-1.0.schema.json
+specarchIdiom: "1.0.0"
 name: encrypted-column
 version: 1.1.0
 concern: encryption
@@ -21174,8 +21174,8 @@ parts:
           databases/db/encryption_expression.go, do this.
 """#),
     ("idioms/error-response/error-response.specarch-idiom.yaml", #"""
-# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-0.1.schema.json
-specarchIdiom: "0.1"
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-1.0.schema.json
+specarchIdiom: "1.0.0"
 name: error-response
 version: 1.1.0
 concern: error-response
@@ -21225,8 +21225,8 @@ parts:
           until the runtime answers with a problem document.
 """#),
     ("idioms/health/health-endpoint.specarch-idiom.yaml", #"""
-# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-0.1.schema.json
-specarchIdiom: "0.1"
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-1.0.schema.json
+specarchIdiom: "1.0.0"
 name: health-endpoint
 version: 1.0.0
 concern: health
@@ -21246,8 +21246,8 @@ parts:
         code: GET /ping, public, answering the name and version, as dxlib_module's oam module does.
 """#),
     ("idioms/identifiers/identifiers.specarch-idiom.yaml", #"""
-# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-0.1.schema.json
-specarchIdiom: "0.1"
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-1.0.schema.json
+specarchIdiom: "1.0.0"
 name: identifiers
 version: 1.1.0
 concern: identifiers
@@ -21280,8 +21280,8 @@ parts:
           version tag for optimistic writes.
 """#),
     ("idioms/list-operations/paginated-list.specarch-idiom.yaml", #"""
-# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-0.1.schema.json
-specarchIdiom: "0.1"
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-1.0.schema.json
+specarchIdiom: "1.0.0"
 name: paginated-list
 version: 1.1.0
 concern: list-operations
@@ -21361,8 +21361,8 @@ tests:
   - { case: filter by a field not filterable, scenario: red, then: it is refused }
 """#),
     ("idioms/migrations/migrations.specarch-idiom.yaml", #"""
-# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-0.1.schema.json
-specarchIdiom: "0.1"
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-1.0.schema.json
+specarchIdiom: "1.0.0"
 name: migrations
 version: 1.0.0
 concern: migrations
@@ -21388,8 +21388,8 @@ parts:
           generated SQL shows what changed since the last migration.
 """#),
     ("idioms/pii-logging/pii-in-logs.specarch-idiom.yaml", #"""
-# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-0.1.schema.json
-specarchIdiom: "0.1"
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-1.0.schema.json
+specarchIdiom: "1.0.0"
 name: pii-in-logs
 version: 1.0.0
 concern: pii-logging
@@ -21419,8 +21419,8 @@ parts:
           dxlib's utils/utils.go.
 """#),
     ("idioms/request-validation/request-validation.specarch-idiom.yaml", #"""
-# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-0.1.schema.json
-specarchIdiom: "0.1"
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-1.0.schema.json
+specarchIdiom: "1.0.0"
 name: request-validation
 version: 1.1.0
 concern: request-validation
@@ -21489,8 +21489,8 @@ parts:
         why: In dxlib, nullable means the parameter may be not given, whether left out or sent as null; a handler that tried to tell the two apart would find nothing to tell them by, and the specification's default or branch is what gives "not given" its meaning.
 """#),
     ("idioms/soft-delete/soft-delete.specarch-idiom.yaml", #"""
-# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-0.1.schema.json
-specarchIdiom: "0.1"
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-1.0.schema.json
+specarchIdiom: "1.0.0"
 name: soft-delete
 version: 1.1.0
 concern: soft-delete
@@ -21523,8 +21523,8 @@ parts:
           RequestHardDelete.
 """#),
     ("idioms/transactions/transactions.specarch-idiom.yaml", #"""
-# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-0.1.schema.json
-specarchIdiom: "0.1"
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-1.0.schema.json
+specarchIdiom: "1.0.0"
 name: transactions
 version: 1.0.0
 concern: transactions
@@ -21548,8 +21548,8 @@ parts:
           error; a panic or an error rolls back.
 """#),
     ("idioms/type-rendering/type-rendering.specarch-idiom.yaml", #"""
-# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-0.1.schema.json
-specarchIdiom: "0.1"
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-1.0.schema.json
+specarchIdiom: "1.0.0"
 name: type-rendering
 version: 1.4.1
 concern: type-rendering
@@ -21938,8 +21938,8 @@ parts:
           - { source: ieee-754, says: "A binary64 value has a 53-bit significand, so integers above 2^53 and most decimal fractions are not exact." }
 """#),
     ("idioms/ui-components/ui-components.specarch-idiom.yaml", #"""
-# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-0.1.schema.json
-specarchIdiom: "0.1"
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-1.0.schema.json
+specarchIdiom: "1.0.0"
 name: ui-components
 version: 1.10.0
 concern: ui-components

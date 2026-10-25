@@ -1,6 +1,6 @@
 arguments: [idioms, .]
 exitStatus: 0
-standardOutput: |+
+standardOutput: |
   implementation/go/case.go.specarch-implementation.yaml
     identifiers 1.1.0: shipped
     migrations 1.0.0: shipped

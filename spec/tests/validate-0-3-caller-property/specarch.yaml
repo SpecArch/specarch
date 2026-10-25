@@ -1,4 +1,4 @@
-specarch: "0.3"
+specarch: "1.0.0"
 info: { title: Case, version: 1.0.0 }
 entities:
   Loan:
@@ -27,12 +27,12 @@ roles:
   member:
     description: A card holder.
     permissions: [loans.read]
-    rows:
+    rowPolicies:
       Loan: memberId == caller.memberid
   tenant:
     description: A tenant's staff.
     permissions: [loans.read]
-    rows:
+    rowPolicies:
       Loan: memberId == caller.organisationId
 tests:
   loan-member-known-succeeds: { entity: Loan, constraint: loan_member_known, level: system, scenario: golden, given: a loan with a member, when: it is saved, then: it is kept }

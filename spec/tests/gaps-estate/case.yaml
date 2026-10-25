@@ -1,6 +1,7 @@
 arguments: [gaps, specarch-estate.yaml]
 exitStatus: 1
 standardOutput: |+
+  specarch-estate.yaml:1:17: warning: /specarchEstate: meta_model_version: the estate is written against version 0.1 of its format, an earlier version read beside 1.0.0 with this warning; run specarch upgrade --dry-run on the specification to see what moving it to 1.0.0 changes, and specarch upgrade to move it [meta_model_version@specarch-estate.yaml#/specarchEstate]
   specarch-estate.yaml:5:54: error: /modules/customer-registry/version: module: customer-registry is at version 2.4.0, and the estate lists 2.3.0; check it against the other modules, then write 2.4.0 here [module@specarch-estate.yaml#/modules/customer-registry/version]
 
   # Loans: open questions

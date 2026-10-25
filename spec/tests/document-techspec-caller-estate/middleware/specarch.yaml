@@ -1,4 +1,4 @@
-specarch: "0.3"
+specarch: "1.0.0"
 info: { title: Middleware, version: 1.0.0, name: middleware }
 permissions:
   invoices.delete: { description: Delete invoices. }

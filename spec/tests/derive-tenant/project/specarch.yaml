@@ -1,4 +1,4 @@
-specarch: "0.3"
+specarch: "1.0.0"
 info: { title: Case, version: 1.0.0 }
 stages: [tests]
 entities:
@@ -41,13 +41,13 @@ roles:
   member:
     description: A card holder of one organisation, who sees only their own loans.
     permissions: [loans.read]
-    rows:
+    rowPolicies:
       Organisation: id == caller.organisationId
       Loan: organisationId == caller.organisationId && memberId == caller.memberId
   staff:
     description: Staff of one organisation.
     permissions: [loans.read, loans.return]
-    rows:
+    rowPolicies:
       Organisation: id == caller.organisationId
 paths:
   /loans:

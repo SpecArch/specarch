@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=../../../../schema/specarch-fragment-requirements-0.3.schema.json
+# yaml-language-server: $schema=../../../../schema/specarch-fragment-requirements-1.0.schema.json
 stakeholders:
   desk-staff:
     description: Staff at the lending desk, who register members, lend books and take them back.

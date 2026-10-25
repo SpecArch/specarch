@@ -1,5 +1,6 @@
 arguments: [document, techspec, specarch-estate.yaml]
 exitStatus: 0
 standardOutput: |
+  specarch-estate.yaml:1:17: warning: /specarchEstate: meta_model_version: the estate is written against version 0.1 of its format, an earlier version read beside 1.0.0 with this warning; run specarch upgrade --dry-run on the specification to see what moving it to 1.0.0 changes, and specarch upgrade to move it [meta_model_version@specarch-estate.yaml#/specarchEstate]
   loans/specarch.yaml:1:1: warning: /: output_folder: no implementation file names an output folder for techspec under targets, so this specification has no techspec document; name one, or give --out [output_folder@specarch.yaml#/]
   customers/specarch.yaml:1:1: warning: /: output_folder: no implementation file names an output folder for techspec under targets, so this specification has no techspec document; name one, or give --out [output_folder@specarch.yaml#/]

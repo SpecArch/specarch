@@ -1,4 +1,5 @@
 arguments: [validate, .]
 exitStatus: 0
 standardOutput: |
+  case.go.specarch-implementation.yaml:1:25: warning: /specarchImplementation: meta_model_version: the implementation file is written against version 0.1 of its format, an earlier version read beside 1.0.0 with this warning; run specarch upgrade --dry-run on the specification to see what moving it to 1.0.0 changes, and specarch upgrade to move it [meta_model_version@case.go.specarch-implementation.yaml#/specarchImplementation]
   specarch.yaml:13:11: warning: /handover/source: meta_model_deprecated: source is the spelling of sourceDelivery before meta-model 1.0.0, deprecated and read as sourceDelivery until 2.0.0; run specarch upgrade on the specification, or rename it to sourceDelivery here [meta_model_deprecated@specarch.yaml#/handover/source]

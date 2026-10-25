@@ -1,4 +1,4 @@
-specarch: "0.3"
+specarch: "1.0.0"
 info: { title: Studio site, version: 1.0.0 }
 stages: [implementation, tests]
 session: { idleTimeout: PT30M, absoluteTimeout: PT12H }

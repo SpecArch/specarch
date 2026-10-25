@@ -1,4 +1,4 @@
-specarchRecord: "0.1"
+specarchRecord: "1.0.0"
 kind: change
 id: CR-2
 title: Send a receipt by text message on every return

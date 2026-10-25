@@ -1,6 +1,6 @@
 arguments: [idioms, diff, type-rendering, .]
 exitStatus: 0
-standardOutput: |+
+standardOutput: |
   implementation/go/idioms/type-rendering.specarch-idiom.yaml overrides type-rendering 1.4.1; SpecArch ships 1.4.1.
 
   part types, stack oracle, shipped:

@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=../../../../../schema/specarch-fragment-test-0.3.schema.json
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-test-1.0.schema.json
 operation: confirmSecondFactor
 level: system
 scenario: golden

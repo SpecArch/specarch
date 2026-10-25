@@ -32,9 +32,10 @@ In short:
   it covers, a warning for an accepted decision without `why`, a reason
   summary in `specarch gaps`, and the diff against the approval that
   `docs/acceptance.md` already plans, printing each changed element's reason
-  beside it. Making `why` required on an accepted decision is the one
-  breaking change, for meta-model 0.4 and program version 0.8.0, and an
-  owner's decision.
+  beside it. Making `why` required on an accepted decision would be the one
+  breaking change; the owner decided on 2026-10-25 that a missing reason
+  stays a warning, and meta-model 1.0.0 freezes the format with no reason
+  required (ADR-186, `docs/meta-model-1.0.0.md`).
 - An agent never writes a reason as the owner's: its own conclusion is
   `origin: inferred` with `why`, or a decision with `status: proposed` and
   `proposedBy: agent`, with a question for a human to confirm. "Reason not
@@ -338,9 +339,8 @@ decidedIn` and `governs`, without a verb of its own. Additive: new output.
 ### 3.6 For the owner to decide
 
 1. Required or warned: `why` on an accepted decision, and `decidedBy` on
-   one that answers no question. Recommended: the warnings now, the
-   errors with meta-model 0.4, after this repository's own decisions and
-   the examples carry both.
+   one that answers no question. Decided on 2026-10-25: warnings, never
+   errors in a 1.x; meta-model 1.0.0 takes the place of 0.4 (ADR-186).
 2. ADR-083, section 8.1: whether a decision names the change request it
    settles under `answers`, the one link from the specification into the
    records, or the change's `decision` names the decision record. Needed
@@ -491,12 +491,11 @@ none.
 4. **Phase 4, additive, after question 3**: `governs`,
    `decision_governs` and `decision_governs_twice`; `decision_decider`
    under `tracksOrigin`. Then E2, E5, E3.
-5. **Phase 5, breaking, meta-model 0.4 and 0.8.0, after question 1**: `why`
-   required on an accepted decision, `decidedBy` on every accepted
-   decision, `retired_reason` as an error, once every specification in
-   this repository and the examples carry them; a 0.3 file keeps
-   validating with the `meta_model_version` warning, as a 0.2 file does
-   (ADR-055).
+5. **Phase 5, not taken**: `why` required on an accepted decision,
+   `decidedBy` on every accepted decision and `retired_reason` as an
+   error would make a valid 1.0.0 file invalid, which no 1.x may do;
+   question 1 is decided for the warnings, so the reasons stay the
+   warnings of phases 1, 2 and 4 (ADR-186).
 
 Left out on purpose: a reason per field, parameter or step (they trace
 through their holder, as `why` does today); a comment or reviewer-remark

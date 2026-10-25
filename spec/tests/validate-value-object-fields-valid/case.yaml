@@ -1,4 +1,5 @@
 arguments: [validate, .]
 exitStatus: 0
 standardOutput: |
+  implementation/go/case.go.specarch-implementation.yaml:1:25: warning: /specarchImplementation: meta_model_version: the implementation file is written against version 0.1 of its format, an earlier version read beside 1.0.0 with this warning; run specarch upgrade --dry-run on the specification to see what moving it to 1.0.0 changes, and specarch upgrade to move it [meta_model_version@implementation/go/case.go.specarch-implementation.yaml#/specarchImplementation]
   specarch.yaml:1:11: warning: /specarch: meta_model_version: the specification is written against meta-model 0.1, an earlier version read beside 1.0.0 with this warning, and its missing tests are warnings; run specarch derive to write the tests 0.2 and later ask for, then run specarch upgrade --dry-run on the specification to see what moving it to 1.0.0 changes, and specarch upgrade to move it [meta_model_version@specarch.yaml#/specarch]

@@ -1,4 +1,4 @@
-specarch: "0.3"
+specarch: "1.0.0"
 info: { title: Books, name: books, version: 1.0.0 }
 permissions:
   books.read: { description: See books. }

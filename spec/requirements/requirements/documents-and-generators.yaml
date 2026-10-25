@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=../../../schema/specarch-fragment-requirements-0.3.schema.json
+# yaml-language-server: $schema=../../../schema/specarch-fragment-requirements-1.0.schema.json
 requirements:
   SA-7:
     statement: specarch document and specarch generate shall write only into the folder the target owns, and with --check shall fail when the committed output differs.

@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=../../../../schema/specarch-fragment-deployment-0.3.schema.json
+# yaml-language-server: $schema=../../../../schema/specarch-fragment-deployment-1.0.schema.json
 rollback:
   description: The previous build is kept installed beside the new one, so a rollback is a switch, and migrations are written to be reversible.
   steps:

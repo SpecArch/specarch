@@ -1,4 +1,4 @@
-specarchEstate: "0.1"
+specarchEstate: "1.0.0"
 info: { title: Invoicing estate, version: 1.0.0 }
 modules:
   identity: { description: "Holds the estate's clients, roles and trust domain, and issues its tokens.", location: identity, version: 1.0.0 }

@@ -42,14 +42,14 @@ private let releaseURLPattern = try! NSRegularExpression(pattern: #"^(https://ra
 
 /// Lists what moving the file at path to 1.0.0 changes in it, in the order
 /// they appear. program is the program's version, whose release tag a hint
-/// that names a release URL moves to. A file the parser cannot read gives
-/// none; validate's problem at the parser's position is the step left to
-/// the author.
+/// that names a release URL moves to. Of a file the parser reads only in
+/// part, the entries it read are edited; validate's problem at the
+/// parser's position is the step left to the author.
 func upgradeChanges(_ path: String, _ data: [UInt8], _ kind: UpgradeKind, _ program: String) -> [UpgradeChange] {
     var out: [UpgradeChange] = []
     if let c = upgradeHint(path, data, program) { out.append(c) }
     let doc = parseYAML(yamlText(Data(data)))
-    guard let root = doc.root, root.kind == .mapping, doc.problems.isEmpty else { return out }
+    guard let root = doc.root, root.kind == .mapping else { return out }
     if let f = kind.format, let n = root.child(f.key), n.kind == .scalar, n.tag == "!!str", f.isEarlier(n.value),
        let c = scalarChange(path, data, n, currentMetaModel) {
         out.append(c)

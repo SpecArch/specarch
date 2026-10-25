@@ -1,4 +1,4 @@
-specarchImplementation: "0.1"
+specarchImplementation: "1.0.0"
 info: { title: Studio site in JavaScript, version: 1.0.0 }
 implements: { file: ../../specarch.yaml, version: 1.0.0 }
 stack: { language: { name: JavaScript, version: ES2022 } }

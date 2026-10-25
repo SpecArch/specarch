@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.3.schema.json
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-1.0.schema.json
 decisions:
   ADR-142:
     title: A gateway's table of services is printed by the project in SpecArch's gateway table format and read by extract gateway, as the route, permission and workflow tables are, never from the project's own file, and check compares it

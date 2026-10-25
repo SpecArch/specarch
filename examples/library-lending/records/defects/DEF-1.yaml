@@ -1,4 +1,4 @@
-specarchRecord: "0.1"
+specarchRecord: "1.0.0"
 kind: defect
 id: DEF-1
 title: The late fee is not capped at the replacement cost

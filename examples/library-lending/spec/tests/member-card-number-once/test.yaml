@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=../../../../../schema/specarch-fragment-test-0.3.schema.json
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-test-1.0.schema.json
 entity: Member
 constraint: member_card_number_unique
 level: system

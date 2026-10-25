@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=../../../../../schema/specarch-fragment-requirements-0.3.schema.json
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-requirements-1.0.schema.json
 needs:
   NEED-1:
     statement: We need to know who has which copy and when it is due, without a card index.

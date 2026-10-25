@@ -1,5 +1,6 @@
 arguments: [generate, openapi, --unapproved, --estate, project/specarch-estate.yaml, project/loans]
 exitStatus: 1
 standardOutput: |
+  project/specarch-estate.yaml:1:17: warning: /specarchEstate: meta_model_version: the estate is written against version 0.1 of its format, an earlier version read beside 1.0.0 with this warning; run specarch upgrade --dry-run on the specification to see what moving it to 1.0.0 changes, and specarch upgrade to move it [meta_model_version@specarch-estate.yaml#/specarchEstate]
   project/loans/specarch.yaml:18:24: error: /entities/Loan/properties/address/$ref: reference: customer-registry#/schemas/Address names places#/schemas/Street through customer-registry's dependency streets on places 3.1.0 (loans → customer-registry → places), and this run does not give places, so the value cannot be typed by it; give places in the run, as a module of the estate or a folder beside the others; loans need not declare it [reference@specarch.yaml#/entities/Loan/properties/address/$ref]
 plugins: [openapi]

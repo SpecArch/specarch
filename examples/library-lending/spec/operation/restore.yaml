@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=../../../../schema/specarch-fragment-operation-0.3.schema.json
+# yaml-language-server: $schema=../../../../schema/specarch-fragment-operation-1.0.schema.json
 restore:
   description: A restore puts one night's dump back in place of the live database; the loans since that night are re-entered from the desk's paper slips.
   steps:

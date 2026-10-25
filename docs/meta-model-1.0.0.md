@@ -9,34 +9,31 @@ same, on every 1.x, and nothing a 1.0.0 file says changes meaning before a
 2.0.0 would be, how a keyword is deprecated, what 0.3 leaves open that a
 stable version must settle or leave out on purpose, the few changes
 between 0.3 and 1.0.0, how existing specifications reach 1.0.0 without
-being stranded, and a plan in phases. It changes no code, schema or
-generator; it ends with the owner's questions, and nothing below is built
-until they are answered.
+being stranded, the steps it is built in, and the owner's decisions of
+2026-10-25 that settle its questions (ADR-186).
 
 In short:
 
 - Two numbers, kept apart. The meta-model version is the `specarch:`
   line of a specification's root file: which rules the file is written
   against. The program version is the `specarch` command's release
-  (`specarch version`, the git tag, 0.7.x today): which build reads it.
-  Meta-model 1.0.0 ships in a program release of its own, 0.8.0, and the
-  program stays below 1.0 until its command line, its plug-in request and
-  its other file formats are stable too (question 1).
+  (`specarch version`, the git tag): which build reads it. Meta-model
+  1.0.0 ships in program release 1.0.0, and every other format SpecArch
+  reads or writes goes to 1.0.0 with it (the owner's first decision).
 - 1.0.0 freezes the vocabulary of the design schema as 0.3 has it, with
-  two possible renames of a word that means two things (question 4),
-  and with the version line in three parts, after OpenAPI and AsyncAPI.
-  Every keyword the documents leave for later is an addition, so none of
-  them holds 1.0.0 back.
-- The breaking choices are the owner's: whether 1.0.0 ends the reading of
-  0.1 and 0.2, as ADR-055 and ADR-094 promise ("read until 1.0"), which
-  touches 464 of the 732 conformance cases (question 2); and whether
-  the reasons the decision-tracking design plans as errors for a
-  meta-model 0.4 become errors in 1.0.0, stay warnings, or wait for a
-  2.0.0 (question 3).
-- No specification is stranded: 0.3 is read beside 1.0.0 through every
-  1.x release with one warning that names the command that moves it, and
-  `specarch upgrade` (question 5) rewrites a tree line by line, with a dry
-  run that lists every change and changes nothing.
+  two renames of a word that meant two things, a role's `rows` to
+  `rowPolicies` and the handover's `source` to `sourceDelivery`, the old
+  spellings deprecated and still read, and with the version line in three
+  parts, after OpenAPI and AsyncAPI. Every keyword the documents leave for
+  later is an addition, so none of them holds 1.0.0 back.
+- Nothing breaks. Every earlier version, 0.3, 0.2 and 0.1, is read beside
+  1.0.0, none dropped, so the 463 conformance cases on 0.1 and 0.2 stay
+  on their versions; and the reasons the decision-tracking design planned
+  as errors for a meta-model 0.4 stay warnings, so there is no 0.4.
+- No specification is stranded: an earlier version is read beside 1.0.0
+  with one warning that names the command that moves it, and `specarch
+  upgrade` rewrites a tree line by line, with a dry run that lists every
+  change and changes nothing.
 
 ## Two versions and what each means
 
@@ -51,17 +48,15 @@ change. A program release may read several meta-model versions, and
 `specarch version` names them on its second line.
 
 The other formats in `schema/` keep versions of their own, under keys of
-their own: the implementation file (`specarchImplementation: "0.1"`), the
-records (0.1), the idioms (0.1), the estate (0.1), a vocabulary
-(`specarchVocabulary: "0.1"`) and the JSON `specarch model` prints
-(`specarchModel: "0.1"`). 1.0.0 is the specification's format only. Each
-of the others reaches its own 1.0 when its own item says it is stable,
-since each has other readers and changes at its own pace: the
-implementation file still gains a binding with nearly every reader item.
-Until then each stays a 0.x format, and a 0.x format promises nothing
-across its minor versions (Semantic Versioning 2.0.0, item 4). Whether
-the implementation file should go to 1.0.0 together with the
-specification is question 1.
+their own: the implementation file (`specarchImplementation`), the records
+(`specarchRecord`), the idioms (`specarchIdiom`), the estate
+(`specarchEstate`), a vocabulary (`specarchVocabulary`) and the JSON
+`specarch model` prints (`specarchModel`). Each was 0.1 and goes to 1.0.0
+with the meta-model, the same in shape, so each makes the promise below
+from 1.0.0 on; from then each version moves at its own pace, since each
+has other readers. A file on 0.1 is checked against the `-0.1` schema of
+its kind and read beside 1.0.0 with a warning, a vocabulary with none, as
+it is taken whole or refused.
 
 ## What 1.0.0 promises
 
@@ -177,8 +172,8 @@ breaking item has to be settled before 1.0.0.
 
 | Left open | Where | 1.0.0 |
 |---|---|---|
-| 0.1 and 0.2 files "read until 1.0", with the `meta_model_version` warning | ADR-055, ADR-094, `docs/conventions.md` (Tests), `spec/design/commands/version.yaml`, the schema's description of `specarch` | Settled by question 2: kept or ended. Either way 0.3 is read through 1.x. |
-| `why` required on an accepted decision, `decidedBy` on every accepted decision, `retired_reason` as an error, planned as a breaking meta-model 0.4 | `docs/decision-tracking-2026-10-25.md`, 3.5 and phase 5, questions 1 and 5 | Settled by question 3: in 1.0.0, never (warnings), or 2.0.0. 1.0.0 takes the place of the planned 0.4: there is no 0.4. |
+| 0.1 and 0.2 files "read until 1.0", with the `meta_model_version` warning | ADR-055, ADR-094, `docs/conventions.md` (Tests), `spec/design/commands/version.yaml`, the schema's description of `specarch` | Settled by the owner's second decision: 0.1, 0.2 and 0.3 are all read beside 1.0.0, each with the warning, now naming `specarch upgrade` (ADR-186). |
+| `why` required on an accepted decision, `decidedBy` on every accepted decision, `retired_reason` as an error, planned as a breaking meta-model 0.4 | `docs/decision-tracking-2026-10-25.md`, 3.5 and phase 5, questions 1 and 5 | Settled by the owner's third decision: warnings, never errors in a 1.x. 1.0.0 takes the place of the planned 0.4: there is no 0.4. |
 | `alternatives`, `governs`, `proposedBy`, the reasons in `diff` and `gaps`, the approval's `commit` | the same document, phases 1 to 4 | Additions: any 1.x, after that document's questions 2 to 4. |
 | seed data per profile | 0.3, Left out; the roadmap | Left out; an addition when a project asks. |
 | data held in a cache with an expiry, tables kept but unused | 0.2 and 0.3, Left out | Left out of the design for good: the implementation file's, `validity`, `ownedBy` or a question. |
@@ -192,7 +187,7 @@ breaking item has to be settled before 1.0.0.
 | a fixed expression grammar | 0.2, Left out | Settled: the table in `docs/conventions.md` and the conformance cases are the definition. |
 | sender-constrained tokens for people (`cnf`, DPoP), SAML 2.0 sign-in | `docs/caller-context.md`, left out | Left out; additions. |
 | a prefix or a method list on a gateway, routing by a header, rewriting the request | `docs/gateway.md`, left out | Left out; additions. |
-| the schema's other conditionals that read a key in their `if` without requiring it (`page`, `source`, `constraint` and `workflowStep` on `kind`, `parameter` on `in`, `decision` on `status`) | the history of BUG-063 (item 1231), a side finding | Fixed before 1.0.0, in the schema 1.0.0 freezes, so none of it is a 1.x patch. As for the flow step, each is expected to give a second message where one is due and to accept or refuse nothing new; each fix proves that by comparing the old and new rule over every combination, as `TestFlowStepAcceptsWhatItDid` does. A combination the comparison finds the old rule accepting and the new refusing is not taken into the fix: it goes into the changes below as breaking, for `specarch upgrade` to list, or stays accepted. Found after 1.0.0, it is a warning in a 1.x and an error in 2.0.0. |
+| the schema's other conditionals that read a key in their `if` without requiring it (`page`, `source`, `constraint` and `workflowStep` on `kind`, `parameter` on `in`, `decision` on `status`) | the history of BUG-063 (item 1231), a side finding | Fixed in the schema 1.0.0 freezes: each `if` also requires the key it reads, so an object without the key is told only that it is missing. `TestConditionalsAcceptWhatTheyDid` compares each 1.0 rule with the 0.3 one over every such object of the library lending example and SpecArch's own specification, with the key absent or given each value and each key its branches name kept or dropped, and finds no object one accepts and the other refuses. A conditional found after 1.0.0 that refuses too little is a warning in a 1.x and an error in 2.0.0. |
 | a part typed by another module's entity inside a value kept in columns | ADR-184, Not changed | Settled by ADR-184: imported as a schema of the entity's properties; not refused. |
 | a value kept in columns whose module the run does not give | ADR-184 | Settled: the warning `value_object_unchecked`, a list of another module's schema an error from the reference alone. |
 | the 0.3 document's examples written before caller context (`callers: clients`, the `actor` claim) | `docs/meta-model-0.3.md` | Not part of the format: `docs/conventions.md` and the schema are the current truth; the 0.3 plan stays as written for its period, and the 1.0.0 reference names conventions, not the plans. |
@@ -206,23 +201,23 @@ on 1.0.0, or means something else) or additive.
 | Change | Kind | Why |
 |---|---|---|
 | `specarch: "1.0.0"` accepted, and the schema files named for 1.0 | additive | The version line itself. |
-| end the reading of 0.1 and 0.2 (if question 2 says so) | breaking for those files only | The promise of ADR-055 and ADR-094. A 0.3 file is not touched. |
-| the reasons as errors (if question 3 says 1.0.0) | breaking | `why` and `decidedBy` required on an accepted decision and `retired_reason` an error: a valid 0.3 file without them fails. |
-| `rows` on a role renamed `rowPolicies` (question 4) | breaking, mechanical | `rows` means two things: on a role, an expression per entity that limits the records the role reaches (after PostgreSQL's row security policies); on a view property, the records of a one-to-many relation carried in the view (ADR-070). One word with two meanings is the ambiguity the Low IQ Tax rules out, and freezing it keeps it for the whole 1.x. The role's is the newer and the rarer, and PostgreSQL names it a policy. The validator's rule `rows` (`meta-model-0.3.md`, step 1) is renamed `row_policies` in the same change, for files of both versions: a rule's name is frozen from 1.0.0 (What 1.0.0 promises), and a frozen rule named for a key 1.0.0 no longer has would keep the two meanings in the problems file. The problem's pointer stays the file's own key (`/roles/member/rows/Loan` in a 0.3 file, `/roles/member/rowPolicies/Loan` in a 1.0.0 file); the four cases that expect `[rows@...]` change in the rule name only. |
-| `source` on the handover renamed `sourceDelivery` (question 4) | breaking, mechanical | `source` is the key of a declared source on a citation and an operation's id on a page and a picker; on the handover it is a sentence on how the code reaches the customer, which is neither. |
+| end the reading of 0.1 and 0.2 | not taken | The owner keeps every earlier version read beside 1.0.0. |
+| the reasons as errors | not taken | A missing reason stays a warning: an error would make every file without one invalid at once. |
+| `rows` on a role renamed `rowPolicies` | mechanical, the old key deprecated and still read | `rows` means two things: on a role, an expression per entity that limits the records the role reaches (after PostgreSQL's row security policies); on a view property, the records of a one-to-many relation carried in the view (ADR-070). One word with two meanings is the ambiguity the Low IQ Tax rules out, and freezing it keeps it for the whole 1.x. The role's is the newer and the rarer, and PostgreSQL names it a policy. The validator's rule `rows` (`meta-model-0.3.md`, step 1) is renamed `row_policies` in the same change, for files of both versions: a rule's name is frozen from 1.0.0 (What 1.0.0 promises), and a frozen rule named for a key 1.0.0 no longer has would keep the two meanings in the problems file. The problem's pointer stays the file's own key (`/roles/member/rows/Loan` in a 0.3 file, `/roles/member/rowPolicies/Loan` in a 1.0.0 file); the four cases that expect `[rows@...]` change in the rule name only. |
+| `source` on the handover renamed `sourceDelivery` | mechanical, the old key deprecated and still read | `source` is the key of a declared source on a citation and an operation's id on a page and a picker; on the handover it is a sentence on how the code reaches the customer, which is neither. |
 | `via` on an operation and on a relation | kept | On a relation it is the field or join entity a relation goes through; on an operation, the services a call comes through, as HTTP's `Via` header (RFC 9110, section 7.6.3) lists the intermediaries a message came through. Both are "through what", in two objects no reader confuses; the relation's is in nearly every specification, and a rename would cost every file a change for no reader's gain. |
 | `when` on an action and on a test | kept | The test's is Gherkin's given/when/then, a standard's own word in plain text; the action's is an expression. A reader of either knows which object they are in. |
 | `flow` on `signIn` and on a test | kept | The sign-in's is OAuth 2.0's own name for a grant's exchange (RFC 6749, OpenID Connect Core 3.1); the test's names one of the specification's `flows`. |
 | `client` under `signIn` and `clients` | kept | Both are OAuth clients (RFC 6749, section 2): the sign-in's is the client this system is at the identity provider, the others call this system. |
-| the schema conditionals of the table above | none for a file | Made before 1.0.0 freezes; each proven to accept and refuse what it did, so no file's validity changes, one message less where two were given. A part the proof finds refusing more becomes a breaking row of its own. |
+| the schema conditionals of the table above | none for a file | Made before 1.0.0 freezes; each proven to accept and refuse what it did, so no file's validity changes, one message where several were given. |
 
 The names were checked by listing every key the design schema declares in
 more than one definition and reading each description; the four kept and
-the two proposed for renaming are every key with two meanings that list
-holds. `kind`, `status`, `message`, `permission`, `format` and the rest
-mean the same thing wherever they appear. Whether to rename at all is
-question 4; with no rename and no answer of "1.0.0" to question 3, a 0.3
-file becomes a 1.0.0 file by its version line alone.
+the two renamed are every key with two meanings that list holds. `kind`,
+`status`, `message`, `permission`, `format` and the rest mean the same
+thing wherever they appear. Since a deprecated key is still read, a 0.3
+file becomes a valid 1.0.0 file by its version line alone, and `specarch
+upgrade` renames the keys besides.
 
 ## Existing specifications are not stranded
 
@@ -235,17 +230,16 @@ line, and the validator reads it by that version:
   knows: read as that minor, no version warning; the patch is not looked
   at, so the schema's `specarch` is a pattern per minor
   (`^1\.0\.(0|[1-9][0-9]*)$`) rather than a list of releases.
-- `"0.3"`: read as 0.3 through every 1.x release, until 2.0.0, with one
-  warning at the line (`meta_model_version`): `the specification is
-  written against meta-model 0.3, which is read until 2.0.0; run specarch
-  upgrade --dry-run <root> to see what moves it to 1.0.0, then specarch
-  upgrade <root>`. Generated output and the plug-in request carry the
-  file's own version, so the generated headers say what the author wrote.
-- `"0.1"` and `"0.2"`: by question 2, either read as today with the
-  warning naming `specarch upgrade`, or given an error at the line naming
-  `specarch upgrade` and read under 0.3's rules, so that every other
-  problem in the file is still listed (the compiler principle: a version
-  no longer read is an error at its line, never a file left unread).
+- `"0.3"`, `"0.2"` and `"0.1"`: each read under its own version's
+  rules, against `specarch-design-0.3.schema.json`, with one warning at
+  the line (`meta_model_version`): `the specification is written against
+  meta-model 0.3, an earlier version read beside 1.0.0 with this warning;
+  run specarch upgrade --dry-run on the specification to see what moving
+  it to 1.0.0 changes, and specarch upgrade to move it`. A 0.1 file's
+  warning names `specarch derive` first for its missing tests, and a 0.2
+  file's says that 0.3 and later reserve the name `caller`. Generated
+  output and the plug-in request carry the file's own version, so the
+  generated headers say what the author wrote.
 - A version the program does not know (`"1.2.0"` before 1.2 exists), or
   one written in fewer than three parts (`"1.0"`, `"1"`): an error at the
   line naming the versions it reads and, for a later minor, that a later
@@ -254,37 +248,41 @@ line, and the validator reads it by that version:
   the newest version the program knows, so an unknown key it uses is the
   usual error at that key.
 
-When 1.0.0 renames a key (question 4), the program keeps the 0.3 schema
-beside the 1.0 one and checks a 0.3 file against its own, then reads it
-into the 1.0.0 shape in memory, key for key, for the rules, the
-derivation, the documents and the plug-ins, keeping every position. A
-plug-in therefore reads one shape only, the newest; the `specarch` key of
-its request still says what the file declared. With no rename, one schema
-accepts both lines.
+For the renamed keys, the program keeps the 0.3 schema beside the 1.0 one
+and checks a 0.3 file against its own; the rules, the derivation and the
+documents read either spelling as the 1.0.0 key, and a problem's pointer
+names the key the file gives. A plug-in reads one shape only, the newest:
+its request carries every renamed key under its new name, and a problem
+it reports at a new key is placed at the key the file gives; the
+`specarch` key of its request still says what the file declared.
 
 ### `specarch upgrade`
 
-The verb that rewrites a specification to the newest meta-model the
-program reads. `upgrade`, not `migrate`: a specification already has
+The verb that rewrites a specification and every file it is read from
+to the newest version of each format the program reads. `upgrade`, not
+`migrate`, as the owner decided: a specification already has
 `migrations`, the database's, under `deployment`, and `generate sql`
 writes migration files, so `specarch migrate` would read as a database
-command to anyone who knows the rest (question 5).
+command to anyone who knows the rest.
 
     specarch upgrade [--dry-run] [--to <version>] <root>...
 
-- It reads the tree as `validate` does, and rewrites only what the move
-  between the two versions names: the `specarch:` line; the `$schema`
-  line of every file that has one, to the 1.0 schema at the program's
-  release tag; a renamed key, at its line; nothing else. It edits the
+- It reads the tree as `validate` does, with the implementation files,
+  the idioms and the records beside it and an estate named, and rewrites
+  only what the move names: the version line of each file's format; the
+  `$schema` line of every file that has one, to the 1.0 schema of its
+  kind, a release URL at the program's release tag; a renamed key, at its
+  line; nothing else. It edits the
   text at the line and column the parser gives, so comments, order,
   quoting and blank lines stay byte for byte as they were; it never
   re-serialises a file.
-- What it cannot do mechanically it does not do, and lists: a field,
-  property or input named `caller` in a 0.2 file (the name is the
-  author's); the tests a 0.1 file lacks, which `specarch derive` writes
-  (one verb for one job); a decision without `why` if question 3 makes it
-  an error. Each is a problem line at its entry, with the command or the
-  edit that settles it.
+- What it cannot do mechanically it does not do, and lists: every error
+  the specification would have on 1.0.0 that it does not have on its own
+  version, such as a field, property or input named `caller` in a 0.2
+  file (the name is the author's) or a test a 0.1 file lacks, which
+  `specarch derive` writes (one verb for one job); a key given under both
+  spellings; and a file the parser cannot read. Each is a problem line at
+  its entry, with the command or the edit that settles it.
 - `--dry-run` writes nothing and prints every change as
   `<file>:<line>:<column>: <old> -> <new>` and every step left to the
   author as a problem line, in file and line order. The exit code is the
@@ -298,9 +296,10 @@ command to anyone who knows the rest (question 5).
   read is a step left to the author at the parser's position, since the
   move cannot be checked there. Without `--dry-run` it writes the
   changes, prints the same lines and exits the same way.
-- `--to` names the version to move to, the newest by default; a version
-  older than the file's is a usage error. A tree already on the target
-  version prints nothing and exits 0, so a second run changes nothing.
+- `--to` names the version to move to, the newest by default and the
+  only one this program writes, 1.0.0; another is a usage error. A tree
+  already on 1.0.0 prints nothing and exits 0, so a second run changes
+  nothing.
 - An estate's modules are upgraded one root at a time: each module
   declares its own version, and a module on 0.3 references one on 1.0.0
   as it references one on 0.3 today.
@@ -313,17 +312,18 @@ validator does and the two must agree on where a key is.
 
 | Reader | What changes | Done by |
 |---|---|---|
-| the validator, Go and Swift | the version enum, the version checks that compare strings (`caller.go`, `tests.go`, `Caller.swift`, `Tests.swift` test `!= "0.1"` and `!= "0.2"`: they become a comparison by version order), the warning texts, which today tell a 0.1 or 0.2 file to move to `"0.3"` and say "until 1.0", the schema id in `internal/validate/schema.go`, the embedded schemas (`schema/embed.go`, `swift/embed-schemas.sh` writing `Schemas.swift`) | step 1, and step 3 for the warnings |
-| `specarch version` | the second line: `specifications: meta-model 1.0.0, and 0.3 until 2.0.0, with a warning` | step 1 |
-| `specarch extract` and `merge` | the root's version (`internal/extract/tree.go`, `"0.3"`) and the `$schema` line it writes, pinned to the release tag | step 2 |
+| the validator, Go and Swift | the schema chosen by the version line, the version checks made a comparison by version order (`internal/metamodel`, `MetaModel.swift`), the warning texts naming `specarch upgrade`, the embedded schemas (`schema/embed.go`, `swift/embed-schemas.sh` writing `Schemas.swift`) | step 1, and step 4 for the warnings of 0.3 and of the other formats' 0.1 |
+| `specarch version` | a line per kind of file: `specifications: meta-model 1.0.0 and any later 1.0 patch, and 0.3, 0.2 and 0.1 with a warning` | steps 1 and 2 |
+| `specarch extract` and `merge` | the root's version (`internal/extract/tree.go`) and the `$schema` line it writes, pinned to the release tag | step 3 |
 | the fragment schemas | `tools/fragment-schemas` (`designFile`), the seven `specarch-fragment-*` files | step 1 |
-| the generators and the 12 plug-ins | the `specarch` key of the request and the header of every generated file ("meta-model 0.3" becomes the file's own version); no plug-in tests the version, and with the in-memory reading they read one shape | step 1 (headers follow the file), step 4 for a rename |
-| the conformance cases and golden files | 732 cases, counted by every line-anchored `specarch:` line in a case's files outside `expected/` (the inputs), then in `expected/` (the outputs): 448 cases have inputs on 0.1, 14 on 0.2, one on both 0.1 and 0.2 (`merge-role-names-disagree`), 136 on 0.3; 79 have none in their inputs and a 0.3 tree in their outputs (`extract-*` cases, whose input is code); 54 have none at all: 28 `extract-*` cases that stop before writing a tree (a usage error, a stale dump, a refused input), 4 each of `diagnostic-*`, `document-*` and `validate-*`, 3 `facts-*`, 2 each of `idioms-*`, `model-*` and `version-*`, and one each of `check-*`, `derive-*`, `gaps-*`, `generate-*` and `merge-*`, mostly usage errors. 33 hold more than one version, all `merge-*` cases whose inputs are on 0.1 or 0.2 and whose merged tree is on 0.3. 245 expect a `meta_model_version` warning; 161 of the 0.1 cases expect a missing-test warning that becomes an error on 0.2 and after; 49 have expected output naming meta-model 0.3. Cases that test a version on purpose (`validate-meta-model-0-2-missing-test`, `validate-0-3-meta-model-0-2`, `derive-meta-model-0-2` and its sibling) stay on their version. Every other case with a version in its inputs moves by `specarch upgrade` itself, which is its largest proof. A case whose version is only in its outputs (the 79 `extract-*` and the merged trees of the 33 `merge-*`) has nothing to upgrade: its expected tree is rewritten by running the case once `extract` and `merge` write 1.0.0 (step 2), and the review reads that diff. A case with no version is untouched, except the `version-*` cases, whose expected line changes in step 1 | steps 1 to 3 |
-| the examples in this repository | library-lending, lending-desk, estate, notice-board, reading-list, room-booking: the version lines, the `$schema` lines, the trees each `extract.sh` writes, and 274 generated documents and files naming meta-model 0.3 | step 3, by `specarch upgrade` and `scripts/regenerate.sh` |
-| `spec/`, SpecArch's own specification | its version line and `$schema` lines; the design of `version` and the new `upgrade` | steps 1 and 2 |
-| the documents | `docs/conventions.md` (Tests, the version paragraph), `README.md`, `docs/manual.md` (generated), the roadmap, the release notes, a decision record that supersedes the "until 1.0" of ADR-055 and ADR-094 | each step its own part; the decision record with step 1 |
-| the editor's vendored schemas (`apps/myowncodeeditor/Vendor/SpecArchSchemas`) | the 1.0 schemas beside the 0.3 ones for the whole 1.x, `VERSION` at the program release that ships 1.0.0, and the editor choosing the schema by a file's `$schema` line or its root's `specarch:` line | an item for the editor's repository, after step 1 is released; listed for the owner, not queued |
-| specifications kept outside this repository, such as the owner's private example rebuilds in the umbrella repository | nothing until their owners choose: they keep validating on 0.3 with the warning; `specarch upgrade` moves each | an item per repository, listed for the owner, not queued |
+| the generators and the 12 plug-ins | the `specarch` key of the request and the header of every generated file, which follows the file's own version; no plug-in tests the version, and the request carries the renamed keys under their new names | step 1 |
+| the conformance cases and golden files | 732 cases before 1.0.0, counted by every line-anchored `specarch:` line in a case's files outside `expected/` (the inputs), then in `expected/` (the outputs): 448 cases had inputs on 0.1, 14 on 0.2, one on both (`merge-role-names-disagree`), 136 on 0.3; 79 `extract-*` cases had none in their inputs and a 0.3 tree in their outputs; 54 had none at all. The 463 cases on 0.1 and 0.2 stay on their versions, each now with the warning naming `specarch upgrade`, and with the warning of every implementation file, record, idiom or estate of theirs on 0.1. The cases on 0.3 are moved by `specarch upgrade`, its largest proof, apart from those kept on 0.3 on purpose: `validate-0-3-rows`, `validate-tenant-rows-overridden`, `validate-schema-conditionals-0-3`, `generate-sql-0-3-rows-mariadb` and the inputs of the `upgrade-*` cases. The expected trees of the `extract-*` and `merge-*` cases are on 1.0.0, since both write 1.0.0. Every expected output was recorded again from a run and read as a diff: it differs only in the version lines and hints, the version warnings, the headers naming the meta-model, the renamed keys' pointers and the single message of a fixed conditional | steps 1 to 4 |
+| the examples in this repository | library-lending, lending-desk, estate, notice-board, reading-list, room-booking: the version lines, the `$schema` lines, the trees each `extract.sh` writes, and the generated documents and files naming the meta-model | step 4, by `specarch upgrade` and `scripts/regenerate.sh` |
+| `spec/`, SpecArch's own specification, and its records | its version line and `$schema` lines; the design of `version` and the new `upgrade`; the records beside it | steps 1, 3 and 4 |
+| the shipped idioms | the `specarchIdiom` line of each, and its hint | step 4 |
+| the documents | `docs/conventions.md` (Tests, Meta-model versions), `README.md` with the compatibility statement, `docs/manual.md` (generated), the roadmap, the release notes, ADR-186, which settles the "until 1.0" of ADR-055 and ADR-094 | each step its own part |
+| the editor's vendored schemas (`apps/myowncodeeditor/Vendor/SpecArchSchemas`) | the 1.0 schemas beside the 0.3 and 0.1 ones for the whole 1.x, `VERSION` at the program release that ships 1.0.0, and the editor choosing the schema by a file's `$schema` line or its root's `specarch:` line; the `specarchModel` it reads is 1.0.0 | an item for the editor's repository, after the release; listed for the owner, not queued |
+| specifications kept outside this repository, such as the owner's private example rebuilds in the umbrella repository | nothing until their owners choose: they keep validating on their version with the warning; `specarch upgrade` moves each | an item per repository, listed for the owner, not queued |
 
 ## The version strings and files
 
@@ -332,108 +332,85 @@ validator does and the two must agree on where a key is.
 | the root file's line | `specarch: "0.3"` | `specarch: "1.0.0"`, three parts, after OpenAPI's `openapi: 3.1.0` and AsyncAPI's `asyncapi: 3.0.0`; a later minor is `"1.1.0"`, and the patch never changes what a file means |
 | the design schema | `schema/specarch-design-0.3.schema.json`, `$id` `https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-design-0.3.schema.json`, title `SpecArch specification, meta-model 0.3` | `schema/specarch-design-1.0.schema.json`, `$id` `.../schema/specarch-design-1.0.schema.json`, title `SpecArch specification, meta-model 1.0`: one file per major and minor, as OpenAPI publishes one schema per minor (`https://spec.openapis.org/oas/3.1/schema/`), since a patch changes no file's validity; a 1.1 adds `specarch-design-1.1.schema.json` |
 | the fragment schemas | `specarch-fragment-<stage>-0.3.schema.json` | `specarch-fragment-<stage>-1.0.schema.json` |
+| the other formats' schemas | `specarch-<kind>-0.1.schema.json` for the implementation file, the record, the idiom and the estate | `specarch-<kind>-1.0.schema.json`, the same in shape, its version line a pattern per minor |
 | the `$schema` lines in a tree | `.../SpecArch/specarch/v0.7.5/schema/specarch-design-0.3.schema.json` or a relative path to `schema/` | the same form, at the release tag that ships 1.0.0 and the 1.0 file name |
-| the 0.3 schema | the current schema | kept in `schema/` through the whole 1.x, for the 0.3 files and the editors that load it, with its description naming 2.0.0 as the end of its reading |
+| the 0.3 schema | the current schema | kept in `schema/` for the files on 0.3, 0.2 and 0.1 and the editors that load it, with its description naming the 1.0 schema and `specarch upgrade` |
 | the document | `docs/meta-model-0.3.md` | this file, `docs/meta-model-1.0.0.md` |
-| the release notes | `docs/releases.md` from the release records | the release of 0.8.0 lists meta-model 1.0.0 under added, the end of 0.1 and 0.2 (if question 2 says so) under removed, and the compatibility statement below |
+| the release notes | `docs/releases.md` from the release records | the release of 1.0.0 lists meta-model 1.0.0 under added, and the compatibility statement below |
 
-The compatibility statement, for the README and the release notes once
-1.0.0 is built:
+The compatibility statement, in the README and for the release notes:
 
 > SpecArch specifications are written against a meta-model version, the
 > `specarch:` line of the root file. From 1.0.0 the meta-model follows
 > Semantic Versioning: a file valid on 1.0.0 stays valid and means the
 > same on every 1.x; a 1.x only adds. A keyword is deprecated with a
-> warning before a 2.0.0 removes it, and every 1.x file is read beside
-> 2.0.0 for the whole 2.x. A 0.3 file is read beside 1.0.0 until 2.0.0,
-> with a warning; `specarch upgrade` moves it. The program's own version
-> (`specarch version`) is a separate number.
+> warning before a 2.0.0 removes it. Every earlier version, 0.3, 0.2 and
+> 0.1, is read beside 1.0.0 with a warning; `specarch upgrade` moves a
+> file on one of them. The program's own version (`specarch version`) is
+> a separate number.
 
-## The plan
+## The steps it is built in
 
-Each step is one item, built spec first in both builds where the
-validator changes, with its conformance cases, the documents regenerated
-and a history entry. Steps 1 to 3 hold whatever the questions answer;
-step 4 exists only if question 3 or 4 asks for a breaking change.
+Each step is built spec first, in both builds where the validator
+changes, with its conformance cases, the documents regenerated and a
+history entry, and passes `scripts/landing-check.sh` on its own.
 
-1. **Accept 1.0.0, change nothing else.** The 1.0 pattern beside the
-   0.1, 0.2 and 0.3 values of the version enum,
-   the 1.0 schema files beside the 0.3 ones (identical apart from the
-   version enum, the title and the descriptions of `specarch`), the
-   version checks made a comparison by version order in both builds, the
-   decision record that supersedes "until 1.0", `specarch version`'s
-   line, the fragment schemas. Done when a new case
-   `validate-meta-model-1-0-0` holds that a tree validates on `"1.0.0"`
-   with exactly the output it gives on `"0.3"` less the version warning,
-   in both builds; a case holds an unknown version (`"1.0"`, `"1.2.0"`)
-   as an error at the line with every other problem still listed; and
-   every existing case passes unchanged. The smallest safe step: no file
-   in the repository changes its version, so nothing a user has changes
-   meaning.
-2. **`specarch upgrade`.** Its design in `spec/design/commands/`, its
+1. **Accept 1.0.0 beside every earlier version.** The 1.0 design schema
+   beside the 0.3 one, chosen by the version line; a version line the
+   program does not read an error at the line; the two renames with the
+   old keys deprecated and the rule `row_policies`; the conditionals
+   fixed with their proof; the version checks made a comparison by
+   version order; the 0.1 and 0.2 warnings naming `specarch upgrade`;
+   ADR-186; `specarch version`'s line; the fragment schemas of both
+   versions. `validate-meta-model-1-0-0` holds that a tree gives on
+   `"1.0.0"` exactly the output it gives on `"0.3"`.
+2. **Every other format at 1.0.0.** The `-1.0` schemas of the
+   implementation file, the record, the idiom and the estate beside their
+   `-0.1` ones, a vocabulary read on 0.1 and 1.0.x, `approve` writing
+   records on 1.0.0, `specarchModel` 1.0.0.
+3. **`specarch upgrade`.** Its design in `spec/design/commands/`, its
    design tests (a dry run listing every change, a run that writes them
    byte for byte, a second run that changes nothing, a 0.2 file with a
-   field named `caller` left to the author, comments and quoting kept,
-   an estate of two modules on two versions), both builds; `extract`
-   and `merge` writing 1.0.0 trees. Done when the cases pass in both
-   builds with the same output.
-3. **Move the repository.** The 0.3 warning naming `specarch upgrade`;
-   `spec/`, the examples and every case not on a version on purpose
-   moved by `specarch upgrade` (and `specarch derive` for the 0.1 cases
-   whose missing tests become errors, if question 2 ends 0.1), the
-   documents regenerated. Done when `specarch validate spec examples`,
-   `scripts/regenerate.sh` and `scripts/landing-check.sh` pass in both
-   builds, the extract scripts are byte-identical on two runs, and the
-   cases kept on 0.1, 0.2 and 0.3 still give their version's output.
-4. **The breaking parts, if any** (questions 3 and 4): the renames with
-   the 0.3 schema checked and the in-memory reading, `upgrade` rewriting
-   them; the reasons as errors. Done when a 0.3 file using `rows` on a
-   role validates with the same rules and output on 0.3 as before, and
-   its upgraded copy validates on 1.0.0 with the same problems at the
-   same entries.
-5. **Release.** Program 0.8.0, with the release notes and the
+   field named `caller` left to the author, a 0.1 file's missing tests,
+   comments and quoting kept, an estate of modules on two versions, a key
+   given twice, a file the parser cannot read), both builds; `extract`
+   and `merge` writing 1.0.0 trees.
+4. **Move the repository.** The warning of a 0.3 specification and of the
+   other formats' 0.1, each naming `specarch upgrade`; `spec/`, its
+   records, the examples, the shipped idioms and every case not kept on
+   its version moved by `specarch upgrade`; the documents regenerated.
+   `specarch validate spec examples`, `scripts/regenerate.sh` and
+   `scripts/landing-check.sh` pass in both builds, and the extract
+   scripts of the examples run clean.
+5. **Release.** Program 1.0.0, with the release notes and the
    compatibility statement; then the editor's item and the external
    specifications, by their owners.
 
 The proof that old specifications still work is the conformance suite
-itself: every case keeps its expected output through steps 1 and 2; in
-step 3 every moved case's output differs from before only in the
-version warning and the generated headers, which the step's review reads
-as a diff of the expected files; the cases kept on purpose on 0.1, 0.2 and
-0.3 run in CI for the whole 1.x.
+itself: the cases kept on 0.1, 0.2 and 0.3 give their version's output,
+with the version warning, and run in CI for the whole 1.x; every moved
+case's output differs from before only in what the move names.
 
-Rollback: step 1 is undone by removing `"1.0.0"` from the enum and the
-1.0 files; no specification declares it yet. Step 2 adds a verb and
-removes nothing. Step 3 is one commit per kind of tree (cases, examples,
-`spec/`) and is undone by reverting that commit; `specarch upgrade`
-never downgrades, so the way back is git's. Nothing is released before step 3
-passes, and a released 0.8.0 still reads 0.3, so a user who meets a
-problem stays on their 0.3 file and loses nothing.
+Rollback: each step is one commit and is undone by reverting it;
+`specarch upgrade` never downgrades, so the way back is git's. A
+released 1.0.0 still reads 0.3, 0.2 and 0.1, so a user who meets a
+problem stays on their file's version and loses nothing.
 
-## For the owner to decide
+## The owner's decisions
 
-1. Is meta-model 1.0.0 the specification's format alone, with the
-   program at 0.8.0 and the implementation file, records, idioms, estate,
-   vocabulary and model JSON on their own 0.x versions? Recommended: yes;
-   the program reaches 1.0 when its command line and plug-in request are
-   stable, and the implementation file its own 1.0 in an item of its own.
-   Or did you mean the program, `specarch` itself, to be 1.0.0 as well?
-2. 0.1 and 0.2 at 1.0.0: end their reading as ADR-055 and ADR-094
-   promise (an error at the line naming `specarch upgrade`, the file
-   still read under 0.3's rules), or keep reading them with the warning
-   through 1.x? Recommended: end it, as promised; it moves 463 cases, and
-   161 of the 0.1 cases need `specarch derive` for tests that become
-   required.
+The owner answered the five questions on 2026-10-25:
+
+1. Scope: every file kind goes to 1.0.0, not the specification's format
+   alone, and the program is 1.0.0. The implementation file, the
+   records, the idioms, the estate, the vocabulary and the model JSON are
+   each 1.0.0, each still under a key and a version of its own.
+2. Earlier versions: the program keeps reading every one of them, 0.1,
+   0.2 and 0.3, beside 1.0.0; none is dropped, and the 463 cases on 0.1
+   and 0.2 stay on their versions.
 3. The reasons of `docs/decision-tracking-2026-10-25.md` (`why` and
-   `decidedBy` on an accepted decision, `retired_reason`): errors in
-   1.0.0, warnings for good, or errors only in a 2.0.0? Recommended:
-   warnings for good; a missing reason is an incomplete specification,
-   which the problems file shows and which is read like any other, and an
-   error would make every 1.x file without one invalid at once.
-4. The renames: `rows` on a role to `rowPolicies`, `source` on the
-   handover to `sourceDelivery`, or neither. Recommended: both, now,
-   since after 1.0.0 each would wait for 2.0.0; both are mechanical and
-   `specarch upgrade` does them.
-5. The verb: `specarch upgrade`, or `specarch migrate` as asked?
-   Recommended: `upgrade`, since `migrate` reads as the database's
-   migrations.
+   `decidedBy` on an accepted decision, `retired_reason`): a missing one
+   is a warning in 1.0.0, not an error.
+4. The renames: `rows` on a role to `rowPolicies` and `source` on the
+   handover to `sourceDelivery`, before the freeze; the old keys are
+   deprecated (`meta_model_deprecated`) and still read.
+5. The verb: `specarch upgrade`, with `--dry-run`, not `migrate`.

@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=../../../../schema/specarch-fragment-operation-0.3.schema.json
+# yaml-language-server: $schema=../../../../schema/specarch-fragment-operation-1.0.schema.json
 backup:
   description: The database is the only state; a nightly dump of it, kept for ninety days, is the backup.
   steps:

@@ -1,4 +1,4 @@
-specarch: "0.3"
+specarch: "1.0.0"
 info: { title: Case, version: 1.0.0 }
 entities:
   Organisation:
@@ -34,7 +34,7 @@ roles:
   member:
     description: A card holder of one organisation.
     permissions: [loans.read]
-    rows:
+    rowPolicies:
       Organisation: id == caller.organisationId
   staff:
     description: Staff of one organisation.

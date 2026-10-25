@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=../../../../../schema/specarch-fragment-design-0.3.schema.json
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-design-1.0.schema.json
 enums:
   LoanStatus:
     type: string

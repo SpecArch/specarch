@@ -359,9 +359,10 @@ answers with. `docs/generators.md` has the protocol.
 
 ## Status
 
-Version 0.3 of the meta-model, October 2026; a file written against 0.2
-or 0.1 is read until 1.0, a 0.1 file with its missing tests as warnings. Release 0.7.5 is the
-latest. The schemas, the tree layout and the seven stages, SpecArch's own
+Version 1.0.0 of the meta-model, October 2026, the first stable version;
+a file written against 0.3, 0.2 or 0.1 is read beside it with a warning, a
+0.1 file with its missing tests as warnings, and `specarch upgrade` moves
+it. Release 0.7.5 is the latest. The schemas, the tree layout and the seven stages, SpecArch's own
 specification, six examples, the validator in Go and in Swift, fifteen
 documents, open questions with the gaps report, `decide` and the
 comparison, the approval gate on generation, the extract readers with `merge`, `check`, `diff`, `derive`

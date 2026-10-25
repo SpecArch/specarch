@@ -928,6 +928,8 @@ extension Checker {
             warn(v, "/specarch", .metaModelVersion, "the specification is written against meta-model 0.1, an earlier version read beside \(currentMetaModel) with this warning, and its missing tests are warnings; run specarch derive to write the tests 0.2 and later ask for, then \(upgrade)")
         case "0.2":
             warn(v, "/specarch", .metaModelVersion, "the specification is written against meta-model 0.2, an earlier version read beside \(currentMetaModel) with this warning; 0.3 and later reserve the name caller for the caller record, so rename any field, property or input called caller, then \(upgrade)")
+        case "0.3":
+            warn(v, "/specarch", .metaModelVersion, "the specification is written against meta-model 0.3, an earlier version read beside \(currentMetaModel) with this warning; \(upgrade)")
         default:
             if v.tag == "!!str", let problem = MetaModelFormat.design.problem(v.value) {
                 add(v, "/specarch", .metaModelVersion, "the meta-model version \(problem)")

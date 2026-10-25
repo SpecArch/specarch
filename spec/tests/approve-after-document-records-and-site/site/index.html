@@ -96,14 +96,14 @@ ol.problems p{margin:2px 0}
 <li><a href="#tests-and-traceability">Tests and traceability</a><ol>
 <li><a href="#traceability">Traceability</a></li>
 </ol></li>
-<li><a href="#problems">Problems</a> <span class="count">1</span></li>
+<li><a href="#problems">Problems</a> <span class="count">7</span></li>
 </ol></nav>
 <main>
 <section class="group" id="overview">
 <h1>Case</h1>
 <p>Version 1.0.0; meta-model 0.1; stages requirements, implementation.</p>
 <p class="notice"><strong>Approval:</strong> not approved: there is no records/approvals/1.0.0.yaml beside the specification</p>
-<p><a href="#problems">0 errors, 1 warning and 0 open questions</a>; each is listed under Problems and marked at the entry it concerns.</p>
+<p><a href="#problems">0 errors, 7 warnings and 0 open questions</a>; each is listed under Problems and marked at the entry it concerns.</p>
 <table class="counts"><thead><tr><th scope="col">Section</th><th scope="col">Elements</th></tr></thead><tbody>
 <tr><td><a href="#/stakeholders">Stakeholders</a></td><td>1</td></tr>
 <tr><td><a href="#/requirements">Requirements</a></td><td>1</td></tr>
@@ -157,9 +157,33 @@ ol.problems p{margin:2px 0}
 <h2>Problems</h2>
 <p>Every error, warning and open question, in the order of the problems file, each with the file and line it is at and the entry it marks. The same problems are in problems.txt and problems.sarif.</p>
 <ol class="problems">
+<li class="warning" data-search id="problem-meta_model_version@implementation/go/case.go.specarch-implementation.yaml%23/specarchImplementation">
+<p><code>../project/implementation/go/case.go.specarch-implementation.yaml:1:25: warning: /specarchImplementation: meta_model_version: the implementation file is written against version 0.1 of its format, an earlier version read beside 1.0.0 with this warning; run specarch upgrade --dry-run on the specification to see what moving it to 1.0.0 changes, and specarch upgrade to move it [meta_model_version@implementation/go/case.go.specarch-implementation.yaml#/specarchImplementation]</code></p>
+<p>Not at an entry of the specification; the file and line above say where it is.</p>
+</li>
 <li class="warning" data-search id="problem-meta_model_version@specarch.yaml%23/specarch">
 <p><code>../project/specarch.yaml:1:11: warning: /specarch: meta_model_version: the specification is written against meta-model 0.1, an earlier version read beside 1.0.0 with this warning, and its missing tests are warnings; run specarch derive to write the tests 0.2 and later ask for, then run specarch upgrade --dry-run on the specification to see what moving it to 1.0.0 changes, and specarch upgrade to move it [meta_model_version@specarch.yaml#/specarch]</code></p>
 <p>At <code>/specarch</code>, which this page does not show.</p>
+</li>
+<li class="warning" data-search id="problem-meta_model_version@../records/changes/CR-1.yaml%23/specarchRecord">
+<p><code>../records/changes/CR-1.yaml:1:17: warning: /specarchRecord: meta_model_version: the record is written against version 0.1 of its format, an earlier version read beside 1.0.0 with this warning; run specarch upgrade --dry-run on the specification to see what moving it to 1.0.0 changes, and specarch upgrade to move it [meta_model_version@../records/changes/CR-1.yaml#/specarchRecord]</code></p>
+<p>Not at an entry of the specification; the file and line above say where it is.</p>
+</li>
+<li class="warning" data-search id="problem-meta_model_version@../records/changes/CR-2.yaml%23/specarchRecord">
+<p><code>../records/changes/CR-2.yaml:1:17: warning: /specarchRecord: meta_model_version: the record is written against version 0.1 of its format, an earlier version read beside 1.0.0 with this warning; run specarch upgrade --dry-run on the specification to see what moving it to 1.0.0 changes, and specarch upgrade to move it [meta_model_version@../records/changes/CR-2.yaml#/specarchRecord]</code></p>
+<p>Not at an entry of the specification; the file and line above say where it is.</p>
+</li>
+<li class="warning" data-search id="problem-meta_model_version@../records/defects/DEF-1.yaml%23/specarchRecord">
+<p><code>../records/defects/DEF-1.yaml:1:17: warning: /specarchRecord: meta_model_version: the record is written against version 0.1 of its format, an earlier version read beside 1.0.0 with this warning; run specarch upgrade --dry-run on the specification to see what moving it to 1.0.0 changes, and specarch upgrade to move it [meta_model_version@../records/defects/DEF-1.yaml#/specarchRecord]</code></p>
+<p>Not at an entry of the specification; the file and line above say where it is.</p>
+</li>
+<li class="warning" data-search id="problem-meta_model_version@../records/releases/1.0.0.yaml%23/specarchRecord">
+<p><code>../records/releases/1.0.0.yaml:1:17: warning: /specarchRecord: meta_model_version: the record is written against version 0.1 of its format, an earlier version read beside 1.0.0 with this warning; run specarch upgrade --dry-run on the specification to see what moving it to 1.0.0 changes, and specarch upgrade to move it [meta_model_version@../records/releases/1.0.0.yaml#/specarchRecord]</code></p>
+<p>Not at an entry of the specification; the file and line above say where it is.</p>
+</li>
+<li class="warning" data-search id="problem-meta_model_version@../records/releases/1.1.0.yaml%23/specarchRecord">
+<p><code>../records/releases/1.1.0.yaml:1:17: warning: /specarchRecord: meta_model_version: the record is written against version 0.1 of its format, an earlier version read beside 1.0.0 with this warning; run specarch upgrade --dry-run on the specification to see what moving it to 1.0.0 changes, and specarch upgrade to move it [meta_model_version@../records/releases/1.1.0.yaml#/specarchRecord]</code></p>
+<p>Not at an entry of the specification; the file and line above say where it is.</p>
 </li>
 </ol>
 </section>

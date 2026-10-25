@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.3.schema.json
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-1.0.schema.json
 decisions:
   ADR-186:
     title: Meta-model 1.0.0 is the first stable version of every SpecArch format, read beside every earlier version, with two keys renamed and deprecated, the schema's conditionals made to require the key they read, and specarch upgrade to move a file

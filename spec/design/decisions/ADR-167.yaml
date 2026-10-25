@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.3.schema.json
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-1.0.schema.json
 decisions:
   ADR-167:
     title: specarch-gen-scripts writes a guarded script for MariaDB as one compound statement the mariadb client runs, with user variables given in --init-command, each checked against its column's form before anything is read, in a strict session

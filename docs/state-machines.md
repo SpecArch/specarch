@@ -422,7 +422,8 @@ starts it at its initial state, and leaving them resets it. The scoped
 machine is inner to the states it is within, so the order of 3.4 holds
 across the two: when JobRun leaves `running` and `paused`, JobLink's
 active states exit first, innermost first, its field is set to its
-initial state and its entry instant to that of the move, and then
+initial state and its entry instant, when its transitions use `after`,
+to that of the move, and then
 JobRun's exits run; when JobRun enters one of them, JobRun's entries run
 first and then the entry of JobLink's initial state, all in the one
 change of JobRun's move. A transition of JobLink whose `from` is its
@@ -537,8 +538,9 @@ are; and for each composite state that is the `from` of an `after`, the
 field `<stateField><State>EnteredAt` (`stateJobRunningEnteredAt` for
 `running` of `stateJob`), set when the composite is entered from outside
 it, left as it is on a move between its descendants, and null while the
-machine is not in it. A machine `within` another has its
-`<stateField>EnteredAt` set by the move that resets it. The names are
+machine is not in it. A machine `within` another whose transitions use
+`after` has its `<stateField>EnteredAt` set by the move that resets it.
+The names are
 fields' names in form and follow `wireNames` into the table as every
 field does; `generate sql` writes the columns as it writes the audit
 columns, and the technical specification lists them with the entity's

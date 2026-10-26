@@ -14514,8 +14514,8 @@ within, the machine and its states: it is in its initial state and
 fires nothing while the other is elsewhere, starts at its initial
 state when one of them is entered and is reset when they are left;
 it is inner to those states, so on leaving them its exits run
-before the other machine's and its field and entry instant are set
-by that move, and on entering them its initial state's entry runs
+before the other machine's and its field and, when it has one, its
+entry instant are set by that move, and on entering them its initial state's entry runs
 after the other machine's entries, in the one change.
 There is no region inside a state, no do activity, no choice,
 junction, fork or join vertex, no deferred event and no submachine

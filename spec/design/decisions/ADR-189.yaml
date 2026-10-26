@@ -2,7 +2,7 @@
 decisions:
   ADR-189:
     title: A state machine is a named element with a control state that is one enum's value and an extended state that is the entity's fields or its own variables; an entity's stateField and transitions stay the short form of one flat machine, and stateMachines is the full form
-    status: proposed
+    status: accepted
     date: "2026-10-26"
     context: |
       The owner said on 2026-10-26 that state diagrams and state variables

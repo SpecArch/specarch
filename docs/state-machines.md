@@ -12,8 +12,8 @@ nested and parallel states, history, time, initial and final states; the
 checks in both validators and the diagram. Each concept is mapped to UML
 2.5.1 and to W3C SCXML 1.0 with the reason SpecArch follows or departs from
 each. It changes no code, schema or generator: the decision records
-ADR-189 to ADR-192 hold the choices with `status: proposed`, and the owner
-is asked to approve or change them before anything is built.
+ADR-189 to ADR-192 hold the choices, approved by the owner on 2026-10-26
+before anything is built.
 
 In short:
 
@@ -705,8 +705,8 @@ Here the first two `answerChallenge` conditions are shown exclusive
 - ADR-192: the checks (4), the diagram (5), the documents, tests and
   generators (6), and the version step (7).
 
-Each is `status: proposed` until the owner approves; the build items
-follow the approval, in the order of 11.
+The owner approved the design on 2026-10-26; the build items follow in
+the order of 11.
 
 ## 10. Open for the owner
 

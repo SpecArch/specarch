@@ -2,7 +2,7 @@
 decisions:
   ADR-191:
     title: A state carries entry, exit, an invariant, child states with their initial, history and final; a stored machine's initial state is its field's default; parallel states are several machines of one entity, one field each, a machine within another's states when its life is scoped to them
-    status: proposed
+    status: accepted
     date: "2026-10-26"
     context: |
       A state is a bare enum value: nothing happens on entering or

@@ -613,7 +613,7 @@ requirements:
     statement: A specification shall describe a state machine by its control state, one enum's value held in an entity's field or named by the machine, and its extended state, the entity's fields or the machine's variables with their types, defaults and constraints; a transition shall say its cause, its condition, what it sets and the else case; a state shall carry entry, exit, an invariant, child states, history and finality; an entity may have several machines, a machine may have no entity, and the validator and the diagram shall show the machine as it is.
     kind: functional
     priority: must
-    status: proposed
+    status: accepted
     acceptance:
       - An entity's stateField and transitions are read as one machine as before, with no new line on a file written today, and the transitions take when, set, otherwise, after, at and enter.
       - A machine under stateMachines with an entity, a stateField, states, final and transitions validates; one naming an unknown entity, field, enum or within machine is reported at the key with the rest of the machine read.

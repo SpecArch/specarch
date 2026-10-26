@@ -2,7 +2,7 @@
 decisions:
   ADR-190:
     title: A transition has one cause (trigger, after a duration, or at a moment), a condition when over the extended state and the event's data, otherwise for the one that fires when no condition holds, and set for what it updates; two transitions of one state on one cause are told apart or reported
-    status: proposed
+    status: accepted
     date: "2026-10-26"
     context: |
       A transition says from, to and a trigger naming an operation, a

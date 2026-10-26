@@ -426,10 +426,9 @@ that JobRun's move makes, in the one change: when JobRun leaves `running`
 and `paused`, JobLink's active states exit first, innermost first, its
 field is set to its initial state and its entry instants (3.8) to null,
 and then JobRun's exits run; when JobRun enters one of them from outside
-them, JobRun's entries run first, and then JobLink is started: its field
-holds its initial state, its `<stateField>EnteredAt` and the
-`<State>EnteredAt` of a composite initial state are set to the instant
-of that move, and the entry of its initial state runs. A move of JobRun
+them, JobRun's entries run first, and then JobLink is started: its field holds its initial state, its
+entry instants (3.8), when its transitions use `after`, are set to the
+instant of that move, and the entry of its initial state runs. A move of JobRun
 between `running` and `paused` is no move of JobLink and touches nothing
 of it: not its state, not its entry instants. A record created with a
 default that puts JobRun in one of them starts JobLink in the creation,
@@ -586,9 +585,11 @@ underscores dropped (`Running` for `running`, `NotStarted` for
 `not_started`, so `stateJobRunningEnteredAt` for `running` of
 `stateJob`), set when the composite is entered from outside it, left as
 it is on a move between its descendants, and null while the machine is
-not in it; two such states of one machine whose names so formed are one
-(`step_2` and `step2`) are the error `state_field` at the second. A
-machine `within` another has its entry instants set by the move that
+not in it; two states of the entity's machines whose names so formed are one
+(`step_2` and `step2` of one machine; `linkRunning` of `stateJob` and
+`running` of `stateJobLink`, both `stateJobLinkRunningEnteredAt`) are
+the error `state_field` at the later. A machine `within` another whose
+transitions use `after` has its entry instants set by the move that
 starts it, to that move's instant, and set to null by the move that
 resets it, so they are null while the other machine is outside the
 states it is within (3.6).
@@ -623,7 +624,7 @@ their names; the new ones are frozen at the release that ships them.
 
 | Rule | Severity | When it fires, and where |
 |---|---|---|
-| `state_field` | error | as today; also a field that is the control state of two machines, at the second; a full-form entity machine whose `stateField` is not an enum field of its `entity`; a field the entity declares under a name the machine's entry instants take, and two composite states of one machine whose `<State>EnteredAt` names are one, at the second (3.8) |
+| `state_field` | error | as today; also a field that is the control state of two machines, at the second; a full-form entity machine whose `stateField` is not an enum field of its `entity`; a field the entity declares under a name the machine's entry instants take, and two states of the entity's machines whose `<State>EnteredAt` names are one, at the later (3.8) |
 | `state_value` | error | as today: a `from`, `to`, `initial`, `final`, `within.states` or `states` key that is not a value of the machine's enum |
 | `trigger` | error | as today: a trigger naming nothing |
 | `state_machine` | error | `entity` names no entity; `stateEnum` names no enum; `within` names no machine of the same entity; `enter: history` to a state that is not composite; a `to` that is a composite state without `initial` |
@@ -1011,9 +1012,8 @@ approves that revision, and the build items follow in the order of 11.
 ## 11. Build plan, after approval
 
 1. The schema (design and fragment design, 1.0), both validators with
-   every rule of section 4 printing the same line, the conformance cases
-   under `spec/tests/`, and the rule enum: one item, Go and Swift
-   together, since a validator change goes into both.
+   every rule of section 4 printing the same line, the conformance cases under `spec/tests/`, and the rule enum: one item,
+   Go and Swift together, since a validator change goes into both.
 2. The diagram and the technical specification, `specarch model`.
 3. The test plan's paths and cases, `gaps`.
 4. `specarch-gen-scripts`, and the entry instant columns of 3.8 with
@@ -1022,7 +1022,11 @@ approves that revision, and the build items follow in the order of 11.
    `local-date-time`, `time-zone` and `why` on a field in the schema,
    the rule `time_zone` in both validators with its conformance cases,
    the type-rendering idiom's rows, `docs/conventions.md` Types and the
-   library lending example's `timeZone`.
+   library lending example's `timeZone`; both builds reading `date()` of
+   an instant by 12.3, the zone or UTC, where today Go reads the written
+   offset and Swift UTC; and the within machine's `<stateField>EnteredAt`
+   column nullable in `generate sql`, since it is null while the other
+   machine is outside the states it is within.
 6. The library lending example rewritten with
    `at: dueOn + duration("P1D")` where the owner agrees, as the
    acceptance test of the design.

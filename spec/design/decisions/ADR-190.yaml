@@ -80,8 +80,9 @@ decisions:
       from of an after, <State> the value with each part between
       underscores begun in upper case and the underscores dropped, set on
       entry from outside it and kept across moves inside it; a field the
-      entity declares under one of those names, and the second of two
-      composite states whose names so formed are one, is state_field. The cause of a
+      entity declares under one of those names, and the later of two
+      states of the entity's machines whose names so formed are one, is
+      state_field. The cause of a
       completion transition is the completion of its composite from;
       transitions with no cause from a simple state are not grouped, since
       each carries transition_cause. Among the transitions of one from on

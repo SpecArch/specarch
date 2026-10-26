@@ -14435,8 +14435,9 @@ record's creation, never a caller, and <stateField><State>EnteredAt for each com
 from of an after, <State> the value with each part between
 underscores begun in upper case and the underscores dropped, set on
 entry from outside it and kept across moves inside it; a field the
-entity declares under one of those names, and the second of two
-composite states whose names so formed are one, is state_field. The cause of a
+entity declares under one of those names, and the later of two
+states of the entity's machines whose names so formed are one, is
+state_field. The cause of a
 completion transition is the completion of its composite from;
 transitions with no cause from a simple state are not grouped, since
 each carries transition_cause. Among the transitions of one from on
@@ -14613,8 +14614,8 @@ field without why, and a warning for a validity bounded by a date
 or a date() of an instant without timeZone (ADR-193) and for a
 date-time default or example written without its offset (ADR-194);
 state_field also for a field an entity declares under a name the
-machine's entry instants take and for the second of two composite
-states of one machine whose <State>EnteredAt names are one; and the
+machine's entry instants take and for the later of two states of the entity's
+machines whose <State>EnteredAt names are one; and the
 expression rules for when, set, invariant, at and the sets of entry
 and exit, at giving a timestamp or a date and, reading a name that
 may be null, carrying a when with <name> != null alone or as an

@@ -51,8 +51,8 @@ decisions:
       or a date() of an instant without timeZone (ADR-193) and for a
       date-time default or example written without its offset (ADR-194);
       state_field also for a field an entity declares under a name the
-      machine's entry instants take and for the second of two composite
-      states of one machine whose <State>EnteredAt names are one; and the
+      machine's entry instants take and for the later of two states of the entity's
+      machines whose <State>EnteredAt names are one; and the
       expression rules for when, set, invariant, at and the sets of entry
       and exit, at giving a timestamp or a date and, reading a name that
       may be null, carrying a when with <name> != null alone or as an

@@ -71,11 +71,13 @@ decisions:
       because ADR-186 forbids a 1.x to make a valid file invalid, and
       every error needs a key only the full form has or a pair that
       needs when or otherwise; on this repository's specification and
-      the examples no line changes, and three conformance cases gain
+      the examples no line changes, and five conformance cases gain
       warning lines their expected output then records: state_unused for
       the enum value their transitions never name, which the derivation
-      never makes initial, and transition_cause for the transitions with
-      no cause, which are not grouped for ambiguity. A machine within
+      never makes initial, transition_cause for the transitions with no
+      cause, which are not grouped for ambiguity, and
+      transition_ambiguous for a pair on one trigger with neither when
+      nor otherwise. A machine within
       another is drawn as a region with a note, and not inside a
       composite state, because the states it names need not be one
       composite and one drawing for every case is read without a rule;

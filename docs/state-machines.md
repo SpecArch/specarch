@@ -439,7 +439,7 @@ their names; the new ones are frozen at the release that ships them.
 | `trigger` | error | as today: a trigger naming nothing |
 | `state_machine` | error | `entity` names no entity; `stateEnum` names no enum; `within` names no machine of the same entity; `enter: history` to a state that is not composite; a `to` that is a composite state without `initial` |
 | `state_initial` | error, warning | a composite state with `states` and no `initial`; a full-form entity machine whose field has no `default`; a standalone machine without `initial`: errors. A short-form entity with no default and two or more states, among those its transitions name, that no transition reaches: a warning naming them |
-| `state_unreachable` | warning | a state that is not initial and that no transition reaches, nor is a descendant of one reached; in the short form a state no transition reaches is initial by derivation, so it never fires there |
+| `state_unreachable` | warning | a state that is not initial and that no transition reaches, nor is a descendant of one reached; in the short form without a default a state no transition reaches is initial by derivation, so there it fires only when the field has a default |
 | `state_dead_end` | warning | full form: a simple state no transition leaves, nor any ancestor of it, that `final` does not name |
 | `state_final` | error | a transition from a state `final` names |
 | `state_unused` | warning | a value of the machine's enum that no transition names and that is not the machine's initial state, the field's `default` or `initial`; in the short form without a default the derivation runs over the states the transitions name, so such a value is never initial by derivation and is reported: the requirement that asked for the value has no move to or from it |
@@ -536,12 +536,16 @@ library lending example's Loan, has a trigger on every transition, no two
 from one state on one trigger, no default and one derived initial state,
 and no enum value outside its transitions, so no new line appears and no
 document changes; of the conformance cases under `spec/tests/` that carry
-a state field, three would gain a line, `document-testplan-state-machine`
+a state field, five would gain a line, `document-testplan-state-machine`
 and `validate-derived-flow` the warnings `state_unused` for `lost` and
 `transition_cause` for three transitions (causeless transitions are not
 grouped, so no `transition_ambiguous`), `validate-state-value` the warning
-`state_unused` for `live`, which their expected output records when the
-rules are built.
+`state_unused` for `live`, and `generate-scripts` and
+`generate-scripts-mariadb` the warning `transition_ambiguous` at each of
+the two `settleReservation` transitions from `pending`, which their
+expected output records when the rules are built. The other cases with a
+state field have one transition per state and trigger, every enum value
+named, no default and one or no derived initial state.
 The step is a minor one, 1.3.0 (`docs/maintenance.md`, rule 7; ADR-186),
 with the new rule names frozen at that release. Nothing is deprecated:
 the short form is not replaced, it is the full form with the machine's

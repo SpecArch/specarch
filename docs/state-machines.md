@@ -269,7 +269,7 @@ by their names, as a check constraint reads an entity's fields.
 | `after` | a `duration` (ISO 8601, days to seconds) since the `from` state was entered; leaving the state cancels it |
 | `at` | an expression over the extended state giving the moment the transition fires: a `timestamp`, an instant, or a `date`, read as the first instant of that day in the specification's `timeZone` (3.8); a specification with a `date` in `at` and no `timeZone` is the error `time_zone` at the transition; a name it reads that may be null needs a `when` ruling null out, in the form 3.8 names, `expression_type` otherwise |
 | `when` | an expression giving a bool over the extended state and, with a `trigger`, `event.<property>`; the transition fires only when it holds, evaluated at the instant the cause is applied, over the record as it then is |
-| `otherwise` | `true`: the transition fires when no other transition of the same `from` and cause has a `when` that holds, read at the instant the cause is applied, for a time transition among the transitions due at that moment (3.8); one per `from` and cause |
+| `otherwise` | `true`: the transition fires when no other transition of the same `from` and cause has a `when` that holds, read at the instant the cause is applied, for a time transition among the transitions of the state whose moment is that moment, never one still due from an earlier moment (3.8); one per `from` and cause |
 | `set` | a map of variable to expression, the shape of `writes.set` (ADR-158), each a value of the variable's type over the extended state and `event.<property>`; never the control field (the move sets it), never the primary key |
 | `enter` | `history`: enter the composite `to` state at the child it last left (3.5) |
 | `description`, `why`, `satisfies`, `cites`, `origin`, `decidedIn` | as today |
@@ -326,10 +326,10 @@ conflict. The cause of a completion transition is the completion of its
 composite `from`; transitions with no cause from a simple state are not
 grouped, since each already carries `transition_cause`, which names what
 is missing. Among the transitions of one `from` on one cause (a trigger; an `after`
-of one duration; the `at` transitions of the state due at one moment,
-which the validator, unable to see the data, holds every `at` of the
-state to be, since two moments given by data may fall together, 3.8; a
-completion):
+of one duration; the `at` transitions of the state whose moment is one
+moment, which the validator, unable to see the data, holds every `at`
+of the state to be, since two moments given by data may fall together,
+3.8; a completion):
 
 - two with neither `when` nor `otherwise` are the warning
   `transition_ambiguous` at each: the design does not say which fires and
@@ -532,7 +532,8 @@ invariant refuses (3.5) is a failure of the system's own move, with no
 caller to refuse it to: the step records it once at the record, naming
 the machine, the transition and the invariant, where the implementation
 records a job's failed run, and does not try it again until the record
-changes.
+changes. In both cases the transition stays in its own cause, its
+moment, and joins no later moment's (Which is applied).
 
 **Its life.** Leaving the `from` state ends a timer: an `after` is
 cancelled with the state, and an `at` applies only while the machine is
@@ -554,18 +555,30 @@ leaves the state; at one
 moment the `at` is applied before the `after`, since a moment given by
 data is the more particular statement, and a descendant state's timer
 before an ancestor's, as 3.4's priority says. The cause of a time
-transition is its moment: the transitions of one `from` due at one
-moment are one cause, and `when` and `otherwise` are read among them, at
-that moment, over the record as it then is, as 3.4 says of every cause.
-Two `after` of one state with one duration are due at one moment, two
-with different durations never; two `at` of one state are due at one
-moment when their expressions give it, which the validator cannot see,
+transition is its moment: the transitions of one `from` whose moment is
+that moment are one cause, and `when` and `otherwise` are read among
+them, at that moment, over the record as it then is, as 3.4 says of
+every cause. A transition still due from an earlier moment (While it is
+due) is not among them, as a trigger's `otherwise` reads no other
+trigger's transitions: a step that finds it past its moment beside a
+later moment's transitions reads it first, earliest first as above, in
+its own cause, its `when` again when the record changed since, not at
+all when an invariant refused its change and the record has not
+changed, and then reads the later cause among its own transitions; so a
+later moment's `otherwise` fires beside it, whether its `when` failed or
+its change was refused: `at: deadline, when: approved` beside `at:
+dueOn, otherwise: true`, the deadline earlier and its change refused by
+an invariant, fires the second at `dueOn`, and the record leaving the
+state ends the first.
+Two `after` of one state with one duration have one moment, two with
+different durations never; two `at` of one state have one moment when
+their expressions give it, which the validator cannot see,
 so for its rules of 3.4 every `at` of a state is held to be one cause,
 and a pair is told apart with `when` or `otherwise` or reported. The
 whichever-comes-first pair is written so: `at: deadline, when: deadline
 != null` beside `at: dueOn, otherwise: true` fires the second at `dueOn`
-when the deadline is later or null, since at that moment it is the only
-transition due, and the first when the deadline is earlier, or at the
+when the deadline is later or null, since it is the only transition
+whose moment that is, and the first when the deadline is earlier, or at the
 same moment, when the first's `when` holds; the same pair without
 `otherwise` is the error `transition_ambiguous`, since the design would
 not say which fires when the two moments fall together.
@@ -585,10 +598,17 @@ underscores dropped (`Running` for `running`, `NotStarted` for
 `not_started`, so `stateJobRunningEnteredAt` for `running` of
 `stateJob`), set when the composite is entered from outside it, left as
 it is on a move between its descendants, and null while the machine is
-not in it; two states of the entity's machines whose names so formed are one
-(`step_2` and `step2` of one machine; `linkRunning` of `stateJob` and
-`running` of `stateJobLink`, both `stateJobLinkRunningEnteredAt`) are
-the error `state_field` at the later. A machine `within` another whose
+not in it. Two of the entry instants the entity's machines imply with
+one name, a machine's `<stateField>EnteredAt` or a composite state's
+`<stateField><State>EnteredAt` either (`step_2` and `step2` of one
+machine; `linkRunning` of `stateJob` and `running` of `stateJobLink`,
+both `stateJobLinkRunningEnteredAt`; a composite state `link` of
+`stateJob` and the machine whose `stateField` is `stateJobLink`, both
+`stateJobLinkEnteredAt`), are the error `state_field` at the later of
+the two in the specification, at the state or at the machine's
+`stateField` when the instant is the machine's own; a machine whose
+transitions use no `after` implies no instant and collides with
+nothing. A machine `within` another whose
 transitions use `after` has its entry instants set by the move that
 starts it, to that move's instant, and set to null by the move that
 resets it, so they are null while the other machine is outside the
@@ -624,7 +644,7 @@ their names; the new ones are frozen at the release that ships them.
 
 | Rule | Severity | When it fires, and where |
 |---|---|---|
-| `state_field` | error | as today; also a field that is the control state of two machines, at the second; a full-form entity machine whose `stateField` is not an enum field of its `entity`; a field the entity declares under a name the machine's entry instants take, and two states of the entity's machines whose `<State>EnteredAt` names are one, at the later (3.8) |
+| `state_field` | error | as today; also a field that is the control state of two machines, at the second; a full-form entity machine whose `stateField` is not an enum field of its `entity`; a field the entity declares under a name the machine's entry instants take, and two entry instants the entity's machines imply, `<stateField>EnteredAt` or `<stateField><State>EnteredAt`, with one name, at the later of the two, the state or the machine's `stateField` (3.8) |
 | `state_value` | error | as today: a `from`, `to`, `initial`, `final`, `within.states` or `states` key that is not a value of the machine's enum |
 | `trigger` | error | as today: a trigger naming nothing |
 | `state_machine` | error | `entity` names no entity; `stateEnum` names no enum; `within` names no machine of the same entity; `enter: history` to a state that is not composite; a `to` that is a composite state without `initial` |

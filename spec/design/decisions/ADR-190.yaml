@@ -73,7 +73,10 @@ decisions:
       changes; of two or more past their moments the earliest is read
       first and the first that fires ends the others, at one moment the at before the after and a descendant's
       before an ancestor's; the cause of a time transition is its moment,
-      and when and otherwise are read among the transitions due at it. A machine whose
+      and when and otherwise are read among the transitions of the from
+      whose moment it is, never a transition still due from an earlier
+      moment, which a step reads first in its own cause, so a later
+      otherwise fires beside it. A machine whose
       transitions use after implies the field <stateField>EnteredAt, an
       instant the system sets with every move of the machine and at the
       record's creation, never a caller, and <stateField><State>EnteredAt for each composite state that is the
@@ -81,8 +84,9 @@ decisions:
       underscores begun in upper case and the underscores dropped, set on
       entry from outside it and kept across moves inside it; a field the
       entity declares under one of those names, and the later of two
-      states of the entity's machines whose names so formed are one, is
-      state_field. The cause of a
+      entry instants the entity's machines imply with one name,
+      <stateField>EnteredAt or <stateField><State>EnteredAt, at the
+      state or the machine's stateField, is state_field. The cause of a
       completion transition is the completion of its composite from;
       transitions with no cause from a simple state are not grouped, since
       each carries transition_cause. Among the transitions of one from on
@@ -161,12 +165,22 @@ decisions:
       every step, because nothing a when or an invariant reads but the
       record can change the outcome, and a retry that cannot succeed only
       repeats the record. The at transitions of a state are held to be
-      one cause for the validator while at run time only those due at
-      one moment are, because the validator cannot see the data; with
-      when and otherwise read among the transitions due at the moment,
-      the whichever-comes-first pair is written with otherwise on the one
-      that has no condition of its own, one key, and the pair without it
-      is reported. Compiler test: a when naming an
+      one cause for the validator while at run time only those whose
+      moment is one moment are, because the validator cannot see the
+      data; with when and otherwise read among the transitions whose
+      moment it is, the whichever-comes-first pair is written with
+      otherwise on the one that has no condition of its own, one key,
+      and the pair without it is reported. A transition still due from
+      an earlier moment is not among a later moment's transitions, as a
+      trigger's otherwise reads no other trigger's transitions, because
+      the alternative, every transition in due status, would make a
+      later otherwise depend on the record's history of refusals and
+      leave the machine in a state with a due default transition that
+      fires nothing until the record changes, the silent stop refused
+      above. The collision rule covers every entry instant the entity's
+      machines imply, a machine's own as much as a composite state's,
+      because both columns are implied and generate sql would write one
+      column for two facts. Compiler test: a when naming an
       unknown variable is expression_name at the key and the transition
       is still drawn; acceptance test: a new condition on a move is one
       key on one entry, and the problems file lists the sibling it now

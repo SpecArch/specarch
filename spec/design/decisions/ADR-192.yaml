@@ -44,16 +44,20 @@ decisions:
       error for the pairs that need either, and transition_overlap as
       ADR-190 says; transition_history, an
       error for enter: history to a state without history; time_zone, an
-      error for a date in at in a specification that declares no timeZone
-      and for a timeZone that is no IANA name, and a warning for a
-      validity bounded by a date or a date() of an instant without it
-      (ADR-193) and for a date-time default or example written without
-      its offset (ADR-194); state_field also for a field an entity declares under a
-      name the machine's entry instants take; and the expression rules for
-      when, set, invariant, at and the sets of entry and exit, at giving a
-      timestamp or a date and, over a value that may be null, carrying a
-      when that rules null out, and a set naming a control field or the
-      primary key reported as expression_name. The
+      error for a date in at in a specification that declares no
+      timeZone, for a timeZone that is no IANA name, for a time-zone
+      default or example that is no IANA name and for a local-date-time
+      field without why, and a warning for a validity bounded by a date
+      or a date() of an instant without timeZone (ADR-193) and for a
+      date-time default or example written without its offset (ADR-194);
+      state_field also for a field an entity declares under a name the
+      machine's entry instants take and for the second of two composite
+      states of one machine whose <State>EnteredAt names are one; and the
+      expression rules for when, set, invariant, at and the sets of entry
+      and exit, at giving a timestamp or a date and, reading a name that
+      may be null, carrying a when with <name> != null alone or as an
+      operand of its top-level conjunction, and a set naming a control
+      field or the primary key reported as expression_name. The
       diagram is one
       stateDiagram-v2 per machine, and stateDiagram <Entity> draws an
       entity's machines as the concurrent regions of one state named

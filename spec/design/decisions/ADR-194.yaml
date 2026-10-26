@@ -43,8 +43,8 @@ decisions:
       needs no reason; a time of day is a clock reading with no date and
       no zone, as today. A time zone is format time-zone, a name of the
       IANA Time Zone Database, the form the root timeZone takes
-      (ADR-193); a default or example that is no such name is time_zone
-      at the value. The validator checks that why is present, not what
+      (ADR-193); a default or example that is no such name is time_zone at the
+      value, an error, since the format is new. The validator checks that why is present, not what
       it says. The schema takes local-date-time and time-zone into the
       format list, as it took uint64 and decimal, and why onto a field.
     why: |
@@ -82,9 +82,13 @@ decisions:
       gains the zoneless type and the zone type per stack, a 1.x of the
       idiom, and the implementation files their rows; docs/conventions.md
       Types takes the rule. No file written today holds either format,
-      and no default or example in this repository lacks its offset, so
-      nothing becomes a problem; the step is the minor one of the state
-      machines, 1.3.0.
+      and no default or example in this repository lacks its offset, so nothing becomes a problem. date() of an instant, which
+      the Go build reads at the written offset today and the Swift build
+      in UTC, reads UTC without a timeZone and the zone with one
+      (ADR-193), so a worked example or a test record over an instant
+      written with an offset other than Z whose date differs in UTC may
+      change its outcome; none in this repository does. The step is the
+      minor one of the state machines, 1.3.0.
     restsOn: [ADR-121, ADR-186, ADR-193]
     satisfies: [SA-99]
     cites:

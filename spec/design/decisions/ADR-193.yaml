@@ -30,7 +30,9 @@ decisions:
       validity whose until is a date expires from the first instant of
       the day after it and whose from is a date is valid from the first
       instant of that day; date() of an instant is the instant's calendar
-      date in timeZone; a local-date-time or a time the implementation
+      date in timeZone, and in UTC when none is declared, in the
+      validator's evaluation of a worked example or a test's records and
+      in any generator that renders it; a local-date-time or a time the implementation
       compares with the clock is read in timeZone. The first instant of a
       day whose midnight the zone skips is the first instant that exists.
       The rule time_zone reports, at the entry, a date in at in a
@@ -69,8 +71,15 @@ decisions:
       declares its zone, and because a cron hour in a zone with clock
       changes does not exist once a year and exists twice once a year,
       which schedulers handle differently; UTC has neither, so a zone on
-      a schedule is chosen on purpose. Compiler test: a date in at in a
-      specification without timeZone is time_zone at the transition and
+      a schedule is chosen on purpose. date() reads UTC when no zone is declared,
+      not the offset the instant was written with, because an instant's
+      offset is not kept (ADR-194) and because the Swift build already
+      reads UTC while the Go build reads the written offset, so the two
+      builds disagree today on an instant written with another offset;
+      UTC is the one zone that is no host's, and the warning at the
+      expression says that the date is UTC's until the zone is declared.
+      Compiler test: a date in at in a specification without timeZone is
+      time_zone at the transition and
       the transition is drawn with the entry marked; acceptance test: the
       zone is one key at the root, and a change of it is one line.
     consequences: |
@@ -78,9 +87,16 @@ decisions:
       item, since its Loan's check reads date(loanedAt) and its Member's
       validity is bounded by dates; two conformance cases gain a warning
       at a validity bounded by a date. The implementation converts in the
-      specification's zone, set once from it. A specification whose dates
-      never meet the clock declares nothing and gets no line. The jobs'
-      schedule is an item of its own.
+      specification's zone, set once from it. A specification whose dates never meet the clock
+      declares nothing and gets no line. date() of an instant changes its
+      reading in the Go build, from the written offset to UTC, for an
+      instant written with an offset other than Z whose date differs in
+      UTC, and in both builds when a specification declares a zone other
+      than UTC: a worked example or a test record over such an instant
+      may change its outcome; none in this repository does, since the
+      lending example's instants are all written in Z and no other
+      expression reads date() of an instant. The jobs' schedule is an
+      item of its own.
     restsOn: [ADR-190, ADR-191]
     satisfies: [SA-98, SA-99]
     cites:

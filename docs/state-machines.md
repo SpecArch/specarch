@@ -267,9 +267,9 @@ by their names, as a check constraint reads an entity's fields.
 | `from`, `to` | as today; a `from` that is a composite state means from it or any of its descendants; a `to` that is a composite state enters its `initial` child, or, with `enter: history`, the child it last left |
 | `trigger` | as today: an operation, a command, a `channel/Message` or an algorithm |
 | `after` | a `duration` (ISO 8601, days to seconds) since the `from` state was entered; leaving the state cancels it |
-| `at` | an expression over the extended state giving the moment the transition fires: a `timestamp`, an instant, or a `date`, read as the first instant of that day in the specification's `timeZone` (3.8); a specification with a `date` in `at` and no `timeZone` is the error `time_zone` at the transition; a value that may be null needs a `when` ruling null out, `expression_type` otherwise |
+| `at` | an expression over the extended state giving the moment the transition fires: a `timestamp`, an instant, or a `date`, read as the first instant of that day in the specification's `timeZone` (3.8); a specification with a `date` in `at` and no `timeZone` is the error `time_zone` at the transition; a name it reads that may be null needs a `when` ruling null out, in the form 3.8 names, `expression_type` otherwise |
 | `when` | an expression giving a bool over the extended state and, with a `trigger`, `event.<property>`; the transition fires only when it holds, evaluated at the instant the cause is applied, over the record as it then is |
-| `otherwise` | `true`: the transition fires when no other transition of the same `from` and cause has a `when` that holds; one per `from` and cause |
+| `otherwise` | `true`: the transition fires when no other transition of the same `from` and cause has a `when` that holds, read at the instant the cause is applied, for a time transition among the transitions due at that moment (3.8); one per `from` and cause |
 | `set` | a map of variable to expression, the shape of `writes.set` (ADR-158), each a value of the variable's type over the extended state and `event.<property>`; never the control field (the move sets it), never the primary key |
 | `enter` | `history`: enter the composite `to` state at the child it last left (3.5) |
 | `description`, `why`, `satisfies`, `cites`, `origin`, `decidedIn` | as today |
@@ -325,9 +325,10 @@ ancestor on the same cause (UML 14.2.3.9.3, SCXML 3.13), so those never
 conflict. The cause of a completion transition is the completion of its
 composite `from`; transitions with no cause from a simple state are not
 grouped, since each already carries `transition_cause`, which names what
-is missing. Among the transitions of one `from` on one cause (a trigger,
-an `after` of one duration, every `at` of the state whatever its
-expressions, since two moments given by data may fall together, a
+is missing. Among the transitions of one `from` on one cause (a trigger; an `after`
+of one duration; the `at` transitions of the state due at one moment,
+which the validator, unable to see the data, holds every `at` of the
+state to be, since two moments given by data may fall together, 3.8; a
 completion):
 
 - two with neither `when` nor `otherwise` are the warning
@@ -394,7 +395,8 @@ machine with no entity starts the same way at its `initial`. A state's
 `invariant` is checked with the invariants of its ancestors at the end
 of every change that writes the record, the move's own change included,
 and a change that leaves it false is refused as a check constraint's
-violation is; the validator reads it as an expression and a generator
+violation is, to the caller of an operation's move, and recorded for a
+time transition's, which has no caller (3.8); the validator reads it as an expression and a generator
 writes it as a check constraint of the entity,
 `<stateField> != <state> || (<invariant>)`, which is what it means.
 
@@ -419,16 +421,22 @@ composite state, says so:
 While JobRun is not in `running` or `paused`, JobLink is in its initial
 state and none of its transitions fires; entering one of those states
 starts it at its initial state, and leaving them resets it. The scoped
-machine is inner to the states it is within, so the order of 3.4 holds
-across the two: when JobRun leaves `running` and `paused`, JobLink's
-active states exit first, innermost first, its field is set to its
-initial state and its entry instant, when its transitions use `after`,
-to that of the move, and then
-JobRun's exits run; when JobRun enters one of them, JobRun's entries run
-first and then the entry of JobLink's initial state, all in the one
-change of JobRun's move. A transition of JobLink whose `from` is its
-initial state is still reachable. The
-diagram draws JobLink as a concurrent region beside JobRun, as any second
+machine is inner to the states it is within, so the order of 3.4 holds across the two, and its start and its reset are moves of it
+that JobRun's move makes, in the one change: when JobRun leaves `running`
+and `paused`, JobLink's active states exit first, innermost first, its
+field is set to its initial state and its entry instants (3.8) to null,
+and then JobRun's exits run; when JobRun enters one of them from outside
+them, JobRun's entries run first, and then JobLink is started: its field
+holds its initial state, its `<stateField>EnteredAt` and the
+`<State>EnteredAt` of a composite initial state are set to the instant
+of that move, and the entry of its initial state runs. A move of JobRun
+between `running` and `paused` is no move of JobLink and touches nothing
+of it: not its state, not its entry instants. A record created with a
+default that puts JobRun in one of them starts JobLink in the creation,
+after JobRun's initial entry; one created outside them holds JobLink's
+default and null entry instants. A transition of JobLink whose `from` is
+its initial state is still reachable, and an `after` on it counts from
+the start. The diagram draws JobLink as a concurrent region beside JobRun, as any second
 machine of the entity, with a note at it naming the machine and the
 states it is within (5); the test plan takes JobRun's state as the given
 of JobLink's paths.
@@ -488,11 +496,18 @@ instant of that day in the specification's `timeZone`, the IANA name
 declared once at the root of the design (12.2); a specification that
 writes a `date` in `at` and declares no `timeZone` is the error
 `time_zone` at the transition, since the day would otherwise begin
-wherever the implementation runs. An `at` whose value is null has no
-moment and never fires, which the transition says in words with a `when`
-ruling null out, as the worked example's `deadline != null` does; an
-`at` over a value that may be null without such a `when` is
-`expression_type`.
+wherever the implementation runs. A name the `at` expression reads may be null when it is a field that is
+not required or whose type allows null (`docs/conventions.md`, the
+`null` literal of the expression table), or a variable whose type allows
+null; such a value has no moment, and a transition over one says in
+words that it then never fires, with a `when` ruling null out: for each
+such name, the `when` is `<name> != null`, or has `<name> != null` as an
+operand of its top-level `&&`, through nested `&&`, as the worked
+example's `deadline != null` does. No other form counts, not a
+disjunction and not `<name> == null ? false : ...`, since the validator
+decides it by form, as it decides 3.4's three exclusive forms; an `at`
+reading such a name without that form is `expression_type` at the
+transition, naming the name and the form to write.
 
 **When it fires.** A time transition fires at the first instant, while
 the machine is in its `from` state, at which the clock is at or past its
@@ -505,6 +520,21 @@ whose moment has passed when the state is entered, or which a `set`
 moves into the past, fires at once, in the next step that looks at the
 record: a deadline moved behind the clock is a deadline passed.
 
+**While it is due.** A time transition past its moment while the machine
+is in its `from` state is due until it fires or the state is left; it is
+never consumed unfired, unlike UML's time event, which a false guard
+discards. One whose `when` does not hold at its moment does not fire and
+nothing is reported, since a transition fires only when its `when`
+holds; it stays due, and its `when` is read again with every later
+change of the record, which is the only thing that can change the
+outcome, since neither a `when` nor an invariant reads the clock: a
+`set` that makes the `when` hold fires it then. One whose change an
+invariant refuses (3.5) is a failure of the system's own move, with no
+caller to refuse it to: the step records it once at the record, naming
+the machine, the transition and the invariant, where the implementation
+records a job's failed run, and does not try it again until the record
+changes.
+
 **Its life.** Leaving the `from` state ends a timer: an `after` is
 cancelled with the state, and an `at` applies only while the machine is
 in its state. Entering the state again starts an `after` afresh, from
@@ -515,15 +545,31 @@ entered from outside it, and a move between its descendants does not
 touch that instant. When a trigger moves the machine out of the state at
 an instant a timer was due but not yet applied, the trigger's change
 runs first, since every move is one change on the record (3.4), and the
-timer then finds its state left and does nothing. When two time
-transitions of one state are due at one instant, the `at` is applied
-before the `after`, since a moment given by data is the more particular
-statement, and a descendant state's timer due at the same instant as an
-ancestor's is applied first, as 3.4's priority says; two `after` of one state with one duration are one cause and
-two with different durations are never due together; every `at` of one
-state is one cause for the rules of 3.4, since two moments given by data
-may fall together, so the design tells them apart with `when` or
-`otherwise`, or the validator reports them.
+timer then finds its state left and does nothing.
+
+**Which is applied.** When a step finds two or more time transitions of
+one state past their moments, which latency or a stop of the
+implementation allows, the one with the earliest moment is read first,
+then the next, and the first that fires ends the others when its move
+leaves the state; at one
+moment the `at` is applied before the `after`, since a moment given by
+data is the more particular statement, and a descendant state's timer
+before an ancestor's, as 3.4's priority says. The cause of a time
+transition is its moment: the transitions of one `from` due at one
+moment are one cause, and `when` and `otherwise` are read among them, at
+that moment, over the record as it then is, as 3.4 says of every cause.
+Two `after` of one state with one duration are due at one moment, two
+with different durations never; two `at` of one state are due at one
+moment when their expressions give it, which the validator cannot see,
+so for its rules of 3.4 every `at` of a state is held to be one cause,
+and a pair is told apart with `when` or `otherwise` or reported. The
+whichever-comes-first pair is written so: `at: deadline, when: deadline
+!= null` beside `at: dueOn, otherwise: true` fires the second at `dueOn`
+when the deadline is later or null, since at that moment it is the only
+transition due, and the first when the deadline is earlier, or at the
+same moment, when the first's `when` holds; the same pair without
+`otherwise` is the error `transition_ambiguous`, since the design would
+not say which fires when the two moments fall together.
 
 **The entry instant.** For a stored entity the machine needs the instant
 its current state was entered, which the entity does not declare: as the
@@ -534,12 +580,18 @@ state field, the field `<stateField>EnteredAt`, an instant (`format:
 date-time`), set by the system in the same change as every move of that
 machine to the instant the move is recorded, at the record's creation to
 the instant of the creation, and never by a caller, as the audit fields
-are; and for each composite state that is the `from` of an `after`, the
-field `<stateField><State>EnteredAt` (`stateJobRunningEnteredAt` for
-`running` of `stateJob`), set when the composite is entered from outside
-it, left as it is on a move between its descendants, and null while the
-machine is not in it. A machine `within` another whose transitions use
-`after` has its `<stateField>EnteredAt` set by the move that resets it.
+are; and for each composite state that is the `from` of an `after`, the field `<stateField><State>EnteredAt`, where `<State>` is the state's
+value with each part between underscores begun in upper case and the
+underscores dropped (`Running` for `running`, `NotStarted` for
+`not_started`, so `stateJobRunningEnteredAt` for `running` of
+`stateJob`), set when the composite is entered from outside it, left as
+it is on a move between its descendants, and null while the machine is
+not in it; two such states of one machine whose names so formed are one
+(`step_2` and `step2`) are the error `state_field` at the second. A
+machine `within` another has its entry instants set by the move that
+starts it, to that move's instant, and set to null by the move that
+resets it, so they are null while the other machine is outside the
+states it is within (3.6).
 The names are
 fields' names in form and follow `wireNames` into the table as every
 field does; `generate sql` writes the columns as it writes the audit
@@ -571,7 +623,7 @@ their names; the new ones are frozen at the release that ships them.
 
 | Rule | Severity | When it fires, and where |
 |---|---|---|
-| `state_field` | error | as today; also a field that is the control state of two machines, at the second; a full-form entity machine whose `stateField` is not an enum field of its `entity`; a field the entity declares under a name the machine's entry instants take (3.8) |
+| `state_field` | error | as today; also a field that is the control state of two machines, at the second; a full-form entity machine whose `stateField` is not an enum field of its `entity`; a field the entity declares under a name the machine's entry instants take, and two composite states of one machine whose `<State>EnteredAt` names are one, at the second (3.8) |
 | `state_value` | error | as today: a `from`, `to`, `initial`, `final`, `within.states` or `states` key that is not a value of the machine's enum |
 | `trigger` | error | as today: a trigger naming nothing |
 | `state_machine` | error | `entity` names no entity; `stateEnum` names no enum; `within` names no machine of the same entity; `enter: history` to a state that is not composite; a `to` that is a composite state without `initial` |
@@ -581,11 +633,11 @@ their names; the new ones are frozen at the release that ships them.
 | `state_final` | error | a transition from a state `final` names |
 | `state_unused` | warning | a value of the machine's enum that no transition names and that is not the machine's initial state, the field's `default` or `initial`; in the short form without a default the derivation runs over the states the transitions name, so such a value is never initial by derivation and is reported: the requirement that asked for the value has no move to or from it |
 | `transition_cause` | warning | a transition from a simple state with no `trigger`, `after` or `at` |
-| `transition_ambiguous` | warning, error | 3.4: two transitions of one `from` on one cause (every `at` of a state is one cause) with neither `when` nor `otherwise`, a warning; one with neither beside one with either, two with the same `when`, or two `otherwise`, an error |
+| `transition_ambiguous` | warning, error | 3.4: two transitions of one `from` on one cause (the `at` transitions of a state are held to be one cause, 3.8) with neither `when` nor `otherwise`, a warning; one with neither beside one with either, two with the same `when`, or two `otherwise`, an error |
 | `transition_overlap` | warning | 3.4: two conditions the validator cannot show exclusive |
 | `transition_history` | error | `enter: history` to a state without `history` |
-| `time_zone` | error, warning | a `date` in `at` in a specification that declares no `timeZone`, an error at the transition; a `timeZone` that is not a name of the IANA Time Zone Database, an error at the key; and, outside a machine (12.3), a `validity` bounded by a `date` or a `date()` of an instant with no `timeZone`, a warning at each, a `default` or `examples` value of a `date-time` field written without its offset, a warning at the value, and a `local-date-time` field without `why`, an error at the field |
-| `expression_syntax`, `expression_name`, `expression_type` | error | as today, for `when`, `set`, `invariant`, `at` and the `set` of `entry` and `exit`: an unknown variable or `event` property, a wrong type, a value outside the subset; a `set` naming a control field or the primary key is `expression_name`, since neither is a variable a move sets; `at` must give a timestamp or a date and `when` and `invariant` a bool, and an `at` over a value that may be null needs a `when` ruling null out |
+| `time_zone` | error, warning | a `date` in `at` in a specification that declares no `timeZone`, an error at the transition; a `timeZone` that is not a name of the IANA Time Zone Database, an error at the key; and, outside a machine (12.3), a `validity` bounded by a `date` or a `date()` of an instant with no `timeZone`, a warning at each, a `default` or `examples` value of a `date-time` field written without its offset, a warning at the value, a `default` or `examples` value of a `time-zone` field that is no name of the database, an error at the value, since the format is new, and a `local-date-time` field without `why`, an error at the field |
+| `expression_syntax`, `expression_name`, `expression_type` | error | as today, for `when`, `set`, `invariant`, `at` and the `set` of `entry` and `exit`: an unknown variable or `event` property, a wrong type, a value outside the subset; a `set` naming a control field or the primary key is `expression_name`, since neither is a variable a move sets; `at` must give a timestamp or a date and `when` and `invariant` a bool, and an `at` reading a name that may be null needs a `when` ruling null out in the form 3.8 names |
 | `emits` | error | as today, for `entry` and `exit` |
 | `schema` | error | as today: `trigger`, `after` and `at` together; `otherwise` with `when`; `variables` on an entity machine; a key unknown |
 
@@ -1018,11 +1070,11 @@ the rules.
 
 | Kind | Written as | Holds | In the implementation |
 |---|---|---|---|
-| instant | `type: string, format: date-time` | an instant, RFC 3339 with its offset, `"2026-10-07T09:30:00+07:00"`; two writings of one instant are one value, and the offset written is not kept | the zone-aware type: `TIMESTAMP WITH TIME ZONE`, `DATETIMEOFFSET`, UTC text on MariaDB, `time.Time`, as the type-rendering idiom has it |
+| instant | `type: string, format: date-time` | an instant, RFC 3339 with its offset, `"2026-10-07T09:30:00+07:00"`; two writings of one instant are one value, and the offset written is not kept; `date()` of it is the date in `timeZone`, UTC's without one (12.3) | the zone-aware type: `TIMESTAMP WITH TIME ZONE`, `DATETIMEOFFSET`, UTC text on MariaDB, `time.Time`, as the type-rendering idiom has it |
 | wall-clock date and time | `type: string, format: local-date-time`, with `why` | a date and a time of day with no zone, ISO 8601 local time, `"2026-10-07T09:30:00"`; `why` says why it is not an instant, and documents show it beside the field | the zoneless type: SQL's `TIMESTAMP` without time zone, `DATETIME2` on SQL Server, `DATETIME` on MariaDB; the build item names each stack's type in the idiom |
 | date | `type: string, format: date` | a calendar date, `"2026-10-07"`, no zone, as today | `DATE` |
 | time of day | `type: string, format: time` | a clock reading with no date and no zone, `"09:30:00"`, as today | `TIME` |
-| time zone | `type: string, format: time-zone` | a name of the IANA Time Zone Database, `"Asia/Jakarta"`, the form `timeZone` takes; a default or example that is no such name is `time_zone` | text; the stack's zone type where it has one |
+| time zone | `type: string, format: time-zone` | a name of the IANA Time Zone Database, `"Asia/Jakarta"`, the form `timeZone` takes; a default or example that is no such name is `time_zone`, an error at the value | text; the stack's zone type where it has one |
 | `timeZone` at the root of the design | `timeZone: Asia/Jakarta` | the specification's one zone, an IANA name: where a date or a wall-clock reading meets the clock, this is the clock (12.3) | the zone the implementation converts in, set once from the specification, never the host's |
 
 A `date-time` is zone-aware by default, and nothing changes for it: it is
@@ -1070,10 +1122,22 @@ validator reports the places that need it:
 |---|---|---|
 | `at` with a `date` (3.8) | the first instant of that day | `time_zone`, an error at the transition: the key is new |
 | `validity` whose `until` or `from` is a `date` | expired from the first instant of the day after `until`; valid from the first instant of `from` | `time_zone`, a warning at the validity: a 1.0 file may hold it |
-| `date(x)` of an instant in an expression | the calendar date of the instant in the zone | `time_zone`, a warning at the expression, for the same reason |
+| `date(x)` of an instant in an expression | the calendar date of the instant in the zone | `time_zone`, a warning at the expression, for the same reason; the date is UTC's until the zone is declared |
 | a `local-date-time` or a `time` the implementation compares with the clock | the instant the zone gives that reading | nothing: the design has no expression that reads the clock, so the comparison is the implementation's, and the specification's `timeZone` is the zone it uses |
 | a `date-time` anywhere | an instant; a zone is read only to show it to a person | nothing |
 | a job's `schedule` | the five fields of cron, in UTC, as today (12.4) | nothing |
+
+`date()` of an instant is evaluated by the validator, over an
+algorithm's worked examples and a test's records, and by any generator
+that renders it, which none does today. With `timeZone` both read the
+date in it; without one both read it in UTC, the one zone that is no
+host's and the reading the instant's own text has once its offset is
+not kept (12.2): the warning at the expression says that the calendar
+date is UTC's until the zone is declared. Today the Go build takes the
+date at the offset the literal was written with and the Swift build the
+date in UTC, so the two builds disagree on an instant written with an
+offset other than `Z` whose date differs in UTC, against the rule that
+both print the same line; the build item makes both read the rule.
 
 The first instant of a day is the zone's: a day whose midnight the zone
 skips begins at the first instant that exists, as the database gives it.
@@ -1121,8 +1185,17 @@ example's `timeZone` with the rule, the zone the owner names (the
 example names no place, so `UTC` is proposed), and no line appears;
 among the conformance cases, `validate-validity` and
 `validate-concept-cases-listed` gain one warning each at a validity
-bounded by a date, which their expected output records. Every other
-change is an addition: one root key, two formats, `why` on a field, one
+bounded by a date, which their expected output records. `date()` of an
+instant reads UTC without a `timeZone` and the zone with one (12.3),
+where the Go build today reads the offset the instant was written with
+and the Swift build UTC: a worked example or a test record over an
+instant written with an offset other than `Z` whose date differs in UTC
+may change its outcome under the Go build when the rule is built, and
+under both when the specification declares a zone other than UTC; none
+in this repository does, since the library lending example's instants
+are all written in `Z` and no other expression of the specification,
+the examples or the conformance cases reads `date()` of an instant.
+Every other change is an addition: one root key, two formats, `why` on a field, one
 rule with errors only where a new key is written and warnings where a
 1.0 file may be. The step is the minor one the machines take, 1.3.0 (7),
 one release for both, since both rest on `timeZone`. The implementation

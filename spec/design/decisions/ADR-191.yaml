@@ -51,9 +51,14 @@ decisions:
       fires nothing while the other is elsewhere, starts at its initial
       state when one of them is entered and is reset when they are left;
       it is inner to those states, so on leaving them its exits run
-      before the other machine's and its field and, when it has one, its
-      entry instant are set by that move, and on entering them its initial state's entry runs
-      after the other machine's entries, in the one change.
+      before the other machine's and that move sets its field to its
+      initial state and its entry instants to null, and on entering them
+      from outside, or at a creation whose default puts the other machine
+      in one of them, that move starts it after the other machine's
+      entries, setting its field, its entry instants to the move's
+      instant and running its initial state's entry, in the one change; a
+      move of the other machine between two of those states touches
+      nothing of it.
       There is no region inside a state, no do activity, no choice,
       junction, fork or join vertex, no deferred event and no submachine
       state.

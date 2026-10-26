@@ -634,8 +634,8 @@ requirements:
     acceptance:
       - An expression literal of an instant written without its offset is reported, as today, and a default or examples value of a date-time field written without its offset is reported at the value as a warning.
       - A field of format local-date-time with why validates and the technical specification shows the reason beside the field; one without why is reported at the field as an error.
-      - A root timeZone that is a name of the IANA Time Zone Database validates; one that is not is reported at the key; a field of format time-zone whose default or example is no such name is reported at the value.
-      - An at over a date, a validity bounded by a date and a date() of an instant are reported in a specification that declares no timeZone, the first as an error and the others as warnings; with timeZone, none is.
+      - A root timeZone that is a name of the IANA Time Zone Database validates; one that is not is reported at the key; a field of format time-zone whose default or example is no such name is reported at the value as an error.
+      - An at over a date, a validity bounded by a date and a date() of an instant are reported in a specification that declares no timeZone, the first as an error and the others as warnings; with timeZone, none is, and date() of an instant gives the date in timeZone, and in UTC when none is declared, in both builds.
       - A job's schedule stays the five fields of cron in UTC, and the library lending example validates with no new line once it declares its timeZone.
       - Both builds print the same lines for every case.
     verification: test

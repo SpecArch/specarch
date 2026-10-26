@@ -30,13 +30,18 @@ decisions:
       composite without initial, a full-form entity machine whose field
       has no default and a standalone machine without initial, and a
       warning for a short-form entity with two or more derived initial
-      states; state_unreachable, a warning for a state that is not
-      initial and that no transition reaches; state_dead_end, a warning
-      for a full-form simple state no transition leaves that final does
-      not name; state_final, an error for a transition from a final
-      state; state_unused, a warning for an enum value no transition
-      names that is not initial; transition_cause, transition_ambiguous
-      and transition_overlap as ADR-190 says; transition_history, an
+      states among those its transitions name; state_unreachable, a
+      warning for a state that is not initial and that no transition
+      reaches; state_dead_end, a warning for a full-form simple state no
+      transition leaves that final does not name; state_final, an error
+      for a transition from a final state; state_unused, a warning for an
+      enum value no transition names that is not the machine's initial
+      state, the field's default or initial, a value the derivation of
+      the short form never makes initial since it runs over the states
+      the transitions name; transition_cause, transition_ambiguous, a
+      warning for two transitions with neither when nor otherwise and an
+      error for the pairs that need either, and transition_overlap as
+      ADR-190 says; transition_history, an
       error for enter: history to a state without history; and the
       expression rules for when, set, invariant, at and the sets of entry
       and exit, at giving a timestamp or a date, and a set naming a
@@ -46,10 +51,12 @@ decisions:
       entity's machines as the concurrent regions of one state named
       after it: each arrow labelled with its cause, then [when] or
       [otherwise], then a slash and each set as name = expression; after
-      and at as the cause; a composite state as a nested state; history as
-      (history) after the cause on the arrow into the composite; entry,
-      exit and invariant as a note at the state; the variables as a note
-      at the machine, one per line with type and default. The technical
+      and at as the cause; a composite state as a nested state; a machine
+      within another as a region with a note after it naming the machine
+      and the states it is within; history as (history) after the cause
+      on the arrow into the composite; entry, exit and invariant as a
+      note at the state, one line each; the variables as a note at the
+      machine, one per line with type and default. The technical
       specification adds the variables and transitions tables after each
       diagram and lists standalone machines with the entities'; the test
       plan derives paths over simple states per machine, a red case per
@@ -62,10 +69,19 @@ decisions:
     why: |
       Every check that can fire on a file written today is a warning,
       because ADR-186 forbids a 1.x to make a valid file invalid, and
-      every error needs a key only the full form has or a pair no file
-      has written; on this repository's specification and the examples no
-      line changes, and three conformance cases gain warning lines their
-      expected output then records. Unreachable and dead-end states are
+      every error needs a key only the full form has or a pair that
+      needs when or otherwise; on this repository's specification and
+      the examples no line changes, and three conformance cases gain
+      warning lines their expected output then records: state_unused for
+      the enum value their transitions never name, which the derivation
+      never makes initial, and transition_cause for the transitions with
+      no cause, which are not grouped for ambiguity. A machine within
+      another is drawn as a region with a note, and not inside a
+      composite state, because the states it names need not be one
+      composite and one drawing for every case is read without a rule;
+      the note stands after the region's block, since Mermaid refuses a
+      note on a state it has not drawn yet, as the check showed.
+      Unreachable and dead-end states are
       warnings and not errors because a machine with one is incomplete,
       not wrong, and the compiler reads an incomplete definition and says
       where. A transition missing for a state the requirements name is

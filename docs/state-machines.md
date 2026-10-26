@@ -44,9 +44,9 @@ In short:
   apart; the diagram shows the states, the causes, conditions and updates
   on the arrows, the variables, the nested states and the parallel
   machines (ADR-192).
-- Everything is additive: a 1.0 file validates as before, with no new
-  output on this repository's specification and examples, so the step is
-  a minor one, 1.3.0.
+- Everything is additive: a 1.0 file gets no new error, since every rule
+  that can fire on one is a warning, and this repository's specification
+  and examples get no new line, so the step is a minor one, 1.3.0.
 
 ## 1. What SpecArch holds today
 
@@ -133,7 +133,7 @@ extended state is everything else.
 | initial | the initial pseudostate of a region | `initial` attribute or `<initial>`, the first child by default | an entity machine's initial state is the field's `default`; a standalone machine and a composite state write `initial`; a short-form entity without a default keeps today's derivation | departs from SCXML's first-child default, which decides silently; a record is created with its field's default, so that is the initial state and a second spelling is refused |
 | final | a FinalState | `<final>` | `final`, the list of final states of a machine; derived as today for the short form | follows both; a final state has no outgoing transition, and a composite's completion is a transition with no cause from it |
 | completion transition | a transition with no trigger, taken when the source completes | an eventless transition, taken when `cond` holds | a transition with no `trigger`, `after` or `at` from a composite state, taken when a child in `final` is reached; from a simple state it is a warning, `transition_cause` | follows UML; departs from SCXML's eventless transition on a simple state, which fires as soon as its condition holds and so needs an evaluation loop the design does not promise |
-| conflicting transitions | 14.2.3.9.3: transitions in conflict; priority to the deeper source; otherwise undefined | 3.13: the deeper source wins, then document order | an inner state's transition wins over an ancestor's on the same cause; two from one state on one cause are an error when they cannot be told apart and a warning when the validator cannot show their conditions exclusive | follows both on depth; departs from SCXML's order and UML's undefined, since SpecArch does not pick a meaning for an ambiguous entry (`docs/principles.md`) |
+| conflicting transitions | 14.2.3.9.3: transitions in conflict; priority to the deeper source; otherwise undefined | 3.13: the deeper source wins, then document order | an inner state's transition wins over an ancestor's on the same cause; two from one state on one cause are a warning when neither says what tells them apart or the validator cannot show their conditions exclusive, and an error when one is told apart and the other left unsaid (3.4) | follows both on depth; departs from SCXML's order and UML's undefined, since SpecArch does not pick a meaning for an ambiguous entry (`docs/principles.md`) |
 | run to completion | 14.2.3.9.1 | the macrostep | the order exit, set, entry, within the operation or job that causes the move | follows both |
 | choice, junction, fork, join | pseudostates | none (conditions and `<parallel>`) | none: `when` and `otherwise` on the transitions out of a state say what a choice says | departs from UML's vertices, as SCXML does: every decision is on a transition, so each has a cause and a condition the validator reads |
 | deferred events | a State's deferrableTrigger | none | none | departs: an event not handled in a state is refused by the operation, `from wrong state`, which the test plan already derives; queuing it is a stack's choice |
@@ -147,9 +147,13 @@ extended state is everything else.
 The short form is today's: an entity's `stateField` and `transitions`.
 It is read as one machine named after the entity, whose control state is
 the field, whose extended state is the entity's other fields, whose
-initial state is the field's `default` or, without one, the states no
-transition reaches, and whose final states are the states no transition
-leaves. Its transitions take every key of 3.4.
+initial state is the field's `default` or, without one, derived as today,
+and whose final states are derived as today. The derivation runs over the
+states the transitions name, as the generators do today: initial are
+those no transition reaches, final those none leaves. An enum value no
+transition names is outside the machine, which the validator reports
+(`state_unused`, 4), and is never initial by derivation. Its transitions
+take every key of 3.4.
 
 The full form is an element of `stateMachines`, a map at the root of the
 design keyed like entities (`PascalCase`):
@@ -277,36 +281,54 @@ states entered, outermost first; a self-transition (`from` and `to` the
 same state) runs both. All of it runs in the operation, job or
 implementation step that causes the move, as one change with the move
 itself; the guarded script of ADR-168 takes `when` into its precondition
-and `set` into what it writes.
+and `set` into what it writes. Since the `entry` of the state entered
+runs after the transition's `set`, a variable both set holds the entry's
+value afterwards: a value a move records goes into a variable the target's
+`entry` does not set.
 
 Two transitions of one state on one cause are told apart by their
 conditions. A transition of a descendant state wins over one of an
-ancestor on the same cause (UML 14.2.3.9.4, SCXML 3.13), so those never
-conflict. Among the transitions of one `from` on one cause (a trigger, an
-`after` of one duration, an `at` of one expression):
+ancestor on the same cause (UML 14.2.3.9.3, SCXML 3.13), so those never
+conflict. The cause of a completion transition is the completion of its
+composite `from`; transitions with no cause from a simple state are not
+grouped, since each already carries `transition_cause`, which names what
+is missing. Among the transitions of one `from` on one cause (a trigger,
+an `after` of one duration, an `at` of one expression, a completion):
 
-- a transition with neither `when` nor `otherwise` must be the only one;
-  otherwise `transition_ambiguous`, an error at each;
-- two with the same `when`, or two `otherwise`, are `transition_ambiguous`;
+- two with neither `when` nor `otherwise` are the warning
+  `transition_ambiguous` at each: the design does not say which fires and
+  the operation decides, as it does today; `when` or `otherwise` on one
+  settles it. A warning, since every such pair written today is valid
+  and a 1.x makes no valid file invalid (ADR-186);
+- one with neither `when` nor `otherwise` beside one with either, two with
+  the same `when`, or two `otherwise`, are the error
+  `transition_ambiguous` at each: the author began telling them apart and
+  left one unsaid, and no 1.0 file holds such a pair;
 - two with different `when` are exclusive when the validator can show it:
-  one is the negation of the other (`!(a)` against `a`, or `a == x`
-  against `a != x`), or each compares the same name with a literal and
-  the two ranges do not meet (`n < 3` against `n >= 3`, `s == "a"` against
-  `s == "b"`); any other pair is the warning `transition_overlap` at
-  both, which says that the validator cannot show them exclusive and that
-  writing one as `otherwise` settles it.
+  one is the negation of the other (`!(a)` against `a`, or `a == b`
+  against `a != b` over the same two operands), or each compares the same
+  name with a literal and the two ranges do not meet (`n < 3` against
+  `n >= 3`, `s == "a"` against `s == "b"`), or an operand of one's
+  top-level `&&` is exclusive with the other, or with an operand of the
+  other's top-level `&&`, by these two rules (`a != b && n < 3` against
+  `a == b`), since a conjunction holds only where each operand does; any
+  other pair is the warning `transition_overlap` at both, which says that
+  the validator cannot show them exclusive and that writing one as
+  `otherwise` settles it.
 
 The rule is exact where it can be and honest where it cannot: deciding
 overlap in general is a satisfiability question, and SpecArch would
-rather warn than claim.
+rather warn than claim. The three forms it does show are the ones a hand
+writes for a choice: the else of a comparison, the ranges of one value,
+and a condition narrowed by `&&`.
 
 ### 3.5 States
 
     states:
       starting:
         description: The job is being started; a failed start is retried.
-        entry: { set: { lastError: null } }
       running:
+        entry: { set: { lastError: null } }
         invariant: lastError == null
         initial: warming
         history: shallow
@@ -354,8 +376,10 @@ While JobRun is not in `running` or `paused`, JobLink is in its initial
 state and none of its transitions fires; entering one of those states
 starts it at its initial state, and leaving them resets it. A transition
 of JobLink whose `from` is its initial state is still reachable. The
-diagram draws JobLink inside the composite that holds those states, and
-the test plan takes JobRun's state as the given of JobLink's paths.
+diagram draws JobLink as a concurrent region beside JobRun, as any second
+machine of the entity, with a note at it naming the machine and the
+states it is within (5); the test plan takes JobRun's state as the given
+of JobLink's paths.
 `within` names a machine of the same entity and states of that machine's
 enum (`state_machine`).
 
@@ -374,14 +398,17 @@ it under its own key, as it points at operations.
 The initial state of an entity machine is the state field's `default`:
 a record is created with it, so no second place can say otherwise. A
 short-form entity whose field has no default keeps the derivation of
-today, the states no transition reaches; when there are two or more, the
-warning `state_initial` asks for the default. A full-form entity machine
+today, the states no transition reaches among those the transitions name;
+when there are two or more, the warning `state_initial` asks for the
+default. An enum value no transition names takes no part in the
+derivation: it is `state_unused`, not initial. A full-form entity machine
 whose field has no default is `state_initial`, an error, since the full
 form promises the machine is complete. A machine with no entity writes
 `initial`, and a composite state writes its own.
 
 `final` lists the states the machine ends in. The short form keeps the
-derivation of today, the states no transition leaves. In the full form a
+derivation of today, the states no transition leaves among those the
+transitions name. In the full form a
 state no transition leaves that `final` does not name is the warning
 `state_dead_end`, which says to name it final or give it a way out; a
 final state with a transition from it is the error `state_final`.
@@ -411,13 +438,13 @@ their names; the new ones are frozen at the release that ships them.
 | `state_value` | error | as today: a `from`, `to`, `initial`, `final`, `within.states` or `states` key that is not a value of the machine's enum |
 | `trigger` | error | as today: a trigger naming nothing |
 | `state_machine` | error | `entity` names no entity; `stateEnum` names no enum; `within` names no machine of the same entity; `enter: history` to a state that is not composite; a `to` that is a composite state without `initial` |
-| `state_initial` | error, warning | a composite state with `states` and no `initial`; a full-form entity machine whose field has no `default`; a standalone machine without `initial`: errors. A short-form entity with two or more states no transition reaches and no default: a warning naming them |
+| `state_initial` | error, warning | a composite state with `states` and no `initial`; a full-form entity machine whose field has no `default`; a standalone machine without `initial`: errors. A short-form entity with no default and two or more states, among those its transitions name, that no transition reaches: a warning naming them |
 | `state_unreachable` | warning | a state that is not initial and that no transition reaches, nor is a descendant of one reached; in the short form a state no transition reaches is initial by derivation, so it never fires there |
 | `state_dead_end` | warning | full form: a simple state no transition leaves, nor any ancestor of it, that `final` does not name |
 | `state_final` | error | a transition from a state `final` names |
-| `state_unused` | warning | a value of the machine's enum that no transition names and that is not initial: the requirement that asked for the value has no move to or from it |
+| `state_unused` | warning | a value of the machine's enum that no transition names and that is not the machine's initial state, the field's `default` or `initial`; in the short form without a default the derivation runs over the states the transitions name, so such a value is never initial by derivation and is reported: the requirement that asked for the value has no move to or from it |
 | `transition_cause` | warning | a transition from a simple state with no `trigger`, `after` or `at` |
-| `transition_ambiguous` | error | 3.4: two transitions of one `from` on one cause that cannot be told apart |
+| `transition_ambiguous` | warning, error | 3.4: two transitions of one `from` on one cause with neither `when` nor `otherwise`, a warning; one with neither beside one with either, two with the same `when`, or two `otherwise`, an error |
 | `transition_overlap` | warning | 3.4: two conditions the validator cannot show exclusive |
 | `transition_history` | error | `enter: history` to a state without `history` |
 | `expression_syntax`, `expression_name`, `expression_type` | error | as today, for `when`, `set`, `invariant`, `at` and the `set` of `entry` and `exit`: an unknown variable or `event` property, a wrong type, a value outside the subset; a `set` naming a control field or the primary key is `expression_name`, since neither is a variable a move sets; `at` must give a timestamp or a date and `when` and `invariant` a bool |
@@ -442,8 +469,11 @@ One `stateDiagram-v2` per machine, `stateDiagram <Machine>`; the marker
 `stateDiagram <Entity>` keeps drawing the entity's short-form machine, and
 for an entity with two or more machines draws them as the concurrent
 regions of one composite state named after the entity, Mermaid's `--`. A
-machine `within` another is drawn inside the composite state that holds
-the states it names.
+machine `within` another is drawn as such a region, with a note at it
+naming the machine and the states it is within; it is not drawn inside a
+composite state, since the states it names need not be one composite (the
+example's `running` and `paused` are not), and one drawing for every case
+is read without a rule.
 
 | What | How it is drawn | Checked with mermaid-cli 12.0.0 (Mermaid 12.0.0) |
 |---|---|---|
@@ -454,7 +484,8 @@ the states it names.
 | a composite state | `state running { [*] --> warming ... }`, nested as deep as the design | yes |
 | history | the arrow to the composite state with `(history)` after its cause, `paused --> running : resumeJob (history)`; Mermaid has no history pseudostate, and an arrow from outside to a state drawn inside the composite pulls that state out of it, as the check showed | yes |
 | parallel machines of one entity | `state Job { state JobRun {...} -- state JobLink {...} }` | yes |
-| entry, exit, invariant | a note at the state: `note right of starting : entry / lastError = null`; a `state : text` line would replace the state's name with the text | notes yes; the replacement seen in the check |
+| a machine `within` another | its region as above, then `note right of JobLink : within JobRun [running, paused]` after the region's closing brace; written inside the region, the note names a state Mermaid has not drawn yet and the render fails | yes; the failure seen in the check |
+| entry, exit, invariant | a note at the state, one line each: `note right of running`, then `entry / lastError = null` and `invariant lastError == null`, then `end note`; a `state : text` line would replace the state's name with the text | notes yes, on a composite state too; the replacement seen in the check |
 | extended state variables | a note at the machine: one line per variable, `retryCount int32 = 0`, `lastError string, null` | yes |
 
 The diagram's label for a condition is the expression as written; an
@@ -492,16 +523,25 @@ as every output marks a problem's entry (`docs/principles.md`, rule 3).
 
 Every change is an addition: one optional root key, `stateMachines`;
 five optional keys on a transition; nothing removed, renamed or made
-required. A 1.0 file validates as before. On this repository's
+required. A 1.0 file gets no new error: every rule that can fire on a
+file written today is a warning, `transition_cause` on a causeless
+transition from a simple state, `transition_ambiguous` on two transitions
+of one state on one trigger with neither `when` nor `otherwise`,
+`state_unused` on an enum value no transition names, `state_initial` on
+two or more derived initial states, and `state_unreachable` on a
+short-form entity with a default whose transitions name a state none
+reaches; every error needs a key only a new file has. On this repository's
 specification and the examples the one entity with a state field, the
-library lending example's Loan, has a trigger on every transition, one
-derived initial state and no enum value outside its transitions, so no
-new warning appears and no document changes; of the conformance
-cases under `spec/tests/` that carry a state field, three would gain a
-line, `document-testplan-state-machine` and `validate-derived-flow` the
-warnings `state_unused` for `lost` and `transition_cause` for three
-transitions, `validate-state-value` the warning `state_unused` for
-`live`, which their expected output records when the rules are built.
+library lending example's Loan, has a trigger on every transition, no two
+from one state on one trigger, no default and one derived initial state,
+and no enum value outside its transitions, so no new line appears and no
+document changes; of the conformance cases under `spec/tests/` that carry
+a state field, three would gain a line, `document-testplan-state-machine`
+and `validate-derived-flow` the warnings `state_unused` for `lost` and
+`transition_cause` for three transitions (causeless transitions are not
+grouped, so no `transition_ambiguous`), `validate-state-value` the warning
+`state_unused` for `live`, which their expected output records when the
+rules are built.
 The step is a minor one, 1.3.0 (`docs/maintenance.md`, rule 7; ADR-186),
 with the new rule names frozen at that release. Nothing is deprecated:
 the short form is not replaced, it is the full form with the machine's
@@ -564,9 +604,8 @@ of anyone's.
         stateField: stateJob
         final: [stopped]
         states:
-          starting:
-            entry: { set: { lastError: null } }
           running:
+            entry: { set: { lastError: null } }
             invariant: lastError == null
             initial: warming
             history: shallow
@@ -605,7 +644,21 @@ of anyone's.
 
 The operations `startJob`, `pauseJob`, `resumeJob` and `stopJob` are
 declared under `paths` as any operation is, each with a permission, and
-are left out here. What the validator says of it: nothing. What it would
+are left out here. What the validator says of it: nothing. The two
+`job.failed/JobFailed` transitions from `starting` are `when` against
+`otherwise`; every other `from` and cause has one transition; every value
+of both enums is named; `stopped` is final and every other state has a
+way out. What the rules of 3.4 make of a start that fails twice and then
+succeeds, following `lastError` and `retryCount`: `startJob` moves
+`not_started` to `starting` with `retryCount` 0 and `lastError` null, the
+record's default; the first failure takes the self-transition, `0 < 3`,
+`starting`'s exit and entry run and set nothing, and the record holds
+`retryCount` 1 and the reason; the second the same, `retryCount` 2 and
+the second reason; `job.started` moves to `running`, whose entry sets
+`lastError` null, and then to `warming`, so the invariant of `running`
+holds. Had the start failed twice more instead, the third failure would
+have set `retryCount` 3 and the fourth found `3 < 3` false and taken the
+`otherwise` to `stopped`, where the reason stays. What it would
 say of a slip: a third `job.failed/JobFailed` transition from `starting`
 with `when: retryCount > 0` is `transition_overlap` beside the first,
 since `retryCount > 0` and `retryCount < maxRetries` compare different
@@ -635,8 +688,10 @@ draws it (checked on 2026-10-26 with mermaid-cli 12.0.0):
           running --> stopped : job.failed/JobFailed / lastError = event.reason
           stopping --> stopped : job.stopped/JobStopped
           stopped --> [*]
-          note right of starting : entry / lastError = null
-          note right of running : invariant lastError == null
+          note right of running
+            entry / lastError = null
+            invariant lastError == null
+          end note
         }
         --
         state JobLink {
@@ -644,6 +699,7 @@ draws it (checked on 2026-10-26 with mermaid-cli 12.0.0):
           disconnected --> connected : link.opened/LinkOpened
           connected --> disconnected : link.closed/LinkClosed
         }
+        note right of JobLink : within JobRun [running, paused]
       }
       note right of Job
         retryCount int32 = 0
@@ -687,9 +743,12 @@ A machine with no entity, for the same system's operator session:
           - { from: open, to: closed, trigger: signOut }
           - { from: open, to: closed, after: PT8H }
 
-Here the first two `answerChallenge` conditions are shown exclusive
-(`a == b` against `a != b`), and `otherwise` takes the rest; the two
-`after` transitions are on different states and never meet.
+Here the first two `answerChallenge` conditions are shown exclusive by
+the third form of 3.4: the first operand of the second's `&&`,
+`event.answer != event.expected`, is the negation of the first,
+`event.answer == event.expected`, over the same two operands; `otherwise`
+takes the rest. The two `after` transitions are on different states and
+never meet, and `after: PT5M` on `challenged` is alone on its cause.
 
 ## 9. The decision records
 

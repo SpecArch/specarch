@@ -33,8 +33,10 @@ decisions:
       from entering it. The machine's final lists its final states. The
       initial state of an entity machine is the field's default, initial
       is refused on it, and a short-form entity without a default keeps
-      the derivation with the warning state_initial when it finds two or
-      more; a machine with no entity writes initial. Parallel states are
+      the derivation over the states its transitions name, as today, with
+      the warning state_initial when it finds two or more; an enum value
+      no transition names takes no part in it. A machine with no entity
+      writes initial. Parallel states are
       several machines of one entity, one control field each, drawn side
       by side as the concurrent regions of one state named after the
       entity; a machine whose life is scoped to another's states says
@@ -78,8 +80,12 @@ decisions:
       short-form entity that needs them becomes a full-form machine, its
       transitions unchanged. The diagram draws a composite state as
       Mermaid's nested state, parallel machines with its concurrency
-      separator, history as a suffix on the arrow into the composite, and
-      entry, exit and invariant as notes. The test plan enters a
+      separator, a machine within another as such a region with a note
+      naming the machine and the states it is within, never inside a
+      composite state, since the states named need not be one composite
+      and one drawing for every case is read without a rule, history as a
+      suffix on the arrow into the composite, and entry, exit and
+      invariant as notes. The test plan enters a
       composite at its initial child and a history at the child the path
       last left, and takes the within machine's parent state as its given.
     restsOn: [ADR-035, ADR-189, ADR-190]

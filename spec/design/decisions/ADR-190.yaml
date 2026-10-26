@@ -44,12 +44,18 @@ decisions:
       exit of the states left, innermost first, the set, the entry of the
       states entered, outermost first; a self-transition runs both. A
       transition of a descendant state wins over one of an ancestor on
-      the same cause. Among the transitions of one from on one cause, one
-      with neither when nor otherwise must be the only one, and two with
-      the same when or two otherwise are the error transition_ambiguous
-      at each; two with different when are shown exclusive when one is
-      the negation of the other or each compares the same name with a
-      literal and the ranges do not meet, and any other pair is the
+      the same cause. The cause of a completion transition is the
+      completion of its composite from; transitions with no cause from a
+      simple state are not grouped, since each carries transition_cause.
+      Among the transitions of one from on one cause, two with neither
+      when nor otherwise are the warning transition_ambiguous at each;
+      one with neither beside one with either, two with the same when, or
+      two otherwise, are the error transition_ambiguous at each; two with
+      different when are shown exclusive when one is the negation of the
+      other over the same operands, or each compares the same name with a
+      literal and the ranges do not meet, or an operand of one's
+      top-level conjunction is exclusive with the other or with an
+      operand of the other's by those two forms; any other pair is the
       warning transition_overlap at both, which names otherwise as the
       way to settle it.
     why: |
@@ -71,10 +77,24 @@ decisions:
       an undefined move is what the owner wants reported. The exclusivity
       check is exact where it can be and a warning where it cannot:
       overlap in general is a satisfiability question, and a claim the
-      validator cannot prove would be a guess. A completion transition
-      from a simple state is a warning and not an error because every
-      transition without a trigger written so far is valid and a 1.x may
-      not make it invalid (ADR-186). Compiler test: a when naming an
+      validator cannot prove would be a guess; the three forms it does
+      show, the else of a comparison, the ranges of one value and a
+      condition narrowed by a conjunction, are the forms a hand writes
+      for a choice, and a conjunction holds only where each operand does,
+      so the narrowing form is sound. Two transitions of one state on one
+      trigger with neither when nor otherwise are a warning and not an
+      error because an operation that may approve or reject is written
+      so today, the operation decides, and a 1.x may not make a valid
+      file invalid (ADR-186); the pairs that are errors need when or
+      otherwise, which no 1.0 file holds. A completion transition
+      from a simple state is a warning and not an error for the same
+      reason: every transition without a trigger written so far is valid,
+      and such transitions are not grouped for ambiguity, since reporting
+      the missing cause twice says nothing more. The entry of the state
+      entered runs after the transition's set, so a value a move records
+      goes into a variable the target's entry does not set; the worked
+      example's running clears lastError on entry, which establishes its
+      invariant after a retried start. Compiler test: a when naming an
       unknown variable is expression_name at the key and the transition
       is still drawn; acceptance test: a new condition on a move is one
       key on one entry, and the problems file lists the sibling it now

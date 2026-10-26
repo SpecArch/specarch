@@ -19,8 +19,8 @@ function listInvoices(_req: Request, res: Response) {
   res.json([]);
 }
 
-function deleteInvoice(req: Request, res: Response) {
-  res.status(204).send(req.params.invoiceId);
+function deleteInvoice(_req: Request, res: Response) {
+  res.sendStatus(204);
 }
 
 function voidInvoice(_req: Request, res: Response) {

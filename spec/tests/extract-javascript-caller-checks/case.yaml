@@ -6,14 +6,14 @@ repository:
     - [facts.json]
 exitStatus: 0
 standardOutput: |
-  commit 7bdb939e83aa2a03e8c763b54d97de4b44f5ac12: the last change to server, as the code-facts dump facts.json names it
+  commit a69d12ed892ecdaab9dd62cc6c4cec02347228c1: the last change to server, as the code-facts dump facts.json names it
   checks: implementation/core.javascript.specarch-implementation.yaml names the permission check src/guard.allow
   checks: implementation/core.javascript.specarch-implementation.yaml names the client checks src/guard.requireClients and src/guard.requireClient
   checks: implementation/core.javascript.specarch-implementation.yaml names the application check src/guard.requireApplication
   checks: implementation/core.javascript.specarch-implementation.yaml names the caller check src/guard.requireCaller
   checks: implementation/core.javascript.specarch-implementation.yaml names the audience check src/guard.requireAudience
   checks: implementation/core.javascript.specarch-implementation.yaml names the event writer src/guard.audit
-  counted 2 source files, 0 of them with syntax the TypeScript compiler could not read, 1 configuration file and 52 facts: every tracked JavaScript and TypeScript file under server, its tsconfig.json and jsconfig.json files, and every fact the dump holds
+  counted 2 source files, 0 of them with syntax the TypeScript compiler could not read, 1 configuration file and 51 facts: every tracked JavaScript and TypeScript file under server, its tsconfig.json and jsconfig.json files, and every fact the dump holds
   routes: counted 6 registrations: every call of get, post, put, patch, delete, options, head, all or route with a path and a handler on an Express or Fastify router the reader follows, or on another value
   gate: implementation/core.javascript.specarch-implementation.yaml names src/guard.requireApplication as an application check, and it guards 1 operation
   gate: implementation/core.javascript.specarch-implementation.yaml names src/guard.requireAudience as an audience check, and it guards 6 operations

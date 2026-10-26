@@ -1,0 +1,76 @@
+name: codeql
+
+# Code scanning, with the configuration in .github/codeql/codeql-config.yml.
+# It runs as this workflow rather than GitHub's default setup because the
+# default setup takes no paths-ignore and cannot change the results before
+# they are uploaded. Its categories are the default setup's,
+# /language:<language>.
+
+on:
+  push:
+    branches: [main]
+  # pull_request, never pull_request_target, for the reason ci.yml gives.
+  pull_request:
+  schedule:
+    - cron: "23 4 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  analyze:
+    name: analyze (${{ matrix.language }})
+    runs-on: ${{ matrix.language == 'swift' && 'macos-latest' || 'ubuntu-latest' }}
+    permissions:
+      contents: read
+      actions: read
+      security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - language: actions
+            build-mode: none
+          - language: go
+            build-mode: autobuild
+          - language: javascript-typescript
+            build-mode: none
+          - language: python
+            build-mode: none
+          - language: swift
+            build-mode: autobuild
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        if: matrix.language == 'go'
+        with:
+          go-version-file: go.mod
+      - uses: github/codeql-action/init@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4.39.1
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.build-mode }}
+          config-file: ./.github/codeql/codeql-config.yml
+      - uses: github/codeql-action/analyze@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4.39.1
+        with:
+          category: /language:${{ matrix.language }}
+          output: ${{ runner.temp }}/sarif
+          # Uploaded below, once the results under third_party are dropped;
+          # on a failed run it still uploads what helps to debug it.
+          upload: failure-only
+      - name: Drop the results under third_party
+        # The Go extractor does not take paths-ignore (the configuration
+        # says why the paths are ignored); a result whose first location is
+        # under third_party/ is taken out of every language's SARIF, and the
+        # step names how many it took out of each file.
+        run: |
+          for f in "$RUNNER_TEMP"/sarif/*.sarif; do
+            before=$(jq '[.runs[].results[]?] | length' "$f")
+            jq '.runs[] |= (if (.results | type) == "array" then .results |= map(select((.locations[0].physicalLocation.artifactLocation.uri // "") | startswith("third_party/") | not)) else . end)' "$f" > "$f.filtered"
+            mv "$f.filtered" "$f"
+            after=$(jq '[.runs[].results[]?] | length' "$f")
+            echo "$f: kept $after of $before results, dropped $((before - after)) under third_party/"
+          done
+      - uses: github/codeql-action/upload-sarif@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4.39.1
+        with:
+          sarif_file: ${{ runner.temp }}/sarif
+          category: /language:${{ matrix.language }}

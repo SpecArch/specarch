@@ -1,0 +1,18 @@
+# The CodeQL configuration .github/workflows/codeql.yml runs with.
+
+name: specarch
+
+# third_party holds code copied from other projects, such as the TypeScript
+# compiler's Go source under third_party/typescript-go, kept as its upstream
+# wrote it; third_party/<name>/UPSTREAM names where each comes from. Its
+# upstream scans it, and the dependency scans (syft, grype or osv-scanner,
+# govulncheck) cover it here, so code scanning reads only our own code.
+# A finding there that holds for this repository's use is a bug to take
+# upstream, not a change to make in the copy.
+#
+# The JavaScript, TypeScript and Python extractors skip these paths. The Go
+# extractor reads every package the build reaches and does not, so the
+# workflow also drops the results under these paths from each language's
+# SARIF before it is uploaded.
+paths-ignore:
+  - third_party/**

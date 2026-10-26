@@ -3,7 +3,7 @@
     "language": "javascript",
     "parser": {"name": "TypeScript", "version": "7.0.2"},
     "path": "server",
-    "commit": "7bdb939e83aa2a03e8c763b54d97de4b44f5ac12",
+    "commit": "a69d12ed892ecdaab9dd62cc6c4cec02347228c1",
     "files": [
         {"file": "server/src/app.ts", "syntaxErrors": 0},
         {"file": "server/src/guard.ts", "syntaxErrors": 0},
@@ -43,8 +43,7 @@
         {"kind":"call","file":"server/src/app.ts","line":16,"column":1,"callee":{"member":{"object":{"name":"app","declaration":{"file":"server/src/app.ts","line":5,"column":7}},"name":"use"}},"arguments":[{"string":"/admin"},{"call":{"callee":{"name":"requireClient","import":{"module":"./guard","imported":"requireClient"},"declaration":{"file":"server/src/guard.ts","line":18,"column":1}},"arguments":[{"string":"admin-console"}]}},{"name":"admin","declaration":{"file":"server/src/app.ts","line":6,"column":7}}]},
         {"kind":"call","file":"server/src/app.ts","line":16,"column":19,"callee":{"name":"requireClient","import":{"module":"./guard","imported":"requireClient"},"declaration":{"file":"server/src/guard.ts","line":18,"column":1}},"arguments":[{"string":"admin-console"}]},
         {"kind":"function","file":"server/src/app.ts","line":18,"column":1,"name":"listInvoices","parameters":[{"name":"_req","type":{"reference":"Request","import":{"module":"express","imported":"Request"}},"typeFrom":"annotation"},{"name":"res","type":{"reference":"Response","import":{"module":"express","imported":"Response"}},"typeFrom":"annotation"}]},
-        {"kind":"function","file":"server/src/app.ts","line":22,"column":1,"name":"deleteInvoice","parameters":[{"name":"req","type":{"reference":"Request","import":{"module":"express","imported":"Request"}},"typeFrom":"annotation"},{"name":"res","type":{"reference":"Response","import":{"module":"express","imported":"Response"}},"typeFrom":"annotation"}]},
-        {"kind":"access","file":"server/src/app.ts","line":23,"column":24,"chain":["req","params","invoiceId"],"parameter":{"index":0,"function":{"file":"server/src/app.ts","line":22,"column":1}},"wrappedBy":"res.status(204).send","within":{"file":"server/src/app.ts","line":22,"column":1}},
+        {"kind":"function","file":"server/src/app.ts","line":22,"column":1,"name":"deleteInvoice","parameters":[{"name":"_req","type":{"reference":"Request","import":{"module":"express","imported":"Request"}},"typeFrom":"annotation"},{"name":"res","type":{"reference":"Response","import":{"module":"express","imported":"Response"}},"typeFrom":"annotation"}]},
         {"kind":"function","file":"server/src/app.ts","line":26,"column":1,"name":"voidInvoice","parameters":[{"name":"_req","type":{"reference":"Request","import":{"module":"express","imported":"Request"}},"typeFrom":"annotation"},{"name":"res","type":{"reference":"Response","import":{"module":"express","imported":"Response"}},"typeFrom":"annotation"}]},
         {"kind":"function","file":"server/src/app.ts","line":30,"column":1,"name":"archiveInvoice","parameters":[{"name":"_req","type":{"reference":"Request","import":{"module":"express","imported":"Request"}},"typeFrom":"annotation"},{"name":"res","type":{"reference":"Response","import":{"module":"express","imported":"Response"}},"typeFrom":"annotation"}]},
         {"kind":"function","file":"server/src/app.ts","line":34,"column":1,"name":"sendInvoice","parameters":[{"name":"_req","type":{"reference":"Request","import":{"module":"express","imported":"Request"}},"typeFrom":"annotation"},{"name":"res","type":{"reference":"Response","import":{"module":"express","imported":"Response"}},"typeFrom":"annotation"}]},

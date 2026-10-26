@@ -29,8 +29,9 @@ decisions:
       history target that is not composite; state_initial, an error for a
       composite without initial, a full-form entity machine whose field
       has no default and a standalone machine without initial, and a
-      warning for a short-form entity with two or more derived initial
-      states among those its transitions name; state_unreachable, a
+      warning for a short-form entity whose derivation over the states its
+      transitions name finds two or more initial states, or none because
+      every state is reached; state_unreachable, a
       warning for a state that is not initial and that no transition
       reaches; state_dead_end, a warning for a full-form simple state no
       transition leaves that final does not name; state_final, an error

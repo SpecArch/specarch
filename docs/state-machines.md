@@ -399,8 +399,12 @@ The initial state of an entity machine is the state field's `default`:
 a record is created with it, so no second place can say otherwise. A
 short-form entity whose field has no default keeps the derivation of
 today, the states no transition reaches among those the transitions name;
-when there are two or more, the warning `state_initial` asks for the
-default. An enum value no transition names takes no part in the
+when there are two or more, or none because every state the transitions
+name is reached by one of them, the warning `state_initial` asks for the
+default: without one initial state the diagram draws no `[*]`, the test
+plan derives no path and a record has no first state, and the problem is
+reported rather than left for the reader of the diagram to notice. An
+enum value no transition names takes no part in the
 derivation: it is `state_unused`, not initial. A full-form entity machine
 whose field has no default is `state_initial`, an error, since the full
 form promises the machine is complete. A machine with no entity writes
@@ -408,7 +412,10 @@ form promises the machine is complete. A machine with no entity writes
 
 `final` lists the states the machine ends in. The short form keeps the
 derivation of today, the states no transition leaves among those the
-transitions name. In the full form a
+transitions name; a short form whose transitions leave every state has no
+final state, which is not reported, since a machine may run for the
+record's whole life, and the test plan then derives no path and keeps its
+red case per transition. In the full form a
 state no transition leaves that `final` does not name is the warning
 `state_dead_end`, which says to name it final or give it a way out; a
 final state with a transition from it is the error `state_final`.
@@ -438,7 +445,7 @@ their names; the new ones are frozen at the release that ships them.
 | `state_value` | error | as today: a `from`, `to`, `initial`, `final`, `within.states` or `states` key that is not a value of the machine's enum |
 | `trigger` | error | as today: a trigger naming nothing |
 | `state_machine` | error | `entity` names no entity; `stateEnum` names no enum; `within` names no machine of the same entity; `enter: history` to a state that is not composite; a `to` that is a composite state without `initial` |
-| `state_initial` | error, warning | a composite state with `states` and no `initial`; a full-form entity machine whose field has no `default`; a standalone machine without `initial`: errors. A short-form entity with no default and two or more states, among those its transitions name, that no transition reaches: a warning naming them |
+| `state_initial` | error, warning | a composite state with `states` and no `initial`; a full-form entity machine whose field has no `default`; a standalone machine without `initial`: errors. A short-form entity with no default whose transitions name two or more states no transition reaches, or none: a warning naming them, or saying that every state is reached, and asking for the default |
 | `state_unreachable` | warning | a state that is not initial and that no transition reaches, nor is a descendant of one reached; in the short form without a default a state no transition reaches is initial by derivation, so there it fires only when the field has a default |
 | `state_dead_end` | warning | full form: a simple state no transition leaves, nor any ancestor of it, that `final` does not name |
 | `state_final` | error | a transition from a state `final` names |
@@ -528,7 +535,7 @@ file written today is a warning, `transition_cause` on a causeless
 transition from a simple state, `transition_ambiguous` on two transitions
 of one state on one trigger with neither `when` nor `otherwise`,
 `state_unused` on an enum value no transition names, `state_initial` on
-two or more derived initial states, and `state_unreachable` on a
+two or more derived initial states or none, and `state_unreachable` on a
 short-form entity with a default whose transitions name a state none
 reaches; every error needs a key only a new file has. On this repository's
 specification and the examples the one entity with a state field, the
@@ -536,16 +543,19 @@ library lending example's Loan, has a trigger on every transition, no two
 from one state on one trigger, no default and one derived initial state,
 and no enum value outside its transitions, so no new line appears and no
 document changes; of the conformance cases under `spec/tests/` that carry
-a state field, five would gain a line, `document-testplan-state-machine`
+a state field, five would gain lines, `document-testplan-state-machine`
 and `validate-derived-flow` the warnings `state_unused` for `lost` and
 `transition_cause` for three transitions (causeless transitions are not
 grouped, so no `transition_ambiguous`), `validate-state-value` the warning
 `state_unused` for `live`, and `generate-scripts` and
-`generate-scripts-mariadb` the warning `transition_ambiguous` at each of
-the two `settleReservation` transitions from `pending`, which their
-expected output records when the rules are built. The other cases with a
-state field have one transition per state and trigger, every enum value
-named, no default and one or no derived initial state.
+`generate-scripts-mariadb` two lines each, the warning
+`transition_ambiguous` at each of the two `settleReservation` transitions
+from `pending` and the warning `state_initial` at the Loan's state field,
+whose `renewLoan` from `overdue` reaches `open`, so that every state its
+transitions name is reached and none is initial by derivation; their
+expected output records both when the rules are built. The other cases
+with a state field have one transition per state and trigger, every enum
+value named, no default and one derived initial state.
 The step is a minor one, 1.3.0 (`docs/maintenance.md`, rule 7; ADR-186),
 with the new rule names frozen at that release. Nothing is deprecated:
 the short form is not replaced, it is the full form with the machine's

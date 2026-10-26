@@ -34,7 +34,8 @@ decisions:
       initial state of an entity machine is the field's default, initial
       is refused on it, and a short-form entity without a default keeps
       the derivation over the states its transitions name, as today, with
-      the warning state_initial when it finds two or more; an enum value
+      the warning state_initial when it finds two or more, or none because
+      every state is reached; an enum value
       no transition names takes no part in it. A machine with no entity
       writes initial. Parallel states are
       several machines of one entity, one control field each, drawn side

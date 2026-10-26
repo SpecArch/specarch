@@ -608,3 +608,19 @@ requirements:
     verification: test
     needs: [NEED-2]
     why: An editor or a live view is built by hand, and without a page kind for it the screen had no route, guard, menu entry, flow or derived test in the design (ADR-183).
+  # specarch-problem: warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SA-98; add verifies: [SA-98] to the test that shows it is met [requirement_unverified@requirements/requirements/design-keywords.yaml#/requirements/SA-98]
+  SA-98:
+    statement: A specification shall describe a state machine by its control state, one enum's value held in an entity's field or named by the machine, and its extended state, the entity's fields or the machine's variables with their types, defaults and constraints; a transition shall say its cause, its condition, what it sets and the else case; a state shall carry entry, exit, an invariant, child states, history and finality; an entity may have several machines, a machine may have no entity, and the validator and the diagram shall show the machine as it is.
+    kind: functional
+    priority: must
+    status: proposed
+    acceptance:
+      - An entity's stateField and transitions are read as one machine as before, with no new line on a file written today, and the transitions take when, set, otherwise, after, at and enter.
+      - A machine under stateMachines with an entity, a stateField, states, final and transitions validates; one naming an unknown entity, field, enum or within machine is reported at the key with the rest of the machine read.
+      - A state that is not initial and that no transition reaches, a full-form state no transition leaves that final does not name, an enum value no transition names, and a transition from a simple state with no cause are each reported as a warning naming the state or the transition.
+      - Two transitions of one state on one cause with no condition between them, the same condition or two otherwise are reported as an error at each; two whose conditions the validator cannot show exclusive are a warning at both, and two it can, one the negation of the other or the same name against literals whose ranges do not meet, are not reported.
+      - A when, set, invariant or at naming a variable, field or event property the machine does not have, or of the wrong type, is reported with the expression rules, and set naming a control field is reported.
+      - Both builds print the same lines for every case, and the diagram of a machine draws its causes, conditions and updates on the arrows, its variables as a note, its composite states nested and an entity's machines as concurrent regions.
+    verification: test
+    needs: [NEED-2]
+    why: State diagrams and state variables are among the most important parts of a system architecture, and the design could say only an entity's control state and its moves, so retry counts, deadlines, conditions, a second machine of an entity and the machines of things not stored were written outside the specification, undrawn and unchecked (ADR-189 to ADR-192).

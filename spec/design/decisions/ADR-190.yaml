@@ -1,0 +1,105 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-1.0.schema.json
+decisions:
+  ADR-190:
+    title: A transition has one cause (trigger, after a duration, or at a moment), a condition when over the extended state and the event's data, otherwise for the one that fires when no condition holds, and set for what it updates; two transitions of one state on one cause are told apart or reported
+    status: proposed
+    date: "2026-10-26"
+    context: |
+      A transition says from, to and a trigger naming an operation, a
+      command, a channel message or an algorithm. Nothing can say the
+      condition under which it fires or what else changes with the move,
+      so a retry counter, a deadline or a last error is kept outside the
+      design. UML writes a transition as trigger [guard] / effect, with
+      [else] for the remaining case, time events after(d) and at(t), and
+      firing priorities for conflicting transitions that leave the rest
+      undefined; SCXML writes event, cond and target with executable
+      content, tries the transitions of a state in document order and
+      takes the first whose cond holds, and sends a delayed event on
+      entry for a timer. SpecArch's expressions are the subset of CEL of
+      docs/conventions.md, with caller.<property> as the one field access
+      (ADR-095); guard already names an operation's checked data change
+      (ADR-158) and when the condition of a page action; writes.set is a
+      map of field to value.
+    decision: |
+      A transition has at most one of trigger, as today, after, an ISO
+      8601 duration of the meta-model since the from state was entered
+      and cancelled on leaving it, and at, an expression of type
+      timestamp or date over the extended state giving the moment it
+      fires, a date at the start of that day in the implementation's time
+      zone. A transition with none is a completion transition: from a
+      composite state it fires when a child the state's final names is
+      reached; from a simple state it is read and drawn as today and
+      reported as the warning transition_cause. when is an expression
+      giving a bool over the extended state and, with a trigger,
+      event.<property>, the trigger's data: a message's payload
+      properties, an operation's body properties and parameters, a
+      command's arguments and options, an algorithm's inputs; event is the
+      second reserved record after caller, and caller is not read in a
+      machine. otherwise: true marks the one transition of a from and a
+      cause that fires when no sibling's when holds. set is a map of
+      variable to expression in the shape of writes.set, each a value of
+      the variable's type over the extended state and event, never the
+      control field of any machine and never the primary key. A move runs
+      as one change with the operation, job or step that causes it: the
+      exit of the states left, innermost first, the set, the entry of the
+      states entered, outermost first; a self-transition runs both. A
+      transition of a descendant state wins over one of an ancestor on
+      the same cause. Among the transitions of one from on one cause, one
+      with neither when nor otherwise must be the only one, and two with
+      the same when or two otherwise are the error transition_ambiguous
+      at each; two with different when are shown exclusive when one is
+      the negation of the other or each compares the same name with a
+      literal and the ranges do not meet, and any other pair is the
+      warning transition_overlap at both, which names otherwise as the
+      way to settle it.
+    why: |
+      The word is when, not guard, because guard already means an
+      operation's precondition, count and writes and a borrowed word is
+      never redefined, while when already means the condition under which
+      a page action is offered, the same meaning; the owner may still
+      prefer UML's word, which docs/state-machines.md asks. set keeps the
+      shape it has because an update is what writes.set already says,
+      with a fuller expression; CEL has no assignment and the map keeps
+      the expression language pure. event follows SCXML's _event.data and
+      takes the one form a field access already has, for the reason
+      ADR-095 gave: one record with declared properties, no join. after
+      and at follow UML's two words, with SpecArch's own duration, since
+      a duration is the same shape everywhere in the meta-model. SCXML's
+      document order was not taken because it chooses a meaning for an
+      ambiguous pair silently, and SpecArch does not pick a meaning for
+      an ambiguous entry; UML's undefined outcome was not taken because
+      an undefined move is what the owner wants reported. The exclusivity
+      check is exact where it can be and a warning where it cannot:
+      overlap in general is a satisfiability question, and a claim the
+      validator cannot prove would be a guess. A completion transition
+      from a simple state is a warning and not an error because every
+      transition without a trigger written so far is valid and a 1.x may
+      not make it invalid (ADR-186). Compiler test: a when naming an
+      unknown variable is expression_name at the key and the transition
+      is still drawn; acceptance test: a new condition on a move is one
+      key on one entry, and the problems file lists the sibling it now
+      overlaps.
+    consequences: |
+      Five optional keys on a transition, in the short form and the full
+      form alike. The guarded script of ADR-168 takes when into its
+      precondition and set into its writes, and names a time transition
+      as one it does not script. The test plan derives a red case per
+      when and the two cases of a timer (ADR-192). Which program watches
+      the clock for after and at is the implementation's; a stored
+      entity needs the instant its state was entered, which the build
+      item designs as an idiom column.
+    restsOn: [ADR-095, ADR-158, ADR-168, ADR-186, ADR-189]
+    satisfies: [SA-98]
+    cites:
+      - source: uml-2-5-1
+        clause: "14.2.3.8, Transitions"
+        says: "A transition is written trigger [guard] / effect; a guard is a constraint evaluated when the event is dispatched, and [else] is the guard of the remaining case."
+      - source: uml-2-5-1
+        clause: "14.2.3.9.3, Conflicting Transitions"
+        says: "Two transitions enabled by one event that leave states in the same region are in conflict; a transition whose source is deeper has priority, and the choice among the rest is left to the execution engine."
+      - source: scxml-1-0
+        clause: "3.13, Selecting and Executing Transitions"
+        says: "Among enabled transitions a descendant's source wins over an ancestor's, and otherwise the one earlier in document order is taken."
+      - source: scxml-1-0
+        clause: "3.5, <transition>"
+        says: "A transition has an event, a cond expression evaluated when the event is matched, and a target; a transition with no event is taken whenever its cond holds."

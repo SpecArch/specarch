@@ -140,6 +140,23 @@ sources:
     edition: "2024"
     author: The CEL project
     url: https://github.com/google/cel-spec/blob/master/doc/langdef.md
+  uml-2-5-1:
+    kind: standard
+    title: OMG Unified Modeling Language (OMG UML), Version 2.5.1, clause 14, StateMachines
+    edition: formal/2017-12-05
+    author: Object Management Group
+    url: https://www.omg.org/spec/UML/2.5.1/
+  scxml-1-0:
+    kind: standard
+    title: State Chart XML (SCXML), State Machine Notation for Control Abstraction, W3C Recommendation 1 September 2015
+    edition: "1.0"
+    author: W3C
+    url: https://www.w3.org/TR/scxml/
+  harel-1987:
+    kind: document
+    title: "Statecharts: a visual formalism for complex systems, Science of Computer Programming 8, pages 231 to 274"
+    edition: "1987"
+    author: David Harel
   json-schema:
     kind: standard
     title: JSON Schema, a media type for describing JSON documents

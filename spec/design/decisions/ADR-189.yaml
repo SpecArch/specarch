@@ -1,0 +1,85 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-1.0.schema.json
+decisions:
+  ADR-189:
+    title: A state machine is a named element with a control state that is one enum's value and an extended state that is the entity's fields or its own variables; an entity's stateField and transitions stay the short form of one flat machine, and stateMachines is the full form
+    status: proposed
+    date: "2026-10-26"
+    context: |
+      The owner said on 2026-10-26 that state diagrams and state variables
+      are among the most important parts of a system architecture, and
+      that SpecArch models them only partly: an entity names one enum
+      field as stateField and lists transitions of from, to and trigger,
+      and nothing can say a variable a move reads or changes, a second
+      control state of one entity, or a machine of a device, a connection
+      or a session that no entity stores. Harel's statecharts, UML 2.5.1
+      and SCXML 1.0 all split a machine into its control state, the one
+      place it is, and its extended state, the data its conditions read
+      and its actions write: UML as the attributes of the context object,
+      SCXML as the data model. docs/state-machines.md designs the whole
+      extension; this record holds where a machine lives and what its two
+      kinds of state are.
+    decision: |
+      A machine is an element of stateMachines, a map at the root of the
+      design keyed like entities. A machine of a stored entity names the
+      entity and the enum field that holds its control state, stateField;
+      its extended state is the entity's other fields, the control fields
+      of the entity's other machines included, with their types, widths,
+      defaults and check constraints as declared, and it declares no
+      variables, constraints or initial of its own. A machine with no
+      entity names stateEnum, the enum whose values are its control
+      states, variables, a map of fields as an entity's properties with a
+      default as each one's initial value, constraints of kind check over
+      them, and initial. Every state, composite or simple, is a value of
+      that one enum, and a record holds a simple state. An entity's
+      stateField and transitions keep their meaning and are read as one
+      machine named after the entity, with the initial state the field's
+      default or, without one, the states no transition reaches, and the
+      final states those no transition leaves; its transitions take every
+      key a transition has. A field is the control state of at most one
+      machine, state_field at the second.
+    why: |
+      The owner's terms are kept because they name the split a reader has
+      to see first, and both standards keep it too. The control state is
+      always an enum value so that the stored column, the diagram, the
+      test and the machine share one vocabulary and the validator has one
+      rule, state_value, for every place a state is named. The extended
+      state of an entity machine is the entity's fields and nothing is
+      declared twice: a variable declared beside the field it mirrors
+      would be two ways to say one thing, which the Low IQ Tax rules out,
+      and a machine's field is where a condition's name is checked today.
+      The short form stays and is not deprecated. The alternative, one
+      spelling only with the short form deprecated and moved by specarch
+      upgrade, lost: a flat machine on one field is the common case and
+      is written in every specification, and the short form is the full
+      form with the machine's own keys left out, as a field written inline
+      is the field written under $ref, one definition at two amounts of
+      detail, not two meanings; deprecating it would warn at every
+      existing entity for no change of meaning. The alternative of
+      machines under the entity lost because a machine with no entity has
+      no entity to sit under, and one place for all machines is simpler
+      than two. The alternative of regions inside one machine for the
+      second control state lost because a stored record holds one value
+      per field (ADR-191 says how parallel states are written).
+      Compiler test: a machine naming an unknown entity, field or enum is
+      read, the error at the key, and every other machine and problem
+      listed; acceptance test: a second machine for an entity is one new
+      element and one new field, and the entity's existing machine does
+      not change.
+    consequences: |
+      stateMachines is one optional root key, and every 1.0 file
+      validates as before. Two spellings of a one-field flat machine
+      exist, the short form on the entity and a full-form machine with no
+      states; the full form is for a machine with states, final, within or
+      no entity. The build adds the key to the design and fragment design
+      schemas of 1.0, both validators and specarch model.
+    restsOn: [ADR-003, ADR-186]
+    satisfies: [SA-98]
+    cites:
+      - source: harel-1987
+        says: "A statechart extends a state diagram with hierarchy, orthogonality and broadcast, and its transitions carry conditions and actions over the system's data."
+      - source: uml-2-5-1
+        clause: "14.2.3.1, StateMachines"
+        says: "A behaviour state machine is owned by a context classifier whose attributes its guards and effects read and write."
+      - source: scxml-1-0
+        clause: "5.2, <datamodel>"
+        says: "The data model holds the variables the machine's conditions and assignments use, declared with an initial value."

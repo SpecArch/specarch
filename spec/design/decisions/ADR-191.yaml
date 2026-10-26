@@ -1,0 +1,98 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-1.0.schema.json
+decisions:
+  ADR-191:
+    title: A state carries entry, exit, an invariant, child states with their initial, history and final; a stored machine's initial state is its field's default; parallel states are several machines of one entity, one field each, a machine within another's states when its life is scoped to them
+    status: proposed
+    date: "2026-10-26"
+    context: |
+      A state is a bare enum value: nothing happens on entering or
+      leaving it, nothing holds while in it, no state is inside another,
+      and the initial and final states are derived from which states no
+      transition reaches or leaves. UML has entry, exit and do
+      behaviours, a state invariant, composite states with regions,
+      shallow and deep history pseudostates, an initial pseudostate per
+      region and final states; SCXML has onentry, onexit, nested state,
+      parallel, history with a type, an initial attribute that defaults
+      to the first child in document order, and final. A record of an
+      entity holds one value per field, and a field with a default is
+      created with it. ADR-035 keeps a page's states a fixed set.
+    decision: |
+      A machine's states map, keyed by enum value, gives a state what its
+      name does not: description; entry and exit, each a set of variable
+      to expression and emits, messages as channel/Message; invariant, a
+      bool expression over the extended state that holds while the
+      machine is in the state, checked with its ancestors' and meaning
+      the check constraint "state field is not this state, or the
+      invariant"; states, its children in the same shape, which makes it
+      composite; initial, the child entered when a transition targets the
+      state and names no history, required with children; history,
+      shallow or deep, and a transition to the state with enter: history
+      enters the child or the configuration last left; final, the
+      children at which the state completes. A composite's entry runs
+      before its child's and its exit after; after on a composite counts
+      from entering it. The machine's final lists its final states. The
+      initial state of an entity machine is the field's default, initial
+      is refused on it, and a short-form entity without a default keeps
+      the derivation with the warning state_initial when it finds two or
+      more; a machine with no entity writes initial. Parallel states are
+      several machines of one entity, one control field each, drawn side
+      by side as the concurrent regions of one state named after the
+      entity; a machine whose life is scoped to another's states says
+      within, the machine and its states: it is in its initial state and
+      fires nothing while the other is elsewhere, starts at its initial
+      state when one of them is entered and is reset when they are left.
+      There is no region inside a state, no do activity, no choice,
+      junction, fork or join vertex, no deferred event and no submachine
+      state.
+    why: |
+      Entry and exit hold a set and an emits and nothing else because
+      those are what a design can say of an action without a stack:
+      what the record holds afterwards and what is told; what runs while
+      the machine waits is the operation or job already in the design, so
+      the do activity is left out. The initial state of a stored machine
+      is the field's default because a record is created with it and a
+      second place could only agree or contradict; the alternative of an
+      initial key on every machine with the default required to agree
+      lost as two spellings of one fact, and docs/state-machines.md asks
+      the owner. SCXML's first child by default was not taken because it
+      decides silently. Parallel states are machines, not regions inside
+      a state, because a stored record holds one value per field, so each
+      region needs a field and a field is a machine; this also gives each
+      region its own diagram, paths and tests, and within keeps the one
+      thing a region inside a composite state has that two free machines
+      do not, a life scoped to the parent's states, with the semantics
+      UML gives a region's default entry and exit. Every state is an enum
+      value, composite ones included, so that from a composite state
+      means from any descendant, as UML reads it, and the stored value is
+      always a leaf because a transition to a composite enters a child.
+      The pseudostates are left out because every decision they draw is a
+      condition on a transition out of a state, which when and otherwise
+      say with a cause the validator reads. Pages keep ADR-035: a flow
+      across pages is a machine with no entity whose triggers are the
+      operations the pages call. Compiler test: a composite without
+      initial is state_initial at the key and the diagram still draws its
+      children; acceptance test: a new sub-state is one child under one
+      state, and the paths that pass through it are listed anew.
+    consequences: |
+      states, final, within and initial are keys of the full form only; a
+      short-form entity that needs them becomes a full-form machine, its
+      transitions unchanged. The diagram draws a composite state as
+      Mermaid's nested state, parallel machines with its concurrency
+      separator, history as a suffix on the arrow into the composite, and
+      entry, exit and invariant as notes. The test plan enters a
+      composite at its initial child and a history at the child the path
+      last left, and takes the within machine's parent state as its given.
+    restsOn: [ADR-035, ADR-189, ADR-190]
+    satisfies: [SA-98]
+    cites:
+      - source: uml-2-5-1
+        clause: "14.2.3.4, States"
+        says: "A state may have entry, exit and do behaviours and a state invariant; a composite state has one or more regions, each with at most one initial pseudostate and one history pseudostate, shallow or deep."
+      - source: scxml-1-0
+        clause: "3.10, <history>"
+        says: "A history pseudostate records the active child, shallow, or the whole active configuration, deep, when its parent is left, and a transition targeting it restores that."
+      - source: scxml-1-0
+        clause: "3.4, <parallel>"
+        says: "A parallel state holds child states that are all active at once, each region with its own configuration."
+      - source: harel-1987
+        says: "Orthogonality lets a statechart be in several states at once, one per orthogonal component, which is the product of their state sets written without the product."

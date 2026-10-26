@@ -2,9 +2,9 @@
 
 # SpecArch toolchain: technical specification
 
-Version 1.2.1-dev of the specification: 97 requirements, 5 entities, 22 commands, 7 algorithms, 784 tests, 179 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 1.2.1-dev of the specification: 98 requirements, 5 entities, 22 commands, 7 algorithms, 784 tests, 183 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
-**Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
+**Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
 ## 1. Introduction and goals
 
@@ -14300,6 +14300,267 @@ walks; that is a later item.
 
 **Note:** From Documenting architecture decisions, 2011: A decision is superseded by a later one rather than edited, and the record says which decision superseded it. <https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions>
 
+### ADR-189: A state machine is a named element with a control state that is one enum's value and an extended state that is the entity's fields or its own variables; an entity's stateField and transitions stay the short form of one flat machine, and stateMachines is the full form
+
+Status: proposed, 2026-10-26.
+
+Rests on: [ADR-003](#adr-003-the-validator-applies-the-published-json-schema-first-then-its-own-rules), [ADR-186](#adr-186-meta-model-100-is-the-first-stable-version-of-every-specarch-format-read-beside-every-earlier-version-with-two-keys-renamed-and-deprecated-the-schemas-conditionals-made-to-require-the-key-they-read-and-specarch-upgrade-to-move-a-file).
+
+Context: The owner said on 2026-10-26 that state diagrams and state variables
+are among the most important parts of a system architecture, and
+that SpecArch models them only partly: an entity names one enum
+field as stateField and lists transitions of from, to and trigger,
+and nothing can say a variable a move reads or changes, a second
+control state of one entity, or a machine of a device, a connection
+or a session that no entity stores. Harel's statecharts, UML 2.5.1
+and SCXML 1.0 all split a machine into its control state, the one
+place it is, and its extended state, the data its conditions read
+and its actions write: UML as the attributes of the context object,
+SCXML as the data model. docs/state-machines.md designs the whole
+extension; this record holds where a machine lives and what its two
+kinds of state are.
+
+Decision: A machine is an element of stateMachines, a map at the root of the
+design keyed like entities. A machine of a stored entity names the
+entity and the enum field that holds its control state, stateField;
+its extended state is the entity's other fields, the control fields
+of the entity's other machines included, with their types, widths,
+defaults and check constraints as declared, and it declares no
+variables, constraints or initial of its own. A machine with no
+entity names stateEnum, the enum whose values are its control
+states, variables, a map of fields as an entity's properties with a
+default as each one's initial value, constraints of kind check over
+them, and initial. Every state, composite or simple, is a value of
+that one enum, and a record holds a simple state. An entity's
+stateField and transitions keep their meaning and are read as one
+machine named after the entity, with the initial state the field's
+default or, without one, the states no transition reaches, and the
+final states those no transition leaves; its transitions take every
+key a transition has. A field is the control state of at most one
+machine, state_field at the second.
+
+Consequences: stateMachines is one optional root key, and every 1.0 file
+validates as before. Two spellings of a one-field flat machine
+exist, the short form on the entity and a full-form machine with no
+states; the full form is for a machine with states, final, within or
+no entity. The build adds the key to the design and fragment design
+schemas of 1.0, both validators and specarch model.
+
+**Insight:** The owner's terms are kept because they name the split a reader has to see first, and both standards keep it too. The control state is always an enum value so that the stored column, the diagram, the test and the machine share one vocabulary and the validator has one rule, state_value, for every place a state is named. The extended state of an entity machine is the entity's fields and nothing is declared twice: a variable declared beside the field it mirrors would be two ways to say one thing, which the Low IQ Tax rules out, and a machine's field is where a condition's name is checked today. The short form stays and is not deprecated. The alternative, one spelling only with the short form deprecated and moved by specarch upgrade, lost: a flat machine on one field is the common case and is written in every specification, and the short form is the full form with the machine's own keys left out, as a field written inline is the field written under $ref, one definition at two amounts of detail, not two meanings; deprecating it would warn at every existing entity for no change of meaning. The alternative of machines under the entity lost because a machine with no entity has no entity to sit under, and one place for all machines is simpler than two. The alternative of regions inside one machine for the second control state lost because a stored record holds one value per field (ADR-191 says how parallel states are written). Compiler test: a machine naming an unknown entity, field or enum is read, the error at the key, and every other machine and problem listed; acceptance test: a second machine for an entity is one new element and one new field, and the entity's existing machine does not change.
+
+**Note:** From Statecharts: a visual formalism for complex systems, Science of Computer Programming 8, pages 231 to 274, 1987: A statechart extends a state diagram with hierarchy, orthogonality and broadcast, and its transitions carry conditions and actions over the system's data.
+
+**Note:** From OMG Unified Modeling Language (OMG UML), Version 2.5.1, clause 14, StateMachines, formal/2017-12-05, clause 14.2.3.1, StateMachines: A behaviour state machine is owned by a context classifier whose attributes its guards and effects read and write. <https://www.omg.org/spec/UML/2.5.1/>
+
+**Note:** From State Chart XML (SCXML), State Machine Notation for Control Abstraction, W3C Recommendation 1 September 2015, 1.0, clause 5.2, <datamodel>: The data model holds the variables the machine's conditions and assignments use, declared with an initial value. <https://www.w3.org/TR/scxml/>
+
+### ADR-190: A transition has one cause (trigger, after a duration, or at a moment), a condition when over the extended state and the event's data, otherwise for the one that fires when no condition holds, and set for what it updates; two transitions of one state on one cause are told apart or reported
+
+Status: proposed, 2026-10-26.
+
+Rests on: [ADR-095](#adr-095-the-caller-is-a-declared-record-callerproperty-is-the-one-field-access-an-expression-may-use-and-a-roles-rows-rule-limits-an-entitys-rows-after-postgresqls-row-security-policies-with-a-record-outside-the-rows-not-found), [ADR-158](#adr-158-specarch-gen-scripts-writes-one-guarded-psql-script-per-guarded-entry-whose-change-the-design-says-checks-the-precondition-and-the-exact-count-inside-the-change-rolls-back-unless-told-to-apply-and-leaves-every-other-change-to-be-written-by-hand), [ADR-168](#adr-168-a-guards-writes-says-what-a-change-writes-when-no-keyword-of-its-entry-does-set-with-given-or-a-literal-for-each-field-or-delete-and-specarch-gen-scripts-writes-the-guarded-script-from-it), [ADR-186](#adr-186-meta-model-100-is-the-first-stable-version-of-every-specarch-format-read-beside-every-earlier-version-with-two-keys-renamed-and-deprecated-the-schemas-conditionals-made-to-require-the-key-they-read-and-specarch-upgrade-to-move-a-file), [ADR-189](#adr-189-a-state-machine-is-a-named-element-with-a-control-state-that-is-one-enums-value-and-an-extended-state-that-is-the-entitys-fields-or-its-own-variables-an-entitys-statefield-and-transitions-stay-the-short-form-of-one-flat-machine-and-statemachines-is-the-full-form).
+
+Context: A transition says from, to and a trigger naming an operation, a
+command, a channel message or an algorithm. Nothing can say the
+condition under which it fires or what else changes with the move,
+so a retry counter, a deadline or a last error is kept outside the
+design. UML writes a transition as trigger [guard] / effect, with
+[else] for the remaining case, time events after(d) and at(t), and
+firing priorities for conflicting transitions that leave the rest
+undefined; SCXML writes event, cond and target with executable
+content, tries the transitions of a state in document order and
+takes the first whose cond holds, and sends a delayed event on
+entry for a timer. SpecArch's expressions are the subset of CEL of
+docs/conventions.md, with caller.<property> as the one field access
+(ADR-095); guard already names an operation's checked data change
+(ADR-158) and when the condition of a page action; writes.set is a
+map of field to value.
+
+Decision: A transition has at most one of trigger, as today, after, an ISO
+8601 duration of the meta-model since the from state was entered
+and cancelled on leaving it, and at, an expression of type
+timestamp or date over the extended state giving the moment it
+fires, a date at the start of that day in the implementation's time
+zone. A transition with none is a completion transition: from a
+composite state it fires when a child the state's final names is
+reached; from a simple state it is read and drawn as today and
+reported as the warning transition_cause. when is an expression
+giving a bool over the extended state and, with a trigger,
+event.<property>, the trigger's data: a message's payload
+properties, an operation's body properties and parameters, a
+command's arguments and options, an algorithm's inputs; event is the
+second reserved record after caller, and caller is not read in a
+machine. otherwise: true marks the one transition of a from and a
+cause that fires when no sibling's when holds. set is a map of
+variable to expression in the shape of writes.set, each a value of
+the variable's type over the extended state and event, never the
+control field of any machine and never the primary key. A move runs
+as one change with the operation, job or step that causes it: the
+exit of the states left, innermost first, the set, the entry of the
+states entered, outermost first; a self-transition runs both. A
+transition of a descendant state wins over one of an ancestor on
+the same cause. Among the transitions of one from on one cause, one
+with neither when nor otherwise must be the only one, and two with
+the same when or two otherwise are the error transition_ambiguous
+at each; two with different when are shown exclusive when one is
+the negation of the other or each compares the same name with a
+literal and the ranges do not meet, and any other pair is the
+warning transition_overlap at both, which names otherwise as the
+way to settle it.
+
+Consequences: Five optional keys on a transition, in the short form and the full
+form alike. The guarded script of ADR-168 takes when into its
+precondition and set into its writes, and names a time transition
+as one it does not script. The test plan derives a red case per
+when and the two cases of a timer (ADR-192). Which program watches
+the clock for after and at is the implementation's; a stored
+entity needs the instant its state was entered, which the build
+item designs as an idiom column.
+
+**Insight:** The word is when, not guard, because guard already means an operation's precondition, count and writes and a borrowed word is never redefined, while when already means the condition under which a page action is offered, the same meaning; the owner may still prefer UML's word, which docs/state-machines.md asks. set keeps the shape it has because an update is what writes.set already says, with a fuller expression; CEL has no assignment and the map keeps the expression language pure. event follows SCXML's _event.data and takes the one form a field access already has, for the reason ADR-095 gave: one record with declared properties, no join. after and at follow UML's two words, with SpecArch's own duration, since a duration is the same shape everywhere in the meta-model. SCXML's document order was not taken because it chooses a meaning for an ambiguous pair silently, and SpecArch does not pick a meaning for an ambiguous entry; UML's undefined outcome was not taken because an undefined move is what the owner wants reported. The exclusivity check is exact where it can be and a warning where it cannot: overlap in general is a satisfiability question, and a claim the validator cannot prove would be a guess. A completion transition from a simple state is a warning and not an error because every transition without a trigger written so far is valid and a 1.x may not make it invalid (ADR-186). Compiler test: a when naming an unknown variable is expression_name at the key and the transition is still drawn; acceptance test: a new condition on a move is one key on one entry, and the problems file lists the sibling it now overlaps.
+
+**Note:** From OMG Unified Modeling Language (OMG UML), Version 2.5.1, clause 14, StateMachines, formal/2017-12-05, clause 14.2.3.8, Transitions: A transition is written trigger [guard] / effect; a guard is a constraint evaluated when the event is dispatched, and [else] is the guard of the remaining case. <https://www.omg.org/spec/UML/2.5.1/>
+
+**Note:** From OMG Unified Modeling Language (OMG UML), Version 2.5.1, clause 14, StateMachines, formal/2017-12-05, clause 14.2.3.9.3, Conflicting Transitions: Two transitions enabled by one event that leave states in the same region are in conflict; a transition whose source is deeper has priority, and the choice among the rest is left to the execution engine. <https://www.omg.org/spec/UML/2.5.1/>
+
+**Note:** From State Chart XML (SCXML), State Machine Notation for Control Abstraction, W3C Recommendation 1 September 2015, 1.0, clause 3.13, Selecting and Executing Transitions: Among enabled transitions a descendant's source wins over an ancestor's, and otherwise the one earlier in document order is taken. <https://www.w3.org/TR/scxml/>
+
+**Note:** From State Chart XML (SCXML), State Machine Notation for Control Abstraction, W3C Recommendation 1 September 2015, 1.0, clause 3.5, <transition>: A transition has an event, a cond expression evaluated when the event is matched, and a target; a transition with no event is taken whenever its cond holds. <https://www.w3.org/TR/scxml/>
+
+### ADR-191: A state carries entry, exit, an invariant, child states with their initial, history and final; a stored machine's initial state is its field's default; parallel states are several machines of one entity, one field each, a machine within another's states when its life is scoped to them
+
+Status: proposed, 2026-10-26.
+
+Rests on: [ADR-035](#adr-035-a-page-names-what-it-shows-when-empty-or-failed-from-a-fixed-set-of-states), [ADR-189](#adr-189-a-state-machine-is-a-named-element-with-a-control-state-that-is-one-enums-value-and-an-extended-state-that-is-the-entitys-fields-or-its-own-variables-an-entitys-statefield-and-transitions-stay-the-short-form-of-one-flat-machine-and-statemachines-is-the-full-form), [ADR-190](#adr-190-a-transition-has-one-cause-trigger-after-a-duration-or-at-a-moment-a-condition-when-over-the-extended-state-and-the-events-data-otherwise-for-the-one-that-fires-when-no-condition-holds-and-set-for-what-it-updates-two-transitions-of-one-state-on-one-cause-are-told-apart-or-reported).
+
+Context: A state is a bare enum value: nothing happens on entering or
+leaving it, nothing holds while in it, no state is inside another,
+and the initial and final states are derived from which states no
+transition reaches or leaves. UML has entry, exit and do
+behaviours, a state invariant, composite states with regions,
+shallow and deep history pseudostates, an initial pseudostate per
+region and final states; SCXML has onentry, onexit, nested state,
+parallel, history with a type, an initial attribute that defaults
+to the first child in document order, and final. A record of an
+entity holds one value per field, and a field with a default is
+created with it. ADR-035 keeps a page's states a fixed set.
+
+Decision: A machine's states map, keyed by enum value, gives a state what its
+name does not: description; entry and exit, each a set of variable
+to expression and emits, messages as channel/Message; invariant, a
+bool expression over the extended state that holds while the
+machine is in the state, checked with its ancestors' and meaning
+the check constraint "state field is not this state, or the
+invariant"; states, its children in the same shape, which makes it
+composite; initial, the child entered when a transition targets the
+state and names no history, required with children; history,
+shallow or deep, and a transition to the state with enter: history
+enters the child or the configuration last left; final, the
+children at which the state completes. A composite's entry runs
+before its child's and its exit after; after on a composite counts
+from entering it. The machine's final lists its final states. The
+initial state of an entity machine is the field's default, initial
+is refused on it, and a short-form entity without a default keeps
+the derivation with the warning state_initial when it finds two or
+more; a machine with no entity writes initial. Parallel states are
+several machines of one entity, one control field each, drawn side
+by side as the concurrent regions of one state named after the
+entity; a machine whose life is scoped to another's states says
+within, the machine and its states: it is in its initial state and
+fires nothing while the other is elsewhere, starts at its initial
+state when one of them is entered and is reset when they are left.
+There is no region inside a state, no do activity, no choice,
+junction, fork or join vertex, no deferred event and no submachine
+state.
+
+Consequences: states, final, within and initial are keys of the full form only; a
+short-form entity that needs them becomes a full-form machine, its
+transitions unchanged. The diagram draws a composite state as
+Mermaid's nested state, parallel machines with its concurrency
+separator, history as a suffix on the arrow into the composite, and
+entry, exit and invariant as notes. The test plan enters a
+composite at its initial child and a history at the child the path
+last left, and takes the within machine's parent state as its given.
+
+**Insight:** Entry and exit hold a set and an emits and nothing else because those are what a design can say of an action without a stack: what the record holds afterwards and what is told; what runs while the machine waits is the operation or job already in the design, so the do activity is left out. The initial state of a stored machine is the field's default because a record is created with it and a second place could only agree or contradict; the alternative of an initial key on every machine with the default required to agree lost as two spellings of one fact, and docs/state-machines.md asks the owner. SCXML's first child by default was not taken because it decides silently. Parallel states are machines, not regions inside a state, because a stored record holds one value per field, so each region needs a field and a field is a machine; this also gives each region its own diagram, paths and tests, and within keeps the one thing a region inside a composite state has that two free machines do not, a life scoped to the parent's states, with the semantics UML gives a region's default entry and exit. Every state is an enum value, composite ones included, so that from a composite state means from any descendant, as UML reads it, and the stored value is always a leaf because a transition to a composite enters a child. The pseudostates are left out because every decision they draw is a condition on a transition out of a state, which when and otherwise say with a cause the validator reads. Pages keep ADR-035: a flow across pages is a machine with no entity whose triggers are the operations the pages call. Compiler test: a composite without initial is state_initial at the key and the diagram still draws its children; acceptance test: a new sub-state is one child under one state, and the paths that pass through it are listed anew.
+
+**Note:** From OMG Unified Modeling Language (OMG UML), Version 2.5.1, clause 14, StateMachines, formal/2017-12-05, clause 14.2.3.4, States: A state may have entry, exit and do behaviours and a state invariant; a composite state has one or more regions, each with at most one initial pseudostate and one history pseudostate, shallow or deep. <https://www.omg.org/spec/UML/2.5.1/>
+
+**Note:** From State Chart XML (SCXML), State Machine Notation for Control Abstraction, W3C Recommendation 1 September 2015, 1.0, clause 3.10, <history>: A history pseudostate records the active child, shallow, or the whole active configuration, deep, when its parent is left, and a transition targeting it restores that. <https://www.w3.org/TR/scxml/>
+
+**Note:** From State Chart XML (SCXML), State Machine Notation for Control Abstraction, W3C Recommendation 1 September 2015, 1.0, clause 3.4, <parallel>: A parallel state holds child states that are all active at once, each region with its own configuration. <https://www.w3.org/TR/scxml/>
+
+**Note:** From Statecharts: a visual formalism for complex systems, Science of Computer Programming 8, pages 231 to 274, 1987: Orthogonality lets a statechart be in several states at once, one per orthogonal component, which is the product of their state sets written without the product.
+
+### ADR-192: Both validators check a machine's reachability, dead ends, unused states, causes, names and ambiguity with the same lines; the diagram draws causes, conditions and updates on the arrows, the variables as a note, nested states and parallel machines; the documents, the test plan and the guarded script follow; the step is minor, 1.3.0
+
+Status: proposed, 2026-10-26.
+
+Rests on: [ADR-186](#adr-186-meta-model-100-is-the-first-stable-version-of-every-specarch-format-read-beside-every-earlier-version-with-two-keys-renamed-and-deprecated-the-schemas-conditionals-made-to-require-the-key-they-read-and-specarch-upgrade-to-move-a-file), [ADR-189](#adr-189-a-state-machine-is-a-named-element-with-a-control-state-that-is-one-enums-value-and-an-extended-state-that-is-the-entitys-fields-or-its-own-variables-an-entitys-statefield-and-transitions-stay-the-short-form-of-one-flat-machine-and-statemachines-is-the-full-form), [ADR-190](#adr-190-a-transition-has-one-cause-trigger-after-a-duration-or-at-a-moment-a-condition-when-over-the-extended-state-and-the-events-data-otherwise-for-the-one-that-fires-when-no-condition-holds-and-set-for-what-it-updates-two-transitions-of-one-state-on-one-cause-are-told-apart-or-reported), [ADR-191](#adr-191-a-state-carries-entry-exit-an-invariant-child-states-with-their-initial-history-and-final-a-stored-machines-initial-state-is-its-fields-default-parallel-states-are-several-machines-of-one-entity-one-field-each-a-machine-within-anothers-states-when-its-life-is-scoped-to-them).
+
+Context: The validator checks a state field, a state value and a trigger
+and nothing else of a machine; the diagram draws the trigger on
+each arrow and marks the derived initial and final states; the test
+plan derives the paths from an initial to a terminal state. The
+owner asked for checks of unreachable states, dead ends without a
+final state, a trigger naming nothing, a condition or update naming
+an unknown variable, nondeterminism, and a transition missing for a
+state the requirements name, in both builds with the same output,
+and for a diagram showing the conditions and updates, the variables
+and the nested and parallel states. A 1.x may add a key a file is
+free to leave out and a warning, and never makes a valid 1.0 file
+invalid (ADR-186). Mermaid's stateDiagram-v2 was checked on
+2026-10-26 with mermaid-cli 12.0.0: nested states, the concurrency
+separator, labels with brackets and slashes and multi-line notes
+draw; a description line replaces a state's name; there is no
+history pseudostate, and an arrow from outside into a state drawn
+inside a composite pulls the state out of it.
+
+Decision: The checks of docs/state-machines.md, section 4, in both builds:
+state_field, state_value and trigger as today, widened to the full
+form; state_machine, an unknown entity, enum, within machine or a
+history target that is not composite; state_initial, an error for a
+composite without initial, a full-form entity machine whose field
+has no default and a standalone machine without initial, and a
+warning for a short-form entity with two or more derived initial
+states; state_unreachable, a warning for a state that is not
+initial and that no transition reaches; state_dead_end, a warning
+for a full-form simple state no transition leaves that final does
+not name; state_final, an error for a transition from a final
+state; state_unused, a warning for an enum value no transition
+names that is not initial; transition_cause, transition_ambiguous
+and transition_overlap as ADR-190 says; transition_history, an
+error for enter: history to a state without history; and the
+expression rules for when, set, invariant, at and the sets of entry
+and exit, at giving a timestamp or a date. The diagram is one
+stateDiagram-v2 per machine, and stateDiagram <Entity> draws an
+entity's machines as the concurrent regions of one state named
+after it: each arrow labelled with its cause, then [when] or
+[otherwise], then a slash and each set as name = expression; after
+and at as the cause; a composite state as a nested state; history as
+(history) after the cause on the arrow into the composite; entry,
+exit and invariant as a note at the state; the variables as a note
+at the machine, one per line with type and default. The technical
+specification adds the variables and transitions tables after each
+diagram and lists standalone machines with the entities'; the test
+plan derives paths over simple states per machine, a red case per
+when, the two cases of a timer and from wrong state as today, and a
+design test names a transition by its machine, from, to and, when
+two share those, its cause; specarch-gen-scripts takes when and set
+into the guarded script; specarch model lists the machines; generate
+sql changes nothing. The step is 1.3.0, the rule names frozen at
+that release.
+
+Consequences: Ten rules join the Rule enum when they are built, and the
+conformance cases under spec/tests carry each. The documents of the
+examples do not change until an example uses the full form. An
+entity's entry-time column for after on a stored entity is an idiom
+the build item designs.
+
+**Insight:** Every check that can fire on a file written today is a warning, because ADR-186 forbids a 1.x to make a valid file invalid, and every error needs a key only the full form has or a pair no file has written; on this repository's specification and the examples no line changes, and three conformance cases gain warning lines their expected output then records. Unreachable and dead-end states are warnings and not errors because a machine with one is incomplete, not wrong, and the compiler reads an incomplete definition and says where. A transition missing for a state the requirements name is state_unused, the enum value no transition touches, because the validator does not read prose and the link from a requirement to a state is the enum value it asked for. The same lines in both builds is the rule every validator change follows. The arrow label follows UML's trigger [guard] / effect so that a reader of UML reads it without learning a notation; a note holds entry, exit, invariant and the variables because Mermaid has no other place for them and a description line would hide the state's name; history is a suffix on the arrow because Mermaid draws no history pseudostate and pulls a targeted nested state out of its composite. The step is minor because everything is an addition, as docs/maintenance.md rule 7 reads semantic versioning. Compiler test: every rule reports at the entry and the diagram still draws the machine, the entry marked; acceptance test: a remark on a path in the test plan names the transition it is about by machine, from, to and cause.
+
+**Note:** From OMG Unified Modeling Language (OMG UML), Version 2.5.1, clause 14, StateMachines, formal/2017-12-05, clause 14.2.4, Notation: A transition is labelled trigger [guard] / effect, a composite state is drawn with its regions inside it, and concurrent regions are separated by a dashed line. <https://www.omg.org/spec/UML/2.5.1/>
+
 ## 10. Quality requirements
 
 The design tests: what must hold on every implementation. Golden scenarios succeed; red scenarios are refused.
@@ -15175,6 +15436,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | SA-92 | specarch generate ui shall write the content pages of a specification for the web, in plain JavaScript through specarch-gen-ui and on Next.js and Carbon through specarch-gen-ui-typescript, from one reading of their blocks, with every text a string key on Next.js; specarch-gen-ui-swiftui shall refuse them by name and write nothing for them. | functional | should | accepted | test | specarch-gen-ui writes each public content page as HTML alone, its blocks in order under the title, a heading at its level, the image with its alternative text, and each link to the page's file or to its address; a content page that needs a permission is refused at its permission, since the files reach anyone with the page's text inside. specarch-gen-ui-typescript writes each content page as a schema of its title, permission and blocks, every text a string key in the strings file, and a page.tsx drawing ContentPage with the routes its links open, inside the Guard with the derived refusal test when it needs a permission, warned that its text reaches the browser. Both web generators refuse, at the block, an image without its text, a link without its label and a link to a page that does not exist or whose route takes a parameter, and leave the page out. specarch-gen-ui-swiftui reports each content page as an error at the page and writes nothing for it. | NEED-2 |
 | SA-93 | A specification shall be able to say how a person signs in at an identity provider, as signIn with OpenID Connect's authorisation code flow and PKCE, its provider, client, callback, identity token and back-channel logout, and navigate to signIn from a task page's answer or an action's then; specarch validate shall check every reference in both builds, derive the callback's refusals, and the UI generators and the technical specification shall write the flow, with the provider's issuer, keys and client_id the deployment's. | functional | must | accepted | test | signIn names a provider that is a dependency of kind identityProvider, a client of kind application, a callback that is a GET operation taking code and state as required query parameters and naming the provider under calls, an identity token that is a JWT declaring iss, aud and nonce with no const or enum on iss or aud, and a back-channel logout only service clients may call; anything else is reported as sign_in at its key, in both builds, with the same words. A page event navigates to signIn only from a task page's answer or an action's then, with no with and no message, and only when signIn is declared; anywhere else it is sign_in at the event. The callback derives six critical red cases, state does not match, nonce replayed, issuer differs, identity token expired, signature invalid and code used twice, each naming its security event and severity once securityEvents is declared, and none of the token cases of an operation a signed-in caller calls; specarch derive writes them as drafts. A deployment of a specification with signIn gives signIn.issuerUrl and the client's clientId, and one of a specification without signIn gives no signIn; anything else is sign_in at the deployment. specarch-gen-ui writes identity-provider.js and the answer or action that leaves for it; specarch-gen-ui-typescript writes the provider in application.ts from the environment and the answer that leaves for it; specarch-gen-ui-swiftui writes the answer that leaves for it through the system's web authentication session; each sends the browser to the authorisation endpoint the provider's discovery document names, with the state, nonce and PKCE verifier going to the callback in the __Host-sign-in cookie. The generated go-dxlib handler of the callback names its body as every operation does, and the technical specification shows the flow as a sequence diagram, the checks with the clause that asks for each, and the six security events. | NEED-2 |
 | SA-94 | specarch generate ui shall write, for a custom page, the route, the guard and the menu entry, and import the screen from a file the project writes, named in the generated output, so that a missing screen fails the build or the load and never shows a blank page; generate --check shall compare nothing of the project's file, and the technical specification and the manual shall list the page as the project's own screen. | functional | must | accepted | test | specarch-gen-ui-typescript writes app/<route>/page.tsx drawing the default export of ./custom/<page> with the schema of its title, permission and actions, the texts, the route's parameters and the routes of its actions, inside the Guard with the derived refusal test when it needs a permission. specarch-gen-ui-swiftui writes <Page>View drawing <Page>Screen, a view the project writes in the screens module, inside the Guard, with the schema, the route's parameters and the routes of its actions. specarch-gen-ui writes <page>.html, which says which module did not load until it shows, and <page>.js, which imports custom/<page>.js and calls its show; pages.js names that module, and a custom page that needs a permission is warned of at its permission, since these files have no route guard. generate --check passes with the project's file in the output folder and compares nothing of it. The technical specification lists a custom page as the project's own screen with its description, and the manual says it is built by hand, what it is for and where its actions lead. | NEED-2 |
+| SA-98 | A specification shall describe a state machine by its control state, one enum's value held in an entity's field or named by the machine, and its extended state, the entity's fields or the machine's variables with their types, defaults and constraints; a transition shall say its cause, its condition, what it sets and the else case; a state shall carry entry, exit, an invariant, child states, history and finality; an entity may have several machines, a machine may have no entity, and the validator and the diagram shall show the machine as it is. | functional | must | proposed | test | An entity's stateField and transitions are read as one machine as before, with no new line on a file written today, and the transitions take when, set, otherwise, after, at and enter. A machine under stateMachines with an entity, a stateField, states, final and transitions validates; one naming an unknown entity, field, enum or within machine is reported at the key with the rest of the machine read. A state that is not initial and that no transition reaches, a full-form state no transition leaves that final does not name, an enum value no transition names, and a transition from a simple state with no cause are each reported as a warning naming the state or the transition. Two transitions of one state on one cause with no condition between them, the same condition or two otherwise are reported as an error at each; two whose conditions the validator cannot show exclusive are a warning at both, and two it can, one the negation of the other or the same name against literals whose ranges do not meet, are not reported. A when, set, invariant or at naming a variable, field or event property the machine does not have, or of the wrong type, is reported with the expression rules, and set naming a control field is reported. Both builds print the same lines for every case, and the diagram of a machine draws its causes, conditions and updates on the arrows, its variables as a note, its composite states nested and an entity's machines as concurrent regions. | NEED-2 |
 | SA-7 | specarch document and specarch generate shall write only into the folder the target owns, and with --check shall fail when the committed output differs. | functional | must | accepted | test | A run writes the target's files into its folder and nothing elsewhere. A run with --check on output edited by hand names the file and exits 1, writing nothing. | NEED-3 |
 | SA-8 | Every generated file shall name its source specification, version and meta-model, and a hand-written Markdown document shall change only between its markers. | functional | must | accepted | test | The first line of a generated document names the root file, its version and the meta-model. A marked region is rewritten and every other line of the document is unchanged. | NEED-3 |
 | SA-26 | specarch document shall write the change and defect register and the release notes from the records beside a specification, kept current with --check like the other documents. | functional | should | accepted | test | The register lists open change requests and defects before the closed ones, each with its status, what it affects and its decision. The release notes list the releases newest first, each with its changes and fixes grouped as added, changed, removed and fixed. | NEED-3, NEED-5 |
@@ -15332,6 +15594,10 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 **Insight on SA-93:** An information system with single sign-on had no element for the redirect, the callback, the state, the nonce and the identity token's checks, so the flow and its refusals were written by hand, untraced and untested by anything the specification produced (ADR-182).
 
 **Insight on SA-94:** An editor or a live view is built by hand, and without a page kind for it the screen had no route, guard, menu entry, flow or derived test in the design (ADR-183).
+
+**Problem on SA-98:** warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SA-98; add verifies: [SA-98] to the test that shows it is met [requirement_unverified@requirements/requirements/design-keywords.yaml#/requirements/SA-98]
+
+**Insight on SA-98:** State diagrams and state variables are among the most important parts of a system architecture, and the design could say only an entity's control state and its moves, so retry counts, deadlines, conditions, a second machine of an entity and the machines of things not stored were written outside the specification, undrawn and unchecked (ADR-189 to ADR-192).
 
 **Insight on SA-26:** Reviewers and operators read what changed and why in documents; kept apart from the specification, the history stays out of it and still reaches them.
 
@@ -15538,6 +15804,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-95 | decisions ADR-186 | tests upgrade-0-1-missing-tests; tests upgrade-0-2-caller; tests upgrade-both-keys; tests upgrade-dry-run; tests upgrade-estate; tests upgrade-implementation-alone; tests upgrade-missing-version-line; tests upgrade-number-version-line; tests upgrade-second-run; tests upgrade-to-older; tests upgrade-unknown-version-line; tests upgrade-unreadable-file; tests upgrade-usage-error; tests upgrade-writes-changes; tests validate-estate-1-0-0; tests validate-estate-version-unknown; tests validate-formats-1-0-0; tests validate-formats-version-unknown; tests validate-handover-source-deprecated; tests validate-handover-source-missing; tests validate-handover-source-twice; tests validate-meta-model-1-0-0; tests validate-meta-model-1-0-patch; tests validate-meta-model-deprecated; tests validate-meta-model-later; tests validate-meta-model-short; tests validate-record-1-0-0; tests validate-record-version-unknown; tests validate-row-policies; tests validate-row-policies-valid; tests validate-schema-conditionals; tests validate-schema-conditionals-0-3 |
 | SA-96 | commands capabilities; commands guide; commands help; decisions ADR-187 | tests capabilities-text; tests capabilities-usage-error; tests guide-order-of-work; tests guide-usage-error; tests help-command-reference; tests help-unknown-topic |
 | SA-97 | commands decision why; commands decision rests; decisions ADR-188 | tests decision-rests-chain; tests decision-rests-chain-json; tests decision-rests-none; tests decision-rests-unknown; tests decision-rests-usage-error; tests decision-unknown; tests decision-usage-error; tests decision-why-chain; tests decision-why-chain-json; tests decision-why-no-links; tests validate-decision-chain; tests validate-decision-cycle; tests validate-decision-rests-on-missing; tests validate-decision-rests-on-superseded |
+| SA-98 | decisions ADR-189; decisions ADR-190; decisions ADR-191; decisions ADR-192 |   |
 
 ## Sources
 
@@ -15553,6 +15820,7 @@ Every source a Note in this document cites.
 | ecma-262 | ECMA-262, ECMAScript language specification, the Number type | 2025 | Ecma International | https://tc39.es/ecma262/#sec-ecmascript-language-types-number-type |
 | gnu-coding-standards | GNU Coding Standards |   | The GNU Project | https://www.gnu.org/prep/standards/ |
 | go-tool | The go command, Go documentation | 1.26 | The Go project | https://go.dev/doc/ |
+| harel-1987 | Statecharts: a visual formalism for complex systems, Science of Computer Programming 8, pages 231 to 274 | 1987 | David Harel |   |
 | iec-62381 | IEC 62381, Automation systems in the process industry, Factory acceptance test (FAT), site acceptance test (SAT) and site integration test (SIT) | 2024 | IEC |   |
 | ieee-830 | IEEE Std 830-1998, IEEE Recommended Practice for Software Requirements Specifications | 1998 | IEEE |   |
 | ietf-idempotency-key | The Idempotency-Key HTTP Header Field, an Internet-Draft of the IETF HTTP API working group |   | IETF HTTP API working group | https://datatracker.ietf.org/doc/draft-ietf-httpapi-idempotency-key-header/ |
@@ -15598,8 +15866,10 @@ Every source a Note in this document cites.
 | rfc-9457 | RFC 9457, Problem Details for HTTP APIs | 2023 | IETF | https://www.rfc-editor.org/rfc/rfc9457 |
 | rfc-9700 | RFC 9700, Best Current Practice for OAuth 2.0 Security | 2025 | IETF | https://www.rfc-editor.org/rfc/rfc9700 |
 | sarif | Static Analysis Results Interchange Format (SARIF) Version 2.1.0 | 2020 | OASIS | https://docs.oasis-open.org/sarif/sarif/v2.1.0/sarif-v2.1.0.html |
+| scxml-1-0 | State Chart XML (SCXML), State Machine Notation for Control Abstraction, W3C Recommendation 1 September 2015 | 1.0 | W3C | https://www.w3.org/TR/scxml/ |
 | semver | Semantic Versioning | 2.0.0 | The Semantic Versioning project | https://semver.org/spec/v2.0.0.html |
 | spiffe | The SPIFFE Standards, the SPIFFE ID and the SPIFFE Verifiable Identity Document (SVID) as an X.509 certificate or a JWT |   | The SPIFFE project, Cloud Native Computing Foundation | https://github.com/spiffe/spiffe/tree/main/standards |
+| uml-2-5-1 | OMG Unified Modeling Language (OMG UML), Version 2.5.1, clause 14, StateMachines | formal/2017-12-05 | Object Management Group | https://www.omg.org/spec/UML/2.5.1/ |
 | wcag-2-2 | Web Content Accessibility Guidelines (WCAG) 2.2 | 2023 | W3C | https://www.w3.org/TR/WCAG22/ |
 | whatwg-html | HTML Living Standard |   | WHATWG | https://html.spec.whatwg.org/ |
 | yaml | YAML Ain't Markup Language (YAML) version 1.2 | 1.2.2 | The YAML Language Development Team | https://yaml.org/spec/1.2.2/ |

@@ -21,6 +21,37 @@
           "kind": "fail",
           "level": "warning",
           "message": {
+            "text": "no test, commissioning check or monitor verifies requirement SA-98; add verifies: [SA-98] to the test that shows it is met"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../spec/requirements/requirements/design-keywords.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 612,
+                  "startColumn": 3
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "/requirements/SA-98",
+                  "kind": "element"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "specarchId/v1": "requirement_unverified@requirements/requirements/design-keywords.yaml#/requirements/SA-98"
+          }
+        },
+        {
+          "ruleId": "requirement_unverified",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
             "text": "no test, commissioning check or monitor verifies requirement SA-57; add verifies: [SA-57] to the test that shows it is met"
           },
           "locations": [

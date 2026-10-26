@@ -6,3 +6,4 @@ date: "2026-10-26"
 specificationVersion: 1.2.0
 implementations: { go: 0.1.0, swift: 0.1.0 }
 includes: [CR-3]
+commit: 13a7741636f5c3a996cded5502e9af89aeef6161

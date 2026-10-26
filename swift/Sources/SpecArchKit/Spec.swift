@@ -49,7 +49,7 @@ let sectionOrder = [
 let singleSections: Set<String> = ["release", "rollback", "handover", "signoff", "backup", "restore", "accessibility", "theme"]
 
 /// The keys that live only in the root file.
-let rootOnly: Set<String> = ["specarch", "info", "trustDomain", "stages", "sources"]
+let rootOnly: Set<String> = ["specarch", "info", "trustDomain", "timeZone", "stages", "sources"]
 
 /// The sections of a stage, in order.
 func sectionsOf(_ stage: String) -> [String] {

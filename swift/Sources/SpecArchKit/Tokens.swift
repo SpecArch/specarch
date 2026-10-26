@@ -240,6 +240,7 @@ extension Checker {
             if errs.isEmpty && (t.kind != .bool || t.nullable) {
                 addFile(fileOf(n), exprLine(n, 1), ptr, .token, "the check gives \(t), but a check must give true or false; compare the claims with ==, <, > or similar")
             }
+            if errs.isEmpty { zoneWarnings(n, ptr, "the check", tree, env) }
         }
     }
 

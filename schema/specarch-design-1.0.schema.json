@@ -18,6 +18,11 @@
       "type": "string",
       "minLength": 1
     },
+    "timeZone": {
+      "description": "SpecArch keyword. The specification's one time zone, a name of the IANA Time Zone Database such as Asia/Jakarta or UTC: where a date or a wall-clock reading meets the clock, this is the clock, never the implementation's. date() of an instant in an expression gives the instant's calendar date in it, and in UTC when none is declared, which the validator warns of at the call; a name the database does not hold is an error at this key (ADR-193).",
+      "type": "string",
+      "minLength": 1
+    },
     "stages": {
       "description": "SpecArch keyword. The life-cycle stages this specification keeps in folders of their own, in life-cycle order. A listed stage has a folder of that name beside specarch.yaml and its sections live there; a stage that is not listed has no folder, and its sections, if any, are written in specarch.yaml. Only in specarch.yaml.",
       "type": "array",

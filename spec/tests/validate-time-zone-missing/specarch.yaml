@@ -1,0 +1,20 @@
+specarch: "1.0.0"
+info: { title: Case, version: 1.0.0 }
+algorithms:
+  calendarDay:
+    inputs:
+      at: { type: string, format: date-time }
+    output: { type: string, format: date }
+    formula: date(at)
+    examples:
+      - { name: written with an offset, inputs: { at: "2026-10-27T03:00:00+07:00" }, expected: "2026-10-26" }
+      - { name: the same instant written in Z, inputs: { at: "2026-10-26T20:00:00Z" }, expected: "2026-10-26" }
+    pseudocode: return the calendar date of at
+  calendarDayOfLiteral:
+    inputs:
+      days: { type: integer, format: int32 }
+    output: { type: string, format: date }
+    formula: date(timestamp("2026-10-27T03:00:00+07:00")) + duration("P1D")
+    examples:
+      - { name: the day after, inputs: { days: 1 }, expected: "2026-10-27" }
+    pseudocode: return the day after the calendar date of the instant

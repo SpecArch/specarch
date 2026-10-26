@@ -2,9 +2,9 @@
 
 # SpecArch toolchain: technical specification
 
-Version 1.2.1-dev of the specification: 99 requirements, 5 entities, 22 commands, 7 algorithms, 784 tests, 185 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 1.2.1-dev of the specification: 99 requirements, 5 entities, 22 commands, 7 algorithms, 787 tests, 185 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
-**Problems:** 3 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
+**Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
 ## 1. Introduction and goals
 
@@ -284,6 +284,7 @@ Primary key: path.
 | Rule | channel | a channel's `carriedBy` entry names no declared dependency, or one of kind `database`, `fileStore` or `identityProvider`, which carry no messages |
 | Rule | idempotency_key | an `idempotencyKey` names no header parameter of its operation, or sits on a method that RFC 9110 already makes idempotent |
 | Rule | validity | a `validity` names a field the entity does not have, one that is not a date or a date-time, or a `from` and an `until` of different formats |
+| Rule | time_zone | the root `timeZone` is no name of the IANA Time Zone Database, spelled as the database spells it (an error at the key), or an expression takes `date()` of an instant in a specification that declares no `timeZone`, so the date is UTC's (a warning at the call) |
 | Rule | session | a session's idle or absolute timeout is zero |
 | Rule | guard | a `guard` names an entity that does not exist (its precondition is checked as a check constraint is) |
 | Rule | operation | a `source`, `submit` or operation action names an operationId that does not exist |
@@ -15555,6 +15556,9 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | validate-test-subject | command validate | system | red | a test about an operation that does not exist | validate is run | it reports test_subject and exits 1 |
 | validate-test-subject-no-state-machine | command validate | system | red | a test about entity Book alone, which has no transitions | validate is run | it reports test_subject, saying Book has no state machine path, and exits 1 |
 | validate-theme | command validate | system | red | a theme of design tokens with a dark mode and pairs of colours, at the AA target, holding a hex that is not its components, a hexadecimal component, a hex with a trailing line break, a colour outside srgb, an alias that leads back to itself and one to a token of another type, a dimension in a unit not taken, a token with no type, one of a type not taken, a misspelt $value, a mode naming a token that does not exist, pairs below the contrast their use asks for in the default and the dark mode, a translucent pair, a pair naming a dimension; besides components written .5 and 1e0, an alias of a bad colour, and an alias with no type and with extensions in a pair, which are right | validate is run | it reports theme fifteen times and schema once, and exits 1 |
+| validate-time-zone | command validate | system | golden | a specification that declares timeZone Asia/Jakarta and an algorithm whose formula takes date() of an instant, with worked examples over one instant written with the zone's offset and in Z and over the last second of the day before | validate is run | it reports nothing and exits 0, since both builds read the date in the zone, so the two writings of one instant give one date |
+| validate-time-zone-missing | command validate | system | golden | a specification that declares no timeZone and two algorithms whose formulas take date() of an instant, one of an input and one of a literal written with an offset, with worked examples that expect the date in UTC | validate is run | it reports the warning time_zone at each date() call, naming the input where the call reads one, reads every date in UTC so the examples hold, and exits 0 |
+| validate-time-zone-unknown | command validate | system | red | five specifications whose timeZone is no name of the IANA Time Zone Database, a local abbreviation (WIB), the database's own name in two other spellings (asia/jakarta, Asia/JAKARTA), a name one platform's library knows beyond the database (PST) and an offset (GMT+7), each with an algorithm that takes date() of an instant | validate is run | it reports time_zone at each key, the same five lines in both builds whatever the host's file system, reads each date in UTC so the worked examples hold without a second line, and exits 1 |
 | validate-traceability-warnings | command validate | system | golden | a need no requirement refines, a requirement without acceptance criteria, an entity that satisfies nothing and a test that verifies nothing | validate is run | it warns once for each gap and exits 0, since the file stays valid |
 | validate-tree-valid | command validate | system | golden | a tree with four stages, one object per file, an implementation file under implementation/go/, and a test folder whose data holds a decoy specarch.yaml | validate is run on the root folder | it reads the tree as one specification, ignores the test data, prints nothing and exits 0 |
 | validate-trigger | command validate | system | red | a transition whose trigger names nothing in the file | validate is run | it reports trigger and exits 1 |
@@ -15845,8 +15849,6 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 
 **Insight on SA-98:** State diagrams and state variables are among the most important parts of a system architecture, and the design could say only an entity's control state and its moves, so retry counts, deadlines, conditions, a second machine of an entity and the machines of things not stored were written outside the specification, undrawn and unchecked (ADR-189 to ADR-192); nothing in a machine is left to the implementation or to a reading, the owner's word of 2026-10-26 (ADR-193).
 
-**Problem on SA-99:** warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SA-99; add verifies: [SA-99] to the test that shows it is met [requirement_unverified@requirements/requirements/design-keywords.yaml#/requirements/SA-99]
-
 **Insight on SA-99:** A date-time without its zone is read in whatever zone the reader runs in, so the same value means two instants on two hosts and a date is turned into an instant by a guess; the owner's rule of 2026-10-26 is that a date-time carries its zone everywhere, that a zoneless one says why, and that a date meets the clock only in the zone the specification declares (ADR-193, ADR-194).
 
 **Insight on SA-26:** Reviewers and operators read what changed and why in documents; kept apart from the specification, the history stays out of it and still reaches them.
@@ -16055,7 +16057,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-96 | commands capabilities; commands guide; commands help; decisions ADR-187 | tests capabilities-text; tests capabilities-usage-error; tests guide-order-of-work; tests guide-usage-error; tests help-command-reference; tests help-unknown-topic |
 | SA-97 | commands decision why; commands decision rests; decisions ADR-188 | tests decision-rests-chain; tests decision-rests-chain-json; tests decision-rests-none; tests decision-rests-unknown; tests decision-rests-usage-error; tests decision-unknown; tests decision-usage-error; tests decision-why-chain; tests decision-why-chain-json; tests decision-why-no-links; tests validate-decision-chain; tests validate-decision-cycle; tests validate-decision-rests-on-missing; tests validate-decision-rests-on-superseded |
 | SA-98 | decisions ADR-189; decisions ADR-190; decisions ADR-191; decisions ADR-192; decisions ADR-193 |   |
-| SA-99 | decisions ADR-193; decisions ADR-194 |   |
+| SA-99 | decisions ADR-193; decisions ADR-194 | tests validate-time-zone; tests validate-time-zone-missing; tests validate-time-zone-unknown |
 
 ## Sources
 

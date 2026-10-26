@@ -1,0 +1,8 @@
+arguments: [validate, .]
+exitStatus: 1
+standardOutput: |
+  alias/specarch.yaml:3:11: error: /timeZone: time_zone: timeZone PST is not a name of the IANA Time Zone Database; write one as the database spells it, such as Asia/Jakarta or UTC [time_zone@specarch.yaml#/timeZone]
+  capitals/specarch.yaml:3:11: error: /timeZone: time_zone: timeZone Asia/JAKARTA is not a name of the IANA Time Zone Database; write one as the database spells it, such as Asia/Jakarta or UTC [time_zone@specarch.yaml#/timeZone]
+  miscased/specarch.yaml:3:11: error: /timeZone: time_zone: timeZone asia/jakarta is not a name of the IANA Time Zone Database; write one as the database spells it, such as Asia/Jakarta or UTC [time_zone@specarch.yaml#/timeZone]
+  offset/specarch.yaml:3:11: error: /timeZone: time_zone: timeZone GMT+7 is not a name of the IANA Time Zone Database; write one as the database spells it, such as Asia/Jakarta or UTC [time_zone@specarch.yaml#/timeZone]
+  wib/specarch.yaml:3:11: error: /timeZone: time_zone: timeZone WIB is not a name of the IANA Time Zone Database; write one as the database spells it, such as Asia/Jakarta or UTC [time_zone@specarch.yaml#/timeZone]

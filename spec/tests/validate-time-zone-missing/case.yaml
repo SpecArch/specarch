@@ -1,0 +1,5 @@
+arguments: [validate, .]
+exitStatus: 0
+standardOutput: |
+  specarch.yaml:8:18: warning: /algorithms/calendarDay/formula: time_zone: the formula: date(at) gives the calendar date of an instant in UTC, since the specification declares no timeZone; declare timeZone at the root, a name of the IANA Time Zone Database such as Asia/Jakarta, or UTC to keep this reading [time_zone@specarch.yaml#/algorithms/calendarDay/formula]
+  specarch.yaml:17:18: warning: /algorithms/calendarDayOfLiteral/formula: time_zone: the formula: date() gives the calendar date of an instant in UTC, since the specification declares no timeZone; declare timeZone at the root, a name of the IANA Time Zone Database such as Asia/Jakarta, or UTC to keep this reading [time_zone@specarch.yaml#/algorithms/calendarDayOfLiteral/formula]

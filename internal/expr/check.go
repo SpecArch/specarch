@@ -685,3 +685,24 @@ func (c *checker) withNonNull(name string, n *Node) Type {
 	defer func() { c.env = saved }()
 	return c.check(n)
 }
+
+// InstantDates lists the date(x) calls of a checked expression whose x is
+// an instant: each gives the instant's calendar date in the specification's
+// timeZone, and in UTC when none is declared, which the validator warns of
+// at the call (ADR-193).
+func InstantDates(n *Node, env Env) []*Node {
+	var out []*Node
+	var walk func(*Node)
+	walk = func(n *Node) {
+		if n.Op == OpCall && n.Text == "date" && len(n.Args) == 1 {
+			if t, errs := Check(n.Args[0], env); len(errs) == 0 && t.Kind == Timestamp {
+				out = append(out, n)
+			}
+		}
+		for _, a := range n.Args {
+			walk(a)
+		}
+	}
+	walk(n)
+	return out
+}

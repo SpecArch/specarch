@@ -3,7 +3,10 @@ import Foundation
 /// One problem in an expression. Line and column count from 1, inside the
 /// expression text.
 public struct ExprError {
-    public enum Kind { case syntax, name, typeMismatch, callerProperty }
+    /// zoneNeeded is a date() of an instant in a specification that
+    /// declares no timeZone, so the date is UTC's: a warning, not an error
+    /// (ADR-193).
+    public enum Kind { case syntax, name, typeMismatch, callerProperty, zoneNeeded }
     public let line: Int
     public let column: Int
     public let kind: Kind

@@ -132,7 +132,7 @@ func (c *checker) checkRecords(d *design, kv source.Pair, ptr string) {
 			if len(errs) > 0 || !allGiven(tree, vals) {
 				continue
 			}
-			if got, err := expr.Eval(tree, vals); err == nil && got.Kind == expr.Bool && !got.Bool {
+			if got, err := expr.Eval(tree, vals, c.zoneOf()); err == nil && got.Kind == expr.Bool && !got.Bool {
 				c.add(rec, rptr, RuleTestData, "this %s breaks %s (%s); a test holds only records that could exist", ent, con.Key.Value, strings.TrimSuffix(source.Str(source.Child(con.Value, "message")), "."))
 			}
 		}

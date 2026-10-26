@@ -12,6 +12,8 @@ info:
     a real library's system.
   owners: [example-maintainers]
 
+timeZone: UTC
+
 stages: [requirements, design, implementation, tests, deployment, commissioning, operation]
 
 sources:

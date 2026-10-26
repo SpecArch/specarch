@@ -691,7 +691,7 @@ the value is. The types, one line each:
 | bool | `type: boolean` | true or false |
 | bytes | `type: string, format: byte` | binary data, base64 in JSON |
 | date | `type: string, format: date` | a calendar date, `"2026-10-07"` |
-| timestamp | `type: string, format: date-time` | an instant, RFC 3339, `"2026-10-07T09:30:00Z"` |
+| timestamp | `type: string, format: date-time` | an instant, RFC 3339 with its offset, `"2026-10-07T09:30:00Z"`; two writings of one instant are one value, and the offset written is not kept |
 | duration | `type: string, format: duration` | a length of time, ISO 8601, `"PT2H"` |
 | time of day | `type: string, format: time` | a time of day without a date, RFC 3339 partial time, `"09:30:00"` |
 | enum | `$ref: "#/enums/Name"` | one of the enum's values, carried as a string |
@@ -753,6 +753,7 @@ redefined.
 | `through` (of a role) | SpecArch, after RFC 8693's `client_id` claim | the clients a grant holds through, checked against the application the token carries (ADR-106, ADR-108) |
 | `tokens`, `format`, `lifetime`, `signature` (of a token), `claims`, `checks`, `default`, `token` (on an operation) | SpecArch, after RFC 7519, RFC 9068, RFC 7518 and RFC 8725 | a token format: its kind, lifetime, algorithm, claims as properties, checks over them and whether it is the default (ADR-097) |
 | `trustDomain` | SpecArch, after the OAuth Transaction Tokens draft | in the identity module's root file, the URI naming the trust domain: the `aud` of every transaction token and the base of every security event's identifier (ADR-107) |
+| `timeZone` | SpecArch, after RFC 9557 and the IANA Time Zone Database (RFC 6557) | in the root file, the specification's one time zone, a name of the database spelled as it spells it (`Asia/Jakarta`, `UTC`): the zone a date or a wall-clock reading meets the clock in, never the implementation's; `date()` of an instant reads it, and UTC without it (ADR-193) |
 | `<dependency>#/permissions/<name>`, `<dependency>#/clients/<name>`, `<dependency>#/roles/<name>` | SpecArch | a permission, client or role of another module, named through a dependency: a role of the identity module grants each module's permissions, and `via`, `callers` and a test's caller name the identity module's clients and roles (ADR-107) |
 | `tokenType`, `via` | SpecArch, after the OAuth Transaction Tokens draft | `txn_token` is the suffix of the draft's token type identifier; `via` names the immediate callers of a hop (ADR-111) |
 | `iss`, `sub`, `aud`, `exp`, `nbf`, `iat`, `jti` | RFC 7519 | registered claims, written as the registry names them |
@@ -2398,7 +2399,7 @@ none; money needs one.
 | `double(x)` | `double(count)` | to double, from int, uint or decimal; the result is approximate |
 | `decimal(x, scale)` | `decimal(daysLate, 0)`, `decimal("0.50", 2)` | to decimal with that scale, from int, uint, a quoted number, or a decimal of no larger scale |
 | `string(x)` | `string(count)` | to string |
-| `date(x)` | `dueOn > date(loanedAt)` | the date of a timestamp, or a quoted date: `date("2026-10-07")` |
+| `date(x)` | `dueOn > date(loanedAt)` | the calendar date of a timestamp in the specification's `timeZone`, and in UTC when it declares none, which `time_zone` warns of at the call; or a quoted date: `date("2026-10-07")` |
 | `timestamp(x)` | `timestamp("2026-10-07T09:30:00Z")` | a quoted RFC 3339 instant |
 | `duration(x)` | `duration("P14D")`, `duration("PT2H")` | a quoted ISO 8601 duration in days, hours, minutes and seconds |
 | date `+`, `-` duration | `dueOn == loanedOn + duration("P14D")` | a date moved by whole days, the date first and the days written in place |

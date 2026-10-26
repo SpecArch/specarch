@@ -61,7 +61,7 @@ In short:
   zoneless one says why, and a plain date stays a date (12, ADR-194).
 - Everything is additive: a 1.0 file gets no new error, since every rule
   that can fire on one is a warning, and this repository's specification
-  and examples get no new line once the library lending example declares
+  and examples get no new line, the library lending example declaring
   its `timeZone`, so the step is a minor one, 1.3.0.
 
 ## 1. What SpecArch holds today
@@ -1038,15 +1038,20 @@ approves that revision, and the build items follow in the order of 11.
 3. The test plan's paths and cases, `gaps`.
 4. `specarch-gen-scripts`, and the entry instant columns of 3.8 with
    `generate sql`.
-5. The time zone and the date-times (12): `timeZone` at the root,
-   `local-date-time`, `time-zone` and `why` on a field in the schema,
-   the rule `time_zone` in both validators with its conformance cases,
-   the type-rendering idiom's rows, `docs/conventions.md` Types and the
-   library lending example's `timeZone`; both builds reading `date()` of
-   an instant by 12.3, the zone or UTC, where today Go reads the written
-   offset and Swift UTC; and the within machine's `<stateField>EnteredAt`
-   column nullable in `generate sql`, since it is null while the other
-   machine is outside the states it is within.
+5. The time zone and the date-times (12): `local-date-time`,
+   `time-zone` and `why` on a field in the schema; the rule `time_zone`
+   for `at` over a date, a validity bounded by a date, a date-time
+   default or example without its offset, a `time-zone` default or
+   example that is no name and a `local-date-time` without `why`, in
+   both validators with their conformance cases; the type-rendering
+   idiom's rows and `docs/conventions.md` Types; `generate sql`
+   rendering `date()` of an instant in `timeZone`; and the within
+   machine's `<stateField>EnteredAt` column nullable in `generate sql`,
+   since it is null while the other machine is outside the states it is
+   within. Built already (BUG-064): the root `timeZone`, the rule's two
+   cases for it, a name the database does not hold and a `date()` of an
+   instant without it, both builds reading `date()` by 12.3 and the
+   library lending example's `timeZone`.
 6. The library lending example rewritten with
    `at: dueOn + duration("P1D")` where the owner agrees, as the
    acceptance test of the design.
@@ -1152,16 +1157,22 @@ validator reports the places that need it:
 | a job's `schedule` | the five fields of cron, in UTC, as today (12.4) | nothing |
 
 `date()` of an instant is evaluated by the validator, over an
-algorithm's worked examples and a test's records, and by any generator
-that renders it, which none does today. With `timeZone` both read the
-date in it; without one both read it in UTC, the one zone that is no
-host's and the reading the instant's own text has once its offset is
-not kept (12.2): the warning at the expression says that the calendar
-date is UTC's until the zone is declared. Today the Go build takes the
-date at the offset the literal was written with and the Swift build the
-date in UTC, so the two builds disagree on an instant written with an
-offset other than `Z` whose date differs in UTC, against the rule that
-both print the same line; the build item makes both read the rule.
+algorithm's worked examples and a test's records, in both builds alike:
+with `timeZone` both read the date in it; without one both read it in
+UTC, the one zone that is no host's and the reading the instant's own
+text has once its offset is not kept (12.2), and the warning at the call
+says that the calendar date is UTC's until the zone is declared. A
+`timeZone` the database does not hold is the error at the key, and the
+date is UTC's until the key is corrected. `generate sql` renders
+`date()` of an instant as the dialect's cast to a date, whose zone is
+the stack's, the session's on PostgreSQL; rendering it in `timeZone` is
+the build item's (11, step 5). A name of the database is one the host's
+database holds, spelled as the database spells it, `Asia/Jakarta` and
+not `asia/jakarta`: both builds read the same folder of the host by the
+same rule, since a case-insensitive file system would otherwise accept
+a spelling on one host that another refuses, and a name a platform's own
+library knows beyond the database (`PST`, `GMT+7`) is refused for the
+same reason.
 
 The first instant of a day is the zone's: a day whose midnight the zone
 skips begins at the first instant that exists, as the database gives it.
@@ -1199,26 +1210,25 @@ offset, since the validator refuses one without; a `default` or
 written without its offset gains the warning `time_zone` when the rule
 is built, and none in this repository's specification, its examples or
 its conformance cases lacks it. No file written today
-holds `local-date-time`, `time-zone` or `timeZone`, since none existed.
+holds `local-date-time` or `time-zone`, since neither exists yet; the
+root `timeZone` exists, and the library lending example declares `UTC`,
+the zone for an example that names no place, so that its Loan's check
+`lentOn <= date(loanedAt)` keeps the reading it had and gets no line.
 The `time_zone` warning fires on a 1.0 file at two places only, a
 `validity` bounded by a `date` and a `date()` of an instant: on this
 repository's specification nowhere; on the library lending example at
-the Loan's check `lentOn <= date(loanedAt)` and at the Member's validity
-from `joinedOn` to `membershipEndsOn`, so the build item declares the
-example's `timeZone` with the rule, the zone the owner names (the
-example names no place, so `UTC` is proposed), and no line appears;
-among the conformance cases, `validate-validity` and
-`validate-concept-cases-listed` gain one warning each at a validity
-bounded by a date, which their expected output records. `date()` of an
-instant reads UTC without a `timeZone` and the zone with one (12.3),
-where the Go build today reads the offset the instant was written with
-and the Swift build UTC: a worked example or a test record over an
-instant written with an offset other than `Z` whose date differs in UTC
-may change its outcome under the Go build when the rule is built, and
-under both when the specification declares a zone other than UTC; none
-in this repository does, since the library lending example's instants
-are all written in `Z` and no other expression of the specification,
-the examples or the conformance cases reads `date()` of an instant.
+the Member's validity from `joinedOn` to `membershipEndsOn` once the
+validity rule is built, and among the conformance cases
+`validate-validity` and `validate-concept-cases-listed` then gain one
+warning each at a validity bounded by a date, which their expected
+output records. `date()` of an instant reads UTC without a `timeZone`
+and the zone with one (12.3), in both builds: a worked example or a
+test record over an instant written with an offset other than `Z` whose
+date differs in UTC changes its outcome when the specification declares
+a zone other than UTC; none in this repository does, since the library
+lending example's instants are all written in `Z`, and the conformance
+cases `validate-time-zone`, `validate-time-zone-missing` and
+`validate-time-zone-unknown` hold the readings.
 Every other change is an addition: one root key, two formats, `why` on a field, one
 rule with errors only where a new key is written and warnings where a
 1.0 file may be. The step is the minor one the machines take, 1.3.0 (7),

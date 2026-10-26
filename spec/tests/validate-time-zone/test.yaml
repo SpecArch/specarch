@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: validate
+level: system
+scenario: golden
+given: a specification that declares timeZone Asia/Jakarta and an algorithm whose formula takes date() of an instant, with worked examples over one instant written with the zone's offset and in Z and over the last second of the day before
+when: validate is run
+then: it reports nothing and exits 0, since both builds read the date in the zone, so the two writings of one instant give one date
+verifies: [SA-99]

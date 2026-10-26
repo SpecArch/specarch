@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: validate
+level: system
+scenario: golden
+given: a specification that declares no timeZone and two algorithms whose formulas take date() of an instant, one of an input and one of a literal written with an offset, with worked examples that expect the date in UTC
+when: validate is run
+then: it reports the warning time_zone at each date() call, naming the input where the call reads one, reads every date in UTC so the examples hold, and exits 0
+verifies: [SA-99]

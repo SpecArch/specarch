@@ -281,6 +281,7 @@ extension Checker {
         checkTenant(d)
         checkClients(d)
         checkTrustDomain(d)
+        checkTimeZone(d)
         checkThrough(d)
         checkCallers(d)
         checkTokens(d)

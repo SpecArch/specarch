@@ -200,6 +200,7 @@ extension Checker {
                 if errs.isEmpty && (t.kind != .bool || t.nullable) {
                     addFile(fileOf(n), exprLine(n, 1), ptr, .rowPolicies, "the rule gives \(t), but a row policy must give true or false for each record; compare the values with ==, <, > or similar")
                 }
+                if errs.isEmpty { zoneWarnings(n, ptr, "the row policy", tree, env) }
             }
         }
     }

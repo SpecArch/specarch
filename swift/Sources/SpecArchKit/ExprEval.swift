@@ -108,8 +108,10 @@ private func truncate(_ d: Decimal) -> Decimal {
     return d < 0 ? -r : r
 }
 
-/// Computes a checked expression with the given values.
-public func evalExpr(_ n: ExprNode, _ vals: [String: ExprValue]) throws -> ExprValue {
+/// Computes a checked expression with the given values. zone is the
+/// specification's timeZone, UTC when it declares none: date() of an
+/// instant gives the instant's calendar date in it (ADR-193).
+public func evalExpr(_ n: ExprNode, _ vals: [String: ExprValue], _ zone: TimeZone) throws -> ExprValue {
     switch n.op {
     case .int: var v = ExprValue(.int); v.num = n.intValue; return v
     case .uint: var v = ExprValue(.uint); v.num = n.intValue; return v
@@ -121,26 +123,26 @@ public func evalExpr(_ n: ExprNode, _ vals: [String: ExprValue]) throws -> ExprV
         guard let v = vals[n.text] else { throw evalErr(n, "\(n.text) has no value") }
         return v
     case .neg:
-        var v = try evalExpr(n.args[0], vals)
+        var v = try evalExpr(n.args[0], vals, zone)
         if v.kind == .double { v.double = -v.double; return v }
         v.num = -v.num
         return try checkInt(n, v)
     case .not:
-        var v = try evalExpr(n.args[0], vals)
+        var v = try evalExpr(n.args[0], vals, zone)
         v.bool = !v.bool
         return v
     case .cond:
-        let c = try evalExpr(n.args[0], vals)
-        return try evalExpr(c.bool ? n.args[1] : n.args[2], vals)
+        let c = try evalExpr(n.args[0], vals, zone)
+        return try evalExpr(c.bool ? n.args[1] : n.args[2], vals, zone)
     case .call:
-        return try call(n, vals)
+        return try call(n, vals, zone)
     case .binary(let op):
         if op == "&&" || op == "||" {
-            let l = try evalExpr(n.args[0], vals)
+            let l = try evalExpr(n.args[0], vals, zone)
             if (op == "&&" && !l.bool) || (op == "||" && l.bool) { return l }
-            return try evalExpr(n.args[1], vals)
+            return try evalExpr(n.args[1], vals, zone)
         }
-        let l = try evalExpr(n.args[0], vals), r = try evalExpr(n.args[1], vals)
+        let l = try evalExpr(n.args[0], vals, zone), r = try evalExpr(n.args[1], vals, zone)
         switch op {
         case "+", "-", "*", "/":
             return try arithmetic(n, op, l, r)
@@ -212,8 +214,8 @@ private func compare(_ a: ExprValue, _ b: ExprValue) -> Int? {
     }
 }
 
-private func call(_ n: ExprNode, _ vals: [String: ExprValue]) throws -> ExprValue {
-    let args = try n.args.map { try evalExpr($0, vals) }
+private func call(_ n: ExprNode, _ vals: [String: ExprValue], _ zone: TimeZone) throws -> ExprValue {
+    let args = try n.args.map { try evalExpr($0, vals, zone) }
     let a = args.first ?? ExprValue(.null)
     switch n.text {
     case "int", "uint":
@@ -265,7 +267,9 @@ private func call(_ n: ExprNode, _ vals: [String: ExprValue]) throws -> ExprValu
         switch a.kind {
         case .date: return a
         case .timestamp:
-            v.seconds = Decimal(Int64((NSDecimalNumber(decimal: a.seconds).doubleValue / 86400).rounded(.down))) * 86400
+            let seconds = NSDecimalNumber(decimal: a.seconds).doubleValue
+            let local = seconds + Double(zone.secondsFromGMT(for: Date(timeIntervalSince1970: seconds)))
+            v.seconds = Decimal(Int64((local / 86400).rounded(.down))) * 86400
         default:
             guard let s = parseDate(a.text) else { throw evalErr(n, "\(quote(a.text)) is not a date") }
             v.seconds = s

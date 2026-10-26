@@ -922,3 +922,17 @@ Expected: `event is missing` alone, in both builds and in an editor that loads t
 To repeat: in a copy of `spec/tests/validate-flow-step-missing-key/specarch.yaml`, built before this fix, run `specarch validate .` and read the errors at `/flows/missing-keys/steps/3`.
 
 Fix: the `if` also requires `event`, so `action` is required only of a step whose event is `action`; the `else`, which refuses `action` beside another event, holds only when `event` is there, so a step with no event and an action is not told its action is not allowed either. No file is accepted or refused that was not before, since `event` is required anyway: `TestFlowStepAcceptsWhatItDid` (`internal/validate/flow_step_schema_test.go`) checks the rule against the old one for every combination of page, event, action and an `x-` key. The fragment schema and the Swift embed follow; case `validate-flow-step-missing-key` gives the bare step.
+
+## BUG-064 — validate: the two builds read date() of an instant written with an offset other than Z on different days
+
+- Reported: 2026-10-26, found while designing the state machines' time zone (ADR-193), against 1.2.0
+- Closed: 2026-10-27, completed
+- Fixed by: the commit on `main` whose message says `Fixes BUG-064`
+
+`date()` of an instant in an expression, evaluated over an algorithm's worked examples and a test's records, took the calendar date at the offset the instant was written with in the Go build (`internal/expr/eval.go`) and in UTC in the Swift build (`swift/Sources/SpecArchKit/ExprEval.swift`): `date(timestamp("2026-10-27T03:00:00+07:00"))` gave the 27th in one and the 26th in the other, against the rule that both builds print the same output. The Go build also printed such an instant with the offset it was written with, where the Swift build printed it in `Z`. No file in the repository held such a value.
+
+Expected: one date in both builds, the one the specification means: the instant's calendar date in the specification's `timeZone`, and in UTC when it declares none, which is then said at the call.
+
+To repeat: in a copy of `spec/tests/validate-time-zone-missing`, built before this fix, run `specarch validate .` with the Go build and with the Swift build and compare the lines at `/algorithms/calendarDay`.
+
+Fix: ADR-193's rule for `date()`, built. The design has the root key `timeZone`, a name of the IANA Time Zone Database spelled as the database spells it (`schema/specarch-design-1.0.schema.json`, `rootOnly` in both builds), and the rule `time_zone`: a name the database does not hold is an error at the key, and a `date()` of an instant in a specification that declares none is a warning at the call, since a 1.0 file may hold it. Both evaluators take the zone and give the instant's date in it; the Go build keeps every instant in UTC, so both print `2026-10-26T20:00:00Z` for one instant however it was written. A name is read the same on every host: its form is checked first, and a name a folder of the host's database holds in another spelling, or one a platform's own library knows beyond the database (`PST`, `GMT+7`), is refused in both builds. Cases `validate-time-zone`, `validate-time-zone-missing` and `validate-time-zone-unknown`; the library lending example declares `timeZone: UTC`, the zone for an example that names no place, and keeps every reading it had.

@@ -25,6 +25,7 @@ public enum Rule: String, CaseIterable, Sendable {
     case channel = "channel"
     case idempotencyKey = "idempotency_key"
     case validity = "validity"
+    case timeZone = "time_zone"
     case session = "session"
     case guardRule = "guard"
     case operation = "operation"

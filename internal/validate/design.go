@@ -218,6 +218,7 @@ func (c *checker) checkDesign(d *design) {
 	c.checkTenant(d)
 	c.checkClients(d)
 	c.checkTrustDomain(d)
+	c.checkTimeZone(d)
 	c.checkThrough(d)
 	c.checkCallers(d)
 	c.checkTokens(d)

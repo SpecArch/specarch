@@ -1,0 +1,12 @@
+specarch: "1.0.0"
+info: { title: Case, version: 1.0.0 }
+timeZone: Asia/JAKARTA
+algorithms:
+  calendarDay:
+    inputs:
+      at: { type: string, format: date-time }
+    output: { type: string, format: date }
+    formula: date(at)
+    examples:
+      - { name: read in UTC until the key is corrected, inputs: { at: "2026-10-27T03:00:00+07:00" }, expected: "2026-10-26" }
+    pseudocode: return the calendar date of at in the specification's time zone

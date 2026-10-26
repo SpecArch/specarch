@@ -485,3 +485,20 @@ private final class TypeChecker {
         }
     }
 }
+
+/// The date(x) calls of a checked expression whose x is an instant: each
+/// gives the instant's calendar date in the specification's timeZone, and
+/// in UTC when none is declared, which the validator warns of at the call
+/// (ADR-193).
+public func instantDates(_ n: ExprNode, _ env: ExprEnv) -> [ExprNode] {
+    var out: [ExprNode] = []
+    func walk(_ n: ExprNode) {
+        if n.op == .call, n.text == "date", n.args.count == 1 {
+            let (t, errs) = checkExpr(n.args[0], env)
+            if errs.isEmpty, t.kind == .timestamp { out.append(n) }
+        }
+        for a in n.args { walk(a) }
+    }
+    walk(n)
+    return out
+}

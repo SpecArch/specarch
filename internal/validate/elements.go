@@ -98,6 +98,9 @@ func (c *checker) checkCondition(n *yaml.Node, ptr, what string, env expr.Env) {
 	if len(errs) == 0 && (t.Kind != expr.Bool || t.Nullable) {
 		c.addFile(c.fileOf(n), exprLine(n, 1), ptr, RuleExpressionType, "%s gives %s, but it must give true or false; compare the values with ==, <, > or similar", what, t)
 	}
+	if len(errs) == 0 {
+		c.zoneWarnings(n, ptr, what, tree, env)
+	}
 }
 
 // checkSyntax reports an expression that does not parse, for one whose

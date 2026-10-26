@@ -4,6 +4,7 @@ import (
 	"math/big"
 	"strings"
 	"testing"
+	"time"
 )
 
 func dec(s string) Value {
@@ -20,7 +21,7 @@ func eval(t *testing.T, src string, env Env, vals map[string]Value) (Value, erro
 	if _, errs := Check(n, env); len(errs) > 0 {
 		t.Fatalf("%s: %v", src, errs)
 	}
-	return Eval(n, vals)
+	return Eval(n, vals, time.UTC)
 }
 
 func TestRoundHalfAwayFromZero(t *testing.T) {
@@ -100,4 +101,54 @@ func TestOutsideTheSubsetIsRefusedByName(t *testing.T) {
 			t.Errorf("%s: want a refusal naming %q, got %v", src, word, errs)
 		}
 	}
+}
+
+// date() of an instant is the instant's calendar date in the zone given,
+// whatever offset the instant was written with (ADR-193).
+func TestDateOfInstantReadsZone(t *testing.T) {
+	jakarta, err := time.LoadLocation("Asia/Jakarta")
+	if err != nil {
+		t.Fatal(err)
+	}
+	env := Env{"at": {Kind: Timestamp}}
+	for _, c := range []struct {
+		src, want string
+		zone      *time.Location
+	}{
+		{`date(timestamp("2026-10-27T03:00:00+07:00"))`, "2026-10-26", time.UTC},
+		{`date(timestamp("2026-10-27T03:00:00+07:00"))`, "2026-10-27", jakarta},
+		{`date(timestamp("2026-10-26T20:00:00Z"))`, "2026-10-27", jakarta},
+		{`date(timestamp("2026-10-26T16:59:59Z"))`, "2026-10-26", jakarta},
+		{`date(at)`, "2026-10-27", jakarta},
+		{`string(at)`, `"2026-10-26T20:00:00Z"`, time.UTC},
+	} {
+		n, errs := Parse(c.src)
+		if len(errs) > 0 {
+			t.Fatalf("%s: %v", c.src, errs)
+		}
+		at, _ := time.Parse(time.RFC3339, "2026-10-27T03:00:00+07:00")
+		got, err := Eval(n, map[string]Value{"at": {Kind: Timestamp, Time: at.UTC()}}, c.zone)
+		if err != nil {
+			t.Fatalf("%s: %v", c.src, err)
+		}
+		if got.String() != c.want {
+			t.Errorf("%s in %s: got %s, want %s", c.src, c.zone, got, c.want)
+		}
+	}
+	if _, errs := Check(mustParse(t, `date(at) == date("2026-10-27")`), env); len(errs) > 0 {
+		t.Fatal(errs)
+	}
+	// A call's position is its opening parenthesis, as every call diagnostic has it.
+	if dates := InstantDates(mustParse(t, `date(at) == date("2026-10-27") && size(string(at)) > 0`), env); len(dates) != 1 || dates[0].Column != 5 {
+		t.Errorf("InstantDates: got %d calls, want the one at column 5", len(dates))
+	}
+}
+
+func mustParse(t *testing.T, src string) *Node {
+	t.Helper()
+	n, errs := Parse(src)
+	if len(errs) > 0 {
+		t.Fatalf("%s: %v", src, errs)
+	}
+	return n
 }

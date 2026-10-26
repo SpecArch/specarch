@@ -33,6 +33,9 @@ const (
 	// CallerProperty is a dot outside caller.<property>, or a property the
 	// caller does not declare (ADR-095).
 	CallerProperty
+	// ZoneNeeded is a date() of an instant in a specification that declares
+	// no timeZone, so the date is UTC's: a warning, not an error (ADR-193).
+	ZoneNeeded
 )
 
 // CallerName is the reserved name of the caller record: caller.<property>

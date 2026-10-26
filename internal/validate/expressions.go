@@ -111,10 +111,34 @@ func (c *checker) exprErrors(n *yaml.Node, ptr, what string, errs []expr.Error) 
 			rule = RuleExpressionType
 		case expr.CallerProperty:
 			rule = RuleCallerProperty
+		case expr.ZoneNeeded:
+			rule = RuleTimeZone
 		}
 		c.addFile(c.fileOf(n), exprLine(n, e.Line), ptr, rule, "%s: %s", what, e.Message)
 		c.diags[len(c.diags)-1].Column = c.exprColumn(n, e.Line, e.Column)
+		if e.Kind == expr.ZoneNeeded {
+			c.diags[len(c.diags)-1].Severity = Warning
+		}
 	}
+}
+
+// zoneWarnings reports each date() of an instant in a checked expression
+// when the specification declares no timeZone: the date is then UTC's,
+// a warning at the call, since a 1.0 file may hold it (ADR-193).
+func (c *checker) zoneWarnings(n *yaml.Node, ptr, what string, tree *expr.Node, env expr.Env) {
+	if c.zoneDeclared {
+		return
+	}
+	var errs []expr.Error
+	for _, call := range expr.InstantDates(tree, env) {
+		of := "date()"
+		if call.Args[0].Op == expr.OpName {
+			of = "date(" + call.Args[0].Text + ")"
+		}
+		errs = append(errs, expr.Error{Line: call.Line, Column: call.Column, Kind: expr.ZoneNeeded,
+			Message: of + " gives the calendar date of an instant in UTC, since the specification declares no timeZone; declare timeZone at the root, a name of the IANA Time Zone Database such as Asia/Jakarta, or UTC to keep this reading"})
+	}
+	c.exprErrors(n, ptr, what, errs)
 }
 
 // exprColumn is the file column of a column inside an expression scalar:
@@ -169,6 +193,9 @@ func (c *checker) checkExpressions(d *design) {
 				if len(errs) == 0 && (t.Kind != expr.Bool || t.Nullable) {
 					c.addFile(c.fileOf(n), exprLine(n, 1), ptr, RuleExpressionType, "%s gives %s, but %s must give true or false; compare the values with ==, <, > or similar", what, t, kind)
 				}
+				if len(errs) == 0 {
+					c.zoneWarnings(n, ptr, what, tree, env)
+				}
 			}
 		}
 	}
@@ -204,6 +231,9 @@ func (c *checker) checkPrecondition(d *design, g guard) {
 	c.exprErrors(n, ptr, "the precondition", errs)
 	if len(errs) == 0 && (t.Kind != expr.Bool || t.Nullable) {
 		c.addFile(c.fileOf(n), exprLine(n, 1), ptr, RuleExpressionType, "the precondition gives %s, but a precondition must give true or false; compare the values with ==, <, > or similar", t)
+	}
+	if len(errs) == 0 {
+		c.zoneWarnings(n, ptr, "the precondition", tree, env)
 	}
 }
 
@@ -340,6 +370,7 @@ func (c *checker) checkAlgorithm(d *design, name string, alg *yaml.Node) {
 		c.exprErrors(n, ptr, "the formula", errs)
 		return
 	}
+	c.zoneWarnings(n, ptr, "the formula", tree, env)
 	output := source.Child(alg, "output")
 	if output == nil {
 		return
@@ -397,7 +428,7 @@ func (c *checker) checkExample(d *design, alg string, i int, ex *yaml.Node, tree
 	if !ok {
 		return
 	}
-	got, err := expr.Eval(tree, vals)
+	got, err := expr.Eval(tree, vals, c.zoneOf())
 	if err != nil {
 		c.add(ex, source.Pointer(base...), RuleExampleError, "the formula cannot be computed for %q: %v; correct the inputs or the formula", label, err)
 		return
@@ -482,6 +513,9 @@ func (d *design) value(n *yaml.Node, field *yaml.Node) (expr.Value, string) {
 		tm, err := time.Parse(layout, n.Value)
 		if err != nil || tag != "!!str" {
 			return expr.Value{}, fmt.Sprintf("must be a %s in quotes written as %s, and is %s", t.Kind, layoutName(t.Kind), n.Value)
+		}
+		if t.Kind == expr.Timestamp {
+			tm = tm.UTC() // the offset an instant is written with is not kept (ADR-194)
 		}
 		return expr.Value{Kind: t.Kind, Time: tm}, ""
 	case expr.Duration:

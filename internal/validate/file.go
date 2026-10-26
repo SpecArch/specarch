@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"go.yaml.in/yaml/v3"
 
@@ -239,6 +240,20 @@ type checker struct {
 	diags []Diagnostic
 	text  Placer // the lines of the files read, for an expression's column
 	given Given  // the specifications given with this one, by name
+	// zone is the specification's timeZone, UTC when it declares none or
+	// one the database does not hold, and zoneDeclared whether it declares
+	// one (ADR-193); checkTimeZone sets both.
+	zone         *time.Location
+	zoneDeclared bool
+}
+
+// zoneOf is the zone date() of an instant reads: the specification's
+// timeZone, and UTC when none is set.
+func (c *checker) zoneOf() *time.Location {
+	if c.zone == nil {
+		return time.UTC
+	}
+	return c.zone
 }
 
 func (c *checker) fileOf(n *yaml.Node) string {

@@ -133,7 +133,7 @@ extension Checker {
             for con in pairs(entity.child("constraints")) where str(con.value.child("kind")) == "check" {
                 let (tree, errs) = parseExpr(str(con.value.child("expression")))
                 guard let tree, errs.isEmpty, allGiven(tree, vals) else { continue }
-                if let got = try? evalExpr(tree, vals), got.kind == .bool, !got.bool {
+                if let got = try? evalExpr(tree, vals, zoneOf()), got.kind == .bool, !got.bool {
                     var msg = str(con.value.child("message"))
                     if msg.hasSuffix(".") { msg.removeLast() }
                     add(rec, rptr, .testData, "this \(ent) breaks \(con.key.value) (\(msg)); a test holds only records that could exist")

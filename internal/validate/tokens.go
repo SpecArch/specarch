@@ -280,6 +280,9 @@ func (c *checker) checkTokenChecks(d *design, token string, tok, claims *yaml.No
 		if len(errs) == 0 && (t.Kind != expr.Bool || t.Nullable) {
 			c.addFile(c.fileOf(n), exprLine(n, 1), ptr, RuleToken, "the check gives %s, but a check must give true or false; compare the claims with ==, <, > or similar", t)
 		}
+		if len(errs) == 0 {
+			c.zoneWarnings(n, ptr, "the check", tree, env)
+		}
 	}
 }
 

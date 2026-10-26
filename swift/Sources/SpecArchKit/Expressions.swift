@@ -209,10 +209,26 @@ extension Checker {
             case .typeMismatch: rule = .expressionType
             case .syntax: rule = .expressionSyntax
             case .callerProperty: rule = .callerProperty
+            case .zoneNeeded: rule = .timeZone
             }
             addFile(fileOf(n), exprLine(n, e.line), ptr, rule, "\(what): \(e.message)")
             diags[diags.count - 1].column = exprColumn(n, e.line, e.column)
+            if e.kind == .zoneNeeded { diags[diags.count - 1].severity = .warning }
         }
+    }
+
+    /// Reports each date() of an instant in a checked expression when the
+    /// specification declares no timeZone: the date is then UTC's, a
+    /// warning at the call, since a 1.0 file may hold it (ADR-193).
+    func zoneWarnings(_ n: YNode, _ ptr: String, _ what: String, _ tree: ExprNode, _ env: ExprEnv) {
+        if zoneDeclared { return }
+        var errs: [ExprError] = []
+        for call in instantDates(tree, env) {
+            let of = call.args[0].op == .name ? "date(\(call.args[0].text))" : "date()"
+            errs.append(ExprError(line: call.line, column: call.column, kind: .zoneNeeded,
+                                  message: of + " gives the calendar date of an instant in UTC, since the specification declares no timeZone; declare timeZone at the root, a name of the IANA Time Zone Database such as Asia/Jakarta, or UTC to keep this reading"))
+        }
+        exprErrors(n, ptr, what, errs)
     }
 
     /// The file column of a column inside an expression scalar: counted
@@ -258,6 +274,7 @@ extension Checker {
                     if errs.isEmpty && (t.kind != .bool || t.nullable) {
                         addFile(fileOf(n), exprLine(n, 1), ptr, .expressionType, "\(what) gives \(t), but \(kind) must give true or false; compare the values with ==, <, > or similar")
                     }
+                    if errs.isEmpty { zoneWarnings(n, ptr, what, tree, env) }
                 }
             }
         }
@@ -287,6 +304,7 @@ extension Checker {
         if errs.isEmpty && (t.kind != .bool || t.nullable) {
             addFile(fileOf(n), exprLine(n, 1), ptr, .expressionType, "the precondition gives \(t), but a precondition must give true or false; compare the values with ==, <, > or similar")
         }
+        if errs.isEmpty { zoneWarnings(n, ptr, "the precondition", tree, env) }
     }
 
     /// Checks each value a guard's writes sets: given, the value the
@@ -333,6 +351,7 @@ extension Checker {
             exprErrors(n, ptr, "the formula", errs)
             return
         }
+        zoneWarnings(n, ptr, "the formula", tree, env)
         guard let output = alg.child("output") else { return }
         let want = d.fieldType(output)
         let (ok, why) = fits(t, want)
@@ -382,7 +401,7 @@ extension Checker {
         if !ok { return }
         let got: ExprValue
         do {
-            got = try evalExpr(tree, vals)
+            got = try evalExpr(tree, vals, zoneOf())
         } catch {
             add(ex, pointer(base), .exampleError, "the formula cannot be computed for \(quote(label)): \(error); correct the inputs or the formula")
             return

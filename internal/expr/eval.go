@@ -18,7 +18,7 @@ type Value struct {
 	Double float64
 	Text   string // String, Enum, Bytes (raw)
 	Bool   bool
-	Time   time.Time     // Date, Timestamp, TimeOfDay
+	Time   time.Time     // Date, Timestamp, TimeOfDay; a Timestamp is in UTC, since the offset it was written with is not kept
 	Dur    time.Duration // Duration
 	Items  int           // List: the length
 }
@@ -109,8 +109,10 @@ func checkInt(n *Node, v Value) (Value, error) {
 	return v, nil
 }
 
-// Eval computes a checked expression with the given values.
-func Eval(n *Node, vals map[string]Value) (Value, error) {
+// Eval computes a checked expression with the given values. zone is the
+// specification's timeZone, UTC when it declares none: date() of an
+// instant gives the instant's calendar date in it (ADR-193).
+func Eval(n *Node, vals map[string]Value, zone *time.Location) (Value, error) {
 	switch n.Op {
 	case OpInt:
 		return Value{Kind: Int, Num: ratOf(n.Int)}, nil
@@ -131,7 +133,7 @@ func Eval(n *Node, vals map[string]Value) (Value, error) {
 		}
 		return v, nil
 	case OpNeg:
-		v, err := Eval(n.Args[0], vals)
+		v, err := Eval(n.Args[0], vals, zone)
 		if err != nil {
 			return v, err
 		}
@@ -140,37 +142,37 @@ func Eval(n *Node, vals map[string]Value) (Value, error) {
 		}
 		return checkInt(n, Value{Kind: v.Kind, Num: new(big.Rat).Neg(v.Num)})
 	case OpNot:
-		v, err := Eval(n.Args[0], vals)
+		v, err := Eval(n.Args[0], vals, zone)
 		if err != nil {
 			return v, err
 		}
 		return Value{Kind: Bool, Bool: !v.Bool}, nil
 	case "&&", "||":
-		l, err := Eval(n.Args[0], vals)
+		l, err := Eval(n.Args[0], vals, zone)
 		if err != nil {
 			return l, err
 		}
 		if (n.Op == "&&" && !l.Bool) || (n.Op == "||" && l.Bool) {
 			return l, nil
 		}
-		return Eval(n.Args[1], vals)
+		return Eval(n.Args[1], vals, zone)
 	case OpCond:
-		c, err := Eval(n.Args[0], vals)
+		c, err := Eval(n.Args[0], vals, zone)
 		if err != nil {
 			return c, err
 		}
 		if c.Bool {
-			return Eval(n.Args[1], vals)
+			return Eval(n.Args[1], vals, zone)
 		}
-		return Eval(n.Args[2], vals)
+		return Eval(n.Args[2], vals, zone)
 	case OpCall:
-		return call(n, vals)
+		return call(n, vals, zone)
 	}
-	l, err := Eval(n.Args[0], vals)
+	l, err := Eval(n.Args[0], vals, zone)
 	if err != nil {
 		return l, err
 	}
-	r, err := Eval(n.Args[1], vals)
+	r, err := Eval(n.Args[1], vals, zone)
 	if err != nil {
 		return r, err
 	}
@@ -289,10 +291,10 @@ func compare(a, b Value) (int, bool) {
 	return 0, false
 }
 
-func call(n *Node, vals map[string]Value) (Value, error) {
+func call(n *Node, vals map[string]Value, zone *time.Location) (Value, error) {
 	args := make([]Value, len(n.Args))
 	for i, a := range n.Args {
-		v, err := Eval(a, vals)
+		v, err := Eval(a, vals, zone)
 		if err != nil {
 			return v, err
 		}
@@ -369,7 +371,7 @@ func call(n *Node, vals map[string]Value) (Value, error) {
 		case Date:
 			return a, nil
 		case Timestamp:
-			t := a.Time
+			t := a.Time.In(zone)
 			return Value{Kind: Date, Time: time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, time.UTC)}, nil
 		case String:
 			t, err := time.Parse("2006-01-02", a.Text)
@@ -386,7 +388,7 @@ func call(n *Node, vals map[string]Value) (Value, error) {
 		if err != nil {
 			return Value{}, evalErr(n, "%q is not a timestamp", a.Text)
 		}
-		return Value{Kind: Timestamp, Time: t}, nil
+		return Value{Kind: Timestamp, Time: t.UTC()}, nil
 	case "duration":
 		d, ok := ParseDuration(a.Text)
 		if !ok {

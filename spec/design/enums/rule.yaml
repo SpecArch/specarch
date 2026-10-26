@@ -28,6 +28,7 @@ enums:
       - channel
       - idempotency_key
       - validity
+      - time_zone
       - session
       - guard
       - operation
@@ -177,6 +178,7 @@ enums:
       channel: a channel's `carriedBy` entry names no declared dependency, or one of kind `database`, `fileStore` or `identityProvider`, which carry no messages
       idempotency_key: an `idempotencyKey` names no header parameter of its operation, or sits on a method that RFC 9110 already makes idempotent
       validity: a `validity` names a field the entity does not have, one that is not a date or a date-time, or a `from` and an `until` of different formats
+      time_zone: the root `timeZone` is no name of the IANA Time Zone Database, spelled as the database spells it (an error at the key), or an expression takes `date()` of an instant in a specification that declares no `timeZone`, so the date is UTC's (a warning at the call)
       session: a session's idle or absolute timeout is zero
       guard: a `guard` names an entity that does not exist (its precondition is checked as a check constraint is)
       operation: a `source`, `submit` or operation action names an operationId that does not exist

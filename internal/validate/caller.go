@@ -120,6 +120,9 @@ func (c *checker) checkRoleRows(d *design) {
 			if len(errs) == 0 && (t.Kind != expr.Bool || t.Nullable) {
 				c.addFile(c.fileOf(n), exprLine(n, 1), ptr, RuleRowPolicies, "the rule gives %s, but a row policy must give true or false for each record; compare the values with ==, <, > or similar", t)
 			}
+			if len(errs) == 0 {
+				c.zoneWarnings(n, ptr, "the row policy", tree, env)
+			}
 		}
 	}
 }

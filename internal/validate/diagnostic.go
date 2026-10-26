@@ -36,6 +36,7 @@ const (
 	RuleChannel                Rule = "channel"
 	RuleIdempotencyKey         Rule = "idempotency_key"
 	RuleValidity               Rule = "validity"
+	RuleTimeZone               Rule = "time_zone"
 	RuleSession                Rule = "session"
 	RuleGuard                  Rule = "guard"
 	RuleOperation              Rule = "operation"
@@ -188,6 +189,7 @@ var Rules = []Rule{
 	RuleChannel,
 	RuleIdempotencyKey,
 	RuleValidity,
+	RuleTimeZone,
 	RuleSession,
 	RuleGuard,
 	RuleOperation,

@@ -155,6 +155,7 @@ extension Checker {
         if errs.isEmpty && (t.kind != .bool || t.nullable) {
             addFile(fileOf(n), exprLine(n, 1), ptr, .expressionType, "\(what) gives \(t), but it must give true or false; compare the values with ==, <, > or similar")
         }
+        if errs.isEmpty { zoneWarnings(n, ptr, what, tree, env) }
     }
 
     /// Checks a form's pickers: each is for a field the form shows that a

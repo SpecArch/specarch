@@ -2,13 +2,11 @@
 
 # SpecArch toolchain: test plan
 
-Version 1.2.1-dev of the specification: 784 design tests, 381 golden and 403 red, about 24 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 1.2.1-dev of the specification: 787 design tests, 383 golden and 404 red, about 24 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
-**Problems:** 3 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
+**Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
 **Problem:** warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SA-98; add verifies: [SA-98] to the test that shows it is met [requirement_unverified@requirements/requirements/design-keywords.yaml#/requirements/SA-98]
-
-**Problem:** warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SA-99; add verifies: [SA-99] to the test that shows it is met [requirement_unverified@requirements/requirements/design-keywords.yaml#/requirements/SA-99]
 
 **Problem:** warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SA-57; add verifies: [SA-57] to the test that shows it is met [requirement_unverified@requirements/requirements/refinement.yaml#/requirements/SA-57]
 
@@ -17,7 +15,7 @@ Version 1.2.1-dev of the specification: 784 design tests, 381 golden and 403 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 780 |
+| system | 783 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -6038,6 +6036,30 @@ Scenario: red; level: system; covers exit 1; verifies SA-42.
 - Given: a theme of design tokens with a dark mode and pairs of colours, at the AA target, holding a hex that is not its components, a hexadecimal component, a hex with a trailing line break, a colour outside srgb, an alias that leads back to itself and one to a token of another type, a dimension in a unit not taken, a token with no type, one of a type not taken, a misspelt $value, a mode naming a token that does not exist, pairs below the contrast their use asks for in the default and the dark mode, a translucent pair, a pair naming a dimension; besides components written .5 and 1e0, an alias of a bad colour, and an alias with no type and with extensions in a pair, which are right
 - When: validate is run
 - Then: it reports theme fifteen times and schema once, and exits 1
+
+#### validate-time-zone
+
+Scenario: golden; level: system; verifies SA-99.
+
+- Given: a specification that declares timeZone Asia/Jakarta and an algorithm whose formula takes date() of an instant, with worked examples over one instant written with the zone's offset and in Z and over the last second of the day before
+- When: validate is run
+- Then: it reports nothing and exits 0, since both builds read the date in the zone, so the two writings of one instant give one date
+
+#### validate-time-zone-missing
+
+Scenario: golden; level: system; verifies SA-99.
+
+- Given: a specification that declares no timeZone and two algorithms whose formulas take date() of an instant, one of an input and one of a literal written with an offset, with worked examples that expect the date in UTC
+- When: validate is run
+- Then: it reports the warning time_zone at each date() call, naming the input where the call reads one, reads every date in UTC so the examples hold, and exits 0
+
+#### validate-time-zone-unknown
+
+Scenario: red; level: system; covers exit 1; verifies SA-99.
+
+- Given: five specifications whose timeZone is no name of the IANA Time Zone Database, a local abbreviation (WIB), the database's own name in two other spellings (asia/jakarta, Asia/JAKARTA), a name one platform's library knows beyond the database (PST) and an offset (GMT+7), each with an algorithm that takes date() of an instant
+- When: validate is run
+- Then: it reports time_zone at each key, the same five lines in both builds whatever the host's file system, reads each date in UTC so the worked examples hold without a second line, and exits 1
 
 #### validate-traceability-warnings
 

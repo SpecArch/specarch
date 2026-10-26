@@ -163,6 +163,15 @@ final class Checker {
     var diags: [Diagnostic] = []
     let text = Placer(dir: "") // the lines of the files read, for an expression's column
     var given: Given = [:]     // the specifications given with this one, by name
+    /// The specification's timeZone, UTC when it declares none or one the
+    /// database does not hold, and whether it declares one (ADR-193);
+    /// checkTimeZone sets both.
+    var zone: TimeZone?
+    var zoneDeclared = false
+
+    /// The zone date() of an instant reads: the specification's timeZone,
+    /// and UTC when none is set.
+    func zoneOf() -> TimeZone { zone ?? TimeZone(identifier: "UTC")! }
 
     init(file: String, files: [ObjectIdentifier: String] = [:]) {
         self.file = file

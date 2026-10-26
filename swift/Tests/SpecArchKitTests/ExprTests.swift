@@ -13,7 +13,7 @@ private func evaluate(_ src: String, _ env: ExprEnv = [:], _ vals: [String: Expr
     #expect(errs.isEmpty, "\(src): \(errs)")
     let (_, cerrs) = checkExpr(n!, env)
     #expect(cerrs.isEmpty, "\(src): \(cerrs)")
-    return try evalExpr(n!, vals)
+    return try evalExpr(n!, vals, TimeZone(identifier: "UTC")!)
 }
 
 @Test func roundHalfAwayFromZero() {
@@ -72,4 +72,41 @@ private func evaluate(_ src: String, _ env: ExprEnv = [:], _ vals: [String: Expr
     #expect(parseExpr("count % 2").1.first?.column == 7)
     #expect(parseExpr("decimal(count, 0) * ").1.first?.column == 21)
     #expect(parseExpr("has(a)").1.first?.column == 4)
+}
+
+/// date() of an instant is the instant's calendar date in the zone given,
+/// whatever offset the instant was written with (ADR-193).
+@Test func dateOfInstantReadsZone() throws {
+    let utc = TimeZone(identifier: "UTC")!, jakarta = TimeZone(identifier: "Asia/Jakarta")!
+    let env: ExprEnv = ["at": ExprType(.timestamp)]
+    var at = ExprValue(.timestamp)
+    at.seconds = parseTimestamp("2026-10-27T03:00:00+07:00")!
+    let cases: [(String, TimeZone, String)] = [
+        ("date(timestamp(\"2026-10-27T03:00:00+07:00\"))", utc, "2026-10-26"),
+        ("date(timestamp(\"2026-10-27T03:00:00+07:00\"))", jakarta, "2026-10-27"),
+        ("date(timestamp(\"2026-10-26T20:00:00Z\"))", jakarta, "2026-10-27"),
+        ("date(timestamp(\"2026-10-26T16:59:59Z\"))", jakarta, "2026-10-26"),
+        ("date(at)", jakarta, "2026-10-27"),
+        ("string(at)", utc, "\"2026-10-26T20:00:00Z\""),
+    ]
+    for (src, zone, want) in cases {
+        let (n, errs) = parseExpr(src)
+        #expect(errs.isEmpty, "\(src): \(errs)")
+        #expect(try evalExpr(n!, ["at": at], zone).description == want, "\(src) in \(zone.identifier)")
+    }
+    // A call's position is its opening parenthesis, as every call diagnostic has it.
+    let (n, _) = parseExpr("date(at) == date(\"2026-10-27\") && size(string(at)) > 0")
+    let dates = instantDates(n!, env)
+    #expect(dates.count == 1 && dates.first?.column == 5)
+}
+
+/// Both builds hold a timeZone to the database's own spelling and refuse
+/// the names a platform's library knows beyond it.
+@Test func zoneNamesAreTheDatabases() {
+    for name in ["Asia/Jakarta", "UTC", "Etc/UTC", "EST", "Etc/GMT+7", "America/Argentina/Buenos_Aires"] {
+        #expect(zoneNamed(name) != nil, "\(name)")
+    }
+    for name in ["asia/jakarta", "Asia/JAKARTA", "utc", "Local", "", "PST", "GMT+7", "WIB", "+07:00", "posixrules"] {
+        #expect(zoneNamed(name) == nil, "\(name)")
+    }
 }

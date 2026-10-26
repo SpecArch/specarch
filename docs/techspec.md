@@ -14532,7 +14532,9 @@ names that is not initial; transition_cause, transition_ambiguous
 and transition_overlap as ADR-190 says; transition_history, an
 error for enter: history to a state without history; and the
 expression rules for when, set, invariant, at and the sets of entry
-and exit, at giving a timestamp or a date. The diagram is one
+and exit, at giving a timestamp or a date, and a set naming a
+control field or the primary key reported as expression_name. The
+diagram is one
 stateDiagram-v2 per machine, and stateDiagram <Entity> draws an
 entity's machines as the concurrent regions of one state named
 after it: each arrow labelled with its cause, then [when] or

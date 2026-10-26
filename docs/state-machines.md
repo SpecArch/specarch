@@ -420,7 +420,7 @@ their names; the new ones are frozen at the release that ships them.
 | `transition_ambiguous` | error | 3.4: two transitions of one `from` on one cause that cannot be told apart |
 | `transition_overlap` | warning | 3.4: two conditions the validator cannot show exclusive |
 | `transition_history` | error | `enter: history` to a state without `history` |
-| `expression_syntax`, `expression_name`, `expression_type` | error | as today, for `when`, `set`, `invariant`, `at` and the `set` of `entry` and `exit`: an unknown variable or `event` property, a wrong type, a value outside the subset; `at` must give a timestamp or a date and `when` and `invariant` a bool |
+| `expression_syntax`, `expression_name`, `expression_type` | error | as today, for `when`, `set`, `invariant`, `at` and the `set` of `entry` and `exit`: an unknown variable or `event` property, a wrong type, a value outside the subset; a `set` naming a control field or the primary key is `expression_name`, since neither is a variable a move sets; `at` must give a timestamp or a date and `when` and `invariant` a bool |
 | `emits` | error | as today, for `entry` and `exit` |
 | `schema` | error | as today: `trigger`, `after` and `at` together; `otherwise` with `when`; `variables` on an entity machine; a key unknown |
 
@@ -445,7 +445,7 @@ regions of one composite state named after the entity, Mermaid's `--`. A
 machine `within` another is drawn inside the composite state that holds
 the states it names.
 
-| What | How it is drawn | Checked with Mermaid 11 (mermaid-cli 12.0.0) |
+| What | How it is drawn | Checked with mermaid-cli 12.0.0 (Mermaid 12.0.0) |
 |---|---|---|
 | a state | `not_started` | yes |
 | the initial state | `[*] --> not_started` | yes |

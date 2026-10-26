@@ -8,7 +8,7 @@ import "embed"
 
 // Version is the program version, set at release time. Every plug-in built
 // from this repository reports it too.
-const Version = "1.1.0"
+const Version = "1.2.0"
 
 // Commands holds the specification's command definitions, one fragment per
 // file, as spec/design/commands/<command>.yaml.

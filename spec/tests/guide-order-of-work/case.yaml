@@ -1,7 +1,7 @@
 arguments: [guide]
 exitStatus: 0
 standardOutput: |
-  SpecArch 1.1.0: the order of work
+  SpecArch 1.2.0: the order of work
 
   1. Pin the program: record the module version and checksum `go version -m`
      prints for the installed specarch in the repository's agent instructions,

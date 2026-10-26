@@ -83,6 +83,23 @@ accepted it. The result goes in the commit message, and each library is
 listed with its version and licence under `libraries` in
 `spec/implementation/go/specarch.go.specarch-implementation.yaml`.
 
+## Releases
+
+A release is one commit on main that sets the version everywhere the
+program and the specification name it, followed by the tag. The commit sets
+the planned release record to released and names the change records it
+includes, sets `info.version`, both implementation files'
+`implements.version`, `Version` in `embed.go` and `programVersion` in the
+Swift build, moves the editor hints whose schema changed since the last
+tag and the install lines to the new tag, and passes
+`sh scripts/landing-check.sh`. Once it is on origin's main, the tag
+`vX.Y.Z` is made on it, annotated, and the GitHub release is published
+with `specarch-X.Y.Z.cdx.json` attached: the CycloneDX SBOM of the Go
+module and the Swift package that `sh scripts/sbom.sh X.Y.Z` writes and
+scans with grype, osv-scanner and govulncheck. A finding stops the release
+until the owner has decided on it. The release notes end with the scan's
+summary: the tool versions, the result and the licences.
+
 ## Style
 
 Prose is plain and direct. Documentation explains the decision as well as the

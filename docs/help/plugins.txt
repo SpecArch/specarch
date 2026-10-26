@@ -8,7 +8,7 @@ it found) and never touches the disk itself.
 
 Install each at the same release tag as specarch:
 
-  go install github.com/SpecArch/specarch/cmd/specarch-gen-sql@v1.1.0
+  go install github.com/SpecArch/specarch/cmd/specarch-gen-sql@v1.2.0
 
 A plug-in run with --capabilities prints, as JSON, its target, its stack,
 its version, what it writes and what it does not write. specarch

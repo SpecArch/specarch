@@ -61,11 +61,11 @@ file's pointers use.
 
 The first line of the root file is the editor hint:
 
-    # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v1.0.0/schema/specarch-design-1.0.schema.json
+    # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v1.2.0/schema/specarch-design-1.0.schema.json
 
 For an implementation file:
 
-    # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v1.0.0/schema/specarch-implementation-1.0.schema.json
+    # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v1.2.0/schema/specarch-implementation-1.0.schema.json
 
 A hint names the newest release tag that serves its schema. A release
 whose schemas changed moves every hint, and the schema line `extract`

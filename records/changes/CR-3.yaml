@@ -1,0 +1,39 @@
+specarchRecord: "1.0.0"
+kind: change
+id: CR-3
+title: Let a decision name the decisions it rests on, checked by the validator and printed by specarch decision why and rests
+raisedBy: specification-author
+raised: "2026-10-25"
+phase: development
+type: perfective
+urgency: normal
+reason: A reader about to change a decision had to reconstruct by hand, from the records' prose, which earlier decisions it rests on and which later ones rest on it; the specification needs that chain written at the decision, checked, and printed both ways.
+affects:
+  adds:
+    - SA-97
+    - "#/commands/decision why"
+    - "#/commands/decision rests"
+    - "#/decisions/ADR-188"
+    - "#/tests/decision-rests-chain"
+    - "#/tests/decision-rests-chain-json"
+    - "#/tests/decision-rests-none"
+    - "#/tests/decision-rests-unknown"
+    - "#/tests/decision-rests-usage-error"
+    - "#/tests/decision-unknown"
+    - "#/tests/decision-usage-error"
+    - "#/tests/decision-why-chain"
+    - "#/tests/decision-why-chain-json"
+    - "#/tests/decision-why-no-links"
+    - "#/tests/validate-decision-chain"
+    - "#/tests/validate-decision-cycle"
+    - "#/tests/validate-decision-rests-on-missing"
+    - "#/tests/validate-decision-rests-on-superseded"
+  changes: ["#/enums/Rule"]
+impact: minor
+decision:
+  by: specification-author
+  date: "2026-10-25"
+  outcome: approved
+  why: Every addition is one optional key (restsOn on a decision, in the 1.0 design and implementation schemas), two rules (decision_cycle, decision_superseded) and two commands (decision why, decision rests); a file with no error on 1.1.0 gets no new error, and nothing a 1.1.0 run prints or writes changes, so a minor release carries it (ADR-186, ADR-188).
+release: 1.2.0
+status: released

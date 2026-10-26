@@ -30,7 +30,13 @@ decisions:
       enters the child or the configuration last left; final, the
       children at which the state completes. A composite's entry runs
       before its child's and its exit after; after on a composite counts
-      from entering it. The machine's final lists its final states. The
+      from entering it from outside. Creating a record is the move into
+      the initial state: the initial state's entry runs over the new
+      record, with no exit and no transition set, and a machine with no
+      entity starts the same way at its initial. A state's invariant is
+      checked with its ancestors' at the end of every change that writes
+      the record, and a change that leaves it false is refused, as the
+      check constraint it means. The machine's final lists its final states. The
       initial state of an entity machine is the field's default, initial
       is refused on it, and a short-form entity without a default keeps
       the derivation over the states its transitions name, as today, with
@@ -43,7 +49,11 @@ decisions:
       entity; a machine whose life is scoped to another's states says
       within, the machine and its states: it is in its initial state and
       fires nothing while the other is elsewhere, starts at its initial
-      state when one of them is entered and is reset when they are left.
+      state when one of them is entered and is reset when they are left;
+      it is inner to those states, so on leaving them its exits run
+      before the other machine's and its field and entry instant are set
+      by that move, and on entering them its initial state's entry runs
+      after the other machine's entries, in the one change.
       There is no region inside a state, no do activity, no choice,
       junction, fork or join vertex, no deferred event and no submachine
       state.
@@ -64,7 +74,13 @@ decisions:
       region its own diagram, paths and tests, and within keeps the one
       thing a region inside a composite state has that two free machines
       do not, a life scoped to the parent's states, with the semantics
-      UML gives a region's default entry and exit. Every state is an enum
+      UML gives a region's default entry and exit. The invariant is
+      checked at the end of every change because that is when a check
+      constraint is, and a moment of its own would be a second rule for
+      one thing; creation runs the initial state's entry because UML
+      enters the initial state through its entry, and a record whose
+      first state had an entry that never ran would hold a state its
+      entry never established. Every state is an enum
       value, composite ones included, so that from a composite state
       means from any descendant, as UML reads it, and the stored value is
       always a leaf because a transition to a composite enters a child.

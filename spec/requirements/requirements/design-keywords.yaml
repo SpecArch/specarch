@@ -620,7 +620,24 @@ requirements:
       - A state that is not initial and that no transition reaches, a full-form state no transition leaves that final does not name, an enum value no transition names, a transition from a simple state with no cause, and a short-form entity without a default whose derivation finds two or more initial states or none are each reported as a warning naming the state, the transition or the field.
       - Two transitions of one state on one cause with neither a condition nor otherwise on either are reported as a warning at each; one with neither beside one with either, two with the same condition or two otherwise are an error at each; two whose conditions the validator cannot show exclusive are a warning at both, and two it can, one the negation of the other, the same name against literals whose ranges do not meet, or a conjunct of one exclusive with the other by those forms, are not reported.
       - A when, set, invariant or at naming a variable, field or event property the machine does not have, or of the wrong type, is reported with the expression rules, and set naming a control field is reported.
+      - An at over a date in a specification that declares no timeZone is reported at the transition as an error, and a machine with after implies the entry instant field beside its state field, which generate sql writes and the technical specification lists.
       - Both builds print the same lines for every case, and the diagram of a machine draws its causes, conditions and updates on the arrows, its variables as a note, its composite states nested and an entity's machines as concurrent regions.
     verification: test
     needs: [NEED-2]
-    why: State diagrams and state variables are among the most important parts of a system architecture, and the design could say only an entity's control state and its moves, so retry counts, deadlines, conditions, a second machine of an entity and the machines of things not stored were written outside the specification, undrawn and unchecked (ADR-189 to ADR-192).
+    why: State diagrams and state variables are among the most important parts of a system architecture, and the design could say only an entity's control state and its moves, so retry counts, deadlines, conditions, a second machine of an entity and the machines of things not stored were written outside the specification, undrawn and unchecked (ADR-189 to ADR-192); nothing in a machine is left to the implementation or to a reading, the owner's word of 2026-10-26 (ADR-193).
+  # specarch-problem: warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SA-99; add verifies: [SA-99] to the test that shows it is met [requirement_unverified@requirements/requirements/design-keywords.yaml#/requirements/SA-99]
+  SA-99:
+    statement: A specification shall write every date-time as an instant with its offset, kept in the stack's zone-aware type; a wall-clock date and time shall be declared as such with its reason, shown in documents; a plain date and a time of day shall carry no zone; a specification shall declare its time zone once, an IANA Time Zone Database name, and a date or a wall-clock reading shall become an instant only in it; and the validator shall report a zoneless date-time without a reason, a zone that is no IANA name, and a date meeting the clock in a specification that declares no zone.
+    kind: functional
+    priority: must
+    status: proposed
+    acceptance:
+      - An expression literal of an instant written without its offset is reported, as today, and a default or examples value of a date-time field written without its offset is reported at the value as a warning.
+      - A field of format local-date-time with why validates and the technical specification shows the reason beside the field; one without why is reported at the field as an error.
+      - A root timeZone that is a name of the IANA Time Zone Database validates; one that is not is reported at the key; a field of format time-zone whose default or example is no such name is reported at the value.
+      - An at over a date, a validity bounded by a date and a date() of an instant are reported in a specification that declares no timeZone, the first as an error and the others as warnings; with timeZone, none is.
+      - A job's schedule stays the five fields of cron in UTC, and the library lending example validates with no new line once it declares its timeZone.
+      - Both builds print the same lines for every case.
+    verification: test
+    needs: [NEED-2]
+    why: A date-time without its zone is read in whatever zone the reader runs in, so the same value means two instants on two hosts and a date is turned into an instant by a guess; the owner's rule of 2026-10-26 is that a date-time carries its zone everywhere, that a zoneless one says why, and that a date meets the clock only in the zone the specification declares (ADR-193, ADR-194).

@@ -1,0 +1,94 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-1.0.schema.json
+decisions:
+  ADR-193:
+    title: A specification declares its time zone once, timeZone at the root of the design, an IANA Time Zone Database name, and a date or a wall-clock reading becomes an instant only in it; at on a date is the first instant of that day, a validity bounded by a date expires at that day's end, date() of an instant is the date in that zone, and each place that needs the zone without it is time_zone
+    status: proposed
+    date: "2026-10-26"
+    context: |
+      ADR-190 let an at over a date fire at the start of that day in the
+      time zone the implementation runs in, and the build item was to
+      design the column that holds the instant a state was entered. The
+      owner said on 2026-10-26 that nothing in a state machine may depend
+      on the implementation or on a reading: at on a date resolves in a
+      time zone the specification declares, an IANA name, and a
+      specification that uses at on a date without one has a problem at
+      that entry, read and never refused. Two more places already turn a
+      date into an instant without saying where: a validity bounded by a
+      date, which expires after that day, and date() of an instant in an
+      expression, which the library lending example writes as lentOn <=
+      date(loanedAt). A job's schedule is the five fields of cron in UTC,
+      said in docs/conventions.md. RFC 3339 writes every timestamp with
+      its offset and calls a local time without one unusable on the
+      Internet; RFC 9557 names a zone by its IANA name because an offset
+      does not identify a zone and a zone's rules change; RFC 6557 keeps
+      that database.
+    decision: |
+      The design has one optional root key, timeZone, an IANA Time Zone
+      Database name such as Asia/Jakarta, in the form a field of format
+      time-zone takes (ADR-194). A date meets the clock only there: at
+      over a date is due at the first instant of that day in timeZone; a
+      validity whose until is a date expires from the first instant of
+      the day after it and whose from is a date is valid from the first
+      instant of that day; date() of an instant is the instant's calendar
+      date in timeZone; a local-date-time or a time the implementation
+      compares with the clock is read in timeZone. The first instant of a
+      day whose midnight the zone skips is the first instant that exists.
+      The rule time_zone reports, at the entry, a date in at in a
+      specification with no timeZone, an error, since the key is new; a
+      timeZone that is no name of the database, an error at the key; and
+      a validity bounded by a date or a date() of an instant with no
+      timeZone, a warning at each, since a 1.0 file may hold them. A
+      date-time is an instant and reads no zone; a job's schedule stays
+      in UTC. For the schedule the proposal, not taken here, is a timeZone
+      on the trigger in the same form, UTC when absent, so that no job
+      written today changes its meaning, and the root's name written on
+      the trigger when the hour is a business hour, not a reference to
+      the root.
+    why: |
+      The zone is the specification's and not the host's because the
+      owner's rule is that a specification leaves nothing to the
+      implementation, and the day a date names is the day of the system's
+      people, not of the machine that runs it. One zone for the
+      specification and not one per entity because a specification
+      describes one system with one business day, and a record that
+      belongs to a place of its own can hold a time-zone field beside its
+      wall-clock reading, which a later item may let a validity or an at
+      read if a specification asks; the alternative of a zone on each
+      entity lost as a name written many times for one fact. Not UTC by
+      rule for dates because a day in UTC is not the business's day
+      anywhere but under that meridian, and the loan due on the seventh
+      would become overdue in the afternoon of the sixth in Jakarta. At
+      the root and not in info because info holds how the document is
+      written, its names and its version, and the zone is a fact of the
+      system beside tenant, session and trustDomain. The validity and
+      date() cases are warnings and the at case an error because
+      ADR-186 forbids a 1.x to make a valid file invalid, and only at is
+      a key no 1.0 file has. The schedule keeps UTC by default and is
+      proposed to name its zone itself because reading the root by
+      default would move every schedule of a specification the day it
+      declares its zone, and because a cron hour in a zone with clock
+      changes does not exist once a year and exists twice once a year,
+      which schedulers handle differently; UTC has neither, so a zone on
+      a schedule is chosen on purpose. Compiler test: a date in at in a
+      specification without timeZone is time_zone at the transition and
+      the transition is drawn with the entry marked; acceptance test: the
+      zone is one key at the root, and a change of it is one line.
+    consequences: |
+      The library lending example declares its timeZone in the build
+      item, since its Loan's check reads date(loanedAt) and its Member's
+      validity is bounded by dates; two conformance cases gain a warning
+      at a validity bounded by a date. The implementation converts in the
+      specification's zone, set once from it. A specification whose dates
+      never meet the clock declares nothing and gets no line. The jobs'
+      schedule is an item of its own.
+    restsOn: [ADR-190, ADR-191]
+    satisfies: [SA-98, SA-99]
+    cites:
+      - source: rfc-3339
+        clause: "4.4, Unqualified Local Time"
+        says: "Interpretation of an unqualified local time zone will fail in approximately 23/24 of the globe, so the interoperability problems of unqualified local time are deemed unacceptable for the Internet."
+      - source: rfc-9557
+        clause: "1, Introduction"
+        says: "An offset does not identify a time zone, and the zone is needed to interpret a timestamp when its rules change; the format adds the IANA time zone name in brackets after an RFC 3339 timestamp."
+      - source: rfc-6557
+        says: "The Time Zone Database is maintained by IANA under these procedures, and its zone identifiers are the names implementations use."

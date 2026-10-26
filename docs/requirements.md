@@ -2,9 +2,9 @@
 
 # SpecArch toolchain: requirements specification
 
-Version 1.2.1-dev of the specification: 5 stakeholders, 10 needs and 98 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
+Version 1.2.1-dev of the specification: 5 stakeholders, 10 needs and 99 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
 
-**Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
+**Problems:** 3 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
 ## 1. Purpose and scope
 
@@ -34,7 +34,7 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | Need | Statement | Stakeholders | Status | Refined by |
 |---|---|---|---|---|
 | NEED-1 | I want a specification that cannot quietly be wrong, so that the code built from it is right. | specification-author, implementer | accepted | SA-33, SA-34, SA-35, SA-47, SA-48, SA-50, SA-75, SA-77, SA-82, SA-83, SA-84, SA-91, SA-72, SA-1, SA-2, SA-3, SA-4, SA-5, SA-6, SA-51, SA-95 |
-| NEED-2 | I want to write a design once and build it in more than one language. | implementer | accepted | SA-33, SA-34, SA-36, SA-37, SA-38, SA-39, SA-40, SA-41, SA-42, SA-43, SA-80, SA-81, SA-52, SA-53, SA-54, SA-55, SA-56, SA-49, SA-62, SA-63, SA-65, SA-66, SA-70, SA-77, SA-78, SA-82, SA-83, SA-84, SA-88, SA-89, SA-91, SA-92, SA-93, SA-94, SA-98, SA-46, SA-61, SA-71, SA-87, SA-32, SA-9, SA-10 |
+| NEED-2 | I want to write a design once and build it in more than one language. | implementer | accepted | SA-33, SA-34, SA-36, SA-37, SA-38, SA-39, SA-40, SA-41, SA-42, SA-43, SA-80, SA-81, SA-52, SA-53, SA-54, SA-55, SA-56, SA-49, SA-62, SA-63, SA-65, SA-66, SA-70, SA-77, SA-78, SA-82, SA-83, SA-84, SA-88, SA-89, SA-91, SA-92, SA-93, SA-94, SA-98, SA-99, SA-46, SA-61, SA-71, SA-87, SA-32, SA-9, SA-10 |
 | NEED-3 | I want the documents and diagrams to come from the specification, so they never drift from it. | reviewer, specification-author | accepted | SA-22, SA-36, SA-67, SA-75, SA-77, SA-82, SA-83, SA-84, SA-88, SA-91, SA-7, SA-8, SA-26, SA-16, SA-58, SA-59, SA-60, SA-90, SA-19, SA-74 |
 | NEED-4 | I want a big specification split over many files, each about one thing, so I can find what I am looking for. | specification-author, reviewer | accepted | SA-11, SA-2 |
 | NEED-5 | I want the whole life of the system in one place, from the first requirement to the day it is accepted. | reviewer, operator | accepted | SA-35, SA-47, SA-68, SA-26, SA-16, SA-90, SA-12, SA-23, SA-24, SA-25, SA-73 |
@@ -97,6 +97,7 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | SA-93 | functional | must | accepted | A specification shall be able to say how a person signs in at an identity provider, as signIn with OpenID Connect's authorisation code flow and PKCE, its provider, client, callback, identity token and back-channel logout, and navigate to signIn from a task page's answer or an action's then; specarch validate shall check every reference in both builds, derive the callback's refusals, and the UI generators and the technical specification shall write the flow, with the provider's issuer, keys and client_id the deployment's. |
 | SA-94 | functional | must | accepted | specarch generate ui shall write, for a custom page, the route, the guard and the menu entry, and import the screen from a file the project writes, named in the generated output, so that a missing screen fails the build or the load and never shows a blank page; generate --check shall compare nothing of the project's file, and the technical specification and the manual shall list the page as the project's own screen. |
 | SA-98 | functional | must | accepted | A specification shall describe a state machine by its control state, one enum's value held in an entity's field or named by the machine, and its extended state, the entity's fields or the machine's variables with their types, defaults and constraints; a transition shall say its cause, its condition, what it sets and the else case; a state shall carry entry, exit, an invariant, child states, history and finality; an entity may have several machines, a machine may have no entity, and the validator and the diagram shall show the machine as it is. |
+| SA-99 | functional | must | proposed | A specification shall write every date-time as an instant with its offset, kept in the stack's zone-aware type; a wall-clock date and time shall be declared as such with its reason, shown in documents; a plain date and a time of day shall carry no zone; a specification shall declare its time zone once, an IANA Time Zone Database name, and a date or a wall-clock reading shall become an instant only in it; and the validator shall report a zoneless date-time without a reason, a zone that is no IANA name, and a date meeting the clock in a specification that declares no zone. |
 | SA-7 | functional | must | accepted | specarch document and specarch generate shall write only into the folder the target owns, and with --check shall fail when the committed output differs. |
 | SA-8 | functional | must | accepted | Every generated file shall name its source specification, version and meta-model, and a hand-written Markdown document shall change only between its markers. |
 | SA-26 | functional | should | accepted | specarch document shall write the change and defect register and the release notes from the records beside a specification, kept current with --check like the other documents. |
@@ -946,11 +947,31 @@ Acceptance criteria:
 - A state that is not initial and that no transition reaches, a full-form state no transition leaves that final does not name, an enum value no transition names, a transition from a simple state with no cause, and a short-form entity without a default whose derivation finds two or more initial states or none are each reported as a warning naming the state, the transition or the field.
 - Two transitions of one state on one cause with neither a condition nor otherwise on either are reported as a warning at each; one with neither beside one with either, two with the same condition or two otherwise are an error at each; two whose conditions the validator cannot show exclusive are a warning at both, and two it can, one the negation of the other, the same name against literals whose ranges do not meet, or a conjunct of one exclusive with the other by those forms, are not reported.
 - A when, set, invariant or at naming a variable, field or event property the machine does not have, or of the wrong type, is reported with the expression rules, and set naming a control field is reported.
+- An at over a date in a specification that declares no timeZone is reported at the transition as an error, and a machine with after implies the entry instant field beside its state field, which generate sql writes and the technical specification lists.
 - Both builds print the same lines for every case, and the diagram of a machine draws its causes, conditions and updates on the arrows, its variables as a note, its composite states nested and an entity's machines as concurrent regions.
 
 **Problem:** warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SA-98; add verifies: [SA-98] to the test that shows it is met [requirement_unverified@requirements/requirements/design-keywords.yaml#/requirements/SA-98]
 
-**Insight:** State diagrams and state variables are among the most important parts of a system architecture, and the design could say only an entity's control state and its moves, so retry counts, deadlines, conditions, a second machine of an entity and the machines of things not stored were written outside the specification, undrawn and unchecked (ADR-189 to ADR-192).
+**Insight:** State diagrams and state variables are among the most important parts of a system architecture, and the design could say only an entity's control state and its moves, so retry counts, deadlines, conditions, a second machine of an entity and the machines of things not stored were written outside the specification, undrawn and unchecked (ADR-189 to ADR-192); nothing in a machine is left to the implementation or to a reading, the owner's word of 2026-10-26 (ADR-193).
+
+### SA-99
+
+A specification shall write every date-time as an instant with its offset, kept in the stack's zone-aware type; a wall-clock date and time shall be declared as such with its reason, shown in documents; a plain date and a time of day shall carry no zone; a specification shall declare its time zone once, an IANA Time Zone Database name, and a date or a wall-clock reading shall become an instant only in it; and the validator shall report a zoneless date-time without a reason, a zone that is no IANA name, and a date meeting the clock in a specification that declares no zone.
+
+Kind: functional; priority: must; status: proposed; verified by test; refines NEED-2.
+
+Acceptance criteria:
+
+- An expression literal of an instant written without its offset is reported, as today, and a default or examples value of a date-time field written without its offset is reported at the value as a warning.
+- A field of format local-date-time with why validates and the technical specification shows the reason beside the field; one without why is reported at the field as an error.
+- A root timeZone that is a name of the IANA Time Zone Database validates; one that is not is reported at the key; a field of format time-zone whose default or example is no such name is reported at the value.
+- An at over a date, a validity bounded by a date and a date() of an instant are reported in a specification that declares no timeZone, the first as an error and the others as warnings; with timeZone, none is.
+- A job's schedule stays the five fields of cron in UTC, and the library lending example validates with no new line once it declares its timeZone.
+- Both builds print the same lines for every case.
+
+**Problem:** warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SA-99; add verifies: [SA-99] to the test that shows it is met [requirement_unverified@requirements/requirements/design-keywords.yaml#/requirements/SA-99]
+
+**Insight:** A date-time without its zone is read in whatever zone the reader runs in, so the same value means two instants on two hosts and a date is turned into an instant by a guess; the owner's rule of 2026-10-26 is that a date-time carries its zone everywhere, that a zoneless one says why, and that a date meets the clock only in the zone the specification declares (ADR-193, ADR-194).
 
 ### SA-7
 

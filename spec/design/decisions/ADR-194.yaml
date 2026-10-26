@@ -1,0 +1,108 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-1.0.schema.json
+decisions:
+  ADR-194:
+    title: Every date-time of a specification is an instant written with its offset and kept in the stack's zone-aware type; a wall-clock date and time is format local-date-time, allowed only with why, shown in documents; a plain date stays a date and a time of day a clock reading; a time zone is format time-zone, an IANA name; a zoneless date-time without a reason is time_zone
+    status: proposed
+    date: "2026-10-26"
+    context: |
+      A field of format date-time is an instant, RFC 3339, and the
+      type-rendering idiom keeps it in TIMESTAMP WITH TIME ZONE,
+      DATETIMEOFFSET or fixed-width UTC text; the validator refuses an
+      expression literal written without its offset and does not check a
+      field's default or examples. Nothing
+      says that this is the rule, nothing lets a specification hold a
+      wall-clock reading that is not an instant, and a field has no why.
+      The owner said on 2026-10-26 that a date-time must carry its time
+      zone everywhere in SpecArch, except one with a valid reason not to,
+      declared as such with the reason, shown in documents; that a
+      zoneless date-time without a reason is a problem at the entry, read
+      and never refused; and that a plain date stays a date. ISO 8601
+      writes a time with a zone designator or without one, local time;
+      RFC 3339 requires the offset and rejects unqualified local time for
+      the Internet; RFC 9557 adds the IANA zone name because an offset is
+      not a zone; SQL has TIMESTAMP WITH TIME ZONE and TIMESTAMP without,
+      and PostgreSQL's timestamp without time zone silently ignores a
+      zone a literal carries.
+    decision: |
+      A date-time is an instant: written with its offset, two writings of
+      one instant one value, the offset not kept, rendered as the stack's
+      zone-aware type; a default or examples value of a date-time field
+      written without its offset is the warning time_zone at the value,
+      a warning since a 1.0 file may hold one. A wall-clock date and time
+      is format local-date-time, ISO 8601 local time with no offset,
+      rendered as the zoneless type, SQL's TIMESTAMP without time zone,
+      and allowed only on a field that carries why; the technical
+      specification shows the why beside the field; a local-date-time
+      field without why is the error time_zone at the field. The cases
+      held valid: a future wall-clock time at a place, an appointment, an
+      opening hour, a recurring hour, whose instant is not known today
+      because the zone's rules may change and whose people meant the
+      clock on the wall; and a reading from an outside system that has
+      none, kept as it came because an offset invented would claim what
+      is not known. A value whose meaning is the calendar is a date and
+      needs no reason; a time of day is a clock reading with no date and
+      no zone, as today. A time zone is format time-zone, a name of the
+      IANA Time Zone Database, the form the root timeZone takes
+      (ADR-193); a default or example that is no such name is time_zone
+      at the value. The validator checks that why is present, not what
+      it says. The schema takes local-date-time and time-zone into the
+      format list, as it took uint64 and decimal, and why onto a field.
+    why: |
+      The instant is the default and keeps its format because it is what
+      date-time has always meant in JSON Schema and OpenAPI, RFC 3339's
+      date-time, and because every value a system records happened at an
+      instant; a wall-clock reading is the exception that needs a word,
+      so the exception carries the format and the reason, not the rule.
+      The local form is a format of its own and not a key beside
+      date-time, such as zone: none, because the two are different types
+      with different renderings and different operations, as SQL's two
+      TIMESTAMPs are, and a format is where a type is said; it is named
+      local-date-time after ISO 8601's local time and the type the
+      languages call so. The reason is why and not a fixed list of
+      reasons because the valid cases are two and their wording is the
+      specification's, and why is the one word SpecArch has for a reason;
+      a field gains why for it, which every element already has. The
+      offset written is not kept because an instant has none of its own
+      and keeping it would make equal instants unequal values, and a
+      value that needs the zone it was meant in holds a time-zone field
+      beside it. A zone is a name and not an offset because only the name
+      survives a change of the rules, RFC 9557's reason; time-zone is a
+      format so that both validators check the name against the database
+      their platform ships and report one that is not there. A past
+      event written as local is not a valid case because it happened at
+      an instant, and the server's zone is not a reason because it is the
+      implementation's. Compiler test: a local-date-time without why is
+      time_zone at the field and the field is read, rendered and drawn;
+      acceptance test: making a wall-clock field an instant is one format
+      changed and one why removed, and the problems file lists where the
+      value is compared.
+    consequences: |
+      Two formats and why on a field in the design and fragment design
+      schemas; the rule time_zone in both builds; the type-rendering idiom
+      gains the zoneless type and the zone type per stack, a 1.x of the
+      idiom, and the implementation files their rows; docs/conventions.md
+      Types takes the rule. No file written today holds either format,
+      and no default or example in this repository lacks its offset, so
+      nothing becomes a problem; the step is the minor one of the state
+      machines, 1.3.0.
+    restsOn: [ADR-121, ADR-186, ADR-193]
+    satisfies: [SA-99]
+    cites:
+      - source: iso-8601
+        clause: "5.3, Time of day"
+        says: "A time of day is written with a UTC designator or a difference from UTC, or without either, in which case it is local time."
+      - source: rfc-3339
+        clause: "5.6, Internet Date/Time Format"
+        says: "A date-time is a full date, T, a full time and a time offset, Z or a numeric offset; the offset is not optional."
+      - source: rfc-3339
+        clause: "4.3, Unknown Local Offset Convention"
+        says: "An instant whose local offset is unknown is written with the offset -00:00, which says that the local time is unknown, not that it is UTC."
+      - source: rfc-9557
+        clause: "1, Introduction"
+        says: "An offset does not identify a time zone, and the zone is needed to interpret a timestamp when its rules change; the format adds the IANA time zone name in brackets after an RFC 3339 timestamp."
+      - source: iso-9075-2
+        clause: "4.6, Datetimes and intervals"
+        says: "A TIMESTAMP WITH TIME ZONE holds a time zone displacement with the value, and a TIMESTAMP WITHOUT TIME ZONE holds none."
+      - source: postgresql-datetime
+        clause: "8.5.1.3, Time Stamps"
+        says: "In a literal that has been determined to be timestamp without time zone, PostgreSQL will silently ignore any time zone indication."

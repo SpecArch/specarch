@@ -13,7 +13,11 @@ checks in both validators and the diagram. Each concept is mapped to UML
 2.5.1 and to W3C SCXML 1.0 with the reason SpecArch follows or departs from
 each. It changes no code, schema or generator: the decision records
 ADR-189 to ADR-192 hold the choices, approved by the owner on 2026-10-26
-before anything is built.
+before anything is built and revised the same day at the owner's word
+that nothing in a machine may depend on the implementation or on a
+reading; ADR-193 holds the specification's time zone and ADR-194 the
+rule for every date-time of a specification (12), both proposed with
+that revision.
 
 In short:
 
@@ -27,7 +31,8 @@ In short:
   richer machine, a second machine of an entity, or a machine with no
   entity is a named element under `stateMachines` (ADR-189).
 - A transition says what causes it (`trigger`, as today, `after` a
-  duration, or `at` a moment), under what condition it fires (`when`, an
+  duration, or `at` a moment, an instant or a date read in the
+  specification's `timeZone`), under what condition it fires (`when`, an
   expression over the extended state and `event.<property>`), what else
   it sets (`set`, variable to expression), and `otherwise` for the
   transition that fires when no sibling's condition holds (ADR-190).
@@ -44,9 +49,20 @@ In short:
   apart; the diagram shows the states, the causes, conditions and updates
   on the arrows, the variables, the nested states and the parallel
   machines (ADR-192).
+- Nothing is left to the implementation or to a reading: the
+  specification's `timeZone`, an IANA name, says where a date meets the
+  clock; the instant a state was entered is a field the machine implies,
+  set with every move; every move is one change on one record, so no two
+  causes are simultaneous; a timer's life, what an update reads, when a
+  message goes out, when an invariant is checked and the order of exits
+  and entries are written in 3.4, 3.5, 3.6 and 3.8; where the design
+  cannot say which transition fires, the validator reports it (ADR-193).
+  Every date-time of a specification is an instant with its offset, a
+  zoneless one says why, and a plain date stays a date (12, ADR-194).
 - Everything is additive: a 1.0 file gets no new error, since every rule
   that can fire on one is a warning, and this repository's specification
-  and examples get no new line, so the step is a minor one, 1.3.0.
+  and examples get no new line once the library lending example declares
+  its `timeZone`, so the step is a minor one, 1.3.0.
 
 ## 1. What SpecArch holds today
 
@@ -121,7 +137,7 @@ extended state is everything else.
 | extended state | attributes of the context object | `<datamodel>` with `<data id expr>` | the entity's fields, or `variables` (a field each, `default` as the initial value) | follows both; SpecArch's `field` already has the type, width, format and default, so no second shape is made |
 | state invariant | State::stateInvariant, a Constraint | none | `invariant` on a state, an expression that must hold while the machine is in it | follows UML; the entity's check constraints already hold the invariants that do not depend on the state |
 | event, trigger | a Trigger naming an Event (call, signal, change, time) | the `event` attribute, a name matched by prefix | `trigger`: an operation, a command, a message or an algorithm, as today | follows both in kind; departs from SCXML's prefix matching, which SpecArch has no event names for, and from UML's change event (`when(expression)`), whose polling a design cannot promise (open question 10.4) |
-| time event | `after(duration)`, `at(time)` | `<send delay>` on entry, cancelled on exit | `after`, an ISO 8601 duration since the state was entered; `at`, an expression giving a timestamp or a date | follows UML's two words; the duration is SpecArch's own `duration` (days, hours, minutes, seconds), not SCXML's CSS2 form |
+| time event | `after(duration)`, `at(time)` | `<send delay>` on entry, cancelled on exit | `after`, an ISO 8601 duration since the state was entered; `at`, an expression giving an instant, or a date read as the first instant of that day in the specification's `timeZone` (3.8) | follows UML's two words; the duration is SpecArch's own `duration` (days, hours, minutes, seconds), not SCXML's CSS2 form; the zone is the specification's, never the implementation's (ADR-193) |
 | guard | `[expression]`, a Constraint on the transition | `cond`, an expression of the data model | `when`, an expression over the extended state and `event.<property>` | follows both in meaning; departs in the word, since `guard` already names an operation's checked change (ADR-158) and `when` already names a page action's condition, and one word keeps one meaning |
 | else | `[else]` | `<else>` in executable content; transitions are tried in document order | `otherwise: true`, the one transition of a state and cause that fires when no sibling's `when` holds | follows UML's `[else]`; departs from SCXML's document order, which chooses silently where SpecArch reports an ambiguity (ADR-190) |
 | effect | the transition's effect Behavior | executable content: `<assign>`, `<send>`, `<raise>`, `<log>` | `set`, a variable to an expression, in the shape `writes.set` already has; `emits` on a state's entry and exit | follows both in what it does; departs from arbitrary behaviour, which a design cannot say without a stack: a transition sets variables, a state emits messages |
@@ -134,7 +150,7 @@ extended state is everything else.
 | final | a FinalState | `<final>` | `final`, the list of final states of a machine; derived as today for the short form | follows both; a final state has no outgoing transition, and a composite's completion is a transition with no cause from it |
 | completion transition | a transition with no trigger, taken when the source completes | an eventless transition, taken when `cond` holds | a transition with no `trigger`, `after` or `at` from a composite state, taken when a child in `final` is reached; from a simple state it is a warning, `transition_cause` | follows UML; departs from SCXML's eventless transition on a simple state, which fires as soon as its condition holds and so needs an evaluation loop the design does not promise |
 | conflicting transitions | 14.2.3.9.3: transitions in conflict; priority to the deeper source; otherwise undefined | 3.13: the deeper source wins, then document order | an inner state's transition wins over an ancestor's on the same cause; two from one state on one cause are a warning when neither says what tells them apart or the validator cannot show their conditions exclusive, and an error when one is told apart and the other left unsaid (3.4) | follows both on depth; departs from SCXML's order and UML's undefined, since SpecArch does not pick a meaning for an ambiguous entry (`docs/principles.md`) |
-| run to completion | 14.2.3.9.1 | the macrostep | the order exit, set, entry, within the operation or job that causes the move | follows both |
+| run to completion | 14.2.3.9.1 | the macrostep | the order exit, set, entry, within the operation or job that causes the move, as one change on one record; no move starts inside another, and a message an entry or exit emits goes out after the change | follows both |
 | choice, junction, fork, join | pseudostates | none (conditions and `<parallel>`) | none: `when` and `otherwise` on the transitions out of a state say what a choice says | departs from UML's vertices, as SCXML does: every decision is on a transition, so each has a cause and a condition the validator reads |
 | deferred events | a State's deferrableTrigger | none | none | departs: an event not handled in a state is refused by the operation, `from wrong state`, which the test plan already derives; queuing it is a stack's choice |
 | internal and local transitions | transition kinds | `type="internal"` | a transition with `from` and `to` the same state runs exit and entry (external); no internal transition | departs for now: an internal transition is a `set` without a move, which an operation's `writes` says; open question 10.5 |
@@ -251,8 +267,8 @@ by their names, as a check constraint reads an entity's fields.
 | `from`, `to` | as today; a `from` that is a composite state means from it or any of its descendants; a `to` that is a composite state enters its `initial` child, or, with `enter: history`, the child it last left |
 | `trigger` | as today: an operation, a command, a `channel/Message` or an algorithm |
 | `after` | a `duration` (ISO 8601, days to seconds) since the `from` state was entered; leaving the state cancels it |
-| `at` | an expression of type `timestamp` or `date` over the extended state, the moment the transition fires; a date fires when that day begins in the time zone the implementation runs in |
-| `when` | an expression giving a bool over the extended state and, with a `trigger`, `event.<property>`; the transition fires only when it holds |
+| `at` | an expression over the extended state giving the moment the transition fires: a `timestamp`, an instant, or a `date`, read as the first instant of that day in the specification's `timeZone` (3.8); a specification with a `date` in `at` and no `timeZone` is the error `time_zone` at the transition; a value that may be null needs a `when` ruling null out, `expression_type` otherwise |
+| `when` | an expression giving a bool over the extended state and, with a `trigger`, `event.<property>`; the transition fires only when it holds, evaluated at the instant the cause is applied, over the record as it then is |
 | `otherwise` | `true`: the transition fires when no other transition of the same `from` and cause has a `when` that holds; one per `from` and cause |
 | `set` | a map of variable to expression, the shape of `writes.set` (ADR-158), each a value of the variable's type over the extended state and `event.<property>`; never the control field (the move sets it), never the primary key |
 | `enter` | `history`: enter the composite `to` state at the child it last left (3.5) |
@@ -286,6 +302,23 @@ runs after the transition's `set`, a variable both set holds the entry's
 value afterwards: a value a move records goes into a variable the target's
 `entry` does not set.
 
+What a move reads and tells, so that no two implementations differ:
+every expression of one `set`, a transition's or a state's, reads the
+extended state as it was before that `set`, so the order of the map's
+entries means nothing, and the entry's `set` reads what the transition's
+`set` left; a message `emits` names is published once the change that
+made the move is committed, never before, so a consumer never sees a
+state the change did not keep; no move starts inside another, so a
+message a move emits that triggers the same machine is a later move, on
+the record as the first left it. Moves of one record are serial: each
+runs as one change under the record's lock, so two causes are never
+simultaneous. Of two that arrive at one instant one is applied first,
+and the other is applied to the state the first left: a trigger with a
+transition from that state fires it, one without is refused `from wrong
+state`, the red case the test plan derives, and a time transition whose
+`from` state was left does not fire (3.8). The order of
+the `transitions` list says nothing of which fires, ever.
+
 Two transitions of one state on one cause are told apart by their
 conditions. A transition of a descendant state wins over one of an
 ancestor on the same cause (UML 14.2.3.9.3, SCXML 3.13), so those never
@@ -293,7 +326,9 @@ conflict. The cause of a completion transition is the completion of its
 composite `from`; transitions with no cause from a simple state are not
 grouped, since each already carries `transition_cause`, which names what
 is missing. Among the transitions of one `from` on one cause (a trigger,
-an `after` of one duration, an `at` of one expression, a completion):
+an `after` of one duration, every `at` of the state whatever its
+expressions, since two moments given by data may fall together, a
+completion):
 
 - two with neither `when` nor `otherwise` are the warning
   `transition_ambiguous` at each: the design does not say which fires and
@@ -320,7 +355,9 @@ The rule is exact where it can be and honest where it cannot: deciding
 overlap in general is a satisfiability question, and SpecArch would
 rather warn than claim. The three forms it does show are the ones a hand
 writes for a choice: the else of a comparison, the ranges of one value,
-and a condition narrowed by `&&`.
+and a condition narrowed by `&&`. Where the validator warns, the design
+says nothing of which fires, and that is what the warning names: a pair
+left so is a decision not yet taken, never one the implementation takes.
 
 ### 3.5 States
 
@@ -349,9 +386,16 @@ and a condition narrowed by `&&`.
 
 A composite state's entry runs before its child's and its exit after its
 child's. An `after` on a composite state counts from entering it, not
-from moving between its children. A state's `invariant` is checked with
-the invariants of its ancestors; the validator reads it as an expression
-and a generator may write it as a check constraint of the entity,
+from moving between its children (3.8). Creating a record is the move
+into the initial state: the record is written with its defaults, then
+the initial state's `entry` runs, its `set` over the new record and its
+`emits` after the change, with no exit and no transition `set`; a
+machine with no entity starts the same way at its `initial`. A state's
+`invariant` is checked with the invariants of its ancestors at the end
+of every change that writes the record, the move's own change included,
+and a change that leaves it false is refused as a check constraint's
+violation is; the validator reads it as an expression and a generator
+writes it as a check constraint of the entity,
 `<stateField> != <state> || (<invariant>)`, which is what it means.
 
 ### 3.6 Several machines, and machines of things not stored
@@ -374,8 +418,15 @@ composite state, says so:
 
 While JobRun is not in `running` or `paused`, JobLink is in its initial
 state and none of its transitions fires; entering one of those states
-starts it at its initial state, and leaving them resets it. A transition
-of JobLink whose `from` is its initial state is still reachable. The
+starts it at its initial state, and leaving them resets it. The scoped
+machine is inner to the states it is within, so the order of 3.4 holds
+across the two: when JobRun leaves `running` and `paused`, JobLink's
+active states exit first, innermost first, its field is set to its
+initial state and its entry instant to that of the move, and then
+JobRun's exits run; when JobRun enters one of them, JobRun's entries run
+first and then the entry of JobLink's initial state, all in the one
+change of JobRun's move. A transition of JobLink whose `from` is its
+initial state is still reachable. The
 diagram draws JobLink as a concurrent region beside JobRun, as any second
 machine of the entity, with a note at it naming the machine and the
 states it is within (5); the test plan takes JobRun's state as the given
@@ -423,15 +474,92 @@ final state with a transition from it is the error `state_final`.
 ### 3.8 Time
 
 `after` and `at` are the design's statement that time moves the machine;
-which program watches the clock is the implementation's. For a stored
-entity the implementation needs the instant the `from` state was entered,
-which the entity does not declare: the build item designs it as an idiom
-column beside the state field, as the audit fields are an idiom (open
-question 10.3). `specarch-gen-scripts` writes no script for a time
-transition and says so. The library lending example's nightly job emitting
-`loan.overdue/LoanOverdue` is the shape `at: dueOn` replaces: the design
-then says when a loan is overdue, and the job becomes the implementation
-of the clock.
+which program watches the clock is the implementation's, and everything
+else about a timer is written here.
+
+**The moment.** An `after` is due at the instant its `from` state was
+entered plus its duration, counted in seconds, a day as 86 400 of them:
+a duration is a length of time, not a count of calendar days, so a zone's
+clock change never stretches or shortens it. An `at` is due at the
+instant its expression gives, read from the record as it is: a `set`
+that moves the value moves the moment. A `date` in `at` is the first
+instant of that day in the specification's `timeZone`, the IANA name
+declared once at the root of the design (12.2); a specification that
+writes a `date` in `at` and declares no `timeZone` is the error
+`time_zone` at the transition, since the day would otherwise begin
+wherever the implementation runs. An `at` whose value is null has no
+moment and never fires, which the transition says in words with a `when`
+ruling null out, as the worked example's `deadline != null` does; an
+`at` over a value that may be null without such a `when` is
+`expression_type`.
+
+**When it fires.** A time transition fires at the first instant, while
+the machine is in its `from` state, at which the clock is at or past its
+moment, and never earlier: the implementation's step that records the
+move may be later than the moment by its own latency, which is a
+non-functional requirement of the specification when it matters, not a
+property of the machine. An `after` is due only from the entry it counts
+from, so it is never past its moment when the state is entered; an `at`
+whose moment has passed when the state is entered, or which a `set`
+moves into the past, fires at once, in the next step that looks at the
+record: a deadline moved behind the clock is a deadline passed.
+
+**Its life.** Leaving the `from` state ends a timer: an `after` is
+cancelled with the state, and an `at` applies only while the machine is
+in its state. Entering the state again starts an `after` afresh, from
+the new entry instant, whether by a self-transition, by history or by
+any other way in; an `at` counts no entry and is simply due or not. An
+`after` on a composite state counts from the instant the composite was
+entered from outside it, and a move between its descendants does not
+touch that instant. When a trigger moves the machine out of the state at
+an instant a timer was due but not yet applied, the trigger's change
+runs first, since every move is one change on the record (3.4), and the
+timer then finds its state left and does nothing. When two time
+transitions of one state are due at one instant, the `at` is applied
+before the `after`, since a moment given by data is the more particular
+statement, and a descendant state's timer due at the same instant as an
+ancestor's is applied first, as 3.4's priority says; two `after` of one state with one duration are one cause and
+two with different durations are never due together; every `at` of one
+state is one cause for the rules of 3.4, since two moments given by data
+may fall together, so the design tells them apart with `when` or
+`otherwise`, or the validator reports them.
+
+**The entry instant.** For a stored entity the machine needs the instant
+its current state was entered, which the entity does not declare: as the
+audit fields follow from `audited` (`docs/conventions.md`, Sensitive
+data, encryption at rest, audit fields and soft delete), it follows from
+the machine. A machine whose transitions use `after` implies, beside its
+state field, the field `<stateField>EnteredAt`, an instant (`format:
+date-time`), set by the system in the same change as every move of that
+machine to the instant the move is recorded, at the record's creation to
+the instant of the creation, and never by a caller, as the audit fields
+are; and for each composite state that is the `from` of an `after`, the
+field `<stateField><State>EnteredAt` (`stateJobRunningEnteredAt` for
+`running` of `stateJob`), set when the composite is entered from outside
+it, left as it is on a move between its descendants, and null while the
+machine is not in it. A machine `within` another has its
+`<stateField>EnteredAt` set by the move that resets it. The names are
+fields' names in form and follow `wireNames` into the table as every
+field does; `generate sql` writes the columns as it writes the audit
+columns, and the technical specification lists them with the entity's
+fields; a field the entity declares under one of those names is the
+error `state_field` at the field, since the machine already says it. A
+machine with no entity holds its entry instants as it holds its
+variables, with the same meaning. A transition with `at` alone implies
+no field: its moment is in the extended state already.
+
+**Who moves it.** A time transition's move is the system's, as a job's
+is, under no caller and no permission: which program watches the clock
+and runs the step is the implementation's, which an implementation file
+may name as it names a job's worker. `specarch-gen-scripts` writes no
+script for a time transition and says so; the test plan derives `before
+<duration>` and `after <duration>` for an `after`, and the same two with
+the expression for an `at` (6). The library lending example's nightly
+job emitting `loan.overdue/LoanOverdue` is the shape
+`at: dueOn + duration("P1D")` replaces: the design then says that a loan
+is overdue from the first instant of the day after `dueOn` in the
+library's `timeZone`, and the job becomes the implementation of the
+clock.
 
 ## 4. The validator
 
@@ -441,7 +569,7 @@ their names; the new ones are frozen at the release that ships them.
 
 | Rule | Severity | When it fires, and where |
 |---|---|---|
-| `state_field` | error | as today; also a field that is the control state of two machines, at the second; a full-form entity machine whose `stateField` is not an enum field of its `entity` |
+| `state_field` | error | as today; also a field that is the control state of two machines, at the second; a full-form entity machine whose `stateField` is not an enum field of its `entity`; a field the entity declares under a name the machine's entry instants take (3.8) |
 | `state_value` | error | as today: a `from`, `to`, `initial`, `final`, `within.states` or `states` key that is not a value of the machine's enum |
 | `trigger` | error | as today: a trigger naming nothing |
 | `state_machine` | error | `entity` names no entity; `stateEnum` names no enum; `within` names no machine of the same entity; `enter: history` to a state that is not composite; a `to` that is a composite state without `initial` |
@@ -451,10 +579,11 @@ their names; the new ones are frozen at the release that ships them.
 | `state_final` | error | a transition from a state `final` names |
 | `state_unused` | warning | a value of the machine's enum that no transition names and that is not the machine's initial state, the field's `default` or `initial`; in the short form without a default the derivation runs over the states the transitions name, so such a value is never initial by derivation and is reported: the requirement that asked for the value has no move to or from it |
 | `transition_cause` | warning | a transition from a simple state with no `trigger`, `after` or `at` |
-| `transition_ambiguous` | warning, error | 3.4: two transitions of one `from` on one cause with neither `when` nor `otherwise`, a warning; one with neither beside one with either, two with the same `when`, or two `otherwise`, an error |
+| `transition_ambiguous` | warning, error | 3.4: two transitions of one `from` on one cause (every `at` of a state is one cause) with neither `when` nor `otherwise`, a warning; one with neither beside one with either, two with the same `when`, or two `otherwise`, an error |
 | `transition_overlap` | warning | 3.4: two conditions the validator cannot show exclusive |
 | `transition_history` | error | `enter: history` to a state without `history` |
-| `expression_syntax`, `expression_name`, `expression_type` | error | as today, for `when`, `set`, `invariant`, `at` and the `set` of `entry` and `exit`: an unknown variable or `event` property, a wrong type, a value outside the subset; a `set` naming a control field or the primary key is `expression_name`, since neither is a variable a move sets; `at` must give a timestamp or a date and `when` and `invariant` a bool |
+| `time_zone` | error, warning | a `date` in `at` in a specification that declares no `timeZone`, an error at the transition; a `timeZone` that is not a name of the IANA Time Zone Database, an error at the key; and, outside a machine (12.3), a `validity` bounded by a `date` or a `date()` of an instant with no `timeZone`, a warning at each, a `default` or `examples` value of a `date-time` field written without its offset, a warning at the value, and a `local-date-time` field without `why`, an error at the field |
+| `expression_syntax`, `expression_name`, `expression_type` | error | as today, for `when`, `set`, `invariant`, `at` and the `set` of `entry` and `exit`: an unknown variable or `event` property, a wrong type, a value outside the subset; a `set` naming a control field or the primary key is `expression_name`, since neither is a variable a move sets; `at` must give a timestamp or a date and `when` and `invariant` a bool, and an `at` over a value that may be null needs a `when` ruling null out |
 | `emits` | error | as today, for `entry` and `exit` |
 | `schema` | error | as today: `trigger`, `after` and `at` together; `otherwise` with `when`; `variables` on an entity machine; a key unknown |
 
@@ -519,8 +648,10 @@ as every output marks a problem's entry (`docs/principles.md`, rule 3).
 - `specarch-gen-scripts` adds `when` to the precondition and `set` to
   the writes of the guarded script, writes the `exit` and `entry` sets
   with them, and names a time transition as one it does not script.
-- `specarch generate sql` changes nothing: the control field is a column
-  as today, and an entry-time column is the build item's idiom (10.3).
+- `specarch generate sql` writes the control field as a column as today
+  and, for a machine with `after`, the entry instant columns of 3.8
+  beside it, as it writes the audit columns; the technical specification
+  lists them with the entity's fields as it lists the audit fields.
 - `specarch model` lists `stateMachines` with their references (entity,
   field, enum, within, triggers), so the editor shows them.
 - `specarch gaps` counts a machine's transitions without a cause and
@@ -528,22 +659,27 @@ as every output marks a problem's entry (`docs/principles.md`, rule 3).
 
 ## 7. Compatibility and the version
 
-Every change is an addition: one optional root key, `stateMachines`;
-five optional keys on a transition; nothing removed, renamed or made
-required. A 1.0 file gets no new error: every rule that can fire on a
+Every change is an addition: two optional root keys, `stateMachines`
+and `timeZone`; five optional keys on a transition; two formats and
+`why` on a field (12); nothing removed, renamed or made required. A 1.0 file gets no new error: every rule that can fire on a
 file written today is a warning, `transition_cause` on a causeless
 transition from a simple state, `transition_ambiguous` on two transitions
 of one state on one trigger with neither `when` nor `otherwise`,
 `state_unused` on an enum value no transition names, `state_initial` on
-two or more derived initial states or none, and `state_unreachable` on a
+two or more derived initial states or none, `state_unreachable` on a
 short-form entity with a default whose transitions name a state none
-reaches; every error needs a key only a new file has. On this repository's
-specification and the examples the one entity with a state field, the
-library lending example's Loan, has a trigger on every transition, no two
-from one state on one trigger, no default and one derived initial state,
-and no enum value outside its transitions, so no new line appears and no
-document changes; of the conformance cases under `spec/tests/` that carry
-a state field, five would gain lines, `document-testplan-state-machine`
+reaches, and `time_zone` on a validity bounded by a date or a `date()` of
+an instant without `timeZone`, or a date-time default or example without
+its offset (12.5); every error needs a key only a new file has. On this repository's specification and the examples the one
+entity with a state field, the library lending example's Loan, has a
+trigger on every transition, no two from one state on one trigger, no
+default and one derived initial state, and no enum value outside its
+transitions, so no line of the machine rules appears; `time_zone` would
+warn at the Loan's check `lentOn <= date(loanedAt)` and at the Member's
+validity bounded by dates, so the build item declares the example's
+`timeZone` with the rule (12.5), and then no new line appears and no
+document changes but the example's own; of the conformance cases under
+`spec/tests/` that carry a state field, five would gain lines, `document-testplan-state-machine`
 and `validate-derived-flow` the warnings `state_unused` for `lost` and
 `transition_cause` for three transitions (causeless transitions are not
 grouped, so no `transition_ambiguous`), `validate-state-value` the warning
@@ -555,7 +691,9 @@ whose `renewLoan` from `overdue` reaches `open`, so that every state its
 transitions name is reached and none is initial by derivation; their
 expected output records both when the rules are built. The other cases
 with a state field have one transition per state and trigger, every enum
-value named, no default and one derived initial state.
+value named, no default and one derived initial state. Of the cases
+without one, `validate-validity` and `validate-concept-cases-listed` gain
+one `time_zone` warning each, at the validity bounded by a date (12.5).
 The step is a minor one, 1.3.0 (`docs/maintenance.md`, rule 7; ADR-186),
 with the new rule names frozen at that release. Nothing is deprecated:
 the short form is not replaced, it is the full form with the machine's
@@ -662,7 +800,11 @@ are left out here. What the validator says of it: nothing. The two
 `job.failed/JobFailed` transitions from `starting` are `when` against
 `otherwise`; every other `from` and cause has one transition; every value
 of both enums is named; `stopped` is final and every other state has a
-way out. What the rules of 3.4 make of a start that fails twice and then
+way out. The `after` on `warming` implies the field `stateJobEnteredAt`,
+which every move of JobRun sets and `generate sql` writes; `running` is
+the `from` of no `after`, so it implies no field of its own; `at:
+deadline` reads the record's `deadline`, an instant, so the machine reads
+no `timeZone`. What the rules of 3.4 make of a start that fails twice and then
 succeeds, following `lastError` and `retryCount`: `startJob` moves
 `not_started` to `starting` with `retryCount` 0 and `lastError` null, the
 record's default; the first failure takes the self-transition, `0 < 3`,
@@ -777,30 +919,40 @@ never meet, and `after: PT5M` on `challenged` is alone on its cause.
   for a scoped one (3.6); time (3.8).
 - ADR-192: the checks (4), the diagram (5), the documents, tests and
   generators (6), and the version step (7).
+- ADR-193: the specification's `timeZone` and where a date meets the
+  clock (3.8, 12.2, 12.3), and the proposal for the jobs' schedule (12.4).
+- ADR-194: every date-time an instant with its offset, `local-date-time`
+  with `why`, `time-zone`, a date a date (12.2), the rule `time_zone`
+  outside a machine and what it means for what exists (12.5).
 
-The owner approved the design on 2026-10-26; the build items follow in
-the order of 11.
+The owner approved the design on 2026-10-26 and asked the same day that
+nothing in it be left to the implementation or to a reading, which 3.4
+to 3.8 and 12 answer; ADR-193 and ADR-194 are proposed until the owner
+approves that revision, and the build items follow in the order of 11.
 
-## 10. Open for the owner
+## 10. The forks, as the owner settled them
 
-1. The word for the condition: `when` (this design) or `guard`, UML's
-   word, which SpecArch already uses for an operation's checked change.
-2. The initial state of an entity machine from the field's `default`,
-   with `initial` refused on it (this design), or `initial` on every
-   machine with the default required to agree.
-3. The entry-time column for `after` on a stored entity: an idiom column
-   named `<stateField>EnteredAt`, set by every move, or a column the
-   entity declares itself; and whether a `date` in `at` fires at the
-   start of the day in the implementation's time zone.
+1. The word for the condition is `when`, not `guard`, UML's word, which
+   SpecArch already uses for an operation's checked change.
+2. The initial state of an entity machine is the field's `default`, with
+   `initial` refused on it; not `initial` on every machine with the
+   default required to agree.
+3. The entry instant for `after` on a stored entity is the implied field
+   `<stateField>EnteredAt`, with one more per composite `from` of an
+   `after`, set by the system with every move (3.8); not a field the
+   entity declares. A `date` in `at` is the first instant of that day in
+   the specification's `timeZone`; never the implementation's zone.
 4. A change event, UML's `when(expression)` with no trigger on a simple
-   state, which needs the implementation to watch the expression: left
-   out here as `transition_cause`; include it, or keep it out.
+   state, which needs the implementation to watch the expression, stays
+   out: such a transition is `transition_cause`.
 5. An internal transition, a `set` on a trigger with no move and no entry
-   or exit: left out, since an operation's `writes` says it; include it
-   as `to` left out, or keep it out.
+   or exit, stays out, since an operation's `writes` says it.
 6. A page event (`actions`, `onSubmit`) as a trigger of a standalone
-   machine for a flow of screens: left for a later item.
-7. The names of the new rules and keys, before the release freezes them.
+   machine for a flow of screens is a later item.
+7. The names of the new rules and keys are open until the release
+   freezes them.
+8. Open: whether a job's `schedule` names its zone as 12.4 proposes, an
+   item of its own.
 
 ## 11. Build plan, after approval
 
@@ -810,8 +962,168 @@ the order of 11.
    together, since a validator change goes into both.
 2. The diagram and the technical specification, `specarch model`.
 3. The test plan's paths and cases, `gaps`.
-4. `specarch-gen-scripts`, and the entry-time idiom for `after` with
+4. `specarch-gen-scripts`, and the entry instant columns of 3.8 with
    `generate sql`.
-5. The library lending example rewritten with `at: dueOn` where the
-   owner agrees, as the acceptance test of the design.
-6. The release, 1.3.0.
+5. The time zone and the date-times (12): `timeZone` at the root,
+   `local-date-time`, `time-zone` and `why` on a field in the schema,
+   the rule `time_zone` in both validators with its conformance cases,
+   the type-rendering idiom's rows, `docs/conventions.md` Types and the
+   library lending example's `timeZone`.
+6. The library lending example rewritten with
+   `at: dueOn + duration("P1D")` where the owner agrees, as the
+   acceptance test of the design.
+7. The release, 1.3.0.
+
+## 12. Date-times and the time zone, everywhere
+
+The owner's rule of 2026-10-26: a date-time carries its time zone,
+everywhere in SpecArch, except one that has a valid reason not to; a
+plain date stays a date; and where a date is turned into an instant, the
+specification's own zone applies. This section is the design of that
+rule for the whole meta-model, decided in ADR-193 and ADR-194 and built
+as its own item (11); `docs/conventions.md`, Types, takes the rule when
+it is built.
+
+### 12.1 What the standards say
+
+ISO 8601 writes a time of day with a zone designator, `Z` or an offset,
+or without one, which it calls local time. RFC 3339, the Internet's
+profile of it, requires the offset in every `date-time`, and says of
+unqualified local time that its interpretation "will fail in
+approximately 23/24 of the globe" (4.4): a reading of a clock on a wall
+is not an instant until the wall is placed. RFC 3339 also keeps `-00:00`
+for an instant whose local offset is unknown (4.3): the instant is
+exact, the local time is not, the opposite case. RFC 9557 adds to RFC
+3339 a time zone name in brackets,
+`2026-10-07T09:30:00+07:00[Asia/Jakarta]`, because an offset is not a
+zone: a zone's offset changes with its rules, so a future wall-clock
+time needs the zone's name to stay the time its people meant; the names
+are the IANA Time Zone Database's, kept under RFC 6557. SQL (ISO/IEC
+9075-2) has `TIMESTAMP WITH TIME ZONE`, an instant with a displacement,
+and `TIMESTAMP` without one, a wall-clock reading; PostgreSQL's
+`timestamp without time zone` silently ignores any zone a literal
+carries, and its documentation says so, which is the trap the owner's
+rule closes: a zone dropped on write and guessed on read.
+
+Three things follow, and the design keeps them apart: an instant is a
+point on the one time line and is written with an offset; a wall-clock
+reading is a date and a time of day as a clock in one place shows them,
+and is not an instant until a zone is named; and a zone is a name from
+the database, not an offset, because only the name survives a change of
+the rules.
+
+### 12.2 The rule
+
+| Kind | Written as | Holds | In the implementation |
+|---|---|---|---|
+| instant | `type: string, format: date-time` | an instant, RFC 3339 with its offset, `"2026-10-07T09:30:00+07:00"`; two writings of one instant are one value, and the offset written is not kept | the zone-aware type: `TIMESTAMP WITH TIME ZONE`, `DATETIMEOFFSET`, UTC text on MariaDB, `time.Time`, as the type-rendering idiom has it |
+| wall-clock date and time | `type: string, format: local-date-time`, with `why` | a date and a time of day with no zone, ISO 8601 local time, `"2026-10-07T09:30:00"`; `why` says why it is not an instant, and documents show it beside the field | the zoneless type: SQL's `TIMESTAMP` without time zone, `DATETIME2` on SQL Server, `DATETIME` on MariaDB; the build item names each stack's type in the idiom |
+| date | `type: string, format: date` | a calendar date, `"2026-10-07"`, no zone, as today | `DATE` |
+| time of day | `type: string, format: time` | a clock reading with no date and no zone, `"09:30:00"`, as today | `TIME` |
+| time zone | `type: string, format: time-zone` | a name of the IANA Time Zone Database, `"Asia/Jakarta"`, the form `timeZone` takes; a default or example that is no such name is `time_zone` | text; the stack's zone type where it has one |
+| `timeZone` at the root of the design | `timeZone: Asia/Jakarta` | the specification's one zone, an IANA name: where a date or a wall-clock reading meets the clock, this is the clock (12.3) | the zone the implementation converts in, set once from the specification, never the host's |
+
+A `date-time` is zone-aware by default, and nothing changes for it: it is
+what the format meant, what every stack's rendering keeps and what an
+expression literal is checked against (`expression_type` refuses
+`timestamp("...")` without its offset). A `default` or an `examples`
+value of a `date-time` field is not checked today, so one written
+without its offset is the warning `time_zone` at the value, a warning
+since a 1.0 file may hold it. A `local-date-time` is allowed only with `why`, and
+a `local-date-time` field without `why` is the error `time_zone` at the
+field: a specification that holds a wall-clock reading without saying
+why has left the zone to whoever reads it. The cases the design holds
+valid, and why:
+
+- A future wall-clock time at a place: an appointment at 09:00 on a day
+  next year, a store's opening at 08:00, a class every Monday at 10:00.
+  The instant it will be is not known today, since the zone's rules may
+  change before the day comes, and the people meant the clock on the
+  wall (RFC 9557's reason). The field is `local-date-time`, or `time`
+  for one with no date, and the zone that turns it into an instant when
+  the day comes is the specification's `timeZone`.
+- A reading from an outside system that has none: a device's log, a file
+  from a system that writes its own local time, an import whose zone was
+  never recorded. The value is kept as it came, since inventing an offset
+  would claim what is not known, and `why` names the system. (RFC 3339's
+  `-00:00` is the other case, an instant known without its local
+  offset, and stays a `date-time`.)
+- A value whose meaning is the calendar, not the clock, is a `date` and
+  needs no reason: a due day, a birthday, a membership's last day.
+
+Not valid, so `time_zone` stands until `why` says one of the above: "the
+server runs in one zone anyway", which is the implementation's zone the
+owner's rule removes; "the column is `TIMESTAMP`", which is a rendering,
+not a meaning; and a past event, which happened at an instant and is
+written as one. The validator reads none of this: `why` is prose, and
+its presence is what the rule checks; its content is the reviewer's.
+
+### 12.3 Where a date meets the clock
+
+A date and a wall-clock reading become instants only in the
+specification's `timeZone`, never in the implementation's, and the
+validator reports the places that need it:
+
+| Where | Meaning in `timeZone` | Without `timeZone` |
+|---|---|---|
+| `at` with a `date` (3.8) | the first instant of that day | `time_zone`, an error at the transition: the key is new |
+| `validity` whose `until` or `from` is a `date` | expired from the first instant of the day after `until`; valid from the first instant of `from` | `time_zone`, a warning at the validity: a 1.0 file may hold it |
+| `date(x)` of an instant in an expression | the calendar date of the instant in the zone | `time_zone`, a warning at the expression, for the same reason |
+| a `local-date-time` or a `time` the implementation compares with the clock | the instant the zone gives that reading | nothing: the design has no expression that reads the clock, so the comparison is the implementation's, and the specification's `timeZone` is the zone it uses |
+| a `date-time` anywhere | an instant; a zone is read only to show it to a person | nothing |
+| a job's `schedule` | the five fields of cron, in UTC, as today (12.4) | nothing |
+
+The first instant of a day is the zone's: a day whose midnight the zone
+skips begins at the first instant that exists, as the database gives it.
+Nothing else requires a `timeZone`: a specification whose dates never
+meet the clock declares none and gets no line. One zone, not one per
+entity, since a specification describes one system and its people's one
+business day; a record that belongs to a place of its own holds a
+`time-zone` field beside its wall-clock reading, and reading it instead
+of the root is a later item if a specification asks.
+
+### 12.4 The jobs' schedule: a proposal, not changed here
+
+A job's `schedule` is the five fields of cron in UTC
+(`docs/conventions.md`, Jobs and menus): explicit already, and kept. The
+proposal for the item that takes it up: the `trigger` gains `timeZone`,
+an IANA name in the same form as the root key, and a `schedule` without
+one stays UTC, so that no job written today changes its meaning; a job
+whose hour is a business hour of the specification's zone writes that
+zone's name on the trigger, the same name as the root, rather than a
+reference to the root, since a system that spans zones has jobs in
+several and a word such as `design` would be a second spelling of one
+name. The root `timeZone` is not read by a schedule by default because
+that would move every schedule of a specification the day it declares
+its zone, silently, and because a cron hour in a zone with clock changes
+does not exist once a year and exists twice once a year, which
+schedulers handle differently; UTC has neither, which is why it is the
+rule today, and a zone on a schedule is chosen on purpose, with that in
+view.
+
+### 12.5 What it means for what exists, and the version
+
+Every `date-time` literal in an expression written today carries its
+offset, since the validator refuses one without; a `default` or
+`examples` value of a `date-time` field is not checked today, so one
+written without its offset gains the warning `time_zone` when the rule
+is built, and none in this repository's specification, its examples or
+its conformance cases lacks it. No file written today
+holds `local-date-time`, `time-zone` or `timeZone`, since none existed.
+The `time_zone` warning fires on a 1.0 file at two places only, a
+`validity` bounded by a `date` and a `date()` of an instant: on this
+repository's specification nowhere; on the library lending example at
+the Loan's check `lentOn <= date(loanedAt)` and at the Member's validity
+from `joinedOn` to `membershipEndsOn`, so the build item declares the
+example's `timeZone` with the rule, the zone the owner names (the
+example names no place, so `UTC` is proposed), and no line appears;
+among the conformance cases, `validate-validity` and
+`validate-concept-cases-listed` gain one warning each at a validity
+bounded by a date, which their expected output records. Every other
+change is an addition: one root key, two formats, `why` on a field, one
+rule with errors only where a new key is written and warnings where a
+1.0 file may be. The step is the minor one the machines take, 1.3.0 (7),
+one release for both, since both rest on `timeZone`. The implementation
+files and the type-rendering idiom gain rows for `local-date-time` and
+`time-zone` per stack, a 1.x of the idiom; `specarch upgrade` has
+nothing to move.

@@ -23,10 +23,13 @@ decisions:
     decision: |
       A transition has at most one of trigger, as today, after, an ISO
       8601 duration of the meta-model since the from state was entered
-      and cancelled on leaving it, and at, an expression of type
-      timestamp or date over the extended state giving the moment it
-      fires, a date at the start of that day in the implementation's time
-      zone. A transition with none is a completion transition: from a
+      and cancelled on leaving it, and at, an expression over the extended
+      state giving the moment it fires, an instant, or a date read as the
+      first instant of that day in the specification's timeZone (ADR-193),
+      the error time_zone at the transition when a date is written and no
+      timeZone is declared; an at over a value that may be null needs a
+      when ruling null out, expression_type otherwise. A transition with
+      none is a completion transition: from a
       composite state it fires when a child the state's final names is
       reached; from a simple state it is read and drawn as today and
       reported as the warning transition_cause. when is an expression
@@ -44,10 +47,35 @@ decisions:
       exit of the states left, innermost first, the set, the entry of the
       states entered, outermost first; a self-transition runs both. A
       transition of a descendant state wins over one of an ancestor on
-      the same cause. The cause of a completion transition is the
-      completion of its composite from; transitions with no cause from a
-      simple state are not grouped, since each carries transition_cause.
-      Among the transitions of one from on one cause, two with neither
+      the same cause. Every expression of one set reads the extended state
+      as it was before that set, so the order of the map's entries means
+      nothing, and the entry's set reads what the transition's set left; a
+      message emitted goes out once the change is committed; no move
+      starts inside another; moves of one record are serial, each one
+      change under the record's lock, so two causes are never
+      simultaneous, and of two at one instant the second is applied to
+      the state the first left, a trigger fired from it or refused from
+      wrong state and a timer silent; the order of the transitions list says nothing of which
+      fires. An after is due at the entry instant plus its duration in
+      seconds, an at at its expression's value read from the record as it
+      is; a time transition fires at the first instant, while the machine
+      is in its from state, at which the clock is at or past the moment,
+      never earlier; leaving the state ends it, entering again starts an
+      after afresh, an at past its moment fires at once, an at is applied
+      before an after due at the same instant and a descendant's timer
+      before an ancestor's, and an after on a composite
+      state counts from entering it from outside. A machine whose
+      transitions use after implies the field <stateField>EnteredAt, an
+      instant the system sets with every move of the machine and at the
+      record's creation, never a caller, and <stateField><State>EnteredAt
+      for each composite state that is the from of an after, set on entry
+      from outside it and kept across moves inside it; a field the entity
+      declares under one of those names is state_field. The cause of a
+      completion transition is the completion of its composite from;
+      transitions with no cause from a simple state are not grouped, since
+      each carries transition_cause. Among the transitions of one from on
+      one cause (every at of a state is one cause, since two moments given
+      by data may fall together), two with neither
       when nor otherwise are the warning transition_ambiguous at each;
       one with neither beside one with either, two with the same when, or
       two otherwise, are the error transition_ambiguous at each; two with
@@ -94,7 +122,23 @@ decisions:
       entered runs after the transition's set, so a value a move records
       goes into a variable the target's entry does not set; the worked
       example's running clears lastError on entry, which establishes its
-      invariant after a retried start. Compiler test: a when naming an
+      invariant after a retried start. The entry instant is a field the
+      machine implies and the system sets, as the audit fields follow from
+      audited, because the alternative of a field the entity declares is
+      two places for one fact; one field per machine with an after on a
+      composite state counted from the last move lost because a move
+      between the children would restart a long timer, against UML's time
+      event, which starts when the state is entered, so the composite from
+      of an after has a field of its own. An at past its moment fires at
+      once rather than never because a deadline moved behind the clock is
+      a deadline passed, and the alternative would make an overdue loan
+      depend on when its due day was edited. An at is applied before an
+      after due at the same instant because the moment given by data is
+      the more particular statement, and the alternative, the list order,
+      is SCXML's silent choice refused above. Moves are serial because a
+      record is one row under one lock in every stack SpecArch generates
+      for, and saying so removes the only reading in which two causes
+      could be simultaneous. Compiler test: a when naming an
       unknown variable is expression_name at the key and the transition
       is still drawn; acceptance test: a new condition on a move is one
       key on one entry, and the problems file lists the sibling it now
@@ -105,9 +149,10 @@ decisions:
       precondition and set into its writes, and names a time transition
       as one it does not script. The test plan derives a red case per
       when and the two cases of a timer (ADR-192). Which program watches
-      the clock for after and at is the implementation's; a stored
-      entity needs the instant its state was entered, which the build
-      item designs as an idiom column.
+      the clock for after and at is the implementation's, and nothing
+      else of a timer is: generate sql writes the entry instant columns
+      beside the state field as it writes the audit columns, and the
+      technical specification lists them with the entity's fields.
     restsOn: [ADR-095, ADR-158, ADR-168, ADR-186, ADR-189]
     satisfies: [SA-98]
     cites:

@@ -43,10 +43,17 @@ decisions:
       warning for two transitions with neither when nor otherwise and an
       error for the pairs that need either, and transition_overlap as
       ADR-190 says; transition_history, an
-      error for enter: history to a state without history; and the
-      expression rules for when, set, invariant, at and the sets of entry
-      and exit, at giving a timestamp or a date, and a set naming a
-      control field or the primary key reported as expression_name. The
+      error for enter: history to a state without history; time_zone, an
+      error for a date in at in a specification that declares no timeZone
+      and for a timeZone that is no IANA name, and a warning for a
+      validity bounded by a date or a date() of an instant without it
+      (ADR-193) and for a date-time default or example written without
+      its offset (ADR-194); state_field also for a field an entity declares under a
+      name the machine's entry instants take; and the expression rules for
+      when, set, invariant, at and the sets of entry and exit, at giving a
+      timestamp or a date and, over a value that may be null, carrying a
+      when that rules null out, and a set naming a control field or the
+      primary key reported as expression_name. The
       diagram is one
       stateDiagram-v2 per machine, and stateDiagram <Entity> draws an
       entity's machines as the concurrent regions of one state named
@@ -65,20 +72,25 @@ decisions:
       design test names a transition by its machine, from, to and, when
       two share those, its cause; specarch-gen-scripts takes when and set
       into the guarded script; specarch model lists the machines; generate
-      sql changes nothing. The step is 1.3.0, the rule names frozen at
+      sql writes the entry instant columns of a machine with after beside
+      its state field, as the audit columns, and the technical
+      specification lists them. The step is 1.3.0, the rule names frozen at
       that release.
     why: |
       Every check that can fire on a file written today is a warning,
       because ADR-186 forbids a 1.x to make a valid file invalid, and
       every error needs a key only the full form has or a pair that
       needs when or otherwise; on this repository's specification and
-      the examples no line changes, and five conformance cases gain
-      warning lines their expected output then records: state_unused for
-      the enum value their transitions never name, which the derivation
-      never makes initial, transition_cause for the transitions with no
-      cause, which are not grouped for ambiguity, and
-      transition_ambiguous for a pair on one trigger with neither when
-      nor otherwise. A machine within
+      the examples no line changes once the library lending example
+      declares its timeZone, which time_zone would otherwise warn about
+      at a date() of an instant and a validity bounded by dates, and
+      seven conformance cases gain warning lines their expected output
+      then records: state_unused for the enum value their transitions
+      never name, which the derivation never makes initial,
+      transition_cause for the transitions with no cause, which are not
+      grouped for ambiguity, transition_ambiguous for a pair on one
+      trigger with neither when nor otherwise, and time_zone for a
+      validity bounded by a date. A machine within
       another is drawn as a region with a note, and not inside a
       composite state, because the states it names need not be one
       composite and one drawing for every case is read without a rule;
@@ -104,11 +116,11 @@ decisions:
       acceptance test: a remark on a path in the test plan names the
       transition it is about by machine, from, to and cause.
     consequences: |
-      Ten rules join the Rule enum when they are built, and the
+      Eleven rules join the Rule enum when they are built, and the
       conformance cases under spec/tests carry each. The documents of the
-      examples do not change until an example uses the full form. An
-      entity's entry-time column for after on a stored entity is an idiom
-      the build item designs.
+      examples do not change until an example uses the full form or
+      declares a timeZone. generate sql writes an entity's entry instant
+      columns for a machine with after.
     restsOn: [ADR-186, ADR-189, ADR-190, ADR-191]
     satisfies: [SA-98]
     cites:

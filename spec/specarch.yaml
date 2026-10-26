@@ -377,3 +377,38 @@ sources:
     edition: "5.0.0"
     author: OWASP
     url: https://github.com/OWASP/ASVS/blob/master/5.0/en/0x25-V16-Security-Logging-and-Error-Handling.md
+  iso-8601:
+    kind: standard
+    title: ISO 8601-1, Date and time, Representations for information interchange, Part 1, Basic rules
+    edition: "2019"
+    author: ISO
+    url: https://www.iso.org/standard/70907.html
+  rfc-3339:
+    kind: standard
+    title: "RFC 3339, Date and Time on the Internet: Timestamps"
+    edition: "2002"
+    author: IETF
+    url: https://www.rfc-editor.org/rfc/rfc3339
+  rfc-9557:
+    kind: standard
+    title: "RFC 9557, Date and Time on the Internet: Timestamps with Additional Information"
+    edition: "2024"
+    author: IETF
+    url: https://www.rfc-editor.org/rfc/rfc9557
+  rfc-6557:
+    kind: standard
+    title: RFC 6557, Procedures for Maintaining the Time Zone Database
+    edition: "2012"
+    author: IETF
+    url: https://www.rfc-editor.org/rfc/rfc6557
+  iso-9075-2:
+    kind: standard
+    title: ISO/IEC 9075-2, Information technology, Database languages, SQL, Part 2, Foundation
+    edition: "2016"
+    author: ISO and IEC
+  postgresql-datetime:
+    kind: document
+    title: PostgreSQL 17 Documentation, 8.5 Date/Time Types
+    edition: "17"
+    author: The PostgreSQL Global Development Group
+    url: https://www.postgresql.org/docs/17/datatype-datetime.html

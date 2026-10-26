@@ -2,9 +2,9 @@
 
 # SpecArch toolchain: technical specification
 
-Version 1.2.1-dev of the specification: 98 requirements, 5 entities, 22 commands, 7 algorithms, 784 tests, 183 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 1.2.1-dev of the specification: 99 requirements, 5 entities, 22 commands, 7 algorithms, 784 tests, 185 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
-**Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
+**Problems:** 3 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
 ## 1. Introduction and goals
 
@@ -14378,10 +14378,13 @@ map of field to value.
 
 Decision: A transition has at most one of trigger, as today, after, an ISO
 8601 duration of the meta-model since the from state was entered
-and cancelled on leaving it, and at, an expression of type
-timestamp or date over the extended state giving the moment it
-fires, a date at the start of that day in the implementation's time
-zone. A transition with none is a completion transition: from a
+and cancelled on leaving it, and at, an expression over the extended
+state giving the moment it fires, an instant, or a date read as the
+first instant of that day in the specification's timeZone (ADR-193),
+the error time_zone at the transition when a date is written and no
+timeZone is declared; an at over a value that may be null needs a
+when ruling null out, expression_type otherwise. A transition with
+none is a completion transition: from a
 composite state it fires when a child the state's final names is
 reached; from a simple state it is read and drawn as today and
 reported as the warning transition_cause. when is an expression
@@ -14399,10 +14402,35 @@ as one change with the operation, job or step that causes it: the
 exit of the states left, innermost first, the set, the entry of the
 states entered, outermost first; a self-transition runs both. A
 transition of a descendant state wins over one of an ancestor on
-the same cause. The cause of a completion transition is the
-completion of its composite from; transitions with no cause from a
-simple state are not grouped, since each carries transition_cause.
-Among the transitions of one from on one cause, two with neither
+the same cause. Every expression of one set reads the extended state
+as it was before that set, so the order of the map's entries means
+nothing, and the entry's set reads what the transition's set left; a
+message emitted goes out once the change is committed; no move
+starts inside another; moves of one record are serial, each one
+change under the record's lock, so two causes are never
+simultaneous, and of two at one instant the second is applied to
+the state the first left, a trigger fired from it or refused from
+wrong state and a timer silent; the order of the transitions list says nothing of which
+fires. An after is due at the entry instant plus its duration in
+seconds, an at at its expression's value read from the record as it
+is; a time transition fires at the first instant, while the machine
+is in its from state, at which the clock is at or past the moment,
+never earlier; leaving the state ends it, entering again starts an
+after afresh, an at past its moment fires at once, an at is applied
+before an after due at the same instant and a descendant's timer
+before an ancestor's, and an after on a composite
+state counts from entering it from outside. A machine whose
+transitions use after implies the field <stateField>EnteredAt, an
+instant the system sets with every move of the machine and at the
+record's creation, never a caller, and <stateField><State>EnteredAt
+for each composite state that is the from of an after, set on entry
+from outside it and kept across moves inside it; a field the entity
+declares under one of those names is state_field. The cause of a
+completion transition is the completion of its composite from;
+transitions with no cause from a simple state are not grouped, since
+each carries transition_cause. Among the transitions of one from on
+one cause (every at of a state is one cause, since two moments given
+by data may fall together), two with neither
 when nor otherwise are the warning transition_ambiguous at each;
 one with neither beside one with either, two with the same when, or
 two otherwise, are the error transition_ambiguous at each; two with
@@ -14419,11 +14447,12 @@ form alike. The guarded script of ADR-168 takes when into its
 precondition and set into its writes, and names a time transition
 as one it does not script. The test plan derives a red case per
 when and the two cases of a timer (ADR-192). Which program watches
-the clock for after and at is the implementation's; a stored
-entity needs the instant its state was entered, which the build
-item designs as an idiom column.
+the clock for after and at is the implementation's, and nothing
+else of a timer is: generate sql writes the entry instant columns
+beside the state field as it writes the audit columns, and the
+technical specification lists them with the entity's fields.
 
-**Insight:** The word is when, not guard, because guard already means an operation's precondition, count and writes and a borrowed word is never redefined, while when already means the condition under which a page action is offered, the same meaning; the owner may still prefer UML's word, which docs/state-machines.md asks. set keeps the shape it has because an update is what writes.set already says, with a fuller expression; CEL has no assignment and the map keeps the expression language pure. event follows SCXML's _event.data and takes the one form a field access already has, for the reason ADR-095 gave: one record with declared properties, no join. after and at follow UML's two words, with SpecArch's own duration, since a duration is the same shape everywhere in the meta-model. SCXML's document order was not taken because it chooses a meaning for an ambiguous pair silently, and SpecArch does not pick a meaning for an ambiguous entry; UML's undefined outcome was not taken because an undefined move is what the owner wants reported. The exclusivity check is exact where it can be and a warning where it cannot: overlap in general is a satisfiability question, and a claim the validator cannot prove would be a guess; the three forms it does show, the else of a comparison, the ranges of one value and a condition narrowed by a conjunction, are the forms a hand writes for a choice, and a conjunction holds only where each operand does, so the narrowing form is sound. Two transitions of one state on one trigger with neither when nor otherwise are a warning and not an error because an operation that may approve or reject is written so today, the operation decides, and a 1.x may not make a valid file invalid (ADR-186); the pairs that are errors need when or otherwise, which no 1.0 file holds. A completion transition from a simple state is a warning and not an error for the same reason: every transition without a trigger written so far is valid, and such transitions are not grouped for ambiguity, since reporting the missing cause twice says nothing more. The entry of the state entered runs after the transition's set, so a value a move records goes into a variable the target's entry does not set; the worked example's running clears lastError on entry, which establishes its invariant after a retried start. Compiler test: a when naming an unknown variable is expression_name at the key and the transition is still drawn; acceptance test: a new condition on a move is one key on one entry, and the problems file lists the sibling it now overlaps.
+**Insight:** The word is when, not guard, because guard already means an operation's precondition, count and writes and a borrowed word is never redefined, while when already means the condition under which a page action is offered, the same meaning; the owner may still prefer UML's word, which docs/state-machines.md asks. set keeps the shape it has because an update is what writes.set already says, with a fuller expression; CEL has no assignment and the map keeps the expression language pure. event follows SCXML's _event.data and takes the one form a field access already has, for the reason ADR-095 gave: one record with declared properties, no join. after and at follow UML's two words, with SpecArch's own duration, since a duration is the same shape everywhere in the meta-model. SCXML's document order was not taken because it chooses a meaning for an ambiguous pair silently, and SpecArch does not pick a meaning for an ambiguous entry; UML's undefined outcome was not taken because an undefined move is what the owner wants reported. The exclusivity check is exact where it can be and a warning where it cannot: overlap in general is a satisfiability question, and a claim the validator cannot prove would be a guess; the three forms it does show, the else of a comparison, the ranges of one value and a condition narrowed by a conjunction, are the forms a hand writes for a choice, and a conjunction holds only where each operand does, so the narrowing form is sound. Two transitions of one state on one trigger with neither when nor otherwise are a warning and not an error because an operation that may approve or reject is written so today, the operation decides, and a 1.x may not make a valid file invalid (ADR-186); the pairs that are errors need when or otherwise, which no 1.0 file holds. A completion transition from a simple state is a warning and not an error for the same reason: every transition without a trigger written so far is valid, and such transitions are not grouped for ambiguity, since reporting the missing cause twice says nothing more. The entry of the state entered runs after the transition's set, so a value a move records goes into a variable the target's entry does not set; the worked example's running clears lastError on entry, which establishes its invariant after a retried start. The entry instant is a field the machine implies and the system sets, as the audit fields follow from audited, because the alternative of a field the entity declares is two places for one fact; one field per machine with an after on a composite state counted from the last move lost because a move between the children would restart a long timer, against UML's time event, which starts when the state is entered, so the composite from of an after has a field of its own. An at past its moment fires at once rather than never because a deadline moved behind the clock is a deadline passed, and the alternative would make an overdue loan depend on when its due day was edited. An at is applied before an after due at the same instant because the moment given by data is the more particular statement, and the alternative, the list order, is SCXML's silent choice refused above. Moves are serial because a record is one row under one lock in every stack SpecArch generates for, and saying so removes the only reading in which two causes could be simultaneous. Compiler test: a when naming an unknown variable is expression_name at the key and the transition is still drawn; acceptance test: a new condition on a move is one key on one entry, and the problems file lists the sibling it now overlaps.
 
 **Note:** From OMG Unified Modeling Language (OMG UML), Version 2.5.1, clause 14, StateMachines, formal/2017-12-05, clause 14.2.3.8, Transitions: A transition is written trigger [guard] / effect; a guard is a constraint evaluated when the event is dispatched, and [else] is the guard of the remaining case. <https://www.omg.org/spec/UML/2.5.1/>
 
@@ -14464,7 +14493,13 @@ shallow or deep, and a transition to the state with enter: history
 enters the child or the configuration last left; final, the
 children at which the state completes. A composite's entry runs
 before its child's and its exit after; after on a composite counts
-from entering it. The machine's final lists its final states. The
+from entering it from outside. Creating a record is the move into
+the initial state: the initial state's entry runs over the new
+record, with no exit and no transition set, and a machine with no
+entity starts the same way at its initial. A state's invariant is
+checked with its ancestors' at the end of every change that writes
+the record, and a change that leaves it false is refused, as the
+check constraint it means. The machine's final lists its final states. The
 initial state of an entity machine is the field's default, initial
 is refused on it, and a short-form entity without a default keeps
 the derivation over the states its transitions name, as today, with
@@ -14477,7 +14512,11 @@ by side as the concurrent regions of one state named after the
 entity; a machine whose life is scoped to another's states says
 within, the machine and its states: it is in its initial state and
 fires nothing while the other is elsewhere, starts at its initial
-state when one of them is entered and is reset when they are left.
+state when one of them is entered and is reset when they are left;
+it is inner to those states, so on leaving them its exits run
+before the other machine's and its field and entry instant are set
+by that move, and on entering them its initial state's entry runs
+after the other machine's entries, in the one change.
 There is no region inside a state, no do activity, no choice,
 junction, fork or join vertex, no deferred event and no submachine
 state.
@@ -14495,7 +14534,7 @@ invariant as notes. The test plan enters a
 composite at its initial child and a history at the child the path
 last left, and takes the within machine's parent state as its given.
 
-**Insight:** Entry and exit hold a set and an emits and nothing else because those are what a design can say of an action without a stack: what the record holds afterwards and what is told; what runs while the machine waits is the operation or job already in the design, so the do activity is left out. The initial state of a stored machine is the field's default because a record is created with it and a second place could only agree or contradict; the alternative of an initial key on every machine with the default required to agree lost as two spellings of one fact, and docs/state-machines.md asks the owner. SCXML's first child by default was not taken because it decides silently. Parallel states are machines, not regions inside a state, because a stored record holds one value per field, so each region needs a field and a field is a machine; this also gives each region its own diagram, paths and tests, and within keeps the one thing a region inside a composite state has that two free machines do not, a life scoped to the parent's states, with the semantics UML gives a region's default entry and exit. Every state is an enum value, composite ones included, so that from a composite state means from any descendant, as UML reads it, and the stored value is always a leaf because a transition to a composite enters a child. The pseudostates are left out because every decision they draw is a condition on a transition out of a state, which when and otherwise say with a cause the validator reads. Pages keep ADR-035: a flow across pages is a machine with no entity whose triggers are the operations the pages call. Compiler test: a composite without initial is state_initial at the key and the diagram still draws its children; acceptance test: a new sub-state is one child under one state, and the paths that pass through it are listed anew.
+**Insight:** Entry and exit hold a set and an emits and nothing else because those are what a design can say of an action without a stack: what the record holds afterwards and what is told; what runs while the machine waits is the operation or job already in the design, so the do activity is left out. The initial state of a stored machine is the field's default because a record is created with it and a second place could only agree or contradict; the alternative of an initial key on every machine with the default required to agree lost as two spellings of one fact, and docs/state-machines.md asks the owner. SCXML's first child by default was not taken because it decides silently. Parallel states are machines, not regions inside a state, because a stored record holds one value per field, so each region needs a field and a field is a machine; this also gives each region its own diagram, paths and tests, and within keeps the one thing a region inside a composite state has that two free machines do not, a life scoped to the parent's states, with the semantics UML gives a region's default entry and exit. The invariant is checked at the end of every change because that is when a check constraint is, and a moment of its own would be a second rule for one thing; creation runs the initial state's entry because UML enters the initial state through its entry, and a record whose first state had an entry that never ran would hold a state its entry never established. Every state is an enum value, composite ones included, so that from a composite state means from any descendant, as UML reads it, and the stored value is always a leaf because a transition to a composite enters a child. The pseudostates are left out because every decision they draw is a condition on a transition out of a state, which when and otherwise say with a cause the validator reads. Pages keep ADR-035: a flow across pages is a machine with no entity whose triggers are the operations the pages call. Compiler test: a composite without initial is state_initial at the key and the diagram still draws its children; acceptance test: a new sub-state is one child under one state, and the paths that pass through it are listed anew.
 
 **Note:** From OMG Unified Modeling Language (OMG UML), Version 2.5.1, clause 14, StateMachines, formal/2017-12-05, clause 14.2.3.4, States: A state may have entry, exit and do behaviours and a state invariant; a composite state has one or more regions, each with at most one initial pseudostate and one history pseudostate, shallow or deep. <https://www.omg.org/spec/UML/2.5.1/>
 
@@ -14549,10 +14588,17 @@ the transitions name; transition_cause, transition_ambiguous, a
 warning for two transitions with neither when nor otherwise and an
 error for the pairs that need either, and transition_overlap as
 ADR-190 says; transition_history, an
-error for enter: history to a state without history; and the
-expression rules for when, set, invariant, at and the sets of entry
-and exit, at giving a timestamp or a date, and a set naming a
-control field or the primary key reported as expression_name. The
+error for enter: history to a state without history; time_zone, an
+error for a date in at in a specification that declares no timeZone
+and for a timeZone that is no IANA name, and a warning for a
+validity bounded by a date or a date() of an instant without it
+(ADR-193) and for a date-time default or example written without
+its offset (ADR-194); state_field also for a field an entity declares under a
+name the machine's entry instants take; and the expression rules for
+when, set, invariant, at and the sets of entry and exit, at giving a
+timestamp or a date and, over a value that may be null, carrying a
+when that rules null out, and a set naming a control field or the
+primary key reported as expression_name. The
 diagram is one
 stateDiagram-v2 per machine, and stateDiagram <Entity> draws an
 entity's machines as the concurrent regions of one state named
@@ -14571,18 +14617,154 @@ when, the two cases of a timer and from wrong state as today, and a
 design test names a transition by its machine, from, to and, when
 two share those, its cause; specarch-gen-scripts takes when and set
 into the guarded script; specarch model lists the machines; generate
-sql changes nothing. The step is 1.3.0, the rule names frozen at
+sql writes the entry instant columns of a machine with after beside
+its state field, as the audit columns, and the technical
+specification lists them. The step is 1.3.0, the rule names frozen at
 that release.
 
-Consequences: Ten rules join the Rule enum when they are built, and the
+Consequences: Eleven rules join the Rule enum when they are built, and the
 conformance cases under spec/tests carry each. The documents of the
-examples do not change until an example uses the full form. An
-entity's entry-time column for after on a stored entity is an idiom
-the build item designs.
+examples do not change until an example uses the full form or
+declares a timeZone. generate sql writes an entity's entry instant
+columns for a machine with after.
 
-**Insight:** Every check that can fire on a file written today is a warning, because ADR-186 forbids a 1.x to make a valid file invalid, and every error needs a key only the full form has or a pair that needs when or otherwise; on this repository's specification and the examples no line changes, and five conformance cases gain warning lines their expected output then records: state_unused for the enum value their transitions never name, which the derivation never makes initial, transition_cause for the transitions with no cause, which are not grouped for ambiguity, and transition_ambiguous for a pair on one trigger with neither when nor otherwise. A machine within another is drawn as a region with a note, and not inside a composite state, because the states it names need not be one composite and one drawing for every case is read without a rule; the note stands after the region's block, since Mermaid refuses a note on a state it has not drawn yet, as the check showed. Unreachable and dead-end states are warnings and not errors because a machine with one is incomplete, not wrong, and the compiler reads an incomplete definition and says where. A transition missing for a state the requirements name is state_unused, the enum value no transition touches, because the validator does not read prose and the link from a requirement to a state is the enum value it asked for. The same lines in both builds is the rule every validator change follows. The arrow label follows UML's trigger [guard] / effect so that a reader of UML reads it without learning a notation; a note holds entry, exit, invariant and the variables because Mermaid has no other place for them and a description line would hide the state's name; history is a suffix on the arrow because Mermaid draws no history pseudostate and pulls a targeted nested state out of its composite. The step is minor because everything is an addition, as docs/maintenance.md rule 7 reads semantic versioning. Compiler test: every rule reports at the entry and the diagram still draws the machine, the entry marked; acceptance test: a remark on a path in the test plan names the transition it is about by machine, from, to and cause.
+**Insight:** Every check that can fire on a file written today is a warning, because ADR-186 forbids a 1.x to make a valid file invalid, and every error needs a key only the full form has or a pair that needs when or otherwise; on this repository's specification and the examples no line changes once the library lending example declares its timeZone, which time_zone would otherwise warn about at a date() of an instant and a validity bounded by dates, and seven conformance cases gain warning lines their expected output then records: state_unused for the enum value their transitions never name, which the derivation never makes initial, transition_cause for the transitions with no cause, which are not grouped for ambiguity, transition_ambiguous for a pair on one trigger with neither when nor otherwise, and time_zone for a validity bounded by a date. A machine within another is drawn as a region with a note, and not inside a composite state, because the states it names need not be one composite and one drawing for every case is read without a rule; the note stands after the region's block, since Mermaid refuses a note on a state it has not drawn yet, as the check showed. Unreachable and dead-end states are warnings and not errors because a machine with one is incomplete, not wrong, and the compiler reads an incomplete definition and says where. A transition missing for a state the requirements name is state_unused, the enum value no transition touches, because the validator does not read prose and the link from a requirement to a state is the enum value it asked for. The same lines in both builds is the rule every validator change follows. The arrow label follows UML's trigger [guard] / effect so that a reader of UML reads it without learning a notation; a note holds entry, exit, invariant and the variables because Mermaid has no other place for them and a description line would hide the state's name; history is a suffix on the arrow because Mermaid draws no history pseudostate and pulls a targeted nested state out of its composite. The step is minor because everything is an addition, as docs/maintenance.md rule 7 reads semantic versioning. Compiler test: every rule reports at the entry and the diagram still draws the machine, the entry marked; acceptance test: a remark on a path in the test plan names the transition it is about by machine, from, to and cause.
 
 **Note:** From OMG Unified Modeling Language (OMG UML), Version 2.5.1, clause 14, StateMachines, formal/2017-12-05, clause 14.2.4, Notation: A transition is labelled trigger [guard] / effect, a composite state is drawn with its regions inside it, and concurrent regions are separated by a dashed line. <https://www.omg.org/spec/UML/2.5.1/>
+
+### ADR-193: A specification declares its time zone once, timeZone at the root of the design, an IANA Time Zone Database name, and a date or a wall-clock reading becomes an instant only in it; at on a date is the first instant of that day, a validity bounded by a date expires at that day's end, date() of an instant is the date in that zone, and each place that needs the zone without it is time_zone
+
+Status: proposed, 2026-10-26.
+
+Rests on: [ADR-190](#adr-190-a-transition-has-one-cause-trigger-after-a-duration-or-at-a-moment-a-condition-when-over-the-extended-state-and-the-events-data-otherwise-for-the-one-that-fires-when-no-condition-holds-and-set-for-what-it-updates-two-transitions-of-one-state-on-one-cause-are-told-apart-or-reported), [ADR-191](#adr-191-a-state-carries-entry-exit-an-invariant-child-states-with-their-initial-history-and-final-a-stored-machines-initial-state-is-its-fields-default-parallel-states-are-several-machines-of-one-entity-one-field-each-a-machine-within-anothers-states-when-its-life-is-scoped-to-them).
+
+Context: ADR-190 let an at over a date fire at the start of that day in the
+time zone the implementation runs in, and the build item was to
+design the column that holds the instant a state was entered. The
+owner said on 2026-10-26 that nothing in a state machine may depend
+on the implementation or on a reading: at on a date resolves in a
+time zone the specification declares, an IANA name, and a
+specification that uses at on a date without one has a problem at
+that entry, read and never refused. Two more places already turn a
+date into an instant without saying where: a validity bounded by a
+date, which expires after that day, and date() of an instant in an
+expression, which the library lending example writes as lentOn <=
+date(loanedAt). A job's schedule is the five fields of cron in UTC,
+said in docs/conventions.md. RFC 3339 writes every timestamp with
+its offset and calls a local time without one unusable on the
+Internet; RFC 9557 names a zone by its IANA name because an offset
+does not identify a zone and a zone's rules change; RFC 6557 keeps
+that database.
+
+Decision: The design has one optional root key, timeZone, an IANA Time Zone
+Database name such as Asia/Jakarta, in the form a field of format
+time-zone takes (ADR-194). A date meets the clock only there: at
+over a date is due at the first instant of that day in timeZone; a
+validity whose until is a date expires from the first instant of
+the day after it and whose from is a date is valid from the first
+instant of that day; date() of an instant is the instant's calendar
+date in timeZone; a local-date-time or a time the implementation
+compares with the clock is read in timeZone. The first instant of a
+day whose midnight the zone skips is the first instant that exists.
+The rule time_zone reports, at the entry, a date in at in a
+specification with no timeZone, an error, since the key is new; a
+timeZone that is no name of the database, an error at the key; and
+a validity bounded by a date or a date() of an instant with no
+timeZone, a warning at each, since a 1.0 file may hold them. A
+date-time is an instant and reads no zone; a job's schedule stays
+in UTC. For the schedule the proposal, not taken here, is a timeZone
+on the trigger in the same form, UTC when absent, so that no job
+written today changes its meaning, and the root's name written on
+the trigger when the hour is a business hour, not a reference to
+the root.
+
+Consequences: The library lending example declares its timeZone in the build
+item, since its Loan's check reads date(loanedAt) and its Member's
+validity is bounded by dates; two conformance cases gain a warning
+at a validity bounded by a date. The implementation converts in the
+specification's zone, set once from it. A specification whose dates
+never meet the clock declares nothing and gets no line. The jobs'
+schedule is an item of its own.
+
+**Insight:** The zone is the specification's and not the host's because the owner's rule is that a specification leaves nothing to the implementation, and the day a date names is the day of the system's people, not of the machine that runs it. One zone for the specification and not one per entity because a specification describes one system with one business day, and a record that belongs to a place of its own can hold a time-zone field beside its wall-clock reading, which a later item may let a validity or an at read if a specification asks; the alternative of a zone on each entity lost as a name written many times for one fact. Not UTC by rule for dates because a day in UTC is not the business's day anywhere but under that meridian, and the loan due on the seventh would become overdue in the afternoon of the sixth in Jakarta. At the root and not in info because info holds how the document is written, its names and its version, and the zone is a fact of the system beside tenant, session and trustDomain. The validity and date() cases are warnings and the at case an error because ADR-186 forbids a 1.x to make a valid file invalid, and only at is a key no 1.0 file has. The schedule keeps UTC by default and is proposed to name its zone itself because reading the root by default would move every schedule of a specification the day it declares its zone, and because a cron hour in a zone with clock changes does not exist once a year and exists twice once a year, which schedulers handle differently; UTC has neither, so a zone on a schedule is chosen on purpose. Compiler test: a date in at in a specification without timeZone is time_zone at the transition and the transition is drawn with the entry marked; acceptance test: the zone is one key at the root, and a change of it is one line.
+
+**Note:** From RFC 3339, Date and Time on the Internet: Timestamps, 2002, clause 4.4, Unqualified Local Time: Interpretation of an unqualified local time zone will fail in approximately 23/24 of the globe, so the interoperability problems of unqualified local time are deemed unacceptable for the Internet. <https://www.rfc-editor.org/rfc/rfc3339>
+
+**Note:** From RFC 9557, Date and Time on the Internet: Timestamps with Additional Information, 2024, clause 1, Introduction: An offset does not identify a time zone, and the zone is needed to interpret a timestamp when its rules change; the format adds the IANA time zone name in brackets after an RFC 3339 timestamp. <https://www.rfc-editor.org/rfc/rfc9557>
+
+**Note:** From RFC 6557, Procedures for Maintaining the Time Zone Database, 2012: The Time Zone Database is maintained by IANA under these procedures, and its zone identifiers are the names implementations use. <https://www.rfc-editor.org/rfc/rfc6557>
+
+### ADR-194: Every date-time of a specification is an instant written with its offset and kept in the stack's zone-aware type; a wall-clock date and time is format local-date-time, allowed only with why, shown in documents; a plain date stays a date and a time of day a clock reading; a time zone is format time-zone, an IANA name; a zoneless date-time without a reason is time_zone
+
+Status: proposed, 2026-10-26.
+
+Rests on: [ADR-121](#adr-121-a-field-may-say-generateddefault-an-entitys-mapping-lists-its-tables-plain-indexes-the-database-reader-writes-them-into-an-implementation-fragment-and-a-list-served-two-ways-is-two-operations-named-after-one-handler), [ADR-186](#adr-186-meta-model-100-is-the-first-stable-version-of-every-specarch-format-read-beside-every-earlier-version-with-two-keys-renamed-and-deprecated-the-schemas-conditionals-made-to-require-the-key-they-read-and-specarch-upgrade-to-move-a-file), [ADR-193](#adr-193-a-specification-declares-its-time-zone-once-timezone-at-the-root-of-the-design-an-iana-time-zone-database-name-and-a-date-or-a-wall-clock-reading-becomes-an-instant-only-in-it-at-on-a-date-is-the-first-instant-of-that-day-a-validity-bounded-by-a-date-expires-at-that-days-end-date-of-an-instant-is-the-date-in-that-zone-and-each-place-that-needs-the-zone-without-it-is-time_zone).
+
+Context: A field of format date-time is an instant, RFC 3339, and the
+type-rendering idiom keeps it in TIMESTAMP WITH TIME ZONE,
+DATETIMEOFFSET or fixed-width UTC text; the validator refuses an
+expression literal written without its offset and does not check a
+field's default or examples. Nothing
+says that this is the rule, nothing lets a specification hold a
+wall-clock reading that is not an instant, and a field has no why.
+The owner said on 2026-10-26 that a date-time must carry its time
+zone everywhere in SpecArch, except one with a valid reason not to,
+declared as such with the reason, shown in documents; that a
+zoneless date-time without a reason is a problem at the entry, read
+and never refused; and that a plain date stays a date. ISO 8601
+writes a time with a zone designator or without one, local time;
+RFC 3339 requires the offset and rejects unqualified local time for
+the Internet; RFC 9557 adds the IANA zone name because an offset is
+not a zone; SQL has TIMESTAMP WITH TIME ZONE and TIMESTAMP without,
+and PostgreSQL's timestamp without time zone silently ignores a
+zone a literal carries.
+
+Decision: A date-time is an instant: written with its offset, two writings of
+one instant one value, the offset not kept, rendered as the stack's
+zone-aware type; a default or examples value of a date-time field
+written without its offset is the warning time_zone at the value,
+a warning since a 1.0 file may hold one. A wall-clock date and time
+is format local-date-time, ISO 8601 local time with no offset,
+rendered as the zoneless type, SQL's TIMESTAMP without time zone,
+and allowed only on a field that carries why; the technical
+specification shows the why beside the field; a local-date-time
+field without why is the error time_zone at the field. The cases
+held valid: a future wall-clock time at a place, an appointment, an
+opening hour, a recurring hour, whose instant is not known today
+because the zone's rules may change and whose people meant the
+clock on the wall; and a reading from an outside system that has
+none, kept as it came because an offset invented would claim what
+is not known. A value whose meaning is the calendar is a date and
+needs no reason; a time of day is a clock reading with no date and
+no zone, as today. A time zone is format time-zone, a name of the
+IANA Time Zone Database, the form the root timeZone takes
+(ADR-193); a default or example that is no such name is time_zone
+at the value. The validator checks that why is present, not what
+it says. The schema takes local-date-time and time-zone into the
+format list, as it took uint64 and decimal, and why onto a field.
+
+Consequences: Two formats and why on a field in the design and fragment design
+schemas; the rule time_zone in both builds; the type-rendering idiom
+gains the zoneless type and the zone type per stack, a 1.x of the
+idiom, and the implementation files their rows; docs/conventions.md
+Types takes the rule. No file written today holds either format,
+and no default or example in this repository lacks its offset, so
+nothing becomes a problem; the step is the minor one of the state
+machines, 1.3.0.
+
+**Insight:** The instant is the default and keeps its format because it is what date-time has always meant in JSON Schema and OpenAPI, RFC 3339's date-time, and because every value a system records happened at an instant; a wall-clock reading is the exception that needs a word, so the exception carries the format and the reason, not the rule. The local form is a format of its own and not a key beside date-time, such as zone: none, because the two are different types with different renderings and different operations, as SQL's two TIMESTAMPs are, and a format is where a type is said; it is named local-date-time after ISO 8601's local time and the type the languages call so. The reason is why and not a fixed list of reasons because the valid cases are two and their wording is the specification's, and why is the one word SpecArch has for a reason; a field gains why for it, which every element already has. The offset written is not kept because an instant has none of its own and keeping it would make equal instants unequal values, and a value that needs the zone it was meant in holds a time-zone field beside it. A zone is a name and not an offset because only the name survives a change of the rules, RFC 9557's reason; time-zone is a format so that both validators check the name against the database their platform ships and report one that is not there. A past event written as local is not a valid case because it happened at an instant, and the server's zone is not a reason because it is the implementation's. Compiler test: a local-date-time without why is time_zone at the field and the field is read, rendered and drawn; acceptance test: making a wall-clock field an instant is one format changed and one why removed, and the problems file lists where the value is compared.
+
+**Note:** From ISO 8601-1, Date and time, Representations for information interchange, Part 1, Basic rules, 2019, clause 5.3, Time of day: A time of day is written with a UTC designator or a difference from UTC, or without either, in which case it is local time. <https://www.iso.org/standard/70907.html>
+
+**Note:** From RFC 3339, Date and Time on the Internet: Timestamps, 2002, clause 5.6, Internet Date/Time Format: A date-time is a full date, T, a full time and a time offset, Z or a numeric offset; the offset is not optional. <https://www.rfc-editor.org/rfc/rfc3339>
+
+**Note:** From RFC 3339, Date and Time on the Internet: Timestamps, 2002, clause 4.3, Unknown Local Offset Convention: An instant whose local offset is unknown is written with the offset -00:00, which says that the local time is unknown, not that it is UTC. <https://www.rfc-editor.org/rfc/rfc3339>
+
+**Note:** From RFC 9557, Date and Time on the Internet: Timestamps with Additional Information, 2024, clause 1, Introduction: An offset does not identify a time zone, and the zone is needed to interpret a timestamp when its rules change; the format adds the IANA time zone name in brackets after an RFC 3339 timestamp. <https://www.rfc-editor.org/rfc/rfc9557>
+
+**Note:** From ISO/IEC 9075-2, Information technology, Database languages, SQL, Part 2, Foundation, 2016, clause 4.6, Datetimes and intervals: A TIMESTAMP WITH TIME ZONE holds a time zone displacement with the value, and a TIMESTAMP WITHOUT TIME ZONE holds none.
+
+**Note:** From PostgreSQL 17 Documentation, 8.5 Date/Time Types, 17, clause 8.5.1.3, Time Stamps: In a literal that has been determined to be timestamp without time zone, PostgreSQL will silently ignore any time zone indication. <https://www.postgresql.org/docs/17/datatype-datetime.html>
 
 ## 10. Quality requirements
 
@@ -15459,7 +15641,8 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | SA-92 | specarch generate ui shall write the content pages of a specification for the web, in plain JavaScript through specarch-gen-ui and on Next.js and Carbon through specarch-gen-ui-typescript, from one reading of their blocks, with every text a string key on Next.js; specarch-gen-ui-swiftui shall refuse them by name and write nothing for them. | functional | should | accepted | test | specarch-gen-ui writes each public content page as HTML alone, its blocks in order under the title, a heading at its level, the image with its alternative text, and each link to the page's file or to its address; a content page that needs a permission is refused at its permission, since the files reach anyone with the page's text inside. specarch-gen-ui-typescript writes each content page as a schema of its title, permission and blocks, every text a string key in the strings file, and a page.tsx drawing ContentPage with the routes its links open, inside the Guard with the derived refusal test when it needs a permission, warned that its text reaches the browser. Both web generators refuse, at the block, an image without its text, a link without its label and a link to a page that does not exist or whose route takes a parameter, and leave the page out. specarch-gen-ui-swiftui reports each content page as an error at the page and writes nothing for it. | NEED-2 |
 | SA-93 | A specification shall be able to say how a person signs in at an identity provider, as signIn with OpenID Connect's authorisation code flow and PKCE, its provider, client, callback, identity token and back-channel logout, and navigate to signIn from a task page's answer or an action's then; specarch validate shall check every reference in both builds, derive the callback's refusals, and the UI generators and the technical specification shall write the flow, with the provider's issuer, keys and client_id the deployment's. | functional | must | accepted | test | signIn names a provider that is a dependency of kind identityProvider, a client of kind application, a callback that is a GET operation taking code and state as required query parameters and naming the provider under calls, an identity token that is a JWT declaring iss, aud and nonce with no const or enum on iss or aud, and a back-channel logout only service clients may call; anything else is reported as sign_in at its key, in both builds, with the same words. A page event navigates to signIn only from a task page's answer or an action's then, with no with and no message, and only when signIn is declared; anywhere else it is sign_in at the event. The callback derives six critical red cases, state does not match, nonce replayed, issuer differs, identity token expired, signature invalid and code used twice, each naming its security event and severity once securityEvents is declared, and none of the token cases of an operation a signed-in caller calls; specarch derive writes them as drafts. A deployment of a specification with signIn gives signIn.issuerUrl and the client's clientId, and one of a specification without signIn gives no signIn; anything else is sign_in at the deployment. specarch-gen-ui writes identity-provider.js and the answer or action that leaves for it; specarch-gen-ui-typescript writes the provider in application.ts from the environment and the answer that leaves for it; specarch-gen-ui-swiftui writes the answer that leaves for it through the system's web authentication session; each sends the browser to the authorisation endpoint the provider's discovery document names, with the state, nonce and PKCE verifier going to the callback in the __Host-sign-in cookie. The generated go-dxlib handler of the callback names its body as every operation does, and the technical specification shows the flow as a sequence diagram, the checks with the clause that asks for each, and the six security events. | NEED-2 |
 | SA-94 | specarch generate ui shall write, for a custom page, the route, the guard and the menu entry, and import the screen from a file the project writes, named in the generated output, so that a missing screen fails the build or the load and never shows a blank page; generate --check shall compare nothing of the project's file, and the technical specification and the manual shall list the page as the project's own screen. | functional | must | accepted | test | specarch-gen-ui-typescript writes app/<route>/page.tsx drawing the default export of ./custom/<page> with the schema of its title, permission and actions, the texts, the route's parameters and the routes of its actions, inside the Guard with the derived refusal test when it needs a permission. specarch-gen-ui-swiftui writes <Page>View drawing <Page>Screen, a view the project writes in the screens module, inside the Guard, with the schema, the route's parameters and the routes of its actions. specarch-gen-ui writes <page>.html, which says which module did not load until it shows, and <page>.js, which imports custom/<page>.js and calls its show; pages.js names that module, and a custom page that needs a permission is warned of at its permission, since these files have no route guard. generate --check passes with the project's file in the output folder and compares nothing of it. The technical specification lists a custom page as the project's own screen with its description, and the manual says it is built by hand, what it is for and where its actions lead. | NEED-2 |
-| SA-98 | A specification shall describe a state machine by its control state, one enum's value held in an entity's field or named by the machine, and its extended state, the entity's fields or the machine's variables with their types, defaults and constraints; a transition shall say its cause, its condition, what it sets and the else case; a state shall carry entry, exit, an invariant, child states, history and finality; an entity may have several machines, a machine may have no entity, and the validator and the diagram shall show the machine as it is. | functional | must | accepted | test | An entity's stateField and transitions are read as one machine as before, with no new error on a file written today and no new line on this repository's specification and examples, and the transitions take when, set, otherwise, after, at and enter. A machine under stateMachines with an entity, a stateField, states, final and transitions validates; one naming an unknown entity, field, enum or within machine is reported at the key with the rest of the machine read. A state that is not initial and that no transition reaches, a full-form state no transition leaves that final does not name, an enum value no transition names, a transition from a simple state with no cause, and a short-form entity without a default whose derivation finds two or more initial states or none are each reported as a warning naming the state, the transition or the field. Two transitions of one state on one cause with neither a condition nor otherwise on either are reported as a warning at each; one with neither beside one with either, two with the same condition or two otherwise are an error at each; two whose conditions the validator cannot show exclusive are a warning at both, and two it can, one the negation of the other, the same name against literals whose ranges do not meet, or a conjunct of one exclusive with the other by those forms, are not reported. A when, set, invariant or at naming a variable, field or event property the machine does not have, or of the wrong type, is reported with the expression rules, and set naming a control field is reported. Both builds print the same lines for every case, and the diagram of a machine draws its causes, conditions and updates on the arrows, its variables as a note, its composite states nested and an entity's machines as concurrent regions. | NEED-2 |
+| SA-98 | A specification shall describe a state machine by its control state, one enum's value held in an entity's field or named by the machine, and its extended state, the entity's fields or the machine's variables with their types, defaults and constraints; a transition shall say its cause, its condition, what it sets and the else case; a state shall carry entry, exit, an invariant, child states, history and finality; an entity may have several machines, a machine may have no entity, and the validator and the diagram shall show the machine as it is. | functional | must | accepted | test | An entity's stateField and transitions are read as one machine as before, with no new error on a file written today and no new line on this repository's specification and examples, and the transitions take when, set, otherwise, after, at and enter. A machine under stateMachines with an entity, a stateField, states, final and transitions validates; one naming an unknown entity, field, enum or within machine is reported at the key with the rest of the machine read. A state that is not initial and that no transition reaches, a full-form state no transition leaves that final does not name, an enum value no transition names, a transition from a simple state with no cause, and a short-form entity without a default whose derivation finds two or more initial states or none are each reported as a warning naming the state, the transition or the field. Two transitions of one state on one cause with neither a condition nor otherwise on either are reported as a warning at each; one with neither beside one with either, two with the same condition or two otherwise are an error at each; two whose conditions the validator cannot show exclusive are a warning at both, and two it can, one the negation of the other, the same name against literals whose ranges do not meet, or a conjunct of one exclusive with the other by those forms, are not reported. A when, set, invariant or at naming a variable, field or event property the machine does not have, or of the wrong type, is reported with the expression rules, and set naming a control field is reported. An at over a date in a specification that declares no timeZone is reported at the transition as an error, and a machine with after implies the entry instant field beside its state field, which generate sql writes and the technical specification lists. Both builds print the same lines for every case, and the diagram of a machine draws its causes, conditions and updates on the arrows, its variables as a note, its composite states nested and an entity's machines as concurrent regions. | NEED-2 |
+| SA-99 | A specification shall write every date-time as an instant with its offset, kept in the stack's zone-aware type; a wall-clock date and time shall be declared as such with its reason, shown in documents; a plain date and a time of day shall carry no zone; a specification shall declare its time zone once, an IANA Time Zone Database name, and a date or a wall-clock reading shall become an instant only in it; and the validator shall report a zoneless date-time without a reason, a zone that is no IANA name, and a date meeting the clock in a specification that declares no zone. | functional | must | proposed | test | An expression literal of an instant written without its offset is reported, as today, and a default or examples value of a date-time field written without its offset is reported at the value as a warning. A field of format local-date-time with why validates and the technical specification shows the reason beside the field; one without why is reported at the field as an error. A root timeZone that is a name of the IANA Time Zone Database validates; one that is not is reported at the key; a field of format time-zone whose default or example is no such name is reported at the value. An at over a date, a validity bounded by a date and a date() of an instant are reported in a specification that declares no timeZone, the first as an error and the others as warnings; with timeZone, none is. A job's schedule stays the five fields of cron in UTC, and the library lending example validates with no new line once it declares its timeZone. Both builds print the same lines for every case. | NEED-2 |
 | SA-7 | specarch document and specarch generate shall write only into the folder the target owns, and with --check shall fail when the committed output differs. | functional | must | accepted | test | A run writes the target's files into its folder and nothing elsewhere. A run with --check on output edited by hand names the file and exits 1, writing nothing. | NEED-3 |
 | SA-8 | Every generated file shall name its source specification, version and meta-model, and a hand-written Markdown document shall change only between its markers. | functional | must | accepted | test | The first line of a generated document names the root file, its version and the meta-model. A marked region is rewritten and every other line of the document is unchanged. | NEED-3 |
 | SA-26 | specarch document shall write the change and defect register and the release notes from the records beside a specification, kept current with --check like the other documents. | functional | should | accepted | test | The register lists open change requests and defects before the closed ones, each with its status, what it affects and its decision. The release notes list the releases newest first, each with its changes and fixes grouped as added, changed, removed and fixed. | NEED-3, NEED-5 |
@@ -15620,7 +15803,11 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 
 **Problem on SA-98:** warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SA-98; add verifies: [SA-98] to the test that shows it is met [requirement_unverified@requirements/requirements/design-keywords.yaml#/requirements/SA-98]
 
-**Insight on SA-98:** State diagrams and state variables are among the most important parts of a system architecture, and the design could say only an entity's control state and its moves, so retry counts, deadlines, conditions, a second machine of an entity and the machines of things not stored were written outside the specification, undrawn and unchecked (ADR-189 to ADR-192).
+**Insight on SA-98:** State diagrams and state variables are among the most important parts of a system architecture, and the design could say only an entity's control state and its moves, so retry counts, deadlines, conditions, a second machine of an entity and the machines of things not stored were written outside the specification, undrawn and unchecked (ADR-189 to ADR-192); nothing in a machine is left to the implementation or to a reading, the owner's word of 2026-10-26 (ADR-193).
+
+**Problem on SA-99:** warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SA-99; add verifies: [SA-99] to the test that shows it is met [requirement_unverified@requirements/requirements/design-keywords.yaml#/requirements/SA-99]
+
+**Insight on SA-99:** A date-time without its zone is read in whatever zone the reader runs in, so the same value means two instants on two hosts and a date is turned into an instant by a guess; the owner's rule of 2026-10-26 is that a date-time carries its zone everywhere, that a zoneless one says why, and that a date meets the clock only in the zone the specification declares (ADR-193, ADR-194).
 
 **Insight on SA-26:** Reviewers and operators read what changed and why in documents; kept apart from the specification, the history stays out of it and still reaches them.
 
@@ -15827,7 +16014,8 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-95 | decisions ADR-186 | tests upgrade-0-1-missing-tests; tests upgrade-0-2-caller; tests upgrade-both-keys; tests upgrade-dry-run; tests upgrade-estate; tests upgrade-implementation-alone; tests upgrade-missing-version-line; tests upgrade-number-version-line; tests upgrade-second-run; tests upgrade-to-older; tests upgrade-unknown-version-line; tests upgrade-unreadable-file; tests upgrade-usage-error; tests upgrade-writes-changes; tests validate-estate-1-0-0; tests validate-estate-version-unknown; tests validate-formats-1-0-0; tests validate-formats-version-unknown; tests validate-handover-source-deprecated; tests validate-handover-source-missing; tests validate-handover-source-twice; tests validate-meta-model-1-0-0; tests validate-meta-model-1-0-patch; tests validate-meta-model-deprecated; tests validate-meta-model-later; tests validate-meta-model-short; tests validate-record-1-0-0; tests validate-record-version-unknown; tests validate-row-policies; tests validate-row-policies-valid; tests validate-schema-conditionals; tests validate-schema-conditionals-0-3 |
 | SA-96 | commands capabilities; commands guide; commands help; decisions ADR-187 | tests capabilities-text; tests capabilities-usage-error; tests guide-order-of-work; tests guide-usage-error; tests help-command-reference; tests help-unknown-topic |
 | SA-97 | commands decision why; commands decision rests; decisions ADR-188 | tests decision-rests-chain; tests decision-rests-chain-json; tests decision-rests-none; tests decision-rests-unknown; tests decision-rests-usage-error; tests decision-unknown; tests decision-usage-error; tests decision-why-chain; tests decision-why-chain-json; tests decision-why-no-links; tests validate-decision-chain; tests validate-decision-cycle; tests validate-decision-rests-on-missing; tests validate-decision-rests-on-superseded |
-| SA-98 | decisions ADR-189; decisions ADR-190; decisions ADR-191; decisions ADR-192 |   |
+| SA-98 | decisions ADR-189; decisions ADR-190; decisions ADR-191; decisions ADR-192; decisions ADR-193 |   |
+| SA-99 | decisions ADR-193; decisions ADR-194 |   |
 
 ## Sources
 
@@ -15855,6 +16043,8 @@ Every source a Note in this document cites.
 | iso-29119-3 | ISO/IEC/IEEE 29119-3, Software and systems engineering, Software testing, Part 3, Test documentation | 2021 | ISO, IEC and IEEE | https://www.iso.org/standard/79429.html |
 | iso-29119-4 | ISO/IEC/IEEE 29119-4, Software and systems engineering, Software testing, Part 4, Test techniques | 2021 | ISO, IEC and IEEE |   |
 | iso-29148 | ISO/IEC/IEEE 29148, Systems and software engineering, Life cycle processes, Requirements engineering | 2018 | ISO, IEC and IEEE | https://www.iso.org/standard/72089.html |
+| iso-8601 | ISO 8601-1, Date and time, Representations for information interchange, Part 1, Basic rules | 2019 | ISO | https://www.iso.org/standard/70907.html |
+| iso-9075-2 | ISO/IEC 9075-2, Information technology, Database languages, SQL, Part 2, Foundation | 2016 | ISO and IEC |   |
 | json-schema | JSON Schema, a media type for describing JSON documents | 2020-12 | The JSON Schema project | https://json-schema.org/specification |
 | json5 | The JSON5 Data Interchange Format | 1.0.0 | The JSON5 project | https://spec.json5.org/ |
 | mariadb-cast | MariaDB Server documentation, CAST |   | MariaDB | https://mariadb.com/kb/en/cast/ |
@@ -15868,9 +16058,12 @@ Every source a Note in this document cites.
 | owasp-asvs | OWASP Application Security Verification Standard, chapter V16, Security Logging and Error Handling | 5.0.0 | OWASP | https://github.com/OWASP/ASVS/blob/master/5.0/en/0x25-V16-Security-Logging-and-Error-Handling.md |
 | owasp-authorization | OWASP Authorization Cheat Sheet |   | OWASP | https://cheatsheetseries.owasp.org/cheatsheets/Authorization_Cheat_Sheet.html |
 | owasp-session-management | OWASP Session Management Cheat Sheet |   | OWASP | https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html |
+| postgresql-datetime | PostgreSQL 17 Documentation, 8.5 Date/Time Types | 17 | The PostgreSQL Global Development Group | https://www.postgresql.org/docs/17/datatype-datetime.html |
 | postgresql-row-security | PostgreSQL documentation, Row Security Policies and CREATE POLICY | 17 | The PostgreSQL Global Development Group | https://www.postgresql.org/docs/17/ddl-rowsecurity.html |
 | protoc-plugins | Protocol buffers compiler plug-in protocol, plugin.proto | 2024 | The protocol buffers project | https://github.com/protocolbuffers/protobuf/blob/main/src/google/protobuf/compiler/plugin.proto |
+| rfc-3339 | RFC 3339, Date and Time on the Internet: Timestamps | 2002 | IETF | https://www.rfc-editor.org/rfc/rfc3339 |
 | rfc-3986 | RFC 3986, Uniform Resource Identifier (URI): Generic Syntax | 2005 | IETF | https://www.rfc-editor.org/rfc/rfc3986 |
+| rfc-6557 | RFC 6557, Procedures for Maintaining the Time Zone Database | 2012 | IETF | https://www.rfc-editor.org/rfc/rfc6557 |
 | rfc-6749 | RFC 6749, The OAuth 2.0 Authorization Framework | 2012 | IETF | https://www.rfc-editor.org/rfc/rfc6749 |
 | rfc-6901 | RFC 6901, JavaScript Object Notation (JSON) Pointer | 2013 | IETF | https://www.rfc-editor.org/rfc/rfc6901 |
 | rfc-7519 | RFC 7519, JSON Web Token (JWT) | 2015 | IETF | https://www.rfc-editor.org/rfc/rfc7519 |
@@ -15887,6 +16080,7 @@ Every source a Note in this document cites.
 | rfc-9110 | RFC 9110, HTTP Semantics | 2022 | IETF | https://www.rfc-editor.org/rfc/rfc9110 |
 | rfc-9421 | RFC 9421, HTTP Message Signatures | 2024 | IETF | https://www.rfc-editor.org/rfc/rfc9421 |
 | rfc-9457 | RFC 9457, Problem Details for HTTP APIs | 2023 | IETF | https://www.rfc-editor.org/rfc/rfc9457 |
+| rfc-9557 | RFC 9557, Date and Time on the Internet: Timestamps with Additional Information | 2024 | IETF | https://www.rfc-editor.org/rfc/rfc9557 |
 | rfc-9700 | RFC 9700, Best Current Practice for OAuth 2.0 Security | 2025 | IETF | https://www.rfc-editor.org/rfc/rfc9700 |
 | sarif | Static Analysis Results Interchange Format (SARIF) Version 2.1.0 | 2020 | OASIS | https://docs.oasis-open.org/sarif/sarif/v2.1.0/sarif-v2.1.0.html |
 | scxml-1-0 | State Chart XML (SCXML), State Machine Notation for Control Abstraction, W3C Recommendation 1 September 2015 | 1.0 | W3C | https://www.w3.org/TR/scxml/ |

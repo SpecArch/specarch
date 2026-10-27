@@ -1,0 +1,41 @@
+specarchRecord: "1.0.0"
+kind: change
+id: CR-4
+title: Let a specification declare its time zone and read date() of an instant in it, and design state machines and date-times
+raisedBy: specification-author
+raised: "2026-10-26"
+phase: development
+type: perfective
+urgency: normal
+reason: A specification modelled an entity's control state only as one field and its moves, and left the zone of every date-time unsaid, so date() of an instant gave the Go and Swift builds different dates; it needs its time zone declared once, date() read in it the same way in both builds, and a design for state machines and date-times that the later build items follow.
+affects:
+  adds:
+    - SA-98
+    - SA-99
+    - "#/decisions/ADR-189"
+    - "#/decisions/ADR-190"
+    - "#/decisions/ADR-191"
+    - "#/decisions/ADR-192"
+    - "#/decisions/ADR-193"
+    - "#/decisions/ADR-194"
+    - "#/sources/harel-1987"
+    - "#/sources/iso-8601"
+    - "#/sources/iso-9075-2"
+    - "#/sources/postgresql-datetime"
+    - "#/sources/rfc-3339"
+    - "#/sources/rfc-6557"
+    - "#/sources/rfc-9557"
+    - "#/sources/scxml-1-0"
+    - "#/sources/uml-2-5-1"
+    - "#/tests/validate-time-zone"
+    - "#/tests/validate-time-zone-missing"
+    - "#/tests/validate-time-zone-unknown"
+  changes: ["#/enums/Rule"]
+impact: minor
+decision:
+  by: specification-author
+  date: "2026-10-27"
+  outcome: approved
+  why: One optional key (timeZone at the root of the 1.0 design schema) and one rule (time_zone); a 1.2.0 file holds no timeZone, so the error at a wrong name cannot reach it, and date() of an instant without a zone is a warning, so a file with no error on 1.2.0 gets no new error; the state machine design adds decision records and requirements only, with nothing built yet, so a minor release carries it (ADR-186, ADR-193).
+release: 1.3.0
+status: released

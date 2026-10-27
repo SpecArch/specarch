@@ -82,7 +82,7 @@
       "properties": {
         "specification": "../spec",
         "title": "SpecArch toolchain",
-        "version": "1.2.1-dev"
+        "version": "1.3.0"
       }
     }
   ]

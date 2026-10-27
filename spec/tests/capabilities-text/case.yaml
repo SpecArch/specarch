@@ -1,7 +1,7 @@
 arguments: [capabilities]
 exitStatus: 0
 standardOutput: |
-  specarch 1.2.0
+  specarch 1.3.0
 
   Formats
     meta-model: writes 1.0.0, reads 1.0.0 and any later 1.0 patch, 0.3, 0.2, 0.1

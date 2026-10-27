@@ -35,7 +35,7 @@ plug-ins it finds; `go test ./cmd/specarch -run TestAgentsFile -update`
 writes it again after a change to the program's facts or commands.
 
 <!-- specarch guide --agent: begin -->
-# SpecArch 1.2.0 for agents
+# SpecArch 1.3.0 for agents
 
 SpecArch is a compiler for specifications: it reads a specification written
 in YAML, lists every problem in it, and writes documents and code from it.

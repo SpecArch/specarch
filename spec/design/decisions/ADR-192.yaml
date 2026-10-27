@@ -1,7 +1,7 @@
 # yaml-language-server: $schema=../../../schema/specarch-fragment-design-1.0.schema.json
 decisions:
   ADR-192:
-    title: Both validators check a machine's reachability, dead ends, unused states, causes, names and ambiguity with the same lines; the diagram draws causes, conditions and updates on the arrows, the variables as a note, nested states and parallel machines; the documents, the test plan and the guarded script follow; the step is minor, 1.3.0
+    title: Both validators check a machine's reachability, dead ends, unused states, causes, names and ambiguity with the same lines; the diagram draws causes, conditions and updates on the arrows, the variables as a note, nested states and parallel machines; the documents, the test plan and the guarded script follow; the step is minor, 1.4.0
     status: accepted
     date: "2026-10-26"
     context: |
@@ -79,7 +79,7 @@ decisions:
       into the guarded script; specarch model lists the machines; generate
       sql writes the entry instant columns of a machine with after beside
       its state field, as the audit columns, and the technical
-      specification lists them. The step is 1.3.0, the rule names frozen at
+      specification lists them. The step is 1.4.0, the rule names frozen at
       that release.
     why: |
       Every check that can fire on a file written today is a warning,

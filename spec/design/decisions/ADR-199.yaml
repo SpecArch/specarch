@@ -99,14 +99,21 @@ decisions:
       A value beginning with an operator is not given a second, quoted
       way to be written: a quoted scalar is already how YAML writes a
       comparison, and one way to say one thing outweighs the rare value
-      such as <none>, which a formula still tests.
+      such as <none>, which a formula still tests. An enum input whose
+      $ref does not resolve is ref_type at the $ref and nothing more: it
+      has no values, so calling it an input with no value would point at
+      bounds it does not have. Like an untested type, it is left out of
+      the table when no rule names it, and the table is checked over the
+      others; a rule that names it leaves the table unchecked, since its
+      condition cannot be read until the enum resolves.
 
       A gap is an error, not a warning: an algorithm gives its output for
       every input it accepts, and inputs no rule matches are a case the
       table's authors did not decide, which the error names so it can be
       decided; under first a last rule with no when is the decision
       "everything else", while under unique each gap needs a rule of its
-      own, since a rule with no when overlaps every other. A rule never reached under first is a warning, since the
-      table still gives an output for every input, but the rule says
-      something the table never does.
+      own, since a rule with no when overlaps every other. A rule never
+      reached under first is a warning, since the table still gives an
+      output for every input, but the rule says something the table never
+      does.
     satisfies: [SA-104]

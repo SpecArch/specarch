@@ -42,7 +42,10 @@ struct TableColumn {
     let field: YNode
     let t: ExprType
     var domain = ValueSet()
-    let ok: Bool // a type a table tests
+    var ok: Bool // a type a table tests
+    // An enum with no values, whose $ref does not resolve; ref_type
+    // reports it, so the table says nothing more of it.
+    var unresolved = false
 }
 
 struct TableRule {
@@ -691,9 +694,13 @@ extension Checker {
         for p in pairs(a.child("inputs")) {
             let t = d.fieldType(p.value)
             var col = TableColumn(name: p.key.value, field: p.value, t: t, ok: isOrdered(t.kind) || [.enumValue, .bool, .string].contains(t.kind))
+            if t.kind == .enumValue && t.values.isEmpty {
+                col.ok = false
+                col.unresolved = true
+            }
             if col.ok {
                 col.domain = d.tableDomain(p.value, t)
-                if col.domain.isEmpty {
+                if isOrdered(t.kind) && col.domain.isEmpty {
                     tab.readOK = false
                     if report {
                         add(p.value, pointer("algorithms", alg, "inputs", p.key.value), .decisionTable,
@@ -721,6 +728,10 @@ extension Checker {
                     continue
                 }
                 let col = tab.columns[k]
+                if col.unresolved {
+                    tab.readOK = false
+                    continue
+                }
                 if !col.ok {
                     fail(p.value, at, "input \(p.key.value) is \(col.t), which a decision table does not test; a table tests int, uint, decimal, double, date, enum, bool and string inputs, so work this one out with a formula")
                     continue
@@ -743,8 +754,9 @@ extension Checker {
             }
             tab.rules.append(r)
         }
-        // An input of a type a table does not test, named by no rule, is
-        // left out of the columns: every rule matches any value of it.
+        // An input of a type a table does not test, or an enum whose $ref
+        // does not resolve, named by no rule, is left out of the columns:
+        // every rule matches any value of it.
         tab.inputs = tab.columns
         tab.columns = tab.inputs.filter { $0.ok }
         if !tab.readOK { return tab }

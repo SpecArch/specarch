@@ -39,6 +39,9 @@ type tableColumn struct {
 	t      expr.Type
 	domain valueSet
 	ok     bool // a type a table tests
+	// unresolved: an enum with no values, whose $ref does not resolve;
+	// ref_type reports it, so the table says nothing more of it.
+	unresolved bool
 }
 
 // condition is one comparison of a cell: op is "" for equality.
@@ -549,9 +552,12 @@ func (c *checker) readTable(d *design, alg string, a *yaml.Node, report bool) *d
 	for _, p := range source.Pairs(source.Child(a, "inputs")) {
 		t := d.fieldType(p.Value)
 		col := tableColumn{name: p.Key.Value, field: p.Value, t: t, ok: ordered(t.Kind) || t.Kind == expr.Enum || t.Kind == expr.Bool || t.Kind == expr.String}
+		if t.Kind == expr.Enum && len(t.Values) == 0 {
+			col.ok, col.unresolved = false, true
+		}
 		if col.ok {
 			col.domain = d.tableDomain(p.Value, t)
-			if col.domain.empty() {
+			if ordered(t.Kind) && col.domain.empty() {
 				tab.readOK = false
 				if report {
 					c.add(p.Value, source.Pointer("algorithms", alg, "inputs", p.Key.Value), RuleDecisionTable,
@@ -584,6 +590,10 @@ func (c *checker) readTable(d *design, alg string, a *yaml.Node, report bool) *d
 				continue
 			}
 			col := &tab.columns[k]
+			if col.unresolved {
+				tab.readOK = false
+				continue
+			}
 			if !col.ok {
 				fail(p.Value, at, "input %s is %s, which a decision table does not test; a table tests int, uint, decimal, double, date, enum, bool and string inputs, so work this one out with a formula", p.Key.Value, col.t)
 				continue
@@ -608,8 +618,9 @@ func (c *checker) readTable(d *design, alg string, a *yaml.Node, report bool) *d
 		}
 		tab.rules = append(tab.rules, r)
 	}
-	// An input of a type a table does not test, named by no rule, is
-	// left out of the columns: every rule matches any value of it.
+	// An input of a type a table does not test, or an enum whose $ref
+	// does not resolve, named by no rule, is left out of the columns:
+	// every rule matches any value of it.
 	tab.inputs = tab.columns
 	tab.columns = nil
 	for _, col := range tab.inputs {

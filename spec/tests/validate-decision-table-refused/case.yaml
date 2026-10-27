@@ -22,4 +22,7 @@ standardOutput: |
   specarch.yaml:86:9: error: /algorithms/dueSoon/table/rules: table_gap: no rule matches { loansOpen: ">= 5" }; add a rule for each [table_gap@specarch.yaml#/algorithms/dueSoon/table/rules]
   specarch.yaml:88:11: error: /algorithms/dueSoon/table/rules/1: table_overlap: rules 1 and 2 both match { loansOpen: "< 3" }, and hit policy unique lets only one rule match any inputs; narrow one of them, or write hitPolicy first if the earlier rule is meant to win [table_overlap@specarch.yaml#/algorithms/dueSoon/table/rules/1]
   specarch.yaml:91:95: error: /algorithms/dueSoon/examples/0/expected: example_mismatch: the table gives true for "four open", but the example expects false; correct the example or the table [example_mismatch@specarch.yaml#/algorithms/dueSoon/examples/0/expected]
-  specarch.yaml:98:14: error: /algorithms/both/formula: schema: this key is not allowed here; remove it [schema@specarch.yaml#/algorithms/both/formula]
+  specarch.yaml:96:22: error: /algorithms/lostShelf/inputs/shelf/$ref: ref_type: Shelf is not an enum of the specification; use one of MembershipTier [ref_type@specarch.yaml#/algorithms/lostShelf/inputs/shelf/$ref]
+  specarch.yaml:102:9: error: /algorithms/lostShelf/table/rules: table_gap: no rule matches { loansOpen: ">= 3" }; add a rule for each [table_gap@specarch.yaml#/algorithms/lostShelf/table/rules]
+  specarch.yaml:108:22: error: /algorithms/namedShelf/inputs/shelf/$ref: ref_type: Shelf is not an enum of the specification; use one of MembershipTier [ref_type@specarch.yaml#/algorithms/namedShelf/inputs/shelf/$ref]
+  specarch.yaml:121:14: error: /algorithms/both/formula: schema: this key is not allowed here; remove it [schema@specarch.yaml#/algorithms/both/formula]

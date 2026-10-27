@@ -90,6 +90,29 @@ algorithms:
     examples:
       - { name: four open, inputs: { loansOpen: 4, dueAt: "2026-11-02T09:00:00Z" }, expected: false }
     pseudocode: x
+  lostShelf:
+    description: A table over an input whose enum does not resolve, which no rule names.
+    inputs:
+      shelf: { $ref: "#/enums/Shelf" }
+      loansOpen: { type: integer, format: int32, minimum: 0 }
+    output: { type: boolean }
+    table:
+      hitPolicy: unique
+      rules:
+        - when: { loansOpen: "< 3" }
+          then: true
+    pseudocode: x
+  namedShelf:
+    description: A table whose rule names an input whose enum does not resolve.
+    inputs:
+      shelf: { $ref: "#/enums/Shelf" }
+    output: { type: boolean }
+    table:
+      hitPolicy: first
+      rules:
+        - when: { shelf: reference }
+          then: false
+    pseudocode: x
   both:
     description: A formula and a table.
     inputs:

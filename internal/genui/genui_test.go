@@ -131,9 +131,14 @@ func withoutHeader(content string) string {
 // the record loaded and the page's own address, as the member's loans
 // form needs. The modules have moved on too: every call goes through
 // transport.js and names its operation's path with the {parameters} left
-// in (ADR-164), so the pages' modules and view.js are not compared.
+// in (ADR-164), so the pages' modules and view.js are not compared. The
+// pages written by hand read no session, so the target's session is left
+// out here: with it the menu's entries carry their permissions and the
+// pages load session.js (ADR-197).
 func TestReference(t *testing.T) {
-	resp := Generate(request(t, func(map[string]any, map[string]any) {}))
+	resp := Generate(request(t, func(_ map[string]any, content map[string]any) {
+		delete(obj0(obj0(obj0(content["targets"])["ui"])["settings"]), "session")
+	}))
 	got := map[string]string{}
 	for _, f := range resp.Files {
 		got[f.Path] = f.Content

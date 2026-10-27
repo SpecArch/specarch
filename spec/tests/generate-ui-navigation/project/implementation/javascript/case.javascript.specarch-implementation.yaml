@@ -9,3 +9,4 @@ targets:
     framework: plain-javascript
     settings:
       language: en
+      session: { operation: getSession, signedIn: open, permissions: granted, roles: held }

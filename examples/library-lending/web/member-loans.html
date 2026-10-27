@@ -8,26 +8,27 @@
 <title>Lend copies</title>
 <link rel="stylesheet" href="theme.css">
 <script type="module" src="member-loans.js"></script>
+<script type="module" src="session.js"></script>
 </head>
 <body>
 <nav id="menu" aria-label="Menu">
 <ul>
 <li>Account
 <ul>
-<li><a href="profile.html">My profile</a></li>
+<li data-permission="signedIn"><a href="profile.html">My profile</a></li>
 </ul>
 </li>
 <li>Loans
 <ul>
-<li><a href="fee-waivers-inbox.html">Fee waivers to approve</a></li>
-<li><a href="loan-form.html">Lend a copy</a></li>
-<li><a href="loans-list.html">All loans</a></li>
+<li data-permission="fees.approve"><a href="fee-waivers-inbox.html">Fee waivers to approve</a></li>
+<li data-permission="loans.create"><a href="loan-form.html">Lend a copy</a></li>
+<li data-permission="loans.read"><a href="loans-list.html">All loans</a></li>
 </ul>
 </li>
 <li>Members
 <ul>
-<li><a href="members-list.html">All members</a></li>
-<li><a href="member-form.html">Register a member</a></li>
+<li data-permission="members.read"><a href="members-list.html">All members</a></li>
+<li data-permission="members.write"><a href="member-form.html">Register a member</a></li>
 </ul>
 </li>
 </ul>

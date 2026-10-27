@@ -128,6 +128,7 @@ targets:
     settings:
       language: en
       tokens: { text: color.text, background: color.background, accent: color.accent, danger: color.danger, border: color.border, space: space.small, font: font.body }
+      session: { operation: getSession, signedIn: signedIn, permissions: permissions, roles: roles }
   tests:
     output: internal/lending
   bpmn:

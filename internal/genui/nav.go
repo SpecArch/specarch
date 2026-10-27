@@ -125,7 +125,11 @@ func (g *gen) menuHTML(current string) []string {
 			if page == current {
 				attr = ` aria-current="page"`
 			}
-			entries = append(entries, "<li><a href="+quoted(page+".html")+attr+">"+html.EscapeString(text(item["title"]))+"</a></li>")
+			li := "<li>"
+			if g.session != nil {
+				li = "<li data-permission=" + quoted(text(obj0(obj0(g.spec["pages"])[page])["permission"])) + ">"
+			}
+			entries = append(entries, li+"<a href="+quoted(page+".html")+attr+">"+html.EscapeString(text(item["title"]))+"</a></li>")
 		}
 		if len(entries) == 0 {
 			continue

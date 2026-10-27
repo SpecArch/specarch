@@ -193,6 +193,8 @@ Reached from a row selected on the Members page.
 
 Opened by librarian and desk-supervisor (the permission members.read).
 
+**Insight:** The desk that registers members uses the contact section; a supervisor who reads a member's record to decide a fee waiver has no use for it, so it is left off their screen. This is screen layout, not a privacy rule; getMember still answers address and phones to every caller with members.read, and a role that must never receive them would need them left out of that response.
+
 | Field | What it shows |
 |---|---|
 | Card number | Printed on the card; assigned when the member joins. |

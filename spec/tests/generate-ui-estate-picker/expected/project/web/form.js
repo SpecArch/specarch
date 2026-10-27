@@ -4,7 +4,7 @@
 // page's HTML, checked by the browser from the JSON Schema keywords; this
 // module adds what HTML cannot say: a pattern as JSON Schema reads it,
 // checks across fields, a field entered twice, fields read-only or hidden
-// by the record's values, pickers that read their records, the parts of a
+// by the record's values or the permissions the person holds, pickers that read their records, the parts of a
 // value and rows added and removed. It loads the record a form changes,
 // sends the fields its operation takes, or on an upload the file chosen with
 // the fields beside it, and leads on once it succeeds. Every form and task
@@ -150,6 +150,21 @@ export function form(page) {
   // A field drawn read-only stays so whatever its conditions say.
   const fixed = new Map(Object.keys(page.conditions).map((name) => [name, field(name).readOnly || field(name).disabled]));
 
+  // The permissions the person holds, which a field's hiddenUnless and
+  // readOnlyUnless read: none until the session is read, so such a field is
+  // hidden or locked until then (ADR-197).
+  let holding = [];
+  const lacks = (permission) => permission !== undefined && !holding.includes(permission);
+  if (Object.values(page.conditions).some((rule) => rule.hiddenUnless || rule.readOnlyUnless)) {
+    // session.js is written when the target's settings name the session.
+    import("./session.js")
+      .then(({ held }) => held())
+      .then((permissions) => {
+        holding = permissions;
+        check();
+      });
+  }
+
   // The rules HTML cannot say, as each field's own message.
   function check() {
     // The conditions read the record as entered; the checks and what is
@@ -157,8 +172,8 @@ export function form(page) {
     record = read(element);
     for (const [name, rule] of Object.entries(page.conditions)) {
       const control = field(name);
-      const hidden = rule.hiddenWhen?.(record) ?? false;
-      const locked = fixed.get(name) || (rule.readOnlyWhen?.(record) ?? false);
+      const hidden = (rule.hiddenWhen?.(record) ?? false) || lacks(rule.hiddenUnless);
+      const locked = fixed.get(name) || (rule.readOnlyWhen?.(record) ?? false) || lacks(rule.readOnlyUnless);
       // A hidden field is disabled too, so the browser does not ask for it.
       // A list or a box has no read-only state of its own; it is disabled.
       const lockable = "readOnly" in control && control.type !== "checkbox";

@@ -34,7 +34,9 @@ type viewSection struct {
 // viewField is a field a view shows, or a part of a value it holds.
 type viewField struct {
 	name, label, hiddenWhen string
-	list                    bool
+	// hiddenUnless is the permission without which the field is hidden.
+	hiddenUnless string
+	list         bool
 	parts                   []viewField
 }
 
@@ -162,7 +164,7 @@ func (g *gen) view(name string, pg map[string]any) *viewPage {
 				continue
 			}
 			field := g.viewField(f.name, prop, nil)
-			g.unless(at+"/fieldConditions/"+f.name+"/hiddenUnless", f.name, "hiddenUnless", text(obj0(conditions[f.name])["hiddenUnless"]))
+			field.hiddenUnless = g.unless(at+"/fieldConditions/"+f.name+"/hiddenUnless", f.name, "hiddenUnless", text(obj0(conditions[f.name])["hiddenUnless"]))
 			if e := text(obj0(conditions[f.name])["hiddenWhen"]); e != "" {
 				rule, ok := g.rule(e, at+"/fieldConditions/"+f.name+"/hiddenWhen", "the field's hiddenWhen", props)
 				if !ok {
@@ -341,6 +343,22 @@ func (v *viewPage) js() string {
 		w("  hidden: {")
 		for _, f := range hidden {
 			w("    " + f.name + ": " + f.hiddenWhen + ",")
+		}
+		w("  },")
+	}
+	var unless []viewField
+	for _, sec := range v.sections {
+		for _, f := range sec.fields {
+			if f.hiddenUnless != "" {
+				unless = append(unless, f)
+			}
+		}
+	}
+	if len(unless) > 0 {
+		w("  // The fields hidden unless the person holds a permission.")
+		w("  hiddenUnless: {")
+		for _, f := range unless {
+			w("    " + f.name + ": " + jsString(f.hiddenUnless) + ",")
 		}
 		w("  },")
 	}

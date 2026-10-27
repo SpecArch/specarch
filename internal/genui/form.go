@@ -38,7 +38,7 @@ type formPage struct {
 	sent                 []string
 	controls             []string // the form's HTML inside its element
 	checks               []formCheck
-	conditions           map[string][2]string // hiddenWhen and readOnlyWhen, by field
+	conditions           map[string][4]string // hiddenWhen, readOnlyWhen, hiddenUnless and readOnlyUnless, by field
 	pickers              map[string]string    // a picker's data, by field
 	next                 map[string]formNext  // by status, or success for a form
 	source, sourceTarget string
@@ -272,7 +272,7 @@ func (g *gen) form(name string, pg map[string]any) *formPage {
 	at := "/pages/" + name
 	task := text(pg["kind"]) == "task"
 	fp := &formPage{name: name, title: text(pg["title"]), upper: upperSnake(name), language: text(g.settings["language"]), task: task,
-		conditions: map[string][2]string{}, pickers: map[string]string{}, next: map[string]formNext{}, rows: map[string]string{}}
+		conditions: map[string][4]string{}, pickers: map[string]string{}, next: map[string]formNext{}, rows: map[string]string{}}
 	fp.submit = text(pg["submit"])
 	op, path, method := g.operation(fp.submit)
 	if op == nil || method == "get" {
@@ -391,7 +391,7 @@ func (g *gen) form(name string, pg map[string]any) *formPage {
 				continue
 			}
 			if c, ok := g.fieldCondition(ptr, at, f.name, cond, props); ok {
-				if c != ([2]string{}) {
+				if c != ([4]string{}) {
 					if _, value := valueRef(prop); value || strings.HasPrefix(text(prop["$ref"]), "#/schemas/") {
 						g.problem("error", at+"/fieldConditions/"+f.name, "%s holds a value, and specarch-gen-ui hides or locks a field that holds none; it is left out", f.name)
 						continue
@@ -508,13 +508,13 @@ func (g *gen) form(name string, pg map[string]any) *formPage {
 	return fp
 }
 
-// fieldCondition reads a field's hiddenWhen and readOnlyWhen, and warns
-// of its hiddenUnless and readOnlyUnless, which need the caller's
-// permissions that these screens never read.
-func (g *gen) fieldCondition(ptr, at, field string, cond, props map[string]any) ([2]string, bool) {
-	var out [2]string
-	for _, k := range []string{"hiddenUnless", "readOnlyUnless"} {
-		g.unless(at+"/fieldConditions/"+field+"/"+k, field, k, text(cond[k]))
+// fieldCondition reads a field's hiddenWhen and readOnlyWhen, and the
+// permissions its hiddenUnless and readOnlyUnless name, which the screens
+// read against the session (ADR-197).
+func (g *gen) fieldCondition(ptr, at, field string, cond, props map[string]any) ([4]string, bool) {
+	var out [4]string
+	for i, k := range []string{"hiddenUnless", "readOnlyUnless"} {
+		out[2+i] = g.unless(at+"/fieldConditions/"+field+"/"+k, field, k, text(cond[k]))
 	}
 	for i, k := range []string{"hiddenWhen", "readOnlyWhen"} {
 		e := text(cond[k])
@@ -861,6 +861,12 @@ func (fp *formPage) js() string {
 			if c[1] != "" {
 				parts = append(parts, "readOnlyWhen: "+c[1])
 			}
+			if c[2] != "" {
+				parts = append(parts, "hiddenUnless: "+jsString(c[2]))
+			}
+			if c[3] != "" {
+				parts = append(parts, "readOnlyUnless: "+jsString(c[3]))
+			}
 			w("    " + k + ": { " + strings.Join(parts, ", ") + " },")
 		}
 		w("  },")
@@ -948,7 +954,7 @@ func anyStrings(m map[string]string) map[string]any {
 	return out
 }
 
-func anyConds(m map[string][2]string) map[string]any {
+func anyConds(m map[string][4]string) map[string]any {
 	out := map[string]any{}
 	for k, v := range m {
 		out[k] = v

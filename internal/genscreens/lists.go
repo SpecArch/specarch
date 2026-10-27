@@ -542,25 +542,28 @@ func (g *Gen) EnumValues(prop map[string]any) []string {
 	return out
 }
 
-// Menu is the menu: each group with its entries, each entry with the
-// title, route and permission of the page it opens, and the permissions
-// the entries need, in order; an entry whose page this run does not write
-// is left out, unless another stakeholder writes it. drawn names the pages
-// written.
 // Home is a role's home page, by its name and its route.
 type Home struct{ Role, Page, Route string }
 
 // Homes are the routes of the roles' homes, by role, the ones this run
-// writes (ADR-197): the screens open the home of the first role the
-// session answers that has one. A home is opened only once the session
-// names the roles, so without settings.session.roles they are none, and
-// a warning says so.
+// writes or another stakeholder writes (ADR-197): the screens open the
+// home of the first role the session answers that has one. A home this
+// run leaves out is warned of at the role, which then opens no home. A
+// home is opened only once the session names the roles, so without
+// settings.session.roles they are none, and a warning says so.
 func (g *Gen) Homes(drawn map[string]bool, sess *Session) []Home {
+	owned := ownership.Of(g.Impl.Content)
 	pages := obj0(g.Spec["pages"])
 	var out []Home
 	for _, r := range SortedKeys(obj0(g.Spec["roles"])) {
 		home := text(obj0(obj0(g.Spec["roles"])[r])["home"])
-		if home == "" || !drawn[home] {
+		if home == "" {
+			continue
+		}
+		if !drawn[home] && !owned.Covers(ownership.Entity("pages", home)) {
+			if _, ok := pages[home]; ok && !g.Failed() { // a page refused by an error writes nothing at all
+				g.Problem("warning", "/roles/"+ownership.Escape(r)+"/home", "the role %s has the home page %s, which this version of %s does not write; %s opens no home", r, home, g.Profile.Name, r)
+			}
 			continue
 		}
 		out = append(out, Home{Role: r, Page: home, Route: text(obj0(pages[home])["route"])})
@@ -572,6 +575,11 @@ func (g *Gen) Homes(drawn map[string]bool, sess *Session) []Home {
 	return out
 }
 
+// Menu is the menu: each group with its entries, each entry with the
+// title, route and permission of the page it opens, and the permissions
+// the entries need, in order; an entry whose page this run does not write
+// is left out, unless another stakeholder writes it. drawn names the pages
+// written.
 func (g *Gen) Menu(drawn map[string]bool) ([]Value, []string) {
 	owned := ownership.Of(g.Impl.Content)
 	pages := obj0(g.Spec["pages"])

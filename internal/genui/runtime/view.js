@@ -1,7 +1,7 @@
 // Runs a view page from what its module says of it. The sections and
 // fields are in the page's HTML, each value's place marked data-field;
 // this module reads the record into them, hides a field while its
-// condition holds, and offers the page's actions, each a link to another
+// condition holds or the person lacks the permission it needs, and offers the page's actions, each a link to another
 // page or an operation run on the record once the person confirms it.
 // Every view page uses it.
 
@@ -51,6 +51,12 @@ export function view(page) {
   const bar = document.getElementById("actions");
   const line = document.getElementById("status");
   let current;
+  // The permissions the person holds, which a field's hiddenUnless reads,
+  // read before the record is shown (ADR-197). session.js is written when
+  // the target's settings name the session.
+  const unless = page.hiddenUnless ?? {};
+  const reading = Object.keys(unless).length > 0 ? import("./session.js").then(({ held }) => held()) : Promise.resolve([]);
+  let holding = [];
 
   function refusal(operation, status) {
     return page.refusals[operation][String(status)] ?? page.messages.failed;
@@ -63,6 +69,7 @@ export function view(page) {
 
   async function load() {
     try {
+      holding = await reading;
       const response = await call(page.source, { parameters: given });
       if (!response.ok) {
         emit(page.failed, { status: response.status });
@@ -106,6 +113,10 @@ export function view(page) {
     fill(record, current);
     for (const [name, rule] of Object.entries(page.hidden)) {
       own(record).find((place) => place.dataset.field === name).parentElement.hidden = rule(current);
+    }
+    for (const [name, permission] of Object.entries(unless)) {
+      const place = own(record).find((place) => place.dataset.field === name).parentElement;
+      place.hidden = place.hidden || !holding.includes(permission);
     }
     bar.replaceChildren();
     for (const action of page.actions) {

@@ -2,7 +2,7 @@
 command: generate
 level: system
 scenario: golden
-given: "a specification whose roles name their home pages, with a profile page of signedIn reached from a menu, a form field read-only unless the caller holds members.remove and a view field hidden unless they hold members.write; an implementation file whose ui target is plain JavaScript; specarch-gen-ui built from this repository on PATH"
+given: "a specification whose roles name their home pages, with a profile page of signedIn reached from a menu, a form field read-only unless the caller holds members.remove and a view field hidden unless they hold members.write; an implementation file whose ui target is plain JavaScript, its session read from getSession with the roles under held; specarch-gen-ui built from this repository on PATH"
 when: "generate ui is run with --unapproved"
-then: "it writes the pages as for any permission, since these screens read no session, warns at each role's home that it opens none and at each field's readOnlyUnless and hiddenUnless that the field is changeable or shown to everyone who opens the page, and exits 0"
+then: "it writes session.js with the session's operation, its properties and each role's home page, marks each menu entry with the permission of its page for session.js to show or hide, hands form.js the readOnlyUnless and view.js the hiddenUnless as permissions, writes index.html and index.js, which open the home of the first role the session answers that has one, prints no warning, and exits 0"
 verifies: [SA-102]

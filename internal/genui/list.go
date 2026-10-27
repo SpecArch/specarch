@@ -26,6 +26,10 @@ func (g *gen) headOf(name, title, language string, module bool) []string {
 	if module {
 		out = append(out, `<script type="module" src="`+name+`.js"></script>`)
 	}
+	if g.session != nil && len(obj0(g.spec["menus"])) > 0 {
+		// The menu shows only the entries whose page opens to the person.
+		out = append(out, `<script type="module" src="session.js"></script>`)
+	}
 	out = append(out, "</head>", "<body>")
 	out = append(out, g.menuHTML(name)...)
 	return append(out, "<main>", `<h1 id="title">`+html.EscapeString(title)+"</h1>")

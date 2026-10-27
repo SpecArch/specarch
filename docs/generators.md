@@ -803,12 +803,22 @@ travels in the browser's session storage for that one load and shows in
 that page's status line. Every page carries the menu from `menus`, its own
 entry marked current; a menu entry or a link to a page that is not
 written, and a menu entry for a page whose route takes a parameter, are
-reported and left out. The screens check no permission: the service
-refuses, and the page shows the refusal as its failed state. Since they
-read no session, they cannot tell a person's roles or permissions: a
-role's `home` is warned of at the role, as opening no home, and a field's
-`readOnlyUnless` or `hiddenUnless` at the key, as changeable or shown to
-everyone who opens the page (ADR-197).
+reported and left out. The screens guard no page: the service refuses,
+and the page shows the refusal as its failed state. When the target's
+`settings.session` names the operation that answers who is signed in, as
+for the other ui generators (its `signedIn` and `permissions`, and
+`roles` for the homes), `session.js` reads it once per page: the menu
+shows only the entries whose page opens to the person, `signedIn` held by
+everyone signed in, and a field's `readOnlyUnless` or `hiddenUnless`
+locks or hides it until the session answers the permission. When the
+roles name their home pages and the session names the roles,
+`index.html`, the screens' start, opens the home of the first role the
+session answers that has one, and a page named `index` is refused then;
+a home that is not written is warned of at the role, and homes without
+`roles` at `/roles`. Without
+`settings.session`, each home is warned of at its role, as opening no
+home, and each `readOnlyUnless` or `hiddenUnless` at the key, as
+changeable or shown to everyone who opens the page (ADR-197).
 
 A view is `<page>.html` with its sections, each field's label and the
 place of its value, a value's parts inside its place and a list's item as
@@ -1034,7 +1044,9 @@ shows exactly when its page opens; a page of `signedIn` opens to everyone
 signed in. When the roles name their home pages and the session names the
 roles, `application.ts` holds each role's home by route and `app/page.tsx`,
 the start, opens the home of the first role the session answers that has
-one; without `roles` the homes are warned of at `/roles`, and when a page
+one, another stakeholder's page among them; a home this run does not
+write is warned of at the role, which opens none, without `roles` the
+homes are warned of at `/roles`, and when a page
 takes the route `/` it is that page, with a warning at it (ADR-197); the guard
 sends someone signed out to sign in with `returnTo`, shows anyone else the
 refusal, and never makes a refused page, which so calls no operation.

@@ -1716,6 +1716,8 @@ The menu, each entry shown to who may open its page:
 | second-factor | task | /sign-in/second-factor | none; submits to confirmSecondFactor | public | code |
 | sign-in | task | /sign-in | none; submits to signIn | public | email, password |
 
+**Insight on member-view:** The desk that registers members uses the contact section; a supervisor who reads a member's record to decide a fee waiver has no use for it, so it is left off their screen. This is screen layout, not a privacy rule; getMember still answers address and phones to every caller with members.read, and a role that must never receive them would need them left out of that response.
+
 **Insight on profile:** Every person who holds a card sees their own record and what they owe; the page needs no permission granted by role, so a role added later has it too, and staff, who hold no card, are told so.
 
 The elements of each page that pick, offer, hide or check something:

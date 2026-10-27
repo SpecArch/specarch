@@ -18,7 +18,7 @@ permissions:
   nobody: { description: Closed on purpose. }
   signedIn: { description: Every person once signed in. }
   members.read: { description: See members. }
-  members.write: { description: Register members. }
+  members.write: { description: Register members., implies: [members.read] }
   members.remove: { description: Remove members. }
 roles:
   desk: { description: The desk., permissions: [members.read, members.write, members.remove] }
@@ -80,7 +80,7 @@ pages:
     submit: createMember
     fields: [fullName, email]
     fieldConditions:
-      fullName: { readOnly: true, readOnlyUnless: members.remove }
+      fullName: { readOnly: true, readOnlyUnless: members.remove, hiddenUnless: members.read }
       email: { readOnlyUnless: members.write, hiddenUnless: members.audit }
     onSubmitted: { navigate: member-view, with: { memberId: id }, message: The member is registered. }
   member-view:

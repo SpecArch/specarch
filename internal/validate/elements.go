@@ -311,7 +311,7 @@ func (c *checker) checkFieldConditions(d *design, name string, pg *yaml.Node, ki
 			if kind == "view" && k == "readOnlyUnless" {
 				continue
 			}
-			c.checkFieldPermission(name, pg, p.Key.Value, source.Child(p.Value, k), source.Pointer(append(at, k)...), k)
+			c.checkFieldPermission(d, name, pg, p.Key.Value, source.Child(p.Value, k), source.Pointer(append(at, k)...), k)
 		}
 		if ent == nil {
 			continue
@@ -325,10 +325,11 @@ func (c *checker) checkFieldConditions(d *design, name string, pg *yaml.Node, ki
 
 // checkFieldPermission checks the permission a field's readOnlyUnless or
 // hiddenUnless names: one that some caller who opens the page lacks, since
-// a permission every such caller holds never changes the field, and
-// nobody, which no caller holds, always does (ADR-197). Whether it is
-// declared is checked with every other permission used.
-func (c *checker) checkFieldPermission(name string, pg *yaml.Node, field string, n *yaml.Node, ptr, key string) {
+// a permission every such caller holds (the page's own, or one it implies)
+// never changes the field, and nobody, which no caller holds, always does
+// (ADR-197). Whether it is declared is checked with every other permission
+// used.
+func (c *checker) checkFieldPermission(d *design, name string, pg *yaml.Node, field string, n *yaml.Node, ptr, key string) {
 	if n == nil {
 		return
 	}
@@ -338,7 +339,7 @@ func (c *checker) checkFieldPermission(name string, pg *yaml.Node, field string,
 		c.add(n, ptr, RuleFormField, "no caller holds nobody, so %s would never be shown; leave the field out of %s", field, name)
 	case perm == permissionNobody:
 		c.add(n, ptr, RuleFormField, "no caller holds nobody, so %s would never be changed; write readOnly: true", field)
-	case perm == permissionPublic || perm == permissionSignedIn && page != permissionPublic || perm == page:
+	case perm == permissionPublic || perm == permissionSignedIn && page != permissionPublic || d.holds([]string{page})[perm]:
 		c.add(n, ptr, RuleFormField, "every caller who opens %s holds %s, so %s never changes the field; name a permission only some of them hold, or leave %s out", name, perm, key, key)
 	}
 }

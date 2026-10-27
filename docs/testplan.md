@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 1.3.0 of the specification: 816 design tests, 397 golden and 419 red, about 25 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 1.3.0 of the specification: 817 design tests, 398 golden and 419 red, about 25 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -15,7 +15,7 @@ Version 1.3.0 of the specification: 816 design tests, 397 golden and 419 red, ab
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 812 |
+| system | 813 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -2985,9 +2985,17 @@ Scenario: red; level: system; verifies SA-77, SA-43.
 
 Scenario: golden; level: system; verifies SA-102.
 
-- Given: a specification whose roles name their home pages, with a profile page of signedIn reached from a menu, a form field read-only unless the caller holds members.remove and a view field hidden unless they hold members.write; an implementation file whose ui target is plain JavaScript; specarch-gen-ui built from this repository on PATH
+- Given: a specification whose roles name their home pages, with a profile page of signedIn reached from a menu, a form field read-only unless the caller holds members.remove and a view field hidden unless they hold members.write; an implementation file whose ui target is plain JavaScript, its session read from getSession with the roles under held; specarch-gen-ui built from this repository on PATH
 - When: generate ui is run with --unapproved
-- Then: it writes the pages as for any permission, since these screens read no session, warns at each role's home that it opens none and at each field's readOnlyUnless and hiddenUnless that the field is changeable or shown to everyone who opens the page, and exits 0
+- Then: it writes session.js with the session's operation, its properties and each role's home page, marks each menu entry with the permission of its page for session.js to show or hide, hands form.js the readOnlyUnless and view.js the hiddenUnless as permissions, writes index.html and index.js, which open the home of the first role the session answers that has one, prints no warning, and exits 0
+
+#### generate-ui-navigation-no-session
+
+Scenario: golden; level: system; verifies SA-102.
+
+- Given: the specification of generate-ui-navigation, and an implementation file whose ui target is plain JavaScript with no settings.session; specarch-gen-ui built from this repository on PATH
+- When: generate ui is run with --unapproved
+- Then: it writes the pages as for any permission, with no session.js and no index.html, warns at each role's home that it opens none and at each field's readOnlyUnless and hiddenUnless that the field is changeable or shown to everyone who opens the page, each naming settings.session, and exits 0
 
 #### generate-ui-sign-in-oidc
 

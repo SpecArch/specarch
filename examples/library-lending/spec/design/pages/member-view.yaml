@@ -14,6 +14,7 @@ pages:
     fieldConditions:
       address: { hiddenUnless: members.write }
       phones: { hiddenUnless: members.write }
+    why: The desk that registers members uses the contact section; a supervisor who reads a member's record to decide a fee waiver has no use for it, so it is left off their screen. This is screen layout, not a privacy rule; getMember still answers address and phones to every caller with members.read, and a role that must never receive them would need them left out of that response.
     states:
       failed:
         member-not-found: { message: There is no member with this card. }

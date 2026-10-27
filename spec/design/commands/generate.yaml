@@ -216,7 +216,7 @@ commands:
       "1": "Settle the errors, answer the questions that block the target, or approve the specification with specarch approve; with --check, run it once without --check to write the current output."
       "2": "Put the plug-in specarch-gen-<target> on PATH, name an output folder for the target in an implementation file, or correct the command line, and run it again."
     algorithm: checkStatus
-    satisfies: [SA-7, SA-8, SA-14, SA-20, SA-31, SA-46, SA-58, SA-59, SA-61, SA-65, SA-66]
+    satisfies: [SA-7, SA-8, SA-14, SA-20, SA-31, SA-46, SA-58, SA-59, SA-61, SA-65, SA-66, SA-102]
     why: |
       One program with verbs, and generators as plug-ins found on PATH, is
       the pattern of protoc, git and kubectl: one name to learn and install,

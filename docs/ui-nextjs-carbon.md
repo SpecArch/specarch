@@ -150,7 +150,10 @@ is used without an entry; one server route per operation a page calls
 when the target's settings put a server between the browser and the
 service, or a direct call when they do not; and the theme as Carbon
 theme tokens. The menu and the guard read the same `permission`, so a
-menu entry cannot open a page that turns its reader away. A derived test
+menu entry cannot open a page that turns its reader away; `signedIn`
+opens to everyone signed in. When the session names the person's roles,
+the start, `app/page.tsx`, opens the home of the first of them that has
+one (ADR-197). A derived test
 opens each page as someone without its permission and expects the
 refusal.
 

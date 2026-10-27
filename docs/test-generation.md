@@ -36,8 +36,8 @@ of a test strategy).
 - Derived cases: the validator lists, per subject, the cases the rest of
   the specification implies (missing required field, a value just outside
   each limit and exactly on it, a value in the wrong form, not one of the
-  enum's values, not a valid format, denied without the permission, not
-  found, duplicate, a channel that fails, each 4xx or 5xx response, each
+  enum's values, not a valid format, denied without the permission (or
+  when not signed in, for `signedIn`), not found, duplicate, a channel that fails, each 4xx or 5xx response, each
   non-zero exit code, a constraint violated, a move from the wrong state)
   and warns for every one no test covers, with a test to copy.
 - Worked examples: each algorithm's examples are checked against its
@@ -172,6 +172,7 @@ not a user mistake.
 | shorter than, longer than, below minimum, above maximum | occasional | happens, but a form usually stops it |
 | at minimum, at maximum, of N characters (golden) | occasional | the boundary that shows the limit is right |
 | denied without the permission | frequent | every role meets the screen it may not use |
+| denied when not signed in (`signedIn`) | frequent | a link opened before signing in, a session ended |
 | not found | frequent | a stale link, a deleted record |
 | duplicate | occasional | a double submit, a re-import |
 | dependency fails, dependency times out | rare | but critical by nature, see below |

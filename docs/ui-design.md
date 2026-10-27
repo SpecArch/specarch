@@ -45,6 +45,9 @@ for the web, as ADR-040.
 |---|---|---|
 | `pages` | `kind` (list, form, view, task, content, custom), `title`, `route`, `entity`, `permission`, `source` (the operation a list or view reads), `submit` (the operation a form or a task calls), `columns`, `fields`, `filters`, `actions` (each a `label`, `kind` operation or navigate, `target`, `permission`, `confirm`), `childRows` (a form's one-to-many relation edited as rows, with its `fields`, `maximum` and `lockLoadedRows`), `blocks` (a content page's headings, paragraphs, images and links, in reading order); a custom page names a screen the project builds by hand, with an optional `description` | targets exist, fields are the entity's, permissions exist and are fail-closed; a content page has blocks and nothing that loads, sends or shows a record; a custom page has nothing that describes a generated screen, and navigate actions only |
 | `menus` | a tree of entries, each a `title` with a `page` or `items` | every page exists; an entry shows to who may open its page |
+| `roles.<role>.home` | the page a holder of the role is shown after signing in and at the application's start (ADR-197) | a page without route parameters the role may open (`role_home`) |
+| `signedIn` | the reserved permission every caller holds once signed in, for the pages every person has whatever their role (ADR-197) | no role grants it (`reserved_name`) |
+| navigation | the gaps a walkthrough asks about: a page nothing leads to, a role that opens no menu entry, an entry no role opens, an operation action without a failure state on a page without states, a form with no `onSubmitted` | warnings (`navigation`, ADR-197) |
 | design tests | a page is a test subject, with route parameters and an action as its input | the action and the parameters exist |
 | techspec | a flowchart of pages, their navigate actions and the operations they call, and a table per page | |
 
@@ -247,6 +250,9 @@ that is active. The design says both, and the rest of a screen's
 elements, as maps keyed by the field they are about, beside the page's
 fields: `pickers`, `fieldConditions`, `checks` and `enteredTwice`, and
 `when` and `reason` on an action (`docs/conventions.md`, Page elements).
+A field's condition is an expression over the record, or a permission
+the caller must hold (`readOnlyUnless`, `hiddenUnless`), so a field's
+mode differs by role without naming a role (ADR-197).
 Each picker goes through a relation the entity declares, and each
 condition is an expression in the subset the checks use, so a stack
 reads the same rule the server applies. Whether a picker is a combo box,

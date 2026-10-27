@@ -59,4 +59,4 @@ commands:
       "1": "Settle each error it prints at the file, line and path given, then run it again."
       "2": "Read the usage message or the reason on standard error, correct the command line or the path it names, and run it again."
     algorithm: exitStatus
-    satisfies: [SA-1, SA-2, SA-3, SA-4, SA-5, SA-6, SA-9, SA-10, SA-11, SA-12, SA-13, SA-17, SA-18, SA-21, SA-23, SA-24, SA-27, SA-29, SA-65, SA-66, SA-101]
+    satisfies: [SA-1, SA-2, SA-3, SA-4, SA-5, SA-6, SA-9, SA-10, SA-11, SA-12, SA-13, SA-17, SA-18, SA-21, SA-23, SA-24, SA-27, SA-29, SA-65, SA-66, SA-101, SA-102]

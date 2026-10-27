@@ -161,7 +161,7 @@ func operationSequence(root *yaml.Node, o operation) string {
 	for _, ch := range chOrder {
 		fmt.Fprintf(&b, "  participant %s as %s\n", channels[ch], ch)
 	}
-	calls := strs(o.node, "calls")
+	calls := calls(o.node)
 	for i, dep := range calls {
 		fmt.Fprintf(&b, "  participant D%d as %s\n", i+1, callLabel(dep))
 	}
@@ -496,8 +496,10 @@ func flowFlowchart(flow *yaml.Node) string {
 // the deadline on the edge it takes, and each operation the system calls;
 // a decision as a rhombus with an edge per branch, a task with its
 // performers, a wait with what it waits for, a failure on the edge it
-// takes, and the operation that undoes a step on a dotted edge (ADR-198).
-func workflowFlowchart(d *doc, name string, w *yaml.Node) string {
+// takes, and the operation that undoes a step on a dotted edge (ADR-198);
+// each dependency an operation step calls as a node of its kind, the edge
+// to it naming the operation called (ADR-200).
+func workflowFlowchart(d *doc, root *yaml.Node, name string, w *yaml.Node) string {
 	steps := items(w, "steps")
 	if len(steps) == 0 {
 		return ""
@@ -507,6 +509,8 @@ func workflowFlowchart(d *doc, name string, w *yaml.Node) string {
 	fmt.Fprintf(&b, "  start([\"%s answers 202\"])\n", mermaidText(d.known(w, "trigger", "the trigger", "workflows", name)))
 	index := map[string]int{}
 	refused, failed := false, false
+	drawn := map[string]bool{}
+	var deps, calledBy []string
 	for i, st := range steps {
 		index[str(st, "name")] = i
 		at := []string{"workflows", name, "steps", fmt.Sprint(i)}
@@ -553,7 +557,39 @@ func workflowFlowchart(d *doc, name string, w *yaml.Node) string {
 			if comp := str(st, "compensatedBy"); comp != "" {
 				fmt.Fprintf(&b, "  u%d[[\"%s\"]]\n", i, mermaidText(comp))
 			}
+			if o := findOperation(root, str(st, "operation")); o != nil {
+				for _, c := range calls(o.node) {
+					dep := calledDependency(c)
+					id := "dependency_" + mermaidID(dep)
+					if !drawn[dep] {
+						drawn[dep] = true
+						node := get(get(root, "dependencies"), dep)
+						kind, label := str(node, "kind"), dep
+						if kind == "" {
+							kind = "system"
+						}
+						if p := str(node, "protocol"); p != "" {
+							label += ", " + p
+						}
+						deps = append(deps, dependencyShape(id, mermaidText(label), kind))
+					}
+					edge := ""
+					if _, op, ok := strings.Cut(c, "#/operations/"); ok {
+						edge = op
+					} else if strings.Contains(c, "#") {
+						edge = callLabel(c)
+					}
+					if edge != "" {
+						calledBy = append(calledBy, fmt.Sprintf("  s%d -.->|\"%s\"| %s\n", i, mermaidText(edge), id))
+					} else {
+						calledBy = append(calledBy, fmt.Sprintf("  s%d -.-> %s\n", i, id))
+					}
+				}
+			}
 		}
+	}
+	for _, n := range deps {
+		fmt.Fprintf(&b, "  %s\n", n)
 	}
 	b.WriteString("  done((\"approved\"))\n")
 	if refused {
@@ -616,6 +652,9 @@ func workflowFlowchart(d *doc, name string, w *yaml.Node) string {
 			late = fmt.Sprintf("s%d", to)
 		}
 		fmt.Fprintf(&b, "  s%d -->|\"%s passes\"| %s\n", i, mermaidText(d.known(st, "deadline", "the deadline", "workflows", name, "steps", fmt.Sprint(i))), late)
+	}
+	for _, e := range calledBy {
+		b.WriteString(e)
 	}
 	return fence(b.String())
 }
@@ -1010,7 +1049,7 @@ func contextDiagram(root *yaml.Node) string {
 	emitters := map[string]bool{}
 	consumers := map[string]bool{}
 	call := func(name string, n *yaml.Node) {
-		for _, c := range strs(n, "calls") {
+		for _, c := range calls(n) {
 			dep := calledDependency(c)
 			if !contains(callers[dep], name) {
 				callers[dep] = append(callers[dep], name)
@@ -1058,6 +1097,14 @@ func contextDiagram(root *yaml.Node) string {
 			label := mermaidText(dep.Key.Value)
 			if p := str(dep.Value, "protocol"); p != "" {
 				label += ", " + p
+			}
+			// How this system proves itself and how often it may call
+			// (ADR-200).
+			if a := str(dep.Value, "auth"); a != "" && a != "none" {
+				label += ", " + a
+			}
+			if r := get(dep.Value, "rate"); r != nil {
+				label += ", " + num(r, "requests") + " per " + str(r, "per")
 			}
 			id := "dependency_" + mermaidID(dep.Key.Value)
 			fmt.Fprintf(&b, "  %s\n", dependencyShape(id, label, kind))

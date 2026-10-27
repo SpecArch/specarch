@@ -33,6 +33,7 @@ const (
 	RuleRequirement            Rule = "requirement"
 	RuleEmits                  Rule = "emits"
 	RuleDependency             Rule = "dependency"
+	RuleIntegration            Rule = "integration"
 	RuleChannel                Rule = "channel"
 	RuleIdempotencyKey         Rule = "idempotency_key"
 	RuleValidity               Rule = "validity"
@@ -193,6 +194,7 @@ var Rules = []Rule{
 	RuleRequirement,
 	RuleEmits,
 	RuleDependency,
+	RuleIntegration,
 	RuleChannel,
 	RuleIdempotencyKey,
 	RuleValidity,

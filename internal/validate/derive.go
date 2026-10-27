@@ -530,8 +530,19 @@ func (d *design) operationSubject(o operation) *subject {
 		if dep == nil {
 			continue
 		}
-		s.byNature("dependency fails "+name, name+" answers with an error", call, failureResponse(o.node, "502", "503"))
-		s.byNature("dependency times out "+name, name+" does not answer within "+source.Str(source.Child(dep, "timeout")), call, failureResponse(o.node, "504", "503"))
+		fails, late := failureResponse(o.node, "502", "503"), mappedFailure(o.node, name, "timeout", "504", "503")
+		if onlyForgotten(o.node, name) {
+			fails = "it succeeds all the same, since it does not wait for " + name
+			late = fails
+		}
+		s.byNature("dependency fails "+name, name+" answers with an error", call, fails)
+		s.byNature("dependency times out "+name, name+" does not answer within "+source.Str(source.Child(dep, "timeout")), call, late)
+		if rate := source.Child(dep, "rate"); rate != nil {
+			s.byNature("dependency rate exceeded "+name, o.id+"'s calls would pass "+name+"'s rate of "+rateText(rate), call, "the call is not sent above the rate, and "+failureResponse(o.node, "429", "503"))
+		}
+	}
+	for _, e := range callEntries(o.node) {
+		contractCases(s, o.node, e, call)
 	}
 	d.signInCases(s, o, call)
 	if key := source.Str(source.Child(o.node, "idempotencyKey")); key != "" {
@@ -1151,14 +1162,107 @@ func unwrap(expr string) (string, bool) {
 	return strings.TrimSpace(expr[1 : len(expr)-1]), true
 }
 
+// mappedFailure is what an operation answers when a dependency gives
+// status: the response a call's errors maps it to, or the first of the
+// statuses given that the operation declares.
+func mappedFailure(op *yaml.Node, dep, status string, statuses ...string) string {
+	for _, e := range callEntries(op) {
+		if callDependency(e.ref.Value) != dep {
+			continue
+		}
+		if ours := source.Str(source.Child(source.Child(e.item, "errors"), status)); ours != "" {
+			return failureResponse(op, ours)
+		}
+	}
+	return failureResponse(op, statuses...)
+}
+
+// onlyForgotten says whether every call an operation makes to dep is fire
+// and forget, so that dep's failure is not heard by it.
+func onlyForgotten(op *yaml.Node, dep string) bool {
+	found := false
+	for _, e := range callEntries(op) {
+		if callDependency(e.ref.Value) != dep {
+			continue
+		}
+		if source.Str(source.Child(e.item, "mode")) != "fireAndForget" {
+			return false
+		}
+		found = true
+	}
+	return found
+}
+
+// rateText says a rate in words: 20 calls per PT1S, and 5 at once above it.
+func rateText(rate *yaml.Node) string {
+	text := source.IntText(source.Child(rate, "requests")) + " calls per " + source.Str(source.Child(rate, "per"))
+	if burst := source.IntText(source.Child(rate, "burst")); burst != "" {
+		text += ", " + burst + " at once above it"
+	}
+	return text
+}
+
+// contractCases adds the cases a call's contract makes (ADR-200): its
+// retries all used up, and an answer that fails which its errors does not
+// map.
+func contractCases(s *subject, op *yaml.Node, e callEntry, call string) {
+	dep := callDependency(e.ref.Value)
+	if r := source.Child(e.item, "retries"); r != nil {
+		var on, statuses []string
+		late := false
+		for _, i := range source.Items(source.Child(r, "on")) {
+			on = append(on, i.Value)
+			if i.Value == "timeout" {
+				late = true
+			} else {
+				statuses = append(statuses, i.Value)
+			}
+		}
+		var every []string
+		if len(statuses) > 0 {
+			every = append(every, "answers "+orList(statuses))
+		}
+		if late {
+			every = append(every, "does not answer in time")
+		}
+		limit := source.IntText(source.Child(r, "limit"))
+		tries := limit + " more times, " + source.Str(source.Child(r, "delay")) + " apart"
+		if source.Str(source.Child(r, "backoff")) == "exponential" {
+			tries = limit + " more times, " + source.Str(source.Child(r, "delay")) + " apart and twice that each time"
+		}
+		last := failureResponse(op, "502", "503")
+		if len(on) > 0 {
+			if on[0] == "timeout" {
+				last = mappedFailure(op, dep, "timeout", "504", "503")
+			} else {
+				last = mappedFailure(op, dep, on[0], "502", "503")
+			}
+		}
+		s.byNature("dependency retries exhausted "+dep, dep+" "+strings.Join(every, " or ")+" on every try", call, "the call is tried "+tries+", then "+last)
+	}
+	if errs := source.Child(e.item, "errors"); errs != nil {
+		var mapped []string
+		for _, p := range source.Pairs(errs) {
+			if p.Key.Value != "timeout" {
+				mapped = append(mapped, p.Key.Value)
+			}
+		}
+		given := dep + " answers with an error"
+		if len(mapped) > 0 {
+			given += " other than " + orList(mapped)
+		}
+		s.byNature("dependency answers unmapped "+dep, given, call, failureResponse(op, "502", "503"))
+	}
+}
+
 // calledDependencies are the dependencies an operation or job calls, each
 // once, in the order of its calls: an entry naming one of a dependency's
 // operations counts as the dependency.
 func calledDependencies(n *yaml.Node) []string {
 	var out []string
 	seen := map[string]bool{}
-	for _, e := range source.Items(source.Child(n, "calls")) {
-		if name := callDependency(e.Value); !seen[name] {
+	for _, e := range callEntries(n) {
+		if name := callDependency(e.ref.Value); !seen[name] {
 			seen[name] = true
 			out = append(out, name)
 		}

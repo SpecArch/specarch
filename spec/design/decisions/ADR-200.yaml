@@ -1,0 +1,100 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-1.0.schema.json
+decisions:
+  ADR-200:
+    title: A dependency says how it is reached and called, and a call says how it is made, mapped, retried and answered
+    status: proposed
+    date: "2026-10-28"
+    context: |
+      A dependency is a name, a kind, a protocol and a time limit, and an
+      operation lists the dependencies it calls (ADR-134). Everything
+      else about an integration was left to the code: how this system
+      proves itself to the other one and where that secret is kept, how
+      often it may call, what is sent and in which of their fields, what
+      comes back and where it is kept, whether a lost answer can be
+      tried again without acting twice, which answers are tried again,
+      and what the caller is told when the other system refuses. These
+      are the decisions that break an integration in production, and a
+      reader of the specification could neither take nor review them.
+    decision: |
+      A dependency may say auth, how this system proves itself to it:
+      none, apiKey, basic (RFC 7617), bearer (RFC 6750),
+      oauth2ClientCredentials (RFC 6749, 4.4), mutualTls (RFC 8705) or
+      signedRequest. Any but none names credential, the setting under
+      configuration, marked secret, that holds what is sent; the value is
+      never in a specification. rate says how many calls this system may
+      make in a time, as an operation's limits.rate says what its callers
+      may make. A dependency with no specification of its own may declare
+      operations, each one level deep in OpenAPI's and AsyncAPI's words:
+      method and path for a request or channel and message for a message
+      sent, request, the fields sent, and responses by status, the ones
+      that succeed with the fields they carry. A calls entry names one as
+      <dependency>#/operations/<name>; a dependency with a specification
+      is called through its paths, as before.
+
+      A calls entry of an operation may be an object with call, the name
+      it would be as a plain entry, and the call's contract: mapping.send
+      gives each of their request's fields from an expression over the
+      operation's parameters, its request body's fields and the fields of
+      the record its guard names; mapping.receive gives each field of that
+      record from an expression over their answer's fields. idempotencyKey
+      gives the header and an expression whose value is the same whenever
+      the same call is made again. retries gives limit, delay, backoff
+      (fixed or exponential) and on, the statuses and timeout tried again.
+      errors maps each of their statuses, or timeout, to a status the
+      operation answers. mode is sync, async with a callback message, or
+      fireAndForget. A plain entry is a sync call with none of these.
+
+      The validator checks each against both sides, as integration at the
+      key: a credential that is not a secret setting, a field sent their
+      request lacks or one it requires left out, a value of the wrong
+      type, a name both a parameter and a field of the record, a status
+      their operation does not declare or one that succeeds, a status the
+      operation does not answer, an answer mapped or kept from a call
+      that does not wait, an async call with no callback. A post or patch
+      retried with no idempotency key is a warning. Each call derives
+      cases, always written as a failing dependency's are: its retries
+      used up, an answer its errors does not map, the dependency's rate
+      exceeded; a timeout that errors maps is answered as it maps it, and
+      a dependency called only fire and forget fails with the operation
+      succeeding all the same.
+    consequences: |
+      Every plain calls entry reads as before, and every reader of calls
+      reads the name of an object entry from its call. Jobs and gateways
+      keep plain entries: a job has no answer to map errors to, and a
+      gateway's calls are lookups. The context diagram writes a
+      dependency's auth and rate on its node, and the technical
+      specification lists each call's contract under its operation; the
+      workflow diagram's integration nodes, and examples of a mapping run
+      through specarch try, are later items. A mapping on a call through
+      another specification's paths is read, and its fields are checked
+      only once that specification is given beside it, as other
+      references between specifications are.
+    why: |
+      A call's contract is written on the call, not on the dependency,
+      since the values mapped and the answer an error becomes are the
+      calling operation's: two operations calling one ledger send it
+      different fields and answer its refusal differently. The time limit
+      stays on the dependency (one system has one limit wherever it is
+      called), and so do auth and rate, which belong to the system, not to
+      a call.
+
+      An entry stays a plain name when it says nothing more, so the
+      thousands of calls lists already written keep their meaning, and the
+      object is the only way to say a contract; a second keyword beside
+      calls, keyed by the entry, would put one call's facts in two places.
+      retries takes the word and the limit that a job's and a workflow
+      failure's retries already use, rather than a new retry, so one thing
+      is said one way; its on list is written out, since which answers are
+      safe to try again is the decision a reader must see. idempotencyKey
+      on a call is an object with header and value, since on an operation
+      the same word names only the header the caller sends: the call says
+      what it sends and what it is made from.
+
+      auth names the scheme's standard and nothing of its endpoint or
+      token URL, which are deployment, and credential names a setting
+      rather than holding a value, so the secret_value rule keeps values
+      out as it does for every setting. A dependency's operations are one
+      level deep: enough to check a mapping's names and types, and no
+      second OpenAPI document inside a dependency; a system that needs
+      more is specified on its own and named by specification.
+    satisfies: [SA-105]

@@ -685,3 +685,18 @@ requirements:
     verification: test
     needs: [NEED-1]
     why: A business states many rules as cases, and keeps them as a table; written as a formula the cases nobody decided are hidden, since the formula gives a value for them anyway. A table checked for overlap and gaps names those cases, so each is decided by a person, and each rule stays a test (ADR-199).
+  SA-105:
+    statement: A dependency shall be able to say how this system proves itself to it, with the secret kept in a configuration setting and never in the specification, how often it may be called, and, when it has no specification of its own, its operations one level deep; a call shall be able to say how our values map to theirs and back, the idempotency key sent, its retries, which of their answers become the operation's, and whether it waits for the answer; specarch validate shall check each in both builds and derive the cases they make, and the context diagram shall draw them.
+    kind: functional
+    priority: should
+    status: proposed
+    acceptance:
+      - A dependency with auth, a credential naming a secret setting, a rate and operations, and calls that map, send a key, retry, map errors and call async or fire and forget, validates in both builds.
+      - An auth other than none with no credential, a credential naming no setting or one not secret, operations beside a specification, an operation of neither or both kinds, and a call naming an operation not declared are reported as integration or setting at the key.
+      - A mapping that sends a field their request lacks, leaves out one it requires, sends a value of the wrong type or of an unknown or shared name, or keeps a value in a field the record lacks, and retries or errors naming an answer that succeeds or is not declared, are reported as integration, expression_type or expression_name at the key; a post or patch retried with no idempotency key is an integration warning.
+      - An operation gets a case for a call's retries used up, for an answer its errors does not map, and for a dependency's rate exceeded, each always written as a failing dependency's is; a timeout errors maps is answered as it maps it, and a dependency called only fire and forget fails and times out with the operation succeeding all the same.
+      - The context diagram writes a dependency's auth and rate on its node, and the technical specification lists each call's contract under the operation.
+      - Both builds print the same lines for every case.
+    verification: test
+    needs: [NEED-1]
+    why: An integration is where a system most often fails in production, and the decisions that make it fail are taken in nobody's specification today; how the other system is called, what is sent, what is tried again and what the caller is answered when it fails. Written beside the call they are checked against both sides and each gets a test (ADR-200).

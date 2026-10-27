@@ -1,0 +1,10 @@
+workflow: waiver
+level: system
+scenario: red
+covers: [requester approves own request]
+given: "a request made by a caller who also holds fees.approve"
+when: "the requester approves it"
+then: "it is refused, because the person who made a request never approves it, and the request still waits"
+verifies: [CASE-1]
+origin: inferred
+why: "Written by specarch derive: the four-eyes rule holds on every approval, so its case is always written. A draft: complete the given, when and then, and remove what does not hold."

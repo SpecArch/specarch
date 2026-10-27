@@ -2,7 +2,7 @@
 
 # Library Lending: deployment guide
 
-Version 0.1.0 of the specification: 3 environments, 3 settings and 1 migration. Secrets are named here with where their value comes from, never with a value.
+Version 0.1.0 of the specification: 3 environments, 4 settings and 1 migration. Secrets are named here with where their value comes from, never with a value.
 
 ## 1. Environments
 
@@ -24,6 +24,7 @@ The customer builds, installs and runs production from the source; what the cust
 |---|---|---|---|
 | dailyRate | decimal(10, 2) |   | The late fee per day, set by the board; read by the lateFee algorithm. |
 | databaseUrl | string | yes | Where the database is; it carries the password, so it comes from the host's secret store and is never written here. |
+| feeLedgerToken | string | yes | The token the finance team issued for the fee ledger; it comes from the host's secret store and is never written here. |
 | notificationChannelUrl | string |   | Where the notification service listens for loan events. |
 
 ## 3. Installations: Library Lending in Go and PostgreSQL
@@ -51,6 +52,7 @@ The deployment declares no links between its servers, so the diagram draws none.
 |---|---|
 | dailyRate | 0.50 |
 | databaseUrl | a secret; its description says where the value comes from |
+| feeLedgerToken | a secret; its description says where the value comes from |
 | notificationChannelUrl | http://localhost:8081/events |
 
 ### staging
@@ -76,6 +78,7 @@ The deployment declares no links between its servers, so the diagram draws none.
 |---|---|
 | dailyRate | 0.50 |
 | databaseUrl | a secret; its description says where the value comes from |
+| feeLedgerToken | a secret; its description says where the value comes from |
 | notificationChannelUrl | https://notify-staging.library.example/events |
 
 ### production
@@ -146,6 +149,7 @@ Installed with podman-compose 1.4, from ../../../deploy/compose. The compose fil
 |---|---|
 | dailyRate | 0.50 |
 | databaseUrl | a secret; its description says where the value comes from |
+| feeLedgerToken | a secret; its description says where the value comes from |
 | notificationChannelUrl | https://notify.library.example/events |
 
 | Monitor | Tool | How | Alert |

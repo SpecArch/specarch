@@ -134,6 +134,8 @@ var referencePlaces = []struct {
 	{[]string{"workflows", "*", "steps", "*", "message"}, toMessage},
 	{[]string{"jobs", "*", "trigger", "consumes"}, toMessage},
 	{[]string{"paths", "*", "*", "calls"}, toDependency},
+	{[]string{"paths", "*", "*", "calls", "*", "call"}, toDependency},
+	{[]string{"paths", "*", "*", "calls", "*", "callback"}, toMessage},
 	{[]string{"jobs", "*", "calls"}, toDependency},
 	{[]string{"gateways", "*", "calls"}, toDependency},
 	{[]string{"gateways", "*", "forwards", "*", "dependency"}, toDependency},

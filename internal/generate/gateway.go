@@ -45,7 +45,7 @@ func gatewaySection(d *doc, root *yaml.Node, name string, g *yaml.Node) {
 	}
 	d.blank()
 	var text []string
-	if calls := strs(g, "calls"); len(calls) > 0 {
+	if calls := calls(g); len(calls) > 0 {
 		var parts []string
 		for _, c := range calls {
 			parts = append(parts, callText(root, c))
@@ -97,7 +97,7 @@ func gatewaySequence(root *yaml.Node, name string, g *yaml.Node) string {
 	fmt.Fprintf(&b, "  participant G as Gateway %s\n", mermaidText(name))
 	deps := get(root, "dependencies")
 	var keys []string
-	for _, c := range strs(g, "calls") {
+	for _, c := range calls(g) {
 		if dep := calledDependency(c); str(get(deps, dep), "kind") == "identityProvider" {
 			keys = append(keys, dep)
 		}
@@ -128,7 +128,7 @@ func gatewayDependencies(g *yaml.Node) []string {
 			out = append(out, dep)
 		}
 	}
-	for _, c := range strs(g, "calls") {
+	for _, c := range calls(g) {
 		if dep := calledDependency(c); !contains(out, dep) {
 			out = append(out, dep)
 		}

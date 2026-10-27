@@ -475,6 +475,146 @@
       "type": "string",
       "pattern": "^[a-z][A-Za-z0-9]*(#/paths/~1[^/]*/(get|post|put|patch|delete))?$"
     },
+    "callRef": {
+      "description": "SpecArch keyword. What a calls entry names: a dependency by its name under 'dependencies'; one operation of a dependency that is another specification, as customerRegistry#/paths/~1customers/get; or one operation a dependency with no specification declares under its operations, as feeLedger#/operations/postCharge.",
+      "type": "string",
+      "pattern": "^[a-z][A-Za-z0-9]*(#/paths/~1[^/]*/(get|post|put|patch|delete)|#/operations/[a-z][A-Za-z0-9]*)?$"
+    },
+    "call": {
+      "description": "SpecArch keyword. One call with its contract: the dependency or its operation called, how our values map to theirs and back, the idempotency key sent, the retries, which of their answers become which of ours, and whether the call waits for the answer (ADR-200).",
+      "type": "object",
+      "properties": {
+        "call": {
+          "$ref": "#/$defs/callRef"
+        },
+        "mapping": {
+          "description": "How the call is made from our values and what of the answer is kept. send: each field of their request, by its name, from an expression over the operation's parameters, its request body's fields and the fields of the record its guard names. receive: each field of that record, by its name, from an expression over the fields of their answer that succeeds.",
+          "type": "object",
+          "properties": {
+            "send": {
+              "type": "object",
+              "propertyNames": {
+                "$ref": "#/$defs/memberName"
+              },
+              "additionalProperties": {
+                "$ref": "#/$defs/expression"
+              },
+              "minProperties": 1
+            },
+            "receive": {
+              "type": "object",
+              "propertyNames": {
+                "$ref": "#/$defs/memberName"
+              },
+              "additionalProperties": {
+                "$ref": "#/$defs/expression"
+              },
+              "minProperties": 1
+            }
+          },
+          "minProperties": 1,
+          "additionalProperties": false
+        },
+        "idempotencyKey": {
+          "description": "The key sent with the call by which the dependency tells a repeated call from a new one: header, the header it is sent in, and value, an expression over our values that gives the same key whenever the same call is made again.",
+          "type": "object",
+          "properties": {
+            "header": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9-]+$"
+            },
+            "value": {
+              "$ref": "#/$defs/expression"
+            }
+          },
+          "required": [
+            "header",
+            "value"
+          ],
+          "additionalProperties": false
+        },
+        "retries": {
+          "description": "How often a call is tried again: limit, the tries after the first; delay, the wait before the first of them; backoff, fixed for the same wait each time or exponential for twice the last; on, the answers that are tried again, by their status or timeout.",
+          "type": "object",
+          "properties": {
+            "limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            },
+            "delay": {
+              "$ref": "#/$defs/duration"
+            },
+            "backoff": {
+              "type": "string",
+              "enum": [
+                "fixed",
+                "exponential"
+              ]
+            },
+            "on": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^(timeout|[1-5][0-9][0-9])$"
+              },
+              "minItems": 1,
+              "uniqueItems": true
+            }
+          },
+          "required": [
+            "limit",
+            "delay",
+            "backoff",
+            "on"
+          ],
+          "additionalProperties": false
+        },
+        "errors": {
+          "description": "Which of their answers that fail becomes which of ours: keyed by their status, or timeout for no answer in time, each the status of a response the operation declares.",
+          "type": "object",
+          "propertyNames": {
+            "pattern": "^(timeout|[1-5][0-9][0-9])$"
+          },
+          "additionalProperties": {
+            "type": "string",
+            "pattern": "^[1-5][0-9][0-9]$"
+          },
+          "minProperties": 1
+        },
+        "mode": {
+          "description": "Whether the operation waits for the answer: sync, it waits, the plain call; async, the dependency takes the call and answers later with the callback message; fireAndForget, it neither waits nor hears back.",
+          "type": "string",
+          "enum": [
+            "sync",
+            "async",
+            "fireAndForget"
+          ]
+        },
+        "callback": {
+          "description": "With mode async: the channel message, as 'channel/Message', by which the dependency answers later.",
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9]*(\\.[a-z][a-z0-9]*)*/[A-Z][A-Za-z0-9]*$"
+        }
+      },
+      "required": [
+        "call"
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "expression": {
+      "description": "An expression in SpecArch's subset of CEL, as a formula is written.",
+      "type": "string",
+      "minLength": 1
+    },
     "enum": {
       "description": "JSON Schema keywords. A closed set of string values.",
       "type": "object",
@@ -1969,10 +2109,17 @@
           "uniqueItems": true
         },
         "calls": {
-          "description": "SpecArch keyword. The dependencies this operation calls, by their names under 'dependencies'. An entry may name one operation of a dependency that is another specification, as customerRegistry#/paths/~1customers/get.",
+          "description": "SpecArch keyword. The dependencies this operation calls, by their names under 'dependencies'. An entry may name one operation of a dependency that is another specification, as customerRegistry#/paths/~1customers/get, or one a dependency declares under its operations, as feeLedger#/operations/postCharge; an entry that says how the call is made is an object with call and its contract (ADR-200).",
           "type": "array",
           "items": {
-            "$ref": "#/$defs/operationRef"
+            "anyOf": [
+              {
+                "$ref": "#/$defs/callRef"
+              },
+              {
+                "$ref": "#/$defs/call"
+              }
+            ]
           },
           "uniqueItems": true
         },
@@ -2345,6 +2492,38 @@
           "type": "string",
           "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(-[0-9A-Za-z.-]+)?$"
         },
+        "auth": {
+          "description": "SpecArch keyword. How this system proves itself to the dependency: none; apiKey, a key sent with each call; basic, a user and password (RFC 7617); bearer, a token (RFC 6750); oauth2ClientCredentials, a token got with the client credentials grant (RFC 6749, 4.4); mutualTls, a client certificate (RFC 8705); signedRequest, each call signed with a key. Any but none names its credential (ADR-200).",
+          "type": "string",
+          "enum": [
+            "none",
+            "apiKey",
+            "basic",
+            "bearer",
+            "oauth2ClientCredentials",
+            "mutualTls",
+            "signedRequest"
+          ]
+        },
+        "credential": {
+          "description": "SpecArch keyword. The name of the setting under configuration, marked secret, that holds what auth sends; the value itself is never in a specification.",
+          "type": "string",
+          "pattern": "^[a-z][A-Za-z0-9]*$"
+        },
+        "rate": {
+          "description": "SpecArch keyword. How many calls this system may make to the dependency in a time, and how many at once above that: the dependency's limit, which the calls keep to.",
+          "$ref": "#/$defs/rate"
+        },
+        "operations": {
+          "description": "SpecArch keyword. The operations of a dependency that has no specification, keyed by camelCase name; a calls entry names one as <dependency>#/operations/<name>.",
+          "type": "object",
+          "propertyNames": {
+            "$ref": "#/$defs/memberName"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/dependencyOperation"
+          }
+        },
         "satisfies": {
           "$ref": "#/$defs/satisfies"
         },
@@ -2383,6 +2562,120 @@
         ],
         "version": [
           "specification"
+        ],
+        "credential": [
+          "auth"
+        ]
+      }
+    },
+    "dependencyOperation": {
+      "description": "SpecArch keyword. One operation of a dependency that has no specification of its own, one level deep, in OpenAPI's and AsyncAPI's words: method and path for a request, or channel and message for a message sent; request, the fields sent; responses, its answers by status (ADR-200).",
+      "type": "object",
+      "properties": {
+        "description": {
+          "$ref": "#/$defs/markdown"
+        },
+        "method": {
+          "type": "string",
+          "enum": [
+            "get",
+            "post",
+            "put",
+            "patch",
+            "delete"
+          ]
+        },
+        "path": {
+          "type": "string",
+          "pattern": "^/"
+        },
+        "channel": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9]*(\\.[a-z][a-z0-9]*)*$"
+        },
+        "message": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Za-z0-9]*$"
+        },
+        "request": {
+          "description": "The fields sent, as an object schema one level deep.",
+          "type": "object",
+          "properties": {
+            "properties": {
+              "type": "object",
+              "propertyNames": {
+                "$ref": "#/$defs/memberName"
+              },
+              "additionalProperties": {
+                "$ref": "#/$defs/field"
+              }
+            },
+            "required": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "uniqueItems": true
+            }
+          },
+          "required": [
+            "properties"
+          ],
+          "additionalProperties": false
+        },
+        "responses": {
+          "description": "Its answers, keyed by status: a description, and for an answer that succeeds the fields it carries, one level deep.",
+          "type": "object",
+          "propertyNames": {
+            "pattern": "^[1-5][0-9][0-9]$"
+          },
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "description": {
+                "$ref": "#/$defs/markdown"
+              },
+              "properties": {
+                "type": "object",
+                "propertyNames": {
+                  "$ref": "#/$defs/memberName"
+                },
+                "additionalProperties": {
+                  "$ref": "#/$defs/field"
+                }
+              }
+            },
+            "required": [
+              "description"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "description"
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false,
+      "dependentRequired": {
+        "method": [
+          "path"
+        ],
+        "path": [
+          "method"
+        ],
+        "channel": [
+          "message"
+        ],
+        "message": [
+          "channel"
         ]
       }
     },
@@ -5012,28 +5305,7 @@
           "maximum": 9007199254740991
         },
         "rate": {
-          "description": "How many requests one caller may make in a time, and how many at once above that.",
-          "type": "object",
-          "properties": {
-            "requests": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 2147483647
-            },
-            "per": {
-              "$ref": "#/$defs/duration"
-            },
-            "burst": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 2147483647
-            }
-          },
-          "required": [
-            "requests",
-            "per"
-          ],
-          "additionalProperties": false
+          "$ref": "#/$defs/rate"
         }
       },
       "minProperties": 1,
@@ -5045,6 +5317,30 @@
       "patternProperties": {
         "^x-": {}
       },
+      "additionalProperties": false
+    },
+    "rate": {
+      "description": "How many requests one caller may make in a time, and how many at once above that.",
+      "type": "object",
+      "properties": {
+        "requests": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2147483647
+        },
+        "per": {
+          "$ref": "#/$defs/duration"
+        },
+        "burst": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2147483647
+        }
+      },
+      "required": [
+        "requests",
+        "per"
+      ],
       "additionalProperties": false
     },
     "problemType": {
@@ -5305,7 +5601,7 @@
           "description": "The dependencies the job calls. An entry may name one operation of a dependency that is another specification, as customerRegistry#/paths/~1customers/get.",
           "type": "array",
           "items": {
-            "$ref": "#/$defs/operationRef"
+            "$ref": "#/$defs/callRef"
           },
           "uniqueItems": true
         },
@@ -5442,7 +5738,7 @@
           "description": "SpecArch keyword. The dependencies the gateway calls besides the ones it forwards to, as an operation's calls: the identity provider whose keys it fetches among them. A forward's dependency is not listed here too.",
           "type": "array",
           "items": {
-            "$ref": "#/$defs/operationRef"
+            "$ref": "#/$defs/callRef"
           },
           "uniqueItems": true
         },

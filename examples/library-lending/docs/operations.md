@@ -166,6 +166,7 @@ Every setting the system reads at run time. A secret's value is never written he
 |---|---|---|---|
 | dailyRate | decimal(10, 2) |  | The late fee per day, set by the board; read by the lateFee algorithm. |
 | databaseUrl | string | yes | Where the database is; it carries the password, so it comes from the host's secret store and is never written here. |
+| feeLedgerToken | string | yes | The token the finance team issued for the fee ledger; it comes from the host's secret store and is never written here. |
 | notificationChannelUrl | string |  | Where the notification service listens for loan events. |
 
 ## 9. Backing up

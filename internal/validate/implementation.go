@@ -617,8 +617,8 @@ func (c *checker) serverReach(d *design, layout map[string]*yaml.Node, packages 
 		}
 	}
 	uses := func(n *yaml.Node, by string) {
-		for _, call := range source.Items(source.Child(n, "calls")) {
-			dep, _, _ := strings.Cut(call.Value, "#")
+		for _, call := range callEntries(n) {
+			dep, _, _ := strings.Cut(call.ref.Value, "#")
 			add(dep, by)
 		}
 		for _, e := range source.Items(source.Child(n, "emits")) {

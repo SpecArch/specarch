@@ -1,0 +1,143 @@
+specarch: "1.0.0"
+info: { title: Case, version: 1.0.0 }
+requirements:
+  CASE-1: { statement: One., kind: functional, priority: must, status: accepted, acceptance: [One.] }
+permissions:
+  loans.return: { description: Record a return. }
+roles:
+  librarian: { description: Works the desk., permissions: [loans.return] }
+entities:
+  Loan:
+    type: object
+    properties:
+      id: { type: string, format: uuid, readOnly: true }
+      loanId: { type: string, format: uuid }
+      status: { type: string, enum: [open, returned] }
+      lateFee: { type: string, format: decimal, precision: 10, scale: 2 }
+    required: [id, loanId, status, lateFee]
+    primaryKey: [id]
+    satisfies: [CASE-1]
+dependencies:
+  feeLedger:
+    description: The finance system's ledger.
+    timeout: PT5S
+    auth: bearer
+    rate: { requests: 20, per: PT1S }
+    operations:
+      postCharge:
+        description: Post a charge.
+        method: post
+        path: /charges
+        request:
+          properties:
+            loan: { type: string, format: uuid }
+            amount: { type: string, format: decimal, precision: 10, scale: 2 }
+          required: [loan, amount, reason]
+        responses:
+          "201": { description: Posted. }
+          "503": { description: The ledger is down. }
+      unsaid:
+        description: Says neither how it is called.
+      both:
+        description: Says both.
+        method: get
+        path: /both
+        channel: ledger.both
+        message: Both
+      sent:
+        description: A message with an answer.
+        channel: ledger.sent
+        message: Sent
+        responses:
+          "200": { description: Taken. }
+    satisfies: [CASE-1]
+  auditLog:
+    description: The audit log.
+    timeout: PT1S
+    auth: none
+    credential: auditToken
+    satisfies: [CASE-1]
+  directory:
+    description: The staff directory.
+    timeout: PT1S
+    auth: apiKey
+    credential: directoryKey
+    satisfies: [CASE-1]
+  catalogue:
+    description: The catalogue, specified on its own.
+    timeout: PT1S
+    specification: catalogue
+    version: 1.0.0
+    auth: basic
+    credential: catalogueLogin
+    operations:
+      search: { description: Search., method: get, path: /search }
+    satisfies: [CASE-1]
+  scanner:
+    description: The barcode scanner service.
+    timeout: PT1S
+    credential: auditToken
+    satisfies: [CASE-1]
+configuration:
+  auditToken: { description: Not secret., secret: false, schema: { type: string } }
+  catalogueLogin: { description: Not secret either., secret: false, schema: { type: string } }
+paths:
+  /loans/{loanId}/return:
+    parameters:
+      - { name: loanId, in: path, required: true, schema: { type: string, format: uuid } }
+    post:
+      operationId: returnLoan
+      summary: Record a return
+      permission: loans.return
+      guard: { entity: Loan, precondition: 'status == "open"', recordsChanged: 1 }
+      responses:
+        "200": { description: The loan. }
+        "503": { description: The ledger is unavailable. }
+      calls:
+        - call: feeLedger#/operations/postCharge
+          mapping:
+            send: { loan: loanId, amount: status, fee: lateFee }
+            receive: { entry: entry, lateFee: missing }
+          idempotencyKey: { header: Idempotency-Key, value: copyId }
+          retries: { limit: 2, delay: PT1S, backoff: fixed, on: ["201", "500", timeout] }
+          errors: { "503": "502", "404": "503" }
+        - call: feeLedger#/operations/refund
+        - call: catalogue#/operations/search
+        - call: auditLog
+          mapping:
+            send: { loan: loanId }
+          mode: fireAndForget
+          errors: { "500": "503" }
+        - call: directory
+          mode: async
+        - { call: feeLedger#/operations/unsaid, mode: async, callback: ledger.answers/Nothing }
+        - call: feeLedger#/operations/sent
+          mapping:
+            send: { loan: loanId }
+            receive: { lateFee: '"0.00"' }
+          mode: fireAndForget
+          callback: ledger.answers/Nothing
+      satisfies: [CASE-1]
+  /loans:
+    post:
+      operationId: lend
+      summary: Lend
+      permission: loans.return
+      responses:
+        "201": { description: Lent. }
+      calls:
+        - call: feeLedger#/operations/postCharge
+          mapping:
+            send: { amount: '"1.00"' }
+            receive: { lateFee: amount }
+          retries: { limit: 1, delay: PT1S, backoff: fixed, on: ["503"] }
+          callback: ledger.answers/Nothing
+      satisfies: [CASE-1]
+jobs:
+  remind:
+    description: Reminds.
+    role: librarian
+    trigger: { schedule: "0 9 * * *" }
+    calls:
+      - call: feeLedger
+    satisfies: [CASE-1]

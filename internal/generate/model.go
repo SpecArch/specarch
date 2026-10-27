@@ -33,6 +33,20 @@ func strs(n *yaml.Node, key string) []string {
 	return out
 }
 
+// calls are the names n's calls entries call: the entry, or the call of an
+// entry that gives the call's contract.
+func calls(n *yaml.Node) []string {
+	var out []string
+	for _, i := range items(n, "calls") {
+		if c := get(i, "call"); c != nil {
+			out = append(out, c.Value)
+		} else {
+			out = append(out, i.Value)
+		}
+	}
+	return out
+}
+
 // operation is one HTTP operation of a design file.
 type operation struct {
 	id, method, path string

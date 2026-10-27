@@ -39,7 +39,7 @@ flowchart LR
   person_anyone --> system
   client_fee_ledger_batch["fee-ledger-batch (system, as auditor)"]
   client_fee_ledger_batch --> system
-  dependency_feeLedger["feeLedger, https"]
+  dependency_feeLedger["feeLedger, https, bearer, 10 per PT1S"]
   system -->|"returnLoan, reportLost"| dependency_feeLedger
   dependency_eventBus[["eventBus, amqp"]]
   channel_fee_waivers>"fee.waivers (channel)"]

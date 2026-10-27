@@ -1,0 +1,131 @@
+specarch: "1.0.0"
+info: { title: Case, version: 1.0.0 }
+stages: [tests]
+requirements:
+  CASE-1: { statement: One., kind: functional, priority: must, status: accepted, acceptance: [One.] }
+permissions:
+  loans.return: { description: Record a return. }
+  fees.waive: { description: Ask for a fee to be waived. }
+  fees.approve: { description: Approve a waiver. }
+roles:
+  librarian: { description: Works the desk., permissions: [loans.return, fees.waive] }
+  supervisor: { description: Runs the desk., permissions: [fees.approve] }
+entities:
+  Loan:
+    type: object
+    properties:
+      id: { type: string, format: uuid, readOnly: true }
+      status: { type: string, enum: [open, returned] }
+      lateFee: { type: string, format: decimal, precision: 10, scale: 2 }
+      ledgerEntry: { type: [string, "null"] }
+    required: [id, status, lateFee, ledgerEntry]
+    primaryKey: [id]
+    satisfies: [CASE-1]
+channels:
+  ledger.answers:
+    description: What the fee ledger says of a charge it took to post later.
+    carriedBy: [feeLedger]
+    messages:
+      ChargePosted: { summary: A charge was posted., payload: { type: object, properties: { entry: { type: string } } } }
+    satisfies: [CASE-1]
+dependencies:
+  feeLedger:
+    description: The finance system's ledger.
+    timeout: PT5S
+    protocol: https
+    auth: bearer
+    credential: feeLedgerToken
+    rate: { requests: 20, per: PT1S, burst: 5 }
+    operations:
+      postCharge:
+        description: Post a charge against a loan.
+        method: post
+        path: /charges
+        request:
+          properties:
+            loan: { type: string, format: uuid }
+            amount: { type: string, format: decimal, precision: 10, scale: 2 }
+            reason: { type: string }
+          required: [loan, amount]
+        responses:
+          "201": { description: Posted., properties: { entry: { type: string } } }
+          "409": { description: A charge with that key was posted for another loan. }
+          "503": { description: The ledger is down. }
+      queueCharge:
+        description: Take a charge to post later, answered on ledger.answers.
+        method: post
+        path: /charge-queue
+        request:
+          properties:
+            loan: { type: string, format: uuid }
+          required: [loan]
+    satisfies: [CASE-1]
+  auditLog:
+    description: The library's audit log, which takes a line per change.
+    timeout: PT1S
+    auth: none
+    operations:
+      record:
+        description: A line for the log.
+        channel: audit.lines
+        message: AuditLine
+        request:
+          properties:
+            loan: { type: string, format: uuid }
+    satisfies: [CASE-1]
+configuration:
+  feeLedgerToken:
+    description: The token the fee ledger issued to this system; from the host's secret store.
+    secret: true
+    schema: { type: string }
+paths:
+  /loans/{loanId}/return:
+    parameters:
+      - { name: loanId, in: path, required: true, schema: { type: string, format: uuid } }
+    post:
+      operationId: returnLoan
+      summary: Record a return
+      permission: loans.return
+      guard: { entity: Loan, precondition: 'status == "open"', recordsChanged: 1 }
+      responses:
+        "200": { description: "The loan, returned." }
+        "409": { description: The loan is closed. }
+        "502": { description: "The ledger refused the charge, and the loan stays open." }
+        "503": { description: "The ledger is unavailable, and the loan stays open." }
+      calls:
+        - call: feeLedger#/operations/postCharge
+          mapping:
+            send: { loan: loanId, amount: lateFee, reason: '"late"' }
+            receive: { ledgerEntry: entry }
+          idempotencyKey: { header: Idempotency-Key, value: loanId }
+          retries: { limit: 2, delay: PT1S, backoff: exponential, on: ["503", timeout] }
+          errors: { "503": "503", timeout: "503", "409": "502" }
+        - call: feeLedger#/operations/queueCharge
+          mapping:
+            send: { loan: loanId }
+          mode: async
+          callback: ledger.answers/ChargePosted
+        - call: auditLog#/operations/record
+          mapping:
+            send: { loan: loanId }
+          mode: fireAndForget
+      satisfies: [CASE-1]
+  /loans/{loanId}/waivers:
+    parameters:
+      - { name: loanId, in: path, required: true, schema: { type: string, format: uuid } }
+    post:
+      operationId: requestWaiver
+      summary: Ask for a waiver
+      permission: fees.waive
+      responses:
+        "202": { description: The request waits for approval. }
+      satisfies: [CASE-1]
+workflows:
+  waiver:
+    description: A fee waiver is approved by a supervisor, then the loan is returned and its fee posted.
+    trigger: requestWaiver
+    subject: Loan
+    steps:
+      - { name: approve, kind: approval, approvers: [supervisor], permission: fees.approve, deadline: P3D, onDeadline: refuse }
+      - { name: post, kind: operation, operation: returnLoan }
+    satisfies: [CASE-1]

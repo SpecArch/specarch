@@ -132,12 +132,12 @@ ol.problems p{margin:2px 0}
 <li><a href="#/decisions">Decisions</a> <span class="count">4</span></li>
 </ol></li>
 <li><a href="#tests-and-traceability">Tests and traceability</a><ol>
-<li><a href="#/tests">Tests</a> <span class="count">194</span></li>
+<li><a href="#/tests">Tests</a> <span class="count">198</span></li>
 <li><a href="#traceability">Traceability</a></li>
 </ol></li>
 <li><a href="#deployment-commissioning-and-operation">Deployment, commissioning and operation</a><ol>
 <li><a href="#/environments">Environments</a> <span class="count">3</span></li>
-<li><a href="#/configuration">Configuration</a> <span class="count">3</span></li>
+<li><a href="#/configuration">Configuration</a> <span class="count">4</span></li>
 <li><a href="#/release">Release</a> <span class="count"></span></li>
 <li><a href="#/rollback">Rollback</a> <span class="count"></span></li>
 <li><a href="#/migrations">Migrations</a> <span class="count">1</span></li>
@@ -186,9 +186,9 @@ ol.problems p{margin:2px 0}
 <tr><td><a href="#/workflows">Workflows</a></td><td>1</td></tr>
 <tr><td><a href="#/algorithms">Algorithms</a></td><td>2</td></tr>
 <tr><td><a href="#/decisions">Decisions</a></td><td>4</td></tr>
-<tr><td><a href="#/tests">Tests</a></td><td>194</td></tr>
+<tr><td><a href="#/tests">Tests</a></td><td>198</td></tr>
 <tr><td><a href="#/environments">Environments</a></td><td>3</td></tr>
-<tr><td><a href="#/configuration">Configuration</a></td><td>3</td></tr>
+<tr><td><a href="#/configuration">Configuration</a></td><td>4</td></tr>
 <tr><td><a href="#/release">Release</a></td><td>one</td></tr>
 <tr><td><a href="#/rollback">Rollback</a></td><td>one</td></tr>
 <tr><td><a href="#/migrations">Migrations</a></td><td>1</td></tr>
@@ -2682,7 +2682,62 @@ ol.problems p{margin:2px 0}
 </dd>
 <dt>calls</dt>
 <dd>
-<p>feeLedger</p>
+<ol class="items">
+<li id="/paths/~1loans~1%7BloanId%7D~1return/post/calls/0">
+<dl>
+<dt>call</dt>
+<dd>feeLedger#/operations/postCharge</dd>
+<dt>mapping</dt>
+<dd id="/paths/~1loans~1%7BloanId%7D~1return/post/calls/0/mapping">
+<div class="scroll"><table><thead><tr><th scope="col">Name</th>
+<th scope="col">loan</th>
+<th scope="col">amount</th>
+<th scope="col">kind</th>
+</tr></thead><tbody>
+<tr id="/paths/~1loans~1%7BloanId%7D~1return/post/calls/0/mapping/send"><th scope="row">send <a class="ptr" href="#/paths/~1loans~1%7BloanId%7D~1return/post/calls/0/mapping/send">/paths/~1loans~1{loanId}~1return/post/calls/0/mapping/send</a>
+</th>
+<td>loanId</td>
+<td>lateFee</td>
+<td>&#34;late fee&#34;</td>
+</tr>
+</tbody></table></div>
+</dd>
+<dt>idempotencyKey</dt>
+<dd id="/paths/~1loans~1%7BloanId%7D~1return/post/calls/0/idempotencyKey">
+<dl>
+<dt>header</dt>
+<dd>Idempotency-Key</dd>
+<dt>value</dt>
+<dd>loanId</dd>
+</dl>
+</dd>
+<dt>retries</dt>
+<dd id="/paths/~1loans~1%7BloanId%7D~1return/post/calls/0/retries">
+<dl>
+<dt>limit</dt>
+<dd>2</dd>
+<dt>delay</dt>
+<dd>PT1S</dd>
+<dt>backoff</dt>
+<dd>exponential</dd>
+<dt>on</dt>
+<dd>
+<p>503, timeout</p>
+</dd>
+</dl>
+</dd>
+<dt>errors</dt>
+<dd id="/paths/~1loans~1%7BloanId%7D~1return/post/calls/0/errors">
+<dl>
+<dt>503</dt>
+<dd>503</dd>
+<dt>timeout</dt>
+<dd>503</dd>
+</dl>
+</dd>
+</dl>
+</li>
+</ol>
 </dd>
 <dt>guard</dt>
 <dd id="/paths/~1loans~1%7BloanId%7D~1return/post/guard">
@@ -3310,6 +3365,81 @@ ol.problems p{margin:2px 0}
 <dd>system</dd>
 <dt>protocol</dt>
 <dd>https</dd>
+<dt>auth</dt>
+<dd>bearer</dd>
+<dt>credential</dt>
+<dd>feeLedgerToken</dd>
+<dt>rate</dt>
+<dd id="/dependencies/feeLedger/rate">
+<dl>
+<dt>requests</dt>
+<dd>10</dd>
+<dt>per</dt>
+<dd>PT1S</dd>
+</dl>
+</dd>
+<dt>operations</dt>
+<dd id="/dependencies/feeLedger/operations">
+<dl>
+<dt>postCharge</dt>
+<dd id="/dependencies/feeLedger/operations/postCharge">
+<dl>
+<dt>description</dt>
+<dd>Posts a charge against a loan, once per idempotency key.</dd>
+<dt>method</dt>
+<dd>post</dd>
+<dt>path</dt>
+<dd>/charges</dd>
+<dt>request</dt>
+<dd id="/dependencies/feeLedger/operations/postCharge/request">
+<dl>
+<dt>properties</dt>
+<dd id="/dependencies/feeLedger/operations/postCharge/request/properties">
+<div class="scroll"><table class="fields"><thead><tr><th scope="col">Field</th><th scope="col">Type</th><th scope="col">Required</th><th scope="col">Title and description</th><th scope="col">Also</th></tr></thead><tbody>
+<tr id="/dependencies/feeLedger/operations/postCharge/request/properties/loan"><th scope="row">loan <a class="ptr" href="#/dependencies/feeLedger/operations/postCharge/request/properties/loan">/dependencies/feeLedger/operations/postCharge/request/properties/loan</a>
+</th>
+<td>uuid</td><td>yes</td><td></td><td></td></tr>
+<tr id="/dependencies/feeLedger/operations/postCharge/request/properties/amount"><th scope="row">amount <a class="ptr" href="#/dependencies/feeLedger/operations/postCharge/request/properties/amount">/dependencies/feeLedger/operations/postCharge/request/properties/amount</a>
+</th>
+<td>decimal(10, 2)</td><td>yes</td><td></td><td></td></tr>
+<tr id="/dependencies/feeLedger/operations/postCharge/request/properties/kind"><th scope="row">kind <a class="ptr" href="#/dependencies/feeLedger/operations/postCharge/request/properties/kind">/dependencies/feeLedger/operations/postCharge/request/properties/kind</a>
+</th>
+<td>string</td><td>yes</td><td></td><td></td></tr>
+</tbody></table></div>
+</dd>
+<dt>required</dt>
+<dd>
+<p>loan, amount, kind</p>
+</dd>
+</dl>
+</dd>
+<dt>responses</dt>
+<dd id="/dependencies/feeLedger/operations/postCharge/responses">
+<div class="scroll"><table><thead><tr><th scope="col">Name</th>
+<th scope="col">description</th>
+<th scope="col">properties</th>
+</tr></thead><tbody>
+<tr id="/dependencies/feeLedger/operations/postCharge/responses/201"><th scope="row">201 <a class="ptr" href="#/dependencies/feeLedger/operations/postCharge/responses/201">/dependencies/feeLedger/operations/postCharge/responses/201</a>
+</th>
+<td>The charge is posted.</td>
+<td><code>{entry: {type: string}}</code></td>
+</tr>
+<tr id="/dependencies/feeLedger/operations/postCharge/responses/409"><th scope="row">409 <a class="ptr" href="#/dependencies/feeLedger/operations/postCharge/responses/409">/dependencies/feeLedger/operations/postCharge/responses/409</a>
+</th>
+<td>A charge with that idempotency key was already posted for another loan.</td>
+<td></td>
+</tr>
+<tr id="/dependencies/feeLedger/operations/postCharge/responses/503"><th scope="row">503 <a class="ptr" href="#/dependencies/feeLedger/operations/postCharge/responses/503">/dependencies/feeLedger/operations/postCharge/responses/503</a>
+</th>
+<td>The ledger is down for maintenance.</td>
+<td></td>
+</tr>
+</tbody></table></div>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd>
 </dl>
 </article>
 </section>
@@ -10640,6 +10770,27 @@ label {
 <dd>it answers 503, the loan stays open, and no event is published</dd>
 </dl>
 </article>
+<article class="element" data-search id="/tests/report-lost-dependency-rate-exceeded-fee-ledger">
+<h4>report-lost-dependency-rate-exceeded-fee-ledger <a class="ptr" href="#/tests/report-lost-dependency-rate-exceeded-fee-ledger">/tests/report-lost-dependency-rate-exceeded-fee-ledger</a></h4>
+<dl>
+<dt>operation</dt>
+<dd><a href="#/paths/~1loans~1%7BloanId%7D~1lost/post">reportLost</a></dd>
+<dt>level</dt>
+<dd>system</dd>
+<dt>scenario</dt>
+<dd>red</dd>
+<dt>covers</dt>
+<dd>
+<p>dependency rate exceeded feeLedger</p>
+</dd>
+<dt>given</dt>
+<dd>an open loan, and 10 calls to the fee ledger already made in the last second</dd>
+<dt>when</dt>
+<dd>reportLost is called for it</dd>
+<dt>then</dt>
+<dd>no eleventh call is sent within that second; it answers 503, the loan stays open, and no event is published</dd>
+</dl>
+</article>
 <article class="element" data-search id="/tests/report-lost-dependency-times-out-fee-ledger">
 <h4>report-lost-dependency-times-out-fee-ledger <a class="ptr" href="#/tests/report-lost-dependency-times-out-fee-ledger">/tests/report-lost-dependency-times-out-fee-ledger</a></h4>
 <dl>
@@ -11066,6 +11217,27 @@ label {
 <dd>it is refused as not signed in, and nothing changes</dd>
 </dl>
 </article>
+<article class="element" data-search id="/tests/return-loan-dependency-answers-unmapped-fee-ledger">
+<h4>return-loan-dependency-answers-unmapped-fee-ledger <a class="ptr" href="#/tests/return-loan-dependency-answers-unmapped-fee-ledger">/tests/return-loan-dependency-answers-unmapped-fee-ledger</a></h4>
+<dl>
+<dt>operation</dt>
+<dd><a href="#/paths/~1loans~1%7BloanId%7D~1return/post">returnLoan</a></dd>
+<dt>level</dt>
+<dd>system</dd>
+<dt>scenario</dt>
+<dd>red</dd>
+<dt>covers</dt>
+<dd>
+<p>dependency answers unmapped feeLedger</p>
+</dd>
+<dt>given</dt>
+<dd>an open loan, and a fee ledger that answers 409 to its charge</dd>
+<dt>when</dt>
+<dd>returnLoan is called for it</dd>
+<dt>then</dt>
+<dd>the charge is not tried again, it answers 503, the loan stays open, and no event is published</dd>
+</dl>
+</article>
 <article class="element" data-search id="/tests/return-loan-dependency-fails-fee-ledger">
 <h4>return-loan-dependency-fails-fee-ledger <a class="ptr" href="#/tests/return-loan-dependency-fails-fee-ledger">/tests/return-loan-dependency-fails-fee-ledger</a></h4>
 <dl>
@@ -11085,6 +11257,50 @@ label {
 <dd>returnLoan is called for it</dd>
 <dt>then</dt>
 <dd>it answers 503, the loan stays open, and no event is published</dd>
+</dl>
+</article>
+<article class="element" data-search id="/tests/return-loan-dependency-rate-exceeded-fee-ledger">
+<h4>return-loan-dependency-rate-exceeded-fee-ledger <a class="ptr" href="#/tests/return-loan-dependency-rate-exceeded-fee-ledger">/tests/return-loan-dependency-rate-exceeded-fee-ledger</a></h4>
+<dl>
+<dt>operation</dt>
+<dd><a href="#/paths/~1loans~1%7BloanId%7D~1return/post">returnLoan</a></dd>
+<dt>level</dt>
+<dd>system</dd>
+<dt>scenario</dt>
+<dd>red</dd>
+<dt>covers</dt>
+<dd>
+<p>dependency rate exceeded feeLedger</p>
+</dd>
+<dt>given</dt>
+<dd>an open loan, and 10 calls to the fee ledger already made in the last second</dd>
+<dt>when</dt>
+<dd>returnLoan is called for it</dd>
+<dt>then</dt>
+<dd>no eleventh call is sent within that second; it answers 503, the loan stays open, and no event is published</dd>
+</dl>
+</article>
+<article class="element" data-search id="/tests/return-loan-dependency-retries-exhausted-fee-ledger">
+<h4>return-loan-dependency-retries-exhausted-fee-ledger <a class="ptr" href="#/tests/return-loan-dependency-retries-exhausted-fee-ledger">/tests/return-loan-dependency-retries-exhausted-fee-ledger</a></h4>
+<dl>
+<dt>operation</dt>
+<dd><a href="#/paths/~1loans~1%7BloanId%7D~1return/post">returnLoan</a></dd>
+<dt>level</dt>
+<dd>system</dd>
+<dt>scenario</dt>
+<dd>red</dd>
+<dt>covers</dt>
+<dd>
+<p>dependency retries exhausted feeLedger</p>
+</dd>
+<dt>given</dt>
+<dd>an open loan, and a fee ledger that answers 503 or does not answer within 5 seconds on every try</dd>
+<dt>when</dt>
+<dd>returnLoan is called for it</dd>
+<dt>then</dt>
+<dd>
+<p>the charge is tried 2 more times, 1 second and then 2 seconds apart, all with the same Idempotency-Key, then it answers 503, the loan stays open, and no event is published</p>
+</dd>
 </dl>
 </article>
 <article class="element" data-search id="/tests/return-loan-dependency-times-out-fee-ledger">
@@ -11549,6 +11765,13 @@ label {
 <td>Where the database is; it carries the password, so it comes from the host&#39;s secret store and is never written here.</td>
 <td>true</td>
 <td><code>{type: string, format: uri}</code></td>
+<td></td>
+</tr>
+<tr data-search id="/configuration/feeLedgerToken"><th scope="row">feeLedgerToken <a class="ptr" href="#/configuration/feeLedgerToken">/configuration/feeLedgerToken</a>
+</th>
+<td>The token the finance team issued for the fee ledger; it comes from the host&#39;s secret store and is never written here.</td>
+<td>true</td>
+<td><code>{type: string}</code></td>
 <td></td>
 </tr>
 <tr data-search id="/configuration/notificationChannelUrl"><th scope="row">notificationChannelUrl <a class="ptr" href="#/configuration/notificationChannelUrl">/configuration/notificationChannelUrl</a>

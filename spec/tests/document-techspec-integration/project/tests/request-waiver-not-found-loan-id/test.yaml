@@ -1,0 +1,10 @@
+operation: requestWaiver
+level: system
+scenario: red
+covers: [not found loanId]
+given: "no record has that loanId"
+when: "requestWaiver is called with that loanId"
+then: "it is refused as not found"
+verifies: [CASE-1]
+origin: inferred
+why: "Written by specarch derive: users get this wrong often, so the case is written. A draft: complete the given, when and then, and remove what does not hold."

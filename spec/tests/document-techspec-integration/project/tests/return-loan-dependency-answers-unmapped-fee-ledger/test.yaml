@@ -1,0 +1,10 @@
+operation: returnLoan
+level: system
+scenario: red
+covers: [dependency answers unmapped feeLedger]
+given: "feeLedger answers with an error other than 503 or 409"
+when: "returnLoan is called"
+then: "it answers 502: The ledger refused the charge, and the loan stays open."
+verifies: [CASE-1]
+origin: inferred
+why: "Written by specarch derive: a failing dependency is always written. A draft: complete the given, when and then, and remove what does not hold."

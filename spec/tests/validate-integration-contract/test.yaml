@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: validate
+level: system
+scenario: golden
+given: "a dependency that proves itself with a bearer token kept in a secret setting, with a rate and two operations of its own, another with auth none and an operation that is a message sent, and an operation whose calls map our values to theirs and their answer back, send an idempotency key, retry, map their errors to its answers, and call async with a callback and fire and forget, with a test for each derived case"
+when: validate is run
+then: it reports nothing, the same in both builds, and exits 0
+verifies: [SA-105]

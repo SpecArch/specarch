@@ -43,9 +43,9 @@ func (c *checker) checkJobs(d *design) {
 				c.add(e, source.Pointer("jobs", name, "emits", fmt.Sprint(i)), RuleEmits, "%s does not name a channel and one of its messages; write channel/Message for a message declared under channels", e.Value)
 			}
 		}
-		for i, e := range source.Items(source.Child(j.Value, "calls")) {
-			if dep := callDependency(e.Value); d.dependencies[dep] == nil {
-				c.add(e, source.Pointer("jobs", name, "calls", fmt.Sprint(i)), RuleDependency, "%s is not a dependency of the specification; declare it under dependencies with its timeout%s", dep, suggest(dep, d.dependencies))
+		for _, e := range callEntries(j.Value) {
+			if dep := callDependency(e.ref.Value); d.dependencies[dep] == nil {
+				c.add(e.ref, source.Pointer(append([]string{"jobs", name}, e.at...)...), RuleDependency, "%s is not a dependency of the specification; declare it under dependencies with its timeout%s", dep, suggest(dep, d.dependencies))
 			}
 		}
 	}

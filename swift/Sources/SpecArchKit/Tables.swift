@@ -528,7 +528,7 @@ private func joinNumbers(_ rules: [Int]) -> String {
     return parts.dropLast().joined(separator: ", ") + " and " + parts[parts.count - 1]
 }
 
-private func orList(_ items: [String]) -> String {
+func orList(_ items: [String]) -> String {
     if items.count == 1 { return items[0] }
     return items.dropLast().joined(separator: ", ") + " or " + items[items.count - 1]
 }

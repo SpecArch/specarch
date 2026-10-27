@@ -59,6 +59,29 @@ func isCross(s string) bool {
 	return ok
 }
 
+// callEntry is one entry of a calls list: ref, the node naming what is
+// called, and at, its place under calls, the entry itself or, for an
+// entry that gives the call's contract, its call (ADR-200).
+type callEntry struct {
+	ref  *yaml.Node
+	item *yaml.Node
+	at   []string
+}
+
+// callEntries are the entries of n's calls that name something; an object
+// with no call is the schema's to report.
+func callEntries(n *yaml.Node) []callEntry {
+	var out []callEntry
+	for i, e := range source.Items(source.Child(n, "calls")) {
+		if source.IsScalar(e) {
+			out = append(out, callEntry{ref: e, item: e, at: []string{"calls", fmt.Sprint(i)}})
+		} else if r := source.Child(e, "call"); r != nil && source.IsScalar(r) {
+			out = append(out, callEntry{ref: r, item: e, at: []string{"calls", fmt.Sprint(i), "call"}})
+		}
+	}
+	return out
+}
+
 // callDependency is the dependency a calls entry names: the entry, or its
 // part before the # when it names one of the dependency's operations.
 func callDependency(s string) string {
@@ -106,8 +129,12 @@ func collectRefs(d *design) []ref {
 		case len(path) == 4 && path[0] == "pages" && path[2] == "pickers":
 			add(source.Child(n, "source"), at("source"), "picker", n, d.pages[path[1]])
 		case len(path) == 3 && path[0] == "paths" || len(path) == 2 && (path[0] == "jobs" || path[0] == "gateways"):
-			for i, e := range source.Items(source.Child(n, "calls")) {
-				add(e, append(at("calls"), fmt.Sprint(i)), "calls", n, nil)
+			for _, e := range callEntries(n) {
+				// An operation a dependency declares under its operations
+				// is no element of another specification (ADR-200).
+				if _, ptr, _ := crossRef(e.ref.Value); !strings.HasPrefix(ptr, "/operations/") {
+					add(e.ref, append(at(), e.at...), "calls", n, nil)
+				}
 			}
 		}
 		switch {

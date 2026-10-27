@@ -9,6 +9,10 @@ configuration:
     description: Where the database is; it carries the password, so it comes from the host's secret store and is never written here.
     secret: true
     schema: { type: string, format: uri }
+  feeLedgerToken:
+    description: The token the finance team issued for the fee ledger; it comes from the host's secret store and is never written here.
+    secret: true
+    schema: { type: string }
   notificationChannelUrl:
     description: Where the notification service listens for loan events.
     secret: false

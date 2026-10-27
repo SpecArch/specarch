@@ -2,7 +2,7 @@
 
 # Library Lending: test plan
 
-Version 0.1.0 of the specification: 194 design tests, 56 golden and 137 red, about 49 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.1.0 of the specification: 198 design tests, 56 golden and 141 red, about 49 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 1 test is marked not applicable, with the reason.
 
@@ -11,7 +11,7 @@ Version 0.1.0 of the specification: 194 design tests, 56 golden and 137 red, abo
 | Level | Design tests |
 |---|---|
 | acceptance | 12 |
-| system | 182 |
+| system | 186 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -1405,6 +1405,14 @@ Scenario: red; level: system; covers dependency fails feeLedger.
 - When: reportLost is called for it
 - Then: it answers 503, the loan stays open, and no event is published
 
+#### report-lost-dependency-rate-exceeded-fee-ledger
+
+Scenario: red; level: system; covers dependency rate exceeded feeLedger.
+
+- Given: an open loan, and 10 calls to the fee ledger already made in the last second
+- When: reportLost is called for it
+- Then: no eleventh call is sent within that second; it answers 503, the loan stays open, and no event is published
+
 #### report-lost-dependency-times-out-fee-ledger
 
 Scenario: red; level: system; covers dependency times out feeLedger.
@@ -1573,6 +1581,14 @@ Scenario: red; level: system; covers denied with expired session.
 - When: returnLoan is called for an open loan
 - Then: it is refused as not signed in, and nothing changes
 
+#### return-loan-dependency-answers-unmapped-fee-ledger
+
+Scenario: red; level: system; covers dependency answers unmapped feeLedger.
+
+- Given: an open loan, and a fee ledger that answers 409 to its charge
+- When: returnLoan is called for it
+- Then: the charge is not tried again, it answers 503, the loan stays open, and no event is published
+
 #### return-loan-dependency-fails-fee-ledger
 
 Scenario: red; level: system; covers dependency fails feeLedger.
@@ -1580,6 +1596,22 @@ Scenario: red; level: system; covers dependency fails feeLedger.
 - Given: an open loan, and a fee ledger that answers every call with an error
 - When: returnLoan is called for it
 - Then: it answers 503, the loan stays open, and no event is published
+
+#### return-loan-dependency-rate-exceeded-fee-ledger
+
+Scenario: red; level: system; covers dependency rate exceeded feeLedger.
+
+- Given: an open loan, and 10 calls to the fee ledger already made in the last second
+- When: returnLoan is called for it
+- Then: no eleventh call is sent within that second; it answers 503, the loan stays open, and no event is published
+
+#### return-loan-dependency-retries-exhausted-fee-ledger
+
+Scenario: red; level: system; covers dependency retries exhausted feeLedger.
+
+- Given: an open loan, and a fee ledger that answers 503 or does not answer within 5 seconds on every try
+- When: returnLoan is called for it
+- Then: the charge is tried 2 more times, 1 second and then 2 seconds apart, all with the same Idempotency-Key, then it answers 503, the loan stays open, and no event is published
 
 #### return-loan-dependency-times-out-fee-ledger
 

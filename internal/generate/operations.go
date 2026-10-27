@@ -211,12 +211,12 @@ func Operations(root *yaml.Node, relRoot string, impls []Implementation, state *
 	} else {
 		callers := map[string][]string{}
 		for _, o := range ops {
-			for _, c := range strs(o.node, "calls") {
+			for _, c := range calls(o.node) {
 				callers[calledDependency(c)] = append(callers[calledDependency(c)], "operation "+o.id)
 			}
 		}
 		for _, j := range jobs {
-			for _, c := range strs(j.Value, "calls") {
+			for _, c := range calls(j.Value) {
 				callers[calledDependency(c)] = append(callers[calledDependency(c)], "job "+j.Key.Value)
 			}
 		}

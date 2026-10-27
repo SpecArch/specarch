@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "dependencies whose auth names no credential, whose auth none names one, whose credential is no setting, is a setting not marked secret or stands without auth, whose operations sit beside a specification, say neither or both of method and channel, answer a message sent or require a field the request lacks; calls that name an operation not declared or one of a dependency with a specification, map a dependency named alone, send a field theirs lacks, leave a required one out, send a value of the wrong type or a name both a parameter and a field, keep a value in a field the record lacks, from an answer with no fields or with no record to keep it in, make a key of an unknown name, retry a success or an answer not declared, map an answer not declared or to one the operation does not give, map or keep an answer of a call that does not wait, call async with no callback or a callback that is no message, give a sync call a callback, and retry a post with no key; and a job whose call is an object"
+when: validate is run
+then: "it reports each as integration, setting, expression_type, expression_name, emits or schema at the key, the retried post with no key as a warning, the same in both builds, and exits 1"
+verifies: [SA-105]

@@ -139,8 +139,8 @@ func moduleCalls(_ found: [String: Spec]) -> [String: [String]] {
         var seen = Set<String>()
         var out: [String] = []
         for n in callers {
-            for e in child(n, "calls")?.items ?? [] {
-                let to = deps[callDependency(e.str)] ?? ""
+            for e in callEntries(n) {
+                let to = deps[callDependency(e.ref.str)] ?? ""
                 if found[to] != nil && !seen.contains(to) {
                     seen.insert(to)
                     out.append(to)

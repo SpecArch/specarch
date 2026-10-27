@@ -199,6 +199,72 @@ private func guardCases(_ s: Subject, _ g: YNode?, _ what: String) {
     s.byNature("concurrent write", "another caller changed the " + ent + " after this caller read it", what, "it is refused and the other caller's change stands")
 }
 
+/// What an operation answers when a dependency gives status: the response
+/// a call's errors maps it to, or the first of the statuses given that the
+/// operation declares.
+private func mappedFailure(_ op: YNode, _ dep: String, _ status: String, _ statuses: String...) -> String {
+    for e in callEntries(op) where callDependency(e.ref.value) == dep {
+        let ours = str(e.item.child("errors")?.child(status))
+        if !ours.isEmpty { return failureResponse(op, ours) }
+    }
+    for code in statuses {
+        if let r = op.child("responses")?.child(code) { return "it answers " + code + ": " + str(r.child("description")) }
+    }
+    return "..."
+}
+
+/// Whether every call an operation makes to dep is fire and forget, so that
+/// dep's failure is not heard by it.
+private func onlyForgotten(_ op: YNode, _ dep: String) -> Bool {
+    var found = false
+    for e in callEntries(op) where callDependency(e.ref.value) == dep {
+        if str(e.item.child("mode")) != "fireAndForget" { return false }
+        found = true
+    }
+    return found
+}
+
+/// A rate in words: 20 calls per PT1S, and 5 at once above it.
+private func rateText(_ rate: YNode) -> String {
+    var text = intText(rate.child("requests")) + " calls per " + str(rate.child("per"))
+    let burst = intText(rate.child("burst"))
+    if !burst.isEmpty { text += ", " + burst + " at once above it" }
+    return text
+}
+
+/// The cases a call's contract makes (ADR-200): its retries all used up,
+/// and an answer that fails which its errors does not map.
+private func contractCases(_ s: Subject, _ op: YNode, _ e: CallEntry, _ call: String) {
+    let dep = callDependency(e.ref.value)
+    if let r = e.item.child("retries") {
+        var on: [String] = [], statuses: [String] = []
+        var late = false
+        for i in items(r.child("on")) {
+            on.append(i.value)
+            if i.value == "timeout" { late = true } else { statuses.append(i.value) }
+        }
+        var every: [String] = []
+        if !statuses.isEmpty { every.append("answers " + orList(statuses)) }
+        if late { every.append("does not answer in time") }
+        let limit = intText(r.child("limit"))
+        var tries = limit + " more times, " + str(r.child("delay")) + " apart"
+        if str(r.child("backoff")) == "exponential" {
+            tries = limit + " more times, " + str(r.child("delay")) + " apart and twice that each time"
+        }
+        var last = failureResponse(op, "502", "503")
+        if let first = on.first {
+            last = first == "timeout" ? mappedFailure(op, dep, "timeout", "504", "503") : mappedFailure(op, dep, first, "502", "503")
+        }
+        s.byNature("dependency retries exhausted " + dep, dep + " " + every.joined(separator: " or ") + " on every try", call, "the call is tried " + tries + ", then " + last)
+    }
+    if let errs = e.item.child("errors") {
+        let mapped = pairs(errs).map { $0.key.value }.filter { $0 != "timeout" }
+        var given = dep + " answers with an error"
+        if !mapped.isEmpty { given += " other than " + orList(mapped) }
+        s.byNature("dependency answers unmapped " + dep, given, call, failureResponse(op, "502", "503"))
+    }
+}
+
 /// The response an operation gives when a dependency fails or does not
 /// answer in time, when the design declares one of the statuses given, or
 /// "...".
@@ -441,9 +507,18 @@ extension Design {
         }
         for name in calledDependencies(o.node) {
             guard let dep = dependencies[name] else { continue }
-            s.byNature("dependency fails " + name, name + " answers with an error", call, failureResponse(o.node, "502", "503"))
-            s.byNature("dependency times out " + name, name + " does not answer within " + str(dep.child("timeout")), call, failureResponse(o.node, "504", "503"))
+            var fails = failureResponse(o.node, "502", "503"), late = mappedFailure(o.node, name, "timeout", "504", "503")
+            if onlyForgotten(o.node, name) {
+                fails = "it succeeds all the same, since it does not wait for " + name
+                late = fails
+            }
+            s.byNature("dependency fails " + name, name + " answers with an error", call, fails)
+            s.byNature("dependency times out " + name, name + " does not answer within " + str(dep.child("timeout")), call, late)
+            if let rate = dep.child("rate") {
+                s.byNature("dependency rate exceeded " + name, o.id + "'s calls would pass " + name + "'s rate of " + rateText(rate), call, "the call is not sent above the rate, and " + failureResponse(o.node, "429", "503"))
+            }
         }
+        for e in callEntries(o.node) { contractCases(s, o.node, e, call) }
         signInCases(s, o, call)
         let key = str(o.node.child("idempotencyKey"))
         if !key.isEmpty {
@@ -1151,8 +1226,8 @@ func heldUp(_ blocks: [Block], _ ptr: String) -> Bool {
 /// the dependency.
 func calledDependencies(_ n: YNode) -> [String] {
     var out: [String] = []
-    for e in items(n.child("calls")) {
-        let name = callDependency(e.value)
+    for e in callEntries(n) {
+        let name = callDependency(e.ref.value)
         if !out.contains(name) { out.append(name) }
     }
     return out

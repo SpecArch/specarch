@@ -32,9 +32,9 @@ extension Checker {
             for (i, e) in items(j.value.child("emits")).enumerated() where d.message(e.value) == nil {
                 add(e, pointer("jobs", name, "emits", "\(i)"), .emits, "\(e.value) does not name a channel and one of its messages; write channel/Message for a message declared under channels")
             }
-            for (i, e) in items(j.value.child("calls")).enumerated() where d.dependencies[callDependency(e.value)] == nil {
-                let dep = callDependency(e.value)
-                add(e, pointer("jobs", name, "calls", "\(i)"), .dependency, "\(dep) is not a dependency of the specification; declare it under dependencies with its timeout\(suggest(dep, d.dependencies))")
+            for e in callEntries(j.value) where d.dependencies[callDependency(e.ref.value)] == nil {
+                let dep = callDependency(e.ref.value)
+                add(e.ref, pointer(["jobs", name] + e.at), .dependency, "\(dep) is not a dependency of the specification; declare it under dependencies with its timeout\(suggest(dep, d.dependencies))")
             }
         }
     }

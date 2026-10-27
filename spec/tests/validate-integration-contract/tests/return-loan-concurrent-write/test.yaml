@@ -1,0 +1,10 @@
+operation: returnLoan
+level: system
+scenario: red
+covers: [concurrent write]
+given: "another caller changed the Loan after this caller read it"
+when: "returnLoan is called"
+then: "it is refused and the other caller's change stands"
+verifies: [CASE-1]
+origin: inferred
+why: "Written by specarch derive: two writers on one record is a case nobody exercises by hand, so it is always written. A draft: complete the given, when and then, and remove what does not hold."

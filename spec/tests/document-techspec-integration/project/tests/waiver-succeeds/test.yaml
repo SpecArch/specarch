@@ -1,0 +1,9 @@
+workflow: waiver
+level: system
+scenario: golden
+given: "a caller with fees.waive"
+when: "a request is made through requestWaiver and is approved at approve"
+then: "it answers 202, then returnLoan is called, and the request ends approved"
+verifies: [CASE-1]
+origin: inferred
+why: "Written by specarch derive: every subject needs a golden path, and this is the success the design gives. A draft: complete the given, when and then, and remove what does not hold."

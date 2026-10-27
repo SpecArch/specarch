@@ -110,7 +110,9 @@ func markCollisions(drafts []Draft, keys []string, existing map[string]string) {
 // chosenReason says why a chosen case is written.
 func (s *subject) chosenReason(dc derivedCase) string {
 	switch {
-	case strings.HasPrefix(dc.name, "dependency fails ") || strings.HasPrefix(dc.name, "dependency times out "):
+	case strings.HasPrefix(dc.name, "dependency fails ") || strings.HasPrefix(dc.name, "dependency times out ") ||
+		strings.HasPrefix(dc.name, "dependency retries exhausted ") || strings.HasPrefix(dc.name, "dependency answers unmapped ") ||
+		strings.HasPrefix(dc.name, "dependency rate exceeded "):
 		return "a failing dependency is always written"
 	case dc.name == "concurrent write":
 		return "two writers on one record is a case nobody exercises by hand, so it is always written"

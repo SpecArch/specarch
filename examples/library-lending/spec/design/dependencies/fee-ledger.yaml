@@ -6,3 +6,21 @@ dependencies:
     kind: system
     protocol: https
     why: The desk waits for the answer, so a call that takes longer than a few seconds is given up and the return is refused rather than left half done.
+    auth: bearer
+    credential: feeLedgerToken
+    rate: { requests: 10, per: PT1S }
+    operations:
+      postCharge:
+        description: Posts a charge against a loan, once per idempotency key.
+        method: post
+        path: /charges
+        request:
+          properties:
+            loan: { type: string, format: uuid }
+            amount: { type: string, format: decimal, precision: 10, scale: 2 }
+            kind: { type: string }
+          required: [loan, amount, kind]
+        responses:
+          "201": { description: The charge is posted., properties: { entry: { type: string } } }
+          "409": { description: A charge with that idempotency key was already posted for another loan. }
+          "503": { description: The ledger is down for maintenance. }

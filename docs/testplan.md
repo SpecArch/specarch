@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 1.3.0 of the specification: 829 design tests, 403 golden and 426 red, about 25 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 1.3.0 of the specification: 833 design tests, 406 golden and 427 red, about 25 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -15,7 +15,7 @@ Version 1.3.0 of the specification: 829 design tests, 403 golden and 426 red, ab
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 825 |
+| system | 829 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -356,6 +356,14 @@ Scenario: golden; level: system; verifies SA-83, SA-88.
 - Given: an estate of two modules: an identity module with the trust domain, the security events, the clients, among them a reporting service that signs each request and has an admitted version range, a role that grants the core's delete by reference and narrows it to the administration application, and a role that grants the core's list to the reporting service; and the core, which declares no roles, no clients and no security events, whose list names the reporting service in callers by reference and whose list and delete each satisfy a requirement with a harm
 - When: derive is run on the estate file
 - Then: it writes the core's drafts with the case of a caller through a client the identity module's role does not list, the reporting service's bad signature and version outside its range at the list, the confused deputy's cases of a service's own token and a person's token with no actor, the token cases' given saying an access token, each refusal's then naming its security event with the identifier under the identity module's trust domain, marks no problem in them, and exits 0
+
+#### derive-integration-contract
+
+Scenario: golden; level: system; verifies SA-105.
+
+- Given: an operation whose call to a dependency with a rate retries, maps its errors and its timeout to the operation's answers, beside an async call and a fire-and-forget call to another dependency, with only its golden test written
+- When: derive is run
+- Then: it writes a draft for the retries used up, ending in the answer the first retried status maps to, for an error the mapping does not name, for the rate exceeded, for the timeout answered as errors maps it, and for the fire-and-forget dependency's failure and timeout as cases the operation still succeeds in, beside the drafts of the permission, the key and the guard, and exits 0
 
 #### derive-invalid-spec
 
@@ -1036,6 +1044,14 @@ Scenario: golden; level: system; verifies SA-7.
 - Given: a design whose length, item, page size, request size, rate, int32 bound, decimal precision and scale, child row maximum and separation of duties cardinality are integers written in hexadecimal, octal with 0o and with a leading zero, binary and with underscores
 - When: document techspec is run
 - Then: it writes techspec.md with every one of those integers in decimal, the separation of duties set read with its cardinality of 3, so only reader, clerk and supervisor together reach it, and exits 0
+
+#### document-techspec-integration
+
+Scenario: golden; level: system; verifies SA-105.
+
+- Given: a specification whose ledger dependency proves itself with a bearer token kept in a secret setting, has a rate and two operations, whose audit log takes a message with no credential, an operation whose calls map, key, retry and map errors, call async and fire and forget, and a workflow whose operation step is that operation
+- When: document techspec is run
+- Then: the context diagram writes the ledger's auth and rate on its node, the dependencies table says how each proves itself, its rate and its operations, the operation's calls name each operation's method and path or channel and message, a paragraph per call says its contract, the workflow diagram draws each dependency the step calls with an edge naming the operation, and it exits 0
 
 #### document-techspec-marks-implementation-problem
 
@@ -5095,6 +5111,22 @@ Scenario: red; level: system; covers exit 1; verifies SA-51.
 - When: validate is run
 - Then: both builds read every integer as the schema check does: no list_of, limits, unsafe_integer or test_case error, the cardinality of 0b11 over two permissions reported as 3, the same bytes from each, and exit 1
 
+#### validate-integration-contract
+
+Scenario: golden; level: system; verifies SA-105.
+
+- Given: a dependency that proves itself with a bearer token kept in a secret setting, with a rate and two operations of its own, another with auth none and an operation that is a message sent, and an operation whose calls map our values to theirs and their answer back, send an idempotency key, retry, map their errors to its answers, and call async with a callback and fire and forget, with a test for each derived case
+- When: validate is run
+- Then: it reports nothing, the same in both builds, and exits 0
+
+#### validate-integration-contract-refused
+
+Scenario: red; level: system; covers exit 1; verifies SA-105.
+
+- Given: dependencies whose auth names no credential, whose auth none names one, whose credential is no setting, is a setting not marked secret or stands without auth, whose operations sit beside a specification, say neither or both of method and channel, answer a message sent or require a field the request lacks; calls that name an operation not declared or one of a dependency with a specification, map a dependency named alone, send a field theirs lacks, leave a required one out, send a value of the wrong type or a name both a parameter and a field, keep a value in a field the record lacks, from an answer with no fields or with no record to keep it in, make a key of an unknown name, retry a success or an answer not declared, map an answer not declared or to one the operation does not give, map or keep an answer of a call that does not wait, call async with no callback or a callback that is no message, give a sync call a callback, and retry a post with no key; and a job whose call is an object
+- When: validate is run
+- Then: it reports each as integration, setting, expression_type, expression_name, emits or schema at the key, the retried post with no key as a warning, the same in both builds, and exits 1
+
 #### validate-interface-problems
 
 Scenario: red; level: system; covers exit 1; verifies SA-34.
@@ -6731,7 +6763,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-470 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+476 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -7012,6 +7044,12 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-104 | acceptance 5 | golden | SA-104 names no harm |
 | requirement SA-104 | acceptance 6 | golden | SA-104 names no harm |
 | requirement SA-104 | acceptance 7 | golden | SA-104 names no harm |
+| requirement SA-105 | acceptance 1 | golden | SA-105 names no harm |
+| requirement SA-105 | acceptance 2 | golden | SA-105 names no harm |
+| requirement SA-105 | acceptance 3 | golden | SA-105 names no harm |
+| requirement SA-105 | acceptance 4 | golden | SA-105 names no harm |
+| requirement SA-105 | acceptance 5 | golden | SA-105 names no harm |
+| requirement SA-105 | acceptance 6 | golden | SA-105 names no harm |
 | requirement SA-7 | acceptance 1 | golden | SA-7 names no harm |
 | requirement SA-7 | acceptance 2 | golden | SA-7 names no harm |
 | requirement SA-8 | acceptance 1 | golden | SA-8 names no harm |

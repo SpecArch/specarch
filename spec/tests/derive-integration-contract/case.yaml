@@ -1,0 +1,14 @@
+arguments: [derive, project]
+exitStatus: 0
+standardOutput: |
+  project/tests/return-loan-loan-id-not-a-valid-uuid/test.yaml
+  project/tests/return-loan-not-found-loan-id/test.yaml
+  project/tests/return-loan-denied-without-loans-return/test.yaml
+  project/tests/return-loan-dependency-fails-fee-ledger/test.yaml
+  project/tests/return-loan-dependency-times-out-fee-ledger/test.yaml
+  project/tests/return-loan-dependency-rate-exceeded-fee-ledger/test.yaml
+  project/tests/return-loan-dependency-fails-audit-log/test.yaml
+  project/tests/return-loan-dependency-times-out-audit-log/test.yaml
+  project/tests/return-loan-dependency-retries-exhausted-fee-ledger/test.yaml
+  project/tests/return-loan-dependency-answers-unmapped-fee-ledger/test.yaml
+  project/tests/return-loan-concurrent-write/test.yaml

@@ -317,7 +317,7 @@ func context(d *doc, root *yaml.Node) {
 		for _, dep := range deps {
 			var callers []string
 			for _, o := range ops {
-				for _, c := range strs(o.node, "calls") {
+				for _, c := range calls(o.node) {
 					if calledDependency(c) == dep.Key.Value && !contains(callers, o.id) {
 						callers = append(callers, o.id)
 					}
@@ -329,6 +329,9 @@ func context(d *doc, root *yaml.Node) {
 				}
 			}
 			description := str(dep.Value, "description")
+			if contract := dependencyContract(dep.Value); contract != "" {
+				description += " " + contract
+			}
 			if sp := str(dep.Value, "specification"); sp != "" {
 				description = fmt.Sprintf("Specified on its own as %s; the references were written against version %s. %s", sp, str(dep.Value, "version"), description)
 			}
@@ -560,7 +563,7 @@ func runtime(d *doc, root *yaml.Node, impls []Implementation) {
 		d.para(str(w.Value, "description"))
 		d.explain(w.Value)
 		workflowDetails(d, root, w.Key.Value, w.Value)
-		d.block(workflowFlowchart(d, w.Key.Value, w.Value))
+		d.block(workflowFlowchart(d, root, w.Key.Value, w.Value))
 	}
 	for _, c := range cmds {
 		d.heading(3, "Command "+c.Key.Value)
@@ -608,12 +611,17 @@ func operationDetails(d *doc, root *yaml.Node, op *yaml.Node) {
 			d.para("Runs before its handler, in this order: " + strings.Join(parts, ", then ") + ".")
 		}
 	}
-	if calls := strs(op, "calls"); len(calls) > 0 {
+	if calls := calls(op); len(calls) > 0 {
 		var parts []string
 		for _, c := range calls {
 			parts = append(parts, callText(root, c))
 		}
 		d.para("Calls " + strings.Join(parts, ", ") + ".")
+		for _, item := range items(op, "calls") {
+			if text := contractText(item); text != "" {
+				d.para(text)
+			}
+		}
 	}
 	if l := get(op, "listOf"); l != nil {
 		text := "Lists " + str(l, "entity") + " a page at a time"
@@ -1457,7 +1465,7 @@ func jobDetails(d *doc, root *yaml.Node, j *yaml.Node) {
 	if w := strs(j, "writes"); len(w) > 0 {
 		text += " Writes " + joinAnd(w) + "."
 	}
-	if calls := strs(j, "calls"); len(calls) > 0 {
+	if calls := calls(j); len(calls) > 0 {
 		var parts []string
 		for _, c := range calls {
 			parts = append(parts, callText(root, c))
@@ -1936,13 +1944,125 @@ func elementRows(root *yaml.Node, pages []source.Pair) []string {
 }
 
 // callText is a calls entry with its time limit, and for an operation of
-// another specification the specification and version.
+// another specification the specification and version, or for one its
+// dependency declares, its method and path or channel and message.
 func callText(root *yaml.Node, c string) string {
-	within := "within " + str(get(get(root, "dependencies"), calledDependency(c)), "timeout")
+	dep := get(get(root, "dependencies"), calledDependency(c))
+	within := "within " + str(dep, "timeout")
 	if of := referenceOf(root, c); of != "" {
 		within = of + ", " + within
+	} else if _, name, ok := strings.Cut(c, "#/operations/"); ok {
+		if how := operationHow(get(get(dep, "operations"), name)); how != "" {
+			within = how + ", " + within
+		}
 	}
 	return fmt.Sprintf("%s (%s)", c, within)
+}
+
+// operationHow is how a dependency's operation is called: its method and
+// path, or the channel and message it sends.
+func operationHow(op *yaml.Node) string {
+	if m := str(op, "method"); m != "" {
+		return strings.ToUpper(m) + " " + str(op, "path")
+	}
+	if ch := str(op, "channel"); ch != "" {
+		return ch + "/" + str(op, "message")
+	}
+	return ""
+}
+
+// authText names a dependency's auth in words, with its standard.
+var authText = map[string]string{
+	"apiKey":                  "an API key",
+	"basic":                   "a user and password (RFC 7617)",
+	"bearer":                  "a bearer token (RFC 6750)",
+	"oauth2ClientCredentials": "a token got with the client credentials grant (RFC 6749, 4.4)",
+	"mutualTls":               "a client certificate (RFC 8705)",
+	"signedRequest":           "a signed request",
+}
+
+// dependencyContract says how this system proves itself to a dependency,
+// how often it may call it and the operations it declares (ADR-200).
+func dependencyContract(dep *yaml.Node) string {
+	var parts []string
+	if str(dep, "auth") == "none" {
+		parts = append(parts, "Is sent no credential.")
+	} else if a := str(dep, "auth"); a != "" {
+		text := "Proves itself by " + authText[a]
+		if c := str(dep, "credential"); c != "" {
+			text += ", kept in the secret setting " + c
+		}
+		parts = append(parts, text+".")
+	}
+	if r := get(dep, "rate"); r != nil {
+		text := "At most " + num(r, "requests") + " calls per " + str(r, "per")
+		if b := num(r, "burst"); b != "" {
+			text += ", " + b + " at once above it"
+		}
+		parts = append(parts, text+".")
+	}
+	var ops []string
+	for _, op := range pairs(dep, "operations") {
+		ops = append(ops, op.Key.Value+" ("+operationHow(op.Value)+")")
+	}
+	if len(ops) > 0 {
+		parts = append(parts, "Its operations: "+strings.Join(ops, ", ")+".")
+	}
+	return strings.Join(parts, " ")
+}
+
+// contractText says a call's contract in words (ADR-200), or "" for a
+// plain calls entry.
+func contractText(item *yaml.Node) string {
+	c := str(item, "call")
+	if c == "" {
+		return ""
+	}
+	var parts []string
+	pairsText := func(key string) string {
+		var out []string
+		for _, p := range pairs(get(item, "mapping"), key) {
+			out = append(out, "`"+p.Key.Value+" = "+p.Value.Value+"`")
+		}
+		return strings.Join(out, ", ")
+	}
+	if s := pairsText("send"); s != "" {
+		parts = append(parts, "it sends "+s)
+	}
+	if s := pairsText("receive"); s != "" {
+		parts = append(parts, "keeps "+s+" from the answer")
+	}
+	if k := get(item, "idempotencyKey"); k != nil {
+		parts = append(parts, "sends "+str(k, "header")+" as `"+str(k, "value")+"`, so a call made again is told from a new one")
+	}
+	if r := get(item, "retries"); r != nil {
+		text := "tries again " + num(r, "limit") + " times, " + str(r, "delay") + " apart"
+		if str(r, "backoff") == "exponential" {
+			text += " and twice that each time"
+		}
+		on := strs(r, "on")
+		if len(on) > 1 {
+			on = []string{strings.Join(on[:len(on)-1], ", ") + " or " + on[len(on)-1]}
+		}
+		parts = append(parts, text+", on "+strings.Join(on, ""))
+	}
+	var errs []string
+	for _, p := range pairs(item, "errors") {
+		errs = append(errs, p.Key.Value+" as "+p.Value.Value)
+	}
+	if len(errs) > 0 {
+		parts = append(parts, "answers their "+joinAnd(errs))
+	}
+	switch str(item, "mode") {
+	case "async":
+		parts = append(parts, "does not wait, and hears back by "+str(item, "callback"))
+	case "fireAndForget":
+		parts = append(parts, "neither waits nor hears back")
+	}
+	if len(parts) == 0 {
+		return ""
+	}
+	return "The call to " + c + ": " + strings.Join(parts, "; ") + "."
 }
 
 // proofText says how a client proves its identity, in words.

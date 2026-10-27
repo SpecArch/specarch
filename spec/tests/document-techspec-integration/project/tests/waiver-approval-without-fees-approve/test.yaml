@@ -1,0 +1,10 @@
+workflow: waiver
+level: system
+scenario: red
+covers: [approval without fees.approve]
+given: "a caller without fees.approve"
+when: "they approve a request waiting at approve"
+then: "it is refused as not allowed, and the request still waits"
+verifies: [CASE-1]
+origin: inferred
+why: "Written by specarch derive: users get this wrong often, so the case is written. A draft: complete the given, when and then, and remove what does not hold."

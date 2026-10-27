@@ -774,6 +774,8 @@ redefined.
 | `nonce` | OpenID Connect Core | a claim of the identity token, written as the standard names it |
 | `middlewares`, `refusals` | SpecArch | the steps a request passes before an operation's handler, declared once with what each checks or does and the refusals it answers, each a `status`, a `problem` and a `condition`; an operation lists the ones it runs, in order, `[]` for none. No standard names them: OpenAPI's `security` says how a caller proves who it is, not what runs (ADR-131) |
 | `dependencies`, `timeout`, `calls` | SpecArch | external systems an operation calls, each with a time limit per call |
+| `auth`, `credential`, `rate`, `operations` on a dependency | SpecArch; auth's values after RFC 7617, RFC 6750, RFC 6749 4.4 and RFC 8705; an operation's `method`, `path`, `channel`, `message`, `request`, `responses` after OpenAPI and AsyncAPI, one level deep | how this system proves itself to the dependency, the secret setting that holds what it sends, how often it may call, and the operations of a dependency with no specification (ADR-200) |
+| `call`, `mapping`, `send`, `receive`, `idempotencyKey`, `retries`, `errors`, `mode`, `callback` on a calls entry | SpecArch; `retries` and `limit` as a job's | a call's contract: what is sent from our values and kept from the answer, the key that tells a repeated call, what is tried again, which answers become the operation's, and whether it waits (ADR-200) |
 | `kind` on a dependency, `carriedBy` on a channel | SpecArch | what a dependency is (five kinds, after C4's software system and containers), and the dependencies a channel lives on; AsyncAPI's channel `servers` names hosts, which a design file excludes (ADR-134) |
 | `protocol` on a dependency | AsyncAPI, the server object | how the dependency is reached, a lowercase URI scheme name, kept open |
 | `dependsOn` on a layout entry, in an implementation file | CycloneDX, a component's dependencies | the other packages of the layout this one calls, imports or links against (ADR-133) |
@@ -1383,6 +1385,101 @@ received: `emits` sends it, a job's `consumes` trigger receives it. A
 A `carriedBy` entry that names no declared dependency, or one of kind
 `database`, `fileStore` or `identityProvider`, is an error at the entry
 (`channel`), and the diagram still draws the channel.
+
+### The integration contract
+
+A dependency says how this system proves itself to it, how often it may
+call, and, when it has no specification of its own, its operations; a
+calls entry that says how the call is made is an object with `call` and
+the call's contract (ADR-200):
+
+    dependencies:
+      feeLedger:
+        description: The finance system's ledger.
+        timeout: PT5S
+        protocol: https
+        auth: bearer
+        credential: feeLedgerToken
+        rate: { requests: 20, per: PT1S, burst: 5 }
+        operations:
+          postCharge:
+            description: Post a charge against a loan.
+            method: post
+            path: /charges
+            request:
+              properties:
+                loan: { type: string, format: uuid }
+                amount: { type: string, format: decimal, precision: 10, scale: 2 }
+              required: [loan, amount]
+            responses:
+              "201": { description: Posted., properties: { entry: { type: string } } }
+              "503": { description: The ledger is down. }
+
+    post:
+      operationId: returnLoan
+      guard: { entity: Loan, precondition: 'status == "open"', recordsChanged: 1 }
+      calls:
+        - call: feeLedger#/operations/postCharge
+          mapping:
+            send: { loan: loanId, amount: lateFee }
+            receive: { ledgerEntry: entry }
+          idempotencyKey: { header: Idempotency-Key, value: loanId }
+          retries: { limit: 2, delay: PT1S, backoff: exponential, on: ["503", timeout] }
+          errors: { "503": "503", timeout: "503" }
+
+`auth` is `none`, `apiKey`, `basic` (RFC 7617), `bearer` (RFC 6750),
+`oauth2ClientCredentials` (RFC 6749, 4.4), `mutualTls` (RFC 8705) or
+`signedRequest`. Any but `none` names `credential`, a setting under
+`configuration` marked `secret`, which holds what is sent; the value is
+never in a specification, and the token URL or the certificate's file is
+deployment. `rate` is what this system may send, written as an
+operation's `limits.rate` is. `operations` is only for a dependency with
+no `specification`: each is a request (`method` and `path`) or a message
+sent (`channel` and `message`), with `request.properties` and
+`request.required`, and a request's `responses` by status, the ones that
+succeed with the `properties` they carry. A calls entry names one as
+`<dependency>#/operations/<name>`.
+
+A plain calls entry stays a name; it is a sync call with nothing more said.
+In the object form, `mapping.send` gives each field of their request from
+an expression over the operation's parameters, its request body's fields
+and the fields of the record its guard names, and `mapping.receive` gives
+each field of that record from an expression over the fields of their
+answer that succeeds. `idempotencyKey` gives the header and the value sent,
+the same whenever the same call is made again. `retries` gives `limit`,
+the tries after the first, `delay`, `backoff` (`fixed` or `exponential`,
+twice the last wait) and `on`, the statuses and `timeout` tried again.
+`errors` maps each of their statuses, or `timeout`, to a status the
+operation answers. `mode` is `sync` (left out), `async`, which names the
+channel message the answer comes back on under `callback`, or
+`fireAndForget`.
+
+Each is checked against both sides (`integration`, `setting`,
+`expression_type`, `expression_name`): a credential that is no setting or
+not a secret one; operations beside a specification, or an operation of
+neither or both kinds; a calls entry naming an operation not declared; a
+mapping on a dependency named alone, a field sent their request lacks, a
+required one left out, a value of the wrong type, a name that is both a
+parameter and a field of the record, a field kept that the record lacks or
+from an answer with no fields; a status in `retries` or `errors` that
+succeeds or that their operation does not declare, one `errors` maps to
+that the operation does not answer; `errors` or `receive` on a call that
+does not wait; an async call with no `callback`. A post or patch retried
+with no `idempotencyKey` is a warning: a try whose answer was lost may act
+twice. A mapping on a call through another specification's paths is
+checked once that specification is given beside it.
+
+An operation's call adds derived cases, always written as a failing
+dependency's are: `dependency retries exhausted <name>`, ending in the
+answer the first status of `on` maps to; `dependency answers unmapped
+<name>`, an answer `errors` does not name; and `dependency rate exceeded
+<name>` for a dependency with a `rate`. `dependency times out <name>` is
+answered as `errors` maps `timeout`, and a dependency the operation only
+calls fire and forget fails and times out with the operation succeeding
+all the same. The context diagram writes a dependency's `auth` and `rate`
+on its node; the technical specification says each call's contract under
+its operation, and the workflow diagram draws each dependency an operation
+step calls, the edge naming the operation.
 
 ### References between specifications
 

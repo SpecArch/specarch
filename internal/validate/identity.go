@@ -289,7 +289,8 @@ func clientKey(entry string) string {
 func callersOf(od *design, module string, o operation) []operation {
 	var out []operation
 	for _, x := range od.opList {
-		for _, e := range source.Items(source.Child(x.node, "calls")) {
+		for _, call := range callEntries(x.node) {
+			e := call.ref
 			dep, ptr, cross := crossRef(e.Value)
 			if !cross {
 				dep = e.Value

@@ -121,7 +121,8 @@ extension Checker {
                     add(depNode, rat + "/dependency", .gateway, "\(depNode.value) is a dependency of kind \(kind), which is no HTTP origin a request can be forwarded to; forward to a dependency of kind system or identityProvider")
                 }
             }
-            for (i, e) in items(g.value.child("calls")).enumerated() {
+            for call in callEntries(g.value) {
+                let e = call.ref, i = call.at[1]
                 let dep = callDependency(e.value)
                 if d.dependencies[dep] == nil {
                     add(e, at + "/calls/\(i)", .dependency, "\(dep) is not a dependency of the specification; declare it under dependencies with its timeout\(suggest(dep, d.dependencies))")

@@ -183,8 +183,8 @@ func moduleCalls(found map[string]*spec.Spec) map[string][]string {
 		}
 		seen := map[string]bool{}
 		for _, n := range callers {
-			for _, e := range source.Items(source.Child(n, "calls")) {
-				to := deps[callDependency(e.Value)]
+			for _, e := range callEntries(n) {
+				to := deps[callDependency(e.ref.Value)]
 				if found[to] != nil && !seen[to] {
 					seen[to] = true
 					edges[key] = append(edges[key], to)

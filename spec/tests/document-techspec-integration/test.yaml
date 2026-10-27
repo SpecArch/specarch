@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: document
+level: system
+scenario: golden
+given: "a specification whose ledger dependency proves itself with a bearer token kept in a secret setting, has a rate and two operations, whose audit log takes a message with no credential, an operation whose calls map, key, retry and map errors, call async and fire and forget, and a workflow whose operation step is that operation"
+when: document techspec is run
+then: "the context diagram writes the ledger's auth and rate on its node, the dependencies table says how each proves itself, its rate and its operations, the operation's calls name each operation's method and path or channel and message, a paragraph per call says its contract, the workflow diagram draws each dependency the step calls with an edge naming the operation, and it exits 0"
+verifies: [SA-105]

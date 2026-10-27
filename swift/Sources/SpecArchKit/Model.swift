@@ -83,6 +83,8 @@ private let referencePlaces: [(path: [String], kind: String)] = [
     (["workflows", "*", "steps", "*", "message"], "message"),
     (["jobs", "*", "trigger", "consumes"], "message"),
     (["paths", "*", "*", "calls"], "dependency"),
+    (["paths", "*", "*", "calls", "*", "call"], "dependency"),
+    (["paths", "*", "*", "calls", "*", "callback"], "message"),
     (["jobs", "*", "calls"], "dependency"),
     (["gateways", "*", "calls"], "dependency"),
     (["gateways", "*", "forwards", "*", "dependency"], "dependency"),

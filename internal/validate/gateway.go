@@ -100,8 +100,9 @@ func (c *checker) checkGateways(d *design) {
 				c.add(depNode, rat+"/dependency", RuleGateway, "%s is a dependency of kind %s, which is no HTTP origin a request can be forwarded to; forward to a dependency of kind system or identityProvider", depNode.Value, kind)
 			}
 		}
-		for i, e := range source.Items(source.Child(g.Value, "calls")) {
-			dep := callDependency(e.Value)
+		for _, call := range callEntries(g.Value) {
+			e, dep := call.ref, callDependency(call.ref.Value)
+			i := call.at[1]
 			switch {
 			case d.dependencies[dep] == nil:
 				c.add(e, at+"/calls/"+fmt.Sprint(i), RuleDependency, "%s is not a dependency of the specification; declare it under dependencies with its timeout%s", dep, suggest(dep, d.dependencies))

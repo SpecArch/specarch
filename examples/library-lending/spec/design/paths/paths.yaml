@@ -355,7 +355,13 @@ paths:
         "409": { description: The loan is already closed., problem: loan-closed }
         "503": { description: "The fee ledger is unavailable, and the loan stays as it was.", problem: fee-ledger-unavailable }
       emits: [loan.lifecycle/LoanReturned]
-      calls: [feeLedger]
+      calls:
+        - call: feeLedger#/operations/postCharge
+          mapping:
+            send: { loan: loanId, amount: lateFee, kind: '"late fee"' }
+          idempotencyKey: { header: Idempotency-Key, value: loanId }
+          retries: { limit: 2, delay: PT1S, backoff: exponential, on: ["503", timeout] }
+          errors: { "503": "503", timeout: "503" }
       guard: { entity: Loan, precondition: 'status == "open" || status == "overdue"', recordsChanged: 1 }
       satisfies: [LIB-4, LIB-5]
 

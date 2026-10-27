@@ -25,6 +25,7 @@ enums:
       - requirement
       - emits
       - dependency
+      - integration
       - channel
       - idempotency_key
       - validity
@@ -182,6 +183,7 @@ enums:
       requirement: a `satisfies` or `verifies` link names a requirement that is neither in the specification nor in a declared requirement set
       emits: an `emits` entry names a channel or message that does not exist
       dependency: a `calls` entry names a dependency that is not declared, a dependency's timeout is zero, or a dependency of kind `database`, `messageBroker` or `fileStore` names a `specification`
+      integration: "a dependency's `auth` other than `none` names no `credential`, `auth: none` names one, or the `credential` names a setting not marked `secret`; a dependency with a `specification` declares `operations`, or one of its operations says neither or both of method and path and channel and message, answers a message sent, or requires a field its request lacks; a `calls` entry names an operation its dependency does not declare, or one of a dependency with a `specification`; a call's mapping names a dependency alone, sends a field their request lacks, leaves out one it requires, names a value both a parameter and a field of the record, or keeps a value in a field the record lacks, from an answer with no fields, or with no record to keep it in; a call's `retries` or `errors` names an answer that succeeds or one their operation does not declare, its `errors` maps to a response the operation does not declare, a call that does not wait maps or keeps an answer, an async call names no `callback` or a call that is not async names one; and, as a warning, a post or patch retried with no `idempotencyKey`"
       channel: a channel's `carriedBy` entry names no declared dependency, or one of kind `database`, `fileStore` or `identityProvider`, which carry no messages
       idempotency_key: an `idempotencyKey` names no header parameter of its operation, or sits on a method that RFC 9110 already makes idempotent
       validity: a `validity` names a field the entity does not have, one that is not a date or a date-time, or a `from` and an `until` of different formats

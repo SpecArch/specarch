@@ -1,0 +1,10 @@
+workflow: waiver
+level: system
+scenario: red
+covers: [deadline passes at approve]
+given: "a request waiting at approve"
+when: "P3D passes with no answer"
+then: "the request ends refused and returnLoan is not called"
+verifies: [CASE-1]
+origin: inferred
+why: "Written by specarch derive: a deadline passing is a case nobody exercises by hand, so it is always written. A draft: complete the given, when and then, and remove what does not hold."

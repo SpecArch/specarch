@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-test-1.0.schema.json
+operation: reportLost
+level: system
+scenario: red
+covers: [dependency rate exceeded feeLedger]
+given: an open loan, and 10 calls to the fee ledger already made in the last second
+when: reportLost is called for it
+then: no eleventh call is sent within that second; it answers 503, the loan stays open, and no event is published

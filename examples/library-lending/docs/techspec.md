@@ -2,7 +2,7 @@
 
 # Library Lending: technical specification
 
-Version 0.1.0 of the specification: 8 requirements, 4 entities, 1 view, 2 schemas, 20 HTTP operations, 3 channels, 2 dependencies, 12 pages, 1 flow, 1 workflow, 2 algorithms, 194 tests, 4 decisions, 3 environments and 5 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.1.0 of the specification: 8 requirements, 4 entities, 1 view, 2 schemas, 20 HTTP operations, 3 channels, 2 dependencies, 12 pages, 1 flow, 1 workflow, 2 algorithms, 198 tests, 4 decisions, 3 environments and 5 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 ## 1. Introduction and goals
 
@@ -64,7 +64,7 @@ flowchart LR
   person_anyone --> system
   client_fee_ledger_batch["fee-ledger-batch (system, as auditor)"]
   client_fee_ledger_batch --> system
-  dependency_feeLedger["feeLedger, https"]
+  dependency_feeLedger["feeLedger, https, bearer, 10 per PT1S"]
   system -->|"returnLoan, reportLost"| dependency_feeLedger
   dependency_eventBus[["eventBus, amqp"]]
   channel_fee_waivers>"fee.waivers (channel)"]
@@ -115,7 +115,7 @@ External systems the operations call. A call that fails, or that does not answer
 | Dependency | Time limit per call | Called by | Description |
 |---|---|---|---|
 | eventBus | PT1S |   | The library's message broker, run by the library's IT team, which carries the loan events to the notification service and the audit log. |
-| feeLedger | PT5S | returnLoan, reportLost | The finance system's ledger, where a late fee or a replacement charge is posted the moment it is charged. |
+| feeLedger | PT5S | returnLoan, reportLost | The finance system's ledger, where a late fee or a replacement charge is posted the moment it is charged. Proves itself by a bearer token (RFC 6750), kept in the secret setting feeLedgerToken. At most 10 calls per PT1S. Its operations: postCharge (POST /charges). |
 
 **Insight on eventBus:** A publish that the broker has not taken within a second is given up and retried, so a slow broker never holds a return at the desk.
 
@@ -775,7 +775,9 @@ Parameters:
 
 Takes no request body.
 
-Calls feeLedger (within PT5S).
+Calls feeLedger#/operations/postCharge (POST /charges, within PT5S).
+
+The call to feeLedger#/operations/postCharge: it sends `loan = loanId`, `amount = lateFee`, `kind = "late fee"`; sends Idempotency-Key as `loanId`, so a call made again is told from a new one; tries again 2 times, PT1S apart and twice that each time, on 503 or timeout; answers their 503 as 503 and timeout as 503.
 
 Guard: the change writes 1 Loan record, and `status == "open" || status == "overdue"` must hold on each as it is at the moment of the change; a change that finds otherwise is refused and changes nothing, so a second writer on the same record is refused rather than overwriting the first.
 
@@ -1024,6 +1026,7 @@ flowchart LR
 |---|---|---|---|
 | dailyRate | decimal(10, 2) |   | The late fee per day, set by the board; read by the lateFee algorithm. |
 | databaseUrl | string | yes | Where the database is; it carries the password, so it comes from the host's secret store and is never written here. |
+| feeLedgerToken | string | yes | The token the finance team issued for the fee ledger; it comes from the host's secret store and is never written here. |
 | notificationChannelUrl | string |   | Where the notification service listens for loan events. |
 
 ### Release
@@ -2122,6 +2125,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | report-lost-denied | operation reportLost | system | red | a caller holding only the member role | reportLost is called | it is refused as not allowed |
 | report-lost-denied-with-expired-session | operation reportLost | system | red | a librarian whose session expired after half an hour without a request | reportLost is called for an open loan | it is refused as not signed in, and nothing changes |
 | report-lost-dependency-fails-fee-ledger | operation reportLost | system | red | an open loan, and a fee ledger that answers every call with an error | reportLost is called for it | it answers 503, the loan stays open, and no event is published |
+| report-lost-dependency-rate-exceeded-fee-ledger | operation reportLost | system | red | an open loan, and 10 calls to the fee ledger already made in the last second | reportLost is called for it | no eleventh call is sent within that second; it answers 503, the loan stays open, and no event is published |
 | report-lost-dependency-times-out-fee-ledger | operation reportLost | system | red | an open loan, and a fee ledger that does not answer within 5 seconds | reportLost is called for it | it gives up the call, answers 503, the loan stays open, and no event is published |
 | report-lost-event-not-delivered | operation reportLost | system | red | the loan.lifecycle channel is unavailable | reportLost is called | the loan stays open, nothing is charged, and the call fails |
 | report-lost-unknown-loan | operation reportLost | system | red | a librarian | reportLost is called with an id no loan has and again with abc | the first is refused as not found and the second as invalid input |
@@ -2142,7 +2146,10 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | return-late | operation returnLoan | system | golden | an overdue loan returned 7 days late, a daily rate of 0.50 and a replacement cost of 25.00 | returnLoan is called | the loan is returned with a late fee of 3.50, the copy is available again, and LoanReturned is published |
 | return-loan-concurrent-write | operation returnLoan | system | red | an open loan that a second librarian closed after the first librarian's screen showed it open | returnLoan is called by the first librarian for it | it is refused, the loan stays as the second librarian left it, and no second fee is charged |
 | return-loan-denied-with-expired-session | operation returnLoan | system | red | a librarian whose session expired after half an hour without a request | returnLoan is called for an open loan | it is refused as not signed in, and nothing changes |
+| return-loan-dependency-answers-unmapped-fee-ledger | operation returnLoan | system | red | an open loan, and a fee ledger that answers 409 to its charge | returnLoan is called for it | the charge is not tried again, it answers 503, the loan stays open, and no event is published |
 | return-loan-dependency-fails-fee-ledger | operation returnLoan | system | red | an open loan, and a fee ledger that answers every call with an error | returnLoan is called for it | it answers 503, the loan stays open, and no event is published |
+| return-loan-dependency-rate-exceeded-fee-ledger | operation returnLoan | system | red | an open loan, and 10 calls to the fee ledger already made in the last second | returnLoan is called for it | no eleventh call is sent within that second; it answers 503, the loan stays open, and no event is published |
+| return-loan-dependency-retries-exhausted-fee-ledger | operation returnLoan | system | red | an open loan, and a fee ledger that answers 503 or does not answer within 5 seconds on every try | returnLoan is called for it | the charge is tried 2 more times, 1 second and then 2 seconds apart, all with the same Idempotency-Key, then it answers 503, the loan stays open, and no event is published |
 | return-loan-dependency-times-out-fee-ledger | operation returnLoan | system | red | an open loan, and a fee ledger that does not answer within 5 seconds | returnLoan is called for it | it gives up the call, answers 503, the loan stays open, and no event is published |
 | return-unknown-loan | operation returnLoan | system | red | a librarian | returnLoan is called with an id no loan has and again with abc | the first is refused as not found and the second as invalid input |
 | second-factor-page | page second-factor | system | golden | a librarian who signed in with their password a minute ago | the page second-factor is submitted with the code the authenticator app shows now | it leads to the page members-list, saying that they are signed in |

@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: derive
+level: system
+scenario: golden
+given: "an operation whose call to a dependency with a rate retries, maps its errors and its timeout to the operation's answers, beside an async call and a fire-and-forget call to another dependency, with only its golden test written"
+when: derive is run
+then: "it writes a draft for the retries used up, ending in the answer the first retried status maps to, for an error the mapping does not name, for the rate exceeded, for the timeout answered as errors maps it, and for the fire-and-forget dependency's failure and timeout as cases the operation still succeeds in, beside the drafts of the permission, the key and the guard, and exits 0"
+verifies: [SA-105]

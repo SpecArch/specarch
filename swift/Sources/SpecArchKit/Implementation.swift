@@ -593,8 +593,8 @@ extension Checker {
             for e in items(child(d.channels[ch], "carriedBy")) { reached(e.value, by) }
         }
         func uses(_ n: YNode?, _ by: String) {
-            for call in items(child(n, "calls")) {
-                reached(String(call.value.split(separator: "#", maxSplits: 1, omittingEmptySubsequences: false).first ?? ""), by)
+            for call in callEntries(n) {
+                reached(String(call.ref.value.split(separator: "#", maxSplits: 1, omittingEmptySubsequences: false).first ?? ""), by)
             }
             for e in items(child(n, "emits")) { carriers(e.value, by) }
         }

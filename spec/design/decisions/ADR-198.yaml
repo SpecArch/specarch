@@ -1,0 +1,85 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-1.0.schema.json
+decisions:
+  ADR-198:
+    title: A workflow step may be a decision, a task or a wait, an operation step says what its failure does and which operation undoes it, and the steps still run forward only
+    status: proposed
+    date: "2026-10-27"
+    context: |
+      ADR-054 took the sequential subset of BPMN 2.0: approvals and
+      operation steps in order, a refusal ending the request. Workflows
+      read since then ask for more: a request routed by its amount, a
+      piece of work a person does that is not an approval (check a
+      document, fill in a reference), a wait for a payment's message or
+      until a date, a call that is tried again and then ends the request
+      failed, and an earlier call undone when the request does not end
+      approved. Each was written as a question, so none was checked and
+      none got a test.
+    decision: |
+      A step's kind may be decision, task or wait beside approval and
+      operation.
+
+      A decision holds branches in order, after BPMN's exclusive gateway:
+      each has when, a condition over the subject's fields in SpecArch's
+      subset of CEL, or otherwise: true on the last, BPMN's default flow;
+      and to, a later step the request goes on at, or end: approved,
+      refused or failed. The first branch whose condition holds is taken.
+
+      A task names its performers (roles) and the permission it checks,
+      after a user task with its potential owners, and may have a deadline
+      with onDeadline refuse or escalate to a later task. A refusal does
+      not end a task, and the person who made the request may do it.
+
+      A wait waits for one of message (channel/Message, a message catch
+      event, with an optional deadline that refuses), after (a duration
+      since the step was reached) or at (an expression over the subject
+      giving an instant, or a date read in the specification's timeZone),
+      the words a state machine's time transition uses (ADR-190).
+
+      An operation step may say onFailure: retries with a limit, then to a
+      later step or end: failed, after an error boundary event; without
+      it a failure ends the request failed. compensatedBy names the
+      operationId that undoes the step, after BPMN's compensation: a
+      request that ends refused or failed after the step was done calls
+      it, the latest done step first.
+
+      Every to, onFailure.to and escalateTo goes forward, so a workflow
+      still has no loop and no parallel path. The validator checks the
+      references and the conditions (workflow, expression_name,
+      expression_type, time_zone), in both builds; the derived cases add a
+      case per branch, the deadline at a task and at a wait for a message,
+      a task done without its permission, and each failure with
+      onFailure, critical, the compensation named where the request ends.
+
+      generate bpmn writes a decision as an exclusive gateway whose flows
+      carry the condition in a conditionExpression with the language
+      urn:specarch:expression, and otherwise as its default flow; a task
+      as a user task; a wait as an intermediate catch event with a message,
+      a timer duration or a timer date; a failure as an error boundary
+      event; compensatedBy as a compensation boundary event associated
+      with a service task marked isForCompensation. extract workflows
+      reads each back. The retry limit and the permission a task checks
+      have no element in BPMN and stay in the specification only.
+    consequences: |
+      A workflow with only approvals and operation steps is unchanged in
+      every output: its derived cases, its BPMN file and its picture. The
+      schema's workflowStep has one conditional per kind. A list page is
+      still the inbox of an approval step only; a task's inbox is a later
+      addition.
+    why: |
+      BPMN 2.0's meanings are taken again, so a modeller reads the file
+      generate writes and extract reads one a modeller wrote. Forward-only
+      targets keep what ADR-054 kept: a workflow read top to bottom is the
+      order things happen, and a loop or a parallel path stays a question
+      until a real workflow needs one. The decision's when and otherwise
+      are the words a state machine's transition uses (ADR-190), and a
+      wait's after and at the words of its time transitions, so one thing
+      is said one way. compensatedBy names an operation rather than a
+      step, because BPMN's compensation handler is outside the sequence
+      flow: a step in the list would also run in order. Compensation runs
+      on a refusal as well as a failure, because a request refused after
+      a reservation was made leaves the reservation held as surely as one
+      that failed. A retry has no element in BPMN 2.0, and an engine's
+      extension would tie the file to that engine, so the limit is left to
+      the specification. The four-eyes rule stays on approvals: a task is
+      work on the request, often by the person who asked.
+    satisfies: [SA-103]

@@ -655,3 +655,17 @@ requirements:
     verification: test
     needs: [NEED-1, NEED-10]
     why: A person meets an application through its pages, in the order they reach them, and the analyst writing the specification asks what each role sees first, what every person has whatever their role, and which fields a role may change or see; until each is written, the screens fall back on a menu nobody chose and a form that shows every field to everyone. A gap in the navigation is found by a check rather than by a reader, and is a question the walkthrough asks (ADR-197).
+  SA-103:
+    statement: A workflow shall be able to take a decision over its subject, give people a task that is not an approval, wait for a message, a duration or a moment, say what it does when an operation step fails and which operation undoes a step, all with BPMN 2.0's meanings and with no loops or parallel paths; specarch validate shall check each in both builds, and specarch generate bpmn and specarch extract workflows shall write and read them.
+    kind: functional
+    priority: should
+    status: proposed
+    acceptance:
+      - A decision's branch whose condition names no field of the subject or gives no true or false, an otherwise that is not the last branch, a last branch with a condition, and a branch or a failure that goes on at a step that is not later are each reported at the key, as expression_name, expression_type or workflow.
+      - A task's performer that is not a role or does not grant the task's permission, and a task's escalation to a step that is not a later task, are reported as workflow; a wait's message that is not a channel message, and an at that gives no instant or date, may be null, or gives a date with no timeZone, are reported as workflow, expression_type or time_zone.
+      - A workflow gets a case per branch of each decision, the deadline at each task and each wait for a message, a task done without its permission, and the failure of each operation step with onFailure, critical whatever the harm; a case where the request ends after a step with compensatedBy names the operation that undoes it, the latest step first.
+      - specarch generate bpmn writes a decision as an exclusive gateway with a condition on each flow and its otherwise as the default flow, a task as a user task, a wait as an intermediate catch event, a failure as an error boundary event, and compensatedBy as a compensation boundary event with its handler; specarch extract workflows reads each back, so the file generate writes gives the workflow it was written from.
+      - Both builds print the same lines for every case.
+    verification: test
+    needs: [NEED-1, NEED-5]
+    why: The workflows read since the sequential subset was taken route a request by its amount or kind, ask a clerk to check something before anyone approves, wait for a payment to arrive, and undo a reservation when a later step fails; written outside the workflow, none of them is checked against the subject, the roles or the operations, and none gets a test.

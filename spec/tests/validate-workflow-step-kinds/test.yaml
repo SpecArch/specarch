@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: validate
+level: system
+scenario: golden
+given: "a workflow with a decision of three branches, an approval, two tasks with an escalation, an operation step undone by another operation, one with retries that end it failed and one whose failure goes on at a later step, and waits for a message with a deadline, for a duration and for a moment of its subject, with no tests"
+when: "validate is run"
+then: "it reports no error but the missing tests, and names among them a case per branch of the decision, the deadline at each task and at the wait for a message, a task done without its permission, and each failure with its retries, the request undone by the compensating operation where it ends after the step; and exits 1"
+verifies: [SA-103]

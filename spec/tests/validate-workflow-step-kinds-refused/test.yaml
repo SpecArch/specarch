@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "a workflow whose task names a role that does not grant its permission and one that is not a role and escalates to an approval, whose decision has otherwise first, a branch back to an earlier step, a condition naming no field, one that gives a number and a last branch with a condition, whose operation step is undone by no operation and another's failure goes back, and whose waits name no message, wait for a field that may be null, a date with no timeZone, a number, and for both a duration and a message"
+when: "validate is run"
+then: "it reports each as workflow, expression_name, expression_type, time_zone or schema at the key, the same in both builds, and exits 1"
+verifies: [SA-103]

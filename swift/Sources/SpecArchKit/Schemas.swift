@@ -305,7 +305,7 @@ let designSchemaJSON = #"""
       }
     },
     "workflows": {
-      "description": "SpecArch keyword, a sequential subset of BPMN 2.0. Requests that finish later, after people approve them, keyed by kebab-case name: the operation that starts each, answering 202, the entity that holds the request while it waits, and its approval and operation steps in order. The person who made a request never approves it. A workflow is a test subject.",
+      "description": "SpecArch keyword, a subset of BPMN 2.0 with no loops and no parallel paths. Requests that finish later, after people approve them or work on them, keyed by kebab-case name: the operation that starts each, answering 202, the entity that holds the request while it waits, and its steps in order: approvals, operations, decisions, tasks and waits. The person who made a request never approves it. A workflow is a test subject.",
       "type": "object",
       "propertyNames": {
         "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
@@ -3752,7 +3752,7 @@ let designSchemaJSON = #"""
           "$ref": "#/$defs/typeName"
         },
         "steps": {
-          "description": "The steps in order, after BPMN 2.0: an approval is a user task with its potential owners and a timer, an operation a service task. A refusal at an approval ends the request.",
+          "description": "The steps in order, after BPMN 2.0: an approval or a task is a user task with its potential owners and a timer, an operation a service task, a decision an exclusive gateway, a wait an intermediate catch event. A refusal at an approval ends the request; a decision's branch or a failure goes on at a later step, never an earlier one.",
           "type": "array",
           "items": {
             "$ref": "#/$defs/workflowStep"
@@ -3812,11 +3812,14 @@ let designSchemaJSON = #"""
           "$ref": "#/$defs/memberName"
         },
         "kind": {
-          "description": "approval: people with the permission approve or refuse the request; operation: the system calls an operation once every approval before it has passed.",
+          "description": "approval: people with the permission approve or refuse the request; operation: the system calls an operation; decision: the request goes on at the step or the end of the first branch whose condition holds; task: people with the permission do a piece of work on the request, which a refusal does not end; wait: the request waits for a message, a duration or a moment. The steps run in order, and a branch or a failure goes on only at a later step.",
           "type": "string",
           "enum": [
             "approval",
-            "operation"
+            "operation",
+            "decision",
+            "task",
+            "wait"
           ]
         },
         "approvers": {
@@ -3828,16 +3831,25 @@ let designSchemaJSON = #"""
           "minItems": 1,
           "uniqueItems": true
         },
+        "performers": {
+          "description": "For a task: the roles whose people may do it, each granting the permission.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/roleName"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
         "permission": {
-          "description": "For an approval: the permission the approval checks; never the trigger's.",
+          "description": "For an approval: the permission the approval checks; never the trigger's. For a task: the permission the task checks.",
           "$ref": "#/$defs/permissionName"
         },
         "deadline": {
-          "description": "For an approval: how long the request waits for an answer.",
+          "description": "For an approval: how long the request waits for an answer. For a task: how long it waits for the work, when it is bounded. For a wait for a message: how long it waits for the message.",
           "$ref": "#/$defs/duration"
         },
         "onDeadline": {
-          "description": "For an approval: what the deadline does when it passes. refuse ends the request; escalate moves it to the later approval step named under escalateTo.",
+          "description": "What the deadline does when it passes. refuse ends the request refused; escalate, for an approval or a task, moves it to the later step of the same kind named under escalateTo.",
           "type": "string",
           "enum": [
             "refuse",
@@ -3845,119 +3857,675 @@ let designSchemaJSON = #"""
           ]
         },
         "escalateTo": {
-          "description": "With onDeadline escalate: the later approval step the request moves to.",
+          "description": "With onDeadline escalate: the later step of the same kind the request moves to.",
           "$ref": "#/$defs/memberName"
         },
         "operation": {
           "description": "For an operation step: the operationId the system calls.",
           "$ref": "#/$defs/memberName"
+        },
+        "onFailure": {
+          "description": "For an operation step: what the workflow does when the operation fails, after BPMN 2.0's error boundary event. Without it a failure ends the request failed.",
+          "$ref": "#/$defs/workflowFailure"
+        },
+        "compensatedBy": {
+          "description": "For an operation step: the operationId that undoes it, after BPMN 2.0's compensation. A request that ends refused or failed after the step was done calls it, the latest done step first.",
+          "$ref": "#/$defs/memberName"
+        },
+        "branches": {
+          "description": "For a decision: the branches in order, after BPMN 2.0's exclusive gateway. The first whose when holds is taken; the last has otherwise in place of when and is taken when none holds.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/workflowBranch"
+          },
+          "minItems": 2
+        },
+        "after": {
+          "description": "For a wait: how long the request waits once it reaches the step, after BPMN 2.0's timer event.",
+          "$ref": "#/$defs/duration"
+        },
+        "at": {
+          "description": "For a wait: one expression in SpecArch's subset of CEL over the subject's fields giving the moment the request goes on, an instant, or a date read as the first instant of that day in the specification's timeZone.",
+          "type": "string",
+          "minLength": 1
+        },
+        "message": {
+          "description": "For a wait: the channel message the request waits for, as channel/Message, after BPMN 2.0's message event.",
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9]*(\\.[a-z][a-z0-9]*)*/[A-Z][A-Za-z0-9]*$"
         }
       },
       "required": [
         "name",
         "kind"
       ],
-      "if": {
-        "properties": {
-          "kind": {
-            "const": "approval"
-          }
-        },
-        "required": [
-          "kind"
-        ]
-      },
-      "then": {
-        "required": [
-          "approvers",
-          "permission",
-          "deadline",
-          "onDeadline"
-        ],
-        "not": {
-          "required": [
-            "operation"
-          ]
-        },
-        "if": {
-          "properties": {
-            "onDeadline": {
-              "const": "escalate"
-            }
-          },
-          "required": [
-            "onDeadline"
-          ]
-        },
-        "then": {
-          "required": [
-            "escalateTo"
-          ]
-        },
-        "else": {
+      "allOf": [
+        {
           "if": {
+            "properties": {
+              "kind": {
+                "const": "approval"
+              }
+            },
             "required": [
-              "onDeadline"
+              "kind"
             ]
           },
           "then": {
-            "not": {
+            "required": [
+              "approvers",
+              "permission",
+              "deadline",
+              "onDeadline"
+            ],
+            "allOf": [
+              {
+                "not": {
+                  "required": [
+                    "performers"
+                  ]
+                }
+              },
+              {
+                "not": {
+                  "required": [
+                    "operation"
+                  ]
+                }
+              },
+              {
+                "not": {
+                  "required": [
+                    "onFailure"
+                  ]
+                }
+              },
+              {
+                "not": {
+                  "required": [
+                    "compensatedBy"
+                  ]
+                }
+              },
+              {
+                "not": {
+                  "required": [
+                    "branches"
+                  ]
+                }
+              },
+              {
+                "not": {
+                  "required": [
+                    "after"
+                  ]
+                }
+              },
+              {
+                "not": {
+                  "required": [
+                    "at"
+                  ]
+                }
+              },
+              {
+                "not": {
+                  "required": [
+                    "message"
+                  ]
+                }
+              }
+            ],
+            "if": {
+              "properties": {
+                "onDeadline": {
+                  "const": "escalate"
+                }
+              },
+              "required": [
+                "onDeadline"
+              ]
+            },
+            "then": {
               "required": [
                 "escalateTo"
               ]
-            }
-          }
-        }
-      },
-      "else": {
-        "if": {
-          "required": [
-            "kind"
-          ]
-        },
-        "then": {
-          "required": [
-            "operation"
-          ],
-          "allOf": [
-            {
-              "not": {
-                "required": [
-                  "approvers"
-                ]
-              }
             },
-            {
-              "not": {
-                "required": [
-                  "permission"
-                ]
-              }
-            },
-            {
-              "not": {
-                "required": [
-                  "deadline"
-                ]
-              }
-            },
-            {
-              "not": {
+            "else": {
+              "if": {
                 "required": [
                   "onDeadline"
                 ]
-              }
-            },
-            {
-              "not": {
-                "required": [
-                  "escalateTo"
-                ]
+              },
+              "then": {
+                "not": {
+                  "required": [
+                    "escalateTo"
+                  ]
+                }
               }
             }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "operation"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "required": [
+              "operation"
+            ],
+            "allOf": [
+              {
+                "not": {
+                  "required": [
+                    "approvers"
+                  ]
+                }
+              },
+              {
+                "not": {
+                  "required": [
+                    "performers"
+                  ]
+                }
+              },
+              {
+                "not": {
+                  "required": [
+                    "permission"
+                  ]
+                }
+              },
+              {
+                "not": {
+                  "required": [
+                    "deadline"
+                  ]
+                }
+              },
+              {
+                "not": {
+                  "required": [
+                    "onDeadline"
+                  ]
+                }
+              },
+              {
+                "not": {
+                  "required": [
+                    "escalateTo"
+                  ]
+                }
+              },
+              {
+                "not": {
+                  "required": [
+                    "branches"
+                  ]
+                }
+              },
+              {
+                "not": {
+                  "required": [
+                    "after"
+                  ]
+                }
+              },
+              {
+                "not": {
+                  "required": [
+                    "at"
+                  ]
+                }
+              },
+              {
+                "not": {
+                  "required": [
+                    "message"
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "decision"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "required": [
+              "branches"
+            ],
+            "allOf": [
+              {
+                "not": {
+                  "required": [
+                    "approvers"
+                  ]
+                }
+              },
+              {
+                "not": {
+                  "required": [
+                    "performers"
+                  ]
+                }
+              },
+              {
+                "not": {
+                  "required": [
+                    "permission"
+                  ]
+                }
+              },
+              {
+                "not": {
+                  "required": [
+                    "deadline"
+                  ]
+                }
+              },
+              {
+                "not": {
+                  "required": [
+                    "onDeadline"
+                  ]
+                }
+              },
+              {
+                "not": {
+                  "required": [
+                    "escalateTo"
+                  ]
+                }
+              },
+              {
+                "not": {
+                  "required": [
+                    "operation"
+                  ]
+                }
+              },
+              {
+                "not": {
+                  "required": [
+                    "onFailure"
+                  ]
+                }
+              },
+              {
+                "not": {
+                  "required": [
+                    "compensatedBy"
+                  ]
+                }
+              },
+              {
+                "not": {
+                  "required": [
+                    "after"
+                  ]
+                }
+              },
+              {
+                "not": {
+                  "required": [
+                    "at"
+                  ]
+                }
+              },
+              {
+                "not": {
+                  "required": [
+                    "message"
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "task"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "required": [
+              "performers",
+              "permission"
+            ],
+            "dependentRequired": {
+              "deadline": [
+                "onDeadline"
+              ],
+              "onDeadline": [
+                "deadline"
+              ]
+            },
+            "allOf": [
+              {
+                "not": {
+                  "required": [
+                    "approvers"
+                  ]
+                }
+              },
+              {
+                "not": {
+                  "required": [
+                    "operation"
+                  ]
+                }
+              },
+              {
+                "not": {
+                  "required": [
+                    "onFailure"
+                  ]
+                }
+              },
+              {
+                "not": {
+                  "required": [
+                    "compensatedBy"
+                  ]
+                }
+              },
+              {
+                "not": {
+                  "required": [
+                    "branches"
+                  ]
+                }
+              },
+              {
+                "not": {
+                  "required": [
+                    "after"
+                  ]
+                }
+              },
+              {
+                "not": {
+                  "required": [
+                    "at"
+                  ]
+                }
+              },
+              {
+                "not": {
+                  "required": [
+                    "message"
+                  ]
+                }
+              }
+            ],
+            "if": {
+              "properties": {
+                "onDeadline": {
+                  "const": "escalate"
+                }
+              },
+              "required": [
+                "onDeadline"
+              ]
+            },
+            "then": {
+              "required": [
+                "escalateTo"
+              ]
+            },
+            "else": {
+              "if": {
+                "required": [
+                  "onDeadline"
+                ]
+              },
+              "then": {
+                "not": {
+                  "required": [
+                    "escalateTo"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "wait"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "oneOf": [
+              {
+                "required": [
+                  "after"
+                ]
+              },
+              {
+                "required": [
+                  "at"
+                ]
+              },
+              {
+                "required": [
+                  "message"
+                ]
+              }
+            ],
+            "dependentRequired": {
+              "deadline": [
+                "message",
+                "onDeadline"
+              ],
+              "onDeadline": [
+                "deadline"
+              ]
+            },
+            "properties": {
+              "onDeadline": {
+                "const": "refuse"
+              }
+            },
+            "allOf": [
+              {
+                "not": {
+                  "required": [
+                    "approvers"
+                  ]
+                }
+              },
+              {
+                "not": {
+                  "required": [
+                    "performers"
+                  ]
+                }
+              },
+              {
+                "not": {
+                  "required": [
+                    "permission"
+                  ]
+                }
+              },
+              {
+                "not": {
+                  "required": [
+                    "escalateTo"
+                  ]
+                }
+              },
+              {
+                "not": {
+                  "required": [
+                    "operation"
+                  ]
+                }
+              },
+              {
+                "not": {
+                  "required": [
+                    "onFailure"
+                  ]
+                }
+              },
+              {
+                "not": {
+                  "required": [
+                    "compensatedBy"
+                  ]
+                }
+              },
+              {
+                "not": {
+                  "required": [
+                    "branches"
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "workflowBranch": {
+      "description": "One branch of a decision: a condition, or otherwise on the last, and where the request goes on.",
+      "type": "object",
+      "properties": {
+        "when": {
+          "description": "One expression in SpecArch's subset of CEL over the subject's fields, giving true or false.",
+          "type": "string",
+          "minLength": 1
+        },
+        "otherwise": {
+          "description": "true on the last branch: it is taken when no earlier branch's when holds, BPMN 2.0's default flow.",
+          "const": true
+        },
+        "to": {
+          "description": "The later step the request goes on at.",
+          "$ref": "#/$defs/memberName"
+        },
+        "end": {
+          "description": "How the request ends here: approved, refused or failed.",
+          "type": "string",
+          "enum": [
+            "approved",
+            "refused",
+            "failed"
           ]
         }
       },
+      "allOf": [
+        {
+          "oneOf": [
+            {
+              "required": [
+                "when"
+              ]
+            },
+            {
+              "required": [
+                "otherwise"
+              ]
+            }
+          ]
+        },
+        {
+          "oneOf": [
+            {
+              "required": [
+                "to"
+              ]
+            },
+            {
+              "required": [
+                "end"
+              ]
+            }
+          ]
+        }
+      ],
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "workflowFailure": {
+      "description": "What a workflow does when an operation step fails: how often the operation is tried again, then the later step the request goes on at, or failed to end it.",
+      "type": "object",
+      "properties": {
+        "retries": {
+          "description": "How often the operation is tried again before the failure goes on to to or end.",
+          "type": "object",
+          "properties": {
+            "limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1000
+            }
+          },
+          "required": [
+            "limit"
+          ],
+          "additionalProperties": false
+        },
+        "to": {
+          "description": "The later step the request goes on at after the last try.",
+          "$ref": "#/$defs/memberName"
+        },
+        "end": {
+          "description": "failed: the request ends failed after the last try.",
+          "type": "string",
+          "enum": [
+            "failed"
+          ]
+        }
+      },
+      "oneOf": [
+        {
+          "required": [
+            "to"
+          ]
+        },
+        {
+          "required": [
+            "end"
+          ]
+        }
+      ],
       "patternProperties": {
         "^x-": {}
       },

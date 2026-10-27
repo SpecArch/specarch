@@ -797,7 +797,7 @@ redefined.
 | `forwards` | SpecArch | a gateway's table of services, one row per value with the dependency it selects |
 | `token`, `calls`, `middlewares`, `refusals`, `dependency` on a gateway | SpecArch | as on an operation, a middleware and a server: the token verified, the dependencies called besides the forwards, the middlewares run first, the answers given in place of the service's, the dependency a row forwards to |
 | `menus`, `title`, `page`, `items` | SpecArch | the navigation: a tree whose leaves open pages |
-| `workflows`, `trigger`, `subject`, `steps`, `approvers`, `deadline`, `onDeadline`, `escalateTo` | BPMN 2.0, a sequential subset | a request that finishes after people approve it: an approval is a user task with its potential owners and a timer, an operation step a service task |
+| `workflows`, `trigger`, `subject`, `steps`, `approvers`, `performers`, `deadline`, `onDeadline`, `escalateTo`, `branches`, `onFailure`, `compensatedBy`, `after`, `at`, `message` | BPMN 2.0, a subset with no loops and no parallel paths | a request that finishes after people approve it or work on it: an approval or a task is a user task with its potential owners and a timer, an operation step a service task, a decision an exclusive gateway, a wait an intermediate catch event, a failure an error boundary event, `compensatedBy` a compensation handler |
 | `views`, `from`, `path`, `count`, `rows` | SpecArch, after the SQL view of ISO/IEC 9075 | a read model: an entity's row with fields read through its relations, counts and the rows of a one-to-many relation added, never written |
 | `schemas` | OpenAPI 3, `components.schemas` | value objects: named object schemas with no key and no table, data passed around but not stored |
 | `errors`, `status`, `title`, `condition`, `remedy`, `type`, `problem` | RFC 9457, Problem Details for HTTP APIs | the catalogue of problem types; `condition` and `remedy`, what the person who meets the problem does next (ADR-160), are SpecArch's, the standard's other members are the document's own at run time |
@@ -1778,10 +1778,11 @@ under `workflows`, keyed by kebab-case name:
           kind: operation
           operation: waiveFee
 
-The steps take their meaning from BPMN 2.0, its sequential subset: an
-`approval` is a user task whose `approvers` are its potential owners, its
-`deadline` a timer on it, and an `operation` step a service task. The
-steps run in order, and a refusal at an approval ends the request. The
+The steps take their meaning from BPMN 2.0, a subset with no loops and
+no parallel paths: an `approval` is a user task whose `approvers` are its
+potential owners, its `deadline` a timer on it, and an `operation` step a
+service task. The steps run in order, and a refusal at an approval ends
+the request. The
 `trigger` is the operation that starts the workflow; its request body is
 the workflow's form, and it answers 202, accepted and not yet done
 (RFC 9110). The `subject` is the entity that holds the request while it
@@ -1790,6 +1791,66 @@ checks, a `deadline`, a duration above zero, and `onDeadline`: `refuse`
 ends the request, `escalate` moves it to the later approval named under
 `escalateTo`. An operation step names the operation the system calls once
 every approval before it has passed.
+
+Three more kinds of step, and two keys on an operation step, cover what
+a workflow does beside approving (ADR-198):
+
+    steps:
+      - name: route
+        kind: decision
+        branches:
+          - { when: "amountCents > 10000", to: approve }
+          - { when: "amountCents == 0", end: refused }
+          - { otherwise: true, to: check }
+      - name: check
+        kind: task
+        performers: [clerk]
+        permission: refunds.check
+        deadline: P1D
+        onDeadline: refuse
+      - name: hold
+        kind: operation
+        operation: holdFunds
+        compensatedBy: releaseFunds
+      - name: pay
+        kind: operation
+        operation: payRefund
+        onFailure: { retries: { limit: 3 }, end: failed }
+      - name: paid
+        kind: wait
+        message: refunds/RefundPaid
+        deadline: P5D
+        onDeadline: refuse
+
+- A `decision` is BPMN's exclusive gateway. Its `branches` are read in
+  order: each has `when`, a condition over the subject's fields giving
+  true or false, or `otherwise: true` on the last, the default flow; and
+  `to`, a later step the request goes on at, or `end`: `approved`,
+  `refused` or `failed`.
+- A `task` is a user task that is not an approval: its `performers` are
+  the roles whose people do it, each granting its `permission`. It may
+  have a `deadline` with `onDeadline`: `refuse`, or `escalate` to a later
+  task named under `escalateTo`. A task is not refused, and the person who
+  made the request may do it.
+- A `wait` is an intermediate catch event, waiting for exactly one of a
+  `message` (channel/Message, with an optional `deadline` whose
+  `onDeadline` is `refuse`), `after` a duration since the step was
+  reached, or `at` a moment, an expression over the subject giving an
+  instant, or a date read as the first instant of that day in the
+  specification's `timeZone`; the moment may not be null, and a field the
+  subject does not require may be. `after` and `at` are the words of a
+  state machine's time transitions.
+- `onFailure` on an operation step is an error boundary event: the
+  operation is tried again up to `retries.limit` times, then the request
+  goes on at the later step under `to`, or ends with `end: failed`.
+  Without it, a failure ends the request failed.
+- `compensatedBy` on an operation step names the operation that undoes
+  it, BPMN's compensation handler, outside the order of the steps: a
+  request that ends refused or failed after the step was done calls it,
+  the latest done step first.
+
+Every `to`, `onFailure.to` and `escalateTo` names a later step, so a
+workflow read from top to bottom is the order things can happen.
 
 The person who made a request never approves it. The rule holds on every
 approval and has no switch; whether two people are one is known only when
@@ -1803,10 +1864,23 @@ approval's permission while a separation-of-duties set holds the pair,
 whatever the set's cardinality, a deadline of zero, an operation step naming no
 operation, an escalation to a step that is not a later approval, and two
 steps of one name (`workflow`); an approval's permission must be declared
-(`permission_undeclared`). A test names a workflow as its subject with
-`workflow: <name>`. Parallel approvals, a number of approvals out of a
-pool and loops are outside the subset; a workflow that needs one is
-written with a question.
+(`permission_undeclared`). It refuses, as `workflow`, a task's performer
+that is not a role or does not grant the task's permission, an
+escalation to a step that is not a later task, a branch or a failure
+that goes on at a step that is not later, an `otherwise` that is not the
+last branch or a last branch with a condition, an undo or a wait's
+message naming nothing declared; a condition that names no field of the
+subject or gives no true or false as `expression_name` or
+`expression_type`; and a wait's `at` that gives no instant or date or may
+be null as `expression_type`, or gives a date with no `timeZone` as
+`time_zone`. A test names a workflow as its subject with
+`workflow: <name>`; besides the cases of its approvals, it gets a case per
+branch of each decision, the deadline at each task and each wait for a
+message, a task done without its permission, and the failure of each
+operation step with `onFailure`, critical, each case where the request
+ends after a step with `compensatedBy` naming the operation that undoes
+it. Parallel approvals, a number of approvals out of a pool and loops are
+outside the subset; a workflow that needs one is written with a question.
 
 ### Maker-checker on a page
 

@@ -1,0 +1,89 @@
+specarch: "1.0.0"
+info: { title: Case, version: 1.0.0 }
+requirements:
+  CASE-1: { statement: One., kind: functional, priority: must, status: accepted, acceptance: [One.] }
+entities:
+  Refund:
+    type: object
+    properties:
+      id: { type: string, format: uuid }
+      amountCents: { type: integer, format: int32 }
+      payBy: { type: string, format: date }
+      paidAt: { type: string, format: date-time }
+    required: [id, amountCents, payBy]
+    primaryKey: [id]
+    satisfies: [CASE-1]
+workflows:
+  refund:
+    description: A refund whose steps go back, name what does not exist, and wait for what may never come.
+    trigger: askRefund
+    subject: Refund
+    steps:
+      - name: check
+        kind: task
+        performers: [desk, auditor]
+        permission: refunds.check
+        deadline: P1D
+        onDeadline: escalate
+        escalateTo: approve
+      - name: route
+        kind: decision
+        branches:
+          - { otherwise: true, to: check }
+          - { when: "amount > 100", to: approve }
+          - { when: "amountCents + 1", end: refused }
+          - { when: "amountCents == 0", to: pay }
+      - name: approve
+        kind: approval
+        approvers: [manager]
+        permission: refunds.approve
+        deadline: P2D
+        onDeadline: refuse
+      - name: pay
+        kind: operation
+        operation: payRefund
+        compensatedBy: unpayRefund
+        onFailure: { end: failed }
+      - name: hold
+        kind: operation
+        operation: payRefund
+        onFailure: { retries: { limit: 2 }, to: route }
+      - name: paid
+        kind: wait
+        message: refunds/RefundSent
+        deadline: P5D
+        onDeadline: refuse
+      - name: settled
+        kind: wait
+        at: paidAt
+      - name: due
+        kind: wait
+        at: payBy
+      - name: count
+        kind: wait
+        at: amountCents
+      - name: twice
+        kind: wait
+        after: P1D
+        message: refunds/RefundSent
+    satisfies: [CASE-1]
+paths:
+  /refunds:
+    post:
+      operationId: askRefund
+      summary: Ask for a refund
+      permission: refunds.ask
+      responses:
+        "202": { description: The request waits. }
+      satisfies: [CASE-1]
+  /refunds/pay:
+    post: { operationId: payRefund, summary: Pay the refund, permission: refunds.pay, responses: { "200": { description: Paid. } }, satisfies: [CASE-1] }
+permissions:
+  refunds.ask: { description: Ask for a refund. }
+  refunds.approve: { description: Approve a large refund. }
+  refunds.check: { description: Check a refund. }
+  refunds.pay: { description: Pay a refund. }
+roles:
+  desk: { description: The desk., permissions: [refunds.ask] }
+  manager: { description: The manager., permissions: [refunds.approve, refunds.check] }
+  payments: { description: The payment service., permissions: [refunds.pay] }

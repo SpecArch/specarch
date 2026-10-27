@@ -7,8 +7,9 @@ decisions:
     context: |
       A specification is written from proposals given piece by piece: in a
       conversation, a row of a table, a worked example, a passage of a
-      document, code, a recording or a review comment. Each is discussed,
-      then taken in or dropped by a person. Before it is taken in the
+      document, code, a recording, a review comment or a guided
+      walkthrough, a step-by-step interview over the specification. Each
+      is discussed, then taken in or dropped by a person. Before it is taken in the
       specification says nothing about it, so it has no place there; a
       change request is the record of a request for an approved
       specification to be different and needs affects, which a proposal
@@ -20,7 +21,7 @@ decisions:
       record format 1.0 (a 1.x minor only adds, and a new kind is an
       addition). It holds statement, raised, raisedBy (a role, when a
       person gave it), inputMode (chat, table, example, document, code,
-      voice, review), cites (citations of declared sources, the shape an
+      voice, review, walkthrough), cites (citations of declared sources, the shape an
       element's cites has), location (where in what it came from when
       that is no declared source), about (a requirement ID or a #/
       pointer), text (the proposed YAML) and status (proposed, discussed,
@@ -68,6 +69,12 @@ decisions:
       the specification moves on would be one nobody can settle without
       rewriting the record. A change record makes the same split between
       an open change and a done one.
+
+      walkthrough is a mode of its own, not chat, because a walkthrough
+      asks its questions in the specification's order, element by
+      element, so the idea's source is the step it was asked at; recorded
+      as chat, that source reads as a free conversation and the reviewer
+      cannot tell which step to go back to.
     consequences: |
       An editor stores ideas as records and validate shows their problems
       with the others. The decision a proposal became leads back to it.

@@ -19965,7 +19965,7 @@ let recordSchemaJSON = #"""
           "$ref": "#/$defs/role"
         },
         "inputMode": {
-          "description": "How it came in: chat (a conversation about the specification), table (a row of a decision table or a spreadsheet), example (a worked example), document (a passage of a document), code (read from code or a database), voice (a transcribed recording) or review (a review comment).",
+          "description": "How it came in: chat (a conversation about the specification), table (a row of a decision table or a spreadsheet), example (a worked example), document (a passage of a document), code (read from code or a database), voice (a transcribed recording), review (a review comment) or walkthrough (a guided walkthrough, a step-by-step interview over the specification).",
           "type": "string",
           "enum": [
             "chat",
@@ -19974,7 +19974,8 @@ let recordSchemaJSON = #"""
             "document",
             "code",
             "voice",
-            "review"
+            "review",
+            "walkthrough"
           ]
         },
         "cites": {

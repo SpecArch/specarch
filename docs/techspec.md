@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 1.3.0 of the specification: 105 requirements, 5 entities, 23 commands, 7 algorithms, 839 tests, 192 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 1.3.0 of the specification: 105 requirements, 5 entities, 23 commands, 7 algorithms, 840 tests, 192 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 **Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -14986,8 +14986,9 @@ Status: proposed, 2026-10-27.
 
 Context: A specification is written from proposals given piece by piece: in a
 conversation, a row of a table, a worked example, a passage of a
-document, code, a recording or a review comment. Each is discussed,
-then taken in or dropped by a person. Before it is taken in the
+document, code, a recording, a review comment or a guided
+walkthrough, a step-by-step interview over the specification. Each
+is discussed, then taken in or dropped by a person. Before it is taken in the
 specification says nothing about it, so it has no place there; a
 change request is the record of a request for an approved
 specification to be different and needs affects, which a proposal
@@ -14999,7 +15000,7 @@ Decision: A record of kind idea, in records/ideas/, named by its ID, in the
 record format 1.0 (a 1.x minor only adds, and a new kind is an
 addition). It holds statement, raised, raisedBy (a role, when a
 person gave it), inputMode (chat, table, example, document, code,
-voice, review), cites (citations of declared sources, the shape an
+voice, review, walkthrough), cites (citations of declared sources, the shape an
 element's cites has), location (where in what it came from when
 that is no declared source), about (a requirement ID or a #/
 pointer), text (the proposed YAML) and status (proposed, discussed,
@@ -15029,7 +15030,7 @@ The example the chat says a proposal should pass is not part of the
 record: it is the chat's, and an example that is taken in is
 written into the specification.
 
-**Insight:** A record of its own, not a change request, because a change request is a request against an approved specification and the one way to say one thing holds only if the two stay apart: an idea comes before the specification says anything. Records, not an editor's file, because a record is checked by validate and read by every tool, which is what keeps a dropped idea traceable. The keys differ from the first list of fields in three places, each to keep one key to one meaning across the record kinds: inputMode, not source, since source is a declared source in a citation, the reason the handover's source became sourceDelivery in 1.0.0; text, not proposed, since proposed is a value of status; the decision block, not reason and decidedBy, since a change record's reason is why it is asked for, while the idea's reason would be why it was turned down, and the change record already holds who decided, when, the outcome and why in one block. status, not state, as every other record names it. about is not checked once the idea is decided because an accepted or rejected idea is history: the element it was about may be renamed or removed later, and an error that appears on an old record the day the specification moves on would be one nobody can settle without rewriting the record. A change record makes the same split between an open change and a done one.
+**Insight:** A record of its own, not a change request, because a change request is a request against an approved specification and the one way to say one thing holds only if the two stay apart: an idea comes before the specification says anything. Records, not an editor's file, because a record is checked by validate and read by every tool, which is what keeps a dropped idea traceable. The keys differ from the first list of fields in three places, each to keep one key to one meaning across the record kinds: inputMode, not source, since source is a declared source in a citation, the reason the handover's source became sourceDelivery in 1.0.0; text, not proposed, since proposed is a value of status; the decision block, not reason and decidedBy, since a change record's reason is why it is asked for, while the idea's reason would be why it was turned down, and the change record already holds who decided, when, the outcome and why in one block. status, not state, as every other record names it. about is not checked once the idea is decided because an accepted or rejected idea is history: the element it was about may be renamed or removed later, and an error that appears on an old record the day the specification moves on would be one nobody can settle without rewriting the record. A change record makes the same split between an open change and a done one. walkthrough is a mode of its own, not chat, because a walkthrough asks its questions in the specification's order, element by element, so the idea's source is the step it was asked at; recorded as chat, that source reads as a free conversation and the reviewer cannot tell which step to go back to.
 
 ### ADR-197: A role names its home page, signedIn is a reserved permission every signed-in caller holds, a field's mode may follow a permission, and the gaps in the navigation are warnings
 
@@ -15991,6 +15992,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | validate-handover-valid | command validate | system | golden | an environment the customer runs with a handover to a stakeholder, release, rollback, backup and restore steps, a check and a monitor in it, and an implementation deployment of it with build (task, base images by digest, reproducible, sbom), method and infrastructure | validate is run | it reports no error and no handover warning, and exits 0 |
 | validate-handshake | command validate | system | red | a handshake established by the operation that itself names the handshake, a second handshake whose establishedBy names no operation, an operation naming a handshake the specification does not declare, and an upload stream that names a handshake | validate is run | it reports handshake for each, saying that the establishing operation travels in the envelope, that the operationId does not exist with the nearest ones, that the handshake is not declared with the nearest name, and that an upload cannot travel in an envelope, derives the expired handshake case for each operation that names one, and exits 1 |
 | validate-idea-decision | command validate | system | red | an accepted idea without a decision, and a rejected idea whose decision's outcome is accepted | validate is run | it reports idea_decision for each and exits 1 |
+| validate-idea-input-mode | command validate | system | red | an idea taken in by a guided walkthrough with inputMode walkthrough, and an idea with an input mode the record format does not name | validate is run | it takes the walkthrough idea and reports the unknown input mode as a schema error at the other idea's inputMode, and exits 1 |
 | validate-idea-question | command validate | system | red | an idea whose status is question with no became, and one that became a change request but no question | validate is run | it reports idea_question for each and exits 1 |
 | validate-idea-ref | command validate | system | red | ideas naming a role, a source, a requirement, a pointer, a decision, a question, a change and a defect the specification and its records do not have, an accepted idea about a pointer that does not resolve, and an idea in a file not named by its ID | validate is run | it reports record_ref for each name of an open idea and of what an idea became, nothing for the accepted idea's about, record_name for the file, and exits 1 |
 | validate-ideas-valid | command validate | system | golden | ideas in every status beside a specification: one about a requirement, one about an algorithm the specification does not have yet, an accepted one about a requirement since removed that became a decision, a rejected one about nothing, one that became an open question and one that became a question a decision answers | validate is run on the specification's folder | it prints nothing and exits 0 |
@@ -16687,7 +16689,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-98 | decisions ADR-189; decisions ADR-190; decisions ADR-191; decisions ADR-192; decisions ADR-193 |   |
 | SA-99 | decisions ADR-193; decisions ADR-194 | tests validate-time-zone; tests validate-time-zone-missing; tests validate-time-zone-unknown |
 | SA-100 | commands try; decisions ADR-195 | tests try-example-fails; tests try-example-others-fail; tests try-exit-2; tests try-file; tests try-file-problem; tests try-file-unrounded; tests try-inputs; tests try-inputs-unread; tests try-json; tests try-short-circuit; tests try-succeeds; tests try-unknown-algorithm; tests try-usage-error; tests try-values; tests try-values-double; tests try-values-duration |
-| SA-101 | commands decision why; commands decision rests; commands validate; decisions ADR-196 | tests decision-rests-ideas-json; tests decision-why-ideas; tests validate-idea-decision; tests validate-idea-question; tests validate-idea-ref; tests validate-ideas-valid |
+| SA-101 | commands decision why; commands decision rests; commands validate; decisions ADR-196 | tests decision-rests-ideas-json; tests decision-why-ideas; tests validate-idea-decision; tests validate-idea-input-mode; tests validate-idea-question; tests validate-idea-ref; tests validate-ideas-valid |
 | SA-102 | commands generate; commands validate; decisions ADR-197; decisions ADR-206 | tests derive-caller-home; tests generate-ui-navigation; tests generate-ui-navigation-no-session; tests generate-ui-swiftui-navigation; tests generate-ui-typescript-navigation; tests validate-caller-home; tests validate-caller-home-no-home; tests validate-caller-home-refused; tests validate-field-modes; tests validate-navigation; tests validate-navigation-valid; tests validate-signed-in |
 | SA-103 | decisions ADR-198 | tests extract-workflows-asks-unread-end; tests extract-workflows-reads-step-kinds; tests generate-bpmn-step-kinds; tests validate-workflow-deadline-undoes; tests validate-workflow-open-branch; tests validate-workflow-step-kinds; tests validate-workflow-step-kinds-refused; tests validate-workflow-undo-skipped-step |
 | SA-104 | commands try; decisions ADR-199 | tests try-decision-table; tests try-decision-table-unreached; tests validate-decision-table; tests validate-decision-table-refused |

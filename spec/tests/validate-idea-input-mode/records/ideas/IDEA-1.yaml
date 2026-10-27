@@ -1,0 +1,10 @@
+specarchRecord: "1.0.0"
+kind: idea
+id: IDEA-1
+statement: Students may borrow seven books.
+raised: "2026-10-27"
+raisedBy: librarian
+inputMode: walkthrough
+location: the walkthrough of 2026-10-27, step 3, CASE-1
+about: CASE-1
+status: proposed

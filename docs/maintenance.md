@@ -318,8 +318,9 @@ An idea is one proposal for the specification, taken in before the
 specification says it: from a conversation (`chat`), a row of a decision
 table or a spreadsheet (`table`), a worked example (`example`), a passage
 of a document (`document`), code or a database (`code`), a transcribed
-recording (`voice`) or a review comment (`review`), the idea's
-`inputMode`. A change request asks for an approved specification to be
+recording (`voice`), a review comment (`review`) or a guided
+walkthrough, a step-by-step interview over the specification
+(`walkthrough`), the idea's `inputMode`. A change request asks for an approved specification to be
 different; an idea comes before the specification says anything, so the
 two are kept apart (ADR-196).
 

@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 1.3.0 of the specification: 839 design tests, 410 golden and 429 red, about 25 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 1.3.0 of the specification: 840 design tests, 410 golden and 430 red, about 25 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -15,7 +15,7 @@ Version 1.3.0 of the specification: 839 design tests, 410 golden and 429 red, ab
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 835 |
+| system | 836 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -5054,6 +5054,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-101.
 - Given: an accepted idea without a decision, and a rejected idea whose decision's outcome is accepted
 - When: validate is run
 - Then: it reports idea_decision for each and exits 1
+
+#### validate-idea-input-mode
+
+Scenario: red; level: system; covers exit 1; verifies SA-101.
+
+- Given: an idea taken in by a guided walkthrough with inputMode walkthrough, and an idea with an input mode the record format does not name
+- When: validate is run
+- Then: it takes the walkthrough idea and reports the unknown input mode as a schema error at the other idea's inputMode, and exits 1
 
 #### validate-idea-question
 

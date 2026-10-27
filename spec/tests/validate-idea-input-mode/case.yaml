@@ -1,0 +1,4 @@
+arguments: [validate, project]
+exitStatus: 1
+standardOutput: |
+  records/ideas/IDEA-2.yaml:6:12: error: /inputMode: schema: interview is not allowed here; use one of chat, code, document, example, review, table, voice, walkthrough [schema@../records/ideas/IDEA-2.yaml#/inputMode]

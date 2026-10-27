@@ -77,6 +77,8 @@ public enum Rule: String, CaseIterable, Sendable {
     case defectTest = "defect_test"
     case defectDuplicate = "defect_duplicate"
     case incidentLink = "incident_link"
+    case ideaDecision = "idea_decision"
+    case ideaQuestion = "idea_question"
     case commissioningRecord = "commissioning_record"
     case releaseContents = "release_contents"
     case releaseBump = "release_bump"

@@ -1,0 +1,5 @@
+arguments: [validate, project]
+exitStatus: 1
+standardOutput: |
+  records/ideas/IDEA-1.yaml:8:9: error: /status: idea_question: IDEA-1 is a question but names none; add became with question and the ID of the open question it turned into [idea_question@../records/ideas/IDEA-1.yaml#/status]
+  records/ideas/IDEA-2.yaml:7:9: error: /status: idea_question: IDEA-2 is a question but names none; add became with question and the ID of the open question it turned into [idea_question@../records/ideas/IDEA-2.yaml#/status]

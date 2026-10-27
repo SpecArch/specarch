@@ -1,0 +1,8 @@
+specarchRecord: "1.0.0"
+kind: idea
+id: IDEA-6
+statement: Should every member have the same limit?
+raised: "2026-10-25"
+inputMode: example
+status: question
+became: { question: Q-1 }

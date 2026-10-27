@@ -1,0 +1,5 @@
+arguments: [validate, project]
+exitStatus: 1
+standardOutput: |
+  records/ideas/IDEA-1.yaml:8:9: error: /status: idea_decision: IDEA-1 is accepted but has no decision; add decision with by, date, outcome accepted and why [idea_decision@../records/ideas/IDEA-1.yaml#/status]
+  records/ideas/IDEA-2.yaml:8:57: error: /decision/outcome: idea_decision: IDEA-2 is rejected but its decision's outcome is accepted; set the outcome to rejected, or the status to accepted [idea_decision@../records/ideas/IDEA-2.yaml#/decision/outcome]

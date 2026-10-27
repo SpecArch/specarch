@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 1.2.1-dev of the specification: 100 requirements, 5 entities, 23 commands, 7 algorithms, 803 tests, 186 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 1.2.1-dev of the specification: 101 requirements, 5 entities, 23 commands, 7 algorithms, 809 tests, 187 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 **Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -331,12 +331,14 @@ Primary key: path.
 | Rule | secret_value | a setting marked secret carries a value, as a default or in a deployment |
 | Rule | monitor | an implementation's deployment watches a monitor the specification does not declare |
 | Rule | record_name | a record's file name is not its ID, its version, or its date and environment, or it does not sit in the folder of its kind under `records/` |
-| Rule | record_ref | a record names a stakeholder, requirement, `#/` pointer, test, environment or monitor the specification does not have, or a change, defect, incident, release or commissioning run that is not a record and not in a declared change-set or defect-set; or a requirement's release is not a planned or released release record |
+| Rule | record_ref | a record names a stakeholder, requirement, `#/` pointer, test, environment, monitor, source, decision or question the specification does not have, or a change, defect, incident, release or commissioning run that is not a record and not in a declared change-set or defect-set; or a requirement's release is not a planned or released release record; an open idea's `about` may name an element not yet there under one that is, or under a section of the meta-model |
 | Rule | change_applied | an implemented or released change's `adds` or `changes` do not resolve or its `removes` still do, or an open change's `changes` or `removes` do not resolve; an open change whose `adds` already resolve is a warning |
 | Rule | change_decision | an approved, implemented or released change has no decision with outcome approved, or a rejected one no decision with outcome rejected |
 | Rule | defect_test | a fixed or released defect names no test, or one that neither verifies a requirement the defect violates nor is about an element it violates |
 | Rule | defect_duplicate | a duplicate defect names no defect, one that does not exist, or one that is itself a duplicate |
 | Rule | incident_link | a resolved incident links to no defect or change and gives no `noChange` reason (a warning) |
+| Rule | idea_decision | an accepted idea has no decision with outcome accepted, or a rejected one no decision with outcome rejected |
+| Rule | idea_question | an idea whose status is question names no question under `became` |
 | Rule | commissioning_record | a commissioning record's results name a check that does not exist, or its version is not a release's |
 | Rule | release_contents | a released release includes a change that is not implemented or released or a defect that is not fixed or released, or a released change or defect and the release it names disagree |
 | Rule | release_bump | a released version steps from the previous released version by less than the largest impact of what it includes |
@@ -933,8 +935,10 @@ Prints a summary line, how many decisions the decision rests on
 through any number of `restsOn` links, then one line per decision
 of the chain, each decision after the ones it rests on and the
 decision asked about last: its ID, its title, its status and date,
-the decision that supersedes it when one does, and the decisions it
-rests on. A decision in the chain is printed once, where it is first
+the decision that supersedes it when one does, the decisions it
+rests on, and the ideas in records/ideas/ beside the specification
+whose became names it, as "from idea" and their IDs. A decision in
+the chain is printed once, where it is first
 reached. A decision that rests on nothing prints the summary and its
 own line.
 
@@ -945,7 +949,7 @@ own line.
 | `<decision>` | string | yes | The ID of the decision, such as ADR-012. |
 | `<folder>` | string | yes | The folder holding the specification. |
 
-Reads `{folder}`: The specification and its implementation files.
+Reads `{folder}`: The specification and its implementation files, and the ideas in records/ideas/ beside it.
 
 Standard output: The errors of an invalid specification, then the summary line and one line per decision of the chain, earliest first.
 
@@ -973,7 +977,7 @@ Prints a summary line, how many decisions rest on the decision
 through any number of `restsOn` links, then the decision's own line
 and one line per decision that rests on it, the ones resting on it
 directly first, then the ones resting on those, each line as
-`decision why` prints it. A decision is printed once, where it is
+`decision why` prints it, with the ideas it came from. A decision is printed once, where it is
 first reached. A decision nothing rests on prints the summary and
 its own line.
 
@@ -984,7 +988,7 @@ its own line.
 | `<decision>` | string | yes | The ID of the decision, such as ADR-012. |
 | `<folder>` | string | yes | The folder holding the specification. |
 
-Reads `{folder}`: The specification and its implementation files.
+Reads `{folder}`: The specification and its implementation files, and the ideas in records/ideas/ beside it.
 
 Standard output: The errors of an invalid specification, then the summary line, the decision's line and one line per decision that rests on it, nearest first.
 
@@ -4183,7 +4187,7 @@ holds a specification, whose `info.name` is the key and whose
 |---|---|---|---|
 | `<paths>` | string, one or more | yes | Folders and files. A folder is searched for specifications, for implementation files outside one, and for estate files. |
 
-Reads `{paths}`: Root files, the files under their stage folders, and implementation files; `records/ beside each specification's folder`: The change, defect, release, incident, commissioning and approval records of that specification; `the specification named in each standalone implementation file's `implements``: Read to resolve that file's references; `each estate's modules, at their location`: The specification of every module an estate lists, read with the estate.
+Reads `{paths}`: Root files, the files under their stage folders, and implementation files; `records/ beside each specification's folder`: The change, defect, release, incident, commissioning, approval and idea records of that specification; `the specification named in each standalone implementation file's `implements``: Read to resolve that file's references; `each estate's modules, at their location`: The specification of every module an estate lists, read with the estate.
 
 Standard output: One line per diagnostic, `file:line:column: severity: /yaml/path: rule: message [id]`, sorted by file, then line, column, path, rule, message and id.
 
@@ -14943,6 +14947,57 @@ on save and for each proposal.
 
 **Insight:** The steps in evaluation order because that is the order a person checks a computation by hand, each line using only what the lines above gave. Without the untaken branches because their value did not make the result, and computing one may fail where the formula does not (a division the condition guards), so exhaustive evaluation would print an error the formula never meets. A literal or a name is no step because its value is written in the expression or in the inputs line. The text written from the tree, not cut from the source, because neither parser gives a sub-expression's end, the source's parentheses and spacing would differ between the two builds' readings, and a written form is the same bytes in both; the alternative of positions alone lost because a person reads text, and the editor can still place a step by the column the problems lines use. A decimal at its checked scale because the subset tracks it (ADR-004) and the result is written at that scale, so 90 × 0.50 reads "45.00", as the example's own note writes it. A decimal of no fixed scale to 20 places because the Swift build holds a decimal to 38 digits and the Go build exactly, so a third differs in its last digits between them, and 20 places is more than any money or rate a specification states while both builds agree to it. A duration with its days because the subset reads P14D (ADR-004) and a worked example of a loan period writes it so, where PT336H says the same in a form nobody writes. --inputs as YAML because an example's inputs are YAML and a tried input becomes an example by copying it, one way to write a value; separate options per input lost because a decimal must stay a string, which a shell word cannot say. --file key by key because the question an idea asks is what a new formula gives on the examples already agreed, and a whole algorithm to copy would invite a second copy of the examples to drift; a bare formula lost because a proposal may also change an input's type or add an example. Validating with the proposal in place keeps one checker, so a proposal is held to the rules a written formula is.
 
+### ADR-196: An idea is a record of its own beside change, defect and incident, with the change record's decision block, a status a person sets, and became naming what it turned into; only an open idea's about is checked
+
+Status: proposed, 2026-10-27.
+
+Context: A specification is written from proposals given piece by piece: in a
+conversation, a row of a table, a worked example, a passage of a
+document, code, a recording or a review comment. Each is discussed,
+then taken in or dropped by a person. Before it is taken in the
+specification says nothing about it, so it has no place there; a
+change request is the record of a request for an approved
+specification to be different and needs affects, which a proposal
+for something not yet written does not have. An editor can keep the
+proposals in a file of its own, but then validate does not check
+them and no other reader of the specification sees them.
+
+Decision: A record of kind idea, in records/ideas/, named by its ID, in the
+record format 1.0 (a 1.x minor only adds, and a new kind is an
+addition). It holds statement, raised, raisedBy (a role, when a
+person gave it), inputMode (chat, table, example, document, code,
+voice, review), cites (citations of declared sources, the shape an
+element's cites has), location (where in what it came from when
+that is no declared source), about (a requirement ID or a #/
+pointer), text (the proposed YAML) and status (proposed, discussed,
+accepted, rejected, question). A decided idea carries decision with
+by, date, outcome and why, the change record's block, its outcome
+accepted or rejected; became names, each by ID, the decision, the
+question, the change request or the defect it turned into.
+
+The validator checks roles, sources, decisions, questions, changes
+and defects named as record_ref; a question is still one when a
+decision answers it, since an answered question leaves the
+specification. about is checked only while the idea is open
+(proposed, discussed, question), and then may name an element not
+yet there under an element that is, or #/<section>/<name> under a
+section of the meta-model. idea_decision: an accepted or rejected
+idea needs the decision with that outcome. idea_question: an idea
+whose status is question names the question under became.
+
+A decision never names the idea it came from, since the
+specification never points at its records; decision why and
+decision rests read the ideas' became and print "from idea" with
+their IDs on the decision's line.
+
+Consequences: An editor stores ideas as records and validate shows their problems
+with the others. The decision a proposal became leads back to it.
+The example the chat says a proposal should pass is not part of the
+record: it is the chat's, and an example that is taken in is
+written into the specification.
+
+**Insight:** A record of its own, not a change request, because a change request is a request against an approved specification and the one way to say one thing holds only if the two stay apart: an idea comes before the specification says anything. Records, not an editor's file, because a record is checked by validate and read by every tool, which is what keeps a dropped idea traceable. The keys differ from the first list of fields in three places, each to keep one key to one meaning across the record kinds: inputMode, not source, since source is a declared source in a citation, the reason the handover's source became sourceDelivery in 1.0.0; text, not proposed, since proposed is a value of status; the decision block, not reason and decidedBy, since a change record's reason is why it is asked for, while the idea's reason would be why it was turned down, and the change record already holds who decided, when, the outcome and why in one block. status, not state, as every other record names it. about is not checked once the idea is decided because an accepted or rejected idea is history: the element it was about may be renamed or removed later, and an error that appears on an old record the day the specification moves on would be one nobody can settle without rewriting the record. A change record makes the same split between an open change and a done one.
+
 ## 10. Quality requirements
 
 The design tests: what must hold on every implementation. Golden scenarios succeed; red scenarios are refused.
@@ -14972,6 +15027,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | decide-writes-decision | command decide | system | golden | a specification that tracks origin, with a decision ADR-001 in design/all.yaml, an interview source owner-answer, a stakeholder owner, and a must question Q-1 that blocks the priority and the acceptance of a requirement, the only question of requirements/all.yaml | decide is run for Q-1 with --by owner, the answer, --source owner-answer and a date | it writes design/decisions/ADR-002.yaml, accepted, titled with the question, with the answer as decision, Q-1 under answers, owner under decidedBy and the source cited, takes Q-1 and the questions key out of requirements/all.yaml leaving every other line as it was, prints the requirement's file and line with each key to write, and exits 0 |
 | decision-rests-chain | command decision rests | system | golden | four decisions, the second and the third resting on the first and the fourth on the third | decision rests is run for ADR-001 | it prints that 3 decisions rest on ADR-001, its own line, then the second and the third, then the fourth, and exits 0 |
 | decision-rests-chain-json | command decision rests | system | golden | the four decisions of the decision rests chain case | decision rests is run for ADR-001 with --json | it prints one object: specarchOutput 1.0.0, the command decision rests, exit status 0 and its meaning, no diagnostic, the summary line and the four decision lines under lines, no message, and exits 0 |
+| decision-rests-ideas-json | command decision rests | system | golden | the four decisions of the decision why chain case, and two accepted ideas that became ADR-003 and ADR-004 | decision rests is run for ADR-001 with --json | it prints one object whose lines carry from idea IDEA-1 on ADR-003's line and from idea IDEA-2 on ADR-004's, and exits 0 |
 | decision-rests-none | command decision rests | system | golden | a decision nothing rests on | decision rests is run for it | it prints that no decision rests on it and its own line, and exits 0 |
 | decision-rests-unknown | command decision rests | system | red | a specification with the decisions ADR-001 to ADR-003 | decision rests is run for ADR-009 | it refuses, naming the decisions there are, prints nothing and exits 1 |
 | decision-rests-usage-error | command decision rests | system | red | a specification | decision rests is run with no folder | it prints how to use it and exits 2 |
@@ -14979,6 +15035,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | decision-usage-error | command decision why | system | red | a specification | decision why is run with no folder | it prints the usage and exits 2 |
 | decision-why-chain | command decision why | system | golden | four decisions, the fourth resting on the third, the third on the second and the first, the second on the first and superseded by the third | decision why is run for ADR-004 | it prints that ADR-004 rests on 3 decisions and the four lines earliest first, each with its ID, title, status, successor, date and the decisions it rests on, and exits 0 |
 | decision-why-chain-json | command decision why | system | golden | the four decisions of the decision why chain case | decision why is run for ADR-004 with --json | it prints one object: specarchOutput 1.0.0, the command decision why, exit status 0 and its meaning, no diagnostic, the summary line and the four decision lines under lines, no message, and exits 0 |
+| decision-why-ideas | command decision why | system | golden | the four decisions of the decision why chain case, and two accepted ideas that became ADR-003 and ADR-004 | decision why is run for ADR-004 | it prints the chain with from idea IDEA-1 on ADR-003's line and from idea IDEA-2 on ADR-004's, and exits 0 |
 | decision-why-no-links | command decision why | system | golden | a decision that rests on nothing | decision why is run for it | it prints that it rests on no decision and its own line, and exits 0 |
 | derive-0-3-clients | command derive | system | golden | the specification of validate-0-3-clients-valid with only the list's golden test | derive is run | it writes the drafts of the callers, signature, closed-route and service's-own-token cases of each operation beside the permission ones, none for the closed route's success, and exits 0 |
 | derive-0-3-rows | command derive | system | golden | a specification on 0.3 with a member role whose rows rule limits Loan, a list, a read by key and a delete by key with no body of loans, and a job acting as member over loans, with no tests | derive is run | it writes a draft for the list showing only the member's rows, for the read by key answering not found outside them, for the delete, which names Loan only by its path key, refusing a change outside them, and for the job acting on them only, beside the drafts of the permission and the key, and exits 0 |
@@ -15547,6 +15604,10 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | validate-handover-source-twice | command validate | system | red | the handover of validate-handover-valid on 1.0.0, giving both source and sourceDelivery | validate is run | it reports source as an error that moves it into sourceDelivery, and exits 1 |
 | validate-handover-valid | command validate | system | golden | an environment the customer runs with a handover to a stakeholder, release, rollback, backup and restore steps, a check and a monitor in it, and an implementation deployment of it with build (task, base images by digest, reproducible, sbom), method and infrastructure | validate is run | it reports no error and no handover warning, and exits 0 |
 | validate-handshake | command validate | system | red | a handshake established by the operation that itself names the handshake, a second handshake whose establishedBy names no operation, an operation naming a handshake the specification does not declare, and an upload stream that names a handshake | validate is run | it reports handshake for each, saying that the establishing operation travels in the envelope, that the operationId does not exist with the nearest ones, that the handshake is not declared with the nearest name, and that an upload cannot travel in an envelope, derives the expired handshake case for each operation that names one, and exits 1 |
+| validate-idea-decision | command validate | system | red | an accepted idea without a decision, and a rejected idea whose decision's outcome is accepted | validate is run | it reports idea_decision for each and exits 1 |
+| validate-idea-question | command validate | system | red | an idea whose status is question with no became, and one that became a change request but no question | validate is run | it reports idea_question for each and exits 1 |
+| validate-idea-ref | command validate | system | red | ideas naming a role, a source, a requirement, a pointer, a decision, a question, a change and a defect the specification and its records do not have, an accepted idea about a pointer that does not resolve, and an idea in a file not named by its ID | validate is run | it reports record_ref for each name of an open idea and of what an idea became, nothing for the accepted idea's about, record_name for the file, and exits 1 |
+| validate-ideas-valid | command validate | system | golden | ideas in every status beside a specification: one about a requirement, one about an algorithm the specification does not have yet, an accepted one about a requirement since removed that became a decision, a rejected one about nothing, one that became an open question and one that became a question a decision answers | validate is run on the specification's folder | it prints nothing and exits 0 |
 | validate-idempotency-key | command validate | system | red | an idempotency key on a GET, and one on a POST that names a query parameter rather than a header | validate is run | it reports idempotency_key for both, saying that GET is idempotent by itself and that the key is not a header parameter, and exits 1 |
 | validate-idiom-override | command validate | system | golden | an implementation file in Go with an Oracle sql target, whose override of type-rendering replaces the Oracle rows of its types part for MAX_STRING_SIZE = EXTENDED, with the reason, and an entity with a UUID and a 5000-character text field | validate is run | it reports nothing and exits 0: the override's rows cover every field on Oracle, and the shipped Go rows cover them on Go |
 | validate-idiom-problems | command validate | system | red | an implementation file in Go with an Oracle sql target, which names an idiom SpecArch does not ship, excludes the project's own idiom without why, and overrides type-rendering with a file that has no why, lists an unknown part, defines a part it does not list, renders swift, changes a shipped contract statement and was copied from an older version; a decimal field is wider than Oracle holds, and a stray file sits in the idioms folder | validate is run | it reports idiom_unknown, idiom_override_reason, idiom_part_unknown, idiom_stack, idiom_contract on the statement and on the decimal's missing Oracle row, idiom_version_behind as a warning, and the stray file under layout, and exits 1 |
@@ -15862,6 +15923,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | SA-13 | Every element of a specification, at every stage, may carry a rationale (why) and citations of declared sources (cites), and the validator shall check that every citation names a declared source. | functional | must | accepted | test | An element with why and cites validates, and a citation of a source that is not declared is reported as source. | NEED-6 |
 | SA-73 | A specification shall say who runs each environment, the team that builds the system or the customer, and for an environment the customer runs it shall hold a handover, what the customer receives to build, install and run it and what stays whose responsibility, which specarch document shall write for the customer's engineers. | functional | must | accepted | test | An environment marked runBy customer in a specification with no handover, no release or no rollback is reported as handover at the environment, a handover in a specification with no environment the customer runs is reported as handover, and a handover whose to names no stakeholder is reported as stakeholder, the same in both builds. An environment the customer runs with no commissioning check in it, no monitor in it, or no backup and restore procedure is a warning at the environment, held by a must question that blocks the section. An implementation's deployment of an environment the customer runs without build, method or infrastructure is reported as handover at the deployment, and a build naming a task the file does not have is reported as build_task. specarch document handover writes handover.md with what the customer receives, the responsibilities, each implementation's build with its toolchain, base images and the licences of its dependencies, what the hosts must provide, every setting, the migrations, the release, rollback, backup and restore steps, the monitors, the checks and acceptance tests in that environment and the sign-off sheet, in plain words a reader with no SpecArch knowledge follows; a specification with an output folder for it and no handover is passed over with a warning. A specification without runBy, handover, backup, restore, build, method or infrastructure gets the same deployment guide and technical specification as before. | NEED-5 |
 | SA-96 | An installed specarch, with no source checkout or docs folder, shall say what it can do and how to use it, from the definitions it was built with, for a person and for a program; every command shall take --json, printing one JSON object on standard output and on a failure one error object with a stable code on standard error; every command that writes shall take --dry-run, listing each file it would write and writing nothing; and no command shall ask anything. | interface | should | accepted | test | specarch help prints the usage and the topics; specarch help <topic> prints the area's guide or the command's reference made from its definition, with each option, what it prints and writes, and each exit status with its remedy; an unknown topic is exit status 2 naming the topics. specarch capabilities --json prints one object whose tools hold one entry per command, each with a name, a description, an inputSchema in JSON Schema draft 2020-12 whose properties are exactly the command's arguments and options, its outputs and its exit codes; and one entry per target the plug-ins on PATH write, each plug-in answering --capabilities with its target, what it writes and what it does not write. specarch guide --agent prints the workflow, how to read problems, when to ask the owner, the limits and the conventions, the facts capabilities --json lists under the same names, and the repository's AGENTS.md holds the same text up to the plug-ins found. A command or an option the program takes with no definition in the specification, or a definition the program does not take, fails the build's tests. Every command run with --json prints exactly one JSON object on standard output and nothing else, and on exit status 2 exactly one error object on standard error naming a code from the listing's errorCodes. Every command that writes, run with --dry-run, writes nothing and lists, as would write <path> or would remove <path>, each file the same run without it writes or removes. No command reads standard input, except a plug-in, which reads its request there. | NEED-7 |
+| SA-101 | The validator shall check, in both builds, the ideas kept beside a specification, one record each in records/ideas/, holding a proposal for the specification from a conversation, a table, an example, a document, code, a recording or a review, the element it is about, the text it proposes and its status as a person set it, against the record schema and the specification; and decision why and decision rests shall name, on each decision's line, the ideas that became it. | functional | must | proposed | test | Ideas in every status, proposed, discussed, accepted, rejected and question, each naming only what the specification and its records have, validate with nothing printed and exit 0; an open idea may be about an element the specification does not have yet under one it has or under a section of the meta-model. An idea naming a role, a source, a requirement, a pointer, a decision, a question, a change or a defect that the specification or its records do not have is reported as record_ref at the key; an accepted or rejected idea's about is not checked; a question a decision answers is still a question an idea may name. An accepted idea without a decision whose outcome is accepted, or a rejected one without a decision whose outcome is rejected, is reported as idea_decision; an idea whose status is question naming no question under became is reported as idea_question. The Go build and the Swift build print the same lines on each case. decision why and decision rests print "from idea" and the IDs of the ideas whose became names the decision on that decision's line. | NEED-5, NEED-10 |
 | SA-17 | A specification shall be able to say what it does not yet know as an open question that names what is asked, who decides, what it blocks and how urgent it is; and the validator shall accept a required key missing exactly where a must question says it is unknown, and nowhere else. | functional | must | accepted | test | An entity written as an empty mapping and blocked by a must question validates with no error, and its missing keys are listed under the question by specarch gaps. The same entity without the question is reported with the missing keys. A question whose blocks names nothing in the specification, whose decider is not a stakeholder, or which sits in another stage's folder, is reported. An accepted decision that answers a question still present is reported. | NEED-8 |
 | SA-18 | Every element of a specification may say how it is known, stated, inferred or decided, and the validator shall check that a stated element cites a source, an inferred one says why, and a decided one names an accepted decision. | functional | must | accepted | test | An element with origin stated and no citation, one with origin inferred and no why, and one with origin decided naming no decision or a proposed one, are each reported. When the root file says the specification tracks origin, every element of a section without one is reported as a warning. | NEED-8 |
 | SA-19 | specarch gaps shall list the open questions by stage with what each blocks and who decides, and shall say for every document and code target whether it is ready, a draft or waiting; the same text shall be the document target questions, and every other document shall mark the open questions about its elements. | functional | must | accepted | test | A specification with two must questions in two stages prints them under their stages, lists the missing keys of a blocked element, and exits 1. A specification without open questions prints that it has none and exits 0. A requirements document whose requirement a question blocks starts with a Draft notice and shows the question under the requirement. | NEED-8, NEED-3 |
@@ -16056,6 +16118,8 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 
 **Insight on SA-96:** The installed program is often all a person, a CI job or an agent has; a description built from the same definitions as the program cannot name a flag it lacks, a JSON form lets a program drive it without parsing text, and a dry run shows each file before any is written.
 
+**Insight on SA-101:** A proposal that is not yet part of the specification is lost when it is only said, and once it is in the text nobody can tell what was proposed, by which way it came in, and what was turned down and why; kept as a record it is checked like the other records, the person's decision on it is written down, and the decision it became can be traced back to it (ADR-196).
+
 **Insight on SA-17:** A placeholder looks like data and every tool downstream treats it as data; a question says in the specification itself that something is not known, so nothing can be built on it unseen.
 
 **Note on SA-17:** From ISO/IEC/IEEE 29148, Systems and software engineering, Life cycle processes, Requirements engineering, 2018, clause 5.2.6: A complete set of requirements holds no to-be-defined, to-be-specified or to-be-resolved clause; resolving them is iterative, within a time set by risk and dependency. <https://www.iso.org/standard/72089.html>
@@ -16214,6 +16278,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-98 | decisions ADR-189; decisions ADR-190; decisions ADR-191; decisions ADR-192; decisions ADR-193 |   |
 | SA-99 | decisions ADR-193; decisions ADR-194 | tests validate-time-zone; tests validate-time-zone-missing; tests validate-time-zone-unknown |
 | SA-100 | commands try; decisions ADR-195 | tests try-example-fails; tests try-example-others-fail; tests try-exit-2; tests try-file; tests try-file-problem; tests try-file-unrounded; tests try-inputs; tests try-inputs-unread; tests try-json; tests try-short-circuit; tests try-succeeds; tests try-unknown-algorithm; tests try-usage-error; tests try-values; tests try-values-double; tests try-values-duration |
+| SA-101 | commands decision why; commands decision rests; commands validate; decisions ADR-196 | tests decision-rests-ideas-json; tests decision-why-ideas; tests validate-idea-decision; tests validate-idea-question; tests validate-idea-ref; tests validate-ideas-valid |
 
 ## Sources
 

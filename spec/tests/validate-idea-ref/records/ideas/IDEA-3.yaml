@@ -1,0 +1,10 @@
+specarchRecord: "1.0.0"
+kind: idea
+id: IDEA-3
+statement: Every member borrows at most five books.
+raised: "2026-10-27"
+inputMode: table
+about: "#/requirement/CASE-1"
+status: accepted
+decision: { by: desk-manager, date: "2026-10-27", outcome: accepted, why: One limit. }
+became: { decision: ADR-002, change: CR-1, defect: DEF-1 }

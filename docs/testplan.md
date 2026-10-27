@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 1.2.1-dev of the specification: 803 design tests, 390 golden and 413 red, about 25 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 1.2.1-dev of the specification: 809 design tests, 393 golden and 416 red, about 25 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -15,7 +15,7 @@ Version 1.2.1-dev of the specification: 803 design tests, 390 golden and 413 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 799 |
+| system | 805 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -241,6 +241,14 @@ Scenario: golden; level: system; verifies SA-97.
 - When: decision rests is run for ADR-001 with --json
 - Then: it prints one object: specarchOutput 1.0.0, the command decision rests, exit status 0 and its meaning, no diagnostic, the summary line and the four decision lines under lines, no message, and exits 0
 
+#### decision-rests-ideas-json
+
+Scenario: golden; level: system; verifies SA-101.
+
+- Given: the four decisions of the decision why chain case, and two accepted ideas that became ADR-003 and ADR-004
+- When: decision rests is run for ADR-001 with --json
+- Then: it prints one object whose lines carry from idea IDEA-1 on ADR-003's line and from idea IDEA-2 on ADR-004's, and exits 0
+
 #### decision-rests-none
 
 Scenario: golden; level: system; verifies SA-97.
@@ -298,6 +306,14 @@ Scenario: golden; level: system; verifies SA-97.
 - Given: the four decisions of the decision why chain case
 - When: decision why is run for ADR-004 with --json
 - Then: it prints one object: specarchOutput 1.0.0, the command decision why, exit status 0 and its meaning, no diagnostic, the summary line and the four decision lines under lines, no message, and exits 0
+
+#### decision-why-ideas
+
+Scenario: golden; level: system; verifies SA-101.
+
+- Given: the four decisions of the decision why chain case, and two accepted ideas that became ADR-003 and ADR-004
+- When: decision why is run for ADR-004
+- Then: it prints the chain with from idea IDEA-1 on ADR-003's line and from idea IDEA-2 on ADR-004's, and exits 0
 
 #### decision-why-no-links
 
@@ -4879,6 +4895,38 @@ Scenario: red; level: system; covers exit 1; verifies SA-77.
 - When: validate is run
 - Then: it reports handshake for each, saying that the establishing operation travels in the envelope, that the operationId does not exist with the nearest ones, that the handshake is not declared with the nearest name, and that an upload cannot travel in an envelope, derives the expired handshake case for each operation that names one, and exits 1
 
+#### validate-idea-decision
+
+Scenario: red; level: system; covers exit 1; verifies SA-101.
+
+- Given: an accepted idea without a decision, and a rejected idea whose decision's outcome is accepted
+- When: validate is run
+- Then: it reports idea_decision for each and exits 1
+
+#### validate-idea-question
+
+Scenario: red; level: system; covers exit 1; verifies SA-101.
+
+- Given: an idea whose status is question with no became, and one that became a change request but no question
+- When: validate is run
+- Then: it reports idea_question for each and exits 1
+
+#### validate-idea-ref
+
+Scenario: red; level: system; covers exit 1; verifies SA-101.
+
+- Given: ideas naming a role, a source, a requirement, a pointer, a decision, a question, a change and a defect the specification and its records do not have, an accepted idea about a pointer that does not resolve, and an idea in a file not named by its ID
+- When: validate is run
+- Then: it reports record_ref for each name of an open idea and of what an idea became, nothing for the accepted idea's about, record_name for the file, and exits 1
+
+#### validate-ideas-valid
+
+Scenario: golden; level: system; verifies SA-101.
+
+- Given: ideas in every status beside a specification: one about a requirement, one about an algorithm the specification does not have yet, an accepted one about a requirement since removed that became a decision, a rejected one about nothing, one that became an open question and one that became a question a decision answers
+- When: validate is run on the specification's folder
+- Then: it prints nothing and exits 0
+
 #### validate-idempotency-key
 
 Scenario: red; level: system; covers exit 1; verifies SA-29.
@@ -6523,7 +6571,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-447 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+452 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -6872,6 +6920,11 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-96 | acceptance 5 | golden | SA-96 names no harm |
 | requirement SA-96 | acceptance 6 | golden | SA-96 names no harm |
 | requirement SA-96 | acceptance 7 | golden | SA-96 names no harm |
+| requirement SA-101 | acceptance 1 | golden | SA-101 names no harm |
+| requirement SA-101 | acceptance 2 | golden | SA-101 names no harm |
+| requirement SA-101 | acceptance 3 | golden | SA-101 names no harm |
+| requirement SA-101 | acceptance 4 | golden | SA-101 names no harm |
+| requirement SA-101 | acceptance 5 | golden | SA-101 names no harm |
 | requirement SA-17 | acceptance 1 | golden | SA-17 names no harm |
 | requirement SA-17 | acceptance 2 | golden | SA-17 names no harm |
 | requirement SA-17 | acceptance 3 | golden | SA-17 names no harm |

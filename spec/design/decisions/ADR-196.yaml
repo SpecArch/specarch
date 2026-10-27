@@ -1,0 +1,77 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-1.0.schema.json
+decisions:
+  ADR-196:
+    title: An idea is a record of its own beside change, defect and incident, with the change record's decision block, a status a person sets, and became naming what it turned into; only an open idea's about is checked
+    status: proposed
+    date: "2026-10-27"
+    context: |
+      A specification is written from proposals given piece by piece: in a
+      conversation, a row of a table, a worked example, a passage of a
+      document, code, a recording or a review comment. Each is discussed,
+      then taken in or dropped by a person. Before it is taken in the
+      specification says nothing about it, so it has no place there; a
+      change request is the record of a request for an approved
+      specification to be different and needs affects, which a proposal
+      for something not yet written does not have. An editor can keep the
+      proposals in a file of its own, but then validate does not check
+      them and no other reader of the specification sees them.
+    decision: |
+      A record of kind idea, in records/ideas/, named by its ID, in the
+      record format 1.0 (a 1.x minor only adds, and a new kind is an
+      addition). It holds statement, raised, raisedBy (a role, when a
+      person gave it), inputMode (chat, table, example, document, code,
+      voice, review), cites (citations of declared sources, the shape an
+      element's cites has), location (where in what it came from when
+      that is no declared source), about (a requirement ID or a #/
+      pointer), text (the proposed YAML) and status (proposed, discussed,
+      accepted, rejected, question). A decided idea carries decision with
+      by, date, outcome and why, the change record's block, its outcome
+      accepted or rejected; became names, each by ID, the decision, the
+      question, the change request or the defect it turned into.
+
+      The validator checks roles, sources, decisions, questions, changes
+      and defects named as record_ref; a question is still one when a
+      decision answers it, since an answered question leaves the
+      specification. about is checked only while the idea is open
+      (proposed, discussed, question), and then may name an element not
+      yet there under an element that is, or #/<section>/<name> under a
+      section of the meta-model. idea_decision: an accepted or rejected
+      idea needs the decision with that outcome. idea_question: an idea
+      whose status is question names the question under became.
+
+      A decision never names the idea it came from, since the
+      specification never points at its records; decision why and
+      decision rests read the ideas' became and print "from idea" with
+      their IDs on the decision's line.
+    why: |
+      A record of its own, not a change request, because a change request
+      is a request against an approved specification and the one way to
+      say one thing holds only if the two stay apart: an idea comes before
+      the specification says anything. Records, not an editor's file,
+      because a record is checked by validate and read by every tool,
+      which is what keeps a dropped idea traceable.
+
+      The keys differ from the first list of fields in three places, each
+      to keep one key to one meaning across the record kinds: inputMode,
+      not source, since source is a declared source in a citation, the
+      reason the handover's source became sourceDelivery in 1.0.0; text,
+      not proposed, since proposed is a value of status; the decision
+      block, not reason and decidedBy, since a change record's reason is
+      why it is asked for, while the idea's reason would be why it was
+      turned down, and the change record already holds who decided, when,
+      the outcome and why in one block. status, not state, as every other
+      record names it.
+
+      about is not checked once the idea is decided because an accepted
+      or rejected idea is history: the element it was about may be renamed
+      or removed later, and an error that appears on an old record the day
+      the specification moves on would be one nobody can settle without
+      rewriting the record. A change record makes the same split between
+      an open change and a done one.
+    consequences: |
+      An editor stores ideas as records and validate shows their problems
+      with the others. The decision a proposal became leads back to it.
+      The example the chat says a proposal should pass is not part of the
+      record: it is the chat's, and an example that is taken in is
+      written into the specification.
+    satisfies: [SA-101]

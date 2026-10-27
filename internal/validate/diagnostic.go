@@ -88,6 +88,8 @@ const (
 	RuleDefectTest             Rule = "defect_test"
 	RuleDefectDuplicate        Rule = "defect_duplicate"
 	RuleIncidentLink           Rule = "incident_link"
+	RuleIdeaDecision           Rule = "idea_decision"
+	RuleIdeaQuestion           Rule = "idea_question"
 	RuleCommissioningRecord    Rule = "commissioning_record"
 	RuleReleaseContents        Rule = "release_contents"
 	RuleReleaseBump            Rule = "release_bump"
@@ -241,6 +243,8 @@ var Rules = []Rule{
 	RuleDefectTest,
 	RuleDefectDuplicate,
 	RuleIncidentLink,
+	RuleIdeaDecision,
+	RuleIdeaQuestion,
 	RuleCommissioningRecord,
 	RuleReleaseContents,
 	RuleReleaseBump,

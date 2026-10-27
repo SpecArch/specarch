@@ -1,0 +1,9 @@
+specarchRecord: "1.0.0"
+kind: idea
+id: IDEA-1
+statement: A member may renew a loan once.
+raised: "2026-10-08"
+inputMode: chat
+status: accepted
+decision: { by: owner, date: "2026-10-09", outcome: accepted, why: One renewal covers most late returns. }
+became: { decision: ADR-003 }

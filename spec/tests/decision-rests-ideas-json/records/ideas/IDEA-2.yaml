@@ -1,0 +1,9 @@
+specarchRecord: "1.0.0"
+kind: idea
+id: IDEA-2
+statement: A member may renew a loan twice.
+raised: "2026-10-10"
+inputMode: review
+status: accepted
+decision: { by: owner, date: "2026-10-10", outcome: accepted, why: Members asked for a second renewal. }
+became: { decision: ADR-004 }

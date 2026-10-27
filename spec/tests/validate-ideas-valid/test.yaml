@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: validate
+level: system
+scenario: golden
+given: "ideas in every status beside a specification: one about a requirement, one about an algorithm the specification does not have yet, an accepted one about a requirement since removed that became a decision, a rejected one about nothing, one that became an open question and one that became a question a decision answers"
+when: "validate is run on the specification's folder"
+then: "it prints nothing and exits 0"
+verifies: [SA-101]

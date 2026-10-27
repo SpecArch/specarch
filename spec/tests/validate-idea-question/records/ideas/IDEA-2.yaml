@@ -1,0 +1,8 @@
+specarchRecord: "1.0.0"
+kind: idea
+id: IDEA-2
+statement: May a student renew twice?
+raised: "2026-10-27"
+inputMode: chat
+status: question
+became: { change: CR-1 }

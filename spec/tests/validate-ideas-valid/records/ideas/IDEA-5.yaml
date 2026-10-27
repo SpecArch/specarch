@@ -1,0 +1,9 @@
+specarchRecord: "1.0.0"
+kind: idea
+id: IDEA-5
+statement: Reference books may not be borrowed at all.
+raised: "2026-10-27"
+inputMode: voice
+about: "#/requirements/CASE-1"
+status: question
+became: { question: Q-2 }

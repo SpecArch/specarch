@@ -411,7 +411,7 @@ Prints a summary line, how many decisions rest on the decision
 through any number of `restsOn` links, then the decision's own line
 and one line per decision that rests on it, the ones resting on it
 directly first, then the ones resting on those, each line as
-`decision why` prints it. A decision is printed once, where it is
+`decision why` prints it, with the ideas it came from. A decision is printed once, where it is
 first reached. A decision nothing rests on prints the summary and
 its own line.
 
@@ -430,7 +430,7 @@ Anyone who has the program runs it.
 
 It reads:
 
-- `{folder}`: The specification and its implementation files.
+- `{folder}`: The specification and its implementation files, and the ideas in records/ideas/ beside it.
 
 It writes no file.
 
@@ -458,8 +458,10 @@ Prints a summary line, how many decisions the decision rests on
 through any number of `restsOn` links, then one line per decision
 of the chain, each decision after the ones it rests on and the
 decision asked about last: its ID, its title, its status and date,
-the decision that supersedes it when one does, and the decisions it
-rests on. A decision in the chain is printed once, where it is first
+the decision that supersedes it when one does, the decisions it
+rests on, and the ideas in records/ideas/ beside the specification
+whose became names it, as "from idea" and their IDs. A decision in
+the chain is printed once, where it is first
 reached. A decision that rests on nothing prints the summary and its
 own line.
 
@@ -478,7 +480,7 @@ Anyone who has the program runs it.
 
 It reads:
 
-- `{folder}`: The specification and its implementation files.
+- `{folder}`: The specification and its implementation files, and the ideas in records/ideas/ beside it.
 
 It writes no file.
 
@@ -3816,7 +3818,7 @@ Anyone who has the program runs it.
 It reads:
 
 - `{paths}`: Root files, the files under their stage folders, and implementation files.
-- `records/ beside each specification's folder`: The change, defect, release, incident, commissioning and approval records of that specification.
+- `records/ beside each specification's folder`: The change, defect, release, incident, commissioning, approval and idea records of that specification.
 - `` the specification named in each standalone implementation file's `implements` ``: Read to resolve that file's references.
 - `each estate's modules, at their location`: The specification of every module an estate lists, read with the estate.
 

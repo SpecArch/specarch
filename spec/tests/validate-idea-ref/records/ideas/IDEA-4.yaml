@@ -1,0 +1,9 @@
+specarchRecord: "1.0.0"
+kind: idea
+id: IDEA-4
+statement: Who may waive a late fee?
+raised: "2026-10-27"
+inputMode: review
+about: "#/requirement/CASE-1"
+status: question
+became: { question: Q-3 }

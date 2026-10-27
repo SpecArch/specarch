@@ -80,6 +80,8 @@ enums:
       - defect_test
       - defect_duplicate
       - incident_link
+      - idea_decision
+      - idea_question
       - commissioning_record
       - release_contents
       - release_bump
@@ -224,12 +226,14 @@ enums:
       secret_value: a setting marked secret carries a value, as a default or in a deployment
       monitor: an implementation's deployment watches a monitor the specification does not declare
       record_name: a record's file name is not its ID, its version, or its date and environment, or it does not sit in the folder of its kind under `records/`
-      record_ref: a record names a stakeholder, requirement, `#/` pointer, test, environment or monitor the specification does not have, or a change, defect, incident, release or commissioning run that is not a record and not in a declared change-set or defect-set; or a requirement's release is not a planned or released release record
+      record_ref: a record names a stakeholder, requirement, `#/` pointer, test, environment, monitor, source, decision or question the specification does not have, or a change, defect, incident, release or commissioning run that is not a record and not in a declared change-set or defect-set; or a requirement's release is not a planned or released release record; an open idea's `about` may name an element not yet there under one that is, or under a section of the meta-model
       change_applied: an implemented or released change's `adds` or `changes` do not resolve or its `removes` still do, or an open change's `changes` or `removes` do not resolve; an open change whose `adds` already resolve is a warning
       change_decision: an approved, implemented or released change has no decision with outcome approved, or a rejected one no decision with outcome rejected
       defect_test: a fixed or released defect names no test, or one that neither verifies a requirement the defect violates nor is about an element it violates
       defect_duplicate: a duplicate defect names no defect, one that does not exist, or one that is itself a duplicate
       incident_link: a resolved incident links to no defect or change and gives no `noChange` reason (a warning)
+      idea_decision: an accepted idea has no decision with outcome accepted, or a rejected one no decision with outcome rejected
+      idea_question: an idea whose status is question names no question under `became`
       commissioning_record: a commissioning record's results name a check that does not exist, or its version is not a release's
       release_contents: a released release includes a change that is not implemented or released or a defect that is not fixed or released, or a released change or defect and the release it names disagree
       release_bump: a released version steps from the previous released version by less than the largest impact of what it includes

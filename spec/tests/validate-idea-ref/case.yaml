@@ -1,0 +1,14 @@
+arguments: [validate, project]
+exitStatus: 1
+standardOutput: |
+  records/ideas/IDEA-1.yaml:6:11: error: /raisedBy: record_ref: libarian is not a stakeholder of the specification; did you mean librarian? [record_ref@../records/ideas/IDEA-1.yaml#/raisedBy]
+  records/ideas/IDEA-1.yaml:9:13: error: /cites/0/source: record_ref: lending-rules is not a source of the specification; use one of lending-policy [record_ref@../records/ideas/IDEA-1.yaml#/cites/0/source]
+  records/ideas/IDEA-1.yaml:11:8: error: /about: record_ref: CASE-2 is not a requirement of the specification; point at #/requirements/CASE-2 for one the idea adds; did you mean CASE-1? [record_ref@../records/ideas/IDEA-1.yaml#/about]
+  records/ideas/IDEA-2.yaml:7:8: error: /about: record_ref: #/algorithms/lateFee/formula does not resolve in the specification; point at an element that exists, or at #/<section>/<name> for one the idea adds [record_ref@../records/ideas/IDEA-2.yaml#/about]
+  records/ideas/IDEA-3.yaml:9:17: error: /decision/by: record_ref: desk-manager is not a stakeholder of the specification; use one of librarian [record_ref@../records/ideas/IDEA-3.yaml#/decision/by]
+  records/ideas/IDEA-3.yaml:10:21: error: /became/decision: record_ref: ADR-002 is not a decision of the specification; did you mean ADR-001? [record_ref@../records/ideas/IDEA-3.yaml#/became/decision]
+  records/ideas/IDEA-3.yaml:10:38: error: /became/change: record_ref: CR-1 is not a change request: there is no records/changes/CR-1.yaml and no source of kind change-set with prefix CR [record_ref@../records/ideas/IDEA-3.yaml#/became/change]
+  records/ideas/IDEA-3.yaml:10:52: error: /became/defect: record_ref: DEF-1 is not a defect: there is no records/defects/DEF-1.yaml and no source of kind defect-set with prefix DEF [record_ref@../records/ideas/IDEA-3.yaml#/became/defect]
+  records/ideas/IDEA-4.yaml:7:8: error: /about: record_ref: #/requirement/CASE-1 does not resolve in the specification; point at an element that exists, or at #/<section>/<name> for one the idea adds [record_ref@../records/ideas/IDEA-4.yaml#/about]
+  records/ideas/IDEA-4.yaml:9:21: error: /became/question: record_ref: Q-3 is not a question of the specification: it is not open under questions and no decision answers it [record_ref@../records/ideas/IDEA-4.yaml#/became/question]
+  records/ideas/IDEA-6.yaml:3:5: error: /id: record_name: the file is named IDEA-6 but the record's id is IDEA-5; name the file IDEA-5.yaml [record_name@../records/ideas/IDEA-6.yaml#/id]

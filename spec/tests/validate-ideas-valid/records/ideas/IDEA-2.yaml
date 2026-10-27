@@ -1,0 +1,12 @@
+specarchRecord: "1.0.0"
+kind: idea
+id: IDEA-2
+statement: A reservation costs a fee.
+raised: "2026-10-27"
+inputMode: document
+cites:
+  - source: lending-policy
+    clause: "4.2"
+    says: A reservation is charged when it is placed.
+about: "#/algorithms/reservationFee"
+status: discussed

@@ -1,0 +1,7 @@
+specarchRecord: "1.0.0"
+kind: idea
+id: IDEA-5
+statement: A loan is renewed once.
+raised: "2026-10-27"
+inputMode: code
+status: proposed

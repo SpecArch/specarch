@@ -1,0 +1,11 @@
+specarchRecord: "1.0.0"
+kind: idea
+id: IDEA-1
+statement: Students may borrow seven books.
+raised: "2026-10-27"
+raisedBy: librarian
+inputMode: chat
+location: the conversation of 2026-10-27, turn 4
+about: CASE-1
+text: "statement: A member shall borrow at most five books at once, and a student seven."
+status: proposed

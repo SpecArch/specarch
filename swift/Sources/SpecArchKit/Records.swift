@@ -4,6 +4,7 @@ import Foundation
 let recordFolders: [String: String] = [
     "change": "changes", "defect": "defects", "release": "releases",
     "incident": "incidents", "commissioning": "commissioning", "approval": "approvals",
+    "idea": "ideas",
 ]
 
 /// One record file, read and checked against its schema.
@@ -27,7 +28,7 @@ final class Record {
     /// environment of a commissioning run; "" when the fields are missing.
     var key: String {
         switch kind {
-        case "change", "defect", "incident": return str("id")
+        case "change", "defect", "incident", "idea": return str("id")
         case "release", "approval": return str("version")
         case "commissioning":
             let date = str("date"), env = str("environment")
@@ -158,6 +159,17 @@ struct RecordChecks {
             checkCommissioning(r)
         case "approval":
             role(r, "approvedBy")
+        case "idea":
+            role(r, "raisedBy")
+            role(r, "decision", "by")
+            for (i, item) in items(root.child("cites")).enumerated() {
+                citedSource(r, item.child("source"), pointer("cites", String(i), "source"))
+            }
+            if openIdea.contains(r.str("status")) {
+                about(r)
+            }
+            checkBecame(r)
+            checkIdeaDecision(r)
         default:
             break
         }
@@ -176,7 +188,7 @@ struct RecordChecks {
         if name.hasSuffix(".yaml") { name = String(name.dropLast(5)) }
         if key.isEmpty || name == key { return }
         switch r.kind {
-        case "change", "defect", "incident":
+        case "change", "defect", "incident", "idea":
             r.c.add(root.child("id"), "/id", .recordName, "the file is named \(name) but the record's id is \(key); name the file \(key).yaml")
         case "release", "approval":
             r.c.add(root.child("version"), "/version", .recordName, "the file is named \(name) but the record's version is \(key); name the file \(key).yaml")
@@ -422,7 +434,93 @@ struct RecordChecks {
     }
 }
 
+/// The statuses of an idea not yet decided; only an open idea's about is
+/// checked, since a decided one keeps the pointer it had.
+private let openIdea: Set<String> = ["proposed", "discussed", "question"]
+
+/// The top-level keys of the design schema: the sections an idea may add an
+/// element to before the specification has the section.
+private let metaModelSections: Set<String> = {
+    guard let obj = try? JSONSerialization.jsonObject(with: Data(designSchemaJSON.utf8)) as? [String: Any],
+          let props = obj["properties"] as? [String: Any] else { return [] }
+    return Set(props.keys)
+}()
+
+extension RecordChecks {
+    /// Checks that a citation names a declared source.
+    func citedSource(_ r: Record, _ n: YNode?, _ path: String) {
+        guard let n else { return }
+        let v = str(n)
+        if !v.isEmpty && d.sources[v] == nil {
+            r.c.add(n, path, .recordRef, "\(v) is not a source of the specification\(suggest(v, d.sources))")
+        }
+    }
+
+    /// Checks what an open idea is about: an element of the specification,
+    /// or one it adds under an element that exists or under a section of
+    /// the meta-model.
+    func about(_ r: Record) {
+        guard let n = r.root?.child("about") else { return }
+        let v = str(n)
+        if v.isEmpty || resolveRef(v) != .missing { return }
+        if !v.hasPrefix("#/") {
+            r.c.add(n, "/about", .recordRef, "\(v) is not a requirement of the specification; point at #/requirements/\(v) for one the idea adds\(suggest(v, d.requirements))")
+            return
+        }
+        let tokens = v.dropFirst(2).split(separator: "/", omittingEmptySubsequences: false).map { unescapeToken(String($0)) }
+        if tokens.count > 1 && resolve(d.root, Array(tokens.dropLast())).1 { return }
+        if tokens.count <= 2 && metaModelSections.contains(tokens[0]) { return }
+        r.c.add(n, "/about", .recordRef, "\(v) does not resolve in the specification; point at an element that exists, or at #/<section>/<name> for one the idea adds")
+    }
+
+    /// Checks what an idea turned into, and that an idea whose status is
+    /// question names its question.
+    func checkBecame(_ r: Record) {
+        let became = r.root?.child("became")
+        if let n = became?.child("decision") {
+            let v = str(n)
+            if !v.isEmpty && d.decisions[v] == nil {
+                r.c.add(n, "/became/decision", .recordRef, "\(v) is not a decision of the specification\(suggest(v, d.decisions))")
+            }
+        }
+        let q = became?.child("question")
+        if let q {
+            let v = str(q)
+            if !v.isEmpty && d.questions[v] == nil && !d.answered(v) {
+                r.c.add(q, "/became/question", .recordRef, "\(v) is not a question of the specification: it is not open under questions and no decision answers it")
+            }
+        }
+        if let n = became?.child("change") {
+            recordID(r, n, "/became/change", ["change"])
+        }
+        if let n = became?.child("defect") {
+            recordID(r, n, "/became/defect", ["defect"])
+        }
+        if r.str("status") == "question" && str(q).isEmpty {
+            r.c.add(r.root?.child("status"), "/status", .ideaQuestion, "\(r.str("id")) is a question but names none; add became with question and the ID of the open question it turned into")
+        }
+    }
+
+    /// Checks that a decided idea carries the decision.
+    func checkIdeaDecision(_ r: Record) {
+        let id = r.str("id"), status = r.str("status")
+        if status != "accepted" && status != "rejected" { return }
+        guard let decision = r.root?.child("decision") else {
+            r.c.add(r.root?.child("status"), "/status", .ideaDecision, "\(id) is \(status) but has no decision; add decision with by, date, outcome \(status) and why")
+            return
+        }
+        if let outcome = decision.child("outcome"), !str(outcome).isEmpty, str(outcome) != status {
+            r.c.add(outcome, "/decision/outcome", .ideaDecision, "\(id) is \(status) but its decision's outcome is \(str(outcome)); set the outcome to \(status), or the status to \(str(outcome))")
+        }
+    }
+}
+
 extension Design {
+    /// Whether a decision names the question under answers.
+    func answered(_ id: String) -> Bool {
+        decisions.values.contains { dec in items(dec.child("answers")).contains { $0.value == id } }
+    }
+
     /// The prefixes of the sources of one kind: requirement-set, change-set
     /// or defect-set.
     func trackerPrefixes(_ kind: String) -> [String: YNode] {

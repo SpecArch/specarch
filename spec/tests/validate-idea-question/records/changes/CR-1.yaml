@@ -1,0 +1,11 @@
+specarchRecord: "1.0.0"
+kind: change
+id: CR-1
+title: Two renewals for students
+raisedBy: librarian
+raised: "2026-10-27"
+phase: development
+type: additive
+urgency: normal
+reason: Students asked for longer loans in exam weeks.
+status: proposed

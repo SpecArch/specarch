@@ -1,0 +1,19 @@
+specarchRecord: "1.0.0"
+kind: idea
+id: IDEA-1
+statement: Work the late fee out once, when the copy comes back, and keep it on the loan.
+raised: "2026-10-24"
+raisedBy: librarian
+inputMode: document
+cites:
+  - source: desk-interview
+    says: The desk tells the member the fee at the counter and expects the same amount on the receipt and in the member's account later.
+about: "#/algorithms/lateFee"
+status: accepted
+decision:
+  by: library-board
+  date: "2026-10-25"
+  outcome: accepted
+  why: A fee worked out again later could differ from the one the member was told at the desk.
+became:
+  decision: ADR-003

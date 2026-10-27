@@ -18055,7 +18055,7 @@ let recordSchemaJSON = #"""
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-record-1.0.schema.json",
   "title": "SpecArch record, 1.0",
-  "description": "A record is a fact about one event in the life of a system: a change request, a defect, a release, an incident in production, a commissioning run or an approval. Records live in records/ beside the specification's folder, one file per record, in a folder per kind; they point into the specification, and the specification never points back at them. A record names people only by role. Every object rejects unknown keys; keys starting with 'x-' are allowed everywhere as extensions.",
+  "description": "A record is a fact about one event in the life of a system: a change request, a defect, a release, an incident in production, a commissioning run, an approval or an idea. Records live in records/ beside the specification's folder, one file per record, in a folder per kind; they point into the specification, and the specification never points back at them. A record names people only by role. Every object rejects unknown keys; keys starting with 'x-' are allowed everywhere as extensions.",
   "type": "object",
   "properties": {
     "specarchRecord": {
@@ -18072,7 +18072,8 @@ let recordSchemaJSON = #"""
         "release",
         "incident",
         "commissioning",
-        "approval"
+        "approval",
+        "idea"
       ]
     }
   },
@@ -18170,6 +18171,21 @@ let recordSchemaJSON = #"""
       "then": {
         "$ref": "#/$defs/approval"
       }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "idea"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "$ref": "#/$defs/idea"
+      }
     }
   ],
   "$defs": {
@@ -18194,7 +18210,7 @@ let recordSchemaJSON = #"""
       "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(-[0-9A-Za-z.-]+)?$"
     },
     "recordId": {
-      "description": "The ID of a change request, defect or incident: an upper-case prefix, a dash and a number or name, such as CR-12, DEF-7 or INC-3. It is the record's file name, or an ID in a tracker declared under the specification's sources.",
+      "description": "The ID of a change request, defect, incident or idea: an upper-case prefix, a dash and a number or name, such as CR-12, DEF-7, INC-3 or IDEA-4. It is the record's file name, or an ID in a tracker declared under the specification's sources.",
       "type": "string",
       "pattern": "^[A-Z][A-Z0-9]{1,15}-[A-Za-z0-9._]+$"
     },
@@ -18881,6 +18897,178 @@ let recordSchemaJSON = #"""
         "date",
         "documents",
         "digest"
+      ],
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "citation": {
+      "description": "One citation: which source, where in it, and what it says here, as an element of the specification cites one.",
+      "type": "object",
+      "properties": {
+        "source": {
+          "description": "The key of a source declared under 'sources' in specarch.yaml.",
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+        },
+        "clause": {
+          "description": "The clause, section, page or question cited, as the source numbers it, such as '5.2.5' or 'Annex A'.",
+          "type": "string",
+          "minLength": 1
+        },
+        "says": {
+          "description": "What the source says that applies here, in plain words.",
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "source",
+        "says"
+      ],
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "idea": {
+      "description": "An idea: one proposal for the specification, taken in from a conversation, a table, an example, a document, code, a recording or a review before the specification says it, with the element it is about and the text it proposes. A person sets its status; a model or an importer only proposes. An idea comes before the specification says anything; a change request asks for an approved specification to be different. Kept in records/ideas/, named by its ID.",
+      "type": "object",
+      "properties": {
+        "specarchRecord": {},
+        "kind": {},
+        "id": {
+          "$ref": "#/$defs/recordId"
+        },
+        "statement": {
+          "description": "One line saying what is proposed.",
+          "type": "string",
+          "minLength": 1
+        },
+        "raised": {
+          "$ref": "#/$defs/date"
+        },
+        "raisedBy": {
+          "$ref": "#/$defs/role"
+        },
+        "inputMode": {
+          "description": "How it came in: chat (a conversation about the specification), table (a row of a decision table or a spreadsheet), example (a worked example), document (a passage of a document), code (read from code or a database), voice (a transcribed recording) or review (a review comment).",
+          "type": "string",
+          "enum": [
+            "chat",
+            "table",
+            "example",
+            "document",
+            "code",
+            "voice",
+            "review"
+          ]
+        },
+        "cites": {
+          "description": "The declared sources it comes from, one citation each.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/citation"
+          },
+          "minItems": 1
+        },
+        "location": {
+          "description": "Where in what it came from, when that is no declared source: a conversation's file and turn, a table's row, a review comment's file and line.",
+          "type": "string",
+          "minLength": 1
+        },
+        "about": {
+          "description": "The element it is about: a requirement ID or a #/ pointer. For an element the specification does not have yet, the pointer names where it would go, #/<section>/<name>, such as #/algorithms/reservationFee. Checked while the idea is open; an accepted or rejected idea keeps the pointer it had when it was decided.",
+          "$ref": "#/$defs/reference"
+        },
+        "text": {
+          "description": "The text it proposes for the specification at about, as YAML; none for an idea that is a statement only.",
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "description": "Where it stands, set by a person: proposed (taken in), discussed (talked over, not decided), accepted (its text taken into the specification), rejected (nothing taken in, kept with the reason) or question (turned into an open question that a stakeholder decides).",
+          "type": "string",
+          "enum": [
+            "proposed",
+            "discussed",
+            "accepted",
+            "rejected",
+            "question"
+          ]
+        },
+        "decision": {
+          "description": "The decision on the idea, by a person: accepted or rejected, and why.",
+          "type": "object",
+          "properties": {
+            "by": {
+              "$ref": "#/$defs/role"
+            },
+            "date": {
+              "$ref": "#/$defs/date"
+            },
+            "outcome": {
+              "description": "Accepted or rejected.",
+              "type": "string",
+              "enum": [
+                "accepted",
+                "rejected"
+              ]
+            },
+            "why": {
+              "description": "Why it was decided so; for a rejected idea, the reason it was not taken in.",
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "by",
+            "date",
+            "outcome",
+            "why"
+          ],
+          "patternProperties": {
+            "^x-": {}
+          },
+          "additionalProperties": false
+        },
+        "became": {
+          "description": "What it turned into, each by its ID: the decision record that took it in, the open question it became, a change request or a defect.",
+          "type": "object",
+          "properties": {
+            "decision": {
+              "description": "The ID of a decision of the specification, such as ADR-012.",
+              "type": "string",
+              "pattern": "^ADR-[0-9]{3,}$"
+            },
+            "question": {
+              "description": "The ID of a question of the specification, open or answered by a decision, such as Q-12.",
+              "type": "string",
+              "pattern": "^[A-Z][A-Z0-9]{0,15}-[A-Za-z0-9._]+$"
+            },
+            "change": {
+              "$ref": "#/$defs/recordId"
+            },
+            "defect": {
+              "$ref": "#/$defs/recordId"
+            }
+          },
+          "minProperties": 1,
+          "patternProperties": {
+            "^x-": {}
+          },
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "specarchRecord",
+        "kind",
+        "id",
+        "statement",
+        "raised",
+        "inputMode",
+        "status"
       ],
       "patternProperties": {
         "^x-": {}

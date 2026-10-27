@@ -13,8 +13,10 @@ commands:
       through any number of `restsOn` links, then one line per decision
       of the chain, each decision after the ones it rests on and the
       decision asked about last: its ID, its title, its status and date,
-      the decision that supersedes it when one does, and the decisions it
-      rests on. A decision in the chain is printed once, where it is first
+      the decision that supersedes it when one does, the decisions it
+      rests on, and the ideas in records/ideas/ beside the specification
+      whose became names it, as "from idea" and their IDs. A decision in
+      the chain is printed once, where it is first
       reached. A decision that rests on nothing prints the summary and its
       own line.
     permission: public
@@ -28,7 +30,7 @@ commands:
         required: true
         schema: { type: string }
     reads:
-      - { path: "{folder}", description: The specification and its implementation files. }
+      - { path: "{folder}", description: "The specification and its implementation files, and the ideas in records/ideas/ beside it." }
     standardOutput: The errors of an invalid specification, then the summary line and one line per decision of the chain, earliest first.
     standardError: A usage message on a usage error, and the reason a refusal.
     exitCodes:
@@ -38,7 +40,7 @@ commands:
     remedies:
       "1": "Read the refusal on standard error and give the ID of a decision it names, or run specarch validate and settle the errors."
       "2": "Read the usage message or the reason on standard error, correct the command line or the path it names, and run it again."
-    satisfies: [SA-97]
+    satisfies: [SA-97, SA-101]
     why: |
       A decision rests on earlier ones, and a reader about to change it
       reconstructs that chain by hand from the records; the toolchain
@@ -59,7 +61,7 @@ commands:
       through any number of `restsOn` links, then the decision's own line
       and one line per decision that rests on it, the ones resting on it
       directly first, then the ones resting on those, each line as
-      `decision why` prints it. A decision is printed once, where it is
+      `decision why` prints it, with the ideas it came from. A decision is printed once, where it is
       first reached. A decision nothing rests on prints the summary and
       its own line.
     permission: public
@@ -73,7 +75,7 @@ commands:
         required: true
         schema: { type: string }
     reads:
-      - { path: "{folder}", description: The specification and its implementation files. }
+      - { path: "{folder}", description: "The specification and its implementation files, and the ideas in records/ideas/ beside it." }
     standardOutput: The errors of an invalid specification, then the summary line, the decision's line and one line per decision that rests on it, nearest first.
     standardError: A usage message on a usage error, and the reason a refusal.
     exitCodes:
@@ -83,7 +85,7 @@ commands:
     remedies:
       "1": "Read the refusal on standard error and give the ID of a decision it names, or run specarch validate and settle the errors."
       "2": "Read the usage message or the reason on standard error, correct the command line or the path it names, and run it again."
-    satisfies: [SA-97]
+    satisfies: [SA-97, SA-101]
     why: |
       Before a decision is superseded, the reader wants to know what rests
       on it, since each of those rests on what is about to stop holding;

@@ -54,6 +54,7 @@ folder is specification.
 | `records/incidents/` | incident in production | `incident` | its ID, `INC-3.yaml` |
 | `records/commissioning/` | commissioning run | `commissioning` | its date and environment, `2026-10-07-production.yaml` |
 | `records/approvals/` | approval for code generation | `approval` | its version, `1.4.0.yaml` |
+| `records/ideas/` | proposal for the specification | `idea` | its ID, `IDEA-4.yaml` |
 
 A record file starts with `specarchRecord: "1.0.0"` and `kind`, and has its
 own schema, `schema/specarch-record-1.0.schema.json`, beside the other two.
@@ -311,6 +312,45 @@ role, the `results` keyed by check name, each with `result` (pass, fail or
 skipped) and a `note`, and the `signoff` with the role that signed and the
 date.
 
+## Ideas
+
+An idea is one proposal for the specification, taken in before the
+specification says it: from a conversation (`chat`), a row of a decision
+table or a spreadsheet (`table`), a worked example (`example`), a passage
+of a document (`document`), code or a database (`code`), a transcribed
+recording (`voice`) or a review comment (`review`), the idea's
+`inputMode`. A change request asks for an approved specification to be
+different; an idea comes before the specification says anything, so the
+two are kept apart (ADR-196).
+
+An idea record holds `id`, a one-line `statement`, `raised` (date),
+`raisedBy` when a person gave it, `inputMode`, `cites` (citations of
+declared sources, as an element cites them) or `location` (where in what
+it came from: a conversation's file and turn, a table's row), `about` (a
+requirement ID or a `#/` pointer), the proposed `text` and its `status`.
+A person sets the status; a model or an importer only proposes:
+
+| Status | Means |
+|---|---|
+| `proposed` | taken in, not yet looked at |
+| `discussed` | talked over, not decided |
+| `accepted` | its text taken into the specification; `decision` with outcome accepted, and `became.decision` when it was a choice recorded as a decision |
+| `rejected` | nothing taken in; `decision` with outcome rejected and the reason in `why` |
+| `question` | turned into an open question a stakeholder decides; `became.question` names it |
+
+`became` names, each by ID, the `decision`, `question`, `change` or
+`defect` the idea turned into. A decision never names the idea it came
+from, since the specification never points at its records; `specarch
+decision why` and `decision rests` read the ideas and print `from idea`
+and their IDs on each decision's line.
+
+An idea about an element the specification does not have yet points where
+it would go: under an element that exists, or `#/<section>/<name>` under a
+section of the meta-model, `#/algorithms/reservationFee`. `about` is
+checked only while the idea is open (proposed, discussed or question): a
+decided idea is history, and the element it was about may be renamed or
+removed later.
+
 ## Stack-neutral and stack-specific
 
 | In the specification or the records (stack-neutral) | In the implementation file (one stack) |
@@ -328,7 +368,7 @@ error unless it says warning.
 | Rule | Checks |
 |---|---|
 | `record_name` | a record's file name equals its `id`, its `version` for a release or an approval, or its date and environment for a commissioning run, and it sits in the folder of its kind |
-| `record_ref` | every role is a stakeholder of the specification; every requirement ID, `#/` pointer, test, environment and monitor a record names resolves; every change, defect, incident, release and commissioning run it names is a record, or a change or defect whose prefix is that of a declared change-set or defect-set. A requirement's `release` is a release record that is planned or released. A change's `affects` belong to `change_applied`, a defect's `duplicateOf` to `defect_duplicate` and a commissioning run's checks to `commissioning_record` |
+| `record_ref` | every role is a stakeholder of the specification; every requirement ID, `#/` pointer, test, environment, monitor, source, decision and question a record names resolves (a question a decision answers counts, and an idea's `about` is read as the Ideas section says); every change, defect, incident, release and commissioning run it names is a record, or a change or defect whose prefix is that of a declared change-set or defect-set. A requirement's `release` is a release record that is planned or released. A change's `affects` belong to `change_applied`, a defect's `duplicateOf` to `defect_duplicate` and a commissioning run's checks to `commissioning_record` |
 | `change_applied` | for a change that is implemented or released, every `adds` and `changes` reference resolves and every `removes` reference does not (a removed requirement may instead stay with status retired); for one still open (proposed, analysed or approved), `changes` and `removes` resolve, and an `adds` that already resolves is a warning. A requirement of an external set is taken as resolving and never as removed, since the validator cannot read the set |
 | `change_decision` | a change that is approved, implemented or released has a `decision` with outcome approved; a rejected one has outcome rejected |
 | `defect_test` | a fixed or released defect names a `test` that verifies a requirement the defect violates, or whose subject (its operation, command, page or entity) is the element a violated `#/` pointer points into |
@@ -337,6 +377,8 @@ error unless it says warning.
 | `release_bump` | a released version steps from the previous released version by at least the largest `impact` of what it includes, a defect counting as patch, with the step before 1.0.0 as above; withdrawn and planned releases are left out, and so is an ID of a tracker, whose impact the validator cannot read |
 | `release_version` | once a release is released, `info.version` is the newest released version, or a later version with a pre-release tag whose release is planned; and a release's `specificationVersion` is its `version` |
 | `incident_link` | a resolved incident links to a defect or a change, or says `noChange` (warning) |
+| `idea_decision` | an accepted idea has a `decision` with outcome accepted; a rejected one has outcome rejected |
+| `idea_question` | an idea whose status is question names the question under `became` |
 | `commissioning_record` | a commissioning record's results name checks that exist, and its version is a release's |
 
 `monitors` adds no new rule: a monitor's `environment` uses the existing

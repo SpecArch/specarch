@@ -1,0 +1,8 @@
+specarchRecord: "1.0.0"
+kind: idea
+id: IDEA-4
+statement: Overdue notices go out by text message.
+raised: "2026-10-26"
+inputMode: review
+status: rejected
+decision: { by: librarian, date: "2026-10-27", outcome: rejected, why: Members have not agreed to be sent text messages. }

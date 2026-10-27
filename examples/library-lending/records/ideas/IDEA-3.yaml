@@ -1,0 +1,14 @@
+specarchRecord: "1.0.0"
+kind: idea
+id: IDEA-3
+statement: Waive every late fee below one day's rate without a request.
+raised: "2026-10-25"
+inputMode: review
+location: a review comment on the waiver page
+about: "#/decisions/ADR-004"
+status: rejected
+decision:
+  by: library-board
+  date: "2026-10-25"
+  outcome: rejected
+  why: Every waiver names an amount and a reason so the board can see what was waived; a small fee is no exception.

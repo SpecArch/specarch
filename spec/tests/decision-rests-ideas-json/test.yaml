@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: decision rests
+level: system
+scenario: golden
+given: "the four decisions of the decision why chain case, and two accepted ideas that became ADR-003 and ADR-004"
+when: "decision rests is run for ADR-001 with --json"
+then: "it prints one object whose lines carry from idea IDEA-1 on ADR-003's line and from idea IDEA-2 on ADR-004's, and exits 0"
+verifies: [SA-101]

@@ -1,21 +1,25 @@
 package validate
 
 import (
+	"encoding/json"
 	"fmt"
 	"path/filepath"
 	"strings"
+	"sync"
 
 	"go.yaml.in/yaml/v3"
 
 	"github.com/SpecArch/specarch/internal/semver"
 	"github.com/SpecArch/specarch/internal/source"
 	"github.com/SpecArch/specarch/internal/spec"
+	"github.com/SpecArch/specarch/schema"
 )
 
 // recordFolders maps each kind of record to its folder under records/.
 var recordFolders = map[string]string{
 	"change": "changes", "defect": "defects", "release": "releases",
 	"incident": "incidents", "commissioning": "commissioning", "approval": "approvals",
+	"idea": "ideas",
 }
 
 // record is one record file, read and checked against its schema.
@@ -32,7 +36,7 @@ type record struct {
 // environment of a commissioning run; "" when the fields are missing.
 func (r *record) key() string {
 	switch r.kind {
-	case "change", "defect", "incident":
+	case "change", "defect", "incident", "idea":
 		return r.str("id")
 	case "release", "approval":
 		return r.str("version")
@@ -166,6 +170,17 @@ func (rc *recordChecks) check(r *record) {
 		rc.checkCommissioning(r)
 	case "approval":
 		rc.role(r, "approvedBy")
+	case "idea":
+		rc.role(r, "raisedBy")
+		rc.role(r, "decision", "by")
+		for i, item := range source.Items(source.Child(r.root, "cites")) {
+			rc.citedSource(r, source.Child(item, "source"), source.Pointer("cites", fmt.Sprint(i), "source"))
+		}
+		if openIdea[r.str("status")] {
+			rc.about(r)
+		}
+		rc.checkBecame(r)
+		rc.checkIdeaDecision(r)
 	}
 }
 
@@ -182,7 +197,7 @@ func (rc *recordChecks) checkName(r *record) {
 		return
 	}
 	switch r.kind {
-	case "change", "defect", "incident":
+	case "change", "defect", "incident", "idea":
 		r.c.add(source.Child(r.root, "id"), "/id", RuleRecordName, "the file is named %s but the record's id is %s; name the file %s.yaml", name, key, key)
 	case "release", "approval":
 		r.c.add(source.Child(r.root, "version"), "/version", RuleRecordName, "the file is named %s but the record's version is %s; name the file %s.yaml", name, key, key)
@@ -505,5 +520,118 @@ func (rc *recordChecks) checkCommissioning(r *record) {
 	n := source.Child(r.root, "version")
 	if v := source.Str(n); v != "" && !rc.set.has("release", v) {
 		r.c.add(n, "/version", RuleCommissioningRecord, "%s is not a release: there is no records/releases/%s.yaml; a commissioning run accepts a release", v, v)
+	}
+}
+
+// openIdea holds the statuses of an idea not yet decided; only an open
+// idea's about is checked, since a decided one keeps the pointer it had.
+var openIdea = map[string]bool{"proposed": true, "discussed": true, "question": true}
+
+// citedSource checks that a citation names a declared source.
+func (rc *recordChecks) citedSource(r *record, n *yaml.Node, path string) {
+	if v := source.Str(n); n != nil && v != "" && rc.d.sources[v] == nil {
+		r.c.add(n, path, RuleRecordRef, "%s is not a source of the specification%s", v, suggest(v, rc.d.sources))
+	}
+}
+
+// about checks what an open idea is about: an element of the
+// specification, or one it adds under an element that exists or under a
+// section of the meta-model.
+func (rc *recordChecks) about(r *record) {
+	n := source.Child(r.root, "about")
+	v := source.Str(n)
+	if n == nil || v == "" || rc.d.resolve(v) != refMissing {
+		return
+	}
+	if !strings.HasPrefix(v, "#/") {
+		r.c.add(n, "/about", RuleRecordRef, "%s is not a requirement of the specification; point at #/requirements/%s for one the idea adds%s", v, v, suggest(v, rc.d.requirements))
+		return
+	}
+	var tokens []string
+	for _, t := range strings.Split(strings.TrimPrefix(v, "#/"), "/") {
+		tokens = append(tokens, source.UnescapeToken(t))
+	}
+	if len(tokens) > 1 {
+		if _, ok := source.Resolve(rc.d.root, tokens[:len(tokens)-1]); ok {
+			return
+		}
+	}
+	if len(tokens) <= 2 && metaModelSections()[tokens[0]] {
+		return
+	}
+	r.c.add(n, "/about", RuleRecordRef, "%s does not resolve in the specification; point at an element that exists, or at #/<section>/<name> for one the idea adds", v)
+}
+
+var (
+	sectionsOnce sync.Once
+	sections     map[string]bool
+)
+
+// metaModelSections holds the top-level keys of the design schema: the
+// sections an idea may add an element to before the specification has
+// the section.
+func metaModelSections() map[string]bool {
+	sectionsOnce.Do(func() {
+		var doc struct {
+			Properties map[string]json.RawMessage `json:"properties"`
+		}
+		_ = json.Unmarshal(schema.Definition, &doc)
+		sections = map[string]bool{}
+		for k := range doc.Properties {
+			sections[k] = true
+		}
+	})
+	return sections
+}
+
+// checkBecame checks what an idea turned into, and that an idea whose
+// status is question names its question.
+func (rc *recordChecks) checkBecame(r *record) {
+	became := source.Child(r.root, "became")
+	if n := source.Child(became, "decision"); n != nil {
+		if v := source.Str(n); v != "" && rc.d.decisions[v] == nil {
+			r.c.add(n, "/became/decision", RuleRecordRef, "%s is not a decision of the specification%s", v, suggest(v, rc.d.decisions))
+		}
+	}
+	q := source.Child(became, "question")
+	if v := source.Str(q); q != nil && v != "" && rc.d.questions[v] == nil && !rc.d.answered(v) {
+		r.c.add(q, "/became/question", RuleRecordRef, "%s is not a question of the specification: it is not open under questions and no decision answers it", v)
+	}
+	if n := source.Child(became, "change"); n != nil {
+		rc.recordID(r, n, "/became/change", "change")
+	}
+	if n := source.Child(became, "defect"); n != nil {
+		rc.recordID(r, n, "/became/defect", "defect")
+	}
+	if r.str("status") == "question" && source.Str(q) == "" {
+		r.c.add(source.Child(r.root, "status"), "/status", RuleIdeaQuestion, "%s is a question but names none; add became with question and the ID of the open question it turned into", r.str("id"))
+	}
+}
+
+// answered reports whether a decision names the question under answers.
+func (d *design) answered(id string) bool {
+	for _, dec := range d.decisions {
+		for _, item := range source.Items(source.Child(dec, "answers")) {
+			if item.Value == id {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// checkIdeaDecision checks that a decided idea carries the decision.
+func (rc *recordChecks) checkIdeaDecision(r *record) {
+	id, status := r.str("id"), r.str("status")
+	if status != "accepted" && status != "rejected" {
+		return
+	}
+	decision := source.Child(r.root, "decision")
+	if decision == nil {
+		r.c.add(source.Child(r.root, "status"), "/status", RuleIdeaDecision, "%s is %s but has no decision; add decision with by, date, outcome %s and why", id, status, status)
+		return
+	}
+	if outcome := source.Child(decision, "outcome"); source.Str(outcome) != "" && source.Str(outcome) != status {
+		r.c.add(outcome, "/decision/outcome", RuleIdeaDecision, "%s is %s but its decision's outcome is %s; set the outcome to %s, or the status to %s", id, status, source.Str(outcome), status, source.Str(outcome))
 	}
 }

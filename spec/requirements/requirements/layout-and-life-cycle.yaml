@@ -121,3 +121,17 @@ requirements:
     verification: test
     needs: [NEED-7]
     why: The installed program is often all a person, a CI job or an agent has; a description built from the same definitions as the program cannot name a flag it lacks, a JSON form lets a program drive it without parsing text, and a dry run shows each file before any is written.
+  SA-101:
+    statement: The validator shall check, in both builds, the ideas kept beside a specification, one record each in records/ideas/, holding a proposal for the specification from a conversation, a table, an example, a document, code, a recording or a review, the element it is about, the text it proposes and its status as a person set it, against the record schema and the specification; and decision why and decision rests shall name, on each decision's line, the ideas that became it.
+    kind: functional
+    priority: must
+    status: proposed
+    acceptance:
+      - Ideas in every status, proposed, discussed, accepted, rejected and question, each naming only what the specification and its records have, validate with nothing printed and exit 0; an open idea may be about an element the specification does not have yet under one it has or under a section of the meta-model.
+      - An idea naming a role, a source, a requirement, a pointer, a decision, a question, a change or a defect that the specification or its records do not have is reported as record_ref at the key; an accepted or rejected idea's about is not checked; a question a decision answers is still a question an idea may name.
+      - An accepted idea without a decision whose outcome is accepted, or a rejected one without a decision whose outcome is rejected, is reported as idea_decision; an idea whose status is question naming no question under became is reported as idea_question.
+      - The Go build and the Swift build print the same lines on each case.
+      - decision why and decision rests print "from idea" and the IDs of the ideas whose became names the decision on that decision's line.
+    verification: test
+    needs: [NEED-5, NEED-10]
+    why: A proposal that is not yet part of the specification is lost when it is only said, and once it is in the text nobody can tell what was proposed, by which way it came in, and what was turned down and why; kept as a record it is checked like the other records, the person's decision on it is written down, and the decision it became can be traced back to it (ADR-196).

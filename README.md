@@ -90,7 +90,7 @@ expression language of checks and formulas. The language is defined by three
 JSON Schema 2020-12 documents, the meta-model, in `schema/`: one for the
 specification, one for implementation files and one for the records kept
 beside a specification (change requests, defects, releases, incidents,
-commissioning runs and approvals). The same schema gives editors
+commissioning runs, approvals and ideas). The same schema gives editors
 validation and completion through `yaml-language-server`: put this on the
 first line of a root file and most editors pick it up.
 

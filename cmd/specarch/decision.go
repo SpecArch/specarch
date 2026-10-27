@@ -9,6 +9,7 @@ import (
 	"go.yaml.in/yaml/v3"
 
 	"github.com/SpecArch/specarch/internal/source"
+	"github.com/SpecArch/specarch/internal/spec"
 )
 
 // runDecision prints, for "decision why", the chain of decisions a
@@ -92,13 +93,37 @@ func runDecision(args []string, stdout, stderr io.Writer) int {
 			fmt.Fprintf(stdout, "%d decisions rest on %s, nearest first\n", n, id)
 		}
 	}
+	ideas := ideasByDecision(l.spec.Records)
 	for _, d := range chain {
-		fmt.Fprintln(stdout, decisionLine(d, source.Child(decisions, d)))
+		line := decisionLine(d, source.Child(decisions, d))
+		if from := ideas[d]; len(from) > 0 {
+			line = strings.TrimSuffix(line, ")") + "; from idea " + strings.Join(from, ", ") + ")"
+		}
+		fmt.Fprintln(stdout, line)
 	}
 	if invalid {
 		return 1
 	}
 	return 0
+}
+
+// ideasByDecision maps each decision to the ideas in records/ideas/ that
+// became it, in the order of their files. A decision never names the idea
+// it came from, since the specification never points at its records, so
+// the link is read from the idea's became.
+func ideasByDecision(records []spec.Record) map[string][]string {
+	out := map[string][]string{}
+	for _, r := range records {
+		root := source.Parse(r.Data).Root
+		if source.Str(source.Child(root, "kind")) != "idea" {
+			continue
+		}
+		id := source.Str(source.Child(root, "id"))
+		if d := source.Str(source.Child(source.Child(root, "became"), "decision")); d != "" && id != "" {
+			out[d] = append(out[d], id)
+		}
+	}
+	return out
 }
 
 // restsOnChain is the chain a decision rests on: every decision reached

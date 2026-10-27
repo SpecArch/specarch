@@ -1,0 +1,12 @@
+specarchRecord: "1.0.0"
+kind: idea
+id: IDEA-1
+statement: Students may borrow seven books.
+raised: "2026-10-27"
+raisedBy: libarian
+inputMode: document
+cites:
+  - source: lending-rules
+    says: Students borrow seven books.
+about: CASE-2
+status: proposed

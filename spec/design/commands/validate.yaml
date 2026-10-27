@@ -46,7 +46,7 @@ commands:
         schema: { type: string }
     reads:
       - { path: "{paths}", description: "Root files, the files under their stage folders, and implementation files." }
-      - { path: "records/ beside each specification's folder", description: "The change, defect, release, incident, commissioning and approval records of that specification." }
+      - { path: "records/ beside each specification's folder", description: "The change, defect, release, incident, commissioning, approval and idea records of that specification." }
       - { path: "the specification named in each standalone implementation file's `implements`", description: Read to resolve that file's references. }
       - { path: "each estate's modules, at their location", description: "The specification of every module an estate lists, read with the estate." }
     standardOutput: "One line per diagnostic, `file:line:column: severity: /yaml/path: rule: message [id]`, sorted by file, then line, column, path, rule, message and id."
@@ -59,4 +59,4 @@ commands:
       "1": "Settle each error it prints at the file, line and path given, then run it again."
       "2": "Read the usage message or the reason on standard error, correct the command line or the path it names, and run it again."
     algorithm: exitStatus
-    satisfies: [SA-1, SA-2, SA-3, SA-4, SA-5, SA-6, SA-9, SA-10, SA-11, SA-12, SA-13, SA-17, SA-18, SA-21, SA-23, SA-24, SA-27, SA-29, SA-65, SA-66]
+    satisfies: [SA-1, SA-2, SA-3, SA-4, SA-5, SA-6, SA-9, SA-10, SA-11, SA-12, SA-13, SA-17, SA-18, SA-21, SA-23, SA-24, SA-27, SA-29, SA-65, SA-66, SA-101]

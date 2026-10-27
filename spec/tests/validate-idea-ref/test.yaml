@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "ideas naming a role, a source, a requirement, a pointer, a decision, a question, a change and a defect the specification and its records do not have, an accepted idea about a pointer that does not resolve, and an idea in a file not named by its ID"
+when: "validate is run"
+then: "it reports record_ref for each name of an open idea and of what an idea became, nothing for the accepted idea's about, record_name for the file, and exits 1"
+verifies: [SA-101]

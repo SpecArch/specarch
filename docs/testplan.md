@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 1.3.0 of the specification: 821 design tests, 401 golden and 420 red, about 25 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 1.3.0 of the specification: 823 design tests, 401 golden and 422 red, about 25 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -15,7 +15,7 @@ Version 1.3.0 of the specification: 821 design tests, 401 golden and 420 red, ab
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 817 |
+| system | 819 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -2102,6 +2102,14 @@ Scenario: red; level: system; covers usage error, exit 2.
 - Given: no source
 - When: extract is run without arguments
 - Then: it prints how to use it and exits 2
+
+#### extract-workflows-asks-unread-end
+
+Scenario: red; level: system; verifies SA-103.
+
+- Given: a repository holding a hand-written loan.bpmn whose decision check ends the request at an end event named Rejected when overdueCount > 2, and otherwise at one named Approved
+- When: extract workflows is run on the file
+- Then: it reads the otherwise branch as ending approved, writes the Rejected branch with no end, asks how a request ends at end-rejected in a question that blocks that branch, says so in a not-held line naming the end event, and exits 0
 
 #### extract-workflows-not-bpmn
 
@@ -6566,6 +6574,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-103.
 - Given: a workflow whose task names a role that does not grant its permission and one that is not a role and escalates to an approval, whose decision has otherwise first, a branch back to an earlier step, a condition naming no field, one that gives a number and a last branch with a condition, whose operation step is undone by no operation and another's failure goes back, and whose waits name no message, wait for a field that may be null, a date with no timeZone, a number, and for both a duration and a message
 - When: validate is run
 - Then: it reports each as workflow, expression_name, expression_type, time_zone or schema at the key, the same in both builds, and exits 1
+
+#### validate-workflow-undo-skipped-step
+
+Scenario: red; level: system; verifies SA-103.
+
+- Given: a workflow whose decision route goes on at hold for a large refund and otherwise at pay, skipping hold, where hold is undone by releaseFunds and pay ends the request failed when it fails
+- When: validate is run
+- Then: it names the case of pay failing as ending failed, with releaseFunds undoing hold if hold ran, since compensation undoes only a step that ran; and exits 1
 
 #### validate-workflow-valid
 

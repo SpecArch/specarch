@@ -48,7 +48,9 @@ decisions:
       expression_type, time_zone), in both builds; the derived cases add a
       case per branch, the deadline at a task and at a wait for a message,
       a task done without its permission, and each failure with
-      onFailure, critical, the compensation named where the request ends.
+      onFailure, critical, the compensation named where the request ends,
+      a step an earlier branch, failure or escalation can jump over being
+      undone "if it ran".
 
       generate bpmn writes a decision as an exclusive gateway whose flows
       carry the condition in a conditionExpression with the language
@@ -57,7 +59,8 @@ decisions:
       a timer duration or a timer date; a failure as an error boundary
       event; compensatedBy as a compensation boundary event associated
       with a service task marked isForCompensation. extract workflows
-      reads each back. The retry limit and the permission a task checks
+      reads each back, an end event by its name or id: refused, failed,
+      or done or approved; any other end is asked for. The retry limit and the permission a task checks
       have no element in BPMN and stay in the specification only.
     consequences: |
       A workflow with only approvals and operation steps is unchanged in

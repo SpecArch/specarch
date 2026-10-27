@@ -259,6 +259,7 @@ extension Design {
             case "decision":
                 for br in items(st.child("branches")) {
                     let target = str(br.child("to"))
+                    if target.isEmpty && str(br.child("end")).isEmpty { continue } // a question holds where the branch goes open
                     var name = step + " goes on at " + target, then = "the request goes on at " + target
                     let end = str(br.child("end"))
                     if !end.isEmpty { name = step + " ends " + end; then = ended(end) }
@@ -289,13 +290,32 @@ extension Design {
 
     /// What a request that ends after the steps done says of their
     /// compensation: each operation step with compensatedBy, the latest
-    /// first.
+    /// first. Compensation undoes only a step that ran, so a step an
+    /// earlier branch, failure or escalation can jump over is undone "if it
+    /// ran".
     func undone(_ done: [YNode]) -> String {
-        let calls = done.reversed().compactMap { st -> String? in
+        let calls = done.indices.reversed().compactMap { j -> String? in
+            let st = done[j]
             let comp = str(st.child("compensatedBy"))
-            return comp.isEmpty || str(st.child("kind")) != "operation" ? nil : comp + " undoes " + str(st.child("name"))
+            if comp.isEmpty || str(st.child("kind")) != "operation" { return nil }
+            let name = str(st.child("name"))
+            return comp + " undoes " + name + (skippable(done, j) ? " if " + name + " ran" : "")
         }
         return calls.isEmpty ? "" : ", and " + calls.joined(separator: ", then ")
+    }
+
+    /// Whether a step before done[j] jumps past it: a decision's branch, an
+    /// operation's onFailure or an escalation to a step after it.
+    func skippable(_ done: [YNode], _ j: Int) -> Bool {
+        for st in done[..<j] {
+            var targets = [str(st.child("escalateTo")), str(st.child("onFailure")?.child("to"))]
+            targets += items(st.child("branches")).map { str($0.child("to")) }
+            for t in targets where !t.isEmpty {
+                guard let at = done.firstIndex(where: { str($0.child("name")) == t }) else { return true }
+                if at > j { return true }
+            }
+        }
+        return false
     }
 
     /// The permission an approval checks, or what names it while a

@@ -655,8 +655,13 @@ func (wr *workflowReader) process(p *xmlElement) {
 				switch to, end, ok := target(i, f); {
 				case ok && to != "":
 					set(br, "to", to)
-				case ok:
+				case ok && end != "":
 					set(br, "end", end)
+				case ok:
+					t := byID[f.attr("targetRef")]
+					wr.gap(t, bptr, "end event %s (%q) of decision %s's sequence flow %s says neither done or approved, refused nor failed; asked for instead", t.attr("id"), t.attr("name"), s.el.attr("id"), f.attr("id"))
+					wr.question(fmt.Sprintf("How does a request end at end event %s (%q), where decision %s of workflow %s goes by sequence flow %s: approved, refused or failed?", t.attr("id"), t.attr("name"), s.name, name, f.attr("id")),
+						[]string{bptr}, "", "An end event's name or id says done or approved, refused or failed; this one says none of them.")
 				default:
 					wr.gap(f, bptr, "sequence flow %s of decision %s goes to %s, which is neither a later step nor an end; asked for instead", f.attr("id"), s.el.attr("id"), f.attr("targetRef"))
 					wr.question(fmt.Sprintf("Where does decision %s of workflow %s go on by sequence flow %s?", s.name, name, f.attr("id")),
@@ -939,7 +944,8 @@ func (wr *workflowReader) deadline(ptr string, timer *xmlElement, later []bpmnSt
 }
 
 // endOf is how an end event ends the request, by its name or id as
-// generate bpmn writes them: refused, failed, or approved.
+// generate bpmn writes them: refused, failed, or approved; "" when neither
+// says, since an end named Rejected or Cancelled is not approved.
 func endOf(e *xmlElement) string {
 	for _, w := range []string{strings.ToLower(e.attr("name")), strings.ToLower(e.attr("id"))} {
 		switch {
@@ -949,7 +955,13 @@ func endOf(e *xmlElement) string {
 			return "failed"
 		}
 	}
-	return "approved"
+	for _, w := range []string{strings.ToLower(strings.TrimSpace(e.attr("name"))), strings.ToLower(e.attr("id"))} {
+		switch w {
+		case "done", "approved", "end-done", "end-approved":
+			return "approved"
+		}
+	}
+	return ""
 }
 
 // wait reads what a wait step waits for: a receive task's or a message

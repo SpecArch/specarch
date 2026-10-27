@@ -1,0 +1,14 @@
+workflows:
+  # specarch-problem: warning: test_case_missing: workflow loan has no red scenario for "check ends approved"; add under tests loan-check-ends-approved: { workflow: loan, scenario: red, covers: [check ends approved], given: "a request reaching check for which no other branch holds", when: "the decision is taken", then: "the request ends approved" } [test_case_missing@design/workflows.yaml#/workflows/loan]
+  # specarch-problem: warning: test_golden_missing: workflow loan has no golden scenario; add one under tests, for example loan-succeeds: { workflow: loan, scenario: golden, given: "any caller", when: "a request is made through its trigger", then: "it answers 202, and the request ends approved" } [test_golden_missing@design/workflows.yaml#/workflows/loan]
+  loan:
+    steps:
+      - name: check
+        kind: decision
+        branches:
+          - when: overdueCount > 2
+          - otherwise: true
+            end: approved
+    origin: stated
+    cites:
+      - {source: code, clause: workflows/loan.bpmn, says: 'Line 3: Process loan defines the workflow, with the task step-check.'}

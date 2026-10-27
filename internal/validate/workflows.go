@@ -314,6 +314,9 @@ func (d *design) workflowSubject(p source.Pair) *subject {
 			branches := source.Items(source.Child(st, "branches"))
 			for _, br := range branches {
 				target := source.Str(source.Child(br, "to"))
+				if target == "" && source.Str(source.Child(br, "end")) == "" {
+					continue // a question holds where the branch goes open
+				}
 				name, then := step+" goes on at "+target, "the request goes on at "+target
 				if end := source.Str(source.Child(br, "end")); end != "" {
 					name, then = step+" ends "+end, ended(end)
@@ -365,18 +368,47 @@ func messageOf(st *yaml.Node) string {
 
 // undone is what a request that ends after the steps done says of their
 // compensation: each operation step with compensatedBy, the latest first.
+// Compensation undoes only a step that ran, so a step an earlier branch,
+// failure or escalation can jump over is undone "if it ran".
 func undone(done []*yaml.Node) string {
 	var calls []string
 	for i := len(done) - 1; i >= 0; i-- {
 		st := done[i]
 		if comp := source.Str(source.Child(st, "compensatedBy")); comp != "" && source.Str(source.Child(st, "kind")) == "operation" {
-			calls = append(calls, comp+" undoes "+source.Str(source.Child(st, "name")))
+			name := source.Str(source.Child(st, "name"))
+			call := comp + " undoes " + name
+			if skippable(done, i) {
+				call += " if " + name + " ran"
+			}
+			calls = append(calls, call)
 		}
 	}
 	if len(calls) == 0 {
 		return ""
 	}
 	return ", and " + strings.Join(calls, ", then ")
+}
+
+// skippable says whether a step before done[j] jumps past it: a decision's
+// branch, an operation's onFailure or an escalation to a step after it.
+func skippable(done []*yaml.Node, j int) bool {
+	for k := 0; k < j; k++ {
+		st := done[k]
+		targets := []string{source.Str(source.Child(st, "escalateTo")), source.Str(source.Child(source.Child(st, "onFailure"), "to"))}
+		for _, br := range source.Items(source.Child(st, "branches")) {
+			targets = append(targets, source.Str(source.Child(br, "to")))
+		}
+		for _, t := range targets {
+			if t == "" {
+				continue
+			}
+			at := slices.IndexFunc(done, func(n *yaml.Node) bool { return source.Str(source.Child(n, "name")) == t })
+			if at < 0 || at > j {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 // stepPermission is the permission an approval checks, or what names it

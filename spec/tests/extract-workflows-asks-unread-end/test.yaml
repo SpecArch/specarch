@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: extract
+level: system
+scenario: red
+given: "a repository holding a hand-written loan.bpmn whose decision check ends the request at an end event named Rejected when overdueCount > 2, and otherwise at one named Approved"
+when: "extract workflows is run on the file"
+then: "it reads the otherwise branch as ending approved, writes the Rejected branch with no end, asks how a request ends at end-rejected in a question that blocks that branch, says so in a not-held line naming the end event, and exits 0"
+verifies: [SA-103]

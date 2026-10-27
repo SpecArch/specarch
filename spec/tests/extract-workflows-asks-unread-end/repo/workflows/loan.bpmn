@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="definitions-loan" targetNamespace="urn:example:loan">
+  <process id="process" name="loan" isExecutable="false">
+    <startEvent id="start"/>
+    <exclusiveGateway id="step-check" name="check" default="flow-3"/>
+    <endEvent id="end-rejected" name="Rejected"/>
+    <endEvent id="end-approved" name="Approved"/>
+    <sequenceFlow id="flow-1" sourceRef="start" targetRef="step-check"/>
+    <sequenceFlow id="flow-2" sourceRef="step-check" targetRef="end-rejected">
+      <conditionExpression xsi:type="tFormalExpression" language="urn:specarch:expression">overdueCount &gt; 2</conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="flow-3" sourceRef="step-check" targetRef="end-approved"/>
+  </process>
+</definitions>

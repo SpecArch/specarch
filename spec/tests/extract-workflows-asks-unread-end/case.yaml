@@ -1,0 +1,13 @@
+arguments: [extract, workflows, --out, spec, repo/workflows/loan.bpmn]
+repository:
+  folder: repo
+  commits:
+    - [workflows]
+exitStatus: 0
+standardOutput: |
+  commit c69bffc17aae4041af65008571eb6d8a7bf61860: the last change to workflows/loan.bpmn
+  counted 1 process, 0 user tasks, 0 service tasks and 0 boundary events: the BPMN elements process, userTask, serviceTask and boundaryEvent in workflows/loan.bpmn, each once
+  wrote 1 workflow, 0 roles and 4 questions: one workflow per process, one role per potential owner, and one question per thing the file does not say or the subset does not hold
+  not held: workflows/loan.bpmn:6: end event end-rejected ("Rejected") of decision step-check's sequence flow flow-2 says neither done or approved, refused nor failed; asked for instead; must question Q-4
+  derived 0 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers
+  not derived: 2 draft tests for workflow loan, held up by Q-1, Q-2, Q-3, Q-4; the validator warns for them until the questions are answered

@@ -131,7 +131,7 @@ Version 1.3.0 of the specification: 10 needs, 103 requirements, and 2 gaps. Each
 | SA-100 | NEED-1, NEED-10 | commands try; decisions ADR-195 | tests try-example-fails; tests try-example-others-fail; tests try-exit-2; tests try-file; tests try-file-problem; tests try-file-unrounded; tests try-inputs; tests try-inputs-unread; tests try-json; tests try-short-circuit; tests try-succeeds; tests try-unknown-algorithm; tests try-usage-error; tests try-values; tests try-values-double; tests try-values-duration |
 | SA-101 | NEED-5, NEED-10 | commands decision why; commands decision rests; commands validate; decisions ADR-196 | tests decision-rests-ideas-json; tests decision-why-ideas; tests validate-idea-decision; tests validate-idea-question; tests validate-idea-ref; tests validate-ideas-valid |
 | SA-102 | NEED-1, NEED-10 | commands generate; commands validate; decisions ADR-197 | tests generate-ui-navigation; tests generate-ui-navigation-no-session; tests generate-ui-swiftui-navigation; tests generate-ui-typescript-navigation; tests validate-field-modes; tests validate-navigation; tests validate-navigation-valid; tests validate-signed-in |
-| SA-103 | NEED-1, NEED-5 | decisions ADR-198 | tests extract-workflows-reads-step-kinds; tests generate-bpmn-step-kinds; tests validate-workflow-step-kinds; tests validate-workflow-step-kinds-refused |
+| SA-103 | NEED-1, NEED-5 | decisions ADR-198 | tests extract-workflows-asks-unread-end; tests extract-workflows-reads-step-kinds; tests generate-bpmn-step-kinds; tests validate-workflow-step-kinds; tests validate-workflow-step-kinds-refused; tests validate-workflow-undo-skipped-step |
 
 ## 3. Gaps
 

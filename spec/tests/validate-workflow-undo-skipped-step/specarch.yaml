@@ -1,0 +1,54 @@
+specarch: "1.0.0"
+info: { title: Case, version: 1.0.0 }
+requirements:
+  CASE-1: { statement: One., kind: functional, priority: must, status: accepted, acceptance: [One.] }
+entities:
+  Refund:
+    type: object
+    properties:
+      id: { type: string, format: uuid }
+      amountCents: { type: integer, format: int32 }
+    required: [id, amountCents]
+    primaryKey: [id]
+    satisfies: [CASE-1]
+workflows:
+  refund:
+    description: A large refund holds the funds before it is paid; a small one is paid at once.
+    trigger: askRefund
+    subject: Refund
+    steps:
+      - name: route
+        kind: decision
+        branches:
+          - { when: "amountCents > 10000", to: hold }
+          - { otherwise: true, to: pay }
+      - name: hold
+        kind: operation
+        operation: holdFunds
+        compensatedBy: releaseFunds
+      - name: pay
+        kind: operation
+        operation: payRefund
+        onFailure: { end: failed }
+    satisfies: [CASE-1]
+paths:
+  /refunds:
+    post:
+      operationId: askRefund
+      summary: Ask for a refund
+      permission: refunds.ask
+      responses:
+        "202": { description: The request waits. }
+      satisfies: [CASE-1]
+  /refunds/hold:
+    post: { operationId: holdFunds, summary: Hold the funds, permission: refunds.pay, responses: { "200": { description: Held. } }, satisfies: [CASE-1] }
+  /refunds/release:
+    post: { operationId: releaseFunds, summary: Release the funds, permission: refunds.pay, responses: { "200": { description: Released. } }, satisfies: [CASE-1] }
+  /refunds/pay:
+    post: { operationId: payRefund, summary: Pay the refund, permission: refunds.pay, responses: { "200": { description: Paid. } }, satisfies: [CASE-1] }
+permissions:
+  refunds.ask: { description: Ask for a refund. }
+  refunds.pay: { description: Pay a refund. }
+roles:
+  desk: { description: The desk., permissions: [refunds.ask] }
+  payments: { description: The payment service., permissions: [refunds.pay] }
